@@ -1,0 +1,49 @@
+{
+  "name": "partymatch-server",
+  "version": "1.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "test": "vitest run",
+    "postinstall": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "db:seed": "node prisma/seed.js",
+    "db:clear": "node prisma/clearProd.js",
+    "db:clear-data": "node prisma/clearData.js",
+    "db:clear-data:prod": "DOTENV_CONFIG_PATH=.env.production node prisma/clearData.js",
+    "db:encrypt-credentials": "node prisma/encryptSharedCredentials.js",
+    "db:encrypt-credentials:prod": "DOTENV_CONFIG_PATH=.env.production node prisma/encryptSharedCredentials.js",
+    "db:extract-r2-keys": "node prisma/extractR2Keys.js",
+    "db:extract-r2-keys:prod": "DOTENV_CONFIG_PATH=.env.production node prisma/extractR2Keys.js",
+    "admin:set": "node prisma/manageAdmin.js",
+    "admin:set:prod": "DOTENV_CONFIG_PATH=.env.production node prisma/manageAdmin.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1095.0",
+    "@aws-sdk/s3-request-presigner": "^3.1108.0",
+    "@prisma/client": "^6.19.3",
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^16.5.0",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.6.2",
+    "helmet": "^8.2.0",
+    "ioredis": "^5.11.1",
+    "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.11.0",
+    "multer": "^2.2.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "prisma": "^6.19.3",
+    "supertest": "^7.2.2",
+    "vitest": "^4.1.10"
+  }
+}
