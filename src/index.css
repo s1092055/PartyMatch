@@ -1,0 +1,470 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant can-hover (@media (hover: hover) and (pointer: fine));
+@custom-variant no-hover (@media (hover: none), (pointer: coarse));
+
+@theme {
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+
+  --font-sans: "Noto Sans TC", "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  --color-brand:           #023047;
+  --color-brand-hover:     #03456a;
+  --color-brand-subtle:    #eaf2f7;
+  --color-brand-muted:     #c3dbe8;
+  --color-brand-border:    #7ab3ca;
+  --color-brand-strong:    #011e2d;
+
+  --color-canvas:          #FFFFFF;
+  --color-surface:         #FFFFFF;
+  --color-raised:          #F3F7FE;
+  --color-raised-2:        #EAF1FB;
+
+  --color-line:            #DCE6F5;
+  --color-line-subtle:     #EDF3FB;
+  --color-line-strong:     #C7D6EA;
+
+  --color-ink:             #081226;
+  --color-ink-2:           #36455F;
+  --color-ink-3:           #4A5872;
+  --color-ink-4:           #566080;
+
+  --color-slate-50:        #F7FAFF;
+  --color-slate-100:       #EEF3FA;
+  --color-slate-200:       #DCE6F5;
+  --color-slate-300:       #C7D6EA;
+  --color-slate-400:       #667284;
+  --color-slate-500:       #5E6E86;
+  --color-slate-600:       #40506A;
+  --color-slate-700:       #25324A;
+  --color-slate-800:       #101B31;
+  --color-slate-900:       #081226;
+
+  --color-success:         #10B26C;
+  --color-success-subtle:  #ECFDF5;
+  --color-success-text:    #08764A;
+
+  --color-warning:         #F59A0B;
+  --color-warning-subtle:  #FFFBEB;
+  --color-warning-text:    #92400E;
+
+  --color-danger:          #EF4444;
+  --color-danger-subtle:   #FEF2F2;
+  --color-danger-text:     #991B1B;
+
+  --color-info:            #3B82F6;
+  --color-info-subtle:     #EFF6FF;
+  --color-info-text:       #1E40AF;
+
+  --color-purple:        #7C3AED;
+  --color-purple-subtle: #F5F3FF;
+  --color-purple-text:   #5B21B6;
+  --color-purple-border: #DDD6FE;
+
+  --color-teal:          #14B8A6;
+  --color-teal-subtle:   #F0FDFA;
+  --color-teal-text:     #0F766E;
+  --color-teal-border:   #99F6E4;
+
+  --color-background:            var(--color-canvas);
+  --color-foreground:            var(--color-ink);
+  --color-primary:                var(--color-brand);
+  --color-primary-foreground:     #fff;
+  --color-secondary:              var(--color-raised);
+  --color-secondary-foreground:   var(--color-ink-2);
+  --color-muted:                  var(--color-raised-2);
+  --color-muted-foreground:       var(--color-ink-3);
+  --color-accent:                 var(--color-brand-subtle);
+  --color-accent-foreground:      var(--color-brand);
+  --color-destructive:            var(--color-danger);
+  --color-destructive-foreground: #fff;
+  --color-card:                   var(--color-surface);
+  --color-card-foreground:        var(--color-ink);
+  --color-popover:                var(--color-surface);
+  --color-popover-foreground:     var(--color-ink);
+  --color-border:                 var(--color-line);
+  --color-input:                  var(--color-line-strong);
+  --color-ring:                   var(--color-brand-border);
+
+  --radius-sm: var(--radius-control);
+  --radius-md: var(--radius-control);
+
+  --radius-card:    1.75rem;
+  --radius-inner:   0.75rem;
+  --radius-control: 0.75rem;
+  --radius-badge:   9999px;
+  --radius-lg:      0.75rem;
+  --radius-2xl:     1.25rem;
+
+  --text-2xs:       0.75rem;
+  --text-2xs--line-height: 1.4;
+  --text-xs:        0.8125rem;
+  --text-xs--line-height: 1.45;
+  --text-sm:        0.875rem;
+  --text-sm--line-height: 1.55;
+  --text-base:      0.9375rem;
+  --text-base--line-height: 1.65;
+  --text-lg:        1.0625rem;
+  --text-lg--line-height: 1.55;
+  --text-xl:        1.375rem;
+  --text-xl--line-height: 1.35;
+  --text-2xl:       1.75rem;
+  --text-2xl--line-height: 1.25;
+  --text-3xl:       2.25rem;
+  --text-3xl--line-height: 1.18;
+  --text-4xl:       2.75rem;
+  --text-4xl--line-height: 1.08;
+
+  --shadow-card:
+    0 12px 30px -24px rgb(20 44 91 / 0.58),
+    0 2px 10px -8px rgb(20 44 91 / 0.22);
+
+  --shadow-card-hover:
+    0 18px 40px -24px rgb(20 44 91 / 0.64),
+    0 8px 20px -14px rgb(20 44 91 / 0.26);
+
+  --shadow-popover:
+    0 20px 56px -24px rgb(20 44 91 / 0.45),
+    0 8px 24px -14px rgb(20 44 91 / 0.22);
+
+  --shadow-button:
+    0 12px 20px -14px rgb(8 102 242 / 0.75);
+
+  --shadow-floating:
+    0 16px 40px -24px rgb(20 44 91 / 0.45);
+
+  --shadow-success:
+    0 10px 18px -12px rgb(16 178 108 / 0.75);
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  :root.dark {
+    color-scheme: dark;
+
+    --color-canvas:          #0A121C;
+    --color-surface:         #111B29;
+    --color-raised:          #16212F;
+    --color-raised-2:        #1C2836;
+
+    --color-line:            #34455A;
+    --color-line-subtle:     #19212C;
+    --color-line-strong:     #4A5F78;
+
+    --color-ink:             #E9EEF5;
+    --color-ink-2:           #B8C4D2;
+    --color-ink-3:           #99A7BC;
+    --color-ink-4:           #8D9DB5;
+
+    --color-slate-50:        #0A121C;
+    --color-slate-100:       #111B29;
+    --color-slate-200:       #19212C;
+    --color-slate-300:       #24303F;
+    --color-slate-400:       #7A8CA2;
+    --color-slate-500:       #8695A6;
+    --color-slate-600:       #B8C4D2;
+    --color-slate-700:       #D3DBE6;
+    --color-slate-800:       #E9EEF5;
+    --color-slate-900:       #F7FAFF;
+
+    --color-brand:           #238EC7;
+    --color-brand-hover:     #3AA2DA;
+    --color-brand-subtle:    #142834;
+    --color-brand-muted:     #1C4154;
+    --color-brand-border:    #316581;
+    --color-brand-strong:    #EAF6FF;
+
+    --color-success-subtle:  #0E2A20;
+    --color-success-text:    #4ADE9A;
+
+    --color-warning-subtle:  #2E2308;
+    --color-warning-text:    #FBBF54;
+
+    --color-danger-subtle:   #2E1212;
+    --color-danger-text:     #FCA5A5;
+
+    --color-info-subtle:     #14213D;
+    --color-info-text:       #93C5FD;
+
+    --color-purple-subtle:   #241640;
+    --color-purple-text:     #C4B5FD;
+    --color-purple-border:   #4A3A73;
+
+    --color-teal-subtle:     #0F2E2A;
+    --color-teal-text:       #5EEAD4;
+    --color-teal-border:     #1F4D48;
+  }
+
+  html {
+    font-family: var(--font-sans);
+    font-size: clamp(15px, 14.17px + 0.221vw, 17px);
+    overflow-y: scroll;
+    scrollbar-gutter: stable;
+  }
+
+  /* 捲軸常駐顯示，不需要 react-remove-scroll-bar 補的 margin-right，蓋掉避免內容偏移 */
+  html body[data-scroll-locked] {
+    margin-right: 0 !important;
+  }
+
+  /* 真正的捲動容器是 html 不是 body，react-remove-scroll 只鎖 body 沒用，這裡補鎖 html */
+  html:has(body[data-scroll-locked]) {
+    overflow: hidden;
+  }
+
+  @media (max-width: 767px) {
+    input, select, textarea { font-size: 16px !important; }
+  }
+
+  /* 覆蓋瀏覽器對 Radix 等自訂元件不準的 :focus-visible 判斷：滑鼠不顯示、鍵盤才顯示 */
+  html.using-mouse *:focus,
+  html.using-mouse *:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  button:active {
+    transform: none !important;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  button, input, select, textarea { font: inherit; }
+
+  button:not(:disabled),
+  a,
+  select,
+  [role="button"]:not([aria-disabled="true"]),
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="range"],
+  input[type="file"],
+  label:has(input, select, textarea),
+  label[for] { cursor: pointer; }
+
+  ::selection {
+    background: var(--color-brand-muted);
+    color: var(--color-brand-strong);
+  }
+
+  a {
+    color: var(--color-brand);
+    text-decoration: none;
+  }
+
+  a:hover { color: var(--color-brand-hover); }
+
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    transition: transform 0.15s ease;
+  }
+
+  [role="button"]:not([aria-disabled="true"]):hover {
+    transform: translateY(-2px);
+  }
+
+  button:not(:disabled):active,
+  [role="button"]:not([aria-disabled="true"]):active {
+    transform: scale(0.96);
+  }
+}
+
+/* sonner 只置中容器本身，容器內的 toast 要另外手動置中；不能用 translateX(-50%)，
+   會跟進出場動畫的 transform 打架 */
+[data-sonner-toast] {
+  left: 0 !important;
+  right: 0 !important;
+  margin-inline: auto !important;
+  width: fit-content !important;
+  max-width: min(24rem, calc(100vw - 2rem)) !important;
+}
+
+@media (max-width: 1279px) {
+  [data-sonner-toaster] {
+    --offset-top: 4.5rem !important;
+  }
+}
+
+@media (min-width: 1280px) {
+  [data-sonner-toaster][data-x-position='center'] {
+    left: calc(50% + 3rem) !important;
+  }
+}
+
+@layer components {
+  .card-lift {
+    box-shadow: none;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+    transform-origin: top;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .card-lift {
+      transition: transform 0.2s ease;
+    }
+    .card-lift:hover {
+      transform: translateZ(0) scale(1.02);
+    }
+  }
+
+  .page-title {
+    color: var(--color-ink);
+    font-size: var(--text-2xl);
+    line-height: var(--text-2xl--line-height);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+
+  .page-subtitle {
+    color: var(--color-ink-2);
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+  }
+}
+
+@keyframes bubble-float {
+  0%   { transform: translate(0, 0); opacity: 0; }
+  15%  { opacity: 0.9; }
+  50%  { transform: translate(calc(var(--bubble-drift) * 0.6), calc(var(--bubble-float) * 0.55)); }
+  85%  { opacity: 0.9; }
+  100% { transform: translate(var(--bubble-drift), var(--bubble-float)); opacity: 0; }
+}
+
+@keyframes logoBounce {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-12px); }
+}
+
+.animate-logo-bounce {
+  animation: logoBounce 1.6s ease-in-out infinite;
+}
+
+@keyframes typewriter {
+  from { width: 0; }
+  to   { width: var(--typewriter-width, 10ch); }
+}
+
+@keyframes typewriterCaret {
+  50% { border-color: transparent; }
+}
+
+.animate-typewriter {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  vertical-align: bottom;
+  border-right: 2px solid var(--color-brand);
+  /* 用量測出的實際 px 寬度（--typewriter-width）而非 max-content：Safari 不支援
+     interpolate-size，動畫會直接失效變成瞬間跳到最終寬度 */
+  animation:
+    typewriter 3.5s steps(10, end) forwards,
+    typewriterCaret 0.75s step-end infinite;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s ease-out both;
+  animation-delay: 1ms;
+  will-change: opacity;
+  backface-visibility: hidden;
+}
+
+@keyframes stepSlideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-step-slide-up {
+  animation: stepSlideUp 0.35s cubic-bezier(0.25, 0.1, 0.25, 1) both;
+  will-change: opacity, transform;
+  backface-visibility: hidden;
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes backdropIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.animate-modal-in {
+  animation: modalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: opacity, transform;
+  backface-visibility: hidden;
+}
+
+.animate-backdrop-in {
+  animation: backdropIn 0.25s ease-out both;
+}
+
+@keyframes collapsibleDown {
+  from { height: 0; }
+  to   { height: var(--radix-collapsible-content-height); }
+}
+
+@keyframes collapsibleUp {
+  from { height: var(--radix-collapsible-content-height); }
+  to   { height: 0; }
+}
+
+.animate-collapsible-down {
+  animation: collapsibleDown 0.2s ease-out;
+}
+
+.animate-collapsible-up {
+  animation: collapsibleUp 0.2s ease-out;
+}
+
+@keyframes selectContentIn {
+  from { opacity: 0; transform: scale(0.96) translateY(-4px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.animate-select-in {
+  animation: selectContentIn 0.15s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: opacity, transform;
+  backface-visibility: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* 真桌機時 DesktopSidebar 佔走左側 ml-20(5rem)／右側留白 mr-24(6rem)，
+   可視內容中心比整個視窗中心偏左 0.5rem，top-center 的 Toaster 要跟著補償，
+   才會跟下方置中的 Modal 對齊在同一個視覺中心（同一套模式見 ScrollCue.jsx）。 */
+@media (hover: hover) and (pointer: fine) and (min-width: 1024px) {
+  [data-sonner-toaster][data-x-position="center"] {
+    /* sonner 套件本身的樣式是掛載時才用 JS 插入 <style>，一定排在這份 index.css 之後，
+       同樣的 specificity 會讓它蓋掉這裡的覆寫，必須加 !important 才能真的生效 */
+    left: calc(50% - 0.5rem) !important;
+  }
+}

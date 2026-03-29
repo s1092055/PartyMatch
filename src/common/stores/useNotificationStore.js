@@ -1,0 +1,261 @@
+import { create } from 'zustand'
+import {
+  readAllNotifications,
+  patchNotification,
+  markAllNotificationsRead,
+} from '../api/notificationsApi'
+import { useAuthStore } from './useAuthStore'
+import { todayISO, byNewest } from '../utils/date'
+import { startPolling } from '../utils/poller'
+import { notifyError, dismissToast } from '../utils/toast'
+import { getNotificationToastId } from '../utils/notificationToast'
+
+const POLL_INTERVAL_MS = 5000
+
+let _stopPolling = null
+let _notifUserId = null;
+
+let _awaySinceLastPoll = false;
+if (typeof window !== 'undefined') {
+  window.addEventListener('offline', () => { _awaySinceLastPoll = true })
+  window.addEventListener('blur', () => { _awaySinceLastPoll = true })
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) _awaySinceLastPoll = true
+  })
+}
+
+function isAway() {
+  return document.hidden || !document.hasFocus()
+}
+
+const SYSTEM_NOTIFICATION_TYPES = new Set(['system']);
+
+const NOTIFICATION_REFRESH_STORES = {
+  member_removed:          ['group', 'member', 'subscription'],
+  member_left:              ['group', 'member'],
+  group_cancelled:          ['group'],
+  application_approved:     ['group', 'member', 'subscription', 'application'],
+  application_rejected:     ['application'],
+  all_service_info_filled:  ['group', 'member'],
+  group_activated:          ['group', 'member'],
+  billing_date_confirmed:   ['group', 'member'],
+  billing_date_adjusted:    ['group', 'member'],
+  group_full_member:        ['group', 'member'],
+  escrow_released_member:   ['group', 'member'],
+  new_application:          ['application'],
+  application_cancelled:    ['application'],
+  application_sent:         ['application'],
+  group_full:                ['group'],
+  group_activation_expired:  ['group', 'member'],
+};
+
+const NOTIFICATION_REFRESH_PAGE = {
+  member_removed: '/my-subscriptions',
+  member_left: '/manage-groups',
+  group_cancelled: '/my-subscriptions',
+  application_approved: '/my-subscriptions',
+  application_rejected: '/my-subscriptions',
+  all_service_info_filled: '/manage-groups',
+  billing_date_confirmed: '/my-subscriptions',
+  billing_date_adjusted:    '/my-subscriptions',
+  group_full_member: '/my-subscriptions',
+  escrow_released_member: '/my-subscriptions',
+  new_application: '/manage-groups',
+  application_cancelled: '/manage-groups',
+  application_sent: '/my-subscriptions',
+  group_full: '/manage-groups',
+  group_activation_expired: '/manage-groups',
+};
+
+const SILENT_REFRESH_TYPES = new Set(['application_sent']);
+
+function dedupeById(list) {
+  const seen = new Set()
+  return list.filter(n => {
+    if (seen.has(n.id)) return false
+    seen.add(n.id)
+    return true
+  })
+}
+
+function getFallbackSystemNotifications() {
+  return [
+    {
+      id:        'system_guest_welcome',
+      userId:    'system',
+      type:      'system',
+      title:     '歡迎來到 PartyMatch',
+      message:   '你可以先探索群組與使用條件搜尋；登入後即可收藏、訂閱、建立與管理群組。',
+      isRead:    true,
+      createdAt: todayISO(),
+      isPublic:  true,
+    },
+  ]
+}
+
+export function isSystemNotification(notification) {
+  return (
+    SYSTEM_NOTIFICATION_TYPES.has(notification.type) ||
+    notification.isPublic === true ||
+    !notification.userId
+  )
+}
+
+function isPublicSystemNotification(notification) {
+  const isPublic = notification.isPublic === true || !notification.userId
+  return isPublic && isSystemNotification(notification)
+}
+
+export const useNotificationStore = create((set, get) => ({
+  notifications: [],
+  loading:       false,
+  error:         null,
+
+  init: async () => {
+    set({ loading: true, error: null })
+    try {
+      const notifications = await readAllNotifications()
+      set({ notifications: dedupeById(notifications), loading: false })
+    } catch (err) {
+      set({ error: err.message, loading: false })
+    }
+  },
+
+  startPolling: (userId) => {
+    if (_stopPolling) _stopPolling()
+    _notifUserId = userId;
+
+    let hadRecentError = false;
+
+    _stopPolling = startPolling(async (isActive) => {
+      if (!_notifUserId) return
+      const polledForUserId = _notifUserId
+      const isCatchUp = _awaySinceLastPoll || hadRecentError || isAway()
+      try {
+        const latest = await readAllNotifications()
+        hadRecentError = false;
+        if (!isAway())
+          _awaySinceLastPoll = false;
+        if (!isActive() || _notifUserId !== polledForUserId)
+          return;
+        const currentIds = new Set(useNotificationStore.getState().notifications.map(n => n.id))
+        const newNotifs = latest.filter(n => n.userId === _notifUserId && !currentIds.has(n.id));
+        const fullMemberGroupIds = new Set(
+          newNotifs.filter(n => n.type === 'group_full_member').map(n => n.meta?.groupId).filter(Boolean)
+        );
+        function isSilent(n) {
+          return SILENT_REFRESH_TYPES.has(n.type) ||
+            (n.type === 'application_approved' && fullMemberGroupIds.has(n.meta?.groupId))
+        }
+        newNotifs.forEach(n => {
+          const stores = NOTIFICATION_REFRESH_STORES[n.type]
+          if (!stores?.length) {
+            if (isSilent(n) || isCatchUp) return
+            window.dispatchEvent(new CustomEvent('pm:notify-toast', {
+              detail: { type: n.type, meta: n.meta, title: n.title, message: n.message },
+            }))
+            return
+          }
+          window.dispatchEvent(new CustomEvent('pm:refresh-stores', {
+            detail: {
+              stores, notifId: n.id, type: n.type, meta: n.meta, title: n.title, message: n.message,
+              silent: isSilent(n) || isCatchUp,
+              page:   NOTIFICATION_REFRESH_PAGE[n.type],
+            },
+          }))
+        });
+        if (isCatchUp) {
+          const catchUpCount = newNotifs.filter(n => !isSilent(n)).length
+          if (catchUpCount > 0) {
+            window.dispatchEvent(new CustomEvent('pm:catchup-toast', { detail: { count: catchUpCount } }))
+          }
+        }
+        const BALANCE_AFFECTING_TYPES = new Set(['member_removed', 'application_rejected', 'escrow_released', 'dispute_resolved', 'group_cancelled']);
+        if (newNotifs.some(n => BALANCE_AFFECTING_TYPES.has(n.type))) {
+          useAuthStore.getState().refreshTokenBalance().catch(console.error)
+        }
+        set({ notifications: dedupeById(latest) })
+      } catch (err) {
+        hadRecentError = true
+        console.error('[notification poll]', err)
+      }
+    }, POLL_INTERVAL_MS)
+  },
+
+  teardown: () => {
+    if (_stopPolling) { _stopPolling(); _stopPolling = null }
+    _notifUserId = null
+    set({ notifications: [] })
+  },
+
+  getByUserId: (userId) =>
+    get().notifications.filter(n => n.userId === userId).sort(byNewest),
+
+  getSystemNotifications: () => {
+    const systemNotifications = get().notifications
+      .filter(isPublicSystemNotification)
+      .sort(byNewest)
+    return systemNotifications.length > 0 ? systemNotifications : getFallbackSystemNotifications()
+  },
+
+  getRealSystemNotifications: () =>
+    get().notifications.filter(isPublicSystemNotification).sort(byNewest),
+
+  getUnreadCount: (userId) => {
+    if (!userId) return 0
+    return get().notifications.filter(n => n.userId === userId && !n.isRead).length
+  },
+
+  getUnreadCountForPage: (userId, page) => {
+    if (!userId || !page) return 0
+    return get().notifications.filter(n => n.userId === userId && !n.isRead && NOTIFICATION_REFRESH_PAGE[n.type] === page).length
+  },
+
+  markReadForPage: (userId, page) => {
+    if (!userId || !page) return
+    get().notifications
+      .filter(n => n.userId === userId && !n.isRead && NOTIFICATION_REFRESH_PAGE[n.type] === page)
+      .forEach(n => get().markRead(n.id))
+  },
+
+  getUnreadCountForGroup: (userId, groupId) => {
+    if (!userId || !groupId) return 0
+    return get().notifications.filter(n => n.userId === userId && !n.isRead && n.meta?.groupId === groupId).length
+  },
+
+  markReadForGroup: (userId, groupId) => {
+    if (!userId || !groupId) return
+    get().notifications
+      .filter(n => n.userId === userId && !n.isRead && n.meta?.groupId === groupId)
+      .forEach(n => get().markRead(n.id))
+  },
+
+  markRead: (id) => {
+    const prior = get().notifications.find(n => n.id === id) ?? null
+    set(s => ({
+      notifications: s.notifications.map(n => n.id === id ? { ...n, isRead: true } : n),
+    }))
+    patchNotification(id).catch(err => {
+      if (prior) set(s => ({ notifications: s.notifications.map(n => n.id === id ? prior : n) }))
+      notifyError(err, '標記已讀失敗，請稍後再試')
+    })
+  },
+
+  markAllRead: (userId) => {
+    const priors = get().notifications.filter(n => n.userId === userId)
+    set(s => ({
+      notifications: s.notifications.map(n => n.userId === userId ? { ...n, isRead: true } : n),
+    }));
+    priors.forEach(n => {
+      const toastId = getNotificationToastId(n)
+      if (toastId) dismissToast(toastId)
+    });
+    dismissToast('pm-batch-update')
+    markAllNotificationsRead().catch(err => {
+      set(s => ({
+        notifications: s.notifications.map(n => priors.find(p => p.id === n.id) ?? n),
+      }))
+      notifyError(err, '全部標記已讀失敗，請稍後再試')
+    })
+  },
+}))
