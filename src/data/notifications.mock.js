@@ -1,0 +1,42 @@
+export const NOTIFICATIONS_MOCK = [
+  {
+    id: "notification-application-approved",
+    category: "申請結果",
+    title: "你的申請已通過",
+    description: "Netflix Premium 家庭分攤團已通過你的加入申請，請在 24 小時內完成付款。",
+    time: "10 分鐘前",
+    isUnread: true,
+  },
+  {
+    id: "notification-host-request",
+    category: "群組管理",
+    title: "有人申請加入你的群組",
+    description: "YouTube Family 長期穩定團收到一筆新的加入申請，等待你審核。",
+    time: "1 小時前",
+    isUnread: true,
+  },
+  {
+    id: "notification-followed-open-slot",
+    category: "追蹤群組",
+    title: "你追蹤的群組有新名額",
+    description: "Spotify Family 穩定續訂團目前釋出 1 個空位，可以重新查看詳細資訊。",
+    time: "今天",
+    isUnread: true,
+  },
+  {
+    id: "notification-system-update",
+    category: "系統提醒",
+    title: "系統更新提醒",
+    description: "PartyMatch 已更新通知體驗與管理中心導覽，建議查看最新說明中心內容。",
+    time: "昨天",
+    isUnread: false,
+  },
+  {
+    id: "notification-group-almost-full",
+    category: "群組提醒",
+    title: "群組即將滿團",
+    description: "Google AI Plus 200GB 共用團剩下最後 1 個名額，若你是團主可提前調整招募設定。",
+    time: "2 天前",
+    isUnread: false,
+  },
+];
