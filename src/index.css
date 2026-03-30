@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+/* ===== Global Base Styles ===== */
+
+:root {
+  line-height: 1.5;
+  font-family: "Noto Sans TC", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  max-width: 100%;
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+body {
+  margin: 0;
+  background-color: #fff;
+  color: #111;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+#root {
+  overflow-x: hidden;
+}
+
+button {
+  cursor: pointer;
+}
+
+input,
+select,
+textarea {
+  font-family: "Noto Sans TC", sans-serif;
+}
+
+/* hide scrollbar but keep scroll */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes meteor {
+  0% {
+    opacity: 0;
+    transform: rotate(var(--meteor-angle, 215deg)) translate3d(120px, -120px, 0);
+  }
+
+  12% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: rotate(var(--meteor-angle, 215deg))
+      translate3d(var(--meteor-distance-x, -360px), var(--meteor-distance-y, 360px), 0);
+  }
+}
+
+.animate-meteor {
+  animation-name: meteor;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
