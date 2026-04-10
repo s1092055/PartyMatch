@@ -1,11 +1,9 @@
-import { useMemo, useState } from "react";
-import { useAuth } from "../../auth/hooks/useAuth.js";
-import {
-  selectVisibleExploreGroups,
-  useGroupsStore,
-} from "../state/index.js";
-import { SORT_KEYS } from "../state/groupsTypes.js";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { getAllGroups, getGroups } from "../api/groupApi.js";
 import { getPlanById, getServiceById, normalizeServiceId } from "../../../../data/services.config.js";
+import { useAuth } from "../../auth/hooks/useAuth.js";
+import { isExploreVisibleGroup } from "../state/groupsSelectors.js";
+import { SORT_KEYS } from "../state/groupsTypes.js";
 
 function buildSearchIndex(groups) {
   return groups.map((group) => {
@@ -30,15 +28,48 @@ function buildSearchIndex(groups) {
   });
 }
 
-export function useGroups(initialSort = SORT_KEYS.NEWEST) {
-  const { state } = useGroupsStore();
+async function fetchGroupsByScope(scope, userId) {
+  if (scope === "owned" && !userId) return [];
+  return scope === "discover" ? getAllGroups() : getGroups(userId);
+}
+
+export function useGroups(initialSort = SORT_KEYS.NEWEST, options = {}) {
   const { user } = useAuth();
+  const currentUserId = user?.id ?? null;
+  const scope = options.scope ?? "owned";
+  const [sourceGroups, setSourceGroups] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [platform, setPlatform] = useState("");
   const [sort, setSort] = useState(initialSort);
+
+  const reloadGroups = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const nextGroups = await fetchGroupsByScope(scope, currentUserId);
+      setSourceGroups(nextGroups);
+      return nextGroups;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentUserId, scope]);
+
+  useEffect(() => {
+    let isMounted = true;
+    setIsLoading(true);
+    fetchGroupsByScope(scope, currentUserId)
+      .then((nextGroups) => { if (isMounted) setSourceGroups(nextGroups); })
+      .catch(() => {})
+      .finally(() => { if (isMounted) setIsLoading(false); });
+    return () => { isMounted = false; };
+  }, [currentUserId, scope]);
+
   const visibleGroups = useMemo(
-    () => selectVisibleExploreGroups(state, user?.uid),
-    [state, user?.uid],
+    () =>
+      scope === "discover"
+        ? sourceGroups.filter((group) => isExploreVisibleGroup(group, currentUserId))
+        : sourceGroups,
+    [currentUserId, scope, sourceGroups],
   );
 
   const searchIndex = useMemo(() => buildSearchIndex(visibleGroups), [visibleGroups]);
@@ -73,11 +104,14 @@ export function useGroups(initialSort = SORT_KEYS.NEWEST) {
     }
 
     return sorted;
-  }, [search, searchIndex, platform, sort, visibleGroups]);
+  }, [platform, search, searchIndex, sort, visibleGroups]);
 
   return {
+    currentUserId,
     groups: visibleGroups,
     filteredGroups,
+    isLoading,
+    reloadGroups,
     search,
     setSearch,
     platform,

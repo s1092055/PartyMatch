@@ -5,6 +5,10 @@ import {
   getServiceIconKey,
   normalizeServiceId,
 } from "../../../../data/services.config.js";
+import {
+  resolveContactMethodTemplate,
+  resolveContactMethodValue,
+} from "./contactMethodTemplate.js";
 import { calculateGroupStatus } from "../state/groupsTypes.js";
 
 function toNumber(value, fallback = 0) {
@@ -18,6 +22,10 @@ function toIsoDate(value) {
   if (value instanceof Date) return value.toISOString();
   if (typeof value === "string") return value;
   return "";
+}
+
+function normalizeOwnerId(value) {
+  return typeof value === "string" && value.trim() ? value.trim() : "legacy";
 }
 
 export function normalizeGroup(id, data) {
@@ -44,6 +52,13 @@ export function normalizeGroup(id, data) {
   const explicitStatus = data.status && data.status !== "open" && data.status !== "almost_full" && data.status !== "full"
     ? data.status
     : null;
+  const contactMethod =
+    resolveContactMethodValue(data.contactMethodTemplate ?? data.contactMethod) ||
+    "line";
+  const contactMethodTemplate = resolveContactMethodTemplate(
+    data.contactMethodTemplate,
+    contactMethod,
+  );
 
   return {
     id,
@@ -57,14 +72,15 @@ export function normalizeGroup(id, data) {
     totalSlots,
     takenSlots,
     availableSeats: Math.max(0, totalSlots - takenSlots),
-    ownerId: data.ownerId ?? "",
+    ownerId: normalizeOwnerId(data.ownerId),
     ownerEmail: data.ownerEmail ?? data.hostName ?? data.host ?? "",
     hostName: data.hostName ?? data.ownerEmail ?? data.host ?? "匿名團主",
     description: data.description ?? data.groupDescription ?? "",
     memberRule: data.memberRule ?? "",
     joinPolicy: data.joinPolicy ?? "review",
     paymentReminder: data.paymentReminder ?? "three_days_before",
-    contactMethod: data.contactMethod ?? "line",
+    contactMethod,
+    contactMethodTemplate,
     createdAt,
     nextPaymentDate: data.nextPaymentDate ?? "",
     renewInDays: data.renewInDays ?? 0,

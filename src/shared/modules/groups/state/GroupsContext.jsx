@@ -1,37 +1,28 @@
 import { createContext, useEffect, useMemo, useReducer } from "react";
+import { getGroupsState } from "../api/groupApi.js";
+import { useAuth } from "../../auth/hooks/useAuth.js";
 import { groupsReducer } from "./groupsReducer.js";
 import { GROUPS_ACTIONS } from "./groupsTypes.js";
-import { loadGroupsBootstrap } from "./groupsBootstrap.js";
-import { hydrateGroupsState, persistGroupsState } from "./groupsStorage.js";
-import { useAuth } from "../../auth/hooks/useAuth.js";
+import { GROUPS_INITIAL_STATE, hydrateGroupsState } from "./groupsStorage.js";
 
 const GroupsStoreContext = createContext(null);
 
 export function GroupsProvider({ children }) {
   const [state, dispatch] = useReducer(groupsReducer, undefined, hydrateGroupsState);
   const { user } = useAuth();
+  const currentUserId = user?.id ?? null;
 
   useEffect(() => {
     let isMounted = true;
 
     async function syncGroups() {
       try {
-        const nextGroups = await loadGroupsBootstrap(user?.uid);
+        const nextState = await getGroupsState(currentUserId);
         if (!isMounted) return;
-
-        dispatch({
-          type: GROUPS_ACTIONS.SET_GROUPS,
-          payload: nextGroups,
-        });
+        dispatch({ type: GROUPS_ACTIONS.LOAD_FROM_STORAGE, payload: nextState });
       } catch {
         if (!isMounted) return;
-        dispatch({
-          type: GROUPS_ACTIONS.SET_GROUPS,
-          payload: {
-            groups: [],
-            hosted: [],
-          },
-        });
+        dispatch({ type: GROUPS_ACTIONS.LOAD_FROM_STORAGE, payload: GROUPS_INITIAL_STATE });
       }
     }
 
@@ -39,11 +30,7 @@ export function GroupsProvider({ children }) {
     return () => {
       isMounted = false;
     };
-  }, [user?.uid]);
-
-  useEffect(() => {
-    persistGroupsState(state);
-  }, [state]);
+  }, [currentUserId]);
 
   const value = useMemo(() => ({ state, dispatch }), [state]);
   return (

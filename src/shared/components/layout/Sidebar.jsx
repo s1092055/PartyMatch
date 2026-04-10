@@ -8,7 +8,7 @@ import { Link, NavLink } from "react-router-dom";
 import {
   DASHBOARD_MODES,
   getDashboardModeMenu,
-} from "../../../pages/main/manage-group/dashboardNavigation.config.js";
+} from "../../../pages/manage-group/dashboardNavigation.config.js";
 
 const MotionSpan = motion.span;
 const MotionDiv = motion.div;
@@ -34,7 +34,7 @@ function SidebarModeButton({
           ? "items-center gap-3 px-3 py-3"
           : "justify-center px-0 py-3",
         active
-          ? "bg-[#eef3ff] text-[#1d4ed8] shadow-[inset_0_0_0_1px_rgba(37,99,235,0.08)]"
+          ? "bg-black/[0.06] text-black shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]"
           : "text-black/58 hover:bg-black/[0.03] hover:text-black",
       ].join(" ")}
     >
@@ -72,7 +72,7 @@ function SidebarNavItem({ item, expanded, mobile, onNavigate, action = false }) 
       className={[
         baseClass,
         isActive
-          ? "bg-[#eef3ff] text-[#1d4ed8] shadow-[inset_0_0_0_1px_rgba(37,99,235,0.08)]"
+          ? "bg-black/[0.06] text-black shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]"
           : "text-black/68 hover:bg-black/[0.03] hover:text-black",
       ].join(" ")}
     >

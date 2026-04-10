@@ -5,14 +5,14 @@ export function Button({ variant = "primary", hoverLabel, className = "", childr
     const interactiveStyles = {
       primary: {
         button:
-          "border border-[#2563eb]/15 bg-[#2563eb] text-white shadow-[0_14px_30px_rgba(37,99,235,0.18)] hover:border-[#1d4ed8]/20",
+          "border border-black/15 bg-black text-white shadow-[0_14px_30px_rgba(0,0,0,0.18)] hover:border-black/20",
         dot: "bg-white/92",
-        hoverText: "text-[#2563eb]",
+        hoverText: "text-black",
       },
       outline: {
         button:
           "border border-black/12 bg-white text-black shadow-[0_12px_28px_rgba(15,23,42,0.08)] hover:border-black/18",
-        dot: "bg-[#2563eb]",
+        dot: "bg-black",
         hoverText: "text-white",
       },
     };
@@ -22,7 +22,7 @@ export function Button({ variant = "primary", hoverLabel, className = "", childr
     return (
       <button
         className={[
-          "group relative inline-flex h-14 min-w-[178px] items-center justify-center overflow-hidden rounded-full px-6 text-[15px] font-semibold transition duration-300 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2563eb]/35 focus-visible:ring-offset-2 active:scale-[0.99]",
+          "group relative inline-flex h-14 min-w-[178px] items-center justify-center overflow-hidden rounded-full px-6 text-[15px] font-semibold transition duration-300 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-black/35 focus-visible:ring-offset-2 active:scale-[0.99]",
           s.button,
           className,
         ].join(" ")}
@@ -56,7 +56,7 @@ export function Button({ variant = "primary", hoverLabel, className = "", childr
   const base =
     "inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60";
   const styles = {
-    primary: "bg-[#2563eb] text-white hover:bg-[#1d4ed8]",
+    primary: "bg-black text-white hover:bg-black/80",
     soft: "bg-black/[0.04] text-black/80 hover:bg-black/[0.07]",
     outline: "border border-black/15 bg-white text-black hover:bg-black/5",
   };
@@ -65,6 +65,8 @@ export function Button({ variant = "primary", hoverLabel, className = "", childr
     <button
       className={[base, styles[variant], className].join(" ")}
       {...props}
-    />
+    >
+      {children}
+    </button>
   );
 }

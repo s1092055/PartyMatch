@@ -27,8 +27,7 @@ export function useRequireAuthAction() {
         return false;
       }
 
-      action?.();
-      return true;
+      return action?.() ?? true;
     },
     [location, navigate, user],
   );

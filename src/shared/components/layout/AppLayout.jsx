@@ -9,8 +9,10 @@ import { Navbar } from "./Navbar.jsx";
 export function AppLayout() {
   const location = useLocation();
   const outlet = useOutlet();
-  const isHomePage = location.pathname === "/";
-  const isCreateGroupFlowPage = location.pathname.startsWith("/create-group/new");
+  const isCreateGroupFlowPage = location.pathname.startsWith("/create-group");
+  const isAuthPage =
+    location.pathname === "/login" || location.pathname === "/register";
+  const isStandalonePage = isCreateGroupFlowPage || isAuthPage;
   const topAnchorRef = useRef(null);
 
   useEffect(() => {
@@ -53,17 +55,15 @@ export function AppLayout() {
   }, [location.key]);
 
   return (
-    <div className="min-h-dvh overflow-x-hidden bg-white text-black">
+    <div className="flex min-h-dvh flex-col [overflow-x:clip] bg-white text-black">
       <div ref={topAnchorRef} aria-hidden="true" className="h-0 w-0" />
-      {!isCreateGroupFlowPage ? <Navbar /> : null}
+      {!isStandalonePage ? <Navbar /> : null}
 
       <main
         className={
-          isCreateGroupFlowPage
+          isStandalonePage
             ? "min-h-dvh"
-            : isHomePage
-              ? "pb-12 md:pb-16"
-              : "pb-24 md:pb-28"
+            : "flex-1 min-h-[calc(100dvh-4rem)]"
         }
       >
         <AnimatePresence mode="wait" initial={false}>
@@ -73,8 +73,8 @@ export function AppLayout() {
         </AnimatePresence>
       </main>
 
-      {!isCreateGroupFlowPage ? <Footer /> : null}
-      {!isCreateGroupFlowPage ? <DockNav /> : null}
+      {!isStandalonePage ? <Footer /> : null}
+      {!isStandalonePage ? <DockNav /> : null}
     </div>
   );
 }

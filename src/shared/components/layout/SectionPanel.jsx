@@ -6,22 +6,17 @@ export function SectionPanel({
   className = "",
 }) {
   return (
-    <section
-      className={[
-        "rounded-[28px] border border-black/10 bg-white px-6 py-6 sm:px-8 sm:py-8",
-        className,
-      ].join(" ")}
-    >
+    <section className={["pb-6 sm:pb-8", className].join(" ")}>
       {(title || description || action) ? (
-        <div className="flex flex-col gap-4 border-b border-black/10 pb-5 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-4 border-b border-black/8 pb-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
             {title ? (
-              <h2 className="text-2xl font-bold tracking-tight text-black">
+              <h2 className="text-lg font-semibold text-black">
                 {title}
               </h2>
             ) : null}
             {description ? (
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-black/60 sm:text-base">
+              <p className="mt-1 max-w-2xl text-sm text-black/55">
                 {description}
               </p>
             ) : null}

@@ -36,7 +36,7 @@ const howToSteps = [
   },
   {
     title: "如何申請加入",
-    steps: ["確認剩餘名額與方案內容", "點擊申請加入", "在展示版流程中查看狀態變化與互動結果"],
+    steps: ["確認剩餘名額與方案內容", "點擊申請加入", "等待團主審核後即可加入"],
   },
   {
     title: "如何建立群組",
@@ -51,18 +51,18 @@ const howToSteps = [
 const modeGuides = [
   {
     title: "探索者可以做什麼",
-    description: "探索群組、申請加入、追蹤感興趣的群組，體驗前端展示版的主要瀏覽與互動流程。",
+    description: "探索群組、申請加入、追蹤感興趣的群組，管理加入紀錄。",
   },
   {
     title: "團主管理可以做什麼",
-    description: "查看你建立的群組與招募狀態，體驗作品集版本保留的團主視角管理流程。",
+    description: "查看你建立的群組與招募狀態，審核申請並管理成員。",
   },
 ];
 
 const faqs = [
   {
     question: "申請後會發生什麼事？",
-    answer: "展示版會以本地示範資料更新群組狀態，讓你看到申請、追蹤與群組列表的前端互動結果。",
+    answer: "申請送出後會更新群組狀態，可在群組管理頁查看申請紀錄與審核結果。",
   },
   {
     question: "如何取消追蹤？",
@@ -89,7 +89,7 @@ export function HelpPage() {
         <PageHeader
           eyebrow="PartyMatch"
           title="說明中心"
-          description="了解 PartyMatch 前端展示版的主要功能、操作步驟、模式切換與常見問題"
+          description="了解主要功能、操作步驟與常見問題"
         />
 
         <div className="mx-auto max-w-5xl space-y-6">

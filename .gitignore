@@ -16,6 +16,7 @@ dist-ssr
 
 # Claude Code
 CLAUDE.md
+.impeccable.md
 
 # Editor directories and files
 .vscode/*

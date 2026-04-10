@@ -1,44 +1,25 @@
 import { HeartIcon as HeartSolidIcon } from "@heroicons/react/24/solid";
 import { HeartIcon } from "@heroicons/react/24/outline";
+import { useNavigate } from "react-router-dom";
 import { Card } from "../../../components/ui/Card.jsx";
 import { Button } from "../../../components/ui/Button.jsx";
 import { ProgressBar } from "../../../components/ui/ProgressBar.jsx";
 import { ServiceIcon } from "../../../components/ui/ServiceIcon.jsx";
-import { formatMoney } from "../../../../utils/format.js";
+import { formatMoney } from "../../../utils/format.js";
 import { useAuth } from "../../auth/hooks/useAuth.js";
 import { useRequireAuthAction } from "../../auth/hooks/useRequireAuthAction.js";
 import { useGroupsActions, useGroupsStore } from "../state/index.js";
+import { useToast } from "../../../hooks/useToast.js";
 import { getPlanById, getServiceById } from "../../../../data/services.config.js";
-import { getGroupOccupancy, getPricePerSeatLabel } from "../utils/groupSummary.js";
+import {
+  getGroupOccupancy,
+  getPricePerSeatLabel,
+  getRemainingSeatStatusTheme,
+} from "../utils/groupSummary.js";
+
 
 function getRemainingSlots(g) {
   return Math.max(0, (g.totalSlots ?? 0) - (g.takenSlots ?? 0));
-}
-
-function getCardBadge(group, remaining) {
-  if (Array.isArray(group.tags) && group.tags.length > 0) {
-    return group.tags[0];
-  }
-
-  if (group.status === "expired") return "已截止";
-  if (remaining <= 0) return "已滿團";
-  if (remaining === 1) return "即將滿團";
-
-  return "推薦";
-}
-
-function getBannerClass(group, remaining) {
-  if (group.status === "expired") return "bg-black/[0.08] text-black/55";
-  if (remaining <= 0) return "bg-black/[0.08] text-black/60";
-  if (remaining === 1) return "bg-[#fff4d8] text-[#9a5a00]";
-  if (group.tags?.includes("熱門")) return "bg-[#eef3ff] text-[#1d4ed8]";
-  return "bg-black/[0.04] text-black/65";
-}
-
-function getRemainingToneClass(group, remaining) {
-  if (group.status === "expired" || remaining <= 0) return "text-black/55";
-  if (remaining === 1) return "text-[#9a5a00]";
-  return "text-black/75";
 }
 
 function getCardPriceLabel(group, plan) {
@@ -65,22 +46,26 @@ function getCardPriceLabel(group, plan) {
 
 function PlatformAvatar({ platform, serviceId, iconKey }) {
   return (
-    <div className="h-10 w-10 shrink-0 flex items-center justify-center">
+    <div
+      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-black/6 bg-white shadow-[0_10px_22px_rgba(15,23,42,0.08)]"
+    >
       <ServiceIcon
         serviceId={serviceId}
         platform={platform}
         iconKey={iconKey}
         alt={platform}
-        className="h-10 w-10 object-contain"
+        className="h-8 w-8 object-contain"
       />
     </div>
   );
 }
 
-export function GroupCard({ group, onClick, onJoin, actionLabel, actionVariant }) {
+export function GroupCard({ group, onClick, onJoin, actionLabel, actionVariant, className = "" }) {
+  const navigate = useNavigate();
   const { state } = useGroupsStore();
-  const { joinGroup, leaveGroup, toggleFollowGroup } = useGroupsActions();
+  const { joinGroup, leaveGroup, cancelApplication, toggleFollowGroup } = useGroupsActions();
   const { user } = useAuth();
+  const { addToast } = useToast();
   const requireAuthAction = useRequireAuthAction();
   const remaining = getRemainingSlots(group);
   const service = getServiceById(group.serviceId ?? group.platform);
@@ -90,137 +75,174 @@ export function GroupCard({ group, onClick, onJoin, actionLabel, actionVariant }
   const planLabel = plan?.name ?? group.plan ?? "未設定方案";
   const priceLabel = getCardPriceLabel(group, plan);
   const isHosted = Boolean(user) && state.myGroups.hosted.includes(group.id);
-  const isApplied = Boolean(user) && state.myGroups.joined.includes(group.id);
+  const isJoined = Boolean(user) && state.myGroups.joined.includes(group.id);
+  const isPending = Boolean(user) && (state.myGroups.pending ?? []).includes(group.id);
+  const isApplied = isJoined || isPending;
   const isFollowed = Boolean(user) && state.myGroups.followed.includes(group.id);
+  const isInstantJoin = group.joinPolicy === "instant";
   const canApply = group.status !== "expired" && remaining > 0;
   const usesDetailAction = typeof onClick === "function" && !onJoin;
-  const badgeLabel = getCardBadge(group, remaining);
-  const bannerClass = getBannerClass(group, remaining);
-  const remainingToneClass = getRemainingToneClass(group, remaining);
+  const remainingStatusTheme =
+    group.status === "expired"
+      ? {
+          progressFillClassName: "bg-black/25",
+          textClassName: "text-black/45",
+          subtleTextClassName: "text-black/55",
+        }
+      : getRemainingSeatStatusTheme(occupancy.remainingSeats);
 
-  function toggleFollow(event) {
+  async function toggleFollow(event) {
     event.stopPropagation();
-    requireAuthAction("請先登入後再追蹤群組。", () => {
-      toggleFollowGroup(group.id);
-    });
+    try {
+      await requireAuthAction("請先登入後再追蹤群組。", async () => {
+        await toggleFollowGroup(group.id);
+        addToast(isFollowed ? "已取消追蹤" : "已加入追蹤");
+      });
+    } catch (error) {
+      addToast(error.message || "追蹤狀態更新失敗，請稍後再試");
+    }
   }
 
   return (
     <Card
       className={[
-        "relative z-0 w-full overflow-hidden p-0 transition-all duration-200 hover:z-10 hover:-translate-y-1 hover:shadow-lg",
+        "relative z-0 w-full overflow-hidden border p-0 text-black transition-all duration-200 hover:z-10 hover:-translate-y-1 hover:shadow-[0_18px_44px_rgba(15,23,42,0.10)]",
         onClick ? "cursor-pointer focus-within:ring-2 focus-within:ring-black/10" : "",
+        className,
       ].join(" ")}
       onClick={onClick}
     >
-      <div
-        className={[
-          "px-4 py-2 text-center text-xs font-semibold tracking-[0.16em]",
-          bannerClass,
-        ].join(" ")}
+      <button
+        type="button"
+        onClick={toggleFollow}
+        className="absolute top-4 right-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/8 bg-white/96 text-black/58 shadow-[0_10px_24px_rgba(15,23,42,0.08)] backdrop-blur-sm transition hover:text-black"
+        aria-label={isFollowed ? "取消收藏群組" : "收藏群組"}
       >
-        {badgeLabel}
-      </div>
+        {isFollowed ? (
+          <HeartSolidIcon className="h-4 w-4 text-rose-500" />
+        ) : (
+          <HeartIcon className="h-4 w-4" />
+        )}
+      </button>
 
       <div className="space-y-5 p-5">
-        <div className="flex items-center gap-4">
+        <div className="flex items-start gap-4 pr-12">
           <PlatformAvatar
             platform={group.platform}
             serviceId={group.serviceId}
             iconKey={group.iconKey}
           />
 
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 pt-0.5">
             <div className="truncate text-lg font-extrabold tracking-tight text-black">
               {serviceLabel}
             </div>
-            <div className="mt-1 text-sm text-black/60">{planLabel}</div>
+            <div className="mt-1 text-sm text-black/58">{planLabel}</div>
           </div>
         </div>
 
         <div className="space-y-3">
-          <div className="text-sm text-black/65">
-            團主 <span className="font-semibold text-black/75">{group.hostName}</span>
+          <div className="text-sm text-black/58">
+            團主 <span className="font-semibold text-black">{group.hostName}</span>
           </div>
 
-          <div className="text-sm text-black/60">
+          <div className="text-sm text-black/58">
             <span>剩餘名額：</span>
-            <span className={["font-semibold", remainingToneClass].join(" ")}>
+            <span className={["font-semibold", remainingStatusTheme.textClassName].join(" ")}>
               {occupancy.remainingSeats}
             </span>
           </div>
 
-          <ProgressBar value={occupancy.progress} />
+          <ProgressBar
+            value={occupancy.progress}
+            className="bg-black/8"
+            fillClassName={remainingStatusTheme.progressFillClassName}
+          />
         </div>
 
-        <div className="border-t border-black/10 pt-4 text-center">
-          <span className="text-base font-semibold tracking-tight text-black">
+        <div className="border-t border-black/8 pt-4 text-center">
+          <span className="font-display text-base font-semibold tracking-tight text-black">
             {priceLabel}
           </span>
         </div>
 
-        <div className="flex items-center justify-between border-t border-black/10 pt-4">
-          <button
-            type="button"
-            onClick={toggleFollow}
-            className="inline-flex items-center gap-2 text-sm font-medium text-black/60 transition hover:text-black"
-            aria-label={isFollowed ? "取消收藏群組" : "收藏群組"}
-          >
-            {isFollowed ? (
-              <HeartSolidIcon className="h-4 w-4 text-red-500" />
-            ) : (
-              <HeartIcon className="h-4 w-4" />
-            )}
-            <span>{isFollowed ? "已追蹤" : "加入追蹤"}</span>
-          </button>
-
+        <div className="flex justify-center border-t border-black/8 pt-4">
           <Button
             variant={
               usesDetailAction
                 ? actionVariant ?? "outline"
-                : isApplied
+                : isJoined || isPending
                   ? "outline"
                   : "primary"
             }
             disabled={usesDetailAction ? false : isHosted || (!isApplied && !canApply)}
-            onClick={(event) => {
+            onClick={async (event) => {
               event.stopPropagation();
               if (usesDetailAction) {
                 onClick?.();
                 return;
               }
               if (isHosted) return;
-              if (isApplied) {
-                requireAuthAction("請先登入後再管理你的群組申請。", () => {
-                  leaveGroup(group.id);
-                });
-                return;
+              try {
+                if (isJoined) {
+                  await requireAuthAction("請先登入後再管理你的群組。", async () => {
+                    await leaveGroup(group.id);
+                    addToast("已退出群組");
+                  });
+                  return;
+                }
+                if (isPending) {
+                  await requireAuthAction("請先登入後再管理你的群組申請。", async () => {
+                    await cancelApplication(group.id, user.uid);
+                    addToast("已取消申請");
+                  });
+                  return;
+                }
+                if (!canApply) return;
+                if (
+                  !requireAuthAction("請先登入後再申請加入群組。")
+                ) {
+                  return;
+                }
+                if (onJoin) {
+                  onJoin(group.id);
+                  return;
+                }
+                if (isInstantJoin) {
+                  await joinGroup(group.id);
+                  addToast("已成功加入群組");
+                } else {
+                  navigate(`/groups/${group.id}/apply`);
+                }
+              } catch (error) {
+                addToast(error.message || "操作失敗，請稍後再試");
               }
-              if (!canApply) return;
-              if (
-                !requireAuthAction("請先登入後再申請加入群組。")
-              ) {
-                return;
-              }
-              if (onJoin) {
-                onJoin(group.id);
-                return;
-              }
-              joinGroup(group.id);
             }}
             className={
-              !usesDetailAction && (isHosted || (!isApplied && !canApply))
-                ? "opacity-60"
-                : ""
+              [
+                usesDetailAction
+                  ? "!border-black !bg-black !text-white hover:!bg-black/90 hover:!text-white"
+                  : isJoined || isPending
+                    ? "border-black/10 bg-black/[0.03] text-black hover:bg-black/[0.06] hover:text-black"
+                    : "",
+                usesDetailAction ? "min-w-[152px] justify-center" : "",
+                !usesDetailAction && (isHosted || (!isApplied && !canApply))
+                  ? "opacity-60"
+                  : "",
+              ].filter(Boolean).join(" ")
             }
           >
             {usesDetailAction
               ? actionLabel ?? "查看詳情"
               : isHosted
                 ? "你是團主"
-                : isApplied
-                  ? "取消申請"
-                  : "申請加入"}
+                : isJoined
+                  ? "退出群組"
+                  : isPending
+                    ? "取消申請"
+                    : isInstantJoin
+                      ? "立即加入"
+                      : "申請加入"}
           </Button>
         </div>
       </div>

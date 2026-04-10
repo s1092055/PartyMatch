@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { PageContainer } from "./PageContainer.jsx";
 import { Button } from "../ui/Button.jsx";
-import { Input } from "../ui/Input.jsx";
 
 const productLinks = ["功能介紹", "如何運作", "定價方案", "更新日誌"];
 const supportLinks = ["常見問題", "聯絡我們", "服務條款", "隱私權"];
@@ -14,7 +13,7 @@ const socialLinks = ["GitHub", "LinkedIn", "Email"];
 
 export function Footer() {
   return (
-    <footer className="mt-6 bg-neutral-950 text-white sm:mt-8">
+    <footer data-app-footer className="bg-neutral-950 text-white">
       <PageContainer>
         <div className="px-4 pb-28 pt-12 sm:px-6 sm:pb-32 lg:px-8">
           <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">

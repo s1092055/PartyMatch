@@ -44,3 +44,27 @@ export function getGroupOccupancy(group) {
     progress,
   };
 }
+
+export function getRemainingSeatStatusTheme(remainingSeats) {
+  if (remainingSeats <= 1) {
+    return {
+      progressFillClassName: "bg-red-500",
+      textClassName: "text-red-600",
+      subtleTextClassName: "text-red-700",
+    };
+  }
+
+  if (remainingSeats <= 3) {
+    return {
+      progressFillClassName: "bg-amber-400",
+      textClassName: "text-amber-600",
+      subtleTextClassName: "text-amber-700",
+    };
+  }
+
+  return {
+    progressFillClassName: "bg-emerald-500",
+    textClassName: "text-emerald-600",
+    subtleTextClassName: "text-emerald-700",
+  };
+}

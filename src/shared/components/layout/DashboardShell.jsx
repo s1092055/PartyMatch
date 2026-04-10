@@ -5,11 +5,16 @@ import { useLocation, useNavigate } from "react-router-dom";
 import {
   DASHBOARD_DEFAULT_PATHS,
   DASHBOARD_MODES,
-  DASHBOARD_MODE_STORAGE_KEY,
   getDashboardModeMenu,
   getDashboardPathMode,
+  getDashboardModeStorageKey,
   isPathAllowedForMode,
-} from "../../../pages/main/manage-group/dashboardNavigation.config.js";
+  readStoredDashboardMode,
+} from "../../../pages/manage-group/dashboardNavigation.config.js";
+import { useAuth } from "../../modules/auth/hooks/useAuth.js";
+import { useOwnedGroups } from "../../modules/groups/hooks/useOwnedGroups.js";
+import { useModalOpen } from "../../hooks/useModalOpen.js";
+import { useGroupsStore } from "../../modules/groups/state/index.js";
 import { PageContainer } from "./PageContainer.jsx";
 import { Sidebar } from "./Sidebar.jsx";
 
@@ -17,25 +22,32 @@ const MotionAside = motion.aside;
 const MotionButton = motion.button;
 const MotionDiv = motion.div;
 
+function MobileSidebarModal({ children }) {
+  useModalOpen();
+  return children;
+}
+
 export function DashboardShell({ children, rightRail, title }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { state } = useGroupsStore();
+  const ownerId = user?.id ?? null;
+  const { ownedGroups: hostedGroups } = useOwnedGroups(ownerId);
+  const dashboardModeStorageKey = getDashboardModeStorageKey(ownerId);
   const isDashboardPath = location.pathname.startsWith("/manage-group");
   const currentPathMode = getDashboardPathMode(location.pathname);
   const isDashboardRoot = location.pathname === "/manage-group";
-  const [activeMode, setActiveMode] = useState(() => {
-    if (currentPathMode === DASHBOARD_MODES.HOST) return DASHBOARD_MODES.HOST;
-    if (!isDashboardRoot && currentPathMode === DASHBOARD_MODES.EXPLORER) {
-      return DASHBOARD_MODES.EXPLORER;
-    }
-    if (typeof window === "undefined") return DASHBOARD_MODES.EXPLORER;
-    const storedMode = window.localStorage.getItem(DASHBOARD_MODE_STORAGE_KEY);
-    return storedMode === DASHBOARD_MODES.HOST
-      ? DASHBOARD_MODES.HOST
-      : DASHBOARD_MODES.EXPLORER;
-  });
+  const [activeModeState, setActiveModeState] = useState(() => ({
+    storageKey: dashboardModeStorageKey,
+    value: readStoredDashboardMode(dashboardModeStorageKey),
+  }));
   const [isDesktopSidebarHovered, setIsDesktopSidebarHovered] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const activeMode =
+    activeModeState.storageKey === dashboardModeStorageKey
+      ? activeModeState.value
+      : readStoredDashboardMode(dashboardModeStorageKey);
 
   const resolvedMode =
     currentPathMode === DASHBOARD_MODES.HOST
@@ -60,9 +72,12 @@ export function DashboardShell({ children, rightRail, title }) {
   const resolvedModeLabel =
     resolvedMode === DASHBOARD_MODES.HOST ? "團主" : "探索者";
 
-  useEffect(() => {
-    window.localStorage.setItem(DASHBOARD_MODE_STORAGE_KEY, activeMode);
-  }, [activeMode]);
+  const joinedCount = state.myGroups.joined.length;
+  const hostedCount = hostedGroups.length;
+  const followedCount = state.myGroups.followed.length;
+  const pendingCount = (state.myGroups.pending ?? []).length;
+
+  const displayName = user?.displayName || user?.email?.split("@")[0] || null;
 
   useEffect(() => {
     if (!isDashboardPath) return;
@@ -82,7 +97,13 @@ export function DashboardShell({ children, rightRail, title }) {
 
   function handleModeChange(nextMode) {
     const nextPath = DASHBOARD_DEFAULT_PATHS[nextMode];
-    setActiveMode(nextMode);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(dashboardModeStorageKey, nextMode);
+    }
+    setActiveModeState({
+      storageKey: dashboardModeStorageKey,
+      value: nextMode,
+    });
     if (location.pathname !== nextPath) {
       navigate(nextPath);
     }
@@ -92,12 +113,14 @@ export function DashboardShell({ children, rightRail, title }) {
     <div className="min-h-dvh overflow-x-hidden bg-[#f7f8fb]">
       <PageContainer>
         <div className="mx-auto max-w-[1440px] px-4 py-5 sm:px-6 lg:px-8">
+
+          {/* Mobile header */}
           <div className="mb-2 lg:hidden">
-            <div className="flex items-center gap-3 rounded-[28px] border border-black/8 bg-white/92 p-3 shadow-[0_20px_45px_rgba(15,23,42,0.08)] backdrop-blur-md">
+            <div className="flex items-center gap-3 border-b border-black/8 px-1 pb-3">
               <button
                 type="button"
                 onClick={() => setIsMobileSidebarOpen(true)}
-                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-black/8 bg-white text-black/75 transition hover:bg-black/[0.03] hover:text-black"
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-black/65 transition hover:bg-black/[0.04] hover:text-black"
                 aria-label="開啟群組管理導航"
               >
                 <Bars3Icon className="h-5 w-5" />
@@ -113,6 +136,40 @@ export function DashboardShell({ children, rightRail, title }) {
             </div>
           </div>
 
+          {/* Welcome header — desktop only */}
+          <div className="mb-8 hidden items-end justify-between border-b border-black/8 pb-8 lg:flex">
+            <div>
+              <p className="text-sm font-medium text-black/42">
+                {resolvedModeLabel}模式 · 群組管理
+              </p>
+              <h1 className="mt-2 text-3xl font-bold tracking-tight text-black">
+                {displayName ? `歡迎回來，${displayName}` : "群組管理中心"}
+              </h1>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {[
+                { value: joinedCount, label: "已加入群組" },
+                { value: hostedCount, label: "主辦群組" },
+                { value: followedCount, label: "追蹤清單" },
+                ...(pendingCount > 0 ? [{ value: pendingCount, label: "申請中" }] : []),
+              ].map(({ value, label }, i, arr) => (
+                <div key={label} className="flex items-center gap-2">
+                  <div className="min-w-[64px] text-right">
+                    <div className="text-3xl font-bold tracking-tight text-black">{value}</div>
+                    <div className="mt-0.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-black/38">
+                      {label}
+                    </div>
+                  </div>
+                  {i < arr.length - 1 ? (
+                    <div className="mx-2 h-8 w-px bg-black/10" />
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Sidebar + Content */}
           <div className="flex items-start gap-4 lg:gap-6">
             <MotionAside
               initial={false}
@@ -130,12 +187,12 @@ export function DashboardShell({ children, rightRail, title }) {
             </MotionAside>
 
             <div className="min-w-0 flex-1">
-              <main className="min-w-0 rounded-[32px] border border-black/8 bg-white/90 p-4 shadow-[0_18px_50px_rgba(15,23,42,0.08)] backdrop-blur-sm sm:p-6 lg:p-8">
+              <main className="min-w-0 px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
                 {children}
               </main>
 
               {rightRail ? (
-                <section className="rounded-[28px] border border-black/8 bg-white/88 p-5 shadow-[0_14px_36px_rgba(15,23,42,0.06)]">
+                <section className="p-5">
                   {rightRail}
                 </section>
               ) : null}
@@ -146,7 +203,7 @@ export function DashboardShell({ children, rightRail, title }) {
 
       <AnimatePresence>
         {isMobileSidebarOpen ? (
-          <>
+          <MobileSidebarModal>
             <MotionButton
               type="button"
               aria-label="關閉群組管理導航"
@@ -176,7 +233,7 @@ export function DashboardShell({ children, rightRail, title }) {
                 }}
               />
             </MotionDiv>
-          </>
+          </MobileSidebarModal>
         ) : null}
       </AnimatePresence>
     </div>

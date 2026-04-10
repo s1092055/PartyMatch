@@ -29,7 +29,7 @@ export function getHeroTheme(serviceId) {
     case "canva":
       return "from-[#0f172a] via-[#0ea5e9] to-[#a855f7]";
     default:
-      return "from-[#0f172a] via-[#1d4ed8] to-[#60a5fa]";
+      return "from-[#0f172a] via-[#374151] to-[#9ca3af]";
   }
 }
 
