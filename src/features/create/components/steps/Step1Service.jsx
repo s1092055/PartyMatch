@@ -1,0 +1,93 @@
+import { useState } from "react";
+import { AlertCircle, Check } from "lucide-react";
+import { listServiceTypes } from "../../../../common/utils/serviceUtils";
+import ServiceLogo from "../../../../components/ui/ServiceLogo";
+import CategoryPills from "../../../../components/ui/primitives/CategoryPills";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "../../../../components/ui/dialog";
+
+const ALL_SERVICES = listServiceTypes();
+
+export default function Step1Service({ form, onChange }) {
+  const [activeCategory, setActiveCategory] = useState(
+    () => ALL_SERVICES.find((s) => s.id === form.serviceId)?.category ?? "all",
+  );
+  const [infoService, setInfoService] = useState(null);
+
+  const visible =
+    activeCategory === "all"
+      ? ALL_SERVICES
+      : ALL_SERVICES.filter((s) => s.category === activeCategory);
+
+  return (
+    <div>
+
+      <CategoryPills
+        variant="grid"
+        showAll
+        active={activeCategory}
+        onChange={setActiveCategory}
+        className="mb-3 shrink-0"
+      />
+
+      <div className="grid grid-cols-3 gap-3 p-0.5">
+        {visible.map((service) => {
+          const active = form.serviceId === service.id;
+          return (
+            <div key={service.id} className="relative">
+              <button
+                type="button"
+                onClick={() => onChange("serviceId", service.id)}
+                className={`flex w-full cursor-pointer flex-col items-center gap-2 rounded-lg border-2 p-4 text-center transition-all ${
+                  active
+                    ? "border-brand bg-brand-subtle"
+                    : "border-line bg-surface hover:border-brand-border hover:bg-brand-subtle/40"
+                }`}
+              >
+                {active && (
+                  <span className="absolute left-2 top-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-control bg-brand">
+                    <Check size={12} className="text-white" strokeWidth={1.5} />
+                  </span>
+                )}
+                <ServiceLogo serviceId={service.id} size={48} />
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-ink truncate">
+                    {service.name}
+                  </p>
+                  <p className="text-xs text-ink-3 truncate">{service.category}</p>
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setInfoService(service)}
+                className="absolute right-1 top-1 grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-brand-subtle hover:text-brand"
+                aria-label={`${service.name} 服務說明`}
+              >
+                <AlertCircle size={20} strokeWidth={1.5} />
+              </button>
+            </div>
+          );
+        })}
+        {visible.length === 0 && (
+          <p className="col-span-full py-6 text-center text-sm text-ink-3">
+            此分類尚無服務
+          </p>
+        )}
+      </div>
+      {infoService && (
+        <Dialog open onOpenChange={v => { if (!v) setInfoService(null) }}>
+          <DialogContent maxWidth="max-w-xs">
+            <DialogTitle className="sr-only">{infoService.name}</DialogTitle>
+            <DialogDescription>{infoService.name}</DialogDescription>
+            <div className="flex flex-col items-center gap-4 px-6 py-6 text-center">
+              <ServiceLogo serviceId={infoService.id} size={64} className="border-line-strong" />
+              <h2 className="text-lg font-black text-ink">{infoService.name}</h2>
+              <p className="w-full text-left text-sm leading-relaxed text-ink-3">
+                {infoService.description || "尚無服務說明"}
+              </p>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+    </div>
+  );
+}

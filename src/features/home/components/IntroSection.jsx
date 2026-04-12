@@ -1,0 +1,30 @@
+import { HOME_INTRO_PILLARS } from '../data/homeContent'
+
+export default function IntroSection() {
+  return (
+    <section className="text-center">
+
+      <div aria-hidden="true" className="flex items-center justify-center gap-3 text-4xl font-extrabold text-ink-4/30">
+        <span className="-rotate-12">？</span>
+        <span>？</span>
+        <span className="rotate-12">？</span>
+      </div>
+      <h2 className="mt-2 text-3xl font-extrabold text-ink">PartyMatch 是什麼？</h2>
+      <p className="mx-auto mt-3 max-w-lg text-left text-base leading-relaxed text-ink-3 lg:max-w-4xl">
+        PartyMatch 是訂閱共享媒合平台，協助你找到願意一起分攤 Netflix、Spotify、ChatGPT 等熱門訂閱服務的夥伴。從尋找或建立群組、送出申請，到金流代管與成員溝通，都能在同一個平台完成，讓多人合購訂閱更簡單、也更安心。
+      </p>
+
+      <div className="mx-auto mt-10 max-w-lg divide-y divide-line text-left lg:max-w-4xl lg:grid lg:grid-cols-3 lg:gap-x-8 lg:gap-y-8 lg:divide-y-0">
+        {HOME_INTRO_PILLARS.map(({ title, desc }, i) => (
+          <div key={title} className="flex flex-col gap-1 py-5 first:pt-0 last:pb-0 lg:py-0">
+            <span className="text-2xl font-extrabold text-brand-subtle">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <p className="font-extrabold text-ink">{title}</p>
+            <p className="mt-1 text-sm leading-relaxed text-ink-3">{desc}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
