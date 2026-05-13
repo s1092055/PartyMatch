@@ -1,0 +1,173 @@
+import { ChevronDown, Send, SquarePen } from 'lucide-react'
+import ConversationAvatar from './ConversationAvatar'
+import ConversationHeaderActions from './ConversationHeaderActions'
+import ChatMembersPanel from './ChatMembersPanel'
+import MessageBubble from './MessageBubble'
+import AttachmentPickerButton from '../../../components/ui/AttachmentPickerButton'
+import AttachmentPreviewChip from '../../../components/ui/AttachmentPreviewChip'
+import { useMemberStore } from '../../../common/stores/useMemberStore'
+import { useGroupStore } from '../../../common/stores/useGroupStore'
+import { useAuthStore } from '../../../common/stores/useAuthStore'
+import { useParticipantNames } from '../hooks/useParticipantNames'
+import { useMessageScroll } from '../hooks/useMessageScroll'
+import { isSystemConversation, markConversationReadLocal } from '../utils'
+
+const getCurrentUser = () => useAuthStore.getState().user
+
+export default function ChatWindow({
+  selected, selectedId, messages, user,
+  sending, sendError, canSend,
+  attachment,
+  inputRef,
+  showMembers,
+  isComposingRef, lastCompositionEndRef,
+  onMembersToggle, onSend, onKeyDown, onInputChange,
+}) {
+  const allGroups = useGroupStore(s => s.groups);
+  const allMembers = useMemberStore(s => s.members)
+
+  const userId = user?.id
+  const otherIds = selected?.participants?.filter(p => p !== userId) ?? []
+  const conversationGroupId = selected?.type === 'group'
+    ? selected.groupId ?? (selectedId?.startsWith('group_') ? selectedId.slice('group_'.length) : null)
+    : null
+  const group = conversationGroupId ? (allGroups.find(g => g.id === conversationGroupId) ?? null) : null
+  const groupMembers = conversationGroupId ? allMembers.filter(m => m.groupId === conversationGroupId) : []
+  const memberMap = Object.fromEntries(groupMembers.map(m => [m.userId, m]))
+  const metaHostId = group?.hostName
+    ? selected?.participants?.find(pid => selected.participantMeta?.[pid]?.name === group.hostName)
+    : null
+  const nonMemberHostId = groupMembers.length > 0
+    ? selected?.participants?.find(pid => !memberMap[pid])
+    : null
+  const firstParticipantHostId = selected?.type === 'group' ? selected.participants?.[0] : null
+  const hostId = selected?.hostId ?? group?.hostId ?? metaHostId ?? nonMemberHostId ?? firstParticipantHostId
+
+  const { getParticipantName, getMessageSenderName, getReadReceiptNames } = useParticipantNames({
+    selected, selectedId, memberMap, hostId, group, userId, otherIds,
+  })
+
+  const { scrollContainerRef, showScrollToBottom, allMessages, loadingOlder, handleMessagesScroll, scrollToBottom } =
+    useMessageScroll({ selectedId, messages })
+
+  if (!selected) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center gap-3 bg-canvas text-ink-4">
+        <SquarePen size={40} strokeWidth={1.5} />
+        <p className="text-sm">選擇一個對話開始聊天</p>
+      </div>
+    )
+  }
+
+  return (
+    <>
+
+      <div className="hidden md:flex shrink-0 items-center gap-3 border-b border-line px-5 py-3">
+        <ConversationAvatar conversation={selected} size={32} />
+        <span className="flex-1 truncate font-extrabold text-ink">{selected.name}</span>
+        <ConversationHeaderActions
+          key={selectedId}
+          selected={selected}
+          onMembersToggle={() => onMembersToggle(v => !v)}
+        />
+      </div>
+
+      {selected.type === 'group' && (
+        <ChatMembersPanel
+          open={showMembers}
+          selected={selected}
+          memberMap={memberMap}
+          userId={userId}
+          getParticipantName={getParticipantName}
+          onClose={() => onMembersToggle(false)}
+        />
+      )}
+
+      <div className="relative flex flex-col flex-1 min-h-0 overflow-hidden">
+
+        <div
+          ref={scrollContainerRef}
+          onScroll={handleMessagesScroll}
+          className="flex-1 min-h-0 overflow-y-auto overscroll-contain bg-canvas [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          <div className="space-y-3 px-4 py-4">
+              {loadingOlder && (
+                <div className="flex justify-center py-2">
+                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-line border-t-ink-3" />
+                </div>
+              )}
+              {allMessages.map(msg => (
+                <MessageBubble
+                  key={msg.id}
+                  msg={msg}
+                  userId={userId}
+                  hostId={hostId}
+                  groupMembers={groupMembers}
+                  conversationGroupId={conversationGroupId}
+                  getMessageSenderName={getMessageSenderName}
+                  getReadReceiptNames={getReadReceiptNames}
+                />
+              ))}
+            </div>
+        </div>
+        {showScrollToBottom && (
+          <button
+            onClick={() => scrollToBottom()}
+            aria-label="回到最新訊息"
+            className="absolute bottom-4 right-4 z-20 grid h-10 w-10 place-items-center rounded-full border border-line bg-surface text-ink-3 shadow-popover transition-colors hover:bg-raised hover:text-ink"
+          >
+            <ChevronDown size={18} strokeWidth={1.5} />
+          </button>
+        )}
+      </div>
+
+      <div className="shrink-0 border-t border-line bg-surface px-6 py-4">
+        {isSystemConversation(selected) ? (
+          <p className="text-center text-xs text-ink-4">此為系統通知，無法回覆</p>
+        ) : (
+        <>
+        {sendError && (
+          <p className="mb-2 text-xs text-danger">傳送失敗，請稍後再試</p>
+        )}
+        {attachment && <AttachmentPreviewChip attachment={attachment} />}
+        <div className={`flex items-center gap-3 rounded-2xl border bg-raised px-4 py-2 transition-[box-shadow] ${sendError ? 'border-danger' : 'border-line focus-within:ring-4 focus-within:ring-brand-subtle'}`}>
+          <input
+            ref={inputRef}
+            type="text"
+            placeholder="輸入訊息..."
+            onChange={e => onInputChange(e.target.value)}
+            onFocus={() => {
+              const user = getCurrentUser()
+              if (user) markConversationReadLocal(selectedId, user.id)
+            }}
+            onCompositionStart={() => { isComposingRef.current = true }}
+            onCompositionEnd={() => {
+              isComposingRef.current = false
+              lastCompositionEndRef.current = Date.now()
+            }}
+            onKeyDown={onKeyDown}
+            className="flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-ink-4"
+          />
+          {attachment && (
+            <AttachmentPickerButton
+              attachment={attachment}
+              className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-surface hover:text-ink disabled:opacity-50"
+            />
+          )}
+          <button
+            type="button"
+            onClick={onSend}
+            disabled={!canSend && !attachment?.url}
+            aria-busy={sending}
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand text-white transition-all hover:-translate-y-0.5 hover:bg-brand-hover disabled:opacity-50"
+            aria-label="傳送"
+          >
+            <Send strokeWidth={1.5} size={14} />
+          </button>
+        </div>
+        </>
+        )}
+      </div>
+    </>
+  );
+}
