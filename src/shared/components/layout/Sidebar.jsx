@@ -1,8 +1,8 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { LogOut, Search, User, X, Zap } from 'lucide-react'
+import { LogIn, LogOut, Search, User, UserPlus, X, Zap } from 'lucide-react'
 import { NAV_SECTIONS, NAV_UTILITY } from '../../constants/nav'
-import { getCurrentUser, logoutUser } from '../../stores/authStore'
+import { getCurrentUser, isAuthenticated, logoutUser } from '../../stores/authStore'
 import { useClickOutside } from '../../utils/hooks'
 import {
   addRecentSearch,
@@ -160,35 +160,64 @@ export default function Sidebar() {
         </nav>
 
         <div className="space-y-2 px-3 pb-4">
-          <div ref={userRef} className="relative">
-            <button
-              onClick={() => setActivePanel(p => p === 'userMenu' ? null : 'userMenu')}
-              className="flex h-14 w-full items-center gap-3 rounded-2xl px-2 text-left transition-colors hover:bg-raised"
-              aria-label="開啟使用者選單"
-            >
-              <span className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-to-br from-slate-200 to-slate-500 text-sm font-black text-white shadow-[0_10px_24px_-18px_rgb(8_18_38_/_0.8)]">
-                {avatarInitial}
-                <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
-              </span>
-              <span className="min-w-0 flex-1 opacity-0 transition-opacity duration-200 group-hover/sidebar:opacity-100 group-focus-within/sidebar:opacity-100">
-                <span className="block truncate text-sm font-extrabold text-ink">{userName}</span>
-                <span className="block truncate text-xs font-medium text-ink-3">{userEmail}</span>
-              </span>
-            </button>
+          {isAuthenticated() ? (
+            <div ref={userRef} className="relative">
+              <button
+                onClick={() => setActivePanel(p => p === 'userMenu' ? null : 'userMenu')}
+                className="flex h-14 w-full items-center gap-3 rounded-2xl px-2 text-left transition-colors hover:bg-raised"
+                aria-label="開啟使用者選單"
+              >
+                <span className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-to-br from-slate-200 to-slate-500 text-sm font-black text-white shadow-[0_10px_24px_-18px_rgb(8_18_38_/_0.8)]">
+                  {avatarInitial}
+                  <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
+                </span>
+                <span className="min-w-0 flex-1 opacity-0 transition-opacity duration-200 group-hover/sidebar:opacity-100 group-focus-within/sidebar:opacity-100">
+                  <span className="block truncate text-sm font-extrabold text-ink">{userName}</span>
+                  <span className="block truncate text-xs font-medium text-ink-3">{userEmail}</span>
+                </span>
+              </button>
 
-            {showUserMenu && (
-              <div className="absolute bottom-0 left-[calc(100%+0.75rem)] w-52 overflow-hidden rounded-2xl border border-line bg-white p-2 shadow-popover">
-                <UserMenuButton icon={User} label="帳號中心" onClick={() => handleMenuNavigate('/account')} />
-                <div className="my-1 h-px bg-line-subtle" />
-                <UserMenuButton
-                  icon={LogOut}
-                  label="登出"
-                  tone="danger"
-                  onClick={() => { setActivePanel(null); setShowLogoutConfirm(true) }}
-                />
-              </div>
-            )}
-          </div>
+              {showUserMenu && (
+                <div className="absolute bottom-0 left-[calc(100%+0.75rem)] w-52 overflow-hidden rounded-2xl border border-line bg-white p-2 shadow-popover">
+                  <UserMenuButton icon={User} label="帳號中心" onClick={() => handleMenuNavigate('/account')} />
+                  <div className="my-1 h-px bg-line-subtle" />
+                  <UserMenuButton
+                    icon={LogOut}
+                    label="登出"
+                    tone="danger"
+                    onClick={() => { setActivePanel(null); setShowLogoutConfirm(true) }}
+                  />
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-1.5">
+              <Link
+                to="/register"
+                onClick={closeAll}
+                className="flex h-12 w-full items-center gap-3 rounded-2xl bg-brand px-2 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
+              >
+                <span className="grid h-9 w-9 shrink-0 place-items-center">
+                  <UserPlus size={20} strokeWidth={2.1} />
+                </span>
+                <span className="whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover/sidebar:opacity-100 group-focus-within/sidebar:opacity-100">
+                  免費註冊
+                </span>
+              </Link>
+              <Link
+                to="/login"
+                onClick={closeAll}
+                className="flex h-12 w-full items-center gap-3 rounded-2xl px-2 text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-brand"
+              >
+                <span className="grid h-9 w-9 shrink-0 place-items-center">
+                  <LogIn size={20} strokeWidth={2.1} />
+                </span>
+                <span className="whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover/sidebar:opacity-100 group-focus-within/sidebar:opacity-100">
+                  登入
+                </span>
+              </Link>
+            </div>
+          )}
         </div>
       </aside>
 

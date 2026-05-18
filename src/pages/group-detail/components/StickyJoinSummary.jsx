@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { CheckCircle2, Star, Users, Calendar, ChevronRight, ShieldCheck, Heart } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { CheckCircle2, Star, Users, Calendar, ChevronRight, LogIn, ShieldCheck, Heart } from 'lucide-react'
 import Badge from '../../../shared/components/ui/Badge'
 import Button from '../../../shared/components/ui/Button'
 import Avatar from '../../../shared/components/ui/Avatar'
@@ -12,6 +13,7 @@ import { isGroupFavorited, toggleFavorite } from '../../../shared/stores/favorit
 import { getActiveUser } from '../../../shared/stores/userStore'
 
 export default function StickyJoinSummary({ group }) {
+  const navigate = useNavigate()
   const activeUser = getActiveUser()
   const activeUserId = activeUser?.id
   const isHost = group.hostId === activeUserId
@@ -37,6 +39,19 @@ export default function StickyJoinSummary({ group }) {
   }
 
   function renderCTA() {
+    if (!activeUserId) {
+      return (
+        <Button
+          variant="primary"
+          size="lg"
+          className="w-full"
+          onClick={() => navigate(`/login?redirectTo=${encodeURIComponent(`/groups/${group.id}`)}`)}
+        >
+          <LogIn size={16} />
+          登入以加入群組
+        </Button>
+      )
+    }
     if (isHost) {
       return (
         <div className="flex items-center gap-2 bg-brand-subtle text-brand text-sm font-medium px-4 py-3 rounded-lg">
@@ -94,7 +109,7 @@ export default function StickyJoinSummary({ group }) {
             </div>
           </div>
           <button
-            onClick={() => activeUserId && setIsFav(toggleFavorite(activeUserId, group.id))}
+            onClick={() => activeUserId ? setIsFav(toggleFavorite(activeUserId, group.id)) : navigate('/login')}
             className="mt-1 w-9 h-9 flex items-center justify-center rounded-full hover:bg-raised transition-colors shrink-0"
             aria-label={isFav ? '取消收藏' : '加入收藏'}
           >

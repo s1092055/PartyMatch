@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { LogOut, Menu, Search, User, X } from 'lucide-react'
-import { getCurrentUser, logoutUser } from '../../stores/authStore'
+import { LogIn, LogOut, Menu, Search, User, UserPlus, X } from 'lucide-react'
+import { getCurrentUser, isAuthenticated, logoutUser } from '../../stores/authStore'
 import { NAV_SECTIONS, NAV_UTILITY } from '../../constants/nav'
 import LogoutConfirmModal from '../modals/LogoutConfirmModal'
 
@@ -116,33 +116,56 @@ export default function Topbar() {
 
         {/* Footer */}
         <div className="shrink-0 space-y-1 border-t border-line px-3 pb-8 pt-3">
-          {/* User info */}
-          <div className="flex items-center gap-3 rounded-2xl px-3 py-2.5">
-            <span className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-to-br from-slate-200 to-slate-500 text-sm font-black text-white">
-              {avatarInitial}
-              <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-extrabold text-ink">{userName}</p>
-              <p className="truncate text-xs text-ink-3">{userEmail}</p>
-            </div>
-          </div>
+          {isAuthenticated() ? (
+            <>
+              {/* User info */}
+              <div className="flex items-center gap-3 rounded-2xl px-3 py-2.5">
+                <span className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-to-br from-slate-200 to-slate-500 text-sm font-black text-white">
+                  {avatarInitial}
+                  <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-extrabold text-ink">{userName}</p>
+                  <p className="truncate text-xs text-ink-3">{userEmail}</p>
+                </div>
+              </div>
 
-          <button
-            onClick={() => { closeDrawer(); navigate('/account') }}
-            className="flex h-11 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-brand"
-          >
-            <User size={20} strokeWidth={2.1} />
-            帳號中心
-          </button>
+              <button
+                onClick={() => { closeDrawer(); navigate('/account') }}
+                className="flex h-11 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-brand"
+              >
+                <User size={20} strokeWidth={2.1} />
+                帳號中心
+              </button>
 
-          <button
-            onClick={() => { closeDrawer(); setShowLogoutConfirm(true) }}
-            className="flex h-11 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-danger transition-colors hover:bg-danger-subtle"
-          >
-            <LogOut size={20} strokeWidth={2.1} />
-            登出
-          </button>
+              <button
+                onClick={() => { closeDrawer(); setShowLogoutConfirm(true) }}
+                className="flex h-11 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-danger transition-colors hover:bg-danger-subtle"
+              >
+                <LogOut size={20} strokeWidth={2.1} />
+                登出
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/register"
+                onClick={closeDrawer}
+                className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-brand text-sm font-bold text-white transition-colors hover:bg-brand-hover"
+              >
+                <UserPlus size={18} strokeWidth={2.1} />
+                免費註冊
+              </Link>
+              <Link
+                to="/login"
+                onClick={closeDrawer}
+                className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-line text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-brand"
+              >
+                <LogIn size={18} strokeWidth={2.1} />
+                登入
+              </Link>
+            </>
+          )}
         </div>
       </div>
 

@@ -21,7 +21,7 @@ export default function GroupCard({ group, onFavChange }) {
 
   function handleFav(e) {
     e.stopPropagation()
-    if (!activeUser) return
+    if (!activeUser) { navigate('/login'); return }
     const next = toggleFavorite(activeUser.id, group.id)
     setIsFav(next)
     onFavChange?.(next, group.id)

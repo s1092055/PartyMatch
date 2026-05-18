@@ -59,23 +59,23 @@ npm run lint    # 程式碼檢查
 | `/login` | 登入 |
 | `/register` | 註冊 |
 | `/forgot-password` | 忘記密碼 |
+| `/explore` | 探索群組（無需登入可瀏覽） |
+| `/explore?q=keyword` | 探索群組（關鍵字篩選，無需登入） |
+| `/groups/:groupId` | 群組詳情（無需登入可瀏覽，加入需登入） |
+| `/about` | 說明中心 |
 
-### 登入後
+### 登入後（需登入）
 
 | 路徑 | 頁面 |
 |------|------|
-| `/explore` | 探索群組 |
-| `/explore?q=keyword` | 探索群組（關鍵字篩選） |
 | `/quick-match` | 快速配對設定 |
 | `/quick-match/results` | 配對結果 |
-| `/groups/:groupId` | 群組詳情 |
 | `/create-group` | 建立群組 |
 | `/manage-groups` | 管理群組 |
 | `/my-subscriptions` | 我的訂閱 |
 | `/favorites` | 收藏清單 |
 | `/messages` | 訊息中心 |
 | `/account` | 帳號中心 |
-| `/about` | 說明中心 |
 
 ---
 
