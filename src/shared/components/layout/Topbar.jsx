@@ -34,8 +34,8 @@ export default function Topbar() {
     window.dispatchEvent(new CustomEvent('pm:open-search'))
   }
 
-  function confirmLogout() {
-    logoutUser()
+  async function confirmLogout() {
+    await logoutUser()
     setShowLogoutConfirm(false)
     setDrawerOpen(false)
     navigate('/login', { replace: true })

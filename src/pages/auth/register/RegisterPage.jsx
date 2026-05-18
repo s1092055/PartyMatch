@@ -17,28 +17,30 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const validationError = getValidationError(form, accepted)
-  const canSubmit = !validationError
+  const canSubmit = !validationError && !loading
 
   function updateField(key, value) {
     setForm(prev => ({ ...prev, [key]: value }))
     setError('')
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     if (!canSubmit) {
       setError(validationError)
       return
     }
-
-    const result = registerUser(form)
+    setLoading(true)
+    setError('')
+    const result = await registerUser(form)
+    setLoading(false)
     if (!result.ok) {
       setError(result.error)
       return
     }
-
     navigate('/', { replace: true })
   }
 
@@ -111,7 +113,7 @@ export default function RegisterPage() {
         )}
 
         <Button type="submit" size="lg" className="h-[3.75rem] w-full text-lg" disabled={!canSubmit}>
-          註冊
+          {loading ? '註冊中…' : '註冊'}
         </Button>
       </form>
 

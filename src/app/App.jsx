@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react'
 import { RouterProvider } from 'react-router-dom'
 import router from './router'
+import { initAuth } from '../shared/stores/authStore'
 import { initGroups } from '../shared/stores/groupStore'
 
 export default function App() {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    initGroups()
+    Promise.all([initAuth(), initGroups()])
       .then(() => setReady(true))
       .catch(err => {
-        console.error('[App] Failed to load groups from Firestore:', err)
+        console.error('[App] Init failed:', err)
         setReady(true)
       })
   }, [])

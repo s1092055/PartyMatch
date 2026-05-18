@@ -16,18 +16,20 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
-  const canSubmit = email.trim() && password.trim()
+  const [loading, setLoading] = useState(false)
+  const canSubmit = email.trim() && password.trim() && !loading
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     if (!canSubmit) return
-
-    const result = loginUser({ email, password })
+    setLoading(true)
+    setError('')
+    const result = await loginUser({ email, password })
+    setLoading(false)
     if (!result.ok) {
       setError(result.error)
       return
     }
-
     navigate(safeRedirect(searchParams.get('redirectTo')), { replace: true })
   }
 
@@ -72,7 +74,7 @@ export default function LoginPage() {
         )}
 
         <Button type="submit" size="lg" className="h-[3.75rem] w-full text-lg" disabled={!canSubmit}>
-          登入
+          {loading ? '登入中…' : '登入'}
         </Button>
       </form>
 

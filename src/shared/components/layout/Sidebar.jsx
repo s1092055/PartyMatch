@@ -64,8 +64,8 @@ export default function Sidebar() {
     setActivePanel(null)
   }
 
-  function confirmLogout() {
-    logoutUser()
+  async function confirmLogout() {
+    await logoutUser()
     setShowLogoutConfirm(false)
     setActivePanel(null)
     navigate('/login', { replace: true })

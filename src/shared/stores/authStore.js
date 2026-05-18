@@ -1,121 +1,117 @@
+import { auth, db } from '../../app/firebase'
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile,
+} from 'firebase/auth'
+import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { todayISO } from '../utils/date'
-import { createId, readStorageArray, readStorageObject, removeStorage, writeStorage } from '../utils/storage'
 
-const AUTH_USER_KEY = 'pm_auth_user'
-const REGISTERED_USERS_KEY = 'pm_registered_users'
+// Module-level cache — populated by initAuth() on app startup
+let _currentUser = null
 
-// MVP mock auth only. Production should replace this whole store with
-// Firebase Auth or a backend-managed auth/session flow; passwords are not
-// encrypted here because localStorage is only used for the demo prototype.
-
-function normalizeEmail(email) {
-  return String(email ?? '').trim().toLowerCase()
-}
-
-function sanitizeUser(record) {
-  if (!record) return null
-  const user = { ...record }
-  delete user.password
-  return user
-}
-
-function getRegisteredRecords() {
-  return readStorageArray(REGISTERED_USERS_KEY)
-}
-
-function saveRegisteredRecords(users) {
-  writeStorage(REGISTERED_USERS_KEY, users)
-}
-
-function saveCurrentUser(user) {
-  writeStorage(AUTH_USER_KEY, user)
-}
-
-export function getCurrentUser() {
-  const user = readStorageObject(AUTH_USER_KEY)
-  return user.id ? user : null
-}
-
-export function getRegisteredUsers() {
-  return getRegisteredRecords().map(sanitizeUser)
-}
-
-export function isAuthenticated() {
-  return !!getCurrentUser()
-}
-
-export function registerUser({ name, email, password }) {
-  const cleanName = String(name ?? '').trim()
-  const cleanEmail = normalizeEmail(email)
-  const cleanPassword = String(password ?? '')
-
-  if (!cleanName || !cleanEmail || !cleanPassword) {
-    return { ok: false, error: '請填寫顯示名稱、電子郵件與密碼' }
+async function buildUserProfile(firebaseUser) {
+  const snap = await getDoc(doc(db, 'users', firebaseUser.uid))
+  const stored = snap.exists() ? snap.data() : {}
+  return {
+    id:          firebaseUser.uid,
+    email:       firebaseUser.email,
+    name:        stored.name ?? firebaseUser.displayName ?? '使用者',
+    avatarUrl:   stored.avatarUrl  ?? null,
+    avatarColor: stored.avatarColor ?? null,
+    joinedAt:    stored.joinedAt   ?? todayISO(),
+    role:        stored.role       ?? 'user',
+    creditScore: stored.creditScore ?? 5.0,
+    isVerified:  stored.isVerified  ?? false,
   }
-
-  const users = getRegisteredRecords()
-  const duplicate = users.some(user => normalizeEmail(user.email) === cleanEmail)
-  if (duplicate) {
-    return { ok: false, error: '此電子郵件已註冊，請改用登入' }
-  }
-
-  const user = {
-    id: createId('user'),
-    name: cleanName,
-    email: cleanEmail,
-    avatarUrl: null,
-    joinedAt: todayISO(),
-    role: 'user',
-  }
-
-  users.push({ ...user, password: cleanPassword })
-  saveRegisteredRecords(users)
-  saveCurrentUser(user)
-
-  return { ok: true, user }
 }
 
-export function loginUser({ email, password }) {
-  const cleanEmail = normalizeEmail(email)
-  const cleanPassword = String(password ?? '')
-
-  if (!cleanEmail || !cleanPassword) {
-    return { ok: false, error: '請輸入電子郵件與密碼' }
-  }
-
-  const record = getRegisteredRecords().find(user =>
-    normalizeEmail(user.email) === cleanEmail && user.password === cleanPassword
-  )
-
-  if (!record) {
-    return { ok: false, error: '找不到符合的帳號或密碼不正確' }
-  }
-
-  const user = sanitizeUser(record)
-  saveCurrentUser(user)
-  return { ok: true, user }
+// Called once in App.jsx before the router renders.
+// Resolves after Firebase confirms the auth state (logged in or not).
+export function initAuth() {
+  return new Promise(resolve => {
+    const unsubscribe = onAuthStateChanged(auth, async firebaseUser => {
+      unsubscribe()
+      if (firebaseUser) {
+        _currentUser = await buildUserProfile(firebaseUser)
+      } else {
+        _currentUser = null
+      }
+      resolve()
+    })
+  })
 }
 
-export function logoutUser() {
-  removeStorage(AUTH_USER_KEY)
+// ── Sync reads (safe to call anywhere after initAuth resolves) ─────
+
+export function isAuthenticated() { return !!_currentUser }
+export function getCurrentUser()  { return _currentUser }
+
+// ── Async writes ───────────────────────────────────────────────────
+
+export async function loginUser({ email, password }) {
+  try {
+    const result = await signInWithEmailAndPassword(auth, email, password)
+    _currentUser = await buildUserProfile(result.user)
+    return { ok: true, user: _currentUser }
+  } catch (err) {
+    return { ok: false, error: mapAuthError(err.code) }
+  }
 }
 
-// Pre-seeds a fixed dev test account so developers can log in without registering.
-// Credentials: test@partymatch.dev / test1234
-// The account uses id 'user_001' to match all existing mock data (subscriptions, groups, etc.)
-export function seedTestAccount() {
-  const TEST_EMAIL = 'test@partymatch.dev'
-  const existing = getRegisteredRecords()
-  if (existing.some(u => normalizeEmail(u.email) === TEST_EMAIL)) return
+export async function registerUser({ name, email, password }) {
+  try {
+    const result = await createUserWithEmailAndPassword(auth, email, password)
+    await updateProfile(result.user, { displayName: name })
 
-  const testUser = {
-    id:       'user_001',
-    name:     '測試帳號',
-    email:    TEST_EMAIL,
-    password: 'test1234',
-    avatarUrl: null,
-    joinedAt: '2024-11-18',
-    role:     'user',
+    const profile = {
+      name,
+      email:       result.user.email,
+      avatarUrl:   null,
+      avatarColor: null,
+      joinedAt:    todayISO(),
+      role:        'user',
+      creditScore: 5.0,
+      isVerified:  false,
+    }
+    await setDoc(doc(db, 'users', result.user.uid), profile)
+
+    _currentUser = { id: result.user.uid, ...profile }
+    return { ok: true, user: _currentUser }
+  } catch (err) {
+    return { ok: false, error: mapAuthError(err.code) }
   }
-  saveRegisteredRecords([...existing, testUser])
+}
+
+export async function logoutUser() {
+  await signOut(auth)
+  _currentUser = null
+}
+
+export async function resetPassword(email) {
+  try {
+    await sendPasswordResetEmail(auth, email.trim().toLowerCase())
+    return { ok: true }
+  } catch (err) {
+    return { ok: false, error: mapAuthError(err.code) }
+  }
+}
+
+// ── Error mapping ──────────────────────────────────────────────────
+
+function mapAuthError(code) {
+  const map = {
+    'auth/user-not-found':        '找不到此電子郵件的帳號',
+    'auth/wrong-password':        '密碼不正確',
+    'auth/invalid-credential':    '帳號或密碼不正確',
+    'auth/email-already-in-use':  '此電子郵件已被註冊，請改用登入',
+    'auth/weak-password':         '密碼強度不足，請至少使用 6 個字元',
+    'auth/invalid-email':         '請輸入有效的電子郵件格式',
+    'auth/too-many-requests':     '登入嘗試次數過多，請稍後再試',
+    'auth/network-request-failed':'網路連線失敗，請確認網路後再試',
+  }
+  return map[code] ?? '發生錯誤，請稍後再試'
 }

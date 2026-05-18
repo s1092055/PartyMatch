@@ -3,14 +3,19 @@ import { Link } from 'react-router-dom'
 import { Mail } from 'lucide-react'
 import AuthLayout, { AuthInput } from '../../../shared/components/auth/AuthLayout'
 import Button from '../../../shared/components/ui/Button'
+import { resetPassword } from '../../../shared/stores/authStore'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [loading, setLoading] = useState(false)
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
-    if (!email.trim()) return
+    if (!email.trim() || loading) return
+    setLoading(true)
+    await resetPassword(email)
+    setLoading(false)
     setSubmitted(true)
   }
 
@@ -19,7 +24,7 @@ export default function ForgotPasswordPage() {
       <div className="mt-14">
         <h1 className="text-4xl font-extrabold leading-tight text-ink sm:text-[3rem]">忘記密碼？</h1>
         <p className="mt-5 text-base font-medium leading-relaxed text-ink-3">
-          輸入你的電子郵件，我們會提供重設密碼的方式。
+          輸入你的電子郵件，我們會寄出重設密碼連結。
         </p>
       </div>
 
@@ -39,8 +44,8 @@ export default function ForgotPasswordPage() {
           </div>
         )}
 
-        <Button type="submit" size="lg" className="h-[3.75rem] w-full text-lg" disabled={!email.trim()}>
-          送出重設連結
+        <Button type="submit" size="lg" className="h-[3.75rem] w-full text-lg" disabled={!email.trim() || loading}>
+          {loading ? '寄送中…' : '送出重設連結'}
         </Button>
       </form>
 
