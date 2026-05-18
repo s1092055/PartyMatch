@@ -14,8 +14,9 @@ import ApplicationsModal from './components/ApplicationsModal'
 import EditGroupModal from './components/EditGroupModal'
 import GroupHistoryModal from './components/GroupHistoryModal'
 import RenewalModal from './components/RenewalModal'
-import Modal from '../../shared/components/ui/Modal'
 import PaymentStatusModal from './components/PaymentStatusModal'
+import ActivateGroupModal from './components/ActivateGroupModal'
+import ConfirmActionModal from './components/ConfirmActionModal'
 
 const STATUS_FILTER_TABS = [
   { key: 'all',        label: '全部'   },
@@ -39,35 +40,6 @@ function matchesFilter(group, filterKey) {
   return true
 }
 
-function ActivateGroupModal({ group, onClose, onConfirm }) {
-  return (
-    <Modal isOpen onClose={onClose} title="確認啟用服務？" maxWidth="max-w-sm">
-      <div className="p-5">
-        <p className="text-sm font-semibold text-ink">{group.serviceName} · {group.planName}</p>
-        <ul className="mt-3 space-y-1.5 text-sm text-ink-2">
-          <li>· 啟用後將開始計算續費日期</li>
-          <li>· 方案資訊（價格、人數、週期）將無法修改</li>
-          <li>· 已付款成員將收到啟用通知</li>
-        </ul>
-        <div className="mt-5 flex gap-2">
-          <button
-            onClick={onClose}
-            className="flex-1 rounded-xl border border-line py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-raised"
-          >
-            取消
-          </button>
-          <button
-            onClick={onConfirm}
-            className="flex-1 rounded-xl bg-brand py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover"
-          >
-            確認啟用
-          </button>
-        </div>
-      </div>
-    </Modal>
-  )
-}
-
 function loadManageData(activeUser) {
   if (!activeUser) return { hostedGroups: [], applications: [], members: [], seatMap: {} }
   const hostedGroups = getGroupsByHostId(activeUser.id)
@@ -77,52 +49,6 @@ function loadManageData(activeUser) {
     hostedGroups.map(g => [g.id, { usedSeats: g.usedSeats, openSeats: g.openSeats }])
   )
   return { hostedGroups, applications, members, seatMap }
-}
-
-const CONFIRM_ACTION_CONFIG = {
-  pause: {
-    title: '暫停招募',
-    desc: '暫停招募後，不會再接受新的加入申請，現有成員不受影響。',
-    btnLabel: '確認暫停',
-    btnClass: 'bg-amber-500 hover:bg-amber-600',
-  },
-  cancel: {
-    title: '解散群組',
-    desc: '解散群組後，所有成員將被移除。此操作在正式版中無法復原，請謹慎操作。',
-    btnLabel: '確認解散',
-    btnClass: 'bg-danger hover:bg-red-700',
-  },
-  stop: {
-    title: '停止服務',
-    desc: '停止服務後，本期仍可使用至到期日，下期將不再續訂。此操作無法復原，請謹慎操作。',
-    btnLabel: '確認停止',
-    btnClass: 'bg-danger hover:bg-red-700',
-  },
-}
-
-function ConfirmActionModal({ action, onClose, onConfirm }) {
-  const config = CONFIRM_ACTION_CONFIG[action.type]
-  return (
-    <Modal isOpen onClose={onClose} title={config.title} maxWidth="max-w-sm">
-      <div className="p-5">
-        <p className="text-sm leading-relaxed text-ink-2">{config.desc}</p>
-        <div className="mt-5 flex gap-2">
-          <button
-            onClick={onClose}
-            className="flex-1 rounded-xl border border-line py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-raised"
-          >
-            取消
-          </button>
-          <button
-            onClick={onConfirm}
-            className={`flex-1 rounded-xl py-2.5 text-sm font-semibold text-white transition-colors ${config.btnClass}`}
-          >
-            {config.btnLabel}
-          </button>
-        </div>
-      </div>
-    </Modal>
-  )
 }
 
 export default function ManageGroupsPage() {

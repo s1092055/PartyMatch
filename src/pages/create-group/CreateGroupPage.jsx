@@ -171,10 +171,10 @@ export default function CreateGroupPage() {
 
   // Escape key closes modal
   useEffect(() => {
-    function onKeyDown(e) { if (e.key === 'Escape') handleClose() }
+    function onKeyDown(e) { if (e.key === 'Escape') navigate(-1) }
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
-  }, [])
+  }, [navigate])
 
   // Prevent body scroll while modal is open
   useEffect(() => {

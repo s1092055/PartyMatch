@@ -52,7 +52,7 @@ export default function MySubscriptionsPage() {
 
   const userApplications = useMemo(
     () => activeUser ? getApplicationsByUserId(activeUser.id) : [],
-    [activeUser?.id],
+    [activeUser],
   )
 
   const filterCounts = useMemo(() => ({
