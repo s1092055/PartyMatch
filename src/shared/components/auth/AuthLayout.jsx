@@ -8,16 +8,13 @@ export default function AuthLayout({ children, illustrationTitle = '更聰明的
       <div className="mx-auto grid min-h-[calc(100vh-5rem)] max-w-[86rem] items-center gap-3">
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(34rem,1fr)]">
           <section className="rounded-3xl border border-slate-200 bg-white px-6 py-8 shadow-sm sm:px-12 sm:py-12 lg:px-16">
-            <div className="flex items-center justify-between">
-              <BrandMark />
-              <Link
-                to="/explore"
-                className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-bold text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800"
-              >
-                <ArrowLeft size={15} />
-                先逛逛
-              </Link>
-            </div>
+            <Link
+              to="/explore"
+              className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-bold text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800"
+            >
+              <ArrowLeft size={15} />
+              先逛逛
+            </Link>
             {children}
           </section>
 
