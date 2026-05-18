@@ -58,7 +58,6 @@ export default function ExplorePage() {
 
   useEffect(() => {
     const q = searchParams.get('q') ?? ''
-    if (!q) return
     startTransition(() => {
       setFilters(prev => prev.keyword === q ? prev : { ...prev, keyword: q })
     })

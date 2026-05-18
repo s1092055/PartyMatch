@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { ClipboardList } from 'lucide-react'
+import { CheckCircle, ClipboardList, Clock, XCircle } from 'lucide-react'
 import { getSubscriptionsByUserId, markSubscriptionPaid } from '../../shared/stores/subscriptionStore'
 import { getMemberByUserAndGroup, updateMember } from '../../shared/stores/memberStore'
 import { createNotification } from '../../shared/stores/notificationStore'
@@ -53,18 +53,13 @@ export default function MySubscriptionsPage() {
     [activeUser?.id],
   )
 
-  const pendingAppCount = useMemo(
-    () => userApplications.filter(a => a.status === 'pending').length,
-    [userApplications],
-  )
-
   const filterCounts = useMemo(() => ({
     all:          subs.length,
     pending:      filterSubs(subs, 'pending').length,
     paid:         filterSubs(subs, 'paid').length,
     upcoming:     filterSubs(subs, 'upcoming').length,
-    applications: pendingAppCount,
-  }), [subs, pendingAppCount])
+    applications: userApplications.length,
+  }), [subs, userApplications])
 
   function showToast(msg) {
     setToast(msg)
@@ -134,24 +129,11 @@ export default function MySubscriptionsPage() {
 
           {activeTab === 'applications' ? (
             <div className="space-y-3">
-              {userApplications.filter(a => a.status === 'pending').length === 0 ? (
-                <div className="card py-10 text-center">
-                  <ClipboardList size={32} className="mx-auto mb-3 text-ink-4" />
-                  <p className="font-semibold text-ink-2">目前沒有待審核的申請</p>
-                  <p className="mt-1 text-sm text-ink-3">你的群組申請審核結果也會顯示在右側欄</p>
-                </div>
+              {userApplications.length === 0 ? (
+                <EmptyState icon={ClipboardList} title="沒有申請紀錄" />
               ) : (
-                userApplications.filter(a => a.status === 'pending').map(app => (
-                  <div key={app.id} className="card flex items-center gap-3 p-4">
-                    <div className="h-2.5 w-2.5 shrink-0 rounded-full bg-warning" />
-                    <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-ink">{app.groupName}</p>
-                      <p className="text-xs text-ink-3">{app.planName ?? ''} · 申請於 {app.createdAt}</p>
-                    </div>
-                    <span className="shrink-0 rounded-full bg-warning-subtle px-2.5 py-0.5 text-xs font-semibold text-warning-text">
-                      審核中
-                    </span>
-                  </div>
+                userApplications.map(app => (
+                  <ApplicationRow key={app.id} app={app} />
                 ))
               )}
             </div>
@@ -199,6 +181,31 @@ export default function MySubscriptionsPage() {
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+const APP_STATUS_CONFIG = {
+  pending:  { label: '審核中', Icon: Clock,       cls: 'bg-warning-subtle text-warning-text',   dot: 'bg-warning'  },
+  approved: { label: '已核准', Icon: CheckCircle, cls: 'bg-success-subtle text-success-text',   dot: 'bg-success'  },
+  rejected: { label: '已拒絕', Icon: XCircle,     cls: 'bg-danger-subtle  text-danger',          dot: 'bg-danger'   },
+}
+
+function ApplicationRow({ app }) {
+  const cfg = APP_STATUS_CONFIG[app.status] ?? APP_STATUS_CONFIG.pending
+  return (
+    <div className="card flex items-center gap-4 p-4">
+      <div className={`h-2.5 w-2.5 shrink-0 rounded-full ${cfg.dot}`} />
+      <div className="min-w-0 flex-1">
+        <p className="font-semibold text-ink">{app.groupName}</p>
+        <p className="mt-0.5 text-xs text-ink-3">
+          {app.planName ? `${app.planName} · ` : ''}申請於 {app.createdAt}
+        </p>
+      </div>
+      <span className={`flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${cfg.cls}`}>
+        <cfg.Icon size={11} />
+        {cfg.label}
+      </span>
     </div>
   )
 }

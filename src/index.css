@@ -131,6 +131,7 @@
   html {
     font-family: var(--font-sans);
     font-size: 15px;
+    overflow-y: scroll;
   }
 
   @media (max-width: 767px) {

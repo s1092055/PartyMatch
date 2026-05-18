@@ -28,10 +28,11 @@ export function readAllSubscriptions() {
 }
 
 export function insertSubscription(record) {
+  const normalized = normalizeSubscription(record)
   const subs = loadNew()
-  subs.push(normalizeSubscription(record))
+  subs.push(normalized)
   saveNew(subs)
-  return record
+  return normalized
 }
 
 export function patchSubscription(id, patch) {

@@ -14,7 +14,7 @@ export default function ApplyJoinModal({ group, isOpen, onClose, onSuccess }) {
     if (!agreed) return
     createApplication({
       groupId: group.id,
-      groupName: group.serviceName,
+      groupName: group.groupName || group.serviceName,
       serviceId: group.serviceId,
       serviceName: group.serviceName,
       planName: group.planName,

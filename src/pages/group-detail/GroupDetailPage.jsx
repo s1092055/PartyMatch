@@ -52,7 +52,7 @@ export default function GroupDetailPage() {
           <SectionCard title="群組描述" className="mb-4">
             <p className="text-sm text-ink-2 leading-relaxed">{group.description}</p>
             <div className="flex flex-wrap gap-2 mt-3">
-              {group.tags.map(tag => (
+              {(group.tags ?? []).map(tag => (
                 <span key={tag} className="bg-raised text-ink-3 text-xs px-2.5 py-1 rounded-full">
                   #{tag}
                 </span>
@@ -73,7 +73,7 @@ export default function GroupDetailPage() {
               </div>
             )}
             <ul className="space-y-2">
-              {group.rules.map((rule, i) => (
+              {(group.rules ?? []).map((rule, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-ink-2">
                   <CheckCircle2 size={15} className="text-emerald-500 shrink-0 mt-0.5" />
                   {rule}
@@ -94,7 +94,7 @@ export default function GroupDetailPage() {
             }
           >
             <div className="space-y-4">
-              {(showAllReviews ? group.reviews : group.reviews.slice(0, PREVIEW_COUNT)).map(review => (
+              {((showAllReviews ? group.reviews : (group.reviews ?? []).slice(0, PREVIEW_COUNT)) ?? []).map(review => (
                 <div key={review.id} className="flex gap-3">
                   <div className="w-8 h-8 rounded-full bg-raised flex items-center justify-center text-ink-2 text-xs font-semibold shrink-0">
                     {review.author[0]}

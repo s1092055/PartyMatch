@@ -7,10 +7,10 @@ import { daysUntil } from '../../../shared/utils/date'
 import { createNotification } from '../../../shared/stores/notificationStore'
 import { getGroups } from '../../../shared/stores/groupStore'
 
-const _groupServiceMap = new Map(getGroups().map(g => [g.id, g.serviceId]))
-
 function resolveServiceId(app) {
-  return app.serviceId ?? _groupServiceMap.get(app.groupId) ?? 'spotify'
+  if (app.serviceId) return app.serviceId
+  const map = new Map(getGroups().map(g => [g.id, g.serviceId]))
+  return map.get(app.groupId) ?? 'spotify'
 }
 
 function MiniApplicationCard({ app, groupFull, error, onApprove, onReject }) {

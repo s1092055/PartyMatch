@@ -40,6 +40,7 @@ export function createGroup(data) {
     openSeats:        (data.totalSeats ?? 6) - 1,
     tags:             [],
     rules:            [],
+    reviews:          [],
     requirements:     null,
     description:      '',
     ...data,

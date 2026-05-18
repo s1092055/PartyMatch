@@ -12,6 +12,7 @@ export function getPaymentRecordsBySubscriptionId(subscriptionId) {
 }
 
 export function getPaymentRecordsByUserId(subscriptionIds) {
+  if (!subscriptionIds?.length) return []
   const ids = new Set(subscriptionIds)
   return readAllPaymentRecords().filter(p => ids.has(p.subscriptionId))
 }
