@@ -25,8 +25,8 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
     const result = await loginUser({ email, password })
-    setLoading(false)
     if (!result.ok) {
+      setLoading(false)
       setError(result.error)
       return
     }
