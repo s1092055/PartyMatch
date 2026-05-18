@@ -2,66 +2,78 @@ import { readAllGroups, insertGroup, patchGroup } from '../api/groupsApi'
 import { toISODate, todayISO } from '../utils/date'
 import { createId } from '../utils/storage'
 import { getActiveUserProfile } from './userStore'
+import { normalizeGroup } from '../utils/modelNormalizers'
 
-export function getGroups() {
-  return readAllGroups()
+// In-memory cache — populated once on app startup by initGroups()
+let _groups = []
+
+// Called once in App.jsx before the router renders
+export async function initGroups() {
+  _groups = await readAllGroups()
 }
 
-export function getGroupById(id) {
-  return readAllGroups().find(g => g.id === id) ?? null
+function applyPatch(id, patch) {
+  _groups = _groups.map(g => g.id === id ? normalizeGroup({ ...g, ...patch }) : g)
+  return _groups.find(g => g.id === id) ?? null
 }
 
-export function getGroupsByHostId(hostId) {
-  return readAllGroups().filter(g => g.hostId === hostId)
-}
+// ── Reads (sync, from cache) ───────────────────────────────────────
 
-export function getRecruitingGroups() {
-  return readAllGroups().filter(g => g.status === 'recruiting')
-}
+export function getGroups()                  { return _groups }
+export function getGroupById(id)             { return _groups.find(g => g.id === id) ?? null }
+export function getGroupsByHostId(hostId)    { return _groups.filter(g => g.hostId === hostId) }
+export function getRecruitingGroups()        { return _groups.filter(g => g.status === 'recruiting') }
+
+// ── Writes (optimistic: update cache sync, persist async) ─────────
 
 export function createGroup(data) {
   const activeUser = getActiveUserProfile()
   if (!activeUser) throw new Error('登入後才能建立群組')
 
-  const now = todayISO()
-  const group = {
-    id:               createId(`group_${data.serviceId}`),
-    hostId:           activeUser.id,
-    hostName:         activeUser.displayName,
-    hostRating:       activeUser.creditScore,
-    hostReviewCount:  0,
+  const now   = todayISO()
+  const group = normalizeGroup({
+    id:                createId(`group_${data.serviceId}`),
+    hostId:            activeUser.id,
+    hostName:          activeUser.displayName,
+    hostRating:        activeUser.creditScore,
+    hostReviewCount:   0,
     hostAvatarInitial: activeUser.avatarInitial,
-    hostAvatarColor:  activeUser.avatarColor,
-    isHostVerified:   activeUser.isVerified,
-    status:           'recruiting',
-    createdAt:        now,
-    updatedAt:        now,
-    usedSeats:        1,
-    openSeats:        (data.totalSeats ?? 6) - 1,
-    tags:             [],
-    rules:            [],
-    reviews:          [],
-    requirements:     null,
-    description:      '',
+    hostAvatarColor:   activeUser.avatarColor,
+    isHostVerified:    activeUser.isVerified,
+    status:            'recruiting',
+    createdAt:         now,
+    updatedAt:         now,
+    usedSeats:         1,
+    openSeats:         (data.totalSeats ?? 6) - 1,
+    tags:              [],
+    rules:             [],
+    reviews:           [],
+    requirements:      null,
+    description:       '',
     ...data,
-  }
-  return insertGroup(group)
+  })
+
+  _groups = [..._groups, group]
+  insertGroup(group).catch(err => console.error('[groupStore] createGroup failed:', err))
+  return group
 }
 
 export function updateGroup(id, patch) {
-  return patchGroup(id, patch)
+  const updated = applyPatch(id, patch)
+  patchGroup(id, patch).catch(err => console.error('[groupStore] updateGroup failed:', err))
+  return updated
 }
 
 export function confirmGroupPayments(id) {
-  return patchGroup(id, { status: 'pending_activation' })
+  return updateGroup(id, { status: 'pending_activation' })
 }
 
 export function pauseGroup(id) {
-  return patchGroup(id, { status: 'paused' })
+  return updateGroup(id, { status: 'paused' })
 }
 
 export function cancelGroup(id) {
-  return patchGroup(id, { status: 'cancelled' })
+  return updateGroup(id, { status: 'cancelled' })
 }
 
 export function activateGroup(id) {
@@ -76,7 +88,7 @@ export function activateGroup(id) {
     activationDate.setMonth(activationDate.getMonth() + 1)
   }
   const nextBillingDate = toISODate(activationDate)
-  return patchGroup(id, { status: 'active', activatedAt, nextBillingDate })
+  return updateGroup(id, { status: 'active', activatedAt, nextBillingDate })
 }
 
 export function startRenewalCycle(id) {
@@ -90,9 +102,9 @@ export function startRenewalCycle(id) {
     base.setMonth(base.getMonth() + 1)
   }
   const nextBillingDate = toISODate(base)
-  return patchGroup(id, { status: 'pending_confirmation', nextBillingDate })
+  return updateGroup(id, { status: 'pending_confirmation', nextBillingDate })
 }
 
 export function endGroup(id) {
-  return patchGroup(id, { status: 'ended' })
+  return updateGroup(id, { status: 'ended' })
 }

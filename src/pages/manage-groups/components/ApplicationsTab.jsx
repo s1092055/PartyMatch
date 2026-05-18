@@ -5,10 +5,9 @@ import ServiceLogo from '../../../shared/components/ui/ServiceLogo'
 import EmptyState from '../../../shared/components/ui/EmptyState'
 import { getGroups } from '../../../shared/stores/groupStore'
 
-const _groupServiceMap = new Map(getGroups().map(g => [g.id, g.serviceId]))
-
 function resolveServiceId(app) {
-  return app.serviceId ?? _groupServiceMap.get(app.groupId) ?? 'spotify'
+  if (app.serviceId) return app.serviceId
+  return new Map(getGroups().map(g => [g.id, g.serviceId])).get(app.groupId) ?? 'spotify'
 }
 
 function ApplicationCard({ app, groupFull, error, onApprove, onReject }) {
