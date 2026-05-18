@@ -64,15 +64,6 @@ export default function MobileSearch() {
 
   return (
     <>
-      {/* FAB */}
-      <button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-4 z-40 grid h-14 w-14 place-items-center rounded-full bg-brand text-white shadow-[0_6px_20px_-4px_rgb(8_102_242_/_0.6)] transition-transform active:scale-95 md:hidden"
-        aria-label="搜尋"
-      >
-        <Search size={22} strokeWidth={2.2} />
-      </button>
-
       {/* Backdrop */}
       <div
         onClick={() => setIsOpen(false)}

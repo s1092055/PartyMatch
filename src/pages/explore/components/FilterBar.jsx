@@ -76,11 +76,11 @@ export default function FilterBar({ filters, onChange }) {
         })}
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        <CustomSelect label="選擇服務" value={service} onChange={v => onChange({ service: v })} options={serviceOptions} />
-        <CustomSelect label="加入方式" value={joinMode} onChange={v => onChange({ joinMode: v })} options={JOIN_MODE_OPTIONS} />
-        <CustomSelect label="價格上限" value={maxPrice} onChange={v => onChange({ maxPrice: v })} options={PRICE_OPTIONS} />
-        <CustomSelect label="排序方式" value={sortBy} onChange={v => onChange({ sortBy: v })} options={SORT_OPTIONS} />
+      <div className="flex flex-wrap gap-4 mt-6">
+        <CustomSelect value={service} onChange={v => onChange({ service: v })} options={serviceOptions} />
+        <CustomSelect value={joinMode} onChange={v => onChange({ joinMode: v })} options={JOIN_MODE_OPTIONS} />
+        <CustomSelect value={maxPrice} onChange={v => onChange({ maxPrice: v })} options={PRICE_OPTIONS} />
+        <CustomSelect value={sortBy} onChange={v => onChange({ sortBy: v })} options={SORT_OPTIONS} />
       </div>
     </div>
   )

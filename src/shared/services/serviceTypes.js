@@ -15,6 +15,12 @@ export function getServiceById(serviceId) {
   return getServiceTypeById(serviceId)
 }
 
+export function getMinPlanPrice(serviceId) {
+  const service = getServiceTypeById(serviceId)
+  if (!service?.plans?.length) return null
+  return Math.min(...service.plans.map(p => p.monthlyPrice))
+}
+
 export function getServiceTypeIcon(serviceId, { size = 64 } = {}) {
   const service = getServiceTypeById(serviceId)
 

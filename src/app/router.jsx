@@ -1,5 +1,6 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { createBrowserRouter } from 'react-router-dom'
 import AppLayout from '../shared/components/layout/AppLayout'
+import LandingPage from '../pages/landing/LandingPage'
 import AboutPage from '../pages/about/AboutPage'
 import ExplorePage from '../pages/explore/ExplorePage'
 import QuickMatchPage from '../pages/quick-match/QuickMatchPage'
@@ -18,6 +19,7 @@ import ProtectedRoute from '../shared/components/route/ProtectedRoute'
 import PublicOnlyRoute from '../shared/components/route/PublicOnlyRoute'
 
 const router = createBrowserRouter([
+  { path: '/', element: <LandingPage /> },
   {
     element: <PublicOnlyRoute />,
     children: [
@@ -33,7 +35,6 @@ const router = createBrowserRouter([
         path: '/',
         element: <AppLayout />,
         children: [
-          { index: true,                  element: <Navigate to="/explore" replace /> },
           { path: 'explore',              element: <ExplorePage /> },
           { path: 'about',               element: <AboutPage /> },
           { path: 'quick-match',          element: <QuickMatchPage /> },

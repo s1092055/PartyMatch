@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { activateGroup, cancelGroup, confirmGroupPayments, endGroup, getGroupsByHostId, pauseGroup, startRenewalCycle, updateGroup } from '../../shared/stores/groupStore'
 import { getApplicationsByHostId, updateApplicationStatus } from '../../shared/stores/applicationStore'
 import { getMembersByGroupId, createMember, isUserGroupMember, removeMember, updateMember } from '../../shared/stores/memberStore'
@@ -125,6 +126,7 @@ function ConfirmActionModal({ action, onClose, onConfirm }) {
 }
 
 export default function ManageGroupsPage() {
+  const navigate = useNavigate()
   const activeUser = getActiveUser()
 
   const [manageData, setManageData] = useState(() => loadManageData(activeUser))
@@ -420,7 +422,9 @@ export default function ManageGroupsPage() {
           {allGroups.length === 0 ? (
             <EmptyState
               title="你還沒有建立任何群組"
-              description="前往建立群組頁面，建立你的第一個共享群組"
+              description="建立你的第一個共享群組，開始招募成員一起分攤費用"
+              actionLabel="建立第一個群組"
+              onAction={() => navigate('/create-group')}
             />
           ) : displayGroups.length === 0 ? (
             <EmptyState title={`此分類目前沒有群組`} />

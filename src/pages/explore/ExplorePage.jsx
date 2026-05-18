@@ -1,6 +1,6 @@
 import { startTransition, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { AlertTriangle, Compass, X, Zap } from 'lucide-react'
+import { Compass, X, Zap } from 'lucide-react'
 import { getGroups } from '../../shared/stores/groupStore'
 import { getServiceTypeById } from '../../shared/services/serviceTypes'
 import GroupCard from '../../shared/components/cards/GroupCard'
@@ -129,14 +129,7 @@ export default function ExplorePage() {
         </div>
       )}
 
-      <div className="mb-4 mt-10 flex gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-        <AlertTriangle size={15} className="mt-0.5 shrink-0 text-amber-500" />
-        <p className="text-xs leading-relaxed text-amber-800">
-          PartyMatch 為群組媒合平台，不代管費用或帳號。部分服務（如 ChatGPT、Claude、Adobe CC 等）無官方共享方案，加入前請自行確認該服務之使用條款。因帳號共享所產生之任何損失，平台概不負責。
-        </p>
-      </div>
-
-      <div className="mb-6 flex items-center justify-between rounded-xl border border-line bg-raised px-5 py-4">
+<div className="mb-6 flex items-center justify-between rounded-xl border border-line bg-raised px-5 py-4">
         <div>
           <p className="text-sm font-extrabold text-ink">找不到合適的群組？</p>
           <p className="mt-0.5 text-xs text-ink-3">讓系統根據你的條件自動推薦</p>

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Heart } from 'lucide-react'
 import EmptyState from '../../shared/components/ui/EmptyState'
 import { getActiveUser } from '../../shared/stores/userStore'
@@ -17,6 +18,7 @@ function loadFavGroups() {
 }
 
 export default function FavoritesPage() {
+  const navigate = useNavigate()
   const [groups, setGroups] = useState(loadFavGroups)
 
   function handleFavChange(isFav, groupId) {
@@ -38,6 +40,8 @@ export default function FavoritesPage() {
           icon={Heart}
           title="尚無收藏群組"
           description="在探索頁面或群組詳情頁點擊 ♥ 加入收藏"
+          actionLabel="去探索群組"
+          onAction={() => navigate('/explore')}
           className="py-24"
         />
       ) : (

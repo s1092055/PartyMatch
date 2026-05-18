@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { CheckCircle, ClipboardList, Clock, XCircle } from 'lucide-react'
 import { getSubscriptionsByUserId, markSubscriptionPaid } from '../../shared/stores/subscriptionStore'
 import { getMemberByUserAndGroup, updateMember } from '../../shared/stores/memberStore'
@@ -39,6 +40,7 @@ function filterSubs(subs, tab) {
 }
 
 export default function MySubscriptionsPage() {
+  const navigate = useNavigate()
   const activeUser = getActiveUser()
   const [activeTab, setActiveTab] = useState('all')
   const [subs, setSubs] = useState(() =>
@@ -138,7 +140,13 @@ export default function MySubscriptionsPage() {
               )}
             </div>
           ) : filtered.length === 0 ? (
-            <EmptyState icon={ClipboardList} title="此分類沒有訂閱項目" />
+            <EmptyState
+              icon={ClipboardList}
+              title={activeTab === 'all' ? '你還沒有加入任何群組' : '此分類沒有訂閱項目'}
+              description={activeTab === 'all' ? '去探索頁面找找適合你的共享群組' : undefined}
+              actionLabel={activeTab === 'all' ? '探索群組' : undefined}
+              onAction={activeTab === 'all' ? () => navigate('/explore') : undefined}
+            />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
               {filtered.map(sub => (

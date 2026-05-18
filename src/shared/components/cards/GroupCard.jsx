@@ -1,16 +1,23 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Star, Users, ShieldCheck, Heart } from 'lucide-react'
+import { Star, Users, ShieldCheck, Heart, TrendingDown, Flame } from 'lucide-react'
 import Badge from '../ui/Badge'
 import Button from '../ui/Button'
 import ServiceLogo from '../ui/ServiceLogo'
 import { isGroupFavorited, toggleFavorite } from '../../stores/favoriteStore'
 import { getActiveUser } from '../../stores/userStore'
+import { getMinPlanPrice } from '../../services/serviceTypes'
 
 export default function GroupCard({ group, onFavChange }) {
   const navigate = useNavigate()
   const activeUser = getActiveUser()
   const [isFav, setIsFav] = useState(() => activeUser ? isGroupFavorited(activeUser.id, group.id) : false)
+
+  const minPlanPrice = getMinPlanPrice(group.serviceId)
+  const savings = minPlanPrice != null && minPlanPrice > group.pricePerSeat
+    ? minPlanPrice - group.pricePerSeat
+    : null
+  const isLastSeat = group.openSeats === 1
 
   function handleFav(e) {
     e.stopPropagation()
@@ -22,26 +29,41 @@ export default function GroupCard({ group, onFavChange }) {
 
   return (
     <div
-      className="card card-hover flex min-h-[14.25rem] cursor-pointer flex-col p-5"
+      className="card card-hover flex min-h-[14.25rem] cursor-pointer flex-col overflow-hidden p-5"
       onClick={() => navigate(`/groups/${group.id}`)}
     >
       {/* Header */}
-      <div className="flex min-w-0 items-center gap-4">
+      <div className="flex min-w-0 items-start gap-4">
         <ServiceLogo serviceId={group.serviceId} size={58} />
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
             <p className="truncate text-base font-extrabold leading-tight text-ink">{group.serviceName}</p>
-            {group.isHostVerified && <ShieldCheck size={15} className="shrink-0 text-success fill-success-subtle" />}
+            {group.isHostVerified && <ShieldCheck size={15} className="shrink-0 fill-success-subtle text-success" />}
           </div>
           <p className="mt-1 truncate text-sm font-medium text-ink-2">{group.planName}</p>
+          {/* Urgency badge */}
+          {isLastSeat && (
+            <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-orange-50 px-2 py-0.5 text-[11px] font-bold text-orange-600">
+              <Flame size={10} />
+              最後 1 席
+            </span>
+          )}
         </div>
       </div>
 
-      {/* Price */}
+      {/* Price + savings */}
       <div className="mt-5 flex items-end justify-between gap-4">
-        <div className="flex items-baseline gap-1">
-          <span className="text-2xl font-extrabold tracking-normal text-brand">NT${group.pricePerSeat}</span>
-          <span className="text-sm font-semibold text-ink-2">/ 每席</span>
+        <div>
+          <div className="flex items-baseline gap-1">
+            <span className="text-2xl font-extrabold tracking-normal text-brand">NT${group.pricePerSeat}</span>
+            <span className="text-sm font-semibold text-ink-2">/ 每席</span>
+          </div>
+          {savings != null && (
+            <span className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold text-success">
+              <TrendingDown size={11} />
+              比個人方案省 NT${savings}/月
+            </span>
+          )}
         </div>
         <div className="text-right">
           <p className="text-xl font-extrabold leading-none text-ink">
@@ -61,9 +83,9 @@ export default function GroupCard({ group, onFavChange }) {
           <span className="text-ink-3">({group.hostReviewCount})</span>
         </span>
         <span className="h-4 w-px bg-line" />
-        <span className="flex items-center gap-1.5 text-ink-2">
-          <Users size={15} className={group.joinMode === 'instant' ? 'text-success' : 'text-brand'} />
-          <Badge variant={group.joinMode} className="bg-transparent px-0 text-ink-2" />
+        <span className="flex items-center gap-1.5">
+          <Users size={15} className="text-brand" />
+          <Badge variant={group.joinMode} />
         </span>
       </div>
 

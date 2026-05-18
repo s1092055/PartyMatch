@@ -10,7 +10,7 @@
 
 ## 功能
 
-- 探索群組：Marketplace 瀏覽版面；分類 Pills 篩選（影音、音樂、AI 工具、辦公、雲端、學習、遊戲、VPN）+ 次要篩選列（加入方式、價格、排序）；群組以 3 欄卡片網格呈現；共 30 種服務、26 個 Mock 群組；Sidebar 與手機版 MobileSearch 皆可搜尋並導向探索頁篩選結果
+- 探索群組：Marketplace 瀏覽版面；分類 Pills 篩選（影音、音樂、AI 工具、辦公、雲端、學習、遊戲、VPN）+ 次要篩選列（加入方式、價格、排序）；群組以 3 欄卡片網格呈現；共 30 種服務、26 個 Mock 群組；Sidebar 與手機版 Drawer 搜尋按鈕皆可搜尋並導向探索頁篩選結果；群組卡片顯示節省金額（對比個人方案）與最後席位提示
 - 快速配對：選服務 + 設定預算偏好，自動推薦最適合的群組
 - 申請加入（審核制）或立即加入
 - 建立自己的共享群組（4 步驟表單）；方案費用依官方定價自動計算，名額上限依方案限制，不開放團主自訂價格
@@ -19,7 +19,7 @@
 - 訊息中心：通知分類（付款、申請、系統）、標記已讀
 - 收藏感興趣的群組
 - 帳號中心：個人資料、付款方式、通知偏好、安全驗證、設定
-- 手機版右滑抽屜導航（點選右上角漢堡選單展開）；底部 MobileSearch FAB 開啟搜尋底頁
+- 手機版右滑抽屜導航（點選右上角漢堡選單展開），抽屜內含搜尋按鈕可開啟搜尋底頁
 
 ---
 
@@ -55,6 +55,7 @@ npm run lint    # 程式碼檢查
 
 | 路徑 | 頁面 |
 |------|------|
+| `/` | Landing Page（已登入者自動導向 `/explore`） |
 | `/login` | 登入 |
 | `/register` | 註冊 |
 | `/forgot-password` | 忘記密碼 |
@@ -63,7 +64,6 @@ npm run lint    # 程式碼檢查
 
 | 路徑 | 頁面 |
 |------|------|
-| `/` | 首頁 Dashboard |
 | `/explore` | 探索群組 |
 | `/explore?q=keyword` | 探索群組（關鍵字篩選） |
 | `/quick-match` | 快速配對設定 |
@@ -102,7 +102,7 @@ src/
 │   └── about/
 ├── shared/
 │   ├── components/
-│   │   ├── layout/      # AppLayout、Sidebar（含搜尋面板）、Topbar、MobileSearch
+│   │   ├── layout/      # AppLayout、Sidebar（含搜尋面板）、Topbar、MobileSearch（搜尋底頁）
 │   │   ├── auth/        # AuthLayout
 │   │   ├── route/       # ProtectedRoute、PublicOnlyRoute
 │   │   ├── ui/          # Button、Badge、Avatar、Modal、Toggle、CustomSelect、Tabs…
