@@ -77,7 +77,7 @@ async function seedCollection(name, records) {
     const chunk = records.slice(i, i + CHUNK)
     const batch = writeBatch(db)
     chunk.forEach(record => {
-      batch.set(doc(collection(db, name), record.id), record)
+      batch.set(doc(collection(db, name), record.id), { ...record, _demo: true })
     })
     await batch.commit()
     total += chunk.length

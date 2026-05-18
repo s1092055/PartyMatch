@@ -1,10 +1,3 @@
-// Data access layer — Groups
-//
-// Firebase migration: localStorage → Firestore
-//
-// Collection: 'groups'
-// Seed data:  src/shared/data/groups.mock.js → paste into Firestore via console or seed script
-
 import { db } from '../../app/firebase'
 import { collection, doc, getDocs, setDoc, updateDoc } from 'firebase/firestore'
 import { normalizeGroup } from '../utils/modelNormalizers'

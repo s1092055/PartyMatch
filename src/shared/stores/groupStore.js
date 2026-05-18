@@ -7,9 +7,12 @@ import { normalizeGroup } from '../utils/modelNormalizers'
 // In-memory cache — populated once on app startup by initGroups()
 let _groups = []
 
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true'
+
 // Called once in App.jsx before the router renders
 export async function initGroups() {
-  _groups = await readAllGroups()
+  const all = await readAllGroups()
+  _groups = DEMO_MODE ? all : all.filter(g => !g._demo)
 }
 
 function applyPatch(id, patch) {
