@@ -18,10 +18,10 @@ const STEPS = [Step1Service, Step2Plan, Step3Settings, Step4Preview]
 const INITIAL_FORM = {
   serviceId:          '',
   planName:           '',
-  pricePerSeat:       '',
+  pricePerSeat:       0,
   billingCycle:       'monthly',
   nextBillingDay:     '',
-  totalSeats:         6,
+  totalSeats:         2,
   groupName:          '',
   description:        '',
   applicationNotice:  '',
@@ -43,7 +43,7 @@ function mapFormToGroup(form) {
     serviceName:     service?.fullName ?? service?.name ?? form.serviceId,
     groupName:       form.groupName.trim() || undefined,
     planName:        form.planName,
-    pricePerSeat:    parseInt(form.pricePerSeat) || 0,
+    pricePerSeat:    form.pricePerSeat || 0,
     billingCycle:    form.billingCycle,
     nextBillingDate: computeNextBillingDate(form.nextBillingDay),
     totalSeats,
@@ -60,7 +60,6 @@ function mapFormToGroup(form) {
 
 function getStepErrors(step, form) {
   const errors = []
-  const price = Number.parseInt(form.pricePerSeat, 10)
   const billingDay = Number.parseInt(form.nextBillingDay, 10)
   const groupName = form.groupName.trim()
   const description = form.description.trim()
@@ -73,9 +72,6 @@ function getStepErrors(step, form) {
       break
     case 2: {
       if (!form.planName) errors.push('請選擇方案')
-      if (!Number.isInteger(price) || price < 1 || price > 9999) {
-        errors.push('每人月費需介於 NT$1 至 NT$9,999')
-      }
       if (!Number.isInteger(billingDay) || billingDay < 1 || billingDay > 31) {
         errors.push('每月扣款日需介於 1 至 31 日')
       }
@@ -88,9 +84,12 @@ function getStepErrors(step, form) {
       if (duplicate) errors.push('你已經有相同服務與方案的招募中群組')
       break
     }
-    case 3:
-      if (!Number.isInteger(form.totalSeats) || form.totalSeats < 2 || form.totalSeats > 10) {
-        errors.push('開放名額需介於 2 至 10 人')
+    case 3: {
+      const service = getServiceById(form.serviceId)
+      const plan = service?.plans.find(p => p.name === form.planName)
+      const maxSeats = plan?.maxSeats ?? 10
+      if (!Number.isInteger(form.totalSeats) || form.totalSeats < 2 || form.totalSeats > maxSeats) {
+        errors.push(`開放名額需介於 2 至 ${maxSeats} 人`)
       }
       if (groupName.length < 2 || groupName.length > 40) {
         errors.push('群組名稱需介於 2 至 40 字')
@@ -102,6 +101,7 @@ function getStepErrors(step, form) {
       if (rules.length > 5) errors.push('群組規則最多 5 條')
       if (rules.some(rule => rule.length > 80)) errors.push('每條群組規則最多 80 字')
       break
+    }
     default:
       break
   }
@@ -121,7 +121,28 @@ export default function CreateGroupPage() {
   const [newGroupId, setNewGroupId]   = useState(null)
 
   function onChange(key, value) {
-    setForm(prev => ({ ...prev, [key]: value }))
+    setForm(prev => {
+      const next = { ...prev, [key]: value }
+      if (key === 'serviceId') {
+        next.planName = ''
+        next.pricePerSeat = 0
+        next.totalSeats = 2
+      }
+      if (key === 'planName') {
+        const service = getServiceById(next.serviceId)
+        const plan = service?.plans.find(p => p.name === value)
+        if (plan) {
+          next.totalSeats = plan.maxSeats
+          next.pricePerSeat = Math.ceil(plan.monthlyPrice / plan.maxSeats)
+        }
+      }
+      if (key === 'totalSeats') {
+        const service = getServiceById(next.serviceId)
+        const plan = service?.plans.find(p => p.name === next.planName)
+        if (plan) next.pricePerSeat = Math.ceil(plan.monthlyPrice / value)
+      }
+      return next
+    })
   }
 
   const stepErrors = getStepErrors(step, form)

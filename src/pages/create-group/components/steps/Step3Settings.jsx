@@ -1,4 +1,5 @@
 import { Minus, Plus, X, PlusCircle } from 'lucide-react'
+import { getServiceById } from '../../../../shared/services/serviceTypes'
 
 const JOIN_MODES = [
   { value: 'approval', label: '需要審核', desc: '你可以審查每位申請者' },
@@ -19,6 +20,8 @@ function Field({ label, required, children, hint, htmlFor }) {
 }
 
 export default function Step3Settings({ form, onChange }) {
+  const plan = getServiceById(form.serviceId)?.plans.find(p => p.name === form.planName)
+  const maxSeats = plan?.maxSeats ?? 10
   function updateRule(i, val) {
     const next = [...form.rules]
     next[i] = val
@@ -41,8 +44,8 @@ export default function Step3Settings({ form, onChange }) {
       </div>
 
       {/* Seat count */}
-      <Field label="開放名額" required hint="包含你自己在內的總人數上限">
-        <div className="flex items-center gap-4">
+      <Field label="開放名額" required hint={`包含你自己在內的總人數上限（此方案最多 ${maxSeats} 人）`}>
+        <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-3 border border-slate-200 rounded-xl p-1">
             <button
               onClick={() => onChange('totalSeats', Math.max(2, form.totalSeats - 1))}
@@ -55,16 +58,16 @@ export default function Step3Settings({ form, onChange }) {
               {form.totalSeats}
             </span>
             <button
-              onClick={() => onChange('totalSeats', Math.min(10, form.totalSeats + 1))}
+              onClick={() => onChange('totalSeats', Math.min(maxSeats, form.totalSeats + 1))}
               className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-100 transition-colors disabled:opacity-30"
-              disabled={form.totalSeats >= 10}
+              disabled={form.totalSeats >= maxSeats}
             >
               <Plus size={14} className="text-slate-600" />
             </button>
           </div>
-          <div className="flex gap-4 text-sm text-slate-500">
+          <div className="flex flex-col gap-0.5 text-sm text-slate-500">
             <span>已使用名額：<strong className="text-slate-700">1</strong>（團主）</span>
-            <span>剩餘開放：<strong className="text-blue-600">{form.totalSeats - 1}</strong></span>
+            <span>每人月費：<strong className="text-blue-600">NT${form.pricePerSeat}</strong></span>
           </div>
         </div>
       </Field>

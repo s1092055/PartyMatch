@@ -1,6 +1,6 @@
-import { startTransition, useEffect, useMemo, useRef, useState } from 'react'
+import { startTransition, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { AlertTriangle, Compass, Search, X, Zap } from 'lucide-react'
+import { AlertTriangle, Compass, X, Zap } from 'lucide-react'
 import { getGroups } from '../../shared/stores/groupStore'
 import { getServiceTypeById } from '../../shared/services/serviceTypes'
 import GroupCard from '../../shared/components/cards/GroupCard'
@@ -47,71 +47,12 @@ function applyFilters(groups, { keyword, category, service, joinMode, maxPrice, 
   return result
 }
 
-function SearchModal({ keyword, onChange, onClose, resultCount }) {
-  const inputRef = useRef(null)
-
-  useEffect(() => {
-    inputRef.current?.focus()
-  }, [])
-
-  useEffect(() => {
-    function onKey(e) { if (e.key === 'Escape') onClose() }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [onClose])
-
-  return (
-    <>
-      <div className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="fixed left-1/2 top-[22vh] z-[60] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 rounded-2xl bg-white p-5 shadow-2xl">
-        <div className="relative">
-          <Search size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-3" />
-          <input
-            ref={inputRef}
-            type="text"
-            placeholder="搜尋服務名稱、方案、團主..."
-            value={keyword}
-            onChange={e => onChange({ keyword: e.target.value })}
-            className="h-12 w-full rounded-xl border border-line bg-raised pl-10 pr-10 text-sm text-ink placeholder:text-ink-3 focus:border-brand focus:outline-none"
-          />
-          {keyword && (
-            <button
-              onClick={() => onChange({ keyword: '' })}
-              className="absolute right-3 top-1/2 -translate-y-1/2 grid h-5 w-5 place-items-center rounded-full bg-ink-3 text-white transition-colors hover:bg-ink"
-              aria-label="清除搜尋"
-            >
-              <X size={11} />
-            </button>
-          )}
-        </div>
-
-        {keyword ? (
-          <p className="mt-3 text-sm text-ink-3">
-            找到 <span className="font-bold text-ink">{resultCount}</span> 個符合「{keyword}」的群組
-          </p>
-        ) : (
-          <p className="mt-3 text-sm text-ink-3">輸入關鍵字搜尋群組</p>
-        )}
-
-        <button
-          onClick={onClose}
-          className="mt-4 w-full rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
-        >
-          查看結果
-        </button>
-      </div>
-    </>
-  )
-}
-
 export default function ExplorePage() {
   const [searchParams] = useSearchParams()
   const [filters, setFilters] = useState(() => ({
     ...DEFAULT_FILTERS,
     keyword: searchParams.get('q') ?? '',
   }))
-  const [showSearch, setShowSearch] = useState(false)
-
   const navigate = useNavigate()
   const allGroups = useMemo(() => getGroups(), [])
 
@@ -142,6 +83,22 @@ export default function ExplorePage() {
       </div>
 
       <FilterBar filters={filters} onChange={handleFilterChange} />
+
+      {filters.keyword && (
+        <div className="mb-3 flex items-center gap-2">
+          <span className="text-xs font-medium text-ink-3">搜尋：</span>
+          <span className="flex items-center gap-1.5 rounded-full bg-brand-subtle px-3 py-1 text-xs font-bold text-brand">
+            {filters.keyword}
+            <button
+              onClick={() => setFilters(prev => ({ ...prev, keyword: '' }))}
+              aria-label="清除搜尋關鍵字"
+              className="grid h-3.5 w-3.5 place-items-center rounded-full bg-brand/20 transition-colors hover:bg-brand/40"
+            >
+              <X size={9} strokeWidth={2.5} />
+            </button>
+          </span>
+        </div>
+      )}
 
       <div className="mb-4 flex items-center justify-between">
         <p className="text-sm font-medium text-ink-3">
@@ -194,27 +151,6 @@ export default function ExplorePage() {
         </button>
       </div>
 
-      <button
-        onClick={() => setShowSearch(true)}
-        className="fixed bottom-6 right-6 z-30 hidden md:flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand text-white shadow-lg transition-transform hover:scale-105 hover:bg-brand-hover relative"
-        aria-label="搜尋群組"
-      >
-        {filters.keyword ? (
-          <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-black text-white">
-            1
-          </span>
-        ) : null}
-        <Search size={22} />
-      </button>
-
-      {showSearch && (
-        <SearchModal
-          keyword={filters.keyword}
-          onChange={handleFilterChange}
-          onClose={() => setShowSearch(false)}
-          resultCount={filtered.length}
-        />
-      )}
     </div>
   )
 }

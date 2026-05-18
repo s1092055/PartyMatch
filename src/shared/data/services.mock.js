@@ -9,7 +9,11 @@ export const SERVICES = [
     initial: 'S',
     iconDomain: 'spotify.com',
     iconId: 'simple-icons:spotify',
-    plans: ['個人方案', '個人方案（Family）', 'Duo'],
+    plans: [
+      { name: '個人方案',          monthlyPrice: 149, maxSeats: 1 },
+      { name: '個人方案（Family）', monthlyPrice: 279, maxSeats: 6 },
+      { name: 'Duo',               monthlyPrice: 219, maxSeats: 2 },
+    ],
   },
   {
     id: 'youtube',
@@ -21,7 +25,10 @@ export const SERVICES = [
     initial: 'Y',
     iconDomain: 'youtube.com',
     iconId: 'simple-icons:youtube',
-    plans: ['個人方案', '家庭方案'],
+    plans: [
+      { name: '個人方案', monthlyPrice: 179, maxSeats: 1 },
+      { name: '家庭方案', monthlyPrice: 269, maxSeats: 6 },
+    ],
   },
   {
     id: 'netflix',
@@ -33,7 +40,11 @@ export const SERVICES = [
     initial: 'N',
     iconDomain: 'netflix.com',
     iconId: 'simple-icons:netflix',
-    plans: ['標準', '高級（4K）', '廣告標準'],
+    plans: [
+      { name: '廣告標準',   monthlyPrice: 190, maxSeats: 2 },
+      { name: '標準',       monthlyPrice: 270, maxSeats: 2 },
+      { name: '高級（4K）', monthlyPrice: 390, maxSeats: 4 },
+    ],
   },
   {
     id: 'disney',
@@ -45,7 +56,10 @@ export const SERVICES = [
     initial: 'D',
     iconDomain: 'disneyplus.com',
     iconId: 'cbi:disney-plus',
-    plans: ['標準', '高級'],
+    plans: [
+      { name: '標準', monthlyPrice: 180, maxSeats: 4 },
+      { name: '高級', monthlyPrice: 330, maxSeats: 4 },
+    ],
   },
   {
     id: 'google-one',
@@ -57,7 +71,10 @@ export const SERVICES = [
     initial: 'G',
     iconDomain: 'one.google.com',
     iconId: 'logos:google-one',
-    plans: ['200 GB', '2 TB'],
+    plans: [
+      { name: '200 GB', monthlyPrice:  90, maxSeats: 5 },
+      { name: '2 TB',   monthlyPrice: 300, maxSeats: 5 },
+    ],
   },
   {
     id: 'chatgpt',
@@ -69,7 +86,9 @@ export const SERVICES = [
     initial: 'C',
     iconDomain: 'chatgpt.com',
     iconId: 'simple-icons:openai',
-    plans: ['Plus'],
+    plans: [
+      { name: 'Plus', monthlyPrice: 649, maxSeats: 2 },
+    ],
   },
   {
     id: 'apple-tv',
@@ -81,7 +100,10 @@ export const SERVICES = [
     initial: 'A',
     iconDomain: 'tv.apple.com',
     iconId: 'simple-icons:appletv',
-    plans: ['個人方案', '家庭共享'],
+    plans: [
+      { name: '個人方案', monthlyPrice: 150, maxSeats: 1 },
+      { name: '家庭共享', monthlyPrice: 150, maxSeats: 6 },
+    ],
   },
   {
     id: 'amazon',
@@ -93,7 +115,10 @@ export const SERVICES = [
     initial: 'A',
     iconDomain: 'primevideo.com',
     iconId: 'simple-icons:primevideo',
-    plans: ['月繳', '年繳'],
+    plans: [
+      { name: '月繳', monthlyPrice: 199, maxSeats: 1 },
+      { name: '年繳', monthlyPrice: 141, maxSeats: 1 },
+    ],
   },
   {
     id: 'hbo',
@@ -105,7 +130,10 @@ export const SERVICES = [
     initial: 'H',
     iconDomain: 'max.com',
     iconId: 'simple-icons:hbo',
-    plans: ['標準方案', '終極方案'],
+    plans: [
+      { name: '標準方案', monthlyPrice: 270, maxSeats: 3 },
+      { name: '終極方案', monthlyPrice: 380, maxSeats: 4 },
+    ],
   },
   {
     id: 'discord',
@@ -117,7 +145,10 @@ export const SERVICES = [
     initial: 'D',
     iconDomain: 'discord.com',
     iconId: 'simple-icons:discord',
-    plans: ['Nitro 基本', '家庭方案'],
+    plans: [
+      { name: 'Nitro 基本', monthlyPrice:  97, maxSeats: 1 },
+      { name: '家庭方案',   monthlyPrice: 325, maxSeats: 5 },
+    ],
   },
   {
     id: 'crunchyroll',
@@ -128,7 +159,11 @@ export const SERVICES = [
     bgColor: '#FFF0E6',
     initial: 'C',
     iconId: 'simple-icons:crunchyroll',
-    plans: ['Fan', 'Mega Fan', 'Ultimate Fan'],
+    plans: [
+      { name: 'Fan',          monthlyPrice: 260, maxSeats: 1 },
+      { name: 'Mega Fan',     monthlyPrice: 390, maxSeats: 4 },
+      { name: 'Ultimate Fan', monthlyPrice: 520, maxSeats: 6 },
+    ],
   },
   {
     id: 'apple-music',
@@ -139,7 +174,10 @@ export const SERVICES = [
     bgColor: '#FFEAEB',
     initial: 'A',
     iconId: 'simple-icons:applemusic',
-    plans: ['個人方案', '家庭方案（6人）'],
+    plans: [
+      { name: '個人方案',       monthlyPrice: 149, maxSeats: 1 },
+      { name: '家庭方案（6人）', monthlyPrice: 249, maxSeats: 6 },
+    ],
   },
   {
     id: 'kkbox',
@@ -150,7 +188,10 @@ export const SERVICES = [
     bgColor: '#E6F8F0',
     initial: 'K',
     iconId: '',
-    plans: ['個人方案', '家庭方案'],
+    plans: [
+      { name: '個人方案', monthlyPrice: 149, maxSeats: 1 },
+      { name: '家庭方案', monthlyPrice: 249, maxSeats: 5 },
+    ],
   },
   {
     id: 'claude',
@@ -161,7 +202,9 @@ export const SERVICES = [
     bgColor: '#FDF0EB',
     initial: 'C',
     iconId: 'simple-icons:anthropic',
-    plans: ['Pro'],
+    plans: [
+      { name: 'Pro', monthlyPrice: 649, maxSeats: 2 },
+    ],
   },
   {
     id: 'midjourney',
@@ -172,7 +215,11 @@ export const SERVICES = [
     bgColor: '#F0F0F0',
     initial: 'M',
     iconId: '',
-    plans: ['Basic', 'Standard', 'Pro'],
+    plans: [
+      { name: 'Basic',    monthlyPrice:  325, maxSeats: 1 },
+      { name: 'Standard', monthlyPrice:  975, maxSeats: 3 },
+      { name: 'Pro',      monthlyPrice: 1950, maxSeats: 4 },
+    ],
   },
   {
     id: 'perplexity',
@@ -183,7 +230,9 @@ export const SERVICES = [
     bgColor: '#E6F7F6',
     initial: 'P',
     iconId: 'simple-icons:perplexity',
-    plans: ['Pro'],
+    plans: [
+      { name: 'Pro', monthlyPrice: 649, maxSeats: 2 },
+    ],
   },
   {
     id: 'cursor',
@@ -194,7 +243,10 @@ export const SERVICES = [
     bgColor: '#F0F0F0',
     initial: 'C',
     iconId: '',
-    plans: ['Pro', 'Business'],
+    plans: [
+      { name: 'Pro',      monthlyPrice:  649, maxSeats: 2 },
+      { name: 'Business', monthlyPrice: 1300, maxSeats: 4 },
+    ],
   },
   {
     id: 'microsoft-365',
@@ -205,7 +257,10 @@ export const SERVICES = [
     bgColor: '#FCEEE9',
     initial: 'M',
     iconId: 'simple-icons:microsoftoffice',
-    plans: ['個人版', '家庭版（6人）'],
+    plans: [
+      { name: '個人版',       monthlyPrice: 219, maxSeats: 1 },
+      { name: '家庭版（6人）', monthlyPrice: 329, maxSeats: 6 },
+    ],
   },
   {
     id: 'adobe-cc',
@@ -216,7 +271,10 @@ export const SERVICES = [
     bgColor: '#FFE8E8',
     initial: 'A',
     iconId: 'simple-icons:adobe',
-    plans: ['全應用程式', '單一應用程式'],
+    plans: [
+      { name: '全應用程式',   monthlyPrice: 1800, maxSeats: 2 },
+      { name: '單一應用程式', monthlyPrice:  715, maxSeats: 2 },
+    ],
   },
   {
     id: 'canva',
@@ -227,7 +285,10 @@ export const SERVICES = [
     bgColor: '#E6FAFB',
     initial: 'C',
     iconId: 'simple-icons:canva',
-    plans: ['Pro', '團隊版'],
+    plans: [
+      { name: 'Pro',    monthlyPrice:  449, maxSeats: 1 },
+      { name: '團隊版', monthlyPrice: 1350, maxSeats: 5 },
+    ],
   },
   {
     id: 'notion',
@@ -238,7 +299,10 @@ export const SERVICES = [
     bgColor: '#F0F0F0',
     initial: 'N',
     iconId: 'simple-icons:notion',
-    plans: ['Plus', 'Business'],
+    plans: [
+      { name: 'Plus',     monthlyPrice:  390, maxSeats: 1 },
+      { name: 'Business', monthlyPrice:  975, maxSeats: 3 },
+    ],
   },
   {
     id: 'icloud',
@@ -249,7 +313,11 @@ export const SERVICES = [
     bgColor: '#EAF4FE',
     initial: 'i',
     iconId: 'simple-icons:icloud',
-    plans: ['50GB', '200GB', '2TB'],
+    plans: [
+      { name: '50GB',  monthlyPrice:  30, maxSeats: 1 },
+      { name: '200GB', monthlyPrice:  90, maxSeats: 5 },
+      { name: '2TB',   monthlyPrice: 300, maxSeats: 5 },
+    ],
   },
   {
     id: 'dropbox',
@@ -260,7 +328,10 @@ export const SERVICES = [
     bgColor: '#E6EEFF',
     initial: 'D',
     iconId: 'simple-icons:dropbox',
-    plans: ['Plus', 'Family'],
+    plans: [
+      { name: 'Plus',   monthlyPrice: 390, maxSeats: 1 },
+      { name: 'Family', monthlyPrice: 650, maxSeats: 6 },
+    ],
   },
   {
     id: 'duolingo',
@@ -271,7 +342,10 @@ export const SERVICES = [
     bgColor: '#EDFAE6',
     initial: 'D',
     iconId: 'simple-icons:duolingo',
-    plans: ['Super', 'Family'],
+    plans: [
+      { name: 'Super',  monthlyPrice: 199, maxSeats: 1 },
+      { name: 'Family', monthlyPrice: 499, maxSeats: 6 },
+    ],
   },
   {
     id: 'masterclass',
@@ -282,7 +356,11 @@ export const SERVICES = [
     bgColor: '#F0F0F0',
     initial: 'M',
     iconId: '',
-    plans: ['個人方案', '家庭方案（2人）', '家庭方案（6人）'],
+    plans: [
+      { name: '個人方案',       monthlyPrice: 325, maxSeats: 1 },
+      { name: '家庭方案（2人）', monthlyPrice: 488, maxSeats: 2 },
+      { name: '家庭方案（6人）', monthlyPrice: 650, maxSeats: 6 },
+    ],
   },
   {
     id: 'xbox-gamepass',
@@ -293,7 +371,11 @@ export const SERVICES = [
     bgColor: '#E6F3E6',
     initial: 'X',
     iconId: 'simple-icons:xbox',
-    plans: ['Core', 'PC Game Pass', 'Ultimate'],
+    plans: [
+      { name: 'Core',         monthlyPrice: 150, maxSeats: 1 },
+      { name: 'PC Game Pass', monthlyPrice: 300, maxSeats: 1 },
+      { name: 'Ultimate',     monthlyPrice: 450, maxSeats: 1 },
+    ],
   },
   {
     id: 'playstation-plus',
@@ -304,7 +386,11 @@ export const SERVICES = [
     bgColor: '#E6ECF8',
     initial: 'P',
     iconId: 'simple-icons:playstation',
-    plans: ['Essential', 'Extra', 'Premium'],
+    plans: [
+      { name: 'Essential', monthlyPrice: 299, maxSeats: 1 },
+      { name: 'Extra',     monthlyPrice: 449, maxSeats: 1 },
+      { name: 'Premium',   monthlyPrice: 549, maxSeats: 1 },
+    ],
   },
   {
     id: 'nintendo-online',
@@ -315,7 +401,10 @@ export const SERVICES = [
     bgColor: '#FFE6E8',
     initial: 'N',
     iconId: 'simple-icons:nintendoswitch',
-    plans: ['個人方案', '家庭方案（8人）'],
+    plans: [
+      { name: '個人方案',       monthlyPrice: 100, maxSeats: 1 },
+      { name: '家庭方案（8人）', monthlyPrice: 200, maxSeats: 8 },
+    ],
   },
   {
     id: 'nordvpn',
@@ -326,7 +415,11 @@ export const SERVICES = [
     bgColor: '#EAF0FF',
     initial: 'N',
     iconId: 'simple-icons:nordvpn',
-    plans: ['Basic', 'Plus', 'Ultimate'],
+    plans: [
+      { name: 'Basic',   monthlyPrice: 375, maxSeats: 6 },
+      { name: 'Plus',    monthlyPrice: 487, maxSeats: 6 },
+      { name: 'Ultimate', monthlyPrice: 650, maxSeats: 6 },
+    ],
   },
   {
     id: 'expressvpn',
@@ -337,6 +430,9 @@ export const SERVICES = [
     bgColor: '#FCEAEB',
     initial: 'E',
     iconId: '',
-    plans: ['月繳', '年繳'],
+    plans: [
+      { name: '月繳', monthlyPrice: 390, maxSeats: 5 },
+      { name: '年繳', monthlyPrice: 260, maxSeats: 5 },
+    ],
   },
 ]
