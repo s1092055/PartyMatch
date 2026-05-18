@@ -1,6 +1,6 @@
 import { startTransition, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Compass, X, Zap } from 'lucide-react'
+import { ArrowRight, Compass, Sparkles, X, Zap } from 'lucide-react'
 import { getGroups } from '../../shared/stores/groupStore'
 import { getServiceTypeById } from '../../shared/services/serviceTypes'
 import GroupCard from '../../shared/components/cards/GroupCard'
@@ -126,22 +126,25 @@ export default function ExplorePage() {
           {filtered.map(group => (
             <GroupCard key={group.id} group={group} />
           ))}
+          <div
+            onClick={() => navigate('/quick-match')}
+            className="flex min-h-[14.25rem] cursor-pointer flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-brand/30 bg-brand-subtle/40 p-6 transition-colors hover:border-brand/60 hover:bg-brand-subtle"
+          >
+            <div className="grid h-14 w-14 place-items-center rounded-2xl bg-brand/10">
+              <Zap size={28} className="text-brand" />
+            </div>
+            <div className="text-center">
+              <p className="text-base font-extrabold text-ink">找不到合適的群組？</p>
+              <p className="mt-1 text-sm text-ink-3">讓系統根據你的條件自動推薦最佳配對</p>
+            </div>
+            <span className="flex items-center gap-1.5 rounded-lg bg-brand px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-brand-hover">
+              <Sparkles size={14} />
+              前往快速配對
+              <ArrowRight size={14} />
+            </span>
+          </div>
         </div>
       )}
-
-<div className="mb-6 flex items-center justify-between rounded-xl border border-line bg-raised px-5 py-4">
-        <div>
-          <p className="text-sm font-extrabold text-ink">找不到合適的群組？</p>
-          <p className="mt-0.5 text-xs text-ink-3">讓系統根據你的條件自動推薦</p>
-        </div>
-        <button
-          onClick={() => navigate('/quick-match')}
-          className="flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
-        >
-          <Zap size={14} />
-          快速配對
-        </button>
-      </div>
 
     </div>
   )
