@@ -10,9 +10,9 @@ export default function AuthLayout({ children, illustrationTitle = '更聰明的
           <section className="rounded-3xl border border-slate-200 bg-white px-6 py-8 shadow-sm sm:px-12 sm:py-12 lg:px-16">
             <Link
               to="/explore"
-              className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-bold text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800"
+              className="flex items-center gap-1 text-sm font-bold text-slate-400 transition-colors hover:text-slate-700"
             >
-              <ArrowLeft size={15} />
+              <ArrowLeft size={14} />
               先逛逛
             </Link>
             {children}
