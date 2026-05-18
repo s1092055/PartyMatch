@@ -10,16 +10,16 @@
 
 ## 功能
 
-- 探索群組：Marketplace 瀏覽版面，頂部顯示優質團主 Podium（HostLeaderboard）；分類 Pills 篩選（影音、音樂、AI 工具、辦公、雲端、學習、遊戲、VPN）+ 次要篩選列（加入方式、價格、排序）；右下角搜尋 FAB 點開 Modal；群組以 3 欄卡片網格呈現；共 30 種服務、26 個 Mock 群組
+- 探索群組：Marketplace 瀏覽版面；分類 Pills 篩選（影音、音樂、AI 工具、辦公、雲端、學習、遊戲、VPN）+ 次要篩選列（加入方式、價格、排序）；群組以 3 欄卡片網格呈現；共 30 種服務、26 個 Mock 群組；Sidebar 與手機版 MobileSearch 皆可搜尋並導向探索頁篩選結果
 - 快速配對：選服務 + 設定預算偏好，自動推薦最適合的群組
 - 申請加入（審核制）或立即加入
-- 建立自己的共享群組（4 步驟表單）
+- 建立自己的共享群組（4 步驟表單）；方案費用依官方定價自動計算，名額上限依方案限制，不開放團主自訂價格
 - 管理群組：審核申請、管理成員（含移除）、查看收款狀態、傳送催款通知、續訂管理；卡片底部顯示兩個主要操作，其餘功能收進右上角 dropdown
-- 訂閱管理：付款狀態追蹤、標記已付款、查看歷史紀錄；卡片操作與管理端共用 GroupCardShell 殼層
+- 訂閱管理：付款狀態追蹤、標記已付款、查看歷史紀錄、申請紀錄（含審核中／已核准／已拒絕）；卡片操作與管理端共用 GroupCardShell 殼層
 - 訊息中心：通知分類（付款、申請、系統）、標記已讀
 - 收藏感興趣的群組
 - 帳號中心：個人資料、付款方式、通知偏好、安全驗證、設定
-- 手機版右滑抽屜導航（點選右上角漢堡選單展開）
+- 手機版右滑抽屜導航（點選右上角漢堡選單展開）；底部 MobileSearch FAB 開啟搜尋底頁
 
 ---
 
@@ -65,6 +65,7 @@ npm run lint    # 程式碼檢查
 |------|------|
 | `/` | 首頁 Dashboard |
 | `/explore` | 探索群組 |
+| `/explore?q=keyword` | 探索群組（關鍵字篩選） |
 | `/quick-match` | 快速配對設定 |
 | `/quick-match/results` | 配對結果 |
 | `/groups/:groupId` | 群組詳情 |
@@ -101,7 +102,7 @@ src/
 │   └── about/
 ├── shared/
 │   ├── components/
-│   │   ├── layout/      # AppLayout、Sidebar（含 SVG Logo）、Topbar
+│   │   ├── layout/      # AppLayout、Sidebar（含搜尋面板）、Topbar、MobileSearch
 │   │   ├── auth/        # AuthLayout
 │   │   ├── route/       # ProtectedRoute、PublicOnlyRoute
 │   │   ├── ui/          # Button、Badge、Avatar、Modal、Toggle、CustomSelect、Tabs…
@@ -110,7 +111,7 @@ src/
 │   ├── api/             # 資料存取層（Firebase 遷移切換點）
 │   ├── data/            # mock 種子資料（唯讀）
 │   ├── stores/          # 業務邏輯層，呼叫 api/ 取得資料
-│   ├── services/        # serviceTypes（服務圖示、顏色）
+│   ├── services/        # serviceTypes（服務圖示、顏色、官方定價）
 │   ├── constants/       # nav.js（Sidebar / Topbar 導航結構）
 │   └── utils/           # date、storage、matchGroups、subscriptionStatus…
 └── index.css            # Tailwind v4 design token + 元件原始類別
@@ -126,6 +127,7 @@ src/
 
 - 當前登入用戶為 `user_001`（林宥廷）——同時是一般成員與 Amazon 群組的團主
 - 群組日期設在 2026 年，讓「即將到期」邏輯正常運作
+- 共 30 種訂閱服務，每個服務方案含官方月費與人數上限
 
 ### Store 層（`src/shared/stores/`）
 
@@ -147,7 +149,7 @@ src/
 | 申請加入 | `createApplication` → ApplyJoinModal → localStorage |
 | 立即加入 | `createMember` + `createSubscription` + `updateGroup` + `createNotification` |
 | 團主審核 | 核准：建立 member + subscription + notification；拒絕：更新申請狀態 |
-| 建立群組 | 4 步驟 → `mapFormToGroup()` → `createGroup()` → 導向管理頁 |
+| 建立群組 | 4 步驟 → `mapFormToGroup()` → `createGroup()` → 導向管理頁；費用由官方定價 ÷ 名額自動計算 |
 | 標記已付款 | `markSubscriptionPaid()` + 同步 `updateMember()` + `createNotification()` 通知待確認 |
 | 團主逐筆確認收款 | `updateMember(confirmed)` + `confirmSubscriptionPayment()` + 自動偵測全員確認後推進群組狀態 |
 | 確認收款完成 | `confirmGroupPayments()` → 群組狀態轉 `pending_activation` |
