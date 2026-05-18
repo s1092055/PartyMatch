@@ -84,7 +84,8 @@ npm run lint    # 程式碼檢查
 src/
 ├── app/
 │   ├── App.jsx
-│   └── router.jsx
+│   ├── router.jsx
+│   └── firebase.js      # Firebase 初始化設定（待串接）
 ├── assets/              # 靜態資源（Logo.svg 等）
 ├── pages/
 │   ├── auth/            # 登入 / 註冊 / 忘記密碼
@@ -106,8 +107,9 @@ src/
 │   │   ├── ui/          # Button、Badge、Avatar、Modal、Toggle、CustomSelect、Tabs…
 │   │   ├── modals/      # ApplyJoinModal、InstantJoinModal、LogoutConfirmModal
 │   │   └── cards/       # GroupCard（探索用）、GroupCardShell（管理 / 訂閱共用殼層）
+│   ├── api/             # 資料存取層（Firebase 遷移切換點）
 │   ├── data/            # mock 種子資料（唯讀）
-│   ├── stores/          # localStorage 資料層
+│   ├── stores/          # 業務邏輯層，呼叫 api/ 取得資料
 │   ├── services/        # serviceTypes（服務圖示、顏色）
 │   ├── constants/       # nav.js（Sidebar / Topbar 導航結構）
 │   └── utils/           # date、storage、matchGroups、subscriptionStatus…
