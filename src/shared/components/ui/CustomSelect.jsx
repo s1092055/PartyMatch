@@ -45,7 +45,7 @@ export default function CustomSelect({ label, value, onChange, options }) {
       {open && (
         <ul
           role="listbox"
-          className="absolute left-0 z-50 mt-1.5 w-full overflow-hidden rounded-xl border border-line bg-white py-1 shadow-lg"
+          className="absolute left-0 z-50 mt-1.5 w-full overflow-y-auto rounded-xl border border-line bg-white py-1 shadow-lg max-h-60"
         >
           {options.map(o => {
             const val = o.value ?? o.id

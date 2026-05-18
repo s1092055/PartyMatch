@@ -2,9 +2,7 @@ import { Check } from 'lucide-react'
 import { listServiceTypes } from '../../../shared/services/serviceTypes'
 import ServiceLogo from '../../../shared/components/ui/ServiceLogo'
 
-const SELECTABLE = listServiceTypes().filter(s =>
-  ['spotify', 'youtube', 'netflix', 'disney', 'google-one', 'chatgpt', 'apple-tv', 'amazon'].includes(s.id)
-)
+const SELECTABLE = listServiceTypes()
 
 export default function ServiceSelectionGrid({ selected, onToggle }) {
   return (

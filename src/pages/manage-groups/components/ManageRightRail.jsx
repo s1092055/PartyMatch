@@ -5,19 +5,12 @@ import ServiceLogo from '../../../shared/components/ui/ServiceLogo'
 import EmptyState from '../../../shared/components/ui/EmptyState'
 import { daysUntil } from '../../../shared/utils/date'
 import { createNotification } from '../../../shared/stores/notificationStore'
+import { getGroups } from '../../../shared/stores/groupStore'
+
+const _groupServiceMap = new Map(getGroups().map(g => [g.id, g.serviceId]))
 
 function resolveServiceId(app) {
-  if (app.serviceId) return app.serviceId
-  const gid = app.groupId ?? ''
-  if (gid.includes('spotify'))  return 'spotify'
-  if (gid.includes('youtube'))  return 'youtube'
-  if (gid.includes('netflix'))  return 'netflix'
-  if (gid.includes('disney'))   return 'disney'
-  if (gid.includes('amazon'))   return 'amazon'
-  if (gid.includes('chatgpt'))  return 'chatgpt'
-  if (gid.includes('google'))   return 'google-one'
-  if (gid.includes('apple'))    return 'apple-tv'
-  return 'spotify'
+  return app.serviceId ?? _groupServiceMap.get(app.groupId) ?? 'spotify'
 }
 
 function MiniApplicationCard({ app, groupFull, error, onApprove, onReject }) {
