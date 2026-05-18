@@ -1,5 +1,5 @@
 import { Star, CheckCircle2, XCircle, ShieldCheck, Smartphone, Mail, CreditCard, TrendingUp, BarChart2 } from 'lucide-react'
-import { SUBSCRIPTIONS } from '../../../shared/data/subscriptions.mock'
+import { getSubscriptionsByUserId } from '../../../shared/stores/subscriptionStore'
 
 function Panel({ title, icon: Icon, iconCls = 'text-blue-500', children }) {
   return (
@@ -32,7 +32,7 @@ function StarBar({ value }) {
 }
 
 export default function AccountSidebar({ user }) {
-  const subs   = SUBSCRIPTIONS.filter(s => s.userId === user.id && s.status === 'active')
+  const subs   = getSubscriptionsByUserId(user.id).filter(s => s.status === 'active')
   const monthly = subs.reduce((sum, s) => sum + s.pricePerSeat, 0)
 
   const VERIFICATIONS = [

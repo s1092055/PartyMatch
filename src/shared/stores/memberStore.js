@@ -3,32 +3,28 @@ import { todayISO } from '../utils/date'
 import { createId } from '../utils/storage'
 import { getActiveUser } from './userStore'
 
-export function getMembers() {
-  return readAllMembers()
+let _members = []
+
+export async function initMembers() {
+  _members = await readAllMembers()
 }
 
-export function updateMember(memberId, patch) {
-  return patchMember(memberId, patch)
-}
-
-export function removeMember(memberId) {
-  deleteMemberRecord(memberId)
-}
+export function getMembers() { return _members }
 
 export function getMembersByGroupId(groupId) {
-  return readAllMembers().filter(m => m.groupId === groupId)
+  return _members.filter(m => m.groupId === groupId)
 }
 
 export function getMemberByUserAndGroup(userId, groupId) {
-  return readAllMembers().find(m => m.userId === userId && m.groupId === groupId) ?? null
+  return _members.find(m => m.userId === userId && m.groupId === groupId) ?? null
 }
 
 export function isUserGroupMember(userId, groupId) {
-  return readAllMembers().some(m => m.userId === userId && m.groupId === groupId)
+  return _members.some(m => m.userId === userId && m.groupId === groupId)
 }
 
 export function createMember({ groupId, groupName, userId, userName, userAvatarInitial, userAvatarColor }) {
-  return insertMember({
+  const member = {
     id:               createId('mem'),
     groupId,
     groupName,
@@ -40,7 +36,20 @@ export function createMember({ groupId, groupName, userId, userName, userAvatarI
     joinedAt:         todayISO(),
     paymentStatus:    'pending',
     lastPaidAt:       null,
-  })
+  }
+  _members.push(member)
+  insertMember(member).catch(console.error)
+  return member
+}
+
+export function updateMember(memberId, patch) {
+  _members = _members.map(m => m.id === memberId ? { ...m, ...patch } : m)
+  patchMember(memberId, patch).catch(console.error)
+}
+
+export function removeMember(memberId) {
+  _members = _members.filter(m => m.id !== memberId)
+  deleteMemberRecord(memberId).catch(console.error)
 }
 
 export function isCurrentUserMember(groupId) {

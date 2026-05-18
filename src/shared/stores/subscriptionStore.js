@@ -4,20 +4,24 @@ import { todayISO } from '../utils/date'
 import { createId } from '../utils/storage'
 import { getActiveUser } from './userStore'
 
-export function getSubscriptions() {
-  return readAllSubscriptions()
+let _subs = []
+
+export async function initSubscriptions() {
+  _subs = await readAllSubscriptions()
 }
 
+export function getSubscriptions() { return _subs }
+
 export function getSubscriptionsByUserId(userId) {
-  return readAllSubscriptions().filter(s => s.userId === userId)
+  return _subs.filter(s => s.userId === userId)
 }
 
 export function getSubscriptionById(id) {
-  return readAllSubscriptions().find(s => s.id === id) ?? null
+  return _subs.find(s => s.id === id) ?? null
 }
 
 export function getSubscriptionByUserAndGroup(userId, groupId) {
-  return readAllSubscriptions().find(s => s.userId === userId && s.groupId === groupId) ?? null
+  return _subs.find(s => s.userId === userId && s.groupId === groupId) ?? null
 }
 
 export function createSubscription({ userId, groupId, serviceName, planName, serviceId, hostName, hostAvatarInitial, hostAvatarColor, pricePerSeat, billingCycle, nextBillingDate }) {
@@ -42,23 +46,35 @@ export function createSubscription({ userId, groupId, serviceName, planName, ser
     createdAt:        now,
     updatedAt:        now,
   })
-  return insertSubscription(sub)
+  _subs.push(sub)
+  insertSubscription(sub).catch(console.error)
+  return sub
+}
+
+function applyPatch(id, patch) {
+  _subs = _subs.map(s => s.id === id ? normalizeSubscription({ ...s, ...patch }) : s)
 }
 
 export function updateSubscription(id, patch) {
-  return patchSubscription(id, patch)
+  applyPatch(id, patch)
+  patchSubscription(id, patch).catch(console.error)
 }
 
 export function markSubscriptionPaid(id) {
-  return patchSubscription(id, { paymentStatus: 'markedPaid', lastPaidAt: todayISO() })
+  const patch = { paymentStatus: 'markedPaid', lastPaidAt: todayISO() }
+  applyPatch(id, patch)
+  patchSubscription(id, patch).catch(console.error)
 }
 
 export function confirmSubscriptionPayment(id) {
-  return patchSubscription(id, { paymentStatus: 'confirmed' })
+  const patch = { paymentStatus: 'confirmed' }
+  applyPatch(id, patch)
+  patchSubscription(id, patch).catch(console.error)
 }
 
 export function activateGroupSubscriptions(groupId, nextBillingDate) {
-  readAllSubscriptions()
-    .filter(s => s.groupId === groupId)
-    .forEach(s => patchSubscription(s.id, { status: 'active', nextBillingDate }))
+  const patch = { status: 'active', nextBillingDate }
+  const targets = _subs.filter(s => s.groupId === groupId)
+  _subs = _subs.map(s => s.groupId === groupId ? normalizeSubscription({ ...s, ...patch }) : s)
+  targets.forEach(s => patchSubscription(s.id, patch).catch(console.error))
 }

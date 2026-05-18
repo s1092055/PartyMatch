@@ -1,24 +1,35 @@
-import { readAllFavorites, insertFavorite, deleteFavoriteRecord } from '../api/favoritesApi'
+import { readAllFavorites, insertFavorite, deleteFavoriteById } from '../api/favoritesApi'
 import { todayISO } from '../utils/date'
 import { createId } from '../utils/storage'
 
+let _favs = []
+
+export async function initFavorites() {
+  _favs = await readAllFavorites()
+}
+
 export function getFavoritesByUserId(userId) {
-  return readAllFavorites().filter(f => f.userId === userId)
+  return _favs.filter(f => f.userId === userId)
 }
 
 export function isGroupFavorited(userId, groupId) {
-  return readAllFavorites().some(f => f.userId === userId && f.groupId === groupId)
+  return _favs.some(f => f.userId === userId && f.groupId === groupId)
 }
 
 export function toggleFavorite(userId, groupId) {
   if (isGroupFavorited(userId, groupId)) {
-    deleteFavoriteRecord(userId, groupId)
+    removeFavorite(userId, groupId)
     return false
   }
-  insertFavorite({ id: createId('fav'), userId, groupId, createdAt: todayISO() })
+  const fav = { id: createId('fav'), userId, groupId, createdAt: todayISO() }
+  _favs.push(fav)
+  insertFavorite(fav).catch(console.error)
   return true
 }
 
 export function removeFavorite(userId, groupId) {
-  deleteFavoriteRecord(userId, groupId)
+  const fav = _favs.find(f => f.userId === userId && f.groupId === groupId)
+  if (!fav) return
+  _favs = _favs.filter(f => !(f.userId === userId && f.groupId === groupId))
+  deleteFavoriteById(fav.id).catch(console.error)
 }

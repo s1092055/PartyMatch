@@ -64,9 +64,9 @@ const app = initializeApp({
 const db = getFirestore(app)
 
 // ── Mock data ──────────────────────────────────────────────────────
-import { GROUPS }       from '../src/shared/data/groups.mock.js'
-import { APPLICATIONS } from '../src/shared/data/applications.mock.js'
-import { SUBSCRIPTIONS } from '../src/shared/data/subscriptions.mock.js'
+import { GROUPS }                    from '../src/shared/data/groups.mock.js'
+import { APPLICATIONS, HOST_MEMBERS } from '../src/shared/data/applications.mock.js'
+import { SUBSCRIPTIONS, PAYMENT_RECORDS } from '../src/shared/data/subscriptions.mock.js'
 
 // ── Seed helper ────────────────────────────────────────────────────
 // writeBatch limit is 500 ops; chunk to be safe
@@ -89,9 +89,11 @@ async function seedCollection(name, records) {
 async function main() {
   console.log(`\nSeeding → ${process.env.VITE_FIREBASE_PROJECT_ID}\n`)
 
-  await seedCollection('groups',       GROUPS)
-  await seedCollection('applications', APPLICATIONS)
+  await seedCollection('groups',        GROUPS)
+  await seedCollection('applications',  APPLICATIONS)
   await seedCollection('subscriptions', SUBSCRIPTIONS)
+  await seedCollection('members',       HOST_MEMBERS)
+  await seedCollection('paymentRecords', PAYMENT_RECORDS)
 
   console.log('\nAll done. Open Firebase Console to verify.')
   process.exit(0)
