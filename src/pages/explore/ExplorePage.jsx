@@ -19,7 +19,7 @@ const DEFAULT_FILTERS = {
 const score = g => (g.isHostVerified ? 2 : 0) + (g.joinMode === 'instant' ? 1 : 0) + g.hostRating / 5
 
 function applyFilters(groups, { keyword, category, service, joinMode, maxPrice, sortBy }) {
-  let result = groups.filter(g => g.status === 'recruiting')
+  let result = groups.filter(g => g.status === 'recruiting' && g.openSeats > 0)
 
   if (keyword.trim()) {
     const kw = keyword.trim().toLowerCase()
