@@ -289,15 +289,16 @@ export default function Sidebar() {
                           <Search size={14} className="text-ink-3" />
                         </span>
                         <span className="flex-1 text-left">{item}</span>
-                        <button
-                          type="button"
+                        <div
+                          role="button"
                           tabIndex={0}
                           onClick={e => handleRemoveRecent(item, e)}
+                          onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && handleRemoveRecent(item, e)}
                           aria-label={`移除「${item}」搜尋紀錄`}
                           className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink focus-visible:outline-2 focus-visible:outline-brand"
                         >
                           <X size={14} />
-                        </button>
+                        </div>
                       </button>
                     ))}
                   </div>
