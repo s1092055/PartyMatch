@@ -108,7 +108,7 @@ export default function QuickMatchPage() {
             <div className="space-y-5">
               <div>
                 <p className="mb-2 text-sm font-bold text-ink">扣款日偏好</p>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
                   {[
                     { label: '不限',           value: 'any' },
                     { label: '月初（1–10 日）', value: 'early' },
@@ -132,7 +132,7 @@ export default function QuickMatchPage() {
 
               <div>
                 <p className="mb-2 text-sm font-bold text-ink">群組年資</p>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
                   {[
                     { label: '不限',       value: 'any' },
                     { label: '三個月內',   value: 'new' },

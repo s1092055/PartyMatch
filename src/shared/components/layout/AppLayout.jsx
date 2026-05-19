@@ -17,7 +17,7 @@ export default function AppLayout() {
       <Sidebar />
       <Topbar />
       <main className="min-h-screen pt-14 md:ml-20 md:pt-0">
-        <div className="px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
+        <div className="px-4 py-6 md:px-6 lg:px-10 lg:py-8">
           <Outlet />
         </div>
       </main>

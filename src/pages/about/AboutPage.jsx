@@ -34,7 +34,7 @@ export default function AboutPage() {
         <HowItWorks />
         <CTASection />
 
-        <div id="disclaimer" className="rounded-xl border border-warning/30 bg-warning-subtle p-5 sm:p-6">
+        <div id="disclaimer" className="rounded-xl border border-warning/30 bg-warning-subtle p-5 md:p-6">
           <div className="mb-4 flex items-center gap-2">
             <AlertTriangle size={18} className="shrink-0 text-warning" />
             <h2 className="text-base font-extrabold text-warning-text">免責聲明</h2>

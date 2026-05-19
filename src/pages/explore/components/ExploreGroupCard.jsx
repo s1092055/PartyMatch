@@ -77,7 +77,7 @@ export default function ExploreGroupCard({ group }) {
 
   return (
     <article
-      className="card card-hover group relative flex min-h-full cursor-pointer flex-col overflow-hidden rounded-card border-line bg-surface p-4 shadow-[0_18px_45px_-32px_rgb(20_44_91_/_0.48)] sm:p-5"
+      className="card card-hover group relative flex min-h-full cursor-pointer flex-col overflow-hidden rounded-card border-line bg-surface p-5 shadow-[0_18px_45px_-32px_rgb(20_44_91_/_0.48)]"
       onClick={openDetails}
     >
       <div>

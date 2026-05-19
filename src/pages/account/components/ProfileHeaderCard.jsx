@@ -8,7 +8,7 @@ export default function ProfileHeaderCard({ user, onEdit }) {
   ]
 
   return (
-    <div className="card p-6 mb-5 flex flex-col sm:flex-row items-start sm:items-center gap-5">
+    <div className="card p-6 mb-5 flex flex-col md:flex-row items-start md:items-center gap-5">
       {/* Avatar */}
       <div className="relative shrink-0">
         <div

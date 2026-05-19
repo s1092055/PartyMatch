@@ -69,7 +69,7 @@ export default function LandingPage() {
           <ShieldCheck size={12} />
           安全媒合・無帳號代管
         </span>
-        <h1 className="mt-5 text-4xl font-extrabold leading-tight tracking-tight text-ink sm:text-5xl">
+        <h1 className="mt-5 text-4xl font-extrabold leading-tight tracking-tight text-ink md:text-5xl">
           每月省更多<br />
           <span className="text-brand">找到可信賴的共享夥伴</span>
         </h1>
@@ -94,7 +94,7 @@ export default function LandingPage() {
         </div>
 
         {/* Stats */}
-        <div className="mx-auto mt-12 grid max-w-sm grid-cols-3 divide-x divide-line rounded-2xl border border-line bg-raised px-2 py-5 sm:max-w-md">
+        <div className="mx-auto mt-12 grid max-w-sm grid-cols-3 divide-x divide-line rounded-2xl border border-line bg-raised px-2 py-5 md:max-w-md">
           {STATS.map(({ value, label }) => (
             <div key={label} className="flex flex-col items-center gap-0.5 px-4">
               <span className="text-2xl font-extrabold text-ink">{value}</span>
@@ -122,7 +122,7 @@ export default function LandingPage() {
       <section className="mx-auto max-w-5xl px-5 py-16">
         <h2 className="text-center text-2xl font-extrabold text-ink">三步驟開始省錢</h2>
         <p className="mt-2 text-center text-sm text-ink-3">最快 5 分鐘完成配對，最快當天開始享用服務</p>
-        <div className="mt-10 grid gap-6 sm:grid-cols-3">
+        <div className="mt-10 grid gap-6 md:grid-cols-3">
           {HOW_IT_WORKS.map(({ icon: Icon, title, desc }, i) => (
             <div
               key={title}

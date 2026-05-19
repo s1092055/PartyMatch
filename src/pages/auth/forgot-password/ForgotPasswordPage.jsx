@@ -22,7 +22,7 @@ export default function ForgotPasswordPage() {
   return (
     <AuthLayout illustrationTitle="更聰明的訂閱方式">
       <div className="mt-14">
-        <h1 className="text-4xl font-extrabold leading-tight text-ink sm:text-4xl">忘記密碼？</h1>
+        <h1 className="text-4xl font-extrabold leading-tight text-ink md:text-4xl">忘記密碼？</h1>
         <p className="mt-5 text-base font-medium leading-relaxed text-ink-3">
           輸入你的電子郵件，我們會寄出重設密碼連結。
         </p>

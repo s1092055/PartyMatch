@@ -49,28 +49,28 @@ export default function FilterBar({ filters, onChange }) {
 
   return (
     <div className="mb-6 space-y-4">
-      <div className="flex gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:grid sm:grid-cols-9 sm:overflow-visible sm:pb-0">
+      <div className="flex gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:grid md:grid-cols-9 md:overflow-visible md:pb-0">
         {CATEGORY_PILLS.map(s => {
           const active = category === s.value
           return (
             <button
               key={s.value}
               onClick={() => onChange({ category: s.value, service: 'all' })}
-              className={`flex shrink-0 flex-col items-center justify-center gap-1 rounded-xl py-3.5 text-xs font-bold transition-all sm:w-full sm:gap-2 sm:py-4 w-20 ${
+              className={`flex shrink-0 flex-col items-center justify-center gap-1 rounded-xl py-3.5 text-xs font-bold transition-all md:w-full md:gap-2 md:py-4 w-20 ${
                 active
-                  ? 'bg-raised text-ink sm:scale-105'
-                  : 'bg-transparent text-ink-2 hover:text-ink sm:hover:scale-105 sm:hover:bg-raised sm:hover:text-ink'
+                  ? 'bg-raised text-ink md:scale-105'
+                  : 'bg-transparent text-ink-2 hover:text-ink md:hover:scale-105 md:hover:bg-raised md:hover:text-ink'
               }`}
             >
               {s.value === 'all' ? (
-                <img src="/src/assets/Logo.svg" alt="PartyMatch" className="h-6 w-6 rounded-lg object-contain sm:h-8 sm:w-8" />
+                <img src="/src/assets/Logo.svg" alt="PartyMatch" className="h-6 w-6 rounded-lg object-contain md:h-8 md:w-8" />
               ) : s.Icon && (
                 <>
-                  <s.Icon size={24} className="sm:hidden" strokeWidth={1.75} />
-                  <s.Icon size={28} className="hidden sm:block" strokeWidth={1.75} />
+                  <s.Icon size={24} className="md:hidden" strokeWidth={1.75} />
+                  <s.Icon size={28} className="hidden md:block" strokeWidth={1.75} />
                 </>
               )}
-              <span className="text-[10px] sm:text-sm">{s.label}</span>
+              <span className="text-[10px] md:text-sm">{s.label}</span>
             </button>
           )
         })}

@@ -6,7 +6,7 @@ const SELECTABLE = listServiceTypes()
 
 export default function ServiceSelectionGrid({ selected, onToggle }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
       {SELECTABLE.map(service => {
         const active = selected.includes(service.id)
         return (

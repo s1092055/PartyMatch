@@ -346,7 +346,7 @@ export default function ManageGroupsPage() {
           ) : displayGroups.length === 0 ? (
             <EmptyState title={`此分類目前沒有群組`} />
           ) : (
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 md:grid-cols-2">
               {displayGroups.map(g => (
                 <HostedGroupCard
                   key={g.id}

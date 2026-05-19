@@ -15,7 +15,7 @@ export default function RecommendedGroupCard({ group, rank }) {
   return (
     <div className="card card-hover p-5 flex flex-col lg:flex-row gap-6">
       {/* Rank badge */}
-      <div className="shrink-0 flex sm:flex-col items-center gap-3">
+      <div className="shrink-0 flex md:flex-col items-center gap-3">
         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
           rank === 1 ? 'bg-amber-100 text-amber-600' :
           rank === 2 ? 'bg-raised text-ink-3' :

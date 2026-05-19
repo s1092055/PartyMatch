@@ -4,10 +4,10 @@ import AuthIllustration from './AuthIllustration'
 
 export default function AuthLayout({ children, illustrationTitle = '更聰明的訂閱方式' }) {
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-8 text-slate-950 sm:px-8 lg:px-12">
+    <main className="min-h-screen bg-slate-50 px-4 py-8 text-slate-950 md:px-8 lg:px-12">
       <div className="mx-auto grid min-h-[calc(100vh-5rem)] max-w-[86rem] items-center gap-3">
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(34rem,1fr)]">
-          <section className="rounded-3xl border border-slate-200 bg-white px-6 py-8 shadow-sm sm:px-12 sm:py-12 lg:px-16">
+          <section className="rounded-3xl border border-slate-200 bg-white px-6 py-8 shadow-sm md:px-12 md:py-12 lg:px-16">
             <Link
               to="/explore"
               className="flex items-center gap-1 text-sm font-bold text-slate-400 transition-colors hover:text-slate-700"

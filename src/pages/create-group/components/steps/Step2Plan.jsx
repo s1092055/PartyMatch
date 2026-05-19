@@ -31,7 +31,7 @@ export default function Step2Plan({ form, onChange }) {
 
       {/* Plan selection */}
       <Field label="選擇方案" required>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {service?.plans.filter(p => p.maxSeats > 1).map(plan => {
             const active = form.planName === plan.name
             return (

@@ -143,7 +143,7 @@ export default function MySubscriptionsPage() {
               onAction={activeTab === 'all' ? () => navigate('/explore') : undefined}
             />
           ) : (
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
               {filtered.map(sub => (
                 <SubscriptionCard
                   key={sub.id}

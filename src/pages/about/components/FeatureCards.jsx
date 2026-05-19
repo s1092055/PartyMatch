@@ -52,7 +52,7 @@ export default function FeatureCards() {
 
       <div className="card overflow-hidden">
         {/* Video / placeholder area */}
-        <div className="relative h-52 w-full sm:h-60">
+        <div className="relative h-52 w-full md:h-60">
           {videoSrc ? (
             <video
               ref={videoRef}
@@ -97,7 +97,7 @@ export default function FeatureCards() {
                 }`}
               >
                 <TabIcon size={16} />
-                <span className="hidden sm:block">{f.title}</span>
+                <span className="hidden md:block">{f.title}</span>
               </button>
             )
           })}

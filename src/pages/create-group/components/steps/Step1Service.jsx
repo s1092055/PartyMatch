@@ -8,7 +8,7 @@ export default function Step1Service({ form, onChange }) {
       <h2 className="text-base font-semibold text-slate-800 mb-1">選擇訂閱服務</h2>
       <p className="text-sm text-slate-500 mb-5">選擇你想建立群組的訂閱服務（單選）</p>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         {listServiceTypes().map(service => {
           const active = form.serviceId === service.id
           return (

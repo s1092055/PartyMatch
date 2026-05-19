@@ -6,8 +6,8 @@ export default function CTASection() {
   const navigate = useNavigate()
 
   return (
-    <section className="rounded-[var(--radius-card)] border border-brand/20 bg-brand-subtle p-8 text-center sm:p-10">
-      <h2 className="text-xl font-extrabold text-ink sm:text-2xl">
+    <section className="rounded-[var(--radius-card)] border border-brand/20 bg-brand-subtle p-8 text-center md:p-10">
+      <h2 className="text-xl font-extrabold text-ink md:text-2xl">
         準備好找到下一個共享訂閱了嗎？
       </h2>
       <p className="mx-auto mt-3 max-w-md text-sm font-medium leading-relaxed text-ink-2">

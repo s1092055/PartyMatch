@@ -75,13 +75,13 @@ export default function ExplorePage() {
   }
 
   return (
-    <div className="px-2 sm:px-4 lg:px-8 xl:px-16">
-      <div className="hidden pb-5 pt-2 sm:block">
+    <div className="px-2 md:px-4 lg:px-8 lg:px-16">
+      <div className="hidden pb-5 pt-2 md:block">
         <h1 className="text-2xl font-extrabold tracking-tight text-ink">探索群組</h1>
         <p className="mt-1 text-sm text-ink-3">找到適合你的共享訂閱</p>
       </div>
 
-      <div className="mb-4 pt-2 text-center sm:hidden">
+      <div className="mb-4 pt-2 text-center md:hidden">
         <h1 className="text-xl font-extrabold tracking-tight text-ink">探索群組</h1>
       </div>
 
@@ -126,7 +126,7 @@ export default function ExplorePage() {
           onAction={() => setFilters(DEFAULT_FILTERS)}
         />
       ) : (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
           {filtered.map(group => (
             <ExploreGroupCard key={group.id} group={group} />
           ))}

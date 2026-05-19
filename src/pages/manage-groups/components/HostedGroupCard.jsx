@@ -128,7 +128,7 @@ export default function HostedGroupCard({
 
   return (
     <article className="card flex min-h-full flex-col overflow-hidden rounded-card border-line bg-surface p-0">
-      <div className="p-5 sm:p-6">
+      <div className="p-5">
         <Badge
           variant={group.status}
           className={`${STATUS_BADGE_CLASS[displayStatus] ?? ''} px-3.5 py-1 text-sm font-extrabold`}
@@ -209,7 +209,7 @@ export default function HostedGroupCard({
         )}
       </div>
 
-      <div className="mt-auto flex justify-center gap-3 border-t border-line px-5 py-4 sm:px-6">
+      <div className="mt-auto flex justify-center gap-3 border-t border-line px-5 py-4">
         <button
           type="button"
           onClick={onViewGroup}

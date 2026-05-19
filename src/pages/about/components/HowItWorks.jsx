@@ -151,12 +151,12 @@ export default function HowItWorks() {
             點擊任一步驟，即可觀看對應的教學影片
           </p>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {STEPS.map(({ step, title, desc }, i) => (
             <button
               key={step}
               onClick={() => setActiveStep(i)}
-              className="group flex gap-4 rounded-xl p-3 text-left transition-colors hover:bg-raised sm:flex-col sm:gap-3"
+              className="group flex gap-4 rounded-xl p-3 text-left transition-colors hover:bg-raised md:flex-col md:gap-3"
             >
               <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand text-sm font-extrabold text-white">
                 {step}
