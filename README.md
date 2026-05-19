@@ -4,7 +4,7 @@
 
 內建 **SubTrack** 模組負責訂閱管理——加入後的付款狀態、帳單提醒、付款紀錄都在這裡處理。
 
-> 目前是 MVP 展示版，所有資料用 mock data + localStorage 模擬，尚未串接 Firebase。
+> 目前是 MVP 展示版，群組 / 成員 / 申請等核心資料已串接 Firebase Firestore；驗證仍使用 localStorage 模擬。
 
 ---
 
@@ -13,7 +13,7 @@
 - 探索群組：Marketplace 瀏覽版面；分類 Pills 篩選（影音、音樂、AI 工具、辦公、雲端、學習、遊戲、VPN）+ 次要篩選列（加入方式、價格、排序）；群組以 3 欄卡片網格呈現；共 30 種服務、26 個 Mock 群組；Sidebar 與手機版 Drawer 搜尋按鈕皆可搜尋並導向探索頁篩選結果；自己是團主的群組不顯示在探索頁
 - 快速配對：選服務 + 設定預算偏好，自動推薦最適合的群組
 - 申請加入（審核制）或立即加入
-- 建立自己的共享群組（4 步驟表單）；方案費用依官方定價自動計算，名額上限依方案限制，不開放團主自訂價格；名額顯示開放給成員的席位數（不含團主）
+- 建立自己的共享群組（4 步驟表單）；方案費用依官方定價自動計算，名額上限依方案限制，不開放團主自訂價格；名額顯示開放給成員的席位數（不含團主）；可設定加入條件與規則
 - 管理群組：大型卡片顯示服務資訊、特色 chips、待處理申請 / 收款 / 扣款日 / 付款狀態 4 個快捷行；統一透過 GroupViewModal 管理成員付款、啟用服務；支援篩選分頁（全部 / 招募中 / 待啟用 / 已啟用 / 已停止 / 已取消）
 - 訂閱管理：付款狀態追蹤、標記已付款、查看歷史紀錄、申請紀錄（含審核中／已核准／已拒絕）；管理端與訂閱端共用 GroupViewModal 查看群組詳情
 - 訊息中心：通知分類（付款、申請、系統）、標記已讀
@@ -109,7 +109,7 @@ src/
 │   │   ├── modals/      # ApplyJoinModal、InstantJoinModal、LogoutConfirmModal、GroupViewModal（管理 / 訂閱共用）
 │   │   └── cards/       # GroupCard（探索用）、GroupCardShell（管理 / 訂閱共用殼層）
 │   ├── api/             # 資料存取層（Firebase 遷移切換點）
-│   ├── data/            # mock 種子資料（唯讀）
+│   ├── data/            # mock 種子資料（services.mock.js 唯讀；群組 / 申請 / 訂閱資料已移至 Firestore）
 │   ├── stores/          # 業務邏輯層，呼叫 api/ 取得資料
 │   ├── services/        # serviceTypes（服務圖示、顏色、官方定價）
 │   ├── constants/       # nav.js（Sidebar / Topbar 導航結構）、paymentStatus.js（CONFIRMED_STATUSES、READY_TO_ACTIVATE_STATUSES）
@@ -123,11 +123,8 @@ src/
 
 ### Mock 種子資料（`src/shared/data/`）
 
-唯讀，僅供展示。新功能請透過 Store 層寫入。
-
-- 當前登入用戶為 `user_001`（林宥廷）——同時是一般成員與 Amazon 群組的團主
-- 群組日期設在 2026 年，讓「即將到期」邏輯正常運作
-- 共 30 種訂閱服務，每個服務方案含官方月費與人數上限
+- `services.mock.js`：30 種訂閱服務定義（唯讀），每個服務方案含官方月費與人數上限
+- 群組、申請、訂閱等動態資料已移至 Firebase Firestore，不再使用本地 mock 檔案
 
 ### Store 層（`src/shared/stores/`）
 
@@ -209,7 +206,6 @@ draft → recruiting → full → pending_confirmation → pending_activation �
 
 ## 已知限制
 
-- Mock 種子申請（`APPLICATIONS`）的審核結果只改 local state，重新整理後 mock 申請會回到 pending
 - 密碼明文存 localStorage（展示用，正式版須換 Firebase Auth）
 - 手機版小螢幕部分 modal overflow 尚未處理
 - 開始新一期收款後，成員付款狀態不會自動重設（展示模式限制）
