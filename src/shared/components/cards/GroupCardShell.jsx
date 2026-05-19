@@ -1,8 +1,7 @@
 import { useRef, useState } from 'react'
-import { Calendar, MoreHorizontal } from 'lucide-react'
+import { MoreHorizontal } from 'lucide-react'
 import Badge from '../ui/Badge'
 import ServiceLogo from '../ui/ServiceLogo'
-import { daysUntil, formatRelativeDate } from '../../utils/date'
 import { useClickOutside } from '../../utils/hooks'
 
 function CardMenu({ items }) {
@@ -11,17 +10,17 @@ function CardMenu({ items }) {
   useClickOutside(open, [ref], () => setOpen(false))
 
   return (
-    <div ref={ref} className="relative shrink-0">
+    <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(v => !v)}
         className="grid h-7 w-7 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
         aria-label="更多選項"
       >
-        <MoreHorizontal size={16} />
+        <MoreHorizontal size={15} />
       </button>
       {open && (
         <div className="absolute right-0 top-8 z-20 min-w-36 rounded-lg border border-line bg-white py-1 shadow-lg">
-          {items.map((item) => (
+          {items.map(item => (
             <button
               key={item.label}
               onClick={() => { item.onClick?.(); setOpen(false) }}
@@ -37,75 +36,50 @@ function CardMenu({ items }) {
   )
 }
 
-const TERMINAL = new Set(['paused', 'cancelled', 'ended'])
 
-const BILLING_TEXT = {
-  pending_activation:   '等待啟用',
-  pending_confirmation: '收款確認中',
-  paused:               '服務已停止',
-  cancelled:            '服務已取消',
-  ended:                '服務已結束',
-}
-
-export function BillingDateRow({ status, nextBillingDate }) {
-  if (status === 'active' && nextBillingDate) {
-    const days = daysUntil(nextBillingDate)
-    const isUpcoming = days >= 0 && days <= 7
-    return (
-      <div className={`flex items-center gap-1.5 text-sm ${isUpcoming ? 'text-warning-text' : 'text-ink-2'}`}>
-        <Calendar size={14} className="shrink-0" />
-        <span>下次扣款 {nextBillingDate}</span>
-        {isUpcoming && <span className="text-xs">（{formatRelativeDate(nextBillingDate)}）</span>}
-      </div>
-    )
-  }
-
-  if (TERMINAL.has(status) && nextBillingDate) {
-    return (
-      <div className="flex items-center gap-1.5 text-sm text-ink-3">
-        <Calendar size={14} className="shrink-0" />
-        <span>停止日期 {nextBillingDate}</span>
-      </div>
-    )
-  }
-
+export default function GroupCardShell({ serviceId, serviceName, planName, badgeVariant, chips, actions, menuItems }) {
   return (
-    <div className="flex items-center gap-1.5 text-sm text-ink-3">
-      <Calendar size={14} className="shrink-0" />
-      <span>{BILLING_TEXT[status] ?? '啟用後開始計費'}</span>
-    </div>
-  )
-}
-
-export default function GroupCardShell({ serviceId, serviceName, planName, badgeVariant, infoRow, body, actions, menuItems }) {
-  return (
-    <div className="card flex flex-col gap-4 overflow-hidden p-5">
-      {/* Header */}
-      <div className="flex min-w-0 items-start gap-3">
-        <ServiceLogo serviceId={serviceId} size={44} />
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-base font-extrabold text-ink">{serviceName}</span>
-            <Badge variant={badgeVariant} />
-          </div>
-          <p className="mt-0.5 text-sm text-ink-3">{planName}</p>
-        </div>
-        {menuItems?.length > 0 && <CardMenu items={menuItems} />}
+    <div className="card relative flex flex-col overflow-hidden p-0">
+      {/* Badge — top-left */}
+      <div className="absolute left-3 top-3 z-10">
+        <Badge variant={badgeVariant} />
       </div>
 
-      {/* Info row */}
-      {infoRow && (
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 border-y border-line-subtle py-3">
-          {infoRow}
+      {/* Menu — top-right */}
+      {menuItems?.length > 0 && (
+        <div className="absolute right-3 top-3 z-10">
+          <CardMenu items={menuItems} />
         </div>
       )}
 
-      {/* Body — rendered as-is so each card controls its own layout */}
-      {body}
+      {/* Main: left col + divider + right col */}
+      <div className="flex flex-1">
+        {/* Left column: logo + name */}
+        <div className="flex w-[45%] shrink-0 flex-col items-center justify-center gap-3 px-4 pb-5 pt-10">
+          <ServiceLogo serviceId={serviceId} size={56} />
+          <div className="w-full text-center">
+            <p className="truncate font-bold text-ink">{serviceName}</p>
+            <p className="truncate text-xs text-ink-3">{planName}</p>
+          </div>
+        </div>
 
-      {/* Action row */}
+        {/* Right column: chips */}
+        <div className="flex flex-1 flex-col justify-center gap-2 p-4 pt-10">
+          {chips?.map((chip, i) => (
+            <span
+              key={i}
+              className={`flex items-center gap-1.5 text-xs ${chip.accent ? 'font-semibold text-warning-text' : 'text-ink-3'}`}
+            >
+              {chip.Icon && <chip.Icon size={12} className="shrink-0" />}
+              {chip.label}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Bottom: action centered */}
       {actions && (
-        <div className="mt-auto grid grid-cols-2 gap-2 border-t border-line-subtle pt-4">
+        <div className="flex justify-center border-t border-line-subtle py-3">
           {actions}
         </div>
       )}

@@ -16,17 +16,15 @@ import { getActiveUser } from '../../shared/stores/userStore'
 const STEPS = [Step1Service, Step2Plan, Step3Settings, Step4Preview]
 
 const INITIAL_FORM = {
-  serviceId:          '',
-  planName:           '',
-  pricePerSeat:       0,
-  billingCycle:       'monthly',
-  nextBillingDay:     '',
-  totalSeats:         2,
-  groupName:          '',
-  description:        '',
-  applicationNotice:  '',
-  rules:              [''],
-  joinMode:           'approval',
+  serviceId:      '',
+  planName:       '',
+  pricePerSeat:   0,
+  billingCycle:   'monthly',
+  nextBillingDay: '',
+  totalSeats:     2,
+  description:    '',
+  rules:          [''],
+  joinMode:       'approval',
 }
 
 function mapFormToGroup(form) {
@@ -41,7 +39,6 @@ function mapFormToGroup(form) {
   return {
     serviceId:       form.serviceId,
     serviceName:     service?.fullName ?? service?.name ?? form.serviceId,
-    groupName:       form.groupName.trim() || undefined,
     planName:        form.planName,
     pricePerSeat:    form.pricePerSeat || 0,
     billingCycle:    form.billingCycle,
@@ -51,7 +48,6 @@ function mapFormToGroup(form) {
     openSeats:       totalSeats - 1,
     joinMode:        form.joinMode,
     description:     form.description,
-    requirements:    form.applicationNotice.trim() || null,
     rules,
     tags,
     status:          'recruiting',
@@ -61,9 +57,7 @@ function mapFormToGroup(form) {
 function getStepErrors(step, form) {
   const errors = []
   const billingDay = Number.parseInt(form.nextBillingDay, 10)
-  const groupName = form.groupName.trim()
   const description = form.description.trim()
-  const noticeLength = form.applicationNotice.trim().length
   const rules = form.rules.map(rule => rule.trim()).filter(Boolean)
 
   switch (step) {
@@ -89,15 +83,11 @@ function getStepErrors(step, form) {
       const plan = service?.plans.find(p => p.name === form.planName)
       const maxSeats = plan?.maxSeats ?? 10
       if (!Number.isInteger(form.totalSeats) || form.totalSeats < 2 || form.totalSeats > maxSeats) {
-        errors.push(`開放名額需介於 2 至 ${maxSeats} 人`)
-      }
-      if (groupName.length < 2 || groupName.length > 40) {
-        errors.push('群組名稱需介於 2 至 40 字')
+        errors.push(`開放名額需介於 1 至 ${maxSeats - 1} 位`)
       }
       if (description.length < 10 || description.length > 300) {
         errors.push('群組描述需介於 10 至 300 字')
       }
-      if (noticeLength > 200) errors.push('申請須知最多 200 字')
       if (rules.length > 5) errors.push('群組規則最多 5 條')
       if (rules.some(rule => rule.length > 80)) errors.push('每條群組規則最多 80 字')
       break

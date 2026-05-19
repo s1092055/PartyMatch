@@ -10,12 +10,12 @@
 
 ## 功能
 
-- 探索群組：Marketplace 瀏覽版面；分類 Pills 篩選（影音、音樂、AI 工具、辦公、雲端、學習、遊戲、VPN）+ 次要篩選列（加入方式、價格、排序）；群組以 3 欄卡片網格呈現；共 30 種服務、26 個 Mock 群組；Sidebar 與手機版 Drawer 搜尋按鈕皆可搜尋並導向探索頁篩選結果；群組卡片顯示節省金額（對比個人方案）與最後席位提示
+- 探索群組：Marketplace 瀏覽版面；分類 Pills 篩選（影音、音樂、AI 工具、辦公、雲端、學習、遊戲、VPN）+ 次要篩選列（加入方式、價格、排序）；群組以 3 欄卡片網格呈現；共 30 種服務、26 個 Mock 群組；Sidebar 與手機版 Drawer 搜尋按鈕皆可搜尋並導向探索頁篩選結果；自己是團主的群組不顯示在探索頁
 - 快速配對：選服務 + 設定預算偏好，自動推薦最適合的群組
 - 申請加入（審核制）或立即加入
-- 建立自己的共享群組（4 步驟表單）；方案費用依官方定價自動計算，名額上限依方案限制，不開放團主自訂價格
-- 管理群組：審核申請、管理成員（含移除）、查看收款狀態、傳送催款通知、續訂管理；卡片底部顯示兩個主要操作，其餘功能收進右上角 dropdown
-- 訂閱管理：付款狀態追蹤、標記已付款、查看歷史紀錄、申請紀錄（含審核中／已核准／已拒絕）；卡片操作與管理端共用 GroupCardShell 殼層
+- 建立自己的共享群組（4 步驟表單）；方案費用依官方定價自動計算，名額上限依方案限制，不開放團主自訂價格；名額顯示開放給成員的席位數（不含團主）
+- 管理群組：大型卡片顯示服務資訊、特色 chips、待處理申請 / 收款 / 扣款日 / 付款狀態 4 個快捷行；統一透過 GroupViewModal 管理成員付款、啟用服務；支援篩選分頁（全部 / 招募中 / 待啟用 / 已啟用 / 已停止 / 已取消）
+- 訂閱管理：付款狀態追蹤、標記已付款、查看歷史紀錄、申請紀錄（含審核中／已核准／已拒絕）；管理端與訂閱端共用 GroupViewModal 查看群組詳情
 - 訊息中心：通知分類（付款、申請、系統）、標記已讀
 - 收藏感興趣的群組
 - 帳號中心：個人資料、付款方式、通知偏好、安全驗證、設定
@@ -106,14 +106,14 @@ src/
 │   │   ├── auth/        # AuthLayout
 │   │   ├── route/       # ProtectedRoute、PublicOnlyRoute
 │   │   ├── ui/          # Button、Badge、Avatar、Modal、Toggle、CustomSelect、Tabs…
-│   │   ├── modals/      # ApplyJoinModal、InstantJoinModal、LogoutConfirmModal
+│   │   ├── modals/      # ApplyJoinModal、InstantJoinModal、LogoutConfirmModal、GroupViewModal（管理 / 訂閱共用）
 │   │   └── cards/       # GroupCard（探索用）、GroupCardShell（管理 / 訂閱共用殼層）
 │   ├── api/             # 資料存取層（Firebase 遷移切換點）
 │   ├── data/            # mock 種子資料（唯讀）
 │   ├── stores/          # 業務邏輯層，呼叫 api/ 取得資料
 │   ├── services/        # serviceTypes（服務圖示、顏色、官方定價）
-│   ├── constants/       # nav.js（Sidebar / Topbar 導航結構）
-│   └── utils/           # date、storage、matchGroups、subscriptionStatus…
+│   ├── constants/       # nav.js（Sidebar / Topbar 導航結構）、paymentStatus.js（CONFIRMED_STATUSES、READY_TO_ACTIVATE_STATUSES）
+│   └── utils/           # date（含 formatMonthDay）、storage、matchGroups、subscriptionStatus、billingChip…
 └── index.css            # Tailwind v4 design token + 元件原始類別
 ```
 
@@ -172,13 +172,13 @@ draft → recruiting → full → pending_confirmation → pending_activation �
 
 | 群組狀態 | 可用操作 |
 |----------|---------|
-| `recruiting` | 審核申請、管理成員、編輯群組、暫停招募、解散群組 |
-| `full` | 管理成員、查看收款狀態 |
-| `pending_confirmation` | 管理成員、確認收款、傳送催款通知 |
-| `pending_activation` | 管理成員、啟用服務 |
-| `active`（一般） | 管理成員、群組設定、停止服務 |
-| `active`（到期 ≤7 天） | 管理成員、準備續訂（開始新一期 / 結束服務） |
-| `paused / cancelled / ended` | 查看紀錄 |
+| `recruiting` | 審核申請、查看成員付款、查看歷史 |
+| `full` | 查看成員付款 |
+| `pending_confirmation` | 確認收款、傳送催款通知 |
+| `pending_activation` | 啟用服務 |
+| `active`（一般） | 查看成員付款、查看歷史 |
+| `active`（到期 ≤7 天） | 準備續訂（開始新一期 / 結束服務）、查看歷史 |
+| `paused / cancelled / ended` | 查看歷史 |
 
 ---
 

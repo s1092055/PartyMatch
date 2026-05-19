@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CheckCircle2, Star, Users, Calendar, ChevronRight, LogIn, ShieldCheck, Heart } from 'lucide-react'
+import { CheckCircle2, Star, Users, Calendar, ChevronRight, LogIn, ShieldCheck, Heart, CreditCard } from 'lucide-react'
 import Badge from '../../../shared/components/ui/Badge'
 import Button from '../../../shared/components/ui/Button'
 import Avatar from '../../../shared/components/ui/Avatar'
@@ -8,7 +8,7 @@ import ProgressBar from '../../../shared/components/ui/ProgressBar'
 import ApplyJoinModal from '../../../shared/components/modals/ApplyJoinModal'
 import InstantJoinModal from '../../../shared/components/modals/InstantJoinModal'
 import { getApplicationByUserAndGroup } from '../../../shared/stores/applicationStore'
-import { isCurrentUserMember } from '../../../shared/stores/memberStore'
+import { isCurrentUserMember, getMemberByUserAndGroup } from '../../../shared/stores/memberStore'
 import { isGroupFavorited, toggleFavorite } from '../../../shared/stores/favoriteStore'
 import { getActiveUser } from '../../../shared/stores/userStore'
 
@@ -21,6 +21,9 @@ export default function StickyJoinSummary({ group }) {
   const [isMember, setIsMember] = useState(
     () => isCurrentUserMember(group.id)
   )
+  const memberRecord = activeUserId ? getMemberByUserAndGroup(activeUserId, group.id) : null
+  const isPendingPayment = isMember && memberRecord?.paymentStatus === 'pending'
+  const isMarkedPaid    = isMember && memberRecord?.paymentStatus === 'markedPaid'
   const [applied, setApplied] = useState(
     () => activeUserId ? !!getApplicationByUserAndGroup(activeUserId, group.id) : false
   )
@@ -60,11 +63,20 @@ export default function StickyJoinSummary({ group }) {
         </div>
       )
     }
-    if (isFull) {
+    if (isPendingPayment) {
       return (
-        <Button variant="ghost" size="lg" className="w-full border border-line" disabled>
-          已額滿
-        </Button>
+        <div className="flex items-center gap-2 bg-warning-subtle text-warning-text text-sm font-medium px-4 py-3 rounded-lg">
+          <CreditCard size={16} />
+          已加入，請前往「我的訂閱」完成付款
+        </div>
+      )
+    }
+    if (isMarkedPaid) {
+      return (
+        <div className="flex items-center gap-2 bg-violet-50 text-violet-700 text-sm font-medium px-4 py-3 rounded-lg">
+          <CheckCircle2 size={16} />
+          已標記付款，等待團主確認
+        </div>
       )
     }
     if (isMember) {
@@ -73,6 +85,13 @@ export default function StickyJoinSummary({ group }) {
           <CheckCircle2 size={16} />
           已加入此群組
         </div>
+      )
+    }
+    if (isFull) {
+      return (
+        <Button variant="ghost" size="lg" className="w-full border border-line" disabled>
+          已額滿
+        </Button>
       )
     }
     if (!isInstant && applied) {

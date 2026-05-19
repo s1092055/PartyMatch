@@ -1,22 +1,19 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { activateGroup, cancelGroup, confirmGroupPayments, endGroup, getGroupsByHostId, pauseGroup, startRenewalCycle, updateGroup } from '../../shared/stores/groupStore'
+import { activateGroup, confirmGroupPayments, endGroup, getGroupsByHostId, startRenewalCycle, updateGroup } from '../../shared/stores/groupStore'
 import { getApplicationsByHostId, updateApplicationStatus } from '../../shared/stores/applicationStore'
 import { getMembersByGroupId, createMember, isUserGroupMember, removeMember, updateMember } from '../../shared/stores/memberStore'
 import { activateGroupSubscriptions, confirmSubscriptionPayment, createSubscription, getSubscriptionByUserAndGroup } from '../../shared/stores/subscriptionStore'
 import { createNotification } from '../../shared/stores/notificationStore'
 import { getActiveUser } from '../../shared/stores/userStore'
+import { CONFIRMED_STATUSES } from '../../shared/constants/paymentStatus'
 import EmptyState from '../../shared/components/ui/EmptyState'
+import GroupViewModal from '../../shared/components/modals/GroupViewModal'
 import HostedGroupCard from './components/HostedGroupCard'
 import ManageRightRail from './components/ManageRightRail'
-import MemberManagementModal from './components/MemberManagementModal'
 import ApplicationsModal from './components/ApplicationsModal'
-import EditGroupModal from './components/EditGroupModal'
 import GroupHistoryModal from './components/GroupHistoryModal'
 import RenewalModal from './components/RenewalModal'
-import PaymentStatusModal from './components/PaymentStatusModal'
-import ActivateGroupModal from './components/ActivateGroupModal'
-import ConfirmActionModal from './components/ConfirmActionModal'
 
 const STATUS_FILTER_TABS = [
   { key: 'all',        label: '全部'   },
@@ -60,14 +57,24 @@ export default function ManageGroupsPage() {
   const [statusFilter, setStatusFilter] = useState('all')
 
   // Modal states
-  const [memberModalGroupId, setMemberModalGroupId] = useState(null)
-  const [editModalGroupId, setEditModalGroupId] = useState(null)
-  const [activateModalGroupId, setActivateModalGroupId] = useState(null)
-  const [paymentModalGroupId, setPaymentModalGroupId] = useState(null)
-  const [appsModalOpen, setAppsModalOpen] = useState(false)
-  const [confirmAction, setConfirmAction] = useState(null)
+  const [viewGroupId, setViewGroupId]           = useState(null)
+  const [appsModalOpen, setAppsModalOpen]       = useState(false)
   const [historyModalGroupId, setHistoryModalGroupId] = useState(null)
   const [renewalModalGroupId, setRenewalModalGroupId] = useState(null)
+
+  // Listen for new applications submitted by members (same-browser demo)
+  useEffect(() => {
+    function onNewApp(e) {
+      if (e.detail?.hostId === activeUser?.id) {
+        setManageData(prev => ({
+          ...prev,
+          applications: getApplicationsByHostId(activeUser.id, prev.hostedGroups),
+        }))
+      }
+    }
+    window.addEventListener('pm:application-created', onNewApp)
+    return () => window.removeEventListener('pm:application-created', onNewApp)
+  }, [activeUser?.id])
 
   const { hostedGroups, applications, members, seatMap } = manageData
 
@@ -90,8 +97,11 @@ export default function ManageGroupsPage() {
   }, [allGroups])
 
   const membersMap = useMemo(
-    () => Object.fromEntries(hostedGroups.map(g => [g.id, getMembersByGroupId(g.id)])),
-    [hostedGroups],
+    () => members.reduce((acc, m) => {
+      ;(acc[m.groupId] ??= []).push(m)
+      return acc
+    }, {}),
+    [members],
   )
 
   const applicationCounts = useMemo(() => {
@@ -103,13 +113,8 @@ export default function ManageGroupsPage() {
   }, [applications])
 
   const getModalGroup = id => id ? allGroups.find(g => g.id === id) : null
-
-  const renewalModalGroup  = getModalGroup(renewalModalGroupId)
-  const memberModalGroup   = getModalGroup(memberModalGroupId)
-  const editModalGroup     = getModalGroup(editModalGroupId)
-  const activateModalGroup = getModalGroup(activateModalGroupId)
-  const paymentModalGroup  = getModalGroup(paymentModalGroupId)
-  const historyModalGroup  = getModalGroup(historyModalGroupId)
+  const historyModalGroup = getModalGroup(historyModalGroupId)
+  const renewalModalGroup = getModalGroup(renewalModalGroupId)
 
   function refreshGroups() {
     setManageData(prev => ({ ...prev, hostedGroups: getGroupsByHostId(activeUser.id) }))
@@ -131,24 +136,6 @@ export default function ManageGroupsPage() {
     }
   }
 
-  // ── Danger actions (pause / cancel / stop) ──────────────────────
-  function handleDangerAction(type) {
-    setConfirmAction({ type, groupId: editModalGroupId })
-    setEditModalGroupId(null)
-  }
-
-  function handleConfirmAction() {
-    if (!confirmAction) return
-    const { type, groupId } = confirmAction
-    if (type === 'cancel') {
-      cancelGroup(groupId)
-    } else {
-      pauseGroup(groupId)
-    }
-    setConfirmAction(null)
-    refreshGroups()
-  }
-
   // ── Confirm single member payment ──────────────────────────────
   function handleConfirmMember(member) {
     updateMember(member.id, { paymentStatus: 'confirmed' })
@@ -165,18 +152,19 @@ export default function ManageGroupsPage() {
 
     const updatedMembers = getMembersByGroupId(member.groupId)
     const allConfirmed = updatedMembers.length > 0 &&
-      updatedMembers.every(m => ['confirmed', 'paid'].includes(m.paymentStatus))
+      updatedMembers.every(m => CONFIRMED_STATUSES.includes(m.paymentStatus))
     if (allConfirmed) confirmGroupPayments(member.groupId)
 
     refreshGroups()
   }
 
   // ── Activate handler ────────────────────────────────────────────
-  function handleActivate(groupId) {
-    const updatedGroup = activateGroup(groupId)
+  function handleActivate(renewalDate) {
+    if (!viewGroupId) return
+    const updatedGroup = activateGroup(viewGroupId, renewalDate || null)
     if (updatedGroup) {
-      activateGroupSubscriptions(groupId, updatedGroup.nextBillingDate)
-      getMembersByGroupId(groupId).forEach(m => {
+      activateGroupSubscriptions(viewGroupId, updatedGroup.nextBillingDate)
+      getMembersByGroupId(viewGroupId).forEach(m => {
         createNotification({
           userId:  m.userId,
           type:    'group_activated',
@@ -185,13 +173,7 @@ export default function ManageGroupsPage() {
         })
       })
     }
-    setActivateModalGroupId(null)
-    refreshGroups()
-  }
-
-  function handleConfirmPayments(groupId) {
-    confirmGroupPayments(groupId)
-    setPaymentModalGroupId(null)
+    setViewGroupId(null)
     refreshGroups()
   }
 
@@ -255,7 +237,12 @@ export default function ManageGroupsPage() {
 
     const newUsedSeats = seats.usedSeats + 1
     const newOpenSeats = seats.openSeats - 1
-    updateGroup(app.groupId, { usedSeats: newUsedSeats, openSeats: newOpenSeats })
+    const seatPatch = {
+      usedSeats: newUsedSeats,
+      openSeats: newOpenSeats,
+      ...(newOpenSeats === 0 ? { status: 'full' } : {}),
+    }
+    updateGroup(app.groupId, seatPatch)
 
     createNotification({
       userId:  applicantId,
@@ -264,12 +251,18 @@ export default function ManageGroupsPage() {
       message: `你申請加入的「${app.groupName ?? app.serviceName}」群組已通過審核，歡迎加入！`,
     })
 
-    setManageData(prev => ({
-      ...prev,
-      applications: prev.applications.map(a => a.id === appId ? { ...a, status: 'approved' } : a),
-      members:      prev.hostedGroups.flatMap(g => getMembersByGroupId(g.id)),
-      seatMap:      { ...prev.seatMap, [app.groupId]: { usedSeats: newUsedSeats, openSeats: newOpenSeats } },
-    }))
+    setManageData(prev => {
+      const updatedHostedGroups = prev.hostedGroups.map(g =>
+        g.id === app.groupId ? { ...g, ...seatPatch } : g
+      )
+      return {
+        ...prev,
+        hostedGroups:  updatedHostedGroups,
+        applications:  prev.applications.map(a => a.id === appId ? { ...a, status: 'approved' } : a),
+        members:       updatedHostedGroups.flatMap(g => getMembersByGroupId(g.id)),
+        seatMap:       { ...prev.seatMap, [app.groupId]: { usedSeats: newUsedSeats, openSeats: newOpenSeats } },
+      }
+    })
     removeError(appId)
   }
 
@@ -298,15 +291,14 @@ export default function ManageGroupsPage() {
     setErrors(prev => { const next = { ...prev }; delete next[id]; return next })
   }
 
-  const groupHandlers = useCallback(g => ({
-    onManageMembers: () => setMemberModalGroupId(g.id),
-    onEditGroup:     () => setEditModalGroupId(g.id),
-    onActivate:      () => setActivateModalGroupId(g.id),
-    onViewPayments:  () => setPaymentModalGroupId(g.id),
-    onViewHistory:   () => setHistoryModalGroupId(g.id),
-    onRenewal:       () => setRenewalModalGroupId(g.id),
-    onViewApps:      () => setAppsModalOpen(true),
-  }), [])
+  function groupHandlers(g) {
+    return {
+      onViewGroup:   () => { refreshGroups(); setViewGroupId(g.id) },
+      onViewHistory: () => setHistoryModalGroupId(g.id),
+      onRenewal:     () => setRenewalModalGroupId(g.id),
+      onViewApplications: () => setAppsModalOpen(true),
+    }
+  }
 
   return (
     <div>
@@ -316,7 +308,7 @@ export default function ManageGroupsPage() {
         <p className="mt-1 text-sm text-ink-3">管理你建立的群組、審核申請、追蹤收款與續訂狀態。</p>
       </div>
 
-      {/* Filter tabs — 在 flex row 外，不影響右欄對齊 */}
+      {/* Filter tabs */}
       <div className="mb-4 flex min-w-0 overflow-x-auto">
         <div className="flex gap-1">
           {STATUS_FILTER_TABS.map(tab => (
@@ -344,7 +336,6 @@ export default function ManageGroupsPage() {
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         {/* Group list */}
         <div className="min-w-0 flex-1">
-
           {allGroups.length === 0 ? (
             <EmptyState
               title="你還沒有建立任何群組"
@@ -355,7 +346,7 @@ export default function ManageGroupsPage() {
           ) : displayGroups.length === 0 ? (
             <EmptyState title={`此分類目前沒有群組`} />
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2">
               {displayGroups.map(g => (
                 <HostedGroupCard
                   key={g.id}
@@ -386,26 +377,14 @@ export default function ManageGroupsPage() {
       </div>
 
       {/* Modals */}
-      {memberModalGroup && (
-        <MemberManagementModal
-          isOpen
-          onClose={() => setMemberModalGroupId(null)}
-          group={memberModalGroup}
-          members={membersMap[memberModalGroup.id] ?? []}
-          onRemove={handleRemoveMember}
-        />
-      )}
-      {editModalGroup && (
-        <EditGroupModal
-          key={editModalGroup.id}
-          isOpen
-          onClose={() => setEditModalGroupId(null)}
-          group={editModalGroup}
-          members={membersMap[editModalGroup.id] ?? []}
-          onDangerAction={handleDangerAction}
-          onSaved={refreshGroups}
-        />
-      )}
+      <GroupViewModal
+        isOpen={!!viewGroupId}
+        onClose={() => { setViewGroupId(null); refreshGroups() }}
+        groupId={viewGroupId}
+        onConfirmMember={handleConfirmMember}
+        onActivate={handleActivate}
+        onRemoveMember={handleRemoveMember}
+      />
       <ApplicationsModal
         isOpen={appsModalOpen}
         onClose={() => setAppsModalOpen(false)}
@@ -415,30 +394,6 @@ export default function ManageGroupsPage() {
         onApprove={handleApprove}
         onReject={handleReject}
       />
-      {activateModalGroup && (
-        <ActivateGroupModal
-          group={activateModalGroup}
-          onClose={() => setActivateModalGroupId(null)}
-          onConfirm={() => handleActivate(activateModalGroup.id)}
-        />
-      )}
-      {paymentModalGroup && (
-        <PaymentStatusModal
-          isOpen
-          onClose={() => setPaymentModalGroupId(null)}
-          group={paymentModalGroup}
-          members={membersMap[paymentModalGroup.id] ?? []}
-          onConfirmPayments={() => handleConfirmPayments(paymentModalGroup.id)}
-          onConfirmMember={handleConfirmMember}
-        />
-      )}
-      {confirmAction && (
-        <ConfirmActionModal
-          action={confirmAction}
-          onClose={() => setConfirmAction(null)}
-          onConfirm={handleConfirmAction}
-        />
-      )}
       {historyModalGroup && (
         <GroupHistoryModal
           isOpen

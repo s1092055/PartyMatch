@@ -87,7 +87,7 @@ export default function Step4Preview({ form }) {
 
       {/* Submit notice */}
       <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-700">
-        送出後群組將立即上架並開始招募，你可以隨時在「群組管理」中修改設定。
+        送出後群組將立即上架並開始招募，你可以在「群組管理」中審核申請與管理成員。
       </div>
     </div>
   )

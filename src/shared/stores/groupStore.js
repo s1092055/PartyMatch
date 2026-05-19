@@ -79,18 +79,21 @@ export function cancelGroup(id) {
   return updateGroup(id, { status: 'cancelled' })
 }
 
-export function activateGroup(id) {
+export function activateGroup(id, customNextBillingDate = null) {
   const group = getGroupById(id)
   if (!group) return null
 
-  const activatedAt    = todayISO()
-  const activationDate = new Date(activatedAt)
-  if (group.billingCycle === 'yearly') {
-    activationDate.setFullYear(activationDate.getFullYear() + 1)
-  } else {
-    activationDate.setMonth(activationDate.getMonth() + 1)
+  const activatedAt = todayISO()
+  let nextBillingDate = customNextBillingDate
+  if (!nextBillingDate) {
+    const activationDate = new Date(activatedAt)
+    if (group.billingCycle === 'yearly') {
+      activationDate.setFullYear(activationDate.getFullYear() + 1)
+    } else {
+      activationDate.setMonth(activationDate.getMonth() + 1)
+    }
+    nextBillingDate = toISODate(activationDate)
   }
-  const nextBillingDate = toISODate(activationDate)
   return updateGroup(id, { status: 'active', activatedAt, nextBillingDate })
 }
 

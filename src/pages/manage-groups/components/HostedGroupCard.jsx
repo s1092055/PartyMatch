@@ -1,78 +1,95 @@
-import { ClipboardList, DollarSign, History, Pencil, PlayCircle, RefreshCw, Settings, Users, UsersRound } from 'lucide-react'
-import Button from '../../../shared/components/ui/Button'
-import ProgressBar from '../../../shared/components/ui/ProgressBar'
-import GroupCardShell, { BillingDateRow } from '../../../shared/components/cards/GroupCardShell'
+import {
+  Calendar,
+  ChevronRight,
+  DollarSign,
+  History,
+  Monitor,
+  RefreshCw,
+  RotateCw,
+  ShieldCheck,
+  UserRound,
+  Users,
+} from 'lucide-react'
+import Badge from '../../../shared/components/ui/Badge'
+import ServiceLogo from '../../../shared/components/ui/ServiceLogo'
+import { CONFIRMED_STATUSES } from '../../../shared/constants/paymentStatus'
 import { getGroupDisplayStatus, GROUP_ACTION_MAP } from '../config/groupActionMap'
-
-const TERMINAL_STATUSES = new Set(['paused', 'cancelled', 'ended'])
+import { formatMonthDay } from '../../../shared/utils/date'
 
 const ACTION_ICONS = {
-  manageMembers:    UsersRound,
-  activateGroup:    PlayCircle,
-  prepareRenewal:   RefreshCw,
-  groupSettings:    Settings,
-  viewHistory:      History,
-  viewApplications: ClipboardList,
-  viewPayments:     DollarSign,
-  editGroup:        Pencil,
+  prepareRenewal: RefreshCw,
+  viewHistory:    History,
 }
 
-const STATE_DESC = {
-  recruiting:           '招募中，招募完成後將啟用並開始計費。',
-  full:                 '人數已滿，等待成員付款。',
-  pending_confirmation: '收款確認中，請耐心等待。',
-  pending_activation:   '所有款項已就緒，等待啟用。',
-  paused:               '此群組服務已停止，無法進行啟用。',
-  cancelled:            '此群組已取消，已付款項目將退回。',
-  ended:                '此群組服務已結束。',
+const STATUS_BADGE_CLASS = {
+  active:               'bg-success-subtle text-success-text',
+  active_renewal:       'bg-success-subtle text-success-text',
+  recruiting:           'bg-success-subtle text-success-text',
+  pending_confirmation: 'bg-warning-subtle text-warning-text',
+  pending_activation:   'bg-warning-subtle text-warning-text',
+  full:                 'bg-brand-subtle text-brand',
+  paused:               'bg-slate-100 text-slate-500',
+  cancelled:            'bg-danger-subtle text-danger-text',
+  ended:                'bg-slate-100 text-slate-400',
 }
 
-function ProgressSection({ group, members }) {
-  const { status } = group
-  const paidCount = members.filter(m => ['paid', 'confirmed'].includes(m.paymentStatus)).length
-  const totalCount = members.length
+function buildFeatureChips(group) {
+  const tags = group.tags ?? []
+  const source = `${group.planName} ${tags.join(' ')}`
+  const labels = []
 
-  if (status === 'recruiting' || status === 'full') {
-    const label = status === 'recruiting' ? '招募進度' : '招募進度（已滿額）'
+  if (/4K|HDR/i.test(source) || (group.serviceId === 'disney' && group.planName.includes('高級'))) {
+    labels.push({ label: '4K 畫質', Icon: Monitor })
+  }
+
+  if (/家庭|Family|共享/.test(source)) {
+    labels.push({ label: '家庭方案', Icon: Users })
+  }
+
+  labels.push({
+    label: group.billingCycle === 'yearly' ? '年度續訂' : '自動續訂',
+    Icon: RotateCw,
+  })
+
+  return labels.slice(0, 3)
+}
+
+
+function getPaymentState({ group, hasMarkedPaid, paidCount, paymentTarget }) {
+  if (['paused', 'cancelled', 'ended'].includes(group.status)) return '已停止'
+  if (hasMarkedPaid) return '待確認'
+  if (['pending_confirmation', 'pending_activation', 'full'].includes(group.status)) return '待處理'
+  if (paymentTarget > 0 && paidCount < paymentTarget && group.status === 'active') return '追蹤中'
+  return '正常'
+}
+
+function StatusRow({ Icon, label, value, valueClass = 'text-ink', onClick }) {
+  const content = (
+    <>
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-ink-3">
+        <Icon size={24} strokeWidth={1.9} />
+      </span>
+      <span className="min-w-0 flex-1 truncate text-base font-semibold text-ink">{label}</span>
+      <span className={`shrink-0 text-lg font-black ${valueClass}`}>{value}</span>
+      <ChevronRight size={21} className="shrink-0 text-ink-3" strokeWidth={2.3} />
+    </>
+  )
+
+  if (onClick) {
     return (
-      <div>
-        <div className="mb-1.5 flex items-center justify-between text-xs text-ink-3">
-          <span>{label}</span>
-          <span className="font-semibold text-ink-2">{group.usedSeats}/{group.totalSeats} 已加入</span>
-        </div>
-        <ProgressBar value={group.usedSeats} max={group.totalSeats} color="bg-brand" />
-      </div>
+      <button
+        type="button"
+        onClick={onClick}
+        className="flex w-full items-center gap-3 border-b border-line-subtle py-3 text-left last:border-b-0 hover:text-brand"
+      >
+        {content}
+      </button>
     )
   }
 
-  if (TERMINAL_STATUSES.has(status)) {
-    return (
-      <div>
-        <div className="mb-1.5 flex items-center justify-between text-xs text-ink-3">
-          <span>服務已停止</span>
-          <span>—</span>
-        </div>
-        <ProgressBar value={0} max={1} color="bg-line" />
-      </div>
-    )
-  }
-
-  if (totalCount === 0) return null
-
-  const statLabel = status === 'pending_confirmation' ? '已確認' : '已收'
   return (
-    <div>
-      <div className="mb-1.5 flex items-center justify-between text-xs text-ink-3">
-        <span>本期收款進度</span>
-        <span className={`font-semibold ${paidCount === totalCount ? 'text-success-text' : 'text-ink-2'}`}>
-          {paidCount}/{totalCount} {statLabel}
-        </span>
-      </div>
-      <ProgressBar
-        value={paidCount}
-        max={totalCount}
-        color={paidCount === totalCount ? 'bg-success' : 'bg-brand'}
-      />
+    <div className="flex items-center gap-3 border-b border-line-subtle py-3 last:border-b-0">
+      {content}
     </div>
   )
 }
@@ -81,81 +98,130 @@ export default function HostedGroupCard({
   group,
   members,
   pendingAppCount,
-  onManageMembers,
-  onEditGroup,
-  onActivate,
-  onViewPayments,
+  onViewGroup,
   onViewHistory,
   onRenewal,
-  onViewApps,
+  onViewApplications,
 }) {
   const displayStatus = getGroupDisplayStatus(group)
-  const { primary: primaryActions = [], menu: menuActionDefs = [] } = GROUP_ACTION_MAP[displayStatus] ?? {}
-
-  const HANDLERS = {
-    manageMembers:    onManageMembers,
-    editGroup:        onEditGroup,
-    viewPayments:     onViewPayments,
-    activateGroup:    onActivate,
-    groupSettings:    onEditGroup,
-    prepareRenewal:   onRenewal,
-    viewHistory:      onViewHistory,
-    viewApplications: onViewApps,
-  }
+  const { menu: menuActionDefs = [] } = GROUP_ACTION_MAP[displayStatus] ?? {}
+  const hasMarkedPaid = members.some(m => m.paymentStatus === 'markedPaid')
+  const isRenewalDue  = displayStatus === 'active_renewal'
+  const featureChips = buildFeatureChips(group)
+  const paidCount = members.filter(m => CONFIRMED_STATUSES.includes(m.paymentStatus)).length
+  const paymentTarget = Math.max(members.length, group.usedSeats - 1, 0)
+  const paymentValue = paymentTarget > 0 ? `${paidCount}/${paymentTarget}` : `${group.usedSeats}/${group.totalSeats}`
+  const paymentState = getPaymentState({ group, hasMarkedPaid, paidCount, paymentTarget })
 
   const menuItems = menuActionDefs.map(action => ({
     label:   action.label,
     Icon:    ACTION_ICONS[action.key],
-    onClick: HANDLERS[action.key],
+    onClick: ({ prepareRenewal: onRenewal, viewHistory: onViewHistory })[action.key],
   }))
 
-  const monthlyTotal = group.pricePerSeat * (group.usedSeats || group.totalSeats)
-  const desc = STATE_DESC[group.status]
+  const viewBtnVariant = (hasMarkedPaid || isRenewalDue) ? 'primary' : 'ink'
+
+  function handleMenuAction(e, item) {
+    e.stopPropagation()
+    item.onClick?.()
+  }
 
   return (
-    <GroupCardShell
-      serviceId={group.serviceId}
-      serviceName={group.serviceName}
-      planName={group.planName}
-      badgeVariant={group.status}
-      infoRow={
-        <>
-          <span className="flex items-center gap-1.5 text-sm text-ink-2">
-            <Users size={14} className="shrink-0 text-ink-3" />
-            {group.usedSeats}/{group.totalSeats} 人
-            {group.status === 'recruiting' && pendingAppCount > 0 && (
-              <span className="ml-1 rounded-badge bg-warning-subtle px-2 py-0.5 text-xs font-semibold text-warning-text">
-                {pendingAppCount} 件待審核
-              </span>
-            )}
-          </span>
-          <BillingDateRow status={group.status} nextBillingDate={group.nextBillingDate} />
-        </>
-      }
-      body={
-        <>
-          <div className="space-y-1">
-            {!TERMINAL_STATUSES.has(group.status) && (
-              <p className="flex items-center gap-1.5 text-sm text-ink-2">
-                <DollarSign size={14} className="shrink-0 text-ink-3" />
-                每月 NT${monthlyTotal} · 由 {group.usedSeats} 位成員分攤
-              </p>
-            )}
-            {desc && <p className="text-xs text-ink-3">{desc}</p>}
+    <article className="card flex min-h-full flex-col overflow-hidden rounded-[1.75rem] border-line bg-white p-0">
+      <div className="p-5 sm:p-6">
+        <Badge
+          variant={group.status}
+          className={`${STATUS_BADGE_CLASS[displayStatus] ?? ''} px-3.5 py-1 text-sm font-extrabold`}
+        />
+
+        <div className="mt-7 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(14rem,0.95fr)] lg:items-center">
+          <div className="min-w-0">
+            <div className="flex min-w-0 items-center gap-4">
+              <ServiceLogo
+                serviceId={group.serviceId}
+                size={88}
+                className="rounded-[1.45rem] border-line-strong"
+              />
+              <div className="min-w-0">
+                <h2 className="truncate text-3xl font-black leading-tight text-ink">{group.serviceName}</h2>
+                <p className="mt-2 truncate text-xl font-semibold text-ink-3">{group.planName}</p>
+              </div>
+            </div>
+
+            <div className="mt-7 flex flex-wrap gap-2.5">
+              {featureChips.map(({ label, Icon }) => (
+                <span
+                  key={label}
+                  className="inline-flex items-center gap-2 rounded-xl border border-brand-border bg-brand-subtle px-3 py-1.5 text-sm font-bold text-brand"
+                >
+                  <Icon size={18} strokeWidth={2.1} />
+                  {label}
+                </span>
+              ))}
+            </div>
           </div>
-          <ProgressSection group={group} members={members} />
-        </>
-      }
-      menuItems={menuItems}
-      actions={primaryActions.map(action => {
-        const Icon = ACTION_ICONS[action.key]
-        return (
-          <Button key={action.key} variant={action.variant} size="sm" onClick={HANDLERS[action.key]} className="w-full">
-            {Icon && <Icon size={14} />}
-            {action.label}
-          </Button>
-        )
-      })}
-    />
+
+          <div className="rounded-2xl border border-line bg-white px-4 py-2 shadow-[0_12px_26px_-22px_rgb(20_44_91_/_0.42)]">
+            <StatusRow
+              Icon={UserRound}
+              label="待處理申請"
+              value={pendingAppCount}
+              valueClass={pendingAppCount > 0 ? 'text-brand' : 'text-ink'}
+              onClick={onViewApplications}
+            />
+            <StatusRow
+              Icon={DollarSign}
+              label="本期收款"
+              value={paymentValue}
+              valueClass={hasMarkedPaid ? 'text-brand' : 'text-ink'}
+              onClick={onViewGroup}
+            />
+            <StatusRow
+              Icon={Calendar}
+              label="下次扣款"
+              value={formatMonthDay(group.nextBillingDate)}
+              onClick={isRenewalDue ? onRenewal : onViewGroup}
+            />
+            <StatusRow
+              Icon={ShieldCheck}
+              label="付款狀態"
+              value={paymentState}
+              valueClass={paymentState === '正常' ? 'rounded-full bg-success-subtle px-3 py-1 text-base text-success-text' : 'text-warning-text'}
+              onClick={onViewGroup}
+            />
+          </div>
+        </div>
+
+        {menuItems.length > 0 && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {menuItems.map(item => (
+              <button
+                key={item.label}
+                type="button"
+                onClick={e => handleMenuAction(e, item)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-xs font-bold text-ink-3 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
+              >
+                {item.Icon && <item.Icon size={13} />}
+                {item.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="mt-auto flex justify-center gap-3 border-t border-line px-5 py-4 sm:px-6">
+        <button
+          type="button"
+          onClick={onViewGroup}
+          className={`inline-flex min-h-12 w-full max-w-[11.5rem] items-center justify-center rounded-[1.35rem] px-5 text-base font-black shadow-[0_16px_28px_-18px_rgb(8_18_38_/_0.75)] transition-all hover:-translate-y-0.5 ${
+            viewBtnVariant === 'primary'
+              ? 'bg-brand text-white hover:bg-brand-hover'
+              : 'bg-ink text-white hover:bg-slate-800'
+          }`}
+        >
+          查看群組
+        </button>
+      </div>
+    </article>
   )
 }

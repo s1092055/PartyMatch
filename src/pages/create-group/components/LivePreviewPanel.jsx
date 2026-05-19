@@ -10,7 +10,7 @@ export default function LivePreviewPanel({ form }) {
 
   const hasBasic   = !!form.serviceId
   const hasPlan    = hasBasic && !!form.planName
-  const hasDetails = hasPlan && !!form.groupName
+  const hasDetails = hasPlan && form.description.length >= 10
 
   return (
     <div className="sticky top-[7rem] space-y-3">

@@ -3,9 +3,10 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowRight, Compass, Sparkles, X, Zap } from 'lucide-react'
 import { getGroups } from '../../shared/stores/groupStore'
 import { getServiceTypeById } from '../../shared/services/serviceTypes'
-import GroupCard from '../../shared/components/cards/GroupCard'
+import { getActiveUser } from '../../shared/stores/userStore'
 import EmptyState from '../../shared/components/ui/EmptyState'
 import FilterBar from './components/FilterBar'
+import ExploreGroupCard from './components/ExploreGroupCard'
 
 const DEFAULT_FILTERS = {
   keyword:  '',
@@ -54,7 +55,11 @@ export default function ExplorePage() {
     keyword: searchParams.get('q') ?? '',
   }))
   const navigate = useNavigate()
-  const allGroups = useMemo(() => getGroups(), [])
+  const activeUserId = getActiveUser()?.id
+  const allGroups = useMemo(
+    () => getGroups().filter(g => g.hostId !== activeUserId),
+    [activeUserId],
+  )
 
   useEffect(() => {
     const q = searchParams.get('q') ?? ''
@@ -124,7 +129,7 @@ export default function ExplorePage() {
       ) : (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map(group => (
-            <GroupCard key={group.id} group={group} />
+            <ExploreGroupCard key={group.id} group={group} />
           ))}
           <div
             onClick={() => navigate('/quick-match')}

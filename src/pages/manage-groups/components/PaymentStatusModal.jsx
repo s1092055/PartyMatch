@@ -1,20 +1,27 @@
 import { useState } from 'react'
-import { Banknote, Bell, CheckCircle2, Clock } from 'lucide-react'
+import { Banknote, Bell, CheckCircle2, Clock, PlayCircle } from 'lucide-react'
 import Modal from '../../../shared/components/ui/Modal'
 import Avatar from '../../../shared/components/ui/Avatar'
 import EmptyState from '../../../shared/components/ui/EmptyState'
 import ProgressBar from '../../../shared/components/ui/ProgressBar'
 import ServiceLogo from '../../../shared/components/ui/ServiceLogo'
 import { createNotification } from '../../../shared/stores/notificationStore'
+import { CONFIRMED_STATUSES, READY_TO_ACTIVATE_STATUSES } from '../../../shared/constants/paymentStatus'
 
-export default function PaymentStatusModal({ isOpen, onClose, group, members, onConfirmPayments, onConfirmMember }) {
+export default function PaymentStatusModal({ isOpen, onClose, group, members, onConfirmPayments, onConfirmMember, onActivate }) {
   const [remindedIds, setRemindedIds] = useState(new Set())
+  const [activating, setActivating] = useState(false)
 
-  const confirmedCount = members.filter(m => ['paid', 'confirmed'].includes(m.paymentStatus)).length
+  const confirmedCount = members.filter(m => CONFIRMED_STATUSES.includes(m.paymentStatus)).length
   const totalCount = members.length
   const allConfirmed = totalCount > 0 && confirmedCount === totalCount
   const canConfirm = group?.status === 'pending_confirmation'
-  const unpaidMembers = members.filter(m => !['paid', 'confirmed', 'markedPaid'].includes(m.paymentStatus))
+  const unpaidMembers = members.filter(m => !READY_TO_ACTIVATE_STATUSES.includes(m.paymentStatus))
+
+  const allReadyToActivate = totalCount > 0 &&
+    members.every(m => READY_TO_ACTIVATE_STATUSES.includes(m.paymentStatus))
+  const isActivatable = allReadyToActivate &&
+    ['recruiting', 'full', 'pending_activation'].includes(group?.status)
 
   function sendReminder(member) {
     createNotification({
@@ -30,8 +37,13 @@ export default function PaymentStatusModal({ isOpen, onClose, group, members, on
     unpaidMembers.forEach(m => sendReminder(m))
   }
 
+  function handleActivate() {
+    onActivate?.()
+    onClose()
+  }
+
   function renderMemberAction(m) {
-    if (['paid', 'confirmed'].includes(m.paymentStatus)) {
+    if (CONFIRMED_STATUSES.includes(m.paymentStatus)) {
       return (
         <span className="flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
           <CheckCircle2 size={11} /> 已確認
@@ -40,13 +52,6 @@ export default function PaymentStatusModal({ isOpen, onClose, group, members, on
     }
 
     if (m.paymentStatus === 'markedPaid') {
-      if (!canConfirm) {
-        return (
-          <span className="flex shrink-0 items-center gap-1 rounded-full bg-violet-50 px-2.5 py-0.5 text-xs font-semibold text-violet-700">
-            <CheckCircle2 size={11} /> 已標記
-          </span>
-        )
-      }
       return (
         <button
           onClick={() => onConfirmMember?.(m)}
@@ -128,7 +133,7 @@ export default function PaymentStatusModal({ isOpen, onClose, group, members, on
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-ink">{m.userName}</p>
                   <p className="text-xs text-ink-3">
-                    {['paid', 'confirmed'].includes(m.paymentStatus)
+                    {CONFIRMED_STATUSES.includes(m.paymentStatus)
                       ? `已確認 · ${m.lastPaidAt ?? ''}`
                       : m.paymentStatus === 'markedPaid'
                         ? `已標記付款 · ${m.lastPaidAt ?? ''}`
@@ -138,6 +143,42 @@ export default function PaymentStatusModal({ isOpen, onClose, group, members, on
                 {renderMemberAction(m)}
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Activate service CTA */}
+        {isActivatable && (
+          <div className="mt-5 border-t border-line-subtle pt-4">
+            {activating ? (
+              <div className="rounded-2xl border border-brand/30 bg-brand-subtle p-4">
+                <p className="mb-3 text-sm font-semibold text-ink">確認啟用服務？</p>
+                <p className="mb-4 text-xs text-ink-3">
+                  點擊確認代表你已在外部完成「{group?.serviceName}」的訂閱服務設定，並已將成員加入服務。
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setActivating(false)}
+                    className="flex-1 rounded-xl border border-line py-2 text-sm font-semibold text-ink-2 transition-colors hover:bg-raised"
+                  >
+                    取消
+                  </button>
+                  <button
+                    onClick={handleActivate}
+                    className="flex-1 rounded-xl bg-brand py-2 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
+                  >
+                    確認，已啟用服務
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => setActivating(true)}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
+              >
+                <PlayCircle size={15} />
+                啟用服務
+              </button>
+            )}
           </div>
         )}
 

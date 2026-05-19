@@ -51,6 +51,12 @@ export function currentPeriodLabel(date = new Date()) {
   return `${date.getFullYear()} 年 ${date.getMonth() + 1} 月`
 }
 
+export function formatMonthDay(isoDate) {
+  if (!isoDate) return '--'
+  const [, month, day] = isoDate.split('-')
+  return month && day ? `${month}/${day}` : isoDate
+}
+
 export function formatRelativeDate(dateLike, baseDate = new Date()) {
   const days = daysUntil(dateLike, baseDate)
   if (days === 0) return '今天'

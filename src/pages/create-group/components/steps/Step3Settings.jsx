@@ -22,6 +22,8 @@ function Field({ label, required, children, hint, htmlFor }) {
 export default function Step3Settings({ form, onChange }) {
   const plan = getServiceById(form.serviceId)?.plans.find(p => p.name === form.planName)
   const maxSeats = plan?.maxSeats ?? 10
+  const openSeats = form.totalSeats - 1
+
   function updateRule(i, val) {
     const next = [...form.rules]
     next[i] = val
@@ -40,50 +42,30 @@ export default function Step3Settings({ form, onChange }) {
     <div className="space-y-5">
       <div>
         <h2 className="text-base font-semibold text-slate-800 mb-1">群組設定</h2>
-        <p className="text-sm text-slate-500">設定名額、描述與加入規則</p>
+        <p className="text-sm text-slate-500">設定開放名額、描述與加入規則</p>
       </div>
 
-      {/* Seat count */}
-      <Field label="開放名額" required hint={`包含你自己在內的總人數上限（此方案最多 ${maxSeats} 人）`}>
-        <div className="flex items-center gap-4 flex-wrap">
-          <div className="flex items-center gap-3 border border-slate-200 rounded-xl p-1">
-            <button
-              onClick={() => onChange('totalSeats', Math.max(2, form.totalSeats - 1))}
-              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-100 transition-colors disabled:opacity-30"
-              disabled={form.totalSeats <= 2}
-            >
-              <Minus size={14} className="text-slate-600" />
-            </button>
-            <span className="w-10 text-center text-xl font-bold text-slate-800">
-              {form.totalSeats}
-            </span>
-            <button
-              onClick={() => onChange('totalSeats', Math.min(maxSeats, form.totalSeats + 1))}
-              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-100 transition-colors disabled:opacity-30"
-              disabled={form.totalSeats >= maxSeats}
-            >
-              <Plus size={14} className="text-slate-600" />
-            </button>
-          </div>
-          <div className="flex flex-col gap-0.5 text-sm text-slate-500">
-            <span>已使用名額：<strong className="text-slate-700">1</strong>（團主）</span>
-            <span>每人月費：<strong className="text-blue-600">NT${form.pricePerSeat}</strong></span>
-          </div>
+      {/* Seat count — shows open member slots (totalSeats - 1) */}
+      <Field label="開放名額" required hint={`最多可開放 ${maxSeats - 1} 位成員加入（不含你自己）`}>
+        <div className="flex items-center gap-3 border border-slate-200 rounded-xl p-1 w-fit">
+          <button
+            onClick={() => onChange('totalSeats', Math.max(2, form.totalSeats - 1))}
+            className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-100 transition-colors disabled:opacity-30"
+            disabled={openSeats <= 1}
+          >
+            <Minus size={14} className="text-slate-600" />
+          </button>
+          <span className="w-10 text-center text-xl font-bold text-slate-800">
+            {openSeats}
+          </span>
+          <button
+            onClick={() => onChange('totalSeats', Math.min(maxSeats, form.totalSeats + 1))}
+            className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-100 transition-colors disabled:opacity-30"
+            disabled={form.totalSeats >= maxSeats}
+          >
+            <Plus size={14} className="text-slate-600" />
+          </button>
         </div>
-      </Field>
-
-      {/* Group name */}
-      <Field label="群組名稱" required hint="讓成員更容易識別你的群組" htmlFor="group-name">
-        <input
-          id="group-name"
-          type="text"
-          placeholder={`例如：陳大文的 Spotify Family 群組`}
-          value={form.groupName}
-          onChange={e => onChange('groupName', e.target.value)}
-          maxLength={40}
-          className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <p className="text-xs text-slate-400 mt-1 text-right">{form.groupName.length}/40</p>
       </Field>
 
       {/* Description */}
@@ -98,20 +80,6 @@ export default function Step3Settings({ form, onChange }) {
           className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
         />
         <p className="text-xs text-slate-400 mt-1 text-right">{form.description.length}/300</p>
-      </Field>
-
-      {/* Application notice */}
-      <Field label="申請須知" hint="告知申請者需要注意什麼（選填）" htmlFor="application-notice">
-        <textarea
-          id="application-notice"
-          placeholder="歡迎加入我的群組，每一位成員都需要遵守以下規則加入。"
-          value={form.applicationNotice}
-          onChange={e => onChange('applicationNotice', e.target.value)}
-          rows={2}
-          maxLength={200}
-          className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-        />
-        <p className="text-xs text-slate-400 mt-1 text-right">{form.applicationNotice.length}/200</p>
       </Field>
 
       {/* Rules */}

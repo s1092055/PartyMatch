@@ -76,17 +76,3 @@ export function GoogleMark() {
   )
 }
 
-function BrandMark() {
-  return (
-    <div className="flex items-center gap-3">
-      <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 shadow-sm">
-        <span className="text-2xl font-black leading-none text-white">P</span>
-        <span className="absolute left-2 top-2 h-2 w-2 rounded-full bg-blue-200" />
-        <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-blue-300" />
-      </div>
-      <span className="text-3xl font-extrabold leading-none tracking-normal">
-        <span className="text-blue-600">Party</span><span className="text-slate-950">Match</span>
-      </span>
-    </div>
-  )
-}

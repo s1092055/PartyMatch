@@ -56,6 +56,7 @@ export function createApplication({ groupId, groupName, serviceId, serviceName, 
   })
   _apps.push(app)
   insertApplication(app).catch(console.error)
+  window.dispatchEvent(new CustomEvent('pm:application-created', { detail: { hostId: app.hostId } }))
   return app
 }
 

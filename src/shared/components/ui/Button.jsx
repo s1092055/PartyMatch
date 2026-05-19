@@ -6,6 +6,7 @@ const VARIANTS = {
   ghost:     'text-ink-2 hover:bg-raised focus:ring-line',
   danger:    'bg-danger text-white hover:bg-danger-text focus:ring-danger',
   success:   'bg-success text-white hover:bg-success-text focus:ring-success shadow-[0_10px_18px_-12px_rgb(16_178_108_/_0.75)]',
+  ink:       'bg-ink text-white hover:bg-ink-2 focus:ring-ink',
 }
 
 const SIZES = {

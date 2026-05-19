@@ -4,7 +4,7 @@ export const SUB_PRIMARY_ACTION = {
   markedPaid:         { key: 'awaitConfirm',     label: '等待確認',     type: 'badge',  style: 'violet'     },
   confirmed:          { key: 'paymentConfirmed', label: '付款已確認',   type: 'badge',  style: 'emerald'    },
   waiting_activation: { key: 'waitActivation',   label: '等待團主啟用', type: 'badge',  style: 'violet'     },
-  paid:               { key: 'viewRecords',      label: '查看紀錄',     type: 'link'                        },
+  paid:               null,
 }
 
 export const SUB_SECONDARY_ACTIONS = {

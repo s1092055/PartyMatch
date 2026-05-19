@@ -5,12 +5,12 @@ import { getSubscriptionsByUserId, markSubscriptionPaid } from '../../shared/sto
 import { getMemberByUserAndGroup, updateMember } from '../../shared/stores/memberStore'
 import { createNotification } from '../../shared/stores/notificationStore'
 import { getApplicationsByUserId } from '../../shared/stores/applicationStore'
-import { getGroupById, updateGroup } from '../../shared/stores/groupStore'
+import { getGroupById } from '../../shared/stores/groupStore'
 import { getActiveUser } from '../../shared/stores/userStore'
 import SubscriptionCard from './components/SubscriptionCard'
 import RenewalReminderPanel from './components/RenewalReminderPanel'
 import EmptyState from '../../shared/components/ui/EmptyState'
-import PaymentHistoryModal from './components/PaymentHistoryModal'
+import GroupViewModal from '../../shared/components/modals/GroupViewModal'
 import ContactHostModal from './components/ContactHostModal'
 import { effectiveStatus } from '../../shared/utils/subscriptionStatus'
 import { daysUntil, todayISO } from '../../shared/utils/date'
@@ -46,7 +46,7 @@ export default function MySubscriptionsPage() {
   const [subs, setSubs] = useState(() =>
     activeUser ? enrichSubs(getSubscriptionsByUserId(activeUser.id)) : []
   )
-  const [selectedSub, setSelectedSub] = useState(null)
+  const [viewGroupId, setViewGroupId] = useState(null)
   const [contactSub, setContactSub] = useState(null)
   const [toast, setToast] = useState(null)
 
@@ -74,11 +74,6 @@ export default function MySubscriptionsPage() {
 
     const member = getMemberByUserAndGroup(activeUser?.id, sub.groupId)
     if (member) updateMember(member.id, { paymentStatus: 'markedPaid', lastPaidAt: now })
-
-    const group = getGroupById(sub.groupId)
-    if (group?.status === 'full') {
-      updateGroup(sub.groupId, { status: 'pending_confirmation' })
-    }
 
     createNotification({
       userId: activeUser?.id,
@@ -148,13 +143,12 @@ export default function MySubscriptionsPage() {
               onAction={activeTab === 'all' ? () => navigate('/explore') : undefined}
             />
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {filtered.map(sub => (
                 <SubscriptionCard
                   key={sub.id}
                   sub={sub}
-                  onMarkPaid={markAsPaid}
-                  onViewRecords={setSelectedSub}
+                  onViewGroup={sub => setViewGroupId(sub.groupId)}
                   onContactHost={setContactSub}
                 />
               ))}
@@ -171,10 +165,11 @@ export default function MySubscriptionsPage() {
         </div>
       </div>
 
-      <PaymentHistoryModal
-        sub={selectedSub}
-        isOpen={!!selectedSub}
-        onClose={() => setSelectedSub(null)}
+      <GroupViewModal
+        isOpen={!!viewGroupId}
+        onClose={() => setViewGroupId(null)}
+        groupId={viewGroupId}
+        onMarkPaid={sub => { markAsPaid(sub); setViewGroupId(null) }}
       />
       <ContactHostModal
         sub={contactSub}
