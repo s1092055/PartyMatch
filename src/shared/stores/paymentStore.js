@@ -5,8 +5,11 @@ import { getActiveUser } from './userStore'
 
 let _payments = []
 
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true'
+
 export async function initPayments() {
-  _payments = await readAllPaymentRecords()
+  const all = await readAllPaymentRecords()
+  _payments = DEMO_MODE ? all : all.filter(p => !p._demo)
 }
 
 export function getPaymentRecords() { return _payments }

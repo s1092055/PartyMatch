@@ -6,8 +6,11 @@ import { getActiveUserProfile } from './userStore'
 
 let _apps = []
 
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true'
+
 export async function initApplications() {
-  _apps = await readAllApplications()
+  const all = await readAllApplications()
+  _apps = DEMO_MODE ? all : all.filter(a => !a._demo)
 }
 
 export function getApplications() { return _apps }

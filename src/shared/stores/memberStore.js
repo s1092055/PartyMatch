@@ -5,8 +5,11 @@ import { getActiveUser } from './userStore'
 
 let _members = []
 
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true'
+
 export async function initMembers() {
-  _members = await readAllMembers()
+  const all = await readAllMembers()
+  _members = DEMO_MODE ? all : all.filter(m => !m._demo)
 }
 
 export function getMembers() { return _members }

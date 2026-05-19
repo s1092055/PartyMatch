@@ -6,8 +6,11 @@ import { getActiveUser } from './userStore'
 
 let _subs = []
 
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true'
+
 export async function initSubscriptions() {
-  _subs = await readAllSubscriptions()
+  const all = await readAllSubscriptions()
+  _subs = DEMO_MODE ? all : all.filter(s => !s._demo)
 }
 
 export function getSubscriptions() { return _subs }

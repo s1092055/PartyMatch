@@ -5,8 +5,11 @@ import { getActiveUser } from './userStore'
 
 let _notifications = []
 
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true'
+
 export async function initNotifications() {
-  _notifications = await readAllNotifications()
+  const all = await readAllNotifications()
+  _notifications = DEMO_MODE ? all : all.filter(n => !n._demo)
 }
 
 export function getNotifications(userId) {
