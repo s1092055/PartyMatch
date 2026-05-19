@@ -34,20 +34,20 @@ export default function AboutPage() {
         <HowItWorks />
         <CTASection />
 
-        <div id="disclaimer" className="rounded-xl border border-amber-200 bg-amber-50 p-5 sm:p-6">
+        <div id="disclaimer" className="rounded-xl border border-warning/30 bg-warning-subtle p-5 sm:p-6">
           <div className="mb-4 flex items-center gap-2">
-            <AlertTriangle size={18} className="shrink-0 text-amber-500" />
-            <h2 className="text-base font-extrabold text-amber-900">免責聲明</h2>
+            <AlertTriangle size={18} className="shrink-0 text-warning" />
+            <h2 className="text-base font-extrabold text-warning-text">免責聲明</h2>
           </div>
           <div className="space-y-4">
             {DISCLAIMER_ITEMS.map(item => (
               <div key={item.title}>
-                <p className="mb-1 text-sm font-bold text-amber-900">{item.title}</p>
-                <p className="text-xs leading-relaxed text-amber-800">{item.body}</p>
+                <p className="mb-1 text-sm font-bold text-warning-text">{item.title}</p>
+                <p className="text-xs leading-relaxed text-warning-text">{item.body}</p>
               </div>
             ))}
           </div>
-          <p className="mt-5 text-[11px] text-amber-700">
+          <p className="mt-5 text-2xs text-warning-text">
             最後更新：2026 年 5 月．繼續使用本平台即表示您已閱讀並同意上述聲明。
           </p>
         </div>

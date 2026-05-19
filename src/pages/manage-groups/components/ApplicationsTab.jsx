@@ -19,7 +19,7 @@ function ApplicationCard({ app, groupFull, error, onApprove, onReject }) {
   const isPending = app.status === 'pending'
 
   return (
-    <div className={`rounded-2xl border border-line bg-white p-4 shadow-sm transition-opacity ${isPending ? '' : 'opacity-60'}`}>
+    <div className={`rounded-2xl border border-line bg-surface p-4 shadow-sm transition-opacity ${isPending ? '' : 'opacity-60'}`}>
       <div className="flex items-start gap-3">
         <Avatar initial={initial} color={color} size="md" />
 
@@ -31,13 +31,13 @@ function ApplicationCard({ app, groupFull, error, onApprove, onReject }) {
                 <ServiceLogo serviceId={serviceId} size={16} />
                 <p className="truncate text-xs text-ink-3">{app.groupName ?? app.serviceName}</p>
               </div>
-              <p className="mt-0.5 text-[11px] text-ink-4">{app.createdAt}</p>
+              <p className="mt-0.5 text-2xs text-ink-4">{app.createdAt}</p>
             </div>
 
             {!isPending && (
               <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${
                 app.status === 'approved'
-                  ? 'bg-emerald-50 text-emerald-700'
+                  ? 'bg-success-subtle text-success-text'
                   : 'bg-red-50 text-red-600'
               }`}>
                 {app.status === 'approved' ? '已核准' : '已拒絕'}
@@ -68,7 +68,7 @@ function ApplicationCard({ app, groupFull, error, onApprove, onReject }) {
               <button
                 onClick={() => onApprove(app.id)}
                 disabled={groupFull}
-                className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-emerald-600 py-2 text-xs font-semibold text-white transition-colors hover:bg-emerald-700 disabled:pointer-events-none disabled:opacity-40"
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-success py-2 text-xs font-semibold text-white transition-colors hover:bg-success-text disabled:pointer-events-none disabled:opacity-40"
               >
                 {groupFull ? '已額滿' : <><Check size={12} strokeWidth={3} /> 核准</>}
               </button>

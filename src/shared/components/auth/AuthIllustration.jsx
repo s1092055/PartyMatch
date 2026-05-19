@@ -75,7 +75,7 @@ export default function AuthIllustration({ title = '更聰明的訂閱方式' })
               </span>
             ))}
           </div>
-          <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-extrabold text-emerald-600">已滿團</span>
+          <span className="rounded-full bg-success-subtle px-3 py-1 text-xs font-extrabold text-success-text">已滿團</span>
         </div>
       </div>
 
@@ -91,7 +91,7 @@ function MiniSubscription({ serviceId, title, price }) {
     <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
       <ServiceLogo serviceId={serviceId} size={32} />
       <div className="min-w-0">
-        <p className="truncate text-[11px] font-extrabold text-slate-950">{title}</p>
+        <p className="truncate text-2xs font-extrabold text-slate-950">{title}</p>
         <p className="text-xs font-bold text-slate-400">{price}</p>
       </div>
     </div>

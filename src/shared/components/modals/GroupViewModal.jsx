@@ -180,7 +180,7 @@ export default function GroupViewModal({
                           {m.paymentStatus === 'markedPaid' && (
                             <button
                               onClick={() => onConfirmMember?.(m)}
-                              className="flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-100"
+                              className="flex items-center gap-1 rounded-lg bg-success-subtle px-2.5 py-1 text-xs font-semibold text-success-text transition-colors hover:bg-success-subtle/80"
                             >
                               <CheckCircle2 size={11} /> 確認收款
                             </button>
@@ -190,13 +190,13 @@ export default function GroupViewModal({
                               <>
                                 <button
                                   onClick={() => { onRemoveMember?.(m); setRemovingId(null) }}
-                                  className="rounded-lg bg-danger px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-red-700"
+                                  className="rounded-lg bg-danger px-2.5 py-1 text-2xs font-semibold text-white hover:bg-red-700"
                                 >
                                   確認移除
                                 </button>
                                 <button
                                   onClick={() => setRemovingId(null)}
-                                  className="rounded-lg border border-line px-2.5 py-1 text-[11px] font-semibold text-ink-2 hover:bg-raised"
+                                  className="rounded-lg border border-line px-2.5 py-1 text-2xs font-semibold text-ink-2 hover:bg-raised"
                                 >
                                   取消
                                 </button>
@@ -271,7 +271,7 @@ export default function GroupViewModal({
                   min={minRenewalDate}
                   value={renewalDate}
                   onChange={e => setRenewalDate(e.target.value)}
-                  className="mb-4 w-full rounded-xl border border-line bg-white px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-brand/20"
+                  className="mb-4 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-brand/20"
                 />
 
                 <div className="flex gap-2">

@@ -19,7 +19,7 @@ function CardMenu({ items }) {
         <MoreHorizontal size={15} />
       </button>
       {open && (
-        <div className="absolute right-0 top-8 z-20 min-w-36 rounded-lg border border-line bg-white py-1 shadow-lg">
+        <div className="absolute right-0 top-8 z-20 min-w-36 rounded-lg border border-line bg-surface py-1 shadow-lg">
           {items.map(item => (
             <button
               key={item.label}

@@ -73,7 +73,7 @@ export default function StickyJoinSummary({ group }) {
     }
     if (isMarkedPaid) {
       return (
-        <div className="flex items-center gap-2 bg-violet-50 text-violet-700 text-sm font-medium px-4 py-3 rounded-lg">
+        <div className="flex items-center gap-2 bg-purple-subtle text-purple-text text-sm font-medium px-4 py-3 rounded-lg">
           <CheckCircle2 size={16} />
           已標記付款，等待團主確認
         </div>
@@ -177,7 +177,7 @@ export default function StickyJoinSummary({ group }) {
           {renderCTA()}
 
           {openSeats <= 2 && !isFull && !isMember && !applied && !isHost && (
-            <p className="text-xs text-amber-600 text-center -mt-2">
+            <p className="text-xs text-warning-text text-center -mt-2">
               僅剩 {openSeats} 個名額，手快有！
             </p>
           )}

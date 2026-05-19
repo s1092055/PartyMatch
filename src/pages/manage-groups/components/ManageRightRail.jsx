@@ -29,14 +29,14 @@ function MiniApplicationCard({ app, groupFull, error, onApprove, onReject }) {
             <p className="truncate text-xs text-ink-3">{app.groupName ?? app.serviceName}</p>
           </div>
         </div>
-        <span className="shrink-0 text-[11px] text-ink-4">{app.createdAt}</span>
+        <span className="shrink-0 text-2xs text-ink-4">{app.createdAt}</span>
       </div>
       {error && <p className="mb-1.5 text-xs text-danger">{error}</p>}
       <div className="flex gap-2">
         <button
           onClick={() => onApprove(app.id)}
           disabled={groupFull}
-          className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-emerald-600 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-emerald-700 disabled:pointer-events-none disabled:opacity-40"
+          className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-success py-1.5 text-xs font-semibold text-white transition-colors hover:bg-success-text disabled:pointer-events-none disabled:opacity-40"
         >
           <Check size={11} strokeWidth={3} />
           {groupFull ? '已額滿' : '核准'}
@@ -90,7 +90,7 @@ export default function ManageRightRail({ applications, seatMap, hostedGroups, m
             <ClipboardList size={14} className="text-amber-500" />
             <span className="text-sm font-extrabold text-ink">最新申請</span>
             {pending.length > 0 && (
-              <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[11px] font-bold text-amber-700">
+              <span className="rounded-full bg-warning-subtle px-1.5 py-0.5 text-2xs font-bold text-warning-text">
                 {pending.length}
               </span>
             )}
@@ -129,7 +129,7 @@ export default function ManageRightRail({ applications, seatMap, hostedGroups, m
           <div className="flex items-center gap-2 border-b border-line-subtle px-4 py-3">
             <RefreshCw size={14} className="text-brand" />
             <span className="text-sm font-extrabold text-ink">即將到期</span>
-            <span className="rounded-full bg-brand-subtle px-1.5 py-0.5 text-[11px] font-bold text-brand">
+            <span className="rounded-full bg-brand-subtle px-1.5 py-0.5 text-2xs font-bold text-brand">
               {upcomingRenewals.length}
             </span>
           </div>
@@ -140,20 +140,20 @@ export default function ManageRightRail({ applications, seatMap, hostedGroups, m
                   <ServiceLogo serviceId={group.serviceId} size={28} />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-xs font-medium text-ink-2">{group.serviceName}</p>
-                    <p className={`text-[11px] font-semibold ${days <= 0 ? 'text-danger' : 'text-warning-text'}`}>
+                    <p className={`text-2xs font-semibold ${days <= 0 ? 'text-danger' : 'text-warning-text'}`}>
                       {days <= 0 ? `已逾期 ${Math.abs(days)} 天` : `${days} 天後到期`}
                     </p>
                   </div>
                   <div className="flex shrink-0 flex-col gap-1">
                     <button
                       onClick={() => sendRenewalReminder(group)}
-                      className="flex items-center gap-1 rounded-lg bg-raised px-2 py-1 text-[11px] font-semibold text-ink-2 transition-colors hover:bg-brand-subtle hover:text-brand"
+                      className="flex items-center gap-1 rounded-lg bg-raised px-2 py-1 text-2xs font-semibold text-ink-2 transition-colors hover:bg-brand-subtle hover:text-brand"
                     >
                       <Bell size={10} /> 提醒
                     </button>
                     <button
                       onClick={() => onRenewal?.(group.id)}
-                      className="flex items-center gap-1 rounded-lg bg-brand px-2 py-1 text-[11px] font-semibold text-white transition-colors hover:bg-brand-hover"
+                      className="flex items-center gap-1 rounded-lg bg-brand px-2 py-1 text-2xs font-semibold text-white transition-colors hover:bg-brand-hover"
                     >
                       <RefreshCw size={10} /> 續訂
                     </button>
@@ -171,7 +171,7 @@ export default function ManageRightRail({ applications, seatMap, hostedGroups, m
           <Banknote size={14} className="text-rose-500" />
           <span className="text-sm font-extrabold text-ink">收款提醒</span>
           {unpaidGroups.length > 0 && (
-            <span className="rounded-full bg-rose-100 px-1.5 py-0.5 text-[11px] font-bold text-rose-700">
+            <span className="rounded-full bg-danger-subtle px-1.5 py-0.5 text-2xs font-bold text-danger-text">
               {unpaidGroups.reduce((sum, { unpaidCount }) => sum + unpaidCount, 0)}
             </span>
           )}
@@ -184,7 +184,7 @@ export default function ManageRightRail({ applications, seatMap, hostedGroups, m
               <div key={group.id} className="flex items-center gap-2.5 rounded-xl p-2.5 transition-colors hover:bg-raised">
                 <ServiceLogo serviceId={group.serviceId} size={28} />
                 <p className="min-w-0 flex-1 truncate text-xs font-medium text-ink-2">{group.serviceName}</p>
-                <span className="shrink-0 text-xs font-bold text-amber-600">{unpaidCount} 位待付款</span>
+                <span className="shrink-0 text-xs font-bold text-warning-text">{unpaidCount} 位待付款</span>
               </div>
             ))
           )}

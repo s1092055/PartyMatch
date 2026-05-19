@@ -64,16 +64,16 @@ const VARIANTS = {
     dot: 'bg-brand',
   },
   markedPaid: {
-    cls: 'bg-violet-50 text-violet-700',
-    dot: 'bg-violet-400',
+    cls: 'bg-purple-subtle text-purple-text',
+    dot: 'bg-purple',
   },
   confirmed: {
-    cls: 'bg-emerald-50 text-emerald-700',
-    dot: 'bg-emerald-400',
+    cls: 'bg-success-subtle text-success-text',
+    dot: 'bg-success',
   },
   waiting_activation: {
-    cls: 'bg-violet-50 text-violet-700',
-    dot: 'bg-violet-400',
+    cls: 'bg-purple-subtle text-purple-text',
+    dot: 'bg-purple',
   },
   default: {
     cls: 'bg-raised text-ink-2',
@@ -109,7 +109,7 @@ export default function Badge({ variant = 'default', label, className = '' }) {
 
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-badge text-[11px] font-semibold whitespace-nowrap ${cfg.cls} ${className}`}
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-badge text-2xs font-semibold whitespace-nowrap ${cfg.cls} ${className}`}
     >
       {cfg.dot && <span className={`status-dot ${cfg.dot}`} />}
       {text}

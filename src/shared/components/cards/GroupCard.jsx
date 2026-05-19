@@ -62,7 +62,7 @@ export default function GroupCard({ group, onFavChange }) {
           {displayTags.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">
               {displayTags.map(tag => (
-                <span key={tag} className="rounded-full bg-raised px-2 py-0.5 text-[11px] font-medium text-ink-2">
+                <span key={tag} className="rounded-full bg-raised px-2 py-0.5 text-2xs font-medium text-ink-2">
                   {tag}
                 </span>
               ))}

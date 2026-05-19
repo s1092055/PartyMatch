@@ -77,7 +77,7 @@ export default function ExploreGroupCard({ group }) {
 
   return (
     <article
-      className="card card-hover group relative flex min-h-full cursor-pointer flex-col overflow-hidden rounded-[1.75rem] border-line bg-white p-4 shadow-[0_18px_45px_-32px_rgb(20_44_91_/_0.48)] sm:p-5"
+      className="card card-hover group relative flex min-h-full cursor-pointer flex-col overflow-hidden rounded-card border-line bg-surface p-4 shadow-[0_18px_45px_-32px_rgb(20_44_91_/_0.48)] sm:p-5"
       onClick={openDetails}
     >
       <div>
@@ -91,7 +91,7 @@ export default function ExploreGroupCard({ group }) {
         <ServiceLogo
           serviceId={group.serviceId}
           size={92}
-          className="rounded-[1.45rem] border-line-strong"
+          className="rounded-logo border-line-strong"
         />
 
         <div className="min-w-0">
@@ -163,7 +163,7 @@ export default function ExploreGroupCard({ group }) {
             {Array.from({ length: Math.min(group.usedSeats, 2) }).map((_, index) => (
               <div
                 key={index}
-                className="grid h-8 w-8 place-items-center rounded-full border-2 border-white text-[11px] font-black text-white shadow-sm"
+                className="grid h-8 w-8 place-items-center rounded-full border-2 border-white text-2xs font-black text-white shadow-sm"
                 style={{ backgroundColor: index === 0 ? group.hostAvatarColor ?? AVATAR_COLORS[0] : AVATAR_COLORS[index % AVATAR_COLORS.length] }}
               >
                 {index === 0 ? group.hostAvatarInitial : index + 1}
@@ -187,7 +187,7 @@ export default function ExploreGroupCard({ group }) {
 
         <button
           onClick={handleFav}
-          className={`grid h-10 w-10 shrink-0 place-items-center rounded-full border bg-white shadow-floating transition-colors ${
+          className={`grid h-10 w-10 shrink-0 place-items-center rounded-full border bg-surface shadow-floating transition-colors ${
             isFav
               ? 'border-red-100 text-red-500'
               : 'border-line-subtle text-ink hover:border-red-100 hover:text-red-400'

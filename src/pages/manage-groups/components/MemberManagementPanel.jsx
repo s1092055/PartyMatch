@@ -62,13 +62,13 @@ export default function MemberManagementPanel({ members, focusGroupId, groups, o
                       <div className="flex items-center gap-1.5">
                         <button
                           onClick={() => { onRemove?.(m); setRemovingId(null) }}
-                          className="rounded-lg bg-danger px-2 py-1 text-[11px] font-semibold text-white transition-colors hover:bg-red-700"
+                          className="rounded-lg bg-danger px-2 py-1 text-2xs font-semibold text-white transition-colors hover:bg-red-700"
                         >
                           確認移除
                         </button>
                         <button
                           onClick={() => setRemovingId(null)}
-                          className="rounded-lg border border-line px-2 py-1 text-[11px] font-semibold text-ink-2 transition-colors hover:bg-raised"
+                          className="rounded-lg border border-line px-2 py-1 text-2xs font-semibold text-ink-2 transition-colors hover:bg-raised"
                         >
                           取消
                         </button>

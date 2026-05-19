@@ -127,7 +127,7 @@ export default function HostedGroupCard({
   }
 
   return (
-    <article className="card flex min-h-full flex-col overflow-hidden rounded-[1.75rem] border-line bg-white p-0">
+    <article className="card flex min-h-full flex-col overflow-hidden rounded-card border-line bg-surface p-0">
       <div className="p-5 sm:p-6">
         <Badge
           variant={group.status}
@@ -140,7 +140,7 @@ export default function HostedGroupCard({
               <ServiceLogo
                 serviceId={group.serviceId}
                 size={88}
-                className="rounded-[1.45rem] border-line-strong"
+                className="rounded-logo border-line-strong"
               />
               <div className="min-w-0">
                 <h2 className="truncate text-3xl font-black leading-tight text-ink">{group.serviceName}</h2>
@@ -161,7 +161,7 @@ export default function HostedGroupCard({
             </div>
           </div>
 
-          <div className="rounded-2xl border border-line bg-white px-4 py-2 shadow-[0_12px_26px_-22px_rgb(20_44_91_/_0.42)]">
+          <div className="rounded-2xl border border-line bg-surface px-4 py-2 shadow-[0_12px_26px_-22px_rgb(20_44_91_/_0.42)]">
             <StatusRow
               Icon={UserRound}
               label="待處理申請"
@@ -213,7 +213,7 @@ export default function HostedGroupCard({
         <button
           type="button"
           onClick={onViewGroup}
-          className={`inline-flex min-h-12 w-full max-w-[11.5rem] items-center justify-center rounded-[1.35rem] px-5 text-base font-black shadow-[0_16px_28px_-18px_rgb(8_18_38_/_0.75)] transition-all hover:-translate-y-0.5 ${
+          className={`inline-flex min-h-12 w-full max-w-[11.5rem] items-center justify-center rounded-panel px-5 text-base font-black shadow-[0_16px_28px_-18px_rgb(8_18_38_/_0.75)] transition-all hover:-translate-y-0.5 ${
             viewBtnVariant === 'primary'
               ? 'bg-brand text-white hover:bg-brand-hover'
               : 'bg-ink text-white hover:bg-slate-800'

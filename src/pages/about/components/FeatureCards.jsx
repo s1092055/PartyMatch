@@ -90,7 +90,7 @@ export default function FeatureCards() {
               <button
                 key={f.title}
                 onClick={() => setActive(i)}
-                className={`flex flex-1 flex-col items-center gap-1 py-3 text-[11px] font-bold transition-colors ${
+                className={`flex flex-1 flex-col items-center gap-1 py-3 text-2xs font-bold transition-colors ${
                   i === active
                     ? 'border-t-2 border-brand text-brand -mt-px bg-brand-subtle'
                     : 'text-ink-3 hover:bg-raised hover:text-ink'

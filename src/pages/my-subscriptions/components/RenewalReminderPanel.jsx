@@ -9,7 +9,7 @@ function SectionHeader({ icon: Icon, iconCls, title, badge }) {
       <Icon size={14} className={iconCls} />
       <span className="text-sm font-extrabold text-ink">{title}</span>
       {badge > 0 && (
-        <span className="rounded-full bg-red-500 px-1.5 py-0.5 text-[11px] font-medium text-white">
+        <span className="rounded-full bg-red-500 px-1.5 py-0.5 text-2xs font-medium text-white">
           {badge}
         </span>
       )}
@@ -75,7 +75,7 @@ export default function RenewalReminderPanel({ subs, applications, onViewUpcomin
       {/* 付款待確認 */}
       {markedPaidSubs.length > 0 && (
         <div className="panel overflow-hidden">
-          <SectionHeader icon={Clock} iconCls="text-violet-500" title="付款待確認" badge={markedPaidSubs.length} />
+          <SectionHeader icon={Clock} iconCls="text-purple" title="付款待確認" badge={markedPaidSubs.length} />
           <div className="space-y-1 p-3">
             {markedPaidSubs.map(sub => (
               <div key={sub.id} className="flex items-center gap-2.5 rounded-lg p-2.5">
@@ -84,7 +84,7 @@ export default function RenewalReminderPanel({ subs, applications, onViewUpcomin
                   <p className="truncate text-xs font-medium text-ink-2">{sub.serviceName}</p>
                   <p className="text-xs text-ink-3">等待團主確認</p>
                 </div>
-                <span className="shrink-0 rounded-full bg-violet-50 px-2 py-0.5 text-xs font-semibold text-violet-600">
+                <span className="shrink-0 rounded-full bg-purple-subtle px-2 py-0.5 text-xs font-semibold text-purple-text">
                   已標記
                 </span>
               </div>

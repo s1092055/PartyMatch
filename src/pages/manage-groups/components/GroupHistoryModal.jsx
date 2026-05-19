@@ -109,7 +109,7 @@ export default function GroupHistoryModal({ isOpen, onClose, group, members }) {
                     <p className="text-xs text-ink-3">加入於 {m.joinedAt}</p>
                   </div>
                   {m.paymentStatus === 'paid' ? (
-                    <span className="flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
+                    <span className="flex shrink-0 items-center gap-1 rounded-full bg-success-subtle px-2 py-0.5 text-xs font-semibold text-success-text">
                       <CheckCircle2 size={10} /> 已付款
                     </span>
                   ) : (

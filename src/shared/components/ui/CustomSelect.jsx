@@ -26,7 +26,7 @@ export default function CustomSelect({ label, value, onChange, options }) {
   return (
     <div ref={ref} className="relative min-w-[9rem] flex-1">
       {label && (
-        <span className="mb-1 block text-[11px] font-medium text-ink-3 text-center md:text-left">{label}</span>
+        <span className="mb-1 block text-2xs font-medium text-ink-3 text-center md:text-left">{label}</span>
       )}
       <button
         type="button"
@@ -45,7 +45,7 @@ export default function CustomSelect({ label, value, onChange, options }) {
       {open && (
         <ul
           role="listbox"
-          className="absolute left-0 z-50 mt-1.5 w-full overflow-y-auto rounded-xl border border-line bg-white py-1 shadow-lg max-h-60"
+          className="absolute left-0 z-50 mt-1.5 w-full overflow-y-auto rounded-xl border border-line bg-surface py-1 shadow-lg max-h-60"
         >
           {options.map(o => {
             const val = o.value ?? o.id

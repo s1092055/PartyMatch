@@ -15,9 +15,8 @@ export function getActiveUserProfile() {
     displayName,
     avatarInitial: displayName[0] ?? 'U',
     avatarColor:   user.avatarColor ?? '#3B82F6',
-    // TODO (Firebase): read creditScore and isVerified from Firestore users/{uid}
-    creditScore:   user.creditScore  ?? 4.8,
-    isVerified:    user.isVerified   ?? true,
+    creditScore:   user.creditScore  ?? 5.0,
+    isVerified:    user.isVerified   ?? false,
     // TODO (Firebase): query subscriptions collection where userId == uid
     joinedGroups:  [],
     // TODO (Firebase): query groups collection where hostId == uid
