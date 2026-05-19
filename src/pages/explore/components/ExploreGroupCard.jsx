@@ -11,12 +11,9 @@ import {
 import Badge from '../../../shared/components/ui/Badge'
 import ServiceLogo from '../../../shared/components/ui/ServiceLogo'
 import { isGroupFavorited, toggleFavorite } from '../../../shared/stores/favoriteStore'
-import { getGroupsByHostId } from '../../../shared/stores/groupStore'
 import { getActiveUser } from '../../../shared/stores/userStore'
 
 const JOIN_MODE_LABEL = { instant: '立即加入', approval: '需審核' }
-const AVATAR_COLORS = ['#0F172A', '#F97316', '#14B8A6', '#8B5CF6']
-
 function buildFeatureChips(group) {
   const tags = group.tags ?? []
   const source = `${group.planName} ${tags.join(' ')}`
@@ -59,11 +56,6 @@ export default function ExploreGroupCard({ group }) {
   const usedRatio = group.totalSeats > 0 ? Math.min(group.usedSeats / group.totalSeats, 1) : 0
   const isLastSeat = group.openSeats === 1
   const featureChips = useMemo(() => buildFeatureChips(group), [group])
-  const hostedCount = useMemo(
-    () => getGroupsByHostId(group.hostId).filter(item => item.status !== 'cancelled').length,
-    [group.hostId],
-  )
-
   function openDetails(e) {
     e?.stopPropagation()
     navigate(`/groups/${group.id}`)
@@ -99,11 +91,11 @@ export default function ExploreGroupCard({ group }) {
           <p className="mt-1 truncate text-lg font-semibold text-ink-3">{group.planName}</p>
 
           {featureChips.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="mt-3 flex gap-1.5 overflow-hidden">
               {featureChips.map(({ label, Icon }) => (
                 <span
                   key={label}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-brand-subtle px-2.5 py-1 text-xs font-extrabold text-brand"
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-brand-subtle px-2.5 py-1 text-xs font-extrabold text-brand"
                 >
                   <Icon size={14} strokeWidth={2.25} />
                   {label}
@@ -111,71 +103,53 @@ export default function ExploreGroupCard({ group }) {
               ))}
             </div>
           )}
-
-          <div className="mt-4 flex items-center gap-2.5">
-            <div
-              className="grid h-11 w-11 shrink-0 place-items-center rounded-full border-2 border-white text-sm font-black text-white shadow-sm"
-              style={{ backgroundColor: group.hostAvatarColor ?? '#94A3B8' }}
-            >
-              {group.hostAvatarInitial}
-            </div>
-            <div className="min-w-0">
-              <div className="flex min-w-0 items-center gap-1.5">
-                <span className="truncate text-base font-black text-ink">團主 {group.hostName}</span>
-                {group.isHostVerified && <BadgeCheck size={17} className="shrink-0 fill-brand text-white" />}
-              </div>
-              <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm font-medium text-ink-3">
-                <span className="inline-flex items-center gap-1">
-                  <Star size={14} className="fill-warning text-warning" />
-                  {group.hostRating} ({group.hostReviewCount} 評價)
-                </span>
-                <span className="text-ink-4">・</span>
-                <span>已開團 {hostedCount} 次</span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
-      <div className="my-5 border-t border-line-subtle" />
+      <div className="my-4 border-t border-line-subtle" />
 
-      <div className="grid grid-cols-[minmax(0,1.55fr)_minmax(7rem,0.95fr)] gap-2.5">
-        <div className="rounded-2xl border border-success/10 bg-success-subtle/40 p-3.5">
-          <div className="flex items-start justify-between gap-3">
-            <p className="text-sm font-black text-ink">剩餘名額</p>
-            <div className="text-right">
-              <p className="text-xl font-black leading-none text-success">
-                {group.usedSeats} <span className="text-ink">/ {group.totalSeats} 人</span>
-              </p>
-              {isLastSeat && <p className="mt-1 text-sm font-extrabold text-success">即將額滿</p>}
+      {/* 中段：左邊團主 / 右邊剩餘名額 */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* 團主資訊 */}
+        <div className="flex min-w-0 items-center gap-2.5">
+          <div
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-full border-2 border-white text-sm font-black text-white shadow-sm"
+            style={{ backgroundColor: group.hostAvatarColor ?? '#94A3B8' }}
+          >
+            {group.hostAvatarInitial}
+          </div>
+          <div className="min-w-0">
+            <div className="flex min-w-0 items-center gap-1">
+              <span className="truncate text-sm font-black text-ink">{group.hostName}</span>
+              {group.isHostVerified && <BadgeCheck size={14} className="shrink-0 fill-brand text-white" />}
+            </div>
+            <div className="mt-0.5 flex items-center gap-1 text-xs font-medium text-ink-3">
+              <Star size={12} className="fill-warning text-warning" />
+              <span>{group.hostRating}</span>
+              <span className="text-ink-4">·</span>
+              <span>{group.hostReviewCount} 評價</span>
             </div>
           </div>
-          <div className="mt-4 h-2 overflow-hidden rounded-full bg-line">
+        </div>
+
+        {/* 剩餘名額 + 進度條 */}
+        <div className="flex flex-col justify-center">
+          <div className="flex items-baseline justify-between">
+            <p className="text-xs font-bold text-ink-3">剩餘名額</p>
+            <p className="text-sm font-black text-ink">
+              <span className={isLastSeat ? 'text-warning-text' : 'text-success'}>{group.openSeats}</span>
+              <span className="text-ink-4"> / {group.totalSeats}</span>
+            </p>
+          </div>
+          <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-line">
             <div
               className="h-full rounded-full bg-success transition-all"
               style={{ width: `${usedRatio * 100}%` }}
             />
           </div>
-        </div>
-
-        <div className="rounded-2xl border border-success/10 bg-success-subtle/40 p-3.5 text-center">
-          <div className="flex justify-center -space-x-2">
-            {Array.from({ length: Math.min(group.usedSeats, 2) }).map((_, index) => (
-              <div
-                key={index}
-                className="grid h-8 w-8 place-items-center rounded-full border-2 border-white text-2xs font-black text-white shadow-sm"
-                style={{ backgroundColor: index === 0 ? group.hostAvatarColor ?? AVATAR_COLORS[0] : AVATAR_COLORS[index % AVATAR_COLORS.length] }}
-              >
-                {index === 0 ? group.hostAvatarInitial : index + 1}
-              </div>
-            ))}
-            {group.usedSeats > 2 && (
-              <span className="grid h-8 w-8 place-items-center rounded-full border-2 border-white bg-success text-xs font-black text-white shadow-sm">
-                +{group.usedSeats - 2}
-              </span>
-            )}
-          </div>
-          <p className="mt-2 text-sm font-semibold text-ink-3">共 {group.usedSeats} 位成員</p>
+          <p className="mt-1 text-right text-2xs text-ink-4">
+            {isLastSeat ? '即將額滿！' : `已加入 ${group.usedSeats} 人`}
+          </p>
         </div>
       </div>
 
