@@ -2,8 +2,6 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   BadgeCheck,
-  Calendar,
-  ChevronRight,
   Heart,
   Monitor,
   ShieldCheck,
@@ -82,22 +80,11 @@ export default function ExploreGroupCard({ group }) {
       className="card card-hover group relative flex min-h-full cursor-pointer flex-col overflow-hidden rounded-[1.75rem] border-line bg-white p-4 shadow-[0_18px_45px_-32px_rgb(20_44_91_/_0.48)] sm:p-5"
       onClick={openDetails}
     >
-      <div className="flex items-center justify-between gap-3">
+      <div>
         <Badge
           variant="recruiting"
           className="bg-success-subtle px-3.5 py-1 text-sm font-extrabold text-success-text"
         />
-        <button
-          onClick={handleFav}
-          className={`grid h-10 w-10 shrink-0 place-items-center rounded-full border bg-white shadow-floating transition-colors ${
-            isFav
-              ? 'border-red-100 text-red-500'
-              : 'border-line-subtle text-ink hover:border-red-100 hover:text-red-400'
-          }`}
-          aria-label={isFav ? '取消收藏' : '加入收藏'}
-        >
-          <Heart size={20} strokeWidth={2.4} className={isFav ? 'fill-red-500' : ''} />
-        </button>
       </div>
 
       <div className="mt-5 grid grid-cols-[5.75rem_minmax(0,1fr)] gap-4">
@@ -192,26 +179,22 @@ export default function ExploreGroupCard({ group }) {
         </div>
       </div>
 
-      <div className="mt-auto flex flex-wrap items-end gap-4 pt-5">
-        <div className="min-w-[8.5rem] flex-1">
-          <p className="text-sm font-bold text-ink-3">每人每月</p>
-          <p className="mt-0.5 whitespace-nowrap text-3xl font-black leading-none text-ink">
-            NT${group.pricePerSeat}
-            <span className="ml-1 text-base font-semibold text-ink-3">/ 人・月</span>
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2 border-l border-line pl-4 text-sm font-semibold text-ink-3">
-          <Calendar size={20} className="shrink-0" />
-          <span>啟用後計費</span>
-        </div>
+      <div className="mt-auto flex items-end justify-between gap-4 pt-5">
+        <p className="whitespace-nowrap text-3xl font-black leading-none text-ink">
+          NT${group.pricePerSeat}
+          <span className="ml-1 text-base font-semibold text-ink-3">/ 人・月</span>
+        </p>
 
         <button
-          onClick={openDetails}
-          className="ml-auto inline-flex min-h-12 items-center justify-center gap-3 rounded-[1.35rem] bg-ink px-5 text-base font-black text-white shadow-[0_16px_28px_-18px_rgb(8_18_38_/_0.75)] transition-colors hover:bg-slate-800"
+          onClick={handleFav}
+          className={`grid h-10 w-10 shrink-0 place-items-center rounded-full border bg-white shadow-floating transition-colors ${
+            isFav
+              ? 'border-red-100 text-red-500'
+              : 'border-line-subtle text-ink hover:border-red-100 hover:text-red-400'
+          }`}
+          aria-label={isFav ? '取消收藏' : '加入收藏'}
         >
-          查看詳情
-          <ChevronRight size={22} strokeWidth={2.4} />
+          <Heart size={20} strokeWidth={2.4} className={isFav ? 'fill-red-500' : ''} />
         </button>
       </div>
     </article>

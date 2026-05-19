@@ -10,7 +10,7 @@ export default function LivePreviewPanel({ form }) {
 
   const hasBasic   = !!form.serviceId
   const hasPlan    = hasBasic && !!form.planName
-  const hasDetails = hasPlan && form.description.length >= 10
+  const hasDetails = hasPlan
 
   return (
     <div className="sticky top-[7rem] space-y-3">
@@ -102,16 +102,6 @@ export default function LivePreviewPanel({ form }) {
           </div>
         )}
       </div>
-
-      {/* Description preview */}
-      {hasDetails && (
-        <div className="card p-4">
-          <p className="text-xs font-medium text-slate-500 mb-2">群組描述預覽</p>
-          <p className="text-xs text-slate-600 leading-relaxed line-clamp-4">
-            {form.description || '尚未填寫描述…'}
-          </p>
-        </div>
-      )}
 
       {/* Completion hint */}
       <div className="text-xs text-slate-400 text-center">

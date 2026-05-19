@@ -53,7 +53,6 @@ export default function Step4Preview({ form }) {
           ))}
         </div>
 
-        <p className="text-sm text-slate-600 leading-relaxed">{form.description}</p>
       </div>
 
       {/* Details */}

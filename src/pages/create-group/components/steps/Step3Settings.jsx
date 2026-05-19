@@ -68,20 +68,6 @@ export default function Step3Settings({ form, onChange }) {
         </div>
       </Field>
 
-      {/* Description */}
-      <Field label="群組描述" required hint="說明你的群組特色，吸引合適的成員" htmlFor="group-description">
-        <textarea
-          id="group-description"
-          placeholder="歡迎加入我的群組！說明一下群組的特色與使用方式…"
-          value={form.description}
-          onChange={e => onChange('description', e.target.value)}
-          rows={3}
-          maxLength={300}
-          className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-        />
-        <p className="text-xs text-slate-400 mt-1 text-right">{form.description.length}/300</p>
-      </Field>
-
       {/* Rules */}
       <Field label="群組規則" hint="清楚的規則可降低後續糾紛（最多 5 條）">
         <div className="space-y-2">

@@ -48,18 +48,6 @@ export default function GroupDetailPage() {
         <div className="flex-1 min-w-0">
           <GroupHeroCard group={group} />
 
-          {/* Description */}
-          <SectionCard title="群組描述" className="mb-4">
-            <p className="text-sm text-ink-2 leading-relaxed">{group.description}</p>
-            <div className="flex flex-wrap gap-2 mt-3">
-              {(group.tags ?? []).map(tag => (
-                <span key={tag} className="bg-raised text-ink-3 text-xs px-2.5 py-1 rounded-full">
-                  #{tag}
-                </span>
-              ))}
-            </div>
-          </SectionCard>
-
           {/* Join rules */}
           <SectionCard
             title="加入條件與規則"

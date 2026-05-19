@@ -22,7 +22,6 @@ const INITIAL_FORM = {
   billingCycle:   'monthly',
   nextBillingDay: '',
   totalSeats:     2,
-  description:    '',
   rules:          [''],
   joinMode:       'approval',
 }
@@ -47,7 +46,6 @@ function mapFormToGroup(form) {
     usedSeats:       1,
     openSeats:       totalSeats - 1,
     joinMode:        form.joinMode,
-    description:     form.description,
     rules,
     tags,
     status:          'recruiting',
@@ -57,7 +55,6 @@ function mapFormToGroup(form) {
 function getStepErrors(step, form) {
   const errors = []
   const billingDay = Number.parseInt(form.nextBillingDay, 10)
-  const description = form.description.trim()
   const rules = form.rules.map(rule => rule.trim()).filter(Boolean)
 
   switch (step) {
@@ -84,9 +81,6 @@ function getStepErrors(step, form) {
       const maxSeats = plan?.maxSeats ?? 10
       if (!Number.isInteger(form.totalSeats) || form.totalSeats < 2 || form.totalSeats > maxSeats) {
         errors.push(`開放名額需介於 1 至 ${maxSeats - 1} 位`)
-      }
-      if (description.length < 10 || description.length > 300) {
-        errors.push('群組描述需介於 10 至 300 字')
       }
       if (rules.length > 5) errors.push('群組規則最多 5 條')
       if (rules.some(rule => rule.length > 80)) errors.push('每條群組規則最多 80 字')

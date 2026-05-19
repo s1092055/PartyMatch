@@ -28,7 +28,6 @@ function applyFilters(groups, { keyword, category, service, joinMode, maxPrice, 
       g.serviceName.toLowerCase().includes(kw) ||
       g.planName.toLowerCase().includes(kw) ||
       g.hostName.toLowerCase().includes(kw) ||
-      g.description.toLowerCase().includes(kw) ||
       g.tags.some(t => t.toLowerCase().includes(kw))
     )
   }
