@@ -27,5 +27,5 @@ export const NAV_SECTIONS = [
 
 export const NAV_UTILITY = [
   { to: '/messages', label: '訊息中心', icon: MessageCircle },
-  { to: '/about',    label: '說明',     icon: BookOpen },
+  { to: '/about',    label: '說明中心', icon: BookOpen },
 ]

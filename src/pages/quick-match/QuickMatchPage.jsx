@@ -60,11 +60,10 @@ export default function QuickMatchPage() {
   return (
     <div>
       {/* Page header */}
-      <div className="flex items-center gap-2 mb-1">
+      <div className="mb-6 flex items-center justify-center gap-2">
         <Zap size={26} className="text-success fill-success" />
         <h1 className="page-title">快速配對</h1>
       </div>
-      <p className="page-subtitle mb-6 ml-8">選好條件，讓系統幫你找到最適合的共享群組</p>
 
       <div className="flex flex-col lg:flex-row gap-7 lg:items-start">
         {/* Left — steps */}

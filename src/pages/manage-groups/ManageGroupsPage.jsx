@@ -10,7 +10,6 @@ import { CONFIRMED_STATUSES } from '../../shared/constants/paymentStatus'
 import EmptyState from '../../shared/components/ui/EmptyState'
 import GroupViewModal from '../../shared/components/modals/GroupViewModal'
 import HostedGroupCard from './components/HostedGroupCard'
-import ManageRightRail from './components/ManageRightRail'
 import ApplicationsModal from './components/ApplicationsModal'
 import GroupHistoryModal from './components/GroupHistoryModal'
 import RenewalModal from './components/RenewalModal'
@@ -303,77 +302,56 @@ export default function ManageGroupsPage() {
   return (
     <div>
       {/* Page header */}
-      <div className="mb-6">
-        <h1 className="text-xl font-extrabold text-ink">群組管理</h1>
-        <p className="mt-1 text-sm text-ink-3">管理你建立的群組、審核申請、追蹤收款與續訂狀態。</p>
+      <div className="mb-6 text-center">
+        <h1 className="page-title">群組管理</h1>
       </div>
 
-      {/* Filter tabs */}
-      <div className="mb-4 flex min-w-0 overflow-x-auto">
-        <div className="flex gap-1">
-          {STATUS_FILTER_TABS.map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => setStatusFilter(tab.key)}
-              className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-sm font-semibold transition-colors ${
-                statusFilter === tab.key
-                  ? 'bg-brand text-white'
-                  : 'text-ink-3 hover:bg-raised hover:text-ink'
-              }`}
-            >
-              {tab.label}
-              <span className={`rounded-full px-1.5 py-0.5 text-xs font-bold ${
-                statusFilter === tab.key ? 'bg-white/20 text-white' : 'bg-raised text-ink-4'
-              }`}>
-                {filterCounts[tab.key]}
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Main layout */}
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-        {/* Group list */}
-        <div className="min-w-0 flex-1">
-          {allGroups.length === 0 ? (
-            <EmptyState
-              title="你還沒有建立任何群組"
-              description="建立你的第一個共享群組，開始招募成員一起分攤費用"
-              actionLabel="建立第一個群組"
-              onAction={() => navigate('/create-group')}
-            />
-          ) : displayGroups.length === 0 ? (
-            <EmptyState title={`此分類目前沒有群組`} />
-          ) : (
-            <div className="grid gap-3 md:grid-cols-2">
-              {displayGroups.map(g => (
-                <HostedGroupCard
-                  key={g.id}
-                  group={g}
-                  members={membersMap[g.id] ?? []}
-                  pendingAppCount={applicationCounts[g.id] ?? 0}
-                  {...groupHandlers(g)}
-                />
-              ))}
-            </div>
-          )}
+      <div className="mx-auto max-w-4xl">
+        <div className="mb-4 flex min-w-0 justify-center overflow-x-auto">
+          <div className="flex gap-1">
+            {STATUS_FILTER_TABS.map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => setStatusFilter(tab.key)}
+                className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-sm font-semibold transition-colors ${
+                  statusFilter === tab.key
+                    ? 'bg-brand text-white'
+                    : 'text-ink-3 hover:bg-raised hover:text-ink'
+                }`}
+              >
+                {tab.label}
+                <span className={`rounded-full px-1.5 py-0.5 text-xs font-bold ${
+                  statusFilter === tab.key ? 'bg-white/20 text-white' : 'bg-raised text-ink-4'
+                }`}>
+                  {filterCounts[tab.key]}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Right rail */}
-        <div className="w-full shrink-0 lg:w-[20rem]">
-          <ManageRightRail
-            applications={applications}
-            seatMap={seatMap}
-            hostedGroups={allGroups}
-            members={members}
-            errors={errors}
-            onApprove={handleApprove}
-            onReject={handleReject}
-            onViewAllApps={() => setAppsModalOpen(true)}
-            onRenewal={groupId => setRenewalModalGroupId(groupId)}
+        {allGroups.length === 0 ? (
+          <EmptyState
+            title="你還沒有建立任何群組"
+            description="建立你的第一個共享群組，開始招募成員一起分攤費用"
+            actionLabel="建立第一個群組"
+            onAction={() => navigate('/create-group')}
           />
-        </div>
+        ) : displayGroups.length === 0 ? (
+          <EmptyState title="此分類目前沒有群組" />
+        ) : (
+          <div className="grid gap-3 md:grid-cols-2">
+            {displayGroups.map(g => (
+              <HostedGroupCard
+                key={g.id}
+                group={g}
+                members={membersMap[g.id] ?? []}
+                pendingAppCount={applicationCounts[g.id] ?? 0}
+                {...groupHandlers(g)}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Modals */}

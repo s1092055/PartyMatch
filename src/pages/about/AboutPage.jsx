@@ -1,4 +1,5 @@
 import { AlertTriangle } from 'lucide-react'
+import PageHeader from '../../shared/components/layout/PageHeader'
 import FeatureCards from './components/FeatureCards'
 import HowItWorks from './components/HowItWorks'
 import CTASection from './components/CTASection'
@@ -28,6 +29,8 @@ const DISCLAIMER_ITEMS = [
 
 export default function AboutPage() {
   return (
+    <div>
+      <PageHeader title="說明中心" className="mb-6 text-center" />
     <section className="card p-6">
       <div className="space-y-8">
         <FeatureCards />
@@ -53,5 +56,6 @@ export default function AboutPage() {
         </div>
       </div>
     </section>
+    </div>
   )
 }

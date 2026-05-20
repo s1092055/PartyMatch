@@ -5,6 +5,7 @@ import { getGroups } from '../../shared/stores/groupStore'
 import { getServiceTypeById } from '../../shared/services/serviceTypes'
 import { getActiveUser } from '../../shared/stores/userStore'
 import EmptyState from '../../shared/components/ui/EmptyState'
+import PageHeader from '../../shared/components/layout/PageHeader'
 import FilterBar from './components/FilterBar'
 import ExploreGroupCard from './components/ExploreGroupCard'
 
@@ -76,14 +77,7 @@ export default function ExplorePage() {
 
   return (
     <div className="px-2 md:px-4 lg:px-8 lg:px-16">
-      <div className="hidden pb-5 pt-2 md:block">
-        <h1 className="text-2xl font-extrabold tracking-tight text-ink">探索群組</h1>
-        <p className="mt-1 text-sm text-ink-3">找到適合你的共享訂閱</p>
-      </div>
-
-      <div className="mb-4 pt-2 text-center md:hidden">
-        <h1 className="text-xl font-extrabold tracking-tight text-ink">探索群組</h1>
-      </div>
+      <PageHeader title="探索群組" className="mb-6 text-center" />
 
       <FilterBar filters={filters} onChange={handleFilterChange} />
 

@@ -66,10 +66,10 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="max-w-2xl">
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <h1 className="text-xl font-extrabold text-ink">訊息中心</h1>
+    <div className="mx-auto max-w-2xl">
+      <div className="mb-6">
+        <div className="flex items-center justify-center gap-3">
+          <h1 className="page-title">訊息中心</h1>
           {unreadCount > 0 && (
             <span className="rounded-full bg-danger-subtle px-2.5 py-0.5 text-xs font-bold text-danger-text">
               {unreadCount} 未讀
@@ -77,12 +77,14 @@ export default function MessagesPage() {
           )}
         </div>
         {unreadCount > 0 && (
-          <button
-            onClick={handleMarkAllRead}
-            className="text-sm font-bold text-brand transition-colors hover:text-brand-hover"
-          >
-            全部已讀
-          </button>
+          <div className="mt-2 text-right">
+            <button
+              onClick={handleMarkAllRead}
+              className="text-sm font-bold text-brand transition-colors hover:text-brand-hover"
+            >
+              全部已讀
+            </button>
+          </div>
         )}
       </div>
 

@@ -9,6 +9,7 @@ import {
   Users,
 } from 'lucide-react'
 import Badge from '../../../shared/components/ui/Badge'
+import Button from '../../../shared/components/ui/Button'
 import ServiceLogo from '../../../shared/components/ui/ServiceLogo'
 import { isGroupFavorited, toggleFavorite } from '../../../shared/stores/favoriteStore'
 import { getActiveUser } from '../../../shared/stores/userStore'
@@ -56,8 +57,9 @@ export default function ExploreGroupCard({ group }) {
   const usedRatio = group.totalSeats > 0 ? Math.min(group.usedSeats / group.totalSeats, 1) : 0
   const isLastSeat = group.openSeats === 1
   const featureChips = useMemo(() => buildFeatureChips(group), [group])
+
   function openDetails(e) {
-    e?.stopPropagation()
+    e.stopPropagation()
     navigate(`/groups/${group.id}`)
   }
 
@@ -72,45 +74,55 @@ export default function ExploreGroupCard({ group }) {
       className="card card-hover group relative flex min-h-full cursor-pointer flex-col overflow-hidden rounded-card border-line bg-surface p-5 shadow-[0_18px_45px_-32px_rgb(20_44_91_/_0.48)]"
       onClick={openDetails}
     >
-      <div>
+      <button
+        onClick={handleFav}
+        className={`absolute right-4 top-4 grid h-9 w-9 shrink-0 place-items-center rounded-full border bg-surface shadow-floating transition-colors ${
+          isFav
+            ? 'border-red-100 text-red-500'
+            : 'border-line-subtle text-ink hover:border-red-100 hover:text-red-400'
+        }`}
+        aria-label={isFav ? '取消收藏' : '加入收藏'}
+      >
+        <Heart size={18} strokeWidth={2.4} className={isFav ? 'fill-red-500' : ''} />
+      </button>
+
+      <div className="flex justify-center">
         <Badge
           variant="recruiting"
           className="bg-success-subtle px-3.5 py-1 text-sm font-extrabold text-success-text"
         />
       </div>
 
-      <div className="mt-5 grid grid-cols-[5.75rem_minmax(0,1fr)] gap-4">
+      <div className="mt-4 flex justify-center">
         <ServiceLogo
           serviceId={group.serviceId}
-          size={92}
+          size={80}
           className="rounded-logo border-line-strong"
         />
-
-        <div className="min-w-0">
-          <h2 className="truncate text-2xl font-black leading-tight text-ink">{group.serviceName}</h2>
-          <p className="mt-1 truncate text-lg font-semibold text-ink-3">{group.planName}</p>
-
-          {featureChips.length > 0 && (
-            <div className="mt-3 flex gap-1.5 overflow-hidden">
-              {featureChips.map(({ label, Icon }) => (
-                <span
-                  key={label}
-                  className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-brand-subtle px-2.5 py-1 text-xs font-extrabold text-brand"
-                >
-                  <Icon size={14} strokeWidth={2.25} />
-                  {label}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
+
+      <div className="mt-3 text-center">
+        <h2 className="text-xl font-black leading-tight text-ink">{group.serviceName}</h2>
+        <p className="mt-1 text-base font-semibold text-ink-3">{group.planName}</p>
+      </div>
+
+      {featureChips.length > 0 && (
+        <div className="mt-3 flex justify-center gap-1.5 overflow-hidden">
+          {featureChips.map(({ label, Icon }) => (
+            <span
+              key={label}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-line px-2.5 py-1 text-xs font-extrabold text-ink-3"
+            >
+              <Icon size={14} strokeWidth={2.25} />
+              {label}
+            </span>
+          ))}
+        </div>
+      )}
 
       <div className="my-4 border-t border-line-subtle" />
 
-      {/* 中段：左邊團主 / 右邊剩餘名額 */}
       <div className="grid grid-cols-2 gap-4">
-        {/* 團主資訊 */}
         <div className="flex min-w-0 items-center gap-2.5">
           <div
             className="grid h-10 w-10 shrink-0 place-items-center rounded-full border-2 border-white text-sm font-black text-white shadow-sm"
@@ -132,7 +144,6 @@ export default function ExploreGroupCard({ group }) {
           </div>
         </div>
 
-        {/* 剩餘名額 + 進度條 */}
         <div className="flex flex-col justify-center">
           <div className="flex items-baseline justify-between">
             <p className="text-xs font-bold text-ink-3">剩餘名額</p>
@@ -153,23 +164,12 @@ export default function ExploreGroupCard({ group }) {
         </div>
       </div>
 
-      <div className="mt-auto flex items-end justify-between gap-4 pt-5">
-        <p className="whitespace-nowrap text-3xl font-black leading-none text-ink">
+      <div className="mt-auto pt-5">
+        <p className="mb-3 text-center text-2xl font-black leading-none text-ink">
           NT${group.pricePerSeat}
-          <span className="ml-1 text-base font-semibold text-ink-3">/ 人・月</span>
+          <span className="ml-1 text-sm font-semibold text-ink-3">/ 人・月</span>
         </p>
-
-        <button
-          onClick={handleFav}
-          className={`grid h-10 w-10 shrink-0 place-items-center rounded-full border bg-surface shadow-floating transition-colors ${
-            isFav
-              ? 'border-red-100 text-red-500'
-              : 'border-line-subtle text-ink hover:border-red-100 hover:text-red-400'
-          }`}
-          aria-label={isFav ? '取消收藏' : '加入收藏'}
-        >
-          <Heart size={20} strokeWidth={2.4} className={isFav ? 'fill-red-500' : ''} />
-        </button>
+        <Button onClick={openDetails} className="w-full">查看詳情</Button>
       </div>
     </article>
   )

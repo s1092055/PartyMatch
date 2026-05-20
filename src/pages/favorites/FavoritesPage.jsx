@@ -31,8 +31,7 @@ export default function FavoritesPage() {
     <div>
       <PageHeader
         title="我的收藏"
-        subtitle="你收藏的群組都在這裡，隨時可以申請加入。"
-        className="mb-7"
+        className="mb-6 text-center"
       />
 
       {groups.length === 0 ? (

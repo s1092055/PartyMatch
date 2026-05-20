@@ -35,8 +35,7 @@ export default function AccountCenterPage() {
     <div>
       <PageHeader
         title="帳號中心"
-        subtitle="管理你的個人資料、付款方式與通知偏好設定，確保帳號安全。"
-        className="mb-6"
+        className="mb-6 text-center"
       />
 
       <ProfileHeaderCard user={user} onEdit={() => setActiveTab('profile')} />
