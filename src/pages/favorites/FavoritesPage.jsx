@@ -6,7 +6,7 @@ import { getActiveUser } from '../../shared/stores/userStore'
 import PageHeader from '../../shared/components/layout/PageHeader'
 import { getFavoritesByUserId } from '../../shared/stores/favoriteStore'
 import { getGroupById } from '../../shared/stores/groupStore'
-import GroupCard from '../../shared/components/cards/GroupCard'
+import ExploreGroupCard from '../explore/components/ExploreGroupCard'
 
 function loadFavGroups() {
   const activeUser = getActiveUser()
@@ -28,7 +28,7 @@ export default function FavoritesPage() {
   }
 
   return (
-    <div>
+    <div className="px-2 md:px-4 lg:px-8">
       <PageHeader
         title="我的收藏"
         className="mb-6 text-center"
@@ -48,7 +48,7 @@ export default function FavoritesPage() {
           <p className="text-xs text-ink-3 mb-4">共 {groups.length} 個收藏群組</p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {groups.map(group => (
-              <GroupCard
+              <ExploreGroupCard
                 key={group.id}
                 group={group}
                 onFavChange={handleFavChange}

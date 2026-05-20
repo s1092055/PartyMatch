@@ -49,7 +49,7 @@ function buildFeatureChips(group) {
   }))
 }
 
-export default function ExploreGroupCard({ group }) {
+export default function ExploreGroupCard({ group, onFavChange }) {
   const navigate = useNavigate()
   const activeUser = getActiveUser()
   const [isFav, setIsFav] = useState(() => activeUser ? isGroupFavorited(activeUser.id, group.id) : false)
@@ -66,7 +66,9 @@ export default function ExploreGroupCard({ group }) {
   function handleFav(e) {
     e.stopPropagation()
     if (!activeUser) { navigate('/login'); return }
-    setIsFav(toggleFavorite(activeUser.id, group.id))
+    const next = toggleFavorite(activeUser.id, group.id)
+    setIsFav(next)
+    onFavChange?.(next, group.id)
   }
 
   return (
@@ -158,16 +160,13 @@ export default function ExploreGroupCard({ group }) {
               style={{ width: `${usedRatio * 100}%` }}
             />
           </div>
-          <p className="mt-1 text-right text-2xs text-ink-4">
-            {isLastSeat ? '即將額滿！' : `已加入 ${group.usedSeats} 人`}
-          </p>
         </div>
       </div>
 
       <div className="mt-auto pt-5">
         <p className="mb-3 text-center text-2xl font-black leading-none text-ink">
           NT${group.pricePerSeat}
-          <span className="ml-1 text-sm font-semibold text-ink-3">/ 人・月</span>
+          <span className="ml-1 text-sm font-semibold text-ink-3">/ 月</span>
         </p>
         <Button onClick={openDetails} className="w-full">查看詳情</Button>
       </div>

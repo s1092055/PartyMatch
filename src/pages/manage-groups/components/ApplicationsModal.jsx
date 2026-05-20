@@ -2,12 +2,12 @@ import { ClipboardList } from 'lucide-react'
 import Modal from '../../../shared/components/ui/Modal'
 import ApplicationsTab from './ApplicationsTab'
 
-export default function ApplicationsModal({ isOpen, onClose, applications, seatMap, errors, onApprove, onReject }) {
+export default function ApplicationsModal({ isOpen, onClose, applications, groupName, seatMap, errors, onApprove, onReject }) {
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="全部申請紀錄"
+      title={groupName ? `${groupName} 申請紀錄` : '申請紀錄'}
       titleIcon={<ClipboardList size={16} className="text-amber-500" />}
       maxWidth="max-w-2xl"
     >

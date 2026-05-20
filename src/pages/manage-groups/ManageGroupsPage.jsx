@@ -57,7 +57,7 @@ export default function ManageGroupsPage() {
 
   // Modal states
   const [viewGroupId, setViewGroupId]           = useState(null)
-  const [appsModalOpen, setAppsModalOpen]       = useState(false)
+  const [appsModalGroupId, setAppsModalGroupId] = useState(null)
   const [historyModalGroupId, setHistoryModalGroupId] = useState(null)
   const [renewalModalGroupId, setRenewalModalGroupId] = useState(null)
 
@@ -295,13 +295,12 @@ export default function ManageGroupsPage() {
       onViewGroup:   () => { refreshGroups(); setViewGroupId(g.id) },
       onViewHistory: () => setHistoryModalGroupId(g.id),
       onRenewal:     () => setRenewalModalGroupId(g.id),
-      onViewApplications: () => setAppsModalOpen(true),
+      onViewApplications: () => setAppsModalGroupId(g.id),
     }
   }
 
   return (
     <div>
-      {/* Page header */}
       <div className="mb-6 text-center">
         <h1 className="page-title">群組管理</h1>
       </div>
@@ -340,7 +339,7 @@ export default function ManageGroupsPage() {
         ) : displayGroups.length === 0 ? (
           <EmptyState title="此分類目前沒有群組" />
         ) : (
-          <div className="grid gap-3 md:grid-cols-2">
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
             {displayGroups.map(g => (
               <HostedGroupCard
                 key={g.id}
@@ -364,9 +363,10 @@ export default function ManageGroupsPage() {
         onRemoveMember={handleRemoveMember}
       />
       <ApplicationsModal
-        isOpen={appsModalOpen}
-        onClose={() => setAppsModalOpen(false)}
-        applications={applications}
+        isOpen={!!appsModalGroupId}
+        onClose={() => setAppsModalGroupId(null)}
+        applications={applications.filter(a => a.groupId === appsModalGroupId)}
+        groupName={getModalGroup(appsModalGroupId)?.serviceName}
         seatMap={seatMap}
         errors={errors}
         onApprove={handleApprove}

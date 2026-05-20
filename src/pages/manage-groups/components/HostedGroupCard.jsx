@@ -1,21 +1,11 @@
 import { useRef, useState } from 'react'
-import {
-  Calendar,
-  ChevronRight,
-  DollarSign,
-  History,
-  MoreHorizontal,
-  RefreshCw,
-  ShieldCheck,
-  UserRound,
-} from 'lucide-react'
+import { History, MoreHorizontal, RefreshCw } from 'lucide-react'
 import Badge from '../../../shared/components/ui/Badge'
 import Button from '../../../shared/components/ui/Button'
 import ServiceLogo from '../../../shared/components/ui/ServiceLogo'
 import { useClickOutside } from '../../../shared/utils/hooks'
 import { CONFIRMED_STATUSES } from '../../../shared/constants/paymentStatus'
 import { getGroupDisplayStatus, GROUP_ACTION_MAP } from '../config/groupActionMap'
-import { formatMonthDay } from '../../../shared/utils/date'
 
 const ACTION_ICONS = {
   prepareRenewal: RefreshCw,
@@ -51,7 +41,7 @@ function DropdownMenu({ items }) {
     <div ref={ref} className="relative">
       <button
         type="button"
-        onClick={() => setOpen(v => !v)}
+        onClick={e => { e.stopPropagation(); setOpen(v => !v) }}
         className="grid h-7 w-7 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
         aria-label="更多選項"
       >
@@ -63,7 +53,7 @@ function DropdownMenu({ items }) {
             <button
               key={item.label}
               type="button"
-              onClick={() => { item.onClick?.(); setOpen(false) }}
+              onClick={e => { e.stopPropagation(); item.onClick?.(); setOpen(false) }}
               className="flex w-full items-center gap-2 px-3 py-2 text-sm text-ink hover:bg-raised"
             >
               {item.Icon && <item.Icon size={14} className="shrink-0 text-ink-3" />}
@@ -76,23 +66,25 @@ function DropdownMenu({ items }) {
   )
 }
 
-function InfoRow({ Icon, label, value, valueClass = 'text-ink', onClick }) {
-  const inner = (
-    <>
-      <Icon size={12} className="shrink-0 text-ink-3" />
-      <span className="text-ink-3">{label}</span>
-      <span className={`ml-auto font-semibold ${valueClass}`}>{value}</span>
-      {onClick && <ChevronRight size={10} className="shrink-0 text-ink-3" />}
-    </>
+function StatCell({ label, children, onClick, highlight }) {
+  const content = (
+    <div className="flex flex-col items-center gap-0.5 py-2.5 text-center">
+      <span className="text-2xs font-bold text-ink-3">{label}</span>
+      <span className={`text-sm font-black leading-tight ${highlight ?? 'text-ink'}`}>{children}</span>
+    </div>
   )
   if (onClick) {
     return (
-      <button type="button" onClick={onClick} className="flex w-full items-center gap-1.5 text-xs hover:text-brand">
-        {inner}
+      <button
+        type="button"
+        onClick={e => { e.stopPropagation(); onClick() }}
+        className="w-full rounded-lg hover:bg-raised transition-colors"
+      >
+        {content}
       </button>
     )
   }
-  return <div className="flex items-center gap-1.5 text-xs">{inner}</div>
+  return content
 }
 
 export default function HostedGroupCard({
@@ -107,12 +99,13 @@ export default function HostedGroupCard({
   const displayStatus = getGroupDisplayStatus(group)
   const { menu: menuActionDefs = [] } = GROUP_ACTION_MAP[displayStatus] ?? {}
 
-  const hasMarkedPaid  = members.some(m => m.paymentStatus === 'markedPaid')
-  const isRenewalDue   = displayStatus === 'active_renewal'
-  const paidCount      = members.filter(m => CONFIRMED_STATUSES.includes(m.paymentStatus)).length
-  const paymentTarget  = Math.max(members.length, group.usedSeats - 1, 0)
-  const paymentValue   = paymentTarget > 0 ? `${paidCount}/${paymentTarget}` : `${group.usedSeats}/${group.totalSeats}`
-  const paymentState   = getPaymentState({ group, hasMarkedPaid, paidCount, paymentTarget })
+  const hasMarkedPaid = members.some(m => m.paymentStatus === 'markedPaid')
+  const isRenewalDue  = displayStatus === 'active_renewal'
+  const paidCount     = members.filter(m => CONFIRMED_STATUSES.includes(m.paymentStatus)).length
+  const paymentTarget = Math.max(members.length, group.usedSeats - 1, 0)
+  const paymentValue  = paymentTarget > 0 ? `${paidCount}/${paymentTarget}` : `${group.usedSeats}/${group.totalSeats}`
+  const paymentState  = getPaymentState({ group, hasMarkedPaid, paidCount, paymentTarget })
+  const monthlyIncome = group.pricePerSeat * paymentTarget
 
   const menuItems = menuActionDefs.map(action => ({
     label:   action.label,
@@ -120,66 +113,65 @@ export default function HostedGroupCard({
     onClick: ({ prepareRenewal: onRenewal, viewHistory: onViewHistory })[action.key],
   }))
 
-  const viewBtnVariant = (hasMarkedPaid || isRenewalDue) ? 'primary' : 'ink'
-
-  const paymentStateClass = {
+  const paymentStateHighlight = {
     '正常':  'text-success-text',
     '已停止': 'text-ink-3',
   }[paymentState] ?? 'text-warning-text'
 
   return (
-    <article className="card relative flex flex-col overflow-hidden p-0">
-      <div className="absolute left-3 top-3 z-10">
-        <Badge variant={group.status} className={STATUS_BADGE_CLASS[displayStatus] ?? ''} />
-      </div>
-
+    <article
+      className="card card-hover group relative flex min-h-full cursor-pointer flex-col overflow-hidden rounded-card border-line bg-surface p-5 shadow-[0_18px_45px_-32px_rgb(20_44_91_/_0.48)]"
+      onClick={onViewGroup}
+    >
       {menuItems.length > 0 && (
-        <div className="absolute right-3 top-3 z-10">
+        <div className="absolute right-4 top-4 z-10">
           <DropdownMenu items={menuItems} />
         </div>
       )}
 
-      <div className="flex flex-1">
-        <div className="flex w-[45%] shrink-0 flex-col items-center justify-center gap-3 px-4 pb-5 pt-10">
-          <ServiceLogo serviceId={group.serviceId} size={56} />
-          <div className="w-full text-center">
-            <p className="truncate font-bold text-ink">{group.serviceName}</p>
-            <p className="truncate text-xs text-ink-3">{group.planName}</p>
-          </div>
-        </div>
-
-        <div className="flex flex-1 flex-col justify-center gap-2.5 border-l border-line-subtle p-4 pt-10">
-          <InfoRow
-            Icon={UserRound}
-            label="待處理申請"
-            value={`${pendingAppCount} 件`}
-            valueClass={pendingAppCount > 0 ? 'text-brand' : 'text-ink'}
-            onClick={onViewApplications}
-          />
-          <InfoRow
-            Icon={DollarSign}
-            label="本期收款"
-            value={paymentValue}
-            valueClass={hasMarkedPaid ? 'text-warning-text' : 'text-ink'}
-            onClick={onViewGroup}
-          />
-          <InfoRow
-            Icon={Calendar}
-            label="下次扣款"
-            value={formatMonthDay(group.nextBillingDate)}
-            onClick={isRenewalDue ? onRenewal : onViewGroup}
-          />
-          <InfoRow
-            Icon={ShieldCheck}
-            label="付款狀態"
-            value={paymentState}
-            valueClass={paymentStateClass}
-          />
-        </div>
+      <div className="flex justify-center">
+        <Badge variant={group.status} className={STATUS_BADGE_CLASS[displayStatus] ?? ''} />
       </div>
 
-      <div className="flex justify-center border-t border-line-subtle py-3">
-        <Button variant={viewBtnVariant} size="sm" onClick={onViewGroup} className="px-8">
+      <div className="mt-4 flex justify-center">
+        <ServiceLogo serviceId={group.serviceId} size={80} className="rounded-logo border-line-strong" />
+      </div>
+
+      <div className="mt-3 text-center">
+        <h2 className="text-xl font-black leading-tight text-ink">{group.serviceName}</h2>
+        <p className="mt-1 text-base font-semibold text-ink-3">{group.planName}</p>
+      </div>
+
+      <div className="my-4 border-t border-line-subtle" />
+
+      <div className="grid grid-cols-2 divide-x divide-y divide-line-subtle rounded-lg border border-line-subtle">
+        <StatCell
+          label="待處理申請"
+          onClick={onViewApplications}
+          highlight={pendingAppCount > 0 ? 'text-brand' : undefined}
+        >
+          {pendingAppCount} 件{pendingAppCount > 0 ? ' →' : ''}
+        </StatCell>
+        <StatCell
+          label="本期收款"
+          onClick={onViewGroup}
+          highlight={hasMarkedPaid ? 'text-warning-text' : undefined}
+        >
+          {paymentValue}
+        </StatCell>
+        <StatCell label="付款狀態" highlight={paymentStateHighlight}>
+          {paymentState}
+        </StatCell>
+        <StatCell label="每月收入">
+          NT${monthlyIncome}
+        </StatCell>
+      </div>
+
+      <div className="mt-auto pt-5">
+        <Button
+          onClick={e => { e.stopPropagation(); onViewGroup?.() }}
+          className="w-full"
+        >
           查看群組
         </Button>
       </div>
