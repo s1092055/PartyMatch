@@ -235,6 +235,98 @@ function buildDemoData(uid) {
       _demo:           D,
     },
 
+    // ─ Demo user as HOST (more status variety) ──────────────────────
+    {
+      id: 'demo_group_discord_01',
+      ...demoHost,
+      serviceId:       'discord',
+      serviceName:     'Discord Nitro',
+      planName:        '家庭方案',
+      pricePerSeat:    65,
+      billingCycle:    'monthly',
+      nextBillingDate: '2026-06-03',
+      totalSeats:      5,
+      usedSeats:       3,
+      openSeats:       0,
+      joinMode:        'approval',
+      status:          'paused',
+      tags:            ['通訊', '家庭方案'],
+      rules:           ['每月 3 日前付款', '不共享帳號'],
+      requirements:    null,
+      createdAt:       '2026-02-20',
+      updatedAt:       '2026-05-01',
+      reviews:         [],
+      _demo:           D,
+    },
+    {
+      id: 'demo_group_notion_01',
+      ...demoHost,
+      serviceId:       'notion',
+      serviceName:     'Notion Plus',
+      planName:        'Plus',
+      pricePerSeat:    130,
+      billingCycle:    'monthly',
+      nextBillingDate: '2026-04-15',
+      totalSeats:      3,
+      usedSeats:       2,
+      openSeats:       0,
+      joinMode:        'approval',
+      status:          'ended',
+      tags:            ['辦公', '筆記工具'],
+      rules:           ['每月 15 日前付款', '各自管理個人 Workspace'],
+      requirements:    null,
+      createdAt:       '2025-10-01',
+      updatedAt:       '2026-04-20',
+      reviews:         [],
+      _demo:           D,
+    },
+
+    // ─ Demo user as MEMBER (more subs variety) ───────────────────────
+    {
+      id: 'demo_group_disney_02',
+      ...hostFields(hosts.h3),
+      serviceId:       'disney',
+      serviceName:     'Disney+',
+      planName:        '標準',
+      pricePerSeat:    45,
+      billingCycle:    'monthly',
+      nextBillingDate: '2026-05-27',
+      totalSeats:      4,
+      usedSeats:       4,
+      openSeats:       0,
+      joinMode:        'instant',
+      status:          'active',
+      tags:            ['影音', '立即加入'],
+      rules:           ['每月 27 日前付款', '不更改帳號設定'],
+      requirements:    null,
+      createdAt:       '2026-03-27',
+      updatedAt:       '2026-05-15',
+      reviews:         [],
+      _demo:           D,
+    },
+    {
+      id: 'demo_group_hbo_01',
+      ...hostFields(hosts.h1),
+      serviceId:       'hbo',
+      serviceName:     'HBO Max',
+      planName:        '標準方案',
+      pricePerSeat:    90,
+      billingCycle:    'monthly',
+      nextBillingDate: '2026-06-15',
+      totalSeats:      3,
+      usedSeats:       3,
+      openSeats:       0,
+      joinMode:        'approval',
+      status:          'active',
+      tags:            ['影音', '需要審核'],
+      rules:           ['每月 15 日前付款', '不更改帳號密碼'],
+      requirements:    null,
+      createdAt:       '2026-01-20',
+      updatedAt:       '2026-05-17',
+      reviews:         [],
+      _demo:           D,
+    },
+
     // ─ Explore-only groups ───────────────────────────────────────────
     {
       id: 'demo_group_disney_01',
@@ -367,6 +459,19 @@ function buildDemoData(uid) {
 
     // Demo user as member of ChatGPT group
     { id: 'demo_mem_cg_demo', groupId: 'demo_group_chatgpt_01', groupName: 'ChatGPT Plus', userId: uid, userName: '林宥廷', userAvatarInitial: '林', userAvatarColor: '#0866F2', role: 'member', joinedAt: '2026-02-05', paymentStatus: 'confirmed', lastPaidAt: '2026-05-16', _demo: D },
+
+    // Discord group members (hosted by demo user)
+    { id: 'demo_mem_dc_01', groupId: 'demo_group_discord_01', groupName: 'Discord Nitro', userId: m4.id, userName: m4.name, userAvatarInitial: m4.initial, userAvatarColor: m4.color, role: 'member', joinedAt: '2026-03-01', paymentStatus: 'confirmed', lastPaidAt: '2026-05-01', _demo: D },
+    { id: 'demo_mem_dc_02', groupId: 'demo_group_discord_01', groupName: 'Discord Nitro', userId: m5.id, userName: m5.name, userAvatarInitial: m5.initial, userAvatarColor: m5.color, role: 'member', joinedAt: '2026-03-05', paymentStatus: 'confirmed', lastPaidAt: '2026-05-02', _demo: D },
+
+    // Notion group members (hosted by demo user)
+    { id: 'demo_mem_nt_01', groupId: 'demo_group_notion_01', groupName: 'Notion Plus', userId: m6.id, userName: m6.name, userAvatarInitial: m6.initial, userAvatarColor: m6.color, role: 'member', joinedAt: '2025-10-05', paymentStatus: 'confirmed', lastPaidAt: '2026-04-13', _demo: D },
+
+    // Demo user as member of Disney+ group (upcoming billing)
+    { id: 'demo_mem_dis_demo', groupId: 'demo_group_disney_02', groupName: 'Disney+', userId: uid, userName: '林宥廷', userAvatarInitial: '林', userAvatarColor: '#0866F2', role: 'member', joinedAt: '2026-03-27', paymentStatus: 'confirmed', lastPaidAt: '2026-04-25', _demo: D },
+
+    // Demo user as member of HBO Max group (markedPaid)
+    { id: 'demo_mem_hbo_demo', groupId: 'demo_group_hbo_01', groupName: 'HBO Max', userId: uid, userName: '林宥廷', userAvatarInitial: '林', userAvatarColor: '#0866F2', role: 'member', joinedAt: '2026-01-25', paymentStatus: 'markedPaid', lastPaidAt: '2026-05-17', _demo: D },
   ]
 
   // ── Applications ──────────────────────────────────────────────────
@@ -374,8 +479,14 @@ function buildDemoData(uid) {
     // Pending application to demo user's Spotify group
     { id: 'demo_app_sp_01', groupId: 'demo_group_spotify_01', groupName: 'Spotify Premium', serviceId: 'spotify', serviceName: 'Spotify Premium', planName: '個人方案（Family）', hostId: uid, hostName: '林宥廷', applicantId: 'demo_fake_app_user_01', applicantName: '江文彬', applicantAvatarInitial: '江', applicantAvatarColor: '#0F172A', userId: 'demo_fake_app_user_01', userName: '江文彬', userAvatarInitial: '江', userAvatarColor: '#0F172A', message: '你好，我平常很常聽音樂，願意準時繳費，希望能加入！', status: 'pending', createdAt: '2026-05-18', updatedAt: '2026-05-18', _demo: D },
 
+    // Pending application to demo user's Spotify group (2nd applicant)
+    { id: 'demo_app_sp_02', groupId: 'demo_group_spotify_01', groupName: 'Spotify Premium', serviceId: 'spotify', serviceName: 'Spotify Premium', planName: '個人方案（Family）', hostId: uid, hostName: '林宥廷', applicantId: 'demo_fake_app_user_02', applicantName: '蔡欣儀', applicantAvatarInitial: '蔡', applicantAvatarColor: '#14B8A6', userId: 'demo_fake_app_user_02', userName: '蔡欣儀', userAvatarInitial: '蔡', userAvatarColor: '#14B8A6', message: '我每天都在聽歌，很需要 Spotify Premium，保證準時繳費！', status: 'pending', createdAt: '2026-05-19', updatedAt: '2026-05-19', _demo: D },
+
     // Demo user applied to Apple Music group (pending)
     { id: 'demo_app_am_demo', groupId: 'demo_group_applemusic_01', groupName: 'Apple Music', serviceId: 'apple-music', serviceName: 'Apple Music', planName: '家庭方案（6人）', hostId: hosts.h2.id, hostName: hosts.h2.name, applicantId: uid, applicantName: '林宥廷', applicantAvatarInitial: '林', applicantAvatarColor: '#0866F2', userId: uid, userName: '林宥廷', userAvatarInitial: '林', userAvatarColor: '#0866F2', message: '我使用 Apple 裝置，願意準時繳費。', status: 'pending', createdAt: '2026-05-17', updatedAt: '2026-05-17', _demo: D },
+
+    // Demo user's rejected application (for applications tab)
+    { id: 'demo_app_ms_demo', groupId: 'demo_group_ms365_01', groupName: 'Microsoft 365', serviceId: 'microsoft-365', serviceName: 'Microsoft 365', planName: '家庭版（6人）', hostId: hosts.h1.id, hostName: hosts.h1.name, applicantId: uid, applicantName: '林宥廷', applicantAvatarInitial: '林', applicantAvatarColor: '#0866F2', userId: uid, userName: '林宥廷', userAvatarInitial: '林', userAvatarColor: '#0866F2', message: '需要 Office 工具，希望能加入共享！', status: 'rejected', createdAt: '2026-05-08', updatedAt: '2026-05-09', _demo: D },
   ]
 
   // ── Subscriptions ─────────────────────────────────────────────────
@@ -385,6 +496,12 @@ function buildDemoData(uid) {
 
     // Demo user's pending application to Apple Music (subscription pre-created for when approved)
     { id: 'demo_sub_am_demo', userId: uid, groupId: 'demo_group_applemusic_01', serviceId: 'apple-music', serviceName: 'Apple Music', planName: '家庭方案（6人）', hostName: hosts.h2.name, hostAvatarInitial: hosts.h2.initial, hostAvatarColor: hosts.h2.color, pricePerSeat: 42, billingCycle: 'monthly', nextBillingDate: '2026-06-10', joinedAt: '2026-05-17', paymentStatus: 'pending', status: 'pending_payment', createdAt: '2026-05-17', updatedAt: '2026-05-17', _demo: D },
+
+    // Disney+ — upcoming billing (within 7 days), confirmed payment
+    { id: 'demo_sub_dis_demo', userId: uid, groupId: 'demo_group_disney_02', serviceId: 'disney', serviceName: 'Disney+', planName: '標準', hostName: hosts.h3.name, hostAvatarInitial: hosts.h3.initial, hostAvatarColor: hosts.h3.color, pricePerSeat: 45, billingCycle: 'monthly', nextBillingDate: '2026-05-27', joinedAt: '2026-03-27', paymentStatus: 'confirmed', status: 'active', createdAt: '2026-03-27', updatedAt: '2026-05-15', _demo: D },
+
+    // HBO Max — markedPaid (waiting host confirmation)
+    { id: 'demo_sub_hbo_demo', userId: uid, groupId: 'demo_group_hbo_01', serviceId: 'hbo', serviceName: 'HBO Max', planName: '標準方案', hostName: hosts.h1.name, hostAvatarInitial: hosts.h1.initial, hostAvatarColor: hosts.h1.color, pricePerSeat: 90, billingCycle: 'monthly', nextBillingDate: '2026-06-15', joinedAt: '2026-01-25', paymentStatus: 'markedPaid', status: 'active', createdAt: '2026-01-25', updatedAt: '2026-05-17', _demo: D },
   ]
 
   // ── Notifications ─────────────────────────────────────────────────
@@ -395,6 +512,9 @@ function buildDemoData(uid) {
     { id: 'demo_notif_04', userId: uid, type: 'payment', title: '成員標記付款', message: '吳俊霖 已標記付款 Netflix 高級（4K）本期費用 NT$98', isRead: true, createdAt: '2026-05-16', _demo: D },
     { id: 'demo_notif_05', userId: uid, type: 'system', title: '申請已送出', message: '你已申請加入 Apple Music 家庭方案，等待團主審核', isRead: true, createdAt: '2026-05-17', _demo: D },
     { id: 'demo_notif_06', userId: uid, type: 'payment', title: '付款確認', message: 'ChatGPT Plus 團主已確認收到你 5 月的費用 NT$325', isRead: true, createdAt: '2026-05-16', _demo: D },
+    { id: 'demo_notif_07', userId: uid, type: 'application', title: '新的加入申請', message: '蔡欣儀 申請加入你的 Spotify Premium 群組', isRead: false, createdAt: '2026-05-19', _demo: D },
+    { id: 'demo_notif_08', userId: uid, type: 'payment', title: '即將到期提醒', message: 'Disney+ 標準方案 將於 5 月 27 日扣款 NT$45，請確認帳戶餘額', isRead: false, createdAt: '2026-05-20', _demo: D },
+    { id: 'demo_notif_09', userId: uid, type: 'application', title: '申請未通過', message: '很抱歉，你申請加入的 Microsoft 365 家庭版群組申請未通過', isRead: true, createdAt: '2026-05-09', _demo: D },
   ]
 
   // ── Favorites ─────────────────────────────────────────────────────

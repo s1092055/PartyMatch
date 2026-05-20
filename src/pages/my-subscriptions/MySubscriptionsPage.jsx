@@ -8,7 +8,6 @@ import { getApplicationsByUserId } from '../../shared/stores/applicationStore'
 import { getGroupById } from '../../shared/stores/groupStore'
 import { getActiveUser } from '../../shared/stores/userStore'
 import SubscriptionCard from './components/SubscriptionCard'
-import RenewalReminderPanel from './components/RenewalReminderPanel'
 import EmptyState from '../../shared/components/ui/EmptyState'
 import GroupViewModal from '../../shared/components/modals/GroupViewModal'
 import ContactHostModal from './components/ContactHostModal'
@@ -26,7 +25,7 @@ const FILTER_TABS = [
 function enrichSubs(rawSubs) {
   return rawSubs.map(s => {
     const group = getGroupById(s.groupId)
-    return { ...s, groupStatus: group?.status ?? 'active' }
+    return { ...s, groupStatus: group?.status ?? 'active', isHostVerified: group?.isHostVerified ?? false }
   })
 }
 
@@ -92,84 +91,72 @@ export default function MySubscriptionsPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl font-extrabold text-ink">我的訂閱</h1>
-        <p className="mt-1 text-sm text-ink-3">管理你加入的群組、付款狀態、續訂提醒與申請紀錄。</p>
+      <div className="mb-6 text-center">
+        <h1 className="page-title">我的訂閱</h1>
       </div>
 
-      {/* Filter tabs — 在 flex row 外，不影響右欄對齊 */}
-      <div className="mb-4 flex min-w-0 overflow-x-auto">
-        <div className="flex gap-1">
-          {FILTER_TABS.map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-sm font-semibold transition-colors ${
-                activeTab === tab.key
-                  ? 'bg-brand text-white'
-                  : 'text-ink-3 hover:bg-raised hover:text-ink'
-              }`}
-            >
-              {tab.label}
-              <span className={`rounded-full px-1.5 py-0.5 text-xs font-bold ${
-                activeTab === tab.key ? 'bg-white/20 text-white' : 'bg-raised text-ink-4'
-              }`}>
-                {filterCounts[tab.key] ?? 0}
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-        <div className="min-w-0 flex-1">
-
-          {activeTab === 'applications' ? (
-            <div className="space-y-3">
-              {userApplications.length === 0 ? (
-                <EmptyState icon={ClipboardList} title="沒有申請紀錄" />
-              ) : (
-                userApplications.map(app => (
-                  <ApplicationRow key={app.id} app={app} />
-                ))
-              )}
-            </div>
-          ) : filtered.length === 0 ? (
-            <EmptyState
-              icon={ClipboardList}
-              title={activeTab === 'all' ? '你還沒有加入任何群組' : '此分類沒有訂閱項目'}
-              description={activeTab === 'all' ? '去探索頁面找找適合你的共享群組' : undefined}
-              actionLabel={activeTab === 'all' ? '探索群組' : undefined}
-              onAction={activeTab === 'all' ? () => navigate('/explore') : undefined}
-            />
-          ) : (
-            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-              {filtered.map(sub => (
-                <SubscriptionCard
-                  key={sub.id}
-                  sub={sub}
-                  onViewGroup={sub => setViewGroupId(sub.groupId)}
-                  onContactHost={setContactSub}
-                />
-              ))}
-            </div>
-          )}
+      <div className="mx-auto max-w-4xl">
+        <div className="mb-4 flex min-w-0 justify-center overflow-x-auto">
+          <div className="flex gap-1">
+            {FILTER_TABS.map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-sm font-semibold transition-colors ${
+                  activeTab === tab.key
+                    ? 'bg-brand text-white'
+                    : 'text-ink-3 hover:bg-raised hover:text-ink'
+                }`}
+              >
+                {tab.label}
+                <span className={`rounded-full px-1.5 py-0.5 text-xs font-bold ${
+                  activeTab === tab.key ? 'bg-white/20 text-white' : 'bg-raised text-ink-4'
+                }`}>
+                  {filterCounts[tab.key] ?? 0}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="w-full shrink-0 lg:w-[21rem]">
-          <RenewalReminderPanel
-            subs={subs}
-            applications={userApplications}
-            onViewUpcoming={() => setActiveTab('upcoming')}
+        {activeTab === 'applications' ? (
+          <div className="space-y-3">
+            {userApplications.length === 0 ? (
+              <EmptyState icon={ClipboardList} title="沒有申請紀錄" />
+            ) : (
+              userApplications.map(app => (
+                <ApplicationRow key={app.id} app={app} />
+              ))
+            )}
+          </div>
+        ) : filtered.length === 0 ? (
+          <EmptyState
+            icon={ClipboardList}
+            title={activeTab === 'all' ? '你還沒有加入任何群組' : '此分類沒有訂閱項目'}
+            description={activeTab === 'all' ? '去探索頁面找找適合你的共享群組' : undefined}
+            actionLabel={activeTab === 'all' ? '探索群組' : undefined}
+            onAction={activeTab === 'all' ? () => navigate('/explore') : undefined}
           />
-        </div>
+        ) : (
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            {filtered.map(sub => (
+              <SubscriptionCard
+                key={sub.id}
+                sub={sub}
+                onViewGroup={sub => setViewGroupId(sub.groupId)}
+              />
+            ))}
+          </div>
+        )}
       </div>
+
 
       <GroupViewModal
         isOpen={!!viewGroupId}
         onClose={() => setViewGroupId(null)}
         groupId={viewGroupId}
         onMarkPaid={sub => { markAsPaid(sub); setViewGroupId(null) }}
+        onContactHost={sub => { setViewGroupId(null); setContactSub(sub) }}
       />
       <ContactHostModal
         sub={contactSub}

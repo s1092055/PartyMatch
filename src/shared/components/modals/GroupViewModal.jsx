@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import {
   Banknote, Calendar, CheckCircle2, CreditCard,
-  PlayCircle, Receipt, Shield, UserX, Users,
+  MessageCircle, PlayCircle, Receipt, Shield, UserX, Users,
 } from 'lucide-react'
 import Modal from '../ui/Modal'
 import Avatar from '../ui/Avatar'
@@ -27,6 +27,7 @@ export default function GroupViewModal({
   onActivate,
   onRemoveMember,
   onMarkPaid,
+  onContactHost,
 }) {
   const [activating, setActivating]         = useState(false)
   const [renewalDate, setRenewalDate]       = useState('')
@@ -230,6 +231,15 @@ export default function GroupViewModal({
                 className="mb-4 flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
               >
                 <CreditCard size={14} /> 標記已付款
+              </button>
+            )}
+
+            {onContactHost && sub && (
+              <button
+                onClick={() => { onContactHost(sub); onClose() }}
+                className="mb-4 flex w-full items-center justify-center gap-2 rounded-xl border border-line py-2.5 text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-ink"
+              >
+                <MessageCircle size={14} /> 聯絡團主
               </button>
             )}
 

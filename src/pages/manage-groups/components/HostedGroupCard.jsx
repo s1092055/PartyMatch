@@ -1,17 +1,18 @@
+import { useRef, useState } from 'react'
 import {
   Calendar,
   ChevronRight,
   DollarSign,
   History,
-  Monitor,
+  MoreHorizontal,
   RefreshCw,
-  RotateCw,
   ShieldCheck,
   UserRound,
-  Users,
 } from 'lucide-react'
 import Badge from '../../../shared/components/ui/Badge'
+import Button from '../../../shared/components/ui/Button'
 import ServiceLogo from '../../../shared/components/ui/ServiceLogo'
+import { useClickOutside } from '../../../shared/utils/hooks'
 import { CONFIRMED_STATUSES } from '../../../shared/constants/paymentStatus'
 import { getGroupDisplayStatus, GROUP_ACTION_MAP } from '../config/groupActionMap'
 import { formatMonthDay } from '../../../shared/utils/date'
@@ -33,28 +34,6 @@ const STATUS_BADGE_CLASS = {
   ended:                'bg-slate-100 text-slate-400',
 }
 
-function buildFeatureChips(group) {
-  const tags = group.tags ?? []
-  const source = `${group.planName} ${tags.join(' ')}`
-  const labels = []
-
-  if (/4K|HDR/i.test(source) || (group.serviceId === 'disney' && group.planName.includes('高級'))) {
-    labels.push({ label: '4K 畫質', Icon: Monitor })
-  }
-
-  if (/家庭|Family|共享/.test(source)) {
-    labels.push({ label: '家庭方案', Icon: Users })
-  }
-
-  labels.push({
-    label: group.billingCycle === 'yearly' ? '年度續訂' : '自動續訂',
-    Icon: RotateCw,
-  })
-
-  return labels.slice(0, 3)
-}
-
-
 function getPaymentState({ group, hasMarkedPaid, paidCount, paymentTarget }) {
   if (['paused', 'cancelled', 'ended'].includes(group.status)) return '已停止'
   if (hasMarkedPaid) return '待確認'
@@ -63,35 +42,57 @@ function getPaymentState({ group, hasMarkedPaid, paidCount, paymentTarget }) {
   return '正常'
 }
 
-function StatusRow({ Icon, label, value, valueClass = 'text-ink', onClick }) {
-  const content = (
-    <>
-      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-ink-3">
-        <Icon size={24} strokeWidth={1.9} />
-      </span>
-      <span className="min-w-0 flex-1 truncate text-base font-semibold text-ink">{label}</span>
-      <span className={`shrink-0 text-lg font-black ${valueClass}`}>{value}</span>
-      <ChevronRight size={21} className="shrink-0 text-ink-3" strokeWidth={2.3} />
-    </>
-  )
+function DropdownMenu({ items }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+  useClickOutside(open, [ref], () => setOpen(false))
 
-  if (onClick) {
-    return (
+  return (
+    <div ref={ref} className="relative">
       <button
         type="button"
-        onClick={onClick}
-        className="flex w-full items-center gap-3 border-b border-line-subtle py-3 text-left last:border-b-0 hover:text-brand"
+        onClick={() => setOpen(v => !v)}
+        className="grid h-7 w-7 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+        aria-label="更多選項"
       >
-        {content}
+        <MoreHorizontal size={15} />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-8 z-20 min-w-36 rounded-lg border border-line bg-surface py-1 shadow-lg">
+          {items.map(item => (
+            <button
+              key={item.label}
+              type="button"
+              onClick={() => { item.onClick?.(); setOpen(false) }}
+              className="flex w-full items-center gap-2 px-3 py-2 text-sm text-ink hover:bg-raised"
+            >
+              {item.Icon && <item.Icon size={14} className="shrink-0 text-ink-3" />}
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function InfoRow({ Icon, label, value, valueClass = 'text-ink', onClick }) {
+  const inner = (
+    <>
+      <Icon size={12} className="shrink-0 text-ink-3" />
+      <span className="text-ink-3">{label}</span>
+      <span className={`ml-auto font-semibold ${valueClass}`}>{value}</span>
+      {onClick && <ChevronRight size={10} className="shrink-0 text-ink-3" />}
+    </>
+  )
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} className="flex w-full items-center gap-1.5 text-xs hover:text-brand">
+        {inner}
       </button>
     )
   }
-
-  return (
-    <div className="flex items-center gap-3 border-b border-line-subtle py-3 last:border-b-0">
-      {content}
-    </div>
-  )
+  return <div className="flex items-center gap-1.5 text-xs">{inner}</div>
 }
 
 export default function HostedGroupCard({
@@ -105,13 +106,13 @@ export default function HostedGroupCard({
 }) {
   const displayStatus = getGroupDisplayStatus(group)
   const { menu: menuActionDefs = [] } = GROUP_ACTION_MAP[displayStatus] ?? {}
-  const hasMarkedPaid = members.some(m => m.paymentStatus === 'markedPaid')
-  const isRenewalDue  = displayStatus === 'active_renewal'
-  const featureChips = buildFeatureChips(group)
-  const paidCount = members.filter(m => CONFIRMED_STATUSES.includes(m.paymentStatus)).length
-  const paymentTarget = Math.max(members.length, group.usedSeats - 1, 0)
-  const paymentValue = paymentTarget > 0 ? `${paidCount}/${paymentTarget}` : `${group.usedSeats}/${group.totalSeats}`
-  const paymentState = getPaymentState({ group, hasMarkedPaid, paidCount, paymentTarget })
+
+  const hasMarkedPaid  = members.some(m => m.paymentStatus === 'markedPaid')
+  const isRenewalDue   = displayStatus === 'active_renewal'
+  const paidCount      = members.filter(m => CONFIRMED_STATUSES.includes(m.paymentStatus)).length
+  const paymentTarget  = Math.max(members.length, group.usedSeats - 1, 0)
+  const paymentValue   = paymentTarget > 0 ? `${paidCount}/${paymentTarget}` : `${group.usedSeats}/${group.totalSeats}`
+  const paymentState   = getPaymentState({ group, hasMarkedPaid, paidCount, paymentTarget })
 
   const menuItems = menuActionDefs.map(action => ({
     label:   action.label,
@@ -121,106 +122,66 @@ export default function HostedGroupCard({
 
   const viewBtnVariant = (hasMarkedPaid || isRenewalDue) ? 'primary' : 'ink'
 
-  function handleMenuAction(e, item) {
-    e.stopPropagation()
-    item.onClick?.()
-  }
+  const paymentStateClass = {
+    '正常':  'text-success-text',
+    '已停止': 'text-ink-3',
+  }[paymentState] ?? 'text-warning-text'
 
   return (
-    <article className="card flex min-h-full flex-col overflow-hidden rounded-card border-line bg-surface p-0">
-      <div className="p-5">
-        <Badge
-          variant={group.status}
-          className={`${STATUS_BADGE_CLASS[displayStatus] ?? ''} px-3.5 py-1 text-sm font-extrabold`}
-        />
+    <article className="card relative flex flex-col overflow-hidden p-0">
+      <div className="absolute left-3 top-3 z-10">
+        <Badge variant={group.status} className={STATUS_BADGE_CLASS[displayStatus] ?? ''} />
+      </div>
 
-        <div className="mt-7 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(14rem,0.95fr)] lg:items-center">
-          <div className="min-w-0">
-            <div className="flex min-w-0 items-center gap-4">
-              <ServiceLogo
-                serviceId={group.serviceId}
-                size={88}
-                className="rounded-logo border-line-strong"
-              />
-              <div className="min-w-0">
-                <h2 className="truncate text-3xl font-black leading-tight text-ink">{group.serviceName}</h2>
-                <p className="mt-2 truncate text-xl font-semibold text-ink-3">{group.planName}</p>
-              </div>
-            </div>
+      {menuItems.length > 0 && (
+        <div className="absolute right-3 top-3 z-10">
+          <DropdownMenu items={menuItems} />
+        </div>
+      )}
 
-            <div className="mt-7 flex flex-wrap gap-2.5">
-              {featureChips.map(({ label, Icon }) => (
-                <span
-                  key={label}
-                  className="inline-flex items-center gap-2 rounded-xl border border-brand-border bg-brand-subtle px-3 py-1.5 text-sm font-bold text-brand"
-                >
-                  <Icon size={18} strokeWidth={2.1} />
-                  {label}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-line bg-surface px-4 py-2 shadow-[0_12px_26px_-22px_rgb(20_44_91_/_0.42)]">
-            <StatusRow
-              Icon={UserRound}
-              label="待處理申請"
-              value={pendingAppCount}
-              valueClass={pendingAppCount > 0 ? 'text-brand' : 'text-ink'}
-              onClick={onViewApplications}
-            />
-            <StatusRow
-              Icon={DollarSign}
-              label="本期收款"
-              value={paymentValue}
-              valueClass={hasMarkedPaid ? 'text-brand' : 'text-ink'}
-              onClick={onViewGroup}
-            />
-            <StatusRow
-              Icon={Calendar}
-              label="下次扣款"
-              value={formatMonthDay(group.nextBillingDate)}
-              onClick={isRenewalDue ? onRenewal : onViewGroup}
-            />
-            <StatusRow
-              Icon={ShieldCheck}
-              label="付款狀態"
-              value={paymentState}
-              valueClass={paymentState === '正常' ? 'rounded-full bg-success-subtle px-3 py-1 text-base text-success-text' : 'text-warning-text'}
-              onClick={onViewGroup}
-            />
+      <div className="flex flex-1">
+        <div className="flex w-[45%] shrink-0 flex-col items-center justify-center gap-3 px-4 pb-5 pt-10">
+          <ServiceLogo serviceId={group.serviceId} size={56} />
+          <div className="w-full text-center">
+            <p className="truncate font-bold text-ink">{group.serviceName}</p>
+            <p className="truncate text-xs text-ink-3">{group.planName}</p>
           </div>
         </div>
 
-        {menuItems.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {menuItems.map(item => (
-              <button
-                key={item.label}
-                type="button"
-                onClick={e => handleMenuAction(e, item)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-xs font-bold text-ink-3 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
-              >
-                {item.Icon && <item.Icon size={13} />}
-                {item.label}
-              </button>
-            ))}
-          </div>
-        )}
+        <div className="flex flex-1 flex-col justify-center gap-2.5 border-l border-line-subtle p-4 pt-10">
+          <InfoRow
+            Icon={UserRound}
+            label="待處理申請"
+            value={`${pendingAppCount} 件`}
+            valueClass={pendingAppCount > 0 ? 'text-brand' : 'text-ink'}
+            onClick={onViewApplications}
+          />
+          <InfoRow
+            Icon={DollarSign}
+            label="本期收款"
+            value={paymentValue}
+            valueClass={hasMarkedPaid ? 'text-warning-text' : 'text-ink'}
+            onClick={onViewGroup}
+          />
+          <InfoRow
+            Icon={Calendar}
+            label="下次扣款"
+            value={formatMonthDay(group.nextBillingDate)}
+            onClick={isRenewalDue ? onRenewal : onViewGroup}
+          />
+          <InfoRow
+            Icon={ShieldCheck}
+            label="付款狀態"
+            value={paymentState}
+            valueClass={paymentStateClass}
+          />
+        </div>
       </div>
 
-      <div className="mt-auto flex justify-center gap-3 border-t border-line px-5 py-4">
-        <button
-          type="button"
-          onClick={onViewGroup}
-          className={`inline-flex min-h-12 w-full max-w-[11.5rem] items-center justify-center rounded-panel px-5 text-base font-black shadow-[0_16px_28px_-18px_rgb(8_18_38_/_0.75)] transition-all hover:-translate-y-0.5 ${
-            viewBtnVariant === 'primary'
-              ? 'bg-brand text-white hover:bg-brand-hover'
-              : 'bg-ink text-white hover:bg-slate-800'
-          }`}
-        >
+      <div className="flex justify-center border-t border-line-subtle py-3">
+        <Button variant={viewBtnVariant} size="sm" onClick={onViewGroup} className="px-8">
           查看群組
-        </button>
+        </Button>
       </div>
     </article>
   )
