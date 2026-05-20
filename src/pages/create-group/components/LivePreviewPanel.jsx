@@ -14,21 +14,20 @@ export default function LivePreviewPanel({ form }) {
 
   return (
     <div className="sticky top-[7rem] space-y-3">
-      {/* Header */}
+      
       <div className="flex items-center gap-2 text-sm font-semibold text-slate-600 mb-1">
         <Eye size={14} className="text-blue-500" />
         即時預覽
       </div>
 
-      {/* Preview card */}
-      <div className="panel border-success/30 bg-gradient-to-br from-emerald-50 to-white p-5">
+<div className="panel border-success/30 bg-gradient-to-br from-emerald-50 to-white p-5">
         {!hasBasic ? (
           <div className="py-10 text-center text-sm text-slate-300">
             請先選擇服務
           </div>
         ) : (
           <div className="space-y-3">
-            {/* Service row */}
+            
             <div className="flex items-center gap-3">
               <ServiceLogo serviceId={form.serviceId} size={58} />
               <div className="flex-1 min-w-0">
@@ -45,16 +44,14 @@ export default function LivePreviewPanel({ form }) {
               <Badge variant="recruiting" />
             </div>
 
-            {/* Price */}
-            <div className="flex items-baseline gap-1">
+<div className="flex items-baseline gap-1">
               <span className="text-2xl font-extrabold text-brand">
                 NT${form.pricePerSeat || '—'}
               </span>
               <span className="text-xs text-slate-400">/ 月 · 每人</span>
             </div>
 
-            {/* Host */}
-            <div className="flex items-center gap-2">
+<div className="flex items-center gap-2">
               <div
                 className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0"
                 style={{ backgroundColor: activeUser?.avatarColor ?? '#3B82F6' }}
@@ -68,8 +65,7 @@ export default function LivePreviewPanel({ form }) {
               </div>
             </div>
 
-            {/* Seats */}
-            <div>
+<div>
               <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-1 text-xs text-slate-500">
                   <Users size={12} />
@@ -87,8 +83,7 @@ export default function LivePreviewPanel({ form }) {
               </div>
             </div>
 
-            {/* Billing & join mode */}
-            <div className="flex items-center justify-between">
+<div className="flex items-center justify-between">
               <div className="flex items-center gap-1 text-xs text-slate-400">
                 <Calendar size={11} />
                 <span>
@@ -103,8 +98,7 @@ export default function LivePreviewPanel({ form }) {
         )}
       </div>
 
-      {/* Completion hint */}
-      <div className="text-xs text-slate-400 text-center">
+<div className="text-xs text-slate-400 text-center">
         {!hasBasic  && '選擇服務後預覽將自動更新'}
         {hasBasic && !hasPlan    && '繼續填寫方案資料…'}
         {hasPlan  && !hasDetails && '繼續填寫群組設定…'}

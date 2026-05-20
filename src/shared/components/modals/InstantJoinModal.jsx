@@ -91,7 +91,7 @@ export default function InstantJoinModal({ group, isOpen, onClose, onSuccess }) 
         </div>
       ) : (
         <div className="px-5 pt-5 pb-4 flex flex-col gap-4">
-          {/* Summary rows */}
+          
           <div className="bg-canvas rounded-lg border border-line-subtle divide-y divide-line-subtle">
             <div className="flex items-center justify-between px-4 py-3">
               <span className="text-xs text-ink-3">服務</span>
@@ -118,8 +118,7 @@ export default function InstantJoinModal({ group, isOpen, onClose, onSuccess }) 
             確認後將立即加入，訂閱紀錄會出現在「我的訂閱」頁面。
           </p>
 
-          {/* Action buttons */}
-          <div className="flex gap-3">
+<div className="flex gap-3">
             <Button variant="ghost" size="md" className="flex-1 border border-line" onClick={handleClose}>
               取消
             </Button>

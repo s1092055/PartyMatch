@@ -14,7 +14,7 @@ function StatItem({ icon: Icon, label, value, valueClass = 'text-ink' }) {
 export default function GroupHeroCard({ group }) {
   return (
     <div className="card p-6 mb-4">
-      {/* Header */}
+      
       <div className="flex items-start gap-4 mb-5">
         <ServiceLogo serviceId={group.serviceId} size={78} />
         <div className="flex-1 min-w-0">
@@ -44,8 +44,7 @@ export default function GroupHeroCard({ group }) {
         </div>
       </div>
 
-      {/* Stats row */}
-      <div className="flex gap-3">
+<div className="flex gap-3">
         <StatItem
           icon={Star}
           label="評分"

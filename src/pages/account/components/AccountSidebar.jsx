@@ -43,7 +43,7 @@ export default function AccountSidebar({ user }) {
 
   return (
     <div className="sticky top-20 space-y-4">
-      {/* Credit Score */}
+      
       <Panel title="信用評分" icon={Star} iconCls="text-amber-500">
         <StarBar value={user.creditScore} />
         <div className="mt-3 space-y-2.5">
@@ -68,8 +68,7 @@ export default function AccountSidebar({ user }) {
         </div>
       </Panel>
 
-      {/* Verification */}
-      <Panel title="驗證狀態" icon={ShieldCheck} iconCls="text-emerald-500">
+<Panel title="驗證狀態" icon={ShieldCheck} iconCls="text-emerald-500">
         <div className="space-y-2.5">
           {VERIFICATIONS.map(({ icon: Icon, label, verified }) => (
             <div key={label} className="flex items-center justify-between">
@@ -91,8 +90,7 @@ export default function AccountSidebar({ user }) {
         </div>
       </Panel>
 
-      {/* Subscription Stats */}
-      <Panel title="訂閱統計" icon={BarChart2} iconCls="text-indigo-500">
+<Panel title="訂閱統計" icon={BarChart2} iconCls="text-indigo-500">
         <div className="space-y-2.5">
           {[
             { icon: CreditCard,  label: '活躍訂閱', value: `${subs.length} 個` },

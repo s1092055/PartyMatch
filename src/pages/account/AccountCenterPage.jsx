@@ -41,7 +41,7 @@ export default function AccountCenterPage() {
       <ProfileHeaderCard user={user} onEdit={() => setActiveTab('profile')} />
 
       <div className="flex flex-col lg:flex-row gap-5 lg:items-start">
-        {/* Left — tabs */}
+        
         <div className="flex-1 min-w-0">
           <Tabs
             tabs={TABS}
@@ -57,8 +57,7 @@ export default function AccountCenterPage() {
           {activeTab === 'settings'      && <SettingsTab />}
         </div>
 
-        {/* Right — sidebar */}
-        <div className="w-full lg:w-[18rem] shrink-0">
+<div className="w-full lg:w-[18rem] shrink-0">
           <AccountSidebar user={user} />
         </div>
       </div>

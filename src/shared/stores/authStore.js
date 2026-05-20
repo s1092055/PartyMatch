@@ -10,7 +10,6 @@ import {
 import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { todayISO } from '../utils/date'
 
-// Module-level cache — populated by initAuth() on app startup
 let _currentUser = null
 
 async function buildUserProfile(firebaseUser) {
@@ -29,8 +28,6 @@ async function buildUserProfile(firebaseUser) {
   }
 }
 
-// Called once in App.jsx before the router renders.
-// Resolves after Firebase confirms the auth state (logged in or not).
 export function initAuth() {
   return new Promise(resolve => {
     const unsubscribe = onAuthStateChanged(auth, async firebaseUser => {
@@ -45,12 +42,8 @@ export function initAuth() {
   })
 }
 
-// ── Sync reads (safe to call anywhere after initAuth resolves) ─────
-
 export function isAuthenticated() { return !!_currentUser }
 export function getCurrentUser()  { return _currentUser }
-
-// ── Async writes ───────────────────────────────────────────────────
 
 export async function loginUser({ email, password }) {
   try {
@@ -99,8 +92,6 @@ export async function resetPassword(email) {
     return { ok: false, error: mapAuthError(err.code) }
   }
 }
-
-// ── Error mapping ──────────────────────────────────────────────────
 
 function mapAuthError(code) {
   const map = {

@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Search, Users, PlusCircle, CreditCard } from 'lucide-react'
 
-// 替換 videoSrc 為實際功能示範影片路徑（mp4 / webm），null 時顯示彩色 placeholder
 const FEATURES = [
   {
     icon: Search,
@@ -51,7 +50,7 @@ export default function FeatureCards() {
       </div>
 
       <div className="card overflow-hidden">
-        {/* Video / placeholder area */}
+        
         <div className="relative h-52 w-full md:h-60">
           {videoSrc ? (
             <video
@@ -76,14 +75,12 @@ export default function FeatureCards() {
           )}
         </div>
 
-        {/* Text area */}
-        <div className="p-5">
+<div className="p-5">
           <h3 className="text-base font-extrabold text-ink">{title}</h3>
           <p className="mt-2 text-sm font-medium leading-relaxed text-ink-3">{desc}</p>
         </div>
 
-        {/* Tab buttons */}
-        <div className="flex border-t border-line">
+<div className="flex border-t border-line">
           {FEATURES.map((f, i) => {
             const TabIcon = f.icon
             return (

@@ -83,7 +83,7 @@ export default function ManageRightRail({ applications, seatMap, hostedGroups, m
 
   return (
     <div className="sticky top-[5rem] space-y-4">
-      {/* Latest applications */}
+      
       <div className="card overflow-hidden p-0">
         <div className="flex items-center justify-between border-b border-line-subtle px-4 py-3">
           <div className="flex items-center gap-2">
@@ -123,8 +123,7 @@ export default function ManageRightRail({ applications, seatMap, hostedGroups, m
         </div>
       </div>
 
-      {/* Upcoming renewals */}
-      {upcomingRenewals.length > 0 && (
+{upcomingRenewals.length > 0 && (
         <div className="card overflow-hidden p-0">
           <div className="flex items-center gap-2 border-b border-line-subtle px-4 py-3">
             <RefreshCw size={14} className="text-brand" />
@@ -165,8 +164,7 @@ export default function ManageRightRail({ applications, seatMap, hostedGroups, m
         </div>
       )}
 
-      {/* Payment reminders */}
-      <div className="card overflow-hidden p-0">
+<div className="card overflow-hidden p-0">
         <div className="flex items-center gap-2 border-b border-line-subtle px-4 py-3">
           <Banknote size={14} className="text-rose-500" />
           <span className="text-sm font-extrabold text-ink">收款提醒</span>
@@ -191,8 +189,7 @@ export default function ManageRightRail({ applications, seatMap, hostedGroups, m
         </div>
       </div>
 
-      {/* Quick actions */}
-      <div className="card space-y-1 p-4">
+<div className="card space-y-1 p-4">
         <p className="mb-2 text-sm font-extrabold text-ink">快速操作</p>
         <button
           onClick={() => navigate('/create-group')}

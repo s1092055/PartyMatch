@@ -50,7 +50,7 @@ export default function SecurityTab() {
 
   return (
     <div className="space-y-4">
-      {/* Change password */}
+      
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
         <div className="flex items-center gap-2 px-5 py-3.5 border-b border-slate-100">
           <KeyRound size={15} className="text-slate-400" />
@@ -81,8 +81,7 @@ export default function SecurityTab() {
         </div>
       </div>
 
-      {/* Two-factor */}
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+<div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
         <div className="flex items-center gap-2 px-5 py-3.5 border-b border-slate-100">
           <ShieldCheck size={15} className="text-slate-400" />
           <span className="text-sm font-semibold text-slate-700">雙重驗證（2FA）</span>
@@ -112,8 +111,7 @@ export default function SecurityTab() {
         </div>
       </div>
 
-      {/* Login history */}
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+<div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
         <div className="px-5 py-3.5 border-b border-slate-100">
           <p className="text-sm font-semibold text-slate-700">近期登入紀錄</p>
         </div>

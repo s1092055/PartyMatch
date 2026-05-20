@@ -12,7 +12,7 @@ export default function MatchSummaryPanel({ conditions, onClear }) {
 
   return (
     <div className="sticky top-[7rem] panel overflow-hidden border-success/30">
-      {/* Header */}
+      
       <div className="flex items-center justify-between border-b border-success/20 bg-success-subtle px-4 py-4">
         <div className="flex items-center gap-2 text-sm font-extrabold text-success-text">
           <Sliders size={18} />
@@ -27,7 +27,7 @@ export default function MatchSummaryPanel({ conditions, onClear }) {
       </div>
 
       <div className="p-5 space-y-5">
-        {/* Services */}
+        
         <div>
           <p className="text-xs text-slate-400 mb-2">選擇的服務</p>
           {isEmpty ? (
@@ -51,8 +51,7 @@ export default function MatchSummaryPanel({ conditions, onClear }) {
           )}
         </div>
 
-        {/* Conditions */}
-        <div className="space-y-2.5 pt-2 border-t border-slate-100">
+<div className="space-y-2.5 pt-2 border-t border-slate-100">
           <Row label="預算上限" value={`NT$${maxPrice} 以下`} />
           <Row label="加入方式" value={JOIN_LABEL[joinMode] ?? '不限'} />
           <Row label="最低評分" value={`${minRating.toFixed(1)} 以上`} />
@@ -60,8 +59,7 @@ export default function MatchSummaryPanel({ conditions, onClear }) {
           <Row label="群組年資" value={GROUP_AGE_LABEL[groupAge] ?? '不限'} />
         </div>
 
-        {/* Match count hint */}
-        <div className="flex items-start gap-3 rounded-xl border border-success/20 bg-success-subtle px-4 py-3 text-xs font-bold leading-relaxed text-success-text">
+<div className="flex items-start gap-3 rounded-xl border border-success/20 bg-success-subtle px-4 py-3 text-xs font-bold leading-relaxed text-success-text">
           <ShieldCheck size={18} className="shrink-0" />
           設定條件後點擊「開始配對」，系統將推薦最多 3 個最適合的群組。
         </div>

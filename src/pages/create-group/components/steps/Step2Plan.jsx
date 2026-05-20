@@ -29,8 +29,7 @@ export default function Step2Plan({ form, onChange }) {
         <p className="text-sm text-slate-500">選擇方案後費用將依官方定價自動計算</p>
       </div>
 
-      {/* Plan selection */}
-      <Field label="選擇方案" required>
+<Field label="選擇方案" required>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {service?.plans.filter(p => p.maxSeats > 1).map(plan => {
             const active = form.planName === plan.name
@@ -57,8 +56,7 @@ export default function Step2Plan({ form, onChange }) {
         </div>
       </Field>
 
-      {/* Billing cycle */}
-      <Field label="計費週期" required>
+<Field label="計費週期" required>
         <div className="flex gap-2">
           {BILLING_CYCLES.map(c => (
             <button
@@ -76,8 +74,7 @@ export default function Step2Plan({ form, onChange }) {
         </div>
       </Field>
 
-      {/* Billing day */}
-      <Field
+<Field
         label="每月扣款日"
         required
         hint="建議選擇月初，方便成員準備款項"

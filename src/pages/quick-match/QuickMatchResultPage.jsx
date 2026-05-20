@@ -27,7 +27,7 @@ export default function QuickMatchResultPage() {
 
   return (
     <div>
-      {/* Success header */}
+      
       <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         {results.length > 0 ? (
           <div className="flex items-center gap-5 py-6">
@@ -76,23 +76,20 @@ export default function QuickMatchResultPage() {
         </div>
       </div>
 
-      {/* Condition bar */}
-      <MatchConditionBar conditions={conditions} />
+<MatchConditionBar conditions={conditions} />
 
-      {/* Results */}
-      {results.length > 0 ? (
+{results.length > 0 ? (
         <div className="space-y-4">
           {results.map((group, i) => (
             <RecommendedGroupCard key={group.id} group={group} rank={i + 1} />
           ))}
 
-          {/* Footer hint */}
-          <div className="text-center py-4 text-sm text-slate-400">
+<div className="text-center py-4 text-sm text-slate-400">
             以上推薦基於你的偏好條件與群組評分綜合排序
           </div>
         </div>
       ) : (
-        /* Empty state */
+        
         <div className="bg-white border border-slate-200 rounded-xl p-12 text-center">
           <Zap size={36} className="text-slate-200 mx-auto mb-4" />
           <p className="font-semibold text-slate-600 mb-2">沒有符合條件的群組</p>

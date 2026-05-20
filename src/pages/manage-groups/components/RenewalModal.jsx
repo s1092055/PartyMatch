@@ -25,7 +25,7 @@ export default function RenewalModal({ isOpen, onClose, group, onStartRenewal, o
       maxWidth="max-w-sm"
     >
       <div className="p-5">
-        {/* Group header */}
+        
         <div className="mb-5 flex items-center gap-3 rounded-2xl bg-raised p-3">
           <ServiceLogo serviceId={group.serviceId} size={36} />
           <div className="min-w-0 flex-1">
@@ -35,8 +35,7 @@ export default function RenewalModal({ isOpen, onClose, group, onStartRenewal, o
           <Badge variant={group.status} />
         </div>
 
-        {/* Billing date info */}
-        <div className={`mb-5 flex items-center gap-2 rounded-2xl border px-4 py-3 ${
+<div className={`mb-5 flex items-center gap-2 rounded-2xl border px-4 py-3 ${
           isOverdue ? 'border-danger/30 bg-red-50/60' : 'border-warning/30 bg-amber-50/60'
         }`}>
           <Calendar size={15} className={isOverdue ? 'shrink-0 text-danger' : 'shrink-0 text-warning-text'} />
@@ -48,8 +47,7 @@ export default function RenewalModal({ isOpen, onClose, group, onStartRenewal, o
           </div>
         </div>
 
-        {/* Renewal options */}
-        <p className="mb-3 text-xs font-semibold text-ink-3">選擇下一步操作</p>
+<p className="mb-3 text-xs font-semibold text-ink-3">選擇下一步操作</p>
 
         <button
           onClick={onStartRenewal}

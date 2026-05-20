@@ -36,25 +36,22 @@ function CardMenu({ items }) {
   )
 }
 
-
 export default function GroupCardShell({ serviceId, serviceName, planName, badgeVariant, chips, actions, menuItems }) {
   return (
     <div className="card relative flex flex-col overflow-hidden p-0">
-      {/* Badge — top-left */}
+      
       <div className="absolute left-3 top-3 z-10">
         <Badge variant={badgeVariant} />
       </div>
 
-      {/* Menu — top-right */}
-      {menuItems?.length > 0 && (
+{menuItems?.length > 0 && (
         <div className="absolute right-3 top-3 z-10">
           <CardMenu items={menuItems} />
         </div>
       )}
 
-      {/* Main: left col + divider + right col */}
-      <div className="flex flex-1">
-        {/* Left column: logo + name */}
+<div className="flex flex-1">
+        
         <div className="flex w-[45%] shrink-0 flex-col items-center justify-center gap-3 px-4 pb-5 pt-10">
           <ServiceLogo serviceId={serviceId} size={56} />
           <div className="w-full text-center">
@@ -63,8 +60,7 @@ export default function GroupCardShell({ serviceId, serviceName, planName, badge
           </div>
         </div>
 
-        {/* Right column: chips */}
-        <div className="flex flex-1 flex-col justify-center gap-2 p-4 pt-10">
+<div className="flex flex-1 flex-col justify-center gap-2 p-4 pt-10">
           {chips?.map((chip, i) => (
             <span
               key={i}
@@ -77,8 +73,7 @@ export default function GroupCardShell({ serviceId, serviceName, planName, badge
         </div>
       </div>
 
-      {/* Bottom: action centered */}
-      {actions && (
+{actions && (
         <div className="flex justify-center border-t border-line-subtle py-3">
           {actions}
         </div>

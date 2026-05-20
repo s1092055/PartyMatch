@@ -24,8 +24,7 @@ export default function Step4Preview({ form }) {
         <p className="text-sm text-slate-500">請確認以下群組資訊都正確後再送出</p>
       </div>
 
-      {/* Group card preview */}
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5">
+<div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5">
         <div className="flex items-start gap-4 mb-4">
           <ServiceLogo serviceId={form.serviceId} size={52} />
           <div className="flex-1 min-w-0">
@@ -55,8 +54,7 @@ export default function Step4Preview({ form }) {
 
       </div>
 
-      {/* Details */}
-      <div className="bg-white border border-slate-200 rounded-xl px-5">
+<div className="bg-white border border-slate-200 rounded-xl px-5">
         <Row label="團主"       value={activeUser?.displayName ?? '使用者'} />
         <Row label="服務"       value={`${service?.fullName} · ${form.planName}`} />
         <Row label="每人月費"   value={`NT${form.pricePerSeat} / 月`} />
@@ -66,8 +64,7 @@ export default function Step4Preview({ form }) {
         <Row label="加入方式"   value={form.joinMode === 'instant' ? '立即加入' : '需要審核'} />
       </div>
 
-      {/* Rules */}
-      {form.rules.some(r => r.trim()) && (
+{form.rules.some(r => r.trim()) && (
         <div className="bg-white border border-slate-200 rounded-xl p-5">
           <div className="flex items-center gap-2 mb-3">
             <ListChecks size={15} className="text-slate-400" />
@@ -84,8 +81,7 @@ export default function Step4Preview({ form }) {
         </div>
       )}
 
-      {/* Submit notice */}
-      <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-700">
+<div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-700">
         送出後群組將立即上架並開始招募，你可以在「群組管理」中審核申請與管理成員。
       </div>
     </div>

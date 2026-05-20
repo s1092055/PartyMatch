@@ -59,16 +59,16 @@ export default function QuickMatchPage() {
 
   return (
     <div>
-      {/* Page header */}
+      
       <div className="mb-6 flex items-center justify-center gap-2">
         <Zap size={26} className="text-success fill-success" />
         <h1 className="page-title">快速配對</h1>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-7 lg:items-start">
-        {/* Left — steps */}
+        
         <div className="flex-1 min-w-0 space-y-5">
-          {/* Step 1 */}
+          
           <div className="card p-6">
             <StepHeader
               number="1"
@@ -87,8 +87,7 @@ export default function QuickMatchPage() {
             )}
           </div>
 
-          {/* Step 2 */}
-          <div className="card p-6">
+<div className="card p-6">
             <StepHeader
               number="2"
               title="設定篩選條件"
@@ -97,8 +96,7 @@ export default function QuickMatchPage() {
             <PreferenceForm conditions={conditions} onChange={handleFormChange} />
           </div>
 
-          {/* Step 3 (optional) */}
-          <div className="card p-6">
+<div className="card p-6">
             <StepHeader
               number="3"
               title="搜尋偏好（選填）"
@@ -155,8 +153,7 @@ export default function QuickMatchPage() {
             </div>
           </div>
 
-          {/* Action bar */}
-          <div className="flex gap-3 pb-6">
+<div className="flex gap-3 pb-6">
             <Button
               variant="secondary"
               size="md"
@@ -179,8 +176,7 @@ export default function QuickMatchPage() {
           </div>
         </div>
 
-        {/* Right — sticky summary (desktop only) */}
-        <div className="hidden lg:block w-full lg:w-[19rem] shrink-0">
+<div className="hidden lg:block w-full lg:w-[19rem] shrink-0">
           <MatchSummaryPanel conditions={conditions} onClear={handleClear} />
         </div>
       </div>

@@ -19,8 +19,6 @@ import { getActiveUser } from '../../stores/userStore'
 import { todayISO } from '../../utils/date'
 import { CONFIRMED_STATUSES, READY_TO_ACTIVATE_STATUSES } from '../../constants/paymentStatus'
 
-
-// ── Main component ─────────────────────────────────────────────────
 export default function GroupViewModal({
   isOpen, onClose, groupId,
   onConfirmMember,
@@ -79,8 +77,7 @@ export default function GroupViewModal({
     return !CONFIRMED_STATUSES.includes(member.paymentStatus)
   }
 
-  // ── Stats grid ──────────────────────────────────────────────────
-  const stats = [
+const stats = [
     { Icon: Banknote, label: '每席月費',  value: `NT$${group.pricePerSeat}` },
     { Icon: Calendar, label: '計費週期',  value: group.billingCycle === 'yearly' ? '年繳' : '月繳' },
     { Icon: Users,    label: '成員',      value: `${group.usedSeats} / ${group.totalSeats} 人` },
@@ -97,8 +94,7 @@ export default function GroupViewModal({
     >
       <div className="divide-y divide-line-subtle">
 
-        {/* ── 群組資訊 ─────────────────────────────────────────── */}
-        <div className="p-5">
+<div className="p-5">
           <div className="mb-3 flex flex-wrap items-center gap-2">
             <Badge variant={group.status} />
             {group.isHostVerified && (
@@ -119,8 +115,7 @@ export default function GroupViewModal({
           </div>
         </div>
 
-        {/* ── 成員名單 ─────────────────────────────────────────── */}
-        <div className="p-5">
+<div className="p-5">
           <div className="mb-3 flex items-center justify-between">
             <p className="text-sm font-extrabold text-ink">
               成員名單
@@ -134,7 +129,7 @@ export default function GroupViewModal({
           {isHost && <ProgressBar value={confirmedCount} max={members.length} className="mb-3" />}
 
           <div className="space-y-2">
-            {/* Host row */}
+            
             <div className="rounded-xl border border-line p-3">
               <div className="flex items-center gap-3">
                 <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="sm" />
@@ -158,7 +153,7 @@ export default function GroupViewModal({
 
                 return (
                   <div key={m.id} className="rounded-xl border border-line p-3">
-                    {/* Row */}
+                    
                     <div className="flex items-center gap-3">
                       <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
                       <div className="min-w-0 flex-1">
@@ -171,8 +166,7 @@ export default function GroupViewModal({
                       {isHost && <PaymentStatusBadge status={m.paymentStatus} />}
                     </div>
 
-                    {/* Host-only: app message + actions */}
-                    {isHost && (
+{isHost && (
                       <div className="mt-2 pl-9 flex flex-col gap-2">
                         {app?.message && (
                           <p className="text-xs text-ink-3 italic">「{app.message}」</p>
@@ -220,8 +214,7 @@ export default function GroupViewModal({
           </div>
         </div>
 
-        {/* ── 我的付款紀錄 (member only) ─────────────────────── */}
-        {!isHost && (
+{!isHost && (
           <div className="p-5">
             <p className="mb-3 text-sm font-extrabold text-ink">我的付款紀錄</p>
 
@@ -262,8 +255,7 @@ export default function GroupViewModal({
           </div>
         )}
 
-        {/* ── 啟用服務 (host only, when all ready) ─────────────── */}
-        {canActivateNow && (
+{canActivateNow && (
           <div className="p-5">
             {activating ? (
               <div className="rounded-2xl border border-brand/30 bg-brand-subtle p-4">
@@ -272,8 +264,7 @@ export default function GroupViewModal({
                   點擊確認代表你已在外部完成「{group.serviceName}」的訂閱服務設定，並已將成員加入服務。
                 </p>
 
-                {/* Renewal date picker */}
-                <label className="mb-1 block text-xs font-semibold text-ink-2">
+<label className="mb-1 block text-xs font-semibold text-ink-2">
                   下次扣款日 <span className="font-normal text-ink-3">（選填，預設依計費週期自動計算）</span>
                 </label>
                 <input

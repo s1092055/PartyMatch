@@ -14,7 +14,6 @@ import {
 import LogoutConfirmModal from '../modals/LogoutConfirmModal'
 import ServiceLogo from '../ui/ServiceLogo'
 
-
 export default function Sidebar() {
   const navigate = useNavigate()
   const currentUser = getCurrentUser()
@@ -26,7 +25,7 @@ export default function Sidebar() {
   const [searchQuery, setSearchQuery]             = useState('')
   const [recentSearches, setRecentSearches]       = useState(loadRecentSearches)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
-  // Controls overflow-hidden on aside: true during search open + slide-out animation
+  
   const [clampOverflow, setClampOverflow]         = useState(false)
 
   const searchPanelRef = useRef(null)
@@ -38,14 +37,12 @@ export default function Sidebar() {
 
   const searchResults = useMemo(() => searchGroups(searchQuery), [searchQuery])
 
-  // Manage overflow-hidden timing around the search animation
-  useEffect(() => {
+useEffect(() => {
     if (showSearch) setTimeout(() => setClampOverflow(true), 0)
-    // When closing, onTransitionEnd will clear clampOverflow
+    
   }, [showSearch])
 
-  // Focus input when search opens
-  useEffect(() => {
+useEffect(() => {
     if (showSearch) setTimeout(() => searchInputRef.current?.focus(), 50)
     else setTimeout(() => setSearchQuery(''), 0)
   }, [showSearch])
@@ -98,7 +95,7 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Icon strip */}
+      
       <aside
         className={`group/sidebar fixed left-0 top-0 z-50 hidden h-screen flex-col border-r border-line bg-white shadow-sm transition-[width] duration-300 ease-out md:flex ${
           clampOverflow ? 'overflow-hidden' : ''
@@ -221,8 +218,7 @@ export default function Sidebar() {
         </div>
       </aside>
 
-      {/* Search panel */}
-      <div
+<div
         ref={searchPanelRef}
         className={`fixed left-0 top-0 z-50 hidden h-screen w-80 flex-col border-r border-line bg-white shadow-xl transition-transform duration-300 ease-out md:flex ${
           showSearch ? 'translate-x-0' : '-translate-x-full'

@@ -4,12 +4,10 @@ import { createId } from '../utils/storage'
 import { getActiveUserProfile } from './userStore'
 import { normalizeGroup } from '../utils/modelNormalizers'
 
-// In-memory cache — populated once on app startup by initGroups()
 let _groups = []
 
 const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true'
 
-// Called once in App.jsx before the router renders
 export async function initGroups() {
   const all = await readAllGroups()
   _groups = DEMO_MODE ? all : all.filter(g => !g._demo)
@@ -20,14 +18,10 @@ function applyPatch(id, patch) {
   return _groups.find(g => g.id === id) ?? null
 }
 
-// ── Reads (sync, from cache) ───────────────────────────────────────
-
 export function getGroups()                  { return _groups }
 export function getGroupById(id)             { return _groups.find(g => g.id === id) ?? null }
 export function getGroupsByHostId(hostId)    { return _groups.filter(g => g.hostId === hostId) }
 export function getRecruitingGroups()        { return _groups.filter(g => g.status === 'recruiting') }
-
-// ── Writes (optimistic: update cache sync, persist async) ─────────
 
 export function createGroup(data) {
   const activeUser = getActiveUserProfile()

@@ -153,15 +153,13 @@ export default function CreateGroupPage() {
     setTimeout(() => navigate('/manage-groups'), 2500)
   }
 
-  // Escape key closes modal
-  useEffect(() => {
+useEffect(() => {
     function onKeyDown(e) { if (e.key === 'Escape') navigate(-1) }
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [navigate])
 
-  // Prevent body scroll while modal is open
-  useEffect(() => {
+useEffect(() => {
     document.body.style.overflow = 'hidden'
     return () => { document.body.style.overflow = '' }
   }, [])
@@ -170,18 +168,16 @@ export default function CreateGroupPage() {
 
   return (
     <>
-      {/* Backdrop */}
+      
       <div
         className="fixed inset-0 z-[55] cursor-pointer bg-black/50 backdrop-blur-[2px]"
         onClick={handleClose}
       />
 
-      {/* Modal */}
-      <div className="fixed inset-0 z-[56] flex items-center justify-center p-4 md:p-8 pointer-events-none">
+<div className="fixed inset-0 z-[56] flex items-center justify-center p-4 md:p-8 pointer-events-none">
         <div className="pointer-events-auto relative flex w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl" style={{ maxHeight: 'min(88vh, 820px)' }}>
 
-          {/* Header */}
-          <div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-4">
+<div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-4">
             <div>
               <h2 className="text-lg font-extrabold text-ink">建立群組</h2>
               <p className="mt-0.5 text-xs text-ink-3">快速建立你專屬的共享群組，找到合適夥伴一起分攤費用</p>
@@ -195,13 +191,11 @@ export default function CreateGroupPage() {
             </button>
           </div>
 
-          {/* Stepper */}
-          <div className="shrink-0 px-6 pt-5">
+<div className="shrink-0 px-6 pt-5">
             <CreateGroupStepper current={step} />
           </div>
 
-          {/* Body — scrollable */}
-          <div className="flex-1 overflow-y-auto px-6 pb-2">
+<div className="flex-1 overflow-y-auto px-6 pb-2">
             {submitted ? (
               <div className="flex flex-col items-center justify-center gap-4 py-16">
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
@@ -220,7 +214,7 @@ export default function CreateGroupPage() {
               </div>
             ) : (
               <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-                {/* Step form */}
+                
                 <div className="min-w-0 flex-1">
                   <div className="card p-6">
                     <StepComponent form={form} onChange={onChange} />
@@ -239,16 +233,14 @@ export default function CreateGroupPage() {
                   )}
                 </div>
 
-                {/* Live preview (desktop only) */}
-                <div className="hidden lg:block w-full shrink-0 lg:w-72">
+<div className="hidden lg:block w-full shrink-0 lg:w-72">
                   <LivePreviewPanel form={form} />
                 </div>
               </div>
             )}
           </div>
 
-          {/* Footer — action buttons */}
-          {!submitted && (
+{!submitted && (
             <div className="flex shrink-0 gap-3 border-t border-line px-6 py-4">
               <Button
                 variant="secondary"

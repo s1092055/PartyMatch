@@ -16,7 +16,7 @@ export default function CreateGroupStepper({ current }) {
 
         return (
           <div key={n} className="flex items-center flex-1 last:flex-none">
-            {/* circle + label */}
+            
             <div className="flex flex-col items-center gap-1.5">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
                 done   ? 'bg-brand text-white' :
@@ -32,8 +32,7 @@ export default function CreateGroupStepper({ current }) {
               </span>
             </div>
 
-            {/* connector line */}
-            {i < STEPS.length - 1 && (
+{i < STEPS.length - 1 && (
               <div className={`flex-1 h-0.5 mx-2 mb-5 rounded-full transition-colors ${
                 done ? 'bg-brand' : 'bg-slate-200'
               }`} />

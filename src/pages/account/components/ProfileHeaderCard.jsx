@@ -9,7 +9,7 @@ export default function ProfileHeaderCard({ user, onEdit }) {
 
   return (
     <div className="card p-6 mb-5 flex flex-col md:flex-row items-start md:items-center gap-5">
-      {/* Avatar */}
+      
       <div className="relative shrink-0">
         <div
           className="w-20 h-20 rounded-full flex items-center justify-center text-white text-3xl font-bold"
@@ -24,8 +24,7 @@ export default function ProfileHeaderCard({ user, onEdit }) {
         )}
       </div>
 
-      {/* Info */}
-      <div className="flex-1 min-w-0">
+<div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-0.5 flex-wrap">
           <h2 className="text-xl font-bold text-ink">{user.displayName}</h2>
           {user.isVerified && (
@@ -36,8 +35,7 @@ export default function ProfileHeaderCard({ user, onEdit }) {
         </div>
         <p className="text-sm text-ink-3 mb-4">{user.email}</p>
 
-        {/* Stats row */}
-        <div className="flex flex-wrap gap-5">
+<div className="flex flex-wrap gap-5">
           {STATS.map(({ icon: Icon, label, value }) => (
             <div key={label} className="flex items-center gap-2">
               <Icon size={14} className="text-ink-3" />
@@ -50,8 +48,7 @@ export default function ProfileHeaderCard({ user, onEdit }) {
         </div>
       </div>
 
-      {/* Edit button */}
-      <button
+<button
         onClick={onEdit}
         className="flex items-center gap-1.5 text-sm text-ink-3 border border-line px-3 py-2 rounded-[var(--radius-inner)] hover:bg-raised transition-colors shrink-0"
       >

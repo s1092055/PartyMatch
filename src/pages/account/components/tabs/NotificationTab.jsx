@@ -27,7 +27,6 @@ const NOTIFICATION_GROUPS = [
   },
 ]
 
-
 export default function NotificationTab() {
   const [prefs, setPrefs] = useState(() =>
     Object.fromEntries(

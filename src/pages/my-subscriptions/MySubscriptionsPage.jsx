@@ -150,8 +150,7 @@ export default function MySubscriptionsPage() {
         )}
       </div>
 
-
-      <GroupViewModal
+<GroupViewModal
         isOpen={!!viewGroupId}
         onClose={() => setViewGroupId(null)}
         groupId={viewGroupId}

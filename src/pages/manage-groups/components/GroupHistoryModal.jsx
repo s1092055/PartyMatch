@@ -37,7 +37,7 @@ export default function GroupHistoryModal({ isOpen, onClose, group, members }) {
       maxWidth="max-w-lg"
     >
       <div className="max-h-[75vh] overflow-y-auto p-5">
-        {/* Group header */}
+        
         <div className="flex items-center gap-3 rounded-2xl bg-raised p-4">
           <ServiceLogo serviceId={group.serviceId} size={42} />
           <div className="min-w-0 flex-1">
@@ -49,8 +49,7 @@ export default function GroupHistoryModal({ isOpen, onClose, group, members }) {
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="mt-4 grid grid-cols-3 gap-3">
+<div className="mt-4 grid grid-cols-3 gap-3">
           <div className="rounded-2xl border border-line-subtle p-3 text-center">
             <p className="text-lg font-extrabold text-ink">{members.length}</p>
             <p className="text-xs text-ink-3">總成員數</p>
@@ -65,8 +64,7 @@ export default function GroupHistoryModal({ isOpen, onClose, group, members }) {
           </div>
         </div>
 
-        {/* Timeline */}
-        <div className="mt-5">
+<div className="mt-5">
           <p className="mb-3 text-sm font-extrabold text-ink">群組時間軸</p>
           <div className="space-y-1">
             {timeline.map((item, idx) => {
@@ -91,8 +89,7 @@ export default function GroupHistoryModal({ isOpen, onClose, group, members }) {
           </div>
         </div>
 
-        {/* Member list */}
-        <div className="mt-5">
+<div className="mt-5">
           <div className="mb-3 flex items-center gap-2">
             <Users size={14} className="text-ink-3" />
             <p className="text-sm font-extrabold text-ink">成員名單</p>
@@ -123,8 +120,7 @@ export default function GroupHistoryModal({ isOpen, onClose, group, members }) {
           )}
         </div>
 
-        {/* Billing info */}
-        {(group.activatedAt || group.nextBillingDate) && (
+{(group.activatedAt || group.nextBillingDate) && (
           <div className="mt-5 space-y-2 rounded-2xl border border-line-subtle p-4">
             <p className="text-sm font-extrabold text-ink">帳單資訊</p>
             {group.activatedAt && (

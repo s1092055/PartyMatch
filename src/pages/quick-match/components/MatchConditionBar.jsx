@@ -13,8 +13,7 @@ export default function MatchConditionBar({ conditions }) {
     <div className="card px-5 py-4 flex flex-wrap items-center gap-4 mb-6">
       <span className="text-xs font-bold text-slate-400 mr-1">配對條件</span>
 
-      {/* Services */}
-      <div className="flex items-center gap-1.5">
+<div className="flex items-center gap-1.5">
         {services.map(id => {
           const s = getServiceById(id)
           if (!s) return null

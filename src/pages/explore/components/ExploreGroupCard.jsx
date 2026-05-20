@@ -140,8 +140,7 @@ export default function ExploreGroupCard({ group, onFavChange }) {
             <div className="mt-0.5 flex items-center gap-1 text-xs font-medium text-ink-3">
               <Star size={12} className="fill-warning text-warning" />
               <span>{group.hostRating}</span>
-              <span className="text-ink-4">·</span>
-              <span>{group.hostReviewCount} 評價</span>
+
             </div>
           </div>
         </div>

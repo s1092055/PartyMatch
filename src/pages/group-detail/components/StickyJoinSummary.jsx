@@ -118,7 +118,7 @@ export default function StickyJoinSummary({ group }) {
   return (
     <>
       <div className="sticky top-[7rem] panel overflow-hidden">
-        {/* Price header */}
+        
         <div className="px-5 py-5 flex items-start justify-between gap-3">
           <div>
             <p className="text-sm font-bold text-ink-2 mb-0.5">每席價格</p>
@@ -140,7 +140,7 @@ export default function StickyJoinSummary({ group }) {
         </div>
 
         <div className="border-t border-line-subtle p-5 flex flex-col gap-4">
-          {/* Seats */}
+          
           <div>
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-1.5 text-sm text-ink-2">
@@ -158,8 +158,7 @@ export default function StickyJoinSummary({ group }) {
             </div>
           </div>
 
-          {/* Billing date */}
-          <div className="flex items-center justify-between py-2 border-t border-line-subtle">
+<div className="flex items-center justify-between py-2 border-t border-line-subtle">
             <div className="flex items-center gap-1.5 text-sm text-ink-3">
               <Calendar size={14} />
               <span>下次扣款日</span>
@@ -167,14 +166,12 @@ export default function StickyJoinSummary({ group }) {
             <span className="text-sm font-bold text-ink-2">{group.nextBillingDate}</span>
           </div>
 
-          {/* Join mode */}
-          <div className="flex items-center justify-between py-2 border-t border-line-subtle">
+<div className="flex items-center justify-between py-2 border-t border-line-subtle">
             <span className="text-sm text-ink-3">加入方式</span>
             <Badge variant={group.joinMode} />
           </div>
 
-          {/* CTA */}
-          {renderCTA()}
+{renderCTA()}
 
           {openSeats <= 2 && !isFull && !isMember && !applied && !isHost && (
             <p className="text-xs text-warning-text text-center -mt-2">
@@ -182,8 +179,7 @@ export default function StickyJoinSummary({ group }) {
             </p>
           )}
 
-          {/* Host info */}
-          <div className="border-t border-line-subtle pt-4">
+<div className="border-t border-line-subtle pt-4">
             <p className="text-xs text-ink-4 mb-3">關於團主</p>
             <div className="flex items-center gap-3">
               <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="md" />

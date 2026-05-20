@@ -17,9 +17,9 @@ export function getActiveUserProfile() {
     avatarColor:   user.avatarColor ?? '#3B82F6',
     creditScore:   user.creditScore  ?? 5.0,
     isVerified:    user.isVerified   ?? false,
-    // TODO (Firebase): query subscriptions collection where userId == uid
+    
     joinedGroups:  [],
-    // TODO (Firebase): query groups collection where hostId == uid
+    
     hostedGroups:  [],
     createdAt:     user.joinedAt,
   }

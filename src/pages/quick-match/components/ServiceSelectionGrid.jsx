@@ -19,7 +19,7 @@ export default function ServiceSelectionGrid({ selected, onToggle }) {
                 : 'border-line bg-white hover:border-brand-border hover:bg-brand-subtle/40'
             }`}
           >
-            {/* check badge */}
+            
             {active && (
               <span className="absolute top-2 right-2 w-5 h-5 rounded-md bg-success flex items-center justify-center">
                 <Check size={10} className="text-white" strokeWidth={3} />

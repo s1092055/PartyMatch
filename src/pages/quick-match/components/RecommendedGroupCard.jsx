@@ -14,7 +14,7 @@ export default function RecommendedGroupCard({ group, rank }) {
 
   return (
     <div className="card card-hover p-5 flex flex-col lg:flex-row gap-6">
-      {/* Rank badge */}
+      
       <div className="shrink-0 flex md:flex-col items-center gap-3">
         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
           rank === 1 ? 'bg-amber-100 text-amber-600' :
@@ -26,8 +26,7 @@ export default function RecommendedGroupCard({ group, rank }) {
         <ServiceLogo serviceId={group.serviceId} size={66} />
       </div>
 
-      {/* Main info */}
-      <div className="flex-1 min-w-0">
+<div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2 flex-wrap mb-1">
           <div>
             <div className="flex items-center gap-1.5">
@@ -68,8 +67,7 @@ export default function RecommendedGroupCard({ group, rank }) {
           <Badge variant={group.joinMode} />
         </div>
 
-        {/* Recommendation reasons */}
-        {group._reasons?.length > 0 && (
+{group._reasons?.length > 0 && (
           <div className="rounded-[var(--radius-inner)] border border-success/20 bg-success-subtle px-4 py-3">
             <div className="flex items-center gap-1.5 text-sm font-extrabold text-success-text mb-1.5">
               <Lightbulb size={12} />
@@ -87,8 +85,7 @@ export default function RecommendedGroupCard({ group, rank }) {
         )}
       </div>
 
-      {/* CTA */}
-      <div className="flex lg:flex-col gap-3 lg:w-44 shrink-0 justify-center">
+<div className="flex lg:flex-col gap-3 lg:w-44 shrink-0 justify-center">
         <Button
           variant="secondary"
           size="sm"

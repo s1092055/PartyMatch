@@ -9,7 +9,6 @@ import SectionCard from '../../shared/components/ui/SectionCard'
 
 const PREVIEW_COUNT = 3
 
-
 export default function GroupDetailPage() {
   const { groupId } = useParams()
   const navigate = useNavigate()
@@ -33,7 +32,7 @@ export default function GroupDetailPage() {
 
   return (
     <div>
-      {/* Breadcrumb */}
+      
       <button
         onClick={() => navigate('/explore')}
         className="flex items-center gap-1 text-sm text-ink-3 hover:text-ink-2 mb-4 transition-colors"
@@ -42,14 +41,12 @@ export default function GroupDetailPage() {
         返回探索群組
       </button>
 
-      {/* Two-column layout */}
-      <div className="flex flex-col lg:flex-row gap-6 lg:items-start">
-        {/* Left — main content */}
+<div className="flex flex-col lg:flex-row gap-6 lg:items-start">
+        
         <div className="flex-1 min-w-0">
           <GroupHeroCard group={group} />
 
-          {/* Join rules */}
-          <SectionCard
+<SectionCard
             title="加入條件與規則"
             subtitle="加入前請仔細閱讀"
             className="mb-4"
@@ -70,8 +67,7 @@ export default function GroupDetailPage() {
             </ul>
           </SectionCard>
 
-          {/* Reviews */}
-          <SectionCard
+<SectionCard
             title="團主評價"
             subtitle={`${group.hostReviewCount} 則評價`}
             action={
@@ -112,8 +108,7 @@ export default function GroupDetailPage() {
           </SectionCard>
         </div>
 
-        {/* Right — sticky summary */}
-        <div className="w-full lg:w-[25rem] shrink-0">
+<div className="w-full lg:w-[25rem] shrink-0">
           <StickyJoinSummary group={group} />
         </div>
       </div>

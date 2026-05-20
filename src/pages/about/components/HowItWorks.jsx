@@ -62,7 +62,7 @@ function TutorialModal({ initialIndex, onClose }) {
         className="relative w-full max-w-3xl rounded-2xl bg-white shadow-2xl"
         onClick={e => e.stopPropagation()}
       >
-        {/* Header */}
+        
         <div className="flex items-center justify-between px-5 py-4">
           <div className="flex items-center gap-3">
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand text-xs font-extrabold text-white">
@@ -79,8 +79,7 @@ function TutorialModal({ initialIndex, onClose }) {
           </button>
         </div>
 
-        {/* Step tabs */}
-        <div className="flex gap-1.5 border-b border-line px-5 pb-3">
+<div className="flex gap-1.5 border-b border-line px-5 pb-3">
           {STEPS.map((s, i) => (
             <button
               key={s.step}
@@ -96,8 +95,7 @@ function TutorialModal({ initialIndex, onClose }) {
           ))}
         </div>
 
-        {/* Video */}
-        <div className="aspect-video w-full overflow-hidden rounded-b-2xl bg-black">
+<div className="aspect-video w-full overflow-hidden rounded-b-2xl bg-black">
           {current.videoUrl ? (
             <iframe
               key={activeIndex}
@@ -116,8 +114,7 @@ function TutorialModal({ initialIndex, onClose }) {
           )}
         </div>
 
-        {/* Prev / Next */}
-        <button
+<button
           onClick={() => goTo(i => Math.max(0, i - 1))}
           disabled={activeIndex === 0}
           className="absolute -left-4 top-1/2 grid h-9 w-9 place-items-center rounded-full border border-line bg-white shadow-md text-ink-3 transition-colors hover:bg-raised hover:text-ink disabled:opacity-30"

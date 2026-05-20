@@ -37,7 +37,7 @@ export default function GroupCard({ group, onFavChange }) {
       className="card card-hover flex cursor-pointer flex-col overflow-hidden p-0"
       onClick={() => navigate(`/groups/${group.id}`)}
     >
-      {/* Badge + heart */}
+      
       <div className="flex items-center justify-between px-4 pb-0 pt-3">
         <Badge variant="recruiting" />
         <button
@@ -53,8 +53,7 @@ export default function GroupCard({ group, onFavChange }) {
         </button>
       </div>
 
-      {/* Logo + service info + tags */}
-      <div className="flex items-start gap-4 px-4 pb-3 pt-3">
+<div className="flex items-start gap-4 px-4 pb-3 pt-3">
         <ServiceLogo serviceId={group.serviceId} size={80} className="shrink-0 rounded-2xl" />
         <div className="min-w-0 flex-1">
           <p className="text-lg font-extrabold leading-tight text-ink">{group.serviceName}</p>
@@ -71,8 +70,7 @@ export default function GroupCard({ group, onFavChange }) {
         </div>
       </div>
 
-      {/* Host row */}
-      <div className="flex items-center gap-2 px-4 pb-3">
+<div className="flex items-center gap-2 px-4 pb-3">
         <div
           className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-bold text-white"
           style={{ backgroundColor: group.hostAvatarColor ?? '#94A3B8' }}
@@ -85,17 +83,13 @@ export default function GroupCard({ group, onFavChange }) {
         )}
         <div className="ml-auto flex items-center gap-1 text-xs text-ink-3">
           <Star size={12} className="fill-warning text-warning" />
-          <span className="font-semibold text-ink-2">{group.hostRating}</span>
-          <span>({group.hostReviewCount})</span>
         </div>
       </div>
 
-      {/* Divider */}
-      <div className="mx-4 border-t border-line-subtle" />
+<div className="mx-4 border-t border-line-subtle" />
 
-      {/* Stats: seats + members */}
-      <div className="flex gap-2 px-4 py-3">
-        {/* Remaining seats */}
+<div className="flex gap-2 px-4 py-3">
+        
         <div className="flex-1 rounded-xl bg-raised p-3">
           <p className="mb-2 text-xs text-ink-3">剩餘名額</p>
           <div className="h-1.5 overflow-hidden rounded-full bg-line">
@@ -112,8 +106,7 @@ export default function GroupCard({ group, onFavChange }) {
           </div>
         </div>
 
-        {/* Members */}
-        <div className="flex-1 rounded-xl bg-raised p-3">
+<div className="flex-1 rounded-xl bg-raised p-3">
           <p className="mb-2 text-xs text-ink-3">成員</p>
           <div className="flex items-center gap-1.5">
             <div className="flex -space-x-2">
@@ -137,8 +130,7 @@ export default function GroupCard({ group, onFavChange }) {
         </div>
       </div>
 
-      {/* Footer: price + billing */}
-      <div className="flex items-center gap-3 border-t border-line-subtle px-4 py-3">
+<div className="flex items-center gap-3 border-t border-line-subtle px-4 py-3">
         <div className="flex-1 min-w-0">
           <span className="text-base font-extrabold text-ink">NT${group.pricePerSeat}</span>
           <span className="ml-1 text-xs text-ink-3">/ 人·月</span>

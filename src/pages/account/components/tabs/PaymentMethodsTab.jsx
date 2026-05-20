@@ -43,13 +43,12 @@ export default function PaymentMethodsTab() {
         const style = BRAND_COLOR[card.brand] ?? { bg: 'bg-line-strong', text: card.brand }
         return (
           <div key={card.id} className="card p-4 flex items-center gap-4">
-            {/* Card brand badge */}
+            
             <div className={`w-12 h-8 rounded-lg ${style.bg} flex items-center justify-center text-white text-xs font-bold shrink-0`}>
               {style.text}
             </div>
 
-            {/* Card info */}
-            <div className="flex-1 min-w-0">
+<div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-semibold text-ink-2">
                   {card.brand} •••• {card.last4}
@@ -61,8 +60,7 @@ export default function PaymentMethodsTab() {
               <p className="text-xs text-ink-3">到期日 {card.expiry}</p>
             </div>
 
-            {/* Actions */}
-            <div className="flex items-center gap-2 shrink-0">
+<div className="flex items-center gap-2 shrink-0">
               {!card.isDefault && (
                 <button
                   onClick={() => setDefault(card.id)}
@@ -82,8 +80,7 @@ export default function PaymentMethodsTab() {
         )
       })}
 
-      {/* Add card form */}
-      {showForm ? (
+{showForm ? (
         <div className="bg-surface border-2 border-brand-border rounded-[var(--radius-card)] p-5 space-y-3">
           <p className="text-sm font-semibold text-ink-2">新增付款方式</p>
           <input

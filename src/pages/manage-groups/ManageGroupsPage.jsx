@@ -55,14 +55,12 @@ export default function ManageGroupsPage() {
   const [errors, setErrors] = useState({})
   const [statusFilter, setStatusFilter] = useState('all')
 
-  // Modal states
-  const [viewGroupId, setViewGroupId]           = useState(null)
+const [viewGroupId, setViewGroupId]           = useState(null)
   const [appsModalGroupId, setAppsModalGroupId] = useState(null)
   const [historyModalGroupId, setHistoryModalGroupId] = useState(null)
   const [renewalModalGroupId, setRenewalModalGroupId] = useState(null)
 
-  // Listen for new applications submitted by members (same-browser demo)
-  useEffect(() => {
+useEffect(() => {
     function onNewApp(e) {
       if (e.detail?.hostId === activeUser?.id) {
         setManageData(prev => ({
@@ -119,8 +117,7 @@ export default function ManageGroupsPage() {
     setManageData(prev => ({ ...prev, hostedGroups: getGroupsByHostId(activeUser.id) }))
   }
 
-  // ── Remove member ──────────────────────────────────────────────
-  function handleRemoveMember(member) {
+function handleRemoveMember(member) {
     removeMember(member.id)
     const seats = seatMap[member.groupId]
     if (seats) {
@@ -135,8 +132,7 @@ export default function ManageGroupsPage() {
     }
   }
 
-  // ── Confirm single member payment ──────────────────────────────
-  function handleConfirmMember(member) {
+function handleConfirmMember(member) {
     updateMember(member.id, { paymentStatus: 'confirmed' })
 
     const sub = getSubscriptionByUserAndGroup(member.userId, member.groupId)
@@ -157,8 +153,7 @@ export default function ManageGroupsPage() {
     refreshGroups()
   }
 
-  // ── Activate handler ────────────────────────────────────────────
-  function handleActivate(renewalDate) {
+function handleActivate(renewalDate) {
     if (!viewGroupId) return
     const updatedGroup = activateGroup(viewGroupId, renewalDate || null)
     if (updatedGroup) {
@@ -190,8 +185,7 @@ export default function ManageGroupsPage() {
     refreshGroups()
   }
 
-  // ── Application handlers ────────────────────────────────────────
-  function handleApprove(appId) {
+function handleApprove(appId) {
     const app = applications.find(a => a.id === appId)
     if (!app || app.status !== 'pending') return
 
@@ -353,8 +347,7 @@ export default function ManageGroupsPage() {
         )}
       </div>
 
-      {/* Modals */}
-      <GroupViewModal
+<GroupViewModal
         isOpen={!!viewGroupId}
         onClose={() => { setViewGroupId(null); refreshGroups() }}
         groupId={viewGroupId}

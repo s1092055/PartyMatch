@@ -45,8 +45,7 @@ export default function Step3Settings({ form, onChange }) {
         <p className="text-sm text-slate-500">設定開放名額、描述與加入規則</p>
       </div>
 
-      {/* Seat count — shows open member slots (totalSeats - 1) */}
-      <Field label="開放名額" required hint={`最多可開放 ${maxSeats - 1} 位成員加入（不含你自己）`}>
+<Field label="開放名額" required hint={`最多可開放 ${maxSeats - 1} 位成員加入（不含你自己）`}>
         <div className="flex items-center gap-3 border border-slate-200 rounded-xl p-1 w-fit">
           <button
             onClick={() => onChange('totalSeats', Math.max(2, form.totalSeats - 1))}
@@ -68,8 +67,7 @@ export default function Step3Settings({ form, onChange }) {
         </div>
       </Field>
 
-      {/* Rules */}
-      <Field label="群組規則" hint="清楚的規則可降低後續糾紛（最多 5 條）">
+<Field label="群組規則" hint="清楚的規則可降低後續糾紛（最多 5 條）">
         <div className="space-y-2">
           {form.rules.map((rule, i) => (
             <div key={i} className="flex items-center gap-2">
@@ -104,8 +102,7 @@ export default function Step3Settings({ form, onChange }) {
         </div>
       </Field>
 
-      {/* Join mode */}
-      <Field label="加入方式" required>
+<Field label="加入方式" required>
         <div className="grid grid-cols-2 gap-3">
           {JOIN_MODES.map(m => (
             <button

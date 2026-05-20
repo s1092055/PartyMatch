@@ -1,4 +1,4 @@
-// Data access layer — Applications (Firestore)
+
 import { db } from '../../app/firebase'
 import { collection, doc, getDocs, setDoc, updateDoc } from 'firebase/firestore'
 import { normalizeApplication } from '../utils/modelNormalizers'

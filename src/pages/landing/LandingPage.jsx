@@ -42,7 +42,7 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-canvas text-ink">
-      {/* Navbar */}
+      
       <header className="sticky top-0 z-40 border-b border-line bg-white/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-3">
           <span className="text-xl font-extrabold tracking-tight text-brand">PartyMatch</span>
@@ -63,8 +63,7 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="mx-auto max-w-5xl px-5 pb-16 pt-20 text-center">
+<section className="mx-auto max-w-5xl px-5 pb-16 pt-20 text-center">
         <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-border bg-brand-subtle px-3 py-1 text-xs font-bold text-brand">
           <ShieldCheck size={12} />
           安全媒合・無帳號代管
@@ -93,8 +92,7 @@ export default function LandingPage() {
           </button>
         </div>
 
-        {/* Stats */}
-        <div className="mx-auto mt-12 grid max-w-sm grid-cols-3 divide-x divide-line rounded-2xl border border-line bg-raised px-2 py-5 md:max-w-md">
+<div className="mx-auto mt-12 grid max-w-sm grid-cols-3 divide-x divide-line rounded-2xl border border-line bg-raised px-2 py-5 md:max-w-md">
           {STATS.map(({ value, label }) => (
             <div key={label} className="flex flex-col items-center gap-0.5 px-4">
               <span className="text-2xl font-extrabold text-ink">{value}</span>
@@ -104,8 +102,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Featured services */}
-      <section className="border-y border-line bg-raised py-12">
+<section className="border-y border-line bg-raised py-12">
         <div className="mx-auto max-w-5xl px-5">
           <p className="mb-7 text-center text-xs font-bold uppercase tracking-widest text-ink-4">
             支援熱門訂閱服務
@@ -118,8 +115,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* How it works */}
-      <section className="mx-auto max-w-5xl px-5 py-16">
+<section className="mx-auto max-w-5xl px-5 py-16">
         <h2 className="text-center text-2xl font-extrabold text-ink">三步驟開始省錢</h2>
         <p className="mt-2 text-center text-sm text-ink-3">最快 5 分鐘完成配對，最快當天開始享用服務</p>
         <div className="mt-10 grid gap-6 md:grid-cols-3">
@@ -141,8 +137,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA Banner */}
-      <section className="border-t border-line bg-brand py-14 text-center text-white">
+<section className="border-t border-line bg-brand py-14 text-center text-white">
         <h2 className="text-2xl font-extrabold">準備好開始省錢了嗎？</h2>
         <p className="mt-2 text-sm text-blue-200">免費加入，馬上瀏覽 26 個等待你的共享群組</p>
         <button
@@ -154,8 +149,7 @@ export default function LandingPage() {
         </button>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-line py-6 text-center text-xs text-ink-4">
+<footer className="border-t border-line py-6 text-center text-xs text-ink-4">
         <p>PartyMatch 為群組媒合平台，不代管費用或帳號。</p>
         <p className="mt-1">© 2026 PartyMatch · MVP 展示版</p>
       </footer>

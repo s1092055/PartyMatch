@@ -32,7 +32,7 @@ export default function RenewalReminderPanel({ subs, applications, onViewUpcomin
 
   return (
     <div className="sticky top-[7rem] space-y-4">
-      {/* 即將續訂提醒 */}
+      
       <div className="panel overflow-hidden">
         <SectionHeader icon={Bell} iconCls="text-brand" title="即將續訂提醒" badge={upcoming.length} />
         <div className="p-3">
@@ -72,8 +72,7 @@ export default function RenewalReminderPanel({ subs, applications, onViewUpcomin
         </div>
       </div>
 
-      {/* 付款待確認 */}
-      {markedPaidSubs.length > 0 && (
+{markedPaidSubs.length > 0 && (
         <div className="panel overflow-hidden">
           <SectionHeader icon={Clock} iconCls="text-purple" title="付款待確認" badge={markedPaidSubs.length} />
           <div className="space-y-1 p-3">
@@ -93,8 +92,7 @@ export default function RenewalReminderPanel({ subs, applications, onViewUpcomin
         </div>
       )}
 
-      {/* 申請狀態 */}
-      {notableApps.length > 0 && (
+{notableApps.length > 0 && (
         <div className="panel overflow-hidden">
           <SectionHeader icon={ClipboardList} iconCls="text-amber-500" title="申請狀態" badge={pendingApps.length} />
           <div className="space-y-1 p-3">

@@ -57,21 +57,19 @@ export default function Topbar() {
         </button>
       </header>
 
-      {/* Backdrop */}
-      <div
+<div
         onClick={closeDrawer}
         className={`fixed inset-0 z-50 bg-black/50 transition-opacity duration-300 md:hidden ${
           drawerOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
       />
 
-      {/* Drawer panel */}
-      <div
+<div
         className={`fixed inset-y-0 right-0 z-[51] flex w-72 flex-col bg-white shadow-2xl transition-transform duration-300 ease-out md:hidden ${
           drawerOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        {/* Drawer header */}
+        
         <div className="flex h-14 shrink-0 items-center justify-between border-b border-line px-4">
           <span className="text-base font-extrabold leading-none">
             <span className="text-brand">Party</span><span className="text-ink">Match</span>
@@ -85,8 +83,7 @@ export default function Topbar() {
           </button>
         </div>
 
-        {/* Nav */}
-        <nav className="flex-1 overflow-y-auto px-3 py-4">
+<nav className="flex-1 overflow-y-auto px-3 py-4">
           {NAV_SECTIONS.map((section, i) => (
             <Fragment key={section.label}>
               {i > 0 && <DrawerDivider />}
@@ -114,11 +111,10 @@ export default function Topbar() {
           ))}
         </nav>
 
-        {/* Footer */}
-        <div className="shrink-0 space-y-1 border-t border-line px-3 pb-8 pt-3">
+<div className="shrink-0 space-y-1 border-t border-line px-3 pb-8 pt-3">
           {isAuthenticated() ? (
             <>
-              {/* User info */}
+              
               <div className="flex items-center gap-3 rounded-2xl px-3 py-2.5">
                 <span className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-to-br from-slate-200 to-slate-500 text-sm font-black text-white">
                   {avatarInitial}

@@ -39,7 +39,7 @@ export default function PreferenceForm({ conditions, onChange }) {
 
   return (
     <div className="space-y-6">
-      {/* Budget */}
+      
       <div>
         <div className="flex items-center justify-between mb-3">
           <label className="text-sm font-medium text-slate-700">預算上限</label>
@@ -55,8 +55,7 @@ export default function PreferenceForm({ conditions, onChange }) {
         />
       </div>
 
-      {/* Join mode */}
-      <div>
+<div>
         <label className="text-sm font-medium text-slate-700 block mb-3">加入方式</label>
         <div className="flex gap-2">
           {JOIN_MODES.map(m => (
@@ -75,8 +74,7 @@ export default function PreferenceForm({ conditions, onChange }) {
         </div>
       </div>
 
-      {/* Min rating */}
-      <div>
+<div>
         <div className="flex items-center justify-between mb-3">
           <label className="text-sm font-medium text-slate-700">最低評分</label>
           <span className="text-sm font-bold text-warning">{minRating} 以上</span>
@@ -89,7 +87,7 @@ export default function PreferenceForm({ conditions, onChange }) {
           onChange={v => onChange('minRating', v)}
           formatLabel={v => `${v.toFixed(1)}`}
         />
-        {/* Quick pick */}
+        
         <div className="flex gap-2 mt-3">
           {RATING_MARKS.map(r => (
             <button
