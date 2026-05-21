@@ -80,7 +80,7 @@ export async function registerUser({ name, email, password }) {
 }
 
 export async function logoutUser() {
-  await signOut(auth)
+  try { await signOut(auth) } catch { /* ignore network errors */ }
   _currentUser = null
 }
 
