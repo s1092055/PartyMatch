@@ -11,16 +11,17 @@
 
 ## 功能
 
-- 探索群組：Marketplace 瀏覽版面；分類 Pills 篩選（影音、音樂、AI 工具、辦公、雲端、學習、遊戲、VPN）+ 次要篩選列（加入方式、價格、排序）；群組以 3 欄卡片網格呈現；共 30 種服務、26 個 Mock 群組；Sidebar 與手機版 Drawer 搜尋按鈕皆可搜尋並導向探索頁篩選結果；自己是團主的群組不顯示在探索頁
-- 快速配對：選服務 + 設定預算偏好，自動推薦最適合的群組
-- 申請加入（審核制）或立即加入
-- 建立自己的共享群組（4 步驟表單）；方案費用依官方定價自動計算，名額上限依方案限制，不開放團主自訂價格；名額顯示開放給成員的席位數（不含團主）；可設定加入條件與規則
-- 管理群組：直式卡片（Badge → Logo → 服務名稱 → 2×2 資訊格：待處理申請 / 本期收款 / 付款狀態 / 每月收入）；點擊「待處理申請」格開啟該群組專屬審核視窗（每個群組獨立）；次要操作（準備續訂、查看歷史）收折至 ⋯ 選單；統一透過 GroupViewModal 管理成員付款、啟用服務；支援篩選分頁（全部 / 招募中 / 待啟用 / 已啟用 / 已停止 / 已取消）
-- 訂閱管理：直式卡片（Badge → Logo → 服務名稱 → 帳單週期 chip + 下次扣款日 chip → 團主資訊 / 付款狀態 → 金額）；付款狀態追蹤、標記已付款、聯絡團主（在 GroupViewModal 內操作）、查看付款歷史紀錄、申請紀錄（含審核中／已核准／已拒絕）；管理端與訂閱端共用 GroupViewModal 查看群組詳情
-- 訊息中心：通知分類（付款、申請、系統）、標記已讀
-- 收藏感興趣的群組
-- 帳號中心：個人資料、付款方式、通知偏好、安全驗證、設定
-- 手機版右滑抽屜導航（點選右上角漢堡選單展開），抽屜內含搜尋按鈕可開啟搜尋底頁
+- **首頁（Landing Page）**：行銷首頁，展示核心功能（FeatureCards）、使用教學（HowItWorks）、免責聲明；訪客顯示登入按鈕，登入會員顯示 Avatar + Dropdown；Logo 點擊回首頁
+- **探索群組**：Marketplace 瀏覽版面；分類 Pills 篩選（影音、音樂、AI 工具、辦公、雲端、學習、遊戲、VPN）+ 次要篩選列（加入方式、價格、排序）；卡片顯示價格 → 分隔線 → 團主資訊 + 剩餘名額；共 30 種服務、26 個群組；Sidebar 與手機版 Drawer 搜尋按鈕皆可搜尋並導向探索頁篩選結果；自己是團主的群組不顯示在探索頁
+- **快速配對**：選服務 + 設定預算偏好，自動推薦最適合的群組
+- **申請加入**（審核制）或立即加入
+- **建立群組**（4 步驟表單）；方案費用依官方定價自動計算，名額上限依方案限制；費用由官方定價 ÷ 名額自動計算；可設定加入條件與規則
+- **管理群組**：直式卡片（Badge → Logo → 服務名稱 → 2×2 資訊格：待處理申請 / 本期收款 / 付款狀態 / 每月收入）；點擊「待處理申請」格開啟該群組專屬審核視窗（每個群組獨立）；次要操作（準備續訂、查看歷史）收折至 ⋯ 選單；統一透過 GroupViewModal 管理成員付款、啟用服務；支援篩選分頁（全部 / 招募中 / 待啟用 / 已啟用 / 已停止 / 已取消）
+- **訂閱管理**：直式卡片（Badge → Logo → 服務名稱 → 帳單週期 chip + 下次扣款日 chip → 團主資訊 / 付款狀態 → 金額）；付款狀態追蹤、標記已付款、聯絡團主、查看付款歷史紀錄、申請紀錄（含審核中／已核准／已拒絕）；管理端與訂閱端共用 GroupViewModal
+- **訊息中心**：懸浮圖示固定於畫面右下角，點擊展開通知面板；通知分類（全部 / 付款 / 申請 / 系統）、標記已讀；未讀數紅點 badge
+- **收藏**：收藏感興趣的群組，取消收藏即時從清單移除
+- **帳號中心**：個人資料、付款方式、通知偏好、安全驗證、設定
+- **手機版**：右滑抽屜導航（漢堡選單展開），抽屜內含搜尋按鈕可開啟搜尋底頁
 
 ---
 
@@ -56,14 +57,13 @@ npm run lint    # 程式碼檢查
 
 | 路徑 | 頁面 |
 |------|------|
-| `/` | Landing Page（已登入者自動導向 `/explore`） |
+| `/` | 首頁 Landing Page（訪客 / 已登入皆可瀏覽） |
 | `/login` | 登入 |
 | `/register` | 註冊 |
 | `/forgot-password` | 忘記密碼 |
 | `/explore` | 探索群組（無需登入可瀏覽） |
-| `/explore?q=keyword` | 探索群組（關鍵字篩選，無需登入） |
+| `/explore?q=keyword` | 探索群組（關鍵字篩選） |
 | `/groups/:groupId` | 群組詳情（無需登入可瀏覽，加入需登入） |
-| `/about` | 說明中心 |
 
 ### 登入後（需登入）
 
@@ -75,7 +75,6 @@ npm run lint    # 程式碼檢查
 | `/manage-groups` | 管理群組 |
 | `/my-subscriptions` | 我的訂閱 |
 | `/favorites` | 收藏清單 |
-| `/messages` | 訊息中心 |
 | `/account` | 帳號中心 |
 
 ---
@@ -87,10 +86,13 @@ src/
 ├── app/
 │   ├── App.jsx
 │   ├── router.jsx
-│   └── firebase.js      # Firebase 初始化設定
-├── assets/              # 靜態資源（Logo.svg 等）
+│   └── firebase.js           # Firebase 初始化設定
+├── assets/                   # 靜態資源（Logo.svg、KKBOX-icon.png、masterclass-icon.png）
 ├── pages/
-│   ├── auth/            # 登入 / 註冊 / 忘記密碼
+│   ├── auth/                 # 登入 / 註冊 / 忘記密碼
+│   ├── landing/
+│   │   ├── LandingPage.jsx
+│   │   └── components/       # FeatureCards、HowItWorks
 │   ├── explore/
 │   ├── group-detail/
 │   ├── quick-match/
@@ -98,24 +100,22 @@ src/
 │   ├── favorites/
 │   ├── create-group/
 │   ├── manage-groups/
-│   ├── messages/
-│   ├── account/
-│   └── about/
+│   └── account/
 ├── shared/
 │   ├── components/
-│   │   ├── layout/      # AppLayout、Sidebar（含搜尋面板）、Topbar、MobileSearch（搜尋底頁）
-│   │   ├── auth/        # AuthLayout
-│   │   ├── route/       # ProtectedRoute、PublicOnlyRoute
-│   │   ├── ui/          # Button、Badge、Avatar、Modal、Toggle、CustomSelect、Tabs…
-│   │   ├── modals/      # ApplyJoinModal、InstantJoinModal、LogoutConfirmModal、GroupViewModal（管理 / 訂閱共用）
-│   │   └── cards/       # GroupCard（探索用）、GroupCardShell（管理頁共用殼層）
-│   ├── api/             # 資料存取層（Firebase 遷移切換點）
-│   ├── data/            # mock 種子資料（services.mock.js 唯讀；群組 / 申請 / 訂閱資料已移至 Firestore）
-│   ├── stores/          # 業務邏輯層，呼叫 api/ 取得資料
-│   ├── services/        # serviceTypes（服務圖示、顏色、官方定價）
-│   ├── constants/       # nav.js（Sidebar / Topbar 導航結構）、paymentStatus.js（CONFIRMED_STATUSES、READY_TO_ACTIVATE_STATUSES）
-│   └── utils/           # date（含 formatMonthDay）、storage、matchGroups、subscriptionStatus、billingChip…
-└── index.css            # Tailwind v4 design token + 元件原始類別
+│   │   ├── layout/           # AppLayout、Sidebar、Topbar、MobileSearch、FloatingMessages（訊息中心懸浮元件）
+│   │   ├── auth/             # AuthLayout
+│   │   ├── route/            # ProtectedRoute、PublicOnlyRoute
+│   │   ├── ui/               # Button、Badge、Avatar、Modal、Toggle、CustomSelect、ServiceLogo…
+│   │   ├── modals/           # ApplyJoinModal、InstantJoinModal、LogoutConfirmModal、GroupViewModal
+│   │   └── cards/            # GroupCard（探索用）、GroupCardShell（管理頁共用殼層）
+│   ├── api/                  # 資料存取層（Firebase Firestore）
+│   ├── data/                 # mock 種子資料（services.mock.js 唯讀）
+│   ├── stores/               # 業務邏輯層，呼叫 api/ 取得資料
+│   ├── services/             # serviceTypes（服務圖示、顏色、官方定價；支援本地 iconSrc 或 Iconify URL）
+│   ├── constants/            # nav.js（Sidebar 導航結構）、paymentStatus.js
+│   └── utils/                # date、storage、matchGroups、subscriptionStatus、billingChip、hooks（useClickOutside）…
+└── index.css                 # Tailwind v4 design token + 元件原始類別
 ```
 
 ---
@@ -124,8 +124,7 @@ src/
 
 ### Mock 種子資料（`src/shared/data/`）
 
-- `services.mock.js`：30 種訂閱服務定義（唯讀），每個服務方案含官方月費與人數上限
-- 群組、申請、訂閱等動態資料已移至 Firebase Firestore，不再使用本地 mock 檔案
+- `services.mock.js`：30 種訂閱服務定義（唯讀），每個服務方案含官方月費與人數上限；支援 `iconSrc`（本地圖片）或 `iconId`（Iconify）
 
 ### Store 層（`src/shared/stores/`）
 
@@ -146,7 +145,7 @@ src/
 
 | 流程 | 說明 |
 |------|------|
-| 申請加入 | `createApplication` → ApplyJoinModal → localStorage |
+| 申請加入 | `createApplication` → ApplyJoinModal |
 | 立即加入 | `createMember` + `createSubscription` + `updateGroup` + `createNotification` |
 | 團主審核 | 核准：建立 member + subscription + notification；拒絕：更新申請狀態 |
 | 建立群組 | 4 步驟 → `mapFormToGroup()` → `createGroup()` → 導向管理頁；費用由官方定價 ÷ 名額自動計算 |
