@@ -122,7 +122,12 @@ export default function ExploreGroupCard({ group, onFavChange }) {
         </div>
       )}
 
-      <div className="my-4 border-t border-line-subtle" />
+      <p className="my-4 text-center text-2xl font-black leading-none text-ink">
+        NT${group.pricePerSeat}
+        <span className="ml-1 text-sm font-semibold text-ink-3">/ 月</span>
+      </p>
+
+      <div className="mb-4 border-t border-line-subtle" />
 
       <div className="grid grid-cols-2 gap-4">
         <div className="flex min-w-0 items-center gap-2.5">
@@ -140,7 +145,6 @@ export default function ExploreGroupCard({ group, onFavChange }) {
             <div className="mt-0.5 flex items-center gap-1 text-xs font-medium text-ink-3">
               <Star size={12} className="fill-warning text-warning" />
               <span>{group.hostRating}</span>
-
             </div>
           </div>
         </div>
@@ -163,10 +167,6 @@ export default function ExploreGroupCard({ group, onFavChange }) {
       </div>
 
       <div className="mt-auto pt-5">
-        <p className="mb-3 text-center text-2xl font-black leading-none text-ink">
-          NT${group.pricePerSeat}
-          <span className="ml-1 text-sm font-semibold text-ink-3">/ 月</span>
-        </p>
         <Button onClick={openDetails} className="w-full">查看詳情</Button>
       </div>
     </article>
