@@ -299,7 +299,7 @@ function handleApprove(appId) {
         <h1 className="page-title">群組管理</h1>
       </div>
 
-      <div className="mx-auto max-w-4xl">
+      <div className="mx-auto max-w-7xl">
         <div className="mb-4 flex min-w-0 justify-center overflow-x-auto">
           <div className="flex gap-1">
             {STATUS_FILTER_TABS.map(tab => (

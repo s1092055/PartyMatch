@@ -62,7 +62,6 @@ function TutorialModal({ initialIndex, onClose }) {
         className="relative w-full max-w-3xl rounded-2xl bg-white shadow-2xl"
         onClick={e => e.stopPropagation()}
       >
-        
         <div className="flex items-center justify-between px-5 py-4">
           <div className="flex items-center gap-3">
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand text-xs font-extrabold text-white">
@@ -142,8 +141,8 @@ export default function HowItWorks() {
     <>
       <section className="card p-6">
         <div className="mb-6">
-          <h2 className="text-base font-extrabold text-ink">如何使用 PartyMatch</h2>
-          <p className="mt-1 flex items-center gap-1 text-xs font-medium text-ink-3">
+          <h2 className="text-base font-extrabold text-ink text-center">如何使用 PartyMatch</h2>
+          <p className="mt-1 flex items-center gap-1 text-xs font-medium text-ink-3 justify-center">
             <Play size={10} className="fill-current" />
             點擊任一步驟，即可觀看對應的教學影片
           </p>

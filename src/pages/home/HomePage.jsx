@@ -1,8 +1,7 @@
-import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AlertTriangle, ArrowRight, Compass, CreditCard, LogOut, Settings, ShieldCheck } from 'lucide-react'
-import { getCurrentUser, isAuthenticated, logoutUser } from '../../shared/stores/authStore'
-import { useClickOutside } from '../../shared/utils/hooks'
+import { AlertTriangle, ArrowRight } from 'lucide-react'
+import { isAuthenticated } from '../../shared/stores/authStore'
+import AppNav from '../../shared/components/layout/AppNav'
 import ServiceLogo from '../../shared/components/ui/ServiceLogo'
 import FeatureCards from './components/FeatureCards'
 import HowItWorks from './components/HowItWorks'
@@ -44,91 +43,18 @@ const DISCLAIMER_ITEMS = [
 export default function HomePage() {
   const navigate = useNavigate()
   const loggedIn = isAuthenticated()
-  const currentUser = getCurrentUser()
-  const userName = currentUser?.name ?? currentUser?.displayName ?? '使用者'
-  const avatarInitial = userName[0] ?? 'U'
-  const avatarColor = currentUser?.avatarColor ?? null
-
-  const [menuOpen, setMenuOpen] = useState(false)
-  const menuRef = useRef(null)
-  useClickOutside(menuOpen, [menuRef], () => setMenuOpen(false))
-
-  async function handleLogout() {
-    setMenuOpen(false)
-    await logoutUser()
-    navigate('/', { replace: true })
-  }
 
   return (
     <div className="min-h-screen bg-canvas text-ink">
+      <AppNav variant="top" />
 
-      <div ref={menuRef} className="fixed right-5 top-5 z-50">
-        {loggedIn ? (
-          <>
-            <button
-              onClick={() => setMenuOpen(v => !v)}
-              className="grid h-9 w-9 place-items-center rounded-full text-sm font-black text-white shadow-md transition-opacity hover:opacity-85"
-              style={{ background: avatarColor ?? 'linear-gradient(135deg, #cbd5e1, #64748b)' }}
-              aria-label="開啟使用者選單"
-            >
-              {avatarInitial}
-            </button>
-
-            {menuOpen && (
-              <div className="absolute right-0 top-full mt-2 w-48 overflow-hidden rounded-2xl border border-line bg-white p-2 shadow-popover">
-                <div className="px-3 py-2">
-                  <p className="truncate text-sm font-extrabold text-ink">{userName}</p>
-                  <p className="truncate text-xs text-ink-3">{currentUser?.email}</p>
-                </div>
-                <div className="my-1 h-px bg-line-subtle" />
-                {[
-                  { icon: Compass,    label: '探索群組', to: '/explore' },
-                  { icon: CreditCard, label: '我的訂閱', to: '/my-subscriptions' },
-                  { icon: Settings,   label: '帳號中心', to: '/account' },
-                ].map(({ icon: Icon, label, to }) => (
-                  <button
-                    key={to}
-                    onClick={() => { setMenuOpen(false); navigate(to) }}
-                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold text-ink transition-colors hover:bg-raised"
-                  >
-                    <Icon size={15} className="shrink-0 text-ink-3" />
-                    {label}
-                  </button>
-                ))}
-                <div className="my-1 h-px bg-line-subtle" />
-                <button
-                  onClick={handleLogout}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold text-red-500 transition-colors hover:bg-red-50"
-                >
-                  <LogOut size={15} className="shrink-0" />
-                  登出
-                </button>
-              </div>
-            )}
-          </>
-        ) : (
-          <button
-            onClick={() => navigate('/login')}
-            className="rounded-xl border border-line bg-white/90 px-4 py-2 text-sm font-semibold text-ink-2 shadow-sm backdrop-blur transition-colors hover:bg-raised hover:text-ink"
-          >
-            登入
-          </button>
-        )}
-      </div>
-
-      <section className="mx-auto max-w-5xl px-5 pb-16 pt-20 text-center">
-        <img src="/src/assets/Logo.svg" alt="PartyMatch" className="mx-auto mb-5 h-16 w-16 rounded-2xl shadow-sm" />
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-border bg-brand-subtle px-3 py-1 text-xs font-bold text-brand">
-          <ShieldCheck size={12} />
-          安全媒合・無帳號代管
-        </span>
+      <section className="mx-auto max-w-5xl px-5 pb-16 pt-20 text-center md:pt-28">
+        <img src="/src/assets/Logo.svg" alt="PartyMatch" className="mx-auto mb-5 h-16 w-auto" />
         <h1 className="mt-5 text-4xl font-extrabold leading-tight tracking-tight text-ink md:text-5xl">
-          每月省更多<br />
-          <span className="text-brand">找到可信賴的共享夥伴</span>
+          PartyMatch<br />
         </h1>
         <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-ink-3">
-          PartyMatch 是訂閱共享媒合平台，幫助你找到志同道合的人一起分攤
-          Spotify、Netflix、ChatGPT 等熱門服務費用。
+          PartyMatch 是訂閱共享媒合平台
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           {loggedIn ? (
@@ -136,7 +62,7 @@ export default function HomePage() {
               onClick={() => navigate('/explore')}
               className="flex items-center gap-2 rounded-xl bg-brand px-6 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-brand-hover"
             >
-              前往探索群組
+              前往探索
               <ArrowRight size={15} />
             </button>
           ) : (
