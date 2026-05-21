@@ -1,4 +1,4 @@
-import { BookOpen, Compass, CreditCard, Heart, LayoutGrid, MessageCircle, PlusCircle, Zap } from 'lucide-react'
+import { Compass, CreditCard, Heart, LayoutGrid, PlusCircle, Zap } from 'lucide-react'
 
 export const NAV_SECTIONS = [
   {
@@ -25,7 +25,4 @@ export const NAV_SECTIONS = [
   },
 ]
 
-export const NAV_UTILITY = [
-  { to: '/messages', label: '訊息中心', icon: MessageCircle },
-  { to: '/about',    label: '說明中心', icon: BookOpen },
-]
+export const NAV_UTILITY = []

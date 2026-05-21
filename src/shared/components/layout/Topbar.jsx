@@ -44,7 +44,7 @@ export default function Topbar() {
   return (
     <>
       <header className="fixed left-0 right-0 top-0 z-40 flex h-14 items-center justify-between border-b border-line bg-white/95 px-4 backdrop-blur md:hidden">
-        <Link to="/explore" className="flex items-center gap-2" aria-label="回探索群組">
+        <Link to="/" className="flex items-center gap-2" aria-label="回首頁">
           <img src="/src/assets/Logo.svg" alt="PartyMatch" className="h-8 w-8 rounded-xl" />
         </Link>
 

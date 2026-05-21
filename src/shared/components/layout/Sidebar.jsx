@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { LogIn, LogOut, Search, User, UserPlus, X, Zap } from 'lucide-react'
-import { NAV_SECTIONS, NAV_UTILITY } from '../../constants/nav'
+import { NAV_SECTIONS } from '../../constants/nav'
 import { getCurrentUser, isAuthenticated, logoutUser } from '../../stores/authStore'
 import { useClickOutside } from '../../utils/hooks'
 import {
@@ -107,10 +107,10 @@ useEffect(() => {
         }}
       >
         <Link
-          to="/explore"
+          to="/"
           onClick={closeAll}
           className="flex h-[5.75rem] shrink-0 items-center gap-3 px-4"
-          aria-label="回探索群組"
+          aria-label="回首頁"
         >
           <img src="/src/assets/Logo.svg" alt="PartyMatch" className="h-11 w-11 shrink-0 rounded-2xl" />
           <span className="pointer-events-none whitespace-nowrap text-[1.35rem] font-extrabold leading-none opacity-0 transition-opacity duration-200 group-hover/sidebar:opacity-100 group-focus-within/sidebar:opacity-100">
@@ -146,13 +146,6 @@ useEffect(() => {
               </Fragment>
             ))}
 
-            <div className="pt-3">
-              <SidebarDivider />
-              <SidebarSection label="其他" />
-              {NAV_UTILITY.map(item => (
-                <SidebarNavLink key={item.to} to={item.to} label={item.label} icon={item.icon} onClick={closeAll} />
-              ))}
-            </div>
           </div>
         </nav>
 

@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import Topbar from './Topbar'
 import MobileSearch from './MobileSearch'
+import FloatingMessages from './FloatingMessages'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -22,6 +23,7 @@ export default function AppLayout() {
         </div>
       </main>
       <MobileSearch />
+      <FloatingMessages />
     </div>
   )
 }
