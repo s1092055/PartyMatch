@@ -4,14 +4,14 @@
 
 內建 **SubTrack** 模組負責訂閱管理——加入後的付款狀態、帳單提醒、付款紀錄都在這裡處理。
 
-> 目前是 MVP 展示版，群組 / 成員 / 申請 / 訂閱 / 通知等核心資料已全面串接 Firebase Firestore；驗證仍使用 localStorage 模擬。  
+> 目前是 MVP 展示版，所有核心資料（群組、成員、申請、訂閱、通知、收藏、驗證）已全面串接 Firebase。  
 > Demo 帳號：`demo@partymatch.tw` / `demo1234`（資料由 `scripts/seedDemo.mjs` 種入 Firestore，並以 `_demo: true` 標記，可安全重置）。
 
 ---
 
 ## 功能
 
-- **首頁（Landing Page）**：行銷首頁，展示核心功能（FeatureCards）、使用教學（HowItWorks）、免責聲明；訪客顯示登入按鈕，登入會員顯示 Avatar + Dropdown；Logo 點擊回首頁
+- **首頁（Landing Page）**：行銷首頁，展示核心功能（FeatureCards）、使用教學（HowItWorks）、免責聲明；頂部浮動 AppNav（top variant）；訪客顯示登入 / 免費加入，登入會員顯示 Avatar Dropdown；Logo 點擊回首頁
 - **探索群組**：Marketplace 瀏覽版面；分類 Pills 篩選（影音、音樂、AI 工具、辦公、雲端、學習、遊戲、VPN）+ 次要篩選列（加入方式、價格、排序）；卡片顯示價格 → 分隔線 → 團主資訊 + 剩餘名額；共 30 種服務、26 個群組；Sidebar 與手機版 Drawer 搜尋按鈕皆可搜尋並導向探索頁篩選結果；自己是團主的群組不顯示在探索頁
 - **快速配對**：選服務 + 設定預算偏好，自動推薦最適合的群組
 - **申請加入**（審核制）或立即加入
@@ -21,7 +21,7 @@
 - **訊息中心**：懸浮圖示固定於畫面右下角，點擊展開通知面板；通知分類（全部 / 付款 / 申請 / 系統）、標記已讀；未讀數紅點 badge
 - **收藏**：收藏感興趣的群組，取消收藏即時從清單移除
 - **帳號中心**：個人資料、付款方式、通知偏好、安全驗證、設定
-- **手機版**：右滑抽屜導航（漢堡選單展開），抽屜內含搜尋按鈕可開啟搜尋底頁
+- **導航（AppNav）**：統一導航元件；應用頁顯示左側浮動側欄（side variant，收合 / 展開），首頁顯示頂部橫列（top variant）；手機版均以頂部 Header + 右滑抽屜呈現，抽屜內含搜尋按鈕可開啟 MobileSearch
 
 ---
 
@@ -47,7 +47,7 @@ npm run lint    # 程式碼檢查
 - React Router v7
 - Tailwind CSS v4（含自訂 design token）
 - lucide-react
-- 狀態管理：Firebase Firestore（群組、申請、成員、訂閱、通知、收藏）+ localStorage（驗證）+ sessionStorage（快速配對條件）
+- 狀態管理：Firebase Auth（驗證）+ Firebase Firestore（群組、申請、成員、訂閱、通知、收藏）+ sessionStorage（快速配對條件）
 
 ---
 
@@ -103,17 +103,17 @@ src/
 │   └── account/
 ├── shared/
 │   ├── components/
-│   │   ├── layout/           # AppLayout、Sidebar、Topbar、MobileSearch、FloatingMessages（訊息中心懸浮元件）
+│   │   ├── layout/           # AppLayout、AppNav（top / side variant）、MobileSearch、FloatingMessages（訊息中心懸浮元件）
 │   │   ├── auth/             # AuthLayout
 │   │   ├── route/            # ProtectedRoute、PublicOnlyRoute
 │   │   ├── ui/               # Button、Badge、Avatar、Modal、Toggle、CustomSelect、ServiceLogo…
-│   │   ├── modals/           # ApplyJoinModal、InstantJoinModal、LogoutConfirmModal、GroupViewModal
+│   │   ├── modals/           # ApplyJoinModal、InstantJoinModal、GroupViewModal
 │   │   └── cards/            # GroupCard（探索用）、GroupCardShell（管理頁共用殼層）
 │   ├── api/                  # 資料存取層（Firebase Firestore）
 │   ├── data/                 # mock 種子資料（services.mock.js 唯讀）
 │   ├── stores/               # 業務邏輯層，呼叫 api/ 取得資料
 │   ├── services/             # serviceTypes（服務圖示、顏色、官方定價；支援本地 iconSrc 或 Iconify URL）
-│   ├── constants/            # nav.js（Sidebar 導航結構）、paymentStatus.js
+│   ├── constants/            # nav.js（AppNav 導航結構）、paymentStatus.js
 │   └── utils/                # date、storage、matchGroups、subscriptionStatus、billingChip、hooks（useClickOutside）…
 └── index.css                 # Tailwind v4 design token + 元件原始類別
 ```
@@ -132,7 +132,7 @@ src/
 
 | Store | Firestore 集合 | 用途 |
 |-------|--------------|------|
-| `authStore` | localStorage `pm_auth_user` | 登入 / 登出 / 註冊（驗證仍為模擬） |
+| `authStore` | Firebase Auth + `users` | 登入 / 登出 / 註冊 / 密碼重設 |
 | `groupStore` | `groups` | 群組 CRUD |
 | `applicationStore` | `applications` | 申請狀態 |
 | `memberStore` | `members` | 成員管理（含移除與付款狀態覆寫） |
@@ -222,7 +222,6 @@ node scripts/seedDemo.mjs   # 種入 demo 資料（自動清除舊的 _demo 資�
 
 ## 已知限制
 
-- 密碼明文存 localStorage（展示用，正式版須換 Firebase Auth）
 - 手機版小螢幕部分 modal overflow 尚未處理
 - 開始新一期收款後，成員付款狀態不會自動重設（展示模式限制）
 - 一般使用者標記付款時，若該使用者在群組中無 member 記錄（僅有訂閱記錄），成員狀態不會同步至團主端
