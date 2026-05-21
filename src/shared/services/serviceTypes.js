@@ -37,9 +37,11 @@ export function getServiceTypeIcon(serviceId, { size = 64 } = {}) {
   const iconId = service.iconId
   const color = encodeURIComponent(service.color)
   const iconSize = Math.max(24, Math.ceil(size))
-  const src = iconId
-    ? `${ICONIFY_API_BASE}/${iconId}.svg?width=${iconSize}&height=${iconSize}&color=${color}`
-    : ''
+  const src = service.iconSrc
+    ? service.iconSrc
+    : iconId
+      ? `${ICONIFY_API_BASE}/${iconId}.svg?width=${iconSize}&height=${iconSize}&color=${color}`
+      : ''
 
   return {
     src,

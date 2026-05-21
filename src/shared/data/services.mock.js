@@ -1,3 +1,6 @@
+import kkboxIcon from '../../assets/KKBOX-icon.png'
+import masterclassIcon from '../../assets/masterclass-icon.png'
+
 export const SERVICES = [
   {
     id: 'spotify',
@@ -188,6 +191,7 @@ export const SERVICES = [
     bgColor: '#E6F8F0',
     initial: 'K',
     iconId: '',
+    iconSrc: kkboxIcon,
     plans: [
       { name: '個人方案', monthlyPrice: 149, maxSeats: 1 },
       { name: '家庭方案', monthlyPrice: 249, maxSeats: 5 },
@@ -214,7 +218,7 @@ export const SERVICES = [
     color: '#000000',
     bgColor: '#F0F0F0',
     initial: 'M',
-    iconId: '',
+    iconId: 'logos:midjourney',
     plans: [
       { name: 'Basic',    monthlyPrice:  325, maxSeats: 1 },
       { name: 'Standard', monthlyPrice:  975, maxSeats: 3 },
@@ -242,7 +246,7 @@ export const SERVICES = [
     color: '#000000',
     bgColor: '#F0F0F0',
     initial: 'C',
-    iconId: '',
+    iconId: 'simple-icons:cursor',
     plans: [
       { name: 'Pro',      monthlyPrice:  649, maxSeats: 2 },
       { name: 'Business', monthlyPrice: 1300, maxSeats: 4 },
@@ -356,6 +360,7 @@ export const SERVICES = [
     bgColor: '#F0F0F0',
     initial: 'M',
     iconId: '',
+    iconSrc: masterclassIcon,
     plans: [
       { name: '個人方案',       monthlyPrice: 325, maxSeats: 1 },
       { name: '家庭方案（2人）', monthlyPrice: 488, maxSeats: 2 },
@@ -429,7 +434,7 @@ export const SERVICES = [
     color: '#DA3940',
     bgColor: '#FCEAEB',
     initial: 'E',
-    iconId: '',
+    iconId: 'simple-icons:expressvpn',
     plans: [
       { name: '月繳', monthlyPrice: 390, maxSeats: 5 },
       { name: '年繳', monthlyPrice: 260, maxSeats: 5 },
