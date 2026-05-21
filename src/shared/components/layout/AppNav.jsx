@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { LogIn, LogOut, Menu, Search, User, UserPlus, X, Zap } from 'lucide-react'
+import { ChevronDown, LogIn, LogOut, Menu, Search, User, UserPlus, X, Zap } from 'lucide-react'
 import { getCurrentUser, isAuthenticated, logoutUser } from '../../stores/authStore'
 import { NAV_SECTIONS } from '../../constants/nav'
 import { useClickOutside } from '../../utils/hooks'
@@ -12,35 +12,6 @@ import {
   searchGroups,
 } from '../../utils/searchUtils'
 import ServiceLogo from '../ui/ServiceLogo'
-
-const TOP_NAV_LINKS = NAV_SECTIONS.flatMap(s => s.items).filter(item => item.to)
-
-function UserMenuDropdown({ userName, userEmail, onAccount, onLogout }) {
-  return (
-    <div className="absolute right-0 top-full mt-2 w-44 overflow-hidden rounded-2xl border border-line bg-white p-2 shadow-popover">
-      <div className="px-3 py-2">
-        <p className="truncate text-sm font-extrabold text-ink">{userName}</p>
-        <p className="truncate text-xs text-ink-3">{userEmail}</p>
-      </div>
-      <div className="my-1 h-px bg-line-subtle" />
-      <button
-        onClick={onAccount}
-        className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-ink transition-colors hover:bg-raised"
-      >
-        <User size={14} />
-        帳號中心
-      </button>
-      <div className="my-1 h-px bg-line-subtle" />
-      <button
-        onClick={onLogout}
-        className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-danger transition-colors hover:bg-danger-subtle"
-      >
-        <LogOut size={14} />
-        登出
-      </button>
-    </div>
-  )
-}
 
 export default function AppNav({ variant = 'side' }) {
   const navigate = useNavigate()
@@ -56,10 +27,10 @@ export default function AppNav({ variant = 'side' }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [recentSearches, setRecentSearches] = useState(loadRecentSearches)
 
-  const searchPanelRef    = useRef(null)
-  const userMenuRef       = useRef(null)
+  const searchPanelRef   = useRef(null)
+  const userMenuRef      = useRef(null)
   const userMenuMobileRef = useRef(null)
-  const searchInputRef    = useRef(null)
+  const searchInputRef   = useRef(null)
 
   const showSearch   = activePanel === 'search'
   const showUserMenu = activePanel === 'userMenu'
@@ -79,10 +50,19 @@ export default function AppNav({ variant = 'side' }) {
   }, [])
 
   useEffect(() => {
-    if (variant !== 'side') return
-    document.body.style.overflow = drawerOpen ? 'hidden' : ''
-    return () => { document.body.style.overflow = '' }
-  }, [drawerOpen, variant])
+    if (drawerOpen) {
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
+      document.documentElement.style.overflowY = 'hidden'
+      document.documentElement.style.paddingRight = `${scrollbarWidth}px`
+    } else {
+      document.documentElement.style.overflowY = ''
+      document.documentElement.style.paddingRight = ''
+    }
+    return () => {
+      document.documentElement.style.overflowY = ''
+      document.documentElement.style.paddingRight = ''
+    }
+  }, [drawerOpen])
 
   useClickOutside(showSearch,   [searchPanelRef], () => setActivePanel(null))
   useClickOutside(showUserMenu, [userMenuRef, userMenuMobileRef], () => setActivePanel(null))
@@ -125,61 +105,13 @@ export default function AppNav({ variant = 'side' }) {
               <span className="text-brand">Party</span><span className="text-ink">Match</span>
             </span>
           </Link>
-
-          <div className="absolute left-1/2 flex -translate-x-1/2 items-center gap-1">
-            {TOP_NAV_LINKS.map(item => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  `flex items-center gap-1.5 rounded-2xl px-4 py-2 text-sm font-bold transition-colors ${
-                    isActive
-                      ? 'bg-brand-subtle text-brand'
-                      : 'text-ink-2 hover:bg-raised hover:text-brand'
-                  }`
-                }
-              >
-                <item.icon size={14} strokeWidth={2.2} />
-                {item.label}
-              </NavLink>
-            ))}
-          </div>
-
-          {loggedIn ? (
-            <div ref={userMenuRef} className="relative shrink-0">
-              <button
-                onClick={() => setActivePanel(p => p === 'userMenu' ? null : 'userMenu')}
-                className="grid h-9 w-9 place-items-center rounded-full text-sm font-black text-white shadow-md transition-opacity hover:opacity-85"
-                style={{ background: avatarColor ?? 'linear-gradient(135deg, #cbd5e1, #64748b)' }}
-                aria-label="開啟使用者選單"
-              >
-                {avatarInitial}
-              </button>
-              {showUserMenu && (
-                <UserMenuDropdown
-                  userName={userName}
-                  userEmail={userEmail}
-                  onAccount={() => { closeAll(); navigate('/account') }}
-                  onLogout={confirmLogout}
-                />
-              )}
-            </div>
-          ) : (
-            <div className="flex shrink-0 items-center gap-2">
-              <button
-                onClick={() => navigate('/login')}
-                className="rounded-2xl border border-line px-4 py-2 text-sm font-semibold text-ink-2 transition-colors hover:bg-raised hover:text-ink"
-              >
-                登入
-              </button>
-              <button
-                onClick={() => navigate('/register')}
-                className="rounded-2xl bg-brand px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
-              >
-                免費加入
-              </button>
-            </div>
-          )}
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="grid h-9 w-9 place-items-center rounded-full text-ink-2 transition-colors hover:bg-raised hover:text-ink"
+            aria-label="開啟選單"
+          >
+            <Menu size={20} strokeWidth={2} />
+          </button>
         </nav>
 
         {/* Mobile header */}
@@ -190,33 +122,135 @@ export default function AppNav({ variant = 'side' }) {
               <span className="text-brand">Party</span><span className="text-ink">Match</span>
             </span>
           </Link>
-          {loggedIn ? (
-            <div ref={userMenuMobileRef} className="relative">
-              <button
-                onClick={() => setActivePanel(p => p === 'userMenu' ? null : 'userMenu')}
-                className="grid h-9 w-9 place-items-center rounded-full text-sm font-black text-white shadow-md"
-                style={{ background: avatarColor ?? 'linear-gradient(135deg, #cbd5e1, #64748b)' }}
-              >
-                {avatarInitial}
-              </button>
-              {showUserMenu && (
-                <UserMenuDropdown
-                  userName={userName}
-                  userEmail={userEmail}
-                  onAccount={() => { closeAll(); navigate('/account') }}
-                  onLogout={confirmLogout}
-                />
-              )}
-            </div>
-          ) : (
-            <button
-              onClick={() => navigate('/login')}
-              className="rounded-xl border border-line px-3 py-1.5 text-sm font-semibold text-ink-2 transition-colors hover:bg-raised"
-            >
-              登入
-            </button>
-          )}
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-colors hover:bg-raised hover:text-ink"
+            aria-label="開啟選單"
+          >
+            <Menu size={22} strokeWidth={2} />
+          </button>
         </header>
+
+        {/* Shared drawer overlay */}
+        <div
+          onClick={() => setDrawerOpen(false)}
+          className={`fixed inset-0 z-50 bg-black/50 transition-opacity duration-300 ${
+            drawerOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
+          }`}
+        />
+
+        {/* Shared drawer */}
+        <div
+          className={`fixed inset-y-0 right-0 z-[51] flex w-72 flex-col bg-white shadow-2xl transition-transform duration-300 ease-out ${
+            drawerOpen ? 'translate-x-0' : 'translate-x-full'
+          }`}
+        >
+          <div className="flex h-14 shrink-0 items-center justify-between border-b border-line px-4">
+            <span className="text-base font-extrabold">
+              <span className="text-brand">Party</span><span className="text-ink">Match</span>
+            </span>
+            <button
+              onClick={() => setDrawerOpen(false)}
+              className="grid h-11 w-11 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+              aria-label="關閉選單"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          <nav className="flex-1 overflow-y-auto px-3 py-4">
+            {NAV_SECTIONS.map((section, i) => (
+              <Fragment key={section.label}>
+                {i > 0 && <div className="my-2 h-px bg-line-subtle" />}
+                <p className="mb-1 mt-1 px-3 text-xs font-extrabold uppercase tracking-widest text-ink-4">
+                  {section.label}
+                </p>
+                {section.items.filter(item => item.to).map(item => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    onClick={closeAll}
+                    className={({ isActive }) =>
+                      `flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm transition-colors ${
+                        isActive
+                          ? 'bg-brand-subtle font-extrabold text-brand'
+                          : 'font-bold text-ink-2 hover:bg-raised hover:text-brand'
+                      }`
+                    }
+                  >
+                    <item.icon size={20} strokeWidth={2.1} />
+                    {item.label}
+                  </NavLink>
+                ))}
+              </Fragment>
+            ))}
+          </nav>
+
+          <div className="shrink-0 border-t border-line px-3 pb-8 pt-3">
+            {loggedIn ? (
+              <div ref={userMenuRef} className="relative">
+                <button
+                  onClick={() => setActivePanel(p => p === 'userMenu' ? null : 'userMenu')}
+                  className="flex h-14 w-full items-center gap-3 rounded-2xl px-3 text-left transition-colors hover:bg-raised"
+                  aria-label="開啟使用者選單"
+                >
+                  <span
+                    className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-black text-white shadow-md"
+                    style={{ background: avatarColor ?? 'linear-gradient(135deg, #cbd5e1, #64748b)' }}
+                  >
+                    {avatarInitial}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-extrabold text-ink">{userName}</p>
+                    <p className="truncate text-xs text-ink-3">{userEmail}</p>
+                  </div>
+                  <ChevronDown
+                    size={16}
+                    className={`shrink-0 text-ink-3 transition-transform duration-200 ${showUserMenu ? 'rotate-180' : ''}`}
+                  />
+                </button>
+                {showUserMenu && (
+                  <div className="absolute bottom-full left-0 right-0 mb-2 overflow-hidden rounded-2xl border border-line bg-white p-2 shadow-popover">
+                    <button
+                      onClick={() => { closeAll(); navigate('/account') }}
+                      className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-brand"
+                    >
+                      <User size={16} />
+                      帳號中心
+                    </button>
+                    <div className="my-1 h-px bg-line-subtle" />
+                    <button
+                      onClick={confirmLogout}
+                      className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold text-danger transition-colors hover:bg-danger-subtle"
+                    >
+                      <LogOut size={16} />
+                      登出
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-1">
+                <Link
+                  to="/register"
+                  onClick={closeAll}
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-brand text-sm font-bold text-white transition-colors hover:bg-brand-hover"
+                >
+                  <UserPlus size={18} strokeWidth={2.1} />
+                  免費註冊
+                </Link>
+                <Link
+                  to="/login"
+                  onClick={closeAll}
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-line text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-brand"
+                >
+                  <LogIn size={18} strokeWidth={2.1} />
+                  登入
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
 
       </>
     )
@@ -226,7 +260,7 @@ export default function AppNav({ variant = 'side' }) {
     <>
       {/* Desktop floating sidebar */}
       <aside
-        className={`group/nav fixed bottom-3 left-3 top-3 z-50 hidden flex-col rounded-2xl border border-line bg-white shadow-sm transition-[width] duration-300 ease-out md:flex ${
+        className={`group/nav fixed bottom-4 left-4 top-4 z-50 hidden flex-col rounded-2xl border border-line bg-white shadow-sm transition-[width] duration-300 ease-out md:flex ${
           showUserMenu ? '' : 'overflow-hidden'
         } ${
           showSearch ? 'w-0' : 'w-16 hover:w-56 focus-within:w-56'
@@ -235,10 +269,10 @@ export default function AppNav({ variant = 'side' }) {
         <Link
           to="/"
           onClick={closeAll}
-          className="flex h-20 shrink-0 items-center gap-3 px-3.5"
+          className="flex h-16 shrink-0 items-center gap-3 px-4"
           aria-label="回首頁"
         >
-          <img src="/src/assets/Logo.svg" alt="PartyMatch" className="h-9 w-9 shrink-0" />
+          <img src="/src/assets/Logo.svg" alt="PartyMatch" className="h-8 w-8 shrink-0" />
           <span className="whitespace-nowrap text-[1.1rem] font-extrabold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
             <span className="text-brand">Party</span><span className="text-ink">Match</span>
           </span>
@@ -326,7 +360,7 @@ export default function AppNav({ variant = 'side' }) {
                   </button>
                   <div className="my-1 h-px bg-line-subtle" />
                   <button
-                    onClick={() => confirmLogout()}
+                    onClick={confirmLogout}
                     className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-danger transition-colors hover:bg-danger-subtle"
                   >
                     <LogOut size={16} />
@@ -369,7 +403,7 @@ export default function AppNav({ variant = 'side' }) {
       {/* Desktop floating search panel */}
       <div
         ref={searchPanelRef}
-        className={`fixed bottom-3 left-3 top-3 z-50 hidden w-80 flex-col overflow-hidden rounded-2xl bg-white shadow-md transition-all duration-300 ease-out md:flex ${
+        className={`fixed bottom-4 left-4 top-4 z-50 hidden w-80 flex-col overflow-hidden rounded-2xl bg-white shadow-md transition-all duration-300 ease-out md:flex ${
           showSearch ? 'translate-x-0 opacity-100' : '-translate-x-4 opacity-0 pointer-events-none'
         }`}
       >
@@ -584,10 +618,14 @@ export default function AppNav({ variant = 'side' }) {
           ))}
         </nav>
 
-        <div className="shrink-0 space-y-1 border-t border-line px-3 pb-8 pt-3">
+        <div className="shrink-0 border-t border-line px-3 pb-8 pt-3">
           {loggedIn ? (
-            <>
-              <div className="flex items-center gap-3 rounded-2xl px-3 py-2.5">
+            <div ref={userMenuMobileRef} className="relative">
+              <button
+                onClick={() => setActivePanel(p => p === 'userMenu' ? null : 'userMenu')}
+                className="flex h-14 w-full items-center gap-3 rounded-2xl px-3 text-left transition-colors hover:bg-raised"
+                aria-label="開啟使用者選單"
+              >
                 <span
                   className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-black text-white shadow-md"
                   style={{ background: avatarColor ?? 'linear-gradient(135deg, #cbd5e1, #64748b)' }}
@@ -599,24 +637,33 @@ export default function AppNav({ variant = 'side' }) {
                   <p className="truncate text-sm font-extrabold text-ink">{userName}</p>
                   <p className="truncate text-xs text-ink-3">{userEmail}</p>
                 </div>
-              </div>
-              <button
-                onClick={() => { closeAll(); navigate('/account') }}
-                className="flex h-11 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-brand"
-              >
-                <User size={20} strokeWidth={2.1} />
-                帳號中心
+                <ChevronDown
+                  size={16}
+                  className={`shrink-0 text-ink-3 transition-transform duration-200 ${showUserMenu ? 'rotate-180' : ''}`}
+                />
               </button>
-              <button
-                onClick={() => confirmLogout()}
-                className="flex h-11 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-danger transition-colors hover:bg-danger-subtle"
-              >
-                <LogOut size={20} strokeWidth={2.1} />
-                登出
-              </button>
-            </>
+              {showUserMenu && (
+                <div className="absolute bottom-full left-0 right-0 mb-2 overflow-hidden rounded-2xl border border-line bg-white p-2 shadow-popover">
+                  <button
+                    onClick={() => { closeAll(); navigate('/account') }}
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-brand"
+                  >
+                    <User size={16} />
+                    帳號中心
+                  </button>
+                  <div className="my-1 h-px bg-line-subtle" />
+                  <button
+                    onClick={confirmLogout}
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold text-danger transition-colors hover:bg-danger-subtle"
+                  >
+                    <LogOut size={16} />
+                    登出
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
-            <>
+            <div className="space-y-1">
               <Link
                 to="/register"
                 onClick={closeAll}
@@ -633,7 +680,7 @@ export default function AppNav({ variant = 'side' }) {
                 <LogIn size={18} strokeWidth={2.1} />
                 登入
               </Link>
-            </>
+            </div>
           )}
         </div>
       </div>
