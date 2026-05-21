@@ -1,17 +1,15 @@
 import { createBrowserRouter } from 'react-router-dom'
 import AppLayout from '../shared/components/layout/AppLayout'
-import LandingPage from '../pages/landing/LandingPage'
-import AboutPage from '../pages/about/AboutPage'
+import HomePage from '../pages/home/HomePage'
 import ExplorePage from '../pages/explore/ExplorePage'
-import QuickMatchPage from '../pages/quick-match/QuickMatchPage'
-import QuickMatchResultPage from '../pages/quick-match/QuickMatchResultPage'
-import GroupDetailPage from '../pages/group-detail/GroupDetailPage'
-import CreateGroupPage from '../pages/create-group/CreateGroupPage'
-import ManageGroupsPage from '../pages/manage-groups/ManageGroupsPage'
-import MySubscriptionsPage from '../pages/my-subscriptions/MySubscriptionsPage'
-import AccountCenterPage from '../pages/account/AccountCenterPage'
+import MatchPage from '../pages/match/MatchPage'
+import MatchResultPage from '../pages/match/MatchResultPage'
+import GroupPage from '../pages/group/GroupPage'
+import CreatePage from '../pages/create/CreatePage'
+import ManagePage from '../pages/manage/ManagePage'
+import SubscriptionsPage from '../pages/subscriptions/SubscriptionsPage'
+import AccountPage from '../pages/account/AccountPage'
 import FavoritesPage from '../pages/favorites/FavoritesPage'
-import MessagesPage from '../pages/messages/MessagesPage'
 import LoginPage from '../pages/auth/login/LoginPage'
 import RegisterPage from '../pages/auth/register/RegisterPage'
 import ForgotPasswordPage from '../pages/auth/forgot-password/ForgotPasswordPage'
@@ -19,7 +17,7 @@ import ProtectedRoute from '../shared/components/route/ProtectedRoute'
 import PublicOnlyRoute from '../shared/components/route/PublicOnlyRoute'
 
 const router = createBrowserRouter([
-  { path: '/', element: <LandingPage /> },
+  { path: '/', element: <HomePage /> },
   {
     element: <PublicOnlyRoute />,
     children: [
@@ -33,19 +31,17 @@ const router = createBrowserRouter([
     element: <AppLayout />,
     children: [
       { path: 'explore',         element: <ExplorePage /> },
-      { path: 'about',           element: <AboutPage /> },
-      { path: 'groups/:groupId', element: <GroupDetailPage /> },
+      { path: 'groups/:groupId', element: <GroupPage /> },
       {
         element: <ProtectedRoute />,
         children: [
-          { path: 'quick-match',         element: <QuickMatchPage /> },
-          { path: 'quick-match/results', element: <QuickMatchResultPage /> },
-          { path: 'create-group',        element: <CreateGroupPage /> },
-          { path: 'manage-groups',       element: <ManageGroupsPage /> },
-          { path: 'my-subscriptions',    element: <MySubscriptionsPage /> },
+          { path: 'quick-match',         element: <MatchPage /> },
+          { path: 'quick-match/results', element: <MatchResultPage /> },
+          { path: 'create-group',        element: <CreatePage /> },
+          { path: 'manage-groups',       element: <ManagePage /> },
+          { path: 'my-subscriptions',    element: <SubscriptionsPage /> },
           { path: 'favorites',           element: <FavoritesPage /> },
-          { path: 'messages',            element: <MessagesPage /> },
-          { path: 'account',             element: <AccountCenterPage /> },
+          { path: 'account',             element: <AccountPage /> },
         ],
       },
     ],

@@ -9,7 +9,7 @@ import SectionCard from '../../shared/components/ui/SectionCard'
 
 const PREVIEW_COUNT = 3
 
-export default function GroupDetailPage() {
+export default function GroupPage() {
   const { groupId } = useParams()
   const navigate = useNavigate()
   const [showAllReviews, setShowAllReviews] = useState(false)

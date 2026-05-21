@@ -20,7 +20,7 @@ function loadConditions() {
   }
 }
 
-export default function QuickMatchResultPage() {
+export default function MatchResultPage() {
   const navigate = useNavigate()
   const conditions = useMemo(() => loadConditions(), [])
   const results = useMemo(() => matchGroups(getGroups(), conditions), [conditions])

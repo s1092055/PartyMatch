@@ -38,7 +38,7 @@ function filterSubs(subs, tab) {
   }
 }
 
-export default function MySubscriptionsPage() {
+export default function SubscriptionsPage() {
   const navigate = useNavigate()
   const activeUser = getActiveUser()
   const [activeTab, setActiveTab] = useState('all')

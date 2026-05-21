@@ -47,7 +47,7 @@ function loadManageData(activeUser) {
   return { hostedGroups, applications, members, seatMap }
 }
 
-export default function ManageGroupsPage() {
+export default function ManagePage() {
   const navigate = useNavigate()
   const activeUser = getActiveUser()
 

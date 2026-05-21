@@ -18,7 +18,7 @@ const TABS = [
   { value: 'settings',      label: '設定'     },
 ]
 
-export default function AccountCenterPage() {
+export default function AccountPage() {
   const [activeTab, setActiveTab] = useState('profile')
   const [user, setUser] = useState({
     ...getActiveUserProfile(),

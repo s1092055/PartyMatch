@@ -97,7 +97,7 @@ function getFirstInvalidStep(form) {
   return [1, 2, 3].find(step => getStepErrors(step, form).length > 0) ?? null
 }
 
-export default function CreateGroupPage() {
+export default function CreatePage() {
   const navigate = useNavigate()
   const [step, setStep]               = useState(1)
   const [form, setForm]               = useState(INITIAL_FORM)

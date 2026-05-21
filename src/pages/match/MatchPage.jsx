@@ -29,7 +29,7 @@ function StepHeader({ number, title, subtitle }) {
   )
 }
 
-export default function QuickMatchPage() {
+export default function MatchPage() {
   const navigate = useNavigate()
   const [conditions, setConditions] = useState(DEFAULT_CONDITIONS)
 
