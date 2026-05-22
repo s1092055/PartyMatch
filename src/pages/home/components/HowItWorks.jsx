@@ -55,7 +55,7 @@ function TutorialModal({ initialIndex, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[55] flex items-center justify-center bg-black/50 px-4"
       onClick={handleClose}
     >
       <div
