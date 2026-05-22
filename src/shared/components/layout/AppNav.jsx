@@ -98,8 +98,8 @@ export default function AppNav({ variant = 'side' }) {
     return (
       <>
         {/* Desktop floating bar */}
-        <nav className="fixed left-4 right-4 top-4 z-50 hidden items-center justify-between rounded-2xl border border-line bg-white px-5 py-3 shadow-sm md:flex">
-          <Link to="/" className="flex shrink-0 items-center gap-2.5" aria-label="回首頁">
+        <nav className="fixed left-4 right-4 top-4 z-50 hidden items-center justify-between rounded-2xl border border-line bg-white shadow-sm md:flex">
+          <Link to="/" className="flex h-16 shrink-0 items-center gap-2.5 px-4" aria-label="回首頁">
             <img src="/src/assets/Logo.svg" alt="PartyMatch" className="h-8 w-8" />
             <span className="text-[1.1rem] font-extrabold">
               <span className="text-brand">Party</span><span className="text-ink">Match</span>
@@ -107,7 +107,7 @@ export default function AppNav({ variant = 'side' }) {
           </Link>
           <button
             onClick={() => setDrawerOpen(true)}
-            className="grid h-9 w-9 place-items-center rounded-full text-ink-2 transition-colors hover:bg-raised hover:text-ink"
+            className="mr-4 grid h-9 w-9 place-items-center rounded-full text-ink-2 transition-colors hover:bg-raised hover:text-ink"
             aria-label="開啟選單"
           >
             <Menu size={20} strokeWidth={2} />
