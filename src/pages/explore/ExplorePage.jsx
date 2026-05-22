@@ -1,6 +1,6 @@
 import { startTransition, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowRight, Compass, Sparkles, X, Zap } from 'lucide-react'
+import { ArrowRight, Compass, Search, Sparkles, X, Zap } from 'lucide-react'
 import { getGroups } from '../../shared/stores/groupStore'
 import { getServiceTypeById } from '../../shared/services/serviceTypes'
 import { getActiveUser } from '../../shared/stores/userStore'
@@ -77,7 +77,17 @@ export default function ExplorePage() {
 
   return (
     <div className="px-2 md:px-4 lg:px-8 lg:px-16">
-      <PageHeader title="探索群組" className="mb-6 text-center" />
+      <PageHeader title="探索群組" className="mb-4 text-center" />
+
+      <div className="mx-auto mb-6 max-w-lg">
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent('pm:open-search'))}
+          className="flex w-full items-center gap-3 rounded-2xl border border-line bg-white px-4 py-3 text-sm text-ink-3 shadow-sm transition-colors hover:border-brand/40 hover:bg-raised"
+        >
+          <Search size={16} className="shrink-0 text-ink-3" />
+          搜尋群組、服務名稱...
+        </button>
+      </div>
 
       <FilterBar filters={filters} onChange={handleFilterChange} />
 

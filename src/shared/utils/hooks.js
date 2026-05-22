@@ -1,5 +1,18 @@
 import { useEffect } from 'react'
 
+export function useScrollLock(enabled) {
+  useEffect(() => {
+    if (!enabled) return
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
+    document.documentElement.style.overflowY = 'hidden'
+    document.documentElement.style.paddingRight = `${scrollbarWidth}px`
+    return () => {
+      document.documentElement.style.overflowY = ''
+      document.documentElement.style.paddingRight = ''
+    }
+  }, [enabled])
+}
+
 export function useClickOutside(enabled, refs, onClose) {
   useEffect(() => {
     if (!enabled) return

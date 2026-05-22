@@ -9,6 +9,7 @@ import {
   searchGroups,
 } from '../../utils/searchUtils'
 import ServiceLogo from '../ui/ServiceLogo'
+import { useScrollLock } from '../../utils/hooks'
 
 export default function MobileSearch() {
   const navigate = useNavigate()
@@ -19,15 +20,16 @@ export default function MobileSearch() {
 
   const searchResults = useMemo(() => searchGroups(searchQuery), [searchQuery])
 
+  useScrollLock(isOpen)
+
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden'
       setTimeout(() => inputRef.current?.focus(), 100)
     } else {
-      document.body.style.overflow = ''
-      setTimeout(() => setSearchQuery(''), 0)
+      let alive = true
+      const timer = setTimeout(() => { if (alive) setSearchQuery('') }, 0)
+      return () => { alive = false; clearTimeout(timer) }
     }
-    return () => { document.body.style.overflow = '' }
   }, [isOpen])
 
   useEffect(() => {
@@ -64,35 +66,34 @@ export default function MobileSearch() {
 
   return (
     <>
-      
+      {/* Backdrop */}
       <div
         onClick={() => setIsOpen(false)}
-        className={`fixed inset-0 z-[55] bg-black/50 transition-opacity duration-300 md:hidden ${
+        className={`fixed inset-0 z-[55] bg-black/50 transition-opacity duration-200 ${
           isOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
       />
 
-<div
-        className={`fixed bottom-0 left-0 right-0 z-[56] flex max-h-[85vh] flex-col rounded-t-2xl bg-white transition-transform duration-300 ease-out md:hidden ${
-          isOpen ? 'translate-y-0' : 'translate-y-full'
+      {/* Modal */}
+      <div
+        className={`fixed left-1/2 top-1/2 z-[56] flex h-[85vh] w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl bg-white shadow-2xl transition-all duration-200 ${
+          isOpen ? 'scale-100 opacity-100' : 'pointer-events-none scale-95 opacity-0'
         }`}
       >
-        
-        <div className="flex shrink-0 flex-col items-center pt-3">
-          <div className="mb-3 h-1 w-10 rounded-full bg-slate-200" />
-          <div className="flex w-full items-center justify-between px-5 pb-3">
-            <h2 className="text-lg font-extrabold text-ink">搜尋</h2>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
-              aria-label="關閉"
-            >
-              <X size={18} />
-            </button>
-          </div>
+        {/* Header */}
+        <div className="flex shrink-0 items-center justify-between border-b border-line px-5 py-4">
+          <h2 className="text-lg font-extrabold text-ink">搜尋</h2>
+          <button
+            onClick={() => setIsOpen(false)}
+            className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+            aria-label="關閉"
+          >
+            <X size={18} />
+          </button>
         </div>
 
-<div className="shrink-0 px-5 pb-4">
+        {/* Search input */}
+        <div className="shrink-0 px-5 py-4">
           <div className="relative">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3" />
             <input
@@ -117,7 +118,8 @@ export default function MobileSearch() {
 
         <div className="h-px shrink-0 bg-line-subtle" />
 
-<div className="flex-1 overflow-y-auto px-4 py-4">
+        {/* Results */}
+        <div className="flex-1 overflow-y-auto px-4 py-4">
           {searchQuery === '' ? (
             recentSearches.length > 0 ? (
               <>
@@ -196,7 +198,7 @@ export default function MobileSearch() {
           )}
         </div>
 
-{searchQuery && (
+        {searchQuery && (
           <div className="shrink-0 border-t border-line px-4 py-3">
             <button
               onClick={() => handleSearchSubmit()}
@@ -207,8 +209,6 @@ export default function MobileSearch() {
             </button>
           </div>
         )}
-
-<div className="h-safe-bottom shrink-0" />
       </div>
     </>
   )
