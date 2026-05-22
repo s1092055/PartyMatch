@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { RouterProvider } from 'react-router-dom'
 import router from './router'
+import ToastContainer from '../shared/components/ui/ToastContainer'
 import { initAuth } from '../shared/stores/authStore'
 import { initGroups } from '../shared/stores/groupStore'
 import { initApplications } from '../shared/stores/applicationStore'
@@ -39,5 +40,10 @@ export default function App() {
     )
   }
 
-  return <RouterProvider router={router} />
+  return (
+    <>
+      <RouterProvider router={router} />
+      <ToastContainer />
+    </>
+  )
 }

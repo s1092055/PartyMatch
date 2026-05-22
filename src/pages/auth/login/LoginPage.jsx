@@ -4,6 +4,7 @@ import { Lock, Mail } from 'lucide-react'
 import AuthLayout, { AuthInput, AuthDivider, GoogleMark, PasswordToggle } from '../../../shared/components/auth/AuthLayout'
 import Button from '../../../shared/components/ui/Button'
 import { loginUser } from '../../../shared/stores/authStore'
+import { toast } from '../../../shared/utils/toast'
 
 function safeRedirect(path) {
   return path?.startsWith('/') ? path : '/'
@@ -30,6 +31,7 @@ export default function LoginPage() {
       setError(result.error)
       return
     }
+    toast('登入成功！歡迎回來')
     navigate(safeRedirect(searchParams.get('redirectTo')), { replace: true })
   }
 
