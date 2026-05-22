@@ -1,4 +1,4 @@
-import { Compass, CreditCard, Heart, LayoutGrid, PlusCircle, Zap } from 'lucide-react'
+import { Bell, Compass, CreditCard, Heart, LayoutGrid, MessageSquare, PlusCircle, Zap } from 'lucide-react'
 
 export const NAV_SECTIONS = [
   {
@@ -12,15 +12,17 @@ export const NAV_SECTIONS = [
   {
     label: '我的帳號',
     items: [
-      { to: '/my-subscriptions', label: '我的訂閱', icon: CreditCard },
-      { to: '/favorites',        label: '我的收藏', icon: Heart },
+      { to: '/my-subscriptions', label: '我的訂閱',  icon: CreditCard },
+      { to: '/favorites',        label: '我的收藏',  icon: Heart },
+      { type: 'messages',        label: '訊息中心',  icon: MessageSquare },
+      { type: 'notify',          label: '通知',      icon: Bell },
     ],
   },
   {
     label: '團主專區',
     items: [
       { to: '/manage-groups', label: '群組管理', icon: LayoutGrid },
-      { to: '/create-group',  label: '建立群組', icon: PlusCircle },
+      { type: 'create',       label: '建立群組', icon: PlusCircle },
     ],
   },
 ]

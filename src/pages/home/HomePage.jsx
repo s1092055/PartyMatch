@@ -2,6 +2,10 @@ import { useNavigate } from 'react-router-dom'
 import { AlertTriangle, ArrowRight } from 'lucide-react'
 import { isAuthenticated } from '../../shared/stores/authStore'
 import AppNav from '../../shared/components/layout/AppNav'
+import MobileSearch from '../../shared/components/layout/MobileSearch'
+import ScrollToTop from '../../shared/components/layout/ScrollToTop'
+import CreateGroupModal from '../create/CreateGroupModal'
+import MessagesModal from '../messages/MessagesModal'
 import ServiceLogo from '../../shared/components/ui/ServiceLogo'
 import FeatureCards from './components/FeatureCards'
 import HowItWorks from './components/HowItWorks'
@@ -47,6 +51,10 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-canvas text-ink">
       <AppNav variant="top" />
+      <MobileSearch />
+      <ScrollToTop />
+      <MessagesModal />
+      <CreateGroupModal />
 
       <section className="mx-auto max-w-5xl px-5 pb-16 pt-20 text-center md:pt-28">
         <img src="/src/assets/Logo.svg" alt="PartyMatch" className="mx-auto mb-5 h-16 w-auto" />

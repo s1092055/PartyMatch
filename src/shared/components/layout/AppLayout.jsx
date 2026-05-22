@@ -3,8 +3,11 @@ import { Outlet, useLocation } from 'react-router-dom'
 import AppNav from './AppNav'
 import MobileSearch from './MobileSearch'
 import FloatingMessages from './FloatingMessages'
+import BackToTopButton from './ScrollToTop'
+import CreateGroupModal from '../../../pages/create/CreateGroupModal'
+import MessagesModal from '../../../pages/messages/MessagesModal'
 
-function ScrollToTop() {
+function RouteScrollReset() {
   const { pathname } = useLocation()
   useEffect(() => { window.scrollTo(0, 0) }, [pathname])
   return null
@@ -13,7 +16,7 @@ function ScrollToTop() {
 export default function AppLayout() {
   return (
     <div className="min-h-screen bg-canvas">
-      <ScrollToTop />
+      <RouteScrollReset />
       <AppNav />
       <main className="min-h-screen pt-14 md:ml-24 md:pt-0">
         <div className="mx-auto max-w-7xl px-4 py-6 md:px-6 lg:px-10 lg:py-8">
@@ -22,6 +25,9 @@ export default function AppLayout() {
       </main>
       <MobileSearch />
       <FloatingMessages />
+      <MessagesModal />
+      <BackToTopButton />
+      <CreateGroupModal />
     </div>
   )
 }
