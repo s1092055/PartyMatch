@@ -12,6 +12,7 @@ import { createGroup, getGroupsByHostId } from '../../shared/stores/groupStore'
 import { getServiceById } from '../../shared/services/serviceTypes'
 import { computeNextBillingDate } from '../../shared/utils/date'
 import { getActiveUser } from '../../shared/stores/userStore'
+import { useScrollLock } from '../../shared/utils/hooks'
 
 const STEPS = [Step1Service, Step2Plan, Step3Settings, Step4Preview]
 
@@ -97,12 +98,36 @@ function getFirstInvalidStep(form) {
   return [1, 2, 3].find(step => getStepErrors(step, form).length > 0) ?? null
 }
 
-export default function CreatePage() {
+export default function CreateGroupModal() {
   const navigate = useNavigate()
+  const [isOpen, setIsOpen]           = useState(false)
   const [step, setStep]               = useState(1)
   const [form, setForm]               = useState(INITIAL_FORM)
   const [submitted, setSubmitted]     = useState(false)
   const [newGroupId, setNewGroupId]   = useState(null)
+
+  useScrollLock(isOpen)
+
+  useEffect(() => {
+    function handler() {
+      setIsOpen(true)
+      setStep(1)
+      setForm(INITIAL_FORM)
+      setSubmitted(false)
+      setNewGroupId(null)
+    }
+    window.addEventListener('pm:open-create', handler)
+    return () => window.removeEventListener('pm:open-create', handler)
+  }, [])
+
+  useEffect(() => {
+    if (!isOpen) return
+    function onKeyDown(e) { if (e.key === 'Escape') setIsOpen(false) }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [isOpen])
+
+  function handleClose() { setIsOpen(false) }
 
   function onChange(key, value) {
     setForm(prev => {
@@ -132,8 +157,6 @@ export default function CreatePage() {
   const stepErrors = getStepErrors(step, form)
   function canNext() { return stepErrors.length === 0 }
 
-  function handleClose() { navigate(-1) }
-
   function handleNext() {
     if (canNext() && step < 4) setStep(s => s + 1)
   }
@@ -150,34 +173,26 @@ export default function CreatePage() {
     const group = createGroup(groupData)
     setNewGroupId(group.id)
     setSubmitted(true)
-    setTimeout(() => navigate('/manage-groups'), 2500)
+    setTimeout(() => {
+      setIsOpen(false)
+      navigate('/manage-groups')
+    }, 2500)
   }
 
-useEffect(() => {
-    function onKeyDown(e) { if (e.key === 'Escape') navigate(-1) }
-    document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
-  }, [navigate])
-
-useEffect(() => {
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = '' }
-  }, [])
+  if (!isOpen) return null
 
   const StepComponent = STEPS[step - 1]
 
   return (
     <>
-      
       <div
-        className="fixed inset-0 z-[55] cursor-pointer bg-black/50 backdrop-blur-[2px]"
+        className="fixed inset-0 z-[55] cursor-pointer bg-black/50"
         onClick={handleClose}
       />
-
-<div className="fixed inset-0 z-[56] flex items-center justify-center p-4 md:p-8 pointer-events-none">
+      <div className="pointer-events-none fixed inset-0 z-[56] flex items-center justify-center p-4 md:p-8">
         <div className="pointer-events-auto relative flex w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl" style={{ maxHeight: 'min(88vh, 820px)' }}>
 
-<div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-4">
+          <div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-4">
             <div>
               <h2 className="text-lg font-extrabold text-ink">建立群組</h2>
               <p className="mt-0.5 text-xs text-ink-3">快速建立你專屬的共享群組，找到合適夥伴一起分攤費用</p>
@@ -191,11 +206,11 @@ useEffect(() => {
             </button>
           </div>
 
-<div className="shrink-0 px-6 pt-5">
+          <div className="shrink-0 px-6 pt-5">
             <CreateGroupStepper current={step} />
           </div>
 
-<div className="flex-1 overflow-y-auto px-6 pb-2">
+          <div className="flex-1 overflow-y-auto px-6 pb-2">
             {submitted ? (
               <div className="flex flex-col items-center justify-center gap-4 py-16">
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
@@ -205,7 +220,7 @@ useEffect(() => {
                 <p className="text-sm text-slate-500">正在跳轉到群組管理頁面…</p>
                 {newGroupId && (
                   <button
-                    onClick={() => navigate(`/groups/${newGroupId}`)}
+                    onClick={() => { setIsOpen(false); navigate(`/groups/${newGroupId}`) }}
                     className="text-sm text-blue-600 hover:underline"
                   >
                     立即查看群組詳情 →
@@ -214,7 +229,6 @@ useEffect(() => {
               </div>
             ) : (
               <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-                
                 <div className="min-w-0 flex-1">
                   <div className="card p-6">
                     <StepComponent form={form} onChange={onChange} />
@@ -233,43 +247,27 @@ useEffect(() => {
                   )}
                 </div>
 
-<div className="hidden lg:block w-full shrink-0 lg:w-72">
+                <div className="hidden w-full shrink-0 lg:block lg:w-72">
                   <LivePreviewPanel form={form} />
                 </div>
               </div>
             )}
           </div>
 
-{!submitted && (
+          {!submitted && (
             <div className="flex shrink-0 gap-3 border-t border-line px-6 py-4">
-              <Button
-                variant="secondary"
-                size="md"
-                className="flex-1"
-                onClick={handleBack}
-              >
+              <Button variant="secondary" size="md" className="flex-1" onClick={handleBack}>
                 <ChevronLeft size={15} />
                 {step === 1 ? '取消' : '上一步'}
               </Button>
 
               {step < 4 ? (
-                <Button
-                  variant="primary"
-                  size="md"
-                  className="flex-1"
-                  disabled={!canNext()}
-                  onClick={handleNext}
-                >
+                <Button variant="primary" size="md" className="flex-1" disabled={!canNext()} onClick={handleNext}>
                   下一步
                   <ChevronRight size={15} />
                 </Button>
               ) : (
-                <Button
-                  variant="success"
-                  size="md"
-                  className="flex-1"
-                  onClick={handleSubmit}
-                >
+                <Button variant="success" size="md" className="flex-1" onClick={handleSubmit}>
                   <Rocket size={15} />
                   送出並上架
                 </Button>
