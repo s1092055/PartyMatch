@@ -1,4 +1,4 @@
-import { CheckCircle2, Star, Users, Calendar, Banknote, ListChecks } from 'lucide-react'
+import { CheckCircle2, ShieldCheck, Users, Calendar, Banknote, ListChecks } from 'lucide-react'
 import { getServiceById } from '../../../../shared/services/serviceTypes'
 import { getActiveUserProfile } from '../../../../shared/stores/userStore'
 import Badge from '../../../../shared/components/ui/Badge'
@@ -42,7 +42,7 @@ export default function Step4Preview({ form }) {
             { icon: Banknote,  label: '月費', value: `NT$${form.pricePerSeat}` },
             { icon: Users,     label: '名額', value: `${form.totalSeats} 人` },
             { icon: Calendar,  label: '扣款日', value: `每月 ${form.nextBillingDay} 日` },
-            { icon: Star,      label: '加入', value: form.joinMode === 'instant' ? '立即' : '審核' },
+            { icon: ShieldCheck, label: '加入', value: '審核制' },
           ].map(({ icon: Icon, label, value }) => (
             <div key={label} className="bg-white rounded-xl p-2.5 text-center">
               <Icon size={14} className="text-slate-400 mx-auto mb-1" />
@@ -61,7 +61,7 @@ export default function Step4Preview({ form }) {
         <Row label="計費週期"   value={form.billingCycle === 'monthly' ? '月繳' : '年繳'} />
         <Row label="扣款日"     value={`每月 ${form.nextBillingDay} 日`} />
         <Row label="開放名額"   value={`${form.totalSeats} 人（含團主）`} />
-        <Row label="加入方式"   value={form.joinMode === 'instant' ? '立即加入' : '需要審核'} />
+        <Row label="加入方式"   value="需要審核" />
       </div>
 
 {form.rules.some(r => r.trim()) && (

@@ -3,7 +3,6 @@ import { daysUntil } from './date'
 function calcScore(group, conditions) {
   let score = 0
   if (group.isHostVerified) score += 2
-  if (group.joinMode === 'instant') score += 1
   if (group.hostRating >= 4.8) score += 2
   else if (group.hostRating >= 4.5) score += 1
   if (group.openSeats >= 3) score += 1
@@ -17,8 +16,6 @@ function buildReasons(group, conditions) {
   const reasons = []
   if (group.isHostVerified)
     reasons.push('已驗證團主，信任度高')
-  if (group.joinMode === 'instant')
-    reasons.push('支援立即加入，無需等待審核')
   if (group.hostRating >= 4.8)
     reasons.push(`評分 ${group.hostRating}，口碑極佳`)
   else if (group.hostRating >= 4.5)

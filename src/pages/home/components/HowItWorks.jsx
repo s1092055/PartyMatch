@@ -16,8 +16,8 @@ const STEPS = [
   },
   {
     step: 3,
-    title: '等待審核 / 立即加入',
-    desc: '審核制群組等候團主確認，即時加入群組則直接取得名額。',
+    title: '等待團主審核',
+    desc: '送出申請後，等候團主確認你的加入資格，通常在 24–48 小時內回覆。',
     videoUrl: null,
   },
   {
@@ -139,10 +139,11 @@ export default function HowItWorks() {
 
   return (
     <>
-      <section className="card p-6">
+      <section className="p-6">
         <div className="mb-6">
-          <h2 className="text-base font-extrabold text-ink text-center">如何使用 PartyMatch</h2>
-          <p className="mt-1 flex items-center gap-1 text-xs font-medium text-ink-3 justify-center">
+          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-ink-4 text-center">使用流程</p>
+          <h2 className="text-3xl font-extrabold text-ink text-center">如何使用 PartyMatch</h2>
+          <p className="mt-3 flex items-center gap-1 text-base text-ink-3 justify-center">
             <Play size={10} className="fill-current" />
             點擊任一步驟，即可觀看對應的教學影片
           </p>
@@ -161,8 +162,8 @@ export default function HowItWorks() {
                 </span>
               </div>
               <div>
-                <h3 className="text-sm font-extrabold text-ink">{title}</h3>
-                <p className="mt-1.5 text-sm font-medium leading-relaxed text-ink-3">{desc}</p>
+                <h3 className="text-base font-extrabold text-ink">{title}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-ink-3">{desc}</p>
                 <p className="mt-2 text-xs font-bold text-brand opacity-0 transition-opacity group-hover:opacity-100">
                   觀看教學 →
                 </p>

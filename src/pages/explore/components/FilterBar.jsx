@@ -1,19 +1,7 @@
 import { useMemo } from 'react'
-import { Film, Music2, Bot, Briefcase, Cloud, BookOpen, Gamepad2, Shield } from 'lucide-react'
 import { listServiceTypes } from '../../../shared/services/serviceTypes'
 import CustomSelect from '../../../shared/components/ui/CustomSelect'
-
-const CATEGORY_PILLS = [
-  { value: 'all',    label: '全部',    Icon: null },
-  { value: '影音',   label: '影音',    Icon: Film },
-  { value: '音樂',   label: '音樂',    Icon: Music2 },
-  { value: 'AI工具', label: 'AI 工具', Icon: Bot },
-  { value: '辦公',   label: '辦公',    Icon: Briefcase },
-  { value: '雲端',   label: '雲端',    Icon: Cloud },
-  { value: '學習',   label: '學習',    Icon: BookOpen },
-  { value: '遊戲',   label: '遊戲',    Icon: Gamepad2 },
-  { value: 'VPN',    label: 'VPN',     Icon: Shield },
-]
+import CategoryPills from '../../../shared/components/ui/CategoryPills'
 
 const PRICE_OPTIONS = [
   { value: 'any',  label: '不限價格' },
@@ -49,32 +37,11 @@ export default function FilterBar({ filters, onChange }) {
 
   return (
     <div className="mb-6 space-y-4">
-      <div className="flex gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:grid md:grid-cols-9 md:overflow-visible md:pb-0">
-        {CATEGORY_PILLS.map(s => {
-          const active = category === s.value
-          return (
-            <button
-              key={s.value}
-              onClick={() => onChange({ category: s.value, service: 'all' })}
-              className={`flex shrink-0 flex-col items-center justify-center gap-1 rounded-xl py-3.5 text-xs font-bold transition-all md:w-full md:gap-2 md:py-4 w-20 ${
-                active
-                  ? 'bg-raised text-ink md:scale-105'
-                  : 'bg-transparent text-ink-2 hover:text-ink md:hover:scale-105 md:hover:bg-raised md:hover:text-ink'
-              }`}
-            >
-              {s.value === 'all' ? (
-                <img src="/src/assets/Logo.svg" alt="PartyMatch" className="h-6 w-6 rounded-lg object-contain md:h-8 md:w-8" />
-              ) : s.Icon && (
-                <>
-                  <s.Icon size={24} className="md:hidden" strokeWidth={1.75} />
-                  <s.Icon size={28} className="hidden md:block" strokeWidth={1.75} />
-                </>
-              )}
-              <span className="text-[10px] md:text-sm">{s.label}</span>
-            </button>
-          )
-        })}
-      </div>
+      <CategoryPills
+        variant="grid"
+        active={category}
+        onChange={val => onChange({ category: val, service: 'all' })}
+      />
 
       <div className="flex flex-wrap gap-4 mt-6">
         <CustomSelect value={service} onChange={v => onChange({ service: v })} options={serviceOptions} />

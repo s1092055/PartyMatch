@@ -1,11 +1,6 @@
 import { Minus, Plus, X, PlusCircle } from 'lucide-react'
 import { getServiceById } from '../../../../shared/services/serviceTypes'
 
-const JOIN_MODES = [
-  { value: 'approval', label: '需要審核', desc: '你可以審查每位申請者' },
-  { value: 'instant',  label: '直接加入', desc: '符合條件即可立即加入' },
-]
-
 function Field({ label, required, children, hint, htmlFor }) {
   return (
     <div>
@@ -99,29 +94,6 @@ export default function Step3Settings({ form, onChange }) {
               新增規則
             </button>
           )}
-        </div>
-      </Field>
-
-<Field label="加入方式" required>
-        <div className="grid grid-cols-2 gap-3">
-          {JOIN_MODES.map(m => (
-            <button
-              key={m.value}
-              onClick={() => onChange('joinMode', m.value)}
-              className={`flex flex-col items-start p-4 rounded-xl border-2 text-left transition-all ${
-                form.joinMode === m.value
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-slate-200 bg-white hover:border-slate-300'
-              }`}
-            >
-              <span className={`text-sm font-semibold mb-0.5 ${
-                form.joinMode === m.value ? 'text-blue-700' : 'text-slate-700'
-              }`}>
-                {m.label}
-              </span>
-              <span className="text-xs text-slate-400">{m.desc}</span>
-            </button>
-          ))}
         </div>
       </Field>
     </div>

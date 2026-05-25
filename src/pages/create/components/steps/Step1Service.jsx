@@ -1,15 +1,27 @@
+import { useState } from 'react'
 import { Check, AlertCircle } from 'lucide-react'
 import { listServiceTypes } from '../../../../shared/services/serviceTypes'
 import ServiceLogo from '../../../../shared/components/ui/ServiceLogo'
+import CategoryPills from '../../../../shared/components/ui/CategoryPills'
+
+const ALL_SERVICES = listServiceTypes()
 
 export default function Step1Service({ form, onChange }) {
+  const [activeCategory, setActiveCategory] = useState('all')
+
+  const visible = activeCategory === 'all'
+    ? ALL_SERVICES
+    : ALL_SERVICES.filter(s => s.category === activeCategory)
+
   return (
     <div>
       <h2 className="text-base font-semibold text-slate-800 mb-1">選擇訂閱服務</h2>
-      <p className="text-sm text-slate-500 mb-5">選擇你想建立群組的訂閱服務（單選）</p>
+      <p className="text-sm text-slate-500 mb-4">選擇你想建立群組的訂閱服務（單選）</p>
+
+      <CategoryPills active={activeCategory} onChange={setActiveCategory} className="mb-4" />
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-        {listServiceTypes().map(service => {
+        {visible.map(service => {
           const active = form.serviceId === service.id
           return (
             <button
@@ -34,6 +46,9 @@ export default function Step1Service({ form, onChange }) {
             </button>
           )
         })}
+        {visible.length === 0 && (
+          <p className="col-span-full py-6 text-center text-sm text-ink-3">此分類尚無服務</p>
+        )}
       </div>
 
       {!form.serviceId && (

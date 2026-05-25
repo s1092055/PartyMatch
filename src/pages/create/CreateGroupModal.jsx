@@ -31,10 +31,7 @@ function mapFormToGroup(form) {
   const service = getServiceById(form.serviceId)
   const totalSeats = form.totalSeats
   const rules = form.rules.map(r => r.trim()).filter(Boolean)
-  const tags = [
-    service?.category,
-    form.joinMode === 'instant' ? '立即加入' : '需要審核',
-  ].filter(Boolean)
+  const tags = [service?.category].filter(Boolean)
 
   return {
     serviceId:       form.serviceId,
@@ -46,7 +43,7 @@ function mapFormToGroup(form) {
     totalSeats,
     usedSeats:       1,
     openSeats:       totalSeats - 1,
-    joinMode:        form.joinMode,
+    joinMode:        'approval',
     rules,
     tags,
     status:          'recruiting',
@@ -190,7 +187,7 @@ export default function CreateGroupModal() {
         onClick={handleClose}
       />
       <div className="pointer-events-none fixed inset-0 z-[56] flex items-center justify-center p-4 md:p-8">
-        <div className="pointer-events-auto relative flex w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl" style={{ maxHeight: 'min(88vh, 820px)' }}>
+        <div className="pointer-events-auto relative flex w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl" style={{ maxHeight: 'min(88vh, 820px)' }}>
 
           <div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-4">
             <div>

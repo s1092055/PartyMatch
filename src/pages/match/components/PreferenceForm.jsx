@@ -1,9 +1,3 @@
-const JOIN_MODES = [
-  { value: 'any',      label: '不限' },
-  { value: 'instant',  label: '立即加入' },
-  { value: 'approval', label: '審核加入' },
-]
-
 const RATING_MARKS = [3.0, 3.5, 4.0, 4.5, 4.8]
 
 function RangeSlider({ value, min, max, step, onChange, formatLabel }) {
@@ -35,11 +29,10 @@ function RangeSlider({ value, min, max, step, onChange, formatLabel }) {
 }
 
 export default function PreferenceForm({ conditions, onChange }) {
-  const { maxPrice, joinMode, minRating } = conditions
+  const { maxPrice, minRating } = conditions
 
   return (
     <div className="space-y-6">
-      
       <div>
         <div className="flex items-center justify-between mb-3">
           <label className="text-sm font-medium text-slate-700">預算上限</label>
@@ -55,26 +48,7 @@ export default function PreferenceForm({ conditions, onChange }) {
         />
       </div>
 
-<div>
-        <label className="text-sm font-medium text-slate-700 block mb-3">加入方式</label>
-        <div className="flex gap-2">
-          {JOIN_MODES.map(m => (
-            <button
-              key={m.value}
-              onClick={() => onChange('joinMode', m.value)}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                joinMode === m.value
-                  ? 'bg-brand text-white border-brand'
-                  : 'bg-white text-slate-600 border-line hover:border-brand-border'
-              }`}
-            >
-              {m.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-<div>
+      <div>
         <div className="flex items-center justify-between mb-3">
           <label className="text-sm font-medium text-slate-700">最低評分</label>
           <span className="text-sm font-bold text-warning">{minRating} 以上</span>

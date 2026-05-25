@@ -1,8 +1,8 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { useEffect } from 'react'
+import { createBrowserRouter, useNavigate } from 'react-router-dom'
 import AppLayout from '../shared/components/layout/AppLayout'
 import HomePage from '../pages/home/HomePage'
 import ExplorePage from '../pages/explore/ExplorePage'
-import MatchPage from '../pages/match/MatchPage'
 import MatchResultPage from '../pages/match/MatchResultPage'
 import GroupPage from '../pages/group/GroupPage'
 import ManagePage from '../pages/manage/ManagePage'
@@ -14,6 +14,27 @@ import RegisterPage from '../pages/auth/register/RegisterPage'
 import ForgotPasswordPage from '../pages/auth/forgot-password/ForgotPasswordPage'
 import ProtectedRoute from '../shared/components/route/ProtectedRoute'
 import PublicOnlyRoute from '../shared/components/route/PublicOnlyRoute'
+import DisclaimerPage from '../pages/legal/DisclaimerPage'
+import TermsPage from '../pages/legal/TermsPage'
+import PrivacyPage from '../pages/legal/PrivacyPage'
+
+function CreateGroupRedirect() {
+  const navigate = useNavigate()
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('pm:open-create'))
+    navigate('/manage-groups', { replace: true })
+  }, [])
+  return null
+}
+
+function QuickMatchRedirect() {
+  const navigate = useNavigate()
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('pm:open-match'))
+    navigate('/explore', { replace: true })
+  }, [])
+  return null
+}
 
 const router = createBrowserRouter([
   { path: '/', element: <HomePage /> },
@@ -31,12 +52,15 @@ const router = createBrowserRouter([
     children: [
       { path: 'explore',         element: <ExplorePage /> },
       { path: 'groups/:groupId', element: <GroupPage /> },
+      { path: 'disclaimer',      element: <DisclaimerPage /> },
+      { path: 'terms',           element: <TermsPage /> },
+      { path: 'privacy',         element: <PrivacyPage /> },
       {
         element: <ProtectedRoute />,
         children: [
-          { path: 'quick-match',         element: <MatchPage /> },
+          { path: 'quick-match',         element: <QuickMatchRedirect /> },
           { path: 'quick-match/results', element: <MatchResultPage /> },
-          { path: 'create-group',        element: <Navigate to="/" replace /> },
+          { path: 'create-group',        element: <CreateGroupRedirect /> },
           { path: 'manage-groups',       element: <ManagePage /> },
           { path: 'my-subscriptions',    element: <SubscriptionsPage /> },
           { path: 'favorites',           element: <FavoritesPage /> },

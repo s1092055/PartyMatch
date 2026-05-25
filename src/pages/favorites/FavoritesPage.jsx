@@ -6,7 +6,9 @@ import { getActiveUser } from '../../shared/stores/userStore'
 import PageHeader from '../../shared/components/layout/PageHeader'
 import { getFavoritesByUserId } from '../../shared/stores/favoriteStore'
 import { getGroupById } from '../../shared/stores/groupStore'
+import { getServiceById } from '../../shared/services/serviceTypes'
 import ExploreGroupCard from '../explore/components/ExploreGroupCard'
+import CategoryPills from '../../shared/components/ui/CategoryPills'
 
 function loadFavGroups() {
   const activeUser = getActiveUser()
@@ -20,12 +22,17 @@ function loadFavGroups() {
 export default function FavoritesPage() {
   const navigate = useNavigate()
   const [groups, setGroups] = useState(loadFavGroups)
+  const [activeCategory, setActiveCategory] = useState('all')
 
   function handleFavChange(isFav, groupId) {
     if (!isFav) {
       setGroups(prev => prev.filter(g => g.id !== groupId))
     }
   }
+
+  const filtered = activeCategory === 'all'
+    ? groups
+    : groups.filter(g => getServiceById(g.serviceId)?.category === activeCategory)
 
   return (
     <div className="px-2 md:px-4 lg:px-8">
@@ -34,6 +41,8 @@ export default function FavoritesPage() {
         className="mb-6 text-center"
       />
 
+      <CategoryPills variant="grid" active={activeCategory} onChange={setActiveCategory} className="mb-5" />
+
       {groups.length === 0 ? (
         <EmptyState
           icon={Heart}
@@ -41,13 +50,15 @@ export default function FavoritesPage() {
           description="在探索頁面或群組詳情頁點擊 ♥ 加入收藏"
           actionLabel="去探索群組"
           onAction={() => navigate('/explore')}
-          className="py-24"
+          className="py-16"
         />
+      ) : filtered.length === 0 ? (
+        <div className="py-16 text-center text-sm text-ink-3">此分類沒有收藏的群組</div>
       ) : (
         <>
-          <p className="text-xs text-ink-3 mb-4">共 {groups.length} 個收藏群組</p>
+          <p className="text-xs text-ink-3 mb-4">共 {filtered.length} 個收藏群組</p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {groups.map(group => (
+            {filtered.map(group => (
               <ExploreGroupCard
                 key={group.id}
                 group={group}

@@ -2,12 +2,11 @@ import { X, Sliders, ShieldCheck } from 'lucide-react'
 import { getServiceById } from '../../../shared/services/serviceTypes'
 import ServiceLogo from '../../../shared/components/ui/ServiceLogo'
 
-const JOIN_LABEL          = { any: '不限', instant: '立即加入', approval: '審核加入' }
 const BILLING_PERIOD_LABEL = { any: '不限', early: '月初（1–10 日）', mid: '月中（11–20 日）', late: '月底（21–31 日）' }
 const GROUP_AGE_LABEL      = { any: '不限', new: '三個月內', established: '三個月至一年', veteran: '一年以上' }
 
 export default function MatchSummaryPanel({ conditions, onClear }) {
-  const { services, maxPrice, joinMode, minRating, billingPeriod, groupAge } = conditions
+  const { services, maxPrice, minRating, billingPeriod, groupAge } = conditions
   const isEmpty = services.length === 0
 
   return (
@@ -53,7 +52,6 @@ export default function MatchSummaryPanel({ conditions, onClear }) {
 
 <div className="space-y-2.5 pt-2 border-t border-slate-100">
           <Row label="預算上限" value={`NT$${maxPrice} 以下`} />
-          <Row label="加入方式" value={JOIN_LABEL[joinMode] ?? '不限'} />
           <Row label="最低評分" value={`${minRating.toFixed(1)} 以上`} />
           <Row label="扣款日"   value={BILLING_PERIOD_LABEL[billingPeriod] ?? '不限'} />
           <Row label="群組年資" value={GROUP_AGE_LABEL[groupAge] ?? '不限'} />

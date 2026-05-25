@@ -35,7 +35,7 @@ export default function CustomSelect({ label, value, onChange, options }) {
           open ? 'border-brand shadow-[0_0_0_3px_rgb(8_102_242_/_0.14)]' : ''
         }`}
       >
-        <span className="flex-1 truncate text-center">{selectedLabel}</span>
+        <span className="flex-1 truncate text-left">{selectedLabel}</span>
         <ChevronDown
           size={15}
           className={`shrink-0 text-ink-3 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
@@ -62,7 +62,7 @@ export default function CustomSelect({ label, value, onChange, options }) {
                     : 'font-medium text-ink hover:bg-raised'
                 }`}
               >
-                <span className="flex-1 text-center">{o.label ?? o.name}</span>
+                <span className="flex-1 text-left">{o.label ?? o.name}</span>
                 {isSelected && <Check size={14} className="shrink-0" />}
               </li>
             )

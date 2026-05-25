@@ -8,7 +8,7 @@ import RecommendedGroupCard from './components/RecommendedGroupCard'
 import Button from '../../shared/components/ui/Button'
 
 const DEFAULT_CONDITIONS = {
-  services: ['spotify', 'youtube', 'disney'], maxPrice: 100, joinMode: 'any', minRating: 4.5,
+  services: ['spotify', 'youtube', 'disney'], maxPrice: 100, minRating: 4.5,
 }
 
 function loadConditions() {
@@ -64,7 +64,7 @@ export default function MatchResultPage() {
             <RotateCcw size={20} className="text-brand" />
           </button>
           <button
-            onClick={() => navigate('/quick-match')}
+            onClick={() => window.dispatchEvent(new CustomEvent('pm:open-match'))}
             className="flex w-full items-center justify-between px-5 py-4 text-left transition-colors hover:bg-raised"
           >
             <span>
@@ -97,7 +97,7 @@ export default function MatchResultPage() {
             試著調整預算上限、放寬評分要求，或選擇更多服務類型
           </p>
           <div className="flex justify-center gap-3">
-            <Button variant="primary" onClick={() => navigate('/quick-match')}>
+            <Button variant="primary" onClick={() => window.dispatchEvent(new CustomEvent('pm:open-match'))}>
               <RotateCcw size={14} />
               重新配對
             </Button>

@@ -11,18 +11,19 @@
 
 ## 功能
 
-- **首頁（Landing Page）**：行銷首頁，展示核心功能（FeatureCards）、使用教學（HowItWorks）、免責聲明；頂部浮動 AppNav（top variant）；Logo 點擊回首頁
-- **探索群組**：Marketplace 瀏覽版面；分類 Pills 篩選（影音、音樂、AI 工具、辦公、雲端、學習、遊戲、VPN）+ 次要篩選列（加入方式、價格、排序）；卡片顯示價格 → 分隔線 → 團主資訊 + 剩餘名額；共 30 種服務、26 個群組；Sidebar 與手機版 Drawer 搜尋按鈕皆可搜尋並導向探索頁篩選結果；自己是團主的群組不顯示在探索頁
-- **快速配對**：選服務 + 設定預算偏好，自動推薦最適合的群組
-- **申請加入**（審核制）或立即加入
-- **建立群組**（4 步驟表單）；方案費用依官方定價自動計算，名額上限依方案限制；費用由官方定價 ÷ 名額自動計算；可設定加入條件與規則
+- **首頁（Landing Page）**：行銷首頁，展示核心功能（FeatureCards）、使用教學（HowItWorks）、FAQ、頁尾（含法律文件連結）；頂部浮動 AppNav（top variant）；Logo 點擊回首頁
+- **探索群組**：Marketplace 瀏覽版面；分類圖示 Grid 篩選（影音、音樂、AI 工具、辦公、雲端、學習、遊戲、VPN）+ 次要篩選列（服務、價格、排序）；卡片顯示價格 → 分隔線 → 團主資訊 + 剩餘名額；共 30 種服務、26 個群組；Sidebar 與手機版 Drawer 搜尋按鈕皆可搜尋並導向探索頁篩選結果；自己是團主的群組不顯示在探索頁
+- **快速配對**（Modal）：以 `pm:open-match` 事件觸發；三步驟精靈（選服務→篩選條件→搜尋偏好）+ 右側配對條件摘要；選服務步驟支援分類 Grid 篩選；配對結果顯示最多 3 個推薦群組
+- **申請加入**（審核制，所有群組統一採用審核加入）
+- **建立群組**（Modal）：以 `pm:open-create` 事件觸發；4 步驟表單（選服務→選方案→加入設定→確認送出）；方案費用依官方定價自動計算；選服務步驟支援分類 Grid 篩選
 - **管理群組**：直式卡片（Badge → Logo → 服務名稱 → 2×2 資訊格：待處理申請 / 本期收款 / 付款狀態 / 每月收入）；點擊「待處理申請」格開啟該群組專屬審核視窗（每個群組獨立）；次要操作（準備續訂、查看歷史）收折至 ⋯ 選單；統一透過 GroupViewModal 管理成員付款、啟用服務；支援篩選分頁（全部 / 招募中 / 待啟用 / 已啟用 / 已停止 / 已取消）
 - **訂閱管理**：直式卡片（Badge → Logo → 服務名稱 → 帳單週期 chip + 下次扣款日 chip → 團主資訊 / 付款狀態 → 金額）；付款狀態追蹤、標記已付款、聯絡團主、查看付款歷史紀錄、申請紀錄（含審核中／已核准／已拒絕）；管理端與訂閱端共用 GroupViewModal
-- **訊息中心**：懸浮圖示固定於畫面右下角，點擊展開通知面板；通知分類（全部 / 付款 / 申請 / 系統）、標記已讀；未讀數紅點 badge
-- **收藏**：收藏感興趣的群組，取消收藏即時從清單移除
+- **訊息中心**（Modal）：以 `pm:open-messages` 事件觸發；通知分類（全部 / 付款 / 申請 / 系統）、標記已讀；未讀數紅點 badge
+- **收藏**：收藏感興趣的群組；分類 Grid 篩選；取消收藏即時從清單移除
 - **帳號中心**：個人資料、付款方式、通知偏好、安全驗證、設定
 - **登入 / 註冊 / 忘記密碼**：左上角「返回」按鈕導回首頁
-- **導航（AppNav）**：統一導航元件；應用頁顯示左側浮動側欄（side variant，收合 / 展開），首頁顯示頂部浮動橫列（top variant，僅含 Logo + 漢堡按鈕）；兩種 variant 的漢堡按鈕皆開啟右側抽屜（含導覽選單、使用者區塊）；手機版均以頂部 Header + 右滑抽屜呈現，抽屜內含搜尋按鈕可開啟 MobileSearch
+- **導航（AppNav）**：統一導航元件；應用頁顯示左側浮動側欄（side variant，收合 / 展開），首頁顯示頂部浮動橫列（top variant，僅含 Logo + 漢堡按鈕）；兩種 variant 的漢堡按鈕皆開啟右側抽屜（含導覽選單、使用者區塊）；手機版均以頂部 Header + 右滑抽屜呈現，抽屜內含搜尋按鈕可開啟 MobileSearch；快速配對 / 建立群組 / 訊息中心均以事件觸發 Modal 方式開啟（`pm:open-match` / `pm:open-create` / `pm:open-messages`）
+- **CategoryPills**：共用分類篩選元件，支援 `pills`（水平膠囊列）與 `grid`（圖示格）兩種樣式；用於探索群組、收藏、快速配對、建立群組
 
 ---
 
@@ -65,14 +66,17 @@ npm run lint    # 程式碼檢查
 | `/explore` | 探索群組（無需登入可瀏覽） |
 | `/explore?q=keyword` | 探索群組（關鍵字篩選） |
 | `/groups/:groupId` | 群組詳情（無需登入可瀏覽，加入需登入） |
+| `/disclaimer` | 免責聲明 |
+| `/terms` | 服務條款 |
+| `/privacy` | 隱私政策 |
 
 ### 登入後（需登入）
 
 | 路徑 | 頁面 |
 |------|------|
-| `/quick-match` | 快速配對設定 |
+| `/quick-match` | 快速配對（重導並觸發 Modal） |
 | `/quick-match/results` | 配對結果 |
-| `/create-group` | 建立群組 |
+| `/create-group` | 建立群組（重導並觸發 Modal） |
 | `/manage-groups` | 管理群組 |
 | `/my-subscriptions` | 我的訂閱 |
 | `/favorites` | 收藏清單 |
@@ -149,7 +153,7 @@ src/
 | 申請加入 | `createApplication` → ApplyJoinModal |
 | 立即加入 | `createMember` + `createSubscription` + `updateGroup` + `createNotification` |
 | 團主審核 | 核准：建立 member + subscription + notification；拒絕：更新申請狀態 |
-| 建立群組 | 4 步驟 → `mapFormToGroup()` → `createGroup()` → 導向管理頁；費用由官方定價 ÷ 名額自動計算 |
+| 建立群組 | 4 步驟 → `mapFormToGroup()` → `createGroup()` → 導向管理頁；費用由官方定價 ÷ 名額自動計算；所有群組一律採審核加入 |
 | 標記已付款 | `markSubscriptionPaid()` + 同步 `updateMember()` + `createNotification()` 通知待確認 |
 | 團主逐筆確認收款 | `updateMember(confirmed)` + `confirmSubscriptionPayment()` + 自動偵測全員確認後推進群組狀態 |
 | 確認收款完成 | `confirmGroupPayments()` → 群組狀態轉 `pending_activation` |

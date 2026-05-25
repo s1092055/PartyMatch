@@ -42,16 +42,17 @@ export default function FeatureCards() {
 
   return (
     <section>
-      <div className="mb-4">
-        <h2 className="text-base font-extrabold text-ink text-center">
+      <div className="mb-6">
+        <p className="mb-1 text-xs font-bold uppercase tracking-widest text-ink-4 text-center">核心功能</p>
+        <h2 className="text-3xl font-extrabold text-ink text-center">
           PartyMatch 的核心功能
         </h2>
-        <p className="mt-1 text-xs font-medium text-ink-3 text-center">
-          探索、配對、建立群組、管理訂閱，四大功能一次掌握，點擊下方分頁切換查看說明。
+        <p className="mt-3 text-base text-ink-3 text-center">
+          探索、配對、建立群組、管理訂閱，四大功能一次掌握。
         </p>
       </div>
 
-      <div className="card overflow-hidden">
+      <div className="overflow-hidden rounded-[var(--radius-card)] bg-surface">
         <div className="relative h-52 w-full md:h-60">
           {videoSrc ? (
             <video
@@ -65,7 +66,7 @@ export default function FeatureCards() {
               <source src={videoSrc} />
             </video>
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-white">
+            <div className="flex h-full w-full items-center justify-center bg-raised">
               <div className="flex flex-col items-center gap-3">
                 <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-subtle">
                   <Icon size={32} className="text-brand" />
@@ -79,22 +80,22 @@ export default function FeatureCards() {
         </div>
 
         <div className="p-5">
-          <h3 className="text-base font-extrabold text-ink text-center">{title}</h3>
-          <p className="mt-2 text-sm font-medium leading-relaxed text-ink-3 text-center">
+          <h3 className="text-xl font-extrabold text-ink text-center">{title}</h3>
+          <p className="mt-2 text-sm leading-relaxed text-ink-3 text-center">
             {desc}
           </p>
         </div>
 
-        <div className="flex border-t border-line">
+        <div className="flex gap-1 px-3 pb-3">
           {FEATURES.map((f, i) => {
             const TabIcon = f.icon;
             return (
               <button
                 key={f.title}
                 onClick={() => setActive(i)}
-                className={`flex flex-1 flex-col items-center gap-1 py-3 text-2xs font-bold transition-colors ${
+                className={`flex flex-1 flex-col items-center gap-1 rounded-xl py-3 text-2xs font-bold transition-colors ${
                   i === active
-                    ? "border-t-2 border-brand text-brand -mt-px bg-brand-subtle"
+                    ? "bg-raised text-brand"
                     : "text-ink-3 hover:bg-raised hover:text-ink"
                 }`}
               >

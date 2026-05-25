@@ -61,6 +61,11 @@ export default function AppNav({ variant = 'side' }) {
     window.dispatchEvent(new CustomEvent('pm:open-messages'))
   }
 
+  function openMatch() {
+    closeAll()
+    window.dispatchEvent(new CustomEvent('pm:open-match'))
+  }
+
   async function confirmLogout() {
     try { await logoutUser() } catch { /* proceed regardless */ }
     window.location.replace('/login')
@@ -72,7 +77,7 @@ export default function AppNav({ variant = 'side' }) {
         {/* Floating menu button */}
         <button
           onClick={() => setDrawerOpen(true)}
-          className="fixed right-6 top-4 z-50 flex h-10 w-10 items-center justify-center rounded-full border border-line bg-white shadow-sm text-ink-2 transition-colors hover:bg-raised hover:text-ink"
+          className="fixed right-6 top-4 z-50 flex h-10 w-10 items-center justify-center rounded-full border border-line bg-white shadow-sm text-ink-2 transition-all hover:bg-raised hover:text-ink"
           aria-label="開啟選單"
         >
           <Menu size={20} strokeWidth={2} />
@@ -98,7 +103,7 @@ export default function AppNav({ variant = 'side' }) {
             </span>
             <button
               onClick={() => setDrawerOpen(false)}
-              className="grid h-11 w-11 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+              className="grid h-11 w-11 place-items-center rounded-full text-ink-3 transition-all hover:bg-raised hover:text-ink"
               aria-label="關閉選單"
             >
               <X size={20} />
@@ -115,25 +120,31 @@ export default function AppNav({ variant = 'side' }) {
                 {section.items.map(item =>
                   item.type === 'search' ? (
                     <button key="search" onClick={openSearch}
-                      className="flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-brand">
+                      className="flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-2 transition-all hover:bg-raised hover:text-brand">
                       <Search size={20} strokeWidth={2.1} />
                       搜尋
                     </button>
                   ) : item.type === 'create' ? (
                     <button key="create" onClick={openCreate}
-                      className="flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-brand">
+                      className="flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-2 transition-all hover:bg-raised hover:text-brand">
                       <item.icon size={20} strokeWidth={2.1} />
                       {item.label}
                     </button>
                   ) : item.type === 'notify' ? (
                     <button key="notify" onClick={openNotify}
-                      className="flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-brand">
+                      className="flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-2 transition-all hover:bg-raised hover:text-brand">
                       <item.icon size={20} strokeWidth={2.1} />
                       {item.label}
                     </button>
                   ) : item.type === 'messages' ? (
                     <button key="messages" onClick={openMessages}
-                      className="flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-brand">
+                      className="flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-2 transition-all hover:bg-raised hover:text-brand">
+                      <item.icon size={20} strokeWidth={2.1} />
+                      {item.label}
+                    </button>
+                  ) : item.type === 'match' ? (
+                    <button key="match" onClick={openMatch}
+                      className="flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-2 transition-all hover:bg-raised hover:text-brand">
                       <item.icon size={20} strokeWidth={2.1} />
                       {item.label}
                     </button>
@@ -143,7 +154,7 @@ export default function AppNav({ variant = 'side' }) {
                       to={item.to}
                       onClick={closeAll}
                       className={({ isActive }) =>
-                        `flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm transition-colors ${
+                        `flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm transition-all hover:-translate-y-0.5 active:scale-[0.96] ${
                           isActive
                             ? 'bg-brand-subtle font-extrabold text-brand'
                             : 'font-bold text-ink-2 hover:bg-raised hover:text-brand'
@@ -164,7 +175,7 @@ export default function AppNav({ variant = 'side' }) {
               <div ref={userMenuRef} className="relative">
                 <button
                   onClick={() => setActivePanel(p => p === 'userMenu' ? null : 'userMenu')}
-                  className="flex h-14 w-full items-center gap-3 rounded-2xl px-3 text-left transition-colors hover:bg-raised"
+                  className="flex h-14 w-full items-center gap-3 rounded-2xl px-3 text-left transition-all hover:bg-raised"
                   aria-label="開啟使用者選單"
                 >
                   <span
@@ -186,7 +197,7 @@ export default function AppNav({ variant = 'side' }) {
                   <div className="absolute bottom-full left-0 right-0 mb-2 overflow-hidden rounded-2xl border border-line bg-white p-2 shadow-popover">
                     <button
                       onClick={() => { closeAll(); navigate('/account') }}
-                      className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-brand"
+                      className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold text-ink-2 transition-all hover:bg-raised hover:text-brand"
                     >
                       <User size={16} />
                       帳號中心
@@ -194,7 +205,7 @@ export default function AppNav({ variant = 'side' }) {
                     <div className="my-1 h-px bg-line-subtle" />
                     <button
                       onClick={confirmLogout}
-                      className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold text-danger transition-colors hover:bg-danger-subtle"
+                      className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold text-danger transition-all hover:bg-danger-subtle"
                     >
                       <LogOut size={16} />
                       登出
@@ -207,7 +218,7 @@ export default function AppNav({ variant = 'side' }) {
                 <Link
                   to="/register"
                   onClick={closeAll}
-                  className="flex flex-1 h-12 items-center justify-center gap-2 rounded-2xl bg-brand text-sm font-bold text-white transition-colors hover:bg-brand-hover"
+                  className="flex flex-1 h-12 items-center justify-center gap-2 rounded-2xl bg-brand text-sm font-bold text-white transition-all hover:-translate-y-0.5 active:scale-[0.96] hover:bg-brand-hover"
                 >
                   <UserPlus size={18} strokeWidth={2.1} />
                   註冊
@@ -215,7 +226,7 @@ export default function AppNav({ variant = 'side' }) {
                 <Link
                   to="/login"
                   onClick={closeAll}
-                  className="flex flex-1 h-12 items-center justify-center gap-2 rounded-2xl border border-line text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-brand"
+                  className="flex flex-1 h-12 items-center justify-center gap-2 rounded-2xl border border-line text-sm font-bold text-ink-2 transition-all hover:-translate-y-0.5 active:scale-[0.96] hover:bg-raised hover:text-brand"
                 >
                   <LogIn size={18} strokeWidth={2.1} />
                   登入
@@ -260,7 +271,7 @@ export default function AppNav({ variant = 'side' }) {
                 {section.items.map(item =>
                   item.type === 'search' ? (
                     <button key="search" onClick={openSearch} aria-label="搜尋"
-                      className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-colors hover:bg-raised hover:text-brand">
+                      className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:bg-raised hover:text-brand">
                       <span className="grid h-9 w-9 shrink-0 place-items-center">
                         <Search size={22} strokeWidth={2.1} />
                       </span>
@@ -270,7 +281,7 @@ export default function AppNav({ variant = 'side' }) {
                     </button>
                   ) : item.type === 'create' ? (
                     <button key="create" onClick={openCreate} aria-label={item.label}
-                      className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-colors hover:bg-raised hover:text-brand">
+                      className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:bg-raised hover:text-brand">
                       <span className="grid h-9 w-9 shrink-0 place-items-center">
                         <item.icon size={22} strokeWidth={2.1} />
                       </span>
@@ -280,7 +291,7 @@ export default function AppNav({ variant = 'side' }) {
                     </button>
                   ) : item.type === 'notify' ? (
                     <button key="notify" onClick={openNotify} aria-label={item.label}
-                      className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-colors hover:bg-raised hover:text-brand">
+                      className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:bg-raised hover:text-brand">
                       <span className="grid h-9 w-9 shrink-0 place-items-center">
                         <item.icon size={22} strokeWidth={2.1} />
                       </span>
@@ -290,7 +301,17 @@ export default function AppNav({ variant = 'side' }) {
                     </button>
                   ) : item.type === 'messages' ? (
                     <button key="messages" onClick={openMessages} aria-label={item.label}
-                      className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-colors hover:bg-raised hover:text-brand">
+                      className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:bg-raised hover:text-brand">
+                      <span className="grid h-9 w-9 shrink-0 place-items-center">
+                        <item.icon size={22} strokeWidth={2.1} />
+                      </span>
+                      <span className="whitespace-nowrap font-bold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
+                        {item.label}
+                      </span>
+                    </button>
+                  ) : item.type === 'match' ? (
+                    <button key="match" onClick={openMatch} aria-label={item.label}
+                      className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:bg-raised hover:text-brand">
                       <span className="grid h-9 w-9 shrink-0 place-items-center">
                         <item.icon size={22} strokeWidth={2.1} />
                       </span>
@@ -304,7 +325,7 @@ export default function AppNav({ variant = 'side' }) {
                       to={item.to}
                       onClick={closeAll}
                       className={({ isActive }) =>
-                        `flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-[0.95rem] transition-colors ${
+                        `flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-[0.95rem] transition-all hover:-translate-y-0.5 active:scale-[0.96] ${
                           isActive
                             ? 'bg-brand-subtle font-extrabold text-brand'
                             : 'font-bold text-ink-2 hover:bg-raised hover:text-brand'
@@ -330,7 +351,7 @@ export default function AppNav({ variant = 'side' }) {
             <div ref={userMenuRef} className="relative">
               <button
                 onClick={() => setActivePanel(p => p === 'userMenu' ? null : 'userMenu')}
-                className="flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left transition-colors hover:bg-raised"
+                className="flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left transition-all hover:bg-raised"
                 aria-label="開啟使用者選單"
               >
                 <span
@@ -350,7 +371,7 @@ export default function AppNav({ variant = 'side' }) {
                 <div className="absolute bottom-0 left-[calc(100%+0.75rem)] w-52 overflow-hidden rounded-2xl border border-line bg-white p-2 shadow-popover">
                   <button
                     onClick={() => { closeAll(); navigate('/account') }}
-                    className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-brand"
+                    className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-ink-2 transition-all hover:bg-raised hover:text-brand"
                   >
                     <User size={16} />
                     帳號中心
@@ -358,7 +379,7 @@ export default function AppNav({ variant = 'side' }) {
                   <div className="my-1 h-px bg-line-subtle" />
                   <button
                     onClick={confirmLogout}
-                    className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-danger transition-colors hover:bg-danger-subtle"
+                    className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-danger transition-all hover:bg-danger-subtle"
                   >
                     <LogOut size={16} />
                     登出
@@ -371,7 +392,7 @@ export default function AppNav({ variant = 'side' }) {
               <Link
                 to="/register"
                 onClick={closeAll}
-                className="flex h-12 w-full items-center gap-3 rounded-2xl bg-brand px-1 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
+                className="flex h-12 w-full items-center gap-3 rounded-2xl bg-brand px-1 text-sm font-bold text-white transition-all hover:-translate-y-0.5 active:scale-[0.96] hover:bg-brand-hover"
               >
                 <span className="grid h-9 w-9 shrink-0 place-items-center">
                   <UserPlus size={20} strokeWidth={2.1} />
@@ -383,7 +404,7 @@ export default function AppNav({ variant = 'side' }) {
               <Link
                 to="/login"
                 onClick={closeAll}
-                className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-brand"
+                className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-sm font-bold text-ink-2 transition-all hover:-translate-y-0.5 active:scale-[0.96] hover:bg-raised hover:text-brand"
               >
                 <span className="grid h-9 w-9 shrink-0 place-items-center">
                   <LogIn size={20} strokeWidth={2.1} />
@@ -404,7 +425,7 @@ export default function AppNav({ variant = 'side' }) {
         </Link>
         <button
           onClick={() => setDrawerOpen(v => !v)}
-          className="grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-colors hover:bg-raised hover:text-ink"
+          className="grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink"
           aria-label="開啟選單"
         >
           <Menu size={22} strokeWidth={2} />
@@ -431,7 +452,7 @@ export default function AppNav({ variant = 'side' }) {
           </span>
           <button
             onClick={() => setDrawerOpen(false)}
-            className="grid h-11 w-11 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+            className="grid h-11 w-11 place-items-center rounded-full text-ink-3 transition-all hover:bg-raised hover:text-ink"
             aria-label="關閉選單"
           >
             <X size={20} />
@@ -448,25 +469,31 @@ export default function AppNav({ variant = 'side' }) {
               {section.items.map(item =>
                 item.type === 'search' ? (
                   <button key="search" onClick={openSearch}
-                    className="flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-brand">
+                    className="flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-2 transition-all hover:bg-raised hover:text-brand">
                     <Search size={20} strokeWidth={2.1} />
                     搜尋
                   </button>
                 ) : item.type === 'create' ? (
                   <button key="create" onClick={openCreate}
-                    className="flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-brand">
+                    className="flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-2 transition-all hover:bg-raised hover:text-brand">
                     <item.icon size={20} strokeWidth={2.1} />
                     {item.label}
                   </button>
                 ) : item.type === 'notify' ? (
                   <button key="notify" onClick={openNotify}
-                    className="flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-brand">
+                    className="flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-2 transition-all hover:bg-raised hover:text-brand">
                     <item.icon size={20} strokeWidth={2.1} />
                     {item.label}
                   </button>
                 ) : item.type === 'messages' ? (
                   <button key="messages" onClick={openMessages}
-                    className="flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-brand">
+                    className="flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-2 transition-all hover:bg-raised hover:text-brand">
+                    <item.icon size={20} strokeWidth={2.1} />
+                    {item.label}
+                  </button>
+                ) : item.type === 'match' ? (
+                  <button key="match" onClick={openMatch}
+                    className="flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-2 transition-all hover:bg-raised hover:text-brand">
                     <item.icon size={20} strokeWidth={2.1} />
                     {item.label}
                   </button>
@@ -476,7 +503,7 @@ export default function AppNav({ variant = 'side' }) {
                     to={item.to}
                     onClick={closeAll}
                     className={({ isActive }) =>
-                      `flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm transition-colors ${
+                      `flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm transition-all hover:-translate-y-0.5 active:scale-[0.96] ${
                         isActive
                           ? 'bg-brand-subtle font-extrabold text-brand'
                           : 'font-bold text-ink-2 hover:bg-raised hover:text-brand'
@@ -497,7 +524,7 @@ export default function AppNav({ variant = 'side' }) {
             <div ref={userMenuMobileRef} className="relative">
               <button
                 onClick={() => setActivePanel(p => p === 'userMenu' ? null : 'userMenu')}
-                className="flex h-14 w-full items-center gap-3 rounded-2xl px-3 text-left transition-colors hover:bg-raised"
+                className="flex h-14 w-full items-center gap-3 rounded-2xl px-3 text-left transition-all hover:bg-raised"
                 aria-label="開啟使用者選單"
               >
                 <span
@@ -520,7 +547,7 @@ export default function AppNav({ variant = 'side' }) {
                 <div className="absolute bottom-full left-0 right-0 mb-2 overflow-hidden rounded-2xl border border-line bg-white p-2 shadow-popover">
                   <button
                     onClick={() => { closeAll(); navigate('/account') }}
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-brand"
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold text-ink-2 transition-all hover:bg-raised hover:text-brand"
                   >
                     <User size={16} />
                     帳號中心
@@ -528,7 +555,7 @@ export default function AppNav({ variant = 'side' }) {
                   <div className="my-1 h-px bg-line-subtle" />
                   <button
                     onClick={confirmLogout}
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold text-danger transition-colors hover:bg-danger-subtle"
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold text-danger transition-all hover:bg-danger-subtle"
                   >
                     <LogOut size={16} />
                     登出
@@ -541,7 +568,7 @@ export default function AppNav({ variant = 'side' }) {
               <Link
                 to="/register"
                 onClick={closeAll}
-                className="flex flex-1 h-12 items-center justify-center gap-2 rounded-2xl bg-brand text-sm font-bold text-white transition-colors hover:bg-brand-hover"
+                className="flex flex-1 h-12 items-center justify-center gap-2 rounded-2xl bg-brand text-sm font-bold text-white transition-all hover:-translate-y-0.5 active:scale-[0.96] hover:bg-brand-hover"
               >
                 <UserPlus size={18} strokeWidth={2.1} />
                 註冊
@@ -549,7 +576,7 @@ export default function AppNav({ variant = 'side' }) {
               <Link
                 to="/login"
                 onClick={closeAll}
-                className="flex flex-1 h-12 items-center justify-center gap-2 rounded-2xl border border-line text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-brand"
+                className="flex flex-1 h-12 items-center justify-center gap-2 rounded-2xl border border-line text-sm font-bold text-ink-2 transition-all hover:-translate-y-0.5 active:scale-[0.96] hover:bg-raised hover:text-brand"
               >
                 <LogIn size={18} strokeWidth={2.1} />
                 登入

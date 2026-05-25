@@ -71,7 +71,8 @@ export default function MessagesModal() {
       />
 
       {/* Modal */}
-      <div className="fixed inset-4 z-[56] flex overflow-hidden rounded-2xl bg-white shadow-2xl md:inset-8 lg:inset-12">
+      <div className="pointer-events-none fixed inset-0 z-[56] flex items-center justify-center p-4 md:p-8">
+      <div className="pointer-events-auto flex w-full max-w-5xl overflow-hidden rounded-2xl bg-white shadow-2xl" style={{ maxHeight: 'min(88vh, 820px)' }}>
 
         {/* Left: Conversation list */}
         <div className={`flex w-full flex-col border-r border-line md:w-80 md:shrink-0 lg:w-96 ${selectedId ? 'hidden md:flex' : 'flex'}`}>
@@ -240,6 +241,7 @@ export default function MessagesModal() {
             </div>
           )}
         </div>
+      </div>
       </div>
     </>,
     document.body
