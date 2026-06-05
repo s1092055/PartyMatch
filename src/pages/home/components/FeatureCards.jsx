@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from "react";
-import { Search, Users, PlusCircle, CreditCard } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Search, Users, PlusCircle, CreditCard, VideoOff, ArrowRight } from "lucide-react";
 
 const FEATURES = [
   {
@@ -7,42 +7,72 @@ const FEATURES = [
     title: "探索共享群組",
     desc: "依照服務類型、價格與剩餘名額篩選，快速找到最適合你的訂閱群組，支援關鍵字搜尋與多維度排序。",
     videoSrc: null,
+    badge: "探索",
+    path: "/explore",
+    cta: "開始探索",
   },
   {
     icon: Users,
     title: "快速配對",
     desc: "告訴我們你的需求與預算，系統自動推薦最符合條件的群組，省去逐一比較的時間。",
     videoSrc: null,
+    badge: "配對",
+    path: "/quick-match",
+    cta: "立即配對",
   },
   {
     icon: PlusCircle,
     title: "建立群組",
     desc: "幾個步驟就能成為團主，自訂方案、名額與加入條件，輕鬆招募成員一起分攤費用。",
     videoSrc: null,
+    badge: "建立",
+    path: "/create-group",
+    cta: "建立群組",
   },
   {
     icon: CreditCard,
     title: "管理訂閱",
     desc: "集中查看所有訂閱的付款狀態、下次續訂日期與完整付款紀錄，再也不怕漏繳。",
     videoSrc: null,
+    badge: "管理",
+    path: "/my-subscriptions",
+    cta: "查看訂閱",
   },
 ];
 
-export default function FeatureCards() {
-  const [active, setActive] = useState(0);
-  const videoRef = useRef(null);
-  const { icon: Icon, title, desc, videoSrc } = FEATURES[active];
+function FeatureMedia({ icon: Icon, videoSrc }) {
+  if (videoSrc) {
+    return (
+      <video
+        className="h-full w-full object-cover"
+        autoPlay
+        muted
+        loop
+        playsInline
+      >
+        <source src={videoSrc} />
+      </video>
+    );
+  }
+  return (
+    <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-raised">
+      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-subtle">
+        <Icon size={32} className="text-brand" />
+      </div>
+      <div className="flex items-center gap-1.5 text-ink-4">
+        <VideoOff size={14} />
+        <span className="text-xs font-medium">功能示範影片即將推出</span>
+      </div>
+    </div>
+  );
+}
 
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.load();
-      videoRef.current.play().catch(() => {});
-    }
-  }, [active]);
+export default function FeatureCards() {
+  const navigate = useNavigate();
 
   return (
     <section>
-      <div className="mb-6">
+      <div className="mb-10">
         <p className="mb-1 text-xs font-bold uppercase tracking-widest text-ink-4 text-center">核心功能</p>
         <h2 className="text-3xl font-extrabold text-ink text-center">
           PartyMatch 的核心功能
@@ -52,59 +82,38 @@ export default function FeatureCards() {
         </p>
       </div>
 
-      <div className="overflow-hidden rounded-[var(--radius-card)] bg-surface">
-        <div className="relative h-52 w-full md:h-60">
-          {videoSrc ? (
-            <video
-              ref={videoRef}
-              className="h-full w-full object-cover"
-              autoPlay
-              muted
-              loop
-              playsInline
+      <div className="space-y-20">
+        {FEATURES.map(({ icon: Icon, title, desc, videoSrc, badge, path, cta }, i) => {
+          const isEven = i % 2 === 0;
+          return (
+            <div
+              key={title}
+              className={`flex flex-col gap-8 md:flex-row md:items-center md:gap-12 ${
+                isEven ? "" : "md:flex-row-reverse"
+              }`}
             >
-              <source src={videoSrc} />
-            </video>
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-raised">
-              <div className="flex flex-col items-center gap-3">
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-subtle">
-                  <Icon size={32} className="text-brand" />
-                </div>
-                <span className="text-sm font-bold text-ink-3">
-                  功能示範影片 placeholder
+              <div className="aspect-video w-full overflow-hidden rounded-2xl md:w-1/2 md:shrink-0">
+                <FeatureMedia icon={Icon} videoSrc={videoSrc} />
+              </div>
+
+              <div className="flex flex-col md:w-1/2">
+                <span className="mb-3 inline-flex w-fit items-center gap-1.5 rounded-full bg-brand-subtle px-3 py-1 text-xs font-extrabold text-brand">
+                  <Icon size={12} />
+                  {badge}
                 </span>
+                <h3 className="text-2xl font-extrabold text-ink">{title}</h3>
+                <p className="mt-3 text-base leading-relaxed text-ink-3">{desc}</p>
+                <button
+                  onClick={() => navigate(path)}
+                  className="mt-6 inline-flex w-fit items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-brand-hover"
+                >
+                  {cta}
+                  <ArrowRight size={14} />
+                </button>
               </div>
             </div>
-          )}
-        </div>
-
-        <div className="p-5">
-          <h3 className="text-xl font-extrabold text-ink text-center">{title}</h3>
-          <p className="mt-2 text-sm leading-relaxed text-ink-3 text-center">
-            {desc}
-          </p>
-        </div>
-
-        <div className="flex gap-1 px-3 pb-3">
-          {FEATURES.map((f, i) => {
-            const TabIcon = f.icon;
-            return (
-              <button
-                key={f.title}
-                onClick={() => setActive(i)}
-                className={`flex flex-1 flex-col items-center gap-1 rounded-xl py-3 text-2xs font-bold transition-colors ${
-                  i === active
-                    ? "bg-raised text-brand"
-                    : "text-ink-3 hover:bg-raised hover:text-ink"
-                }`}
-              >
-                <TabIcon size={16} />
-                <span className="hidden md:block">{f.title}</span>
-              </button>
-            );
-          })}
-        </div>
+          );
+        })}
       </div>
     </section>
   );
