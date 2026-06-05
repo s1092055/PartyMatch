@@ -11,9 +11,9 @@
 
 ## 功能
 
-- **首頁（Landing Page）**：行銷首頁，展示核心功能（FeatureCards）、使用教學（HowItWorks）、FAQ、頁尾（含法律文件連結）；頂部浮動 AppNav（top variant）；Logo 點擊回首頁
-- **探索群組**：Marketplace 瀏覽版面；分類圖示 Grid 篩選（影音、音樂、AI 工具、辦公、雲端、學習、遊戲、VPN）+ 次要篩選列（服務、價格、排序）；卡片顯示價格 → 分隔線 → 團主資訊 + 剩餘名額；共 30 種服務、26 個群組；Sidebar 與手機版 Drawer 搜尋按鈕皆可搜尋並導向探索頁篩選結果；自己是團主的群組不顯示在探索頁
-- **快速配對**（Modal）：以 `pm:open-match` 事件觸發；三步驟精靈（選服務→篩選條件→搜尋偏好）+ 右側配對條件摘要；選服務步驟支援分類 Grid 篩選；配對結果顯示最多 3 個推薦群組
+- **首頁（Landing Page）**：行銷首頁，展示核心功能（FeatureCards 左右交錯排版）、使用教學（HowItWorks）、FAQ、頁尾（含法律文件連結）；頂部浮動 AppNav（top variant）；Logo 點擊回首頁；各區塊採 RevealSection 滾動觸發淡入動畫
+- **探索群組**：Marketplace 瀏覽版面；分類圖示 Grid 篩選（影音、音樂、AI 工具、辦公、雲端、學習、遊戲、VPN）+ 次要篩選列（服務、價格、排序）；卡片顯示價格 → 分隔線 → 團主資訊 + 剩餘名額；共 30 種服務、26 個群組；Sidebar 與手機版 Drawer 搜尋按鈕皆可搜尋並導向探索頁篩選結果；自己是團主的群組不顯示在探索頁；卡片採 RevealSection 滾動入場動畫
+- **快速配對**（Modal）：以 `pm:open-match` 事件觸發；四步驟精靈（選服務→篩選條件→搜尋偏好→配對結果）+ 右側配對條件摘要；配對結果直接顯示在 Modal 第 4 步，以探索頁卡片樣式呈現最多 3 個推薦群組（含排名號碼）；選服務步驟支援分類 Grid 篩選；結果頁底部可「重新配對」或「調整條件」退回第 3 步
 - **申請加入**（審核制，所有群組統一採用審核加入）
 - **建立群組**（Modal）：以 `pm:open-create` 事件觸發；4 步驟表單（選服務→選方案→加入設定→確認送出）；方案費用依官方定價自動計算；選服務步驟支援分類 Grid 篩選
 - **管理群組**：直式卡片（Badge → Logo → 服務名稱 → 2×2 資訊格：待處理申請 / 本期收款 / 付款狀態 / 每月收入）；點擊「待處理申請」格開啟該群組專屬審核視窗（每個群組獨立）；次要操作（準備續訂、查看歷史）收折至 ⋯ 選單；統一透過 GroupViewModal 管理成員付款、啟用服務；支援篩選分頁（全部 / 招募中 / 待啟用 / 已啟用 / 已停止 / 已取消）
@@ -49,7 +49,8 @@ npm run lint    # 程式碼檢查
 - React Router v7
 - Tailwind CSS v4（含自訂 design token）
 - lucide-react
-- 狀態管理：Firebase Auth（驗證）+ Firebase Firestore（群組、申請、成員、訂閱、通知、收藏）+ sessionStorage（快速配對條件）
+- 狀態管理：Firebase Auth（驗證）+ Firebase Firestore（群組、申請、成員、訂閱、通知、收藏）+ sessionStorage（快速配對條件備援）
+- **RevealSection**：共用滾動動畫元件，基於 IntersectionObserver，支援 viewport 初始檢測避免已可見元素重複播放
 
 ---
 
@@ -75,7 +76,7 @@ npm run lint    # 程式碼檢查
 | 路徑 | 頁面 |
 |------|------|
 | `/quick-match` | 快速配對（重導並觸發 Modal） |
-| `/quick-match/results` | 配對結果 |
+| `/quick-match/results` | 配對結果（備用頁面，主流程已改為 Modal 內嵌顯示） |
 | `/create-group` | 建立群組（重導並觸發 Modal） |
 | `/manage-groups` | 管理群組 |
 | `/my-subscriptions` | 我的訂閱 |
@@ -111,7 +112,7 @@ src/
 │   │   ├── layout/           # AppLayout、AppNav（top / side variant）、MobileSearch、FloatingMessages（訊息中心懸浮元件）
 │   │   ├── auth/             # AuthLayout
 │   │   ├── route/            # ProtectedRoute、PublicOnlyRoute
-│   │   ├── ui/               # Button、Badge、Avatar、Modal、Toggle、CustomSelect、ServiceLogo…
+│   │   ├── ui/               # Button、Badge、Avatar、Modal、Toggle、CustomSelect、ServiceLogo、RevealSection…
 │   │   ├── modals/           # ApplyJoinModal、InstantJoinModal、GroupViewModal
 │   │   └── cards/            # GroupCard（探索用）、GroupCardShell（管理頁共用殼層）
 │   ├── api/                  # 資料存取層（Firebase Firestore）
@@ -119,7 +120,7 @@ src/
 │   ├── stores/               # 業務邏輯層，呼叫 api/ 取得資料
 │   ├── services/             # serviceTypes（服務圖示、顏色、官方定價；支援本地 iconSrc 或 Iconify URL）
 │   ├── constants/            # nav.js（AppNav 導航結構）、paymentStatus.js
-│   └── utils/                # date、storage、matchGroups、subscriptionStatus、billingChip、hooks（useClickOutside）…
+│   └── utils/                # date、storage、matchGroups、subscriptionStatus、billingChip、hooks（useClickOutside、useScrollLock）…
 └── index.css                 # Tailwind v4 design token + 元件原始類別
 ```
 
@@ -222,6 +223,8 @@ draft → recruiting → full → pending_confirmation → pending_activation �
 ```bash
 node scripts/seedDemo.mjs   # 種入 demo 資料（自動清除舊的 _demo 資料後重建）
 ```
+
+seed 腳本透過 `scripts/utils/getRate.mjs` 自動從 ExchangeRate-API 取得即時 USD/TWD 匯率，所有 `pricePerSeat` 以 `twd()` 換算為新台幣（網路不通時回退至 NT$31.5 備用匯率）。
 
 ---
 
