@@ -30,15 +30,15 @@ export default function HomePage() {
   const loggedIn = isAuthenticated()
 
   return (
-    <div className="flex min-h-screen flex-col bg-canvas text-ink">
-      <AppNav variant="top" />
+    <div className="flex min-h-screen flex-col bg-canvas text-ink md:ml-24">
+      <AppNav />
       <MobileSearch />
       <ScrollToTop />
       <MessagesModal />
       <CreateGroupModal />
       <QuickMatchModal />
 
-      <section className="mx-auto max-w-5xl px-5 pb-16 pt-20 text-center md:pt-28">
+      <section className="mx-auto max-w-5xl px-5 pb-16 pt-20 text-center md:pt-16">
         <img src="/src/assets/Logo.svg" alt="PartyMatch" className="mx-auto mb-5 h-16 w-auto" />
         <h1 className="mt-5 text-4xl font-extrabold leading-tight tracking-tight text-ink md:text-5xl">
           PartyMatch<br />

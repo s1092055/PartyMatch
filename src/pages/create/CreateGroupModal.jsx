@@ -30,7 +30,6 @@ const INITIAL_FORM = {
   nextBillingDay: '',
   totalSeats:     2,
   rules:          [''],
-  joinMode:       'approval',
 }
 
 function mapFormToGroup(form) {
