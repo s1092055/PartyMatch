@@ -13,6 +13,11 @@ import ServiceLogo from '../../../shared/components/ui/ServiceLogo'
 import { isGroupFavorited, toggleFavorite } from '../../../shared/stores/favoriteStore'
 import { getActiveUser } from '../../../shared/stores/userStore'
 
+// Tags that are too generic or junk to show as feature chips
+const JUNK_TAGS = new Set(['立即加入', '審核加入', '需要審核', '需審核', '名額剩 1'])
+// Tags to skip in the first pass (broad categories), but use as fallback
+const CATEGORY_TAGS = new Set(['影音', '音樂', '雲端', 'AI 工具', 'AI工具', '辦公', '通訊'])
+
 function buildFeatureChips(group) {
   const tags = group.tags ?? []
   const source = `${group.planName} ${tags.join(' ')}`
@@ -21,22 +26,29 @@ function buildFeatureChips(group) {
   if (/4K|HDR/i.test(source) || (group.serviceId === 'disney' && group.planName.includes('高級'))) {
     labels.push('4K 畫質')
   }
-
   if (/家庭|Family|共享/.test(source)) {
     labels.push('家庭方案')
   }
-
   if (/2\s*TB/i.test(source)) {
     labels.push('2TB 空間')
   } else if (/200\s*GB/i.test(source)) {
     labels.push('200GB 空間')
   }
 
+  // First pass: specific (non-category) tags
   tags
-    .filter(tag => !['影音', '音樂', '雲端', 'AI 工具', 'AI工具', '辦公', '通訊', '立即加入', '審核加入', '需要審核', '需審核', '名額剩 1'].includes(tag))
+    .filter(tag => !JUNK_TAGS.has(tag) && !CATEGORY_TAGS.has(tag))
     .forEach(tag => {
       if (!labels.includes(tag) && labels.length < 2) labels.push(tag)
     })
+
+  // Fallback: use category tags when nothing specific was found
+  if (labels.length === 0) {
+    tags
+      .filter(tag => !JUNK_TAGS.has(tag))
+      .slice(0, 2)
+      .forEach(tag => { if (!labels.includes(tag)) labels.push(tag) })
+  }
 
   return labels.slice(0, 3).map(label => ({
     label,
