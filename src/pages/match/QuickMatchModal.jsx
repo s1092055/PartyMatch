@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AlertCircle, ChevronLeft, ChevronRight, X, Zap } from 'lucide-react'
+import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, Compass, RotateCcw, X, Zap } from 'lucide-react'
 import ServiceSelectionGrid from './components/ServiceSelectionGrid'
 import PreferenceForm from './components/PreferenceForm'
 import MatchSummaryPanel from './components/MatchSummaryPanel'
+import MatchConditionBar from './components/MatchConditionBar'
+import ExploreGroupCard from '../explore/components/ExploreGroupCard'
 import CreateGroupStepper from '../create/components/CreateGroupStepper'
 import Button from '../../shared/components/ui/Button'
 import { useScrollLock } from '../../shared/utils/hooks'
 import { isAuthenticated } from '../../shared/stores/authStore'
+import { getGroups } from '../../shared/stores/groupStore'
+import { matchGroups } from '../../shared/utils/matchGroups'
 
 const DEFAULT_CONDITIONS = {
   services:      ['spotify', 'youtube', 'disney'],
@@ -21,6 +25,7 @@ const STEPS = [
   { n: 1, label: '選擇服務' },
   { n: 2, label: '篩選條件' },
   { n: 3, label: '搜尋偏好' },
+  { n: 4, label: '配對結果' },
 ]
 
 
@@ -106,11 +111,71 @@ function Step3({ conditions, onChange }) {
   )
 }
 
+function Step4({ results, conditions, onClose }) {
+  const navigate = useNavigate()
+
+  function handleExplore() {
+    onClose()
+    navigate('/explore')
+  }
+
+  if (results.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center px-6 py-14 text-center">
+        <Zap size={40} className="mb-4 text-ink-4" />
+        <p className="mb-1 text-base font-extrabold text-ink">沒有符合條件的群組</p>
+        <p className="max-w-xs text-sm text-ink-3">
+          試著調整預算上限、放寬評分要求，或選擇更多服務類型
+        </p>
+        <button
+          onClick={handleExplore}
+          className="mt-6 flex items-center gap-2 rounded-xl border border-line px-4 py-2 text-sm font-bold text-ink-2 transition-colors hover:border-brand/40 hover:text-brand"
+        >
+          <Compass size={14} />
+          探索所有群組
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="p-6">
+      <div className="mb-4 flex items-center gap-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-success shadow-[0_8px_20px_-8px_rgb(16_178_108_/_0.6)]">
+          <CheckCircle2 size={18} className="text-white" />
+        </div>
+        <div>
+          <p className="font-extrabold text-ink">找到 {results.length} 個推薦群組</p>
+          <p className="text-xs text-ink-3">根據你的條件精選，系統評分越高排越前</p>
+        </div>
+      </div>
+      <MatchConditionBar conditions={conditions} showEdit={false} />
+      <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {results.map((group, i) => (
+          <div key={group.id} className="relative">
+            {i < 3 && (
+              <span className={`absolute left-3 top-3 z-10 flex h-6 w-6 items-center justify-center rounded-full text-xs font-extrabold shadow-sm ${
+                i === 0 ? 'bg-amber-400 text-white' :
+                i === 1 ? 'bg-slate-300 text-slate-700' :
+                          'bg-orange-300 text-white'
+              }`}>
+                {i + 1}
+              </span>
+            )}
+            <ExploreGroupCard group={group} onBeforeNavigate={onClose} />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function QuickMatchModal() {
   const navigate = useNavigate()
   const [isOpen, setIsOpen] = useState(false)
   const [step, setStep] = useState(1)
   const [conditions, setConditions] = useState(DEFAULT_CONDITIONS)
+  const [results, setResults] = useState([])
 
   useScrollLock(isOpen)
 
@@ -123,6 +188,7 @@ export default function QuickMatchModal() {
       setIsOpen(true)
       setStep(1)
       setConditions(DEFAULT_CONDITIONS)
+      setResults([])
     }
     window.addEventListener('pm:open-match', handler)
     return () => window.removeEventListener('pm:open-match', handler)
@@ -154,16 +220,24 @@ export default function QuickMatchModal() {
   }
 
   function handleNext() {
-    if (step < STEPS.length) setStep(s => s + 1)
+    if (step < STEPS.length - 1) setStep(s => s + 1)
   }
 
   function handleStartMatch() {
     sessionStorage.setItem('quickmatch_conditions', JSON.stringify(conditions))
-    setIsOpen(false)
-    navigate('/quick-match/results')
+    const matched = matchGroups(getGroups(), conditions)
+    setResults(matched)
+    setStep(4)
+  }
+
+  function handleReset() {
+    setConditions(DEFAULT_CONDITIONS)
+    setResults([])
+    setStep(1)
   }
 
   const canNext = step === 1 ? conditions.services.length > 0 : true
+  const isResultStep = step === 4
 
   if (!isOpen) return null
 
@@ -203,35 +277,58 @@ export default function QuickMatchModal() {
           </div>
 
           {/* Body */}
-          <div className="flex-1 overflow-y-auto px-6 pb-2">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-              <div className="min-w-0 flex-1">
-                {step === 1 && <Step1 conditions={conditions} onToggle={toggleService} />}
-                {step === 2 && <Step2 conditions={conditions} onChange={handleChange} />}
-                {step === 3 && <Step3 conditions={conditions} onChange={handleChange} />}
+          <div className="flex-1 overflow-y-auto">
+            {!isResultStep ? (
+              <div className="flex flex-col gap-6 px-6 pb-2 lg:flex-row lg:items-start">
+                <div className="min-w-0 flex-1">
+                  {step === 1 && <Step1 conditions={conditions} onToggle={toggleService} />}
+                  {step === 2 && <Step2 conditions={conditions} onChange={handleChange} />}
+                  {step === 3 && <Step3 conditions={conditions} onChange={handleChange} />}
+                </div>
+                <div className="hidden w-full shrink-0 lg:block lg:w-72">
+                  <MatchSummaryPanel conditions={conditions} onClear={() => setConditions(DEFAULT_CONDITIONS)} />
+                </div>
               </div>
-              <div className="hidden w-full shrink-0 lg:block lg:w-72">
-                <MatchSummaryPanel conditions={conditions} onClear={() => setConditions(DEFAULT_CONDITIONS)} />
-              </div>
-            </div>
+            ) : (
+              <Step4
+                results={results}
+                conditions={conditions}
+                onClose={() => setIsOpen(false)}
+              />
+            )}
           </div>
 
           {/* Footer */}
           <div className="flex shrink-0 gap-3 border-t border-line px-6 py-4">
-            <Button variant="secondary" size="md" className="flex-1" onClick={handleBack}>
-              <ChevronLeft size={15} />
-              {step === 1 ? '取消' : '上一步'}
-            </Button>
-            {step < STEPS.length ? (
-              <Button variant="primary" size="md" className="flex-1" disabled={!canNext} onClick={handleNext}>
-                下一步
-                <ChevronRight size={15} />
-              </Button>
+            {isResultStep ? (
+              <>
+                <Button variant="secondary" size="md" className="flex-1" onClick={handleReset}>
+                  <RotateCcw size={15} />
+                  重新配對
+                </Button>
+                <Button variant="secondary" size="md" className="flex-1" onClick={handleBack}>
+                  <ChevronLeft size={15} />
+                  調整條件
+                </Button>
+              </>
             ) : (
-              <Button variant="success" size="md" className="flex-1" onClick={handleStartMatch}>
-                <Zap size={15} />
-                開始配對
-              </Button>
+              <>
+                <Button variant="secondary" size="md" className="flex-1" onClick={handleBack}>
+                  <ChevronLeft size={15} />
+                  {step === 1 ? '取消' : '上一步'}
+                </Button>
+                {step < STEPS.length - 1 ? (
+                  <Button variant="primary" size="md" className="flex-1" disabled={!canNext} onClick={handleNext}>
+                    下一步
+                    <ChevronRight size={15} />
+                  </Button>
+                ) : (
+                  <Button variant="success" size="md" className="flex-1" onClick={handleStartMatch}>
+                    <Zap size={15} />
+                    開始配對
+                  </Button>
+                )}
+              </>
             )}
           </div>
         </div>

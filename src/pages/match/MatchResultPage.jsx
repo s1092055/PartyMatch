@@ -8,7 +8,7 @@ import RecommendedGroupCard from './components/RecommendedGroupCard'
 import Button from '../../shared/components/ui/Button'
 
 const DEFAULT_CONDITIONS = {
-  services: ['spotify', 'youtube', 'disney'], maxPrice: 100, minRating: 4.5,
+  services: ['spotify', 'youtube', 'disney'], maxPrice: 100, minRating: 70,
 }
 
 function loadConditions() {

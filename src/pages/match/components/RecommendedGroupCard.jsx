@@ -8,10 +8,15 @@ import ServiceLogo from '../../../shared/components/ui/ServiceLogo'
 import { isGroupFavorited, toggleFavorite } from '../../../shared/stores/favoriteStore'
 import { getActiveUser } from '../../../shared/stores/userStore'
 
-export default function RecommendedGroupCard({ group, rank }) {
+export default function RecommendedGroupCard({ group, rank, onBeforeNavigate }) {
   const navigate = useNavigate()
   const activeUser = getActiveUser()
   const [isFav, setIsFav] = useState(() => activeUser ? isGroupFavorited(activeUser.id, group.id) : false)
+
+  function handleNavigate(path) {
+    onBeforeNavigate?.()
+    navigate(path)
+  }
 
   return (
     <div className="card card-hover p-5 flex flex-col lg:flex-row gap-6">
@@ -88,7 +93,7 @@ export default function RecommendedGroupCard({ group, rank }) {
           variant="secondary"
           size="sm"
           className="flex-1 lg:w-full"
-          onClick={() => navigate(`/groups/${group.id}`)}
+          onClick={() => handleNavigate(`/groups/${group.id}`)}
         >
           查看詳情
         </Button>
@@ -96,7 +101,7 @@ export default function RecommendedGroupCard({ group, rank }) {
           variant="primary"
           size="sm"
           className="flex-1 lg:w-full"
-          onClick={() => navigate(`/groups/${group.id}`)}
+          onClick={() => handleNavigate(`/groups/${group.id}`)}
         >
           申請加入
         </Button>

@@ -8,11 +8,11 @@ import ScrollToTop from '../../shared/components/layout/ScrollToTop'
 import AppFooter from '../../shared/components/layout/AppFooter'
 import CreateGroupModal from '../create/CreateGroupModal'
 import MessagesModal from '../messages/MessagesModal'
-import QuickMatchModal from '../match/QuickMatchModal'
 import ServiceLogo from '../../shared/components/ui/ServiceLogo'
 import FeatureCards from './components/FeatureCards'
 import HowItWorks from './components/HowItWorks'
 import FAQ from './components/FAQ'
+import RevealSection from '../../shared/components/ui/RevealSection'
 
 const FEATURED_SERVICES = [
   'spotify', 'netflix', 'youtube', 'disney',
@@ -37,7 +37,6 @@ export default function HomePage() {
       <ScrollToTop />
       <MessagesModal />
       <CreateGroupModal />
-      <QuickMatchModal />
 
       <section className="mx-auto max-w-5xl px-5 pb-16 pt-20 text-center md:pt-16">
         <img src={logoUrl} alt="PartyMatch" className="mx-auto mb-5 h-16 w-auto" />
@@ -83,36 +82,40 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="border-y border-line bg-raised py-12">
-        <div className="mx-auto max-w-5xl px-5">
-          <p className="mb-7 text-center text-xs font-bold uppercase tracking-widest text-ink-4">
-            支援熱門訂閱服務
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-4">
-            {FEATURED_SERVICES.map(id => (
-              <ServiceLogo key={id} serviceId={id} size={52} />
-            ))}
+      <RevealSection>
+        <section className="border-y border-line bg-raised py-12">
+          <div className="mx-auto max-w-5xl px-5">
+            <p className="mb-7 text-center text-xs font-bold uppercase tracking-widest text-ink-4">
+              支援熱門訂閱服務
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              {FEATURED_SERVICES.map(id => (
+                <ServiceLogo key={id} serviceId={id} size={52} />
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </RevealSection>
 
       <div className="mx-auto max-w-5xl flex-1 space-y-16 px-5 py-16">
         <FeatureCards />
-        <HowItWorks />
-        <FAQ />
+        <RevealSection><HowItWorks /></RevealSection>
+        <RevealSection><FAQ /></RevealSection>
       </div>
 
-      <section className="border-t border-line bg-brand py-14 text-center text-white">
-        <h2 className="text-2xl font-extrabold">準備好了嗎？</h2>
-        <p className="mt-2 text-sm text-blue-200">馬上瀏覽 26 個等待你的共享群組</p>
-        <button
-          onClick={() => navigate(loggedIn ? '/explore' : '/register')}
-          className="mt-7 inline-flex items-center gap-2 rounded-xl bg-white px-7 py-3 text-sm font-bold text-brand shadow transition-opacity hover:opacity-90"
-        >
-          {loggedIn ? '前往探索群組' : '免費建立帳號'}
-          <ArrowRight size={15} />
-        </button>
-      </section>
+      <RevealSection>
+        <section className="border-t border-line bg-brand py-14 text-center text-white">
+          <h2 className="text-2xl font-extrabold">準備好了嗎？</h2>
+          <p className="mt-2 text-sm text-blue-200">馬上瀏覽 26 個等待你的共享群組</p>
+          <button
+            onClick={() => navigate(loggedIn ? '/explore' : '/register')}
+            className="mt-7 inline-flex items-center gap-2 rounded-xl bg-white px-7 py-3 text-sm font-bold text-brand shadow transition-opacity hover:opacity-90"
+          >
+            {loggedIn ? '前往探索群組' : '免費建立帳號'}
+            <ArrowRight size={15} />
+          </button>
+        </section>
+      </RevealSection>
 
       <AppFooter />
     </div>

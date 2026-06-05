@@ -2,7 +2,7 @@ import { Pencil } from 'lucide-react'
 import { getServiceById } from '../../../shared/services/serviceTypes'
 import ServiceLogo from '../../../shared/components/ui/ServiceLogo'
 
-export default function MatchConditionBar({ conditions }) {
+export default function MatchConditionBar({ conditions, showEdit = true }) {
   const { services, maxPrice, minRating } = conditions
 
   return (
@@ -30,13 +30,15 @@ export default function MatchConditionBar({ conditions }) {
       <Divider />
       <Chip label={`評分 ${minRating.toFixed(1)}+`} />
 
-      <button
-        onClick={() => window.dispatchEvent(new CustomEvent('pm:open-match'))}
-        className="ml-auto flex items-center gap-1 text-xs text-brand hover:underline"
-      >
-        <Pencil size={11} />
-        修改條件
-      </button>
+      {showEdit && (
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent('pm:open-match'))}
+          className="ml-auto flex items-center gap-1 text-xs text-brand hover:underline"
+        >
+          <Pencil size={11} />
+          修改條件
+        </button>
+      )}
     </div>
   )
 }

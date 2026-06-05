@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { ChevronLeft, ChevronRight, Play, X, VideoOff } from 'lucide-react'
+import { useScrollLock } from '../../../shared/utils/hooks'
 
 const STEPS = [
   {
@@ -32,6 +34,7 @@ function TutorialModal({ initialIndex, onClose }) {
   const [activeIndex, setActiveIndex] = useState(initialIndex)
   const iframeRef = useRef(null)
   const current = STEPS[activeIndex]
+  useScrollLock(true)
 
   const goTo = useCallback((updater) => {
     if (iframeRef.current) iframeRef.current.src = ''
@@ -53,7 +56,7 @@ function TutorialModal({ initialIndex, onClose }) {
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [handleClose, goTo])
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-[55] flex items-center justify-center bg-black/50 px-4"
       onClick={handleClose}
@@ -78,23 +81,7 @@ function TutorialModal({ initialIndex, onClose }) {
           </button>
         </div>
 
-<div className="flex gap-1.5 border-b border-line px-5 pb-3">
-          {STEPS.map((s, i) => (
-            <button
-              key={s.step}
-              onClick={() => goTo(() => i)}
-              className={`rounded-full px-3 py-1 text-xs font-bold transition-colors ${
-                i === activeIndex
-                  ? 'bg-brand text-white'
-                  : 'text-ink-3 hover:bg-raised hover:text-ink'
-              }`}
-            >
-              {s.title}
-            </button>
-          ))}
-        </div>
-
-<div className="aspect-video w-full overflow-hidden rounded-b-2xl bg-black">
+        <div className="aspect-video w-full overflow-hidden rounded-b-2xl bg-black">
           {current.videoUrl ? (
             <iframe
               key={activeIndex}
@@ -113,7 +100,7 @@ function TutorialModal({ initialIndex, onClose }) {
           )}
         </div>
 
-<button
+        <button
           onClick={() => goTo(i => Math.max(0, i - 1))}
           disabled={activeIndex === 0}
           className="absolute -left-4 top-1/2 grid h-9 w-9 place-items-center rounded-full border border-line bg-white shadow-md text-ink-3 transition-colors hover:bg-raised hover:text-ink disabled:opacity-30"
@@ -130,7 +117,8 @@ function TutorialModal({ initialIndex, onClose }) {
           <ChevronRight size={18} />
         </button>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 

@@ -6,6 +6,7 @@ import { getServiceTypeById } from '../../shared/services/serviceTypes'
 import { getActiveUser } from '../../shared/stores/userStore'
 import EmptyState from '../../shared/components/ui/EmptyState'
 import PageHeader from '../../shared/components/layout/PageHeader'
+import RevealSection from '../../shared/components/ui/RevealSection'
 import FilterBar from './components/FilterBar'
 import ExploreGroupCard from './components/ExploreGroupCard'
 
@@ -129,26 +130,30 @@ export default function ExplorePage() {
         />
       ) : (
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {filtered.map(group => (
-            <ExploreGroupCard key={group.id} group={group} />
+          {filtered.map((group, i) => (
+            <RevealSection key={group.id} delay={Math.min(i * 60, 300)}>
+              <ExploreGroupCard group={group} />
+            </RevealSection>
           ))}
-          <div
-            onClick={() => navigate('/quick-match')}
-            className="flex min-h-[14.25rem] cursor-pointer flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-brand/30 bg-brand-subtle/40 p-6 transition-colors hover:border-brand/60 hover:bg-brand-subtle"
-          >
-            <div className="grid h-14 w-14 place-items-center rounded-2xl bg-brand/10">
-              <Zap size={28} className="text-brand" />
+          <RevealSection delay={Math.min(filtered.length * 60, 300)}>
+            <div
+              onClick={() => navigate('/quick-match')}
+              className="flex min-h-[14.25rem] cursor-pointer flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-brand/30 bg-brand-subtle/40 p-6 transition-colors hover:border-brand/60 hover:bg-brand-subtle"
+            >
+              <div className="grid h-14 w-14 place-items-center rounded-2xl bg-brand/10">
+                <Zap size={28} className="text-brand" />
+              </div>
+              <div className="text-center">
+                <p className="text-base font-extrabold text-ink">找不到合適的群組？</p>
+                <p className="mt-1 text-sm text-ink-3">讓系統根據你的條件自動推薦最佳配對</p>
+              </div>
+              <span className="flex items-center gap-1.5 rounded-lg bg-brand px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-brand-hover">
+                <Sparkles size={14} />
+                前往快速配對
+                <ArrowRight size={14} />
+              </span>
             </div>
-            <div className="text-center">
-              <p className="text-base font-extrabold text-ink">找不到合適的群組？</p>
-              <p className="mt-1 text-sm text-ink-3">讓系統根據你的條件自動推薦最佳配對</p>
-            </div>
-            <span className="flex items-center gap-1.5 rounded-lg bg-brand px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-brand-hover">
-              <Sparkles size={14} />
-              前往快速配對
-              <ArrowRight size={14} />
-            </span>
-          </div>
+          </RevealSection>
         </div>
       )}
 

@@ -56,7 +56,7 @@ function buildFeatureChips(group) {
   }))
 }
 
-export default function ExploreGroupCard({ group, onFavChange }) {
+export default function ExploreGroupCard({ group, onFavChange, onBeforeNavigate }) {
   const navigate = useNavigate()
   const activeUser = getActiveUser()
   const [isFav, setIsFav] = useState(() => activeUser ? isGroupFavorited(activeUser.id, group.id) : false)
@@ -67,12 +67,13 @@ export default function ExploreGroupCard({ group, onFavChange }) {
 
   function openDetails(e) {
     e.stopPropagation()
+    onBeforeNavigate?.()
     navigate(`/groups/${group.id}`)
   }
 
   function handleFav(e) {
     e.stopPropagation()
-    if (!activeUser) { navigate('/login'); return }
+    if (!activeUser) { onBeforeNavigate?.(); navigate('/login'); return }
     const next = toggleFavorite(activeUser.id, group.id)
     setIsFav(next)
     onFavChange?.(next, group.id)

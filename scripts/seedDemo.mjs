@@ -14,6 +14,7 @@
 import { readFileSync } from 'fs'
 import { resolve, dirname } from 'path'
 import { fileURLToPath } from 'url'
+import { getUsdToTwd, twd } from './utils/getRate.mjs'
 
 // ── Load .env ──────────────────────────────────────────────────────
 const __dir = dirname(fileURLToPath(import.meta.url))
@@ -73,7 +74,7 @@ async function getDemoUid() {
 }
 
 // ── Demo data builder ──────────────────────────────────────────────
-function buildDemoData(uid) {
+function buildDemoData(uid, rate) {
   const D = true // _demo flag
 
   // Fake hosts (no real Firebase Auth needed — just display data)
@@ -128,7 +129,7 @@ function buildDemoData(uid) {
       serviceId:       'spotify',
       serviceName:     'Spotify Premium',
       planName:        '個人方案（Family）',
-      pricePerSeat:    47,
+      pricePerSeat:    twd(31.88, rate, { perYear: true }),  // GoingBus: $31.88/yr per person
       billingCycle:    'monthly',
       nextBillingDate: '2026-06-15',
       totalSeats:      6,
@@ -150,7 +151,7 @@ function buildDemoData(uid) {
       serviceId:       'netflix',
       serviceName:     'Netflix',
       planName:        '高級（4K）',
-      pricePerSeat:    98,
+      pricePerSeat:    twd(5.92, rate),                       // GoingBus: $5.92/mo per person
       billingCycle:    'monthly',
       nextBillingDate: '2026-06-20',
       totalSeats:      4,
@@ -172,7 +173,7 @@ function buildDemoData(uid) {
       serviceId:       'youtube',
       serviceName:     'YouTube Premium',
       planName:        '家庭方案',
-      pricePerSeat:    45,
+      pricePerSeat:    twd(49.99, rate, { perYear: true }),   // GoingBus: $49.99/yr per person
       billingCycle:    'monthly',
       nextBillingDate: '2026-06-07',
       totalSeats:      6,
@@ -196,7 +197,7 @@ function buildDemoData(uid) {
       serviceId:       'chatgpt',
       serviceName:     'ChatGPT Plus',
       planName:        'Plus',
-      pricePerSeat:    325,
+      pricePerSeat:    twd(20.00, rate, { seats: 2 }),        // Official: $20/mo ÷ 2 people
       billingCycle:    'monthly',
       nextBillingDate: '2026-06-18',
       totalSeats:      2,
@@ -218,7 +219,7 @@ function buildDemoData(uid) {
       serviceId:       'apple-music',
       serviceName:     'Apple Music',
       planName:        '家庭方案（6人）',
-      pricePerSeat:    42,
+      pricePerSeat:    twd(6.99, rate, { seats: 6 }),         // Official: $6.99/mo family ÷ 6
       billingCycle:    'monthly',
       nextBillingDate: '2026-06-10',
       totalSeats:      6,
@@ -242,7 +243,7 @@ function buildDemoData(uid) {
       serviceId:       'discord',
       serviceName:     'Discord Nitro',
       planName:        '家庭方案',
-      pricePerSeat:    65,
+      pricePerSeat:    twd(9.99, rate, { seats: 5 }),         // Official: $9.99/mo ÷ 5 people
       billingCycle:    'monthly',
       nextBillingDate: '2026-06-03',
       totalSeats:      5,
@@ -264,7 +265,7 @@ function buildDemoData(uid) {
       serviceId:       'notion',
       serviceName:     'Notion Plus',
       planName:        'Plus',
-      pricePerSeat:    130,
+      pricePerSeat:    twd(2.99, rate),                       // GoingBus: $2.99/mo per person
       billingCycle:    'monthly',
       nextBillingDate: '2026-04-15',
       totalSeats:      3,
@@ -288,7 +289,7 @@ function buildDemoData(uid) {
       serviceId:       'disney',
       serviceName:     'Disney+',
       planName:        '標準',
-      pricePerSeat:    45,
+      pricePerSeat:    twd(28.99, rate, { perYear: true }),   // GoingBus: $28.99/yr per person
       billingCycle:    'monthly',
       nextBillingDate: '2026-05-27',
       totalSeats:      4,
@@ -310,7 +311,7 @@ function buildDemoData(uid) {
       serviceId:       'hbo',
       serviceName:     'HBO Max',
       planName:        '標準方案',
-      pricePerSeat:    90,
+      pricePerSeat:    twd(28.99, rate, { perYear: true }),   // GoingBus: $28.99/yr per person
       billingCycle:    'monthly',
       nextBillingDate: '2026-06-15',
       totalSeats:      3,
@@ -334,7 +335,7 @@ function buildDemoData(uid) {
       serviceId:       'disney',
       serviceName:     'Disney+',
       planName:        '高級',
-      pricePerSeat:    83,
+      pricePerSeat:    twd(35.99, rate, { perYear: true }),   // GoingBus premium est: $35.99/yr
       billingCycle:    'monthly',
       nextBillingDate: '2026-06-12',
       totalSeats:      4,
@@ -356,7 +357,7 @@ function buildDemoData(uid) {
       serviceId:       'google-one',
       serviceName:     'Google One',
       planName:        '2 TB',
-      pricePerSeat:    60,
+      pricePerSeat:    twd(9.99, rate, { seats: 5 }),         // Official: $9.99/mo ÷ 5 members
       billingCycle:    'monthly',
       nextBillingDate: '2026-06-25',
       totalSeats:      5,
@@ -378,7 +379,7 @@ function buildDemoData(uid) {
       serviceId:       'microsoft-365',
       serviceName:     'Microsoft 365',
       planName:        '家庭版（6人）',
-      pricePerSeat:    55,
+      pricePerSeat:    twd(99.99, rate, { perYear: true, seats: 6 }), // Official: $99.99/yr ÷ 6
       billingCycle:    'monthly',
       nextBillingDate: '2026-06-08',
       totalSeats:      6,
@@ -400,7 +401,7 @@ function buildDemoData(uid) {
       serviceId:       'claude',
       serviceName:     'Claude Pro',
       planName:        'Pro',
-      pricePerSeat:    325,
+      pricePerSeat:    twd(20.00, rate, { seats: 2 }),        // Official: $20/mo ÷ 2 people
       billingCycle:    'monthly',
       nextBillingDate: '2026-06-22',
       totalSeats:      2,
@@ -422,7 +423,7 @@ function buildDemoData(uid) {
       serviceId:       'kkbox',
       serviceName:     'KKBOX',
       planName:        '家庭方案',
-      pricePerSeat:    50,
+      pricePerSeat:    twd(9.90, rate, { seats: 5 }),         // Official: NT$320/mo ≈ $9.90 ÷ 5
       billingCycle:    'monthly',
       nextBillingDate: '2026-06-01',
       totalSeats:      5,
@@ -492,16 +493,16 @@ function buildDemoData(uid) {
   // ── Subscriptions ─────────────────────────────────────────────────
   const subscriptions = [
     // Demo user's subscription to ChatGPT group (active, confirmed)
-    { id: 'demo_sub_cg_demo', userId: uid, groupId: 'demo_group_chatgpt_01', serviceId: 'chatgpt', serviceName: 'ChatGPT Plus', planName: 'Plus', hostName: hosts.h1.name, hostAvatarInitial: hosts.h1.initial, hostAvatarColor: hosts.h1.color, pricePerSeat: 325, billingCycle: 'monthly', nextBillingDate: '2026-06-18', joinedAt: '2026-02-05', paymentStatus: 'confirmed', status: 'active', createdAt: '2026-02-05', updatedAt: '2026-05-16', _demo: D },
+    { id: 'demo_sub_cg_demo', userId: uid, groupId: 'demo_group_chatgpt_01', serviceId: 'chatgpt', serviceName: 'ChatGPT Plus', planName: 'Plus', hostName: hosts.h1.name, hostAvatarInitial: hosts.h1.initial, hostAvatarColor: hosts.h1.color, pricePerSeat: twd(20.00, rate, { seats: 2 }), billingCycle: 'monthly', nextBillingDate: '2026-06-18', joinedAt: '2026-02-05', paymentStatus: 'confirmed', status: 'active', createdAt: '2026-02-05', updatedAt: '2026-05-16', _demo: D },
 
     // Demo user's pending application to Apple Music (subscription pre-created for when approved)
-    { id: 'demo_sub_am_demo', userId: uid, groupId: 'demo_group_applemusic_01', serviceId: 'apple-music', serviceName: 'Apple Music', planName: '家庭方案（6人）', hostName: hosts.h2.name, hostAvatarInitial: hosts.h2.initial, hostAvatarColor: hosts.h2.color, pricePerSeat: 42, billingCycle: 'monthly', nextBillingDate: '2026-06-10', joinedAt: '2026-05-17', paymentStatus: 'pending', status: 'pending_payment', createdAt: '2026-05-17', updatedAt: '2026-05-17', _demo: D },
+    { id: 'demo_sub_am_demo', userId: uid, groupId: 'demo_group_applemusic_01', serviceId: 'apple-music', serviceName: 'Apple Music', planName: '家庭方案（6人）', hostName: hosts.h2.name, hostAvatarInitial: hosts.h2.initial, hostAvatarColor: hosts.h2.color, pricePerSeat: twd(6.99, rate, { seats: 6 }), billingCycle: 'monthly', nextBillingDate: '2026-06-10', joinedAt: '2026-05-17', paymentStatus: 'pending', status: 'pending_payment', createdAt: '2026-05-17', updatedAt: '2026-05-17', _demo: D },
 
     // Disney+ — upcoming billing (within 7 days), confirmed payment
-    { id: 'demo_sub_dis_demo', userId: uid, groupId: 'demo_group_disney_02', serviceId: 'disney', serviceName: 'Disney+', planName: '標準', hostName: hosts.h3.name, hostAvatarInitial: hosts.h3.initial, hostAvatarColor: hosts.h3.color, pricePerSeat: 45, billingCycle: 'monthly', nextBillingDate: '2026-05-27', joinedAt: '2026-03-27', paymentStatus: 'confirmed', status: 'active', createdAt: '2026-03-27', updatedAt: '2026-05-15', _demo: D },
+    { id: 'demo_sub_dis_demo', userId: uid, groupId: 'demo_group_disney_02', serviceId: 'disney', serviceName: 'Disney+', planName: '標準', hostName: hosts.h3.name, hostAvatarInitial: hosts.h3.initial, hostAvatarColor: hosts.h3.color, pricePerSeat: twd(28.99, rate, { perYear: true }), billingCycle: 'monthly', nextBillingDate: '2026-05-27', joinedAt: '2026-03-27', paymentStatus: 'confirmed', status: 'active', createdAt: '2026-03-27', updatedAt: '2026-05-15', _demo: D },
 
     // HBO Max — markedPaid (waiting host confirmation)
-    { id: 'demo_sub_hbo_demo', userId: uid, groupId: 'demo_group_hbo_01', serviceId: 'hbo', serviceName: 'HBO Max', planName: '標準方案', hostName: hosts.h1.name, hostAvatarInitial: hosts.h1.initial, hostAvatarColor: hosts.h1.color, pricePerSeat: 90, billingCycle: 'monthly', nextBillingDate: '2026-06-15', joinedAt: '2026-01-25', paymentStatus: 'markedPaid', status: 'active', createdAt: '2026-01-25', updatedAt: '2026-05-17', _demo: D },
+    { id: 'demo_sub_hbo_demo', userId: uid, groupId: 'demo_group_hbo_01', serviceId: 'hbo', serviceName: 'HBO Max', planName: '標準方案', hostName: hosts.h1.name, hostAvatarInitial: hosts.h1.initial, hostAvatarColor: hosts.h1.color, pricePerSeat: twd(28.99, rate, { perYear: true }), billingCycle: 'monthly', nextBillingDate: '2026-06-15', joinedAt: '2026-01-25', paymentStatus: 'markedPaid', status: 'active', createdAt: '2026-01-25', updatedAt: '2026-05-17', _demo: D },
   ]
 
   // ── Notifications ─────────────────────────────────────────────────
@@ -544,12 +545,16 @@ async function seedCollection(name, records) {
 // ── Main ───────────────────────────────────────────────────────────
 async function main() {
   console.log(`\nSeeding demo data → ${process.env.VITE_FIREBASE_PROJECT_ID}\n`)
+
+  const rate = await getUsdToTwd()
+  console.log(`  💱 USD/TWD rate: ${rate.toFixed(2)}\n`)
+
   console.log('Demo account:')
   const uid = await getDemoUid()
   console.log('  UID:', uid)
   console.log()
 
-  const data = buildDemoData(uid)
+  const data = buildDemoData(uid, rate)
 
   console.log('Writing collections:')
   await seedCollection('groups',        data.groups)
