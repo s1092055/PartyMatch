@@ -13,6 +13,12 @@ import { todayISO } from '../utils/date'
 
 let _currentUser = null
 
+function normalizeCreditScore(raw) {
+  const n = Number(raw)
+  if (!Number.isFinite(n)) return 80
+  return n > 0 && n <= 5 ? Math.round(n * 20) : n
+}
+
 async function buildUserProfile(firebaseUser) {
   const snap = await getDoc(doc(db, 'users', firebaseUser.uid))
   const stored = snap.exists() ? snap.data() : {}
@@ -24,7 +30,7 @@ async function buildUserProfile(firebaseUser) {
     avatarColor: stored.avatarColor ?? null,
     joinedAt:    stored.joinedAt   ?? todayISO(),
     role:        stored.role       ?? 'user',
-    creditScore: stored.creditScore ?? 80,
+    creditScore: normalizeCreditScore(stored.creditScore ?? 80),
     isVerified:  stored.isVerified  ?? false,
   }
 }
