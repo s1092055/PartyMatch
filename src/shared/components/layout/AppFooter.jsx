@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import logoUrl from '../../../assets/Logo.svg'
 
 const LEGAL_LINKS = [
   { to: '/terms',      label: '服務條款' },
@@ -12,7 +13,7 @@ export default function AppFooter() {
       <div className="mx-auto max-w-5xl flex flex-col items-center gap-5 md:flex-row md:justify-between">
 
         <div className="flex items-center gap-2.5">
-          <img src="/src/assets/Logo.svg" alt="PartyMatch" className="h-7 w-7" />
+          <img src={logoUrl} alt="PartyMatch" className="h-7 w-7" />
           <span className="font-extrabold">
             <span className="text-brand">Party</span><span className="text-ink">Match</span>
           </span>

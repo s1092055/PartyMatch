@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
+import logoUrl from '../../assets/Logo.svg'
 import { isAuthenticated } from '../../shared/stores/authStore'
 import AppNav from '../../shared/components/layout/AppNav'
 import MobileSearch from '../../shared/components/layout/MobileSearch'
@@ -39,7 +40,7 @@ export default function HomePage() {
       <QuickMatchModal />
 
       <section className="mx-auto max-w-5xl px-5 pb-16 pt-20 text-center md:pt-16">
-        <img src="/src/assets/Logo.svg" alt="PartyMatch" className="mx-auto mb-5 h-16 w-auto" />
+        <img src={logoUrl} alt="PartyMatch" className="mx-auto mb-5 h-16 w-auto" />
         <h1 className="mt-5 text-4xl font-extrabold leading-tight tracking-tight text-ink md:text-5xl">
           PartyMatch<br />
         </h1>

@@ -1,4 +1,5 @@
 import { Film, Music2, Bot, Briefcase, Cloud, BookOpen, Gamepad2, Shield } from 'lucide-react'
+import logoUrl from '../../../assets/Logo.svg'
 
 export const CATEGORIES = [
   { value: '影音',   label: '影音',    Icon: Film },
@@ -33,7 +34,7 @@ export default function CategoryPills({ active, onChange, variant = 'pills', sho
               }`}
             >
               {cat.value === 'all' ? (
-                <img src="/src/assets/Logo.svg" alt="全部" className="h-6 w-6 rounded-lg object-contain md:h-8 md:w-8" />
+                <img src={logoUrl} alt="全部" className="h-6 w-6 rounded-lg object-contain md:h-8 md:w-8" />
               ) : cat.Icon && (
                 <>
                   <cat.Icon size={24} className="md:hidden" strokeWidth={1.75} />
