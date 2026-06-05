@@ -55,15 +55,13 @@ export default function GroupCard({ group, onFavChange }) {
         <div className="min-w-0 flex-1">
           <p className="text-lg font-extrabold leading-tight text-ink">{group.serviceName}</p>
           <p className="mt-0.5 text-sm text-ink-3">{group.planName}</p>
-          {displayTags.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1">
-              {displayTags.map(tag => (
-                <span key={tag} className="rounded-full bg-raised px-2 py-0.5 text-2xs font-medium text-ink-2">
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
+          <div className="mt-2 flex h-5 flex-wrap gap-1 overflow-hidden">
+            {displayTags.map(tag => (
+              <span key={tag} className="rounded-full bg-raised px-2 py-0.5 text-2xs font-medium text-ink-2">
+                {tag}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 

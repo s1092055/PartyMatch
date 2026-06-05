@@ -103,19 +103,17 @@ export default function ExploreGroupCard({ group, onFavChange }) {
         <p className="mt-1 text-base font-semibold text-ink-3">{group.planName}</p>
       </div>
 
-      {featureChips.length > 0 && (
-        <div className="mt-3 flex justify-center gap-1.5 overflow-hidden">
-          {featureChips.map(({ label, Icon }) => (
-            <span
-              key={label}
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-line px-2.5 py-1 text-xs font-extrabold text-ink-3"
-            >
-              <Icon size={14} strokeWidth={2.25} />
-              {label}
-            </span>
-          ))}
-        </div>
-      )}
+      <div className="mt-3 flex h-7 justify-center gap-1.5 overflow-hidden">
+        {featureChips.map(({ label, Icon }) => (
+          <span
+            key={label}
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-line px-2.5 py-1 text-xs font-extrabold text-ink-3"
+          >
+            <Icon size={14} strokeWidth={2.25} />
+            {label}
+          </span>
+        ))}
+      </div>
 
       <p className="my-4 text-center text-2xl font-black leading-none text-ink">
         NT${group.pricePerSeat}
