@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { activateGroup, confirmGroupPayments, endGroup, getGroupsByHostId, startRenewalCycle, updateGroup } from '../../shared/stores/groupStore'
+import { adjustCreditScore } from '../../shared/stores/authStore'
+import { CREDIT_RULES } from '../../shared/utils/creditScore'
 import { getApplicationsByHostId, updateApplicationStatus } from '../../shared/stores/applicationStore'
 import { getMembersByGroupId, createMember, isUserGroupMember, removeMember, updateMember } from '../../shared/stores/memberStore'
 import { activateGroupSubscriptions, confirmSubscriptionPayment, createSubscription, getSubscriptionByUserAndGroup } from '../../shared/stores/subscriptionStore'
@@ -118,6 +120,7 @@ useEffect(() => {
   }
 
 function handleRemoveMember(member) {
+    adjustCreditScore(member.userId, CREDIT_RULES.MEMBER_REMOVED).catch(console.error)
     removeMember(member.id)
     const seats = seatMap[member.groupId]
     if (seats) {
@@ -133,6 +136,7 @@ function handleRemoveMember(member) {
   }
 
 function handleConfirmMember(member) {
+    adjustCreditScore(member.userId, CREDIT_RULES.PAYMENT_CONFIRMED).catch(console.error)
     updateMember(member.id, { paymentStatus: 'confirmed' })
 
     const sub = getSubscriptionByUserAndGroup(member.userId, member.groupId)
@@ -155,6 +159,7 @@ function handleConfirmMember(member) {
 
 function handleActivate(renewalDate) {
     if (!viewGroupId) return
+    adjustCreditScore(activeUser.id, CREDIT_RULES.GROUP_ACTIVATED).catch(console.error)
     const updatedGroup = activateGroup(viewGroupId, renewalDate || null)
     if (updatedGroup) {
       activateGroupSubscriptions(viewGroupId, updatedGroup.nextBillingDate)
@@ -294,12 +299,12 @@ function handleApprove(appId) {
   }
 
   return (
-    <div>
+    <div className="px-2 md:px-4 lg:px-16">
       <div className="mb-6 text-center">
         <h1 className="page-title">群組管理</h1>
       </div>
 
-      <div className="mx-auto max-w-7xl">
+      <div>
         <div className="mb-4 flex min-w-0 justify-center overflow-x-auto py-1">
           <div className="flex gap-1">
             {STATUS_FILTER_TABS.map(tab => (

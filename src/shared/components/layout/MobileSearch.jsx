@@ -179,12 +179,8 @@ export default function MobileSearch() {
                       <p className="truncate text-sm font-bold text-ink">{group.serviceName}</p>
                       <p className="truncate text-xs text-ink-3">{group.planName} · NT${group.pricePerSeat}/月</p>
                     </div>
-                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-bold ${
-                      group.joinMode === 'instant'
-                        ? 'bg-success-subtle text-success-text'
-                        : 'bg-raised text-ink-3'
-                    }`}>
-                      {group.joinMode === 'instant' ? '立即' : '審核'}
+                    <span className="shrink-0 rounded-full bg-raised px-2 py-0.5 text-xs font-bold text-ink-3">
+                      審核
                     </span>
                   </button>
                 ))}

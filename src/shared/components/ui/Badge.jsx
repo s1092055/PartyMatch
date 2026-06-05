@@ -39,10 +39,6 @@ const VARIANTS = {
     cls: 'bg-info-subtle text-info-text',
     dot: null,
   },
-  instant: {
-    cls: 'bg-success-subtle text-success-text',
-    dot: null,
-  },
   pending: {
     cls: 'bg-warning-subtle text-warning-text',
     dot: 'bg-warning',
@@ -92,7 +88,6 @@ const LABELS = {
   ended:              '已結束',
   closed:             '已關閉',
   approval:           '審核加入',
-  instant:            '立即加入',
   pending:            '待付款',
   paid:               '已付款',
   overdue:            '逾期',

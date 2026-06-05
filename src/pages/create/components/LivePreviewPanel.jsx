@@ -83,16 +83,13 @@ export default function LivePreviewPanel({ form }) {
               </div>
             </div>
 
-<div className="flex items-center justify-between">
-              <div className="flex items-center gap-1 text-xs text-slate-400">
-                <Calendar size={11} />
-                <span>
-                  {form.nextBillingDay
-                    ? `每月 ${form.nextBillingDay} 日扣款`
-                    : '扣款日未設定'}
-                </span>
-              </div>
-              <Badge variant={form.joinMode} />
+<div className="flex items-center gap-1 text-xs text-slate-400">
+              <Calendar size={11} />
+              <span>
+                {form.nextBillingDay
+                  ? `每月 ${form.nextBillingDay} 日扣款`
+                  : '扣款日未設定'}
+              </span>
             </div>
           </div>
         )}

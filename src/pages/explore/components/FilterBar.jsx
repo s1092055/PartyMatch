@@ -10,12 +10,6 @@ const PRICE_OPTIONS = [
   { value: '200',  label: 'NT$200 以下' },
 ]
 
-const JOIN_MODE_OPTIONS = [
-  { value: 'all',      label: '所有方式' },
-  { value: 'instant',  label: '立即加入' },
-  { value: 'approval', label: '審核加入' },
-]
-
 const SORT_OPTIONS = [
   { value: 'recommended', label: '最新上架' },
   { value: 'rating',      label: '評分最高' },
@@ -24,7 +18,7 @@ const SORT_OPTIONS = [
 ]
 
 export default function FilterBar({ filters, onChange }) {
-  const { category, service, joinMode, maxPrice, sortBy } = filters
+  const { category, service, maxPrice, sortBy } = filters
 
   const serviceOptions = useMemo(() => {
     const all = listServiceTypes()
@@ -46,7 +40,6 @@ export default function FilterBar({ filters, onChange }) {
 
       <div className="flex flex-wrap gap-4 mt-6">
         <CustomSelect value={service} onChange={v => onChange({ service: v })} options={serviceOptions} />
-        <CustomSelect value={joinMode} onChange={v => onChange({ joinMode: v })} options={JOIN_MODE_OPTIONS} />
         <CustomSelect value={maxPrice} onChange={v => onChange({ maxPrice: v })} options={PRICE_OPTIONS} />
         <CustomSelect value={sortBy} onChange={v => onChange({ sortBy: v })} options={SORT_OPTIONS} />
       </div>

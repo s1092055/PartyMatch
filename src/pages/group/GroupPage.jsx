@@ -6,7 +6,7 @@ import {
   AlertCircle,
   MessageSquare,
 } from "lucide-react";
-import StarRating from "../../shared/components/ui/StarRating";
+import CreditScoreBadge from "../../shared/components/ui/CreditScoreBadge";
 import { getGroupById } from "../../shared/stores/groupStore";
 import GroupHeroCard from "./components/GroupHeroCard";
 import StickyJoinSummary from "./components/StickyJoinSummary";
@@ -77,16 +77,9 @@ export default function GroupPage() {
           </SectionCard>
 
           <SectionCard
-            title="團主評價"
+            title="團主信用"
             subtitle={`${group.hostReviewCount} 則評價`}
-            action={
-              <div className="flex items-center gap-1.5">
-                <StarRating rating={Math.round(group.hostRating)} size={13} />
-                <span className="text-sm font-bold text-ink-2">
-                  {group.hostRating}
-                </span>
-              </div>
-            }
+            action={<CreditScoreBadge score={group.hostRating} size="md" />}
           >
             <div className="space-y-4">
               {(
@@ -104,7 +97,6 @@ export default function GroupPage() {
                         <span className="text-sm font-medium text-ink-2">
                           {review.author}
                         </span>
-                        <StarRating rating={review.rating} size={11} />
                       </div>
                       <span className="text-xs text-ink-3 shrink-0">
                         {review.date}

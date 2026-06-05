@@ -8,6 +8,7 @@ import {
   updateProfile,
 } from 'firebase/auth'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
+import { patchUserCreditScore } from '../api/usersApi'
 import { todayISO } from '../utils/date'
 
 let _currentUser = null
@@ -23,7 +24,7 @@ async function buildUserProfile(firebaseUser) {
     avatarColor: stored.avatarColor ?? null,
     joinedAt:    stored.joinedAt   ?? todayISO(),
     role:        stored.role       ?? 'user',
-    creditScore: stored.creditScore ?? 5.0,
+    creditScore: stored.creditScore ?? 80,
     isVerified:  stored.isVerified  ?? false,
   }
 }
@@ -67,7 +68,7 @@ export async function registerUser({ name, email, password }) {
       avatarColor: null,
       joinedAt:    todayISO(),
       role:        'user',
-      creditScore: 5.0,
+      creditScore: 80,
       isVerified:  false,
     }
     await setDoc(doc(db, 'users', result.user.uid), profile)
@@ -82,6 +83,14 @@ export async function registerUser({ name, email, password }) {
 export async function logoutUser() {
   try { await signOut(auth) } catch { /* ignore network errors */ }
   _currentUser = null
+}
+
+export async function adjustCreditScore(userId, delta) {
+  const newScore = await patchUserCreditScore(userId, delta)
+  if (newScore !== null && _currentUser?.id === userId) {
+    _currentUser = { ..._currentUser, creditScore: newScore }
+  }
+  return newScore
 }
 
 export async function resetPassword(email) {

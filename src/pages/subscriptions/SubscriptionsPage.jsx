@@ -90,12 +90,12 @@ export default function SubscriptionsPage() {
   )
 
   return (
-    <div>
+    <div className="px-2 md:px-4 lg:px-16">
       <div className="mb-6 text-center">
         <h1 className="page-title">我的訂閱</h1>
       </div>
 
-      <div className="mx-auto max-w-7xl">
+      <div>
         <div className="mb-4 flex min-w-0 justify-center overflow-x-auto py-1">
           <div className="flex gap-1">
             {FILTER_TABS.map(tab => (

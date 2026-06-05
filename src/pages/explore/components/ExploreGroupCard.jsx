@@ -4,17 +4,15 @@ import {
   BadgeCheck,
   Heart,
   Monitor,
-  ShieldCheck,
-  Star,
   Users,
 } from 'lucide-react'
+import CreditScoreBadge from '../../../shared/components/ui/CreditScoreBadge'
 import Badge from '../../../shared/components/ui/Badge'
 import Button from '../../../shared/components/ui/Button'
 import ServiceLogo from '../../../shared/components/ui/ServiceLogo'
 import { isGroupFavorited, toggleFavorite } from '../../../shared/stores/favoriteStore'
 import { getActiveUser } from '../../../shared/stores/userStore'
 
-const JOIN_MODE_LABEL = { instant: '立即加入', approval: '需審核' }
 function buildFeatureChips(group) {
   const tags = group.tags ?? []
   const source = `${group.planName} ${tags.join(' ')}`
@@ -40,12 +38,9 @@ function buildFeatureChips(group) {
       if (!labels.includes(tag) && labels.length < 2) labels.push(tag)
     })
 
-  const joinLabel = JOIN_MODE_LABEL[group.joinMode]
-  if (joinLabel) labels.push(joinLabel)
-
   return labels.slice(0, 3).map(label => ({
     label,
-    Icon: label === joinLabel ? ShieldCheck : label.includes('家庭') ? Users : Monitor,
+    Icon: label.includes('家庭') ? Users : Monitor,
   }))
 }
 
@@ -142,9 +137,8 @@ export default function ExploreGroupCard({ group, onFavChange }) {
               <span className="truncate text-sm font-black text-ink">{group.hostName}</span>
               {group.isHostVerified && <BadgeCheck size={14} className="shrink-0 fill-brand text-white" />}
             </div>
-            <div className="mt-0.5 flex items-center gap-1 text-xs font-medium text-ink-3">
-              <Star size={12} className="fill-warning text-warning" />
-              <span>{group.hostRating}</span>
+            <div className="mt-0.5">
+              <CreditScoreBadge score={group.hostRating} />
             </div>
           </div>
         </div>

@@ -1,5 +1,7 @@
-import { Star, CheckCircle2, XCircle, ShieldCheck, Smartphone, Mail, CreditCard, TrendingUp, BarChart2 } from 'lucide-react'
+import { CheckCircle2, XCircle, ShieldCheck, Smartphone, Mail, TrendingUp } from 'lucide-react'
 import { getSubscriptionsByUserId } from '../../../shared/stores/subscriptionStore'
+import CreditScoreBadge from '../../../shared/components/ui/CreditScoreBadge'
+import { getCreditDisplay } from '../../../shared/utils/creditScore'
 
 function Panel({ title, icon: Icon, iconCls = 'text-blue-500', children }) {
   return (
@@ -9,24 +11,6 @@ function Panel({ title, icon: Icon, iconCls = 'text-blue-500', children }) {
         <span className="text-sm font-semibold text-slate-700">{title}</span>
       </div>
       <div className="p-4">{children}</div>
-    </div>
-  )
-}
-
-function StarBar({ value }) {
-  return (
-    <div className="flex items-center gap-1.5">
-      <div className="flex gap-0.5">
-        {[1,2,3,4,5].map(i => (
-          <Star
-            key={i}
-            size={12}
-            className={i <= Math.round(value) ? 'text-amber-400 fill-amber-400' : 'text-slate-200 fill-slate-200'}
-          />
-        ))}
-      </div>
-      <span className="text-sm font-bold text-slate-700">{value}</span>
-      <span className="text-xs text-slate-400">/ 5.0</span>
     </div>
   )
 }
@@ -44,27 +28,20 @@ export default function AccountSidebar({ user }) {
   return (
     <div className="sticky top-20 space-y-4">
       
-      <Panel title="信用評分" icon={Star} iconCls="text-amber-500">
-        <StarBar value={user.creditScore} />
-        <div className="mt-3 space-y-2.5">
-          {[
-            { label: '準時付款', value: '100%',  color: 'bg-emerald-500' },
-            { label: '群組完成率', value: '94%', color: 'bg-blue-500' },
-          ].map(({ label, value, color }) => (
-            <div key={label}>
-              <div className="flex justify-between text-xs mb-1">
-                <span className="text-slate-500">{label}</span>
-                <span className="font-semibold text-slate-700">{value}</span>
-              </div>
-              <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                <div className={`h-full ${color} rounded-full`} style={{ width: value }} />
-              </div>
-            </div>
-          ))}
-          <div className="flex justify-between text-xs pt-1 border-t border-slate-100">
-            <span className="text-slate-400">收到評價</span>
-            <span className="font-semibold text-slate-700">{Math.floor(user.creditScore * 10)} 則</span>
+      <Panel title="信用分數" icon={TrendingUp} iconCls="text-brand">
+        <div className="flex items-center justify-between mb-4">
+          <CreditScoreBadge score={user.creditScore} size="lg" />
+          <div className="text-right text-xs text-slate-400 space-y-1">
+            <p>90–100 優良</p>
+            <p>70–89 良好</p>
+            <p>50–69 普通</p>
+            <p>&lt;50 待改善</p>
           </div>
+        </div>
+        <div className="space-y-2 text-xs text-slate-500 border-t border-slate-100 pt-3">
+          <p className="flex justify-between"><span>付款確認</span><span className="text-emerald-600 font-semibold">+2 分</span></p>
+          <p className="flex justify-between"><span>被移除出群組</span><span className="text-red-500 font-semibold">−10 分</span></p>
+          <p className="flex justify-between"><span>成功啟用群組</span><span className="text-blue-600 font-semibold">+5 分</span></p>
         </div>
       </Panel>
 

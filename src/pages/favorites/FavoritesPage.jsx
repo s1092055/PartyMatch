@@ -35,7 +35,7 @@ export default function FavoritesPage() {
     : groups.filter(g => getServiceById(g.serviceId)?.category === activeCategory)
 
   return (
-    <div className="px-2 md:px-4 lg:px-8">
+    <div className="px-2 md:px-4 lg:px-16">
       <PageHeader
         title="我的收藏"
         className="mb-6 text-center"

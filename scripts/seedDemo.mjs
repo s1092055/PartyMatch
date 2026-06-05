@@ -66,7 +66,7 @@ async function getDemoUid() {
     avatarColor: '#0866F2',
     joinedAt:    '2025-01-15',
     role:        'user',
-    creditScore: 4.9,
+    creditScore: 92,
     isVerified:  true,
   })
   return uid
@@ -78,10 +78,10 @@ function buildDemoData(uid) {
 
   // Fake hosts (no real Firebase Auth needed — just display data)
   const hosts = {
-    h1: { id: 'demo_fake_host_01', name: '陳建宏', initial: '陳', color: '#F97316', rating: 4.8, reviews: 15, verified: true },
-    h2: { id: 'demo_fake_host_02', name: '王小美', initial: '王', color: '#14B8A6', rating: 4.6, reviews: 8,  verified: false },
-    h3: { id: 'demo_fake_host_03', name: '林志明', initial: '林', color: '#8B5CF6', rating: 4.9, reviews: 23, verified: true },
-    h4: { id: 'demo_fake_host_04', name: '張雅婷', initial: '張', color: '#EF4444', rating: 4.7, reviews: 5,  verified: false },
+    h1: { id: 'demo_fake_host_01', name: '陳建宏', initial: '陳', color: '#F97316', rating: 92, reviews: 15, verified: true },
+    h2: { id: 'demo_fake_host_02', name: '王小美', initial: '王', color: '#14B8A6', rating: 85, reviews: 8,  verified: false },
+    h3: { id: 'demo_fake_host_03', name: '林志明', initial: '林', color: '#8B5CF6', rating: 95, reviews: 23, verified: true },
+    h4: { id: 'demo_fake_host_04', name: '張雅婷', initial: '張', color: '#EF4444', rating: 88, reviews: 5,  verified: false },
   }
 
   // Fake member profiles
@@ -114,7 +114,7 @@ function buildDemoData(uid) {
     hostName:          '林宥廷',
     hostAvatarInitial: '林',
     hostAvatarColor:   '#0866F2',
-    hostRating:        4.9,
+    hostRating:        92,
     hostReviewCount:   7,
     isHostVerified:    true,
   }
@@ -156,9 +156,9 @@ function buildDemoData(uid) {
       totalSeats:      4,
       usedSeats:       4,
       openSeats:       0,
-      joinMode:        'instant',
+      joinMode:        'approval',
       status:          'pending_confirmation',
-      tags:            ['影音', '立即加入', '4K HDR'],
+      tags:            ['影音', '4K HDR'],
       rules:           ['每月 20 日前完成付款', '不得更改帳號密碼'],
       requirements:    null,
       createdAt:       '2026-03-15',
@@ -294,9 +294,9 @@ function buildDemoData(uid) {
       totalSeats:      4,
       usedSeats:       4,
       openSeats:       0,
-      joinMode:        'instant',
+      joinMode:        'approval',
       status:          'active',
-      tags:            ['影音', '立即加入'],
+      tags:            ['影音'],
       rules:           ['每月 27 日前付款', '不更改帳號設定'],
       requirements:    null,
       createdAt:       '2026-03-27',
@@ -340,9 +340,9 @@ function buildDemoData(uid) {
       totalSeats:      4,
       usedSeats:       2,
       openSeats:       2,
-      joinMode:        'instant',
+      joinMode:        'approval',
       status:          'recruiting',
-      tags:            ['影音', '立即加入', '4K HDR'],
+      tags:            ['影音', '4K HDR'],
       rules:           ['每月 12 日前付款'],
       requirements:    null,
       createdAt:       '2026-04-05',
@@ -384,9 +384,9 @@ function buildDemoData(uid) {
       totalSeats:      6,
       usedSeats:       3,
       openSeats:       3,
-      joinMode:        'instant',
+      joinMode:        'approval',
       status:          'recruiting',
-      tags:            ['辦公', '立即加入', '家庭方案'],
+      tags:            ['辦公', '家庭方案'],
       rules:           ['OneDrive 獨立空間使用', '每月 8 日前付款'],
       requirements:    null,
       createdAt:       '2026-04-10',
@@ -428,9 +428,9 @@ function buildDemoData(uid) {
       totalSeats:      5,
       usedSeats:       2,
       openSeats:       3,
-      joinMode:        'instant',
+      joinMode:        'approval',
       status:          'recruiting',
-      tags:            ['音樂', '家庭方案', '立即加入'],
+      tags:            ['音樂', '家庭方案'],
       rules:           ['每月 1 日前付款', '不分享帳號'],
       requirements:    null,
       createdAt:       '2026-04-28',
@@ -477,16 +477,16 @@ function buildDemoData(uid) {
   // ── Applications ──────────────────────────────────────────────────
   const applications = [
     // Pending application to demo user's Spotify group
-    { id: 'demo_app_sp_01', groupId: 'demo_group_spotify_01', groupName: 'Spotify Premium', serviceId: 'spotify', serviceName: 'Spotify Premium', planName: '個人方案（Family）', hostId: uid, hostName: '林宥廷', applicantId: 'demo_fake_app_user_01', applicantName: '江文彬', applicantAvatarInitial: '江', applicantAvatarColor: '#0F172A', userId: 'demo_fake_app_user_01', userName: '江文彬', userAvatarInitial: '江', userAvatarColor: '#0F172A', message: '你好，我平常很常聽音樂，願意準時繳費，希望能加入！', status: 'pending', createdAt: '2026-05-18', updatedAt: '2026-05-18', _demo: D },
+    { id: 'demo_app_sp_01', groupId: 'demo_group_spotify_01', groupName: 'Spotify Premium', serviceId: 'spotify', serviceName: 'Spotify Premium', planName: '個人方案（Family）', hostId: uid, hostName: '林宥廷', applicantId: 'demo_fake_app_user_01', applicantName: '江文彬', applicantAvatarInitial: '江', applicantAvatarColor: '#0F172A', applicantCreditScore: 88, userId: 'demo_fake_app_user_01', userName: '江文彬', userAvatarInitial: '江', userAvatarColor: '#0F172A', message: '你好，我平常很常聽音樂，願意準時繳費，希望能加入！', status: 'pending', createdAt: '2026-05-18', updatedAt: '2026-05-18', _demo: D },
 
     // Pending application to demo user's Spotify group (2nd applicant)
-    { id: 'demo_app_sp_02', groupId: 'demo_group_spotify_01', groupName: 'Spotify Premium', serviceId: 'spotify', serviceName: 'Spotify Premium', planName: '個人方案（Family）', hostId: uid, hostName: '林宥廷', applicantId: 'demo_fake_app_user_02', applicantName: '蔡欣儀', applicantAvatarInitial: '蔡', applicantAvatarColor: '#14B8A6', userId: 'demo_fake_app_user_02', userName: '蔡欣儀', userAvatarInitial: '蔡', userAvatarColor: '#14B8A6', message: '我每天都在聽歌，很需要 Spotify Premium，保證準時繳費！', status: 'pending', createdAt: '2026-05-19', updatedAt: '2026-05-19', _demo: D },
+    { id: 'demo_app_sp_02', groupId: 'demo_group_spotify_01', groupName: 'Spotify Premium', serviceId: 'spotify', serviceName: 'Spotify Premium', planName: '個人方案（Family）', hostId: uid, hostName: '林宥廷', applicantId: 'demo_fake_app_user_02', applicantName: '蔡欣儀', applicantAvatarInitial: '蔡', applicantAvatarColor: '#14B8A6', applicantCreditScore: 75, userId: 'demo_fake_app_user_02', userName: '蔡欣儀', userAvatarInitial: '蔡', userAvatarColor: '#14B8A6', message: '我每天都在聽歌，很需要 Spotify Premium，保證準時繳費！', status: 'pending', createdAt: '2026-05-19', updatedAt: '2026-05-19', _demo: D },
 
     // Demo user applied to Apple Music group (pending)
-    { id: 'demo_app_am_demo', groupId: 'demo_group_applemusic_01', groupName: 'Apple Music', serviceId: 'apple-music', serviceName: 'Apple Music', planName: '家庭方案（6人）', hostId: hosts.h2.id, hostName: hosts.h2.name, applicantId: uid, applicantName: '林宥廷', applicantAvatarInitial: '林', applicantAvatarColor: '#0866F2', userId: uid, userName: '林宥廷', userAvatarInitial: '林', userAvatarColor: '#0866F2', message: '我使用 Apple 裝置，願意準時繳費。', status: 'pending', createdAt: '2026-05-17', updatedAt: '2026-05-17', _demo: D },
+    { id: 'demo_app_am_demo', groupId: 'demo_group_applemusic_01', groupName: 'Apple Music', serviceId: 'apple-music', serviceName: 'Apple Music', planName: '家庭方案（6人）', hostId: hosts.h2.id, hostName: hosts.h2.name, applicantId: uid, applicantName: '林宥廷', applicantAvatarInitial: '林', applicantAvatarColor: '#0866F2', applicantCreditScore: 92, userId: uid, userName: '林宥廷', userAvatarInitial: '林', userAvatarColor: '#0866F2', message: '我使用 Apple 裝置，願意準時繳費。', status: 'pending', createdAt: '2026-05-17', updatedAt: '2026-05-17', _demo: D },
 
     // Demo user's rejected application (for applications tab)
-    { id: 'demo_app_ms_demo', groupId: 'demo_group_ms365_01', groupName: 'Microsoft 365', serviceId: 'microsoft-365', serviceName: 'Microsoft 365', planName: '家庭版（6人）', hostId: hosts.h1.id, hostName: hosts.h1.name, applicantId: uid, applicantName: '林宥廷', applicantAvatarInitial: '林', applicantAvatarColor: '#0866F2', userId: uid, userName: '林宥廷', userAvatarInitial: '林', userAvatarColor: '#0866F2', message: '需要 Office 工具，希望能加入共享！', status: 'rejected', createdAt: '2026-05-08', updatedAt: '2026-05-09', _demo: D },
+    { id: 'demo_app_ms_demo', groupId: 'demo_group_ms365_01', groupName: 'Microsoft 365', serviceId: 'microsoft-365', serviceName: 'Microsoft 365', planName: '家庭版（6人）', hostId: hosts.h1.id, hostName: hosts.h1.name, applicantId: uid, applicantName: '林宥廷', applicantAvatarInitial: '林', applicantAvatarColor: '#0866F2', applicantCreditScore: 92, userId: uid, userName: '林宥廷', userAvatarInitial: '林', userAvatarColor: '#0866F2', message: '需要 Office 工具，希望能加入共享！', status: 'rejected', createdAt: '2026-05-08', updatedAt: '2026-05-09', _demo: D },
   ]
 
   // ── Subscriptions ─────────────────────────────────────────────────

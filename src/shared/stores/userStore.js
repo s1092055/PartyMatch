@@ -15,7 +15,7 @@ export function getActiveUserProfile() {
     displayName,
     avatarInitial: displayName[0] ?? 'U',
     avatarColor:   user.avatarColor ?? '#3B82F6',
-    creditScore:   user.creditScore  ?? 5.0,
+    creditScore:   user.creditScore  ?? 80,
     isVerified:    user.isVerified   ?? false,
     
     joinedGroups:  [],

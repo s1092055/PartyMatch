@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Check, ChevronDown, ChevronUp, ClipboardList, X } from 'lucide-react'
 import Avatar from '../../../shared/components/ui/Avatar'
+import CreditScoreBadge from '../../../shared/components/ui/CreditScoreBadge'
 import ServiceLogo from '../../../shared/components/ui/ServiceLogo'
 import EmptyState from '../../../shared/components/ui/EmptyState'
 import { getGroups } from '../../../shared/stores/groupStore'
@@ -26,7 +27,10 @@ function ApplicationCard({ app, groupFull, error, onApprove, onReject }) {
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-ink">{name}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-semibold text-ink">{name}</p>
+                <CreditScoreBadge score={app.applicantCreditScore ?? 80} />
+              </div>
               <div className="mt-0.5 flex items-center gap-1.5">
                 <ServiceLogo serviceId={serviceId} size={16} />
                 <p className="truncate text-xs text-ink-3">{app.groupName ?? app.serviceName}</p>

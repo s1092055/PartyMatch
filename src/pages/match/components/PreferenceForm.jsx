@@ -1,4 +1,4 @@
-const RATING_MARKS = [3.0, 3.5, 4.0, 4.5, 4.8]
+const RATING_MARKS = [60, 70, 80, 90]
 
 function RangeSlider({ value, min, max, step, onChange, formatLabel }) {
   const pct = ((value - min) / (max - min)) * 100
@@ -50,18 +50,18 @@ export default function PreferenceForm({ conditions, onChange }) {
 
       <div>
         <div className="flex items-center justify-between mb-3">
-          <label className="text-sm font-medium text-slate-700">最低評分</label>
-          <span className="text-sm font-bold text-warning">{minRating} 以上</span>
+          <label className="text-sm font-medium text-slate-700">最低信用分數</label>
+          <span className="text-sm font-bold text-warning">{minRating} 分以上</span>
         </div>
         <RangeSlider
           value={minRating}
-          min={3.0}
-          max={5.0}
-          step={0.1}
+          min={0}
+          max={100}
+          step={1}
           onChange={v => onChange('minRating', v)}
-          formatLabel={v => `${v.toFixed(1)}`}
+          formatLabel={v => `${v}`}
         />
-        
+
         <div className="flex gap-2 mt-3">
           {RATING_MARKS.map(r => (
             <button

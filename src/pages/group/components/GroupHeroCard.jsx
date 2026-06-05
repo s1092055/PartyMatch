@@ -1,5 +1,6 @@
-import { Star, CheckCircle2, Users, Calendar, Banknote } from "lucide-react";
+import { CheckCircle2, Users, Calendar, Banknote } from "lucide-react";
 import ServiceLogo from "../../../shared/components/ui/ServiceLogo";
+import CreditScoreBadge from "../../../shared/components/ui/CreditScoreBadge";
 
 function StatItem({ icon: Icon, label, value, valueClass = "text-ink" }) {
   return (
@@ -35,22 +36,20 @@ export default function GroupHeroCard({ group }) {
       </div>
 
       <div className="flex gap-3">
-        <StatItem
-          icon={Star}
-          label="評分"
-          value={`${group.hostRating} ★`}
-          valueClass="text-amber-500"
-        />
+        <div className="flex flex-col items-center gap-1 px-4 py-3 bg-raised rounded-[var(--radius-inner)] flex-1 min-w-0">
+          <CreditScoreBadge score={group.hostRating} size="md" />
+          <span className="text-xs text-ink-4 truncate">團主信用</span>
+        </div>
         <StatItem
           icon={Users}
           label="已加入"
           value={`${group.usedSeats}/${group.totalSeats} 人`}
         />
-        <StatItem
-          icon={Calendar}
-          label="下次扣款"
-          value={group.nextBillingDate.slice(5)}
-        />
+        {['active', 'paused', 'cancelled', 'ended'].includes(group.status) ? (
+          <StatItem icon={Calendar} label="下次扣款" value={group.nextBillingDate?.slice(5) ?? '—'} />
+        ) : (
+          <StatItem icon={Calendar} label="建立日期" value={group.createdAt?.slice(5) ?? '—'} />
+        )}
         <StatItem
           icon={Banknote}
           label="月費"

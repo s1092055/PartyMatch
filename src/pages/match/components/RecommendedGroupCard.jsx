@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Star, Users, CheckCircle2, Lightbulb, Heart } from 'lucide-react'
+import { Users, CheckCircle2, Lightbulb, Heart } from 'lucide-react'
+import CreditScoreBadge from '../../../shared/components/ui/CreditScoreBadge'
 import Badge from '../../../shared/components/ui/Badge'
 import Button from '../../../shared/components/ui/Button'
 import ServiceLogo from '../../../shared/components/ui/ServiceLogo'
@@ -60,11 +61,8 @@ export default function RecommendedGroupCard({ group, rank }) {
             <span>剩餘 {group.openSeats} 人</span>
           </div>
           <div className="flex items-center gap-1 text-xs text-ink-2">
-            <Star size={12} className="text-amber-400 fill-amber-400" />
-            <span className="font-medium">{group.hostRating}</span>
-            <span className="text-ink-4">({group.hostReviewCount})</span>
+            <CreditScoreBadge score={group.hostRating} />
           </div>
-          <Badge variant={group.joinMode} />
         </div>
 
 {group._reasons?.length > 0 && (
@@ -100,7 +98,7 @@ export default function RecommendedGroupCard({ group, rank }) {
           className="flex-1 lg:w-full"
           onClick={() => navigate(`/groups/${group.id}`)}
         >
-          {group.joinMode === 'instant' ? '立即加入' : '申請加入'}
+          申請加入
         </Button>
       </div>
     </div>

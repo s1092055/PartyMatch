@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { CheckCircle2 } from 'lucide-react'
 import Modal from '../ui/Modal'
 import Button from '../ui/Button'
-import Badge from '../ui/Badge'
 import { createApplication } from '../../stores/applicationStore'
 
 export default function ApplyJoinModal({ group, isOpen, onClose, onSuccess }) {
@@ -66,9 +65,6 @@ export default function ApplyJoinModal({ group, isOpen, onClose, onSuccess }) {
               </span>
               <span>
                 剩餘名額：<span className="text-ink-2 font-medium">{group?.openSeats} 席</span>
-              </span>
-              <span className="flex items-center gap-1">
-                加入方式：<Badge variant={group?.joinMode} />
               </span>
             </div>
           </div>

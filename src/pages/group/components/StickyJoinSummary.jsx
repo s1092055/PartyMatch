@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import CreditScoreBadge from '../../../shared/components/ui/CreditScoreBadge'
 import {
   CheckCircle2,
-  Star,
   Users,
   Calendar,
   ChevronRight,
@@ -11,12 +11,10 @@ import {
   Heart,
   CreditCard,
 } from "lucide-react";
-import Badge from "../../../shared/components/ui/Badge";
 import Button from "../../../shared/components/ui/Button";
 import Avatar from "../../../shared/components/ui/Avatar";
 import ProgressBar from "../../../shared/components/ui/ProgressBar";
 import ApplyJoinModal from "../../../shared/components/modals/ApplyJoinModal";
-import InstantJoinModal from "../../../shared/components/modals/InstantJoinModal";
 import { getApplicationByUserAndGroup } from "../../../shared/stores/applicationStore";
 import {
   isCurrentUserMember,
@@ -54,13 +52,6 @@ export default function StickyJoinSummary({ group }) {
   );
 
   const isFull = openSeats <= 0;
-  const isInstant = group.joinMode === "instant";
-
-  function handleInstantSuccess() {
-    setIsMember(true);
-    setOpenSeats((s) => s - 1);
-    setUsedSeats((s) => s + 1);
-  }
 
   function renderCTA() {
     if (!activeUserId) {
@@ -124,7 +115,7 @@ export default function StickyJoinSummary({ group }) {
         </Button>
       );
     }
-    if (!isInstant && applied) {
+    if (applied) {
       return (
         <div className="flex items-center gap-2 bg-warning-subtle text-warning-text text-sm font-medium px-4 py-3 rounded-lg">
           <CheckCircle2 size={16} />
@@ -139,7 +130,7 @@ export default function StickyJoinSummary({ group }) {
         className="w-full"
         onClick={() => setModalOpen(true)}
       >
-        {isInstant ? "立即加入" : "申請加入"}
+        申請加入
         <ChevronRight size={16} />
       </Button>
     );
@@ -198,16 +189,11 @@ export default function StickyJoinSummary({ group }) {
           <div className="flex items-center justify-between py-2 border-t border-line-subtle">
             <div className="flex items-center gap-1.5 text-sm text-ink-3">
               <Calendar size={14} />
-              <span>下次扣款日</span>
+              <span>{['active', 'paused', 'cancelled', 'ended'].includes(group.status) ? '下次扣款日' : '建立日期'}</span>
             </div>
             <span className="text-sm font-bold text-ink-2">
-              {group.nextBillingDate}
+              {['active', 'paused', 'cancelled', 'ended'].includes(group.status) ? group.nextBillingDate : group.createdAt}
             </span>
-          </div>
-
-          <div className="flex items-center justify-between py-2 border-t border-line-subtle">
-            <span className="text-sm text-ink-3">加入方式</span>
-            <Badge variant={group.joinMode} />
           </div>
 
           {renderCTA()}
@@ -235,11 +221,8 @@ export default function StickyJoinSummary({ group }) {
                     <CheckCircle2 size={13} className="text-brand shrink-0" />
                   )}
                 </div>
-                <div className="flex items-center gap-1 mt-0.5">
-                  <Star size={11} className="text-amber-400 fill-amber-400" />
-                  <span className="text-xs text-ink-3">
-                    {group.hostRating} · {group.hostReviewCount} 則評價
-                  </span>
+                <div className="mt-0.5">
+                  <CreditScoreBadge score={group.hostRating} />
                 </div>
               </div>
             </div>
@@ -247,27 +230,15 @@ export default function StickyJoinSummary({ group }) {
         </div>
       </div>
 
-      {isInstant ? (
-        <InstantJoinModal
-          group={{ ...group, openSeats, usedSeats }}
-          isOpen={modalOpen}
-          onClose={() => setModalOpen(false)}
-          onSuccess={() => {
-            handleInstantSuccess();
-            setModalOpen(false);
-          }}
-        />
-      ) : (
-        <ApplyJoinModal
-          group={group}
-          isOpen={modalOpen}
-          onClose={() => setModalOpen(false)}
-          onSuccess={() => {
-            setApplied(true);
-            setModalOpen(false);
-          }}
-        />
-      )}
+      <ApplyJoinModal
+        group={group}
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSuccess={() => {
+          setApplied(true);
+          setModalOpen(false);
+        }}
+      />
     </>
   );
 }

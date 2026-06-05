@@ -3,8 +3,8 @@ import { daysUntil } from './date'
 function calcScore(group, conditions) {
   let score = 0
   if (group.isHostVerified) score += 2
-  if (group.hostRating >= 4.8) score += 2
-  else if (group.hostRating >= 4.5) score += 1
+  if (group.hostRating >= 90) score += 2
+  else if (group.hostRating >= 70) score += 1
   if (group.openSeats >= 3) score += 1
   const daysUntilBilling = daysUntil(group.nextBillingDate)
   if (daysUntilBilling > 20) score += 1
@@ -16,10 +16,10 @@ function buildReasons(group, conditions) {
   const reasons = []
   if (group.isHostVerified)
     reasons.push('已驗證團主，信任度高')
-  if (group.hostRating >= 4.8)
-    reasons.push(`評分 ${group.hostRating}，口碑極佳`)
-  else if (group.hostRating >= 4.5)
-    reasons.push(`評分 ${group.hostRating}，評價良好`)
+  if (group.hostRating >= 90)
+    reasons.push(`信用分數 ${group.hostRating}，口碑極佳`)
+  else if (group.hostRating >= 70)
+    reasons.push(`信用分數 ${group.hostRating}，評價良好`)
   if (group.openSeats >= 3)
     reasons.push(`名額充裕，還剩 ${group.openSeats} 個`)
   if (conditions.maxPrice && group.pricePerSeat <= conditions.maxPrice * 0.8)
@@ -36,15 +36,14 @@ function getAgeMonths(createdAt) {
 }
 
 export function matchGroups(groups, conditions) {
-  const { services = [], maxPrice, joinMode, minRating, billingPeriod, groupAge } = conditions
+  const { services = [], maxPrice, minRating, billingPeriod, groupAge } = conditions
 
   const filtered = groups.filter(g => {
     if (g.status !== 'recruiting') return false
     if (g.openSeats <= 0) return false
     if (services.length > 0 && !services.includes(g.serviceId)) return false
     if (maxPrice && g.pricePerSeat > maxPrice) return false
-    if (joinMode && joinMode !== 'any' && g.joinMode !== joinMode) return false
-    if (minRating && g.hostRating < minRating) return false
+    if (minRating && minRating > 0 && g.hostRating < minRating) return false
 
     if (billingPeriod && billingPeriod !== 'any') {
       const day = getBillingDay(g.nextBillingDate)

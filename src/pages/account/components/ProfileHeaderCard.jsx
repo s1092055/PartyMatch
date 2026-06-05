@@ -1,15 +1,10 @@
-import { CheckCircle2, Calendar, Users, Star, Edit2 } from 'lucide-react'
+import { CheckCircle2, Calendar, Users, Edit2 } from 'lucide-react'
+import CreditScoreBadge from '../../../shared/components/ui/CreditScoreBadge'
 
 export default function ProfileHeaderCard({ user, onEdit }) {
-  const STATS = [
-    { icon: Calendar, label: '加入時間', value: user.createdAt },
-    { icon: Users,    label: '已加入群組', value: `${user.joinedGroups.length} 個` },
-    { icon: Star,     label: '信用評分',   value: `${user.creditScore} ★` },
-  ]
-
   return (
     <div className="card p-6 mb-5 flex flex-col md:flex-row items-start md:items-center gap-5">
-      
+
       <div className="relative shrink-0">
         <div
           className="w-20 h-20 rounded-full flex items-center justify-center text-white text-3xl font-bold"
@@ -24,7 +19,7 @@ export default function ProfileHeaderCard({ user, onEdit }) {
         )}
       </div>
 
-<div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-0.5 flex-wrap">
           <h2 className="text-xl font-bold text-ink">{user.displayName}</h2>
           {user.isVerified && (
@@ -35,16 +30,27 @@ export default function ProfileHeaderCard({ user, onEdit }) {
         </div>
         <p className="text-sm text-ink-3 mb-4">{user.email}</p>
 
-<div className="flex flex-wrap gap-5">
-          {STATS.map(({ icon: Icon, label, value }) => (
-            <div key={label} className="flex items-center gap-2">
-              <Icon size={14} className="text-ink-3" />
-              <div>
-                <p className="text-xs text-ink-3">{label}</p>
-                <p className="text-sm font-semibold text-ink-2">{value}</p>
-              </div>
+        <div className="flex flex-wrap gap-5">
+          <div className="flex items-center gap-2">
+            <Calendar size={14} className="text-ink-3" />
+            <div>
+              <p className="text-xs text-ink-3">加入時間</p>
+              <p className="text-sm font-semibold text-ink-2">{user.createdAt}</p>
             </div>
-          ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <Users size={14} className="text-ink-3" />
+            <div>
+              <p className="text-xs text-ink-3">已加入群組</p>
+              <p className="text-sm font-semibold text-ink-2">{user.joinedGroups.length} 個</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <div>
+              <p className="text-xs text-ink-3 mb-1">信用分數</p>
+              <CreditScoreBadge score={user.creditScore} size="md" />
+            </div>
+          </div>
         </div>
       </div>
 

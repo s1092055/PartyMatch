@@ -77,11 +77,14 @@ export default function GroupViewModal({
     return !CONFIRMED_STATUSES.includes(member.paymentStatus)
   }
 
-const stats = [
+const isActivated = ['active', 'paused', 'cancelled', 'ended'].includes(group.status)
+  const stats = [
     { Icon: Banknote, label: '每席月費',  value: `NT$${group.pricePerSeat}` },
     { Icon: Calendar, label: '計費週期',  value: group.billingCycle === 'yearly' ? '年繳' : '月繳' },
     { Icon: Users,    label: '成員',      value: `${group.usedSeats} / ${group.totalSeats} 人` },
-    { Icon: Calendar, label: '下次扣款',  value: group.nextBillingDate ?? '—' },
+    ...(isActivated
+      ? [{ Icon: Calendar, label: '下次扣款',  value: group.nextBillingDate ?? '—' }]
+      : [{ Icon: Calendar, label: '建立日期',  value: group.createdAt ?? '—' }]),
   ]
 
   return (

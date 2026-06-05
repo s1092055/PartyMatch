@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Calendar, Heart, ShieldCheck, Star } from 'lucide-react'
+import { Calendar, Heart, ShieldCheck } from 'lucide-react'
 import Badge from '../ui/Badge'
 import ServiceLogo from '../ui/ServiceLogo'
 import { isGroupFavorited, toggleFavorite } from '../../stores/favoriteStore'
 import { getActiveUser } from '../../stores/userStore'
 
-const JOIN_MODE_LABEL = { instant: '立即加入', approval: '需審核' }
-
 const AVATAR_COLORS = ['#6366F1', '#0EA5E9', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6']
+
+const FILTERED_TAGS = new Set(['立即加入', '審核加入', '需要審核', '需審核'])
 
 export default function GroupCard({ group, onFavChange }) {
   const navigate = useNavigate()
@@ -19,10 +19,7 @@ export default function GroupCard({ group, onFavChange }) {
   const usedRatio = group.totalSeats > 0 ? group.usedSeats / group.totalSeats : 0
   const barColor = isLastSeat ? 'bg-warning' : 'bg-success'
 
-  const joinLabel = JOIN_MODE_LABEL[group.joinMode]
-  const displayTags = group.tags?.length > 0
-    ? [...group.tags.slice(0, 2), ...(joinLabel ? [joinLabel] : [])].slice(0, 3)
-    : joinLabel ? [joinLabel] : []
+  const displayTags = (group.tags ?? []).filter(t => !FILTERED_TAGS.has(t)).slice(0, 3)
 
   function handleFav(e) {
     e.stopPropagation()
@@ -81,9 +78,6 @@ export default function GroupCard({ group, onFavChange }) {
         {group.isHostVerified && (
           <ShieldCheck size={14} className="shrink-0 fill-info-subtle text-info" />
         )}
-        <div className="ml-auto flex items-center gap-1 text-xs text-ink-3">
-          <Star size={12} className="fill-warning text-warning" />
-        </div>
       </div>
 
 <div className="mx-4 border-t border-line-subtle" />

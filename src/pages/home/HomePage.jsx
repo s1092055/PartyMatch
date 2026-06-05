@@ -103,7 +103,7 @@ export default function HomePage() {
       </div>
 
       <section className="border-t border-line bg-brand py-14 text-center text-white">
-        <h2 className="text-2xl font-extrabold">準備好開始省錢了嗎？</h2>
+        <h2 className="text-2xl font-extrabold">準備好了嗎？</h2>
         <p className="mt-2 text-sm text-blue-200">馬上瀏覽 26 個等待你的共享群組</p>
         <button
           onClick={() => navigate(loggedIn ? '/explore' : '/register')}

@@ -12,7 +12,7 @@ import { isAuthenticated } from '../../shared/stores/authStore'
 const DEFAULT_CONDITIONS = {
   services:      ['spotify', 'youtube', 'disney'],
   maxPrice:      100,
-  minRating:     4.5,
+  minRating:     70,
   billingPeriod: 'any',
   groupAge:      'any',
 }

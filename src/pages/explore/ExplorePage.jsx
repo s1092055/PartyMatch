@@ -13,14 +13,13 @@ const DEFAULT_FILTERS = {
   keyword:  '',
   category: 'all',
   service:  'all',
-  joinMode: 'all',
   maxPrice: 'any',
   sortBy:   'recommended',
 }
 
-const score = g => (g.isHostVerified ? 2 : 0) + (g.joinMode === 'instant' ? 1 : 0) + g.hostRating / 5
+const score = g => (g.isHostVerified ? 2 : 0) + g.hostRating / 100
 
-function applyFilters(groups, { keyword, category, service, joinMode, maxPrice, sortBy }) {
+function applyFilters(groups, { keyword, category, service, maxPrice, sortBy }) {
   let result = groups.filter(g => g.status === 'recruiting' && g.openSeats > 0)
 
   if (keyword.trim()) {
@@ -35,7 +34,6 @@ function applyFilters(groups, { keyword, category, service, joinMode, maxPrice, 
 
   if (category !== 'all' && service === 'all') result = result.filter(g => getServiceTypeById(g.serviceId)?.category === category)
   if (service !== 'all') result = result.filter(g => g.serviceId === service)
-  if (joinMode !== 'all') result = result.filter(g => g.joinMode === joinMode)
   if (maxPrice !== 'any') result = result.filter(g => g.pricePerSeat <= Number(maxPrice))
 
   switch (sortBy) {
@@ -69,7 +67,7 @@ export default function ExplorePage() {
   }, [searchParams])
 
   const filtered = useMemo(() => applyFilters(allGroups, filters), [allGroups, filters])
-  const hasActiveFilters = filters.keyword || filters.category !== 'all' || filters.service !== 'all' || filters.joinMode !== 'all' || filters.maxPrice !== 'any'
+  const hasActiveFilters = filters.keyword || filters.category !== 'all' || filters.service !== 'all' || filters.maxPrice !== 'any'
 
   function handleFilterChange(patch) {
     setFilters(prev => ({ ...prev, ...patch }))
