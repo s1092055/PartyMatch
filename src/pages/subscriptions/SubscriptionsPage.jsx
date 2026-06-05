@@ -96,7 +96,7 @@ export default function SubscriptionsPage() {
       </div>
 
       <div className="mx-auto max-w-7xl">
-        <div className="mb-4 flex min-w-0 justify-center overflow-x-auto">
+        <div className="mb-4 flex min-w-0 justify-center overflow-x-auto py-1">
           <div className="flex gap-1">
             {FILTER_TABS.map(tab => (
               <button

@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AlertCircle, Check, ChevronLeft, ChevronRight, X, Zap } from 'lucide-react'
+import { AlertCircle, ChevronLeft, ChevronRight, X, Zap } from 'lucide-react'
 import ServiceSelectionGrid from './components/ServiceSelectionGrid'
 import PreferenceForm from './components/PreferenceForm'
 import MatchSummaryPanel from './components/MatchSummaryPanel'
+import CreateGroupStepper from '../create/components/CreateGroupStepper'
 import Button from '../../shared/components/ui/Button'
 import { useScrollLock } from '../../shared/utils/hooks'
 import { isAuthenticated } from '../../shared/stores/authStore'
@@ -22,43 +23,11 @@ const STEPS = [
   { n: 3, label: '搜尋偏好' },
 ]
 
-function QuickMatchStepper({ current }) {
-  return (
-    <div className="flex items-center mb-6">
-      {STEPS.map(({ n, label }, i) => {
-        const done   = n < current
-        const active = n === current
-        return (
-          <div key={n} className="flex items-center flex-1 last:flex-none">
-            <div className="flex flex-col items-center gap-1.5">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
-                done   ? 'bg-brand text-white' :
-                active ? 'bg-brand text-white ring-4 ring-brand-subtle' :
-                         'bg-slate-100 text-slate-400'
-              }`}>
-                {done ? <Check size={14} strokeWidth={3} /> : n}
-              </div>
-              <span className={`text-xs font-medium whitespace-nowrap ${
-                active ? 'text-brand' : done ? 'text-slate-600' : 'text-slate-400'
-              }`}>{label}</span>
-            </div>
-            {i < STEPS.length - 1 && (
-              <div className={`flex-1 h-0.5 mx-2 mb-5 rounded-full transition-colors ${
-                done ? 'bg-brand' : 'bg-slate-200'
-              }`} />
-            )}
-          </div>
-        )
-      })}
-    </div>
-  )
-}
 
 function Step1({ conditions, onToggle }) {
   return (
-    <div className="card p-6">
-      <h3 className="text-base font-extrabold text-ink mb-0.5">選擇你想搜尋的服務</h3>
-      <p className="text-xs text-ink-3 mb-4">可複選，至少選一個</p>
+    <div className="p-6">
+      <h3 className="text-base font-extrabold text-ink mb-4">選擇你想搜尋的服務（複選）</h3>
       <ServiceSelectionGrid selected={conditions.services} onToggle={onToggle} />
       {conditions.services.length === 0 && (
         <div className="flex items-center gap-2 mt-3 text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-lg">
@@ -72,7 +41,7 @@ function Step1({ conditions, onToggle }) {
 
 function Step2({ conditions, onChange }) {
   return (
-    <div className="card p-6">
+    <div className="p-6">
       <h3 className="text-base font-extrabold text-ink mb-0.5">設定篩選條件</h3>
       <p className="text-xs text-ink-3 mb-4">依照你的需求調整</p>
       <PreferenceForm conditions={conditions} onChange={onChange} />
@@ -82,7 +51,7 @@ function Step2({ conditions, onChange }) {
 
 function Step3({ conditions, onChange }) {
   return (
-    <div className="card p-6">
+    <div className="p-6">
       <h3 className="text-base font-extrabold text-ink mb-0.5">搜尋偏好</h3>
       <p className="text-xs text-ink-3 mb-5">選填，不填寫也可以直接開始配對</p>
       <div className="space-y-5">
@@ -207,7 +176,7 @@ export default function QuickMatchModal() {
       <div className="pointer-events-none fixed inset-0 z-[56] flex items-center justify-center p-4 md:p-8">
         <div
           className="pointer-events-auto relative flex w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
-          style={{ maxHeight: 'min(88vh, 820px)' }}
+          style={{ height: 'min(85vh, 720px)' }}
           onClick={e => e.stopPropagation()}
         >
           {/* Header */}
@@ -230,7 +199,7 @@ export default function QuickMatchModal() {
 
           {/* Stepper */}
           <div className="shrink-0 px-6 pt-5">
-            <QuickMatchStepper current={step} />
+            <CreateGroupStepper steps={STEPS} current={step} />
           </div>
 
           {/* Body */}

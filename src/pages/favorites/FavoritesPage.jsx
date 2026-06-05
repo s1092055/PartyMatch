@@ -41,7 +41,7 @@ export default function FavoritesPage() {
         className="mb-6 text-center"
       />
 
-      <CategoryPills variant="grid" active={activeCategory} onChange={setActiveCategory} className="mb-5" />
+      <CategoryPills variant="grid" showAll active={activeCategory} onChange={setActiveCategory} className="mb-5" />
 
       {groups.length === 0 ? (
         <EmptyState

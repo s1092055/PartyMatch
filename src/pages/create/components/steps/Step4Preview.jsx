@@ -20,8 +20,8 @@ export default function Step4Preview({ form }) {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-base font-semibold text-slate-800 mb-1">確認並送出</h2>
-        <p className="text-sm text-slate-500">請確認以下群組資訊都正確後再送出</p>
+        <h2 className="mb-0.5 text-base font-extrabold text-ink">確認並送出</h2>
+        <p className="text-xs text-ink-3">請確認以下群組資訊都正確後再送出</p>
       </div>
 
 <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5">

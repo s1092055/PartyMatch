@@ -39,6 +39,7 @@ export default function FilterBar({ filters, onChange }) {
     <div className="mb-6 space-y-4">
       <CategoryPills
         variant="grid"
+        showAll
         active={category}
         onChange={val => onChange({ category: val, service: 'all' })}
       />

@@ -1,6 +1,6 @@
 export default function Tabs({ tabs, active, onChange, className = '' }) {
   return (
-    <div className={`flex gap-1 rounded-2xl bg-raised p-1 overflow-x-auto ${className}`}>
+    <div className={`flex gap-1 rounded-2xl bg-raised p-1 overflow-x-auto py-1.5 ${className}`}>
       {tabs.map(tab => (
         <button
           key={tab.value}

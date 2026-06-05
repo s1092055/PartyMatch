@@ -25,8 +25,8 @@ export default function Step2Plan({ form, onChange }) {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-base font-semibold text-slate-800 mb-1">方案設定</h2>
-        <p className="text-sm text-slate-500">選擇方案後費用將依官方定價自動計算</p>
+        <h2 className="mb-0.5 text-base font-extrabold text-ink">方案設定</h2>
+        <p className="text-xs text-ink-3">選擇方案後費用將依官方定價自動計算</p>
       </div>
 
 <Field label="選擇方案" required>

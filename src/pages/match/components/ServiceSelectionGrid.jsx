@@ -2,20 +2,25 @@ import { useState } from 'react'
 import { Check } from 'lucide-react'
 import { listServiceTypes } from '../../../shared/services/serviceTypes'
 import ServiceLogo from '../../../shared/components/ui/ServiceLogo'
-import CategoryPills, { CATEGORIES } from '../../../shared/components/ui/CategoryPills'
+import CategoryPills from '../../../shared/components/ui/CategoryPills'
 
 const ALL_SERVICES = listServiceTypes()
 
 export default function ServiceSelectionGrid({ selected, onToggle }) {
-  const [activeCategory, setActiveCategory] = useState('all')
+  const [activeCategory, setActiveCategory] = useState(() => {
+    const counts = {}
+    ALL_SERVICES.forEach(s => {
+      if (selected.includes(s.id)) counts[s.category] = (counts[s.category] ?? 0) + 1
+    })
+    return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? '影音'
+  })
 
-  const visible = activeCategory === 'all'
-    ? ALL_SERVICES
-    : ALL_SERVICES.filter(s => s.category === activeCategory)
+  const visible = ALL_SERVICES.filter(s => s.category === activeCategory)
 
   return (
     <div>
-      <CategoryPills active={activeCategory} onChange={setActiveCategory} className="mb-4" />
+      <CategoryPills active={activeCategory} onChange={setActiveCategory} className="mb-3" />
+      <div className="overflow-y-auto pr-1 pt-1" style={{ maxHeight: '320px' }}>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {visible.map(service => {
           const active = selected.includes(service.id)
@@ -46,6 +51,7 @@ export default function ServiceSelectionGrid({ selected, onToggle }) {
       {visible.length === 0 && (
         <p className="py-6 text-center text-sm text-ink-3">此分類尚無服務</p>
       )}
-    </div>
+      </div>
+      </div>
   )
 }

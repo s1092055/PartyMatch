@@ -36,8 +36,8 @@ export default function Step3Settings({ form, onChange }) {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-base font-semibold text-slate-800 mb-1">群組設定</h2>
-        <p className="text-sm text-slate-500">設定開放名額、描述與加入規則</p>
+        <h2 className="mb-0.5 text-base font-extrabold text-ink">群組設定</h2>
+        <p className="text-xs text-ink-3">設定開放名額、描述與加入規則</p>
       </div>
 
 <Field label="開放名額" required hint={`最多可開放 ${maxSeats - 1} 位成員加入（不含你自己）`}>

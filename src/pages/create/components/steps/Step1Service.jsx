@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, AlertCircle } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { listServiceTypes } from '../../../../shared/services/serviceTypes'
 import ServiceLogo from '../../../../shared/components/ui/ServiceLogo'
 import CategoryPills from '../../../../shared/components/ui/CategoryPills'
@@ -7,19 +7,19 @@ import CategoryPills from '../../../../shared/components/ui/CategoryPills'
 const ALL_SERVICES = listServiceTypes()
 
 export default function Step1Service({ form, onChange }) {
-  const [activeCategory, setActiveCategory] = useState('all')
+  const [activeCategory, setActiveCategory] = useState(
+    () => ALL_SERVICES.find(s => s.id === form.serviceId)?.category ?? '影音'
+  )
 
-  const visible = activeCategory === 'all'
-    ? ALL_SERVICES
-    : ALL_SERVICES.filter(s => s.category === activeCategory)
+  const visible = ALL_SERVICES.filter(s => s.category === activeCategory)
 
   return (
     <div>
-      <h2 className="text-base font-semibold text-slate-800 mb-1">選擇訂閱服務</h2>
-      <p className="text-sm text-slate-500 mb-4">選擇你想建立群組的訂閱服務（單選）</p>
+      <h2 className="mb-4 text-base font-extrabold text-ink">選擇訂閱服務（單選）</h2>
 
-      <CategoryPills active={activeCategory} onChange={setActiveCategory} className="mb-4" />
+      <CategoryPills active={activeCategory} onChange={setActiveCategory} className="mb-3" />
 
+      <div className="overflow-y-auto pr-1 pt-1" style={{ maxHeight: '320px' }}>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         {visible.map(service => {
           const active = form.serviceId === service.id
@@ -50,13 +50,8 @@ export default function Step1Service({ form, onChange }) {
           <p className="col-span-full py-6 text-center text-sm text-ink-3">此分類尚無服務</p>
         )}
       </div>
+      </div>
 
-      {!form.serviceId && (
-        <div className="flex items-center gap-2 mt-4 text-xs text-amber-600 bg-amber-50 px-3 py-2.5 rounded-lg">
-          <AlertCircle size={13} />
-          請選擇一個服務才能繼續
-        </div>
-      )}
     </div>
   )
 }

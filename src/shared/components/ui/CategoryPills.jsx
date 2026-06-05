@@ -1,7 +1,6 @@
 import { Film, Music2, Bot, Briefcase, Cloud, BookOpen, Gamepad2, Shield } from 'lucide-react'
 
 export const CATEGORIES = [
-  { value: 'all',    label: '全部',    Icon: null },
   { value: '影音',   label: '影音',    Icon: Film },
   { value: '音樂',   label: '音樂',    Icon: Music2 },
   { value: 'AI工具', label: 'AI 工具', Icon: Bot },
@@ -12,11 +11,16 @@ export const CATEGORIES = [
   { value: 'VPN',    label: 'VPN',     Icon: Shield },
 ]
 
-export default function CategoryPills({ active, onChange, variant = 'pills', className = '' }) {
+const ALL_ITEM = { value: 'all', label: '全部', Icon: null }
+
+export default function CategoryPills({ active, onChange, variant = 'pills', showAll = false, className = '' }) {
+  const items = showAll ? [ALL_ITEM, ...CATEGORIES] : CATEGORIES
+
   if (variant === 'grid') {
+    const cols = showAll ? 'md:grid-cols-9' : 'md:grid-cols-8'
     return (
-      <div className={`flex gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:grid md:grid-cols-9 md:overflow-visible md:pb-0 ${className}`}>
-        {CATEGORIES.map(cat => {
+      <div className={`flex gap-2 overflow-x-auto py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:grid ${cols} md:overflow-visible md:py-0 ${className}`}>
+        {items.map(cat => {
           const isActive = active === cat.value
           return (
             <button
@@ -45,8 +49,8 @@ export default function CategoryPills({ active, onChange, variant = 'pills', cla
   }
 
   return (
-    <div className={`flex gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${className}`}>
-      {CATEGORIES.map(cat => {
+    <div className={`flex gap-1.5 overflow-x-auto py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${className}`}>
+      {items.map(cat => {
         const isActive = active === cat.value
         return (
           <button

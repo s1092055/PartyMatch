@@ -13,7 +13,7 @@ export default function LivePreviewPanel({ form }) {
   const hasDetails = hasPlan
 
   return (
-    <div className="sticky top-[7rem] space-y-3">
+    <div className="flex h-full flex-col space-y-3 pt-6">
       
       <div className="flex items-center gap-2 text-sm font-semibold text-slate-600 mb-1">
         <Eye size={14} className="text-blue-500" />

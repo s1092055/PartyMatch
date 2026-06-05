@@ -14,7 +14,13 @@ import { computeNextBillingDate } from '../../shared/utils/date'
 import { getActiveUser } from '../../shared/stores/userStore'
 import { useScrollLock } from '../../shared/utils/hooks'
 
-const STEPS = [Step1Service, Step2Plan, Step3Settings, Step4Preview]
+const STEP_COMPONENTS = [Step1Service, Step2Plan, Step3Settings, Step4Preview]
+const STEP_LABELS = [
+  { n: 1, label: '選擇服務' },
+  { n: 2, label: '方案設定' },
+  { n: 3, label: '群組設定' },
+  { n: 4, label: '預覽送出' },
+]
 
 const INITIAL_FORM = {
   serviceId:      '',
@@ -178,7 +184,7 @@ export default function CreateGroupModal() {
 
   if (!isOpen) return null
 
-  const StepComponent = STEPS[step - 1]
+  const StepComponent = STEP_COMPONENTS[step - 1]
 
   return (
     <>
@@ -187,7 +193,7 @@ export default function CreateGroupModal() {
         onClick={handleClose}
       />
       <div className="pointer-events-none fixed inset-0 z-[56] flex items-center justify-center p-4 md:p-8">
-        <div className="pointer-events-auto relative flex w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl" style={{ maxHeight: 'min(88vh, 820px)' }}>
+        <div className="pointer-events-auto relative flex w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl" style={{ height: 'min(85vh, 720px)' }}>
 
           <div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-4">
             <div>
@@ -204,7 +210,7 @@ export default function CreateGroupModal() {
           </div>
 
           <div className="shrink-0 px-6 pt-5">
-            <CreateGroupStepper current={step} />
+            <CreateGroupStepper steps={STEP_LABELS} current={step} />
           </div>
 
           <div className="flex-1 overflow-y-auto px-6 pb-2">
@@ -225,9 +231,9 @@ export default function CreateGroupModal() {
                 )}
               </div>
             ) : (
-              <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+              <div className="flex flex-col gap-6 lg:flex-row lg:items-stretch">
                 <div className="min-w-0 flex-1">
-                  <div className="card p-6">
+                  <div className="h-full p-6">
                     <StepComponent form={form} onChange={onChange} />
                   </div>
 
@@ -244,7 +250,7 @@ export default function CreateGroupModal() {
                   )}
                 </div>
 
-                <div className="hidden w-full shrink-0 lg:block lg:w-72">
+                <div className="hidden w-full shrink-0 lg:block lg:w-72 lg:h-full">
                   <LivePreviewPanel form={form} />
                 </div>
               </div>
