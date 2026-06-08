@@ -1,4 +1,5 @@
 import { readAllGroups, insertGroup, patchGroup } from '../api/groupsApi'
+import { createGroupConversation } from '../api/messagesApi'
 import { toISODate, todayISO } from '../utils/date'
 import { createId } from '../utils/storage'
 import { getActiveUserProfile } from './userStore'
@@ -52,6 +53,15 @@ export function createGroup(data) {
 
   _groups = [..._groups, group]
   insertGroup(group).catch(err => console.error('[groupStore] createGroup failed:', err))
+  createGroupConversation({
+    groupId:           group.id,
+    groupName:         group.serviceName ?? group.id,
+    serviceId:         group.serviceId ?? null,
+    hostId:            activeUser.id,
+    hostName:          activeUser.displayName,
+    hostAvatarInitial: activeUser.avatarInitial,
+    hostAvatarColor:   activeUser.avatarColor,
+  }).catch(err => console.error('[groupStore] createGroupConversation failed:', err))
   return group
 }
 

@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { ChevronDown, LogIn, LogOut, Menu, Search, User, UserPlus, X } from 'lucide-react'
+import { Bell, ChevronDown, LogIn, LogOut, Menu, Search, UserPlus, X } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
 import { getCurrentUser, isAuthenticated, logoutUser } from '../../stores/authStore'
 import { NAV_SECTIONS } from '../../constants/nav'
@@ -131,12 +131,6 @@ export default function AppNav({ variant = 'side' }) {
                       <item.icon size={20} strokeWidth={2.1} />
                       {item.label}
                     </button>
-                  ) : item.type === 'notify' ? (
-                    <button key="notify" onClick={openNotify}
-                      className="flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-2 transition-all hover:bg-raised hover:text-brand">
-                      <item.icon size={20} strokeWidth={2.1} />
-                      {item.label}
-                    </button>
                   ) : item.type === 'messages' ? (
                     <button key="messages" onClick={openMessages}
                       className="flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-2 transition-all hover:bg-raised hover:text-brand">
@@ -197,14 +191,6 @@ export default function AppNav({ variant = 'side' }) {
                 {showUserMenu && (
                   <div className="absolute bottom-full left-0 right-0 mb-2 overflow-hidden rounded-2xl border border-line bg-white p-2 shadow-popover">
                     <button
-                      onClick={() => { closeAll(); navigate('/account') }}
-                      className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold text-ink-2 transition-all hover:bg-raised hover:text-brand"
-                    >
-                      <User size={16} />
-                      帳號中心
-                    </button>
-                    <div className="my-1 h-px bg-line-subtle" />
-                    <button
                       onClick={confirmLogout}
                       className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold text-danger transition-all hover:bg-danger-subtle"
                     >
@@ -243,6 +229,15 @@ export default function AppNav({ variant = 'side' }) {
 
   return (
     <>
+      {/* Desktop notification button — fixed top-right */}
+      <button
+        onClick={openNotify}
+        className="fixed right-4 top-6 z-50 hidden h-10 w-10 items-center justify-center rounded-full border border-line bg-white shadow-sm text-ink-2 transition-all hover:bg-raised hover:text-ink md:flex lg:top-8"
+        aria-label="通知"
+      >
+        <Bell size={20} strokeWidth={2} />
+      </button>
+
       {/* Desktop floating sidebar */}
       <aside
         className={`group/nav fixed bottom-4 left-4 top-4 z-50 hidden w-16 flex-col rounded-2xl border border-line bg-white shadow-sm transition-[width] duration-300 ease-out hover:w-56 focus-within:w-56 md:flex ${
@@ -282,16 +277,6 @@ export default function AppNav({ variant = 'side' }) {
                     </button>
                   ) : item.type === 'create' ? (
                     <button key="create" onClick={openCreate} aria-label={item.label}
-                      className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:bg-raised hover:text-brand">
-                      <span className="grid h-9 w-9 shrink-0 place-items-center">
-                        <item.icon size={22} strokeWidth={2.1} />
-                      </span>
-                      <span className="whitespace-nowrap font-bold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
-                        {item.label}
-                      </span>
-                    </button>
-                  ) : item.type === 'notify' ? (
-                    <button key="notify" onClick={openNotify} aria-label={item.label}
                       className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:bg-raised hover:text-brand">
                       <span className="grid h-9 w-9 shrink-0 place-items-center">
                         <item.icon size={22} strokeWidth={2.1} />
@@ -371,14 +356,6 @@ export default function AppNav({ variant = 'side' }) {
               {showUserMenu && (
                 <div className="absolute bottom-0 left-[calc(100%+0.75rem)] w-52 overflow-hidden rounded-2xl border border-line bg-white p-2 shadow-popover">
                   <button
-                    onClick={() => { closeAll(); navigate('/account') }}
-                    className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-ink-2 transition-all hover:bg-raised hover:text-brand"
-                  >
-                    <User size={16} />
-                    帳號中心
-                  </button>
-                  <div className="my-1 h-px bg-line-subtle" />
-                  <button
                     onClick={confirmLogout}
                     className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-danger transition-all hover:bg-danger-subtle"
                   >
@@ -424,13 +401,22 @@ export default function AppNav({ variant = 'side' }) {
         <Link to="/" className="flex items-center gap-2" aria-label="回首頁">
           <img src={logoUrl} alt="PartyMatch" className="h-8 w-8" />
         </Link>
-        <button
-          onClick={() => setDrawerOpen(v => !v)}
-          className="grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink"
-          aria-label="開啟選單"
-        >
-          <Menu size={22} strokeWidth={2} />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={openNotify}
+            className="grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink"
+            aria-label="通知"
+          >
+            <Bell size={20} strokeWidth={2} />
+          </button>
+          <button
+            onClick={() => setDrawerOpen(v => !v)}
+            className="grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink"
+            aria-label="開啟選單"
+          >
+            <Menu size={22} strokeWidth={2} />
+          </button>
+        </div>
       </header>
 
       {/* Mobile overlay */}
@@ -476,12 +462,6 @@ export default function AppNav({ variant = 'side' }) {
                   </button>
                 ) : item.type === 'create' ? (
                   <button key="create" onClick={openCreate}
-                    className="flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-2 transition-all hover:bg-raised hover:text-brand">
-                    <item.icon size={20} strokeWidth={2.1} />
-                    {item.label}
-                  </button>
-                ) : item.type === 'notify' ? (
-                  <button key="notify" onClick={openNotify}
                     className="flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-2 transition-all hover:bg-raised hover:text-brand">
                     <item.icon size={20} strokeWidth={2.1} />
                     {item.label}
@@ -546,14 +526,6 @@ export default function AppNav({ variant = 'side' }) {
               </button>
               {showUserMenu && (
                 <div className="absolute bottom-full left-0 right-0 mb-2 overflow-hidden rounded-2xl border border-line bg-white p-2 shadow-popover">
-                  <button
-                    onClick={() => { closeAll(); navigate('/account') }}
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold text-ink-2 transition-all hover:bg-raised hover:text-brand"
-                  >
-                    <User size={16} />
-                    帳號中心
-                  </button>
-                  <div className="my-1 h-px bg-line-subtle" />
                   <button
                     onClick={confirmLogout}
                     className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold text-danger transition-all hover:bg-danger-subtle"

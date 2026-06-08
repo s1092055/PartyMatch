@@ -1,4 +1,5 @@
 import { readAllApplications, insertApplication, patchApplication } from '../api/applicationsApi'
+import { addParticipantToConversation, sendSystemMessage } from '../api/messagesApi'
 import { normalizeApplication } from '../utils/modelNormalizers'
 import { todayISO } from '../utils/date'
 import { createId } from '../utils/storage'
@@ -65,6 +66,19 @@ export function createApplication({ groupId, groupName, serviceId, serviceName, 
 }
 
 export function updateApplicationStatus(id, status) {
+  const app = _apps.find(a => a.id === id)
   _apps = _apps.map(a => a.id === id ? { ...a, status } : a)
   patchApplication(id, { status }).catch(console.error)
+
+  if (status === 'approved' && app) {
+    const convId = `group_${app.groupId}`
+    const applicantId = app.applicantId ?? app.userId
+    const applicantName = app.applicantName ?? app.userName ?? '新成員'
+    addParticipantToConversation(convId, applicantId, {
+      name:          applicantName,
+      avatarInitial: app.applicantAvatarInitial ?? applicantName[0] ?? '?',
+      avatarColor:   app.applicantAvatarColor   ?? '#94A3B8',
+    }).catch(console.error)
+    sendSystemMessage(convId, `${applicantName} 加入了群組`).catch(console.error)
+  }
 }

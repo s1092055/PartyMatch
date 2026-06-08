@@ -1,7 +1,6 @@
-import { CheckCircle2, XCircle, ShieldCheck, Smartphone, Mail, TrendingUp } from 'lucide-react'
+import { BarChart2, CheckCircle2, CreditCard, Mail, ShieldCheck, Smartphone, TrendingUp, XCircle } from 'lucide-react'
 import { getSubscriptionsByUserId } from '../../../shared/stores/subscriptionStore'
 import CreditScoreBadge from '../../../shared/components/ui/CreditScoreBadge'
-import { getCreditDisplay } from '../../../shared/utils/creditScore'
 
 function Panel({ title, icon: Icon, iconCls = 'text-blue-500', children }) {
   return (

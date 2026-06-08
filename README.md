@@ -18,11 +18,11 @@
 - **建立群組**（Modal）：以 `pm:open-create` 事件觸發；4 步驟表單（選服務→選方案→加入設定→確認送出）；方案費用依官方定價自動計算；選服務步驟支援分類 Grid 篩選
 - **管理群組**：直式卡片（Badge → Logo → 服務名稱 → 2×2 資訊格：待處理申請 / 本期收款 / 付款狀態 / 每月收入）；點擊「待處理申請」格開啟該群組專屬審核視窗（每個群組獨立）；次要操作（準備續訂、查看歷史）收折至 ⋯ 選單；統一透過 GroupViewModal 管理成員付款、啟用服務；支援篩選分頁（全部 / 招募中 / 待啟用 / 已啟用 / 已停止 / 已取消）
 - **訂閱管理**：直式卡片（Badge → Logo → 服務名稱 → 帳單週期 chip + 下次扣款日 chip → 團主資訊 / 付款狀態 → 金額）；付款狀態追蹤、標記已付款、聯絡團主、查看付款歷史紀錄、申請紀錄（含審核中／已核准／已拒絕）；管理端與訂閱端共用 GroupViewModal
-- **訊息中心**（Modal）：以 `pm:open-messages` 事件觸發；通知分類（全部 / 付款 / 申請 / 系統）、標記已讀；未讀數紅點 badge
+- **訊息中心**（Modal）：以 `pm:open-messages` 事件觸發；對話列表即時同步 Firestore（`onSnapshot`）；選取對話後即時訂閱訊息 subcollection；訊息傳送寫入 Firestore 並更新最後訊息；切換對話 / 關閉 Modal 自動取消訂閱並釋放監聽器；未讀數紅點 badge；時間戳自動格式化（今天顯示時間，其他顯示日期）；**群組建立時自動建立群組對話**（`groupStore.createGroup` → `createGroupConversation`）；**申請核准時自動將成員加入對話並送出系統訊息**（`applicationStore.updateApplicationStatus` → `addParticipantToConversation` + `sendSystemMessage`）
 - **收藏**：收藏感興趣的群組；分類 Grid 篩選；取消收藏即時從清單移除
 - **帳號中心**：個人資料、付款方式、通知偏好、安全驗證、設定
 - **登入 / 註冊 / 忘記密碼**：左上角「返回」按鈕導回首頁
-- **導航（AppNav）**：統一導航元件；應用頁顯示左側浮動側欄（side variant，收合 / 展開），首頁顯示頂部浮動橫列（top variant，僅含 Logo + 漢堡按鈕）；兩種 variant 的漢堡按鈕皆開啟右側抽屜（含導覽選單、使用者區塊）；手機版均以頂部 Header + 右滑抽屜呈現，抽屜內含搜尋按鈕可開啟 MobileSearch；快速配對 / 建立群組 / 訊息中心均以事件觸發 Modal 方式開啟（`pm:open-match` / `pm:open-create` / `pm:open-messages`）
+- **導航（AppNav）**：統一導航元件；應用頁顯示左側浮動側欄（side variant，收合 / 展開），首頁顯示頂部浮動橫列（top variant，僅含 Logo + 漢堡按鈕）；兩種 variant 的漢堡按鈕皆開啟右側抽屜（含導覽選單、使用者區塊）；手機版均以頂部 Header + 右滑抽屜呈現，抽屜內含搜尋按鈕可開啟 MobileSearch；快速配對 / 建立群組 / 訊息中心均以事件觸發 Modal 方式開啟（`pm:open-match` / `pm:open-create` / `pm:open-messages`）；**通知按鈕**電腦版固定於頁面右上角（`fixed top-6 right-4`），手機版位於 Header 漢堡按鈕左側；**帳號中心**直接列於側欄導覽，使用者頭像 dropdown 僅保留登出選項
 - **CategoryPills**：共用分類篩選元件，支援 `pills`（水平膠囊列）與 `grid`（圖示格）兩種樣式；用於探索群組、收藏、快速配對、建立群組
 
 ---
@@ -49,7 +49,7 @@ npm run lint    # 程式碼檢查
 - React Router v7
 - Tailwind CSS v4（含自訂 design token）
 - lucide-react
-- 狀態管理：Firebase Auth（驗證）+ Firebase Firestore（群組、申請、成員、訂閱、通知、收藏）+ sessionStorage（快速配對條件備援）
+- 狀態管理：Firebase Auth（驗證）+ Firebase Firestore（群組、申請、成員、訂閱、通知、收藏、**訊息（即時監聽）**）+ sessionStorage（快速配對條件備援）
 - **RevealSection**：共用滾動動畫元件，基於 IntersectionObserver，支援 viewport 初始檢測避免已可見元素重複播放
 
 ---
