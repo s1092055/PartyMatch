@@ -68,7 +68,7 @@ export default function ExploreGroupCard({ group, onFavChange, onBeforeNavigate 
   function openDetails(e) {
     e.stopPropagation()
     onBeforeNavigate?.()
-    navigate(`/groups/${group.id}`)
+    window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: group.id } }))
   }
 
   function handleFav(e) {

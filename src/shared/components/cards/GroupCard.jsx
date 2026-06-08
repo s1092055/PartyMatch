@@ -32,7 +32,7 @@ export default function GroupCard({ group, onFavChange }) {
   return (
     <div
       className="card card-hover flex cursor-pointer flex-col overflow-hidden p-0"
-      onClick={() => navigate(`/groups/${group.id}`)}
+      onClick={() => window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: group.id } }))}
     >
       
       <div className="flex items-center justify-between px-4 pb-0 pt-3">

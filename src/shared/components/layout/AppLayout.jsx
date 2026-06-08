@@ -6,6 +6,7 @@ import MobileSearch from './MobileSearch'
 import FloatingMessages from './FloatingMessages'
 import BackToTopButton from './ScrollToTop'
 import CreateGroupModal from '../../../pages/create/CreateGroupModal'
+import GroupDetailModal from '../../../pages/group/GroupDetailModal'
 import MessagesModal from '../../../pages/messages/MessagesModal'
 import QuickMatchModal from '../../../pages/match/QuickMatchModal'
 
@@ -31,6 +32,7 @@ export default function AppLayout() {
       <MessagesModal />
       <BackToTopButton />
       <CreateGroupModal />
+      <GroupDetailModal />
       <QuickMatchModal />
     </div>
   )

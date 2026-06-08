@@ -26,7 +26,7 @@ import {
 } from "../../../shared/stores/favoriteStore";
 import { getActiveUser } from "../../../shared/stores/userStore";
 
-export default function StickyJoinSummary({ group }) {
+export default function StickyJoinSummary({ group, inModal = false }) {
   const navigate = useNavigate();
   const activeUser = getActiveUser();
   const activeUserId = activeUser?.id;
@@ -138,7 +138,7 @@ export default function StickyJoinSummary({ group }) {
 
   return (
     <>
-      <div className="sticky top-[7rem] panel overflow-hidden">
+      <div className={`sticky ${inModal ? 'top-4' : 'top-[7rem]'} panel overflow-hidden`}>
         <div className="px-5 py-5 flex items-start justify-between gap-3">
           <div>
             <p className="text-sm font-bold text-ink-2 mb-0.5">每席價格</p>

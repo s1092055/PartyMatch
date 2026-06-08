@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Users, CheckCircle2, Lightbulb, Heart } from 'lucide-react'
 import CreditScoreBadge from '../../../shared/components/ui/CreditScoreBadge'
 import Badge from '../../../shared/components/ui/Badge'
@@ -9,13 +8,12 @@ import { isGroupFavorited, toggleFavorite } from '../../../shared/stores/favorit
 import { getActiveUser } from '../../../shared/stores/userStore'
 
 export default function RecommendedGroupCard({ group, rank, onBeforeNavigate }) {
-  const navigate = useNavigate()
   const activeUser = getActiveUser()
   const [isFav, setIsFav] = useState(() => activeUser ? isGroupFavorited(activeUser.id, group.id) : false)
 
-  function handleNavigate(path) {
+  function openGroup() {
     onBeforeNavigate?.()
-    navigate(path)
+    window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: group.id } }))
   }
 
   return (
@@ -93,7 +91,7 @@ export default function RecommendedGroupCard({ group, rank, onBeforeNavigate }) 
           variant="secondary"
           size="sm"
           className="flex-1 lg:w-full"
-          onClick={() => handleNavigate(`/groups/${group.id}`)}
+          onClick={openGroup}
         >
           查看詳情
         </Button>
@@ -101,7 +99,7 @@ export default function RecommendedGroupCard({ group, rank, onBeforeNavigate }) 
           variant="primary"
           size="sm"
           className="flex-1 lg:w-full"
-          onClick={() => handleNavigate(`/groups/${group.id}`)}
+          onClick={openGroup}
         >
           申請加入
         </Button>
