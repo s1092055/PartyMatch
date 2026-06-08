@@ -93,11 +93,11 @@ src/
 │   ├── router.jsx
 │   └── firebase.js           # Firebase 初始化設定
 ├── assets/                   # 靜態資源（Logo.svg、KKBOX-icon.png、masterclass-icon.png）
-├── pages/
+├── features/                # 依功能分類（每個功能自包含頁面或 Modal + 專屬元件）
 │   ├── auth/                 # 登入 / 註冊 / 忘記密碼
 │   ├── home/                 # 首頁 Landing（FeatureCards、HowItWorks、FAQ）
 │   ├── explore/              # 探索群組
-│   ├── group/                # 群組詳情 Modal（GroupDetailModal + GroupHeroCard、StickyJoinSummary）
+│   ├── group/                # 群組詳情 Modal（GroupDetailModal + GroupHeroCard、StickyJoinSummary、ApplyJoinModal）
 │   ├── match/                # 快速配對 Modal
 │   ├── create/               # 建立群組 Modal（多步驟表單）
 │   ├── manage/               # 群組管理（團主端）
@@ -112,7 +112,7 @@ src/
 │   │   ├── auth/             # AuthLayout、AuthIllustration
 │   │   ├── route/            # ProtectedRoute、PublicOnlyRoute
 │   │   ├── ui/               # Button、Badge、Avatar、Modal、Toggle、CustomSelect、ServiceLogo、RevealSection…
-│   │   └── modals/           # ApplyJoinModal、GroupViewModal
+│   │   └── modals/           # 跨功能共用 Modal（GroupViewModal；功能專屬 Modal 放各自 features/）
 │   ├── api/                  # 資料存取層（Firebase Firestore）
 │   ├── data/                 # mock 種子資料（services.mock.js 唯讀）
 │   ├── stores/               # 業務邏輯層，呼叫 api/ 取得資料

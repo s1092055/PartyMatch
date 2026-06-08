@@ -14,7 +14,7 @@ import {
 import Button from "../../../shared/components/ui/Button";
 import Avatar from "../../../shared/components/ui/Avatar";
 import ProgressBar from "../../../shared/components/ui/ProgressBar";
-import ApplyJoinModal from "../../../shared/components/modals/ApplyJoinModal";
+import ApplyJoinModal from "./ApplyJoinModal";
 import { getApplicationByUserAndGroup } from "../../../shared/stores/applicationStore";
 import {
   isCurrentUserMember,
