@@ -1,7 +1,7 @@
 import { db } from '../../app/firebase'
 import {
   collection, doc, query, where, orderBy,
-  onSnapshot, addDoc, serverTimestamp, updateDoc, setDoc, arrayUnion,
+  onSnapshot, addDoc, serverTimestamp, updateDoc, setDoc, arrayUnion, increment,
 } from 'firebase/firestore'
 
 export function subscribeToConversations(userId, onUpdate) {
@@ -29,7 +29,7 @@ export function subscribeToMessages(conversationId, onUpdate) {
   )
 }
 
-export async function sendMessage(conversationId, senderId, { senderName, avatarInitial, avatarColor, text }) {
+export async function sendMessage(conversationId, senderId, { senderName, avatarInitial, avatarColor, text, participants = [] }) {
   await addDoc(collection(db, 'conversations', conversationId, 'messages'), {
     senderId,
     senderName,
@@ -39,9 +39,14 @@ export async function sendMessage(conversationId, senderId, { senderName, avatar
     type: 'message',
     createdAt: serverTimestamp(),
   })
+  const unreadIncrements = {}
+  for (const uid of participants) {
+    if (uid !== senderId) unreadIncrements[`unreadCounts.${uid}`] = increment(1)
+  }
   await updateDoc(doc(db, 'conversations', conversationId), {
     lastMessage: text,
     lastMessageAt: serverTimestamp(),
+    ...unreadIncrements,
   })
 }
 

@@ -45,6 +45,7 @@ export default function MessagesModal() {
   const [conversations, setConversations] = useState([])
   const [messages, setMessages] = useState([])
   const [sending, setSending] = useState(false)
+  const [sendError, setSendError] = useState(false)
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
 
@@ -92,7 +93,7 @@ export default function MessagesModal() {
     setSelectedId(null)
     setSearchQuery('')
     setCanSend(false)
-    if (inputRef.current) inputRef.current.value = ''
+    setSendError(false)
   }
 
   async function handleSend() {
@@ -102,6 +103,7 @@ export default function MessagesModal() {
     if (!user) return
 
     setCanSend(false)
+    setSendError(false)
     setSending(true)
     try {
       await sendMessage(selectedId, user.id, {
@@ -109,10 +111,12 @@ export default function MessagesModal() {
         avatarInitial: user.name?.[0] ?? '?',
         avatarColor: user.avatarColor ?? '#64748b',
         text,
+        participants: selected?.participants ?? [],
       })
       setInputKey(k => k + 1)
     } catch {
       setCanSend(true)
+      setSendError(true)
     } finally {
       setSending(false)
       inputRef.current?.focus()
@@ -274,13 +278,16 @@ export default function MessagesModal() {
                 </div>
 
                 <div className="shrink-0 border-t border-line bg-white px-4 py-3">
-                  <div className="flex items-center gap-3 rounded-2xl border border-line bg-raised px-4 py-2">
+                  {sendError && (
+                    <p className="mb-2 text-xs text-danger">傳送失敗，請稍後再試</p>
+                  )}
+                  <div className={`flex items-center gap-3 rounded-2xl border bg-raised px-4 py-2 ${sendError ? 'border-danger' : 'border-line'}`}>
                     <input
                       key={inputKey}
                       ref={inputRef}
                       type="text"
                       placeholder="輸入訊息..."
-                      onChange={e => setCanSend(e.target.value.trim().length > 0)}
+                      onChange={e => { setCanSend(e.target.value.trim().length > 0); setSendError(false) }}
                       onKeyDown={handleKeyDown}
                       className="flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-ink-4"
                     />

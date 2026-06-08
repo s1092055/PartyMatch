@@ -52,16 +52,17 @@ export function createGroup(data) {
   })
 
   _groups = [..._groups, group]
-  insertGroup(group).catch(err => console.error('[groupStore] createGroup failed:', err))
-  createGroupConversation({
-    groupId:           group.id,
-    groupName:         group.serviceName ?? group.id,
-    serviceId:         group.serviceId ?? null,
-    hostId:            activeUser.id,
-    hostName:          activeUser.displayName,
-    hostAvatarInitial: activeUser.avatarInitial,
-    hostAvatarColor:   activeUser.avatarColor,
-  }).catch(err => console.error('[groupStore] createGroupConversation failed:', err))
+  insertGroup(group)
+    .then(() => createGroupConversation({
+      groupId:           group.id,
+      groupName:         group.serviceName ?? group.id,
+      serviceId:         group.serviceId ?? null,
+      hostId:            activeUser.id,
+      hostName:          activeUser.displayName,
+      hostAvatarInitial: activeUser.avatarInitial,
+      hostAvatarColor:   activeUser.avatarColor,
+    }))
+    .catch(err => console.error('[groupStore] createGroup failed:', err))
   return group
 }
 
