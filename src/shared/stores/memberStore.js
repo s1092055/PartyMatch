@@ -12,8 +12,6 @@ export async function initMembers() {
   _members = DEMO_MODE ? all : all.filter(m => !m._demo)
 }
 
-export function getMembers() { return _members }
-
 export function getMembersByGroupId(groupId) {
   return _members.filter(m => m.groupId === groupId)
 }

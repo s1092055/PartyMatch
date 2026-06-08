@@ -14,7 +14,7 @@
 - **首頁（Landing Page）**：行銷首頁，展示核心功能（FeatureCards 左右交錯排版）、使用教學（HowItWorks）、FAQ、頁尾（含法律文件連結）；頂部浮動 AppNav（top variant）；Logo 點擊回首頁；各區塊採 RevealSection 滾動觸發淡入動畫
 - **探索群組**：Marketplace 瀏覽版面；分類圖示 Grid 篩選（影音、音樂、AI 工具、辦公、雲端、學習、遊戲、VPN）+ 次要篩選列（服務、價格、排序）；卡片顯示價格 → 分隔線 → 團主資訊 + 剩餘名額；共 30 種服務、26 個群組；Sidebar 與手機版 Drawer 搜尋按鈕皆可搜尋並導向探索頁篩選結果；自己是團主的群組不顯示在探索頁；卡片採 RevealSection 滾動入場動畫
 - **快速配對**（Modal）：以 `pm:open-match` 事件觸發；四步驟精靈（選服務→篩選條件→搜尋偏好→配對結果）+ 右側配對條件摘要；配對結果直接顯示在 Modal 第 4 步，以探索頁卡片樣式呈現最多 3 個推薦群組（含排名號碼）；選服務步驟支援分類 Grid 篩選；結果頁底部可「重新配對」或「調整條件」退回第 3 步
-- **群組詳情**（Modal）：以 `pm:open-group` 事件觸發；顯示 GroupHeroCard、加入條件與規則、團主信用評價（可展開收合）及 StickyJoinSummary 申請區塊；GroupCard、ExploreGroupCard、RecommendedGroupCard、MobileSearch 搜尋結果均改為 dispatch 事件開啟 Modal；`/groups/:groupId` 路由保留供未來分享 / 邀請連結使用
+- **群組詳情**（Modal）：以 `pm:open-group` 事件觸發；顯示 GroupHeroCard、加入條件與規則、團主信用評價（可展開收合）及 StickyJoinSummary 申請區塊；探索卡片、收藏卡片、快速配對結果、MobileSearch 搜尋結果與「建立群組成功後」皆 dispatch 事件開啟 Modal（已無獨立頁面路由）
 - **申請加入**（審核制，所有群組統一採用審核加入）
 - **建立群組**（Modal）：以 `pm:open-create` 事件觸發；4 步驟表單（選服務→選方案→加入設定→確認送出）；方案費用依官方定價自動計算；選服務步驟支援分類 Grid 篩選
 - **管理群組**：直式卡片（Badge → Logo → 服務名稱 → 2×2 資訊格：待處理申請 / 本期收款 / 付款狀態 / 每月收入）；點擊「待處理申請」格開啟該群組專屬審核視窗（每個群組獨立）；次要操作（準備續訂、查看歷史）收折至 ⋯ 選單；統一透過 GroupViewModal 管理成員付款、啟用服務；支援篩選分頁（全部 / 招募中 / 待啟用 / 已啟用 / 已停止 / 已取消）
@@ -67,7 +67,6 @@ npm run lint    # 程式碼檢查
 | `/forgot-password` | 忘記密碼 |
 | `/explore` | 探索群組（無需登入可瀏覽） |
 | `/explore?q=keyword` | 探索群組（關鍵字篩選） |
-| `/groups/:groupId` | 群組詳情（無需登入可瀏覽，加入需登入） |
 | `/disclaimer` | 免責聲明 |
 | `/terms` | 服務條款 |
 | `/privacy` | 隱私政策 |
@@ -77,7 +76,6 @@ npm run lint    # 程式碼檢查
 | 路徑 | 頁面 |
 |------|------|
 | `/quick-match` | 快速配對（重導並觸發 Modal） |
-| `/quick-match/results` | 配對結果（備用頁面，主流程已改為 Modal 內嵌顯示） |
 | `/create-group` | 建立群組（重導並觸發 Modal） |
 | `/manage-groups` | 管理群組 |
 | `/my-subscriptions` | 我的訂閱 |
@@ -97,31 +95,30 @@ src/
 ├── assets/                   # 靜態資源（Logo.svg、KKBOX-icon.png、masterclass-icon.png）
 ├── pages/
 │   ├── auth/                 # 登入 / 註冊 / 忘記密碼
-│   ├── landing/
-│   │   ├── LandingPage.jsx
-│   │   └── components/       # FeatureCards、HowItWorks
-│   ├── explore/
-│   ├── group-detail/
-│   ├── quick-match/
-│   ├── my-subscriptions/
-│   ├── favorites/
-│   ├── create-group/
-│   ├── manage-groups/
-│   └── account/
+│   ├── home/                 # 首頁 Landing（FeatureCards、HowItWorks、FAQ）
+│   ├── explore/              # 探索群組
+│   ├── group/                # 群組詳情 Modal（GroupDetailModal + GroupHeroCard、StickyJoinSummary）
+│   ├── match/                # 快速配對 Modal
+│   ├── create/               # 建立群組 Modal（多步驟表單）
+│   ├── manage/               # 群組管理（團主端）
+│   ├── subscriptions/        # 訂閱管理 SubTrack（成員端）
+│   ├── favorites/            # 收藏
+│   ├── account/              # 帳號中心
+│   ├── messages/             # 訊息中心 Modal
+│   └── legal/                # 免責聲明 / 服務條款 / 隱私政策
 ├── shared/
 │   ├── components/
 │   │   ├── layout/           # AppLayout、AppNav（top / side variant）、MobileSearch、FloatingMessages（訊息中心懸浮元件）
-│   │   ├── auth/             # AuthLayout
+│   │   ├── auth/             # AuthLayout、AuthIllustration
 │   │   ├── route/            # ProtectedRoute、PublicOnlyRoute
 │   │   ├── ui/               # Button、Badge、Avatar、Modal、Toggle、CustomSelect、ServiceLogo、RevealSection…
-│   │   ├── modals/           # ApplyJoinModal、InstantJoinModal、GroupViewModal
-│   │   └── cards/            # GroupCard（探索用）、GroupCardShell（管理頁共用殼層）
+│   │   └── modals/           # ApplyJoinModal、GroupViewModal
 │   ├── api/                  # 資料存取層（Firebase Firestore）
 │   ├── data/                 # mock 種子資料（services.mock.js 唯讀）
 │   ├── stores/               # 業務邏輯層，呼叫 api/ 取得資料
 │   ├── services/             # serviceTypes（服務圖示、顏色、官方定價；支援本地 iconSrc 或 Iconify URL）
 │   ├── constants/            # nav.js（AppNav 導航結構）、paymentStatus.js
-│   └── utils/                # date、storage、matchGroups、subscriptionStatus、billingChip、hooks（useClickOutside、useScrollLock）…
+│   └── utils/                # date、storage、matchGroups、subscriptionStatus、hooks（useClickOutside、useScrollLock）…
 └── index.css                 # Tailwind v4 design token + 元件原始類別
 ```
 

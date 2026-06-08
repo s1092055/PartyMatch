@@ -13,14 +13,8 @@ export async function initSubscriptions() {
   _subs = DEMO_MODE ? all : all.filter(s => !s._demo)
 }
 
-export function getSubscriptions() { return _subs }
-
 export function getSubscriptionsByUserId(userId) {
   return _subs.filter(s => s.userId === userId)
-}
-
-export function getSubscriptionById(id) {
-  return _subs.find(s => s.id === id) ?? null
 }
 
 export function getSubscriptionByUserAndGroup(userId, groupId) {
@@ -56,11 +50,6 @@ export function createSubscription({ userId, groupId, serviceName, planName, ser
 
 function applyPatch(id, patch) {
   _subs = _subs.map(s => s.id === id ? normalizeSubscription({ ...s, ...patch }) : s)
-}
-
-export function updateSubscription(id, patch) {
-  applyPatch(id, patch)
-  patchSubscription(id, patch).catch(console.error)
 }
 
 export function markSubscriptionPaid(id) {

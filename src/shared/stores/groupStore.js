@@ -22,7 +22,6 @@ function applyPatch(id, patch) {
 export function getGroups()                  { return _groups }
 export function getGroupById(id)             { return _groups.find(g => g.id === id) ?? null }
 export function getGroupsByHostId(hostId)    { return _groups.filter(g => g.hostId === hostId) }
-export function getRecruitingGroups()        { return _groups.filter(g => g.status === 'recruiting') }
 
 export function createGroup(data) {
   const activeUser = getActiveUserProfile()
@@ -74,14 +73,6 @@ export function updateGroup(id, patch) {
 
 export function confirmGroupPayments(id) {
   return updateGroup(id, { status: 'pending_activation' })
-}
-
-export function pauseGroup(id) {
-  return updateGroup(id, { status: 'paused' })
-}
-
-export function cancelGroup(id) {
-  return updateGroup(id, { status: 'cancelled' })
 }
 
 export function activateGroup(id, customNextBillingDate = null) {

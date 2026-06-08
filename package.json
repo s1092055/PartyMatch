@@ -8,7 +8,6 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "seed": "node scripts/seedFirestore.mjs",
     "seed:demo": "node scripts/seedDemo.mjs",
     "clear:demo": "node scripts/clearDemo.mjs"
   },

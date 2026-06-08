@@ -26,5 +26,3 @@ export const NAV_SECTIONS = [
     ],
   },
 ]
-
-export const NAV_UTILITY = []

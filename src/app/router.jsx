@@ -3,8 +3,6 @@ import { createBrowserRouter, useNavigate } from 'react-router-dom'
 import AppLayout from '../shared/components/layout/AppLayout'
 import HomePage from '../pages/home/HomePage'
 import ExplorePage from '../pages/explore/ExplorePage'
-import MatchResultPage from '../pages/match/MatchResultPage'
-import GroupPage from '../pages/group/GroupPage'
 import ManagePage from '../pages/manage/ManagePage'
 import SubscriptionsPage from '../pages/subscriptions/SubscriptionsPage'
 import AccountPage from '../pages/account/AccountPage'
@@ -51,7 +49,6 @@ const router = createBrowserRouter([
     element: <AppLayout />,
     children: [
       { path: 'explore',         element: <ExplorePage /> },
-      { path: 'groups/:groupId', element: <GroupPage /> },
       { path: 'disclaimer',      element: <DisclaimerPage /> },
       { path: 'terms',           element: <TermsPage /> },
       { path: 'privacy',         element: <PrivacyPage /> },
@@ -59,7 +56,6 @@ const router = createBrowserRouter([
         element: <ProtectedRoute />,
         children: [
           { path: 'quick-match',         element: <QuickMatchRedirect /> },
-          { path: 'quick-match/results', element: <MatchResultPage /> },
           { path: 'create-group',        element: <CreateGroupRedirect /> },
           { path: 'manage-groups',       element: <ManagePage /> },
           { path: 'my-subscriptions',    element: <SubscriptionsPage /> },

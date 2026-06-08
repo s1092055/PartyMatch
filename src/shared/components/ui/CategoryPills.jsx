@@ -1,7 +1,7 @@
 import { Film, Music2, Bot, Briefcase, Cloud, BookOpen, Gamepad2, Shield } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
 
-export const CATEGORIES = [
+const CATEGORIES = [
   { value: '影音',   label: '影音',    Icon: Film },
   { value: '音樂',   label: '音樂',    Icon: Music2 },
   { value: 'AI工具', label: 'AI 工具', Icon: Bot },

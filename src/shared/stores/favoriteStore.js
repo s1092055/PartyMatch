@@ -30,7 +30,7 @@ export function toggleFavorite(userId, groupId) {
   return true
 }
 
-export function removeFavorite(userId, groupId) {
+function removeFavorite(userId, groupId) {
   const fav = _favs.find(f => f.userId === userId && f.groupId === groupId)
   if (!fav) return
   _favs = _favs.filter(f => !(f.userId === userId && f.groupId === groupId))

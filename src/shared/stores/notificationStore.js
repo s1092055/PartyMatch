@@ -1,7 +1,6 @@
 import { readAllNotifications, insertNotification, patchNotification } from '../api/notificationsApi'
 import { todayISO } from '../utils/date'
 import { createId } from '../utils/storage'
-import { getActiveUser } from './userStore'
 
 let _notifications = []
 
@@ -14,10 +13,6 @@ export async function initNotifications() {
 
 export function getNotifications(userId) {
   return _notifications.filter(n => n.userId === userId)
-}
-
-export function getUnreadCount(userId) {
-  return _notifications.filter(n => n.userId === userId && !n.isRead).length
 }
 
 export function createNotification({ userId, type, title, message }) {
@@ -44,9 +39,4 @@ export function markAllAsRead(userId) {
   const unread = _notifications.filter(n => n.userId === userId && !n.isRead)
   _notifications = _notifications.map(n => n.userId === userId ? { ...n, isRead: true } : n)
   unread.forEach(n => patchNotification(n.id, { isRead: true }).catch(console.error))
-}
-
-export function getCurrentUserNotifications() {
-  const user = getActiveUser()
-  return user ? getNotifications(user.id) : []
 }

@@ -222,7 +222,7 @@ export default function CreateGroupModal() {
                 <p className="text-sm text-slate-500">正在跳轉到群組管理頁面…</p>
                 {newGroupId && (
                   <button
-                    onClick={() => { setIsOpen(false); navigate(`/groups/${newGroupId}`) }}
+                    onClick={() => { setIsOpen(false); window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: newGroupId } })) }}
                     className="text-sm text-blue-600 hover:underline"
                   >
                     立即查看群組詳情 →

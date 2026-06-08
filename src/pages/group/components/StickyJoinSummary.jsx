@@ -60,11 +60,7 @@ export default function StickyJoinSummary({ group, inModal = false }) {
           variant="primary"
           size="lg"
           className="w-full"
-          onClick={() =>
-            navigate(
-              `/login?redirectTo=${encodeURIComponent(`/groups/${group.id}`)}`,
-            )
-          }
+          onClick={() => navigate("/login?redirectTo=/explore")}
         >
           <LogIn size={16} />
           登入以加入群組

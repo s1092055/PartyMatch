@@ -14,8 +14,6 @@ export async function initApplications() {
   _apps = DEMO_MODE ? all : all.filter(a => !a._demo)
 }
 
-export function getApplications() { return _apps }
-
 export function getApplicationsByGroupId(groupId) {
   return _apps.filter(a => a.groupId === groupId)
 }
