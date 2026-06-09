@@ -49,14 +49,13 @@ export default function FloatingMessages() {
   useScrollLock(open)
 
   useEffect(() => {
-    function onOpen() { setOpen(true) }
+    function onOpen() {
+      setNotifications(userId ? getNotifications(userId) : [])
+      setOpen(true)
+    }
     window.addEventListener('pm:open-notify', onOpen)
     return () => window.removeEventListener('pm:open-notify', onOpen)
-  }, [])
-
-  useEffect(() => {
-    if (open) setNotifications(userId ? getNotifications(userId) : [])
-  }, [open, userId])
+  }, [userId])
 
   useEffect(() => {
     if (!open) return

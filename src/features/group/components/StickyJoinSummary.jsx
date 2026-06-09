@@ -32,7 +32,7 @@ export default function StickyJoinSummary({ group, inModal = false }) {
   const activeUserId = activeUser?.id;
   const isHost = group.hostId === activeUserId;
 
-  const [isMember, setIsMember] = useState(() => isCurrentUserMember(group.id));
+  const isMember = isCurrentUserMember(group.id);
   const memberRecord = activeUserId
     ? getMemberByUserAndGroup(activeUserId, group.id)
     : null;
@@ -44,8 +44,8 @@ export default function StickyJoinSummary({ group, inModal = false }) {
       ? !!getApplicationByUserAndGroup(activeUserId, group.id)
       : false,
   );
-  const [openSeats, setOpenSeats] = useState(group.openSeats);
-  const [usedSeats, setUsedSeats] = useState(group.usedSeats);
+  const openSeats = group.openSeats;
+  const usedSeats = group.usedSeats;
   const [modalOpen, setModalOpen] = useState(false);
   const [isFav, setIsFav] = useState(() =>
     activeUserId ? isGroupFavorited(activeUserId, group.id) : false,

@@ -1,5 +1,4 @@
-import { useEffect } from 'react'
-import { createBrowserRouter, useNavigate } from 'react-router-dom'
+import { createBrowserRouter } from 'react-router-dom'
 import AppLayout from '../shared/components/layout/AppLayout'
 import HomePage from '../features/home/HomePage'
 import ExplorePage from '../features/explore/ExplorePage'
@@ -15,24 +14,7 @@ import PublicOnlyRoute from '../shared/components/route/PublicOnlyRoute'
 import DisclaimerPage from '../features/legal/DisclaimerPage'
 import TermsPage from '../features/legal/TermsPage'
 import PrivacyPage from '../features/legal/PrivacyPage'
-
-function CreateGroupRedirect() {
-  const navigate = useNavigate()
-  useEffect(() => {
-    window.dispatchEvent(new CustomEvent('pm:open-create'))
-    navigate('/manage-groups', { replace: true })
-  }, [])
-  return null
-}
-
-function QuickMatchRedirect() {
-  const navigate = useNavigate()
-  useEffect(() => {
-    window.dispatchEvent(new CustomEvent('pm:open-match'))
-    navigate('/explore', { replace: true })
-  }, [])
-  return null
-}
+import { CreateGroupRedirect, QuickMatchRedirect } from './redirects'
 
 const router = createBrowserRouter([
   { path: '/', element: <HomePage /> },

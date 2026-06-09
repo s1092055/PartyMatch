@@ -100,8 +100,7 @@ export default function HostedGroupCard({
   const { menu: menuActionDefs = [] } = GROUP_ACTION_MAP[displayStatus] ?? {}
 
   const hasMarkedPaid = members.some(m => m.paymentStatus === 'markedPaid')
-  const isRenewalDue  = displayStatus === 'active_renewal'
-  const paidCount     = members.filter(m => CONFIRMED_STATUSES.includes(m.paymentStatus)).length
+const paidCount     = members.filter(m => CONFIRMED_STATUSES.includes(m.paymentStatus)).length
   const paymentTarget = Math.max(members.length, group.usedSeats - 1, 0)
   const paymentValue  = paymentTarget > 0 ? `${paidCount}/${paymentTarget}` : `${group.usedSeats}/${group.totalSeats}`
   const paymentState  = getPaymentState({ group, hasMarkedPaid, paidCount, paymentTarget })

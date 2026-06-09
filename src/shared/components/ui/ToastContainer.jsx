@@ -23,7 +23,7 @@ export default function ToastContainer() {
       setToasts(prev => [...prev, item])
       setTimeout(() => remove(item.id), TOAST_DURATION)
     })
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
   if (toasts.length === 0) return null
 
