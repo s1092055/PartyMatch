@@ -1,189 +1,208 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, Rocket, AlertCircle, X } from 'lucide-react'
-import CreateGroupStepper from './components/CreateGroupStepper'
-import LivePreviewPanel   from './components/LivePreviewPanel'
-import Step1Service       from './components/steps/Step1Service'
-import Step2Plan          from './components/steps/Step2Plan'
-import Step3Settings      from './components/steps/Step3Settings'
-import Step4Preview       from './components/steps/Step4Preview'
-import Button from '../../shared/components/ui/Button'
-import { createGroup, getGroupsByHostId } from '../../shared/stores/groupStore'
-import { getServiceById } from '../../shared/services/serviceTypes'
-import { computeNextBillingDate } from '../../shared/utils/date'
-import { getActiveUser } from '../../shared/stores/userStore'
-import { useScrollLock } from '../../shared/utils/hooks'
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  ChevronLeft,
+  ChevronRight,
+  AlertCircle,
+  Info,
+  X,
+} from "lucide-react";
+import CreateGroupStepper from "./components/CreateGroupStepper";
+import LivePreviewPanel from "./components/LivePreviewPanel";
+import Step1Service from "./components/steps/Step1Service";
+import Step2Plan from "./components/steps/Step2Plan";
+import Step3Settings from "./components/steps/Step3Settings";
+import Step4Preview from "./components/steps/Step4Preview";
+import Button from "../../shared/components/ui/Button";
+import { createGroup } from "../../shared/stores/groupStore";
+import { getServiceById } from "../../shared/services/serviceTypes";
+import { useScrollLock } from "../../shared/utils/hooks";
 
-const STEP_COMPONENTS = [Step1Service, Step2Plan, Step3Settings, Step4Preview]
+const STEP_COMPONENTS = [Step1Service, Step2Plan, Step3Settings, Step4Preview];
 const STEP_LABELS = [
-  { n: 1, label: '選擇服務' },
-  { n: 2, label: '方案設定' },
-  { n: 3, label: '群組設定' },
-  { n: 4, label: '預覽送出' },
-]
+  { n: 1, label: "選擇服務" },
+  { n: 2, label: "方案設定" },
+  { n: 3, label: "群組設定" },
+  { n: 4, label: "預覽送出" },
+];
 
 const INITIAL_FORM = {
-  serviceId:      '',
-  planName:       '',
-  pricePerSeat:   0,
-  billingCycle:   'monthly',
-  nextBillingDay: '',
-  totalSeats:     2,
-  rules:          [''],
-}
+  serviceId: "",
+  planName: "",
+  pricePerSeat: 0,
+  billingCycle: "monthly",
+  totalSeats: 2,
+  rules: [""],
+};
 
 function mapFormToGroup(form) {
-  const service = getServiceById(form.serviceId)
-  const totalSeats = form.totalSeats
-  const rules = form.rules.map(r => r.trim()).filter(Boolean)
-  const tags = [service?.category].filter(Boolean)
+  const service = getServiceById(form.serviceId);
+  const totalSeats = form.totalSeats;
+  const rules = form.rules.map((r) => r.trim()).filter(Boolean);
+  const tags = [service?.category].filter(Boolean);
 
   return {
-    serviceId:       form.serviceId,
-    serviceName:     service?.fullName ?? service?.name ?? form.serviceId,
-    planName:        form.planName,
-    pricePerSeat:    form.pricePerSeat || 0,
-    billingCycle:    form.billingCycle,
-    nextBillingDate: computeNextBillingDate(form.nextBillingDay),
+    serviceId: form.serviceId,
+    serviceName: service?.fullName ?? service?.name ?? form.serviceId,
+    planName: form.planName,
+    pricePerSeat: form.pricePerSeat || 0,
+    billingCycle: form.billingCycle,
     totalSeats,
-    usedSeats:       1,
-    openSeats:       totalSeats - 1,
-    joinMode:        'approval',
+    usedSeats: 1,
+    openSeats: totalSeats - 1,
+    joinMode: "approval",
     rules,
     tags,
-    status:          'recruiting',
-  }
+    status: "recruiting",
+  };
 }
 
 function getStepErrors(step, form) {
-  const errors = []
-  const billingDay = Number.parseInt(form.nextBillingDay, 10)
-  const rules = form.rules.map(rule => rule.trim()).filter(Boolean)
+  const errors = [];
+  const rules = form.rules.map((rule) => rule.trim()).filter(Boolean);
 
   switch (step) {
     case 1:
-      if (!form.serviceId) errors.push('請選擇一個訂閱服務')
-      break
-    case 2: {
-      if (!form.planName) errors.push('請選擇方案')
-      if (!Number.isInteger(billingDay) || billingDay < 1 || billingDay > 31) {
-        errors.push('每月扣款日需介於 1 至 31 日')
-      }
-      const activeUser = getActiveUser()
-      const duplicate = activeUser && form.serviceId && form.planName && getGroupsByHostId(activeUser.id).some(group =>
-        group.status === 'recruiting' &&
-        group.serviceId === form.serviceId &&
-        group.planName === form.planName
-      )
-      if (duplicate) errors.push('你已經有相同服務與方案的招募中群組')
-      break
-    }
+      if (!form.serviceId) errors.push("請選擇一個訂閱服務");
+      break;
+    case 2:
+      if (!form.planName) errors.push("請選擇方案");
+      break;
     case 3: {
-      const service = getServiceById(form.serviceId)
-      const plan = service?.plans.find(p => p.name === form.planName)
-      const maxSeats = plan?.maxSeats ?? 10
-      if (!Number.isInteger(form.totalSeats) || form.totalSeats < 2 || form.totalSeats > maxSeats) {
-        errors.push(`開放名額需介於 1 至 ${maxSeats - 1} 位`)
+      const service = getServiceById(form.serviceId);
+      const plan = service?.plans.find((p) => p.name === form.planName);
+      const maxSeats = plan?.maxSeats ?? 10;
+      if (
+        !Number.isInteger(form.totalSeats) ||
+        form.totalSeats < 2 ||
+        form.totalSeats > maxSeats
+      ) {
+        errors.push(`開放名額需介於 1 至 ${maxSeats - 1} 位`);
       }
-      if (rules.length > 5) errors.push('群組規則最多 5 條')
-      if (rules.some(rule => rule.length > 80)) errors.push('每條群組規則最多 80 字')
-      break
+      if (rules.length > 5) errors.push("群組規則最多 5 條");
+      if (rules.some((rule) => rule.length > 80))
+        errors.push("每條群組規則最多 80 字");
+      break;
     }
     default:
-      break
+      break;
   }
 
-  return errors
+  return errors;
 }
 
 function getFirstInvalidStep(form) {
-  return [1, 2, 3].find(step => getStepErrors(step, form).length > 0) ?? null
+  return [1, 2, 3].find((step) => getStepErrors(step, form).length > 0) ?? null;
 }
 
 export default function CreateGroupModal() {
-  const navigate = useNavigate()
-  const [isOpen, setIsOpen]           = useState(false)
-  const [step, setStep]               = useState(1)
-  const [form, setForm]               = useState(INITIAL_FORM)
-  const [submitted, setSubmitted]     = useState(false)
-  const [newGroupId, setNewGroupId]   = useState(null)
+  const navigate = useNavigate();
+  const [isOpen, setIsOpen] = useState(false);
+  const [step, setStep] = useState(1);
+  const [form, setForm] = useState(INITIAL_FORM);
+  const [submitted, setSubmitted] = useState(false);
+  const [newGroupId, setNewGroupId] = useState(null);
 
-  useScrollLock(isOpen)
+  useScrollLock(isOpen);
 
   useEffect(() => {
     function handler() {
-      setIsOpen(true)
-      setStep(1)
-      setForm(INITIAL_FORM)
-      setSubmitted(false)
-      setNewGroupId(null)
+      setIsOpen(true);
+      setStep(1);
+      setForm(INITIAL_FORM);
+      setSubmitted(false);
+      setNewGroupId(null);
     }
-    window.addEventListener('pm:open-create', handler)
-    return () => window.removeEventListener('pm:open-create', handler)
-  }, [])
+    window.addEventListener("pm:open-create", handler);
+    return () => window.removeEventListener("pm:open-create", handler);
+  }, []);
 
   useEffect(() => {
-    if (!isOpen) return
-    function onKeyDown(e) { if (e.key === 'Escape') setIsOpen(false) }
-    document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
-  }, [isOpen])
+    if (!isOpen) return;
+    function onKeyDown(e) {
+      if (e.key === "Escape") setIsOpen(false);
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [isOpen]);
 
-  function handleClose() { setIsOpen(false) }
-
-  function onChange(key, value) {
-    setForm(prev => {
-      const next = { ...prev, [key]: value }
-      if (key === 'serviceId') {
-        next.planName = ''
-        next.pricePerSeat = 0
-        next.totalSeats = 2
-      }
-      if (key === 'planName') {
-        const service = getServiceById(next.serviceId)
-        const plan = service?.plans.find(p => p.name === value)
-        if (plan) {
-          next.totalSeats = plan.maxSeats
-          next.pricePerSeat = Math.ceil(plan.monthlyPrice / plan.maxSeats)
-        }
-      }
-      if (key === 'totalSeats') {
-        const service = getServiceById(next.serviceId)
-        const plan = service?.plans.find(p => p.name === next.planName)
-        if (plan) next.pricePerSeat = Math.ceil(plan.monthlyPrice / value)
-      }
-      return next
-    })
+  function handleClose() {
+    setIsOpen(false);
   }
 
-  const stepErrors = getStepErrors(step, form)
-  function canNext() { return stepErrors.length === 0 }
+  function onChange(key, value) {
+    setForm((prev) => {
+      const next = { ...prev, [key]: value };
+      if (key === "serviceId") {
+        next.planName = "";
+        next.pricePerSeat = 0;
+        next.totalSeats = 2;
+      }
+      if (key === "planName") {
+        const service = getServiceById(next.serviceId);
+        const plan = service?.plans.find((p) => p.name === value);
+        if (plan) {
+          next.totalSeats = plan.maxSeats;
+          next.pricePerSeat = calcPricePerSeat(plan, plan.maxSeats, next.billingCycle);
+        }
+      }
+      if (key === "totalSeats") {
+        const service = getServiceById(next.serviceId);
+        const plan = service?.plans.find((p) => p.name === next.planName);
+        if (plan) next.pricePerSeat = calcPricePerSeat(plan, value, next.billingCycle);
+      }
+      if (key === "billingCycle") {
+        const service = getServiceById(next.serviceId);
+        const plan = service?.plans.find((p) => p.name === next.planName);
+        if (plan) next.pricePerSeat = calcPricePerSeat(plan, next.totalSeats, value);
+      }
+      return next;
+    });
+  }
+
+  function calcPricePerSeat(plan, seats, billingCycle) {
+    if (billingCycle === "yearly" && plan.yearlyPrice) {
+      return Math.ceil(plan.yearlyPrice / seats / 12);
+    }
+    return Math.ceil(plan.monthlyPrice / seats);
+  }
+
+  const stepErrors = getStepErrors(step, form);
+  function canNext() {
+    return stepErrors.length === 0;
+  }
 
   function handleNext() {
-    if (canNext() && step < 4) setStep(s => s + 1)
+    if (canNext() && step < 4) setStep((s) => s + 1);
   }
 
   function handleBack() {
-    if (step > 1) setStep(s => s - 1)
-    else handleClose()
+    if (step > 1) setStep((s) => s - 1);
+    else handleClose();
   }
 
   function handleSubmit() {
-    const firstInvalidStep = getFirstInvalidStep(form)
-    if (firstInvalidStep) { setStep(firstInvalidStep); return }
-    const groupData = mapFormToGroup(form)
-    const group = createGroup(groupData)
-    setNewGroupId(group.id)
-    setSubmitted(true)
+    const firstInvalidStep = getFirstInvalidStep(form);
+    if (firstInvalidStep) {
+      setStep(firstInvalidStep);
+      return;
+    }
+
+    const groupData = mapFormToGroup(form);
+    const group = createGroup(groupData);
+    
+    setNewGroupId(group.id);
+    setSubmitted(true);
+    
     setTimeout(() => {
-      setIsOpen(false)
-      navigate('/manage-groups')
-    }, 2500)
+      setIsOpen(false);
+      navigate("/manage-groups");
+    }, 2500);
   }
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
-  const StepComponent = STEP_COMPONENTS[step - 1]
+  const StepComponent = STEP_COMPONENTS[step - 1];
 
   return (
     <>
@@ -191,13 +210,14 @@ export default function CreateGroupModal() {
         className="fixed inset-0 z-[55] cursor-pointer bg-black/50"
         onClick={handleClose}
       />
-      <div className="pointer-events-none fixed inset-0 z-[56] flex items-center justify-center p-4 md:p-8">
-        <div className="pointer-events-auto relative flex w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl" style={{ height: 'min(85vh, 720px)' }}>
-
+      <div className="pointer-events-none fixed inset-0 z-[56] flex items-center justify-center p-4 md:p-4">
+        <div
+          className="pointer-events-auto relative flex w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+          style={{ height: "min(85vh, 720px)" }}
+        >
           <div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-4">
             <div>
               <h2 className="text-lg font-extrabold text-ink">建立群組</h2>
-              <p className="mt-0.5 text-xs text-ink-3">快速建立你專屬的共享群組，找到合適夥伴一起分攤費用</p>
             </div>
             <button
               onClick={handleClose}
@@ -212,17 +232,25 @@ export default function CreateGroupModal() {
             <CreateGroupStepper steps={STEP_LABELS} current={step} />
           </div>
 
-          <div className="flex-1 overflow-y-auto px-6 pb-2">
+          <div className="flex-1 overflow-y-auto px-3 pb-2 lg:px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {submitted ? (
               <div className="flex flex-col items-center justify-center gap-4 py-16">
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
-                  <Rocket size={28} className="text-emerald-600" />
                 </div>
                 <h2 className="page-title">群組已上架！</h2>
-                <p className="text-sm text-slate-500">正在跳轉到群組管理頁面…</p>
+                <p className="text-sm text-slate-500">
+                  正在跳轉到群組管理頁面…
+                </p>
                 {newGroupId && (
                   <button
-                    onClick={() => { setIsOpen(false); window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: newGroupId } })) }}
+                    onClick={() => {
+                      setIsOpen(false);
+                      window.dispatchEvent(
+                        new CustomEvent("pm:open-group", {
+                          detail: { groupId: newGroupId },
+                        }),
+                      );
+                    }}
                     className="text-sm text-blue-600 hover:underline"
                   >
                     立即查看群組詳情 →
@@ -230,47 +258,86 @@ export default function CreateGroupModal() {
                 )}
               </div>
             ) : (
-              <div className="flex flex-col gap-6 lg:flex-row lg:items-stretch">
-                <div className="min-w-0 flex-1">
-                  <div className="h-full p-6">
+              <div className="flex min-h-full flex-col gap-6 lg:flex-row lg:items-stretch">
+                <div className="min-w-0 flex-1 flex flex-col">
+                  <div className="flex-1 p-3 lg:p-6">
                     <StepComponent form={form} onChange={onChange} />
                   </div>
 
-                  {stepErrors.length > 0 && step < 4 && (
-                    <div className="mt-3 rounded-lg bg-amber-50 px-3 py-2.5 text-xs text-amber-700">
-                      <div className="flex items-center gap-2 font-semibold">
-                        <AlertCircle size={13} />
-                        請先修正以下項目
+                  {(() => {
+                    const service = getServiceById(form.serviceId)
+                    const desc = step === 1
+                      ? service?.description
+                      : step === 2
+                        ? service?.plans.find(p => p.name === form.planName)?.description
+                        : null
+                    const showErrors = stepErrors.length > 0 && step < 4
+                    if (!desc && !showErrors) return null
+                    return (
+                      <div className="mt-auto space-y-2">
+                        {desc && (
+                          <div className="flex items-start gap-2 rounded-xl bg-blue-50 border border-blue-100 px-4 py-3">
+                            <Info size={14} className="text-blue-400 shrink-0 mt-0.5" />
+                            <p className="text-xs text-blue-700 leading-relaxed">{desc}</p>
+                          </div>
+                        )}
+                        {showErrors && (
+                          <div className="rounded-lg bg-amber-50 px-3 py-2.5 text-xs text-amber-700">
+                            <div className="flex items-center gap-2 font-semibold">
+                              <AlertCircle size={13} />
+                              請先修正以下項目
+                            </div>
+                            <ul className="mt-1.5 list-disc space-y-1 pl-5">
+                              {stepErrors.map((error) => (
+                                <li key={error}>{error}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
-                      <ul className="mt-1.5 list-disc space-y-1 pl-5">
-                        {stepErrors.map(error => <li key={error}>{error}</li>)}
-                      </ul>
-                    </div>
-                  )}
+                    )
+                  })()}
                 </div>
 
-                <div className="hidden w-full shrink-0 lg:block lg:w-72 lg:h-full">
-                  <LivePreviewPanel form={form} />
-                </div>
+                {step < 4 && (
+                  <div className="hidden w-full shrink-0 lg:block lg:w-72 lg:h-full">
+                    <LivePreviewPanel form={form} />
+                  </div>
+                )}
               </div>
             )}
           </div>
 
           {!submitted && (
             <div className="flex shrink-0 gap-3 border-t border-line px-6 py-4">
-              <Button variant="secondary" size="md" className="flex-1" onClick={handleBack}>
+              <Button
+                variant="secondary"
+                size="md"
+                className="flex-1"
+                onClick={handleBack}
+              >
                 <ChevronLeft size={15} />
-                {step === 1 ? '取消' : '上一步'}
+                {step === 1 ? "取消" : "上一步"}
               </Button>
 
               {step < 4 ? (
-                <Button variant="primary" size="md" className="flex-1" disabled={!canNext()} onClick={handleNext}>
+                <Button
+                  variant="primary"
+                  size="md"
+                  className="flex-1"
+                  disabled={!canNext()}
+                  onClick={handleNext}
+                >
                   下一步
                   <ChevronRight size={15} />
                 </Button>
               ) : (
-                <Button variant="success" size="md" className="flex-1" onClick={handleSubmit}>
-                  <Rocket size={15} />
+                <Button
+                  variant="success"
+                  size="md"
+                  className="flex-1"
+                  onClick={handleSubmit}
+                >
                   送出並上架
                 </Button>
               )}
@@ -279,5 +346,5 @@ export default function CreateGroupModal() {
         </div>
       </div>
     </>
-  )
+  );
 }

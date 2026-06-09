@@ -1,14 +1,18 @@
-import { CheckCircle2, ShieldCheck, Users, Calendar, Banknote, ListChecks } from 'lucide-react'
+import { CheckCircle2, ListChecks } from 'lucide-react'
+
+function todayLabel() {
+  const d = new Date()
+  return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`
+}
 import { getServiceById } from '../../../../shared/services/serviceTypes'
 import { getActiveUserProfile } from '../../../../shared/stores/userStore'
-import Badge from '../../../../shared/components/ui/Badge'
-import ServiceLogo from '../../../../shared/components/ui/ServiceLogo'
+import ExploreGroupCard from '../../../explore/components/ExploreGroupCard'
 
 function Row({ label, value }) {
   return (
-    <div className="flex items-start justify-between py-2.5 border-b border-slate-100 last:border-0">
-      <span className="text-sm text-slate-500">{label}</span>
-      <span className="text-sm font-medium text-slate-800 text-right max-w-[60%]">{value}</span>
+    <div className="flex items-start gap-4 py-2.5 border-b border-slate-100 last:border-0">
+      <span className="w-20 shrink-0 text-sm text-slate-500">{label}</span>
+      <span className="flex-1 text-sm font-medium text-slate-800 text-right">{value}</span>
     </div>
   )
 }
@@ -16,73 +20,72 @@ function Row({ label, value }) {
 export default function Step4Preview({ form }) {
   const service = getServiceById(form.serviceId)
   const activeUser = getActiveUserProfile()
+  const today = todayLabel()
+
+  const group = {
+    id: '__preview__',
+    serviceId: form.serviceId,
+    serviceName: service?.fullName ?? service?.name ?? form.serviceId ?? '',
+    planName: form.planName || '尚未選擇方案',
+    pricePerSeat: form.pricePerSeat || 0,
+    billingCycle: form.billingCycle,
+    totalSeats: form.totalSeats,
+    usedSeats: 1,
+    openSeats: Math.max(form.totalSeats - 1, 0),
+    tags: [service?.category].filter(Boolean),
+    hostName: activeUser?.displayName ?? '使用者',
+    hostAvatarColor: activeUser?.avatarColor ?? '#94A3B8',
+    hostAvatarInitial: activeUser?.avatarInitial ?? 'U',
+    isHostVerified: false,
+    hostRating: null,
+    status: 'recruiting',
+  }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <div>
         <h2 className="mb-0.5 text-base font-extrabold text-ink">確認並送出</h2>
         <p className="text-xs text-ink-3">請確認以下群組資訊都正確後再送出</p>
       </div>
 
-<div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5">
-        <div className="flex items-start gap-4 mb-4">
-          <ServiceLogo serviceId={form.serviceId} size={52} />
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-slate-800 text-lg">{service?.fullName}</span>
-              <CheckCircle2 size={15} className="text-blue-500" />
-            </div>
-            <p className="text-sm text-slate-500">{form.planName}</p>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
+        {/* 左側：資訊摘要 */}
+        <div className="flex-1 space-y-3">
+          <div className="bg-white border border-slate-200 rounded-xl px-5">
+            <Row label="團主"     value={activeUser?.displayName ?? '使用者'} />
+            <Row label="服務"     value={`${service?.fullName} · ${form.planName}`} />
+            <Row label={form.billingCycle === 'yearly' ? '每人年費' : '每人月費'} value={`NT$${form.billingCycle === 'yearly' ? form.pricePerSeat * 12 : form.pricePerSeat} / ${form.billingCycle === 'yearly' ? '年' : '月'}`} />
+            <Row label="計費週期" value={form.billingCycle === 'monthly' ? '月繳' : '年繳'} />
+            <Row label="開放名額" value={`${form.totalSeats} 人（含團主）`} />
+            <Row label="建立日期" value={today} />
           </div>
-          <Badge variant="recruiting" />
-        </div>
 
-        <div className="grid grid-cols-4 gap-3 mb-4">
-          {[
-            { icon: Banknote,  label: '月費', value: `NT$${form.pricePerSeat}` },
-            { icon: Users,     label: '名額', value: `${form.totalSeats} 人` },
-            { icon: Calendar,  label: '扣款日', value: `每月 ${form.nextBillingDay} 日` },
-            { icon: ShieldCheck, label: '加入', value: '審核制' },
-          ].map(({ icon: Icon, label, value }) => (
-            <div key={label} className="bg-white rounded-xl p-2.5 text-center">
-              <Icon size={14} className="text-slate-400 mx-auto mb-1" />
-              <p className="text-xs text-slate-400">{label}</p>
-              <p className="text-sm font-bold text-slate-800">{value}</p>
+          {form.rules.some(r => r.trim()) && (
+            <div className="bg-white border border-slate-200 rounded-xl p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <ListChecks size={15} className="text-slate-400" />
+                <span className="text-sm font-semibold text-slate-700">群組規則</span>
+              </div>
+              <ul className="space-y-1.5">
+                {form.rules.filter(r => r.trim()).map((r, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-slate-600">
+                    <CheckCircle2 size={14} className="text-emerald-500 shrink-0 mt-0.5" />
+                    {r}
+                  </li>
+                ))}
+              </ul>
             </div>
-          ))}
-        </div>
+          )}
 
-      </div>
-
-<div className="bg-white border border-slate-200 rounded-xl px-5">
-        <Row label="團主"       value={activeUser?.displayName ?? '使用者'} />
-        <Row label="服務"       value={`${service?.fullName} · ${form.planName}`} />
-        <Row label="每人月費"   value={`NT${form.pricePerSeat} / 月`} />
-        <Row label="計費週期"   value={form.billingCycle === 'monthly' ? '月繳' : '年繳'} />
-        <Row label="扣款日"     value={`每月 ${form.nextBillingDay} 日`} />
-        <Row label="開放名額"   value={`${form.totalSeats} 人（含團主）`} />
-        <Row label="加入方式"   value="需要審核" />
-      </div>
-
-{form.rules.some(r => r.trim()) && (
-        <div className="bg-white border border-slate-200 rounded-xl p-5">
-          <div className="flex items-center gap-2 mb-3">
-            <ListChecks size={15} className="text-slate-400" />
-            <span className="text-sm font-semibold text-slate-700">群組規則</span>
+          <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-700">
+            送出後群組將立即上架並開始招募，你可以在「群組管理」中審核申請與管理成員。
           </div>
-          <ul className="space-y-1.5">
-            {form.rules.filter(r => r.trim()).map((r, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm text-slate-600">
-                <CheckCircle2 size={14} className="text-emerald-500 shrink-0 mt-0.5" />
-                {r}
-              </li>
-            ))}
-          </ul>
         </div>
-      )}
 
-<div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-700">
-        送出後群組將立即上架並開始招募，你可以在「群組管理」中審核申請與管理成員。
+        {/* 右側：群組卡片預覽 */}
+        <div className="w-full shrink-0 pointer-events-none lg:w-72">
+          <ExploreGroupCard group={group} hideActions />
+        </div>
       </div>
     </div>
   )
