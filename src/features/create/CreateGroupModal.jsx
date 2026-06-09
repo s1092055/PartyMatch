@@ -220,7 +220,7 @@ export default function CreateGroupModal() {
             </button>
           </div>
 
-          <div className="shrink-0 px-6 pt-5">
+          <div className="shrink-0 px-6 lg:px-12 pt-5">
             <CreateGroupStepper steps={STEP_LABELS} current={step} />
           </div>
 
@@ -258,55 +258,46 @@ export default function CreateGroupModal() {
                   </Button>
                 </div>
               </div>
-            ) : (
-              <div className="flex min-h-full flex-col gap-6 lg:flex-row lg:items-stretch">
-                <div className="min-w-0 flex-1 flex flex-col">
-                  <div className="flex-1 p-3 lg:p-6">
-                    <StepComponent form={form} onChange={onChange} />
+            ) : (() => {
+                const service = getServiceById(form.serviceId)
+                const desc = step === 1
+                  ? service?.description
+                  : step === 2
+                    ? service?.plans.find(p => p.name === form.planName)?.description
+                    : null
+                const showErrors = stepErrors.length > 0 && step < 4
+                const infoBox = desc && (
+                  <div className="flex items-start gap-2 rounded-xl bg-blue-50 border border-blue-100 px-4 py-3">
+                    <Info size={14} className="text-blue-400 shrink-0 mt-0.5" />
+                    <p className="text-xs text-blue-700 leading-relaxed">{desc}</p>
                   </div>
-
-                  {(() => {
-                    const service = getServiceById(form.serviceId)
-                    const desc = step === 1
-                      ? service?.description
-                      : step === 2
-                        ? service?.plans.find(p => p.name === form.planName)?.description
-                        : null
-                    const showErrors = stepErrors.length > 0 && step < 4
-                    if (!desc && !showErrors) return null
-                    return (
-                      <div className="mt-auto space-y-2">
-                        {desc && (
-                          <div className="flex items-start gap-2 rounded-xl bg-blue-50 border border-blue-100 px-4 py-3">
-                            <Info size={14} className="text-blue-400 shrink-0 mt-0.5" />
-                            <p className="text-xs text-blue-700 leading-relaxed">{desc}</p>
-                          </div>
-                        )}
-                        {showErrors && (
-                          <div className="rounded-lg bg-amber-50 px-3 py-2.5 text-xs text-amber-700">
-                            <div className="flex items-center gap-2 font-semibold">
-                              <AlertCircle size={13} />
-                              請先修正以下項目
-                            </div>
-                            <ul className="mt-1.5 list-disc space-y-1 pl-5">
-                              {stepErrors.map((error) => (
-                                <li key={error}>{error}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
+                )
+                const errorBox = showErrors && (
+                  <div className="flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2.5 text-xs text-amber-700">
+                    <AlertCircle size={13} className="shrink-0" />
+                    <span>{stepErrors[0]}</span>
+                  </div>
+                )
+                return (
+                  <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+                    <div className="min-w-0 flex-1 flex flex-col">
+                      <div className="flex-1 px-3 pt-2 pb-3 lg:px-6 lg:pt-3 lg:pb-6">
+                        <StepComponent form={form} onChange={onChange} />
                       </div>
-                    )
-                  })()}
-                </div>
+                      <div className="mt-4 space-y-2 px-3 pb-2 lg:px-6">
+                        {infoBox}
+                        {errorBox}
+                      </div>
+                    </div>
 
-                {step < 4 && (
-                  <div className="hidden w-full shrink-0 lg:block lg:w-72 lg:h-full">
-                    <LivePreviewPanel form={form} />
+                    {step < 4 && (
+                      <div className="hidden w-full shrink-0 lg:block lg:w-72">
+                        <LivePreviewPanel form={form} />
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            )}
+                )
+              })()}
           </div>
 
           {!submitted && (

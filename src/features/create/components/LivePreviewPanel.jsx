@@ -1,4 +1,3 @@
-import { Eye } from "lucide-react";
 import ExploreGroupCard from "../../explore/components/ExploreGroupCard";
 import { getServiceById } from "../../../shared/services/serviceTypes";
 import { getActiveUserProfile } from "../../../shared/stores/userStore";
@@ -27,14 +26,8 @@ export default function LivePreviewPanel({ form }) {
   };
 
   return (
-    <div className="flex h-full flex-col pt-6">
-      <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-600">
-        <Eye size={14} className="text-blue-500" />
-        即時預覽
-      </div>
-      <div className="pointer-events-none">
-        <ExploreGroupCard group={group} hideActions />
-      </div>
+    <div className="pointer-events-none">
+      <ExploreGroupCard group={group} hideActions />
     </div>
   );
 }
