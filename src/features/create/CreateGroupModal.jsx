@@ -4,7 +4,9 @@ import {
   ChevronLeft,
   ChevronRight,
   AlertCircle,
+  Eye,
   Info,
+  PlusCircle,
   X,
 } from "lucide-react";
 import CreateGroupStepper from "./components/CreateGroupStepper";
@@ -23,7 +25,7 @@ const STEP_LABELS = [
   { n: 1, label: "選擇服務" },
   { n: 2, label: "方案設定" },
   { n: 3, label: "群組設定" },
-  { n: 4, label: "預覽送出" },
+  { n: 4, label: "最後確認" },
 ];
 
 const INITIAL_FORM = {
@@ -101,6 +103,7 @@ export default function CreateGroupModal() {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState(INITIAL_FORM);
   const [submitted, setSubmitted] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   useScrollLock(isOpen);
 
@@ -114,6 +117,7 @@ export default function CreateGroupModal() {
     window.addEventListener("pm:open-create", handler);
     return () => window.removeEventListener("pm:open-create", handler);
   }, []);
+
 
   useEffect(() => {
     if (!isOpen) return;
@@ -171,11 +175,11 @@ export default function CreateGroupModal() {
   }
 
   function handleNext() {
-    if (canNext() && step < 4) setStep((s) => s + 1);
+    if (canNext() && step < 4) { setStep((s) => s + 1); setShowPreview(false); }
   }
 
   function handleBack() {
-    if (step > 1) setStep((s) => s - 1);
+    if (step > 1) { setStep((s) => s - 1); setShowPreview(false); }
     else handleClose();
   }
 
@@ -208,16 +212,29 @@ export default function CreateGroupModal() {
           style={{ height: "min(85vh, 720px)" }}
         >
           <div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-4">
-            <div>
+            <div className="flex items-center gap-2">
+              <PlusCircle size={20} className="text-brand" />
               <h2 className="text-lg font-extrabold text-ink">建立群組</h2>
             </div>
-            <button
-              onClick={handleClose}
-              className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
-              aria-label="關閉"
-            >
-              <X size={18} />
-            </button>
+            <div className="flex items-center gap-1">
+              {!submitted && step < 4 && !showPreview && (
+                <button
+                  onClick={() => setShowPreview(true)}
+                  className="lg:hidden flex items-center gap-1.5 rounded-full border border-line px-3 h-8 text-xs font-bold text-ink-2 transition-colors hover:bg-raised hover:text-ink mr-2"
+                  aria-label="顯示預覽"
+                >
+                  <Eye size={14} />
+                  顯示預覽
+                </button>
+              )}
+              <button
+                onClick={handleClose}
+                className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+                aria-label="關閉"
+              >
+                <X size={18} />
+              </button>
+            </div>
           </div>
 
           <div className="shrink-0 px-6 lg:px-12 pt-5">
@@ -279,7 +296,7 @@ export default function CreateGroupModal() {
                   </div>
                 )
                 return (
-                  <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:mr-6">
                     <div className="min-w-0 flex-1 flex flex-col">
                       <div className="flex-1 px-3 pt-2 pb-3 lg:px-6 lg:pt-3 lg:pb-6">
                         <StepComponent form={form} onChange={onChange} />
@@ -291,7 +308,7 @@ export default function CreateGroupModal() {
                     </div>
 
                     {step < 4 && (
-                      <div className="hidden w-full shrink-0 lg:block lg:w-72">
+                      <div className="hidden shrink-0 lg:flex lg:flex-col lg:w-64 lg:pt-3 lg:pb-2">
                         <LivePreviewPanel form={form} />
                       </div>
                     )}
@@ -299,6 +316,17 @@ export default function CreateGroupModal() {
                 )
               })()}
           </div>
+
+          {showPreview && step < 4 && (
+            <div
+              className="absolute inset-0 z-10 flex items-center justify-center bg-black/50 lg:hidden"
+              onClick={() => setShowPreview(false)}
+            >
+              <div className="mx-6 w-full max-w-xs" onClick={e => e.stopPropagation()}>
+                <LivePreviewPanel form={form} />
+              </div>
+            </div>
+          )}
 
           {!submitted && (
             <div className="flex shrink-0 gap-3 border-t border-line px-6 py-4">

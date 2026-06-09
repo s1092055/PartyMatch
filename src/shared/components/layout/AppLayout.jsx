@@ -22,7 +22,7 @@ export default function AppLayout() {
       <RouteScrollReset />
       <AppNav />
       <main className="flex min-h-screen flex-col pt-14 md:ml-24 md:pt-0">
-        <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 md:px-6 lg:px-10 lg:py-8">
+        <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-12 md:px-6 lg:px-10 lg:py-12">
           <Outlet />
         </div>
         <AppFooter />

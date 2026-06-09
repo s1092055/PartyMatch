@@ -30,7 +30,7 @@ export default function Step1Service({ form, onChange }) {
         className="mb-3 lg:hidden"
       />
 
-      <div className="lg:flex lg:items-start lg:gap-4">
+      <div className="lg:flex lg:items-start lg:gap-2">
         {/* 桌機版：分類垂直排在左側 */}
         <CategoryPills
           variant="vertical"
@@ -44,7 +44,7 @@ export default function Step1Service({ form, onChange }) {
           className="flex-1 overflow-y-auto pr-1 pt-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           style={{ maxHeight: "280px" }}
         >
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             {visible.map((service) => {
               const active = form.serviceId === service.id;
               return (

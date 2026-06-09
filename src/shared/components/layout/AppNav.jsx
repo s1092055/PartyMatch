@@ -256,7 +256,7 @@ export default function AppNav({ variant = 'side' }) {
           </span>
         </Link>
 
-        <nav className="flex flex-1 flex-col overflow-x-hidden overflow-y-auto px-2 py-2">
+        <nav className="flex flex-1 flex-col overflow-x-hidden overflow-y-auto px-2 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="my-auto space-y-0.5">
             {NAV_SECTIONS.map((section, i) => (
               <Fragment key={section.label}>

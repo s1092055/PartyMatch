@@ -153,7 +153,7 @@
     html { font-size: 15px; }
   }
 
-  @media (min-width: 1280px) {
+  @media (min-width: 768px) {
     html { font-size: 17px; }
   }
 

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { ArrowLeft, Search, Send, SquarePen, X } from 'lucide-react'
+import { ArrowLeft, MessageSquare, Search, Send, SquarePen, X } from 'lucide-react'
 import ServiceLogo from '../../shared/components/ui/ServiceLogo'
 import { useScrollLock } from '../../shared/utils/hooks'
 import { getCurrentUser } from '../../shared/stores/authStore'
@@ -140,21 +140,28 @@ export default function MessagesModal() {
       <div className="fixed inset-0 z-[55] bg-black/50" onClick={handleClose} />
 
       <div className="pointer-events-none fixed inset-0 z-[56] flex items-center justify-center p-4 md:p-8">
-        <div className="pointer-events-auto flex w-full max-w-5xl overflow-hidden rounded-2xl bg-white shadow-2xl" style={{ height: 'min(88vh, 820px)' }}>
+        <div className="pointer-events-auto flex w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl" style={{ height: 'min(88vh, 820px)' }}>
+
+          {/* Modal 全寬 header */}
+          <div className="flex h-14 shrink-0 items-center justify-between border-b border-line px-4">
+            <div className="flex items-center gap-2">
+              <MessageSquare size={20} className="text-brand" />
+              <h2 className="text-base font-extrabold text-ink">訊息中心</h2>
+            </div>
+            <button
+              onClick={handleClose}
+              className="grid h-9 w-9 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+              aria-label="關閉"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* 內容區（左右欄） */}
+          <div className="flex flex-1 overflow-hidden">
 
           {/* 對話列表 */}
           <div className={`flex w-full flex-col border-r border-line md:w-80 md:shrink-0 lg:w-96 ${selectedId ? 'hidden md:flex' : 'flex'}`}>
-            <div className="flex h-14 shrink-0 items-center justify-between border-b border-line px-4">
-              <h2 className="text-base font-extrabold text-ink">訊息中心</h2>
-              <button
-                onClick={handleClose}
-                className="grid h-9 w-9 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink md:hidden"
-                aria-label="關閉"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
             <div className="border-b border-line px-3 py-2">
               <div className="flex items-center gap-2 rounded-xl bg-raised px-3 py-2">
                 <Search size={14} className="shrink-0 text-ink-4" />
@@ -210,6 +217,7 @@ export default function MessagesModal() {
           <div className={`flex flex-1 flex-col ${selectedId ? 'flex' : 'hidden md:flex'}`}>
             {selected ? (
               <>
+                {/* 聊天室名稱 header */}
                 <div className="flex h-14 shrink-0 items-center gap-3 border-b border-line px-4">
                   <button
                     onClick={() => setSelectedId(null)}
@@ -219,20 +227,14 @@ export default function MessagesModal() {
                     <ArrowLeft size={18} />
                   </button>
                   <ConversationAvatar conversation={selected} size={36} />
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-0">
                     <p className="truncate text-sm font-extrabold text-ink">{selected.name}</p>
                     <p className="text-xs text-ink-3">{selected.participants?.length ?? 2} 位成員</p>
                   </div>
-                  <button
-                    onClick={handleClose}
-                    className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
-                    aria-label="關閉"
-                  >
-                    <X size={18} />
-                  </button>
                 </div>
 
-                <div className="flex-1 space-y-3 overflow-y-auto bg-canvas px-4 py-4">
+                <div className="flex-1 overflow-y-auto bg-canvas">
+                  <div className="space-y-3 px-4 py-4">
                   {messages.map(msg => {
                     if (msg.type === 'system') {
                       return (
@@ -275,6 +277,7 @@ export default function MessagesModal() {
                     )
                   })}
                   <div ref={messagesEndRef} />
+                  </div>
                 </div>
 
                 <div className="shrink-0 border-t border-line bg-white px-4 py-3">
@@ -311,6 +314,7 @@ export default function MessagesModal() {
             )}
           </div>
 
+          </div>{/* end flex-1 overflow-hidden */}
         </div>
       </div>
     </>,

@@ -259,7 +259,6 @@ export default function QuickMatchModal() {
               <Zap size={20} className="fill-success text-success" />
               <div>
                 <h2 className="text-lg font-extrabold text-ink">快速配對</h2>
-                <p className="mt-0.5 text-xs text-ink-3">告訴我們你的需求，找到最適合的訂閱群組</p>
               </div>
             </div>
             <button

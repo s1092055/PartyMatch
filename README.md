@@ -12,14 +12,14 @@
 ## 功能
 
 - **首頁（Landing Page）**：行銷首頁，展示核心功能（FeatureCards 左右交錯排版）、使用教學（HowItWorks）、FAQ、頁尾（含法律文件連結）；頂部浮動 AppNav（top variant）；Logo 點擊回首頁；各區塊採 RevealSection 滾動觸發淡入動畫
-- **探索群組**：Marketplace 瀏覽版面；分類圖示 Grid 篩選（影音、音樂、AI 工具、辦公、雲端、學習、遊戲、VPN）+ 次要篩選列（服務、價格、排序）；卡片顯示價格 → 分隔線 → 團主資訊 + 剩餘名額；共 30 種服務、26 個群組；Sidebar 與手機版 Drawer 搜尋按鈕皆可搜尋並導向探索頁篩選結果；自己是團主的群組不顯示在探索頁；卡片採 RevealSection 滾動入場動畫
+- **探索群組**：Marketplace 瀏覽版面；分類圖示 Grid 篩選（影音、音樂、AI 工具、辦公、雲端、學習、遊戲、VPN）+ 次要篩選列（服務、價格、排序）；卡片顯示價格 → 分隔線 → 團主名稱（不顯示信用評分）+ 剩餘名額；共 30 種服務、26 個群組；Sidebar 與手機版 Drawer 搜尋按鈕皆可搜尋並導向探索頁篩選結果；自己是團主的群組不顯示在探索頁；卡片採 RevealSection 滾動入場動畫
 - **快速配對**（Modal）：以 `pm:open-match` 事件觸發；四步驟精靈（選服務→篩選條件→搜尋偏好→配對結果）+ 右側配對條件摘要；配對結果直接顯示在 Modal 第 4 步，以探索頁卡片樣式呈現最多 3 個推薦群組（含排名號碼）；選服務步驟支援分類 Grid 篩選；結果頁底部可「重新配對」或「調整條件」退回第 3 步
 - **群組詳情**（Modal）：以 `pm:open-group` 事件觸發；顯示 GroupHeroCard、加入條件與規則、團主信用評價（可展開收合）及 StickyJoinSummary 申請區塊；探索卡片、收藏卡片、快速配對結果、MobileSearch 搜尋結果與「建立群組成功後」皆 dispatch 事件開啟 Modal（已無獨立頁面路由）
 - **申請加入**（審核制，所有群組統一採用審核加入）
-- **建立群組**（Modal）：以 `pm:open-create` 事件觸發；4 步驟表單（選服務→選方案→加入設定→確認送出）；方案費用依官方定價自動計算；選服務步驟支援分類 Grid 篩選
+- **建立群組**（Modal）：以 `pm:open-create` 事件觸發；4 步驟表單（選服務→選方案→加入設定→最後確認）；方案費用依官方定價自動計算；選服務步驟支援分類 Grid 篩選；≥1280px 左右雙欄布局（表單 + 即時預覽卡）；＜1280px 可點擊「顯示預覽」按鈕以 Overlay 方式查看預覽卡
 - **管理群組**：直式卡片（Badge → Logo → 服務名稱 → 2×2 資訊格：待處理申請 / 本期收款 / 付款狀態 / 每月收入）；點擊「待處理申請」格開啟該群組專屬審核視窗（每個群組獨立）；次要操作（準備續訂、查看歷史）收折至 ⋯ 選單；統一透過 GroupViewModal 管理成員付款、啟用服務；支援篩選分頁（全部 / 招募中 / 待啟用 / 已啟用 / 已停止 / 已取消）
 - **訂閱管理**：直式卡片（Badge → Logo → 服務名稱 → 帳單週期 chip + 下次扣款日 chip → 團主資訊 / 付款狀態 → 金額）；付款狀態追蹤、標記已付款、聯絡團主、查看付款歷史紀錄、申請紀錄（含審核中／已核准／已拒絕）；管理端與訂閱端共用 GroupViewModal
-- **訊息中心**（Modal）：以 `pm:open-messages` 事件觸發；對話列表即時同步 Firestore（`onSnapshot`）；選取對話後即時訂閱訊息 subcollection；訊息傳送寫入 Firestore 並更新最後訊息；切換對話 / 關閉 Modal 自動取消訂閱並釋放監聽器；未讀數紅點 badge；時間戳自動格式化（今天顯示時間，其他顯示日期）；**群組建立時自動建立群組對話**（`groupStore.createGroup` → `createGroupConversation`）；**申請核准時自動將成員加入對話並送出系統訊息**（`applicationStore.updateApplicationStatus` → `addParticipantToConversation` + `sendSystemMessage`）
+- **訊息中心**（Modal）：以 `pm:open-messages` 事件觸發；Modal 頂部全寬 header（訊息中心標題 + 關閉按鈕），左欄對話列表，右欄聊天室名稱置於訊息上方；對話列表即時同步 Firestore（`onSnapshot`）；選取對話後即時訂閱訊息 subcollection；訊息傳送寫入 Firestore 並更新最後訊息；切換對話 / 關閉 Modal 自動取消訂閱並釋放監聽器；未讀數紅點 badge；時間戳自動格式化（今天顯示時間，其他顯示日期）；**群組建立時自動建立群組對話**（`groupStore.createGroup` → `createGroupConversation`）；**申請核准時自動將成員加入對話並送出系統訊息**（`applicationStore.updateApplicationStatus` → `addParticipantToConversation` + `sendSystemMessage`）
 - **收藏**：收藏感興趣的群組；分類 Grid 篩選；取消收藏即時從清單移除
 - **帳號中心**：個人資料、付款方式、通知偏好、安全驗證、設定
 - **登入 / 註冊 / 忘記密碼**：左上角「返回」按鈕導回首頁

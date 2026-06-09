@@ -6,7 +6,6 @@ import {
   Monitor,
   Users,
 } from 'lucide-react'
-import CreditScoreBadge from '../../../shared/components/ui/CreditScoreBadge'
 import Badge from '../../../shared/components/ui/Badge'
 import Button from '../../../shared/components/ui/Button'
 import ServiceLogo from '../../../shared/components/ui/ServiceLogo'
@@ -149,9 +148,6 @@ export default function ExploreGroupCard({ group, onFavChange, onBeforeNavigate,
             <div className="flex min-w-0 items-center gap-1">
               <span className="truncate text-sm font-black text-ink">{group.hostName}</span>
               {group.isHostVerified && <BadgeCheck size={14} className="shrink-0 fill-brand text-white" />}
-            </div>
-            <div className="mt-0.5">
-              <CreditScoreBadge score={group.hostRating} />
             </div>
           </div>
         </div>
