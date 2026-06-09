@@ -11,6 +11,7 @@ import ServiceLogo from '../ui/ServiceLogo'
 import EmptyState from '../ui/EmptyState'
 import PaymentStatusBadge from '../ui/PaymentStatusBadge'
 import { getGroupById } from '../../stores/groupStore'
+import { getServiceById } from '../../services/serviceTypes'
 import { getMembersByGroupId } from '../../stores/memberStore'
 import { getApplicationsByGroupId } from '../../stores/applicationStore'
 import { getSubscriptionByUserAndGroup } from '../../stores/subscriptionStore'
@@ -35,6 +36,9 @@ export default function GroupViewModal({
 
   const group       = getGroupById(groupId)
   if (!group) return null
+
+  const serviceDef  = getServiceById(group.serviceId)
+  const planDef     = serviceDef?.plans.find(p => p.name === group.planName)
 
   const currentUser = getActiveUser()
   const isHost      = currentUser?.id === group.hostId
@@ -106,6 +110,15 @@ const isActivated = ['active', 'paused', 'cancelled', 'ended'].includes(group.st
               </span>
             )}
           </div>
+
+          {(serviceDef?.description || planDef?.description) && (
+            <div className="mb-4 space-y-1.5 rounded-xl bg-raised px-4 py-3 text-xs text-ink-3 leading-relaxed">
+              {serviceDef?.description && <p>{serviceDef.description}</p>}
+              {planDef?.description && (
+                <p className="text-ink-2"><span className="font-semibold text-ink-3">{group.planName}：</span>{planDef.description}</p>
+              )}
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-3">
             {stats.map(({ Icon, label, value }) => (
               <div key={label} className="rounded-xl bg-raised p-3">

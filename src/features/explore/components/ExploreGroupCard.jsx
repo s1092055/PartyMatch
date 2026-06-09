@@ -56,7 +56,7 @@ function buildFeatureChips(group) {
   }))
 }
 
-export default function ExploreGroupCard({ group, onFavChange, onBeforeNavigate }) {
+export default function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = false }) {
   const navigate = useNavigate()
   const activeUser = getActiveUser()
   const [isFav, setIsFav] = useState(() => activeUser ? isGroupFavorited(activeUser.id, group.id) : false)
@@ -84,17 +84,19 @@ export default function ExploreGroupCard({ group, onFavChange, onBeforeNavigate 
       className="card card-hover group relative flex min-h-full cursor-pointer flex-col overflow-hidden rounded-card border-line bg-surface p-5 shadow-[0_18px_45px_-32px_rgb(20_44_91_/_0.48)]"
       onClick={openDetails}
     >
-      <button
-        onClick={handleFav}
-        className={`absolute right-4 top-4 grid h-9 w-9 shrink-0 place-items-center rounded-full border bg-surface shadow-floating transition-colors ${
-          isFav
-            ? 'border-red-100 text-red-500'
-            : 'border-line-subtle text-ink hover:border-red-100 hover:text-red-400'
-        }`}
-        aria-label={isFav ? '取消收藏' : '加入收藏'}
-      >
-        <Heart size={18} strokeWidth={2.4} className={isFav ? 'fill-red-500' : ''} />
-      </button>
+      {!hideActions && (
+        <button
+          onClick={handleFav}
+          className={`absolute right-4 top-4 grid h-9 w-9 shrink-0 place-items-center rounded-full border bg-surface shadow-floating transition-colors ${
+            isFav
+              ? 'border-red-100 text-red-500'
+              : 'border-line-subtle text-ink hover:border-red-100 hover:text-red-400'
+          }`}
+          aria-label={isFav ? '取消收藏' : '加入收藏'}
+        >
+          <Heart size={18} strokeWidth={2.4} className={isFav ? 'fill-red-500' : ''} />
+        </button>
+      )}
 
       <div className="flex justify-center">
         <Badge
@@ -129,8 +131,8 @@ export default function ExploreGroupCard({ group, onFavChange, onBeforeNavigate 
       </div>
 
       <p className="my-4 text-center text-2xl font-black leading-none text-ink">
-        NT${group.pricePerSeat}
-        <span className="ml-1 text-sm font-semibold text-ink-3">/ 月</span>
+        NT${group.billingCycle === 'yearly' ? group.pricePerSeat * 12 : group.pricePerSeat}
+        <span className="ml-1 text-sm font-semibold text-ink-3">{group.billingCycle === 'yearly' ? '/ 年' : '/ 月'}</span>
       </p>
 
       <div className="mb-4 border-t border-line-subtle" />
@@ -171,9 +173,11 @@ export default function ExploreGroupCard({ group, onFavChange, onBeforeNavigate 
         </div>
       </div>
 
-      <div className="mt-auto pt-5">
-        <Button onClick={openDetails} className="w-full">查看詳情</Button>
-      </div>
+      {!hideActions && (
+        <div className="mt-auto pt-5">
+          <Button onClick={openDetails} className="w-full">查看詳情</Button>
+        </div>
+      )}
     </article>
   )
 }
