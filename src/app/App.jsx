@@ -3,6 +3,7 @@ import { RouterProvider } from 'react-router-dom'
 import router from './router'
 import ToastContainer from '../shared/components/ui/ToastContainer'
 import { initAuth } from '../shared/stores/authStore'
+import { initServices } from '../shared/stores/serviceStore'
 import { initGroups } from '../shared/stores/groupStore'
 import { initApplications } from '../shared/stores/applicationStore'
 import { initSubscriptions } from '../shared/stores/subscriptionStore'
@@ -17,6 +18,7 @@ export default function App() {
   useEffect(() => {
     Promise.all([
       initAuth(),
+      initServices(),
       initGroups(),
       initApplications(),
       initSubscriptions(),

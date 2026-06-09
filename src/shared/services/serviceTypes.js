@@ -1,22 +1,29 @@
-import { SERVICES } from '../data/services.mock'
+import { getServices, getServiceById as _getById } from '../stores/serviceStore'
+import kkboxIcon from '../../assets/KKBOX-icon.png'
+import masterclassIcon from '../../assets/masterclass-icon.png'
 
 const ICONIFY_API_BASE = 'https://api.iconify.design'
-const SERVICE_MAP = new Map(SERVICES.map(service => [service.id, service]))
+
+// Local PNG assets that can't be stored in Firestore
+const LOCAL_ICON_ASSETS = {
+  'kkbox':       kkboxIcon,
+  'masterclass': masterclassIcon,
+}
 
 export function listServiceTypes() {
-  return SERVICES
+  return getServices()
 }
 
 export function getServiceTypeById(serviceId) {
-  return SERVICE_MAP.get(serviceId) ?? null
+  return _getById(serviceId)
 }
 
 export function getServiceById(serviceId) {
-  return getServiceTypeById(serviceId)
+  return _getById(serviceId)
 }
 
 export function getServiceTypeIcon(serviceId, { size = 64 } = {}) {
-  const service = getServiceTypeById(serviceId)
+  const service = _getById(serviceId)
 
   if (!service) {
     return {
@@ -28,11 +35,12 @@ export function getServiceTypeIcon(serviceId, { size = 64 } = {}) {
     }
   }
 
+  const localSrc = LOCAL_ICON_ASSETS[serviceId]
   const iconId = service.iconId
   const color = encodeURIComponent(service.color)
   const iconSize = Math.max(24, Math.ceil(size))
-  const src = service.iconSrc
-    ? service.iconSrc
+  const src = localSrc
+    ? localSrc
     : iconId
       ? `${ICONIFY_API_BASE}/${iconId}.svg?width=${iconSize}&height=${iconSize}&color=${color}`
       : ''
