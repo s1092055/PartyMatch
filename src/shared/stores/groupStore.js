@@ -21,7 +21,11 @@ function applyPatch(id, patch) {
 
 export function getGroups()                  { return _groups }
 export function getGroupById(id)             { return _groups.find(g => g.id === id) ?? null }
-export function getGroupsByHostId(hostId)    { return _groups.filter(g => g.hostId === hostId) }
+export function getGroupsByHostId(hostId) {
+  return _groups
+    .filter(g => g.hostId === hostId)
+    .sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''))
+}
 
 export function createGroup(data) {
   const activeUser = getActiveUserProfile()

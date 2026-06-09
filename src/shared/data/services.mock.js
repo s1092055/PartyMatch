@@ -11,7 +11,7 @@ export const SERVICES = [
     iconDomain: 'spotify.com',
     iconId: 'simple-icons:spotify',
     plans: [
-      { name: '個人方案（Family）', description: '最多 6 人共享，各自獨立帳號與個人化推薦歌單。', monthlyPrice: 298, maxSeats: 6 },
+      { name: '家庭方案', description: '最多 6 人共享，各自獨立帳號與個人化推薦歌單。', monthlyPrice: 298, maxSeats: 6 },
       { name: 'Duo',               description: '2 人共享，適合情侶或室友，各自保有獨立收聽紀錄。', monthlyPrice: 228, maxSeats: 2 },
     ],
   },

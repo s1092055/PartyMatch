@@ -75,6 +75,15 @@ useEffect(() => {
     return () => window.removeEventListener('pm:application-created', onNewApp)
   }, [activeUser?.id])
 
+  useEffect(() => {
+    function onGroupCreated() {
+      if (!activeUser) return
+      setManageData(loadManageData(activeUser))
+    }
+    window.addEventListener('pm:group-created', onGroupCreated)
+    return () => window.removeEventListener('pm:group-created', onGroupCreated)
+  }, [activeUser])
+
   const { hostedGroups, applications, members, seatMap } = manageData
 
   const allGroups = useMemo(

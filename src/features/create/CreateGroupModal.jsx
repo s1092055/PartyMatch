@@ -101,7 +101,6 @@ export default function CreateGroupModal() {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState(INITIAL_FORM);
   const [submitted, setSubmitted] = useState(false);
-  const [newGroupId, setNewGroupId] = useState(null);
 
   useScrollLock(isOpen);
 
@@ -111,7 +110,6 @@ export default function CreateGroupModal() {
       setStep(1);
       setForm(INITIAL_FORM);
       setSubmitted(false);
-      setNewGroupId(null);
     }
     window.addEventListener("pm:open-create", handler);
     return () => window.removeEventListener("pm:open-create", handler);
@@ -190,14 +188,8 @@ export default function CreateGroupModal() {
 
     const groupData = mapFormToGroup(form);
     const group = createGroup(groupData);
-    
-    setNewGroupId(group.id);
+    window.dispatchEvent(new CustomEvent('pm:group-created', { detail: { groupId: group.id } }));
     setSubmitted(true);
-    
-    setTimeout(() => {
-      setIsOpen(false);
-      navigate("/manage-groups");
-    }, 2500);
   }
 
   if (!isOpen) return null;
@@ -234,28 +226,37 @@ export default function CreateGroupModal() {
 
           <div className="flex-1 overflow-y-auto px-3 pb-2 lg:px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {submitted ? (
-              <div className="flex flex-col items-center justify-center gap-4 py-16">
+              <div className="flex flex-col items-center justify-center gap-5 py-16 px-4">
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+                  <svg className="h-8 w-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
                 </div>
-                <h2 className="page-title">群組已上架！</h2>
-                <p className="text-sm text-slate-500">
-                  正在跳轉到群組管理頁面…
-                </p>
-                {newGroupId && (
-                  <button
+                <div className="text-center">
+                  <h2 className="page-title">群組已成功上架！</h2>
+                  <p className="mt-1 text-sm text-slate-500">你的群組現在已開放招募成員</p>
+                </div>
+                <div className="flex flex-col items-center gap-2 w-full max-w-xs">
+                  <Button
+                    variant="primary"
+                    size="md"
+                    className="w-full"
                     onClick={() => {
                       setIsOpen(false);
-                      window.dispatchEvent(
-                        new CustomEvent("pm:open-group", {
-                          detail: { groupId: newGroupId },
-                        }),
-                      );
+                      navigate('/manage-groups');
                     }}
-                    className="text-sm text-blue-600 hover:underline"
                   >
-                    立即查看群組詳情 →
-                  </button>
-                )}
+                    前往群組管理
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="md"
+                    className="w-full"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    繼續留在此頁
+                  </Button>
+                </div>
               </div>
             ) : (
               <div className="flex min-h-full flex-col gap-6 lg:flex-row lg:items-stretch">

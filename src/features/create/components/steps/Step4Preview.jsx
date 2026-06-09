@@ -1,16 +1,16 @@
 import { CheckCircle2, ListChecks } from 'lucide-react'
+import { getServiceById } from '../../../../shared/services/serviceTypes'
+import { getActiveUserProfile } from '../../../../shared/stores/userStore'
+import ExploreGroupCard from '../../../explore/components/ExploreGroupCard'
 
 function todayLabel() {
   const d = new Date()
   return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`
 }
-import { getServiceById } from '../../../../shared/services/serviceTypes'
-import { getActiveUserProfile } from '../../../../shared/stores/userStore'
-import ExploreGroupCard from '../../../explore/components/ExploreGroupCard'
 
 function Row({ label, value }) {
   return (
-    <div className="flex items-start gap-4 py-2.5 border-b border-slate-100 last:border-0">
+    <div className="flex items-center gap-4 py-2.5 lg:py-0 lg:flex-1 border-b border-slate-100 last:border-0">
       <span className="w-20 shrink-0 text-sm text-slate-500">{label}</span>
       <span className="flex-1 text-sm font-medium text-slate-800 text-right">{value}</span>
     </div>
@@ -48,15 +48,15 @@ export default function Step4Preview({ form }) {
         <p className="text-xs text-ink-3">請確認以下群組資訊都正確後再送出</p>
       </div>
 
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-6">
         {/* 左側：資訊摘要 */}
-        <div className="flex-1 space-y-3">
-          <div className="bg-white border border-slate-200 rounded-xl px-5">
+        <div className="flex-1 flex flex-col gap-3">
+          <div className="bg-white border border-slate-200 rounded-xl px-5 lg:flex-1 lg:flex lg:flex-col">
             <Row label="團主"     value={activeUser?.displayName ?? '使用者'} />
             <Row label="服務"     value={`${service?.fullName} · ${form.planName}`} />
-            <Row label={form.billingCycle === 'yearly' ? '每人年費' : '每人月費'} value={`NT$${form.billingCycle === 'yearly' ? form.pricePerSeat * 12 : form.pricePerSeat} / ${form.billingCycle === 'yearly' ? '年' : '月'}`} />
+            <Row label="每人費用" value={`NT$${form.billingCycle === 'yearly' ? form.pricePerSeat * 12 : form.pricePerSeat}`} />
             <Row label="計費週期" value={form.billingCycle === 'monthly' ? '月繳' : '年繳'} />
-            <Row label="開放名額" value={`${form.totalSeats} 人（含團主）`} />
+            <Row label="開放名額" value={`${form.totalSeats - 1} 人`} />
             <Row label="建立日期" value={today} />
           </div>
 
@@ -77,15 +77,16 @@ export default function Step4Preview({ form }) {
             </div>
           )}
 
-          <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-700">
-            送出後群組將立即上架並開始招募，你可以在「群組管理」中審核申請與管理成員。
-          </div>
         </div>
 
         {/* 右側：群組卡片預覽 */}
-        <div className="w-full shrink-0 pointer-events-none lg:w-72">
+        <div className="w-full shrink-0 pointer-events-none lg:w-72 lg:h-full">
           <ExploreGroupCard group={group} hideActions />
         </div>
+      </div>
+
+      <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-700">
+        送出後群組將立即上架並開始招募，你可以在「群組管理」中審核申請與管理成員。
       </div>
     </div>
   )
