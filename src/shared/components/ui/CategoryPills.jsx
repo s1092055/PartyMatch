@@ -1,7 +1,8 @@
-import { Film, Music2, Bot, Briefcase, Cloud, BookOpen, Gamepad2, Shield } from 'lucide-react'
+import { Film, Music2, Bot, Briefcase, Cloud, BookOpen, Gamepad2, Shield, Package } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
 
 const CATEGORIES = [
+  { value: '套組',   label: '套組',    Icon: Package },
   { value: '影音',   label: '影音',    Icon: Film },
   { value: '音樂',   label: '音樂',    Icon: Music2 },
   { value: 'AI工具', label: 'AI 工具', Icon: Bot },
@@ -18,7 +19,7 @@ export default function CategoryPills({ active, onChange, variant = 'pills', sho
   const items = showAll ? [ALL_ITEM, ...CATEGORIES] : CATEGORIES
 
   if (variant === 'grid') {
-    const cols = showAll ? 'md:grid-cols-9' : 'md:grid-cols-8'
+    const cols = showAll ? 'md:grid-cols-10' : 'md:grid-cols-9'
     return (
       <div className={`flex gap-2 overflow-x-auto py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:grid ${cols} md:overflow-visible md:py-0 ${className}`}>
         {items.map(cat => {
@@ -49,6 +50,33 @@ export default function CategoryPills({ active, onChange, variant = 'pills', sho
     )
   }
 
+  if (variant === 'vertical') {
+    return (
+      <div className={`flex flex-col gap-0.5 py-0.5 px-0.5 ${className}`}>
+        {items.map(cat => {
+          const isActive = active === cat.value
+          return (
+            <button
+              key={cat.value}
+              onClick={() => onChange(cat.value)}
+              className={`flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-xs font-bold transition-colors ${
+                isActive
+                  ? 'bg-raised text-ink'
+                  : 'bg-transparent text-ink-2 hover:bg-raised hover:text-ink'
+              }`}
+            >
+              {cat.value === 'all'
+                ? <img src={logoUrl} alt="全部" className="h-[13px] w-[13px] shrink-0 rounded object-contain" />
+                : cat.Icon && <cat.Icon size={13} strokeWidth={2} className="shrink-0" />
+              }
+              <span className="truncate">{cat.label}</span>
+            </button>
+          )
+        })}
+      </div>
+    )
+  }
+
   return (
     <div className={`flex gap-1.5 overflow-x-auto py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${className}`}>
       {items.map(cat => {
@@ -57,13 +85,16 @@ export default function CategoryPills({ active, onChange, variant = 'pills', sho
           <button
             key={cat.value}
             onClick={() => onChange(cat.value)}
-            className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
+            className={`flex shrink-0 items-center gap-2 rounded-xl px-2.5 py-2 text-xs font-bold transition-colors ${
               isActive
-                ? 'bg-brand text-white'
-                : 'bg-raised text-ink-2 hover:bg-brand-subtle hover:text-brand'
+                ? 'bg-raised text-ink'
+                : 'bg-transparent text-ink-2 hover:bg-raised hover:text-ink'
             }`}
           >
-            {cat.Icon && <cat.Icon size={12} strokeWidth={2} />}
+            {cat.value === 'all'
+              ? <img src={logoUrl} alt="全部" className="h-[13px] w-[13px] shrink-0 rounded object-contain" />
+              : cat.Icon && <cat.Icon size={13} strokeWidth={2} className="shrink-0" />
+            }
             {cat.label}
           </button>
         )
