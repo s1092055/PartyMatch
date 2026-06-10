@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  BadgeCheck,
   Heart,
   Monitor,
   Users,
@@ -147,7 +146,6 @@ export default function ExploreGroupCard({ group, onFavChange, onBeforeNavigate,
           <div className="min-w-0">
             <div className="flex min-w-0 items-center gap-1">
               <span className="truncate text-sm font-black text-ink">{group.hostName}</span>
-              {group.isHostVerified && <BadgeCheck size={14} className="shrink-0 fill-brand text-white" />}
             </div>
           </div>
         </div>

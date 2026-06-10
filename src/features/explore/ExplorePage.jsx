@@ -18,7 +18,7 @@ const DEFAULT_FILTERS = {
   sortBy:   'recommended',
 }
 
-const score = g => (g.isHostVerified ? 2 : 0) + g.hostRating / 100
+const score = g => g.hostRating / 100
 
 function applyFilters(groups, { keyword, category, service, maxPrice, sortBy }) {
   let result = groups.filter(g => g.status === 'recruiting' && g.openSeats > 0)

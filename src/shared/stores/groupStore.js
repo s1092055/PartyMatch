@@ -40,7 +40,6 @@ export function createGroup(data) {
     hostReviewCount:   0,
     hostAvatarInitial: activeUser.avatarInitial,
     hostAvatarColor:   activeUser.avatarColor,
-    isHostVerified:    activeUser.isVerified,
     status:            'recruiting',
     createdAt:         now,
     updatedAt:         now,

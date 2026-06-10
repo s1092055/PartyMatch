@@ -25,7 +25,7 @@ const FILTER_TABS = [
 function enrichSubs(rawSubs) {
   return rawSubs.map(s => {
     const group = getGroupById(s.groupId)
-    return { ...s, groupStatus: group?.status ?? 'active', isHostVerified: group?.isHostVerified ?? false }
+    return { ...s, groupStatus: group?.status ?? 'active' }
   })
 }
 

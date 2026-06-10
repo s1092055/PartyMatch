@@ -20,7 +20,6 @@ export default function LivePreviewPanel({ form }) {
     hostName: activeUser?.displayName ?? "使用者",
     hostAvatarColor: activeUser?.avatarColor ?? "#94A3B8",
     hostAvatarInitial: activeUser?.avatarInitial ?? "U",
-    isHostVerified: false,
     hostRating: null,
     status: "recruiting",
   };

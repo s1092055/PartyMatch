@@ -104,11 +104,6 @@ const isActivated = ['active', 'paused', 'cancelled', 'ended'].includes(group.st
 <div className="p-5">
           <div className="mb-3 flex flex-wrap items-center gap-2">
             <Badge variant={group.status} />
-            {group.isHostVerified && (
-              <span className="flex items-center gap-1 text-xs text-success-text">
-                <Shield size={12} /> 已認證團主
-              </span>
-            )}
           </div>
 
           {(serviceDef?.description || planDef?.description) && (

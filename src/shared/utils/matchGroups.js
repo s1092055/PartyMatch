@@ -2,7 +2,6 @@ import { daysUntil } from './date'
 
 function calcScore(group, conditions) {
   let score = 0
-  if (group.isHostVerified) score += 2
   if (group.hostRating >= 90) score += 2
   else if (group.hostRating >= 70) score += 1
   if (group.openSeats >= 3) score += 1
