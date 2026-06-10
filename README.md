@@ -23,7 +23,7 @@
 - **收藏**：收藏感興趣的群組；分類 Grid 篩選；取消收藏即時從清單移除
 - **帳號中心**：個人資料、付款方式、通知偏好、安全驗證、設定
 - **登入 / 註冊 / 忘記密碼**：左上角「返回」按鈕導回首頁
-- **導航（AppNav）**：統一導航元件；應用頁顯示左側浮動側欄（side variant，收合 / 展開），首頁顯示頂部浮動橫列（top variant，僅含 Logo + 漢堡按鈕）；兩種 variant 的漢堡按鈕皆開啟右側抽屜（含導覽選單、使用者區塊）；手機版均以頂部 Header + 右滑抽屜呈現，抽屜內含搜尋按鈕可開啟 MobileSearch；快速配對 / 建立群組 / 訊息中心均以事件觸發 Modal 方式開啟（`pm:open-match` / `pm:open-create` / `pm:open-messages`）；**通知按鈕**電腦版固定於頁面右上角（`fixed top-6 right-4`），手機版位於 Header 漢堡按鈕左側；**帳號中心**直接列於側欄導覽，使用者頭像 dropdown 僅保留登出選項
+- **導航（AppNav）**：統一導航元件；應用頁顯示左側浮動側欄（side variant，收合 / 展開），首頁顯示頂部浮動橫列（top variant，僅含 Logo + 漢堡按鈕）；兩種 variant 的漢堡按鈕皆開啟右側抽屜（含導覽選單、使用者區塊）；手機版均以頂部 Header + 右滑抽屜呈現，抽屜內含搜尋按鈕可開啟 MobileSearch；快速配對 / 建立群組均以事件觸發 Modal 方式開啟（`pm:open-match` / `pm:open-create`）；**通知 / 訊息按鈕**電腦版垂直排列固定於頁面右上角（樣式與 ScrollToTop 一致），手機版通知按鈕位於 Header 漢堡按鈕左側；未登入時側邊欄僅顯示登入按鈕；**帳號中心**直接列於側欄導覽，使用者頭像 dropdown 僅保留登出選項
 - **CategoryPills**：共用分類篩選元件，支援 `pills`（水平膠囊列）與 `grid`（圖示格）兩種樣式；用於探索群組、收藏、快速配對、建立群組
 - **ModalShell**：三大全螢幕 Modal（快速配對、建立群組、訊息中心）的共用殼元件，封裝 backdrop、header（icon + 標題 + `headerEnd` slot + 關閉按鈕）、ESC 鍵、scroll lock 與可選 footer；支援 `maxWidth`、`height`、`outerPadding` 等 props 客製尺寸
 
