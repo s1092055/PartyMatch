@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { AlertCircle, CheckCircle2, MessageSquare, X } from 'lucide-react'
+import { AlertCircle, CheckCircle2, MessageSquare, Users, X } from 'lucide-react'
 import { getGroupById } from '../../shared/stores/groupStore'
+import { getServiceById } from '../../shared/services/serviceTypes'
 import { useScrollLock } from '../../shared/utils/hooks'
 import CreditScoreBadge from '../../shared/components/ui/CreditScoreBadge'
 import SectionCard from '../../shared/components/ui/SectionCard'
+import ServiceLogo from '../../shared/components/ui/ServiceLogo'
 import GroupHeroCard from './components/GroupHeroCard'
 import StickyJoinSummary from './components/StickyJoinSummary'
 
@@ -36,6 +38,8 @@ export default function GroupDetailModal() {
   if (!isOpen) return null
 
   const group = getGroupById(groupId)
+  const service = group ? getServiceById(group.serviceId) : null
+  const plan = service?.plans.find(p => p.name === group?.planName)
 
   return createPortal(
     <>
@@ -69,6 +73,60 @@ export default function GroupDetailModal() {
               <div className="flex flex-col gap-6 p-4 md:p-6 lg:flex-row lg:items-start">
                 <div className="min-w-0 flex-1">
                   <GroupHeroCard group={group} />
+
+                  {(plan?.description || service?.plans?.length > 1) && (
+                    <SectionCard
+                      title="方案說明"
+                      subtitle={group.planName}
+                      action={<ServiceLogo serviceId={group.serviceId} size={28} className="rounded-lg" />}
+                      className="mb-4"
+                    >
+                      {plan?.description && (
+                        <p className="mb-4 text-sm leading-relaxed text-ink-2">{plan.description}</p>
+                      )}
+                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                        <div className="flex flex-col gap-0.5 rounded-xl bg-raised px-4 py-3">
+                          <span className="text-xs text-ink-4">月費（每席）</span>
+                          <span className="text-base font-extrabold text-brand">NT${group.pricePerSeat}</span>
+                        </div>
+                        {group.billingCycle === 'yearly' && (
+                          <div className="flex flex-col gap-0.5 rounded-xl bg-raised px-4 py-3">
+                            <span className="text-xs text-ink-4">年費（每席）</span>
+                            <span className="text-base font-extrabold text-ink">NT${group.pricePerSeat * 12}</span>
+                          </div>
+                        )}
+                        <div className="flex flex-col gap-0.5 rounded-xl bg-raised px-4 py-3">
+                          <span className="text-xs text-ink-4">總名額</span>
+                          <div className="flex items-center gap-1.5">
+                            <Users size={14} className="text-ink-3" />
+                            <span className="text-base font-extrabold text-ink">{group.totalSeats} 人</span>
+                          </div>
+                        </div>
+                        {plan?.monthlyPrice && (
+                          <div className="flex flex-col gap-0.5 rounded-xl bg-raised px-4 py-3">
+                            <span className="text-xs text-ink-4">官方原價</span>
+                            <span className="text-base font-extrabold text-ink-3">NT${plan.monthlyPrice} <span className="text-xs font-normal">/ 月</span></span>
+                          </div>
+                        )}
+                      </div>
+                      {service?.plans?.length > 1 && (
+                        <div className="mt-4 border-t border-line-subtle pt-4">
+                          <p className="mb-2 text-xs font-semibold text-ink-4">此服務的其他方案</p>
+                          <div className="space-y-2">
+                            {service.plans.filter(p => p.name !== group.planName).map(p => (
+                              <div key={p.name} className="flex items-start gap-3 rounded-xl border border-line bg-canvas px-4 py-3">
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-sm font-bold text-ink-2">{p.name}</p>
+                                  {p.description && <p className="mt-0.5 text-xs leading-relaxed text-ink-3">{p.description}</p>}
+                                </div>
+                                <span className="shrink-0 text-sm font-bold text-ink-3">NT${p.monthlyPrice}<span className="text-xs font-normal">/月</span></span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </SectionCard>
+                  )}
 
                   <SectionCard title="加入條件與規則" subtitle="加入前請仔細閱讀" className="mb-4">
                     {group.requirements && (
