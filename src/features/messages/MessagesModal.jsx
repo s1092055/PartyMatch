@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, MessageSquare, Search, Send, SquarePen } from 'lucide-react'
 import ServiceLogo from '../../shared/components/ui/ServiceLogo'
 import ModalShell from '../../shared/components/ui/ModalShell'
-import { getCurrentUser } from '../../shared/stores/authStore'
+import { getCurrentUser, isAuthenticated } from '../../shared/stores/authStore'
+import LoginPromptModal from '../../shared/components/ui/LoginPromptModal'
 import {
   subscribeToConversations,
   subscribeToMessages,
@@ -37,6 +38,7 @@ function ConversationAvatar({ conversation, size = 44 }) {
 
 export default function MessagesModal() {
   const [isOpen, setIsOpen] = useState(false)
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [selectedId, setSelectedId] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [canSend, setCanSend] = useState(false)
@@ -49,7 +51,10 @@ export default function MessagesModal() {
   const inputRef = useRef(null)
 
   useEffect(() => {
-    function onOpen() { setIsOpen(true) }
+    function onOpen() {
+      if (!isAuthenticated()) { setShowLoginPrompt(true); return }
+      setIsOpen(true)
+    }
     window.addEventListener('pm:open-messages', onOpen)
     return () => window.removeEventListener('pm:open-messages', onOpen)
   }, [])
@@ -117,6 +122,7 @@ export default function MessagesModal() {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() }
   }
 
+  if (showLoginPrompt) return <LoginPromptModal onClose={() => setShowLoginPrompt(false)} />
   if (!isOpen) return null
 
   const user = getCurrentUser()

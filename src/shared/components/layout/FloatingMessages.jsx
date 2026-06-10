@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { AlertCircle, Bell, CheckCircle2, Clock, CreditCard, UserPlus, X } from 'lucide-react'
-import { getCurrentUser } from '../../stores/authStore'
+import { getCurrentUser, isAuthenticated } from '../../stores/authStore'
+import LoginPromptModal from '../ui/LoginPromptModal'
 import {
   getNotifications,
   markAllAsRead,
@@ -43,6 +44,7 @@ export default function FloatingMessages() {
   const userId = currentUser?.id
 
   const [open, setOpen] = useState(false)
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [activeTab, setActiveTab] = useState('all')
   const [notifications, setNotifications] = useState(() => userId ? getNotifications(userId) : [])
 
@@ -50,6 +52,7 @@ export default function FloatingMessages() {
 
   useEffect(() => {
     function onOpen() {
+      if (!isAuthenticated()) { setShowLoginPrompt(true); return }
       setNotifications(userId ? getNotifications(userId) : [])
       setOpen(true)
     }
@@ -84,6 +87,7 @@ export default function FloatingMessages() {
     navigate(getMeta(notification.type).link)
   }
 
+  if (showLoginPrompt) return <LoginPromptModal onClose={() => setShowLoginPrompt(false)} />
   if (!userId) return null
 
   return createPortal(

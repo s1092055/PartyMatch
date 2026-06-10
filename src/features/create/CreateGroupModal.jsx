@@ -16,8 +16,10 @@ import Step3Settings from "./components/steps/Step3Settings";
 import Step4Preview from "./components/steps/Step4Preview";
 import Button from "../../shared/components/ui/Button";
 import ModalShell from "../../shared/components/ui/ModalShell";
+import LoginPromptModal from "../../shared/components/ui/LoginPromptModal";
 import { createGroup } from "../../shared/stores/groupStore";
 import { getServiceById } from "../../shared/services/serviceTypes";
+import { isAuthenticated } from "../../shared/stores/authStore";
 
 const STEP_COMPONENTS = [Step1Service, Step2Plan, Step3Settings, Step4Preview];
 const STEP_LABELS = [
@@ -99,6 +101,7 @@ function getFirstInvalidStep(form) {
 export default function CreateGroupModal() {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [step, setStep] = useState(1);
   const [form, setForm] = useState(INITIAL_FORM);
   const [submitted, setSubmitted] = useState(false);
@@ -106,6 +109,7 @@ export default function CreateGroupModal() {
 
   useEffect(() => {
     function handler() {
+      if (!isAuthenticated()) { setShowLoginPrompt(true); return }
       setIsOpen(true);
       setStep(1);
       setForm(INITIAL_FORM);
@@ -184,6 +188,7 @@ export default function CreateGroupModal() {
     setSubmitted(true);
   }
 
+  if (showLoginPrompt) return <LoginPromptModal onClose={() => setShowLoginPrompt(false)} />
   if (!isOpen) return null;
 
   const StepComponent = STEP_COMPONENTS[step - 1];

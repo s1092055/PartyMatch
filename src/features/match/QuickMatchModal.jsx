@@ -10,7 +10,6 @@ import ExploreGroupCard from '../explore/components/ExploreGroupCard'
 import CreateGroupStepper from '../create/components/CreateGroupStepper'
 import Button from '../../shared/components/ui/Button'
 import ModalShell from '../../shared/components/ui/ModalShell'
-import { isAuthenticated } from '../../shared/stores/authStore'
 import { getGroups } from '../../shared/stores/groupStore'
 import { matchGroups } from '../../shared/utils/matchGroups'
 
@@ -248,7 +247,6 @@ function Step4({ results, conditions, onClose }) {
 }
 
 export default function QuickMatchModal() {
-  const navigate = useNavigate()
   const [isOpen, setIsOpen] = useState(false)
   const [step, setStep] = useState(1)
   const [conditions, setConditions] = useState(DEFAULT_CONDITIONS)
@@ -256,10 +254,6 @@ export default function QuickMatchModal() {
 
   useEffect(() => {
     function handler() {
-      if (!isAuthenticated()) {
-        navigate('/login?redirectTo=/quick-match')
-        return
-      }
       setIsOpen(true)
       setStep(1)
       setConditions(DEFAULT_CONDITIONS)
@@ -267,7 +261,7 @@ export default function QuickMatchModal() {
     }
     window.addEventListener('pm:open-match', handler)
     return () => window.removeEventListener('pm:open-match', handler)
-  }, [navigate])
+  }, [])
 
   function toggleService(id) {
     setConditions(prev => {
