@@ -1,16 +1,25 @@
 import { useEffect } from 'react'
 
+// Reference counter so nested modals don't re-measure or prematurely release the lock.
+let _lockCount = 0
+
 export function useScrollLock(enabled) {
   useEffect(() => {
     if (!enabled) return
-    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
-    document.documentElement.style.overflowY = 'hidden'
-    document.documentElement.style.paddingRight = `${scrollbarWidth}px`
-    document.documentElement.style.setProperty('--scrollbar-compensation', `${scrollbarWidth}px`)
+    _lockCount++
+    if (_lockCount === 1) {
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
+      document.documentElement.style.overflowY = 'hidden'
+      document.documentElement.style.paddingRight = `${scrollbarWidth}px`
+      document.documentElement.style.setProperty('--scrollbar-compensation', `${scrollbarWidth}px`)
+    }
     return () => {
-      document.documentElement.style.overflowY = ''
-      document.documentElement.style.paddingRight = ''
-      document.documentElement.style.setProperty('--scrollbar-compensation', '0px')
+      _lockCount--
+      if (_lockCount === 0) {
+        document.documentElement.style.overflowY = ''
+        document.documentElement.style.paddingRight = ''
+        document.documentElement.style.setProperty('--scrollbar-compensation', '0px')
+      }
     }
   }, [enabled])
 }
