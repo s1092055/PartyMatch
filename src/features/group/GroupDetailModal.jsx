@@ -6,7 +6,6 @@ import { getServiceById } from '../../shared/services/serviceTypes'
 import { useScrollLock } from '../../shared/utils/hooks'
 import CreditScoreBadge from '../../shared/components/ui/CreditScoreBadge'
 import SectionCard from '../../shared/components/ui/SectionCard'
-import ServiceLogo from '../../shared/components/ui/ServiceLogo'
 import GroupHeroCard from './components/GroupHeroCard'
 import StickyJoinSummary from './components/StickyJoinSummary'
 
@@ -84,7 +83,6 @@ export default function GroupDetailModal() {
                     <SectionCard
                       title="方案說明"
                       subtitle={group.planName}
-                      action={<ServiceLogo serviceId={group.serviceId} size={28} className="rounded-lg" />}
                       className="mb-4"
                     >
                       {plan?.description && (
