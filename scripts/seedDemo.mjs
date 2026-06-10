@@ -105,7 +105,6 @@ function buildDemoData(uid, rate) {
       hostAvatarColor:   h.color,
       hostRating:        h.rating,
       hostReviewCount:   h.reviews,
-      isHostVerified:    h.verified,
     }
   }
 
@@ -117,7 +116,6 @@ function buildDemoData(uid, rate) {
     hostAvatarColor:   '#0866F2',
     hostRating:        92,
     hostReviewCount:   7,
-    isHostVerified:    true,
   }
 
   // ── Groups ────────────────────────────────────────────────────────
