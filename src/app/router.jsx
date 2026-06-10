@@ -14,7 +14,7 @@ import PublicOnlyRoute from '../shared/components/route/PublicOnlyRoute'
 import DisclaimerPage from '../features/legal/DisclaimerPage'
 import TermsPage from '../features/legal/TermsPage'
 import PrivacyPage from '../features/legal/PrivacyPage'
-import { CreateGroupRedirect, QuickMatchRedirect } from './redirects'
+import { CreateGroupRedirect, GroupRedirect, QuickMatchRedirect } from './redirects'
 
 const router = createBrowserRouter([
   { path: '/', element: <HomePage /> },
@@ -31,6 +31,7 @@ const router = createBrowserRouter([
     element: <AppLayout />,
     children: [
       { path: 'explore',         element: <ExplorePage /> },
+      { path: 'groups/:groupId', element: <GroupRedirect /> },
       { path: 'disclaimer',      element: <DisclaimerPage /> },
       { path: 'terms',           element: <TermsPage /> },
       { path: 'privacy',         element: <PrivacyPage /> },
