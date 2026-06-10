@@ -25,6 +25,7 @@
 - **登入 / 註冊 / 忘記密碼**：左上角「返回」按鈕導回首頁
 - **導航（AppNav）**：統一導航元件；應用頁顯示左側浮動側欄（side variant，收合 / 展開），首頁顯示頂部浮動橫列（top variant，僅含 Logo + 漢堡按鈕）；兩種 variant 的漢堡按鈕皆開啟右側抽屜（含導覽選單、使用者區塊）；手機版均以頂部 Header + 右滑抽屜呈現，抽屜內含搜尋按鈕可開啟 MobileSearch；快速配對 / 建立群組 / 訊息中心均以事件觸發 Modal 方式開啟（`pm:open-match` / `pm:open-create` / `pm:open-messages`）；**通知按鈕**電腦版固定於頁面右上角（`fixed top-6 right-4`），手機版位於 Header 漢堡按鈕左側；**帳號中心**直接列於側欄導覽，使用者頭像 dropdown 僅保留登出選項
 - **CategoryPills**：共用分類篩選元件，支援 `pills`（水平膠囊列）與 `grid`（圖示格）兩種樣式；用於探索群組、收藏、快速配對、建立群組
+- **ModalShell**：三大全螢幕 Modal（快速配對、建立群組、訊息中心）的共用殼元件，封裝 backdrop、header（icon + 標題 + `headerEnd` slot + 關閉按鈕）、ESC 鍵、scroll lock 與可選 footer；支援 `maxWidth`、`height`、`outerPadding` 等 props 客製尺寸
 
 ---
 
@@ -111,7 +112,7 @@ src/
 │   │   ├── layout/           # AppLayout、AppNav（top / side variant）、MobileSearch、FloatingMessages（訊息中心懸浮元件）
 │   │   ├── auth/             # AuthLayout、AuthIllustration
 │   │   ├── route/            # ProtectedRoute、PublicOnlyRoute
-│   │   ├── ui/               # Button、Badge、Avatar、Modal、Toggle、CustomSelect、ServiceLogo、RevealSection…
+│   │   ├── ui/               # Button、Badge、Avatar、Modal、**ModalShell**（三大 Modal 共用殼）、Toggle、CustomSelect、ServiceLogo、RevealSection…
 │   │   └── modals/           # 跨功能共用 Modal（GroupViewModal；功能專屬 Modal 放各自 features/）
 │   ├── api/                  # 資料存取層（Firebase Firestore）
 │   ├── data/                 # mock 種子資料（services.mock.js 唯讀）
