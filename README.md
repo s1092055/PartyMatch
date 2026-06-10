@@ -13,7 +13,7 @@
 
 - **首頁（Landing Page）**：行銷首頁，展示核心功能（FeatureCards 左右交錯排版）、使用教學（HowItWorks）、FAQ、頁尾（含法律文件連結）；頂部浮動 AppNav（top variant）；Logo 點擊回首頁；各區塊採 RevealSection 滾動觸發淡入動畫
 - **探索群組**：Marketplace 瀏覽版面；分類圖示 Grid 篩選（影音、音樂、AI 工具、辦公、雲端、學習、遊戲、VPN）+ 次要篩選列（服務、價格、排序）；卡片顯示價格 → 分隔線 → 團主名稱（不顯示信用評分）+ 剩餘名額；共 30 種服務、26 個群組；Sidebar 與手機版 Drawer 搜尋按鈕皆可搜尋並導向探索頁篩選結果；自己是團主的群組不顯示在探索頁；卡片採 RevealSection 滾動入場動畫
-- **快速配對**（Modal）：以 `pm:open-match` 事件觸發；四步驟精靈（選服務→篩選條件→搜尋偏好→配對結果）+ 右側配對條件摘要；配對結果直接顯示在 Modal 第 4 步，以探索頁卡片樣式呈現最多 3 個推薦群組（含排名號碼）；選服務步驟支援分類 Grid 篩選；結果頁底部可「重新配對」或「調整條件」退回第 3 步
+- **快速配對**（Modal）：以 `pm:open-match` 事件觸發；四步驟精靈（選擇服務 → 選擇方案 → 篩選條件 → 配對結果）+ 右側配對條件摘要；Step2 針對每個已選服務選擇欲加入的方案（同建立群組的選方案邏輯）；Step3 設定預算上限、最低信用分數、群組年資；配對結果顯示所有符合條件的群組（依推薦分數排序），前三名標示金銀銅排名徽章；結果頁底部可「重新配對」或「調整條件」退回
 - **群組詳情**（Modal）：以 `pm:open-group` 事件觸發；顯示 GroupHeroCard、加入條件與規則、團主信用評價（可展開收合）及 StickyJoinSummary 申請區塊；探索卡片、收藏卡片、快速配對結果、MobileSearch 搜尋結果與「建立群組成功後」皆 dispatch 事件開啟 Modal（已無獨立頁面路由）
 - **申請加入**（審核制，所有群組統一採用審核加入）
 - **建立群組**（Modal）：以 `pm:open-create` 事件觸發；4 步驟表單（選服務→選方案→加入設定→最後確認）；方案費用依官方定價自動計算；選服務步驟支援分類 Grid 篩選；≥1280px 左右雙欄布局（表單 + 即時預覽卡）；＜1280px 可點擊「顯示預覽」按鈕以 Overlay 方式查看預覽卡
@@ -51,7 +51,7 @@ npm run lint    # 程式碼檢查
 - React Router v7
 - Tailwind CSS v4（含自訂 design token）
 - lucide-react
-- 狀態管理：Firebase Auth（驗證）+ Firebase Firestore（群組、申請、成員、訂閱、通知、收藏、**訊息（即時監聽）**）+ sessionStorage（快速配對條件備援）
+- 狀態管理：Firebase Auth（驗證）+ Firebase Firestore（群組、申請、成員、訂閱、通知、收藏、**訊息（即時監聽）**）
 - **RevealSection**：共用滾動動畫元件，基於 IntersectionObserver，支援 viewport 初始檢測避免已可見元素重複播放
 
 ---
