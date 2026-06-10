@@ -12,45 +12,21 @@ function calcScore(group, conditions) {
   return score
 }
 
-function buildReasons(group, conditions) {
-  const reasons = []
-  if (group.isHostVerified)
-    reasons.push('已驗證團主，信任度高')
-  if (group.hostRating >= 90)
-    reasons.push(`信用分數 ${group.hostRating}，口碑極佳`)
-  else if (group.hostRating >= 70)
-    reasons.push(`信用分數 ${group.hostRating}，評價良好`)
-  if (group.openSeats >= 3)
-    reasons.push(`名額充裕，還剩 ${group.openSeats} 個`)
-  if (conditions.maxPrice && group.pricePerSeat <= conditions.maxPrice * 0.8)
-    reasons.push(`NT$${group.pricePerSeat}，低於預算 ${Math.round((1 - group.pricePerSeat / conditions.maxPrice) * 100)}%`)
-  return reasons.slice(0, 3)
-}
-
-function getBillingDay(dateStr) {
-  return new Date(dateStr).getDate()
-}
-
 function getAgeMonths(createdAt) {
   return (Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24 * 30)
 }
 
 export function matchGroups(groups, conditions) {
-  const { services = [], maxPrice, minRating, billingPeriod, groupAge } = conditions
+  const { services = [], selectedPlans = {}, maxPrice, minRating, groupAge } = conditions
 
   const filtered = groups.filter(g => {
     if (g.status !== 'recruiting') return false
     if (g.openSeats <= 0) return false
     if (services.length > 0 && !services.includes(g.serviceId)) return false
+    const wantedPlan = selectedPlans[g.serviceId]
+    if (wantedPlan && wantedPlan !== 'any' && g.planName !== wantedPlan) return false
     if (maxPrice && g.pricePerSeat > maxPrice) return false
     if (minRating && minRating > 0 && g.hostRating < minRating) return false
-
-    if (billingPeriod && billingPeriod !== 'any') {
-      const day = getBillingDay(g.nextBillingDate)
-      if (billingPeriod === 'early' && day > 10) return false
-      if (billingPeriod === 'mid' && (day < 11 || day > 20)) return false
-      if (billingPeriod === 'late' && day < 21) return false
-    }
 
     if (groupAge && groupAge !== 'any') {
       const months = getAgeMonths(g.createdAt)
@@ -63,7 +39,6 @@ export function matchGroups(groups, conditions) {
   })
 
   return filtered
-    .map(g => ({ ...g, _score: calcScore(g, conditions), _reasons: buildReasons(g, conditions) }))
+    .map(g => ({ ...g, _score: calcScore(g, conditions) }))
     .sort((a, b) => b._score - a._score)
-    .slice(0, 3)
 }
