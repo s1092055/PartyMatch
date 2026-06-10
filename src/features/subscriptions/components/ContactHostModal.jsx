@@ -1,9 +1,16 @@
 import { MessageCircle } from 'lucide-react'
 import Modal from '../../../shared/components/ui/Modal'
 import Avatar from '../../../shared/components/ui/Avatar'
+import Button from '../../../shared/components/ui/Button'
 
 export default function ContactHostModal({ isOpen, onClose, sub }) {
   if (!sub) return null
+
+  function openConversation() {
+    onClose()
+    window.dispatchEvent(new CustomEvent('pm:open-messages', { detail: { groupId: sub.groupId } }))
+  }
+
   return (
     <Modal
       isOpen={isOpen}
@@ -21,18 +28,18 @@ export default function ContactHostModal({ isOpen, onClose, sub }) {
         </div>
 
         <p className="mt-4 text-sm leading-relaxed text-ink-2">
-          目前尚未提供即時聊天功能。你可以前往群組詳情頁留言，或等待團主主動聯繫。
-        </p>
-        <p className="mt-2 text-sm text-ink-3">
-          如有付款相關問題，請先點擊「標記已付款」，待團主確認後即完成本期付款。
+          你可以透過群組訊息直接與團主聯繫，討論付款、規則或其他相關問題。
         </p>
 
-        <button
-          onClick={onClose}
-          className="mt-5 w-full rounded-2xl border border-line py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-raised"
-        >
-          關閉
-        </button>
+        <div className="mt-5 flex flex-col gap-2">
+          <Button variant="primary" size="md" className="w-full" onClick={openConversation}>
+            <MessageCircle size={15} />
+            開啟群組對話
+          </Button>
+          <Button variant="secondary" size="md" className="w-full" onClick={onClose}>
+            取消
+          </Button>
+        </div>
       </div>
     </Modal>
   )

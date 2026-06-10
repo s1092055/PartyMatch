@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import logoUrl from '../../assets/Logo.svg'
 import { isAuthenticated } from '../../shared/stores/authStore'
+import { getGroups } from '../../shared/stores/groupStore'
 import AppNav from '../../shared/components/layout/AppNav'
 import MobileSearch from '../../shared/components/layout/MobileSearch'
 import ScrollToTop from '../../shared/components/layout/ScrollToTop'
@@ -21,16 +22,16 @@ const FEATURED_SERVICES = [
   'chatgpt', 'google-one', 'hbo', 'apple-music',
 ]
 
-const STATS = [
-  { value: '30+',   label: '支援服務' },
-  { value: '26',    label: '個活躍群組' },
-  { value: 'NT$30', label: '最低月費起' },
-]
-
-
 export default function HomePage() {
   const navigate = useNavigate()
   const loggedIn = isAuthenticated()
+  const activeGroupCount = getGroups().filter(g => g.status === 'recruiting' && g.openSeats > 0).length
+
+  const STATS = [
+    { value: '30+',   label: '支援服務' },
+    { value: String(activeGroupCount), label: '個活躍群組' },
+    { value: 'NT$30', label: '最低月費起' },
+  ]
 
   return (
     <div className="flex min-h-screen flex-col bg-canvas text-ink md:ml-24">
@@ -110,7 +111,7 @@ export default function HomePage() {
       <RevealSection>
         <section className="border-t border-line bg-brand py-14 text-center text-white">
           <h2 className="text-2xl font-extrabold">準備好了嗎？</h2>
-          <p className="mt-2 text-sm text-blue-200">馬上瀏覽 26 個等待你的共享群組</p>
+          <p className="mt-2 text-sm text-blue-200">馬上瀏覽 {activeGroupCount} 個等待你的共享群組</p>
           <button
             onClick={() => navigate(loggedIn ? '/explore' : '/register')}
             className="mt-7 inline-flex items-center gap-2 rounded-xl bg-white px-7 py-3 text-sm font-bold text-brand shadow transition-opacity hover:opacity-90"

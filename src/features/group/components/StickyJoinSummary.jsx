@@ -60,7 +60,7 @@ export default function StickyJoinSummary({ group, inModal = false }) {
           variant="primary"
           size="lg"
           className="w-full"
-          onClick={() => navigate("/login?redirectTo=/explore")}
+          onClick={() => navigate(`/login?redirectTo=/groups/${group.id}`)}
         >
           <LogIn size={16} />
           登入以加入群組
@@ -149,7 +149,7 @@ export default function StickyJoinSummary({ group, inModal = false }) {
             onClick={() =>
               activeUserId
                 ? setIsFav(toggleFavorite(activeUserId, group.id))
-                : navigate("/login")
+                : navigate(`/login?redirectTo=/groups/${group.id}`)
             }
             className="mt-1 w-9 h-9 flex items-center justify-center rounded-full hover:bg-raised transition-colors shrink-0"
             aria-label={isFav ? "取消收藏" : "加入收藏"}

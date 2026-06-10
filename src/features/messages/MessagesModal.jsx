@@ -51,9 +51,11 @@ export default function MessagesModal() {
   const inputRef = useRef(null)
 
   useEffect(() => {
-    function onOpen() {
+    function onOpen(e) {
       if (!isAuthenticated()) { setShowLoginPrompt(true); return }
       setIsOpen(true)
+      const groupId = e?.detail?.groupId
+      if (groupId) setSelectedId(`group_${groupId}`)
     }
     window.addEventListener('pm:open-messages', onOpen)
     return () => window.removeEventListener('pm:open-messages', onOpen)
