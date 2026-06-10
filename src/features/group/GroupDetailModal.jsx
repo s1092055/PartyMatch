@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { AlertCircle, CheckCircle2, MessageSquare, Users, X } from 'lucide-react'
+import { AlertCircle, CheckCircle2, MessageSquare, X } from 'lucide-react'
 import { getGroupById } from '../../shared/stores/groupStore'
 import { getServiceById } from '../../shared/services/serviceTypes'
 import { useScrollLock } from '../../shared/utils/hooks'
@@ -74,7 +74,7 @@ export default function GroupDetailModal() {
                 <div className="min-w-0 flex-1">
                   <GroupHeroCard group={group} />
 
-                  {(plan?.description || service?.plans?.length > 1) && (
+                  {(plan?.features?.length > 0 || plan?.description || service?.plans?.length > 1) && (
                     <SectionCard
                       title="方案說明"
                       subtitle={group.planName}
@@ -84,31 +84,16 @@ export default function GroupDetailModal() {
                       {plan?.description && (
                         <p className="mb-4 text-sm leading-relaxed text-ink-2">{plan.description}</p>
                       )}
-                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                        <div className="flex flex-col gap-0.5 rounded-xl bg-raised px-4 py-3">
-                          <span className="text-xs text-ink-4">月費（每席）</span>
-                          <span className="text-base font-extrabold text-brand">NT${group.pricePerSeat}</span>
-                        </div>
-                        {group.billingCycle === 'yearly' && (
-                          <div className="flex flex-col gap-0.5 rounded-xl bg-raised px-4 py-3">
-                            <span className="text-xs text-ink-4">年費（每席）</span>
-                            <span className="text-base font-extrabold text-ink">NT${group.pricePerSeat * 12}</span>
-                          </div>
-                        )}
-                        <div className="flex flex-col gap-0.5 rounded-xl bg-raised px-4 py-3">
-                          <span className="text-xs text-ink-4">總名額</span>
-                          <div className="flex items-center gap-1.5">
-                            <Users size={14} className="text-ink-3" />
-                            <span className="text-base font-extrabold text-ink">{group.totalSeats} 人</span>
-                          </div>
-                        </div>
-                        {plan?.monthlyPrice && (
-                          <div className="flex flex-col gap-0.5 rounded-xl bg-raised px-4 py-3">
-                            <span className="text-xs text-ink-4">官方原價</span>
-                            <span className="text-base font-extrabold text-ink-3">NT${plan.monthlyPrice} <span className="text-xs font-normal">/ 月</span></span>
-                          </div>
-                        )}
-                      </div>
+                      {plan?.features?.length > 0 && (
+                        <ul className="space-y-2">
+                          {plan.features.map((f, i) => (
+                            <li key={i} className="flex items-start gap-2 text-sm text-ink-2">
+                              <CheckCircle2 size={15} className="mt-0.5 shrink-0 text-brand" />
+                              {f}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                       {service?.plans?.length > 1 && (
                         <div className="mt-4 border-t border-line-subtle pt-4">
                           <p className="mb-2 text-xs font-semibold text-ink-4">此服務的其他方案</p>
