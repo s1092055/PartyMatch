@@ -6,9 +6,11 @@ export function useScrollLock(enabled) {
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
     document.documentElement.style.overflowY = 'hidden'
     document.documentElement.style.paddingRight = `${scrollbarWidth}px`
+    document.documentElement.style.setProperty('--scrollbar-compensation', `${scrollbarWidth}px`)
     return () => {
       document.documentElement.style.overflowY = ''
       document.documentElement.style.paddingRight = ''
+      document.documentElement.style.setProperty('--scrollbar-compensation', '0px')
     }
   }, [enabled])
 }

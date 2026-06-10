@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { Bell, ChevronDown, LogIn, LogOut, Menu, Search, UserPlus, X } from 'lucide-react'
+import { Bell, ChevronDown, LogIn, LogOut, Menu, MessageSquare, Search, X } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
 import { getCurrentUser, isAuthenticated, logoutUser } from '../../stores/authStore'
 import { NAV_SECTIONS } from '../../constants/nav'
@@ -131,12 +131,6 @@ export default function AppNav({ variant = 'side' }) {
                       <item.icon size={20} strokeWidth={2.1} />
                       {item.label}
                     </button>
-                  ) : item.type === 'messages' ? (
-                    <button key="messages" onClick={openMessages}
-                      className="flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-2 transition-all hover:bg-raised hover:text-brand">
-                      <item.icon size={20} strokeWidth={2.1} />
-                      {item.label}
-                    </button>
                   ) : item.type === 'match' ? (
                     <button key="match" onClick={openMatch}
                       className="flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-2 transition-all hover:bg-raised hover:text-brand">
@@ -201,24 +195,14 @@ export default function AppNav({ variant = 'side' }) {
                 )}
               </div>
             ) : (
-              <div className="flex gap-2">
-                <Link
-                  to="/register"
-                  onClick={closeAll}
-                  className="flex flex-1 h-12 items-center justify-center gap-2 rounded-2xl bg-brand text-sm font-bold text-white transition-all hover:-translate-y-0.5 active:scale-[0.96] hover:bg-brand-hover"
-                >
-                  <UserPlus size={18} strokeWidth={2.1} />
-                  註冊
-                </Link>
-                <Link
-                  to="/login"
-                  onClick={closeAll}
-                  className="flex flex-1 h-12 items-center justify-center gap-2 rounded-2xl border border-line text-sm font-bold text-ink-2 transition-all hover:-translate-y-0.5 active:scale-[0.96] hover:bg-raised hover:text-brand"
-                >
-                  <LogIn size={18} strokeWidth={2.1} />
-                  登入
-                </Link>
-              </div>
+              <Link
+                to="/login"
+                onClick={closeAll}
+                className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-brand text-sm font-bold text-white transition-all hover:-translate-y-0.5 active:scale-[0.96] hover:bg-brand-hover"
+              >
+                <LogIn size={18} strokeWidth={2.1} />
+                登入
+              </Link>
             )}
           </div>
         </div>
@@ -229,14 +213,23 @@ export default function AppNav({ variant = 'side' }) {
 
   return (
     <>
-      {/* Desktop notification button — fixed top-right */}
-      <button
-        onClick={openNotify}
-        className="fixed right-4 top-6 z-50 hidden h-10 w-10 items-center justify-center rounded-full border border-line bg-white shadow-sm text-ink-2 transition-all hover:bg-raised hover:text-ink md:flex lg:top-8"
-        aria-label="通知"
-      >
-        <Bell size={20} strokeWidth={2} />
-      </button>
+      {/* Desktop action buttons — fixed top-right */}
+      <div className="fixed top-6 z-50 hidden flex-col gap-3 md:flex lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
+        <button
+          onClick={openNotify}
+          className="grid h-12 w-12 place-items-center rounded-full border border-line bg-white shadow-md text-ink-2 transition-all hover:scale-105 hover:bg-raised hover:text-ink active:scale-95"
+          aria-label="通知"
+        >
+          <Bell size={20} strokeWidth={2} />
+        </button>
+        <button
+          onClick={openMessages}
+          className="grid h-12 w-12 place-items-center rounded-full border border-line bg-white shadow-md text-ink-2 transition-all hover:scale-105 hover:bg-raised hover:text-ink active:scale-95"
+          aria-label="訊息"
+        >
+          <MessageSquare size={20} strokeWidth={2} />
+        </button>
+      </div>
 
       {/* Desktop floating sidebar */}
       <aside
@@ -277,16 +270,6 @@ export default function AppNav({ variant = 'side' }) {
                     </button>
                   ) : item.type === 'create' ? (
                     <button key="create" onClick={openCreate} aria-label={item.label}
-                      className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:bg-raised hover:text-brand">
-                      <span className="grid h-9 w-9 shrink-0 place-items-center">
-                        <item.icon size={22} strokeWidth={2.1} />
-                      </span>
-                      <span className="whitespace-nowrap font-bold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
-                        {item.label}
-                      </span>
-                    </button>
-                  ) : item.type === 'messages' ? (
-                    <button key="messages" onClick={openMessages} aria-label={item.label}
                       className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:bg-raised hover:text-brand">
                       <span className="grid h-9 w-9 shrink-0 place-items-center">
                         <item.icon size={22} strokeWidth={2.1} />
@@ -368,21 +351,9 @@ export default function AppNav({ variant = 'side' }) {
           ) : (
             <div className="flex flex-col gap-1.5">
               <Link
-                to="/register"
-                onClick={closeAll}
-                className="flex h-12 w-full items-center gap-3 rounded-2xl bg-brand px-1 text-sm font-bold text-white transition-all hover:-translate-y-0.5 active:scale-[0.96] hover:bg-brand-hover"
-              >
-                <span className="grid h-9 w-9 shrink-0 place-items-center">
-                  <UserPlus size={20} strokeWidth={2.1} />
-                </span>
-                <span className="whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
-                  註冊
-                </span>
-              </Link>
-              <Link
                 to="/login"
                 onClick={closeAll}
-                className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-sm font-bold text-ink-2 transition-all hover:-translate-y-0.5 active:scale-[0.96] hover:bg-raised hover:text-brand"
+                className="flex h-12 w-full items-center gap-3 rounded-2xl bg-brand px-1 text-sm font-bold text-white transition-all hover:-translate-y-0.5 active:scale-[0.96] hover:bg-brand-hover"
               >
                 <span className="grid h-9 w-9 shrink-0 place-items-center">
                   <LogIn size={20} strokeWidth={2.1} />
@@ -466,12 +437,6 @@ export default function AppNav({ variant = 'side' }) {
                     <item.icon size={20} strokeWidth={2.1} />
                     {item.label}
                   </button>
-                ) : item.type === 'messages' ? (
-                  <button key="messages" onClick={openMessages}
-                    className="flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-2 transition-all hover:bg-raised hover:text-brand">
-                    <item.icon size={20} strokeWidth={2.1} />
-                    {item.label}
-                  </button>
                 ) : item.type === 'match' ? (
                   <button key="match" onClick={openMatch}
                     className="flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-2 transition-all hover:bg-raised hover:text-brand">
@@ -537,24 +502,14 @@ export default function AppNav({ variant = 'side' }) {
               )}
             </div>
           ) : (
-            <div className="flex gap-2">
-              <Link
-                to="/register"
-                onClick={closeAll}
-                className="flex flex-1 h-12 items-center justify-center gap-2 rounded-2xl bg-brand text-sm font-bold text-white transition-all hover:-translate-y-0.5 active:scale-[0.96] hover:bg-brand-hover"
-              >
-                <UserPlus size={18} strokeWidth={2.1} />
-                註冊
-              </Link>
-              <Link
-                to="/login"
-                onClick={closeAll}
-                className="flex flex-1 h-12 items-center justify-center gap-2 rounded-2xl border border-line text-sm font-bold text-ink-2 transition-all hover:-translate-y-0.5 active:scale-[0.96] hover:bg-raised hover:text-brand"
-              >
-                <LogIn size={18} strokeWidth={2.1} />
-                登入
-              </Link>
-            </div>
+            <Link
+              to="/login"
+              onClick={closeAll}
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-brand text-sm font-bold text-white transition-all hover:-translate-y-0.5 active:scale-[0.96] hover:bg-brand-hover"
+            >
+              <LogIn size={18} strokeWidth={2.1} />
+              登入
+            </Link>
           )}
         </div>
       </div>

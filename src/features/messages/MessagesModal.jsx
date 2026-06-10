@@ -236,7 +236,7 @@ export default function MessagesModal() {
                     return (
                       <div key={msg.id} className="flex items-end gap-2">
                         <span
-                          className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-black text-white"
+                          className="mb-6 grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-black text-white"
                           style={{ background: msg.avatarColor ?? '#64748b' }}
                         >
                           {msg.avatarInitial}
