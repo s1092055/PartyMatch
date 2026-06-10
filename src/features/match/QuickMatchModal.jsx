@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, Compass, RotateCcw, X, Zap } from 'lucide-react'
+import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, Compass, RotateCcw, Zap } from 'lucide-react'
 import ServiceSelectionGrid from './components/ServiceSelectionGrid'
 import PreferenceForm from './components/PreferenceForm'
 import MatchSummaryPanel from './components/MatchSummaryPanel'
@@ -8,7 +8,7 @@ import MatchConditionBar from './components/MatchConditionBar'
 import ExploreGroupCard from '../explore/components/ExploreGroupCard'
 import CreateGroupStepper from '../create/components/CreateGroupStepper'
 import Button from '../../shared/components/ui/Button'
-import { useScrollLock } from '../../shared/utils/hooks'
+import ModalShell from '../../shared/components/ui/ModalShell'
 import { isAuthenticated } from '../../shared/stores/authStore'
 import { getGroups } from '../../shared/stores/groupStore'
 import { matchGroups } from '../../shared/utils/matchGroups'
@@ -177,8 +177,6 @@ export default function QuickMatchModal() {
   const [conditions, setConditions] = useState(DEFAULT_CONDITIONS)
   const [results, setResults] = useState([])
 
-  useScrollLock(isOpen)
-
   useEffect(() => {
     function handler() {
       if (!isAuthenticated()) {
@@ -193,13 +191,6 @@ export default function QuickMatchModal() {
     window.addEventListener('pm:open-match', handler)
     return () => window.removeEventListener('pm:open-match', handler)
   }, [navigate])
-
-  useEffect(() => {
-    if (!isOpen) return
-    function onKeyDown(e) { if (e.key === 'Escape') setIsOpen(false) }
-    document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
-  }, [isOpen])
 
   function toggleService(id) {
     setConditions(prev => ({
@@ -241,97 +232,68 @@ export default function QuickMatchModal() {
 
   if (!isOpen) return null
 
-  return (
+  const footer = isResultStep ? (
     <>
-      <div
-        className="fixed inset-0 z-[55] cursor-pointer bg-black/50"
-        onClick={() => setIsOpen(false)}
-      />
-      <div className="pointer-events-none fixed inset-0 z-[56] flex items-center justify-center p-4 md:p-8">
-        <div
-          className="pointer-events-auto relative flex w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
-          style={{ height: 'min(85vh, 720px)' }}
-          onClick={e => e.stopPropagation()}
-        >
-          {/* Header */}
-          <div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-4">
-            <div className="flex items-center gap-2">
-              <Zap size={20} className="fill-success text-success" />
-              <div>
-                <h2 className="text-lg font-extrabold text-ink">快速配對</h2>
-              </div>
-            </div>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
-              aria-label="關閉"
-            >
-              <X size={18} />
-            </button>
-          </div>
-
-          {/* Stepper */}
-          <div className="shrink-0 px-6 pt-5">
-            <CreateGroupStepper steps={STEPS} current={step} />
-          </div>
-
-          {/* Body */}
-          <div className="flex-1 overflow-y-auto">
-            {!isResultStep ? (
-              <div className="flex flex-col gap-6 px-6 pb-2 lg:flex-row lg:items-start">
-                <div className="min-w-0 flex-1">
-                  {step === 1 && <Step1 conditions={conditions} onToggle={toggleService} />}
-                  {step === 2 && <Step2 conditions={conditions} onChange={handleChange} />}
-                  {step === 3 && <Step3 conditions={conditions} onChange={handleChange} />}
-                </div>
-                <div className="hidden w-full shrink-0 lg:block lg:w-72">
-                  <MatchSummaryPanel conditions={conditions} onClear={() => setConditions(DEFAULT_CONDITIONS)} />
-                </div>
-              </div>
-            ) : (
-              <Step4
-                results={results}
-                conditions={conditions}
-                onClose={() => setIsOpen(false)}
-              />
-            )}
-          </div>
-
-          {/* Footer */}
-          <div className="flex shrink-0 gap-3 border-t border-line px-6 py-4">
-            {isResultStep ? (
-              <>
-                <Button variant="secondary" size="md" className="flex-1" onClick={handleReset}>
-                  <RotateCcw size={15} />
-                  重新配對
-                </Button>
-                <Button variant="secondary" size="md" className="flex-1" onClick={handleBack}>
-                  <ChevronLeft size={15} />
-                  調整條件
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button variant="secondary" size="md" className="flex-1" onClick={handleBack}>
-                  <ChevronLeft size={15} />
-                  {step === 1 ? '取消' : '上一步'}
-                </Button>
-                {step < STEPS.length - 1 ? (
-                  <Button variant="primary" size="md" className="flex-1" disabled={!canNext} onClick={handleNext}>
-                    下一步
-                    <ChevronRight size={15} />
-                  </Button>
-                ) : (
-                  <Button variant="success" size="md" className="flex-1" onClick={handleStartMatch}>
-                    <Zap size={15} />
-                    開始配對
-                  </Button>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-      </div>
+      <Button variant="secondary" size="md" className="flex-1" onClick={handleReset}>
+        <RotateCcw size={15} />
+        重新配對
+      </Button>
+      <Button variant="secondary" size="md" className="flex-1" onClick={handleBack}>
+        <ChevronLeft size={15} />
+        調整條件
+      </Button>
     </>
+  ) : (
+    <>
+      <Button variant="secondary" size="md" className="flex-1" onClick={handleBack}>
+        <ChevronLeft size={15} />
+        {step === 1 ? '取消' : '上一步'}
+      </Button>
+      {step < STEPS.length - 1 ? (
+        <Button variant="primary" size="md" className="flex-1" disabled={!canNext} onClick={handleNext}>
+          下一步
+          <ChevronRight size={15} />
+        </Button>
+      ) : (
+        <Button variant="success" size="md" className="flex-1" onClick={handleStartMatch}>
+          <Zap size={15} />
+          開始配對
+        </Button>
+      )}
+    </>
+  )
+
+  return (
+    <ModalShell
+      onClose={() => setIsOpen(false)}
+      icon={<Zap size={20} className="fill-success text-success" />}
+      title="快速配對"
+      footer={footer}
+    >
+      <div className="shrink-0 px-6 pt-5">
+        <CreateGroupStepper steps={STEPS} current={step} />
+      </div>
+
+      <div className="flex-1 overflow-y-auto">
+        {!isResultStep ? (
+          <div className="flex flex-col gap-6 px-6 pb-2 lg:flex-row lg:items-start">
+            <div className="min-w-0 flex-1">
+              {step === 1 && <Step1 conditions={conditions} onToggle={toggleService} />}
+              {step === 2 && <Step2 conditions={conditions} onChange={handleChange} />}
+              {step === 3 && <Step3 conditions={conditions} onChange={handleChange} />}
+            </div>
+            <div className="hidden w-full shrink-0 lg:block lg:w-72">
+              <MatchSummaryPanel conditions={conditions} onClear={() => setConditions(DEFAULT_CONDITIONS)} />
+            </div>
+          </div>
+        ) : (
+          <Step4
+            results={results}
+            conditions={conditions}
+            onClose={() => setIsOpen(false)}
+          />
+        )}
+      </div>
+    </ModalShell>
   )
 }

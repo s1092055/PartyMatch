@@ -7,7 +7,6 @@ import {
   Eye,
   Info,
   PlusCircle,
-  X,
 } from "lucide-react";
 import CreateGroupStepper from "./components/CreateGroupStepper";
 import LivePreviewPanel from "./components/LivePreviewPanel";
@@ -16,9 +15,9 @@ import Step2Plan from "./components/steps/Step2Plan";
 import Step3Settings from "./components/steps/Step3Settings";
 import Step4Preview from "./components/steps/Step4Preview";
 import Button from "../../shared/components/ui/Button";
+import ModalShell from "../../shared/components/ui/ModalShell";
 import { createGroup } from "../../shared/stores/groupStore";
 import { getServiceById } from "../../shared/services/serviceTypes";
-import { useScrollLock } from "../../shared/utils/hooks";
 
 const STEP_COMPONENTS = [Step1Service, Step2Plan, Step3Settings, Step4Preview];
 const STEP_LABELS = [
@@ -105,8 +104,6 @@ export default function CreateGroupModal() {
   const [submitted, setSubmitted] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
 
-  useScrollLock(isOpen);
-
   useEffect(() => {
     function handler() {
       setIsOpen(true);
@@ -118,15 +115,6 @@ export default function CreateGroupModal() {
     return () => window.removeEventListener("pm:open-create", handler);
   }, []);
 
-
-  useEffect(() => {
-    if (!isOpen) return;
-    function onKeyDown(e) {
-      if (e.key === "Escape") setIsOpen(false);
-    }
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [isOpen]);
 
   function handleClose() {
     setIsOpen(false);
@@ -200,171 +188,122 @@ export default function CreateGroupModal() {
 
   const StepComponent = STEP_COMPONENTS[step - 1];
 
-  return (
+  const headerEnd = !submitted && step < 4 && !showPreview && (
+    <button
+      onClick={() => setShowPreview(true)}
+      className="lg:hidden flex items-center gap-1.5 rounded-full border border-line px-3 h-8 text-xs font-bold text-ink-2 transition-colors hover:bg-raised hover:text-ink mr-2"
+      aria-label="顯示預覽"
+    >
+      <Eye size={14} />
+      顯示預覽
+    </button>
+  );
+
+  const footer = !submitted && (
     <>
-      <div
-        className="fixed inset-0 z-[55] cursor-pointer bg-black/50"
-        onClick={handleClose}
-      />
-      <div className="pointer-events-none fixed inset-0 z-[56] flex items-center justify-center p-4 md:p-4">
-        <div
-          className="pointer-events-auto relative flex w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
-          style={{ height: "min(85vh, 720px)" }}
-        >
-          <div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-4">
-            <div className="flex items-center gap-2">
-              <PlusCircle size={20} className="text-brand" />
-              <h2 className="text-lg font-extrabold text-ink">建立群組</h2>
-            </div>
-            <div className="flex items-center gap-1">
-              {!submitted && step < 4 && !showPreview && (
-                <button
-                  onClick={() => setShowPreview(true)}
-                  className="lg:hidden flex items-center gap-1.5 rounded-full border border-line px-3 h-8 text-xs font-bold text-ink-2 transition-colors hover:bg-raised hover:text-ink mr-2"
-                  aria-label="顯示預覽"
-                >
-                  <Eye size={14} />
-                  顯示預覽
-                </button>
-              )}
-              <button
-                onClick={handleClose}
-                className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
-                aria-label="關閉"
-              >
-                <X size={18} />
-              </button>
-            </div>
-          </div>
-
-          <div className="shrink-0 px-6 lg:px-12 pt-5">
-            <CreateGroupStepper steps={STEP_LABELS} current={step} />
-          </div>
-
-          <div className="flex-1 overflow-y-auto px-3 pb-2 lg:px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {submitted ? (
-              <div className="flex flex-col items-center justify-center gap-5 py-16 px-4">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
-                  <svg className="h-8 w-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <div className="text-center">
-                  <h2 className="page-title">群組已成功上架！</h2>
-                  <p className="mt-1 text-sm text-slate-500">你的群組現在已開放招募成員</p>
-                </div>
-                <div className="flex flex-col items-center gap-2 w-full max-w-xs">
-                  <Button
-                    variant="primary"
-                    size="md"
-                    className="w-full"
-                    onClick={() => {
-                      setIsOpen(false);
-                      navigate('/manage-groups');
-                    }}
-                  >
-                    前往群組管理
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="md"
-                    className="w-full"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    繼續留在此頁
-                  </Button>
-                </div>
-              </div>
-            ) : (() => {
-                const service = getServiceById(form.serviceId)
-                const desc = step === 1
-                  ? service?.description
-                  : step === 2
-                    ? service?.plans.find(p => p.name === form.planName)?.description
-                    : null
-                const showErrors = stepErrors.length > 0 && step < 4
-                const infoBox = desc && (
-                  <div className="flex items-start gap-2 rounded-xl bg-blue-50 border border-blue-100 px-4 py-3">
-                    <Info size={14} className="text-blue-400 shrink-0 mt-0.5" />
-                    <p className="text-xs text-blue-700 leading-relaxed">{desc}</p>
-                  </div>
-                )
-                const errorBox = showErrors && (
-                  <div className="flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2.5 text-xs text-amber-700">
-                    <AlertCircle size={13} className="shrink-0" />
-                    <span>{stepErrors[0]}</span>
-                  </div>
-                )
-                return (
-                  <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:mr-6">
-                    <div className="min-w-0 flex-1 flex flex-col">
-                      <div className="flex-1 px-3 pt-2 pb-3 lg:px-6 lg:pt-3 lg:pb-6">
-                        <StepComponent form={form} onChange={onChange} />
-                      </div>
-                      <div className="mt-4 space-y-2 px-3 pb-2 lg:px-6">
-                        {infoBox}
-                        {errorBox}
-                      </div>
-                    </div>
-
-                    {step < 4 && (
-                      <div className="hidden shrink-0 lg:flex lg:flex-col lg:w-64 lg:pt-3 lg:pb-2">
-                        <LivePreviewPanel form={form} />
-                      </div>
-                    )}
-                  </div>
-                )
-              })()}
-          </div>
-
-          {showPreview && step < 4 && (
-            <div
-              className="absolute inset-0 z-10 flex items-center justify-center bg-black/50 lg:hidden"
-              onClick={() => setShowPreview(false)}
-            >
-              <div className="mx-6 w-full max-w-xs" onClick={e => e.stopPropagation()}>
-                <LivePreviewPanel form={form} />
-              </div>
-            </div>
-          )}
-
-          {!submitted && (
-            <div className="flex shrink-0 gap-3 border-t border-line px-6 py-4">
-              <Button
-                variant="secondary"
-                size="md"
-                className="flex-1"
-                onClick={handleBack}
-              >
-                <ChevronLeft size={15} />
-                {step === 1 ? "取消" : "上一步"}
-              </Button>
-
-              {step < 4 ? (
-                <Button
-                  variant="primary"
-                  size="md"
-                  className="flex-1"
-                  disabled={!canNext()}
-                  onClick={handleNext}
-                >
-                  下一步
-                  <ChevronRight size={15} />
-                </Button>
-              ) : (
-                <Button
-                  variant="success"
-                  size="md"
-                  className="flex-1"
-                  onClick={handleSubmit}
-                >
-                  送出並上架
-                </Button>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
+      <Button variant="secondary" size="md" className="flex-1" onClick={handleBack}>
+        <ChevronLeft size={15} />
+        {step === 1 ? "取消" : "上一步"}
+      </Button>
+      {step < 4 ? (
+        <Button variant="primary" size="md" className="flex-1" disabled={!canNext()} onClick={handleNext}>
+          下一步
+          <ChevronRight size={15} />
+        </Button>
+      ) : (
+        <Button variant="success" size="md" className="flex-1" onClick={handleSubmit}>
+          送出並上架
+        </Button>
+      )}
     </>
+  );
+
+  return (
+    <ModalShell
+      onClose={handleClose}
+      icon={<PlusCircle size={20} className="text-brand" />}
+      title="建立群組"
+      height="min(85vh, 720px)"
+      outerPadding="p-4 md:p-4"
+      headerEnd={headerEnd}
+      footer={footer}
+    >
+      <div className="shrink-0 px-6 lg:px-12 pt-5">
+        <CreateGroupStepper steps={STEP_LABELS} current={step} />
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-3 pb-2 lg:px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {submitted ? (
+          <div className="flex flex-col items-center justify-center gap-5 py-16 px-4">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+              <svg className="h-8 w-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <div className="text-center">
+              <h2 className="page-title">群組已成功上架！</h2>
+              <p className="mt-1 text-sm text-slate-500">你的群組現在已開放招募成員</p>
+            </div>
+            <div className="flex flex-col items-center gap-2 w-full max-w-xs">
+              <Button variant="primary" size="md" className="w-full" onClick={() => { setIsOpen(false); navigate('/manage-groups'); }}>
+                前往群組管理
+              </Button>
+              <Button variant="secondary" size="md" className="w-full" onClick={() => setIsOpen(false)}>
+                繼續留在此頁
+              </Button>
+            </div>
+          </div>
+        ) : (() => {
+            const service = getServiceById(form.serviceId)
+            const desc = step === 1
+              ? service?.description
+              : step === 2
+                ? service?.plans.find(p => p.name === form.planName)?.description
+                : null
+            const showErrors = stepErrors.length > 0 && step < 4
+            const infoBox = desc && (
+              <div className="flex items-start gap-2 rounded-xl bg-blue-50 border border-blue-100 px-4 py-3">
+                <Info size={14} className="text-blue-400 shrink-0 mt-0.5" />
+                <p className="text-xs text-blue-700 leading-relaxed">{desc}</p>
+              </div>
+            )
+            const errorBox = showErrors && (
+              <div className="flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2.5 text-xs text-amber-700">
+                <AlertCircle size={13} className="shrink-0" />
+                <span>{stepErrors[0]}</span>
+              </div>
+            )
+            return (
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:mr-6">
+                <div className="min-w-0 flex-1 flex flex-col">
+                  <div className="flex-1 px-3 pt-2 pb-3 lg:px-6 lg:pt-3 lg:pb-6">
+                    <StepComponent form={form} onChange={onChange} />
+                  </div>
+                  <div className="mt-4 space-y-2 px-3 pb-2 lg:px-6">
+                    {infoBox}
+                    {errorBox}
+                  </div>
+                </div>
+                {step < 4 && (
+                  <div className="hidden shrink-0 lg:flex lg:flex-col lg:w-64 lg:pt-3 lg:pb-2">
+                    <LivePreviewPanel form={form} />
+                  </div>
+                )}
+              </div>
+            )
+          })()}
+      </div>
+
+      {showPreview && step < 4 && (
+        <div
+          className="absolute inset-0 z-10 flex items-center justify-center bg-black/50 lg:hidden"
+          onClick={() => setShowPreview(false)}
+        >
+          <div className="mx-6 w-full max-w-xs" onClick={e => e.stopPropagation()}>
+            <LivePreviewPanel form={form} />
+          </div>
+        </div>
+      )}
+    </ModalShell>
   );
 }

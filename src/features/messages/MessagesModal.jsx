@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
-import { ArrowLeft, MessageSquare, Search, Send, SquarePen, X } from 'lucide-react'
+import { ArrowLeft, MessageSquare, Search, Send, SquarePen } from 'lucide-react'
 import ServiceLogo from '../../shared/components/ui/ServiceLogo'
-import { useScrollLock } from '../../shared/utils/hooks'
+import ModalShell from '../../shared/components/ui/ModalShell'
 import { getCurrentUser } from '../../shared/stores/authStore'
 import {
   subscribeToConversations,
@@ -49,8 +48,6 @@ export default function MessagesModal() {
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
 
-  useScrollLock(isOpen)
-
   useEffect(() => {
     function onOpen() { setIsOpen(true) }
     window.addEventListener('pm:open-messages', onOpen)
@@ -80,13 +77,6 @@ export default function MessagesModal() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'instant' })
   }, [selectedId, isOpen])
-
-  useEffect(() => {
-    if (!isOpen) return
-    function onEsc(e) { if (e.key === 'Escape') handleClose() }
-    document.addEventListener('keydown', onEsc)
-    return () => document.removeEventListener('keydown', onEsc)
-  }, [isOpen])
 
   function handleClose() {
     setIsOpen(false)
@@ -135,30 +125,15 @@ export default function MessagesModal() {
     ? conversations.filter(c => c.name?.includes(searchQuery))
     : conversations
 
-  return createPortal(
-    <>
-      <div className="fixed inset-0 z-[55] bg-black/50" onClick={handleClose} />
-
-      <div className="pointer-events-none fixed inset-0 z-[56] flex items-center justify-center p-4 md:p-8">
-        <div className="pointer-events-auto flex w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl" style={{ height: 'min(88vh, 820px)' }}>
-
-          {/* Modal 全寬 header */}
-          <div className="flex h-14 shrink-0 items-center justify-between border-b border-line px-4">
-            <div className="flex items-center gap-2">
-              <MessageSquare size={20} className="text-brand" />
-              <h2 className="text-base font-extrabold text-ink">訊息中心</h2>
-            </div>
-            <button
-              onClick={handleClose}
-              className="grid h-9 w-9 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
-              aria-label="關閉"
-            >
-              <X size={18} />
-            </button>
-          </div>
-
-          {/* 內容區（左右欄） */}
-          <div className="flex flex-1 overflow-hidden">
+  return (
+    <ModalShell
+      onClose={handleClose}
+      icon={<MessageSquare size={20} className="text-brand" />}
+      title="訊息中心"
+      height="min(88vh, 820px)"
+    >
+      {/* 內容區（左右欄） */}
+      <div className="flex flex-1 overflow-hidden">
 
           {/* 對話列表 */}
           <div className={`flex w-full flex-col border-r border-line md:w-80 md:shrink-0 lg:w-96 ${selectedId ? 'hidden md:flex' : 'flex'}`}>
@@ -280,7 +255,7 @@ export default function MessagesModal() {
                   </div>
                 </div>
 
-                <div className="shrink-0 border-t border-line bg-white px-4 py-3">
+                <div className="shrink-0 border-t border-line bg-white px-6 py-4">
                   {sendError && (
                     <p className="mb-2 text-xs text-danger">傳送失敗，請稍後再試</p>
                   )}
@@ -314,10 +289,7 @@ export default function MessagesModal() {
             )}
           </div>
 
-          </div>{/* end flex-1 overflow-hidden */}
-        </div>
-      </div>
-    </>,
-    document.body
+      </div>{/* end flex-1 overflow-hidden */}
+    </ModalShell>
   )
 }

@@ -8,6 +8,8 @@ import ScrollToTop from '../../shared/components/layout/ScrollToTop'
 import AppFooter from '../../shared/components/layout/AppFooter'
 import CreateGroupModal from '../create/CreateGroupModal'
 import MessagesModal from '../messages/MessagesModal'
+import QuickMatchModal from '../match/QuickMatchModal'
+import FloatingMessages from '../../shared/components/layout/FloatingMessages'
 import ServiceLogo from '../../shared/components/ui/ServiceLogo'
 import FeatureCards from './components/FeatureCards'
 import HowItWorks from './components/HowItWorks'
@@ -37,6 +39,8 @@ export default function HomePage() {
       <ScrollToTop />
       <MessagesModal />
       <CreateGroupModal />
+      <QuickMatchModal />
+      <FloatingMessages />
 
       <section className="mx-auto max-w-5xl px-5 pb-16 pt-20 text-center md:pt-16">
         <img src={logoUrl} alt="PartyMatch" className="mx-auto mb-5 h-16 w-auto" />
