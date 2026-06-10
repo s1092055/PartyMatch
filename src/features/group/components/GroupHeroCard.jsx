@@ -1,7 +1,6 @@
 import { CheckCircle2, Users, Calendar, Banknote } from "lucide-react";
 import ServiceLogo from "../../../shared/components/ui/ServiceLogo";
 import CreditScoreBadge from "../../../shared/components/ui/CreditScoreBadge";
-import { getServiceById } from "../../../shared/services/serviceTypes";
 
 function StatItem({ icon: Icon, label, value, valueClass = "text-ink" }) {
   return (
@@ -16,8 +15,6 @@ function StatItem({ icon: Icon, label, value, valueClass = "text-ink" }) {
 }
 
 export default function GroupHeroCard({ group }) {
-  const service = getServiceById(group.serviceId)
-
   return (
     <div className="card p-6 mb-4">
       <div className="flex items-start gap-4 mb-5">
@@ -35,9 +32,6 @@ export default function GroupHeroCard({ group }) {
             )}
           </div>
           <p className="text-sm text-ink-3 mt-0.5">{group.planName}</p>
-          {service?.description && (
-            <p className="mt-2 text-xs leading-relaxed text-ink-3">{service.description}</p>
-          )}
         </div>
       </div>
 

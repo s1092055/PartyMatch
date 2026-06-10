@@ -74,6 +74,12 @@ export default function GroupDetailModal() {
                 <div className="min-w-0 flex-1">
                   <GroupHeroCard group={group} />
 
+                  {service?.description && (
+                    <SectionCard title="服務介紹" className="mb-4">
+                      <p className="text-sm leading-relaxed text-ink-2">{service.description}</p>
+                    </SectionCard>
+                  )}
+
                   {(plan?.features?.length > 0 || plan?.description || service?.plans?.length > 1) && (
                     <SectionCard
                       title="方案說明"
