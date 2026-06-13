@@ -1,0 +1,480 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum GroupStatus {
+  recruiting
+  full
+  pending_confirmation
+  pending_activation
+  confirming
+  disputed
+  active
+  cancelled
+  ended
+}
+
+enum ApplicationStatus {
+  pending
+  approved
+  rejected
+  removed
+  left
+  cancelled
+}
+
+enum SubscriptionStatus {
+  pending
+  active
+  ended
+}
+
+enum TokenTransactionType {
+  topup
+  escrow
+  release
+  refund
+}
+
+enum ConversationType {
+  group
+  dm
+  system
+}
+
+enum PresenceStatus {
+  online
+  offline
+}
+
+enum DisputeStatus {
+  pending
+  resolved_by_host
+  adjudicated
+}
+
+enum DisputeResolutionType {
+  host_private_resolved
+  member_wins
+  host_wins
+}
+
+enum PlatformReportStatus {
+  pending
+  resolved
+}
+
+enum NotificationType {
+  application_sent
+  application_approved
+  application_rejected
+  application_cancelled
+  new_application
+  group_created
+  group_activated
+  group_chat_opened
+  fill_service_info
+  service_info_filled
+  credential_extraction_started
+  all_service_info_filled
+  group_activation_expired
+  service_info_deadline_passed
+  group_full
+  group_full_member
+  group_ended
+  group_cancelled
+  group_renewal
+  member_left
+  member_removed
+  service_info_issue
+  escrow_released
+  escrow_released_member
+  dispute_raised
+  dispute_resolved
+  dispute_resolved_by_host
+  dispute_escalated
+  upcoming_renewal
+  billing_date_confirmed
+  billing_date_adjusted
+  member_confirmed_service
+  group_reviewed
+  account_reactivated
+  payment_reminder
+  system
+}
+
+model User {
+  id             String         @id @default(cuid())
+  email          String         @unique
+  passwordHash   String?
+  googleId       String?        @unique
+  name           String
+  phone          String
+  avatarColor    String?
+  avatarInitial  String?
+  showAvatar     Boolean        @default(true)
+  presenceStatus PresenceStatus @default(offline)
+  lastActiveAt   DateTime?
+  bio            String?        @db.VarChar(500)
+  mutedNotificationCategories Json @default("[]")
+  creditScore    Int            @default(100)
+  tokenBalance   Int            @default(0)
+  isSystem       Boolean        @default(false)
+  deactivatedAt  DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  hostedGroups        Group[]             @relation("HostedGroups")
+  applications        Application[]
+  members             Member[]
+  subscriptions       Subscription[]
+  notifications       Notification[]
+  favorites           Favorite[]
+  sentMessages        Message[]
+  tokenTransactions   TokenTransaction[]
+  creditScoreLogs     CreditScoreLog[]
+  reviewsReceived     Review[]            @relation("ReviewsReceived")
+  reviewsAuthored     Review[]            @relation("ReviewsAuthored")
+  credentialComments  CredentialComment[]
+  disputesRaised      Dispute[]           @relation("DisputesRaised")
+  platformReports     PlatformReport[]
+
+  @@map("users")
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  disputesAdjudicated Dispute[] @relation("DisputesAdjudicated")
+  platformReportsResolved PlatformReport[]
+
+  @@map("admin_users")
+}
+
+model Service {
+  id       String  @id
+  name     String
+  category String
+  logoUrl  String?
+  plans    Json
+
+  groups Group[]
+
+  @@map("services")
+}
+
+model Group {
+  id                        String      @id @default(cuid())
+  hostId                    String
+  host                      User        @relation("HostedGroups", fields: [hostId], references: [id])
+  serviceId                 String
+  service                   Service     @relation(fields: [serviceId], references: [id])
+  planId                    String
+  planName                  String
+  status                    GroupStatus @default(recruiting)
+  maxMembers                Int
+  currentMembers            Int         @default(0)
+  perSeatMonthlyFee         Decimal     @db.Decimal(10, 2)
+  currency                  String      @default("TWD")
+  rules                     String?
+  tags                      Json        @default("[]")
+  minCreditScore            Int         @default(0)
+  minGroupAge               Int         @default(0)
+  billingCycle              String?
+  nextBillingDate           DateTime?
+  escrowTokens              Int         @default(0)
+  sharedCredentials         String?
+  serviceInfoDeadline       DateTime?
+  activateDeadline          DateTime?
+  billingDateAdjustedAt     DateTime?
+  billingDateAdjustmentNote String?
+  hasActivatedOnce          Boolean     @default(false)
+  currentCycle              Int         @default(1)
+  createdAt                 DateTime    @default(now())
+  updatedAt                 DateTime    @updatedAt
+
+  applications       Application[]
+  members            Member[]
+  subscriptions      Subscription[]
+  favorites          Favorite[]
+  conversations      Conversation[]
+  notifications      Notification[]
+  tokenTransactions  TokenTransaction[]
+  creditScoreLogs    CreditScoreLog[]
+  reviews            Review[]
+  credentialComments CredentialComment[]
+  disputes           Dispute[]
+  platformReports    PlatformReport[]
+
+  @@index([status])
+  @@index([hostId])
+  @@map("groups")
+}
+
+model Application {
+  id           String            @id @default(cuid())
+  groupId      String
+  group        Group             @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status       ApplicationStatus @default(pending)
+  message      String?
+  escrowAmount Int?
+  activeKey    String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@unique([groupId, userId, activeKey])
+  @@map("applications")
+}
+
+model Member {
+  id                          String    @id @default(cuid())
+  groupId                     String
+  group                       Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId                      String
+  user                        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  serviceInfo                 Json?
+  extractionStartedAt         DateTime?
+  extractionNotificationId    String?
+  extractionCommentId         String?
+  serviceInfoIssueNote        String?
+  serviceInfoIssueEvidenceUrl String?
+  disputeEvidenceUrl          String?
+  confirmedAt                 DateTime?
+  confirmDeadline             DateTime?
+  disputeDeadline             DateTime?
+  disputeEscalatedAt          DateTime?
+  joinedAt                    DateTime  @default(now())
+  createdAt                   DateTime  @default(now())
+  updatedAt                   DateTime  @updatedAt
+
+  disputes Dispute[]
+
+  @@unique([groupId, userId])
+  @@map("members")
+}
+
+model Subscription {
+  id              String             @id @default(cuid())
+  groupId         String
+  group           Group              @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status          SubscriptionStatus @default(pending)
+  lastPaidAt      DateTime?
+  nextBillingDate DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@unique([groupId, userId])
+  @@map("subscriptions")
+}
+
+model TokenTransaction {
+  id             String               @id @default(cuid())
+  userId         String
+  user           User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type           TokenTransactionType
+  amount         Int
+  relatedGroupId String?
+  relatedGroup   Group?               @relation(fields: [relatedGroupId], references: [id], onDelete: SetNull)
+  note           String?
+  cycle          Int                  @default(1)
+  createdAt      DateTime             @default(now())
+
+  @@index([userId, createdAt])
+  @@index([relatedGroupId])
+  @@map("token_transactions")
+}
+
+model CreditScoreLog {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  delta           Int
+  reason          String
+  relatedGroupId  String?
+  relatedGroup    Group?   @relation(fields: [relatedGroupId], references: [id], onDelete: SetNull)
+  relatedReviewId String?
+  relatedReview   Review?  @relation(fields: [relatedReviewId], references: [id], onDelete: SetNull)
+  createdAt       DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@map("credit_score_logs")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String?
+  user      User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  groupId   String?
+  group     Group?           @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  isPublic  Boolean          @default(false)
+  type      NotificationType
+  title     String
+  message   String
+  meta      Json?
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  groupId   String
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, groupId])
+  @@map("favorites")
+}
+
+model Conversation {
+  id           String           @id @default(cuid())
+  type         ConversationType
+  groupId      String?
+  group        Group?           @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  participants Json             @default("[]")
+  initiatorId  String?
+  unreadCounts Json             @default("{}")
+  lastReadAt   Json             @default("{}")
+  lastMessage  Json?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  messages Message[]
+
+  @@index([groupId])
+  @@map("conversations")
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String?
+  sender         User?        @relation(fields: [senderId], references: [id], onDelete: SetNull)
+  content        String
+  type           String       @default("text")
+  actionType     String?
+  payload        Json?
+  attachmentUrl  String?      @db.VarChar(500)
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
+  @@map("messages")
+}
+
+model Review {
+  id             String           @id @default(cuid())
+  groupId        String
+  group          Group            @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  revieweeId     String
+  reviewee       User             @relation("ReviewsReceived", fields: [revieweeId], references: [id], onDelete: Cascade)
+  authorId       String
+  author         User             @relation("ReviewsAuthored", fields: [authorId], references: [id], onDelete: Cascade)
+  rating         Int
+  comment        String?
+  createdAt      DateTime         @default(now())
+
+  creditScoreLogs CreditScoreLog[]
+
+  @@unique([groupId, authorId, revieweeId])
+  @@index([revieweeId])
+  @@map("reviews")
+}
+
+model CredentialComment {
+  id            String   @id @default(cuid())
+  groupId       String
+  group         Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  authorId      String
+  author        User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  content       String   @db.VarChar(500)
+  attachmentUrl String?  @db.VarChar(500)
+  createdAt     DateTime @default(now())
+
+  @@index([groupId])
+  @@map("credential_comments")
+}
+
+model Dispute {
+  id       String  @id @default(cuid())
+  groupId  String
+  group    Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  memberId String?
+  member   Member? @relation(fields: [memberId], references: [id], onDelete: SetNull)
+
+  raisedByUserId   String
+  raisedByUser     User   @relation("DisputesRaised", fields: [raisedByUserId], references: [id], onDelete: Cascade)
+  hostId           String
+  planNameSnapshot String
+
+  reason               String  @db.VarChar(500)
+  evidenceUrl          String?
+  seatCostSnapshot     Int
+  escrowTokensSnapshot Int
+
+  status   DisputeStatus @default(pending)
+  deadline DateTime
+  raisedAt DateTime      @default(now())
+
+  hostDisputed     Boolean   @default(false)
+  hostResponseNote String?   @db.VarChar(500)
+  hostRespondedAt  DateTime?
+
+  resolutionType     DisputeResolutionType?
+  resolvedByAdminId  String?
+  resolvedByAdmin    AdminUser?             @relation("DisputesAdjudicated", fields: [resolvedByAdminId], references: [id], onDelete: SetNull)
+  resolvedByHostAt   DateTime?
+  memberRefundAmount Int?
+  hostReleaseAmount  Int?
+  resolutionNote     String?                @db.VarChar(500)
+  resolvedAt         DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([groupId])
+  @@index([status, deadline])
+  @@index([raisedByUserId])
+  @@map("disputes")
+}
+
+model PlatformReport {
+  id         String @id @default(cuid())
+  groupId    String
+  group      Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  reporterId String
+  reporter   User   @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+
+  description String  @db.VarChar(1000)
+  evidenceUrl String?
+
+  status            PlatformReportStatus @default(pending)
+  resolvedByAdminId String?
+  resolvedByAdmin   AdminUser?           @relation(fields: [resolvedByAdminId], references: [id], onDelete: SetNull)
+  resolutionNote    String?              @db.VarChar(500)
+  resolvedAt        DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([status])
+  @@index([groupId])
+  @@map("platform_reports")
+}
