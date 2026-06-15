@@ -10,7 +10,6 @@ import { getActiveUser } from '../../shared/stores/userStore'
 import SubscriptionCard from './components/SubscriptionCard'
 import EmptyState from '../../shared/components/ui/EmptyState'
 import GroupViewModal from '../../shared/components/modals/GroupViewModal'
-import ContactHostModal from './components/ContactHostModal'
 import { effectiveStatus } from '../../shared/utils/subscriptionStatus'
 import { daysUntil, todayISO } from '../../shared/utils/date'
 
@@ -46,8 +45,7 @@ export default function SubscriptionsPage() {
     activeUser ? enrichSubs(getSubscriptionsByUserId(activeUser.id)) : []
   )
   const [viewGroupId, setViewGroupId] = useState(null)
-  const [contactSub, setContactSub] = useState(null)
-  const [toast, setToast] = useState(null)
+const [toast, setToast] = useState(null)
 
   const userApplications = useMemo(
     () => activeUser ? getApplicationsByUserId(activeUser.id) : [],
@@ -155,12 +153,6 @@ export default function SubscriptionsPage() {
         onClose={() => setViewGroupId(null)}
         groupId={viewGroupId}
         onMarkPaid={sub => { markAsPaid(sub); setViewGroupId(null) }}
-        onContactHost={sub => { setViewGroupId(null); setContactSub(sub) }}
-      />
-      <ContactHostModal
-        sub={contactSub}
-        isOpen={!!contactSub}
-        onClose={() => setContactSub(null)}
       />
 
       <div role="status" aria-live="polite" aria-atomic="true" className="pointer-events-none fixed bottom-6 left-1/2 z-50 -translate-x-1/2">

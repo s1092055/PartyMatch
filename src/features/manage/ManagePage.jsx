@@ -5,7 +5,8 @@ import { adjustCreditScore } from '../../shared/stores/authStore'
 import { CREDIT_RULES } from '../../shared/utils/creditScore'
 import { getApplicationsByHostId, updateApplicationStatus } from '../../shared/stores/applicationStore'
 import { getMembersByGroupId, createMember, isUserGroupMember, removeMember, updateMember } from '../../shared/stores/memberStore'
-import { activateGroupSubscriptions, confirmSubscriptionPayment, createSubscription, getSubscriptionByUserAndGroup } from '../../shared/stores/subscriptionStore'
+import { activateGroupSubscriptions, confirmSubscriptionPayment, createSubscription, getSubscriptionByUserAndGroup, getSubscriptionsByGroupId } from '../../shared/stores/subscriptionStore'
+import { getPaymentRecordCountBySubIds } from '../../shared/stores/paymentStore'
 import { createNotification } from '../../shared/stores/notificationStore'
 import { getActiveUser } from '../../shared/stores/userStore'
 import { CONFIRMED_STATUSES } from '../../shared/constants/paymentStatus'
@@ -119,6 +120,15 @@ useEffect(() => {
     })
     return counts
   }, [applications])
+
+  const paymentCounts = useMemo(() => {
+    const counts = {}
+    allGroups.forEach(g => {
+      const subs = getSubscriptionsByGroupId(g.id)
+      counts[g.id] = getPaymentRecordCountBySubIds(subs.map(s => s.id))
+    })
+    return counts
+  }, [allGroups])
 
   const getModalGroup = id => id ? allGroups.find(g => g.id === id) : null
   const historyModalGroup = getModalGroup(historyModalGroupId)
@@ -354,6 +364,7 @@ function handleApprove(appId) {
                 group={g}
                 members={membersMap[g.id] ?? []}
                 pendingAppCount={applicationCounts[g.id] ?? 0}
+                paymentCount={paymentCounts[g.id] ?? 0}
                 {...groupHandlers(g)}
               />
             ))}

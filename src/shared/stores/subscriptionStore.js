@@ -17,6 +17,10 @@ export function getSubscriptionsByUserId(userId) {
   return _subs.filter(s => s.userId === userId)
 }
 
+export function getSubscriptionsByGroupId(groupId) {
+  return _subs.filter(s => s.groupId === groupId)
+}
+
 export function getSubscriptionByUserAndGroup(userId, groupId) {
   return _subs.find(s => s.userId === userId && s.groupId === groupId) ?? null
 }

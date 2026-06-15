@@ -12,3 +12,8 @@ export async function initPayments() {
 export function getPaymentRecordsBySubscriptionId(subscriptionId) {
   return _payments.filter(p => p.subscriptionId === subscriptionId)
 }
+
+export function getPaymentRecordCountBySubIds(subIds) {
+  const idSet = new Set(subIds)
+  return _payments.filter(p => idSet.has(p.subscriptionId)).length
+}
