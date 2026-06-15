@@ -1,7 +1,7 @@
 import { CheckCircle2, Calendar, Users, Edit2 } from 'lucide-react'
-import CreditScoreBadge from '../../../shared/components/ui/CreditScoreBadge'
+import CreditScoreBadge from '../../../shared/ui/CreditScoreBadge'
 
-export default function ProfileHeaderCard({ user, onEdit }) {
+export default function ProfileHeaderCard({ user, joinedCount, onEdit }) {
   return (
     <div className="card p-6 mb-5 flex flex-col md:flex-row items-start md:items-center gap-5">
 
@@ -35,14 +35,14 @@ export default function ProfileHeaderCard({ user, onEdit }) {
             <Calendar size={14} className="text-ink-3" />
             <div>
               <p className="text-xs text-ink-3">加入時間</p>
-              <p className="text-sm font-semibold text-ink-2">{user.createdAt}</p>
+              <p className="text-sm font-semibold text-ink-2">{user.joinedAt}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <Users size={14} className="text-ink-3" />
             <div>
               <p className="text-xs text-ink-3">已加入群組</p>
-              <p className="text-sm font-semibold text-ink-2">{user.joinedGroups.length} 個</p>
+              <p className="text-sm font-semibold text-ink-2">{joinedCount} 個</p>
             </div>
           </div>
           <div className="flex items-center gap-2">

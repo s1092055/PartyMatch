@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
+import { readStorage, writeStorage } from '../../../../shared/utils/storage'
+
+const PAYMENT_METHODS_KEY = 'pm_payment_methods'
 
 const INIT_CARDS = [
   { id: 'card_001', brand: 'Visa',       last4: '4242', expiry: '12/27', isDefault: true },
@@ -12,21 +15,26 @@ const BRAND_COLOR = {
 }
 
 export default function PaymentMethodsTab() {
-  const [cards, setCards]       = useState(INIT_CARDS)
+  const [cards, setCards]       = useState(() => readStorage(PAYMENT_METHODS_KEY, INIT_CARDS))
   const [showForm, setShowForm] = useState(false)
   const [newCard, setNewCard]   = useState({ number: '', expiry: '', cvc: '', name: '' })
 
+  function saveCards(next) {
+    setCards(next)
+    writeStorage(PAYMENT_METHODS_KEY, next)
+  }
+
   function setDefault(id) {
-    setCards(prev => prev.map(c => ({ ...c, isDefault: c.id === id })))
+    saveCards(cards.map(c => ({ ...c, isDefault: c.id === id })))
   }
 
   function remove(id) {
-    setCards(prev => prev.filter(c => c.id !== id))
+    saveCards(cards.filter(c => c.id !== id))
   }
 
   function addCard() {
     if (!newCard.number || !newCard.expiry) return
-    setCards(prev => [...prev, {
+    saveCards([...cards, {
       id: `card_${Date.now()}`,
       brand: 'Visa',
       last4: newCard.number.slice(-4),

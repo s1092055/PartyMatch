@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Globe, LogOut, Shield, Trash2 } from 'lucide-react'
 import { logoutUser } from '../../../../shared/stores/authStore'
 import { readStorage, writeStorage } from '../../../../shared/utils/storage'
-import Toggle from '../../../../shared/components/ui/Toggle'
+import Toggle from '../../../../shared/ui/Toggle'
 
 const PREFS_KEY = 'pm_app_prefs'
 const DEFAULT_PREFS = {

@@ -1,5 +1,8 @@
 import { useState } from 'react'
-import Toggle from '../../../../shared/components/ui/Toggle'
+import Toggle from '../../../../shared/ui/Toggle'
+import { readStorage, writeStorage } from '../../../../shared/utils/storage'
+
+const NOTIFICATION_PREFS_KEY = 'pm_notification_prefs'
 
 const NOTIFICATION_GROUPS = [
   {
@@ -29,13 +32,18 @@ const NOTIFICATION_GROUPS = [
 
 export default function NotificationTab() {
   const [prefs, setPrefs] = useState(() =>
-    Object.fromEntries(
-      NOTIFICATION_GROUPS.flatMap(g => g.items).map(i => [i.id, i.default])
+    readStorage(
+      NOTIFICATION_PREFS_KEY,
+      Object.fromEntries(NOTIFICATION_GROUPS.flatMap(g => g.items).map(i => [i.id, i.default])),
     )
   )
 
   function toggle(id) {
-    setPrefs(prev => ({ ...prev, [id]: !prev[id] }))
+    setPrefs(prev => {
+      const next = { ...prev, [id]: !prev[id] }
+      writeStorage(NOTIFICATION_PREFS_KEY, next)
+      return next
+    })
   }
 
   return (

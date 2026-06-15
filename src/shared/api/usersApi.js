@@ -1,5 +1,5 @@
 import { db } from '../../app/firebase'
-import { doc, getDoc, updateDoc } from 'firebase/firestore'
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore'
 
 function normalizeLegacyScore(raw) {
   const n = Number(raw)
@@ -16,4 +16,8 @@ export async function patchUserCreditScore(userId, delta) {
   const newScore = Math.max(0, Math.min(100, Math.round(current + delta)))
   await updateDoc(ref, { creditScore: newScore })
   return newScore
+}
+
+export async function upsertUserProfile(userId, profile) {
+  await setDoc(doc(db, 'users', userId), profile, { merge: true })
 }

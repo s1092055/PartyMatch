@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Lock, Mail, User } from 'lucide-react'
-import AuthLayout, { AuthInput, AuthDivider, GoogleMark, PasswordToggle } from '../../../shared/components/auth/AuthLayout'
-import Button from '../../../shared/components/ui/Button'
-import { registerUser } from '../../../shared/stores/authStore'
+import AuthLayout, { AuthInput, AuthDivider, GoogleMark, PasswordToggle } from '../components/AuthLayout'
+import Button from '../../../shared/ui/Button'
+import { loginWithGoogle, registerUser } from '../../../shared/stores/authStore'
 
 export default function RegisterPage() {
   const navigate = useNavigate()
@@ -36,6 +36,19 @@ export default function RegisterPage() {
     setLoading(true)
     setError('')
     const result = await registerUser(form)
+    setLoading(false)
+    if (!result.ok) {
+      setError(result.error)
+      return
+    }
+    navigate('/', { replace: true })
+  }
+
+  async function handleGoogleLogin() {
+    if (loading) return
+    setLoading(true)
+    setError('')
+    const result = await loginWithGoogle()
     setLoading(false)
     if (!result.ok) {
       setError(result.error)
@@ -124,7 +137,8 @@ export default function RegisterPage() {
         variant="ghost"
         size="lg"
         className="h-[3.5rem] w-full border border-line bg-surface text-base text-ink hover:bg-raised"
-        disabled
+        disabled={loading}
+        onClick={handleGoogleLogin}
       >
         <GoogleMark />
         以 Google 繼續
@@ -148,4 +162,3 @@ function getValidationError(form, accepted) {
   if (!accepted) return '請先同意服務條款與隱私政策'
   return ''
 }
-

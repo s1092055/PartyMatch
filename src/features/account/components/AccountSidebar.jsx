@@ -1,6 +1,5 @@
 import { BarChart2, CheckCircle2, CreditCard, Mail, ShieldCheck, Smartphone, TrendingUp, XCircle } from 'lucide-react'
-import { getSubscriptionsByUserId } from '../../../shared/stores/subscriptionStore'
-import CreditScoreBadge from '../../../shared/components/ui/CreditScoreBadge'
+import CreditScoreBadge from '../../../shared/ui/CreditScoreBadge'
 
 function Panel({ title, icon: Icon, iconCls = 'text-blue-500', children }) {
   return (
@@ -14,9 +13,8 @@ function Panel({ title, icon: Icon, iconCls = 'text-blue-500', children }) {
   )
 }
 
-export default function AccountSidebar({ user }) {
-  const subs   = getSubscriptionsByUserId(user.id).filter(s => s.status === 'active')
-  const monthly = subs.reduce((sum, s) => sum + s.pricePerSeat, 0)
+export default function AccountSidebar({ user, activeSubs = [], totalSubs = 0 }) {
+  const monthly = activeSubs.reduce((sum, s) => sum + s.pricePerSeat, 0)
 
   const VERIFICATIONS = [
     { icon: Smartphone, label: '手機號碼', verified: true },
@@ -69,9 +67,9 @@ export default function AccountSidebar({ user }) {
 <Panel title="訂閱統計" icon={BarChart2} iconCls="text-indigo-500">
         <div className="space-y-2.5">
           {[
-            { icon: CreditCard,  label: '活躍訂閱', value: `${subs.length} 個` },
+            { icon: CreditCard,  label: '活躍訂閱', value: `${activeSubs.length} 個` },
             { icon: TrendingUp,  label: '本月支出',  value: `NT$${monthly}` },
-            { icon: CheckCircle2,label: '加入群組',  value: `${user.joinedGroups.length} 個` },
+            { icon: CheckCircle2,label: '加入群組',  value: `${totalSubs} 個` },
           ].map(({ icon: Icon, label, value }) => (
             <div key={label} className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm text-slate-500">

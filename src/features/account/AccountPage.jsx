@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { getActiveUserProfile } from "../../shared/stores/userStore";
-import Tabs from "../../shared/components/ui/Tabs";
-import PageHeader from "../../shared/components/layout/PageHeader";
+import { updateCurrentUserProfile, getActiveUserProfile } from "../../shared/stores/authStore";
+import { getSubscriptionsByUserId } from "../../shared/stores/subscriptionStore";
+import Tabs from "../../shared/ui/Tabs";
+import PageHeader from "../../shared/layout/PageHeader";
 import ProfileHeaderCard from "./components/ProfileHeaderCard";
 import AccountSidebar from "./components/AccountSidebar";
 import PersonalInfoTab from "./components/tabs/PersonalInfoTab";
@@ -20,22 +21,29 @@ const TABS = [
 
 export default function AccountPage() {
   const [activeTab, setActiveTab] = useState("profile");
-  const [user, setUser] = useState({
-    ...getActiveUserProfile(),
-    phone: "+886-912-345-678",
-    bio: "熱愛音樂與影音內容，長期使用共享訂閱服務。",
-    lineId: "@partymatch_user",
+  const [user, setUser] = useState(() => {
+    const profile = getActiveUserProfile();
+    return {
+      ...profile,
+      phone: profile?.phone ?? "",
+      bio: profile?.bio ?? "",
+      lineId: profile?.lineId ?? "",
+    };
   });
+
+  const allSubs    = getSubscriptionsByUserId(user.id)
+  const activeSubs = allSubs.filter(s => s.status === 'active')
 
   function handleUserChange(key, value) {
     setUser((prev) => ({ ...prev, [key]: value }));
+    updateCurrentUserProfile({ [key]: value }).catch(console.error);
   }
 
   return (
     <div>
       <PageHeader title="帳號中心" className="mb-6 text-center" />
 
-      <ProfileHeaderCard user={user} onEdit={() => setActiveTab("profile")} />
+      <ProfileHeaderCard user={user} joinedCount={allSubs.length} onEdit={() => setActiveTab("profile")} />
 
       <div className="flex flex-col lg:flex-row gap-5 lg:items-start">
         <div className="flex-1 min-w-0">
@@ -56,7 +64,7 @@ export default function AccountPage() {
         </div>
 
         <div className="w-full lg:w-[18rem] shrink-0">
-          <AccountSidebar user={user} />
+          <AccountSidebar user={user} activeSubs={activeSubs} totalSubs={allSubs.length} />
         </div>
       </div>
     </div>

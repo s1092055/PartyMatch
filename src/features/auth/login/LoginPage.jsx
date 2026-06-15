@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Lock, Mail } from 'lucide-react'
-import AuthLayout, { AuthInput, AuthDivider, GoogleMark, PasswordToggle } from '../../../shared/components/auth/AuthLayout'
-import Button from '../../../shared/components/ui/Button'
-import { loginUser } from '../../../shared/stores/authStore'
+import AuthLayout, { AuthInput, AuthDivider, GoogleMark, PasswordToggle } from '../components/AuthLayout'
+import Button from '../../../shared/ui/Button'
+import { loginUser, loginWithGoogle } from '../../../shared/stores/authStore'
 import { toast } from '../../../shared/utils/toast'
 
 function safeRedirect(path) {
@@ -28,6 +28,20 @@ export default function LoginPage() {
     const result = await loginUser({ email, password })
     if (!result.ok) {
       setLoading(false)
+      setError(result.error)
+      return
+    }
+    toast('登入成功！歡迎回來')
+    navigate(safeRedirect(searchParams.get('redirectTo')), { replace: true })
+  }
+
+  async function handleGoogleLogin() {
+    if (loading) return
+    setLoading(true)
+    setError('')
+    const result = await loginWithGoogle()
+    setLoading(false)
+    if (!result.ok) {
       setError(result.error)
       return
     }
@@ -87,7 +101,8 @@ export default function LoginPage() {
         variant="ghost"
         size="lg"
         className="h-[3.5rem] w-full border border-line bg-surface text-base text-ink hover:bg-raised"
-        disabled
+        disabled={loading}
+        onClick={handleGoogleLogin}
       >
         <GoogleMark />
         以 Google 繼續
@@ -102,4 +117,3 @@ export default function LoginPage() {
     </AuthLayout>
   )
 }
-
