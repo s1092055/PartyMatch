@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowLeft, MessageSquare, Search, Send, SquarePen } from 'lucide-react'
+import { createPortal } from 'react-dom'
+import { ArrowLeft, LogOut, MessageSquare, MoreVertical, Search, Send, SquarePen, Trash2, Users, X } from 'lucide-react'
 import ServiceLogo from '../../shared/ui/ServiceLogo'
 import ModalShell from '../../shared/ui/ModalShell'
 import { getCurrentUser, isAuthenticated } from '../../shared/stores/authStore'
+import { getMembersByGroupId } from '../../shared/stores/memberStore'
 import LoginPromptModal from '../../shared/ui/LoginPromptModal'
 import {
   subscribeToConversations,
@@ -10,7 +12,37 @@ import {
   sendMessage,
   markConversationRead,
   getOrCreateDmConversation,
+  leaveConversation,
+  sendSystemMessage,
 } from '../../shared/api/messagesApi'
+
+function ConfirmDialog({ title, message, confirmLabel, danger = false, onConfirm, onCancel }) {
+  return createPortal(
+    <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/50 p-4 sm:items-center">
+      <div className="w-full max-w-sm animate-fade-in-up rounded-2xl bg-white p-6 shadow-2xl">
+        <h3 className="text-base font-extrabold text-ink">{title}</h3>
+        <p className="mt-2 text-sm leading-relaxed text-ink-3">{message}</p>
+        <div className="mt-6 flex gap-3">
+          <button
+            onClick={onCancel}
+            className="flex-1 rounded-xl border border-line py-2.5 text-sm font-bold text-ink transition-colors hover:bg-raised"
+          >
+            取消
+          </button>
+          <button
+            onClick={onConfirm}
+            className={`flex-1 rounded-xl py-2.5 text-sm font-bold text-white transition-colors ${
+              danger ? 'bg-danger hover:bg-red-700' : 'bg-brand hover:bg-brand-hover'
+            }`}
+          >
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  )
+}
 
 const CONV_TABS = [
   { id: 'all',    label: '全部', filter: () => true },
@@ -59,6 +91,19 @@ export default function MessagesModal() {
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
   const isComposingRef = useRef(false)
+  const inputFocusedRef = useRef(false)
+  const menuRef = useRef(null)
+
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [showMembers, setShowMembers] = useState(false)
+  const [confirmDialog, setConfirmDialog] = useState(null)
+  const [prevSelectedId, setPrevSelectedId] = useState(selectedId)
+
+  if (prevSelectedId !== selectedId) {
+    setPrevSelectedId(selectedId)
+    if (menuOpen) setMenuOpen(false)
+    if (showMembers) setShowMembers(false)
+  }
 
   useEffect(() => {
     function onOpen(e) {
@@ -112,8 +157,61 @@ export default function MessagesModal() {
   }, [messages])
 
   useEffect(() => {
+    if (!selectedId || !inputFocusedRef.current || messages.length === 0) return
+    const user = getCurrentUser()
+    if (user) markConversationRead(selectedId, user.id).catch(console.error)
+  }, [messages, selectedId])
+
+  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'instant' })
   }, [selectedId, isOpen])
+
+
+  useEffect(() => {
+    if (!menuOpen) return
+    function onClickOutside(e) {
+      if (!menuRef.current?.contains(e.target)) setMenuOpen(false)
+    }
+    document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [menuOpen])
+
+  function handleLeaveGroup() {
+    if (!selectedId || !user) return
+    setMenuOpen(false)
+    setConfirmDialog({
+      title: '退出群組',
+      message: '確定要退出此群組嗎？退出後將無法再看到群組訊息。',
+      confirmLabel: '退出',
+      danger: true,
+      onConfirm: async () => {
+        setConfirmDialog(null)
+        try {
+          await sendSystemMessage(selectedId, `${user.name} 已退出群組`)
+          await leaveConversation(selectedId, user.id)
+        } catch (e) { console.error(e) }
+        setSelectedId(null)
+      },
+    })
+  }
+
+  function handleDeleteConversation() {
+    if (!selectedId || !user) return
+    setMenuOpen(false)
+    setConfirmDialog({
+      title: '刪除對話',
+      message: '確定要刪除此對話嗎？刪除後對話將從列表中移除。',
+      confirmLabel: '刪除',
+      danger: true,
+      onConfirm: async () => {
+        setConfirmDialog(null)
+        try {
+          await leaveConversation(selectedId, user.id)
+        } catch (e) { console.error(e) }
+        setSelectedId(null)
+      },
+    })
+  }
 
   function handleClose() {
     setIsOpen(false)
@@ -176,6 +274,17 @@ export default function MessagesModal() {
     .filter(c => !searchQuery || c.name?.includes(searchQuery))
 
   return (
+    <>
+    {confirmDialog && (
+      <ConfirmDialog
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        confirmLabel={confirmDialog.confirmLabel}
+        danger={confirmDialog.danger}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog(null)}
+      />
+    )}
     <ModalShell
       onClose={handleClose}
       icon={<MessageSquare size={20} className="text-brand" />}
@@ -255,7 +364,7 @@ export default function MessagesModal() {
           </div>
 
           {/* 聊天視窗 */}
-          <div className={`flex flex-1 flex-col ${selectedId ? 'flex' : 'hidden md:flex'}`}>
+          <div className={`relative flex flex-1 flex-col ${selectedId ? 'flex' : 'hidden md:flex'}`}>
             {selected ? (
               <>
                 {/* 聊天室名稱 header */}
@@ -268,55 +377,147 @@ export default function MessagesModal() {
                     <ArrowLeft size={18} />
                   </button>
                   <ConversationAvatar conversation={selected} size={36} />
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-extrabold text-ink">{selected.name}</p>
                     <p className="text-xs text-ink-3">{selected.participants?.length ?? 2} 位成員</p>
                   </div>
+                  <div ref={menuRef} className="relative shrink-0">
+                    <button
+                      onClick={() => setMenuOpen(v => !v)}
+                      className="grid h-9 w-9 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+                      aria-label="更多選項"
+                    >
+                      <MoreVertical size={18} />
+                    </button>
+                    {menuOpen && (
+                      <div className="absolute right-0 top-full z-20 mt-1 w-44 overflow-hidden rounded-2xl border border-line bg-white p-1 shadow-popover">
+                        {selected.type === 'group' && (
+                          <>
+                            <button
+                              onClick={() => { setShowMembers(v => !v); setMenuOpen(false) }}
+                              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-raised"
+                            >
+                              <Users size={15} />
+                              群組成員
+                            </button>
+                            <button
+                              onClick={handleLeaveGroup}
+                              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-raised"
+                            >
+                              <LogOut size={15} />
+                              退出群組
+                            </button>
+                            <div className="my-1 h-px bg-line-subtle" />
+                          </>
+                        )}
+                        <button
+                          onClick={handleDeleteConversation}
+                          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-danger transition-colors hover:bg-danger-subtle"
+                        >
+                          <Trash2 size={15} />
+                          刪除對話
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
+
+                {/* 成員面板 */}
+                {showMembers && selected.type === 'group' && (() => {
+                  const groupMembers = selected.groupId ? getMembersByGroupId(selected.groupId) : []
+                  const memberMap = Object.fromEntries(groupMembers.map(m => [m.userId, m]))
+                  return (
+                    <div className="absolute bottom-0 right-0 top-0 z-10 flex w-60 flex-col border-l border-line bg-white shadow-lg">
+                      <div className="flex h-14 shrink-0 items-center justify-between border-b border-line px-4">
+                        <span className="text-sm font-extrabold text-ink">群組成員</span>
+                        <button
+                          onClick={() => setShowMembers(false)}
+                          className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                      <div className="flex-1 overflow-y-auto p-3">
+                        {(selected.participants ?? []).map(pid => {
+                          const meta = selected.participantMeta?.[pid]
+                          const member = memberMap[pid]
+                          const name         = meta?.name         ?? member?.userName          ?? '成員'
+                          const avatarInitial = meta?.avatarInitial ?? member?.userAvatarInitial ?? name[0] ?? '?'
+                          const avatarColor  = meta?.avatarColor  ?? member?.userAvatarColor   ?? '#64748b'
+                          return (
+                            <div key={pid} className="flex items-center gap-3 rounded-xl px-2 py-2">
+                              <span
+                                className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-xs font-black text-white"
+                                style={{ background: avatarColor }}
+                              >
+                                {avatarInitial}
+                              </span>
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate text-sm font-semibold text-ink">{name}</p>
+                                {pid === user?.id && <p className="text-xs text-ink-4">（我）</p>}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })()}
 
                 <div className="flex-1 overflow-y-auto bg-canvas">
                   <div className="space-y-3 px-4 py-4">
-                  {messages.map(msg => {
-                    if (msg.type === 'system') {
-                      return (
-                        <div key={msg.id} className="flex justify-center">
-                          <div className="max-w-xs whitespace-pre-line rounded-2xl bg-raised px-4 py-2 text-center text-xs text-ink-3">
-                            {msg.text}
-                          </div>
-                        </div>
-                      )
-                    }
-                    const isMine = msg.senderId === user?.id
-                    if (isMine) {
-                      return (
-                        <div key={msg.id} className="flex justify-end">
-                          <div className="max-w-[70%]">
-                            <div className="rounded-2xl rounded-tr-md bg-brand px-4 py-2.5 text-sm text-white">
+                  {(() => {
+                    const userId = user?.id
+                    const otherIds = selected?.participants?.filter(p => p !== userId) ?? []
+                    const isReadByOther =
+                      otherIds.length > 0 &&
+                      otherIds.every(id => (selected?.unreadCounts?.[id] ?? 0) === 0)
+
+                    return messages.map(msg => {
+                      if (msg.type === 'system') {
+                        return (
+                          <div key={msg.id} className="flex justify-center">
+                            <div className="max-w-xs whitespace-pre-line rounded-2xl bg-raised px-4 py-2 text-center text-xs text-ink-3">
                               {msg.text}
                             </div>
-                            <p className="mt-1 text-right text-xs text-ink-4">{formatTime(msg.createdAt)}</p>
+                          </div>
+                        )
+                      }
+                      const isMine = msg.senderId === userId
+                      if (isMine) {
+                        return (
+                          <div key={msg.id} className="flex justify-end">
+                            <div className="max-w-[70%]">
+                              <div className="rounded-2xl rounded-tr-md bg-brand px-4 py-2.5 text-sm text-white">
+                                {msg.text}
+                              </div>
+                              <div className="mt-1 flex items-center justify-end gap-1.5">
+                                <span className="text-xs text-ink-4">{formatTime(msg.createdAt)}</span>
+                                {isReadByOther && <span className="text-xs text-ink-4">已讀</span>}
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      }
+                      return (
+                        <div key={msg.id} className="flex items-end gap-2">
+                          <span
+                            className="mb-6 grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-black text-white"
+                            style={{ background: msg.avatarColor ?? '#64748b' }}
+                          >
+                            {msg.avatarInitial}
+                          </span>
+                          <div className="max-w-[70%]">
+                            <p className="mb-1 text-xs font-bold text-ink-3">{msg.senderName}</p>
+                            <div className="rounded-2xl rounded-tl-md bg-white px-4 py-2.5 text-sm text-ink shadow-sm">
+                              {msg.text}
+                            </div>
+                            <p className="mt-1 text-xs text-ink-4">{formatTime(msg.createdAt)}</p>
                           </div>
                         </div>
                       )
-                    }
-                    return (
-                      <div key={msg.id} className="flex items-end gap-2">
-                        <span
-                          className="mb-6 grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-black text-white"
-                          style={{ background: msg.avatarColor ?? '#64748b' }}
-                        >
-                          {msg.avatarInitial}
-                        </span>
-                        <div className="max-w-[70%]">
-                          <p className="mb-1 text-xs font-bold text-ink-3">{msg.senderName}</p>
-                          <div className="rounded-2xl rounded-tl-md bg-white px-4 py-2.5 text-sm text-ink shadow-sm">
-                            {msg.text}
-                          </div>
-                          <p className="mt-1 text-xs text-ink-4">{formatTime(msg.createdAt)}</p>
-                        </div>
-                      </div>
-                    )
-                  })}
+                    })
+                  })()}
                   <div ref={messagesEndRef} />
                   </div>
                 </div>
@@ -332,6 +533,12 @@ export default function MessagesModal() {
                       type="text"
                       placeholder="輸入訊息..."
                       onChange={e => { setCanSend(e.target.value.trim().length > 0); setSendError(false) }}
+                      onFocus={() => {
+                        inputFocusedRef.current = true
+                        const user = getCurrentUser()
+                        if (user && selectedId) markConversationRead(selectedId, user.id).catch(console.error)
+                      }}
+                      onBlur={() => { inputFocusedRef.current = false }}
                       onCompositionStart={() => { isComposingRef.current = true }}
                       onCompositionEnd={() => { isComposingRef.current = false }}
                       onKeyDown={handleKeyDown}
@@ -359,5 +566,6 @@ export default function MessagesModal() {
 
       </div>{/* end flex-1 overflow-hidden */}
     </ModalShell>
+    </>
   )
 }

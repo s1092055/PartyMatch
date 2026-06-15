@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { Bell, ChevronDown, Lock, LogIn, LogOut, Menu, MessageSquare, Search, X } from 'lucide-react'
 import logoUrl from '../../assets/Logo.svg'
 import { getCurrentUser, isAuthenticated, logoutUser } from '../stores/authStore'
@@ -17,6 +17,11 @@ function Badge({ count }) {
       {count > 99 ? '99+' : count}
     </span>
   )
+}
+
+function RedDot({ show }) {
+  if (!show) return null
+  return <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500" />
 }
 
 const PROTECTED_NAV_ROUTES = new Set([
@@ -45,6 +50,15 @@ function LockedHint({ className = '' }) {
 }
 
 export default function AppNav({ variant = 'side' }) {
+  const navigate = useNavigate()
+  const [, forceUpdate] = useState(0)
+
+  useEffect(() => {
+    function onAuthChanged() { forceUpdate(n => n + 1) }
+    window.addEventListener('pm:auth-changed', onAuthChanged)
+    return () => window.removeEventListener('pm:auth-changed', onAuthChanged)
+  }, [])
+
   const loggedIn = isAuthenticated()
   const currentUser = getCurrentUser()
   const userName = currentUser?.name ?? currentUser?.displayName ?? '使用者'
@@ -126,9 +140,12 @@ export default function AppNav({ variant = 'side' }) {
     window.location.replace('/login')
   }
 
-  function preventLockedAction(e) {
+  function preventLockedAction(e, redirectTo) {
     e.preventDefault()
     e.stopPropagation()
+    const target = redirectTo || '/'
+    closeAll()
+    navigate(`/login?redirectTo=${encodeURIComponent(target)}`)
   }
 
   function isGuestLocked(item) {
@@ -138,16 +155,16 @@ export default function AppNav({ variant = 'side' }) {
   function renderDrawerItem(item) {
     if (isGuestLocked(item)) {
       const Icon = item.icon ?? Lock
+      const redirectTo = item.type === 'create' ? '/create-group' : item.to
 
       return (
         <button
           key={getNavItemKey(item)}
           type="button"
-          aria-disabled="true"
           aria-label={`${item.label}，${LOCKED_MESSAGE}`}
           title={LOCKED_MESSAGE}
-          onClick={preventLockedAction}
-          className="group/locked relative flex h-12 w-full cursor-not-allowed items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-4 transition-colors hover:!translate-y-0 hover:bg-raised active:!scale-100"
+          onClick={e => preventLockedAction(e, redirectTo)}
+          className="group/locked relative flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-4 transition-colors hover:!translate-y-0 hover:bg-raised active:!scale-100"
         >
           <Icon size={20} strokeWidth={2.1} />
           <span className="flex-1 text-left">{item.label}</span>
@@ -209,16 +226,16 @@ export default function AppNav({ variant = 'side' }) {
   function renderSideItem(item) {
     if (isGuestLocked(item)) {
       const Icon = item.icon ?? Lock
+      const redirectTo = item.type === 'create' ? '/create-group' : item.to
 
       return (
         <button
           key={getNavItemKey(item)}
           type="button"
-          aria-disabled="true"
           aria-label={`${item.label}，${LOCKED_MESSAGE}`}
           title={LOCKED_MESSAGE}
-          onClick={preventLockedAction}
-          className="group/locked relative flex h-12 w-full cursor-not-allowed items-center gap-3 rounded-2xl px-1 text-ink-4 transition-colors hover:!translate-y-0 hover:bg-raised active:!scale-100"
+          onClick={e => preventLockedAction(e, redirectTo)}
+          className="group/locked relative flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-4 transition-colors hover:!translate-y-0 hover:bg-raised active:!scale-100"
         >
           <span className="relative grid h-9 w-9 shrink-0 place-items-center">
             <Icon size={22} strokeWidth={2.1} />
@@ -543,31 +560,14 @@ export default function AppNav({ variant = 'side' }) {
         <Link to="/" className="flex items-center gap-2" aria-label="回首頁">
           <img src={logoUrl} alt="PartyMatch" className="h-8 w-8" />
         </Link>
-        <div className="flex items-center gap-1">
-          <button
-            onClick={openNotify}
-            className="relative grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink"
-            aria-label="通知"
-          >
-            <Bell size={20} strokeWidth={2} />
-            <Badge count={unreadNotifs} />
-          </button>
-          <div className="relative">
-            {renderMessageButton({
-              className: 'grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink',
-              iconSize: 20,
-              tooltipClassName: 'right-0 top-full mt-2',
-            })}
-            <Badge count={unreadMsgs} />
-          </div>
-          <button
-            onClick={() => setDrawerOpen(v => !v)}
-            className="grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink"
-            aria-label="開啟選單"
-          >
-            <Menu size={22} strokeWidth={2} />
-          </button>
-        </div>
+        <button
+          onClick={() => setDrawerOpen(v => !v)}
+          className="relative grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink"
+          aria-label="開啟選單"
+        >
+          <Menu size={22} strokeWidth={2} />
+          <RedDot show={(unreadNotifs > 0 || unreadMsgs > 0) && !drawerOpen} />
+        </button>
       </header>
 
       {/* Mobile overlay */}
@@ -598,6 +598,42 @@ export default function AppNav({ variant = 'side' }) {
         </div>
 
         <nav className="flex-1 overflow-y-auto px-3 py-4">
+          {/* 通知 & 訊息快捷按鈕 */}
+          <div className="mb-3 grid grid-cols-2 gap-2">
+            <button
+              onClick={openNotify}
+              className="relative flex h-12 items-center justify-center gap-2 rounded-2xl bg-raised text-sm font-bold text-ink-2 transition-colors hover:bg-line-subtle hover:text-brand"
+            >
+              <Bell size={18} strokeWidth={2.1} />
+              通知
+              <Badge count={unreadNotifs} />
+            </button>
+            {loggedIn ? (
+              <button
+                onClick={openMessages}
+                className="relative flex h-12 items-center justify-center gap-2 rounded-2xl bg-raised text-sm font-bold text-ink-2 transition-colors hover:bg-line-subtle hover:text-brand"
+              >
+                <MessageSquare size={18} strokeWidth={2.1} />
+                訊息
+                <Badge count={unreadMsgs} />
+              </button>
+            ) : (
+              <button
+                type="button"
+                aria-disabled="true"
+                title={LOCKED_MESSAGE}
+                onClick={preventLockedAction}
+                className="group/locked relative flex h-12 cursor-not-allowed items-center justify-center gap-2 rounded-2xl bg-raised text-sm font-bold text-ink-4"
+              >
+                <MessageSquare size={18} strokeWidth={2.1} className="opacity-55" />
+                訊息
+                <Lock size={11} strokeWidth={2.3} className="absolute right-2 top-2 rounded-full bg-raised text-ink-4" />
+                <LockedHint className="left-1/2 top-full mt-1 -translate-x-1/2" />
+              </button>
+            )}
+          </div>
+          <div className="mb-2 h-px bg-line-subtle" />
+
           {NAV_SECTIONS.map((section, i) => (
             <Fragment key={section.label}>
               {i > 0 && <div className="my-2 h-px bg-line-subtle" />}

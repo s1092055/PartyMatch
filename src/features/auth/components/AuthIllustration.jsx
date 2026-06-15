@@ -63,6 +63,7 @@ export default function AuthIllustration({ title = '更聰明的訂閱方式' })
             <p className="mt-1 text-xs font-semibold text-slate-500">每月 NT$390</p>
           </div>
         </div>
+
         <div className="mt-7 flex items-center justify-between">
           <div className="flex -space-x-3">
             {['陳', '林', '王', '張'].map((name, index) => (

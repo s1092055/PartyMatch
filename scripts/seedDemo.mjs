@@ -505,15 +505,15 @@ function buildDemoData(uid, rate) {
 
   // ── Notifications ─────────────────────────────────────────────────
   const notifications = [
-    { id: 'demo_notif_01', userId: uid, type: 'application', title: '新的加入申請', message: '江文彬 申請加入你的 Spotify Premium 群組', isRead: false, createdAt: '2026-05-18', _demo: D },
-    { id: 'demo_notif_02', userId: uid, type: 'payment', title: '成員標記付款', message: '王大偉 已標記付款 Netflix 高級（4K）本期費用 NT$98', isRead: false, createdAt: '2026-05-18', _demo: D },
-    { id: 'demo_notif_03', userId: uid, type: 'payment', title: '成員標記付款', message: '劉詩涵 已標記付款 Netflix 高級（4K）本期費用 NT$98', isRead: false, createdAt: '2026-05-17', _demo: D },
-    { id: 'demo_notif_04', userId: uid, type: 'payment', title: '成員標記付款', message: '吳俊霖 已標記付款 Netflix 高級（4K）本期費用 NT$98', isRead: true, createdAt: '2026-05-16', _demo: D },
-    { id: 'demo_notif_05', userId: uid, type: 'system', title: '申請已送出', message: '你已申請加入 Apple Music 家庭方案，等待團主審核', isRead: true, createdAt: '2026-05-17', _demo: D },
-    { id: 'demo_notif_06', userId: uid, type: 'payment', title: '付款確認', message: 'ChatGPT Plus 團主已確認收到你 5 月的費用 NT$325', isRead: true, createdAt: '2026-05-16', _demo: D },
-    { id: 'demo_notif_07', userId: uid, type: 'application', title: '新的加入申請', message: '蔡欣儀 申請加入你的 Spotify Premium 群組', isRead: false, createdAt: '2026-05-19', _demo: D },
-    { id: 'demo_notif_08', userId: uid, type: 'payment', title: '即將到期提醒', message: 'Disney+ 標準方案 將於 5 月 27 日扣款 NT$45，請確認帳戶餘額', isRead: false, createdAt: '2026-05-20', _demo: D },
-    { id: 'demo_notif_09', userId: uid, type: 'application', title: '申請未通過', message: '很抱歉，你申請加入的 Microsoft 365 家庭版群組申請未通過', isRead: true, createdAt: '2026-05-09', _demo: D },
+    { id: 'demo_notif_01', userId: uid, type: 'new_application',      title: '新的加入申請', message: '江文彬 申請加入你的 Spotify Premium 群組', isRead: false, createdAt: '2026-05-18', _demo: D },
+    { id: 'demo_notif_02', userId: uid, type: 'payment',              title: '成員標記付款', message: '王大偉 已標記付款 Netflix 高級（4K）本期費用 NT$98', isRead: false, createdAt: '2026-05-18', _demo: D },
+    { id: 'demo_notif_03', userId: uid, type: 'payment',              title: '成員標記付款', message: '劉詩涵 已標記付款 Netflix 高級（4K）本期費用 NT$98', isRead: false, createdAt: '2026-05-17', _demo: D },
+    { id: 'demo_notif_04', userId: uid, type: 'payment',              title: '成員標記付款', message: '吳俊霖 已標記付款 Netflix 高級（4K）本期費用 NT$98', isRead: true,  createdAt: '2026-05-16', _demo: D },
+    { id: 'demo_notif_05', userId: uid, type: 'application_approved', title: '申請已送出', message: '你已申請加入 Apple Music 家庭方案，等待團主審核', isRead: true,  createdAt: '2026-05-17', _demo: D },
+    { id: 'demo_notif_06', userId: uid, type: 'payment_confirmed',    title: '付款確認', message: 'ChatGPT Plus 團主已確認收到你 5 月的費用 NT$325', isRead: true,  createdAt: '2026-05-16', _demo: D },
+    { id: 'demo_notif_07', userId: uid, type: 'new_application',      title: '新的加入申請', message: '蔡欣儀 申請加入你的 Spotify Premium 群組', isRead: false, createdAt: '2026-05-19', _demo: D },
+    { id: 'demo_notif_08', userId: uid, type: 'payment_reminder',     title: '即將到期提醒', message: 'Disney+ 標準方案 將於 5 月 27 日扣款 NT$45，請確認帳戶餘額', isRead: false, createdAt: '2026-05-20', _demo: D },
+    { id: 'demo_notif_09', userId: uid, type: 'application_rejected', title: '申請未通過', message: '很抱歉，你申請加入的 Microsoft 365 家庭版群組申請未通過', isRead: true,  createdAt: '2026-05-09', _demo: D },
   ]
 
   // ── Favorites ─────────────────────────────────────────────────────

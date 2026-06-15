@@ -79,6 +79,7 @@ export function createNotification({ userId, type, title, message }) {
   }
   _notifications.unshift(notif)
   insertNotification(notif).catch(console.error)
+  window.dispatchEvent(new CustomEvent('pm:notif-changed'))
   return notif
 }
 

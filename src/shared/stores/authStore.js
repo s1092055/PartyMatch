@@ -43,20 +43,22 @@ async function buildUserProfile(firebaseUser) {
 }
 
 async function ensureUserProfile(firebaseUser) {
-  const profile = {
+  const ref = doc(db, 'users', firebaseUser.uid)
+  const snap = await getDoc(ref)
+  const existing = snap.exists() ? snap.data() : {}
+  await setDoc(ref, {
     name:        firebaseUser.displayName?.trim() || '使用者',
     email:       firebaseUser.email,
     avatarUrl:   firebaseUser.photoURL ?? null,
-    avatarColor: null,
-    joinedAt:    todayISO(),
-    role:        'user',
-    creditScore: 80,
-    isVerified:  false,
-    phone:       '',
-    bio:         '',
-    lineId:      '',
-  }
-  await setDoc(doc(db, 'users', firebaseUser.uid), profile, { merge: true })
+    avatarColor: existing.avatarColor ?? null,
+    joinedAt:    existing.joinedAt    ?? todayISO(),
+    role:        existing.role        ?? 'user',
+    creditScore: existing.creditScore ?? 80,
+    isVerified:  existing.isVerified  ?? false,
+    phone:       existing.phone       ?? '',
+    bio:         existing.bio         ?? '',
+    lineId:      existing.lineId      ?? '',
+  })
 }
 
 export function initAuth() {
@@ -91,6 +93,7 @@ export async function loginUser({ email, password }) {
   try {
     const result = await signInWithEmailAndPassword(auth, email, password)
     _currentUser = await buildUserProfile(result.user)
+    window.dispatchEvent(new CustomEvent('pm:auth-changed'))
     return { ok: true, user: _currentUser }
   } catch (err) {
     return { ok: false, error: mapAuthError(err.code) }
@@ -103,6 +106,7 @@ export async function loginWithGoogle() {
     const result = await signInWithPopup(auth, provider)
     await ensureUserProfile(result.user)
     _currentUser = await buildUserProfile(result.user)
+    window.dispatchEvent(new CustomEvent('pm:auth-changed'))
     return { ok: true, user: _currentUser }
   } catch (err) {
     return { ok: false, error: mapAuthError(err.code) }
@@ -130,6 +134,7 @@ export async function registerUser({ name, email, password }) {
     await setDoc(doc(db, 'users', result.user.uid), profile)
 
     _currentUser = { id: result.user.uid, ...profile, displayName: name }
+    window.dispatchEvent(new CustomEvent('pm:auth-changed'))
     return { ok: true, user: _currentUser }
   } catch (err) {
     return { ok: false, error: mapAuthError(err.code) }

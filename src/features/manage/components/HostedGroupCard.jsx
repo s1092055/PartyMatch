@@ -17,7 +17,7 @@ const STATUS_BADGE_CLASS = {
 }
 
 function getPaymentState({ group, hasMarkedPaid, paidCount, paymentTarget }) {
-  if (['paused', 'cancelled', 'ended'].includes(group.status)) return '已停止'
+  if (['paused', 'cancelled', 'ended'].includes(group.status)) return '已結束'
   if (hasMarkedPaid) return '待確認'
   if (['pending_confirmation', 'pending_activation', 'full'].includes(group.status)) return '待處理'
   if (paymentTarget > 0 && paidCount < paymentTarget && group.status === 'active') return '追蹤中'
@@ -63,7 +63,7 @@ export default function HostedGroupCard({
 
   const paymentStateHighlight = {
     '正常':  'text-success-text',
-    '已停止': 'text-ink-3',
+    '已結束': 'text-ink-3',
   }[paymentState] ?? 'text-warning-text'
 
   const isActivated = ['active', 'paused', 'cancelled', 'ended'].includes(group.status)

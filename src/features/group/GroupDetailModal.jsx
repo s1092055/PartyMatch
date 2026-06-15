@@ -27,8 +27,8 @@ const STATUS_LABELS = {
   pending_confirmation: '等待確認',
   pending_activation:   '等待啟用',
   active:               '進行中',
-  paused:               '已暫停',
-  cancelled:            '已取消',
+  paused:               '已結束',
+  cancelled:            '已結束',
   ended:                '已結束',
 }
 
@@ -752,7 +752,7 @@ export default function GroupDetailModal() {
           group={group}
           isOpen={applyModalOpen}
           onClose={() => setApplyModalOpen(false)}
-          onSuccess={() => setApplied(true)}
+          onSuccess={() => { setApplied(true); setApplyModalOpen(false) }}
         />
       )}
     </>,

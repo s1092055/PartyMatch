@@ -1,7 +1,7 @@
 import { db } from '../../app/firebase'
 import {
   collection, doc, getDoc, query, where, orderBy,
-  onSnapshot, addDoc, serverTimestamp, updateDoc, setDoc, arrayUnion, increment,
+  onSnapshot, addDoc, serverTimestamp, updateDoc, setDoc, arrayUnion, arrayRemove, increment,
 } from 'firebase/firestore'
 
 export function subscribeToConversations(userId, onUpdate) {
@@ -109,6 +109,12 @@ export async function addParticipantToConversation(conversationId, userId, { nam
     [`participantMeta.${userId}`]: { name, avatarInitial, avatarColor },
     [`unreadCounts.${userId}`]: 0,
   }, { merge: true })
+}
+
+export async function leaveConversation(conversationId, userId) {
+  await updateDoc(doc(db, 'conversations', conversationId), {
+    participants: arrayRemove(userId),
+  })
 }
 
 // 傳送系統訊息（成員加入、狀態變更等）

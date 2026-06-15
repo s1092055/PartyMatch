@@ -40,14 +40,14 @@ function getMeta(type) {
 }
 
 const PAYMENT_TYPES = ['payment', 'payment_reminder', 'payment_confirmed']
-const APPLY_TYPES   = ['joined', 'application_approved', 'application_rejected', 'new_application']
-const CLASSIFIED_TYPES = [...PAYMENT_TYPES, ...APPLY_TYPES]
+const APPLY_TYPES   = ['joined', 'application_approved', 'application_rejected', 'new_application', 'application']
+const SYSTEM_TYPES  = ['system', 'announcement', 'platform']
 
 const TABS = [
   { id: 'all',     label: '全部', filter: () => true },
   { id: 'payment', label: '付款', filter: n => PAYMENT_TYPES.includes(n.type) },
   { id: 'apply',   label: '申請', filter: n => APPLY_TYPES.includes(n.type) },
-  { id: 'system',  label: '系統', filter: n => !CLASSIFIED_TYPES.includes(n.type) },
+  { id: 'system',  label: '系統', filter: n => SYSTEM_TYPES.includes(n.type) && (!n.userId || n.userId === 'system' || n.isPublic === true) },
 ]
 
 export default function FloatingMessages() {

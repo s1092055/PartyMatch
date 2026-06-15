@@ -10,6 +10,7 @@ import { getCurrentUser } from '../../shared/stores/authStore'
 import SubscriptionCard from './components/SubscriptionCard'
 import EmptyState from '../../shared/ui/EmptyState'
 import GroupViewModal from '../../shared/ui/GroupViewModal'
+import FilterTabsBar from '../../shared/ui/FilterTabsBar'
 import { effectiveStatus } from '../../shared/utils/subscriptionStatus'
 import { daysUntil, todayISO } from '../../shared/utils/date'
 
@@ -94,28 +95,12 @@ const [toast, setToast] = useState(null)
       </div>
 
       <div>
-        <div className="mb-4 flex min-w-0 justify-center overflow-x-auto py-1">
-          <div className="flex gap-1">
-            {FILTER_TABS.map(tab => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-sm font-semibold transition-colors ${
-                  activeTab === tab.key
-                    ? 'bg-brand text-white'
-                    : 'text-ink-3 hover:bg-raised hover:text-ink'
-                }`}
-              >
-                {tab.label}
-                <span className={`rounded-full px-1.5 py-0.5 text-xs font-bold ${
-                  activeTab === tab.key ? 'bg-white/20 text-white' : 'bg-raised text-ink-4'
-                }`}>
-                  {filterCounts[tab.key] ?? 0}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
+        <FilterTabsBar
+          tabs={FILTER_TABS}
+          value={activeTab}
+          onChange={setActiveTab}
+          counts={filterCounts}
+        />
 
         {activeTab === 'applications' ? (
           <div className="space-y-3">

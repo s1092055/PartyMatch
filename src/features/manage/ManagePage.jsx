@@ -12,6 +12,7 @@ import { getCurrentUser } from '../../shared/stores/authStore'
 import { CONFIRMED_STATUSES } from '../../shared/constants/paymentStatus'
 import EmptyState from '../../shared/ui/EmptyState'
 import GroupViewModal from '../../shared/ui/GroupViewModal'
+import FilterTabsBar from '../../shared/ui/FilterTabsBar'
 import HostedGroupCard from './components/HostedGroupCard'
 import ApplicationsModal from './components/ApplicationsModal'
 import GroupHistoryModal from './components/GroupHistoryModal'
@@ -22,19 +23,17 @@ const STATUS_FILTER_TABS = [
   { key: 'recruiting', label: '招募中' },
   { key: 'pending',    label: '待啟用' },
   { key: 'active',     label: '已啟用' },
-  { key: 'paused',     label: '已停止' },
-  { key: 'cancelled',  label: '已取消' },
+  { key: 'cancelled',  label: '已結束' },
 ]
 
 const PENDING_STATUSES   = new Set(['full', 'pending_confirmation', 'pending_activation'])
-const CANCELLED_STATUSES = new Set(['cancelled', 'ended'])
+const CANCELLED_STATUSES = new Set(['paused', 'cancelled', 'ended'])
 
 function matchesFilter(group, filterKey) {
   if (filterKey === 'all')        return true
   if (filterKey === 'recruiting') return group.status === 'recruiting'
   if (filterKey === 'pending')    return PENDING_STATUSES.has(group.status)
   if (filterKey === 'active')     return group.status === 'active'
-  if (filterKey === 'paused')     return group.status === 'paused'
   if (filterKey === 'cancelled')  return CANCELLED_STATUSES.has(group.status)
   return true
 }
@@ -324,28 +323,12 @@ function handleApprove(appId) {
       </div>
 
       <div>
-        <div className="mb-4 flex min-w-0 justify-center overflow-x-auto py-1">
-          <div className="flex gap-1">
-            {STATUS_FILTER_TABS.map(tab => (
-              <button
-                key={tab.key}
-                onClick={() => setStatusFilter(tab.key)}
-                className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-sm font-semibold transition-colors ${
-                  statusFilter === tab.key
-                    ? 'bg-brand text-white'
-                    : 'text-ink-3 hover:bg-raised hover:text-ink'
-                }`}
-              >
-                {tab.label}
-                <span className={`rounded-full px-1.5 py-0.5 text-xs font-bold ${
-                  statusFilter === tab.key ? 'bg-white/20 text-white' : 'bg-raised text-ink-4'
-                }`}>
-                  {filterCounts[tab.key]}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
+        <FilterTabsBar
+          tabs={STATUS_FILTER_TABS}
+          value={statusFilter}
+          onChange={setStatusFilter}
+          counts={filterCounts}
+        />
 
         {allGroups.length === 0 ? (
           <EmptyState
