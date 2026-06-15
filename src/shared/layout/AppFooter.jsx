@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import logoUrl from '../../../assets/Logo.svg'
+import logoUrl from '../../assets/Logo.svg'
 
 const LEGAL_LINKS = [
   { to: '/terms',      label: '服務條款' },

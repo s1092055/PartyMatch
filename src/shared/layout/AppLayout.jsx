@@ -1,14 +1,15 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import AppNav from './AppNav'
 import AppFooter from './AppFooter'
 import MobileSearch from './MobileSearch'
 import FloatingMessages from './FloatingMessages'
 import BackToTopButton from './ScrollToTop'
-import CreateGroupModal from '../../../features/create/CreateGroupModal'
-import GroupDetailModal from '../../../features/group/GroupDetailModal'
-import MessagesModal from '../../../features/messages/MessagesModal'
-import QuickMatchModal from '../../../features/match/QuickMatchModal'
+
+const CreateGroupModal = lazy(() => import('../../features/create/CreateGroupModal'))
+const GroupDetailModal = lazy(() => import('../../features/group/GroupDetailModal'))
+const MessagesModal = lazy(() => import('../../features/messages/MessagesModal'))
+const QuickMatchModal = lazy(() => import('../../features/match/QuickMatchModal'))
 
 function RouteScrollReset() {
   const { pathname } = useLocation()
@@ -29,11 +30,13 @@ export default function AppLayout() {
       </main>
       <MobileSearch />
       <FloatingMessages />
-      <MessagesModal />
       <BackToTopButton />
-      <CreateGroupModal />
-      <GroupDetailModal />
-      <QuickMatchModal />
+      <Suspense fallback={null}>
+        <MessagesModal />
+        <CreateGroupModal />
+        <GroupDetailModal />
+        <QuickMatchModal />
+      </Suspense>
     </div>
   )
 }

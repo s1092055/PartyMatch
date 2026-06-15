@@ -7,9 +7,9 @@ import {
   removeRecentSearch,
   saveRecentSearches,
   searchGroups,
-} from '../../utils/searchUtils'
+} from '../utils/searchUtils'
 import ServiceLogo from '../ui/ServiceLogo'
-import { useScrollLock } from '../../utils/hooks'
+import { useScrollLock } from '../utils/hooks'
 
 export default function MobileSearch() {
   const navigate = useNavigate()

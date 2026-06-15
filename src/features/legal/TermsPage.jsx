@@ -1,4 +1,4 @@
-import PageHeader from '../../shared/components/layout/PageHeader'
+import PageHeader from '../../shared/layout/PageHeader'
 
 const SECTIONS = [
   {

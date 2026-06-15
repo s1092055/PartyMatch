@@ -1,17 +1,17 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Heart } from 'lucide-react'
-import EmptyState from '../../shared/components/ui/EmptyState'
-import { getActiveUser } from '../../shared/stores/userStore'
-import PageHeader from '../../shared/components/layout/PageHeader'
+import EmptyState from '../../shared/ui/EmptyState'
+import { getCurrentUser } from '../../shared/stores/authStore'
+import PageHeader from '../../shared/layout/PageHeader'
 import { getFavoritesByUserId } from '../../shared/stores/favoriteStore'
 import { getGroupById } from '../../shared/stores/groupStore'
-import { getServiceById } from '../../shared/services/serviceTypes'
+import { getServiceById } from '../../shared/utils/serviceUtils'
 import ExploreGroupCard from '../explore/components/ExploreGroupCard'
-import CategoryPills from '../../shared/components/ui/CategoryPills'
+import CategoryPills from '../../shared/ui/CategoryPills'
 
 function loadFavGroups() {
-  const activeUser = getActiveUser()
+  const activeUser = getCurrentUser()
   if (!activeUser) return []
 
   return getFavoritesByUserId(activeUser.id)

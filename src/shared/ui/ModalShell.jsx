@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
-import { useScrollLock } from '../../utils/hooks'
+import { useScrollLock } from '../utils/hooks'
 
 export default function ModalShell({
   onClose,

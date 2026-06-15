@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { CheckCircle2 } from 'lucide-react'
-import Modal from '../../../shared/components/ui/Modal'
-import Button from '../../../shared/components/ui/Button'
+import Modal from '../../../shared/ui/Modal'
+import Button from '../../../shared/ui/Button'
 import { createApplication } from '../../../shared/stores/applicationStore'
 
 export default function ApplyJoinModal({ group, isOpen, onClose, onSuccess }) {

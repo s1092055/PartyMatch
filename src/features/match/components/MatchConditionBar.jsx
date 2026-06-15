@@ -1,6 +1,6 @@
 import { Pencil } from 'lucide-react'
-import { getServiceById } from '../../../shared/services/serviceTypes'
-import ServiceLogo from '../../../shared/components/ui/ServiceLogo'
+import { getServiceById } from '../../../shared/utils/serviceUtils'
+import ServiceLogo from '../../../shared/ui/ServiceLogo'
 
 export default function MatchConditionBar({ conditions, showEdit = true }) {
   const { services, maxPrice, minRating } = conditions

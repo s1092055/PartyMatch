@@ -1,6 +1,6 @@
-import Badge from '../../../shared/components/ui/Badge'
-import Button from '../../../shared/components/ui/Button'
-import ServiceLogo from '../../../shared/components/ui/ServiceLogo'
+import Badge from '../../../shared/ui/Badge'
+import Button from '../../../shared/ui/Button'
+import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import { effectiveStatus } from '../../../shared/utils/subscriptionStatus'
 
 const STATUS_BADGE_CLASS = {

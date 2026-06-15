@@ -1,7 +1,7 @@
 import { readAllMembers, insertMember, patchMember, deleteMemberRecord } from '../api/membersApi'
 import { todayISO } from '../utils/date'
 import { createId } from '../utils/storage'
-import { getActiveUser } from './userStore'
+import { getCurrentUser } from './authStore'
 
 let _members = []
 
@@ -54,6 +54,6 @@ export function removeMember(memberId) {
 }
 
 export function isCurrentUserMember(groupId) {
-  const user = getActiveUser()
+  const user = getCurrentUser()
   return user ? isUserGroupMember(user.id, groupId) : false
 }

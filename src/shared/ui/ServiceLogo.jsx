@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { getServiceTypeIcon } from '../../services/serviceTypes'
+import { getServiceTypeIcon } from '../utils/serviceUtils'
 
 export default function ServiceLogo({ serviceId, size = 52, className = '' }) {
   const requestSize = Math.max(96, Math.ceil(size * 2.5))

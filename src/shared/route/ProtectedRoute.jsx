@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { LogIn, Lock } from 'lucide-react'
-import { isAuthenticated } from '../../stores/authStore'
-import { useScrollLock } from '../../utils/hooks'
+import { isAuthenticated } from '../stores/authStore'
+import { useScrollLock } from '../utils/hooks'
 
 export default function ProtectedRoute({ children }) {
   const location = useLocation()

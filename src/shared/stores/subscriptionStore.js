@@ -2,7 +2,7 @@ import { readAllSubscriptions, insertSubscription, patchSubscription } from '../
 import { normalizeSubscription } from '../utils/modelNormalizers'
 import { todayISO } from '../utils/date'
 import { createId } from '../utils/storage'
-import { getActiveUser } from './userStore'
+import { getCurrentUser } from './authStore'
 
 let _subs = []
 
@@ -26,7 +26,7 @@ export function getSubscriptionByUserAndGroup(userId, groupId) {
 }
 
 export function createSubscription({ userId, groupId, serviceName, planName, serviceId, hostName, hostAvatarInitial, hostAvatarColor, pricePerSeat, billingCycle, nextBillingDate }) {
-  const activeUser = getActiveUser()
+  const activeUser = getCurrentUser()
   const now = todayISO()
   const sub = normalizeSubscription({
     id:               createId('sub'),

@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { Check, ChevronDown, ChevronUp, ClipboardList, X } from 'lucide-react'
-import Avatar from '../../../shared/components/ui/Avatar'
-import CreditScoreBadge from '../../../shared/components/ui/CreditScoreBadge'
-import ServiceLogo from '../../../shared/components/ui/ServiceLogo'
-import EmptyState from '../../../shared/components/ui/EmptyState'
+import Avatar from '../../../shared/ui/Avatar'
+import CreditScoreBadge from '../../../shared/ui/CreditScoreBadge'
+import ServiceLogo from '../../../shared/ui/ServiceLogo'
+import EmptyState from '../../../shared/ui/EmptyState'
 import { getGroups } from '../../../shared/stores/groupStore'
 
 function resolveServiceId(app) {

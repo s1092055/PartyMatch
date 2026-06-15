@@ -1,5 +1,5 @@
 import { Film, Music2, Bot, Briefcase, Cloud, BookOpen, Gamepad2, Shield, Package } from 'lucide-react'
-import logoUrl from '../../../assets/Logo.svg'
+import logoUrl from '../../assets/Logo.svg'
 
 const CATEGORIES = [
   { value: '套組',   label: '套組',    Icon: Package },

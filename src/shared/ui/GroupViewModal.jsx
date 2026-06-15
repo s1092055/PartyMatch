@@ -10,16 +10,16 @@ import ProgressBar from '../ui/ProgressBar'
 import ServiceLogo from '../ui/ServiceLogo'
 import EmptyState from '../ui/EmptyState'
 import PaymentStatusBadge from '../ui/PaymentStatusBadge'
-import { getGroupById } from '../../stores/groupStore'
-import { getServiceById } from '../../services/serviceTypes'
-import { getMembersByGroupId } from '../../stores/memberStore'
-import { getApplicationsByGroupId } from '../../stores/applicationStore'
-import { getSubscriptionByUserAndGroup } from '../../stores/subscriptionStore'
-import { getPaymentRecordsBySubscriptionId } from '../../stores/paymentStore'
-import { getActiveUser } from '../../stores/userStore'
-import { todayISO } from '../../utils/date'
-import { useScrollLock } from '../../utils/hooks'
-import { CONFIRMED_STATUSES, READY_TO_ACTIVATE_STATUSES } from '../../constants/paymentStatus'
+import { getGroupById } from '../stores/groupStore'
+import { getServiceById } from '../utils/serviceUtils'
+import { getMembersByGroupId } from '../stores/memberStore'
+import { getApplicationsByGroupId } from '../stores/applicationStore'
+import { getSubscriptionByUserAndGroup } from '../stores/subscriptionStore'
+import { getPaymentRecordsBySubscriptionId } from '../stores/paymentStore'
+import { getCurrentUser } from '../stores/authStore'
+import { todayISO } from '../utils/date'
+import { useScrollLock } from '../utils/hooks'
+import { CONFIRMED_STATUSES, READY_TO_ACTIVATE_STATUSES } from '../constants/paymentStatus'
 
 // ── 團主視角 ──────────────────────────────────────────────────────────────────
 
@@ -321,7 +321,7 @@ function HostView({ group, members, applications, onConfirmMember, onRemoveMembe
 // ── 成員視角 ──────────────────────────────────────────────────────────────────
 
 function MemberView({ group, onMarkPaid, onClose }) {
-  const currentUser = getActiveUser()
+  const currentUser = getCurrentUser()
   const members     = getMembersByGroupId(group.id)
   const sub         = currentUser ? getSubscriptionByUserAndGroup(currentUser.id, group.id) : null
   const myMember    = currentUser ? members.find(m => m.userId === currentUser.id) ?? null : null
@@ -565,7 +565,7 @@ export default function GroupViewModal({
   const group = getGroupById(groupId)
   if (!group) return null
 
-  const currentUser = getActiveUser()
+  const currentUser = getCurrentUser()
   const isHost      = currentUser?.id === group.hostId
   const members     = getMembersByGroupId(groupId)
   const applications = isHost ? getApplicationsByGroupId(groupId) : []

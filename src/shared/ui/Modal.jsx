@@ -1,6 +1,6 @@
 import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
-import { useScrollLock } from '../../utils/hooks'
+import { useScrollLock } from '../utils/hooks'
 
 export default function Modal({ isOpen, onClose, title, titleIcon, maxWidth = 'max-w-md', children }) {
   useScrollLock(isOpen)

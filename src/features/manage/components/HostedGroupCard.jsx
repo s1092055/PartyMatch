@@ -1,8 +1,8 @@
-import Badge from '../../../shared/components/ui/Badge'
-import Button from '../../../shared/components/ui/Button'
-import ServiceLogo from '../../../shared/components/ui/ServiceLogo'
+import Badge from '../../../shared/ui/Badge'
+import Button from '../../../shared/ui/Button'
+import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import { CONFIRMED_STATUSES } from '../../../shared/constants/paymentStatus'
-import { getGroupDisplayStatus } from '../config/groupActionMap'
+import { getGroupDisplayStatus } from '../utils/groupActionMap'
 
 const STATUS_BADGE_CLASS = {
   active:               'bg-success-subtle text-success-text',

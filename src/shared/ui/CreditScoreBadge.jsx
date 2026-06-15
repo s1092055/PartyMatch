@@ -1,4 +1,4 @@
-import { getCreditDisplay } from '../../utils/creditScore'
+import { getCreditDisplay } from '../utils/creditScore'
 
 export default function CreditScoreBadge({ score, size = 'sm' }) {
   const { label, color, bg, border } = getCreditDisplay(score ?? 80)

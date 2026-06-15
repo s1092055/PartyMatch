@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, MessageSquare, Search, Send, SquarePen } from 'lucide-react'
-import ServiceLogo from '../../shared/components/ui/ServiceLogo'
-import ModalShell from '../../shared/components/ui/ModalShell'
+import ServiceLogo from '../../shared/ui/ServiceLogo'
+import ModalShell from '../../shared/ui/ModalShell'
 import { getCurrentUser, isAuthenticated } from '../../shared/stores/authStore'
-import LoginPromptModal from '../../shared/components/ui/LoginPromptModal'
+import LoginPromptModal from '../../shared/ui/LoginPromptModal'
 import {
   subscribeToConversations,
   subscribeToMessages,

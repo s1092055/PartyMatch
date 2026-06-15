@@ -1,6 +1,6 @@
 import { Sliders, ShieldCheck } from 'lucide-react'
-import { getServiceById } from '../../../shared/services/serviceTypes'
-import ServiceLogo from '../../../shared/components/ui/ServiceLogo'
+import { getServiceById } from '../../../shared/utils/serviceUtils'
+import ServiceLogo from '../../../shared/ui/ServiceLogo'
 
 const GROUP_AGE_LABEL = { any: '不限', new: '三個月內', established: '三個月至一年', veteran: '一年以上' }
 

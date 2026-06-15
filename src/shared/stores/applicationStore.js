@@ -3,7 +3,8 @@ import { addParticipantToConversation, sendSystemMessage } from '../api/messages
 import { normalizeApplication } from '../utils/modelNormalizers'
 import { todayISO } from '../utils/date'
 import { createId } from '../utils/storage'
-import { getActiveUserProfile } from './userStore'
+import { getActiveUserProfile } from './authStore'
+import { createNotification } from './notificationStore'
 
 let _apps = []
 
@@ -59,6 +60,12 @@ export function createApplication({ groupId, groupName, serviceId, serviceName, 
   })
   _apps.push(app)
   insertApplication(app).catch(console.error)
+  createNotification({
+    userId:  app.hostId,
+    type:    'new_application',
+    title:   '收到新的加入申請',
+    message: `${app.applicantName} 申請加入「${app.groupName ?? app.serviceName}」群組。`,
+  })
   window.dispatchEvent(new CustomEvent('pm:application-created', { detail: { hostId: app.hostId } }))
   return app
 }

@@ -1,9 +1,9 @@
 import { Ban, Calendar, CheckCircle2, Clock, History, PauseCircle, Users } from 'lucide-react'
-import Modal from '../../../shared/components/ui/Modal'
-import Avatar from '../../../shared/components/ui/Avatar'
-import Badge from '../../../shared/components/ui/Badge'
-import ServiceLogo from '../../../shared/components/ui/ServiceLogo'
-import EmptyState from '../../../shared/components/ui/EmptyState'
+import Modal from '../../../shared/ui/Modal'
+import Avatar from '../../../shared/ui/Avatar'
+import Badge from '../../../shared/ui/Badge'
+import ServiceLogo from '../../../shared/ui/ServiceLogo'
+import EmptyState from '../../../shared/ui/EmptyState'
 
 const STATUS_TIMELINE = {
   cancelled: [

@@ -2,7 +2,7 @@ import { readAllGroups, insertGroup, patchGroup } from '../api/groupsApi'
 import { createGroupConversation } from '../api/messagesApi'
 import { toISODate, todayISO } from '../utils/date'
 import { createId } from '../utils/storage'
-import { getActiveUserProfile } from './userStore'
+import { getActiveUserProfile } from './authStore'
 import { normalizeGroup } from '../utils/modelNormalizers'
 
 let _groups = []

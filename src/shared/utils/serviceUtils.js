@@ -14,10 +14,6 @@ export function listServiceTypes() {
   return getServices()
 }
 
-export function getServiceTypeById(serviceId) {
-  return _getById(serviceId)
-}
-
 export function getServiceById(serviceId) {
   return _getById(serviceId)
 }
