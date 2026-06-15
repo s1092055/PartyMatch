@@ -8,10 +8,10 @@ import { getMembersByGroupId, createMember, isUserGroupMember, removeMember, upd
 import { activateGroupSubscriptions, confirmSubscriptionPayment, createSubscription, getSubscriptionByUserAndGroup, getSubscriptionsByGroupId } from '../../shared/stores/subscriptionStore'
 import { getPaymentRecordCountBySubIds } from '../../shared/stores/paymentStore'
 import { createNotification } from '../../shared/stores/notificationStore'
-import { getActiveUser } from '../../shared/stores/userStore'
+import { getCurrentUser } from '../../shared/stores/authStore'
 import { CONFIRMED_STATUSES } from '../../shared/constants/paymentStatus'
-import EmptyState from '../../shared/components/ui/EmptyState'
-import GroupViewModal from '../../shared/components/modals/GroupViewModal'
+import EmptyState from '../../shared/ui/EmptyState'
+import GroupViewModal from '../../shared/ui/GroupViewModal'
 import HostedGroupCard from './components/HostedGroupCard'
 import ApplicationsModal from './components/ApplicationsModal'
 import GroupHistoryModal from './components/GroupHistoryModal'
@@ -52,7 +52,7 @@ function loadManageData(activeUser) {
 
 export default function ManagePage() {
   const navigate = useNavigate()
-  const activeUser = getActiveUser()
+  const activeUser = getCurrentUser()
 
   const [manageData, setManageData] = useState(() => loadManageData(activeUser))
   const [errors, setErrors] = useState({})

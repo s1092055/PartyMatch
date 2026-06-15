@@ -1,26 +1,27 @@
+import { lazy, Suspense } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import logoUrl from '../../assets/Logo.svg'
 import { isAuthenticated } from '../../shared/stores/authStore'
 import { getGroups } from '../../shared/stores/groupStore'
-import { listServiceTypes } from '../../shared/services/serviceTypes'
-import AppNav from '../../shared/components/layout/AppNav'
-import MobileSearch from '../../shared/components/layout/MobileSearch'
-import ScrollToTop from '../../shared/components/layout/ScrollToTop'
-import AppFooter from '../../shared/components/layout/AppFooter'
-import CreateGroupModal from '../create/CreateGroupModal'
-import MessagesModal from '../messages/MessagesModal'
-import QuickMatchModal from '../match/QuickMatchModal'
-import FloatingMessages from '../../shared/components/layout/FloatingMessages'
-import ServiceLogo from '../../shared/components/ui/ServiceLogo'
+import { listServiceTypes } from '../../shared/utils/serviceUtils'
+import AppNav from '../../shared/layout/AppNav'
+import MobileSearch from '../../shared/layout/MobileSearch'
+import ScrollToTop from '../../shared/layout/ScrollToTop'
+import AppFooter from '../../shared/layout/AppFooter'
+import FloatingMessages from '../../shared/layout/FloatingMessages'
+import ServiceLogo from '../../shared/ui/ServiceLogo'
 import FeatureCards from './components/FeatureCards'
 import ExtraFeatures from './components/ExtraFeatures'
 import HowItWorks from './components/HowItWorks'
 import HostGuide from './components/HostGuide'
 import FAQ from './components/FAQ'
-import RevealSection from '../../shared/components/ui/RevealSection'
+import RevealSection from '../../shared/ui/RevealSection'
 
 const ALL_SERVICES = listServiceTypes()
+const CreateGroupModal = lazy(() => import('../create/CreateGroupModal'))
+const MessagesModal = lazy(() => import('../messages/MessagesModal'))
+const QuickMatchModal = lazy(() => import('../match/QuickMatchModal'))
 
 export default function HomePage() {
   const navigate = useNavigate()
@@ -38,9 +39,11 @@ export default function HomePage() {
       <AppNav />
       <MobileSearch />
       <ScrollToTop />
-      <MessagesModal />
-      <CreateGroupModal />
-      <QuickMatchModal />
+      <Suspense fallback={null}>
+        <MessagesModal />
+        <CreateGroupModal />
+        <QuickMatchModal />
+      </Suspense>
       <FloatingMessages />
 
       <section className="mx-auto max-w-5xl px-5 pb-16 pt-20 text-center md:pt-16">

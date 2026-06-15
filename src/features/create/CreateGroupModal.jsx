@@ -14,11 +14,11 @@ import Step1Service from "./components/steps/Step1Service";
 import Step2Plan from "./components/steps/Step2Plan";
 import Step3Settings from "./components/steps/Step3Settings";
 import Step4Preview from "./components/steps/Step4Preview";
-import Button from "../../shared/components/ui/Button";
-import ModalShell from "../../shared/components/ui/ModalShell";
-import LoginPromptModal from "../../shared/components/ui/LoginPromptModal";
+import Button from "../../shared/ui/Button";
+import ModalShell from "../../shared/ui/ModalShell";
+import LoginPromptModal from "../../shared/ui/LoginPromptModal";
 import { createGroup } from "../../shared/stores/groupStore";
-import { getServiceById } from "../../shared/services/serviceTypes";
+import { getServiceById } from "../../shared/utils/serviceUtils";
 import { isAuthenticated } from "../../shared/stores/authStore";
 
 const STEP_COMPONENTS = [Step1Service, Step2Plan, Step3Settings, Step4Preview];

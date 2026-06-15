@@ -1,43 +1,10 @@
-import { Bell, Heart, MessageSquare, Star, VideoOff } from 'lucide-react'
+import { VideoOff } from 'lucide-react'
+import { HOME_EXTRA_FEATURES } from '../data/homeContent'
 
-const EXTRAS = [
-  {
-    icon: MessageSquare,
-    title: '訊息中心',
-    desc: '和同群組的成員直接對話，溝通付款細節或任何問題，不需要另外找聯絡方式。',
-    videoSrc: null,
-    action: () => window.dispatchEvent(new CustomEvent('pm:open-messages')),
-    color: 'text-brand',
-    bg: 'bg-brand-subtle',
-  },
-  {
-    icon: Bell,
-    title: '通知中心',
-    desc: '申請結果、付款提醒、成員動態即時送達，所有重要事項都不會漏掉。',
-    videoSrc: null,
-    action: () => window.dispatchEvent(new CustomEvent('pm:open-notify')),
-    color: 'text-amber-500',
-    bg: 'bg-amber-50',
-  },
-  {
-    icon: Heart,
-    title: '我的收藏',
-    desc: '看到感興趣的群組先收起來，之後再決定要不要申請加入，隨時可以回來查看。',
-    videoSrc: null,
-    action: null,
-    color: 'text-danger',
-    bg: 'bg-danger-subtle',
-  },
-  {
-    icon: Star,
-    title: '信用分數',
-    desc: '每次按時付款都能累積評分。分數愈高，團主愈願意接受你的申請。',
-    videoSrc: null,
-    action: null,
-    color: 'text-success',
-    bg: 'bg-success/10',
-  },
-]
+function runAction(action) {
+  if (!action) return
+  if (action.type === 'event') window.dispatchEvent(new CustomEvent(action.event))
+}
 
 export default function ExtraFeatures() {
   return (
@@ -48,12 +15,12 @@ export default function ExtraFeatures() {
         <p className="mt-3 text-base text-ink-3">除了核心功能，這些小工具讓整個流程更順暢。</p>
       </div>
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        {EXTRAS.map(({ icon: Icon, title, desc, videoSrc, action, color, bg }) => {
+        {HOME_EXTRA_FEATURES.map(({ icon: Icon, title, desc, videoSrc, action, color, bg }) => {
           const Tag = action ? 'button' : 'div'
           return (
           <Tag
             key={title}
-            onClick={action ?? undefined}
+            onClick={action ? () => runAction(action) : undefined}
             className={`card overflow-hidden text-left ${action ? 'cursor-pointer transition-shadow hover:shadow-md' : ''}`}
           >
             {/* 影片 / 佔位區 */}

@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
-import { listServiceTypes } from '../../../shared/services/serviceTypes'
-import CustomSelect from '../../../shared/components/ui/CustomSelect'
-import CategoryPills from '../../../shared/components/ui/CategoryPills'
+import { listServiceTypes } from '../../../shared/utils/serviceUtils'
+import CustomSelect from '../../../shared/ui/CustomSelect'
+import CategoryPills from '../../../shared/ui/CategoryPills'
 
 const PRICE_OPTIONS = [
   { value: 'any',  label: '不限價格' },

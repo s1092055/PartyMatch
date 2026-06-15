@@ -2,11 +2,11 @@ import { startTransition, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowRight, Compass, PlusCircle, Search, Sparkles, X, Zap } from 'lucide-react'
 import { getGroups } from '../../shared/stores/groupStore'
-import { getServiceTypeById } from '../../shared/services/serviceTypes'
-import { getActiveUser } from '../../shared/stores/userStore'
-import EmptyState from '../../shared/components/ui/EmptyState'
-import PageHeader from '../../shared/components/layout/PageHeader'
-import RevealSection from '../../shared/components/ui/RevealSection'
+import { getServiceById } from '../../shared/utils/serviceUtils'
+import { getCurrentUser } from '../../shared/stores/authStore'
+import EmptyState from '../../shared/ui/EmptyState'
+import PageHeader from '../../shared/layout/PageHeader'
+import RevealSection from '../../shared/ui/RevealSection'
 import FilterBar from './components/FilterBar'
 import ExploreGroupCard from './components/ExploreGroupCard'
 
@@ -33,7 +33,7 @@ function applyFilters(groups, { keyword, category, service, maxPrice, sortBy }) 
     )
   }
 
-  if (category !== 'all' && service === 'all') result = result.filter(g => getServiceTypeById(g.serviceId)?.category === category)
+  if (category !== 'all' && service === 'all') result = result.filter(g => getServiceById(g.serviceId)?.category === category)
   if (service !== 'all') result = result.filter(g => g.serviceId === service)
   if (maxPrice !== 'any') result = result.filter(g => g.pricePerSeat <= Number(maxPrice))
 
@@ -54,7 +54,7 @@ export default function ExplorePage() {
     keyword: searchParams.get('q') ?? '',
   }))
   const navigate = useNavigate()
-  const activeUserId = getActiveUser()?.id
+  const activeUserId = getCurrentUser()?.id
   const allGroups = useMemo(
     () => getGroups().filter(g => g.hostId !== activeUserId),
     [activeUserId],

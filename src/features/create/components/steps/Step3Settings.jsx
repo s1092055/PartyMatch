@@ -1,5 +1,5 @@
 import { Minus, Plus, X, PlusCircle } from 'lucide-react'
-import { getServiceById } from '../../../../shared/services/serviceTypes'
+import { getServiceById } from '../../../../shared/utils/serviceUtils'
 
 function Field({ label, required, children, hint, htmlFor }) {
   return (

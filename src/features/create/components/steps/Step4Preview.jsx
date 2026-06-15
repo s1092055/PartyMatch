@@ -1,6 +1,6 @@
 import { CheckCircle2, ListChecks } from 'lucide-react'
-import { getServiceById } from '../../../../shared/services/serviceTypes'
-import { getActiveUserProfile } from '../../../../shared/stores/userStore'
+import { getServiceById } from '../../../../shared/utils/serviceUtils'
+import { getActiveUserProfile } from '../../../../shared/stores/authStore'
 import ExploreGroupCard from '../../../explore/components/ExploreGroupCard'
 
 function todayLabel() {

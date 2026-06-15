@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { RouterProvider } from 'react-router-dom'
 import router from './router'
-import ToastContainer from '../shared/components/ui/ToastContainer'
+import ToastContainer from '../shared/ui/ToastContainer'
 import { initAuth } from '../shared/stores/authStore'
 import { initServices } from '../shared/stores/serviceStore'
 import { initGroups } from '../shared/stores/groupStore'

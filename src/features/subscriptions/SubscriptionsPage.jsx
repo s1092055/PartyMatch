@@ -6,10 +6,10 @@ import { getMemberByUserAndGroup, updateMember } from '../../shared/stores/membe
 import { createNotification } from '../../shared/stores/notificationStore'
 import { getApplicationsByUserId } from '../../shared/stores/applicationStore'
 import { getGroupById } from '../../shared/stores/groupStore'
-import { getActiveUser } from '../../shared/stores/userStore'
+import { getCurrentUser } from '../../shared/stores/authStore'
 import SubscriptionCard from './components/SubscriptionCard'
-import EmptyState from '../../shared/components/ui/EmptyState'
-import GroupViewModal from '../../shared/components/modals/GroupViewModal'
+import EmptyState from '../../shared/ui/EmptyState'
+import GroupViewModal from '../../shared/ui/GroupViewModal'
 import { effectiveStatus } from '../../shared/utils/subscriptionStatus'
 import { daysUntil, todayISO } from '../../shared/utils/date'
 
@@ -39,7 +39,7 @@ function filterSubs(subs, tab) {
 
 export default function SubscriptionsPage() {
   const navigate = useNavigate()
-  const activeUser = getActiveUser()
+  const activeUser = getCurrentUser()
   const [activeTab, setActiveTab] = useState('all')
   const [subs, setSubs] = useState(() =>
     activeUser ? enrichSubs(getSubscriptionsByUserId(activeUser.id)) : []

@@ -1,6 +1,6 @@
 import ExploreGroupCard from "../../explore/components/ExploreGroupCard";
-import { getServiceById } from "../../../shared/services/serviceTypes";
-import { getActiveUserProfile } from "../../../shared/stores/userStore";
+import { getServiceById } from "../../../shared/utils/serviceUtils";
+import { getActiveUserProfile } from "../../../shared/stores/authStore";
 
 export default function LivePreviewPanel({ form }) {
   const service = getServiceById(form.serviceId);

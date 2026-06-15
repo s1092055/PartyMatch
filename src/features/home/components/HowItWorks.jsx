@@ -2,39 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { ChevronLeft, ChevronRight, Play, X, VideoOff } from 'lucide-react'
 import { useScrollLock } from '../../../shared/utils/hooks'
-
-const STEPS = [
-  {
-    step: 1,
-    title: '選擇訂閱服務',
-    desc: '決定你想分攤的服務，例如 Netflix、Spotify 或 ChatGPT，支援 30 種以上。',
-    videoUrl: null,
-  },
-  {
-    step: 2,
-    title: '瀏覽或配對群組',
-    desc: '自己篩選合適的群組，或讓快速配對系統根據你的條件自動推薦。',
-    videoUrl: null,
-  },
-  {
-    step: 3,
-    title: '送出申請',
-    desc: '找到喜歡的群組就送出申請，等待團主審核，通常在 24–48 小時內回覆。',
-    videoUrl: null,
-  },
-  {
-    step: 4,
-    title: '完成付款',
-    desc: '申請通過後，依照團主指定方式完成分攤費用，並在平台標記付款。',
-    videoUrl: null,
-  },
-  {
-    step: 5,
-    title: '追蹤訂閱狀態',
-    desc: '在「我的訂閱」查看付款紀錄、下次續訂時間，有問題可直接聯絡團主。',
-    videoUrl: null,
-  },
-]
+import { HOW_IT_WORKS_STEPS as STEPS } from '../data/homeContent'
 
 function TutorialModal({ initialIndex, onClose }) {
   const [activeIndex, setActiveIndex] = useState(initialIndex)

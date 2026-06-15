@@ -1,5 +1,5 @@
 import { Check } from 'lucide-react'
-import { getServiceById } from '../../../../shared/services/serviceTypes'
+import { getServiceById } from '../../../../shared/utils/serviceUtils'
 
 const BILLING_CYCLES = [
   { value: 'monthly', label: '月繳' },

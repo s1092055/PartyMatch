@@ -7,16 +7,16 @@ import {
   User, Users, X,
 } from 'lucide-react'
 import { getGroupById, getGroups } from '../../shared/stores/groupStore'
-import { getServiceById } from '../../shared/services/serviceTypes'
+import { getServiceById } from '../../shared/utils/serviceUtils'
 import { getApplicationByUserAndGroup } from '../../shared/stores/applicationStore'
 import { isCurrentUserMember, getMemberByUserAndGroup } from '../../shared/stores/memberStore'
 import { isGroupFavorited, toggleFavorite } from '../../shared/stores/favoriteStore'
-import { getActiveUser } from '../../shared/stores/userStore'
+import { getCurrentUser } from '../../shared/stores/authStore'
 import { useScrollLock } from '../../shared/utils/hooks'
-import Avatar from '../../shared/components/ui/Avatar'
-import Button from '../../shared/components/ui/Button'
-import ProgressBar from '../../shared/components/ui/ProgressBar'
-import ServiceLogo from '../../shared/components/ui/ServiceLogo'
+import Avatar from '../../shared/ui/Avatar'
+import Button from '../../shared/ui/Button'
+import ProgressBar from '../../shared/ui/ProgressBar'
+import ServiceLogo from '../../shared/ui/ServiceLogo'
 import ApplyJoinModal from './components/ApplyJoinModal'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -131,7 +131,7 @@ export default function GroupDetailModal() {
   const isOpen = !!groupId
   useScrollLock(isOpen)
 
-  const activeUser   = getActiveUser()
+  const activeUser   = getCurrentUser()
   const activeUserId = activeUser?.id
 
   useEffect(() => {
@@ -752,7 +752,7 @@ export default function GroupDetailModal() {
           group={group}
           isOpen={applyModalOpen}
           onClose={() => setApplyModalOpen(false)}
-          onSuccess={() => { setApplied(true); setApplyModalOpen(false) }}
+          onSuccess={() => setApplied(true)}
         />
       )}
     </>,

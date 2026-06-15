@@ -1,49 +1,46 @@
+import { lazy, Suspense } from 'react'
 import { createBrowserRouter } from 'react-router-dom'
-import AppLayout from '../shared/components/layout/AppLayout'
-import HomePage from '../features/home/HomePage'
-import ExplorePage from '../features/explore/ExplorePage'
-import ManagePage from '../features/manage/ManagePage'
-import SubscriptionsPage from '../features/subscriptions/SubscriptionsPage'
-import AccountPage from '../features/account/AccountPage'
-import FavoritesPage from '../features/favorites/FavoritesPage'
-import LoginPage from '../features/auth/login/LoginPage'
-import RegisterPage from '../features/auth/register/RegisterPage'
-import ForgotPasswordPage from '../features/auth/forgot-password/ForgotPasswordPage'
-import ProtectedRoute from '../shared/components/route/ProtectedRoute'
-import PublicOnlyRoute from '../shared/components/route/PublicOnlyRoute'
-import DisclaimerPage from '../features/legal/DisclaimerPage'
-import TermsPage from '../features/legal/TermsPage'
-import PrivacyPage from '../features/legal/PrivacyPage'
+import ProtectedRoute from '../shared/route/ProtectedRoute'
+import PublicOnlyRoute from '../shared/route/PublicOnlyRoute'
 import { CreateGroupRedirect, GroupRedirect, QuickMatchRedirect } from './redirects'
 
+function routeElement(loader) {
+  const Component = lazy(loader)
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-canvas" />}>
+      <Component />
+    </Suspense>
+  )
+}
+
 const router = createBrowserRouter([
-  { path: '/', element: <HomePage /> },
+  { path: '/', element: routeElement(() => import('../features/home/HomePage')) },
   {
     element: <PublicOnlyRoute />,
     children: [
-      { path: '/login',           element: <LoginPage /> },
-      { path: '/register',        element: <RegisterPage /> },
-      { path: '/forgot-password', element: <ForgotPasswordPage /> },
+      { path: '/login',           element: routeElement(() => import('../features/auth/login/LoginPage')) },
+      { path: '/register',        element: routeElement(() => import('../features/auth/register/RegisterPage')) },
+      { path: '/forgot-password', element: routeElement(() => import('../features/auth/forgot-password/ForgotPasswordPage')) },
     ],
   },
   {
     path: '/',
-    element: <AppLayout />,
+    element: routeElement(() => import('../shared/layout/AppLayout')),
     children: [
-      { path: 'explore',         element: <ExplorePage /> },
+      { path: 'explore',         element: routeElement(() => import('../features/explore/ExplorePage')) },
       { path: 'groups/:groupId', element: <GroupRedirect /> },
-      { path: 'disclaimer',      element: <DisclaimerPage /> },
-      { path: 'terms',           element: <TermsPage /> },
-      { path: 'privacy',         element: <PrivacyPage /> },
+      { path: 'disclaimer',      element: routeElement(() => import('../features/legal/DisclaimerPage')) },
+      { path: 'terms',           element: routeElement(() => import('../features/legal/TermsPage')) },
+      { path: 'privacy',         element: routeElement(() => import('../features/legal/PrivacyPage')) },
       {
         element: <ProtectedRoute />,
         children: [
           { path: 'quick-match',         element: <QuickMatchRedirect /> },
           { path: 'create-group',        element: <CreateGroupRedirect /> },
-          { path: 'manage-groups',       element: <ManagePage /> },
-          { path: 'my-subscriptions',    element: <SubscriptionsPage /> },
-          { path: 'favorites',           element: <FavoritesPage /> },
-          { path: 'account',             element: <AccountPage /> },
+          { path: 'manage-groups',       element: routeElement(() => import('../features/manage/ManagePage')) },
+          { path: 'my-subscriptions',    element: routeElement(() => import('../features/subscriptions/SubscriptionsPage')) },
+          { path: 'favorites',           element: routeElement(() => import('../features/favorites/FavoritesPage')) },
+          { path: 'account',             element: routeElement(() => import('../features/account/AccountPage')) },
         ],
       },
     ],

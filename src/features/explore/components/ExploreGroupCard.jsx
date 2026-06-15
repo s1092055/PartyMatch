@@ -5,11 +5,11 @@ import {
   Monitor,
   Users,
 } from 'lucide-react'
-import Badge from '../../../shared/components/ui/Badge'
-import Button from '../../../shared/components/ui/Button'
-import ServiceLogo from '../../../shared/components/ui/ServiceLogo'
+import Badge from '../../../shared/ui/Badge'
+import Button from '../../../shared/ui/Button'
+import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import { isGroupFavorited, toggleFavorite } from '../../../shared/stores/favoriteStore'
-import { getActiveUser } from '../../../shared/stores/userStore'
+import { getCurrentUser } from '../../../shared/stores/authStore'
 
 // Tags that are too generic or junk to show as feature chips
 const JUNK_TAGS = new Set(['立即加入', '審核加入', '需要審核', '需審核', '名額剩 1'])
@@ -56,7 +56,7 @@ function buildFeatureChips(group) {
 
 export default function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = false }) {
   const navigate = useNavigate()
-  const activeUser = getActiveUser()
+  const activeUser = getCurrentUser()
   const [isFav, setIsFav] = useState(() => activeUser ? isGroupFavorited(activeUser.id, group.id) : false)
 
   const usedRatio = group.totalSeats > 0 ? Math.min(group.usedSeats / group.totalSeats, 1) : 0

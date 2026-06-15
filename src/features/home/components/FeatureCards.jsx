@@ -1,54 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { CreditCard, LayoutDashboard, PlusCircle, Search, VideoOff, ArrowRight, Zap } from "lucide-react";
-import RevealSection from "../../../shared/components/ui/RevealSection";
-
-const FEATURES = [
-  {
-    icon: Search,
-    title: "探索群組",
-    desc: "依服務、價格、評分篩選，找到符合你需求的合購群組。支援關鍵字搜尋，快速縮小範圍。",
-    videoSrc: null,
-    badge: "探索",
-    action: { type: "navigate", path: "/explore" },
-    cta: "開始探索",
-  },
-  {
-    icon: Zap,
-    title: "快速配對",
-    desc: "告訴我們你要什麼，系統自動篩出最適合的群組讓你挑。省去逐一比較的時間，幾秒內找到選項。",
-    videoSrc: null,
-    badge: "配對",
-    action: { type: "event", event: "pm:open-match" },
-    cta: "立即配對",
-  },
-  {
-    icon: PlusCircle,
-    title: "建立群組",
-    desc: "自己當團主，設好方案和規則，等有興趣的人來申請。幾個步驟就能上架，開始招募成員。",
-    videoSrc: null,
-    badge: "建立",
-    action: { type: "event", event: "pm:open-create" },
-    cta: "建立群組",
-  },
-  {
-    icon: LayoutDashboard,
-    title: "群組管理",
-    desc: "審核申請、確認付款、管理成員，所有群組操作集中在一頁。啟用、續訂、結束群組一手掌控。",
-    videoSrc: null,
-    badge: "管理",
-    action: { type: "navigate", path: "/manage-groups" },
-    cta: "前往管理",
-  },
-  {
-    icon: CreditCard,
-    title: "我的訂閱",
-    desc: "查看所有加入的訂閱、付款狀態和繳費紀錄，可以直接標記付款或聯絡團主，再也不怕漏繳。",
-    videoSrc: null,
-    badge: "訂閱",
-    action: { type: "navigate", path: "/my-subscriptions" },
-    cta: "查看訂閱",
-  },
-];
+import { VideoOff, ArrowRight } from "lucide-react";
+import RevealSection from "../../../shared/ui/RevealSection";
+import { HOME_FEATURES } from "../data/homeContent";
 
 function FeatureMedia({ icon: Icon, videoSrc }) {
   if (videoSrc) {
@@ -86,14 +39,14 @@ export default function FeatureCards() {
     <section>
       <div className="mb-10 text-center">
         <p className="mb-1 text-xs font-bold uppercase tracking-widest text-ink-4">核心功能</p>
-        <h2 className="text-3xl font-extrabold text-ink">PartyMatch 是？</h2>
+        <h2 className="text-3xl font-extrabold text-ink">可以做到哪些事？</h2>
         <p className="mt-3 text-base text-ink-3">
           從找群組到管理訂閱，五大功能覆蓋合購的每個環節。
         </p>
       </div>
 
       <div className="space-y-20">
-        {FEATURES.map(({ icon: Icon, title, desc, videoSrc, badge, action, cta }, i) => {
+        {HOME_FEATURES.map(({ icon: Icon, title, desc, videoSrc, badge, action, cta }, i) => {
           const isEven = i % 2 === 0;
           return (
             <RevealSection key={title}>

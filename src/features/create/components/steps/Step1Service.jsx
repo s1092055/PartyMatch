@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Check } from "lucide-react";
-import { listServiceTypes } from "../../../../shared/services/serviceTypes";
-import ServiceLogo from "../../../../shared/components/ui/ServiceLogo";
-import CategoryPills from "../../../../shared/components/ui/CategoryPills";
+import { listServiceTypes } from "../../../../shared/utils/serviceUtils";
+import ServiceLogo from "../../../../shared/ui/ServiceLogo";
+import CategoryPills from "../../../../shared/ui/CategoryPills";
 
 const ALL_SERVICES = listServiceTypes();
 

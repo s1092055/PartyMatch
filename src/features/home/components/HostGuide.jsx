@@ -1,81 +1,11 @@
 import { useState } from 'react'
-import { AlertCircle, ChevronLeft, ChevronRight, CheckCircle2, Clock, FileText, ShieldAlert, UserCheck, UserX } from 'lucide-react'
-
-const FLOW_STEPS = [
-  {
-    step: 1,
-    label: '收到申請通知',
-    desc: '系統會在通知中心提醒你有新的加入申請。',
-  },
-  {
-    step: 2,
-    label: '查看申請者資料',
-    desc: '前往「群組管理」，瀏覽對方的信用分數與自我介紹。',
-  },
-  {
-    step: 3,
-    label: '核准申請',
-    desc: '成員自動加入群組，名額減少，系統即時通知對方。',
-  },
-  {
-    step: 4,
-    label: '拒絕申請',
-    desc: '系統通知對方申請未通過，不影響群組其他成員。',
-  },
-]
-
-const TASKS = [
-  {
-    icon: UserCheck,
-    title: '審核申請',
-    desc: '收到新成員的加入申請後，查看對方的信用分數與資料，決定要核准或拒絕。',
-  },
-  {
-    icon: CheckCircle2,
-    title: '確認付款',
-    desc: '成員標記付款後，確認你已收到款項，點擊確認即完成這筆紀錄。',
-  },
-  {
-    icon: UserX,
-    title: '管理成員',
-    desc: '成員違規或長期未付款時，可以將對方移出群組並調整其信用分數。',
-  },
-  {
-    icon: CheckCircle2,
-    title: '啟用群組',
-    desc: '名額招滿後手動啟用群組，系統會通知所有成員開始進行付款。',
-  },
-  {
-    icon: Clock,
-    title: '續訂或結束',
-    desc: '每個計費週期結束時，選擇繼續招募下一輪，或結束這個群組。',
-  },
-]
-
-const NOTICES = [
-  {
-    icon: Clock,
-    text: '請在 48 小時內回覆申請，讓等待的成員有個底。',
-  },
-  {
-    icon: ShieldAlert,
-    text: '啟用群組前確認名額已滿，啟用後無法退回招募狀態。',
-  },
-  {
-    icon: AlertCircle,
-    text: '信用分數調整會直接影響對方，移除成員前請謹慎考慮。',
-  },
-  {
-    icon: FileText,
-    text: '群組規則請在建立時寫清楚，避免事後與成員產生糾紛。',
-  },
-]
-
-const TABS = [
-  { value: 'flow',   label: '申請流程', slides: FLOW_STEPS },
-  { value: 'tasks',  label: '日常任務', slides: TASKS },
-  { value: 'notice', label: '注意事項', slides: NOTICES },
-]
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import {
+  HOST_FLOW_STEPS as FLOW_STEPS,
+  HOST_GUIDE_TABS as TABS,
+  HOST_NOTICES as NOTICES,
+  HOST_TASKS as TASKS,
+} from '../data/homeContent'
 
 function Slideshow({ slides, renderSlide }) {
   const [index, setIndex] = useState(0)
