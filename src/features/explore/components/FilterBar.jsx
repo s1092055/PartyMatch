@@ -38,7 +38,7 @@ export default function FilterBar({ filters, onChange }) {
         onChange={val => onChange({ category: val, service: 'all' })}
       />
 
-      <div className="flex flex-wrap gap-4 mt-6">
+      <div className="flex gap-2 mt-6">
         <CustomSelect value={service} onChange={v => onChange({ service: v })} options={serviceOptions} />
         <CustomSelect value={maxPrice} onChange={v => onChange({ maxPrice: v })} options={PRICE_OPTIONS} />
         <CustomSelect value={sortBy} onChange={v => onChange({ sortBy: v })} options={SORT_OPTIONS} />

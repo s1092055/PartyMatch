@@ -1,6 +1,6 @@
 import { startTransition, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowRight, Compass, Search, Sparkles, X, Zap } from 'lucide-react'
+import { ArrowRight, Compass, PlusCircle, Search, Sparkles, X, Zap } from 'lucide-react'
 import { getGroups } from '../../shared/stores/groupStore'
 import { getServiceTypeById } from '../../shared/services/serviceTypes'
 import { getActiveUser } from '../../shared/stores/userStore'
@@ -135,13 +135,13 @@ export default function ExplorePage() {
               <ExploreGroupCard group={group} />
             </RevealSection>
           ))}
-          <RevealSection delay={Math.min(filtered.length * 60, 300)}>
+          <RevealSection delay={Math.min(filtered.length * 60, 300)} className="flex flex-col gap-5">
             <div
               onClick={() => navigate('/quick-match')}
-              className="flex min-h-[14.25rem] cursor-pointer flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-brand/30 bg-brand-subtle/40 p-6 transition-colors hover:border-brand/60 hover:bg-brand-subtle"
+              className="flex flex-1 cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-brand/30 bg-brand-subtle/40 p-5 transition-colors hover:border-brand/60 hover:bg-brand-subtle"
             >
-              <div className="grid h-14 w-14 place-items-center rounded-2xl bg-brand/10">
-                <Zap size={28} className="text-brand" />
+              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-brand/10">
+                <Zap size={24} className="text-brand" />
               </div>
               <div className="text-center">
                 <p className="text-base font-extrabold text-ink">找不到合適的群組？</p>
@@ -151,6 +151,22 @@ export default function ExplorePage() {
                 <Sparkles size={14} />
                 前往快速配對
                 <ArrowRight size={14} />
+              </span>
+            </div>
+            <div
+              onClick={() => window.dispatchEvent(new CustomEvent('pm:open-create'))}
+              className="flex flex-1 cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-success/30 bg-success/5 p-5 transition-colors hover:border-success/60 hover:bg-success/10"
+            >
+              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-success/10">
+                <PlusCircle size={24} className="text-success" />
+              </div>
+              <div className="text-center">
+                <p className="text-base font-extrabold text-ink">想自己當團主？</p>
+                <p className="mt-1 text-sm text-ink-3">開一個群組，設好條件，等人申請加入就好</p>
+              </div>
+              <span className="flex items-center gap-1.5 rounded-lg bg-success px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-success/80">
+                <PlusCircle size={14} />
+                開一個群組
               </span>
             </div>
           </RevealSection>

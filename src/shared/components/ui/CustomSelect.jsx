@@ -24,7 +24,7 @@ export default function CustomSelect({ label, value, onChange, options }) {
   }, [open])
 
   return (
-    <div ref={ref} className="relative min-w-[9rem] flex-1">
+    <div ref={ref} className="relative min-w-0 flex-1">
       {label && (
         <span className="mb-1 block text-2xs font-medium text-ink-3 text-center md:text-left">{label}</span>
       )}
