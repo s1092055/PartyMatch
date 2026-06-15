@@ -30,7 +30,7 @@ export default function ModalShell({
       <div className="fixed inset-0 z-[55] cursor-pointer bg-black/50" onClick={onClose} />
       <div className={`pointer-events-none fixed inset-0 z-[56] flex items-center justify-center ${outerPadding}`}>
         <div
-          className={`pointer-events-auto relative flex w-full ${maxWidth} flex-col overflow-hidden rounded-2xl bg-white shadow-2xl`}
+          className={`pointer-events-auto relative flex w-full ${maxWidth} flex-col overflow-hidden rounded-2xl bg-canvas shadow-2xl`}
           style={{ height }}
         >
           <div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-5">

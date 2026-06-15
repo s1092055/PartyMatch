@@ -197,7 +197,7 @@ function Step4({ results, conditions, onClose }) {
 
   if (results.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center px-3 py-14 text-center lg:px-6">
+      <div className="flex flex-col items-center justify-center py-14 text-center">
         <Zap size={40} className="mb-4 text-ink-4" />
         <p className="mb-1 text-base font-extrabold text-ink">沒有符合條件的群組</p>
         <p className="max-w-xs text-sm text-ink-3">
@@ -215,7 +215,7 @@ function Step4({ results, conditions, onClose }) {
   }
 
   return (
-    <div className="px-3 pt-2 pb-3 lg:px-6 lg:pt-3 lg:pb-6">
+    <div className="pt-2 pb-3 lg:pt-3 lg:pb-6">
       <div className="mb-4 flex items-center gap-3">
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-success shadow-[0_8px_20px_-8px_rgb(16_178_108_/_0.6)]">
           <CheckCircle2 size={18} className="text-white" />
@@ -351,15 +351,15 @@ export default function QuickMatchModal() {
       title="快速配對"
       footer={footer}
     >
-      <div className="shrink-0 px-6 lg:px-12 pt-5">
+      <div className="shrink-0 px-6 pt-5">
         <CreateGroupStepper steps={STEPS} current={step} />
       </div>
 
-      <div className="flex-1 overflow-y-auto px-3 pb-2 lg:px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex-1 overflow-y-auto px-6 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {!isResultStep ? (
           <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:mr-6">
             <div className="min-w-0 flex-1 flex flex-col">
-              <div className="flex-1 px-3 pt-2 pb-3 lg:px-6 lg:pt-3 lg:pb-6">
+              <div className="flex-1 pt-2 pb-3 lg:pt-3 lg:pb-6">
                 {step === 1 && <Step1 conditions={conditions} onToggle={toggleService} />}
                 {step === 2 && <Step2 conditions={conditions} onChangePlan={handleChangePlan} />}
                 {step === 3 && <Step3 conditions={conditions} onChange={handleChange} />}

@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import {
-  AlertCircle, Calendar, CheckCircle2, ChevronLeft, ChevronRight, Clock,
+  AlertCircle, Calendar, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Clock,
   CreditCard, Heart, Info, LogIn, Play, ShieldCheck, Star,
   User, Users, X,
 } from 'lucide-react'
@@ -105,7 +105,6 @@ function GroupRecommendCard({ group }) {
           {visibleTags.map(tag => <TagChip key={tag} label={tag} size="sm" />)}
         </div>
         <button
-          onClick={open}
           className="shrink-0 rounded-lg border border-line px-2.5 py-1 text-xs font-semibold text-ink-2 transition-colors hover:border-brand hover:text-brand"
         >
           查看
@@ -121,10 +120,13 @@ export default function GroupDetailModal() {
   const navigate = useNavigate()
   const [groupId, setGroupId]               = useState(null)
   const [applyModalOpen, setApplyModalOpen] = useState(false)
-  const [leftTab, setLeftTab]               = useState('service')
   const [applied, setApplied]               = useState(false)
   const [isFav, setIsFav]                   = useState(false)
   const [recPage, setRecPage]               = useState(0)
+  const [openSections, setOpenSections]     = useState(() => new Set(['service']))
+
+  const summaryRef = useRef(null)
+  const leftColRef = useRef(null)
 
   const isOpen = !!groupId
   useScrollLock(isOpen)
@@ -136,9 +138,10 @@ export default function GroupDetailModal() {
     function onOpen(e) {
       const gId = e.detail?.groupId ?? null
       setGroupId(gId)
-      setLeftTab('service')
       setRecPage(0)
       setApplyModalOpen(false)
+      setOpenSections(new Set(['service']))
+      if (leftColRef.current) leftColRef.current.scrollTop = 0
       if (gId && activeUserId) {
         setApplied(!!getApplicationByUserAndGroup(activeUserId, gId))
         setIsFav(isGroupFavorited(activeUserId, gId))
@@ -158,6 +161,24 @@ export default function GroupDetailModal() {
     return () => document.removeEventListener('keydown', onEsc)
   }, [isOpen])
 
+  useLayoutEffect(() => {
+    if (!isOpen) return
+    const syncHeight = () => {
+      const summary = summaryRef.current
+      const left    = leftColRef.current
+      if (!summary || !left) return
+      if (window.innerWidth >= 1024) {
+        left.style.height = summary.offsetHeight + 'px'
+      } else {
+        left.style.height = ''
+      }
+    }
+    syncHeight()
+    const ro = new ResizeObserver(syncHeight)
+    if (summaryRef.current) ro.observe(summaryRef.current)
+    return () => { ro.disconnect() }
+  }, [isOpen, groupId])
+
   const group   = isOpen ? getGroupById(groupId) : null
   const service = group ? getServiceById(group.serviceId) : null
   const plan    = service?.plans.find(p => p.name === group?.planName)
@@ -171,7 +192,12 @@ export default function GroupDetailModal() {
     ]
   }, [groupId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!isOpen) return null
+  if (!isOpen || !group) return null
+
+  const allRules = [
+    ...(group.requirements ? [group.requirements] : []),
+    ...(group.rules ?? []),
+  ]
 
   const isHost           = group?.hostId === activeUserId
   const isMember         = group ? isCurrentUserMember(group.id) : false
@@ -228,7 +254,6 @@ export default function GroupDetailModal() {
   }
 
   const totalSlides = Math.max(1, Math.ceil(picks.length / 3))
-  const safeSlide   = Math.min(recPage, totalSlides - 1)
 
   const planChips = group ? [
     { icon: Calendar, label: '方案',      value: group.planName },
@@ -257,14 +282,14 @@ export default function GroupDetailModal() {
           style={{ height: 'min(92vh, 860px)' }}
         >
           {/* ── Header ── */}
-          <div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-5">
+          <div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-5 lg:px-8">
             {group ? (
               <div className="flex items-center gap-2.5">
                 <ServiceLogo serviceId={group.serviceId} size={28} className="rounded-lg" />
-                <span className="text-base font-extrabold text-ink">{group.serviceName}</span>
+                <span className="text-lg font-extrabold text-ink">{group.serviceName}</span>
               </div>
             ) : (
-              <span className="text-base font-extrabold text-ink">群組詳情</span>
+              <span className="text-lg font-extrabold text-ink">群組詳情</span>
             )}
             <button
               onClick={() => setGroupId(null)}
@@ -276,7 +301,7 @@ export default function GroupDetailModal() {
           </div>
 
           {/* ── Scrollable content ── */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {!group ? (
               <div className="flex flex-col items-center justify-center gap-3 py-24 text-ink-3">
                 <AlertCircle size={40} className="text-ink-4" />
@@ -285,160 +310,250 @@ export default function GroupDetailModal() {
             ) : (
               <>
                 {/* Two-column layout */}
-                <div className="p-6 lg:flex lg:items-stretch lg:gap-6">
+                <div className="flex flex-col gap-4 p-6 lg:flex-row lg:items-start lg:gap-6 lg:p-8">
 
-                  {/* ────────── LEFT COLUMN (tab panel) ────────── */}
-                  <div className="mb-4 flex min-w-0 flex-1 flex-col overflow-hidden lg:mb-0">
+                  {/* ────────── LEFT COLUMN ────────── */}
+                  <div ref={leftColRef} className="order-2 min-w-0 flex-1 overflow-y-auto lg:order-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
 
-                    {/* Tab bar */}
-                    <div className="flex shrink-0 border-b border-line">
-                      {[
-                        { key: 'service', label: '服務與方案' },
-                        { key: 'reviews', label: '團主評價'   },
-                      ].map(tab => (
-                        <button
-                          key={tab.key}
-                          onClick={() => setLeftTab(tab.key)}
-                          className={`flex-1 py-3 text-sm font-semibold transition-colors ${
-                            leftTab === tab.key
-                              ? 'border-b-2 border-ink text-ink'
-                              : 'border-b-2 border-transparent text-ink-3 hover:text-ink'
-                          }`}
-                        >
-                          {tab.label}
-                        </button>
-                      ))}
-                    </div>
+                    {/* Desktop: all sections always visible */}
+                    <div className="hidden divide-y divide-line-subtle lg:block">
 
-                    {/* Tab content */}
-                    <div className="overflow-y-auto p-5 max-h-[360px] lg:max-h-[520px]">
-
-                      {/* 服務與方案 + 加入條件 */}
-                      {leftTab === 'service' && (
-                        <div className="space-y-6">
-                          {/* 服務介紹 */}
-                          <div className="space-y-4">
-                            {service?.description && (
-                              <p className="text-sm leading-relaxed text-ink-2">{service.description}</p>
+                      {/* 服務介紹 */}
+                      <div className="space-y-4 py-5">
+                        {service?.description && (
+                          <p className="text-sm leading-relaxed text-ink-2">{service.description}</p>
+                        )}
+                        {planChips.length > 0 && (
+                          <div className={`grid gap-2 ${planChips.length >= 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                            {planChips.map(({ icon: Icon, label: chipLabel, value }) => (
+                              <div key={chipLabel} className="flex flex-col gap-1 rounded-xl border border-line bg-canvas p-3">
+                                <Icon size={14} className="text-ink-3" />
+                                <span className="text-xs text-ink-4">{chipLabel}</span>
+                                <span className="text-xs font-bold leading-snug text-ink">{value}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {(plan?.description || (plan?.features?.length ?? 0) > 0) && (
+                          <div className="border-t border-line-subtle pt-4">
+                            {plan?.description && (
+                              <p className="mb-3 text-sm font-medium text-ink-2">{plan.description}</p>
                             )}
-                            {planChips.length > 0 && (
-                              <div className={`grid gap-2 ${planChips.length >= 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
-                                {planChips.map(({ icon: Icon, label, value }) => (
-                                  <div key={label} className="flex flex-col gap-1 rounded-xl border border-line bg-canvas p-3">
-                                    <Icon size={14} className="text-ink-3" />
-                                    <span className="text-xs text-ink-4">{label}</span>
-                                    <span className="text-xs font-bold leading-snug text-ink">{value}</span>
-                                  </div>
+                            {(plan?.features ?? []).length > 0 && (
+                              <ul className="space-y-2">
+                                {plan.features.map((feat, i) => (
+                                  <li key={i} className="flex items-start gap-2 text-sm text-ink-2">
+                                    <CheckCircle2 size={14} className="mt-0.5 shrink-0 text-brand" />
+                                    {feat}
+                                  </li>
                                 ))}
-                              </div>
-                            )}
-                            {(plan?.description || (plan?.features?.length ?? 0) > 0) && (
-                              <div className="border-t border-line-subtle pt-4">
-                                {plan?.description && (
-                                  <p className="mb-3 text-sm font-medium text-ink-2">{plan.description}</p>
-                                )}
-                                {(plan?.features ?? []).length > 0 && (
-                                  <ul className="space-y-2">
-                                    {plan.features.map((feat, i) => (
-                                      <li key={i} className="flex items-start gap-2 text-sm text-ink-2">
-                                        <CheckCircle2 size={14} className="mt-0.5 shrink-0 text-brand" />
-                                        {feat}
-                                      </li>
-                                    ))}
-                                  </ul>
-                                )}
-                              </div>
+                              </ul>
                             )}
                           </div>
+                        )}
+                      </div>
 
-                          {/* 加入條件 */}
-                          {(() => {
-                            const allRules = [
-                              ...(group.requirements ? [group.requirements] : []),
-                              ...(group.rules ?? []),
-                            ]
-                            return (
-                              <div className="border-t border-line-subtle pt-5">
-                                <p className="mb-3 text-sm font-semibold text-ink">加入條件與規則</p>
-                                {allRules.length > 0 ? (
-                                  <ul className="space-y-3">
-                                    {allRules.map((rule, i) => (
-                                      <li key={i} className="flex items-start gap-2 text-sm text-ink-2">
-                                        <CheckCircle2 size={14} className="mt-0.5 shrink-0 text-emerald-500" />
-                                        <span>{rule}</span>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                ) : (
-                                  <p className="text-sm text-ink-4">此群組尚未設定加入規則</p>
-                                )}
-                              </div>
-                            )
-                          })()}
-                        </div>
-                      )}
+                      {/* 加入條件與規則 */}
+                      <div className="py-5">
+                        <p className="mb-3 text-sm font-semibold text-ink">加入條件與規則</p>
+                        {allRules.length > 0 ? (
+                          <ul className="space-y-3">
+                            {allRules.map((rule, i) => (
+                              <li key={i} className="flex items-start gap-2 text-sm text-ink-2">
+                                <CheckCircle2 size={14} className="mt-0.5 shrink-0 text-emerald-500" />
+                                <span>{rule}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-sm text-ink-4">此群組尚未設定加入規則</p>
+                        )}
+                      </div>
 
                       {/* 團主評價 */}
-                      {leftTab === 'reviews' && (
-                        <div className="space-y-4">
-                          {/* Host summary */}
-                          <div className="flex items-center gap-3 border-b border-line-subtle pb-4">
-                            <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="md" />
-                            <div className="min-w-0 flex-1">
-                              <p className="text-sm font-semibold text-ink">{group.hostName}</p>
-                              <div className="mt-1 flex items-center gap-1.5">
-                                <div className="flex gap-0.5">
-                                  {Array.from({ length: 5 }, (_, i) => (
-                                    <Star key={i} size={12} className={i < hostStars ? 'fill-amber-400 text-amber-400' : 'text-line'} />
-                                  ))}
-                                </div>
-                                {(group.hostReviewCount ?? 0) > 0 && (
-                                  <span className="text-xs text-ink-4">{group.hostReviewCount} 則評價</span>
-                                )}
+                      <div className="space-y-4 py-5">
+                        <div className="flex items-center gap-3 border-b border-line-subtle pb-4">
+                          <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="md" />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-semibold text-ink">{group.hostName}</p>
+                            <div className="mt-1 flex items-center gap-1.5">
+                              <div className="flex gap-0.5">
+                                {Array.from({ length: 5 }, (_, i) => (
+                                  <Star key={i} size={12} className={i < hostStars ? 'fill-amber-400 text-amber-400' : 'text-line'} />
+                                ))}
                               </div>
+                              {(group.hostReviewCount ?? 0) > 0 && (
+                                <span className="text-xs text-ink-4">{group.hostReviewCount} 則評價</span>
+                              )}
                             </div>
                           </div>
-                          {/* Reviews list */}
-                          {(group.reviews ?? []).length === 0 ? (
-                            <p className="py-6 text-center text-sm text-ink-4">尚無評價</p>
-                          ) : (
-                            (group.reviews ?? []).map(review => (
-                              <div key={review.id} className="flex gap-3">
-                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-raised text-xs font-bold text-ink-2">
-                                  {review.author?.[0] ?? '?'}
+                        </div>
+                        {(group.reviews ?? []).length === 0 ? (
+                          <p className="py-4 text-center text-sm text-ink-4">尚無評價</p>
+                        ) : (
+                          (group.reviews ?? []).map(review => (
+                            <div key={review.id} className="flex gap-3">
+                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-raised text-xs font-bold text-ink-2">
+                                {review.author?.[0] ?? '?'}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <div className="mb-1 flex items-center justify-between">
+                                  <span className="text-sm font-semibold text-ink">{review.author}</span>
+                                  <span className="text-xs text-ink-4">{review.date}</span>
                                 </div>
-                                <div className="min-w-0 flex-1">
-                                  <div className="mb-1 flex items-center justify-between">
-                                    <span className="text-sm font-semibold text-ink">{review.author}</span>
-                                    <span className="text-xs text-ink-4">{review.date}</span>
+                                {review.rating != null && (
+                                  <div className="mb-1 flex gap-0.5">
+                                    {Array.from({ length: 5 }, (_, i) => (
+                                      <Star key={i} size={11} className={i < review.rating ? 'fill-amber-400 text-amber-400' : 'text-line'} />
+                                    ))}
                                   </div>
-                                  {review.rating != null && (
-                                    <div className="mb-1 flex gap-0.5">
+                                )}
+                                <p className="text-sm leading-relaxed text-ink-3">{review.comment}</p>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+
+                    </div>
+
+                    {/* Mobile: accordion */}
+                    <div className="divide-y divide-line-subtle lg:hidden">
+
+                      {[
+                        { key: 'service', label: '服務介紹' },
+                        { key: 'rules',   label: '加入條件與規則' },
+                        { key: 'reviews', label: '團主評價' },
+                      ].map(({ key, label }) => (
+                        <div key={key}>
+                          <button
+                            className="flex w-full items-center justify-between px-6 py-4"
+                            onClick={() => setOpenSections(prev => {
+                              const next = new Set(prev)
+                              next.has(key) ? next.delete(key) : next.add(key)
+                              return next
+                            })}
+                          >
+                            <span className="text-sm font-semibold text-ink">{label}</span>
+                            <ChevronDown
+                              size={16}
+                              className={`shrink-0 text-ink-3 transition-transform duration-200 ${openSections.has(key) ? 'rotate-180' : ''}`}
+                            />
+                          </button>
+
+                          {openSections.has(key) && key === 'service' && (
+                            <div className="space-y-4 px-6 pb-5">
+                              {service?.description && (
+                                <p className="text-sm leading-relaxed text-ink-2">{service.description}</p>
+                              )}
+                              {planChips.length > 0 && (
+                                <div className={`grid gap-2 ${planChips.length >= 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                                  {planChips.map(({ icon: Icon, label: chipLabel, value }) => (
+                                    <div key={chipLabel} className="flex flex-col gap-1 rounded-xl border border-line bg-canvas p-3">
+                                      <Icon size={14} className="text-ink-3" />
+                                      <span className="text-xs text-ink-4">{chipLabel}</span>
+                                      <span className="text-xs font-bold leading-snug text-ink">{value}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              {(plan?.description || (plan?.features?.length ?? 0) > 0) && (
+                                <div className="border-t border-line-subtle pt-4">
+                                  {plan?.description && (
+                                    <p className="mb-3 text-sm font-medium text-ink-2">{plan.description}</p>
+                                  )}
+                                  {(plan?.features ?? []).length > 0 && (
+                                    <ul className="space-y-2">
+                                      {plan.features.map((feat, i) => (
+                                        <li key={i} className="flex items-start gap-2 text-sm text-ink-2">
+                                          <CheckCircle2 size={14} className="mt-0.5 shrink-0 text-brand" />
+                                          {feat}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {openSections.has(key) && key === 'rules' && (
+                            <div className="px-6 pb-5">
+                              {allRules.length > 0 ? (
+                                <ul className="space-y-3">
+                                  {allRules.map((rule, i) => (
+                                    <li key={i} className="flex items-start gap-2 text-sm text-ink-2">
+                                      <CheckCircle2 size={14} className="mt-0.5 shrink-0 text-emerald-500" />
+                                      <span>{rule}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <p className="text-sm text-ink-4">此群組尚未設定加入規則</p>
+                              )}
+                            </div>
+                          )}
+
+                          {openSections.has(key) && key === 'reviews' && (
+                            <div className="space-y-4 px-6 pb-5">
+                              <div className="flex items-center gap-3 border-b border-line-subtle pb-4">
+                                <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="md" />
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-sm font-semibold text-ink">{group.hostName}</p>
+                                  <div className="mt-1 flex items-center gap-1.5">
+                                    <div className="flex gap-0.5">
                                       {Array.from({ length: 5 }, (_, i) => (
-                                        <Star key={i} size={11} className={i < review.rating ? 'fill-amber-400 text-amber-400' : 'text-line'} />
+                                        <Star key={i} size={12} className={i < hostStars ? 'fill-amber-400 text-amber-400' : 'text-line'} />
                                       ))}
                                     </div>
-                                  )}
-                                  <p className="text-sm leading-relaxed text-ink-3">{review.comment}</p>
+                                    {(group.hostReviewCount ?? 0) > 0 && (
+                                      <span className="text-xs text-ink-4">{group.hostReviewCount} 則評價</span>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
-                            ))
+                              {(group.reviews ?? []).length === 0 ? (
+                                <p className="py-4 text-center text-sm text-ink-4">尚無評價</p>
+                              ) : (
+                                (group.reviews ?? []).map(review => (
+                                  <div key={review.id} className="flex gap-3">
+                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-raised text-xs font-bold text-ink-2">
+                                      {review.author?.[0] ?? '?'}
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                      <div className="mb-1 flex items-center justify-between">
+                                        <span className="text-sm font-semibold text-ink">{review.author}</span>
+                                        <span className="text-xs text-ink-4">{review.date}</span>
+                                      </div>
+                                      {review.rating != null && (
+                                        <div className="mb-1 flex gap-0.5">
+                                          {Array.from({ length: 5 }, (_, i) => (
+                                            <Star key={i} size={11} className={i < review.rating ? 'fill-amber-400 text-amber-400' : 'text-line'} />
+                                          ))}
+                                        </div>
+                                      )}
+                                      <p className="text-sm leading-relaxed text-ink-3">{review.comment}</p>
+                                    </div>
+                                  </div>
+                                ))
+                              )}
+                            </div>
                           )}
                         </div>
-                      )}
+                      ))}
 
                     </div>
                   </div>
                   {/* ────────── END LEFT ────────── */}
 
                   {/* ────────── RIGHT COLUMN ────────── */}
-                  <div className="mt-4 lg:mt-0 lg:w-[20rem] lg:shrink-0">
+                  <div ref={summaryRef} className="order-1 lg:order-2 lg:w-[20rem] lg:shrink-0">
 
                     {/* Summary card */}
                     <div className="card divide-y divide-line-subtle overflow-hidden">
 
                       {/* Price + heart */}
-                      <div className="flex items-start justify-between px-5 py-4">
+                      <div className="flex items-start justify-between px-6 py-4 lg:px-8">
                         <div>
                           <p className="mb-0.5 text-xs font-medium text-ink-4">每席價格</p>
                           <div className="flex items-baseline gap-1">
@@ -460,7 +575,7 @@ export default function GroupDetailModal() {
                       </div>
 
                       {/* Seats */}
-                      <div className="px-5 py-4">
+                      <div className="px-6 py-4 lg:px-8">
                         <div className="mb-2 flex items-center justify-between text-sm">
                           <span className="text-ink-3">剩餘名額</span>
                           <span className="font-semibold text-ink">
@@ -476,14 +591,14 @@ export default function GroupDetailModal() {
 
                       {/* Tag chips */}
                       {(group.tags ?? []).length > 0 && (
-                        <div className="flex flex-wrap gap-2 px-5 py-4">
+                        <div className="flex flex-wrap gap-2 px-6 py-4 lg:px-8">
                           {(group.tags ?? []).map(tag => <TagChip key={tag} label={tag} />)}
                         </div>
                       )}
 
                       {/* Info table */}
                       {infoRows.length > 0 && (
-                        <div className="px-5 py-4">
+                        <div className="px-6 py-4 lg:px-8">
                           <div className="space-y-2">
                             {infoRows.map(({ label, value }) => (
                               <div key={label} className="flex gap-3 text-sm">
@@ -495,8 +610,8 @@ export default function GroupDetailModal() {
                         </div>
                       )}
 
-                      {/* CTA */}
-                      <div className="px-5 py-4">
+                      {/* CTA — desktop only; mobile uses sticky footer bar */}
+                      <div className="hidden px-6 py-4 lg:block lg:px-8">
                         {renderCTA()}
                         {canApply && (
                           <p className="mt-2 text-center text-xs text-ink-4">
@@ -518,7 +633,7 @@ export default function GroupDetailModal() {
 
                 {/* ────────── RECOMMENDATIONS (full-width) ────────── */}
                 {picks.length > 0 && (
-                  <div className="border-t border-line px-6 pb-6 pt-5">
+                  <div className="border-t border-line px-8 pb-6 pt-5 lg:pb-8">
                     <h3 className="mb-4 text-sm font-bold text-ink">其他推薦群組</h3>
 
                     {/* Mobile: horizontal scroll */}
@@ -531,48 +646,48 @@ export default function GroupDetailModal() {
                     </div>
 
                     {/* Desktop: 3-per-slide carousel */}
-                    <div className="relative hidden lg:block">
-                      {/* Left arrow */}
-                      {totalSlides > 1 && (
-                        <button
-                          onClick={() => setRecPage(p => Math.max(0, p - 1))}
-                          disabled={safeSlide === 0}
-                          className="absolute -left-4 top-1/2 z-10 -translate-y-6 grid h-8 w-8 place-items-center rounded-full border border-line bg-white text-ink-3 shadow-sm transition-colors hover:bg-raised disabled:opacity-0"
-                        >
-                          <ChevronLeft size={16} />
-                        </button>
-                      )}
+                    <div className="hidden lg:block">
+                      <div className="flex items-center gap-2">
+                        {totalSlides > 1 && (
+                          <button
+                            onClick={() => setRecPage(p => Math.max(0, p - 1))}
+                            disabled={recPage === 0}
+                            className="shrink-0 grid h-8 w-8 place-items-center rounded-full border border-line bg-canvas text-ink-3 shadow-sm transition-colors hover:bg-raised disabled:opacity-0"
+                          >
+                            <ChevronLeft size={16} />
+                          </button>
+                        )}
 
-                      <div className="overflow-hidden p-0.5">
-                        <div
-                          className="flex transition-transform duration-300 ease-in-out"
-                          style={{
-                            width: `${totalSlides * 100}%`,
-                            transform: `translateX(-${safeSlide * (100 / totalSlides)}%)`,
-                          }}
-                        >
-                          {Array.from({ length: totalSlides }).map((_, si) => (
-                            <div key={si} style={{ width: `${100 / totalSlides}%` }}>
-                              <div className="grid grid-cols-3 gap-3">
-                                {picks.slice(si * 3, si * 3 + 3).map(g => (
-                                  <GroupRecommendCard key={g.id} group={g} />
-                                ))}
+                        <div className="min-w-0 flex-1 overflow-hidden p-0.5">
+                          <div
+                            className="flex transition-transform duration-300 ease-in-out"
+                            style={{
+                              width: `${totalSlides * 100}%`,
+                              transform: `translateX(-${recPage * (100 / totalSlides)}%)`,
+                            }}
+                          >
+                            {Array.from({ length: totalSlides }).map((_, si) => (
+                              <div key={si} style={{ width: `${100 / totalSlides}%` }}>
+                                <div className="grid grid-cols-3 gap-3">
+                                  {picks.slice(si * 3, si * 3 + 3).map(g => (
+                                    <GroupRecommendCard key={g.id} group={g} />
+                                  ))}
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Right arrow */}
-                      {totalSlides > 1 && (
-                        <button
-                          onClick={() => setRecPage(p => Math.min(totalSlides - 1, p + 1))}
-                          disabled={safeSlide === totalSlides - 1}
-                          className="absolute -right-4 top-1/2 z-10 -translate-y-6 grid h-8 w-8 place-items-center rounded-full border border-line bg-white text-ink-3 shadow-sm transition-colors hover:bg-raised disabled:opacity-0"
-                        >
-                          <ChevronRight size={16} />
-                        </button>
-                      )}
+                        {totalSlides > 1 && (
+                          <button
+                            onClick={() => setRecPage(p => Math.min(totalSlides - 1, p + 1))}
+                            disabled={recPage === totalSlides - 1}
+                            className="shrink-0 grid h-8 w-8 place-items-center rounded-full border border-line bg-canvas text-ink-3 shadow-sm transition-colors hover:bg-raised disabled:opacity-0"
+                          >
+                            <ChevronRight size={16} />
+                          </button>
+                        )}
+                      </div>
 
                       {/* Dot indicators */}
                       {totalSlides > 1 && (
@@ -582,7 +697,7 @@ export default function GroupDetailModal() {
                               key={i}
                               onClick={() => setRecPage(i)}
                               className={`h-2 rounded-full transition-all ${
-                                i === safeSlide ? 'w-5 bg-ink' : 'w-2 bg-line hover:bg-ink-4'
+                                i === recPage ? 'w-5 bg-ink' : 'w-2 bg-line hover:bg-ink-4'
                               }`}
                               aria-label={`第 ${i + 1} 頁`}
                             />
@@ -598,7 +713,7 @@ export default function GroupDetailModal() {
           </div>
 
           {/* Mobile sticky CTA */}
-          <div className="shrink-0 border-t border-line bg-white px-4 py-3 lg:hidden">
+          <div className="shrink-0 border-t border-line bg-canvas px-6 py-3 lg:hidden">
             {group && renderCTA()}
           </div>
         </div>

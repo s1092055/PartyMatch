@@ -229,15 +229,15 @@ export default function CreateGroupModal() {
       icon={<PlusCircle size={20} className="text-brand" />}
       title="建立群組"
       height="min(85vh, 720px)"
-      outerPadding="p-4 md:p-4"
+      outerPadding="p-4 md:p-8"
       headerEnd={headerEnd}
       footer={footer}
     >
-      <div className="shrink-0 px-6 lg:px-12 pt-5">
+      <div className="shrink-0 px-6 pt-5">
         <CreateGroupStepper steps={STEP_LABELS} current={step} />
       </div>
 
-      <div className="flex-1 overflow-y-auto px-3 pb-2 lg:px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex-1 overflow-y-auto px-6 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {submitted ? (
           <div className="flex flex-col items-center justify-center gap-5 py-16 px-4">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
@@ -281,10 +281,10 @@ export default function CreateGroupModal() {
             return (
               <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:mr-6">
                 <div className="min-w-0 flex-1 flex flex-col">
-                  <div className="flex-1 px-3 pt-2 pb-3 lg:px-6 lg:pt-3 lg:pb-6">
+                  <div className="flex-1 pt-2 pb-3 lg:pt-3 lg:pb-6">
                     <StepComponent form={form} onChange={onChange} />
                   </div>
-                  <div className="mt-4 space-y-2 px-3 pb-2 lg:px-6">
+                  <div className="mt-4 space-y-2 pb-2">
                     {infoBox}
                     {errorBox}
                   </div>
