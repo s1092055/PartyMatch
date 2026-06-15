@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
   Banknote, Calendar, CheckCircle2, Clock, CreditCard,
-  MessageCircle, PlayCircle, Receipt, Shield, UserX, X,
+  MessageCircle, Play, PlayCircle, Receipt, Shield, UserX, Users, X,
 } from 'lucide-react'
 import Avatar from '../ui/Avatar'
 import Badge from '../ui/Badge'
@@ -55,21 +55,81 @@ function HostView({ group, members, applications, onConfirmMember, onRemoveMembe
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-6 lg:flex-row lg:items-start lg:overflow-hidden lg:p-8">
 
-      {/* ── LEFT: 成員列表 ── */}
-      <div className="order-2 min-w-0 flex-1 lg:order-1 lg:h-full lg:overflow-y-auto lg:[scrollbar-width:none] lg:[&::-webkit-scrollbar]:hidden">
+      {/* ── LEFT: 服務介紹 + 規則 + 成員列表 ── */}
+      <div className="order-2 min-w-0 flex-1 divide-y divide-line-subtle lg:order-1 lg:h-full lg:overflow-y-auto lg:[scrollbar-width:none] lg:[&::-webkit-scrollbar]:hidden">
 
-        {(serviceDef?.description || planDef?.description) && (
-          <div className="mb-4 rounded-xl bg-raised px-4 py-3 text-xs leading-relaxed text-ink-3">
-            {serviceDef?.description && <p>{serviceDef.description}</p>}
-            {planDef?.description && (
-              <p className="mt-1 text-ink-2">
-                <span className="font-semibold text-ink-3">{group.planName}：</span>
-                {planDef.description}
-              </p>
-            )}
-          </div>
-        )}
+        {/* 服務介紹 */}
+        <div className="space-y-3 pb-5">
+          <p className="text-sm font-semibold text-ink">服務介紹</p>
+          {serviceDef?.description && (
+            <p className="text-sm leading-relaxed text-ink-2">{serviceDef.description}</p>
+          )}
+          {(() => {
+            const chips = [
+              { icon: Calendar, label: '方案',     value: group.planName },
+              { icon: Users,    label: '共享方式', value: `${group.totalSeats} 人共享` },
+              ...((planDef?.features?.length ?? 0) > 0
+                ? [{ icon: Play, label: '主要功能', value: planDef.features[0] }]
+                : []),
+            ]
+            return chips.length > 0 && (
+              <div className={`grid gap-2 ${chips.length >= 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                {chips.map(({ icon: Icon, label, value }) => (
+                  <div key={label} className="flex flex-col gap-1 rounded-xl border border-line bg-canvas p-3">
+                    <Icon size={13} className="text-ink-3" />
+                    <span className="text-xs text-ink-4">{label}</span>
+                    <span className="text-xs font-bold leading-snug text-ink">{value}</span>
+                  </div>
+                ))}
+              </div>
+            )
+          })()}
+          {(planDef?.description || (planDef?.features?.length ?? 0) > 0) && (
+            <div className="border-t border-line-subtle pt-3">
+              {planDef?.description && (
+                <p className="mb-2 text-sm text-ink-2">{planDef.description}</p>
+              )}
+              {(planDef?.features ?? []).length > 0 && (
+                <ul className="space-y-1.5">
+                  {planDef.features.map((feat, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-ink-2">
+                      <CheckCircle2 size={13} className="mt-0.5 shrink-0 text-brand" />
+                      {feat}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+        </div>
 
+        {/* 加入條件與規則 */}
+        {(() => {
+          const allRules = [
+            ...(group.requirements ? [group.requirements] : []),
+            ...(group.rules ?? []),
+          ]
+          return (
+            <div className="space-y-3 py-5">
+              <p className="text-sm font-semibold text-ink">加入條件與規則</p>
+              {allRules.length > 0 ? (
+                <ul className="space-y-2">
+                  {allRules.map((rule, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-ink-2">
+                      <CheckCircle2 size={13} className="mt-0.5 shrink-0 text-emerald-500" />
+                      <span>{rule}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-ink-4">此群組尚未設定加入規則</p>
+              )}
+            </div>
+          )
+        })()}
+
+        {/* 成員名單 */}
+        <div className="pt-5">
         <div className="mb-3 flex items-center justify-between">
           <p className="text-sm font-extrabold text-ink">
             成員名單
@@ -164,6 +224,7 @@ function HostView({ group, members, applications, onConfirmMember, onRemoveMembe
               </div>
             )
           })}
+        </div>
         </div>
       </div>
 
@@ -280,24 +341,82 @@ function MemberView({ group, onMarkPaid, onClose }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-6 lg:flex-row lg:items-start lg:overflow-hidden lg:p-8">
 
-      {/* ── LEFT: 成員列表 + 付款紀錄 ── */}
-      <div className="order-2 min-w-0 flex-1 space-y-5 lg:order-1 lg:h-full lg:overflow-y-auto lg:[scrollbar-width:none] lg:[&::-webkit-scrollbar]:hidden">
+      {/* ── LEFT: 服務介紹 + 規則 + 成員列表 + 付款紀錄 ── */}
+      <div className="order-2 min-w-0 flex-1 divide-y divide-line-subtle lg:order-1 lg:h-full lg:overflow-y-auto lg:[scrollbar-width:none] lg:[&::-webkit-scrollbar]:hidden">
 
-        {(serviceDef?.description || planDef?.description) && (
-          <div className="rounded-xl bg-raised px-4 py-3 text-xs leading-relaxed text-ink-3">
-            {serviceDef?.description && <p>{serviceDef.description}</p>}
-            {planDef?.description && (
-              <p className="mt-1 text-ink-2">
-                <span className="font-semibold text-ink-3">{group.planName}：</span>
-                {planDef.description}
-              </p>
-            )}
-          </div>
-        )}
+        {/* 服務介紹 */}
+        <div className="space-y-3 pb-5">
+          <p className="text-sm font-semibold text-ink">服務介紹</p>
+          {serviceDef?.description && (
+            <p className="text-sm leading-relaxed text-ink-2">{serviceDef.description}</p>
+          )}
+          {(() => {
+            const chips = [
+              { icon: Calendar, label: '方案',     value: group.planName },
+              { icon: Users,    label: '共享方式', value: `${group.totalSeats} 人共享` },
+              ...((planDef?.features?.length ?? 0) > 0
+                ? [{ icon: Play, label: '主要功能', value: planDef.features[0] }]
+                : []),
+            ]
+            return chips.length > 0 && (
+              <div className={`grid gap-2 ${chips.length >= 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                {chips.map(({ icon: Icon, label, value }) => (
+                  <div key={label} className="flex flex-col gap-1 rounded-xl border border-line bg-canvas p-3">
+                    <Icon size={13} className="text-ink-3" />
+                    <span className="text-xs text-ink-4">{label}</span>
+                    <span className="text-xs font-bold leading-snug text-ink">{value}</span>
+                  </div>
+                ))}
+              </div>
+            )
+          })()}
+          {(planDef?.description || (planDef?.features?.length ?? 0) > 0) && (
+            <div className="border-t border-line-subtle pt-3">
+              {planDef?.description && (
+                <p className="mb-2 text-sm text-ink-2">{planDef.description}</p>
+              )}
+              {(planDef?.features ?? []).length > 0 && (
+                <ul className="space-y-1.5">
+                  {planDef.features.map((feat, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-ink-2">
+                      <CheckCircle2 size={13} className="mt-0.5 shrink-0 text-brand" />
+                      {feat}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* 加入條件與規則 */}
+        {(() => {
+          const allRules = [
+            ...(group.requirements ? [group.requirements] : []),
+            ...(group.rules ?? []),
+          ]
+          return (
+            <div className="space-y-3 py-5">
+              <p className="text-sm font-semibold text-ink">加入條件與規則</p>
+              {allRules.length > 0 ? (
+                <ul className="space-y-2">
+                  {allRules.map((rule, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-ink-2">
+                      <CheckCircle2 size={13} className="mt-0.5 shrink-0 text-emerald-500" />
+                      <span>{rule}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-ink-4">此群組尚未設定加入規則</p>
+              )}
+            </div>
+          )
+        })()}
 
         {/* 成員名單 */}
-        <div>
-          <p className="mb-3 text-sm font-extrabold text-ink">
+        <div className="space-y-3 py-5">
+          <p className="text-sm font-semibold text-ink">
             成員名單
             <span className="ml-1 font-normal text-ink-3">（{members.length + 1} 人）</span>
           </p>
@@ -339,8 +458,8 @@ function MemberView({ group, onMarkPaid, onClose }) {
         </div>
 
         {/* 付款紀錄 */}
-        <div>
-          <p className="mb-3 text-sm font-extrabold text-ink">付款紀錄</p>
+        <div className="space-y-3 py-5">
+          <p className="text-sm font-semibold text-ink">付款紀錄</p>
           {payRecords.length === 0 ? (
             <EmptyState icon={Receipt} title="尚無付款紀錄" className="py-6" />
           ) : (
