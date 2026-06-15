@@ -1,21 +1,21 @@
 import { useNavigate } from "react-router-dom";
-import { Search, Users, PlusCircle, CreditCard, VideoOff, ArrowRight } from "lucide-react";
+import { CreditCard, LayoutDashboard, PlusCircle, Search, VideoOff, ArrowRight, Zap } from "lucide-react";
 import RevealSection from "../../../shared/components/ui/RevealSection";
 
 const FEATURES = [
   {
     icon: Search,
-    title: "探索共享群組",
-    desc: "依照服務類型、價格與剩餘名額篩選，快速找到最適合你的訂閱群組，支援關鍵字搜尋與多維度排序。",
+    title: "探索群組",
+    desc: "依服務、價格、評分篩選，找到符合你需求的合購群組。支援關鍵字搜尋，快速縮小範圍。",
     videoSrc: null,
     badge: "探索",
     action: { type: "navigate", path: "/explore" },
     cta: "開始探索",
   },
   {
-    icon: Users,
+    icon: Zap,
     title: "快速配對",
-    desc: "告訴我們你的需求與預算，系統自動推薦最符合條件的群組，省去逐一比較的時間。",
+    desc: "告訴我們你要什麼，系統自動篩出最適合的群組讓你挑。省去逐一比較的時間，幾秒內找到選項。",
     videoSrc: null,
     badge: "配對",
     action: { type: "event", event: "pm:open-match" },
@@ -24,18 +24,27 @@ const FEATURES = [
   {
     icon: PlusCircle,
     title: "建立群組",
-    desc: "幾個步驟就能成為團主，自訂方案、名額與加入條件，輕鬆招募成員一起分攤費用。",
+    desc: "自己當團主，設好方案和規則，等有興趣的人來申請。幾個步驟就能上架，開始招募成員。",
     videoSrc: null,
     badge: "建立",
     action: { type: "event", event: "pm:open-create" },
     cta: "建立群組",
   },
   {
-    icon: CreditCard,
-    title: "管理訂閱",
-    desc: "集中查看所有訂閱的付款狀態、下次續訂日期與完整付款紀錄，再也不怕漏繳。",
+    icon: LayoutDashboard,
+    title: "群組管理",
+    desc: "審核申請、確認付款、管理成員，所有群組操作集中在一頁。啟用、續訂、結束群組一手掌控。",
     videoSrc: null,
     badge: "管理",
+    action: { type: "navigate", path: "/manage-groups" },
+    cta: "前往管理",
+  },
+  {
+    icon: CreditCard,
+    title: "我的訂閱",
+    desc: "查看所有加入的訂閱、付款狀態和繳費紀錄，可以直接標記付款或聯絡團主，再也不怕漏繳。",
+    videoSrc: null,
+    badge: "訂閱",
     action: { type: "navigate", path: "/my-subscriptions" },
     cta: "查看訂閱",
   },
@@ -44,13 +53,7 @@ const FEATURES = [
 function FeatureMedia({ icon: Icon, videoSrc }) {
   if (videoSrc) {
     return (
-      <video
-        className="h-full w-full object-cover"
-        autoPlay
-        muted
-        loop
-        playsInline
-      >
+      <video className="h-full w-full object-cover" autoPlay muted loop playsInline>
         <source src={videoSrc} />
       </video>
     );
@@ -81,13 +84,11 @@ export default function FeatureCards() {
 
   return (
     <section>
-      <div className="mb-10">
-        <p className="mb-1 text-xs font-bold uppercase tracking-widest text-ink-4 text-center">核心功能</p>
-        <h2 className="text-3xl font-extrabold text-ink text-center">
-          PartyMatch 核心功能
-        </h2>
-        <p className="mt-3 text-base text-ink-3 text-center">
-          探索、配對、建立群組、管理訂閱，四大功能一次掌握。
+      <div className="mb-10 text-center">
+        <p className="mb-1 text-xs font-bold uppercase tracking-widest text-ink-4">核心功能</p>
+        <h2 className="text-3xl font-extrabold text-ink">PartyMatch 能為你做什麼</h2>
+        <p className="mt-3 text-base text-ink-3">
+          從找群組到管理訂閱，五大功能覆蓋合購的每個環節。
         </p>
       </div>
 
@@ -96,31 +97,30 @@ export default function FeatureCards() {
           const isEven = i % 2 === 0;
           return (
             <RevealSection key={title}>
-            <div
-              className={`flex flex-col gap-8 md:flex-row md:items-center md:gap-12 ${
-                isEven ? "" : "md:flex-row-reverse"
-              }`}
-            >
-              <div className="aspect-video w-full overflow-hidden rounded-2xl md:w-1/2 md:shrink-0">
-                <FeatureMedia icon={Icon} videoSrc={videoSrc} />
+              <div
+                className={`flex flex-col gap-8 md:flex-row md:items-center md:gap-12 ${
+                  isEven ? "" : "md:flex-row-reverse"
+                }`}
+              >
+                <div className="aspect-video w-full overflow-hidden rounded-2xl md:w-1/2 md:shrink-0">
+                  <FeatureMedia icon={Icon} videoSrc={videoSrc} />
+                </div>
+                <div className="flex flex-col items-center md:w-1/2 md:items-start">
+                  <span className="mb-3 inline-flex w-fit items-center gap-1.5 rounded-full bg-brand-subtle px-3 py-1 text-xs font-extrabold text-brand">
+                    <Icon size={12} />
+                    {badge}
+                  </span>
+                  <h3 className="text-center text-2xl font-extrabold text-ink md:text-left">{title}</h3>
+                  <p className="mt-3 text-center text-base leading-relaxed text-ink-3 md:text-left">{desc}</p>
+                  <button
+                    onClick={() => handleAction(action)}
+                    className="mt-6 inline-flex w-fit items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-brand-hover"
+                  >
+                    {cta}
+                    <ArrowRight size={14} />
+                  </button>
+                </div>
               </div>
-
-              <div className="flex flex-col items-center md:w-1/2 md:items-start">
-                <span className="mb-3 inline-flex w-fit items-center gap-1.5 rounded-full bg-brand-subtle px-3 py-1 text-xs font-extrabold text-brand">
-                  <Icon size={12} />
-                  {badge}
-                </span>
-                <h3 className="text-center text-2xl font-extrabold text-ink md:text-left">{title}</h3>
-                <p className="mt-3 text-center text-base leading-relaxed text-ink-3 md:text-left">{desc}</p>
-                <button
-                  onClick={() => handleAction(action)}
-                  className="mt-6 inline-flex w-fit items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-brand-hover"
-                >
-                  {cta}
-                  <ArrowRight size={14} />
-                </button>
-              </div>
-            </div>
             </RevealSection>
           );
         })}

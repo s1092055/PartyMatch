@@ -29,9 +29,9 @@ function FAQItem({ q, a, open, onToggle }) {
     <div className={`rounded-2xl px-5 transition-colors duration-200 ${open ? 'bg-raised' : 'hover:bg-raised'}`}>
       <button
         onClick={onToggle}
-        className="flex w-full items-center justify-between gap-4 py-4 text-left"
+        className="flex w-full items-center justify-between gap-4 py-4 text-center"
       >
-        <span className="font-bold text-ink">{q}</span>
+        <span className="flex-1 text-center font-bold text-ink">{q}</span>
         <ChevronDown
           size={16}
           className={`shrink-0 text-ink-3 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}

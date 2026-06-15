@@ -11,7 +11,7 @@
 
 ## 功能
 
-- **首頁（Landing Page）**：行銷首頁，展示核心功能（FeatureCards 左右交錯排版）、使用教學（HowItWorks）、FAQ、頁尾（含法律文件連結）；頂部浮動 AppNav（top variant）；Logo 點擊回首頁；各區塊採 RevealSection 滾動觸發淡入動畫
+- **首頁（Landing Page）**：行銷首頁，展示核心功能（FeatureCards 左右交錯排版，5 大功能）、附加功能（ExtraFeatures：訊息中心、通知中心、收藏、信用分數，影片上方卡片版型）、使用教學（HowItWorks 幻燈片，5 步驟）、團主指南（HostGuide：申請流程 / 日常任務 / 注意事項三 Tab 各含幻燈片）、FAQ（手風琴，標題置中）、頁尾（含法律文件連結）；頂部浮動 AppNav（top variant）；Logo 點擊回首頁；各區塊採 RevealSection 滾動觸發淡入動畫；服務跑馬燈（全部 30 種服務無限循環，CSS @keyframes marquee）
 - **探索群組**：Marketplace 瀏覽版面；分類圖示 Grid 篩選（影音、音樂、AI 工具、辦公、雲端、學習、遊戲、VPN）+ 次要篩選列（服務、價格、排序）；卡片顯示價格 → 分隔線 → 團主名稱（不顯示信用評分）+ 剩餘名額；共 30 種服務；Sidebar 與手機版 Drawer 搜尋按鈕皆可搜尋並導向探索頁篩選結果；自己是團主的群組不顯示在探索頁；卡片採 RevealSection 滾動入場動畫
 - **快速配對**（Modal）：以 `pm:open-match` 事件觸發；**無需登入即可使用**；四步驟精靈（選擇服務 → 選擇方案 → 篩選條件 → 配對結果）+ 右側配對條件摘要；Step2 針對每個已選服務選擇欲加入的方案（同建立群組的選方案邏輯）；Step3 設定預算上限、最低信用分數、群組年資；配對結果顯示所有符合條件的群組（依推薦分數排序），前三名標示金銀銅排名徽章；結果頁底部可「重新配對」或「調整條件」退回
 - **群組詳情**（Modal）：以 `pm:open-group` 事件觸發；無頂部標題列，關閉按鈕浮於右上角；桌機版左右雙欄：左欄為合併卡片（服務 Logo、名稱、方案、每席價格、名額進度條、申請 CTA），右欄垂直捲動顯示服務介紹／方案說明（description + features 統一列點）／加入條件與規則／團主信用評價，最下方為「其他推薦」幻燈片（同服務優先，左右箭頭翻頁，每次 2 張 ExploreGroupCard）；手機版線性排列，申請 CTA 固定於畫面底部；已移除「已驗證團主」功能；右欄 SectionCard 使用 `flat` 無外框樣式；探索卡片、收藏卡片、快速配對結果、MobileSearch 搜尋結果與「建立群組成功後」皆 dispatch 事件開啟 Modal（已無獨立頁面路由）
@@ -98,7 +98,7 @@ src/
 ├── assets/                   # 靜態資源（Logo.svg、KKBOX-icon.png、masterclass-icon.png）
 ├── features/                # 依功能分類（每個功能自包含頁面或 Modal + 專屬元件）
 │   ├── auth/                 # 登入 / 註冊 / 忘記密碼
-│   ├── home/                 # 首頁 Landing（FeatureCards、HowItWorks、FAQ）
+│   ├── home/                 # 首頁 Landing（FeatureCards、ExtraFeatures、HowItWorks、HostGuide、FAQ）
 │   ├── explore/              # 探索群組
 │   ├── group/                # 群組詳情 Modal（GroupDetailModal + GroupHeroCard、StickyJoinSummary、ApplyJoinModal）
 │   ├── match/                # 快速配對 Modal

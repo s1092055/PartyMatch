@@ -3,6 +3,7 @@ import { ArrowRight } from 'lucide-react'
 import logoUrl from '../../assets/Logo.svg'
 import { isAuthenticated } from '../../shared/stores/authStore'
 import { getGroups } from '../../shared/stores/groupStore'
+import { listServiceTypes } from '../../shared/services/serviceTypes'
 import AppNav from '../../shared/components/layout/AppNav'
 import MobileSearch from '../../shared/components/layout/MobileSearch'
 import ScrollToTop from '../../shared/components/layout/ScrollToTop'
@@ -13,14 +14,13 @@ import QuickMatchModal from '../match/QuickMatchModal'
 import FloatingMessages from '../../shared/components/layout/FloatingMessages'
 import ServiceLogo from '../../shared/components/ui/ServiceLogo'
 import FeatureCards from './components/FeatureCards'
+import ExtraFeatures from './components/ExtraFeatures'
 import HowItWorks from './components/HowItWorks'
+import HostGuide from './components/HostGuide'
 import FAQ from './components/FAQ'
 import RevealSection from '../../shared/components/ui/RevealSection'
 
-const FEATURED_SERVICES = [
-  'spotify', 'netflix', 'youtube', 'disney',
-  'chatgpt', 'google-one', 'hbo', 'apple-music',
-]
+const ALL_SERVICES = listServiceTypes()
 
 export default function HomePage() {
   const navigate = useNavigate()
@@ -28,9 +28,9 @@ export default function HomePage() {
   const activeGroupCount = getGroups().filter(g => g.status === 'recruiting' && g.openSeats > 0).length
 
   const STATS = [
-    { value: '30+',   label: '支援服務' },
+    { value: '30+',                    label: '支援服務' },
     { value: String(activeGroupCount), label: '個活躍群組' },
-    { value: 'NT$30', label: '最低月費起' },
+    { value: 'NT$30',                  label: '最低月費起' },
   ]
 
   return (
@@ -51,10 +51,10 @@ export default function HomePage() {
         <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-ink-3">
           PartyMatch 是訂閱共享媒合平台
         </p>
-        <div className="mx-auto mt-12 grid max-w-sm grid-cols-3 divide-x divide-line rounded-2xl border border-line bg-raised px-2 py-5 md:max-w-md">
+        <div className="mx-auto mt-12 flex items-center justify-center gap-8 md:gap-14">
           {STATS.map(({ value, label }) => (
-            <div key={label} className="flex flex-col items-center gap-0.5 px-4">
-              <span className="text-2xl font-extrabold text-ink">{value}</span>
+            <div key={label} className="flex flex-col items-center gap-0.5">
+              <span className="text-2xl font-extrabold text-ink md:text-3xl">{value}</span>
               <span className="text-xs text-ink-3">{label}</span>
             </div>
           ))}
@@ -62,30 +62,36 @@ export default function HomePage() {
       </section>
 
       <RevealSection>
-        <section className="border-y border-line bg-raised py-12">
-          <div className="mx-auto max-w-5xl px-5">
-            <p className="mb-7 text-center text-xs font-bold uppercase tracking-widest text-ink-4">
-              支援熱門訂閱服務
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-4">
-              {FEATURED_SERVICES.map(id => (
-                <ServiceLogo key={id} serviceId={id} size={52} />
+        <section className="py-10 overflow-hidden">
+          <p className="mb-6 text-center text-xs font-bold uppercase tracking-widest text-ink-4">
+            支援熱門訂閱服務
+          </p>
+          <div className="relative overflow-hidden">
+            <div
+              className="flex gap-6"
+              style={{ animation: 'marquee 30s linear infinite', width: 'max-content' }}
+            >
+              {[...ALL_SERVICES, ...ALL_SERVICES].map((s, i) => (
+                <div key={i} className="shrink-0">
+                  <ServiceLogo serviceId={s.id} size={52} />
+                </div>
               ))}
             </div>
           </div>
         </section>
       </RevealSection>
 
-      <div className="mx-auto max-w-5xl flex-1 space-y-16 px-5 py-16">
+      <div className="mx-auto max-w-5xl flex-1 space-y-24 px-5 py-16">
         <FeatureCards />
+        <RevealSection><ExtraFeatures /></RevealSection>
         <RevealSection><HowItWorks /></RevealSection>
+        <RevealSection><HostGuide /></RevealSection>
         <RevealSection><FAQ /></RevealSection>
       </div>
 
       <RevealSection>
         <section className="border-t border-line bg-brand py-14 text-center text-white">
           <h2 className="text-2xl font-extrabold">準備好了嗎？</h2>
-          <p className="mt-2 text-sm text-blue-200">馬上瀏覽 {activeGroupCount} 個等待你的共享群組</p>
           <button
             onClick={() => navigate(loggedIn ? '/explore' : '/register')}
             className="mt-7 inline-flex items-center gap-2 rounded-xl bg-white px-7 py-3 text-sm font-bold text-brand shadow transition-opacity hover:opacity-90"
