@@ -320,6 +320,7 @@ export default function GroupDetailModal() {
 
                       {/* 服務介紹 */}
                       <div className="space-y-4 py-5">
+                        <p className="text-sm font-semibold text-ink">服務介紹</p>
                         {service?.description && (
                           <p className="text-sm leading-relaxed text-ink-2">{service.description}</p>
                         )}
@@ -356,6 +357,7 @@ export default function GroupDetailModal() {
                       {/* 加入條件與規則 */}
                       <div className="py-5">
                         <p className="mb-3 text-sm font-semibold text-ink">加入條件與規則</p>
+
                         {allRules.length > 0 ? (
                           <ul className="space-y-3">
                             {allRules.map((rule, i) => (
@@ -372,6 +374,7 @@ export default function GroupDetailModal() {
 
                       {/* 團主評價 */}
                       <div className="space-y-4 py-5">
+                        <p className="text-sm font-semibold text-ink">團主評價</p>
                         <div className="flex items-center gap-3 border-b border-line-subtle pb-4">
                           <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="md" />
                           <div className="min-w-0 flex-1">
