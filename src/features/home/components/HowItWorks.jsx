@@ -141,7 +141,7 @@ export default function HowItWorks() {
       <section className="py-6">
         <div className="mb-8 text-center">
           <p className="mb-1 text-xs font-bold uppercase tracking-widest text-ink-4">使用流程</p>
-          <h2 className="text-3xl font-extrabold text-ink">如何使用 PartyMatch</h2>
+          <h2 className="text-3xl font-extrabold text-ink">如何使用？</h2>
           <p className="mt-3 flex items-center justify-center gap-1 text-base text-ink-3">
             <Play size={10} className="fill-current" />
             點擊步驟卡片，即可觀看對應的教學影片
@@ -149,35 +149,35 @@ export default function HowItWorks() {
         </div>
 
         <div className="mx-auto max-w-lg">
-          {/* Slide */}
-          <div className="overflow-hidden rounded-2xl">
-            <div
-              className="flex transition-transform duration-300 ease-out"
-              style={{ transform: `translateX(-${index * 100}%)` }}
-            >
-              {STEPS.map(({ step, title, desc, videoUrl }, i) => (
-                <button
-                  key={step}
-                  onClick={() => setModalIndex(i)}
-                  className="group w-full shrink-0 cursor-pointer"
-                >
-                  <div className="card flex flex-col items-center gap-5 p-8 text-center transition-shadow hover:shadow-md">
-                    <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-brand text-xl font-extrabold text-white">
-                      {step}
-                      {videoUrl && (
-                        <span className="absolute inset-0 flex items-center justify-center rounded-full bg-brand opacity-0 transition-opacity group-hover:opacity-100">
-                          <Play size={18} className="fill-white text-white" />
-                        </span>
-                      )}
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-extrabold text-ink">{title}</h3>
-                      <p className="mt-2 text-sm leading-relaxed text-ink-3">{desc}</p>
-                    </div>
+          {/* Slide — 非當前 slide 用 absolute 脫離文件流，不撐寬版面 */}
+          <div className="relative overflow-hidden rounded-2xl">
+            {STEPS.map(({ step, title, desc, videoUrl }, i) => (
+              <button
+                key={step}
+                onClick={() => setModalIndex(i)}
+                className="group w-full cursor-pointer transition-opacity duration-300"
+                style={
+                  i === index
+                    ? { position: 'relative', opacity: 1 }
+                    : { position: 'absolute', inset: 0, opacity: 0, pointerEvents: 'none' }
+                }
+              >
+                <div className="card flex flex-col items-center gap-5 p-8 text-center transition-shadow hover:shadow-md">
+                  <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-brand text-xl font-extrabold text-white">
+                    {step}
+                    {videoUrl && (
+                      <span className="absolute inset-0 flex items-center justify-center rounded-full bg-brand opacity-0 transition-opacity group-hover:opacity-100">
+                        <Play size={18} className="fill-white text-white" />
+                      </span>
+                    )}
                   </div>
-                </button>
-              ))}
-            </div>
+                  <div>
+                    <h3 className="text-lg font-extrabold text-ink">{title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-ink-3">{desc}</p>
+                  </div>
+                </div>
+              </button>
+            ))}
           </div>
 
           {/* Controls */}
