@@ -1,62 +1,263 @@
 # PartyMatch
 
-共享訂閱群組媒合平台，幫助使用者找到可信任的夥伴一起分攤 Spotify、Netflix、YouTube Premium 等服務費用。
+PartyMatch 是一個共享訂閱群組媒合平台，目標是讓使用者能安全地找到 Netflix、Spotify、YouTube Premium、ChatGPT Plus 等訂閱服務的合購群組，並在同一個平台完成申請、審核、付款追蹤、通知與訊息溝通。
 
-內建 **SubTrack** 模組負責訂閱管理——加入後的付款狀態、帳單提醒、付款紀錄都在這裡處理。
+內建 **SubTrack** 訂閱管理模組，負責加入後的付款狀態、帳單提醒、付款紀錄與團主確認流程。
 
-> 目前是 MVP 展示版，所有核心資料（群組、成員、申請、訂閱、通知、收藏、驗證）已全面串接 Firebase。
-> Demo 帳號：`demo@partymatch.tw` / `demo1234`（資料由 `scripts/seedDemo.mjs` 種入 Firestore，並以 `_demo: true` 標記，可安全重置）。
-
----
-
-## 功能
-
-- **首頁（Landing Page）**：行銷首頁，展示核心功能（FeatureCards 左右交錯排版，5 大功能）、附加功能（ExtraFeatures：訊息中心、通知中心、收藏、信用分數，影片上方卡片版型）、使用教學（HowItWorks 幻燈片，5 步驟）、團主指南（HostGuide：申請流程 / 日常任務 / 注意事項三 Tab 各含幻燈片）、FAQ（手風琴，標題置中）、頁尾（含法律文件連結）；頂部浮動 AppNav（top variant）；Logo 點擊回首頁；各區塊採 RevealSection 滾動觸發淡入動畫；服務跑馬燈（全部 30 種服務無限循環，CSS @keyframes marquee）
-- **探索群組**：Marketplace 瀏覽版面；分類圖示 Grid 篩選（影音、音樂、AI 工具、辦公、雲端、學習、遊戲、VPN）+ 次要篩選列（服務、價格、排序）；卡片顯示價格 → 分隔線 → 團主名稱（不顯示信用評分）+ 剩餘名額；共 30 種服務；Sidebar 與手機版 Drawer 搜尋按鈕皆可搜尋並導向探索頁篩選結果；自己是團主的群組不顯示在探索頁；卡片採 RevealSection 滾動入場動畫
-- **快速配對**（Modal）：以 `pm:open-match` 事件觸發；**無需登入即可使用**；四步驟精靈（選擇服務 → 選擇方案 → 篩選條件 → 配對結果）+ 右側配對條件摘要；Step2 針對每個已選服務選擇欲加入的方案（同建立群組的選方案邏輯）；Step3 設定預算上限、最低信用分數、群組年資；配對結果顯示所有符合條件的群組（依推薦分數排序），前三名標示金銀銅排名徽章；結果頁底部可「重新配對」或「調整條件」退回
-- **群組詳情**（Modal）：以 `pm:open-group` 事件觸發；無頂部標題列，關閉按鈕浮於右上角；桌機版左右雙欄：左欄為合併卡片（服務 Logo、名稱、方案、每席價格、名額進度條、申請 CTA），右欄垂直捲動顯示服務介紹／方案說明（description + features 統一列點）／加入條件與規則／團主信用評價，最下方為「其他推薦」幻燈片（同服務優先，左右箭頭翻頁，每次 2 張 ExploreGroupCard）；手機版線性排列，申請 CTA 固定於畫面底部；已移除「已驗證團主」功能；右欄 SectionCard 使用 `flat` 無外框樣式；探索卡片、收藏卡片、快速配對結果、MobileSearch 搜尋結果與「建立群組成功後」皆 dispatch 事件開啟 Modal（已無獨立頁面路由）
-- **申請加入**（審核制，所有群組統一採用審核加入）：送出申請後建立申請紀錄，並同步建立團主通知；送出成功後保留成功確認畫面
-- **建立群組**（Modal）：以 `pm:open-create` 事件觸發；4 步驟表單（選服務→選方案→加入設定→最後確認）；方案費用依官方定價自動計算；選服務步驟支援分類 Grid 篩選；≥1280px 左右雙欄布局（表單 + 即時預覽卡）；＜1280px 可點擊「顯示預覽」按鈕以 Overlay 方式查看預覽卡
-- **管理群組**：直式卡片（Badge → Logo → 服務名稱 → 2×2 資訊格：待處理申請 / 本期收款 / 付款狀態 / 每月收入）；點擊「待處理申請」格開啟該群組專屬審核視窗（每個群組獨立）；次要操作（準備續訂、查看歷史）收折至 ⋯ 選單；統一透過 GroupViewModal 管理成員付款、啟用服務；支援篩選分頁（全部 / 招募中 / 待啟用 / 已啟用 / 已停止 / 已取消）
-- **訂閱管理**：直式卡片（Badge → Logo → 服務名稱 → 帳單週期 chip + 下次扣款日 chip → 團主資訊 / 付款狀態 → 金額）；付款狀態追蹤、標記已付款、**聯絡團主**（點擊後自動開啟訊息中心並切換至對應群組對話）、查看付款歷史紀錄、申請紀錄（含審核中／已核准／已拒絕）；管理端與訂閱端共用 GroupViewModal
-- **通知中心**（Slide-over）：以 `pm:open-notify` 事件觸發；已登入顯示個人付款、申請與系統通知；未登入可開啟，但只顯示公開系統公告，不顯示會員個人通知或未讀狀態
-- **訊息中心**（Modal）：以 `pm:open-messages` 事件觸發；Modal 頂部全寬 header（訊息中心標題 + 關閉按鈕），左欄對話列表，右欄聊天室名稱置於訊息上方；對話列表即時同步 Firestore（`onSnapshot`）；選取對話後即時訂閱訊息 subcollection；訊息傳送寫入 Firestore 並更新最後訊息；切換對話 / 關閉 Modal 自動取消訂閱並釋放監聽器；未讀數紅點 badge；時間戳自動格式化（今天顯示時間，其他顯示日期）；**群組建立時自動建立群組對話**（`groupStore.createGroup` → `createGroupConversation`）；**申請核准時自動將成員加入對話並送出系統訊息**（`applicationStore.updateApplicationStatus` → `addParticipantToConversation` + `sendSystemMessage`）
-- **收藏**：收藏感興趣的群組；分類 Grid 篩選；取消收藏即時從清單移除
-- **帳號中心**：個人資料可寫回 Firebase users 文件；付款方式、通知偏好、設定偏好支援本機持久化；安全驗證為展示型流程
-- **登入 / 註冊 / 忘記密碼**：支援 Email / Password 與 Google popup 登入；左上角「返回」按鈕導回首頁
-- **導航（AppNav）**：統一導航元件；應用頁顯示左側浮動側欄（side variant，收合 / 展開），首頁顯示頂部浮動橫列（top variant，僅含 Logo + 漢堡按鈕）；兩種 variant 的漢堡按鈕皆開啟右側抽屜（含導覽選單、使用者區塊）；手機版均以頂部 Header + 右滑抽屜呈現，抽屜內含搜尋按鈕可開啟 MobileSearch；快速配對 / 建立群組均以事件觸發 Modal 方式開啟（`pm:open-match` / `pm:open-create`）；**通知 / 訊息按鈕**電腦版垂直排列固定於頁面右上角（樣式與 ScrollToTop 一致），手機版通知按鈕位於 Header 漢堡按鈕左側；未登入時「我的訂閱、我的收藏、帳號中心、群組管理、建立群組」與訊息中心會顯示鎖頭並停用，hover 提醒「請先登入會員」；**帳號中心**直接列於側欄導覽，使用者頭像 dropdown 僅保留登出選項
-- **CategoryPills**：共用分類篩選元件，支援 `pills`（水平膠囊列）與 `grid`（圖示格）兩種樣式；用於探索群組、收藏、快速配對、建立群組
-- **ModalShell**：三大全螢幕 Modal（快速配對、建立群組、訊息中心）的共用殼元件，封裝 backdrop、header（icon + 標題 + `headerEnd` slot + 關閉按鈕）、ESC 鍵、scroll lock 與可選 footer；支援 `maxWidth`、`height`、`outerPadding` 等 props 客製尺寸
-- **LoginPromptModal**：需要登入的功能（建立群組、訊息中心）在未登入狀態下觸發時，顯示此共用提示元件；提供「取消」與「前往登入」兩個操作，支援 ESC 關閉；登入後自動導回觸發時的原始頁面（`redirectTo` 參數）
-- **首頁 Landing**：統計數字（活躍群組數）動態從 groupStore 讀取，反映真實招募中且有空位的群組數量
-- **首頁內容資料**：核心功能、附加功能、使用流程與團主指南文案集中於 `src/features/home/data/homeContent.js`，元件只負責呈現與互動
+> 目前是 MVP 展示版。核心資料已串接 Firebase Auth + Firestore，包含群組、成員、申請、訂閱、付款紀錄、通知、收藏、訊息與使用者資料。
+>
+> Demo 帳號：`demo@partymatch.tw` / `demo1234`
 
 ---
 
-## 安裝
+## 快速開始
 
 ```bash
 npm install
 npm run dev
 ```
 
-開在 `http://localhost:5173`。
+預設開發網址：
+
+```txt
+http://localhost:5173
+```
+
+常用指令：
+
+| 指令 | 用途 |
+|------|------|
+| `npm run dev` | 啟動 Vite 開發伺服器 |
+| `npm run build` | 建置 production bundle |
+| `npm run lint` | 執行 ESLint |
+| `npm run seed:demo` | 建立 demo 帳號與 Firestore demo 資料 |
+| `npm run clear:demo` | 清除 `_demo: true` 的 demo 資料 |
+| `npm run seed:services` | 匯入服務清單資料 |
+
+---
+
+## 環境變數
+
+請在專案根目錄建立 `.env`，並填入 Firebase 專案設定。不要把實際金鑰 commit 到 Git。
 
 ```bash
-npm run build   # 打包
-npm run lint    # 程式碼檢查
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_AUTH_DOMAIN=
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_STORAGE_BUCKET=
+VITE_FIREBASE_MESSAGING_SENDER_ID=
+VITE_FIREBASE_APP_ID=
+
+DEMO_USER_EMAIL=demo@partymatch.tw
+DEMO_USER_PASSWORD=demo1234
+VITE_DEMO_MODE=true
 ```
+
+Demo seed 會讀取 `.env`，建立或重用 demo 帳號，並寫入 groups、members、applications、subscriptions、notifications、favorites 等資料。
 
 ---
 
 ## 技術棧
 
-- React 19 + Vite
-- React Router v7
-- Tailwind CSS v4（含自訂 design token）
-- lucide-react
-- 狀態管理：Firebase Auth（驗證）+ Firebase Firestore（群組、申請、成員、訂閱、通知、收藏、**訊息（即時監聽）**）
-- **RevealSection**：共用滾動動畫元件，基於 IntersectionObserver，支援 viewport 初始檢測避免已可見元素重複播放
+| 類別 | 使用技術 |
+|------|----------|
+| Frontend | React 19、Vite、React Router v7 |
+| UI | Tailwind CSS v4、lucide-react |
+| Backend / Data | Firebase Auth、Firebase Firestore |
+| Realtime | Firestore `onSnapshot` 用於訊息中心即時同步 |
+| State Layer | `src/shared/stores/*` 封裝業務邏輯 |
+| Data Access | `src/shared/api/*` 封裝 Firestore CRUD |
+| Demo Data | `scripts/seedDemo.mjs`、`scripts/clearDemo.mjs` |
+
+---
+
+## 功能總覽
+
+### 使用者功能
+
+| 功能 | 入口 | 登入需求 | 目前內容 |
+|------|------|----------|----------|
+| 首頁 Landing | `/` | 不需登入 | 功能介紹、使用流程、團主指南、FAQ、28 種服務跑馬燈 |
+| 探索群組 | `/explore` | 不需登入 | 分類篩選、服務篩選、價格排序、群組卡片、詳情 Modal |
+| 快速配對 | 側欄 / 首頁 CTA | 不需登入 | 選服務、選方案、設定預算與條件，自動推薦符合群組 |
+| 群組詳情 | 群組卡片 / 搜尋結果 | 不需登入可看；申請需登入 | 方案、名額、規則、團主資訊、推薦群組、申請加入 |
+| 申請加入 | 群組詳情 Modal | 需登入 | 建立申請紀錄、通知團主、保留送出成功畫面 |
+| 我的訂閱 | `/my-subscriptions` | 需登入 | 訂閱清單、付款狀態、標記付款、申請紀錄、查看群組 |
+| 我的收藏 | `/favorites` | 需登入 | 收藏群組、分類篩選、取消收藏 |
+| 帳號中心 | `/account` | 需登入 | 個人資料寫回 Firebase users、付款方式/通知偏好本機持久化 |
+| 通知中心 | 右上角通知按鈕 | 訪客可看系統公告；會員看個人通知 | 付款、申請、系統通知；會員可標記已讀 |
+| 訊息中心 | 右上角訊息按鈕 / 聯絡團主 | 需登入 | 群組對話、私人 DM、未讀數、退出/刪除對話、即時訊息 |
+
+### 團主功能
+
+| 功能 | 入口 | 目前內容 |
+|------|------|----------|
+| 建立群組 | 側欄「建立群組」/ `/create-group` | 4 步驟表單：選服務、選方案、加入設定、確認送出 |
+| 群組管理 | `/manage-groups` | 群組卡片、狀態篩選、待處理申請、本期收款、付款狀態 |
+| 審核申請 | 群組管理卡片 | 核准後建立 member + subscription，名額同步更新；拒絕後通知申請者 |
+| 成員付款確認 | GroupViewModal | 成員標記付款後，團主逐筆確認；全員確認後推進狀態 |
+| 啟用服務 | GroupViewModal | 名額/付款完成後啟用群組，通知所有成員 |
+| 續訂或結束 | RenewalModal / store 函式 | 已有元件與資料狀態函式，卡片入口尚待補強 |
+| 歷史紀錄 | GroupHistoryModal | 已有歷史檢視元件，卡片入口尚待補強 |
+
+### 共用 UI / 互動
+
+| 元件 / 模組 | 用途 |
+|-------------|------|
+| `AppNav` | 桌機側欄、手機 Header、右側通知/訊息按鈕、未讀 badge、未登入鎖頭提示 |
+| `MobileSearch` | 手機/側欄搜尋入口，可搜尋服務與群組 |
+| `ModalShell` | 快速配對、建立群組、訊息中心共用 Modal 外殼 |
+| `GroupViewModal` | 管理端與訂閱端共用的群組查看/付款操作 Modal |
+| `FilterTabsBar` | 管理群組、我的訂閱等頁面的可重用分頁篩選列 |
+| `ToastContainer` / `toast.js` | 全域提示訊息 |
+| `ServiceLogo` | 依 serviceId 顯示本地或服務資料中的 Logo |
+
+---
+
+## 操作流程圖
+
+以下流程圖可直接當作使用說明。GitHub 會自動渲染 Mermaid 圖表；若編輯器沒有顯示圖，可以直接閱讀下方文字步驟。
+
+### 1. 訪客探索與快速配對
+
+```mermaid
+flowchart TD
+  A[進入首頁] --> B{想自己找還是系統推薦}
+  B -->|自己找| C[前往探索群組]
+  B -->|系統推薦| D[開啟快速配對]
+  C --> E[使用分類、服務、價格、關鍵字篩選]
+  D --> F[選服務與方案]
+  F --> G[設定預算、信用分數、群組年資]
+  E --> H[打開群組詳情]
+  G --> H
+  H --> I{是否要申請加入}
+  I -->|先看看| C
+  I -->|要申請| J{是否已登入}
+  J -->|否| K[前往登入或註冊]
+  J -->|是| L[送出加入申請]
+```
+
+操作說明：
+
+1. 先從首頁或側欄進入「探索群組」。
+2. 如果不知道怎麼挑，可以用「快速配對」輸入需求，讓系統列出推薦群組。
+3. 點群組卡片可開啟詳情，查看方案、價格、規則與名額。
+4. 送出申請需要登入；未登入的受保護入口會顯示鎖頭並提示「請先登入會員」。
+
+### 2. 會員申請加入群組
+
+```mermaid
+flowchart TD
+  A[會員打開群組詳情] --> B[確認方案、價格、規則]
+  B --> C[點擊申請加入]
+  C --> D[填寫申請資料]
+  D --> E[送出申請]
+  E --> F[建立 applications 紀錄]
+  F --> G[通知團主有新申請]
+  G --> H{團主審核}
+  H -->|核准| I[建立 member]
+  I --> J[建立 subscription]
+  J --> K[加入群組對話]
+  K --> L[會員收到申請通過通知]
+  H -->|拒絕| M[會員收到申請未通過通知]
+```
+
+操作說明：
+
+1. 會員在群組詳情中送出申請。
+2. 系統會建立申請資料並通知團主。
+3. 團主核准後，系統會自動建立成員與訂閱資料。
+4. 申請通過後，會員可以在「我的訂閱」看到該群組，並進入訊息中心溝通。
+
+### 3. 團主建立與管理群組
+
+```mermaid
+flowchart TD
+  A[登入會員] --> B[點擊建立群組]
+  B --> C[選擇服務]
+  C --> D[選擇方案]
+  D --> E[設定名額、規則、加入條件]
+  E --> F[確認並建立群組]
+  F --> G[寫入 groups]
+  G --> H[建立群組對話]
+  H --> I[前往群組管理]
+  I --> J{有新申請嗎}
+  J -->|有| K[查看申請者資料]
+  K --> L{核准或拒絕}
+  L -->|核准| M[加入成員並更新名額]
+  L -->|拒絕| N[通知申請者]
+  J -->|沒有| O[等待招募或查看成員狀態]
+```
+
+操作說明：
+
+1. 從側欄點「建立群組」開始 4 步驟表單。
+2. 建立成功後，群組會出現在「群組管理」。
+3. 團主可在群組卡片查看待處理申請、付款狀態與本期收款。
+4. 申請核准後，名額會同步減少；額滿時群組狀態會推進到 `full`。
+
+### 4. 付款確認與啟用服務
+
+```mermaid
+flowchart TD
+  A[會員進入我的訂閱] --> B{付款狀態}
+  B -->|pending 或 overdue| C[完成實際轉帳]
+  C --> D[點擊標記已付款]
+  D --> E[subscription 轉為 markedPaid]
+  E --> F[member 付款狀態同步]
+  F --> G[通知團主待確認]
+  G --> H[團主進入群組管理]
+  H --> I[逐筆確認收款]
+  I --> J{所有成員都 confirmed 或 paid}
+  J -->|否| H
+  J -->|是| K[群組進入 pending_activation]
+  K --> L[團主啟用服務]
+  L --> M[subscriptions 啟用並更新下次扣款日]
+  M --> N[通知所有成員服務已啟用]
+```
+
+操作說明：
+
+1. 會員完成實際付款後，在「我的訂閱」標記已付款。
+2. 團主在「群組管理」確認是否收到款項。
+3. 全員確認後，群組會進入待啟用狀態。
+4. 團主啟用服務後，成員會收到通知，訂閱資料也會更新下次扣款日。
+
+### 5. 訊息與通知
+
+```mermaid
+flowchart TD
+  A{使用者狀態} -->|訪客| B[通知中心只顯示公開系統公告]
+  A -->|會員| C[通知中心顯示個人通知與未讀數]
+  C --> D[付款、申請、系統分頁]
+  A -->|會員| E[訊息中心可開啟]
+  A -->|訪客| F[訊息中心鎖定並提示登入]
+  E --> G{對話類型}
+  G -->|群組| H[群組建立時自動建立 conversation]
+  G -->|私訊| I[聯絡團主時建立或取得 DM]
+  H --> J[Firestore 即時同步 messages]
+  I --> J
+  J --> K[未讀數回寫 unreadCounts]
+```
+
+操作說明：
+
+1. 訪客可以打開通知中心，但只會看到公開系統公告。
+2. 會員可看到付款、申請與系統通知，並能標記已讀。
+3. 訊息中心需要登入；群組對話與 DM 都透過 Firestore 即時同步。
+4. 成員加入群組或退出群組時，會寫入系統訊息。
+
+---
+
+## 權限與導覽規則
+
+| 狀態 | 可用功能 | 受限制功能 |
+|------|----------|------------|
+| 訪客 | 首頁、探索群組、快速配對、群組詳情、通知中心系統公告 | 我的訂閱、我的收藏、帳號中心、群組管理、建立群組、訊息中心 |
+| 已登入會員 | 所有會員功能、申請加入、收藏、訂閱管理、訊息中心 | 團主操作需先建立或擁有群組 |
+| 團主 | 群組管理、審核申請、確認付款、啟用服務；續訂/結束為雛形 | 僅能管理自己建立的群組 |
+
+未登入時，受限制入口會顯示鎖頭與「請先登入會員」提示；部分入口點擊後會帶 `redirectTo` 前往登入，登入完成後回到原本想去的頁面。
 
 ---
 
@@ -64,184 +265,205 @@ npm run lint    # 程式碼檢查
 
 ### 公開頁面
 
-| 路徑 | 頁面 |
-|------|------|
-| `/` | 首頁 Landing Page（訪客 / 已登入皆可瀏覽） |
-| `/login` | 登入 |
-| `/register` | 註冊 |
-| `/forgot-password` | 忘記密碼 |
-| `/explore` | 探索群組（無需登入可瀏覽） |
-| `/explore?q=keyword` | 探索群組（關鍵字篩選） |
-| `/disclaimer` | 免責聲明 |
-| `/terms` | 服務條款 |
-| `/privacy` | 隱私政策 |
+| 路徑 | 頁面 | 說明 |
+|------|------|------|
+| `/` | 首頁 | Landing Page，訪客與會員皆可瀏覽 |
+| `/explore` | 探索群組 | Marketplace 群組列表 |
+| `/explore?q=keyword` | 探索搜尋 | 依關鍵字篩選群組 |
+| `/groups/:groupId` | 群組詳情重導 | 轉到探索頁並開啟群組詳情 Modal |
+| `/login` | 登入 | PublicOnlyRoute |
+| `/register` | 註冊 | PublicOnlyRoute |
+| `/forgot-password` | 忘記密碼 | PublicOnlyRoute |
+| `/disclaimer` | 免責聲明 | 法務頁 |
+| `/terms` | 服務條款 | 法務頁 |
+| `/privacy` | 隱私政策 | 法務頁 |
 
-### 登入後（需登入）
+### 需登入頁面
 
-| 路徑 | 頁面 |
-|------|------|
-| `/quick-match` | 快速配對（重導並觸發 Modal） |
-| `/create-group` | 建立群組（重導並觸發 Modal） |
-| `/manage-groups` | 管理群組 |
-| `/my-subscriptions` | 我的訂閱 |
-| `/favorites` | 收藏清單 |
-| `/account` | 帳號中心 |
+| 路徑 | 頁面 | 說明 |
+|------|------|------|
+| `/quick-match` | 快速配對重導 | 觸發 `pm:open-match` 後回到探索頁 |
+| `/create-group` | 建立群組重導 | 觸發 `pm:open-create` 後回到群組管理 |
+| `/manage-groups` | 群組管理 | 團主管理頁 |
+| `/my-subscriptions` | 我的訂閱 | 成員端 SubTrack |
+| `/favorites` | 我的收藏 | 收藏清單 |
+| `/account` | 帳號中心 | 個人資料與偏好設定 |
 
 ---
 
 ## 專案結構
 
-```
+```txt
 src/
 ├── app/
-│   ├── App.jsx
-│   ├── router.jsx
-│   └── firebase.js           # Firebase 初始化設定
-├── assets/                   # 靜態資源（Logo.svg、KKBOX-icon.png、masterclass-icon.png）
-├── features/                # 依功能分類（每個功能自包含頁面或 Modal + 專屬元件）
-│   ├── auth/                 # 登入 / 註冊 / 忘記密碼（pages + components/AuthLayout、AuthIllustration）
-│   ├── home/                 # 首頁 Landing（FeatureCards、ExtraFeatures、HowItWorks、HostGuide、FAQ）
-│   ├── explore/              # 探索群組
-│   ├── group/                # 群組詳情 Modal（GroupDetailModal + GroupHeroCard、StickyJoinSummary、ApplyJoinModal）
-│   ├── match/                # 快速配對 Modal
-│   ├── create/               # 建立群組 Modal（多步驟表單）
-│   ├── manage/               # 群組管理（團主端）；utils/groupActionMap.js
-│   ├── subscriptions/        # 訂閱管理 SubTrack（成員端）
-│   ├── favorites/            # 收藏
-│   ├── account/              # 帳號中心
-│   ├── messages/             # 訊息中心 Modal
-│   └── legal/                # 免責聲明 / 服務條款 / 隱私政策
+│   ├── App.jsx                 # 初始化 stores 並掛載 RouterProvider
+│   ├── firebase.js             # Firebase app / db / auth
+│   ├── redirects.jsx           # Modal 型路由重導
+│   └── router.jsx              # React Router 設定
+├── assets/                     # Logo 與本地服務 icon
+├── features/
+│   ├── account/                # 帳號中心
+│   ├── auth/                   # 登入、註冊、忘記密碼
+│   ├── create/                 # 建立群組 Modal
+│   ├── explore/                # 探索群組
+│   ├── favorites/              # 我的收藏
+│   ├── group/                  # 群組詳情與申請加入
+│   ├── home/                   # 首頁與首頁文案資料
+│   ├── legal/                  # 法務頁
+│   ├── manage/                 # 團主管理
+│   ├── match/                  # 快速配對
+│   ├── messages/               # 訊息中心
+│   └── subscriptions/          # 我的訂閱
 ├── shared/
-│   ├── layout/               # AppLayout、AppNav（top / side variant）、MobileSearch、FloatingMessages（訊息中心懸浮元件）
-│   ├── route/                # ProtectedRoute、PublicOnlyRoute
-│   ├── ui/                   # Button、Badge、Avatar、Modal、**ModalShell**（三大 Modal 共用殼）、Toggle、CustomSelect、ServiceLogo、RevealSection、GroupViewModal（跨功能共用 Modal）…
-│   ├── api/                  # 資料存取層（Firebase Firestore）
-│   ├── data/                 # mock 種子資料（services.mock.js 唯讀）
-│   ├── stores/               # 業務邏輯層，呼叫 api/ 取得資料
-│   ├── constants/            # nav.js（AppNav 導航結構）、paymentStatus.js
-│   └── utils/                # date、storage、matchGroups、subscriptionStatus、serviceUtils（服務圖示、顏色、官方定價）、hooks（useClickOutside、useScrollLock）…
-└── index.css                 # Tailwind v4 design token + 元件原始類別
+│   ├── api/                    # Firestore 資料存取
+│   ├── constants/              # nav、paymentStatus 等常數
+│   ├── data/                   # services.mock.js
+│   ├── layout/                 # AppLayout、AppNav、FloatingMessages、MobileSearch
+│   ├── route/                  # ProtectedRoute、PublicOnlyRoute
+│   ├── stores/                 # 前端業務邏輯與資料快取
+│   ├── ui/                     # 共用 UI 元件
+│   └── utils/                  # 日期、搜尋、配對、狀態、toast 等工具
+└── index.css                   # Tailwind v4 theme tokens 與 component primitives
 ```
 
 ---
 
-## 資料層
+## 主要檔案連動
 
-### Mock 種子資料（`src/shared/data/`）
+| 主要檔案 | 連動對象 | props / event / function |
+|----------|----------|--------------------------|
+| `src/app/App.jsx` | `router.jsx`、所有 `init*Store()`、`ToastContainer` | App 啟動時初始化 Auth、services、groups、applications、subscriptions、members、favorites、notifications、payments |
+| `src/app/router.jsx` | `AppLayout`、`ProtectedRoute`、`PublicOnlyRoute`、`redirects.jsx` | 定義公開頁、受保護頁、Modal 型 redirect route |
+| `src/shared/layout/AppLayout.jsx` | `AppNav`、`MobileSearch`、`FloatingMessages`、`MessagesModal`、`CreateGroupModal`、`GroupDetailModal`、`QuickMatchModal` | 統一掛載跨頁共用導覽與全域 Modal |
+| `src/shared/layout/AppNav.jsx` | `NAV_SECTIONS`、`authStore`、`notificationStore`、`messagesApi` | 未登入項目顯示鎖頭；用 `pm:open-*` 事件開搜尋、通知、訊息、建立群組、快速配對 |
+| `src/features/home/HomePage.jsx` | `FeatureCards`、`ExtraFeatures`、`HowItWorks`、`HostGuide`、`FAQ` | 首頁元件從 `homeContent.js` 讀文案資料，CTA 以 navigate 或事件觸發功能 |
+| `src/features/explore/ExplorePage.jsx` | `FilterBar`、`ExploreGroupCard`、`groupStore` | `filters` props 控制分類、服務、價格與排序；卡片點擊送出 `pm:open-group` |
+| `src/features/group/GroupDetailModal.jsx` | `ApplyJoinModal`、`favoriteStore`、`applicationStore`、`memberStore` | 接收 `pm:open-group`；依使用者狀態顯示申請、收藏、付款或已加入 CTA |
+| `src/features/group/components/ApplyJoinModal.jsx` | `createApplication()` | props: `group`、`isOpen`、`onClose`、`onSuccess`；送出後建立申請並通知團主 |
+| `src/features/create/CreateGroupModal.jsx` | `Step1Service`～`Step4Preview`、`LivePreviewPanel`、`createGroup()` | props: `form`、`onChange`；送出後建立 group，並觸發 `pm:group-created` |
+| `src/features/match/QuickMatchModal.jsx` | `ServiceSelectionGrid`、`MatchSummaryPanel`、`matchGroups()`、`ExploreGroupCard` | `conditions` 狀態流過各步驟；結果頁以群組卡片呈現匹配結果 |
+| `src/features/manage/ManagePage.jsx` | `HostedGroupCard`、`ApplicationsModal`、`GroupViewModal`、`RenewalModal`、`GroupHistoryModal` | 管理頁集中處理審核、建立 member/subscription、確認付款、啟用群組 |
+| `src/features/subscriptions/SubscriptionsPage.jsx` | `SubscriptionCard`、`GroupViewModal`、`subscriptionStore`、`memberStore` | 標記付款時同步 subscription 與 member 狀態，並建立通知 |
+| `src/features/messages/MessagesModal.jsx` | `messagesApi`、`memberStore` | 接收 `pm:open-messages` / `pm:open-dm`；訂閱 conversations/messages 並處理未讀數 |
+| `src/shared/layout/FloatingMessages.jsx` | `notificationStore` | 接收 `pm:open-notify`；訪客只取公開系統公告，會員合併個人通知與系統公告 |
+| `src/shared/stores/*` | `src/shared/api/*`、`src/shared/utils/*` | stores 保存前端快取並封裝業務流程，api 檔只處理 Firestore CRUD/subscribe |
 
-- `services.mock.js`：30 種訂閱服務定義（唯讀），每個服務方案含官方月費與人數上限；支援 `iconSrc`（本地圖片）或 `iconId`（Iconify）
+---
 
-### Store 層（`src/shared/stores/`）
+## 資料層設計
 
-所有動態資料已遷移至 Firebase Firestore，Store 層透過 `src/shared/api/` 存取。
+### Store 與 Firestore collection
 
-| Store | Firestore 集合 | 用途 |
-|-------|--------------|------|
-| `authStore` | Firebase Auth + `users` | 登入 / 登出 / 註冊 / 密碼重設 / 個人資料更新；匯出 `getCurrentUser`、`getActiveUserProfile` |
-| `groupStore` | `groups` | 群組 CRUD |
-| `applicationStore` | `applications` | 申請狀態 |
-| `memberStore` | `members` | 成員管理（含移除與付款狀態覆寫） |
-| `subscriptionStore` | `subscriptions` | 訂閱與付款狀態 |
-| `paymentStore` | `paymentRecords` | 付款紀錄 |
-| `notificationStore` | `notifications` | 通知 |
+| Store | Firestore collection | 主要職責 |
+|-------|----------------------|----------|
+| `authStore` | Firebase Auth + `users` | 登入、註冊、Google popup、密碼重設、個人資料、信用分數 |
+| `serviceStore` | `services` + `services.mock.js` | 28 種服務清單、方案價格、Logo |
+| `groupStore` | `groups` | 群組 CRUD、狀態推進、啟用/續訂/結束 |
+| `applicationStore` | `applications` | 申請建立與審核狀態 |
+| `memberStore` | `members` | 群組成員、付款狀態、移除成員 |
+| `subscriptionStore` | `subscriptions` | 成員訂閱、標記付款、確認付款、啟用訂閱 |
+| `paymentStore` | `paymentRecords` | 付款紀錄統計 |
+| `notificationStore` | `notifications` | 個人通知、公開系統公告、未讀數 |
 | `favoriteStore` | `favorites` | 收藏群組 |
+| `messagesApi` | `conversations` + subcollection `messages` | 即時對話、DM、群組訊息、未讀數 |
 
-### 主要流程
+### 事件驅動互動
 
-| 流程 | 說明 |
-|------|------|
-| 申請加入 | `createApplication` → ApplyJoinModal |
-| 立即加入 | `createMember` + `createSubscription` + `updateGroup` + `createNotification` |
-| 團主審核 | 核准：建立 member + subscription + notification；拒絕：更新申請狀態 |
-| 建立群組 | 4 步驟 → `mapFormToGroup()` → `createGroup()` → 導向管理頁；費用由官方定價 ÷ 名額自動計算；所有群組一律採審核加入 |
-| 標記已付款 | `markSubscriptionPaid()` + 同步 `updateMember()` + `createNotification()` 通知待確認 |
-| 團主逐筆確認收款 | `updateMember(confirmed)` + `confirmSubscriptionPayment()` + 自動偵測全員確認後推進群組狀態 |
-| 確認收款完成 | `confirmGroupPayments()` → 群組狀態轉 `pending_activation` |
-| 移除成員 | `removeMember()` → 更新 `usedSeats / openSeats` |
-| 傳送催款通知 | `createNotification()` → 成員收到付款提醒（單筆或批次） |
-| 暫停招募 / 解散群組 | `pauseGroup()` / `cancelGroup()` → 需二次確認 modal |
-| 停止服務 | `pauseGroup()` → 群組狀態轉為 `paused`，需二次確認 |
-| 啟用服務 | `activateGroup()` + `activateGroupSubscriptions()` → 計算 `nextBillingDate`，狀態轉 `active`，通知所有成員 |
-| 傳送到期提醒 | `createNotification()` → 通知所有成員即將續訂 |
-| 開始新一期收款 | `startRenewalCycle()` → 狀態轉 `pending_confirmation`，下期帳單日自動延後一個週期 |
-| 結束服務 | `endGroup()` → 狀態轉 `ended` |
+| 事件 | 觸發者 | 接收者 |
+|------|--------|--------|
+| `pm:open-search` | AppNav / MobileSearch | `MobileSearch` |
+| `pm:open-match` | 首頁 CTA / AppNav / Redirect | `QuickMatchModal` |
+| `pm:open-create` | 首頁 CTA / AppNav / Redirect | `CreateGroupModal` |
+| `pm:open-group` | 群組卡片 / Redirect | `GroupDetailModal` |
+| `pm:open-notify` | AppNav 通知按鈕 | `FloatingMessages` |
+| `pm:open-messages` | AppNav / 訂閱卡 / 群組操作 | `MessagesModal` |
+| `pm:open-dm` | 聯絡團主 | `MessagesModal` 建立或取得 DM |
+| `pm:notif-changed` | `notificationStore` | `AppNav` 更新未讀 badge |
+| `pm:auth-changed` | `authStore` | `AppNav` 重新讀取使用者狀態 |
 
 ---
 
-## 群組狀態機
+## 狀態流程
 
+### 群組狀態
+
+```mermaid
+flowchart LR
+  draft[draft] --> recruiting[recruiting 招募中]
+  recruiting --> full[full 已額滿]
+  full --> pending_confirmation[pending_confirmation 待確認付款]
+  pending_confirmation --> pending_activation[pending_activation 待啟用]
+  pending_activation --> active[active 已啟用]
+  active --> pending_confirmation
+  active --> paused[paused 已暫停]
+  active --> ended[ended 已結束]
+  recruiting --> cancelled[cancelled 已取消]
 ```
-draft → recruiting → full → pending_confirmation → pending_activation → active → paused / cancelled / ended
-```
 
-| 群組狀態 | 可用操作 |
-|----------|---------|
-| `recruiting` | 審核申請、查看成員付款、查看歷史 |
-| `full` | 查看成員付款 |
-| `pending_confirmation` | 確認收款、傳送催款通知 |
-| `pending_activation` | 啟用服務 |
-| `active`（一般） | 查看成員付款、查看歷史 |
-| `active`（到期 ≤7 天） | 準備續訂（開始新一期 / 結束服務）、查看歷史 |
-| `paused / cancelled / ended` | 查看歷史 |
+| 狀態 | 說明 | 主要操作 |
+|------|------|----------|
+| `recruiting` | 招募中 | 審核申請、查看成員 |
+| `full` | 名額已滿 | 查看成員付款狀態 |
+| `pending_confirmation` | 等待團主確認收款 | 逐筆確認付款 |
+| `pending_activation` | 款項確認完成，等待啟用 | 啟用服務 |
+| `active` | 服務已啟用 | 查看付款/成員狀態；續訂/結束流程為雛形 |
+| `paused` / `cancelled` / `ended` | 非招募或已結束狀態 | 作為歷史狀態顯示 |
 
----
+### 付款狀態
 
-## 付款狀態流程
+| 狀態 | 成員端含義 | 團主端含義 |
+|------|------------|------------|
+| `pending` | 尚未標記付款 | 等待成員付款 |
+| `markedPaid` | 已標記付款，等待團主確認 | 待確認收款 |
+| `confirmed` | 團主已確認 | 已完成確認 |
+| `paid` | 舊格式，視為已付款 | 舊格式，視為已確認 |
+| `overdue` | 已逾期，需補繳 | 可提醒成員付款 |
+| `waiting_activation` | 款項已確認，等待團主啟用 | 等待啟用服務 |
 
-### 成員端（`subscription.paymentStatus`）
-
-| 狀態 | 說明 | 使用者操作 |
-|------|------|-----------|
-| `pending` | 待付款 | 標記已付款 |
-| `markedPaid` | 已標記，等待團主確認 | — |
-| `confirmed` | 團主已確認收款 | — |
-| `paid` | 已付款（舊格式，等同 confirmed） | 查看紀錄 |
-| `overdue` | 逾期（由 effectiveStatus 計算） | 補繳款項 |
-
-### 團主端（`member.paymentStatus`）
-
-| 狀態 | 說明 | 團主操作 |
-|------|------|---------|
-| `pending` | 尚未付款 | 發送催款通知 |
-| `markedPaid` | 成員已標記，待確認 | 確認收款（逐筆） |
-| `confirmed` | 已確認 | — |
-| `paid` | 已付款（舊格式） | — |
-
-所有成員達到 `confirmed` 或 `paid` 後，群組自動推進至 `pending_activation`。
+`src/shared/utils/subscriptionStatus.js` 會依訂閱付款狀態、群組狀態與日期計算實際顯示狀態。
 
 ---
 
 ## Demo 資料
 
-`scripts/seedDemo.mjs` 以 Demo 帳號身份種入資料（需在 `.env` 設定 Firebase 服務帳號或 emulator）：
-
-- **我的訂閱**：涵蓋 pending / markedPaid / confirmed / upcoming（7 天內扣款）等狀態
-- **申請紀錄**：pending + rejected 各一筆
-- **管理群組**：涵蓋 recruiting / full / pending_confirmation / active / paused / ended 等狀態
-
 ```bash
-node scripts/seedDemo.mjs   # 種入 demo 資料（自動清除舊的 _demo 資料後重建）
+npm run seed:demo
 ```
 
-seed 腳本透過 `scripts/utils/getRate.mjs` 自動從 ExchangeRate-API 取得即時 USD/TWD 匯率，所有 `pricePerSeat` 以 `twd()` 換算為新台幣（網路不通時回退至 NT$31.5 備用匯率）。
+Demo seed 內容包含：
+
+| 類別 | 覆蓋情境 |
+|------|----------|
+| 我的訂閱 | `pending`、`markedPaid`、`confirmed`、即將續訂、逾期判斷 |
+| 申請紀錄 | 審核中、已拒絕 |
+| 群組管理 | 招募中、已額滿、待確認付款、已啟用、已暫停、已結束 |
+| 通知 | 付款、申請、系統通知 |
+| 收藏 | 已收藏群組 |
+| 訊息 | seed 不預填對話；建立群組、核准申請或開啟 DM 時由功能流程建立 |
+
+`scripts/utils/getRate.mjs` 會嘗試抓 USD/TWD 匯率；網路不可用時會使用備用匯率。
 
 ---
 
 ## 已知限制
 
-- 手機版小螢幕部分 modal overflow 尚未處理
-- 開始新一期收款後，成員付款狀態不會自動重設（展示模式限制）
-- 一般使用者標記付款時，若該使用者在群組中無 member 記錄（僅有訂閱記錄），成員狀態不會同步至團主端
-- 帳號中心的付款方式與安全驗證仍屬展示流程，尚未串接金流或 2FA 供應商
+| 類別 | 限制 |
+|------|------|
+| MVP 流程 | 付款方式與安全驗證仍屬展示流程，尚未串接正式金流或 2FA |
+| 付款週期 | 開始新一期收款後，部分成員付款狀態重設仍需補強 |
+| 資料一致性 | 若使用者只有訂閱記錄但沒有 member 記錄，標記付款時團主端成員狀態可能無法同步 |
+| RWD | 部分小螢幕 Modal overflow 還可再優化 |
+| 權限 | 前端已做 ProtectedRoute 與 UI 鎖定，正式產品仍需補 Firestore Security Rules |
 
 ---
 
-## 打包
+## 打包專案
 
 ```bash
 zip -r partymatch.zip . \
   --exclude "*/node_modules/*" \
   --exclude "*/dist/*" \
   --exclude "*/.git/*" \
-  --exclude "*/.DS_Store"
+  --exclude "*/.DS_Store" \
+  --exclude "*/.env"
 ```
