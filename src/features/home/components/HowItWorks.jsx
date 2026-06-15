@@ -127,7 +127,7 @@ export default function HowItWorks() {
 
   return (
     <>
-      <section className="p-6">
+      <section className="py-6">
         <div className="mb-6">
           <p className="mb-1 text-xs font-bold uppercase tracking-widest text-ink-4 text-center">使用流程</p>
           <h2 className="text-3xl font-extrabold text-ink text-center">如何使用 PartyMatch</h2>

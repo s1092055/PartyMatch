@@ -381,6 +381,13 @@ export default function AppNav({ variant = 'side' }) {
             <Bell size={20} strokeWidth={2} />
           </button>
           <button
+            onClick={openMessages}
+            className="grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink"
+            aria-label="訊息中心"
+          >
+            <MessageSquare size={20} strokeWidth={2} />
+          </button>
+          <button
             onClick={() => setDrawerOpen(v => !v)}
             className="grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink"
             aria-label="開啟選單"

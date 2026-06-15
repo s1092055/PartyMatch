@@ -51,32 +51,6 @@ export default function HomePage() {
         <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-ink-3">
           PartyMatch 是訂閱共享媒合平台
         </p>
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          {loggedIn ? (
-            <button
-              onClick={() => navigate('/explore')}
-              className="flex items-center gap-2 rounded-xl bg-brand px-6 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-brand-hover"
-            >
-              前往探索
-            </button>
-          ) : (
-            <>
-              <button
-                onClick={() => navigate('/register')}
-                className="flex items-center gap-2 rounded-xl bg-brand px-6 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-brand-hover"
-              >
-                立即註冊
-              </button>
-              <button
-                onClick={() => navigate('/login')}
-                className="flex items-center gap-2 rounded-xl bg-brand px-6 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-brand-hover"
-              >
-                已有帳號
-              </button>
-            </>
-          )}
-        </div>
-
         <div className="mx-auto mt-12 grid max-w-sm grid-cols-3 divide-x divide-line rounded-2xl border border-line bg-raised px-2 py-5 md:max-w-md">
           {STATS.map(({ value, label }) => (
             <div key={label} className="flex flex-col items-center gap-0.5 px-4">

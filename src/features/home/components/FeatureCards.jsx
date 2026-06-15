@@ -105,13 +105,13 @@ export default function FeatureCards() {
                 <FeatureMedia icon={Icon} videoSrc={videoSrc} />
               </div>
 
-              <div className="flex flex-col md:w-1/2">
+              <div className="flex flex-col items-center md:w-1/2 md:items-start">
                 <span className="mb-3 inline-flex w-fit items-center gap-1.5 rounded-full bg-brand-subtle px-3 py-1 text-xs font-extrabold text-brand">
                   <Icon size={12} />
                   {badge}
                 </span>
-                <h3 className="text-2xl font-extrabold text-ink">{title}</h3>
-                <p className="mt-3 text-base leading-relaxed text-ink-3">{desc}</p>
+                <h3 className="text-center text-2xl font-extrabold text-ink md:text-left">{title}</h3>
+                <p className="mt-3 text-center text-base leading-relaxed text-ink-3 md:text-left">{desc}</p>
                 <button
                   onClick={() => handleAction(action)}
                   className="mt-6 inline-flex w-fit items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-brand-hover"
