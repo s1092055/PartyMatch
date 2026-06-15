@@ -140,7 +140,7 @@ export default function FloatingMessages() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${
+              className={`flex-1 rounded-lg py-1.5 text-xs font-bold transition-colors ${
                 activeTab === tab.id
                   ? 'bg-brand text-white'
                   : 'text-ink-3 hover:bg-raised hover:text-ink'

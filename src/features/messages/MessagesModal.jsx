@@ -9,7 +9,15 @@ import {
   subscribeToMessages,
   sendMessage,
   markConversationRead,
+  getOrCreateDmConversation,
 } from '../../shared/api/messagesApi'
+
+const CONV_TABS = [
+  { id: 'all',    label: '全部', filter: () => true },
+  { id: 'group',  label: '群組', filter: c => c.type === 'group' },
+  { id: 'dm',     label: '個人', filter: c => c.type === 'dm' },
+  { id: 'system', label: '系統', filter: c => c.type === 'system' },
+]
 
 function formatTime(ts) {
   if (!ts) return ''
@@ -40,6 +48,7 @@ export default function MessagesModal() {
   const [isOpen, setIsOpen] = useState(false)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [selectedId, setSelectedId] = useState(null)
+  const [activeTab, setActiveTab] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [canSend, setCanSend] = useState(false)
   const [inputKey, setInputKey] = useState(0)
@@ -49,6 +58,7 @@ export default function MessagesModal() {
   const [sendError, setSendError] = useState(false)
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
+  const isComposingRef = useRef(false)
 
   useEffect(() => {
     function onOpen(e) {
@@ -59,6 +69,26 @@ export default function MessagesModal() {
     }
     window.addEventListener('pm:open-messages', onOpen)
     return () => window.removeEventListener('pm:open-messages', onOpen)
+  }, [])
+
+  useEffect(() => {
+    async function onOpenDm(e) {
+      if (!isAuthenticated()) { setShowLoginPrompt(true); return }
+      const user = getCurrentUser()
+      if (!user) return
+      const { hostId, hostName, hostAvatarInitial, hostAvatarColor } = e.detail ?? {}
+      if (!hostId) return
+      setIsOpen(true)
+      const convId = await getOrCreateDmConversation(
+        user.id,
+        { name: user.name, avatarInitial: user.name?.[0] ?? '?', avatarColor: user.avatarColor ?? '#64748b' },
+        hostId,
+        { name: hostName, avatarInitial: hostAvatarInitial ?? hostName?.[0] ?? '?', avatarColor: hostAvatarColor ?? '#64748b' },
+      )
+      setSelectedId(convId)
+    }
+    window.addEventListener('pm:open-dm', onOpenDm)
+    return () => window.removeEventListener('pm:open-dm', onOpenDm)
   }, [])
 
   useEffect(() => {
@@ -88,6 +118,7 @@ export default function MessagesModal() {
   function handleClose() {
     setIsOpen(false)
     setSelectedId(null)
+    setActiveTab('all')
     setSearchQuery('')
     setCanSend(false)
     setSendError(false)
@@ -121,17 +152,28 @@ export default function MessagesModal() {
   }
 
   function handleKeyDown(e) {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() }
+    if (e.key === 'Enter' && !e.shiftKey && !isComposingRef.current) { e.preventDefault(); handleSend() }
   }
 
   if (showLoginPrompt) return <LoginPromptModal onClose={() => setShowLoginPrompt(false)} />
   if (!isOpen) return null
 
   const user = getCurrentUser()
-  const selected = conversations.find(c => c.id === selectedId)
-  const filteredConvs = searchQuery
-    ? conversations.filter(c => c.name?.includes(searchQuery))
-    : conversations
+
+  const enrichedConvs = conversations.map(c => {
+    if (c.type === 'dm') {
+      const otherId = c.participants?.find(p => p !== user?.id)
+      const meta = c.participantMeta?.[otherId] ?? {}
+      return { ...c, name: meta.name ?? '私訊', avatarInitial: meta.avatarInitial ?? '?', avatarColor: meta.avatarColor ?? '#64748b' }
+    }
+    return c
+  })
+
+  const selected = enrichedConvs.find(c => c.id === selectedId)
+  const tabFilter = CONV_TABS.find(t => t.id === activeTab)?.filter ?? (() => true)
+  const filteredConvs = enrichedConvs
+    .filter(tabFilter)
+    .filter(c => !searchQuery || c.name?.includes(searchQuery))
 
   return (
     <ModalShell
@@ -156,6 +198,22 @@ export default function MessagesModal() {
                   className="flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-ink-4"
                 />
               </div>
+            </div>
+
+            <div className="flex border-b border-line px-3 py-2 gap-1">
+              {CONV_TABS.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex-1 rounded-lg py-1.5 text-xs font-bold transition-colors ${
+                    activeTab === tab.id
+                      ? 'bg-brand text-white'
+                      : 'text-ink-3 hover:bg-raised hover:text-ink'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
             </div>
 
             <div className="flex-1 overflow-y-auto">
@@ -274,6 +332,8 @@ export default function MessagesModal() {
                       type="text"
                       placeholder="輸入訊息..."
                       onChange={e => { setCanSend(e.target.value.trim().length > 0); setSendError(false) }}
+                      onCompositionStart={() => { isComposingRef.current = true }}
+                      onCompositionEnd={() => { isComposingRef.current = false }}
                       onKeyDown={handleKeyDown}
                       className="flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-ink-4"
                     />

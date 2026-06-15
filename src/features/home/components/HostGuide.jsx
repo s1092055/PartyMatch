@@ -147,7 +147,7 @@ export default function HostGuide() {
     <section className="overflow-hidden">
       <div className="mb-8 text-center">
         <p className="mb-1 text-xs font-bold uppercase tracking-widest text-ink-4">成為團主</p>
-        <h2 className="text-3xl font-extrabold text-ink">團主需要做什麼？</h2>
+        <h2 className="text-3xl font-extrabold text-ink">團主要做什麼？</h2>
         <p className="mt-3 text-base text-ink-3">建立群組之後，你就是這個群組的團主，以下是你需要知道的事。</p>
       </div>
 

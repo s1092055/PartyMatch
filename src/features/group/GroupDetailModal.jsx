@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import {
   AlertCircle, Calendar, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Clock,
-  CreditCard, Heart, Info, LogIn, Play, ShieldCheck, Star,
+  CreditCard, Heart, Info, LogIn, MessageCircle, Play, ShieldCheck, Star,
   User, Users, X,
 } from 'lucide-react'
 import { getGroupById, getGroups } from '../../shared/stores/groupStore'
@@ -615,6 +615,18 @@ export default function GroupDetailModal() {
 
                       {/* CTA — desktop only; mobile uses sticky footer bar */}
                       <div className="hidden px-6 py-4 lg:block lg:px-8">
+                        {activeUserId && !isHost && (
+                          <button
+                            onClick={() => {
+                              setGroupId(null)
+                              window.dispatchEvent(new CustomEvent('pm:open-dm', { detail: { hostId: group.hostId, hostName: group.hostName, hostAvatarInitial: group.hostAvatarInitial, hostAvatarColor: group.hostAvatarColor } }))
+                            }}
+                            className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl border border-line px-4 py-2.5 text-sm font-semibold text-ink-2 transition-colors hover:border-brand hover:text-brand"
+                          >
+                            聯絡團主
+                            <MessageCircle size={15} />
+                          </button>
+                        )}
                         {renderCTA()}
                         {canApply && (
                           <p className="mt-2 text-center text-xs text-ink-4">
@@ -717,6 +729,18 @@ export default function GroupDetailModal() {
 
           {/* Mobile sticky CTA */}
           <div className="shrink-0 border-t border-line bg-canvas px-6 py-3 lg:hidden">
+            {group && activeUserId && !isHost && (
+              <button
+                onClick={() => {
+                  setGroupId(null)
+                  window.dispatchEvent(new CustomEvent('pm:open-dm', { detail: { hostId: group.hostId, hostName: group.hostName, hostAvatarInitial: group.hostAvatarInitial, hostAvatarColor: group.hostAvatarColor } }))
+                }}
+                className="mb-2 flex w-full items-center justify-center gap-2 rounded-xl border border-line px-4 py-2.5 text-sm font-semibold text-ink-2 transition-colors hover:border-brand hover:text-brand"
+              >
+                聯絡團主
+                <MessageCircle size={15} />
+              </button>
+            )}
             {group && renderCTA()}
           </div>
         </div>

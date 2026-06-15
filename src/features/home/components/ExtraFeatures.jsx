@@ -44,7 +44,7 @@ export default function ExtraFeatures() {
     <section>
       <div className="mb-8 text-center">
         <p className="mb-1 text-xs font-bold uppercase tracking-widest text-ink-4">附加功能</p>
-        <h2 className="text-3xl font-extrabold text-ink">讓使用體驗更完整</h2>
+        <h2 className="text-3xl font-extrabold text-ink">更完善的體驗？</h2>
         <p className="mt-3 text-base text-ink-3">除了核心功能，這些小工具讓整個流程更順暢。</p>
       </div>
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">

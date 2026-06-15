@@ -86,7 +86,7 @@ export default function FeatureCards() {
     <section>
       <div className="mb-10 text-center">
         <p className="mb-1 text-xs font-bold uppercase tracking-widest text-ink-4">核心功能</p>
-        <h2 className="text-3xl font-extrabold text-ink">PartyMatch 能為你做什麼</h2>
+        <h2 className="text-3xl font-extrabold text-ink">PartyMatch 是？</h2>
         <p className="mt-3 text-base text-ink-3">
           從找群組到管理訂閱，五大功能覆蓋合購的每個環節。
         </p>

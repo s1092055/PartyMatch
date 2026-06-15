@@ -1,6 +1,6 @@
 import { db } from '../../app/firebase'
 import {
-  collection, doc, query, where, orderBy,
+  collection, doc, getDoc, query, where, orderBy,
   onSnapshot, addDoc, serverTimestamp, updateDoc, setDoc, arrayUnion, increment,
 } from 'firebase/firestore'
 
@@ -54,6 +54,29 @@ export async function markConversationRead(conversationId, userId) {
   await updateDoc(doc(db, 'conversations', conversationId), {
     [`unreadCounts.${userId}`]: 0,
   })
+}
+
+// 建立或取得與特定使用者的私聊對話
+export async function getOrCreateDmConversation(userId, userMeta, hostId, hostMeta) {
+  const convId = `dm_${[userId, hostId].sort().join('_')}`
+  const ref = doc(db, 'conversations', convId)
+  const snap = await getDoc(ref)
+  if (!snap.exists()) {
+    await setDoc(ref, {
+      type: 'dm',
+      serviceId: null,
+      participants: [userId, hostId],
+      participantMeta: {
+        [userId]: userMeta,
+        [hostId]: hostMeta,
+      },
+      unreadCounts: { [userId]: 0, [hostId]: 0 },
+      lastMessage: '',
+      lastMessageAt: serverTimestamp(),
+      createdAt: serverTimestamp(),
+    })
+  }
+  return convId
 }
 
 // 建立群組對話（群組建立/成員加入時呼叫）
