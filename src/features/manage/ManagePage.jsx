@@ -4,8 +4,8 @@ import { activateGroup, confirmGroupPayments, endGroup, getGroupsByHostId, start
 import { adjustCreditScore } from '../../shared/stores/authStore'
 import { CREDIT_RULES } from '../../shared/utils/creditScore'
 import { getApplicationsByHostId, updateApplicationStatus } from '../../shared/stores/applicationStore'
-import { getMembersByGroupId, createMember, isUserGroupMember, removeMember, updateMember } from '../../shared/stores/memberStore'
-import { activateGroupSubscriptions, confirmSubscriptionPayment, createSubscription, getSubscriptionByUserAndGroup, getSubscriptionsByGroupId } from '../../shared/stores/subscriptionStore'
+import { getMembersByGroupId, createMember, isUserGroupMember, removeMember, resetMemberPaymentsForGroup, updateMember } from '../../shared/stores/memberStore'
+import { activateGroupSubscriptions, confirmSubscriptionPayment, createSubscription, getSubscriptionByUserAndGroup, getSubscriptionsByGroupId, resetSubscriptionPaymentsForGroup } from '../../shared/stores/subscriptionStore'
 import { getPaymentRecordCountBySubIds } from '../../shared/stores/paymentStore'
 import { createNotification } from '../../shared/stores/notificationStore'
 import { getCurrentUser } from '../../shared/stores/authStore'
@@ -197,6 +197,16 @@ function handleActivate(renewalDate) {
   function handleStartRenewal() {
     if (!renewalModalGroupId) return
     startRenewalCycle(renewalModalGroupId)
+    resetMemberPaymentsForGroup(renewalModalGroupId)
+    resetSubscriptionPaymentsForGroup(renewalModalGroupId)
+    getMembersByGroupId(renewalModalGroupId).forEach(m => {
+      createNotification({
+        userId:  m.userId,
+        type:    'payment_due',
+        title:   '新一期付款通知',
+        message: `「${m.groupName ?? ''}」已進入新一期收款，請至訂閱頁面完成付款。`,
+      })
+    })
     setRenewalModalGroupId(null)
     refreshGroups()
   }

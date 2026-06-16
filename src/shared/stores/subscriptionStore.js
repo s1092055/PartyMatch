@@ -74,3 +74,10 @@ export function activateGroupSubscriptions(groupId, nextBillingDate) {
   _subs = _subs.map(s => s.groupId === groupId ? normalizeSubscription({ ...s, ...patch }) : s)
   targets.forEach(s => patchSubscription(s.id, patch).catch(console.error))
 }
+
+export function resetSubscriptionPaymentsForGroup(groupId) {
+  const patch = { paymentStatus: 'pending' }
+  const targets = _subs.filter(s => s.groupId === groupId)
+  _subs = _subs.map(s => s.groupId === groupId ? normalizeSubscription({ ...s, ...patch }) : s)
+  targets.forEach(s => patchSubscription(s.id, patch).catch(console.error))
+}

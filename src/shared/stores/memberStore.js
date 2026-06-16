@@ -53,6 +53,13 @@ export function removeMember(memberId) {
   deleteMemberRecord(memberId).catch(console.error)
 }
 
+export function resetMemberPaymentsForGroup(groupId) {
+  const patch = { paymentStatus: 'pending' }
+  const targets = _members.filter(m => m.groupId === groupId)
+  _members = _members.map(m => m.groupId === groupId ? { ...m, ...patch } : m)
+  targets.forEach(m => patchMember(m.id, patch).catch(console.error))
+}
+
 export function isCurrentUserMember(groupId) {
   const user = getCurrentUser()
   return user ? isUserGroupMember(user.id, groupId) : false

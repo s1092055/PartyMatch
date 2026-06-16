@@ -75,7 +75,6 @@ export default function RenewalModal({ isOpen, onClose, group, onStartRenewal, o
           </p>
         </button>
 
-        <p className="mt-4 text-center text-2xs text-ink-4">目前為展示模式，操作不會實際生效</p>
       </div>
     </Modal>
   )
