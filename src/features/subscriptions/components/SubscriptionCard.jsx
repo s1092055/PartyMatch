@@ -10,6 +10,7 @@ const STATUS_BADGE_CLASS = {
   paid:                'bg-success-subtle text-success-text',
   waiting_activation:  'bg-brand-subtle text-brand',
   overdue:             'bg-danger-subtle text-danger-text',
+  active:              'bg-brand-subtle text-brand',
 }
 
 function StatCell({ label, children, highlight }) {
@@ -23,7 +24,8 @@ function StatCell({ label, children, highlight }) {
 
 export default function SubscriptionCard({ sub, onViewGroup }) {
   const status = effectiveStatus(sub)
-  const isActive = ['confirmed', 'paid'].includes(sub.paymentStatus) || sub.groupStatus === 'active'
+  const isActive = sub.status === 'active' || sub.groupStatus === 'active'
+  const badgeStatus = isActive ? 'active' : status
 
   const paymentLabel = {
     pending:            '待付款',
@@ -48,7 +50,7 @@ export default function SubscriptionCard({ sub, onViewGroup }) {
       onClick={() => onViewGroup?.(sub)}
     >
       <div className="flex justify-center">
-        <Badge variant={status} className={STATUS_BADGE_CLASS[status] ?? ''} />
+        <Badge variant={badgeStatus} className={STATUS_BADGE_CLASS[badgeStatus] ?? ''} />
       </div>
 
       <div className="mt-4 flex justify-center">
@@ -74,7 +76,7 @@ export default function SubscriptionCard({ sub, onViewGroup }) {
           {isActive ? (sub.nextBillingDate ?? '—') : (sub.joinedAt ?? '—')}
         </StatCell>
         <StatCell label="團主">
-          {sub.hostName ?? '—'}
+          {sub.hostName ? `${sub.hostName}（團主）` : '—'}
         </StatCell>
       </div>
 

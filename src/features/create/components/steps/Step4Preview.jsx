@@ -1,4 +1,5 @@
 import { CheckCircle2, ListChecks } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { getServiceById } from '../../../../shared/utils/serviceUtils'
 import { getActiveUserProfile } from '../../../../shared/stores/authStore'
 import ExploreGroupCard from '../../../explore/components/ExploreGroupCard'
@@ -17,7 +18,7 @@ function Row({ label, value }) {
   )
 }
 
-export default function Step4Preview({ form }) {
+export default function Step4Preview({ form, agreedToTerms, onAgreeChange }) {
   const service = getServiceById(form.serviceId)
   const activeUser = getActiveUserProfile()
   const today = todayLabel()
@@ -85,8 +86,24 @@ export default function Step4Preview({ form }) {
       </div>
 
       <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-700">
-        送出後群組將立即上架並開始招募，你可以在「群組管理」中審核申請與管理成員。
+        確認後群組將立即上架並開始招募，你可以在「群組管理」中審核申請與管理成員。
       </div>
+
+      <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-line bg-canvas px-4 py-3">
+        <input
+          type="checkbox"
+          checked={agreedToTerms ?? false}
+          onChange={e => onAgreeChange?.(e.target.checked)}
+          className="mt-0.5 h-4 w-4 shrink-0 accent-brand"
+        />
+        <span className="text-xs leading-relaxed text-ink-2">
+          我已閱讀並同意 PartyMatch 的{' '}
+          <Link to="/terms" target="_blank" className="font-semibold text-brand underline-offset-2 hover:underline">服務條款</Link>
+          {' '}與{' '}
+          <Link to="/privacy" target="_blank" className="font-semibold text-brand underline-offset-2 hover:underline">隱私政策</Link>
+          ，並確認以上群組資訊正確無誤。
+        </span>
+      </label>
     </div>
   )
 }

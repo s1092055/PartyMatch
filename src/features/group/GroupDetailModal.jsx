@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import {
-  AlertCircle, Calendar, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Clock,
+  AlertCircle, Calendar, CheckCircle2, ChevronLeft, ChevronRight, Clock,
   CreditCard, Heart, Info, LogIn, MessageCircle, Play, ShieldCheck, Star,
   User, Users, X,
 } from 'lucide-react'
@@ -18,6 +18,7 @@ import Button from '../../shared/ui/Button'
 import ProgressBar from '../../shared/ui/ProgressBar'
 import ServiceLogo from '../../shared/ui/ServiceLogo'
 import ApplyJoinModal from './components/ApplyJoinModal'
+import ExploreGroupCard from '../explore/components/ExploreGroupCard'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -56,64 +57,6 @@ function TagChip({ label, size = 'md' }) {
 }
 
 
-// ─── Compact recommendation card ──────────────────────────────────────────────
-
-function GroupRecommendCard({ group }) {
-  const usedRatio = group.totalSeats > 0 ? Math.min(group.usedSeats / group.totalSeats, 1) : 0
-  const visibleTags = (group.tags ?? []).slice(0, 2)
-
-  function open(e) {
-    e.stopPropagation()
-    window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: group.id } }))
-  }
-
-  return (
-    <article
-      className="card flex cursor-pointer flex-col gap-2.5 p-4 transition-shadow hover:shadow-md"
-      onClick={open}
-    >
-      {/* Service info row */}
-      <div className="flex items-center gap-2.5">
-        <ServiceLogo serviceId={group.serviceId} size={36} className="shrink-0" />
-        <div className="min-w-0 flex-1">
-          <div className="flex min-w-0 items-center gap-1.5">
-            <span className="truncate text-sm font-extrabold text-ink">{group.serviceName}</span>
-            <span className="shrink-0 rounded-md bg-raised px-1.5 py-0.5 text-[11px] font-bold text-ink-3">
-              {group.planName}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Price */}
-      <p className="text-base font-extrabold text-ink">
-        NT${group.billingCycle === 'yearly' ? group.pricePerSeat * 12 : group.pricePerSeat}
-        <span className="ml-1 text-xs font-normal text-ink-3">{group.billingCycle === 'yearly' ? '/年' : '/每月'}</span>
-      </p>
-
-      {/* Seats */}
-      <div>
-        <div className="h-1.5 overflow-hidden rounded-full bg-line">
-          <div className="h-full rounded-full bg-success transition-all" style={{ width: `${usedRatio * 100}%` }} />
-        </div>
-        <p className="mt-1 text-xs text-ink-4">{group.openSeats} 席 / 總名額 {group.totalSeats} 席</p>
-      </div>
-
-      {/* Tags + 查看 */}
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex min-w-0 flex-wrap gap-1">
-          {visibleTags.map(tag => <TagChip key={tag} label={tag} size="sm" />)}
-        </div>
-        <button
-          className="shrink-0 rounded-lg border border-line px-2.5 py-1 text-xs font-semibold text-ink-2 transition-colors hover:border-brand hover:text-brand"
-        >
-          查看
-        </button>
-      </div>
-    </article>
-  )
-}
-
 // ─── Main modal ────────────────────────────────────────────────────────────────
 
 export default function GroupDetailModal() {
@@ -123,7 +66,6 @@ export default function GroupDetailModal() {
   const [applied, setApplied]               = useState(false)
   const [isFav, setIsFav]                   = useState(false)
   const [recPage, setRecPage]               = useState(0)
-  const [openSections, setOpenSections]     = useState(() => new Set(['service']))
 
   const summaryRef = useRef(null)
   const leftColRef = useRef(null)
@@ -140,7 +82,7 @@ export default function GroupDetailModal() {
       setGroupId(gId)
       setRecPage(0)
       setApplyModalOpen(false)
-      setOpenSections(new Set(['service']))
+
       if (leftColRef.current) leftColRef.current.scrollTop = 0
       if (gId && activeUserId) {
         setApplied(!!getApplicationByUserAndGroup(activeUserId, gId))
@@ -378,7 +320,7 @@ export default function GroupDetailModal() {
                         <div className="flex items-center gap-3 border-b border-line-subtle pb-4">
                           <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="md" />
                           <div className="min-w-0 flex-1">
-                            <p className="text-sm font-semibold text-ink">{group.hostName}</p>
+                            <p className="text-sm font-semibold text-ink">{group.hostName}（團主）</p>
                             <div className="mt-1 flex items-center gap-1.5">
                               <div className="flex gap-0.5">
                                 {Array.from({ length: 5 }, (_, i) => (
@@ -420,137 +362,148 @@ export default function GroupDetailModal() {
 
                     </div>
 
-                    {/* Mobile: accordion */}
+                    {/* Mobile: always-visible sections */}
                     <div className="divide-y divide-line-subtle lg:hidden">
 
-                      {[
-                        { key: 'service', label: '服務介紹' },
-                        { key: 'rules',   label: '加入條件與規則' },
-                        { key: 'reviews', label: '團主評價' },
-                      ].map(({ key, label }) => (
-                        <div key={key}>
-                          <button
-                            className="flex w-full items-center justify-between px-6 py-4"
-                            onClick={() => setOpenSections(prev => {
-                              const next = new Set(prev)
-                              next.has(key) ? next.delete(key) : next.add(key)
-                              return next
-                            })}
-                          >
-                            <span className="text-sm font-semibold text-ink">{label}</span>
-                            <ChevronDown
-                              size={16}
-                              className={`shrink-0 text-ink-3 transition-transform duration-200 ${openSections.has(key) ? 'rotate-180' : ''}`}
-                            />
-                          </button>
-
-                          {openSections.has(key) && key === 'service' && (
-                            <div className="space-y-4 px-6 pb-5">
-                              {service?.description && (
-                                <p className="text-sm leading-relaxed text-ink-2">{service.description}</p>
-                              )}
-                              {planChips.length > 0 && (
-                                <div className={`grid gap-2 ${planChips.length >= 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
-                                  {planChips.map(({ icon: Icon, label: chipLabel, value }) => (
-                                    <div key={chipLabel} className="flex flex-col gap-1 rounded-xl border border-line bg-canvas p-3">
-                                      <Icon size={14} className="text-ink-3" />
-                                      <span className="text-xs text-ink-4">{chipLabel}</span>
-                                      <span className="text-xs font-bold leading-snug text-ink">{value}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                              {(plan?.description || (plan?.features?.length ?? 0) > 0) && (
-                                <div className="border-t border-line-subtle pt-4">
-                                  {plan?.description && (
-                                    <p className="mb-3 text-sm font-medium text-ink-2">{plan.description}</p>
-                                  )}
-                                  {(plan?.features ?? []).length > 0 && (
-                                    <ul className="space-y-2">
-                                      {plan.features.map((feat, i) => (
-                                        <li key={i} className="flex items-start gap-2 text-sm text-ink-2">
-                                          <CheckCircle2 size={14} className="mt-0.5 shrink-0 text-brand" />
-                                          {feat}
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          )}
-
-                          {openSections.has(key) && key === 'rules' && (
-                            <div className="px-6 pb-5">
-                              {allRules.length > 0 ? (
-                                <ul className="space-y-3">
-                                  {allRules.map((rule, i) => (
-                                    <li key={i} className="flex items-start gap-2 text-sm text-ink-2">
-                                      <CheckCircle2 size={14} className="mt-0.5 shrink-0 text-emerald-500" />
-                                      <span>{rule}</span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              ) : (
-                                <p className="text-sm text-ink-4">此群組尚未設定加入規則</p>
-                              )}
-                            </div>
-                          )}
-
-                          {openSections.has(key) && key === 'reviews' && (
-                            <div className="space-y-4 px-6 pb-5">
-                              <div className="flex items-center gap-3 border-b border-line-subtle pb-4">
-                                <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="md" />
-                                <div className="min-w-0 flex-1">
-                                  <p className="text-sm font-semibold text-ink">{group.hostName}</p>
-                                  <div className="mt-1 flex items-center gap-1.5">
-                                    <div className="flex gap-0.5">
-                                      {Array.from({ length: 5 }, (_, i) => (
-                                        <Star key={i} size={12} className={i < hostStars ? 'fill-amber-400 text-amber-400' : 'text-line'} />
-                                      ))}
-                                    </div>
-                                    {(group.hostReviewCount ?? 0) > 0 && (
-                                      <span className="text-xs text-ink-4">{group.hostReviewCount} 則評價</span>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                              {(group.reviews ?? []).length === 0 ? (
-                                <p className="py-4 text-center text-sm text-ink-4">尚無評價</p>
-                              ) : (
-                                (group.reviews ?? []).map(review => (
-                                  <div key={review.id} className="flex gap-3">
-                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-raised text-xs font-bold text-ink-2">
-                                      {review.author?.[0] ?? '?'}
-                                    </div>
-                                    <div className="min-w-0 flex-1">
-                                      <div className="mb-1 flex items-center justify-between">
-                                        <span className="text-sm font-semibold text-ink">{review.author}</span>
-                                        <span className="text-xs text-ink-4">{review.date}</span>
-                                      </div>
-                                      {review.rating != null && (
-                                        <div className="mb-1 flex gap-0.5">
-                                          {Array.from({ length: 5 }, (_, i) => (
-                                            <Star key={i} size={11} className={i < review.rating ? 'fill-amber-400 text-amber-400' : 'text-line'} />
-                                          ))}
-                                        </div>
-                                      )}
-                                      <p className="text-sm leading-relaxed text-ink-3">{review.comment}</p>
-                                    </div>
-                                  </div>
-                                ))
-                              )}
-                            </div>
-                          )}
+                      {/* 群組簡述 */}
+                      <div className="space-y-4 px-2 py-6">
+                        <p className="text-lg font-black text-brand">群組簡述</p>
+                        <div>
+                          <p className="mb-0.5 text-xs font-medium text-ink-4">每席價格</p>
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-2xl font-extrabold text-ink">NT${group.pricePerSeat}</span>
+                            <span className="text-sm text-ink-3">/每月</span>
+                          </div>
                         </div>
-                      ))}
+                        <div>
+                          <div className="mb-2 flex items-center justify-between text-sm">
+                            <span className="text-ink-3">剩餘名額</span>
+                            <span className="font-semibold text-ink">{group.openSeats} 席 / 總名額 {group.totalSeats} 席</span>
+                          </div>
+                          <ProgressBar value={group.usedSeats} max={group.totalSeats} />
+                        </div>
+                        {(group.tags ?? []).length > 0 && (
+                          <div className="flex flex-wrap gap-2">
+                            {(group.tags ?? []).map(tag => <TagChip key={tag} label={tag} />)}
+                          </div>
+                        )}
+                        {infoRows.length > 0 && (
+                          <div className="space-y-2">
+                            {infoRows.map(({ label: rowLabel, value }) => (
+                              <div key={rowLabel} className="flex gap-3 text-sm">
+                                <span className="w-14 shrink-0 text-ink-4">{rowLabel}</span>
+                                <span className="flex-1 text-ink-2">{value}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 服務介紹 */}
+                      <div className="space-y-4 px-2 py-6">
+                        <p className="text-lg font-black text-brand">服務介紹</p>
+                        {service?.description && (
+                          <p className="text-sm leading-relaxed text-ink-2">{service.description}</p>
+                        )}
+                        {planChips.length > 0 && (
+                          <div className={`grid gap-2 ${planChips.length >= 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                            {planChips.map(({ icon: Icon, label: chipLabel, value }) => (
+                              <div key={chipLabel} className="flex flex-col gap-1 rounded-xl border border-line bg-canvas p-3">
+                                <Icon size={14} className="text-ink-3" />
+                                <span className="text-xs text-ink-4">{chipLabel}</span>
+                                <span className="text-xs font-bold leading-snug text-ink">{value}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {(plan?.description || (plan?.features?.length ?? 0) > 0) && (
+                          <div className="border-t border-line-subtle pt-4">
+                            {plan?.description && (
+                              <p className="mb-3 text-sm font-medium text-ink-2">{plan.description}</p>
+                            )}
+                            {(plan?.features ?? []).length > 0 && (
+                              <ul className="space-y-2">
+                                {plan.features.map((feat, i) => (
+                                  <li key={i} className="flex items-start gap-2 text-sm text-ink-2">
+                                    <CheckCircle2 size={14} className="mt-0.5 shrink-0 text-brand" />
+                                    {feat}
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 加入條件與規則 */}
+                      <div className="space-y-4 px-2 py-6">
+                        <p className="text-lg font-black text-brand">加入條件與規則</p>
+                        {allRules.length > 0 ? (
+                          <ul className="space-y-3">
+                            {allRules.map((rule, i) => (
+                              <li key={i} className="flex items-start gap-2 text-sm text-ink-2">
+                                <CheckCircle2 size={14} className="mt-0.5 shrink-0 text-emerald-500" />
+                                <span>{rule}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-sm text-ink-4">此群組尚未設定加入規則</p>
+                        )}
+                      </div>
+
+                      {/* 團主評價 */}
+                      <div className="space-y-4 px-2 py-6">
+                        <p className="text-lg font-black text-brand">團主評價</p>
+                        <div className="flex items-center gap-3 border-b border-line-subtle pb-4">
+                          <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="md" />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-semibold text-ink">{group.hostName}（團主）</p>
+                            <div className="mt-1 flex items-center gap-1.5">
+                              <div className="flex gap-0.5">
+                                {Array.from({ length: 5 }, (_, i) => (
+                                  <Star key={i} size={12} className={i < hostStars ? 'fill-amber-400 text-amber-400' : 'text-line'} />
+                                ))}
+                              </div>
+                              {(group.hostReviewCount ?? 0) > 0 && (
+                                <span className="text-xs text-ink-4">{group.hostReviewCount} 則評價</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        {(group.reviews ?? []).length === 0 ? (
+                          <p className="py-4 text-center text-sm text-ink-4">尚無評價</p>
+                        ) : (
+                          (group.reviews ?? []).map(review => (
+                            <div key={review.id} className="flex gap-3">
+                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-raised text-xs font-bold text-ink-2">
+                                {review.author?.[0] ?? '?'}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <div className="mb-1 flex items-center justify-between">
+                                  <span className="text-sm font-semibold text-ink">{review.author}</span>
+                                  <span className="text-xs text-ink-4">{review.date}</span>
+                                </div>
+                                {review.rating != null && (
+                                  <div className="mb-1 flex gap-0.5">
+                                    {Array.from({ length: 5 }, (_, i) => (
+                                      <Star key={i} size={11} className={i < review.rating ? 'fill-amber-400 text-amber-400' : 'text-line'} />
+                                    ))}
+                                  </div>
+                                )}
+                                <p className="text-sm leading-relaxed text-ink-3">{review.comment}</p>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
 
                     </div>
                   </div>
                   {/* ────────── END LEFT ────────── */}
 
                   {/* ────────── RIGHT COLUMN ────────── */}
-                  <div ref={summaryRef} className="order-1 lg:order-2 lg:w-[20rem] lg:shrink-0">
+                  <div ref={summaryRef} className="hidden lg:order-2 lg:block lg:w-[20rem] lg:shrink-0">
 
                     {/* Summary card */}
                     <div className="card divide-y divide-line-subtle overflow-hidden">
@@ -648,14 +601,14 @@ export default function GroupDetailModal() {
 
                 {/* ────────── RECOMMENDATIONS (full-width) ────────── */}
                 {picks.length > 0 && (
-                  <div className="border-t border-line px-8 pb-6 pt-5 lg:pb-8">
-                    <h3 className="mb-4 text-sm font-bold text-ink">其他推薦群組</h3>
+                  <div className="border-t border-line px-8 pb-8 pt-5 lg:pb-10">
+                    <h3 className="mb-4 text-lg font-black text-brand">其他推薦群組</h3>
 
                     {/* Mobile: horizontal scroll */}
-                    <div className="flex gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:hidden">
+                    <div className="flex gap-3 overflow-x-auto px-0.5 pb-3 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:hidden">
                       {picks.map(g => (
-                        <div key={g.id} className="w-56 shrink-0">
-                          <GroupRecommendCard group={g} />
+                        <div key={g.id} className="w-64 shrink-0">
+                          <ExploreGroupCard group={g} />
                         </div>
                       ))}
                     </div>
@@ -673,7 +626,7 @@ export default function GroupDetailModal() {
                           </button>
                         )}
 
-                        <div className="min-w-0 flex-1 overflow-hidden p-0.5">
+                        <div className="min-w-0 flex-1 [overflow-x:clip] px-0.5 py-2">
                           <div
                             className="flex transition-transform duration-300 ease-in-out"
                             style={{
@@ -685,7 +638,7 @@ export default function GroupDetailModal() {
                               <div key={si} style={{ width: `${100 / totalSlides}%` }}>
                                 <div className="grid grid-cols-3 gap-3">
                                   {picks.slice(si * 3, si * 3 + 3).map(g => (
-                                    <GroupRecommendCard key={g.id} group={g} />
+                                    <ExploreGroupCard key={g.id} group={g} />
                                   ))}
                                 </div>
                               </div>
@@ -729,17 +682,37 @@ export default function GroupDetailModal() {
 
           {/* Mobile sticky CTA */}
           <div className="shrink-0 border-t border-line bg-canvas px-6 py-3 lg:hidden">
-            {group && activeUserId && !isHost && (
-              <button
-                onClick={() => {
-                  setGroupId(null)
-                  window.dispatchEvent(new CustomEvent('pm:open-dm', { detail: { hostId: group.hostId, hostName: group.hostName, hostAvatarInitial: group.hostAvatarInitial, hostAvatarColor: group.hostAvatarColor } }))
-                }}
-                className="mb-2 flex w-full items-center justify-center gap-2 rounded-xl border border-line px-4 py-2.5 text-sm font-semibold text-ink-2 transition-colors hover:border-brand hover:text-brand"
-              >
-                聯絡團主
-                <MessageCircle size={15} />
-              </button>
+            {group && (
+              <div className="mb-2 flex gap-2">
+                <button
+                  onClick={() =>
+                    activeUserId
+                      ? setIsFav(toggleFavorite(activeUserId, group.id))
+                      : navigate(`/login?redirectTo=/groups/${group.id}`)
+                  }
+                  className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors ${
+                    isFav
+                      ? 'border-red-100 bg-red-50 text-red-500'
+                      : 'border-line text-ink-2 hover:border-red-200 hover:text-red-400'
+                  }`}
+                  aria-label={isFav ? '取消收藏' : '加入收藏'}
+                >
+                  <Heart size={15} className={isFav ? 'fill-red-500' : ''} />
+                  {isFav ? '已收藏' : '收藏'}
+                </button>
+                {activeUserId && !isHost && (
+                  <button
+                    onClick={() => {
+                      setGroupId(null)
+                      window.dispatchEvent(new CustomEvent('pm:open-dm', { detail: { hostId: group.hostId, hostName: group.hostName, hostAvatarInitial: group.hostAvatarInitial, hostAvatarColor: group.hostAvatarColor } }))
+                    }}
+                    className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-line px-4 py-2.5 text-sm font-semibold text-ink-2 transition-colors hover:border-brand hover:text-brand"
+                  >
+                    聯絡團主
+                    <MessageCircle size={15} />
+                  </button>
+                )}
+              </div>
             )}
             {group && renderCTA()}
           </div>

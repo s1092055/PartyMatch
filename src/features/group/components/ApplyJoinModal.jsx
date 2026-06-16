@@ -19,6 +19,8 @@ export default function ApplyJoinModal({ group, isOpen, onClose, onSuccess }) {
       planName: group.planName,
       hostId: group.hostId,
       hostName: group.hostName,
+      hostAvatarInitial: group.hostAvatarInitial,
+      hostAvatarColor: group.hostAvatarColor,
       message,
     })
     setSubmitted(true)

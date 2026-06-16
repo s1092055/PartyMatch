@@ -1,10 +1,10 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CheckCircle, ClipboardList, Clock, XCircle } from 'lucide-react'
-import { getSubscriptionsByUserId, markSubscriptionPaid } from '../../shared/stores/subscriptionStore'
-import { getMemberByUserAndGroup, updateMember } from '../../shared/stores/memberStore'
+import { getSubscriptionsByUserId, initSubscriptions, markSubscriptionPaid } from '../../shared/stores/subscriptionStore'
+import { getMemberByUserAndGroup, initMembers, updateMember } from '../../shared/stores/memberStore'
 import { createNotification } from '../../shared/stores/notificationStore'
-import { getApplicationsByUserId } from '../../shared/stores/applicationStore'
+import { getApplicationsByUserId, initApplications } from '../../shared/stores/applicationStore'
 import { getGroupById } from '../../shared/stores/groupStore'
 import { getCurrentUser } from '../../shared/stores/authStore'
 import SubscriptionCard from './components/SubscriptionCard'
@@ -16,24 +16,46 @@ import { daysUntil, todayISO } from '../../shared/utils/date'
 
 const FILTER_TABS = [
   { key: 'all',          label: '全部'     },
-  { key: 'pending',      label: '待付款'   },
-  { key: 'paid',         label: '已付款'   },
+  { key: 'processing',   label: '待處理'   },
+  { key: 'active',       label: '已啟用'   },
   { key: 'upcoming',     label: '即將續訂' },
   { key: 'applications', label: '申請紀錄' },
 ]
 
+const PAYMENT_ACTION_STATUSES = new Set([
+  'pending',
+  'markedPaid',
+  'overdue',
+])
+
+const PRE_ACTIVATION_PROCESSING_STATUSES = new Set([
+  'paid',
+  'confirmed',
+  'waiting_activation',
+])
+
 function enrichSubs(rawSubs) {
   return rawSubs.map(s => {
     const group = getGroupById(s.groupId)
-    return { ...s, groupStatus: group?.status ?? 'active' }
+    return { ...s, groupStatus: group?.status ?? s.groupStatus ?? s.status }
   })
+}
+
+function isActivatedSubscription(sub) {
+  return sub.status === 'active' || sub.groupStatus === 'active'
+}
+
+function isProcessingSubscription(sub) {
+  const status = effectiveStatus(sub)
+  if (PAYMENT_ACTION_STATUSES.has(status)) return true
+  return !isActivatedSubscription(sub) && PRE_ACTIVATION_PROCESSING_STATUSES.has(status)
 }
 
 function filterSubs(subs, tab) {
   switch (tab) {
-    case 'pending':  return subs.filter(s => ['pending', 'markedPaid', 'overdue'].includes(effectiveStatus(s)))
-    case 'paid':     return subs.filter(s => ['paid', 'confirmed', 'waiting_activation'].includes(effectiveStatus(s)))
-    case 'upcoming': return subs.filter(s => { const d = daysUntil(s.nextBillingDate); return d >= 0 && d <= 7 })
+    case 'processing': return subs.filter(isProcessingSubscription)
+    case 'active':     return subs.filter(isActivatedSubscription)
+    case 'upcoming':   return subs.filter(s => { const d = daysUntil(s.nextBillingDate); return isActivatedSubscription(s) && d >= 0 && d <= 7 })
     default:         return subs
   }
 }
@@ -41,26 +63,63 @@ function filterSubs(subs, tab) {
 export default function SubscriptionsPage() {
   const navigate = useNavigate()
   const activeUser = getCurrentUser()
+  const activeUserId = activeUser?.id ?? null
   const [activeTab, setActiveTab] = useState('all')
   const [subs, setSubs] = useState(() =>
-    activeUser ? enrichSubs(getSubscriptionsByUserId(activeUser.id)) : []
+    activeUserId ? enrichSubs(getSubscriptionsByUserId(activeUserId)) : []
   )
   const [viewGroupId, setViewGroupId] = useState(null)
   const [toast, setToast] = useState(null)
   const toastTimerRef = useRef(null)
 
-  const userApplications = useMemo(
-    () => activeUser ? getApplicationsByUserId(activeUser.id) : [],
-    [activeUser],
-  )
+  useEffect(() => {
+    let cancelled = false
 
-  const filterCounts = useMemo(() => ({
+    function syncFromMemory() {
+      if (cancelled) return
+      setSubs(activeUserId ? enrichSubs(getSubscriptionsByUserId(activeUserId)) : [])
+    }
+
+    async function reloadFromSource() {
+      if (!activeUserId) {
+        syncFromMemory()
+        return
+      }
+      try {
+        await Promise.all([initSubscriptions(), initMembers(), initApplications()])
+      } catch (error) {
+        console.error(error)
+      }
+      syncFromMemory()
+    }
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === 'visible') reloadFromSource()
+    }
+
+    reloadFromSource()
+    window.addEventListener('pm:subscriptions-changed', syncFromMemory)
+    window.addEventListener('pm:applications-changed', syncFromMemory)
+    window.addEventListener('focus', reloadFromSource)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => {
+      cancelled = true
+      window.removeEventListener('pm:subscriptions-changed', syncFromMemory)
+      window.removeEventListener('pm:applications-changed', syncFromMemory)
+      window.removeEventListener('focus', reloadFromSource)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [activeUserId])
+
+  const userApplications = activeUserId ? getApplicationsByUserId(activeUserId) : []
+
+  const filterCounts = {
     all:          subs.length,
-    pending:      filterSubs(subs, 'pending').length,
-    paid:         filterSubs(subs, 'paid').length,
+    processing:   filterSubs(subs, 'processing').length,
+    active:       filterSubs(subs, 'active').length,
     upcoming:     filterSubs(subs, 'upcoming').length,
     applications: userApplications.length,
-  }), [subs, userApplications])
+  }
 
   function showToast(msg) {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
@@ -81,7 +140,7 @@ export default function SubscriptionsPage() {
       title: '付款已標記',
       message: `${sub.serviceName} ${sub.planName} 已標記付款，等待團主確認。`,
     })
-    setSubs(activeUser ? enrichSubs(getSubscriptionsByUserId(activeUser.id)) : [])
+    setSubs(activeUserId ? enrichSubs(getSubscriptionsByUserId(activeUserId)) : [])
     showToast('已標記付款，等待團主確認')
   }
 

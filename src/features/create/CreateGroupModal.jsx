@@ -106,6 +106,7 @@ export default function CreateGroupModal() {
   const [form, setForm] = useState(INITIAL_FORM);
   const [submitted, setSubmitted] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   useEffect(() => {
     function handler() {
@@ -114,6 +115,7 @@ export default function CreateGroupModal() {
       setStep(1);
       setForm(INITIAL_FORM);
       setSubmitted(false);
+      setAgreedToTerms(false);
     }
     window.addEventListener("pm:open-create", handler);
     return () => window.removeEventListener("pm:open-create", handler);
@@ -216,8 +218,8 @@ export default function CreateGroupModal() {
           <ChevronRight size={15} />
         </Button>
       ) : (
-        <Button variant="success" size="md" className="flex-1" onClick={handleSubmit}>
-          送出並上架
+        <Button variant="success" size="md" className="flex-1" disabled={!agreedToTerms} onClick={handleSubmit}>
+          確認建立
         </Button>
       )}
     </>
@@ -282,7 +284,7 @@ export default function CreateGroupModal() {
               <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:mr-6">
                 <div className="min-w-0 flex-1 flex flex-col">
                   <div className="flex-1 pt-2 pb-3 lg:pt-3 lg:pb-6">
-                    <StepComponent form={form} onChange={onChange} />
+                    <StepComponent form={form} onChange={onChange} agreedToTerms={agreedToTerms} onAgreeChange={setAgreedToTerms} />
                   </div>
                   <div className="mt-4 space-y-2 pb-2">
                     {infoBox}

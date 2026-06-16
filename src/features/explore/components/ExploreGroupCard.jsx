@@ -78,7 +78,7 @@ export default function ExploreGroupCard({ group, onFavChange, onBeforeNavigate,
 
   return (
     <article
-      className="card card-hover group relative flex min-h-full cursor-pointer flex-col overflow-hidden rounded-card border-line bg-surface p-5 shadow-[0_18px_45px_-32px_rgb(20_44_91_/_0.48)]"
+      className="card card-hover group relative flex min-h-full cursor-pointer flex-col overflow-hidden rounded-card border-line bg-surface px-6 py-5 shadow-[0_18px_45px_-32px_rgb(20_44_91_/_0.48)]"
       onClick={openDetails}
     >
       {!hideActions && (
@@ -134,44 +134,44 @@ export default function ExploreGroupCard({ group, onFavChange, onBeforeNavigate,
 
       <div className="mb-4 border-t border-line-subtle" />
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="flex min-w-0 items-center gap-2.5">
-          <div
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-full border-2 border-white text-sm font-black text-white shadow-sm"
-            style={{ backgroundColor: group.hostAvatarColor ?? '#94A3B8' }}
-          >
-            {group.hostAvatarInitial}
-          </div>
-          <div className="min-w-0">
-            <div className="flex min-w-0 items-center gap-1">
-              <span className="truncate text-sm font-black text-ink">{group.hostName}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-col justify-center">
+      <div className="px-2">
+        {group.totalSeats == null ? (
           <div className="flex items-baseline justify-between">
             <p className="text-xs font-bold text-ink-3">剩餘名額</p>
-            <p className="text-sm font-black text-ink">
-              <span className={isLastSeat ? 'text-warning-text' : 'text-success'}>{group.openSeats}</span>
-              <span className="text-ink-4"> / {group.totalSeats}</span>
-            </p>
+            <p className="text-sm font-semibold text-ink-4">尚未設定</p>
           </div>
-          <div
-            role="progressbar"
-            aria-valuenow={group.usedSeats}
-            aria-valuemin={0}
-            aria-valuemax={group.totalSeats}
-            aria-label="名額使用率"
-            className="mt-1.5 h-2 overflow-hidden rounded-full bg-line"
-          >
+        ) : (
+          <>
+            <div className="flex items-baseline justify-between">
+              <p className="text-xs font-bold text-ink-3">剩餘名額</p>
+              <p className="text-sm font-black text-ink">
+                <span className={isLastSeat ? 'text-warning-text' : 'text-success'}>{group.openSeats}</span>
+                <span className="text-ink-4"> / {group.totalSeats}</span>
+              </p>
+            </div>
             <div
-              className="h-full rounded-full bg-success transition-all"
-              style={{ width: `${usedRatio * 100}%` }}
-            />
-          </div>
-        </div>
+              role="progressbar"
+              aria-valuenow={group.usedSeats}
+              aria-valuemin={0}
+              aria-valuemax={group.totalSeats}
+              aria-label="名額使用率"
+              className="mt-1.5 h-2 overflow-hidden rounded-full bg-line"
+            >
+              <div
+                className="h-full rounded-full bg-success transition-all"
+                style={{ width: `${usedRatio * 100}%` }}
+              />
+            </div>
+          </>
+        )}
       </div>
+
+      <button
+        onClick={openDetails}
+        className="mt-4 w-full rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
+      >
+        查看詳情
+      </button>
 
     </article>
   )
