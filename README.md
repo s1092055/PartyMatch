@@ -313,6 +313,9 @@ src/
 │   ├── manage/                 # 團主管理
 │   ├── match/                  # 快速配對
 │   ├── messages/               # 訊息中心
+│   │   ├── MessagesModal.jsx   # 狀態管理與 orchestration
+│   │   ├── utils.js            # formatTime 共用工具
+│   │   └── components/         # ConfirmDialog、ConversationAvatar、ConversationList、ChatWindow
 │   └── subscriptions/          # 我的訂閱
 ├── shared/
 │   ├── api/                    # Firestore 資料存取
@@ -335,7 +338,7 @@ src/
 | `src/app/App.jsx` | `router.jsx`、所有 `init*Store()`、`ToastContainer` | App 啟動時初始化 Auth、services、groups、applications、subscriptions、members、favorites、notifications、payments |
 | `src/app/router.jsx` | `AppLayout`、`ProtectedRoute`、`PublicOnlyRoute`、`redirects.jsx` | 定義公開頁、受保護頁、Modal 型 redirect route |
 | `src/shared/layout/AppLayout.jsx` | `AppNav`、`MobileSearch`、`FloatingMessages`、`MessagesModal`、`CreateGroupModal`、`GroupDetailModal`、`QuickMatchModal` | 統一掛載跨頁共用導覽與全域 Modal |
-| `src/shared/layout/AppNav.jsx` | `NAV_SECTIONS`、`authStore`、`notificationStore`、`messagesApi` | 未登入項目顯示鎖頭；用 `pm:open-*` 事件開搜尋、通知、訊息、建立群組、快速配對 |
+| `src/shared/layout/AppNav.jsx` | `NAV_SECTIONS`、`authStore`、`notificationStore`、`conversationStore` | 未登入項目顯示鎖頭；用 `pm:open-*` 事件開搜尋、通知、訊息、建立群組、快速配對；監聽 `pm:notif-changed` / `pm:convs-changed` 更新未讀 badge |
 | `src/features/home/HomePage.jsx` | `FeatureCards`、`ExtraFeatures`、`HowItWorks`、`HostGuide`、`FAQ` | 首頁元件從 `homeContent.js` 讀文案資料，CTA 以 navigate 或事件觸發功能 |
 | `src/features/explore/ExplorePage.jsx` | `FilterBar`、`ExploreGroupCard`、`groupStore` | `filters` props 控制分類、服務、價格與排序；卡片點擊送出 `pm:open-group` |
 | `src/features/group/GroupDetailModal.jsx` | `ApplyJoinModal`、`favoriteStore`、`applicationStore`、`memberStore` | 接收 `pm:open-group`；依使用者狀態顯示申請、收藏、付款或已加入 CTA |
@@ -344,7 +347,7 @@ src/
 | `src/features/match/QuickMatchModal.jsx` | `ServiceSelectionGrid`、`MatchSummaryPanel`、`matchGroups()`、`ExploreGroupCard` | `conditions` 狀態流過各步驟；結果頁以群組卡片呈現匹配結果 |
 | `src/features/manage/ManagePage.jsx` | `HostedGroupCard`、`ApplicationsModal`、`GroupViewModal`、`RenewalModal`、`GroupHistoryModal` | 管理頁集中處理審核、建立 member/subscription、確認付款、啟用群組 |
 | `src/features/subscriptions/SubscriptionsPage.jsx` | `SubscriptionCard`、`GroupViewModal`、`subscriptionStore`、`memberStore` | 標記付款時同步 subscription 與 member 狀態，並建立通知 |
-| `src/features/messages/MessagesModal.jsx` | `messagesApi`、`memberStore` | 接收 `pm:open-messages` / `pm:open-dm`；訂閱 conversations/messages 並處理未讀數 |
+| `src/features/messages/MessagesModal.jsx` | `conversationStore`、`messagesApi`、子元件 `ConversationList`、`ChatWindow`、`ConfirmDialog` | 接收 `pm:open-messages` / `pm:open-dm`；監聽 `pm:convs-changed` 同步對話列表；透過 `subscribeToMessages` 訂閱即時訊息；狀態管理與 UI 渲染分離 |
 | `src/shared/layout/FloatingMessages.jsx` | `notificationStore` | 接收 `pm:open-notify`；訪客只取公開系統公告，會員合併個人通知與系統公告 |
 | `src/shared/stores/*` | `src/shared/api/*`、`src/shared/utils/*` | stores 保存前端快取並封裝業務流程，api 檔只處理 Firestore CRUD/subscribe |
 
@@ -365,7 +368,8 @@ src/
 | `paymentStore` | `paymentRecords` | 付款紀錄統計 |
 | `notificationStore` | `notifications` | 個人通知、公開系統公告、未讀數 |
 | `favoriteStore` | `favorites` | 收藏群組 |
-| `messagesApi` | `conversations` + subcollection `messages` | 即時對話、DM、群組訊息、未讀數 |
+| `conversationStore` | `conversations`（即時監聽） | 持有使用者的對話列表快取、計算未讀訊息數；登入時 `initConversations`、登出時 `teardownConversations` |
+| `messagesApi` | `conversations` + subcollection `messages` | 即時對話、DM、群組訊息、未讀數 CRUD |
 
 ### 事件驅動互動
 
@@ -378,7 +382,8 @@ src/
 | `pm:open-notify` | AppNav 通知按鈕 | `FloatingMessages` |
 | `pm:open-messages` | AppNav / 訂閱卡 / 群組操作 | `MessagesModal` |
 | `pm:open-dm` | 聯絡團主 | `MessagesModal` 建立或取得 DM |
-| `pm:notif-changed` | `notificationStore` | `AppNav` 更新未讀 badge |
+| `pm:notif-changed` | `notificationStore` | `AppNav` 更新通知未讀 badge |
+| `pm:convs-changed` | `conversationStore`（每次快照更新或 teardown） | `AppNav` 更新訊息未讀 badge、`MessagesModal` 重新讀取對話列表 |
 | `pm:auth-changed` | `authStore` | `AppNav` 重新讀取使用者狀態 |
 
 ---
