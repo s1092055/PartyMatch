@@ -11,6 +11,7 @@ import {
 } from 'firebase/auth'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { patchUserCreditScore, upsertUserProfile } from '../api/usersApi'
+import { initConversations, teardownConversations } from './conversationStore'
 import { todayISO } from '../utils/date'
 
 let _currentUser = null
@@ -67,6 +68,7 @@ export function initAuth() {
       unsubscribe()
       if (firebaseUser) {
         _currentUser = await buildUserProfile(firebaseUser)
+        initConversations(_currentUser.id)
       } else {
         _currentUser = null
       }
@@ -93,6 +95,7 @@ export async function loginUser({ email, password }) {
   try {
     const result = await signInWithEmailAndPassword(auth, email, password)
     _currentUser = await buildUserProfile(result.user)
+    initConversations(_currentUser.id)
     window.dispatchEvent(new CustomEvent('pm:auth-changed'))
     return { ok: true, user: _currentUser }
   } catch (err) {
@@ -106,6 +109,7 @@ export async function loginWithGoogle() {
     const result = await signInWithPopup(auth, provider)
     await ensureUserProfile(result.user)
     _currentUser = await buildUserProfile(result.user)
+    initConversations(_currentUser.id)
     window.dispatchEvent(new CustomEvent('pm:auth-changed'))
     return { ok: true, user: _currentUser }
   } catch (err) {
@@ -134,6 +138,7 @@ export async function registerUser({ name, email, password }) {
     await setDoc(doc(db, 'users', result.user.uid), profile)
 
     _currentUser = { id: result.user.uid, ...profile, displayName: name }
+    initConversations(_currentUser.id)
     window.dispatchEvent(new CustomEvent('pm:auth-changed'))
     return { ok: true, user: _currentUser }
   } catch (err) {
@@ -143,6 +148,7 @@ export async function registerUser({ name, email, password }) {
 
 export async function logoutUser() {
   try { await signOut(auth) } catch { /* ignore network errors */ }
+  teardownConversations()
   _currentUser = null
 }
 

@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Compass, Zap } from 'lucide-react'
+import Button from '../../shared/ui/Button'
 import logoUrl from '../../assets/Logo.svg'
 import { isAuthenticated } from '../../shared/stores/authStore'
 import { getGroups } from '../../shared/stores/groupStore'
@@ -61,6 +62,20 @@ export default function HomePage() {
               <span className="text-xs text-ink-3">{label}</span>
             </div>
           ))}
+        </div>
+        <div className="mx-auto mt-10 flex flex-wrap items-center justify-center gap-3">
+          <Button size="lg" className="px-8" onClick={() => navigate('/explore')}>
+            <Compass size={16} />
+            探索群組
+          </Button>
+          <Button
+            size="lg"
+            variant="secondary"
+            onClick={() => window.dispatchEvent(new CustomEvent('pm:open-match'))}
+          >
+            <Zap size={16} />
+            快速配對
+          </Button>
         </div>
       </section>
 

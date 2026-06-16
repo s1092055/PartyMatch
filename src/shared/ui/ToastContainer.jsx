@@ -25,10 +25,13 @@ export default function ToastContainer() {
     })
   }, [])
 
-  if (toasts.length === 0) return null
-
   return createPortal(
-    <div className="pointer-events-none fixed left-1/2 top-6 z-[100] flex -translate-x-1/2 flex-col gap-2">
+    <div
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      className="pointer-events-none fixed left-1/2 top-6 z-[100] flex -translate-x-1/2 flex-col gap-2"
+    >
       {toasts.map(t => {
         const { icon: Icon, iconClass } = CONFIG[t.type] ?? CONFIG.info
         return (

@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 // Reference counter so nested modals don't re-measure or prematurely release the lock.
 let _lockCount = 0
@@ -25,12 +25,17 @@ export function useScrollLock(enabled) {
 }
 
 export function useClickOutside(enabled, refs, onClose) {
+  const refsRef = useRef(refs)
+  const onCloseRef = useRef(onClose)
+
+  useEffect(() => { refsRef.current = refs; onCloseRef.current = onClose })
+
   useEffect(() => {
     if (!enabled) return
     function handleMouseDown(e) {
-      if (refs.every(ref => !ref.current?.contains(e.target))) onClose()
+      if (refsRef.current.every(ref => !ref.current?.contains(e.target))) onCloseRef.current()
     }
     document.addEventListener('mousedown', handleMouseDown)
     return () => document.removeEventListener('mousedown', handleMouseDown)
-  }, [enabled, refs, onClose])
+  }, [enabled])
 }

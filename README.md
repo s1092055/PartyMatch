@@ -77,7 +77,7 @@ Demo seed 會讀取 `.env`，建立或重用 demo 帳號，並寫入 groups、me
 
 | 功能 | 入口 | 登入需求 | 目前內容 |
 |------|------|----------|----------|
-| 首頁 Landing | `/` | 不需登入 | 功能介紹、使用流程、團主指南、FAQ、28 種服務跑馬燈 |
+| 首頁 Landing | `/` | 不需登入 | 功能介紹、使用流程、團主指南、FAQ、28 種服務跑馬燈、Hero CTA（探索群組 / 快速配對） |
 | 探索群組 | `/explore` | 不需登入 | 分類篩選、服務篩選、價格排序、群組卡片、詳情 Modal |
 | 快速配對 | 側欄 / 首頁 CTA | 不需登入 | 選服務、選方案、設定預算與條件，自動推薦符合群組 |
 | 群組詳情 | 群組卡片 / 搜尋結果 | 不需登入可看；申請需登入 | 方案、名額、規則、團主資訊、推薦群組、申請加入 |
@@ -109,7 +109,7 @@ Demo seed 會讀取 `.env`，建立或重用 demo 帳號，並寫入 groups、me
 | `ModalShell` | 快速配對、建立群組、訊息中心共用 Modal 外殼 |
 | `GroupViewModal` | 管理端與訂閱端共用的群組查看/付款操作 Modal |
 | `FilterTabsBar` | 管理群組、我的訂閱等頁面的可重用分頁篩選列 |
-| `ToastContainer` / `toast.js` | 全域提示訊息 |
+| `ToastContainer` / `toast.js` | 全域提示訊息（含 `aria-live="polite"` 無障礙支援） |
 | `ServiceLogo` | 依 serviceId 顯示本地或服務資料中的 Logo |
 
 ---

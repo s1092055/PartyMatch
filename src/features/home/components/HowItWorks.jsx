@@ -100,9 +100,18 @@ export default function HowItWorks() {
   const [index, setIndex] = useState(0)
   const [modalIndex, setModalIndex] = useState(null)
   const total = STEPS.length
+  const touchStartX = useRef(null)
 
   function prev() { setIndex(i => Math.max(0, i - 1)) }
   function next() { setIndex(i => Math.min(total - 1, i + 1)) }
+
+  function onTouchStart(e) { touchStartX.current = e.touches[0].clientX }
+  function onTouchEnd(e) {
+    if (touchStartX.current === null) return
+    const delta = touchStartX.current - e.changedTouches[0].clientX
+    if (Math.abs(delta) > 40) delta > 0 ? next() : prev()
+    touchStartX.current = null
+  }
 
   return (
     <>
@@ -118,7 +127,11 @@ export default function HowItWorks() {
 
         <div className="mx-auto max-w-lg">
           {/* Slide — 非當前 slide 用 absolute 脫離文件流，不撐寬版面 */}
-          <div className="relative overflow-hidden rounded-2xl">
+          <div
+            className="relative overflow-hidden rounded-2xl"
+            onTouchStart={onTouchStart}
+            onTouchEnd={onTouchEnd}
+          >
             {STEPS.map(({ step, title, desc, videoUrl }, i) => (
               <button
                 key={step}
@@ -163,10 +176,11 @@ export default function HowItWorks() {
                 <button
                   key={i}
                   onClick={() => setIndex(i)}
-                  className={`h-2 rounded-full transition-all duration-200 ${
+                  aria-label={`第 ${i + 1} 步，共 ${total} 步`}
+                  aria-current={i === index ? 'true' : undefined}
+                  className={`h-2 rounded-full transition-all duration-200 hover:!translate-y-0 ${
                     i === index ? 'w-5 bg-brand' : 'w-2 bg-line hover:bg-ink-4'
                   }`}
-                  aria-label={`第 ${i + 1} 步`}
                 />
               ))}
             </div>

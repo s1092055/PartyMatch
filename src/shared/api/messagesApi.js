@@ -17,7 +17,7 @@ export function subscribeToConversations(userId, onUpdate) {
   )
 }
 
-export function subscribeToMessages(conversationId, onUpdate) {
+export function subscribeToMessages(conversationId, onUpdate, onError) {
   const q = query(
     collection(db, 'conversations', conversationId, 'messages'),
     orderBy('createdAt', 'asc'),
@@ -25,7 +25,7 @@ export function subscribeToMessages(conversationId, onUpdate) {
   return onSnapshot(
     q,
     snapshot => onUpdate(snapshot.docs.map(d => ({ id: d.id, ...d.data() }))),
-    err => console.error('[messagesApi] subscribeToMessages error:', err),
+    err => { console.error('[messagesApi] subscribeToMessages error:', err); onError?.() },
   )
 }
 

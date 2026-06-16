@@ -4,7 +4,7 @@ import { Bell, ChevronDown, Lock, LogIn, LogOut, Menu, MessageSquare, Search, X 
 import logoUrl from '../../assets/Logo.svg'
 import { getCurrentUser, isAuthenticated, logoutUser } from '../stores/authStore'
 import { getUnreadCount } from '../stores/notificationStore'
-import { subscribeToConversations } from '../api/messagesApi'
+import { getUnreadMsgCount } from '../stores/conversationStore'
 import { NAV_SECTIONS } from '../constants/nav'
 import { useClickOutside, useScrollLock } from '../utils/hooks'
 
@@ -69,7 +69,7 @@ export default function AppNav({ variant = 'side' }) {
   const [activePanel, setActivePanel] = useState(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [unreadNotifs, setUnreadNotifs] = useState(() => loggedIn && currentUser?.id ? getUnreadCount(currentUser.id) : 0)
-  const [unreadMsgs, setUnreadMsgs] = useState(0)
+  const [unreadMsgs, setUnreadMsgs] = useState(() => loggedIn && currentUser?.id ? getUnreadMsgCount(currentUser.id) : 0)
 
   const userMenuRef      = useRef(null)
   const userMenuMobileRef = useRef(null)
@@ -97,12 +97,9 @@ export default function AppNav({ variant = 'side' }) {
 
   useEffect(() => {
     if (!loggedIn || !currentUser?.id) return
-    const userId = currentUser.id
-    const unsub = subscribeToConversations(userId, convs => {
-      const total = convs.reduce((sum, c) => sum + (c.unreadCounts?.[userId] ?? 0), 0)
-      setUnreadMsgs(total)
-    })
-    return unsub
+    function onConvsChanged() { setUnreadMsgs(getUnreadMsgCount(currentUser.id)) }
+    window.addEventListener('pm:convs-changed', onConvsChanged)
+    return () => window.removeEventListener('pm:convs-changed', onConvsChanged)
   }, [loggedIn, currentUser?.id])
 
   function closeAll() { setActivePanel(null); setDrawerOpen(false); document.activeElement?.blur() }

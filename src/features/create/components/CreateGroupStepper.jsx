@@ -15,7 +15,7 @@ export default function CreateGroupStepper({ steps, current }) {
                     ? "bg-brand text-white"
                     : active
                       ? "bg-brand text-white ring-4 ring-brand-subtle"
-                      : "bg-slate-100 text-slate-400"
+                      : "bg-raised text-ink-4"
                 }`}
               >
                 {done ? <Check size={14} strokeWidth={3} /> : n}
@@ -25,8 +25,8 @@ export default function CreateGroupStepper({ steps, current }) {
                   active
                     ? "text-brand"
                     : done
-                      ? "text-slate-600"
-                      : "text-slate-400"
+                      ? "text-ink-2"
+                      : "text-ink-4"
                 }`}
               >
                 {label}
@@ -35,7 +35,7 @@ export default function CreateGroupStepper({ steps, current }) {
             {i < steps.length - 1 && (
               <div
                 className={`mb-5 mx-2 h-0.5 flex-1 rounded-full transition-colors ${
-                  done ? "bg-brand" : "bg-slate-200"
+                  done ? "bg-brand" : "bg-line"
                 }`}
               />
             )}

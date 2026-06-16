@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CheckCircle, ClipboardList, Clock, XCircle } from 'lucide-react'
 import { getSubscriptionsByUserId, markSubscriptionPaid } from '../../shared/stores/subscriptionStore'
@@ -46,7 +46,8 @@ export default function SubscriptionsPage() {
     activeUser ? enrichSubs(getSubscriptionsByUserId(activeUser.id)) : []
   )
   const [viewGroupId, setViewGroupId] = useState(null)
-const [toast, setToast] = useState(null)
+  const [toast, setToast] = useState(null)
+  const toastTimerRef = useRef(null)
 
   const userApplications = useMemo(
     () => activeUser ? getApplicationsByUserId(activeUser.id) : [],
@@ -62,8 +63,9 @@ const [toast, setToast] = useState(null)
   }), [subs, userApplications])
 
   function showToast(msg) {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
     setToast(msg)
-    setTimeout(() => setToast(null), 3000)
+    toastTimerRef.current = setTimeout(() => setToast(null), 3000)
   }
 
   function markAsPaid(sub) {

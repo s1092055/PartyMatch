@@ -195,7 +195,8 @@
     transition: transform 0.15s ease;
   }
 
-  button:not(:disabled):hover,
+  /* [role="button"] 元素（通常是大型可點擊區塊）才套用上浮效果；
+     一般 <button>（icon、tab、圓點等小控件）不上浮，避免跳動感 */
   [role="button"]:not([aria-disabled="true"]):hover {
     transform: translateY(-2px);
   }

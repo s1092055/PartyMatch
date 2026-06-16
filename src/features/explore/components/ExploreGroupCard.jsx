@@ -6,7 +6,6 @@ import {
   Users,
 } from 'lucide-react'
 import Badge from '../../../shared/ui/Badge'
-import Button from '../../../shared/ui/Button'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import { isGroupFavorited, toggleFavorite } from '../../../shared/stores/favoriteStore'
 import { getCurrentUser } from '../../../shared/stores/authStore'
@@ -158,7 +157,14 @@ export default function ExploreGroupCard({ group, onFavChange, onBeforeNavigate,
               <span className="text-ink-4"> / {group.totalSeats}</span>
             </p>
           </div>
-          <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-line">
+          <div
+            role="progressbar"
+            aria-valuenow={group.usedSeats}
+            aria-valuemin={0}
+            aria-valuemax={group.totalSeats}
+            aria-label="名額使用率"
+            className="mt-1.5 h-2 overflow-hidden rounded-full bg-line"
+          >
             <div
               className="h-full rounded-full bg-success transition-all"
               style={{ width: `${usedRatio * 100}%` }}
@@ -167,11 +173,6 @@ export default function ExploreGroupCard({ group, onFavChange, onBeforeNavigate,
         </div>
       </div>
 
-      {!hideActions && (
-        <div className="mt-auto pt-5">
-          <Button onClick={openDetails} className="w-full">查看詳情</Button>
-        </div>
-      )}
     </article>
   )
 }

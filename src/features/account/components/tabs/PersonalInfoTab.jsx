@@ -28,11 +28,11 @@ function EditableField({ label, value, onSave, type = 'text', placeholder }) {
       <div className="flex items-center gap-1 shrink-0 pt-5">
         {editing ? (
           <>
-            <button onClick={save}   className="w-7 h-7 rounded-[var(--radius-inner)] bg-brand hover:bg-brand-hover flex items-center justify-center text-white transition-colors"><Check size={13} strokeWidth={3} /></button>
-            <button onClick={cancel} className="w-7 h-7 rounded-[var(--radius-inner)] border border-line hover:bg-raised flex items-center justify-center text-ink-3 transition-colors"><X size={13} /></button>
+            <button onClick={save} aria-label="儲存" className="w-7 h-7 rounded-[var(--radius-inner)] bg-brand hover:bg-brand-hover flex items-center justify-center text-white transition-colors"><Check size={13} strokeWidth={3} /></button>
+            <button onClick={cancel} aria-label="取消編輯" className="w-7 h-7 rounded-[var(--radius-inner)] border border-line hover:bg-raised flex items-center justify-center text-ink-3 transition-colors"><X size={13} /></button>
           </>
         ) : (
-          <button onClick={() => setEditing(true)} className="w-7 h-7 rounded-[var(--radius-inner)] border border-line hover:bg-raised flex items-center justify-center text-ink-3 transition-colors">
+          <button onClick={() => setEditing(true)} aria-label={`編輯${label}`} className="w-7 h-7 rounded-[var(--radius-inner)] border border-line hover:bg-raised flex items-center justify-center text-ink-3 transition-colors">
             <Pencil size={12} />
           </button>
         )}
@@ -48,7 +48,7 @@ export default function PersonalInfoTab({ user, onChange }) {
         <h3 className="text-sm font-semibold text-ink-2 pt-4 pb-2 border-b border-line-subtle">基本資料</h3>
         <EditableField label="顯示名稱" value={user.displayName}  onSave={v => onChange('displayName', v)} />
         <EditableField label="電子信箱" value={user.email}        onSave={v => onChange('email', v)} type="email" />
-        <EditableField label="手機號碼" value={user.phone ?? ''}  onSave={v => onChange('phone', v)} placeholder="+886-912-345-678" />
+        <EditableField label="手機號碼" value={user.phone ?? ''}  onSave={v => onChange('phone', v)} type="tel" placeholder="+886-912-345-678" />
         <EditableField label="個人簡介" value={user.bio ?? ''}    onSave={v => onChange('bio', v)}   placeholder="介紹一下自己…" />
         <EditableField label="LINE ID"  value={user.lineId ?? ''} onSave={v => onChange('lineId', v)} placeholder="@yourlineid" />
       </div>
