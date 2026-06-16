@@ -10,6 +10,7 @@ import ProgressBar from '../ui/ProgressBar'
 import ServiceLogo from '../ui/ServiceLogo'
 import EmptyState from '../ui/EmptyState'
 import PaymentStatusBadge from '../ui/PaymentStatusBadge'
+import ConfirmDialog from '../ui/ConfirmDialog'
 import { getGroupById } from '../stores/groupStore'
 import { getServiceById } from '../utils/serviceUtils'
 import { getMembersByGroupId } from '../stores/memberStore'
@@ -26,7 +27,7 @@ import { CONFIRMED_STATUSES, READY_TO_ACTIVATE_STATUSES } from '../constants/pay
 function HostView({ group, members, applications, onConfirmMember, onRemoveMember, onActivate, onClose }) {
   const [activating, setActivating]       = useState(false)
   const [renewalDate, setRenewalDate]     = useState('')
-  const [removingMemberId, setRemovingId] = useState(null)
+  const [removingMember, setRemovingMember] = useState(null)
 
   const serviceDef    = getServiceById(group.serviceId)
   const planDef       = serviceDef?.plans.find(p => p.name === group.planName)
@@ -53,6 +54,17 @@ function HostView({ group, members, applications, onConfirmMember, onRemoveMembe
   }
 
   return (
+    <>
+    {removingMember && (
+      <ConfirmDialog
+        title="移除成員"
+        message={`確定要將「${removingMember.userName}」移出群組嗎？對方會立即失去名額與聊天室存取權限，且會收到通知；若要再加入需要重新提出申請。`}
+        confirmLabel="移除"
+        danger
+        onConfirm={() => { onRemoveMember?.(removingMember); setRemovingMember(null) }}
+        onCancel={() => setRemovingMember(null)}
+      />
+    )}
     <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-6 lg:flex-row lg:items-start lg:overflow-hidden lg:p-8">
 
       {/* ── LEFT: 服務介紹 + 規則 + 成員列表 ── */}
@@ -147,7 +159,7 @@ function HostView({ group, members, applications, onConfirmMember, onRemoveMembe
               <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="sm" />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-ink">
-                  {group.hostName}
+                  {group.hostName}（團主）
                   <span className="ml-1.5 text-xs font-normal text-brand">（你）</span>
                 </p>
                 <p className="text-xs text-ink-3">建立 {group.createdAt}</p>
@@ -196,29 +208,12 @@ function HostView({ group, members, applications, onConfirmMember, onRemoveMembe
                     </button>
                   )}
                   {removable && (
-                    removingMemberId === m.id ? (
-                      <>
-                        <button
-                          onClick={() => { onRemoveMember?.(m); setRemovingId(null) }}
-                          className="rounded-lg bg-danger px-2.5 py-1 text-xs font-semibold text-white hover:bg-red-700"
-                        >
-                          確認移除
-                        </button>
-                        <button
-                          onClick={() => setRemovingId(null)}
-                          className="rounded-lg border border-line px-2.5 py-1 text-xs font-semibold text-ink-2 hover:bg-raised"
-                        >
-                          取消
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        onClick={() => setRemovingId(m.id)}
-                        className="flex items-center gap-1 text-xs text-red-400 hover:text-red-600"
-                      >
-                        <UserX size={12} /> 移除成員
-                      </button>
-                    )
+                    <button
+                      onClick={() => setRemovingMember(m)}
+                      className="flex items-center gap-1 text-xs text-red-400 hover:text-red-600"
+                    >
+                      <UserX size={12} /> 移除成員
+                    </button>
                   )}
                 </div>
               </div>
@@ -315,6 +310,7 @@ function HostView({ group, members, applications, onConfirmMember, onRemoveMembe
       </div>
 
     </div>
+    </>
   )
 }
 
@@ -426,7 +422,7 @@ function MemberView({ group, onMarkPaid, onClose }) {
               <div className="flex items-center gap-3">
                 <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="sm" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-ink">{group.hostName}</p>
+                  <p className="text-sm font-semibold text-ink">{group.hostName}（團主）</p>
                   <p className="text-xs text-ink-3">建立 {group.createdAt}</p>
                 </div>
                 <span className="flex shrink-0 items-center gap-1 rounded-full bg-brand-subtle px-2.5 py-0.5 text-xs font-semibold text-brand">

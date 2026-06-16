@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { activateGroup, confirmGroupPayments, endGroup, getGroupsByHostId, startRenewalCycle, updateGroup } from '../../shared/stores/groupStore'
+import { activateGroup, confirmGroupPayments, endGroup, getGroupById, getGroupsByHostId, startRenewalCycle, updateGroup } from '../../shared/stores/groupStore'
 import { adjustCreditScore } from '../../shared/stores/authStore'
 import { CREDIT_RULES } from '../../shared/utils/creditScore'
 import { getApplicationsByHostId, updateApplicationStatus } from '../../shared/stores/applicationStore'
@@ -9,6 +9,7 @@ import { activateGroupSubscriptions, confirmSubscriptionPayment, createSubscript
 import { getPaymentRecordCountBySubIds } from '../../shared/stores/paymentStore'
 import { createNotification } from '../../shared/stores/notificationStore'
 import { getCurrentUser } from '../../shared/stores/authStore'
+import { leaveConversation, sendSystemMessage } from '../../shared/api/messagesApi'
 import { CONFIRMED_STATUSES } from '../../shared/constants/paymentStatus'
 import EmptyState from '../../shared/ui/EmptyState'
 import GroupViewModal from '../../shared/ui/GroupViewModal'
@@ -52,6 +53,7 @@ function loadManageData(activeUser) {
 export default function ManagePage() {
   const navigate = useNavigate()
   const activeUser = getCurrentUser()
+  const activeUserId = activeUser?.id ?? null
 
   const [manageData, setManageData] = useState(() => loadManageData(activeUser))
   const [errors, setErrors] = useState({})
@@ -63,17 +65,19 @@ const [viewGroupId, setViewGroupId]           = useState(null)
   const [renewalModalGroupId, setRenewalModalGroupId] = useState(null)
 
 useEffect(() => {
-    function onNewApp(e) {
-      if (e.detail?.hostId === activeUser?.id) {
-        setManageData(prev => ({
-          ...prev,
-          applications: getApplicationsByHostId(activeUser.id, prev.hostedGroups),
-        }))
-      }
+    function onApplicationsChanged(e) {
+      if (!activeUserId) return
+      const changedApp = e.detail?.application
+      if (changedApp?.hostId && changedApp.hostId !== activeUserId) return
+
+      setManageData(prev => ({
+        ...prev,
+        applications: getApplicationsByHostId(activeUserId, prev.hostedGroups),
+      }))
     }
-    window.addEventListener('pm:application-created', onNewApp)
-    return () => window.removeEventListener('pm:application-created', onNewApp)
-  }, [activeUser?.id])
+    window.addEventListener('pm:applications-changed', onApplicationsChanged)
+    return () => window.removeEventListener('pm:applications-changed', onApplicationsChanged)
+  }, [activeUserId])
 
   useEffect(() => {
     function onGroupCreated() {
@@ -138,6 +142,7 @@ useEffect(() => {
   }
 
 function handleRemoveMember(member) {
+    const group = getGroupById(member.groupId)
     adjustCreditScore(member.userId, CREDIT_RULES.MEMBER_REMOVED).catch(console.error)
     removeMember(member.id)
     const seats = seatMap[member.groupId]
@@ -151,6 +156,17 @@ function handleRemoveMember(member) {
         seatMap: { ...prev.seatMap, [member.groupId]: { usedSeats: newUsed, openSeats: newOpen } },
       }))
     }
+
+    const groupLabel = group?.groupName ?? group?.serviceName ?? '群組'
+    createNotification({
+      userId:  member.userId,
+      type:    'member_removed',
+      title:   '已被移出群組',
+      message: `團主已將你移出「${groupLabel}」群組。`,
+    })
+    const convId = `group_${member.groupId}`
+    sendSystemMessage(convId, `${member.userName} 已被移出群組`).catch(console.error)
+    leaveConversation(convId, member.userId).catch(console.error)
   }
 
 function handleConfirmMember(member) {
@@ -213,7 +229,22 @@ function handleActivate(renewalDate) {
 
   function handleEndGroup() {
     if (!renewalModalGroupId) return
+    const group = getGroupById(renewalModalGroupId)
+    const groupMembers = getMembersByGroupId(renewalModalGroupId)
+    const groupLabel = group?.groupName ?? group?.serviceName ?? '群組'
+
     endGroup(renewalModalGroupId)
+
+    groupMembers.forEach(m => {
+      createNotification({
+        userId:  m.userId,
+        type:    'group_ended',
+        title:   '群組已結束',
+        message: `「${groupLabel}」群組已由團主結束，合購服務將不再續訂。`,
+      })
+    })
+    sendSystemMessage(`group_${renewalModalGroupId}`, `團主已結束「${groupLabel}」群組`).catch(console.error)
+
     setRenewalModalGroupId(null)
     refreshGroups()
   }
@@ -222,19 +253,24 @@ function handleApprove(appId) {
     const app = applications.find(a => a.id === appId)
     if (!app || app.status !== 'pending') return
 
-    const seats = seatMap[app.groupId]
-    if (!seats || seats.openSeats <= 0) {
+    const group = getGroupById(app.groupId) ?? allGroups.find(g => g.id === app.groupId)
+    if (!group) {
+      setErrors(prev => ({ ...prev, [appId]: '找不到群組資料，無法核准' }))
+      return
+    }
+
+    const applicantId = app.applicantId ?? app.userId
+    const applicantName = app.applicantName ?? app.userName ?? '新成員'
+    const alreadyMember = isUserGroupMember(applicantId, app.groupId)
+    const seats = seatMap[app.groupId] ?? { usedSeats: group.usedSeats, openSeats: group.openSeats }
+    if (!alreadyMember && (!seats || seats.openSeats <= 0)) {
       setErrors(prev => ({ ...prev, [appId]: '此群組已額滿，無法核准' }))
       return
     }
 
-    const group       = displayGroups.find(g => g.id === app.groupId)
-    const applicantId = app.applicantId ?? app.userId
-    const applicantName = app.applicantName ?? app.userName
-
     updateApplicationStatus(appId, 'approved')
 
-    if (!isUserGroupMember(applicantId, app.groupId)) {
+    if (!alreadyMember) {
       createMember({
         groupId:           app.groupId,
         groupName:         app.groupName ?? app.serviceName,
@@ -245,30 +281,28 @@ function handleApprove(appId) {
       })
     }
 
-    if (group) {
-      createSubscription({
-        userId:            applicantId,
-        groupId:           group.id,
-        serviceId:         group.serviceId,
-        serviceName:       group.serviceName,
-        planName:          group.planName,
-        hostName:          group.hostName,
-        hostAvatarInitial: group.hostAvatarInitial,
-        hostAvatarColor:   group.hostAvatarColor,
-        pricePerSeat:      group.pricePerSeat,
-        billingCycle:      group.billingCycle,
-        nextBillingDate:   group.nextBillingDate,
-      })
-    }
+    createSubscription({
+      userId:            applicantId,
+      groupId:           group.id,
+      serviceId:         group.serviceId,
+      serviceName:       group.serviceName,
+      planName:          group.planName,
+      hostName:          group.hostName,
+      hostAvatarInitial: group.hostAvatarInitial,
+      hostAvatarColor:   group.hostAvatarColor,
+      pricePerSeat:      group.pricePerSeat,
+      billingCycle:      group.billingCycle,
+      nextBillingDate:   group.nextBillingDate,
+    })
 
-    const newUsedSeats = seats.usedSeats + 1
-    const newOpenSeats = seats.openSeats - 1
-    const seatPatch = {
+    const newUsedSeats = alreadyMember ? seats.usedSeats : seats.usedSeats + 1
+    const newOpenSeats = alreadyMember ? seats.openSeats : seats.openSeats - 1
+    const seatPatch = alreadyMember ? null : {
       usedSeats: newUsedSeats,
       openSeats: newOpenSeats,
       ...(newOpenSeats === 0 ? { status: 'full' } : {}),
     }
-    updateGroup(app.groupId, seatPatch)
+    if (seatPatch) updateGroup(app.groupId, seatPatch)
 
     createNotification({
       userId:  applicantId,
@@ -277,16 +311,27 @@ function handleApprove(appId) {
       message: `你申請加入的「${app.groupName ?? app.serviceName}」群組已通過審核，歡迎加入！`,
     })
 
+    if (seatPatch?.status === 'full') {
+      createNotification({
+        userId:  group.hostId,
+        type:    'group_full',
+        title:   '群組名額已滿',
+        message: `「${app.groupName ?? app.serviceName}」群組名額已滿，可以開始確認成員付款並啟用服務了。`,
+      })
+    }
+
     setManageData(prev => {
       const updatedHostedGroups = prev.hostedGroups.map(g =>
-        g.id === app.groupId ? { ...g, ...seatPatch } : g
+        g.id === app.groupId && seatPatch ? { ...g, ...seatPatch } : g
       )
       return {
         ...prev,
         hostedGroups:  updatedHostedGroups,
         applications:  prev.applications.map(a => a.id === appId ? { ...a, status: 'approved' } : a),
         members:       updatedHostedGroups.flatMap(g => getMembersByGroupId(g.id)),
-        seatMap:       { ...prev.seatMap, [app.groupId]: { usedSeats: newUsedSeats, openSeats: newOpenSeats } },
+        seatMap:       seatPatch
+          ? { ...prev.seatMap, [app.groupId]: { usedSeats: newUsedSeats, openSeats: newOpenSeats } }
+          : prev.seatMap,
       }
     })
     removeError(appId)
