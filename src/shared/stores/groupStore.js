@@ -7,11 +7,8 @@ import { normalizeGroup } from '../utils/modelNormalizers'
 
 let _groups = []
 
-const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true'
-
 export async function initGroups() {
-  const all = await readAllGroups()
-  _groups = DEMO_MODE ? all : all.filter(g => !g._demo)
+  _groups = await readAllGroups()
 }
 
 function applyPatch(id, patch) {

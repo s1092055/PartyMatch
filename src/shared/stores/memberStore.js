@@ -5,11 +5,8 @@ import { getCurrentUser } from './authStore'
 
 let _members = []
 
-const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true'
-
 export async function initMembers() {
-  const all = await readAllMembers()
-  _members = DEMO_MODE ? all : all.filter(m => !m._demo)
+  _members = await readAllMembers()
 }
 
 export function getMembersByGroupId(groupId) {

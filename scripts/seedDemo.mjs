@@ -1,5 +1,6 @@
 /**
- * Seed Firestore with demo data (all records tagged _demo: true).
+ * Seed Firestore with demo data, written to separate `demo_*` collections
+ * (demo_groups, demo_members, ...) so it never mixes with real data.
  *
  * Usage:
  *   node scripts/seedDemo.mjs
@@ -75,7 +76,6 @@ async function getDemoUid() {
 
 // ── Demo data builder ──────────────────────────────────────────────
 function buildDemoData(uid, rate) {
-  const D = true // _demo flag
 
   // Fake hosts (no real Firebase Auth needed — just display data)
   const hosts = {
@@ -141,7 +141,6 @@ function buildDemoData(uid, rate) {
       createdAt:       '2026-04-01',
       updatedAt:       '2026-05-10',
       reviews:         [],
-      _demo:           D,
     },
     {
       id: 'demo_group_netflix_01',
@@ -163,7 +162,6 @@ function buildDemoData(uid, rate) {
       createdAt:       '2026-03-15',
       updatedAt:       '2026-05-18',
       reviews:         [],
-      _demo:           D,
     },
     {
       id: 'demo_group_youtube_01',
@@ -185,7 +183,6 @@ function buildDemoData(uid, rate) {
       createdAt:       '2026-01-10',
       updatedAt:       '2026-05-05',
       reviews:         [],
-      _demo:           D,
     },
 
     // ─ Demo user as MEMBER ───────────────────────────────────────────
@@ -209,7 +206,6 @@ function buildDemoData(uid, rate) {
       createdAt:       '2026-02-01',
       updatedAt:       '2026-05-01',
       reviews:         [],
-      _demo:           D,
     },
     {
       id: 'demo_group_applemusic_01',
@@ -231,7 +227,6 @@ function buildDemoData(uid, rate) {
       createdAt:       '2026-04-20',
       updatedAt:       '2026-05-12',
       reviews:         [],
-      _demo:           D,
     },
 
     // ─ Demo user as HOST (more status variety) ──────────────────────
@@ -255,7 +250,6 @@ function buildDemoData(uid, rate) {
       createdAt:       '2026-02-20',
       updatedAt:       '2026-05-01',
       reviews:         [],
-      _demo:           D,
     },
     {
       id: 'demo_group_notion_01',
@@ -277,7 +271,6 @@ function buildDemoData(uid, rate) {
       createdAt:       '2025-10-01',
       updatedAt:       '2026-04-20',
       reviews:         [],
-      _demo:           D,
     },
 
     // ─ Demo user as MEMBER (more subs variety) ───────────────────────
@@ -301,7 +294,6 @@ function buildDemoData(uid, rate) {
       createdAt:       '2026-03-27',
       updatedAt:       '2026-05-15',
       reviews:         [],
-      _demo:           D,
     },
     {
       id: 'demo_group_hbo_01',
@@ -323,7 +315,6 @@ function buildDemoData(uid, rate) {
       createdAt:       '2026-01-20',
       updatedAt:       '2026-05-17',
       reviews:         [],
-      _demo:           D,
     },
 
     // ─ Explore-only groups ───────────────────────────────────────────
@@ -347,7 +338,6 @@ function buildDemoData(uid, rate) {
       createdAt:       '2026-04-05',
       updatedAt:       '2026-05-08',
       reviews:         [],
-      _demo:           D,
     },
     {
       id: 'demo_group_googleone_01',
@@ -369,7 +359,6 @@ function buildDemoData(uid, rate) {
       createdAt:       '2026-05-01',
       updatedAt:       '2026-05-15',
       reviews:         [],
-      _demo:           D,
     },
     {
       id: 'demo_group_ms365_01',
@@ -391,7 +380,6 @@ function buildDemoData(uid, rate) {
       createdAt:       '2026-04-10',
       updatedAt:       '2026-05-10',
       reviews:         [],
-      _demo:           D,
     },
     {
       id: 'demo_group_claude_01',
@@ -413,7 +401,6 @@ function buildDemoData(uid, rate) {
       createdAt:       '2026-05-05',
       updatedAt:       '2026-05-16',
       reviews:         [],
-      _demo:           D,
     },
     {
       id: 'demo_group_kkbox_01',
@@ -435,91 +422,90 @@ function buildDemoData(uid, rate) {
       createdAt:       '2026-04-28',
       updatedAt:       '2026-05-14',
       reviews:         [],
-      _demo:           D,
     },
   ]
 
   // ── Members ───────────────────────────────────────────────────────
   const members = [
     // Spotify group members (hosted by demo user)
-    { id: 'demo_mem_sp_01', groupId: 'demo_group_spotify_01', groupName: 'Spotify Premium', userId: m1.id, userName: m1.name, userAvatarInitial: m1.initial, userAvatarColor: m1.color, role: 'member', joinedAt: '2026-04-05', paymentStatus: 'confirmed', lastPaidAt: '2026-05-12', _demo: D },
-    { id: 'demo_mem_sp_02', groupId: 'demo_group_spotify_01', groupName: 'Spotify Premium', userId: m2.id, userName: m2.name, userAvatarInitial: m2.initial, userAvatarColor: m2.color, role: 'member', joinedAt: '2026-04-10', paymentStatus: 'confirmed', lastPaidAt: '2026-05-11', _demo: D },
+    { id: 'demo_mem_sp_01', groupId: 'demo_group_spotify_01', groupName: 'Spotify Premium', userId: m1.id, userName: m1.name, userAvatarInitial: m1.initial, userAvatarColor: m1.color, role: 'member', joinedAt: '2026-04-05', paymentStatus: 'confirmed', lastPaidAt: '2026-05-12' },
+    { id: 'demo_mem_sp_02', groupId: 'demo_group_spotify_01', groupName: 'Spotify Premium', userId: m2.id, userName: m2.name, userAvatarInitial: m2.initial, userAvatarColor: m2.color, role: 'member', joinedAt: '2026-04-10', paymentStatus: 'confirmed', lastPaidAt: '2026-05-11' },
 
     // Netflix group members — all markedPaid (pending_confirmation status)
-    { id: 'demo_mem_nf_01', groupId: 'demo_group_netflix_01', groupName: 'Netflix', userId: m3.id, userName: m3.name, userAvatarInitial: m3.initial, userAvatarColor: m3.color, role: 'member', joinedAt: '2026-03-20', paymentStatus: 'markedPaid', lastPaidAt: '2026-05-17', _demo: D },
-    { id: 'demo_mem_nf_02', groupId: 'demo_group_netflix_01', groupName: 'Netflix', userId: m4.id, userName: m4.name, userAvatarInitial: m4.initial, userAvatarColor: m4.color, role: 'member', joinedAt: '2026-03-20', paymentStatus: 'markedPaid', lastPaidAt: '2026-05-16', _demo: D },
-    { id: 'demo_mem_nf_03', groupId: 'demo_group_netflix_01', groupName: 'Netflix', userId: m5.id, userName: m5.name, userAvatarInitial: m5.initial, userAvatarColor: m5.color, role: 'member', joinedAt: '2026-03-22', paymentStatus: 'markedPaid', lastPaidAt: '2026-05-18', _demo: D },
+    { id: 'demo_mem_nf_01', groupId: 'demo_group_netflix_01', groupName: 'Netflix', userId: m3.id, userName: m3.name, userAvatarInitial: m3.initial, userAvatarColor: m3.color, role: 'member', joinedAt: '2026-03-20', paymentStatus: 'markedPaid', lastPaidAt: '2026-05-17' },
+    { id: 'demo_mem_nf_02', groupId: 'demo_group_netflix_01', groupName: 'Netflix', userId: m4.id, userName: m4.name, userAvatarInitial: m4.initial, userAvatarColor: m4.color, role: 'member', joinedAt: '2026-03-20', paymentStatus: 'markedPaid', lastPaidAt: '2026-05-16' },
+    { id: 'demo_mem_nf_03', groupId: 'demo_group_netflix_01', groupName: 'Netflix', userId: m5.id, userName: m5.name, userAvatarInitial: m5.initial, userAvatarColor: m5.color, role: 'member', joinedAt: '2026-03-22', paymentStatus: 'markedPaid', lastPaidAt: '2026-05-18' },
 
     // YouTube group members
-    { id: 'demo_mem_yt_01', groupId: 'demo_group_youtube_01', groupName: 'YouTube Premium', userId: m1.id, userName: m1.name, userAvatarInitial: m1.initial, userAvatarColor: m1.color, role: 'member', joinedAt: '2026-01-15', paymentStatus: 'confirmed', lastPaidAt: '2026-05-05', _demo: D },
-    { id: 'demo_mem_yt_02', groupId: 'demo_group_youtube_01', groupName: 'YouTube Premium', userId: m6.id, userName: m6.name, userAvatarInitial: m6.initial, userAvatarColor: m6.color, role: 'member', joinedAt: '2026-01-15', paymentStatus: 'confirmed', lastPaidAt: '2026-05-06', _demo: D },
-    { id: 'demo_mem_yt_03', groupId: 'demo_group_youtube_01', groupName: 'YouTube Premium', userId: m7.id, userName: m7.name, userAvatarInitial: m7.initial, userAvatarColor: m7.color, role: 'member', joinedAt: '2026-02-01', paymentStatus: 'confirmed', lastPaidAt: '2026-05-04', _demo: D },
-    { id: 'demo_mem_yt_04', groupId: 'demo_group_youtube_01', groupName: 'YouTube Premium', userId: m2.id, userName: m2.name, userAvatarInitial: m2.initial, userAvatarColor: m2.color, role: 'member', joinedAt: '2026-02-10', paymentStatus: 'confirmed', lastPaidAt: '2026-05-07', _demo: D },
+    { id: 'demo_mem_yt_01', groupId: 'demo_group_youtube_01', groupName: 'YouTube Premium', userId: m1.id, userName: m1.name, userAvatarInitial: m1.initial, userAvatarColor: m1.color, role: 'member', joinedAt: '2026-01-15', paymentStatus: 'confirmed', lastPaidAt: '2026-05-05' },
+    { id: 'demo_mem_yt_02', groupId: 'demo_group_youtube_01', groupName: 'YouTube Premium', userId: m6.id, userName: m6.name, userAvatarInitial: m6.initial, userAvatarColor: m6.color, role: 'member', joinedAt: '2026-01-15', paymentStatus: 'confirmed', lastPaidAt: '2026-05-06' },
+    { id: 'demo_mem_yt_03', groupId: 'demo_group_youtube_01', groupName: 'YouTube Premium', userId: m7.id, userName: m7.name, userAvatarInitial: m7.initial, userAvatarColor: m7.color, role: 'member', joinedAt: '2026-02-01', paymentStatus: 'confirmed', lastPaidAt: '2026-05-04' },
+    { id: 'demo_mem_yt_04', groupId: 'demo_group_youtube_01', groupName: 'YouTube Premium', userId: m2.id, userName: m2.name, userAvatarInitial: m2.initial, userAvatarColor: m2.color, role: 'member', joinedAt: '2026-02-10', paymentStatus: 'confirmed', lastPaidAt: '2026-05-07' },
 
     // Demo user as member of ChatGPT group
-    { id: 'demo_mem_cg_demo', groupId: 'demo_group_chatgpt_01', groupName: 'ChatGPT Plus', userId: uid, userName: '林宥廷', userAvatarInitial: '林', userAvatarColor: '#0866F2', role: 'member', joinedAt: '2026-02-05', paymentStatus: 'confirmed', lastPaidAt: '2026-05-16', _demo: D },
+    { id: 'demo_mem_cg_demo', groupId: 'demo_group_chatgpt_01', groupName: 'ChatGPT Plus', userId: uid, userName: '林宥廷', userAvatarInitial: '林', userAvatarColor: '#0866F2', role: 'member', joinedAt: '2026-02-05', paymentStatus: 'confirmed', lastPaidAt: '2026-05-16' },
 
     // Discord group members (hosted by demo user)
-    { id: 'demo_mem_dc_01', groupId: 'demo_group_discord_01', groupName: 'Discord Nitro', userId: m4.id, userName: m4.name, userAvatarInitial: m4.initial, userAvatarColor: m4.color, role: 'member', joinedAt: '2026-03-01', paymentStatus: 'confirmed', lastPaidAt: '2026-05-01', _demo: D },
-    { id: 'demo_mem_dc_02', groupId: 'demo_group_discord_01', groupName: 'Discord Nitro', userId: m5.id, userName: m5.name, userAvatarInitial: m5.initial, userAvatarColor: m5.color, role: 'member', joinedAt: '2026-03-05', paymentStatus: 'confirmed', lastPaidAt: '2026-05-02', _demo: D },
+    { id: 'demo_mem_dc_01', groupId: 'demo_group_discord_01', groupName: 'Discord Nitro', userId: m4.id, userName: m4.name, userAvatarInitial: m4.initial, userAvatarColor: m4.color, role: 'member', joinedAt: '2026-03-01', paymentStatus: 'confirmed', lastPaidAt: '2026-05-01' },
+    { id: 'demo_mem_dc_02', groupId: 'demo_group_discord_01', groupName: 'Discord Nitro', userId: m5.id, userName: m5.name, userAvatarInitial: m5.initial, userAvatarColor: m5.color, role: 'member', joinedAt: '2026-03-05', paymentStatus: 'confirmed', lastPaidAt: '2026-05-02' },
 
     // Notion group members (hosted by demo user)
-    { id: 'demo_mem_nt_01', groupId: 'demo_group_notion_01', groupName: 'Notion Plus', userId: m6.id, userName: m6.name, userAvatarInitial: m6.initial, userAvatarColor: m6.color, role: 'member', joinedAt: '2025-10-05', paymentStatus: 'confirmed', lastPaidAt: '2026-04-13', _demo: D },
+    { id: 'demo_mem_nt_01', groupId: 'demo_group_notion_01', groupName: 'Notion Plus', userId: m6.id, userName: m6.name, userAvatarInitial: m6.initial, userAvatarColor: m6.color, role: 'member', joinedAt: '2025-10-05', paymentStatus: 'confirmed', lastPaidAt: '2026-04-13' },
 
     // Demo user as member of Disney+ group (upcoming billing)
-    { id: 'demo_mem_dis_demo', groupId: 'demo_group_disney_02', groupName: 'Disney+', userId: uid, userName: '林宥廷', userAvatarInitial: '林', userAvatarColor: '#0866F2', role: 'member', joinedAt: '2026-03-27', paymentStatus: 'confirmed', lastPaidAt: '2026-04-25', _demo: D },
+    { id: 'demo_mem_dis_demo', groupId: 'demo_group_disney_02', groupName: 'Disney+', userId: uid, userName: '林宥廷', userAvatarInitial: '林', userAvatarColor: '#0866F2', role: 'member', joinedAt: '2026-03-27', paymentStatus: 'confirmed', lastPaidAt: '2026-04-25' },
 
     // Demo user as member of HBO Max group (markedPaid)
-    { id: 'demo_mem_hbo_demo', groupId: 'demo_group_hbo_01', groupName: 'HBO Max', userId: uid, userName: '林宥廷', userAvatarInitial: '林', userAvatarColor: '#0866F2', role: 'member', joinedAt: '2026-01-25', paymentStatus: 'markedPaid', lastPaidAt: '2026-05-17', _demo: D },
+    { id: 'demo_mem_hbo_demo', groupId: 'demo_group_hbo_01', groupName: 'HBO Max', userId: uid, userName: '林宥廷', userAvatarInitial: '林', userAvatarColor: '#0866F2', role: 'member', joinedAt: '2026-01-25', paymentStatus: 'markedPaid', lastPaidAt: '2026-05-17' },
   ]
 
   // ── Applications ──────────────────────────────────────────────────
   const applications = [
     // Pending application to demo user's Spotify group
-    { id: 'demo_app_sp_01', groupId: 'demo_group_spotify_01', groupName: 'Spotify Premium', serviceId: 'spotify', serviceName: 'Spotify Premium', planName: '個人方案（Family）', hostId: uid, hostName: '林宥廷', applicantId: 'demo_fake_app_user_01', applicantName: '江文彬', applicantAvatarInitial: '江', applicantAvatarColor: '#0F172A', applicantCreditScore: 88, userId: 'demo_fake_app_user_01', userName: '江文彬', userAvatarInitial: '江', userAvatarColor: '#0F172A', message: '你好，我平常很常聽音樂，願意準時繳費，希望能加入！', status: 'pending', createdAt: '2026-05-18', updatedAt: '2026-05-18', _demo: D },
+    { id: 'demo_app_sp_01', groupId: 'demo_group_spotify_01', groupName: 'Spotify Premium', serviceId: 'spotify', serviceName: 'Spotify Premium', planName: '個人方案（Family）', hostId: uid, hostName: '林宥廷', applicantId: 'demo_fake_app_user_01', applicantName: '江文彬', applicantAvatarInitial: '江', applicantAvatarColor: '#0F172A', applicantCreditScore: 88, userId: 'demo_fake_app_user_01', userName: '江文彬', userAvatarInitial: '江', userAvatarColor: '#0F172A', message: '你好，我平常很常聽音樂，願意準時繳費，希望能加入！', status: 'pending', createdAt: '2026-05-18', updatedAt: '2026-05-18' },
 
     // Pending application to demo user's Spotify group (2nd applicant)
-    { id: 'demo_app_sp_02', groupId: 'demo_group_spotify_01', groupName: 'Spotify Premium', serviceId: 'spotify', serviceName: 'Spotify Premium', planName: '個人方案（Family）', hostId: uid, hostName: '林宥廷', applicantId: 'demo_fake_app_user_02', applicantName: '蔡欣儀', applicantAvatarInitial: '蔡', applicantAvatarColor: '#14B8A6', applicantCreditScore: 75, userId: 'demo_fake_app_user_02', userName: '蔡欣儀', userAvatarInitial: '蔡', userAvatarColor: '#14B8A6', message: '我每天都在聽歌，很需要 Spotify Premium，保證準時繳費！', status: 'pending', createdAt: '2026-05-19', updatedAt: '2026-05-19', _demo: D },
+    { id: 'demo_app_sp_02', groupId: 'demo_group_spotify_01', groupName: 'Spotify Premium', serviceId: 'spotify', serviceName: 'Spotify Premium', planName: '個人方案（Family）', hostId: uid, hostName: '林宥廷', applicantId: 'demo_fake_app_user_02', applicantName: '蔡欣儀', applicantAvatarInitial: '蔡', applicantAvatarColor: '#14B8A6', applicantCreditScore: 75, userId: 'demo_fake_app_user_02', userName: '蔡欣儀', userAvatarInitial: '蔡', userAvatarColor: '#14B8A6', message: '我每天都在聽歌，很需要 Spotify Premium，保證準時繳費！', status: 'pending', createdAt: '2026-05-19', updatedAt: '2026-05-19' },
 
     // Demo user applied to Apple Music group (pending)
-    { id: 'demo_app_am_demo', groupId: 'demo_group_applemusic_01', groupName: 'Apple Music', serviceId: 'apple-music', serviceName: 'Apple Music', planName: '家庭方案（6人）', hostId: hosts.h2.id, hostName: hosts.h2.name, applicantId: uid, applicantName: '林宥廷', applicantAvatarInitial: '林', applicantAvatarColor: '#0866F2', applicantCreditScore: 92, userId: uid, userName: '林宥廷', userAvatarInitial: '林', userAvatarColor: '#0866F2', message: '我使用 Apple 裝置，願意準時繳費。', status: 'pending', createdAt: '2026-05-17', updatedAt: '2026-05-17', _demo: D },
+    { id: 'demo_app_am_demo', groupId: 'demo_group_applemusic_01', groupName: 'Apple Music', serviceId: 'apple-music', serviceName: 'Apple Music', planName: '家庭方案（6人）', hostId: hosts.h2.id, hostName: hosts.h2.name, applicantId: uid, applicantName: '林宥廷', applicantAvatarInitial: '林', applicantAvatarColor: '#0866F2', applicantCreditScore: 92, userId: uid, userName: '林宥廷', userAvatarInitial: '林', userAvatarColor: '#0866F2', message: '我使用 Apple 裝置，願意準時繳費。', status: 'pending', createdAt: '2026-05-17', updatedAt: '2026-05-17' },
 
     // Demo user's rejected application (for applications tab)
-    { id: 'demo_app_ms_demo', groupId: 'demo_group_ms365_01', groupName: 'Microsoft 365', serviceId: 'microsoft-365', serviceName: 'Microsoft 365', planName: '家庭版（6人）', hostId: hosts.h1.id, hostName: hosts.h1.name, applicantId: uid, applicantName: '林宥廷', applicantAvatarInitial: '林', applicantAvatarColor: '#0866F2', applicantCreditScore: 92, userId: uid, userName: '林宥廷', userAvatarInitial: '林', userAvatarColor: '#0866F2', message: '需要 Office 工具，希望能加入共享！', status: 'rejected', createdAt: '2026-05-08', updatedAt: '2026-05-09', _demo: D },
+    { id: 'demo_app_ms_demo', groupId: 'demo_group_ms365_01', groupName: 'Microsoft 365', serviceId: 'microsoft-365', serviceName: 'Microsoft 365', planName: '家庭版（6人）', hostId: hosts.h1.id, hostName: hosts.h1.name, applicantId: uid, applicantName: '林宥廷', applicantAvatarInitial: '林', applicantAvatarColor: '#0866F2', applicantCreditScore: 92, userId: uid, userName: '林宥廷', userAvatarInitial: '林', userAvatarColor: '#0866F2', message: '需要 Office 工具，希望能加入共享！', status: 'rejected', createdAt: '2026-05-08', updatedAt: '2026-05-09' },
   ]
 
   // ── Subscriptions ─────────────────────────────────────────────────
   const subscriptions = [
     // Demo user's subscription to ChatGPT group (active, confirmed)
-    { id: 'demo_sub_cg_demo', userId: uid, groupId: 'demo_group_chatgpt_01', serviceId: 'chatgpt', serviceName: 'ChatGPT Plus', planName: 'Plus', hostName: hosts.h1.name, hostAvatarInitial: hosts.h1.initial, hostAvatarColor: hosts.h1.color, pricePerSeat: twd(20.00, rate, { seats: 2 }), billingCycle: 'monthly', nextBillingDate: '2026-06-18', joinedAt: '2026-02-05', paymentStatus: 'confirmed', status: 'active', createdAt: '2026-02-05', updatedAt: '2026-05-16', _demo: D },
+    { id: 'demo_sub_cg_demo', userId: uid, groupId: 'demo_group_chatgpt_01', serviceId: 'chatgpt', serviceName: 'ChatGPT Plus', planName: 'Plus', hostName: hosts.h1.name, hostAvatarInitial: hosts.h1.initial, hostAvatarColor: hosts.h1.color, pricePerSeat: twd(20.00, rate, { seats: 2 }), billingCycle: 'monthly', nextBillingDate: '2026-06-18', joinedAt: '2026-02-05', paymentStatus: 'confirmed', status: 'active', createdAt: '2026-02-05', updatedAt: '2026-05-16' },
 
     // Demo user's pending application to Apple Music (subscription pre-created for when approved)
-    { id: 'demo_sub_am_demo', userId: uid, groupId: 'demo_group_applemusic_01', serviceId: 'apple-music', serviceName: 'Apple Music', planName: '家庭方案（6人）', hostName: hosts.h2.name, hostAvatarInitial: hosts.h2.initial, hostAvatarColor: hosts.h2.color, pricePerSeat: twd(6.99, rate, { seats: 6 }), billingCycle: 'monthly', nextBillingDate: '2026-06-10', joinedAt: '2026-05-17', paymentStatus: 'pending', status: 'pending_payment', createdAt: '2026-05-17', updatedAt: '2026-05-17', _demo: D },
+    { id: 'demo_sub_am_demo', userId: uid, groupId: 'demo_group_applemusic_01', serviceId: 'apple-music', serviceName: 'Apple Music', planName: '家庭方案（6人）', hostName: hosts.h2.name, hostAvatarInitial: hosts.h2.initial, hostAvatarColor: hosts.h2.color, pricePerSeat: twd(6.99, rate, { seats: 6 }), billingCycle: 'monthly', nextBillingDate: '2026-06-10', joinedAt: '2026-05-17', paymentStatus: 'pending', status: 'pending_payment', createdAt: '2026-05-17', updatedAt: '2026-05-17' },
 
     // Disney+ — upcoming billing (within 7 days), confirmed payment
-    { id: 'demo_sub_dis_demo', userId: uid, groupId: 'demo_group_disney_02', serviceId: 'disney', serviceName: 'Disney+', planName: '標準', hostName: hosts.h3.name, hostAvatarInitial: hosts.h3.initial, hostAvatarColor: hosts.h3.color, pricePerSeat: twd(28.99, rate, { perYear: true }), billingCycle: 'monthly', nextBillingDate: '2026-05-27', joinedAt: '2026-03-27', paymentStatus: 'confirmed', status: 'active', createdAt: '2026-03-27', updatedAt: '2026-05-15', _demo: D },
+    { id: 'demo_sub_dis_demo', userId: uid, groupId: 'demo_group_disney_02', serviceId: 'disney', serviceName: 'Disney+', planName: '標準', hostName: hosts.h3.name, hostAvatarInitial: hosts.h3.initial, hostAvatarColor: hosts.h3.color, pricePerSeat: twd(28.99, rate, { perYear: true }), billingCycle: 'monthly', nextBillingDate: '2026-05-27', joinedAt: '2026-03-27', paymentStatus: 'confirmed', status: 'active', createdAt: '2026-03-27', updatedAt: '2026-05-15' },
 
     // HBO Max — markedPaid (waiting host confirmation)
-    { id: 'demo_sub_hbo_demo', userId: uid, groupId: 'demo_group_hbo_01', serviceId: 'hbo', serviceName: 'HBO Max', planName: '標準方案', hostName: hosts.h1.name, hostAvatarInitial: hosts.h1.initial, hostAvatarColor: hosts.h1.color, pricePerSeat: twd(28.99, rate, { perYear: true }), billingCycle: 'monthly', nextBillingDate: '2026-06-15', joinedAt: '2026-01-25', paymentStatus: 'markedPaid', status: 'active', createdAt: '2026-01-25', updatedAt: '2026-05-17', _demo: D },
+    { id: 'demo_sub_hbo_demo', userId: uid, groupId: 'demo_group_hbo_01', serviceId: 'hbo', serviceName: 'HBO Max', planName: '標準方案', hostName: hosts.h1.name, hostAvatarInitial: hosts.h1.initial, hostAvatarColor: hosts.h1.color, pricePerSeat: twd(28.99, rate, { perYear: true }), billingCycle: 'monthly', nextBillingDate: '2026-06-15', joinedAt: '2026-01-25', paymentStatus: 'markedPaid', status: 'active', createdAt: '2026-01-25', updatedAt: '2026-05-17' },
   ]
 
   // ── Notifications ─────────────────────────────────────────────────
   const notifications = [
-    { id: 'demo_notif_01', userId: uid, type: 'new_application',      title: '新的加入申請', message: '江文彬 申請加入你的 Spotify Premium 群組', isRead: false, createdAt: '2026-05-18', _demo: D },
-    { id: 'demo_notif_02', userId: uid, type: 'payment',              title: '成員標記付款', message: '王大偉 已標記付款 Netflix 高級（4K）本期費用 NT$98', isRead: false, createdAt: '2026-05-18', _demo: D },
-    { id: 'demo_notif_03', userId: uid, type: 'payment',              title: '成員標記付款', message: '劉詩涵 已標記付款 Netflix 高級（4K）本期費用 NT$98', isRead: false, createdAt: '2026-05-17', _demo: D },
-    { id: 'demo_notif_04', userId: uid, type: 'payment',              title: '成員標記付款', message: '吳俊霖 已標記付款 Netflix 高級（4K）本期費用 NT$98', isRead: true,  createdAt: '2026-05-16', _demo: D },
-    { id: 'demo_notif_05', userId: uid, type: 'application_approved', title: '申請已送出', message: '你已申請加入 Apple Music 家庭方案，等待團主審核', isRead: true,  createdAt: '2026-05-17', _demo: D },
-    { id: 'demo_notif_06', userId: uid, type: 'payment_confirmed',    title: '付款確認', message: 'ChatGPT Plus 團主已確認收到你 5 月的費用 NT$325', isRead: true,  createdAt: '2026-05-16', _demo: D },
-    { id: 'demo_notif_07', userId: uid, type: 'new_application',      title: '新的加入申請', message: '蔡欣儀 申請加入你的 Spotify Premium 群組', isRead: false, createdAt: '2026-05-19', _demo: D },
-    { id: 'demo_notif_08', userId: uid, type: 'payment_reminder',     title: '即將到期提醒', message: 'Disney+ 標準方案 將於 5 月 27 日扣款 NT$45，請確認帳戶餘額', isRead: false, createdAt: '2026-05-20', _demo: D },
-    { id: 'demo_notif_09', userId: uid, type: 'application_rejected', title: '申請未通過', message: '很抱歉，你申請加入的 Microsoft 365 家庭版群組申請未通過', isRead: true,  createdAt: '2026-05-09', _demo: D },
+    { id: 'demo_notif_01', userId: uid, type: 'new_application',      title: '新的加入申請', message: '江文彬 申請加入你的 Spotify Premium 群組', isRead: false, createdAt: '2026-05-18' },
+    { id: 'demo_notif_02', userId: uid, type: 'payment',              title: '成員標記付款', message: '王大偉 已標記付款 Netflix 高級（4K）本期費用 NT$98', isRead: false, createdAt: '2026-05-18' },
+    { id: 'demo_notif_03', userId: uid, type: 'payment',              title: '成員標記付款', message: '劉詩涵 已標記付款 Netflix 高級（4K）本期費用 NT$98', isRead: false, createdAt: '2026-05-17' },
+    { id: 'demo_notif_04', userId: uid, type: 'payment',              title: '成員標記付款', message: '吳俊霖 已標記付款 Netflix 高級（4K）本期費用 NT$98', isRead: true,  createdAt: '2026-05-16' },
+    { id: 'demo_notif_05', userId: uid, type: 'application_approved', title: '申請已送出', message: '你已申請加入 Apple Music 家庭方案，等待團主審核', isRead: true,  createdAt: '2026-05-17' },
+    { id: 'demo_notif_06', userId: uid, type: 'payment_confirmed',    title: '付款確認', message: 'ChatGPT Plus 團主已確認收到你 5 月的費用 NT$325', isRead: true,  createdAt: '2026-05-16' },
+    { id: 'demo_notif_07', userId: uid, type: 'new_application',      title: '新的加入申請', message: '蔡欣儀 申請加入你的 Spotify Premium 群組', isRead: false, createdAt: '2026-05-19' },
+    { id: 'demo_notif_08', userId: uid, type: 'payment_reminder',     title: '即將到期提醒', message: 'Disney+ 標準方案 將於 5 月 27 日扣款 NT$45，請確認帳戶餘額', isRead: false, createdAt: '2026-05-20' },
+    { id: 'demo_notif_09', userId: uid, type: 'application_rejected', title: '申請未通過', message: '很抱歉，你申請加入的 Microsoft 365 家庭版群組申請未通過', isRead: true,  createdAt: '2026-05-09' },
   ]
 
   // ── Favorites ─────────────────────────────────────────────────────
   const favorites = [
-    { id: 'demo_fav_01', userId: uid, groupId: 'demo_group_disney_01',   createdAt: '2026-05-10', _demo: D },
-    { id: 'demo_fav_02', userId: uid, groupId: 'demo_group_googleone_01', createdAt: '2026-05-12', _demo: D },
+    { id: 'demo_fav_01', userId: uid, groupId: 'demo_group_disney_01',   createdAt: '2026-05-10' },
+    { id: 'demo_fav_02', userId: uid, groupId: 'demo_group_googleone_01', createdAt: '2026-05-12' },
   ]
 
   return { groups, members, applications, subscriptions, notifications, favorites }
@@ -555,12 +541,12 @@ async function main() {
   const data = buildDemoData(uid, rate)
 
   console.log('Writing collections:')
-  await seedCollection('groups',        data.groups)
-  await seedCollection('members',       data.members)
-  await seedCollection('applications',  data.applications)
-  await seedCollection('subscriptions', data.subscriptions)
-  await seedCollection('notifications', data.notifications)
-  await seedCollection('favorites',     data.favorites)
+  await seedCollection('demo_groups',        data.groups)
+  await seedCollection('demo_members',       data.members)
+  await seedCollection('demo_applications',  data.applications)
+  await seedCollection('demo_subscriptions', data.subscriptions)
+  await seedCollection('demo_notifications', data.notifications)
+  await seedCollection('demo_favorites',     data.favorites)
 
   console.log(`
 Demo data seeded successfully!

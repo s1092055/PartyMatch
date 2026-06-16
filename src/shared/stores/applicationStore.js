@@ -8,11 +8,13 @@ import { createNotification } from './notificationStore'
 
 let _apps = []
 
-const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true'
+function emitApplicationsChanged(detail = {}) {
+  if (typeof window === 'undefined') return
+  window.dispatchEvent(new CustomEvent('pm:applications-changed', { detail }))
+}
 
 export async function initApplications() {
-  const all = await readAllApplications()
-  _apps = DEMO_MODE ? all : all.filter(a => !a._demo)
+  _apps = await readAllApplications()
 }
 
 export function getApplicationsByGroupId(groupId) {
@@ -34,7 +36,7 @@ export function getApplicationsByHostId(hostId, groups) {
   return _apps.filter(a => hostGroupIds.has(a.groupId))
 }
 
-export function createApplication({ groupId, groupName, serviceId, serviceName, planName, hostId, hostName, message }) {
+export function createApplication({ groupId, groupName, serviceId, serviceName, planName, hostId, hostName, hostAvatarInitial, hostAvatarColor, message }) {
   const activeUser = getActiveUserProfile()
   if (!activeUser) throw new Error('登入後才能申請加入群組')
 
@@ -48,6 +50,8 @@ export function createApplication({ groupId, groupName, serviceId, serviceName, 
     planName,
     hostId,
     hostName,
+    hostAvatarInitial,
+    hostAvatarColor,
     applicantId:            activeUser.id,
     applicantName:          activeUser.displayName,
     applicantAvatarInitial: activeUser.avatarInitial,
@@ -66,13 +70,14 @@ export function createApplication({ groupId, groupName, serviceId, serviceName, 
     title:   '收到新的加入申請',
     message: `${app.applicantName} 申請加入「${app.groupName ?? app.serviceName}」群組。`,
   })
-  window.dispatchEvent(new CustomEvent('pm:application-created', { detail: { hostId: app.hostId } }))
+  emitApplicationsChanged({ type: 'created', application: app })
   return app
 }
 
 export function updateApplicationStatus(id, status) {
   const app = _apps.find(a => a.id === id)
   _apps = _apps.map(a => a.id === id ? { ...a, status } : a)
+  emitApplicationsChanged({ type: 'status_changed', applicationId: id, status })
   patchApplication(id, { status }).catch(console.error)
 
   if (status === 'approved' && app) {
@@ -83,7 +88,8 @@ export function updateApplicationStatus(id, status) {
       name:          applicantName,
       avatarInitial: app.applicantAvatarInitial ?? applicantName[0] ?? '?',
       avatarColor:   app.applicantAvatarColor   ?? '#94A3B8',
-    }).catch(console.error)
-    sendSystemMessage(convId, `${applicantName} 加入了群組`).catch(console.error)
+    })
+      .then(() => sendSystemMessage(convId, `${applicantName} 加入了群組`))
+      .catch(console.error)
   }
 }

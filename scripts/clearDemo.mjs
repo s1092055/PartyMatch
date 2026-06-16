@@ -1,5 +1,5 @@
 /**
- * Remove all demo data (_demo: true) from Firestore.
+ * Remove all demo data from Firestore by wiping the separate `demo_*` collections.
  *
  * Usage:
  *   node scripts/clearDemo.mjs
@@ -21,7 +21,7 @@ readFileSync(resolve(__dir, '../.env'), 'utf8')
   })
 
 import { initializeApp } from 'firebase/app'
-import { getFirestore, collection, getDocs, query, where, writeBatch, doc } from 'firebase/firestore'
+import { getFirestore, collection, getDocs, writeBatch, doc } from 'firebase/firestore'
 
 const firebaseApp = initializeApp({
   apiKey:            process.env.VITE_FIREBASE_API_KEY,
@@ -33,11 +33,14 @@ const firebaseApp = initializeApp({
 })
 const db = getFirestore(firebaseApp)
 
-const COLLECTIONS = ['groups', 'members', 'applications', 'subscriptions', 'notifications', 'favorites', 'paymentRecords']
+const COLLECTIONS = [
+  'demo_groups', 'demo_members', 'demo_applications',
+  'demo_subscriptions', 'demo_notifications', 'demo_favorites', 'demo_paymentRecords',
+]
 
 async function clearCollection(name) {
-  const snap = await getDocs(query(collection(db, name), where('_demo', '==', true)))
-  if (snap.empty) { console.log(`  – ${name.padEnd(16)} 0 筆`); return }
+  const snap = await getDocs(collection(db, name))
+  if (snap.empty) { console.log(`  – ${name.padEnd(20)} 0 筆`); return }
 
   const CHUNK = 400
   const docs = snap.docs
@@ -46,7 +49,7 @@ async function clearCollection(name) {
     docs.slice(i, i + CHUNK).forEach(d => batch.delete(doc(db, name, d.id)))
     await batch.commit()
   }
-  console.log(`  ✓ ${name.padEnd(16)} 刪除 ${docs.length} 筆`)
+  console.log(`  ✓ ${name.padEnd(20)} 刪除 ${docs.length} 筆`)
 }
 
 async function main() {

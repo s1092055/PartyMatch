@@ -4,7 +4,6 @@ import { createId } from '../utils/storage'
 
 let _notifications = []
 
-const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true'
 const SYSTEM_NOTIFICATION_TYPES = new Set(['system', 'announcement', 'platform'])
 
 function byNewest(a, b) {
@@ -27,8 +26,7 @@ function getFallbackSystemNotifications() {
 }
 
 export async function initNotifications() {
-  const all = await readAllNotifications()
-  _notifications = DEMO_MODE ? all : all.filter(n => !n._demo)
+  _notifications = await readAllNotifications()
 }
 
 export function isSystemNotification(notification) {

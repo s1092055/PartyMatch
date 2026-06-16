@@ -6,11 +6,13 @@ import { getCurrentUser } from './authStore'
 
 let _subs = []
 
-const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true'
+function emitSubscriptionsChanged(detail = {}) {
+  if (typeof window === 'undefined') return
+  window.dispatchEvent(new CustomEvent('pm:subscriptions-changed', { detail }))
+}
 
 export async function initSubscriptions() {
-  const all = await readAllSubscriptions()
-  _subs = DEMO_MODE ? all : all.filter(s => !s._demo)
+  _subs = await readAllSubscriptions()
 }
 
 export function getSubscriptionsByUserId(userId) {
@@ -28,9 +30,13 @@ export function getSubscriptionByUserAndGroup(userId, groupId) {
 export function createSubscription({ userId, groupId, serviceName, planName, serviceId, hostName, hostAvatarInitial, hostAvatarColor, pricePerSeat, billingCycle, nextBillingDate }) {
   const activeUser = getCurrentUser()
   const now = todayISO()
+  const targetUserId = userId ?? activeUser?.id ?? null
+  const existingSub = getSubscriptionByUserAndGroup(targetUserId, groupId)
+  if (existingSub) return existingSub
+
   const sub = normalizeSubscription({
     id:               createId('sub'),
-    userId:           userId ?? activeUser?.id ?? null,
+    userId:           targetUserId,
     groupId,
     serviceName,
     planName,
@@ -48,23 +54,32 @@ export function createSubscription({ userId, groupId, serviceName, planName, ser
     updatedAt:        now,
   })
   _subs.push(sub)
+  emitSubscriptionsChanged({ type: 'created', subscription: sub })
   insertSubscription(sub).catch(console.error)
   return sub
 }
 
 function applyPatch(id, patch) {
-  _subs = _subs.map(s => s.id === id ? normalizeSubscription({ ...s, ...patch }) : s)
+  let updatedSub = null
+  _subs = _subs.map(s => {
+    if (s.id !== id) return s
+    updatedSub = normalizeSubscription({ ...s, ...patch })
+    return updatedSub
+  })
+  return updatedSub
 }
 
 export function markSubscriptionPaid(id) {
   const patch = { paymentStatus: 'markedPaid', lastPaidAt: todayISO() }
-  applyPatch(id, patch)
+  const updatedSub = applyPatch(id, patch)
+  if (updatedSub) emitSubscriptionsChanged({ type: 'payment_marked', subscription: updatedSub })
   patchSubscription(id, patch).catch(console.error)
 }
 
 export function confirmSubscriptionPayment(id) {
   const patch = { paymentStatus: 'confirmed' }
-  applyPatch(id, patch)
+  const updatedSub = applyPatch(id, patch)
+  if (updatedSub) emitSubscriptionsChanged({ type: 'payment_confirmed', subscription: updatedSub })
   patchSubscription(id, patch).catch(console.error)
 }
 
@@ -72,6 +87,7 @@ export function activateGroupSubscriptions(groupId, nextBillingDate) {
   const patch = { status: 'active', nextBillingDate }
   const targets = _subs.filter(s => s.groupId === groupId)
   _subs = _subs.map(s => s.groupId === groupId ? normalizeSubscription({ ...s, ...patch }) : s)
+  if (targets.length) emitSubscriptionsChanged({ type: 'group_activated', groupId })
   targets.forEach(s => patchSubscription(s.id, patch).catch(console.error))
 }
 
@@ -79,5 +95,6 @@ export function resetSubscriptionPaymentsForGroup(groupId) {
   const patch = { paymentStatus: 'pending' }
   const targets = _subs.filter(s => s.groupId === groupId)
   _subs = _subs.map(s => s.groupId === groupId ? normalizeSubscription({ ...s, ...patch }) : s)
+  if (targets.length) emitSubscriptionsChanged({ type: 'renewal_started', groupId })
   targets.forEach(s => patchSubscription(s.id, patch).catch(console.error))
 }

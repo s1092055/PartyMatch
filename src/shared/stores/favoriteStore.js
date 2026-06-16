@@ -4,11 +4,8 @@ import { createId } from '../utils/storage'
 
 let _favs = []
 
-const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true'
-
 export async function initFavorites() {
-  const all = await readAllFavorites()
-  _favs = DEMO_MODE ? all : all.filter(f => !f._demo)
+  _favs = await readAllFavorites()
 }
 
 export function getFavoritesByUserId(userId) {
