@@ -31,7 +31,7 @@ http://localhost:5173
 | `npm run build` | 建置 production bundle |
 | `npm run lint` | 執行 ESLint |
 | `npm run seed:demo` | 建立 demo 帳號與 Firestore demo 資料 |
-| `npm run clear:demo` | 清除 `_demo: true` 的 demo 資料 |
+| `npm run clear:demo` | 清空 `demo_*` collection 中的 demo 資料 |
 | `npm run seed:services` | 匯入服務清單資料 |
 
 ---
@@ -82,7 +82,7 @@ Demo seed 會讀取 `.env`，建立或重用 demo 帳號，並寫入 groups、me
 | 快速配對 | 側欄 / 首頁 CTA | 不需登入 | 選服務、選方案、設定預算與條件，自動推薦符合群組 |
 | 群組詳情 | 群組卡片 / 搜尋結果 | 不需登入可看；申請需登入 | 方案、名額、規則、團主資訊、推薦群組、申請加入 |
 | 申請加入 | 群組詳情 Modal | 需登入 | 建立申請紀錄、通知團主、保留送出成功畫面 |
-| 我的訂閱 | `/my-subscriptions` | 需登入 | 訂閱清單、付款狀態、標記付款、申請紀錄、查看群組 |
+| 我的訂閱 | `/my-subscriptions` | 需登入 | 訂閱清單、待處理 / 已啟用 / 即將續訂分類、標記付款、申請紀錄、查看群組 |
 | 我的收藏 | `/favorites` | 需登入 | 收藏群組、分類篩選、取消收藏 |
 | 帳號中心 | `/account` | 需登入 | 個人資料寫回 Firebase users、付款方式/通知偏好本機持久化 |
 | 通知中心 | 右上角通知按鈕 | 訪客可看系統公告；會員看個人通知 | 付款、申請、系統通知；會員可標記已讀 |
@@ -159,7 +159,21 @@ flowchart TD
   I --> J[建立 subscription]
   J --> K[加入群組對話]
   K --> L[會員收到申請通過通知]
-  H -->|拒絕| M[會員收到申請未通過通知]
+  L --> M[我的訂閱出現該群組]
+  M --> N[訂閱分類顯示為待處理]
+  N --> O[查看群組詳情或訊息中心]
+  O --> P[完成實際付款]
+  P --> Q[點擊標記已付款]
+  Q --> R[通知團主確認收款]
+  R --> S{團主是否確認收款}
+  S -->|尚未確認| N
+  S -->|已確認| T[等待團主啟用服務]
+  T --> U{團主是否啟用}
+  U -->|尚未啟用| T
+  U -->|已啟用| V[訂閱移至已啟用]
+  V --> W[會員收到服務已啟用通知]
+  W --> X[依下次扣款日進入續訂提醒]
+  H -->|拒絕| Y[會員收到申請未通過通知]
 ```
 
 操作說明：
@@ -167,7 +181,10 @@ flowchart TD
 1. 會員在群組詳情中送出申請。
 2. 系統會建立申請資料並通知團主。
 3. 團主核准後，系統會自動建立成員與訂閱資料。
-4. 申請通過後，會員可以在「我的訂閱」看到該群組，並進入訊息中心溝通。
+4. 申請通過後，會員可以在「我的訂閱」看到該群組，初始會進入「待處理」分類。
+5. 會員完成實際付款後，需在訂閱或群組詳情中標記已付款，系統會通知團主確認收款。
+6. 團主確認收款後，訂閱仍會留在待處理，直到團主啟用服務。
+7. 服務啟用後，訂閱會移到「已啟用」分類；接近下次扣款日時會出現在「即將續訂」提醒。
 
 ### 3. 團主建立與管理群組
 
@@ -346,7 +363,7 @@ src/
 | `src/features/create/CreateGroupModal.jsx` | `Step1Service`～`Step4Preview`、`LivePreviewPanel`、`createGroup()` | props: `form`、`onChange`；送出後建立 group，並觸發 `pm:group-created` |
 | `src/features/match/QuickMatchModal.jsx` | `ServiceSelectionGrid`、`MatchSummaryPanel`、`matchGroups()`、`ExploreGroupCard` | `conditions` 狀態流過各步驟；結果頁以群組卡片呈現匹配結果 |
 | `src/features/manage/ManagePage.jsx` | `HostedGroupCard`、`ApplicationsModal`、`GroupViewModal`、`RenewalModal`、`GroupHistoryModal` | 管理頁集中處理審核、建立 member/subscription、確認付款、啟用群組 |
-| `src/features/subscriptions/SubscriptionsPage.jsx` | `SubscriptionCard`、`GroupViewModal`、`subscriptionStore`、`memberStore` | 標記付款時同步 subscription 與 member 狀態，並建立通知 |
+| `src/features/subscriptions/SubscriptionsPage.jsx` | `SubscriptionCard`、`GroupViewModal`、`subscriptionStore`、`memberStore` | 重新同步訂閱資料；以待處理、已啟用、即將續訂分類顯示；標記付款時同步 subscription 與 member 狀態並建立通知 |
 | `src/features/messages/MessagesModal.jsx` | `conversationStore`、`messagesApi`、子元件 `ConversationList`、`ChatWindow`、`ConfirmDialog` | 接收 `pm:open-messages` / `pm:open-dm`；監聽 `pm:convs-changed` 同步對話列表；透過 `subscribeToMessages` 訂閱即時訊息；狀態管理與 UI 渲染分離 |
 | `src/shared/layout/FloatingMessages.jsx` | `notificationStore` | 接收 `pm:open-notify`；訪客只取公開系統公告，會員合併個人通知與系統公告 |
 | `src/shared/stores/*` | `src/shared/api/*`、`src/shared/utils/*` | stores 保存前端快取並封裝業務流程，api 檔只處理 Firestore CRUD/subscribe |
@@ -435,11 +452,13 @@ flowchart LR
 npm run seed:demo
 ```
 
+Demo 資料與正式資料**完全分開存放**：示範模式下讀寫 `demo_groups`、`demo_members`、`demo_applications`、`demo_subscriptions`、`demo_notifications`、`demo_favorites`、`demo_paymentRecords` 等獨立 collection，一般模式則讀寫 `groups`、`members`...等正式 collection，兩者是不同的 Firestore document，不會互相污染（見 `src/shared/api/demoCollection.js`）。`npm run clear:demo` 會直接清空這些 `demo_*` collection。
+
 Demo seed 內容包含：
 
 | 類別 | 覆蓋情境 |
 |------|----------|
-| 我的訂閱 | `pending`、`markedPaid`、`confirmed`、即將續訂、逾期判斷 |
+| 我的訂閱 | 待處理、已啟用、即將續訂；覆蓋 `pending`、`markedPaid`、`confirmed`、逾期判斷 |
 | 申請紀錄 | 審核中、已拒絕 |
 | 群組管理 | 招募中、已額滿、待確認付款、已啟用、已暫停、已結束 |
 | 通知 | 付款、申請、系統通知 |
