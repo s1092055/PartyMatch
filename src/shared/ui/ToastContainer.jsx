@@ -21,7 +21,7 @@ export default function ToastContainer() {
   useEffect(() => {
     return subscribeToast(item => {
       setToasts(prev => [...prev, item])
-      setTimeout(() => remove(item.id), TOAST_DURATION)
+      setTimeout(() => remove(item.id), item.duration ?? TOAST_DURATION)
     })
   }, [])
 
@@ -41,6 +41,14 @@ export default function ToastContainer() {
           >
             <Icon size={18} className={`shrink-0 ${iconClass}`} />
             <span className="flex-1 text-sm font-semibold text-ink">{t.message}</span>
+            {t.action && (
+              <button
+                onClick={() => { t.action.onClick(); remove(t.id) }}
+                className="shrink-0 text-sm font-bold text-brand hover:underline"
+              >
+                {t.action.label}
+              </button>
+            )}
             <button
               onClick={() => remove(t.id)}
               className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"

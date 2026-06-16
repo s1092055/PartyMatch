@@ -21,3 +21,15 @@ export async function patchUserCreditScore(userId, delta) {
 export async function upsertUserProfile(userId, profile) {
   await setDoc(doc(db, 'users', userId), profile, { merge: true })
 }
+
+// 取單一使用者的公開顯示資料（姓名/頭像），用於對話/成員名單缺少快取資料時的最後備援查詢
+export async function getUserProfile(userId) {
+  const snap = await getDoc(doc(db, 'users', userId))
+  if (!snap.exists()) return null
+  const data = snap.data()
+  return {
+    name:          data.name ?? null,
+    avatarInitial: data.name?.[0] ?? null,
+    avatarColor:   data.avatarColor ?? null,
+  }
+}

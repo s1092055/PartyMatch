@@ -4,6 +4,10 @@ import ModalShell from '../../shared/ui/ModalShell'
 import LoginPromptModal from '../../shared/ui/LoginPromptModal'
 import { getCurrentUser, isAuthenticated } from '../../shared/stores/authStore'
 import { getConversations } from '../../shared/stores/conversationStore'
+import { getGroupById, updateGroup } from '../../shared/stores/groupStore'
+import { getMemberByUserAndGroup, removeMember } from '../../shared/stores/memberStore'
+import { createNotification } from '../../shared/stores/notificationStore'
+import { toast } from '../../shared/utils/toast'
 import {
   subscribeToMessages,
   sendMessage,
@@ -12,9 +16,17 @@ import {
   leaveConversation,
   sendSystemMessage,
 } from '../../shared/api/messagesApi'
-import ConfirmDialog from './components/ConfirmDialog'
+import ConfirmDialog from '../../shared/ui/ConfirmDialog'
 import ConversationList, { CONV_TABS } from './components/ConversationList'
 import ChatWindow from './components/ChatWindow'
+
+// Safari/Firefox 在輸入法選字確認時，compositionend 會在 Enter 的 keydown 之前（或極短時間內）觸發，
+// 導致 isComposingRef 已被設回 false——額外用時間窗與 e.isComposing/keyCode 229 雙重判斷，
+// 避免選字確認的 Enter 被誤判成送出訊息（Chrome 較少出現此問題，但保留判斷不影響其行為）。
+function isImeConfirmEnter(e, isComposingRef, lastCompositionEndRef) {
+  if (isComposingRef.current || e.nativeEvent?.isComposing || e.keyCode === 229) return true
+  return Date.now() - lastCompositionEndRef.current < 50
+}
 
 export default function MessagesModal() {
   const [isOpen, setIsOpen] = useState(false)
@@ -23,7 +35,6 @@ export default function MessagesModal() {
   const [activeTab, setActiveTab] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [canSend, setCanSend] = useState(false)
-  const [inputKey, setInputKey] = useState(0)
   const [conversations, setConversations] = useState([])
   const [messages, setMessages] = useState([])
   const [sending, setSending] = useState(false)
@@ -36,8 +47,11 @@ export default function MessagesModal() {
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
   const isComposingRef = useRef(false)
+  const lastCompositionEndRef = useRef(0)
   const inputFocusedRef = useRef(false)
   const menuRef = useRef(null)
+  // 退出群組的復原緩衝期：先排程，使用者可在期限內按「復原」取消，過期才真正執行
+  const pendingLeaveTimersRef = useRef(new Map())
 
   useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect */
@@ -107,13 +121,10 @@ export default function MessagesModal() {
     return () => { unsub(); setMessages([]); setLoadingMessages(false) }
   }, [selectedId])
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'instant' })
-  }, [selectedId, isOpen])
+  // 訊息送達時／切換對話時是否自動捲到底部，改由 ChatWindow 自行判斷
+  // （見 ChatWindow 的 scrollContainerRef 相關 effect）：
+  // - 切換對話、訊息剛載入：強制捲到底部
+  // - 已開著對話收到新訊息：只有使用者目前已在底部附近才自動捲動，避免把正在往上看舊訊息的人拉回底部
 
   useEffect(() => {
     if (!menuOpen) return
@@ -135,12 +146,14 @@ export default function MessagesModal() {
 
   async function handleSend() {
     const text = inputRef.current?.value.trim() ?? ''
-    if (!text || !selectedId || sending) return
+    if (!text || !selectedId) return
     const user = getCurrentUser()
     if (!user) return
 
     setCanSend(false)
     setSendError(false)
+    if (inputRef.current) inputRef.current.value = ''
+    requestAnimationFrame(() => inputRef.current?.focus())
     setSending(true)
     try {
       await sendMessage(selectedId, user.id, {
@@ -150,8 +163,9 @@ export default function MessagesModal() {
         text,
         participants: selected?.participants ?? [],
       })
-      setInputKey(k => k + 1)
-    } catch {
+    } catch (error) {
+      console.error('[MessagesModal] send failed:', error)
+      if (inputRef.current) inputRef.current.value = text
       setCanSend(true)
       setSendError(true)
     } finally {
@@ -161,25 +175,76 @@ export default function MessagesModal() {
   }
 
   function handleKeyDown(e) {
-    if (e.key === 'Enter' && !e.shiftKey && !isComposingRef.current) { e.preventDefault(); handleSend() }
+    if (e.key !== 'Enter' || e.shiftKey) return
+    if (isImeConfirmEnter(e, isComposingRef, lastCompositionEndRef)) return
+    e.preventDefault()
+    handleSend()
+  }
+
+  const LEAVE_GROUP_GRACE_MS = 8000
+
+  // 真正執行退出：寫系統訊息、退出聊天室參與者、釋出名額並移除成員記錄、通知團主
+  async function finalizeLeaveGroup(conversationId, groupId, user) {
+    try {
+      await sendSystemMessage(conversationId, `${user.name} 已退出群組`)
+      await leaveConversation(conversationId, user.id)
+    } catch (e) { console.error('[MessagesModal] leaveConversation failed:', e) }
+
+    const group = groupId ? getGroupById(groupId) : null
+    const member = groupId ? getMemberByUserAndGroup(user.id, groupId) : null
+    if (member) removeMember(member.id)
+    if (group) {
+      updateGroup(group.id, {
+        usedSeats: Math.max(0, (group.usedSeats ?? 1) - 1),
+        openSeats: (group.openSeats ?? 0) + 1,
+        status: group.status === 'full' ? 'recruiting' : group.status,
+      })
+      createNotification({
+        userId:  group.hostId,
+        type:    'member_left',
+        title:   '成員退出群組',
+        message: `${user.name} 已退出「${group.groupName ?? group.serviceName}」群組。`,
+      })
+    }
   }
 
   function handleRequestLeaveGroup() {
     const user = getCurrentUser()
     if (!selectedId || !user) return
     setMenuOpen(false)
+    const conv = getConversations().find(c => c.id === selectedId)
+    const groupName = conv?.name ?? '此群組'
+    const groupId = conv?.groupId ?? (selectedId.startsWith('group_') ? selectedId.slice('group_'.length) : null)
+
     setConfirmDialog({
       title: '退出群組',
-      message: '確定要退出此群組嗎？退出後將無法再看到群組訊息。',
+      message: `確定要退出「${groupName}」嗎？退出後會立即釋出你的名額並離開聊天室，之後想再加入需要重新申請並等待團主審核；已產生的費用不會自動退還。`,
       confirmLabel: '退出',
       danger: true,
-      onConfirm: async () => {
+      onConfirm: () => {
         setConfirmDialog(null)
-        try {
-          await sendSystemMessage(selectedId, `${user.name} 已退出群組`)
-          await leaveConversation(selectedId, user.id)
-        } catch (e) { console.error(e) }
         setSelectedId(null)
+
+        const timerId = setTimeout(() => {
+          pendingLeaveTimersRef.current.delete(selectedId)
+          finalizeLeaveGroup(selectedId, groupId, user)
+        }, LEAVE_GROUP_GRACE_MS)
+        pendingLeaveTimersRef.current.set(selectedId, timerId)
+
+        toast(`已退出「${groupName}」`, 'info', {
+          duration: LEAVE_GROUP_GRACE_MS,
+          action: {
+            label: '復原',
+            onClick: () => {
+              const pending = pendingLeaveTimersRef.current.get(selectedId)
+              if (pending) {
+                clearTimeout(pending)
+                pendingLeaveTimersRef.current.delete(selectedId)
+                setSelectedId(selectedId)
+              }
+            },
+          },
+        })
       },
     })
   }
@@ -265,11 +330,11 @@ export default function MessagesModal() {
               canSend={canSend}
               inputRef={inputRef}
               messagesEndRef={messagesEndRef}
-              inputKey={inputKey}
               menuRef={menuRef}
               menuOpen={menuOpen}
               showMembers={showMembers}
               isComposingRef={isComposingRef}
+              lastCompositionEndRef={lastCompositionEndRef}
               inputFocusedRef={inputFocusedRef}
               onBack={() => setSelectedId(null)}
               onMenuToggle={setMenuOpen}
