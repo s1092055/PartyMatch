@@ -76,7 +76,7 @@ export default function SubscriptionCard({ sub, onViewGroup }) {
           {isActive ? (sub.nextBillingDate ?? '—') : (sub.joinedAt ?? '—')}
         </StatCell>
         <StatCell label="團主">
-          {sub.hostName ? `${sub.hostName}（團主）` : '—'}
+          {sub.hostName ? `${sub.hostName}` : '—'}
         </StatCell>
       </div>
 

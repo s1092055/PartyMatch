@@ -10,7 +10,7 @@ export default function Modal({ isOpen, onClose, title, titleIcon, maxWidth = 'm
   return createPortal(
     <div className="fixed inset-0 z-[65] flex items-center justify-center p-4">
       <div className="absolute inset-0 cursor-pointer bg-black/50" onClick={onClose} />
-      <div className={`relative w-full ${maxWidth} card p-0 overflow-hidden`}>
+      <div className={`relative w-full ${maxWidth} card p-0 overflow-hidden animate-fade-in-up`}>
         {(title || titleIcon) && (
           <div className="flex items-center justify-between px-5 py-4 border-b border-line-subtle">
             <div className="flex items-center gap-2">

@@ -51,7 +51,6 @@ export default function HostedGroupCard({
   pendingAppCount,
   paymentCount,
   onViewGroup,
-  onViewApplications,
 }) {
   const displayStatus = getGroupDisplayStatus(group)
 
@@ -101,15 +100,13 @@ export default function HostedGroupCard({
         ) : (
           <StatCell
             label="待處理申請"
-            onClick={onViewApplications}
             highlight={pendingAppCount > 0 ? 'text-brand' : undefined}
           >
-            {pendingAppCount} 件{pendingAppCount > 0 ? ' →' : ''}
+            {pendingAppCount} 件{pendingAppCount > 0 ? ' ●' : ''}
           </StatCell>
         )}
         <StatCell
-          label="本期收款"
-          onClick={onViewGroup}
+          label="收款紀錄"
           highlight={hasMarkedPaid ? 'text-warning-text' : undefined}
         >
           {paymentValue}

@@ -4,18 +4,14 @@ import ModalShell from '../../shared/ui/ModalShell'
 import LoginPromptModal from '../../shared/ui/LoginPromptModal'
 import { getCurrentUser, isAuthenticated } from '../../shared/stores/authStore'
 import { getConversations } from '../../shared/stores/conversationStore'
-import { getGroupById, updateGroup } from '../../shared/stores/groupStore'
-import { getMemberByUserAndGroup, removeMember } from '../../shared/stores/memberStore'
-import { createNotification } from '../../shared/stores/notificationStore'
-import { toast } from '../../shared/utils/toast'
 import {
   subscribeToMessages,
   sendMessage,
   markConversationRead,
   getOrCreateDmConversation,
   leaveConversation,
-  sendSystemMessage,
 } from '../../shared/api/messagesApi'
+import { scheduleLeaveGroup } from '../../shared/utils/leaveGroupFlow'
 import ConfirmDialog from '../../shared/ui/ConfirmDialog'
 import ConversationList, { CONV_TABS } from './components/ConversationList'
 import ChatWindow from './components/ChatWindow'
@@ -50,8 +46,6 @@ export default function MessagesModal() {
   const lastCompositionEndRef = useRef(0)
   const inputFocusedRef = useRef(false)
   const menuRef = useRef(null)
-  // 退出群組的復原緩衝期：先排程，使用者可在期限內按「復原」取消，過期才真正執行
-  const pendingLeaveTimersRef = useRef(new Map())
 
   useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect */
@@ -181,33 +175,6 @@ export default function MessagesModal() {
     handleSend()
   }
 
-  const LEAVE_GROUP_GRACE_MS = 8000
-
-  // 真正執行退出：寫系統訊息、退出聊天室參與者、釋出名額並移除成員記錄、通知團主
-  async function finalizeLeaveGroup(conversationId, groupId, user) {
-    try {
-      await sendSystemMessage(conversationId, `${user.name} 已退出群組`)
-      await leaveConversation(conversationId, user.id)
-    } catch (e) { console.error('[MessagesModal] leaveConversation failed:', e) }
-
-    const group = groupId ? getGroupById(groupId) : null
-    const member = groupId ? getMemberByUserAndGroup(user.id, groupId) : null
-    if (member) removeMember(member.id)
-    if (group) {
-      updateGroup(group.id, {
-        usedSeats: Math.max(0, (group.usedSeats ?? 1) - 1),
-        openSeats: (group.openSeats ?? 0) + 1,
-        status: group.status === 'full' ? 'recruiting' : group.status,
-      })
-      createNotification({
-        userId:  group.hostId,
-        type:    'member_left',
-        title:   '成員退出群組',
-        message: `${user.name} 已退出「${group.groupName ?? group.serviceName}」群組。`,
-      })
-    }
-  }
-
   function handleRequestLeaveGroup() {
     const user = getCurrentUser()
     if (!selectedId || !user) return
@@ -215,7 +182,6 @@ export default function MessagesModal() {
     const conv = getConversations().find(c => c.id === selectedId)
     const groupName = conv?.name ?? '此群組'
     const groupId = conv?.groupId ?? (selectedId.startsWith('group_') ? selectedId.slice('group_'.length) : null)
-
     setConfirmDialog({
       title: '退出群組',
       message: `確定要退出「${groupName}」嗎？退出後會立即釋出你的名額並離開聊天室，之後想再加入需要重新申請並等待團主審核；已產生的費用不會自動退還。`,
@@ -224,27 +190,7 @@ export default function MessagesModal() {
       onConfirm: () => {
         setConfirmDialog(null)
         setSelectedId(null)
-
-        const timerId = setTimeout(() => {
-          pendingLeaveTimersRef.current.delete(selectedId)
-          finalizeLeaveGroup(selectedId, groupId, user)
-        }, LEAVE_GROUP_GRACE_MS)
-        pendingLeaveTimersRef.current.set(selectedId, timerId)
-
-        toast(`已退出「${groupName}」`, 'info', {
-          duration: LEAVE_GROUP_GRACE_MS,
-          action: {
-            label: '復原',
-            onClick: () => {
-              const pending = pendingLeaveTimersRef.current.get(selectedId)
-              if (pending) {
-                clearTimeout(pending)
-                pendingLeaveTimersRef.current.delete(selectedId)
-                setSelectedId(selectedId)
-              }
-            },
-          },
-        })
+        scheduleLeaveGroup({ conversationId: selectedId, groupId, user, groupName })
       },
     })
   }

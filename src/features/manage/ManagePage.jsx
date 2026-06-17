@@ -15,7 +15,6 @@ import EmptyState from '../../shared/ui/EmptyState'
 import GroupViewModal from '../../shared/ui/GroupViewModal'
 import FilterTabsBar from '../../shared/ui/FilterTabsBar'
 import HostedGroupCard from './components/HostedGroupCard'
-import ApplicationsModal from './components/ApplicationsModal'
 import GroupHistoryModal from './components/GroupHistoryModal'
 import RenewalModal from './components/RenewalModal'
 
@@ -59,8 +58,7 @@ export default function ManagePage() {
   const [errors, setErrors] = useState({})
   const [statusFilter, setStatusFilter] = useState('all')
 
-const [viewGroupId, setViewGroupId]           = useState(null)
-  const [appsModalGroupId, setAppsModalGroupId] = useState(null)
+const [viewGroupId, setViewGroupId]                   = useState(null)
   const [historyModalGroupId, setHistoryModalGroupId] = useState(null)
   const [renewalModalGroupId, setRenewalModalGroupId] = useState(null)
 
@@ -367,7 +365,6 @@ function handleApprove(appId) {
       onViewGroup:   () => { refreshGroups(); setViewGroupId(g.id) },
       onViewHistory: () => setHistoryModalGroupId(g.id),
       onRenewal:     () => setRenewalModalGroupId(g.id),
-      onViewApplications: () => setAppsModalGroupId(g.id),
     }
   }
 
@@ -417,16 +414,9 @@ function handleApprove(appId) {
         onConfirmMember={handleConfirmMember}
         onActivate={handleActivate}
         onRemoveMember={handleRemoveMember}
-      />
-      <ApplicationsModal
-        isOpen={!!appsModalGroupId}
-        onClose={() => setAppsModalGroupId(null)}
-        applications={applications.filter(a => a.groupId === appsModalGroupId)}
-        groupName={getModalGroup(appsModalGroupId)?.serviceName}
-        seatMap={seatMap}
-        errors={errors}
         onApprove={handleApprove}
         onReject={handleReject}
+        errors={errors}
       />
       {historyModalGroup && (
         <GroupHistoryModal

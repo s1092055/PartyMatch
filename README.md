@@ -94,9 +94,9 @@ Demo seed 會讀取 `.env`，建立或重用 demo 帳號，並寫入 groups、me
 |------|------|----------|
 | 建立群組 | 側欄「建立群組」/ `/create-group` | 4 步驟表單：選服務、選方案、加入設定、確認送出 |
 | 群組管理 | `/manage-groups` | 群組卡片、狀態篩選、待處理申請、本期收款、付款狀態 |
-| 審核申請 | 群組管理卡片 | 核准後建立 member + subscription，名額同步更新；拒絕後通知申請者 |
-| 成員付款確認 | GroupViewModal | 成員標記付款後，團主逐筆確認；全員確認後推進狀態 |
-| 啟用服務 | GroupViewModal | 名額/付款完成後啟用群組，通知所有成員 |
+| 審核申請 | GroupViewModal → 申請管理子 Modal | 核准後建立 member + subscription，名額同步更新；拒絕後通知申請者 |
+| 成員付款確認 | GroupViewModal → 收款紀錄子 Modal | 成員標記付款後，團主逐筆確認；全員確認後推進狀態 |
+| 啟用服務 | GroupViewModal 摘要卡 / 手機黏底列 | 名額/付款完成後啟用群組，通知所有成員 |
 | 續訂或結束 | RenewalModal / store 函式 | 開始新一期收款後自動重設成員與訂閱付款狀態並發送通知；結束服務後群組進入已結束狀態 |
 | 歷史紀錄 | GroupHistoryModal | 已有歷史檢視元件，卡片入口尚待補強 |
 
@@ -107,7 +107,9 @@ Demo seed 會讀取 `.env`，建立或重用 demo 帳號，並寫入 groups、me
 | `AppNav` | 桌機側欄、手機 Header、右側通知/訊息按鈕、未讀 badge、未登入鎖頭提示 |
 | `MobileSearch` | 手機/側欄搜尋入口，可搜尋服務與群組 |
 | `ModalShell` | 快速配對、建立群組、訊息中心共用 Modal 外殼 |
-| `GroupViewModal` | 管理端與訂閱端共用的群組查看/付款操作 Modal |
+| `GroupModalShell` | 探索、管理、訂閱三處群組詳情 Modal 共用的兩欄佈局殼（header、左欄內容、右欄摘要卡、捲動區、底部操作列、手機黏底列） |
+| `GroupDetailModal` | 探索頁群組詳情（`pm:open-group` 事件驅動）；使用 `GroupModalShell`，含收藏、申請加入、聯絡團主、推薦群組輪播 |
+| `GroupViewModal` | 管理端（團主）與訂閱端（成員）的群組操作 Modal；依角色切換 HostView / MemberView，底部操作列按鈕各自開啟獨立子 Modal（成員名單、申請管理、收款紀錄 / 付款紀錄） |
 | `FilterTabsBar` | 管理群組、我的訂閱等頁面的可重用分頁篩選列 |
 | `ToastContainer` / `toast.js` | 全域提示訊息（含 `aria-live="polite"` 無障礙支援） |
 | `ServiceLogo` | 依 serviceId 顯示本地或服務資料中的 Logo |
@@ -209,8 +211,8 @@ flowchart TD
 操作說明：
 
 1. 從側欄點「建立群組」開始 4 步驟表單。
-2. 建立成功後，群組會出現在「群組管理」。
-3. 團主可在群組卡片查看待處理申請、付款狀態與本期收款。
+2. 建立成功後，群組會出現在「群組管理」；卡片顯示狀態、待處理申請數、收款紀錄等資訊，僅供檢視。
+3. 點擊卡片的「查看群組」開啟 **GroupViewModal**，從底部操作列進入「申請管理」或「收款紀錄」子 Modal 執行操作。
 4. 申請核准後，名額會同步減少；額滿時群組狀態會推進到 `full`。
 
 ### 4. 付款確認與啟用服務
@@ -235,10 +237,10 @@ flowchart TD
 
 操作說明：
 
-1. 會員完成實際付款後，在「我的訂閱」標記已付款。
-2. 團主在「群組管理」確認是否收到款項。
-3. 全員確認後，群組會進入待啟用狀態。
-4. 團主啟用服務後，成員會收到通知，訂閱資料也會更新下次扣款日。
+1. 會員完成實際付款後，在「我的訂閱」的群組詳情（GroupViewModal）標記已付款。
+2. 團主在「群組管理」點擊「查看群組」→「收款紀錄」子 Modal 逐筆確認收款。
+3. 全員確認後，群組進入待啟用狀態；啟用按鈕出現在 GroupViewModal 右側摘要卡（桌機）或手機黏底列。
+4. 團主啟用服務後，成員收到通知，訂閱資料也會更新下次扣款日。
 
 ### 5. 訊息與通知
 
@@ -341,7 +343,7 @@ src/
 │   ├── layout/                 # AppLayout、AppNav、FloatingMessages、MobileSearch
 │   ├── route/                  # ProtectedRoute、PublicOnlyRoute
 │   ├── stores/                 # 前端業務邏輯與資料快取
-│   ├── ui/                     # 共用 UI 元件
+│   ├── ui/                     # 共用 UI 元件（含 GroupModalShell、GroupViewModal、GroupOverviewContent、GroupSummaryCard 等）
 │   └── utils/                  # 日期、搜尋、配對、狀態、toast 等工具
 └── index.css                   # Tailwind v4 theme tokens 與 component primitives
 ```
@@ -358,14 +360,16 @@ src/
 | `src/shared/layout/AppNav.jsx` | `NAV_SECTIONS`、`authStore`、`notificationStore`、`conversationStore` | 未登入項目顯示鎖頭；用 `pm:open-*` 事件開搜尋、通知、訊息、建立群組、快速配對；監聽 `pm:notif-changed` / `pm:convs-changed` 更新未讀 badge |
 | `src/features/home/HomePage.jsx` | `FeatureCards`、`ExtraFeatures`、`HowItWorks`、`HostGuide`、`FAQ` | 首頁元件從 `homeContent.js` 讀文案資料，CTA 以 navigate 或事件觸發功能 |
 | `src/features/explore/ExplorePage.jsx` | `FilterBar`、`ExploreGroupCard`、`groupStore` | `filters` props 控制分類、服務、價格與排序；卡片點擊送出 `pm:open-group` |
-| `src/features/group/GroupDetailModal.jsx` | `ApplyJoinModal`、`favoriteStore`、`applicationStore`、`memberStore` | 接收 `pm:open-group`；依使用者狀態顯示申請、收藏、付款或已加入 CTA |
+| `src/shared/ui/GroupModalShell.jsx` | `GroupOverviewContent`、`GroupSummaryCard`、`ServiceLogo`、`useScrollLock` | 三個群組詳情 Modal 共用的兩欄佈局殼；props 注入 summaryFavoriteSlot / summaryExtraRows / summaryFooter / desktopReviewsSection / afterColumns / bottomBar / mobileFooter；管理 scroll lock、Escape 關閉、左右欄高度同步（ResizeObserver） |
+| `src/features/group/GroupDetailModal.jsx` | `GroupModalShell`、`ApplyJoinModal`、`favoriteStore`、`applicationStore`、`memberStore` | 接收 `pm:open-group`；透過 GroupModalShell 渲染兩欄佈局；依使用者狀態顯示申請、收藏、付款或已加入 CTA；含推薦群組輪播 |
 | `src/features/group/components/ApplyJoinModal.jsx` | `createApplication()` | props: `group`、`isOpen`、`onClose`、`onSuccess`；送出後建立申請並通知團主 |
 | `src/features/create/CreateGroupModal.jsx` | `Step1Service`～`Step4Preview`、`LivePreviewPanel`、`createGroup()` | props: `form`、`onChange`；送出後建立 group，並觸發 `pm:group-created` |
 | `src/features/match/QuickMatchModal.jsx` | `ServiceSelectionGrid`、`MatchSummaryPanel`、`matchGroups()`、`ExploreGroupCard` | `conditions` 狀態流過各步驟；結果頁以群組卡片呈現匹配結果 |
-| `src/features/manage/ManagePage.jsx` | `HostedGroupCard`、`ApplicationsModal`、`GroupViewModal`、`RenewalModal`、`GroupHistoryModal` | 管理頁集中處理審核、建立 member/subscription、確認付款、啟用群組 |
+| `src/features/manage/ManagePage.jsx` | `HostedGroupCard`、`GroupViewModal`、`RenewalModal`、`GroupHistoryModal` | 管理頁集中處理審核、建立 member/subscription、確認付款、啟用群組；審核與收款確認已整合至 GroupViewModal 子 Modal，不再使用獨立 ApplicationsModal |
 | `src/features/subscriptions/SubscriptionsPage.jsx` | `SubscriptionCard`、`GroupViewModal`、`subscriptionStore`、`memberStore` | 重新同步訂閱資料；以待處理、已啟用、即將續訂分類顯示；標記付款時同步 subscription 與 member 狀態並建立通知 |
 | `src/features/messages/MessagesModal.jsx` | `conversationStore`、`messagesApi`、子元件 `ConversationList`、`ChatWindow`、`ConfirmDialog` | 接收 `pm:open-messages` / `pm:open-dm`；監聽 `pm:convs-changed` 同步對話列表；透過 `subscribeToMessages` 訂閱即時訊息；狀態管理與 UI 渲染分離 |
 | `src/shared/layout/FloatingMessages.jsx` | `notificationStore` | 接收 `pm:open-notify`；訪客只取公開系統公告，會員合併個人通知與系統公告 |
+| `src/shared/ui/GroupViewModal.jsx` | `GroupModalShell`、`Modal`、`ConfirmDialog`、`memberStore`、`applicationStore`、`subscriptionStore`、`paymentStore`、`leaveGroupFlow` | 依 isHost 切換 HostView / MemberView；各 view 透過 GroupModalShell 渲染完整 Modal（含 portal）；底部三按鈕分別開啟獨立子 Modal；HostView 含申請管理 / 收款紀錄 / 成員名單；MemberView 含成員名單 / 付款紀錄 / 退出群組 |
 | `src/shared/stores/*` | `src/shared/api/*`、`src/shared/utils/*` | stores 保存前端快取並封裝業務流程，api 檔只處理 Firestore CRUD/subscribe |
 
 ---
@@ -477,6 +481,39 @@ Demo seed 內容包含：
 | 資料一致性 | 若使用者只有訂閱記錄但沒有 member 記錄，標記付款時團主端成員狀態可能無法同步；此為資料層不完整導致，需在建立訂閱時同步確保 member 存在 |
 | RWD | 部分小螢幕 Modal overflow 還可再優化 |
 | 權限 | 前端已做 ProtectedRoute 與 UI 鎖定，正式產品仍需補 Firestore Security Rules |
+
+---
+
+## 待完成項目
+
+以下為目前已知尚未完成或需補強的功能，依優先度排列：
+
+### 高優先度（影響核心流程）
+
+| 項目 | 說明 | 相關檔案 |
+|------|------|----------|
+| Firestore Security Rules | 前端已有 ProtectedRoute 與 UI 鎖定，但後端尚無 Firestore Rules，正式上線前需補上 | `firestore.rules`（待建立） |
+| 資料一致性 guard | 部分情境下可能只有 subscription 無對應 member；需在核准申請時確保兩筆同時建立，或加入防呆查詢 | `applicationStore.js`、`ManagePage.jsx` |
+| 信用評分完整機制 | 目前信用分數為靜態初始值，扣/加分邏輯（違約扣分、良好紀錄加分）尚未串通完整流程 | `authStore.js`、`memberStore.js` |
+
+### 中優先度（功能雛形待完善）
+
+| 項目 | 說明 | 相關檔案 |
+|------|------|----------|
+| RenewalModal 完整實作 | 「開始新一期收款」與「結束服務」功能目前為雛形，狀態推進與成員通知流程需完整測試 | `RenewalModal.jsx`、`groupStore.js` |
+| GroupHistoryModal 入口補強 | 元件已存在，但群組卡片缺少明確的入口按鈕；需在 HostedGroupCard 或 GroupViewModal 補上入口 | `GroupHistoryModal.jsx`、`HostedGroupCard.jsx`、`GroupViewModal.jsx` |
+| 逾期付款提醒流程 | `overdue` 狀態可識別但未自動觸發通知；需排程（Cloud Functions 或前端啟動時）掃描逾期訂閱並發送提醒 | `subscriptionStore.js`、`notificationStore.js` |
+| 即將續訂通知 | 接近 `nextBillingDate` 時未自動提醒成員付款；需補排程邏輯 | `subscriptionStore.js` |
+
+### 低優先度（體驗優化）
+
+| 項目 | 說明 | 相關檔案 |
+|------|------|----------|
+| 正式金流串接 | 付款流程目前為展示用途（標記即可），尚未串接 ECPay / 綠界或其他金流 API | `subscriptionStore.js`、付款相關頁面 |
+| 2FA / 身份驗證強化 | 目前僅 Firebase Email/Password + Google 登入，未實作第二驗證因素 | `authStore.js` |
+| RWD 小螢幕優化 | 部分頁面（尤其 Modal 底部操作列）在 375px 以下螢幕仍有 overflow 可再優化 | `GroupViewModal.jsx`、`GroupModalShell.jsx` |
+| 探索頁搜尋結果 URL 分享 | 目前篩選條件存於 sessionStorage，URL 無法直接分享當前篩選狀態 | `ExplorePage.jsx` |
+| 快速配對結果分頁 | 配對結果目前一次顯示全部，資料量大時需加入分頁或虛擬捲動 | `QuickMatchModal.jsx` |
 
 ---
 

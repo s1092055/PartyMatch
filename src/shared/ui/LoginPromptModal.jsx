@@ -22,7 +22,7 @@ export default function LoginPromptModal({ onClose }) {
     <>
       <div className="fixed inset-0 z-[60] bg-black/50" onClick={onClose} />
       <div className="pointer-events-none fixed inset-0 z-[61] flex items-center justify-center p-6">
-        <div className="pointer-events-auto w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
+        <div className="pointer-events-auto w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl animate-fade-in-up">
           <div className="mb-4 mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-brand-subtle">
             <Lock size={22} className="text-brand" />
           </div>

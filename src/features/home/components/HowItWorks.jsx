@@ -36,7 +36,7 @@ function TutorialModal({ initialIndex, onClose }) {
       onClick={handleClose}
     >
       <div
-        className="relative w-full max-w-3xl rounded-2xl bg-white shadow-2xl"
+        className="relative w-full max-w-3xl rounded-2xl bg-white shadow-2xl animate-fade-in-up"
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-5 py-4">
