@@ -5,6 +5,7 @@ import { createId } from '../utils/storage'
 let _notifications = []
 let _liveNotifications = null
 let _unsub = null
+let _subscribedUserId = null
 
 const SYSTEM_NOTIFICATION_TYPES = new Set(['system', 'announcement', 'platform'])
 
@@ -33,6 +34,7 @@ export async function initNotifications() {
 
 export function initUserNotifications(userId) {
   teardownUserNotifications()
+  _subscribedUserId = userId
   _unsub = subscribeToUserNotifications(userId, notifications => {
     _liveNotifications = notifications
     window.dispatchEvent(new CustomEvent('pm:notif-changed'))
@@ -42,6 +44,7 @@ export function initUserNotifications(userId) {
 export function teardownUserNotifications() {
   if (_unsub) { _unsub(); _unsub = null }
   _liveNotifications = null
+  _subscribedUserId = null
 }
 
 export function isSystemNotification(notification) {
@@ -92,6 +95,9 @@ export function createNotification({ userId, type, title, message }) {
     createdAt: todayISO(),
   }
   _notifications.unshift(notif)
+  if (_liveNotifications !== null && userId === _subscribedUserId) {
+    _liveNotifications = [notif, ..._liveNotifications]
+  }
   insertNotification(notif).catch(console.error)
   window.dispatchEvent(new CustomEvent('pm:notif-changed'))
   return notif

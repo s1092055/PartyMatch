@@ -1,5 +1,5 @@
 import { db } from '../../app/firebase'
-import { collection, doc, getDocs, setDoc, updateDoc, deleteDoc } from 'firebase/firestore'
+import { collection, doc, getDocs, onSnapshot, setDoc, updateDoc, deleteDoc } from 'firebase/firestore'
 import { demoAwareCollection } from './demoCollection'
 
 const COLLECTION = demoAwareCollection('members')
@@ -7,6 +7,14 @@ const COLLECTION = demoAwareCollection('members')
 export async function readAllMembers() {
   const snapshot = await getDocs(collection(db, COLLECTION))
   return snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
+}
+
+export function subscribeToMembers(onUpdate) {
+  return onSnapshot(
+    collection(db, COLLECTION),
+    snapshot => onUpdate(snapshot.docs.map(d => ({ id: d.id, ...d.data() }))),
+    err => console.error('[membersApi] subscribe error:', err),
+  )
 }
 
 export async function insertMember(record) {

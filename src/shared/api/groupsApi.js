@@ -1,5 +1,5 @@
 import { db } from '../../app/firebase'
-import { collection, doc, getDocs, setDoc, updateDoc } from 'firebase/firestore'
+import { collection, doc, getDocs, onSnapshot, setDoc, updateDoc } from 'firebase/firestore'
 import { normalizeGroup } from '../utils/modelNormalizers'
 import { demoAwareCollection } from './demoCollection'
 
@@ -8,6 +8,14 @@ const COLLECTION = demoAwareCollection('groups')
 export async function readAllGroups() {
   const snapshot = await getDocs(collection(db, COLLECTION))
   return snapshot.docs.map(d => normalizeGroup({ id: d.id, ...d.data() }))
+}
+
+export function subscribeToGroups(onUpdate) {
+  return onSnapshot(
+    collection(db, COLLECTION),
+    snapshot => onUpdate(snapshot.docs.map(d => normalizeGroup({ id: d.id, ...d.data() }))),
+    err => console.error('[groupsApi] subscribe error:', err),
+  )
 }
 
 export async function insertGroup(record) {

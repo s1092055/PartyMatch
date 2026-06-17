@@ -1,4 +1,4 @@
-import { readAllGroups, insertGroup, patchGroup } from '../api/groupsApi'
+import { readAllGroups, subscribeToGroups, insertGroup, patchGroup } from '../api/groupsApi'
 import { createGroupConversation } from '../api/messagesApi'
 import { toISODate, todayISO } from '../utils/date'
 import { createId } from '../utils/storage'
@@ -6,9 +6,22 @@ import { getActiveUserProfile } from './authStore'
 import { normalizeGroup } from '../utils/modelNormalizers'
 
 let _groups = []
+let _unsub = null
 
 export async function initGroups() {
   _groups = await readAllGroups()
+}
+
+export function initLiveGroups() {
+  teardownLiveGroups()
+  _unsub = subscribeToGroups(groups => {
+    _groups = groups
+    if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('pm:groups-changed'))
+  })
+}
+
+export function teardownLiveGroups() {
+  if (_unsub) { _unsub(); _unsub = null }
 }
 
 function applyPatch(id, patch) {

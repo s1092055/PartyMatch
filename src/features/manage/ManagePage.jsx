@@ -63,19 +63,19 @@ const [viewGroupId, setViewGroupId]                   = useState(null)
   const [renewalModalGroupId, setRenewalModalGroupId] = useState(null)
 
 useEffect(() => {
-    function onApplicationsChanged(e) {
-      if (!activeUserId) return
-      const changedApp = e.detail?.application
-      if (changedApp?.hostId && changedApp.hostId !== activeUserId) return
-
-      setManageData(prev => ({
-        ...prev,
-        applications: getApplicationsByHostId(activeUserId, prev.hostedGroups),
-      }))
+    function reload() {
+      if (!activeUser) return
+      setManageData(loadManageData(activeUser))
     }
-    window.addEventListener('pm:applications-changed', onApplicationsChanged)
-    return () => window.removeEventListener('pm:applications-changed', onApplicationsChanged)
-  }, [activeUserId])
+    window.addEventListener('pm:applications-changed', reload)
+    window.addEventListener('pm:groups-changed', reload)
+    window.addEventListener('pm:members-changed', reload)
+    return () => {
+      window.removeEventListener('pm:applications-changed', reload)
+      window.removeEventListener('pm:groups-changed', reload)
+      window.removeEventListener('pm:members-changed', reload)
+    }
+  }, [activeUser])
 
   useEffect(() => {
     function onGroupCreated() {

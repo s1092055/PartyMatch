@@ -13,6 +13,10 @@ import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { patchUserCreditScore, upsertUserProfile } from '../api/usersApi'
 import { initConversations, teardownConversations } from './conversationStore'
 import { initUserNotifications, teardownUserNotifications } from './notificationStore'
+import { initLiveApplications, teardownLiveApplications } from './applicationStore'
+import { initLiveGroups, teardownLiveGroups } from './groupStore'
+import { initLiveMembers, teardownLiveMembers } from './memberStore'
+import { initLiveSubscriptions, teardownLiveSubscriptions } from './subscriptionStore'
 import { todayISO } from '../utils/date'
 
 let _currentUser = null
@@ -71,6 +75,10 @@ export function initAuth() {
         _currentUser = await buildUserProfile(firebaseUser)
         initConversations(_currentUser.id)
         initUserNotifications(_currentUser.id)
+        initLiveApplications()
+        initLiveGroups()
+        initLiveMembers()
+        initLiveSubscriptions()
       } else {
         _currentUser = null
       }
@@ -99,6 +107,10 @@ export async function loginUser({ email, password }) {
     _currentUser = await buildUserProfile(result.user)
     initConversations(_currentUser.id)
     initUserNotifications(_currentUser.id)
+    initLiveApplications()
+    initLiveGroups()
+    initLiveMembers()
+    initLiveSubscriptions()
     window.dispatchEvent(new CustomEvent('pm:auth-changed'))
     return { ok: true, user: _currentUser }
   } catch (err) {
@@ -114,6 +126,10 @@ export async function loginWithGoogle() {
     _currentUser = await buildUserProfile(result.user)
     initConversations(_currentUser.id)
     initUserNotifications(_currentUser.id)
+    initLiveApplications()
+    initLiveGroups()
+    initLiveMembers()
+    initLiveSubscriptions()
     window.dispatchEvent(new CustomEvent('pm:auth-changed'))
     return { ok: true, user: _currentUser }
   } catch (err) {
@@ -144,6 +160,10 @@ export async function registerUser({ name, email, password }) {
     _currentUser = { id: result.user.uid, ...profile, displayName: name }
     initConversations(_currentUser.id)
     initUserNotifications(_currentUser.id)
+    initLiveApplications()
+    initLiveGroups()
+    initLiveMembers()
+    initLiveSubscriptions()
     window.dispatchEvent(new CustomEvent('pm:auth-changed'))
     return { ok: true, user: _currentUser }
   } catch (err) {
@@ -155,6 +175,10 @@ export async function logoutUser() {
   try { await signOut(auth) } catch { /* ignore network errors */ }
   teardownConversations()
   teardownUserNotifications()
+  teardownLiveApplications()
+  teardownLiveGroups()
+  teardownLiveMembers()
+  teardownLiveSubscriptions()
   _currentUser = null
 }
 

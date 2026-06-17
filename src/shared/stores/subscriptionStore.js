@@ -1,10 +1,11 @@
-import { readAllSubscriptions, insertSubscription, patchSubscription } from '../api/subscriptionsApi'
+import { readAllSubscriptions, subscribeToSubscriptions, insertSubscription, patchSubscription } from '../api/subscriptionsApi'
 import { normalizeSubscription } from '../utils/modelNormalizers'
 import { todayISO } from '../utils/date'
 import { createId } from '../utils/storage'
 import { getCurrentUser } from './authStore'
 
 let _subs = []
+let _unsub = null
 
 function emitSubscriptionsChanged(detail = {}) {
   if (typeof window === 'undefined') return
@@ -13,6 +14,18 @@ function emitSubscriptionsChanged(detail = {}) {
 
 export async function initSubscriptions() {
   _subs = await readAllSubscriptions()
+}
+
+export function initLiveSubscriptions() {
+  teardownLiveSubscriptions()
+  _unsub = subscribeToSubscriptions(subs => {
+    _subs = subs
+    emitSubscriptionsChanged()
+  })
+}
+
+export function teardownLiveSubscriptions() {
+  if (_unsub) { _unsub(); _unsub = null }
 }
 
 export function getSubscriptionsByUserId(userId) {

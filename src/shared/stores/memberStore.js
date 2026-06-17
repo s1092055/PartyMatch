@@ -1,12 +1,25 @@
-import { readAllMembers, insertMember, patchMember, deleteMemberRecord } from '../api/membersApi'
+import { readAllMembers, subscribeToMembers, insertMember, patchMember, deleteMemberRecord } from '../api/membersApi'
 import { todayISO } from '../utils/date'
 import { createId } from '../utils/storage'
 import { getCurrentUser } from './authStore'
 
 let _members = []
+let _unsub = null
 
 export async function initMembers() {
   _members = await readAllMembers()
+}
+
+export function initLiveMembers() {
+  teardownLiveMembers()
+  _unsub = subscribeToMembers(members => {
+    _members = members
+    if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('pm:members-changed'))
+  })
+}
+
+export function teardownLiveMembers() {
+  if (_unsub) { _unsub(); _unsub = null }
 }
 
 export function getMembersByGroupId(groupId) {

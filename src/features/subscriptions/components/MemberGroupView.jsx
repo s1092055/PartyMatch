@@ -28,9 +28,10 @@ export default function MemberGroupView({ group, onMarkPaid, onClose }) {
     ? getPaymentRecordsBySubscriptionId(sub.id).sort((a, b) => (b.paidAt ?? '').localeCompare(a.paidAt ?? ''))
     : []
 
-  const serviceDef  = getServiceById(group.serviceId)
-  const planDef     = serviceDef?.plans.find(p => p.name === group.planName)
-  const isEnded     = ['paused', 'cancelled', 'ended'].includes(group.status)
+  const serviceDef       = getServiceById(group.serviceId)
+  const planDef          = serviceDef?.plans.find(p => p.name === group.planName)
+  const isEnded          = ['paused', 'cancelled', 'ended'].includes(group.status)
+  const isPaymentRelevant = !['recruiting', 'full'].includes(group.status)
 
   function openMessages() {
     onClose()
@@ -50,7 +51,7 @@ export default function MemberGroupView({ group, onMarkPaid, onClose }) {
     onClose()
   }
 
-  const markPaidCta = myMember?.paymentStatus === 'pending' && sub && (
+  const markPaidCta = isPaymentRelevant && myMember?.paymentStatus === 'pending' && sub && (
     <div className="p-4">
       <button
         onClick={() => { onMarkPaid?.(sub); onClose() }}
@@ -68,7 +69,7 @@ export default function MemberGroupView({ group, onMarkPaid, onClose }) {
       service={serviceDef}
       plan={planDef}
       summaryExtraRows={
-        myMember ? (
+        myMember && isPaymentRelevant ? (
           <div className="px-6 py-4 lg:px-8">
             <p className="mb-2 text-xs text-ink-4">我的付款狀態</p>
             <PaymentStatusBadge status={myMember.paymentStatus} />
@@ -77,30 +78,36 @@ export default function MemberGroupView({ group, onMarkPaid, onClose }) {
       }
       summaryFooter={markPaidCta || undefined}
       mobileFooter={markPaidCta || undefined}
-      bottomBar={
-        <div className={`grid gap-1 p-2 ${isEnded ? 'grid-cols-2' : 'grid-cols-3'}`}>
-          <button
-            onClick={() => setShowMembers(true)}
-            className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
-          >
-            <Users size={17} /> 成員名單
-          </button>
-          <button
-            onClick={() => setShowPayments(true)}
-            className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
-          >
-            <Receipt size={17} /> 付款紀錄
-          </button>
-          {!isEnded && (
+      bottomBar={(() => {
+        const btnCount = 1 + (isPaymentRelevant ? 1 : 0) + (!isEnded ? 1 : 0)
+        const colsCls = btnCount === 3 ? 'grid-cols-3' : btnCount === 2 ? 'grid-cols-2' : 'grid-cols-1'
+        return (
+          <div className={`grid gap-1 p-2 ${colsCls}`}>
             <button
-              onClick={() => setConfirmingLeave(true)}
-              className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-danger transition-colors hover:bg-danger-subtle"
+              onClick={() => setShowMembers(true)}
+              className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
             >
-              <LogOut size={17} /> 退出群組
+              <Users size={17} /> 成員名單
             </button>
-          )}
-        </div>
-      }
+            {isPaymentRelevant && (
+              <button
+                onClick={() => setShowPayments(true)}
+                className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
+              >
+                <Receipt size={17} /> 付款紀錄
+              </button>
+            )}
+            {!isEnded && (
+              <button
+                onClick={() => setConfirmingLeave(true)}
+                className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-danger transition-colors hover:bg-danger-subtle"
+              >
+                <LogOut size={17} /> 退出群組
+              </button>
+            )}
+          </div>
+        )
+      })()}
     >
       {/* 退出群組確認 */}
       {confirmingLeave && (

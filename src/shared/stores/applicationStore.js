@@ -1,4 +1,4 @@
-import { readAllApplications, insertApplication, patchApplication } from '../api/applicationsApi'
+import { readAllApplications, subscribeToApplications, insertApplication, patchApplication } from '../api/applicationsApi'
 import { addParticipantToConversation, sendSystemMessage } from '../api/messagesApi'
 import { normalizeApplication } from '../utils/modelNormalizers'
 import { todayISO } from '../utils/date'
@@ -7,6 +7,7 @@ import { getActiveUserProfile } from './authStore'
 import { createNotification } from './notificationStore'
 
 let _apps = []
+let _unsub = null
 
 function emitApplicationsChanged(detail = {}) {
   if (typeof window === 'undefined') return
@@ -15,6 +16,18 @@ function emitApplicationsChanged(detail = {}) {
 
 export async function initApplications() {
   _apps = await readAllApplications()
+}
+
+export function initLiveApplications() {
+  teardownLiveApplications()
+  _unsub = subscribeToApplications(applications => {
+    _apps = applications
+    emitApplicationsChanged()
+  })
+}
+
+export function teardownLiveApplications() {
+  if (_unsub) { _unsub(); _unsub = null }
 }
 
 export function getApplicationsByGroupId(groupId) {
@@ -69,6 +82,12 @@ export function createApplication({ groupId, groupName, serviceId, serviceName, 
     type:    'new_application',
     title:   '收到新的加入申請',
     message: `${app.applicantName} 申請加入「${app.groupName ?? app.serviceName}」群組。`,
+  })
+  createNotification({
+    userId:  app.applicantId,
+    type:    'application_sent',
+    title:   '申請已送出',
+    message: `你的加入申請已送達「${app.groupName ?? app.serviceName}」團主，等待審核。`,
   })
   emitApplicationsChanged({ type: 'created', application: app })
   return app
