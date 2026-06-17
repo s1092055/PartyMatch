@@ -113,9 +113,9 @@ export default function RegisterPage() {
           />
           <span>
             我已閱讀並同意{' '}
-            <button type="button" className="font-bold text-brand hover:text-brand-hover">服務條款</button>
+            <Link to="/terms" target="_blank" className="font-bold text-brand hover:text-brand-hover">服務條款</Link>
             {' '}與{' '}
-            <button type="button" className="font-bold text-brand hover:text-brand-hover">隱私政策</button>
+            <Link to="/privacy" target="_blank" className="font-bold text-brand hover:text-brand-hover">隱私政策</Link>
           </span>
         </label>
 
