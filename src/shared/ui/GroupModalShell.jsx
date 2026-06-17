@@ -3,8 +3,10 @@ import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import ServiceLogo from './ServiceLogo'
 import GroupOverviewContent from './GroupOverviewContent'
-import GroupSummaryCard from './GroupSummaryCard'
 import ProgressBar from './ProgressBar'
+import Badge from './Badge'
+import { TagChip } from './GroupOverviewContent'
+import { getInfoRows } from '../utils/groupDisplay'
 import { useScrollLock } from '../utils/hooks'
 
 // 三個群組詳情 modal（探索、管理、訂閱）共用的佈局殼。
@@ -106,12 +108,56 @@ export default function GroupModalShell({
 
               {/* 右欄：摘要卡（桌機才顯示） */}
               <div ref={summaryRef} className="hidden lg:order-2 lg:block lg:w-[20rem] lg:shrink-0">
-                <GroupSummaryCard
-                  group={group}
-                  favoriteSlot={summaryFavoriteSlot}
-                  extraRows={summaryExtraRows}
-                  footer={summaryFooter}
-                />
+                {(() => {
+                  const infoRows = getInfoRows(group)
+                  const tags = group.tags ?? []
+                  return (
+                    <div className="card divide-y divide-line-subtle overflow-hidden">
+                      <div className="flex items-start justify-between px-6 py-4 lg:px-8">
+                        <div>
+                          <p className="mb-0.5 text-xs font-medium text-ink-4">每席價格</p>
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-3xl font-extrabold text-ink">NT${group.pricePerSeat}</span>
+                            <span className="text-sm text-ink-3">/每月</span>
+                          </div>
+                        </div>
+                        {summaryFavoriteSlot}
+                      </div>
+
+                      <div className="px-6 py-4 lg:px-8">
+                        <div className="mb-2 flex items-center justify-between text-sm">
+                          <span className="text-ink-3">剩餘名額</span>
+                          <span className="font-semibold text-ink">{group.openSeats} 位</span>
+                        </div>
+                        <ProgressBar value={group.usedSeats} max={group.totalSeats} />
+                      </div>
+
+                      {tags.length > 0 && (
+                        <div className="flex flex-wrap gap-2 px-6 py-4 lg:px-8">
+                          {tags.map(tag => <TagChip key={tag} label={tag} />)}
+                        </div>
+                      )}
+
+                      {infoRows.length > 0 && (
+                        <div className="px-6 py-4 lg:px-8">
+                          <div className="space-y-2">
+                            {infoRows.map(({ label, value, badge }) => (
+                              <div key={label} className="flex gap-3 text-sm">
+                                <span className="w-14 shrink-0 text-ink-4">{label}</span>
+                                <span className="flex-1 text-ink-2">
+                                  {badge ? <Badge variant={badge} /> : value}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {summaryExtraRows}
+                      {summaryFooter}
+                    </div>
+                  )
+                })()}
               </div>
             </div>
 

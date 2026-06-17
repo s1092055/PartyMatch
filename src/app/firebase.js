@@ -1,8 +1,6 @@
-
-
 import { initializeApp } from 'firebase/app'
-import { getFirestore }   from 'firebase/firestore'
-import { getAuth }        from 'firebase/auth'
+import { initializeFirestore, persistentLocalCache } from 'firebase/firestore'
+import { getAuth } from 'firebase/auth'
 
 const firebaseConfig = {
   apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
@@ -14,5 +12,11 @@ const firebaseConfig = {
 }
 
 const firebaseApp = initializeApp(firebaseConfig)
-export const db   = getFirestore(firebaseApp)
+
+// Safari 的 WebSocket/WebChannel 連線常靜默斷線，用 experimentalForceLongPolling 改為 HTTP long-polling。
+// persistentLocalCache 讓離線快取也生效。
+export const db = initializeFirestore(firebaseApp, {
+  localCache: persistentLocalCache(),
+  experimentalForceLongPolling: true,
+})
 export const auth = getAuth(firebaseApp)
