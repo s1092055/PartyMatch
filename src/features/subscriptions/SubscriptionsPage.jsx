@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { CheckCircle, ClipboardList, Clock, XCircle } from 'lucide-react'
 import { getSubscriptionsByUserId, initSubscriptions, markSubscriptionPaid } from '../../shared/stores/subscriptionStore'
 import { getMemberByUserAndGroup, initMembers, updateMember } from '../../shared/stores/memberStore'
@@ -62,9 +62,15 @@ function filterSubs(subs, tab) {
 
 export default function SubscriptionsPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const activeUser = getCurrentUser()
   const activeUserId = activeUser?.id ?? null
-  const [activeTab, setActiveTab] = useState('all')
+  const [activeTab, setActiveTab] = useState(() => location.state?.tab ?? 'all')
+
+  useEffect(() => {
+    if (location.state?.tab) setActiveTab(location.state.tab)
+  }, [location.state?.tab]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const [subs, setSubs] = useState(() =>
     activeUserId ? enrichSubs(getSubscriptionsByUserId(activeUserId)) : []
   )

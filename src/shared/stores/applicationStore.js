@@ -30,12 +30,16 @@ export function teardownLiveApplications() {
   if (_unsub) { _unsub(); _unsub = null }
 }
 
+function byNewest(a, b) {
+  return String(b.createdAt ?? '').localeCompare(String(a.createdAt ?? ''))
+}
+
 export function getApplicationsByGroupId(groupId) {
-  return _apps.filter(a => a.groupId === groupId)
+  return _apps.filter(a => a.groupId === groupId).sort(byNewest)
 }
 
 export function getApplicationsByUserId(userId) {
-  return _apps.filter(a => (a.applicantId ?? a.userId) === userId)
+  return _apps.filter(a => (a.applicantId ?? a.userId) === userId).sort(byNewest)
 }
 
 export function getApplicationByUserAndGroup(userId, groupId) {
@@ -46,7 +50,7 @@ export function getApplicationByUserAndGroup(userId, groupId) {
 
 export function getApplicationsByHostId(hostId, groups) {
   const hostGroupIds = new Set(groups.filter(g => g.hostId === hostId).map(g => g.id))
-  return _apps.filter(a => hostGroupIds.has(a.groupId))
+  return _apps.filter(a => hostGroupIds.has(a.groupId)).sort(byNewest)
 }
 
 export function createApplication({ groupId, groupName, serviceId, serviceName, planName, hostId, hostName, hostAvatarInitial, hostAvatarColor, message }) {
