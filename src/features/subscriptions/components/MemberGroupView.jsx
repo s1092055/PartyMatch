@@ -115,7 +115,7 @@ export default function MemberGroupView({ group, onMarkPaid, onClose }) {
       )}
 
       {/* ── 成員名單 Modal ── */}
-      <Modal isOpen={showMembers} onClose={() => setShowMembers(false)} title={`成員名單（${members.length + 1} 人）`} maxWidth="max-w-lg">
+      <Modal isOpen={showMembers} onClose={() => setShowMembers(false)} title={`成員名單（${members.length + 1} 人）`} maxWidth="max-w-lg" sub>
         <div className="max-h-[60vh] overflow-y-auto p-5">
           <div className="space-y-2">
             <div className="rounded-xl border border-line p-3">
@@ -160,7 +160,7 @@ export default function MemberGroupView({ group, onMarkPaid, onClose }) {
       </Modal>
 
       {/* ── 付款紀錄 Modal ── */}
-      <Modal isOpen={showPayments} onClose={() => setShowPayments(false)} title="付款紀錄" maxWidth="max-w-lg">
+      <Modal isOpen={showPayments} onClose={() => setShowPayments(false)} title="付款紀錄" maxWidth="max-w-lg" sub>
         <div className="max-h-[60vh] overflow-y-auto p-5">
           {payRecords.length === 0 ? (
             <EmptyState icon={Receipt} title="尚無付款紀錄" />

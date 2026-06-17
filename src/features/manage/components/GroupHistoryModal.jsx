@@ -34,8 +34,9 @@ export default function GroupHistoryModal({ isOpen, onClose, group, members }) {
       isOpen={isOpen}
       onClose={onClose}
       title="群組紀錄"
-      titleIcon={<History size={16} className="text-ink-3" />}
+      icon={<History size={16} className="text-ink-3" />}
       maxWidth="max-w-lg"
+      sub
     >
       <div className="max-h-[75vh] overflow-y-auto p-5">
         

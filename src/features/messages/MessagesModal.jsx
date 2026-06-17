@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { MessageSquare } from 'lucide-react'
-import ModalShell from '../../shared/ui/ModalShell'
+import Modal from '../../shared/ui/Modal'
 import LoginPromptModal from '../../shared/ui/LoginPromptModal'
 import { getCurrentUser, isAuthenticated } from '../../shared/stores/authStore'
 import { getConversations } from '../../shared/stores/conversationStore'
@@ -246,7 +246,7 @@ export default function MessagesModal() {
           onCancel={() => setConfirmDialog(null)}
         />
       )}
-      <ModalShell
+      <Modal
         onClose={handleClose}
         icon={<MessageSquare size={20} className="text-brand" />}
         title="訊息中心"
@@ -293,7 +293,7 @@ export default function MessagesModal() {
             />
           </div>
         </div>
-      </ModalShell>
+      </Modal>
     </>
   )
 }

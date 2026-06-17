@@ -15,7 +15,7 @@ import Step2Plan from "./components/steps/Step2Plan";
 import Step3Settings from "./components/steps/Step3Settings";
 import Step4Preview from "./components/steps/Step4Preview";
 import Button from "../../shared/ui/Button";
-import ModalShell from "../../shared/ui/ModalShell";
+import Modal from '../../shared/ui/Modal'
 import LoginPromptModal from "../../shared/ui/LoginPromptModal";
 import { createGroup } from "../../shared/stores/groupStore";
 import { getServiceById } from "../../shared/utils/serviceUtils";
@@ -228,7 +228,7 @@ export default function CreateGroupModal() {
   );
 
   return (
-    <ModalShell
+    <Modal
       onClose={handleClose}
       icon={<PlusCircle size={20} className="text-brand" />}
       title="建立群組"
@@ -313,6 +313,6 @@ export default function CreateGroupModal() {
           </div>
         </div>
       )}
-    </ModalShell>
+    </Modal>
   );
 }

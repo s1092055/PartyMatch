@@ -212,7 +212,7 @@ export default function HostGroupView({ group, members, applications, onConfirmM
       )}
 
       {/* ── 成員名單 Modal ── */}
-      <Modal isOpen={showMembers} onClose={() => setShowMembers(false)} title={`成員名單（${members.length + 1} 人）`} maxWidth="max-w-lg">
+      <Modal isOpen={showMembers} onClose={() => setShowMembers(false)} title={`成員名單（${members.length + 1} 人）`} maxWidth="max-w-lg" sub>
         <div className="max-h-[60vh] overflow-y-auto p-5">
           <div className="mb-3 flex items-center justify-between text-xs text-ink-3">
             <span>{confirmedCount}/{members.length} 已確認</span>
@@ -286,7 +286,7 @@ export default function HostGroupView({ group, members, applications, onConfirmM
       </Modal>
 
       {/* ── 申請管理 Modal ── */}
-      <Modal isOpen={showApplications} onClose={() => setShowApplications(false)} title="申請管理" maxWidth="max-w-lg">
+      <Modal isOpen={showApplications} onClose={() => setShowApplications(false)} title="申請管理" maxWidth="max-w-lg" sub>
         <div className="max-h-[60vh] overflow-y-auto p-5">
           {applications.length === 0 ? (
             <EmptyState icon={ClipboardList} title="目前沒有任何申請紀錄" description="你的群組暫時沒有新的加入申請。" />
@@ -308,7 +308,7 @@ export default function HostGroupView({ group, members, applications, onConfirmM
       </Modal>
 
       {/* ── 收款紀錄 Modal ── */}
-      <Modal isOpen={showBilling} onClose={() => setShowBilling(false)} title="收款紀錄" maxWidth="max-w-lg">
+      <Modal isOpen={showBilling} onClose={() => setShowBilling(false)} title="收款紀錄" maxWidth="max-w-lg" sub>
         <div className="max-h-[60vh] overflow-y-auto p-5">
           <div className="mb-3 flex items-center justify-between text-xs text-ink-3">
             <span>{confirmedCount}/{members.length} 已確認</span>

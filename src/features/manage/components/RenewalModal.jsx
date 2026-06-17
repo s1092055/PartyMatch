@@ -21,8 +21,9 @@ export default function RenewalModal({ isOpen, onClose, group, onStartRenewal, o
       isOpen={isOpen}
       onClose={onClose}
       title="續訂管理"
-      titleIcon={<RefreshCw size={16} className="text-brand" />}
+      icon={<RefreshCw size={16} className="text-brand" />}
       maxWidth="max-w-sm"
+      sub
     >
       <div className="p-5">
         

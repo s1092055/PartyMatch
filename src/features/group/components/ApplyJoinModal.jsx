@@ -35,7 +35,7 @@ export default function ApplyJoinModal({ group, isOpen, onClose, onSuccess }) {
   }
 
   return (
-    <Modal isOpen={isOpen && !!group} onClose={handleClose} title="申請加入群組">
+    <Modal isOpen={isOpen && !!group} onClose={handleClose} title="申請加入群組" sub>
       {submitted ? (
         <div className="px-5 py-10 flex flex-col items-center gap-3 text-center">
           <div className="w-14 h-14 rounded-full bg-success-subtle flex items-center justify-center">

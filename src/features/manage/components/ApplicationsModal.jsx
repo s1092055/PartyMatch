@@ -8,8 +8,9 @@ export default function ApplicationsModal({ isOpen, onClose, applications, group
       isOpen={isOpen}
       onClose={onClose}
       title={groupName ? `${groupName} 申請紀錄` : '申請紀錄'}
-      titleIcon={<ClipboardList size={16} className="text-amber-500" />}
+      icon={<ClipboardList size={16} className="text-amber-500" />}
       maxWidth="max-w-2xl"
+      sub
     >
       <div className="max-h-[70vh] overflow-y-auto p-5">
         <ApplicationsTab

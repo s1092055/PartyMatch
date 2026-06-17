@@ -9,7 +9,7 @@ import MatchConditionBar from './components/MatchConditionBar'
 import ExploreGroupCard from '../explore/components/ExploreGroupCard'
 import CreateGroupStepper from '../create/components/CreateGroupStepper'
 import Button from '../../shared/ui/Button'
-import ModalShell from '../../shared/ui/ModalShell'
+import Modal from '../../shared/ui/Modal'
 import { getGroups } from '../../shared/stores/groupStore'
 import { matchGroups } from '../../shared/utils/matchGroups'
 
@@ -345,7 +345,7 @@ export default function QuickMatchModal() {
   )
 
   return (
-    <ModalShell
+    <Modal
       onClose={() => setIsOpen(false)}
       icon={<Zap size={20} className="fill-success text-success" />}
       title="快速配對"
@@ -377,6 +377,6 @@ export default function QuickMatchModal() {
           />
         )}
       </div>
-    </ModalShell>
+    </Modal>
   )
 }
