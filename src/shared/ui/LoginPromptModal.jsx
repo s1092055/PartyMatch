@@ -3,9 +3,11 @@ import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { LogIn, Lock } from 'lucide-react'
 import Button from './Button'
+import { useScrollLock } from '../utils/hooks'
 
 export default function LoginPromptModal({ onClose }) {
   const navigate = useNavigate()
+  useScrollLock(true)
 
   useEffect(() => {
     function onKeyDown(e) { if (e.key === 'Escape') onClose() }

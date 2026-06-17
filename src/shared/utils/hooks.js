@@ -9,14 +9,14 @@ export function useScrollLock(enabled) {
     _lockCount++
     if (_lockCount === 1) {
       const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
-      document.documentElement.style.overflowY = 'hidden'
+      document.documentElement.style.overflow = 'hidden'
       document.documentElement.style.paddingRight = `${scrollbarWidth}px`
       document.documentElement.style.setProperty('--scrollbar-compensation', `${scrollbarWidth}px`)
     }
     return () => {
       _lockCount--
       if (_lockCount === 0) {
-        document.documentElement.style.overflowY = ''
+        document.documentElement.style.overflow = ''
         document.documentElement.style.paddingRight = ''
         document.documentElement.style.setProperty('--scrollbar-compensation', '0px')
       }

@@ -30,8 +30,9 @@ export default function GroupModalShell({
 }) {
   useScrollLock(true)
 
-  const summaryRef = useRef(null)
-  const leftColRef = useRef(null)
+  const summaryRef    = useRef(null)
+  const leftColRef    = useRef(null)
+  const scrollBodyRef = useRef(null)
 
   useEffect(() => {
     function onKeyDown(e) { if (e.key === 'Escape') onClose() }
@@ -51,6 +52,7 @@ export default function GroupModalShell({
       }
     }
     syncHeight()
+    if (scrollBodyRef.current) scrollBodyRef.current.scrollTop = 0
     if (leftColRef.current) leftColRef.current.scrollTop = 0
     const ro = new ResizeObserver(syncHeight)
     if (summaryRef.current) ro.observe(summaryRef.current)
@@ -82,7 +84,7 @@ export default function GroupModalShell({
           </div>
 
           {/* ── 可捲動內容區 ── */}
-          <div className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div ref={scrollBodyRef} className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
 
             {/* 兩欄佈局 */}
             <div className="flex flex-col gap-4 p-6 lg:flex-row lg:items-start lg:gap-6 lg:p-8">

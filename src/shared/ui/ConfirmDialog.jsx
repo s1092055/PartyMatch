@@ -1,6 +1,8 @@
 import { createPortal } from 'react-dom'
+import { useScrollLock } from '../utils/hooks'
 
 export default function ConfirmDialog({ title, message, confirmLabel, danger = false, onConfirm, onCancel }) {
+  useScrollLock(true)
   return createPortal(
     <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/50 p-4 sm:items-center">
       <div className="w-full max-w-sm animate-fade-in-up rounded-2xl bg-white p-6 shadow-2xl">
