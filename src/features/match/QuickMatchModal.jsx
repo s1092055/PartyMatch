@@ -349,6 +349,7 @@ export default function QuickMatchModal() {
       onClose={() => setIsOpen(false)}
       icon={<Zap size={20} className="fill-success text-success" />}
       title="快速配對"
+      height="min(85vh, 720px)"
       footer={footer}
     >
       <div className="shrink-0 px-6 pt-5">
