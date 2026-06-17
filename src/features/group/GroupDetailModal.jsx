@@ -88,7 +88,8 @@ export default function GroupDetailModal() {
       setRecPage(0)
       setApplyModalOpen(false)
       if (gId && activeUserId) {
-        setApplied(!!getApplicationByUserAndGroup(activeUserId, gId))
+        const existingApp = getApplicationByUserAndGroup(activeUserId, gId)
+        setApplied(!!existingApp && existingApp.status !== 'rejected')
         setIsFav(isGroupFavorited(activeUserId, gId))
       } else {
         setApplied(false)

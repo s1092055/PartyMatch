@@ -1,8 +1,10 @@
-import { readAllNotifications, insertNotification, patchNotification } from '../api/notificationsApi'
+import { readAllNotifications, subscribeToUserNotifications, insertNotification, patchNotification } from '../api/notificationsApi'
 import { todayISO } from '../utils/date'
 import { createId } from '../utils/storage'
 
 let _notifications = []
+let _liveNotifications = null
+let _unsub = null
 
 const SYSTEM_NOTIFICATION_TYPES = new Set(['system', 'announcement', 'platform'])
 
@@ -27,6 +29,19 @@ function getFallbackSystemNotifications() {
 
 export async function initNotifications() {
   _notifications = await readAllNotifications()
+}
+
+export function initUserNotifications(userId) {
+  teardownUserNotifications()
+  _unsub = subscribeToUserNotifications(userId, notifications => {
+    _liveNotifications = notifications
+    window.dispatchEvent(new CustomEvent('pm:notif-changed'))
+  })
+}
+
+export function teardownUserNotifications() {
+  if (_unsub) { _unsub(); _unsub = null }
+  _liveNotifications = null
 }
 
 export function isSystemNotification(notification) {
@@ -62,7 +77,8 @@ export function getSystemNotifications() {
 }
 
 export function getNotifications(userId) {
-  return _notifications.filter(n => n.userId === userId).sort(byNewest)
+  const source = _liveNotifications ?? _notifications.filter(n => n.userId === userId)
+  return [...source].sort(byNewest)
 }
 
 export function createNotification({ userId, type, title, message }) {
@@ -83,18 +99,22 @@ export function createNotification({ userId, type, title, message }) {
 
 export function getUnreadCount(userId) {
   if (!userId) return 0
-  return _notifications.filter(n => n.userId === userId && !n.isRead).length
+  const source = _liveNotifications ?? _notifications.filter(n => n.userId === userId)
+  return source.filter(n => !n.isRead).length
 }
 
 export function markNotificationAsRead(id) {
   _notifications = _notifications.map(n => n.id === id ? { ...n, isRead: true } : n)
+  if (_liveNotifications) _liveNotifications = _liveNotifications.map(n => n.id === id ? { ...n, isRead: true } : n)
   patchNotification(id, { isRead: true }).catch(console.error)
   window.dispatchEvent(new CustomEvent('pm:notif-changed'))
 }
 
 export function markAllAsRead(userId) {
-  const unread = _notifications.filter(n => n.userId === userId && !n.isRead)
+  const source = _liveNotifications ?? _notifications.filter(n => n.userId === userId)
+  const unread = source.filter(n => !n.isRead)
   _notifications = _notifications.map(n => n.userId === userId ? { ...n, isRead: true } : n)
+  if (_liveNotifications) _liveNotifications = _liveNotifications.map(n => ({ ...n, isRead: true }))
   unread.forEach(n => patchNotification(n.id, { isRead: true }).catch(console.error))
   window.dispatchEvent(new CustomEvent('pm:notif-changed'))
 }

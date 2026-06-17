@@ -12,6 +12,7 @@ import {
 import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { patchUserCreditScore, upsertUserProfile } from '../api/usersApi'
 import { initConversations, teardownConversations } from './conversationStore'
+import { initUserNotifications, teardownUserNotifications } from './notificationStore'
 import { todayISO } from '../utils/date'
 
 let _currentUser = null
@@ -69,6 +70,7 @@ export function initAuth() {
       if (firebaseUser) {
         _currentUser = await buildUserProfile(firebaseUser)
         initConversations(_currentUser.id)
+        initUserNotifications(_currentUser.id)
       } else {
         _currentUser = null
       }
@@ -96,6 +98,7 @@ export async function loginUser({ email, password }) {
     const result = await signInWithEmailAndPassword(auth, email, password)
     _currentUser = await buildUserProfile(result.user)
     initConversations(_currentUser.id)
+    initUserNotifications(_currentUser.id)
     window.dispatchEvent(new CustomEvent('pm:auth-changed'))
     return { ok: true, user: _currentUser }
   } catch (err) {
@@ -110,6 +113,7 @@ export async function loginWithGoogle() {
     await ensureUserProfile(result.user)
     _currentUser = await buildUserProfile(result.user)
     initConversations(_currentUser.id)
+    initUserNotifications(_currentUser.id)
     window.dispatchEvent(new CustomEvent('pm:auth-changed'))
     return { ok: true, user: _currentUser }
   } catch (err) {
@@ -139,6 +143,7 @@ export async function registerUser({ name, email, password }) {
 
     _currentUser = { id: result.user.uid, ...profile, displayName: name }
     initConversations(_currentUser.id)
+    initUserNotifications(_currentUser.id)
     window.dispatchEvent(new CustomEvent('pm:auth-changed'))
     return { ok: true, user: _currentUser }
   } catch (err) {
@@ -149,6 +154,7 @@ export async function registerUser({ name, email, password }) {
 export async function logoutUser() {
   try { await signOut(auth) } catch { /* ignore network errors */ }
   teardownConversations()
+  teardownUserNotifications()
   _currentUser = null
 }
 
