@@ -4,6 +4,7 @@ import { X } from 'lucide-react'
 import ServiceLogo from './ServiceLogo'
 import GroupOverviewContent from './GroupOverviewContent'
 import GroupSummaryCard from './GroupSummaryCard'
+import ProgressBar from './ProgressBar'
 import { useScrollLock } from '../utils/hooks'
 
 // 三個群組詳情 modal（探索、管理、訂閱）共用的佈局殼。
@@ -87,7 +88,7 @@ export default function GroupModalShell({
           <div ref={scrollBodyRef} className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
 
             {/* 兩欄佈局 */}
-            <div className="flex flex-col gap-4 p-6 lg:flex-row lg:items-start lg:gap-6 lg:p-8">
+            <div className="flex flex-col gap-4 px-6 pb-0 pt-3 lg:flex-row lg:items-start lg:gap-6 lg:p-8">
 
               {/* 左欄：服務介紹 + 加入規則 + 選填區塊 */}
               <div
@@ -116,6 +117,26 @@ export default function GroupModalShell({
 
             {/* 兩欄以下的全寬區塊（例如推薦群組） */}
             {afterColumns}
+          </div>
+
+          {/* 手機/平板：價格＋進度條＋名額摘要列 */}
+          <div className="shrink-0 border-t border-line-subtle bg-canvas px-6 py-3 lg:hidden">
+            <div className="flex items-center gap-4">
+              <div className="shrink-0">
+                <p className="mb-0.5 text-xs text-ink-4">每席價格</p>
+                <div className="flex items-baseline gap-0.5">
+                  <span className="text-xl font-extrabold text-ink">NT${group.pricePerSeat}</span>
+                  <span className="text-xs text-ink-3">/每月</span>
+                </div>
+              </div>
+              <div className="flex-1">
+                <ProgressBar value={group.usedSeats} max={group.totalSeats} />
+              </div>
+              <div className="shrink-0 text-right">
+                <p className="mb-0.5 text-xs text-ink-4">剩餘名額</p>
+                <p className="text-sm font-semibold text-ink">{group.openSeats} / {group.totalSeats} 席</p>
+              </div>
+            </div>
           </div>
 
           {/* 手機版黏底列（lg 以上隱藏） */}

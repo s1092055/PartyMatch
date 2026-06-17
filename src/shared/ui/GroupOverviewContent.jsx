@@ -1,5 +1,6 @@
 import { CheckCircle2, Clock, Info, User, Users, Calendar } from 'lucide-react'
 import { getPlanChips, getInfoRows } from '../utils/groupDisplay'
+import Badge from './Badge'
 
 // 群組詳情 modal 共用的「服務介紹」「加入條件與規則」內容區塊，
 // 探索頁（GroupDetailModal）與我的訂閱／群組管理（GroupViewModal）共用同一份，
@@ -108,51 +109,38 @@ export default function GroupOverviewContent({ group, service, plan, desktopRevi
         {desktopReviewsSection}
       </div>
 
-      {/* Mobile：群組簡述 + 服務介紹 + 規則，各自獨立區塊 */}
-      <div className="divide-y divide-line-subtle lg:hidden">
-        <div className="space-y-4 px-2 py-6">
-          <p className="text-lg font-black text-brand">群組簡述</p>
-          <div>
-            <p className="mb-0.5 text-xs font-medium text-ink-4">每席價格</p>
-            <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-extrabold text-ink">NT${group.pricePerSeat}</span>
-              <span className="text-sm text-ink-3">/每月</span>
-            </div>
-          </div>
-          <div>
-            <div className="mb-2 flex items-center justify-between text-sm">
-              <span className="text-ink-3">剩餘名額</span>
-              <span className="font-semibold text-ink">{group.openSeats} 席 / 總名額 {group.totalSeats} 席</span>
-            </div>
-          </div>
-          {tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {tags.map(tag => <TagChip key={tag} label={tag} />)}
-            </div>
-          )}
+      {/* Mobile / Tablet：群組資訊 */}
+      <div className="lg:hidden">
+        <div className="border-b border-line-subtle px-2 py-6">
+          <p className="mb-4 text-lg font-black text-brand">群組資訊</p>
           {infoRows.length > 0 && (
             <div className="space-y-2">
-              {infoRows.map(({ label, value }) => (
-                <div key={label} className="flex gap-3 text-sm">
-                  <span className="w-14 shrink-0 text-ink-4">{label}</span>
-                  <span className="flex-1 text-ink-2">{value}</span>
+              {infoRows.map(({ label, value, badge }) => (
+                <div key={label} className="flex items-center gap-3 text-sm">
+                  <span className="w-16 shrink-0 text-ink-4">{label}</span>
+                  <span className="text-ink-2">{badge ? <Badge variant={badge} /> : value}</span>
                 </div>
               ))}
             </div>
           )}
+          {tags.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {tags.map(tag => <TagChip key={tag} label={tag} />)}
+            </div>
+          )}
         </div>
 
-        <div className="space-y-4 px-2 py-6">
+        <div className="space-y-4 border-b border-line-subtle px-2 py-6">
           <p className="text-lg font-black text-brand">服務介紹</p>
           <ServiceIntro service={service} plan={plan} planChips={planChips} />
         </div>
 
-        <div className="space-y-4 px-2 py-6">
+        <div className="space-y-4 px-2 pt-6 pb-1">
           <p className="text-lg font-black text-brand">加入條件與規則</p>
           <RulesList allRules={allRules} />
         </div>
 
-        {mobileReviewsSection}
+        {mobileReviewsSection && <div className="px-2">{mobileReviewsSection}</div>}
       </div>
     </>
   )

@@ -62,6 +62,17 @@ export default function Step3Settings({ form, onChange }) {
         </div>
       </Field>
 
+<Field label="帳號需求" hint="說明成員是否需要自備帳號，或有其他帳號相關條件（選填）">
+        <textarea
+          rows={2}
+          placeholder="例如：需使用自己的 Google 帳號登入"
+          value={form.requirements}
+          onChange={e => onChange('requirements', e.target.value)}
+          maxLength={120}
+          className="field w-full resize-none"
+        />
+      </Field>
+
 <Field label="群組規則" hint="清楚的規則可降低後續糾紛（最多 5 條）">
         <div className="space-y-2">
           {form.rules.map((rule, i) => (

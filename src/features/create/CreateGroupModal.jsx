@@ -35,6 +35,7 @@ const INITIAL_FORM = {
   pricePerSeat: 0,
   billingCycle: "monthly",
   totalSeats: 2,
+  requirements: "",
   rules: [""],
 };
 
@@ -54,6 +55,7 @@ function mapFormToGroup(form) {
     usedSeats: 1,
     openSeats: totalSeats - 1,
     joinMode: "approval",
+    requirements: form.requirements.trim(),
     rules,
     tags,
     status: "recruiting",

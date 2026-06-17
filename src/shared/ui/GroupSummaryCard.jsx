@@ -1,4 +1,5 @@
 import ProgressBar from './ProgressBar'
+import Badge from './Badge'
 import { TagChip } from './GroupOverviewContent'
 import { getInfoRows } from '../utils/groupDisplay'
 
@@ -43,10 +44,12 @@ export default function GroupSummaryCard({ group, favoriteSlot = null, extraRows
       {infoRows.length > 0 && (
         <div className="px-6 py-4 lg:px-8">
           <div className="space-y-2">
-            {infoRows.map(({ label, value }) => (
+            {infoRows.map(({ label, value, badge }) => (
               <div key={label} className="flex gap-3 text-sm">
                 <span className="w-14 shrink-0 text-ink-4">{label}</span>
-                <span className="flex-1 text-ink-2">{value}</span>
+                <span className="flex-1 text-ink-2">
+                  {badge ? <Badge variant={badge} /> : value}
+                </span>
               </div>
             ))}
           </div>

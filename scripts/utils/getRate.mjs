@@ -27,7 +27,7 @@ export async function getUsdToTwd() {
     _cached = data.rates.TWD
     return _cached
   } catch (err) {
-    console.warn(`⚠️  無法取得即時匯率（${err.message}），使用備用匯率 ${FALLBACK_RATE}`)
+    console.warn(`無法取得即時匯率（${err.message}），使用備用匯率 ${FALLBACK_RATE}`)
     _cached = FALLBACK_RATE
     return _cached
   }

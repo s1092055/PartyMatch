@@ -105,12 +105,12 @@ export default function GroupDetailModal() {
 
   const picks = useMemo(() => {
     if (!group) return []
-    const recruiting = getGroups().filter(g => g.status === 'recruiting' && g.openSeats > 0 && g.id !== group.id)
+    const recruiting = getGroups().filter(g => g.status === 'recruiting' && g.openSeats > 0 && g.id !== group.id && g.hostId !== activeUserId)
     return [
       ...recruiting.filter(g => g.serviceId === group.serviceId),
       ...recruiting.filter(g => g.serviceId !== group.serviceId),
     ]
-  }, [groupId]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [groupId, activeUserId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!isOpen || !group) return null
 
@@ -222,7 +222,8 @@ export default function GroupDetailModal() {
       mobileReviewsSection={reviews}
       mobileFooter={
         <div className="px-6 py-3">
-          <div className="mb-2 flex gap-2">
+          {renderCTA()}
+          <div className="mt-2 flex gap-2">
             <button
               onClick={toggleFav}
               className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors ${
@@ -242,11 +243,10 @@ export default function GroupDetailModal() {
               </button>
             )}
           </div>
-          {renderCTA()}
         </div>
       }
       afterColumns={picks.length > 0 && (
-        <div className="border-t border-line px-8 pb-8 pt-5 lg:pb-10">
+        <div className="border-t border-line px-8 pb-4 pt-5 lg:pb-10">
           <h3 className="mb-4 text-lg font-black text-brand">其他推薦群組</h3>
 
           {/* 手機版：橫向捲動 */}

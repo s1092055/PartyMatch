@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import {
-  Banknote, Calendar, Check, CheckCircle2, ChevronDown, ChevronUp,
-  ClipboardList, Clock, CreditCard,
+  Banknote, Check, CheckCircle2, ChevronDown, ChevronUp,
+  ClipboardList, CreditCard,
   LogOut, MessageCircle, PlayCircle, Receipt, Shield, UserX, Users, X,
 } from 'lucide-react'
 import Avatar from '../ui/Avatar'
@@ -22,21 +22,6 @@ import { getCurrentUser } from '../stores/authStore'
 import { todayISO } from '../utils/date'
 import { scheduleLeaveGroup } from '../utils/leaveGroupFlow'
 import { CONFIRMED_STATUSES, READY_TO_ACTIVATE_STATUSES } from '../constants/paymentStatus'
-
-// ── 計費資訊格線（HostView / MemberView 共用）────────────────────────────────────
-
-function BillingInfoGrid({ rows }) {
-  return (
-    <div className="grid grid-cols-2 gap-px bg-line-subtle">
-      {rows.map(({ Icon, label, value }) => (
-        <div key={label} className="bg-canvas px-4 py-3">
-          <div className="mb-1 flex items-center gap-1.5 text-xs text-ink-4"><Icon size={11} />{label}</div>
-          <p className="text-xs font-bold text-ink">{value}</p>
-        </div>
-      ))}
-    </div>
-  )
-}
 
 // ── 申請卡片（申請管理 Modal 用）────────────────────────────────────────────────
 
@@ -127,7 +112,6 @@ function HostView({ group, members, applications, onConfirmMember, onRemoveMembe
   }
   const markedPaidCount = members.filter(m => m.paymentStatus === 'markedPaid').length
   const canActivateNow  = allReadyActivate && ['recruiting', 'full', 'pending_activation'].includes(group.status)
-  const isActivated     = ['active', 'paused', 'cancelled', 'ended'].includes(group.status)
 
   function handleActivateConfirm() {
     onActivate?.(renewalDate || null)
@@ -182,14 +166,6 @@ function HostView({ group, members, applications, onConfirmMember, onRemoveMembe
       group={group}
       service={serviceDef}
       plan={planDef}
-      summaryExtraRows={
-        <BillingInfoGrid rows={[
-          { Icon: Calendar, label: '計費週期', value: group.billingCycle === 'yearly' ? '年繳' : '月繳' },
-          { Icon: isActivated ? Clock : Calendar,
-            label: isActivated ? '下次扣款' : '建立日期',
-            value: isActivated ? (group.nextBillingDate ?? '—') : (group.createdAt ?? '—') },
-        ]} />
-      }
       summaryFooter={activateCta || undefined}
       mobileFooter={activateCta || undefined}
       bottomBar={
@@ -397,7 +373,6 @@ function MemberView({ group, onMarkPaid, onClose }) {
 
   const serviceDef  = getServiceById(group.serviceId)
   const planDef     = serviceDef?.plans.find(p => p.name === group.planName)
-  const isActivated = ['active', 'paused', 'cancelled', 'ended'].includes(group.status)
   const isEnded     = ['paused', 'cancelled', 'ended'].includes(group.status)
 
   function openMessages() {
@@ -436,20 +411,12 @@ function MemberView({ group, onMarkPaid, onClose }) {
       service={serviceDef}
       plan={planDef}
       summaryExtraRows={
-        <>
-          {myMember && (
-            <div className="px-6 py-4 lg:px-8">
-              <p className="mb-2 text-xs text-ink-4">我的付款狀態</p>
-              <PaymentStatusBadge status={myMember.paymentStatus} />
-            </div>
-          )}
-          <BillingInfoGrid rows={[
-            { Icon: Banknote, label: '計費週期', value: group.billingCycle === 'yearly' ? '年繳' : '月繳' },
-            { Icon: Calendar,
-              label: isActivated ? '下次扣款' : '建立日期',
-              value: isActivated ? (group.nextBillingDate ?? '—') : (group.createdAt ?? '—') },
-          ]} />
-        </>
+        myMember ? (
+          <div className="px-6 py-4 lg:px-8">
+            <p className="mb-2 text-xs text-ink-4">我的付款狀態</p>
+            <PaymentStatusBadge status={myMember.paymentStatus} />
+          </div>
+        ) : undefined
       }
       summaryFooter={markPaidCta || undefined}
       mobileFooter={markPaidCta || undefined}
