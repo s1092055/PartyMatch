@@ -12,12 +12,13 @@ export default function Modal({
   icon,
   headerEnd,
   footer,
-  maxWidth = 'max-w-md',
+  maxWidth,
   height,
   outerPadding = 'p-4 md:p-8',
   sub = false,
   children,
 }) {
+  const resolvedMaxWidth = maxWidth ?? (sub ? 'max-w-md' : 'max-w-5xl')
   const controlled = isOpen !== undefined
   useScrollLock(controlled ? !!isOpen : true)
 
@@ -37,7 +38,7 @@ export default function Modal({
     return createPortal(
       <div className={`fixed inset-0 z-[65] flex items-center justify-center ${outerPadding}`}>
         <div className="absolute inset-0 cursor-pointer bg-black/50" onClick={onClose} />
-        <div className={`relative w-full ${maxWidth} card overflow-hidden p-0 animate-fade-in-up`}
+        <div className={`relative w-full ${resolvedMaxWidth} card overflow-hidden p-0 animate-fade-in-up`}
              style={height ? { height } : undefined}>
           {(title || icon) && (
             <div className="flex items-center justify-between border-b border-line-subtle px-5 py-4">
@@ -66,7 +67,7 @@ export default function Modal({
       <div className="fixed inset-0 z-[55] cursor-pointer bg-black/50" onClick={onClose} />
       <div className={`pointer-events-none fixed inset-0 z-[56] flex items-center justify-center ${outerPadding}`}>
         <div
-          className={`pointer-events-auto flex w-full ${maxWidth} flex-col overflow-hidden rounded-2xl bg-canvas shadow-2xl animate-fade-in-up`}
+          className={`pointer-events-auto flex w-full ${resolvedMaxWidth} flex-col overflow-hidden rounded-2xl bg-canvas shadow-2xl animate-fade-in-up`}
           style={height ? { height } : undefined}
         >
           <div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-5">
