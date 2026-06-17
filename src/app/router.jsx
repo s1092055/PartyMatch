@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { createBrowserRouter } from 'react-router-dom'
-import ProtectedRoute from '../shared/route/ProtectedRoute'
-import PublicOnlyRoute from '../shared/route/PublicOnlyRoute'
+import ProtectedRoute from './ProtectedRoute'
+import PublicOnlyRoute from './PublicOnlyRoute'
 import { CreateGroupRedirect, GroupRedirect, QuickMatchRedirect } from './redirects'
 
 function routeElement(loader) {

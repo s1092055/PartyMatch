@@ -1,4 +1,4 @@
-import { SERVICES } from '../data/services.mock'
+import { SERVICES } from '../data/serviceCatalog'
 import { readAllServices } from '../api/servicesApi'
 
 // Start with local catalog so services are available even before Firestore responds

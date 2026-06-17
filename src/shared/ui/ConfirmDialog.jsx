@@ -18,7 +18,7 @@ export default function ConfirmDialog({ title, message, confirmLabel, danger = f
           <button
             onClick={onConfirm}
             className={`flex-1 rounded-xl py-2.5 text-sm font-bold text-white transition-colors ${
-              danger ? 'bg-danger hover:bg-red-700' : 'bg-brand hover:bg-brand-hover'
+              danger ? 'bg-danger hover:opacity-90' : 'bg-brand hover:bg-brand-hover'
             }`}
           >
             {confirmLabel}

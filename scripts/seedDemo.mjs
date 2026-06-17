@@ -129,7 +129,7 @@ function buildDemoData(uid, rate) {
       planName:        '個人方案（Family）',
       pricePerSeat:    twd(31.88, rate, { perYear: true }),  // GoingBus: $31.88/yr per person
       billingCycle:    'monthly',
-      nextBillingDate: '2026-06-15',
+      nextBillingDate: '2026-07-15',
       totalSeats:      6,
       usedSeats:       3,
       openSeats:       3,
@@ -171,7 +171,7 @@ function buildDemoData(uid, rate) {
       planName:        '家庭方案',
       pricePerSeat:    twd(49.99, rate, { perYear: true }),   // GoingBus: $49.99/yr per person
       billingCycle:    'monthly',
-      nextBillingDate: '2026-06-07',
+      nextBillingDate: '2026-07-07',
       totalSeats:      6,
       usedSeats:       5,
       openSeats:       1,
@@ -215,7 +215,7 @@ function buildDemoData(uid, rate) {
       planName:        '家庭方案（6人）',
       pricePerSeat:    twd(6.99, rate, { seats: 6 }),         // Official: $6.99/mo family ÷ 6
       billingCycle:    'monthly',
-      nextBillingDate: '2026-06-10',
+      nextBillingDate: '2026-07-10',
       totalSeats:      6,
       usedSeats:       3,
       openSeats:       3,
@@ -238,7 +238,7 @@ function buildDemoData(uid, rate) {
       planName:        '家庭方案',
       pricePerSeat:    twd(9.99, rate, { seats: 5 }),         // Official: $9.99/mo ÷ 5 people
       billingCycle:    'monthly',
-      nextBillingDate: '2026-06-03',
+      nextBillingDate: '2026-07-03',
       totalSeats:      5,
       usedSeats:       3,
       openSeats:       0,
@@ -259,7 +259,7 @@ function buildDemoData(uid, rate) {
       planName:        'Plus',
       pricePerSeat:    twd(2.99, rate),                       // GoingBus: $2.99/mo per person
       billingCycle:    'monthly',
-      nextBillingDate: '2026-04-15',
+      nextBillingDate: '2026-05-15',
       totalSeats:      3,
       usedSeats:       2,
       openSeats:       0,
@@ -282,7 +282,7 @@ function buildDemoData(uid, rate) {
       planName:        '標準',
       pricePerSeat:    twd(28.99, rate, { perYear: true }),   // GoingBus: $28.99/yr per person
       billingCycle:    'monthly',
-      nextBillingDate: '2026-05-27',
+      nextBillingDate: '2026-06-27',
       totalSeats:      4,
       usedSeats:       4,
       openSeats:       0,
@@ -303,7 +303,7 @@ function buildDemoData(uid, rate) {
       planName:        '標準方案',
       pricePerSeat:    twd(28.99, rate, { perYear: true }),   // GoingBus: $28.99/yr per person
       billingCycle:    'monthly',
-      nextBillingDate: '2026-06-15',
+      nextBillingDate: '2026-07-15',
       totalSeats:      3,
       usedSeats:       3,
       openSeats:       0,
@@ -326,7 +326,7 @@ function buildDemoData(uid, rate) {
       planName:        '高級',
       pricePerSeat:    twd(35.99, rate, { perYear: true }),   // GoingBus premium est: $35.99/yr
       billingCycle:    'monthly',
-      nextBillingDate: '2026-06-12',
+      nextBillingDate: '2026-07-12',
       totalSeats:      4,
       usedSeats:       2,
       openSeats:       2,
@@ -368,7 +368,7 @@ function buildDemoData(uid, rate) {
       planName:        '家庭版（6人）',
       pricePerSeat:    twd(99.99, rate, { perYear: true, seats: 6 }), // Official: $99.99/yr ÷ 6
       billingCycle:    'monthly',
-      nextBillingDate: '2026-06-08',
+      nextBillingDate: '2026-07-08',
       totalSeats:      6,
       usedSeats:       3,
       openSeats:       3,
@@ -410,7 +410,7 @@ function buildDemoData(uid, rate) {
       planName:        '家庭方案',
       pricePerSeat:    twd(9.90, rate, { seats: 5 }),         // Official: NT$320/mo ≈ $9.90 ÷ 5
       billingCycle:    'monthly',
-      nextBillingDate: '2026-06-01',
+      nextBillingDate: '2026-07-01',
       totalSeats:      5,
       usedSeats:       2,
       openSeats:       3,
@@ -483,10 +483,35 @@ function buildDemoData(uid, rate) {
     { id: 'demo_sub_am_demo', userId: uid, groupId: 'demo_group_applemusic_01', serviceId: 'apple-music', serviceName: 'Apple Music', planName: '家庭方案（6人）', hostName: hosts.h2.name, hostAvatarInitial: hosts.h2.initial, hostAvatarColor: hosts.h2.color, pricePerSeat: twd(6.99, rate, { seats: 6 }), billingCycle: 'monthly', nextBillingDate: '2026-06-10', joinedAt: '2026-05-17', paymentStatus: 'pending', status: 'pending_payment', createdAt: '2026-05-17', updatedAt: '2026-05-17' },
 
     // Disney+ — upcoming billing (within 7 days), confirmed payment
-    { id: 'demo_sub_dis_demo', userId: uid, groupId: 'demo_group_disney_02', serviceId: 'disney', serviceName: 'Disney+', planName: '標準', hostName: hosts.h3.name, hostAvatarInitial: hosts.h3.initial, hostAvatarColor: hosts.h3.color, pricePerSeat: twd(28.99, rate, { perYear: true }), billingCycle: 'monthly', nextBillingDate: '2026-05-27', joinedAt: '2026-03-27', paymentStatus: 'confirmed', status: 'active', createdAt: '2026-03-27', updatedAt: '2026-05-15' },
+    { id: 'demo_sub_dis_demo', userId: uid, groupId: 'demo_group_disney_02', serviceId: 'disney', serviceName: 'Disney+', planName: '標準', hostName: hosts.h3.name, hostAvatarInitial: hosts.h3.initial, hostAvatarColor: hosts.h3.color, pricePerSeat: twd(28.99, rate, { perYear: true }), billingCycle: 'monthly', nextBillingDate: '2026-06-27', joinedAt: '2026-03-27', paymentStatus: 'confirmed', status: 'active', createdAt: '2026-03-27', updatedAt: '2026-05-15' },
 
     // HBO Max — markedPaid (waiting host confirmation)
     { id: 'demo_sub_hbo_demo', userId: uid, groupId: 'demo_group_hbo_01', serviceId: 'hbo', serviceName: 'HBO Max', planName: '標準方案', hostName: hosts.h1.name, hostAvatarInitial: hosts.h1.initial, hostAvatarColor: hosts.h1.color, pricePerSeat: twd(28.99, rate, { perYear: true }), billingCycle: 'monthly', nextBillingDate: '2026-06-15', joinedAt: '2026-01-25', paymentStatus: 'markedPaid', status: 'active', createdAt: '2026-01-25', updatedAt: '2026-05-17' },
+  ]
+
+  // ── Payment Records ───────────────────────────────────────────────
+  const chatgptPrice = twd(20.00, rate, { seats: 2 })
+  const disneyPrice  = twd(28.99, rate, { perYear: true })
+  const hboPrice     = twd(28.99, rate, { perYear: true })
+
+  const paymentRecords = [
+    // ChatGPT Plus（demo_sub_cg_demo）— 加入 2026-02，每月 18 日
+    { id: 'demo_pay_cg_01', subscriptionId: 'demo_sub_cg_demo', userId: uid, groupId: 'demo_group_chatgpt_01', serviceId: 'chatgpt', serviceName: 'ChatGPT Plus', periodLabel: '2026年2月', paidAt: '2026-02-18', amount: chatgptPrice },
+    { id: 'demo_pay_cg_02', subscriptionId: 'demo_sub_cg_demo', userId: uid, groupId: 'demo_group_chatgpt_01', serviceId: 'chatgpt', serviceName: 'ChatGPT Plus', periodLabel: '2026年3月', paidAt: '2026-03-18', amount: chatgptPrice },
+    { id: 'demo_pay_cg_03', subscriptionId: 'demo_sub_cg_demo', userId: uid, groupId: 'demo_group_chatgpt_01', serviceId: 'chatgpt', serviceName: 'ChatGPT Plus', periodLabel: '2026年4月', paidAt: '2026-04-18', amount: chatgptPrice },
+    { id: 'demo_pay_cg_04', subscriptionId: 'demo_sub_cg_demo', userId: uid, groupId: 'demo_group_chatgpt_01', serviceId: 'chatgpt', serviceName: 'ChatGPT Plus', periodLabel: '2026年5月', paidAt: '2026-05-16', amount: chatgptPrice },
+
+    // Disney+（demo_sub_dis_demo）— 加入 2026-03，每月 27 日
+    { id: 'demo_pay_dis_01', subscriptionId: 'demo_sub_dis_demo', userId: uid, groupId: 'demo_group_disney_02', serviceId: 'disney', serviceName: 'Disney+', periodLabel: '2026年3月', paidAt: '2026-03-27', amount: disneyPrice },
+    { id: 'demo_pay_dis_02', subscriptionId: 'demo_sub_dis_demo', userId: uid, groupId: 'demo_group_disney_02', serviceId: 'disney', serviceName: 'Disney+', periodLabel: '2026年4月', paidAt: '2026-04-25', amount: disneyPrice },
+    { id: 'demo_pay_dis_03', subscriptionId: 'demo_sub_dis_demo', userId: uid, groupId: 'demo_group_disney_02', serviceId: 'disney', serviceName: 'Disney+', periodLabel: '2026年5月', paidAt: '2026-05-25', amount: disneyPrice },
+
+    // HBO Max（demo_sub_hbo_demo）— 加入 2026-01，每月 15 日
+    { id: 'demo_pay_hbo_01', subscriptionId: 'demo_sub_hbo_demo', userId: uid, groupId: 'demo_group_hbo_01', serviceId: 'hbo', serviceName: 'HBO Max', periodLabel: '2026年1月', paidAt: '2026-01-25', amount: hboPrice },
+    { id: 'demo_pay_hbo_02', subscriptionId: 'demo_sub_hbo_demo', userId: uid, groupId: 'demo_group_hbo_01', serviceId: 'hbo', serviceName: 'HBO Max', periodLabel: '2026年2月', paidAt: '2026-02-24', amount: hboPrice },
+    { id: 'demo_pay_hbo_03', subscriptionId: 'demo_sub_hbo_demo', userId: uid, groupId: 'demo_group_hbo_01', serviceId: 'hbo', serviceName: 'HBO Max', periodLabel: '2026年3月', paidAt: '2026-03-24', amount: hboPrice },
+    { id: 'demo_pay_hbo_04', subscriptionId: 'demo_sub_hbo_demo', userId: uid, groupId: 'demo_group_hbo_01', serviceId: 'hbo', serviceName: 'HBO Max', periodLabel: '2026年4月', paidAt: '2026-04-24', amount: hboPrice },
+    { id: 'demo_pay_hbo_05', subscriptionId: 'demo_sub_hbo_demo', userId: uid, groupId: 'demo_group_hbo_01', serviceId: 'hbo', serviceName: 'HBO Max', periodLabel: '2026年5月', paidAt: '2026-05-17', amount: hboPrice },
   ]
 
   // ── Notifications ─────────────────────────────────────────────────
@@ -508,7 +533,7 @@ function buildDemoData(uid, rate) {
     { id: 'demo_fav_02', userId: uid, groupId: 'demo_group_googleone_01', createdAt: '2026-05-12' },
   ]
 
-  return { groups, members, applications, subscriptions, notifications, favorites }
+  return { groups, members, applications, subscriptions, paymentRecords, notifications, favorites }
 }
 
 // ── Seed helper (batch write, 400 ops per batch) ───────────────────
@@ -545,6 +570,7 @@ async function main() {
   await seedCollection('demo_members',       data.members)
   await seedCollection('demo_applications',  data.applications)
   await seedCollection('demo_subscriptions', data.subscriptions)
+  await seedCollection('demo_paymentRecords', data.paymentRecords)
   await seedCollection('demo_notifications', data.notifications)
   await seedCollection('demo_favorites',     data.favorites)
 

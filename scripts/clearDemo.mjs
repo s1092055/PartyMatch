@@ -35,7 +35,7 @@ const db = getFirestore(firebaseApp)
 
 const COLLECTIONS = [
   'demo_groups', 'demo_members', 'demo_applications',
-  'demo_subscriptions', 'demo_notifications', 'demo_favorites', 'demo_paymentRecords',
+  'demo_subscriptions', 'demo_paymentRecords', 'demo_notifications', 'demo_favorites',
 ]
 
 async function clearCollection(name) {
