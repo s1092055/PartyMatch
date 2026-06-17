@@ -8,12 +8,10 @@ export default function FilterTabsBar({ tabs, value, onChange, counts = {} }) {
 
   return (
     <>
-      {/* 手機版 custom dropdown */}
       <div className="mb-4 sm:hidden">
         <CustomSelect options={selectOptions} value={value} onChange={onChange} />
       </div>
 
-      {/* 電腦版 chips */}
       <div className="mb-4 hidden min-w-0 justify-center overflow-x-auto py-1 sm:flex">
         <div className="flex gap-1">
           {tabs.map(tab => (

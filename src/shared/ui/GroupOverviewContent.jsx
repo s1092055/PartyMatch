@@ -2,10 +2,6 @@ import { CheckCircle2, Clock, Info, User, Users, Calendar } from 'lucide-react'
 import { getPlanChips, getInfoRows } from '../utils/groupDisplay'
 import Badge from './Badge'
 
-// 群組詳情 modal 共用的「服務介紹」「加入條件與規則」內容區塊，
-// 探索頁（GroupDetailModal）與我的訂閱／群組管理（GroupViewModal）共用同一份，
-// 確保三處看到的群組簡述、服務介紹、規則文字與排版完全一致。
-
 const TAG_CONFIG = {
   '審核制':    { Icon: Clock,     cls: 'bg-amber-50  border border-amber-200 text-amber-700'  },
   '每月付款':  { Icon: Calendar,  cls: 'bg-blue-50   border border-blue-200  text-blue-700'   },
@@ -82,9 +78,6 @@ function RulesList({ allRules }) {
   )
 }
 
-// group/service/plan：群組、服務目錄、方案資料
-// desktopReviewsSection/mobileReviewsSection：選填，接在「加入條件與規則」之後渲染，
-// 各自帶好對應排版（目前僅探索頁的團主評價使用，我的訂閱／群組管理不需要）
 export default function GroupOverviewContent({ group, service, plan, desktopReviewsSection = null, mobileReviewsSection = null }) {
   const planChips = getPlanChips(group, plan)
   const allRules = [
@@ -96,7 +89,6 @@ export default function GroupOverviewContent({ group, service, plan, desktopRevi
 
   return (
     <>
-      {/* Desktop：各區塊永遠可見 */}
       <div className="hidden divide-y divide-line-subtle lg:block">
         <div className="space-y-4 py-5">
           <p className="text-lg font-black text-brand">服務介紹</p>
@@ -109,7 +101,6 @@ export default function GroupOverviewContent({ group, service, plan, desktopRevi
         {desktopReviewsSection}
       </div>
 
-      {/* Mobile / Tablet：群組資訊 */}
       <div className="lg:hidden">
         <div className="border-b border-line-subtle px-2 py-6">
           <p className="mb-4 text-lg font-black text-brand">群組資訊</p>
