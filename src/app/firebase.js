@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app'
-import { initializeFirestore, persistentLocalCache } from 'firebase/firestore'
+import { initializeFirestore, memoryLocalCache } from 'firebase/firestore'
 import { getAuth } from 'firebase/auth'
 
 const firebaseConfig = {
@@ -14,9 +14,9 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig)
 
 // Safari 的 WebSocket/WebChannel 連線常靜默斷線，用 experimentalForceLongPolling 改為 HTTP long-polling。
-// persistentLocalCache 讓離線快取也生效。
+// memoryLocalCache 避免 IndexedDB bloom filter 錯誤（persistentLocalCache 與 long-polling 組合會觸發）。
 export const db = initializeFirestore(firebaseApp, {
-  localCache: persistentLocalCache(),
+  localCache: memoryLocalCache(),
   experimentalForceLongPolling: true,
 })
 export const auth = getAuth(firebaseApp)
