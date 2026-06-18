@@ -56,9 +56,8 @@ export default function HostedGroupCard({
 
   const hasMarkedPaid = members.some(m => m.paymentStatus === 'markedPaid')
   const paidCount     = members.filter(m => CONFIRMED_STATUSES.includes(m.paymentStatus)).length
-  const paymentTarget = Math.max(members.length, group.usedSeats - 1, 0)
-  const paymentValue  = paymentTarget > 0 ? `${paidCount}/${paymentTarget}` : `${group.usedSeats}/${group.totalSeats}`
-  const paymentState  = getPaymentState({ group, hasMarkedPaid, paidCount, paymentTarget })
+  const paymentValue  = `${paidCount}/${members.length}`
+  const paymentState  = getPaymentState({ group, hasMarkedPaid, paidCount, paymentTarget: members.length })
 
   const paymentStateHighlight = {
     '正常':  'text-success-text',

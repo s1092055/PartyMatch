@@ -114,7 +114,7 @@ export default function HostGroupView({ group, members, applications, onConfirmM
     if (!READY_TO_ACTIVATE_STATUSES.includes(m.paymentStatus)) allReadyActivate = false
   }
   const markedPaidCount = members.filter(m => m.paymentStatus === 'markedPaid').length
-  const canActivateNow  = allReadyActivate && ['recruiting', 'full', 'pending_activation'].includes(group.status)
+  const canActivateNow  = allReadyActivate && group.openSeats <= 0 && ['full', 'pending_confirmation', 'pending_activation'].includes(group.status)
 
   const autoRenewalDate = useMemo(() => defaultRenewalDate(group.billingCycle), [group.billingCycle])
 
@@ -216,47 +216,25 @@ export default function HostGroupView({ group, members, applications, onConfirmM
         sub
       >
         <div className="max-h-[70vh] overflow-y-auto">
-          {/* 服務摘要 */}
+
+          {/* ① 服務摘要 */}
           <div className="flex items-center gap-3 border-b border-line-subtle px-5 py-4">
             <ServiceLogo serviceId={group.serviceId} size={40} className="rounded-xl" />
             <div className="min-w-0 flex-1">
               <p className="font-bold text-ink">{group.serviceName}</p>
-              <p className="text-xs text-ink-3">{group.planName}</p>
+              <p className="text-xs text-ink-3">{group.planName} · NT${group.pricePerSeat}/席/{group.billingCycle === 'yearly' ? '年' : '月'}</p>
             </div>
-            <div className="text-right">
-              <p className="text-lg font-extrabold text-ink">NT${group.pricePerSeat}</p>
-              <p className="text-xs text-ink-4">/席/{group.billingCycle === 'yearly' ? '年' : '月'}</p>
+            <div className="rounded-xl bg-success-subtle px-3 py-1.5 text-right">
+              <p className="text-xs text-success-text">撥款金額</p>
+              <p className="text-base font-extrabold text-success-text">NT${group.pricePerSeat * members.length}</p>
             </div>
           </div>
 
-          {/* 撥款提示 */}
-          <div className="mx-5 mt-4 flex items-center justify-between rounded-xl bg-success-subtle px-4 py-3">
-            <p className="text-xs text-success-text">啟用後平台將撥款至你的帳戶</p>
-            <p className="text-base font-extrabold text-success-text">
-              NT${group.pricePerSeat * members.length}
-            </p>
-          </div>
-
-          {/* 下次扣款日 */}
-          <div className="px-5 pt-4">
-            <label className="mb-1.5 block text-xs font-semibold text-ink-2">
-              下次扣款日
-              <span className="ml-1 font-normal text-ink-3">（依方案自動推算，可調整）</span>
-            </label>
-            <input
-              type="date"
-              min={todayISO()}
-              value={renewalDate}
-              onChange={e => setRenewalDate(e.target.value)}
-              className="w-full rounded-xl border border-line bg-canvas px-3.5 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-brand/20"
-            />
-          </div>
-
-          {/* 成員付款確認 */}
-          <div className="px-5 pt-4">
+          {/* ② 成員付款確認 */}
+          <div className="px-5 pt-5">
             <div className="mb-2 flex items-center justify-between">
               <p className="text-xs font-semibold text-ink-2">成員付款確認</p>
-              <p className="text-xs text-ink-3">{confirmedCount}/{members.length} 已確認</p>
+              <p className="text-xs text-ink-3">{confirmedCount} / {members.length} 已確認</p>
             </div>
             <ProgressBar value={confirmedCount} max={members.length} className="mb-3" />
             <div className="space-y-2">
@@ -279,25 +257,40 @@ export default function HostGroupView({ group, members, applications, onConfirmM
                         <CheckCircle2 size={11} /> 確認收款
                       </button>
                     )}
-                    {isConfirmed && (
-                      <CheckCircle2 size={16} className="shrink-0 text-success" />
-                    )}
+                    {isConfirmed && <CheckCircle2 size={16} className="shrink-0 text-success" />}
                   </div>
                 )
               })}
             </div>
           </div>
 
-          {/* 最終確認 checkbox + 操作按鈕 */}
+          {/* ③ 下次扣款日 */}
+          <div className="px-5 pt-5">
+            <label className="mb-1.5 block text-xs font-semibold text-ink-2">
+              下次扣款日
+              <span className="ml-1 font-normal text-ink-3">（依方案自動推算，可調整）</span>
+            </label>
+            <input
+              type="date"
+              min={todayISO()}
+              value={renewalDate}
+              onChange={e => setRenewalDate(e.target.value)}
+              className="w-full rounded-xl border border-line bg-canvas px-3.5 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-brand/20"
+            />
+          </div>
+
+          {/* ④ 最終確認 + 按鈕 */}
           <div className="space-y-3 p-5">
-            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-line p-3 transition-colors hover:bg-raised">
+            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-line p-3.5 transition-colors hover:bg-raised">
               <input
                 type="checkbox"
                 checked={finalConfirmed}
                 onChange={e => setFinalConfirmed(e.target.checked)}
                 className="mt-0.5 h-4 w-4 shrink-0 accent-brand"
               />
-              <span className="text-sm font-medium text-ink leading-relaxed">我已完成外部訂閱設定並將所有成員加入服務，同意平台依此結果進行撥款</span>
+              <span className="text-sm font-medium leading-relaxed text-ink">
+                我已完成外部訂閱設定並將所有成員加入服務，同意平台依此結果進行撥款
+              </span>
             </label>
             <div className="flex gap-2">
               <button

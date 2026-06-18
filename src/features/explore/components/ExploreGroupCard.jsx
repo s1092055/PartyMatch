@@ -53,7 +53,7 @@ function buildFeatureChips(group) {
   }))
 }
 
-export default function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = false }) {
+export default function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = false, isApplied = false }) {
   const navigate = useNavigate()
   const activeUser = getCurrentUser()
   const [isFav, setIsFav] = useState(() => activeUser ? isGroupFavorited(activeUser.id, group.id) : false)
@@ -96,10 +96,16 @@ export default function ExploreGroupCard({ group, onFavChange, onBeforeNavigate,
       )}
 
       <div className="flex justify-center">
-        <Badge
-          variant="recruiting"
-          className="bg-success-subtle px-3.5 py-1 text-sm font-extrabold text-success-text"
-        />
+        {isApplied ? (
+          <span className="rounded-full bg-warning-subtle px-3.5 py-1 text-sm font-extrabold text-warning-text">
+            已申請
+          </span>
+        ) : (
+          <Badge
+            variant="recruiting"
+            className="bg-success-subtle px-3.5 py-1 text-sm font-extrabold text-success-text"
+          />
+        )}
       </div>
 
       <div className="mt-4 flex justify-center">

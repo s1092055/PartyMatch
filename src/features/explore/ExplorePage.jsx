@@ -1,7 +1,8 @@
 import { startTransition, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowRight, Compass, PlusCircle, Search, Sparkles, X, Zap } from 'lucide-react'
-import { getGroups } from '../../shared/stores/groupStore'
+import { getGroups, initGroups } from '../../shared/stores/groupStore'
+import { getApplicationsByUserId } from '../../shared/stores/applicationStore'
 import { getServiceById } from '../../shared/utils/serviceUtils'
 import { getCurrentUser } from '../../shared/stores/authStore'
 import EmptyState from '../../shared/ui/EmptyState'
@@ -55,10 +56,40 @@ export default function ExplorePage() {
   }))
   const navigate = useNavigate()
   const activeUserId = getCurrentUser()?.id
+  const [tick, setTick] = useState(0)
+
   const allGroups = useMemo(
     () => getGroups().filter(g => g.hostId !== activeUserId),
-    [activeUserId],
+    [activeUserId, tick], // eslint-disable-line react-hooks/exhaustive-deps
   )
+
+  const appliedGroupIds = useMemo(() => {
+    if (!activeUserId) return new Set()
+    return new Set(
+      getApplicationsByUserId(activeUserId)
+        .filter(a => a.status !== 'rejected')
+        .map(a => a.groupId)
+    )
+  }, [activeUserId, tick]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    let cancelled = false
+    async function reload() {
+      await initGroups()
+      if (!cancelled) setTick(t => t + 1)
+    }
+    function onVisible() { if (document.visibilityState === 'visible') reload() }
+    reload()
+    window.addEventListener('focus', reload)
+    window.addEventListener('pm:applications-changed', reload)
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      cancelled = true
+      window.removeEventListener('focus', reload)
+      window.removeEventListener('pm:applications-changed', reload)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [])
 
   useEffect(() => {
     const q = searchParams.get('q') ?? ''
@@ -132,7 +163,7 @@ export default function ExplorePage() {
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
           {filtered.map((group, i) => (
             <RevealSection key={group.id} delay={Math.min(i * 60, 300)}>
-              <ExploreGroupCard group={group} />
+              <ExploreGroupCard group={group} isApplied={appliedGroupIds.has(group.id)} />
             </RevealSection>
           ))}
           <RevealSection delay={Math.min(filtered.length * 60, 300)} className="flex flex-col gap-5">
