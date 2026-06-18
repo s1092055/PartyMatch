@@ -1,6 +1,7 @@
 import { db } from '../../app/firebase'
 import { collection, doc, getDocs, onSnapshot, setDoc, updateDoc, deleteDoc } from 'firebase/firestore'
 import { demoAwareCollection } from './demoCollection'
+import { stripUndefined } from './firestoreUtils'
 
 const COLLECTION = demoAwareCollection('members')
 
@@ -18,7 +19,7 @@ export function subscribeToMembers(onUpdate) {
 }
 
 export async function insertMember(record) {
-  await setDoc(doc(db, COLLECTION, record.id), record)
+  await setDoc(doc(db, COLLECTION, record.id), stripUndefined(record))
   return record
 }
 

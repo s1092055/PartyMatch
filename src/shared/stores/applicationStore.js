@@ -1,7 +1,7 @@
 import { readAllApplications, subscribeToApplications, insertApplication, patchApplication } from '../api/applicationsApi'
 import { addParticipantToConversation, sendSystemMessage } from '../api/messagesApi'
 import { normalizeApplication } from '../utils/modelNormalizers'
-import { todayISO } from '../utils/date'
+import { nowISO } from '../utils/date'
 import { createId } from '../utils/storage'
 import { getActiveUserProfile } from './authStore'
 import { createNotification } from './notificationStore'
@@ -57,7 +57,6 @@ export function createApplication({ groupId, groupName, serviceId, serviceName, 
   const activeUser = getActiveUserProfile()
   if (!activeUser) throw new Error('登入後才能申請加入群組')
 
-  const now = todayISO()
   const app = normalizeApplication({
     id:                     createId('app'),
     groupId,
@@ -76,8 +75,8 @@ export function createApplication({ groupId, groupName, serviceId, serviceName, 
     applicantCreditScore:   activeUser.creditScore ?? 80,
     message:                message ?? '',
     status:                 'pending',
-    createdAt:              now,
-    updatedAt:              now,
+    createdAt:              nowISO(),
+    updatedAt:              nowISO(),
   })
   _apps.push(app)
   insertApplication(app).catch(console.error)

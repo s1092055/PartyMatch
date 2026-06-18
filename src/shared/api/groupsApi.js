@@ -2,6 +2,7 @@ import { db } from '../../app/firebase'
 import { collection, doc, getDocs, onSnapshot, setDoc, updateDoc } from 'firebase/firestore'
 import { normalizeGroup } from '../utils/modelNormalizers'
 import { demoAwareCollection } from './demoCollection'
+import { stripUndefined } from './firestoreUtils'
 
 const COLLECTION = demoAwareCollection('groups')
 
@@ -19,7 +20,7 @@ export function subscribeToGroups(onUpdate) {
 }
 
 export async function insertGroup(record) {
-  await setDoc(doc(db, COLLECTION, record.id), record)
+  await setDoc(doc(db, COLLECTION, record.id), stripUndefined(record))
   return normalizeGroup(record)
 }
 

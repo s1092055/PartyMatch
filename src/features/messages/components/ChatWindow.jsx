@@ -251,7 +251,9 @@ export default function ChatWindow({
         <ConversationAvatar conversation={selected} size={36} />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-extrabold text-ink">{selected.name}</p>
-          <p className="text-xs text-ink-3">{selected.participants?.length ?? 2} 位成員</p>
+          {selected.type === 'group' && (
+            <p className="text-xs text-ink-3">{selected.participants?.length ?? 2} 位成員</p>
+          )}
         </div>
         <div ref={menuRef} className="relative shrink-0">
           <button

@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "seed:demo": "node scripts/seedDemo.mjs",
     "clear:demo": "node scripts/clearDemo.mjs",
+    "clear:prod": "node scripts/clearProd.mjs",
     "seed:services": "node scripts/seedServices.mjs"
   },
   "dependencies": {

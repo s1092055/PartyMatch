@@ -1,6 +1,7 @@
 import { db } from '../../app/firebase'
 import { collection, doc, getDocs, onSnapshot, query, setDoc, updateDoc, where } from 'firebase/firestore'
 import { demoAwareCollection } from './demoCollection'
+import { stripUndefined } from './firestoreUtils'
 
 const COLLECTION = demoAwareCollection('notifications')
 
@@ -19,7 +20,7 @@ export function subscribeToUserNotifications(userId, onUpdate) {
 }
 
 export async function insertNotification(record) {
-  await setDoc(doc(db, COLLECTION, record.id), record)
+  await setDoc(doc(db, COLLECTION, record.id), stripUndefined(record))
   return record
 }
 

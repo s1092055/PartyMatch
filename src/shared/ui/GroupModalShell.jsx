@@ -22,6 +22,7 @@ export default function GroupModalShell({
   afterColumns,
   bottomBar,
   mobileFooter,
+  hideRecruitBar,
   children,
 }) {
   useScrollLock(true)
@@ -99,24 +100,28 @@ export default function GroupModalShell({
                   const tags = group.tags ?? []
                   return (
                     <div className="card divide-y divide-line-subtle overflow-hidden">
-                      <div className="flex items-start justify-between px-6 py-4 lg:px-8">
-                        <div>
-                          <p className="mb-0.5 text-xs font-medium text-ink-4">每席價格</p>
-                          <div className="flex items-baseline gap-1">
-                            <span className="text-3xl font-extrabold text-ink">NT${group.pricePerSeat}</span>
-                            <span className="text-sm text-ink-3">/每月</span>
+                      {!hideRecruitBar && (
+                        <div className="flex items-start justify-between px-6 py-4 lg:px-8">
+                          <div>
+                            <p className="mb-0.5 text-xs font-medium text-ink-4">每席價格</p>
+                            <div className="flex items-baseline gap-1">
+                              <span className="text-3xl font-extrabold text-ink">NT${group.pricePerSeat}</span>
+                              <span className="text-sm text-ink-3">/每月</span>
+                            </div>
                           </div>
+                          {summaryFavoriteSlot}
                         </div>
-                        {summaryFavoriteSlot}
-                      </div>
+                      )}
 
-                      <div className="px-6 py-4 lg:px-8">
-                        <div className="mb-2 flex items-center justify-between text-sm">
-                          <span className="text-ink-3">剩餘名額</span>
-                          <span className="font-semibold text-ink">{group.openSeats} 位</span>
+                      {!hideRecruitBar && (
+                        <div className="px-6 py-4 lg:px-8">
+                          <div className="mb-2 flex items-center justify-between text-sm">
+                            <span className="text-ink-3">剩餘名額</span>
+                            <span className="font-semibold text-ink">{group.openSeats} 位</span>
+                          </div>
+                          <ProgressBar value={group.usedSeats} max={group.totalSeats} />
                         </div>
-                        <ProgressBar value={group.usedSeats} max={group.totalSeats} />
-                      </div>
+                      )}
 
                       {tags.length > 0 && (
                         <div className="flex flex-wrap gap-2 px-6 py-4 lg:px-8">
@@ -150,24 +155,26 @@ export default function GroupModalShell({
             {afterColumns}
           </div>
 
-          <div className="shrink-0 border-t border-line-subtle bg-canvas px-6 py-3 lg:hidden">
-            <div className="flex items-center gap-4">
-              <div className="shrink-0">
-                <p className="mb-0.5 text-xs text-ink-4">每席價格</p>
-                <div className="flex items-baseline gap-0.5">
-                  <span className="text-xl font-extrabold text-ink">NT${group.pricePerSeat}</span>
-                  <span className="text-xs text-ink-3">/每月</span>
+          {!hideRecruitBar && (
+            <div className="shrink-0 border-t border-line-subtle bg-canvas px-6 py-3 lg:hidden">
+              <div className="flex items-center gap-4">
+                <div className="shrink-0">
+                  <p className="mb-0.5 text-xs text-ink-4">每席價格</p>
+                  <div className="flex items-baseline gap-0.5">
+                    <span className="text-xl font-extrabold text-ink">NT${group.pricePerSeat}</span>
+                    <span className="text-xs text-ink-3">/每月</span>
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <ProgressBar value={group.usedSeats} max={group.totalSeats} />
+                </div>
+                <div className="shrink-0 text-right">
+                  <p className="mb-0.5 text-xs text-ink-4">剩餘名額</p>
+                  <p className="text-sm font-semibold text-ink">{group.openSeats} / {group.totalSeats} 席</p>
                 </div>
               </div>
-              <div className="flex-1">
-                <ProgressBar value={group.usedSeats} max={group.totalSeats} />
-              </div>
-              <div className="shrink-0 text-right">
-                <p className="mb-0.5 text-xs text-ink-4">剩餘名額</p>
-                <p className="text-sm font-semibold text-ink">{group.openSeats} / {group.totalSeats} 席</p>
-              </div>
             </div>
-          </div>
+          )}
 
           {mobileFooter && (
             <div className="shrink-0 border-t border-line bg-canvas lg:hidden">

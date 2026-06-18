@@ -1,5 +1,5 @@
 import { readAllNotifications, subscribeToUserNotifications, insertNotification, patchNotification } from '../api/notificationsApi'
-import { todayISO } from '../utils/date'
+import { nowISO, todayISO } from '../utils/date'
 import { createId } from '../utils/storage'
 
 let _notifications = []
@@ -92,7 +92,7 @@ export function createNotification({ userId, type, title, message }) {
     title,
     message,
     isRead:    false,
-    createdAt: todayISO(),
+    createdAt: nowISO(),
   }
   _notifications.unshift(notif)
   if (_liveNotifications !== null && userId === _subscribedUserId) {

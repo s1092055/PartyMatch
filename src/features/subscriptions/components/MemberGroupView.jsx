@@ -2,6 +2,7 @@ import { useState } from 'react'
 import {
   CheckCircle2, CreditCard, LogOut, MessageCircle, Receipt, Shield, Users,
 } from 'lucide-react'
+import PaymentModal from './PaymentModal'
 import Avatar from '../../../shared/ui/Avatar'
 import Modal from '../../../shared/ui/Modal'
 import ConfirmDialog from '../../../shared/ui/ConfirmDialog'
@@ -19,6 +20,7 @@ export default function MemberGroupView({ group, onMarkPaid, onClose }) {
   const [confirmingLeave, setConfirmingLeave] = useState(false)
   const [showMembers, setShowMembers]         = useState(false)
   const [showPayments, setShowPayments]       = useState(false)
+  const [paymentOpen, setPaymentOpen]         = useState(false)
 
   const currentUser = getCurrentUser()
   const members     = getMembersByGroupId(group.id)
@@ -51,16 +53,20 @@ export default function MemberGroupView({ group, onMarkPaid, onClose }) {
     onClose()
   }
 
-  const markPaidCta = isPaymentRelevant && myMember?.paymentStatus === 'pending' && sub && (
+  const hasPendingPayment = !!sub && sub.paymentStatus === 'pending'
+
+  const goToPaymentCta = hasPendingPayment && (
     <div className="p-4">
       <button
-        onClick={() => { onMarkPaid?.(sub); onClose() }}
+        onClick={() => setPaymentOpen(true)}
         className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
       >
-        <CreditCard size={14} /> 標記已付款
+        <CreditCard size={14} /> 前往付款
       </button>
     </div>
   )
+
+  const paymentCta = goToPaymentCta || undefined
 
   return (
     <GroupModalShell
@@ -68,16 +74,17 @@ export default function MemberGroupView({ group, onMarkPaid, onClose }) {
       group={group}
       service={serviceDef}
       plan={planDef}
+      hideRecruitBar
       summaryExtraRows={
-        myMember && isPaymentRelevant ? (
+        myMember ? (
           <div className="px-6 py-4 lg:px-8">
             <p className="mb-2 text-xs text-ink-4">我的付款狀態</p>
             <PaymentStatusBadge status={myMember.paymentStatus} />
           </div>
         ) : undefined
       }
-      summaryFooter={markPaidCta || undefined}
-      mobileFooter={markPaidCta || undefined}
+      summaryFooter={paymentCta}
+      mobileFooter={paymentCta}
       bottomBar={(() => {
         const btnCount = 1 + (isPaymentRelevant ? 1 : 0) + (!isEnded ? 1 : 0)
         const colsCls = btnCount === 3 ? 'grid-cols-3' : btnCount === 2 ? 'grid-cols-2' : 'grid-cols-1'
@@ -109,6 +116,13 @@ export default function MemberGroupView({ group, onMarkPaid, onClose }) {
         )
       })()}
     >
+      <PaymentModal
+        isOpen={paymentOpen}
+        onClose={() => setPaymentOpen(false)}
+        sub={sub}
+        onSuccess={() => { onMarkPaid?.(sub) }}
+      />
+
       {/* 退出群組確認 */}
       {confirmingLeave && (
         <ConfirmDialog

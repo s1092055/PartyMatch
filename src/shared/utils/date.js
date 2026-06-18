@@ -9,6 +9,10 @@ export function todayISO() {
   return toISODate(new Date())
 }
 
+export function nowISO() {
+  return new Date().toISOString()
+}
+
 export function daysUntil(dateLike, baseDate = new Date()) {
   if (!dateLike) return 0
   const target = new Date(dateLike)
@@ -47,11 +51,21 @@ export function computeNextBillingDate(day, baseDate = new Date()) {
   return toISODate(candidate)
 }
 
+function extractTime(dateLike) {
+  const d = new Date(dateLike)
+  if (Number.isNaN(d.getTime())) return ''
+  const h = String(d.getHours()).padStart(2, '0')
+  const m = String(d.getMinutes()).padStart(2, '0')
+  return `${h}:${m}`
+}
+
 export function formatRelativeDate(dateLike, baseDate = new Date()) {
   const days = daysUntil(dateLike, baseDate)
-  if (days === 0) return '今天'
+  const time = extractTime(dateLike)
+  const suffix = time ? ` ${time}` : ''
+  if (days === 0) return `今天${suffix}`
   if (days === 1) return '明天'
   if (days > 1) return `${days} 天後`
-  if (days === -1) return '昨天'
+  if (days === -1) return `昨天${suffix}`
   return `${Math.abs(days)} 天前`
 }

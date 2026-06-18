@@ -6,7 +6,7 @@ import { CREDIT_RULES } from '../../shared/utils/creditScore'
 import { getApplicationsByHostId, updateApplicationStatus } from '../../shared/stores/applicationStore'
 import { getMembersByGroupId, createMember, isUserGroupMember, removeMember, resetMemberPaymentsForGroup, updateMember } from '../../shared/stores/memberStore'
 import { activateGroupSubscriptions, confirmSubscriptionPayment, createSubscription, getSubscriptionByUserAndGroup, getSubscriptionsByGroupId, resetSubscriptionPaymentsForGroup } from '../../shared/stores/subscriptionStore'
-import { getPaymentRecordCountBySubIds } from '../../shared/stores/paymentStore'
+import { createPaymentRecord, getPaymentRecordCountBySubIds } from '../../shared/stores/paymentStore'
 import { createNotification } from '../../shared/stores/notificationStore'
 import { getCurrentUser } from '../../shared/stores/authStore'
 import { leaveConversation, sendSystemMessage } from '../../shared/api/messagesApi'
@@ -172,7 +172,10 @@ function handleConfirmMember(member) {
     updateMember(member.id, { paymentStatus: 'confirmed' })
 
     const sub = getSubscriptionByUserAndGroup(member.userId, member.groupId)
-    if (sub) confirmSubscriptionPayment(sub.id)
+    if (sub) {
+      confirmSubscriptionPayment(sub.id)
+      createPaymentRecord({ subscriptionId: sub.id, amount: sub.pricePerSeat })
+    }
 
     createNotification({
       userId:  member.userId,

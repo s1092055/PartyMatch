@@ -12,7 +12,7 @@ import EmptyState from '../../shared/ui/EmptyState'
 import GroupViewModal from '../../shared/ui/GroupViewModal'
 import FilterTabsBar from '../../shared/ui/FilterTabsBar'
 import { effectiveStatus } from '../../shared/utils/subscriptionStatus'
-import { daysUntil, todayISO } from '../../shared/utils/date'
+import { daysUntil, formatRelativeDate, todayISO } from '../../shared/utils/date'
 
 const FILTER_TABS = [
   { key: 'all',          label: '全部'     },
@@ -175,7 +175,7 @@ export default function SubscriptionsPage() {
               <EmptyState icon={ClipboardList} title="沒有申請紀錄" />
             ) : (
               userApplications.map(app => (
-                <ApplicationRow key={app.id} app={app} />
+                <ApplicationRow key={app.id} app={app} onOpenGroup={groupId => setViewGroupId(groupId)} />
               ))
             )}
           </div>
@@ -224,21 +224,21 @@ const APP_STATUS_CONFIG = {
   rejected: { label: '已拒絕', Icon: XCircle,     cls: 'bg-danger-subtle  text-danger',          dot: 'bg-danger'   },
 }
 
-function ApplicationRow({ app }) {
+function ApplicationRow({ app, onOpenGroup }) {
   const cfg = APP_STATUS_CONFIG[app.status] ?? APP_STATUS_CONFIG.pending
   return (
-    <div className="card flex items-center gap-4 p-4">
+    <button onClick={() => onOpenGroup?.(app.groupId)} className="card flex w-full items-center gap-4 p-4 text-left transition-colors hover:bg-raised">
       <div className={`h-2.5 w-2.5 shrink-0 rounded-full ${cfg.dot}`} />
       <div className="min-w-0 flex-1">
         <p className="font-semibold text-ink">{app.groupName}</p>
         <p className="mt-0.5 text-xs text-ink-3">
-          {app.planName ? `${app.planName} · ` : ''}申請於 {app.createdAt}
+          {app.planName ? `${app.planName} · ` : ''}申請於 {formatRelativeDate(app.createdAt)}
         </p>
       </div>
       <span className={`flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${cfg.cls}`}>
         <cfg.Icon size={11} />
         {cfg.label}
       </span>
-    </div>
+    </button>
   )
 }

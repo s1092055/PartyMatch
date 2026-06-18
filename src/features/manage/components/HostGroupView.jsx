@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   Banknote, Check, CheckCircle2, ChevronDown, ChevronUp,
   ClipboardList, MessageCircle, PlayCircle, Shield, UserX, Users, X,
@@ -11,8 +11,9 @@ import Modal from '../../../shared/ui/Modal'
 import ConfirmDialog from '../../../shared/ui/ConfirmDialog'
 import GroupModalShell from '../../../shared/ui/GroupModalShell'
 import EmptyState from '../../../shared/ui/EmptyState'
+import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import { getServiceById } from '../../../shared/utils/serviceUtils'
-import { todayISO } from '../../../shared/utils/date'
+import { formatRelativeDate, toISODate, todayISO } from '../../../shared/utils/date'
 import { CONFIRMED_STATUSES, READY_TO_ACTIVATE_STATUSES } from '../../../shared/constants/paymentStatus'
 
 // ── 申請卡片 ──────────────────────────────────────────────────────────────────
@@ -35,7 +36,7 @@ function ApplicationCard({ app, groupFull, error, onApprove, onReject }) {
                 <p className="text-sm font-semibold text-ink">{name}</p>
                 <CreditScoreBadge score={app.applicantCreditScore ?? 80} />
               </div>
-              <p className="mt-0.5 text-2xs text-ink-4">{app.createdAt}</p>
+              <p className="mt-0.5 text-2xs text-ink-4">{formatRelativeDate(app.createdAt)}</p>
             </div>
             {!isPending && (
               <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${app.status === 'approved' ? 'bg-success-subtle text-success-text' : 'bg-red-50 text-red-600'}`}>
@@ -82,8 +83,18 @@ function ApplicationCard({ app, groupFull, error, onApprove, onReject }) {
 
 // ── 團主視角 ──────────────────────────────────────────────────────────────────
 
+function defaultRenewalDate(billingCycle) {
+  const d = new Date()
+  if (billingCycle === 'yearly') {
+    d.setFullYear(d.getFullYear() + 1)
+  } else {
+    d.setMonth(d.getMonth() + 1)
+  }
+  return toISODate(d)
+}
+
 export default function HostGroupView({ group, members, applications, onConfirmMember, onRemoveMember, onActivate, onApprove, onReject, errors, onClose }) {
-  const [activating, setActivating]             = useState(false)
+  const [showActivate, setShowActivate]         = useState(false)
   const [renewalDate, setRenewalDate]           = useState('')
   const [removingMember, setRemovingMember]     = useState(null)
   const [showMembers, setShowMembers]           = useState(false)
@@ -105,52 +116,42 @@ export default function HostGroupView({ group, members, applications, onConfirmM
   const markedPaidCount = members.filter(m => m.paymentStatus === 'markedPaid').length
   const canActivateNow  = allReadyActivate && ['recruiting', 'full', 'pending_activation'].includes(group.status)
 
+  const autoRenewalDate = useMemo(() => defaultRenewalDate(group.billingCycle), [group.billingCycle])
+
+  const [finalConfirmed, setFinalConfirmed] = useState(false)
+
+  function openActivate() {
+    setRenewalDate(autoRenewalDate)
+    setFinalConfirmed(false)
+    setShowActivate(true)
+  }
+
+  function closeActivate() {
+    setShowActivate(false)
+    setRenewalDate('')
+    setFinalConfirmed(false)
+  }
+
   function handleActivateConfirm() {
     onActivate?.(renewalDate || null)
-    setActivating(false)
+    setShowActivate(false)
     setRenewalDate('')
+    setFinalConfirmed(false)
     onClose()
   }
 
   const activateCta = canActivateNow && (
     <div className="p-4">
-      {activating ? (
-        <div className="space-y-3">
-          <p className="text-xs font-semibold text-ink">確認啟用服務</p>
-          <p className="text-xs text-ink-3">
-            點擊確認代表你已在外部完成「{group.serviceName}」的訂閱設定，並已將成員加入服務。
-          </p>
-          <label className="block text-xs font-semibold text-ink-2">
-            下次扣款日<span className="ml-1 font-normal text-ink-3">（選填）</span>
-          </label>
-          <input
-            type="date"
-            min={todayISO()}
-            value={renewalDate}
-            onChange={e => setRenewalDate(e.target.value)}
-            className="w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-brand/20"
-          />
-          <div className="flex gap-2">
-            <button
-              onClick={() => { setActivating(false); setRenewalDate('') }}
-              className="flex-1 rounded-xl border border-line py-2 text-sm font-semibold text-ink-2 hover:bg-raised"
-            >取消</button>
-            <button
-              onClick={handleActivateConfirm}
-              className="flex-1 rounded-xl bg-brand py-2 text-sm font-bold text-white hover:bg-brand-hover"
-            >確認啟用</button>
-          </div>
-        </div>
-      ) : (
-        <button
-          onClick={() => setActivating(true)}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
-        >
-          <PlayCircle size={15} /> 啟用服務
-        </button>
-      )}
+      <button
+        onClick={openActivate}
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
+      >
+        <PlayCircle size={15} /> 啟用服務
+      </button>
     </div>
   )
+
+  const isRecruiting = ['recruiting', 'full', 'pending_confirmation', 'pending_activation'].includes(group.status)
 
   return (
     <GroupModalShell
@@ -158,47 +159,161 @@ export default function HostGroupView({ group, members, applications, onConfirmM
       group={group}
       service={serviceDef}
       plan={planDef}
+      hideRecruitBar={!isRecruiting}
       summaryFooter={activateCta || undefined}
       mobileFooter={activateCta || undefined}
-      bottomBar={
-        <div className="grid grid-cols-3 gap-1 p-2">
-          <button
-            onClick={() => setShowMembers(true)}
-            className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
-          >
-            <Users size={17} /> 成員名單
-          </button>
-          <button
-            onClick={() => setShowApplications(true)}
-            className="relative flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
-          >
-            <span className="relative">
-              <ClipboardList size={17} />
-              {pendingApps.length > 0 && (
-                <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-warning-text px-0.5 text-[10px] font-bold text-white">
-                  {pendingApps.length}
+      bottomBar={(() => {
+        const colsCls = isRecruiting ? 'grid-cols-3' : 'grid-cols-2'
+        return (
+          <div className={`grid gap-1 p-2 ${colsCls}`}>
+            <button
+              onClick={() => setShowMembers(true)}
+              className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
+            >
+              <Users size={17} /> 成員名單
+            </button>
+            {isRecruiting && (
+              <button
+                onClick={() => setShowApplications(true)}
+                className="relative flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
+              >
+                <span className="relative">
+                  <ClipboardList size={17} />
+                  {pendingApps.length > 0 && (
+                    <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-warning-text px-0.5 text-[10px] font-bold text-white">
+                      {pendingApps.length}
+                    </span>
+                  )}
                 </span>
-              )}
-            </span>
-            申請管理
-          </button>
-          <button
-            onClick={() => setShowBilling(true)}
-            className="relative flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
-          >
-            <span className="relative">
-              <Banknote size={17} />
-              {markedPaidCount > 0 && (
-                <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-warning-text px-0.5 text-[10px] font-bold text-white">
-                  {markedPaidCount}
-                </span>
-              )}
-            </span>
-            收款紀錄
-          </button>
-        </div>
-      }
+                申請管理
+              </button>
+            )}
+            <button
+              onClick={() => setShowBilling(true)}
+              className="relative flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
+            >
+              <span className="relative">
+                <Banknote size={17} />
+                {markedPaidCount > 0 && (
+                  <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-warning-text px-0.5 text-[10px] font-bold text-white">
+                    {markedPaidCount}
+                  </span>
+                )}
+              </span>
+              收款紀錄
+            </button>
+          </div>
+        )
+      })()}
     >
+      {/* ── 啟用服務 Modal ── */}
+      <Modal
+        isOpen={showActivate}
+        onClose={closeActivate}
+        title="啟用服務"
+        icon={<PlayCircle size={18} className="text-brand" />}
+        maxWidth="max-w-lg"
+        sub
+      >
+        <div className="max-h-[70vh] overflow-y-auto">
+          {/* 服務摘要 */}
+          <div className="flex items-center gap-3 border-b border-line-subtle px-5 py-4">
+            <ServiceLogo serviceId={group.serviceId} size={40} className="rounded-xl" />
+            <div className="min-w-0 flex-1">
+              <p className="font-bold text-ink">{group.serviceName}</p>
+              <p className="text-xs text-ink-3">{group.planName}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-lg font-extrabold text-ink">NT${group.pricePerSeat}</p>
+              <p className="text-xs text-ink-4">/席/{group.billingCycle === 'yearly' ? '年' : '月'}</p>
+            </div>
+          </div>
+
+          {/* 撥款提示 */}
+          <div className="mx-5 mt-4 flex items-center justify-between rounded-xl bg-success-subtle px-4 py-3">
+            <p className="text-xs text-success-text">啟用後平台將撥款至你的帳戶</p>
+            <p className="text-base font-extrabold text-success-text">
+              NT${group.pricePerSeat * members.length}
+            </p>
+          </div>
+
+          {/* 下次扣款日 */}
+          <div className="px-5 pt-4">
+            <label className="mb-1.5 block text-xs font-semibold text-ink-2">
+              下次扣款日
+              <span className="ml-1 font-normal text-ink-3">（依方案自動推算，可調整）</span>
+            </label>
+            <input
+              type="date"
+              min={todayISO()}
+              value={renewalDate}
+              onChange={e => setRenewalDate(e.target.value)}
+              className="w-full rounded-xl border border-line bg-canvas px-3.5 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-brand/20"
+            />
+          </div>
+
+          {/* 成員付款確認 */}
+          <div className="px-5 pt-4">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-xs font-semibold text-ink-2">成員付款確認</p>
+              <p className="text-xs text-ink-3">{confirmedCount}/{members.length} 已確認</p>
+            </div>
+            <ProgressBar value={confirmedCount} max={members.length} className="mb-3" />
+            <div className="space-y-2">
+              {members.length === 0 ? (
+                <p className="py-2 text-center text-sm text-ink-3">尚無成員</p>
+              ) : members.map(m => {
+                const isConfirmed = CONFIRMED_STATUSES.includes(m.paymentStatus)
+                return (
+                  <div key={m.id} className="flex items-center gap-3 rounded-xl border border-line p-3">
+                    <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-ink">{m.userName}</p>
+                    </div>
+                    <PaymentStatusBadge status={m.paymentStatus} />
+                    {m.paymentStatus === 'markedPaid' && (
+                      <button
+                        onClick={() => onConfirmMember?.(m)}
+                        className="shrink-0 flex items-center gap-1 rounded-lg bg-success-subtle px-2.5 py-1 text-xs font-semibold text-success-text transition-colors hover:bg-success-subtle/80"
+                      >
+                        <CheckCircle2 size={11} /> 確認收款
+                      </button>
+                    )}
+                    {isConfirmed && (
+                      <CheckCircle2 size={16} className="shrink-0 text-success" />
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* 最終確認 checkbox + 操作按鈕 */}
+          <div className="space-y-3 p-5">
+            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-line p-3 transition-colors hover:bg-raised">
+              <input
+                type="checkbox"
+                checked={finalConfirmed}
+                onChange={e => setFinalConfirmed(e.target.checked)}
+                className="mt-0.5 h-4 w-4 shrink-0 accent-brand"
+              />
+              <span className="text-sm font-medium text-ink leading-relaxed">我已完成外部訂閱設定並將所有成員加入服務，同意平台依此結果進行撥款</span>
+            </label>
+            <div className="flex gap-2">
+              <button
+                onClick={closeActivate}
+                className="flex-1 rounded-xl border border-line py-2.5 text-sm font-semibold text-ink-2 transition-colors hover:bg-raised"
+              >取消</button>
+              <button
+                onClick={handleActivateConfirm}
+                disabled={!finalConfirmed}
+                className="flex-1 rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
+              >確認啟用</button>
+            </div>
+          </div>
+        </div>
+      </Modal>
+
       {/* 移除成員確認 */}
       {removingMember && (
         <ConfirmDialog

@@ -5,6 +5,7 @@ import CreditScoreBadge from '../../../shared/ui/CreditScoreBadge'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import EmptyState from '../../../shared/ui/EmptyState'
 import { getGroups } from '../../../shared/stores/groupStore'
+import { formatRelativeDate } from '../../../shared/utils/date'
 
 function resolveServiceId(app) {
   if (app.serviceId) return app.serviceId
@@ -35,7 +36,7 @@ function ApplicationCard({ app, groupFull, error, onApprove, onReject }) {
                 <ServiceLogo serviceId={serviceId} size={16} />
                 <p className="truncate text-xs text-ink-3">{app.groupName ?? app.serviceName}</p>
               </div>
-              <p className="mt-0.5 text-2xs text-ink-4">{app.createdAt}</p>
+              <p className="mt-0.5 text-2xs text-ink-4">{formatRelativeDate(app.createdAt)}</p>
             </div>
 
             {!isPending && (
