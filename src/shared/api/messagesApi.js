@@ -186,3 +186,15 @@ export async function sendSystemMessage(conversationId, text) {
     createdAt: serverTimestamp(),
   })
 }
+
+// 傳送行動訊息（需要互動或僅特定成員可見）
+export async function sendActionMessage(conversationId, { text, actionType, payload = {}, visibleTo = null }) {
+  await addDoc(collection(db, 'conversations', conversationId, 'messages'), {
+    type: 'action',
+    actionType,
+    text,
+    payload,
+    ...(visibleTo ? { visibleTo } : {}),
+    createdAt: serverTimestamp(),
+  })
+}

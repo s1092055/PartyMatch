@@ -1,16 +1,29 @@
-import Badge from '../../../shared/ui/Badge'
 import Button from '../../../shared/ui/Button'
+import Badge from '../../../shared/ui/Badge'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import { effectiveStatus } from '../../../shared/utils/subscriptionStatus'
+import { daysUntil } from '../../../shared/utils/date'
 
 const STATUS_BADGE_CLASS = {
-  pending:             'bg-warning-subtle text-warning-text',
-  markedPaid:          'bg-warning-subtle text-warning-text',
-  confirmed:           'bg-success-subtle text-success-text',
-  paid:                'bg-success-subtle text-success-text',
-  waiting_activation:  'bg-brand-subtle text-brand',
-  overdue:             'bg-danger-subtle text-danger-text',
-  active:              'bg-brand-subtle text-brand',
+  active:               'bg-success-subtle text-success-text',
+  active_renewal:       'bg-success-subtle text-success-text',
+  recruiting:           'bg-success-subtle text-success-text',
+  group_active:         'bg-brand-subtle text-brand',
+  pending_confirmation: 'bg-warning-subtle text-warning-text',
+  pending_activation:   'bg-warning-subtle text-warning-text',
+  full:                 'bg-slate-100 text-slate-500',
+  paused:               'bg-slate-100 text-slate-500',
+  cancelled:            'bg-danger-subtle text-danger-text',
+  ended:                'bg-slate-100 text-slate-400',
+}
+
+function getDisplayStatus(sub) {
+  const groupStatus = sub.groupStatus ?? sub.status
+  if (groupStatus === 'active' && sub.nextBillingDate) {
+    const days = daysUntil(sub.nextBillingDate)
+    if (days !== null && days <= 7) return 'active_renewal'
+  }
+  return groupStatus
 }
 
 function StatCell({ label, children, highlight }) {
@@ -23,25 +36,26 @@ function StatCell({ label, children, highlight }) {
 }
 
 export default function SubscriptionCard({ sub, onViewGroup }) {
-  const status = effectiveStatus(sub)
-  const isActive = sub.status === 'active' || sub.groupStatus === 'active'
-  const badgeStatus = isActive ? 'active' : status
+  const status        = effectiveStatus(sub)
+  const isActive      = sub.status === 'active' || sub.groupStatus === 'active'
+  const groupStatus   = sub.groupStatus ?? sub.status
+  const displayStatus = getDisplayStatus(sub)
 
   const paymentLabel = {
     pending:            '待付款',
-    markedPaid:         '待確認',
-    confirmed:          '已確認',
+    markedPaid:         '已付款',
+    confirmed:          '已付款',
     paid:               '已付款',
     waiting_activation: '等待啟用',
     overdue:            '逾期未付',
   }[status] ?? '待付款'
 
   const paymentHighlight = {
-    pending:   'text-warning-text',
-    markedPaid:'text-warning-text',
-    overdue:   'text-danger-text',
-    confirmed: 'text-success-text',
-    paid:      'text-success-text',
+    pending:    'text-warning-text',
+    markedPaid: 'text-warning-text',
+    overdue:    'text-danger-text',
+    confirmed:  'text-success-text',
+    paid:       'text-success-text',
   }[status]
 
   return (
@@ -50,7 +64,7 @@ export default function SubscriptionCard({ sub, onViewGroup }) {
       onClick={() => onViewGroup?.(sub)}
     >
       <div className="flex justify-center">
-        <Badge variant={badgeStatus} className={STATUS_BADGE_CLASS[badgeStatus] ?? ''} />
+        <Badge variant={groupStatus} className={STATUS_BADGE_CLASS[displayStatus] ?? ''} />
       </div>
 
       <div className="mt-4 flex justify-center">
@@ -76,7 +90,7 @@ export default function SubscriptionCard({ sub, onViewGroup }) {
           {isActive ? (sub.nextBillingDate ?? '—') : (sub.joinedAt ?? '—')}
         </StatCell>
         <StatCell label="團主">
-          {sub.hostName ? `${sub.hostName}` : '—'}
+          {sub.hostName ?? '—'}
         </StatCell>
       </div>
 

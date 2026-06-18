@@ -84,7 +84,7 @@ export function getNotifications(userId) {
   return [...source].sort(byNewest)
 }
 
-export function createNotification({ userId, type, title, message }) {
+export function createNotification({ userId, type, title, message, meta }) {
   const notif = {
     id:        createId('notif'),
     userId,
@@ -93,6 +93,7 @@ export function createNotification({ userId, type, title, message }) {
     message,
     isRead:    false,
     createdAt: nowISO(),
+    ...(meta ? { meta } : {}),
   }
   _notifications.unshift(notif)
   if (_liveNotifications !== null && userId === _subscribedUserId) {

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { activateGroup, confirmGroupPayments, endGroup, getGroupById, getGroupsByHostId, startRenewalCycle, updateGroup } from '../../shared/stores/groupStore'
+import { activateGroup, activateGroupChat, confirmGroupPayments, endGroup, getGroupById, getGroupsByHostId, startRenewalCycle, updateGroup } from '../../shared/stores/groupStore'
 import { adjustCreditScore } from '../../shared/stores/authStore'
 import { CREDIT_RULES } from '../../shared/utils/creditScore'
 import { getApplicationsByHostId, updateApplicationStatus } from '../../shared/stores/applicationStore'
@@ -9,7 +9,8 @@ import { activateGroupSubscriptions, confirmSubscriptionPayment, createSubscript
 import { createPaymentRecord, getPaymentRecordCountBySubIds } from '../../shared/stores/paymentStore'
 import { createNotification } from '../../shared/stores/notificationStore'
 import { getCurrentUser } from '../../shared/stores/authStore'
-import { leaveConversation, sendSystemMessage } from '../../shared/api/messagesApi'
+import { addParticipantToConversation, createGroupConversation, leaveConversation, sendSystemMessage, sendActionMessage } from '../../shared/api/messagesApi'
+import { addConversationOptimistic } from '../../shared/stores/conversationStore'
 import { CONFIRMED_STATUSES } from '../../shared/constants/paymentStatus'
 import EmptyState from '../../shared/ui/EmptyState'
 import GroupViewModal from '../../shared/ui/GroupViewModal'
@@ -26,7 +27,7 @@ const STATUS_FILTER_TABS = [
   { key: 'cancelled',  label: '已結束' },
 ]
 
-const PENDING_STATUSES   = new Set(['full', 'pending_confirmation', 'pending_activation'])
+const PENDING_STATUSES   = new Set(['full', 'group_active', 'pending_confirmation', 'pending_activation'])
 const CANCELLED_STATUSES = new Set(['paused', 'cancelled', 'ended'])
 
 function matchesFilter(group, filterKey) {
@@ -139,6 +140,71 @@ useEffect(() => {
     setManageData(prev => ({ ...prev, hostedGroups: getGroupsByHostId(activeUser.id) }))
   }
 
+async function handleActivateGroup() {
+    if (!viewGroupId) return
+    const group = getGroupById(viewGroupId)
+    if (!group) return
+    const groupMembers = getMembersByGroupId(viewGroupId)
+
+    activateGroupChat(viewGroupId)
+
+    const convId = `group_${viewGroupId}`
+    await createGroupConversation({
+      groupId:           viewGroupId,
+      groupName:         group.serviceName ?? viewGroupId,
+      serviceId:         group.serviceId ?? null,
+      hostId:            group.hostId,
+      hostName:          group.hostName,
+      hostAvatarInitial: group.hostAvatarInitial,
+      hostAvatarColor:   group.hostAvatarColor,
+    })
+    for (const m of groupMembers) {
+      await addParticipantToConversation(convId, m.userId, {
+        name:          m.userName,
+        avatarInitial: m.userAvatarInitial,
+        avatarColor:   m.userAvatarColor,
+      })
+    }
+    await sendSystemMessage(convId, `${group.serviceName} 群組已啟用，請前往「我的訂閱」完成付款！`)
+    await sendActionMessage(convId, {
+      text: `請填寫你在 ${group.serviceName} 使用的服務帳號（電子信箱），以便團主幫你設定訂閱。`,
+      actionType: 'fill_service_info',
+      payload: { serviceName: group.serviceName, serviceId: group.serviceId },
+    })
+
+    groupMembers.forEach(m => {
+      createNotification({
+        userId:  m.userId,
+        type:    'group_chat_opened',
+        title:   '群組已啟用，請前往付款',
+        message: `「${group.serviceName}」群組已啟用！請前往我的訂閱完成付款。`,
+        meta:    { groupId: viewGroupId },
+      })
+    })
+
+    // 立即將新對話放入 store，不等 Firestore onSnapshot 回傳，避免 pm:open-messages 發出時找不到對話
+    const participantMeta = {
+      [group.hostId]: { name: group.hostName, avatarInitial: group.hostAvatarInitial, avatarColor: group.hostAvatarColor },
+      ...Object.fromEntries(groupMembers.map(m => [m.userId, { name: m.userName, avatarInitial: m.userAvatarInitial, avatarColor: m.userAvatarColor }])),
+    }
+    addConversationOptimistic({
+      id:              convId,
+      type:            'group',
+      groupId:         viewGroupId,
+      name:            group.serviceName ?? viewGroupId,
+      serviceId:       group.serviceId ?? null,
+      participants:    [group.hostId, ...groupMembers.map(m => m.userId)],
+      participantMeta,
+      unreadCounts:    { [group.hostId]: 0 },
+      lastMessage:     '',
+      lastMessageAt:   null,
+    })
+
+    const targetGroupId = viewGroupId
+    setViewGroupId(null)
+    window.dispatchEvent(new CustomEvent('pm:open-messages', { detail: { groupId: targetGroupId } }))
+  }
+
 function handleRemoveMember(member) {
     const group = getGroupById(member.groupId)
     adjustCreditScore(member.userId, CREDIT_RULES.MEMBER_REMOVED).catch(console.error)
@@ -185,9 +251,10 @@ function handleConfirmMember(member) {
     })
 
     const updatedMembers = getMembersByGroupId(member.groupId)
+    const groupSnapshot = getGroupById(member.groupId)
     const allConfirmed = updatedMembers.length > 0 &&
       updatedMembers.every(m => CONFIRMED_STATUSES.includes(m.paymentStatus))
-    if (allConfirmed) confirmGroupPayments(member.groupId)
+    if (allConfirmed && groupSnapshot?.openSeats <= 0) confirmGroupPayments(member.groupId)
 
     refreshGroups()
   }
@@ -416,6 +483,7 @@ function handleApprove(appId) {
         groupId={viewGroupId}
         onConfirmMember={handleConfirmMember}
         onActivate={handleActivate}
+        onActivateGroup={handleActivateGroup}
         onRemoveMember={handleRemoveMember}
         onApprove={handleApprove}
         onReject={handleReject}

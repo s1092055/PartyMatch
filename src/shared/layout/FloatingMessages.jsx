@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
-import { AlertCircle, Bell, CheckCircle2, Clock, CreditCard, UserPlus, X } from 'lucide-react'
+import { AlertCircle, Bell, CheckCircle2, Clock, CreditCard, MessageSquare, UserPlus, X } from 'lucide-react'
 import { getCurrentUser, isAuthenticated } from '../stores/authStore'
 import {
   getNotifications,
@@ -23,17 +23,18 @@ import { useScrollLock } from '../utils/hooks'
 import EmptyState from '../ui/EmptyState'
 
 const NOTIFICATION_META = {
-  payment:              { icon: CreditCard,   iconColor: 'text-brand',      link: '/my-subscriptions' },
-  payment_reminder:     { icon: Clock,        iconColor: 'text-amber-500',  link: '/my-subscriptions' },
-  joined:               { icon: CheckCircle2, iconColor: 'text-success',    link: '/my-subscriptions' },
-  application_approved: { icon: CheckCircle2, iconColor: 'text-success',    link: '/my-subscriptions', state: { tab: 'applications' } },
-  application_rejected: { icon: AlertCircle,  iconColor: 'text-danger',     link: '/my-subscriptions', state: { tab: 'applications' } },
-  application_sent:     { icon: CheckCircle2, iconColor: 'text-brand',      link: '/my-subscriptions', state: { tab: 'applications' } },
-  new_application:      { icon: UserPlus,     iconColor: 'text-brand',      link: '/manage-groups' },
-  system:               { icon: AlertCircle,  iconColor: 'text-ink-3',      link: '/explore' },
-  announcement:         { icon: AlertCircle,  iconColor: 'text-brand',      link: '/explore' },
-  platform:             { icon: AlertCircle,  iconColor: 'text-brand',      link: '/explore' },
-  default:              { icon: AlertCircle,  iconColor: 'text-ink-3',      link: '/my-subscriptions' },
+  payment:              { icon: CreditCard,    iconColor: 'text-brand',      link: '/my-subscriptions' },
+  payment_reminder:     { icon: Clock,         iconColor: 'text-amber-500',  link: '/my-subscriptions' },
+  joined:               { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-subscriptions' },
+  application_approved: { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-subscriptions', state: { tab: 'applications' } },
+  application_rejected: { icon: AlertCircle,   iconColor: 'text-danger',     link: '/my-subscriptions', state: { tab: 'applications' } },
+  application_sent:     { icon: CheckCircle2,  iconColor: 'text-brand',      link: '/my-subscriptions', state: { tab: 'applications' } },
+  new_application:      { icon: UserPlus,      iconColor: 'text-brand',      link: '/manage-groups' },
+  group_chat_opened:    { icon: MessageSquare, iconColor: 'text-brand',      link: null },
+  system:               { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/explore' },
+  announcement:         { icon: AlertCircle,   iconColor: 'text-brand',      link: '/explore' },
+  platform:             { icon: AlertCircle,   iconColor: 'text-brand',      link: '/explore' },
+  default:              { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/my-subscriptions' },
 }
 
 function getMeta(type) {
@@ -117,7 +118,14 @@ export default function FloatingMessages() {
     markNotificationAsRead(notification.id)
     setNotifications(getMergedNotifications(userId))
     setOpen(false)
+
+    if (notification.type === 'group_chat_opened' && notification.meta?.groupId) {
+      window.dispatchEvent(new CustomEvent('pm:open-messages', { detail: { groupId: notification.meta.groupId } }))
+      return
+    }
+
     const meta = getMeta(notification.type)
+    if (!meta.link) return
     navigate(meta.link, meta.state ? { state: meta.state } : undefined)
   }
 

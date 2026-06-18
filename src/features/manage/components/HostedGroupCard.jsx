@@ -8,18 +8,21 @@ const STATUS_BADGE_CLASS = {
   active:               'bg-success-subtle text-success-text',
   active_renewal:       'bg-success-subtle text-success-text',
   recruiting:           'bg-success-subtle text-success-text',
+  group_active:         'bg-brand-subtle text-brand',
   pending_confirmation: 'bg-warning-subtle text-warning-text',
   pending_activation:   'bg-warning-subtle text-warning-text',
-  full:                 'bg-brand-subtle text-brand',
+  full:                 'bg-slate-100 text-slate-500',
   paused:               'bg-slate-100 text-slate-500',
   cancelled:            'bg-danger-subtle text-danger-text',
   ended:                'bg-slate-100 text-slate-400',
 }
 
-function getPaymentState({ group, hasMarkedPaid, paidCount, paymentTarget }) {
+function getCollectionState({ group, hasMarkedPaid, paidCount, paymentTarget }) {
   if (['paused', 'cancelled', 'ended'].includes(group.status)) return '已結束'
-  if (hasMarkedPaid) return '待確認'
-  if (['pending_confirmation', 'pending_activation', 'full'].includes(group.status)) return '待處理'
+  if (group.status === 'recruiting') return '招募中'
+  if (group.status === 'full') return '等待啟用'
+  if (group.status === 'group_active') return hasMarkedPaid ? '待確認' : '收款中'
+  if (group.status === 'pending_activation') return '已收款'
   if (paymentTarget > 0 && paidCount < paymentTarget && group.status === 'active') return '追蹤中'
   return '正常'
 }
@@ -54,15 +57,18 @@ export default function HostedGroupCard({
 }) {
   const displayStatus = getGroupDisplayStatus(group)
 
-  const hasMarkedPaid = members.some(m => m.paymentStatus === 'markedPaid')
-  const paidCount     = members.filter(m => CONFIRMED_STATUSES.includes(m.paymentStatus)).length
-  const paymentValue  = `${paidCount}/${members.length}`
-  const paymentState  = getPaymentState({ group, hasMarkedPaid, paidCount, paymentTarget: members.length })
+  const hasMarkedPaid     = members.some(m => m.paymentStatus === 'markedPaid')
+  const paidCount         = members.filter(m => CONFIRMED_STATUSES.includes(m.paymentStatus)).length
+  const collectionState   = getCollectionState({ group, hasMarkedPaid, paidCount, paymentTarget: members.length })
 
-  const paymentStateHighlight = {
-    '正常':  'text-success-text',
+  const collectionHighlight = {
+    '正常':   'text-success-text',
+    '招募中': 'text-success-text',
+    '收款中': 'text-brand',
+    '已收款': 'text-success-text',
     '已結束': 'text-ink-3',
-  }[paymentState] ?? 'text-warning-text'
+    '等待啟用': 'text-ink-3',
+  }[collectionState] ?? 'text-warning-text'
 
   const isActivated = ['active', 'paused', 'cancelled', 'ended'].includes(group.status)
 
@@ -93,26 +99,38 @@ export default function HostedGroupCard({
 
       <div className="grid grid-cols-3 divide-x divide-line-subtle rounded-lg border border-line-subtle">
         {isActivated ? (
-          <StatCell label="付款紀錄">
-            {paymentCount} 筆
+          <StatCell label="收款紀錄">
+            {paymentCount} 件
           </StatCell>
         ) : (
           <StatCell
             label="待處理申請"
             highlight={pendingAppCount > 0 ? 'text-brand' : undefined}
           >
-            {pendingAppCount} 件{pendingAppCount > 0 ? ' ●' : ''}
+            {pendingAppCount} 件
           </StatCell>
         )}
-        <StatCell
-          label="收款紀錄"
-          highlight={hasMarkedPaid ? 'text-warning-text' : undefined}
-        >
-          {paymentValue}
-        </StatCell>
-        <StatCell label="付款狀態" highlight={paymentStateHighlight}>
-          {paymentState}
-        </StatCell>
+        {isActivated || ['recruiting', 'full'].includes(group.status) ? (
+          <StatCell label="成員人數">
+            {members.length} 人
+          </StatCell>
+        ) : (
+          <StatCell
+            label="收款進度"
+            highlight={hasMarkedPaid ? 'text-warning-text' : undefined}
+          >
+            {paidCount}/{members.length} 人
+          </StatCell>
+        )}
+        {group.status === 'recruiting' ? (
+          <StatCell label="建立日期">
+            {group.createdAt ?? '—'}
+          </StatCell>
+        ) : (
+          <StatCell label="收款狀態" highlight={collectionHighlight}>
+            {collectionState}
+          </StatCell>
+        )}
       </div>
 
       <div className="mt-auto pt-5">

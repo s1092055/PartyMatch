@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowLeft, ChevronDown, LogOut, MoreVertical, Send, SquarePen, Trash2, Users, X } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, ChevronDown, LogOut, MoreVertical, Send, SquarePen, Trash2, Users, X } from 'lucide-react'
 import ConversationAvatar from './ConversationAvatar'
-import { getMembersByGroupId } from '../../../shared/stores/memberStore'
+import { getMembersByGroupId, getMemberByUserAndGroup, updateMember } from '../../../shared/stores/memberStore'
 import { getGroupById } from '../../../shared/stores/groupStore'
 import { getCurrentUser } from '../../../shared/stores/authStore'
-import { markConversationRead, addParticipantToConversation, fetchOlderMessages } from '../../../shared/api/messagesApi'
+import { markConversationRead, addParticipantToConversation, fetchOlderMessages, sendSystemMessage } from '../../../shared/api/messagesApi'
 import { getUserProfile } from '../../../shared/api/usersApi'
 import { formatTime } from '../utils'
 
@@ -52,6 +52,20 @@ export default function ChatWindow({
 }) {
   // 用來在 userProfileCache（模組層、非 React state）有新結果時強制重新 render
   const [, setProfileResolveTick] = useState(0)
+
+  const [fillInfoOpen, setFillInfoOpen] = useState(false)
+  const [fillInfoEmail, setFillInfoEmail] = useState('')
+  const [fillInfoDone, setFillInfoDone] = useState(false)
+
+  async function handleFillInfoSubmit() {
+    if (!fillInfoEmail.trim() || !conversationGroupId || !userId) return
+    const member = getMemberByUserAndGroup(userId, conversationGroupId)
+    if (!member) return
+    await updateMember(member.id, { serviceInfo: { email: fillInfoEmail.trim() } })
+    await sendSystemMessage(selectedId, `${member.userName} 已完成填寫服務帳號`)
+    setFillInfoDone(true)
+    setFillInfoOpen(false)
+  }
 
   const userId = user?.id
   const otherIds = selected?.participants?.filter(p => p !== userId) ?? []
@@ -372,6 +386,66 @@ export default function ChatWindow({
                   </div>
                 )
               }
+              if (msg.type === 'action') {
+                if (msg.visibleTo && !msg.visibleTo.includes(userId)) return null
+                if (msg.actionType === 'fill_service_info') {
+                  const isHost = userId === hostId
+                  if (isHost) {
+                    // 團主看到所有成員的填寫結果
+                    return (
+                      <div key={msg.id} className="flex justify-center">
+                        <div className="w-72 rounded-2xl border border-line bg-white p-4 shadow-sm">
+                          <p className="mb-2 text-xs font-semibold text-ink-2">成員服務帳號（僅你可見）</p>
+                          <div className="space-y-2">
+                            {groupMembers.map(m => (
+                              <div key={m.id} className="flex items-center gap-2">
+                                <span
+                                  className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-[10px] font-black text-white"
+                                  style={{ background: m.userAvatarColor }}
+                                >
+                                  {m.userAvatarInitial}
+                                </span>
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-xs font-semibold text-ink">{m.userName}</p>
+                                  {m.serviceInfo?.email ? (
+                                    <p className="text-xs text-ink-3">{m.serviceInfo.email}</p>
+                                  ) : (
+                                    <p className="text-xs text-ink-4">尚未填寫</p>
+                                  )}
+                                </div>
+                                {m.serviceInfo?.email && <CheckCircle2 size={13} className="shrink-0 text-success" />}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  }
+                  // 成員只看到自己的填寫狀態
+                  const myMember = getMemberByUserAndGroup(userId, conversationGroupId)
+                  const alreadyFilled = fillInfoDone || !!myMember?.serviceInfo?.email
+                  return (
+                    <div key={msg.id} className="flex justify-center">
+                      <div className="w-64 rounded-2xl border border-line bg-white px-4 py-3 text-center shadow-sm">
+                        <p className="mb-2 text-xs text-ink-3">{msg.text}</p>
+                        {alreadyFilled ? (
+                          <p className="flex items-center justify-center gap-1 text-xs font-semibold text-success-text">
+                            <CheckCircle2 size={13} /> 已填寫完成
+                          </p>
+                        ) : (
+                          <button
+                            onClick={() => setFillInfoOpen(true)}
+                            className="rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-brand-hover"
+                          >
+                            填寫服務帳號
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )
+                }
+                return null
+              }
               const isMine = msg.senderId === userId
               if (isMine) {
                 const readReceiptNames = getReadReceiptNames(msg)
@@ -467,6 +541,41 @@ export default function ChatWindow({
           </button>
         </div>
       </div>
+
+      {fillInfoOpen && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl">
+            <p className="mb-1 text-base font-bold text-ink">填寫服務帳號</p>
+            <p className="mb-4 text-xs text-ink-3">
+              請輸入你在 {group?.serviceName ?? '此服務'} 使用的電子信箱，以便團主設定你的訂閱帳號。
+            </p>
+            <input
+              type="email"
+              autoFocus
+              value={fillInfoEmail}
+              onChange={e => setFillInfoEmail(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleFillInfoSubmit() }}
+              placeholder="you@example.com"
+              className="mb-4 w-full rounded-xl border border-line bg-canvas px-3.5 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-brand/20"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={() => { setFillInfoOpen(false); setFillInfoEmail('') }}
+                className="flex-1 rounded-xl border border-line py-2.5 text-sm font-semibold text-ink-2 transition-colors hover:bg-raised"
+              >
+                取消
+              </button>
+              <button
+                onClick={handleFillInfoSubmit}
+                disabled={!fillInfoEmail.trim()}
+                className="flex-1 rounded-xl bg-brand py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover disabled:opacity-40"
+              >
+                確認送出
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }

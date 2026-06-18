@@ -11,7 +11,6 @@ import SubscriptionCard from './components/SubscriptionCard'
 import EmptyState from '../../shared/ui/EmptyState'
 import GroupViewModal from '../../shared/ui/GroupViewModal'
 import FilterTabsBar from '../../shared/ui/FilterTabsBar'
-import { effectiveStatus } from '../../shared/utils/subscriptionStatus'
 import { daysUntil, formatRelativeDate, todayISO } from '../../shared/utils/date'
 
 const FILTER_TABS = [
@@ -21,18 +20,6 @@ const FILTER_TABS = [
   { key: 'upcoming',     label: '即將續訂' },
   { key: 'applications', label: '申請紀錄' },
 ]
-
-const PAYMENT_ACTION_STATUSES = new Set([
-  'pending',
-  'markedPaid',
-  'overdue',
-])
-
-const PRE_ACTIVATION_PROCESSING_STATUSES = new Set([
-  'paid',
-  'confirmed',
-  'waiting_activation',
-])
 
 function enrichSubs(rawSubs) {
   return rawSubs.map(s => {
@@ -46,9 +33,9 @@ function isActivatedSubscription(sub) {
 }
 
 function isProcessingSubscription(sub) {
-  const status = effectiveStatus(sub)
-  if (PAYMENT_ACTION_STATUSES.has(status)) return true
-  return !isActivatedSubscription(sub) && PRE_ACTIVATION_PROCESSING_STATUSES.has(status)
+  if (isActivatedSubscription(sub)) return false
+  const groupStatus = sub.groupStatus ?? sub.status
+  return !['cancelled', 'ended'].includes(groupStatus)
 }
 
 function filterSubs(subs, tab) {
@@ -106,12 +93,14 @@ export default function SubscriptionsPage() {
     reloadFromSource()
     window.addEventListener('pm:subscriptions-changed', syncFromMemory)
     window.addEventListener('pm:applications-changed', syncFromMemory)
+    window.addEventListener('pm:groups-changed', syncFromMemory)
     window.addEventListener('focus', reloadFromSource)
     document.addEventListener('visibilitychange', handleVisibilityChange)
     return () => {
       cancelled = true
       window.removeEventListener('pm:subscriptions-changed', syncFromMemory)
       window.removeEventListener('pm:applications-changed', syncFromMemory)
+      window.removeEventListener('pm:groups-changed', syncFromMemory)
       window.removeEventListener('focus', reloadFromSource)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
@@ -175,7 +164,7 @@ export default function SubscriptionsPage() {
               <EmptyState icon={ClipboardList} title="沒有申請紀錄" />
             ) : (
               userApplications.map(app => (
-                <ApplicationRow key={app.id} app={app} onOpenGroup={groupId => setViewGroupId(groupId)} />
+                <ApplicationRow key={app.id} app={app} />
               ))
             )}
           </div>
@@ -224,10 +213,10 @@ const APP_STATUS_CONFIG = {
   rejected: { label: '已拒絕', Icon: XCircle,     cls: 'bg-danger-subtle  text-danger',          dot: 'bg-danger'   },
 }
 
-function ApplicationRow({ app, onOpenGroup }) {
+function ApplicationRow({ app }) {
   const cfg = APP_STATUS_CONFIG[app.status] ?? APP_STATUS_CONFIG.pending
   return (
-    <button onClick={() => onOpenGroup?.(app.groupId)} className="card flex w-full items-center gap-4 p-4 text-left transition-colors hover:bg-raised">
+    <div className="card flex w-full items-center gap-4 p-4">
       <div className={`h-2.5 w-2.5 shrink-0 rounded-full ${cfg.dot}`} />
       <div className="min-w-0 flex-1">
         <p className="font-semibold text-ink">{app.groupName}</p>
@@ -239,6 +228,6 @@ function ApplicationRow({ app, onOpenGroup }) {
         <cfg.Icon size={11} />
         {cfg.label}
       </span>
-    </button>
+    </div>
   )
 }

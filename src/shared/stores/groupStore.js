@@ -1,5 +1,4 @@
 import { readAllGroups, subscribeToGroups, insertGroup, patchGroup } from '../api/groupsApi'
-import { createGroupConversation } from '../api/messagesApi'
 import { toISODate, todayISO } from '../utils/date'
 import { createId } from '../utils/storage'
 import { getActiveUserProfile } from './authStore'
@@ -26,6 +25,7 @@ export function teardownLiveGroups() {
 
 function applyPatch(id, patch) {
   _groups = _groups.map(g => g.id === id ? normalizeGroup({ ...g, ...patch }) : g)
+  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('pm:groups-changed'))
   return _groups.find(g => g.id === id) ?? null
 }
 
@@ -64,17 +64,7 @@ export function createGroup(data) {
   })
 
   _groups = [..._groups, group]
-  insertGroup(group)
-    .then(() => createGroupConversation({
-      groupId:           group.id,
-      groupName:         group.serviceName ?? group.id,
-      serviceId:         group.serviceId ?? null,
-      hostId:            activeUser.id,
-      hostName:          activeUser.displayName,
-      hostAvatarInitial: activeUser.avatarInitial,
-      hostAvatarColor:   activeUser.avatarColor,
-    }))
-    .catch(err => console.error('[groupStore] createGroup failed:', err))
+  insertGroup(group).catch(err => console.error('[groupStore] createGroup failed:', err))
   return group
 }
 
@@ -82,6 +72,10 @@ export function updateGroup(id, patch) {
   const updated = applyPatch(id, patch)
   patchGroup(id, patch).catch(err => console.error('[groupStore] updateGroup failed:', err))
   return updated
+}
+
+export function activateGroupChat(id) {
+  return updateGroup(id, { status: 'group_active' })
 }
 
 export function confirmGroupPayments(id) {

@@ -53,9 +53,11 @@ export default function MemberGroupView({ group, onMarkPaid, onClose }) {
     onClose()
   }
 
-  const hasPendingPayment = !!sub && sub.paymentStatus === 'pending'
+  const isPaymentPhase = ['group_active', 'pending_activation', 'pending_confirmation'].includes(group.status)
+  const hasPendingPayment = !!sub && sub.paymentStatus === 'pending' && isPaymentPhase
+  const hasPaid = !!myMember && ['markedPaid', 'confirmed'].includes(myMember.paymentStatus) && isPaymentPhase
 
-  const goToPaymentCta = hasPendingPayment && (
+  const paymentCta = hasPendingPayment ? (
     <div className="p-4">
       <button
         onClick={() => setPaymentOpen(true)}
@@ -64,9 +66,7 @@ export default function MemberGroupView({ group, onMarkPaid, onClose }) {
         <CreditCard size={14} /> 前往付款
       </button>
     </div>
-  )
-
-  const paymentCta = goToPaymentCta || undefined
+  ) : undefined
 
   return (
     <GroupModalShell
@@ -75,6 +75,8 @@ export default function MemberGroupView({ group, onMarkPaid, onClose }) {
       service={serviceDef}
       plan={planDef}
       hideRecruitBar
+      centeredCta={paymentCta}
+      pendingBadge={hasPaid ? '群組等待啟用中' : undefined}
       summaryExtraRows={
         myMember ? (
           <div className="px-6 py-4 lg:px-8">
@@ -83,8 +85,6 @@ export default function MemberGroupView({ group, onMarkPaid, onClose }) {
           </div>
         ) : undefined
       }
-      summaryFooter={paymentCta}
-      mobileFooter={paymentCta}
       bottomBar={(() => {
         const btnCount = 1 + (isPaymentRelevant ? 1 : 0) + (!isEnded ? 1 : 0)
         const colsCls = btnCount === 3 ? 'grid-cols-3' : btnCount === 2 ? 'grid-cols-2' : 'grid-cols-1'
