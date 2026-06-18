@@ -1,7 +1,7 @@
 import { startTransition, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowRight, Compass, PlusCircle, Search, Sparkles, X, Zap } from 'lucide-react'
-import { getGroups, initGroups } from '../../shared/stores/groupStore'
+import { getGroups, initLiveGroups, teardownLiveGroups } from '../../shared/stores/groupStore'
 import { getApplicationsByUserId } from '../../shared/stores/applicationStore'
 import { getServiceById } from '../../shared/utils/serviceUtils'
 import { getCurrentUser } from '../../shared/stores/authStore'
@@ -73,21 +73,15 @@ export default function ExplorePage() {
   }, [activeUserId, tick]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    let cancelled = false
-    async function reload() {
-      await initGroups()
-      if (!cancelled) setTick(t => t + 1)
-    }
-    function onVisible() { if (document.visibilityState === 'visible') reload() }
-    reload()
-    window.addEventListener('focus', reload)
-    window.addEventListener('pm:applications-changed', reload)
-    document.addEventListener('visibilitychange', onVisible)
+    function onGroupsChanged() { setTick(t => t + 1) }
+    function onApplicationsChanged() { setTick(t => t + 1) }
+    initLiveGroups()
+    window.addEventListener('pm:groups-changed', onGroupsChanged)
+    window.addEventListener('pm:applications-changed', onApplicationsChanged)
     return () => {
-      cancelled = true
-      window.removeEventListener('focus', reload)
-      window.removeEventListener('pm:applications-changed', reload)
-      document.removeEventListener('visibilitychange', onVisible)
+      teardownLiveGroups()
+      window.removeEventListener('pm:groups-changed', onGroupsChanged)
+      window.removeEventListener('pm:applications-changed', onApplicationsChanged)
     }
   }, [])
 
