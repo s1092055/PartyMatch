@@ -63,13 +63,15 @@ export default function ExplorePage() {
     [activeUserId, tick], // eslint-disable-line react-hooks/exhaustive-deps
   )
 
-  const appliedGroupIds = useMemo(() => {
-    if (!activeUserId) return new Set()
-    return new Set(
-      getApplicationsByUserId(activeUserId)
-        .filter(a => a.status !== 'rejected')
-        .map(a => a.groupId)
-    )
+  const { appliedGroupIds, memberGroupIds } = useMemo(() => {
+    if (!activeUserId) return { appliedGroupIds: new Set(), memberGroupIds: new Set() }
+    const applied = new Set()
+    const member  = new Set()
+    getApplicationsByUserId(activeUserId).forEach(a => {
+      if (a.status === 'pending')  applied.add(a.groupId)
+      if (a.status === 'approved') member.add(a.groupId)
+    })
+    return { appliedGroupIds: applied, memberGroupIds: member }
   }, [activeUserId, tick]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -157,7 +159,7 @@ export default function ExplorePage() {
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
           {filtered.map((group, i) => (
             <RevealSection key={group.id} delay={Math.min(i * 60, 300)}>
-              <ExploreGroupCard group={group} isApplied={appliedGroupIds.has(group.id)} />
+              <ExploreGroupCard group={group} isApplied={appliedGroupIds.has(group.id)} isMember={memberGroupIds.has(group.id)} />
             </RevealSection>
           ))}
           <RevealSection delay={Math.min(filtered.length * 60, 300)} className="flex flex-col gap-5">

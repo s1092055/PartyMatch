@@ -9,6 +9,7 @@ export default function GroupViewModal({
   isOpen, onClose, groupId,
   onConfirmMember, onActivate, onActivateGroup, onRemoveMember,
   onMarkPaid, onApprove, onReject, errors,
+  autoOpenPayment, autoOpenActivateGroup, autoOpenApplications,
 }) {
   if (!isOpen || !groupId) return null
   const group = getGroupById(groupId)
@@ -25,7 +26,9 @@ export default function GroupViewModal({
       onActivate={onActivate} onActivateGroup={onActivateGroup}
       onApprove={onApprove} onReject={onReject}
       errors={errors} onClose={onClose}
+      autoOpenActivateGroup={autoOpenActivateGroup}
+      autoOpenApplications={autoOpenApplications}
     />
   )
-  return <MemberGroupView group={group} onMarkPaid={onMarkPaid} onClose={onClose} />
+  return <MemberGroupView group={group} onMarkPaid={onMarkPaid} onClose={onClose} autoOpenPayment={autoOpenPayment} />
 }

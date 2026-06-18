@@ -5,7 +5,7 @@ import ToastContainer from '../shared/ui/ToastContainer'
 import { initAuth } from '../shared/stores/authStore'
 import { initServices } from '../shared/stores/serviceStore'
 import { initGroups } from '../shared/stores/groupStore'
-import { initApplications } from '../shared/stores/applicationStore'
+import { initApplications, checkMissedApplicationNotifications } from '../shared/stores/applicationStore'
 import { initSubscriptions } from '../shared/stores/subscriptionStore'
 import { initMembers } from '../shared/stores/memberStore'
 import { initFavorites } from '../shared/stores/favoriteStore'
@@ -27,7 +27,7 @@ export default function App() {
       initNotifications(),
       initPayments(),
     ])
-      .then(() => setReady(true))
+      .then(() => { checkMissedApplicationNotifications(); setReady(true) })
       .catch(err => {
         console.error('[App] Init failed:', err)
         setReady(true)

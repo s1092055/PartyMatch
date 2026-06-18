@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, CheckCircle2, ChevronDown, LogOut, MoreVertical, Send, SquarePen, Trash2, Users, X } from 'lucide-react'
 import ConversationAvatar from './ConversationAvatar'
 import { getMembersByGroupId, getMemberByUserAndGroup, updateMember } from '../../../shared/stores/memberStore'
@@ -52,6 +53,8 @@ export default function ChatWindow({
 }) {
   // 用來在 userProfileCache（模組層、非 React state）有新結果時強制重新 render
   const [, setProfileResolveTick] = useState(0)
+
+  const navigate = useNavigate()
 
   const [fillInfoOpen, setFillInfoOpen] = useState(false)
   const [fillInfoEmail, setFillInfoEmail] = useState('')
@@ -429,9 +432,20 @@ export default function ChatWindow({
                       <div className="w-64 rounded-2xl border border-line bg-white px-4 py-3 text-center shadow-sm">
                         <p className="mb-2 text-xs text-ink-3">{msg.text}</p>
                         {alreadyFilled ? (
-                          <p className="flex items-center justify-center gap-1 text-xs font-semibold text-success-text">
-                            <CheckCircle2 size={13} /> 已填寫完成
-                          </p>
+                          <div className="space-y-2">
+                            <p className="flex items-center justify-center gap-1 text-xs font-semibold text-success-text">
+                              <CheckCircle2 size={13} /> 已填寫完成
+                            </p>
+                            <button
+                              onClick={() => {
+                                window.dispatchEvent(new CustomEvent('pm:close-messages'))
+                                navigate('/my-subscriptions', { state: { openGroupId: conversationGroupId, openPayment: true } })
+                              }}
+                              className="w-full rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-brand-hover"
+                            >
+                              前往付款
+                            </button>
+                          </div>
                         ) : (
                           <button
                             onClick={() => setFillInfoOpen(true)}

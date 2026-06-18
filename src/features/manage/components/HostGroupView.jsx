@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Banknote, Check, CheckCircle2, ChevronDown, ChevronUp,
   ClipboardList, MessageCircle, PlayCircle, Radio, Shield, UserX, Users, X,
@@ -95,7 +95,7 @@ function defaultRenewalDate(billingCycle) {
   return toISODate(d)
 }
 
-export default function HostGroupView({ group, members, applications, onConfirmMember, onRemoveMember, onActivate, onActivateGroup, onApprove, onReject, errors, onClose }) {
+export default function HostGroupView({ group, members, applications, onConfirmMember, onRemoveMember, onActivate, onActivateGroup, onApprove, onReject, errors, onClose, autoOpenActivateGroup, autoOpenApplications }) {
   const [showActivate, setShowActivate]                   = useState(false)
   const [renewalDate, setRenewalDate]                     = useState('')
   const [removingMember, setRemovingMember]               = useState(null)
@@ -103,6 +103,16 @@ export default function HostGroupView({ group, members, applications, onConfirmM
   const [showApplications, setShowApplications]           = useState(false)
   const [showBilling, setShowBilling]                     = useState(false)
   const [showActivateGroupConfirm, setShowActivateGroupConfirm] = useState(false)
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (autoOpenActivateGroup && ['full', 'pending_confirmation'].includes(group.status)) setShowActivateGroupConfirm(true)
+  }, [autoOpenActivateGroup, group.status])
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (autoOpenApplications) setShowApplications(true)
+  }, [autoOpenApplications])
 
   const serviceDef    = getServiceById(group.serviceId)
   const planDef       = serviceDef?.plans.find(p => p.name === group.planName)
@@ -179,17 +189,15 @@ export default function HostGroupView({ group, members, applications, onConfirmM
       memberCount={members.length}
       centeredCta={activateGroupCta || activateCta || undefined}
       bottomBar={(() => {
-        const showApplications = isRecruiting
-        const colsCls = showApplications ? 'grid-cols-3' : 'grid-cols-2'
         return (
-          <div className={`grid gap-1 p-2 ${colsCls}`}>
+          <div className="grid grid-cols-3 gap-1 p-2">
             <button
               onClick={() => setShowMembers(true)}
               className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
             >
-              <Users size={17} /> 成員名單
+              <Users size={17} /> 成員管理
             </button>
-            {showApplications && (
+            {isRecruiting && (
               <button
                 onClick={() => setShowApplications(true)}
                 className="relative flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
@@ -217,8 +225,19 @@ export default function HostGroupView({ group, members, applications, onConfirmM
                   </span>
                 )}
               </span>
-              收款紀錄
+              收款管理
             </button>
+            {!isRecruiting && (
+              <button
+                onClick={() => {
+                  onClose()
+                  window.dispatchEvent(new CustomEvent('pm:open-messages', { detail: { groupId: group.id } }))
+                }}
+                className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
+              >
+                <MessageCircle size={17} /> 群組訊息
+              </button>
+            )}
           </div>
         )
       })()}
@@ -360,87 +379,69 @@ export default function HostGroupView({ group, members, applications, onConfirmM
       <Modal
         isOpen={showMembers}
         onClose={() => setShowMembers(false)}
-        title={`成員名單（${members.length + 1} 人）`}
+        title={`成員管理（${members.length + 1} 人）`}
         maxWidth="max-w-lg"
         sub
-        footer={!['recruiting', 'full'].includes(group.status) && (
-          <button
-            onClick={() => {
-              setShowMembers(false)
-              onClose()
-              window.dispatchEvent(new CustomEvent('pm:open-messages', { detail: { groupId: group.id } }))
-            }}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
-          >
-            <MessageCircle size={15} /> 群組訊息
-          </button>
-        )}
       >
         <div className="max-h-[60vh] overflow-y-auto p-5">
-          <div className="mb-3 flex items-center justify-between text-xs text-ink-3">
-            <span>{confirmedCount}/{members.length} 已確認</span>
-          </div>
-          <ProgressBar value={confirmedCount} max={members.length} className="mb-3" />
           <div className="space-y-2">
-            <div className="rounded-xl border border-line p-3">
-              <div className="flex items-center gap-3">
-                <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="sm" />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-ink">
-                    {group.hostName}（團主）
-                    <span className="ml-1.5 text-xs font-normal text-brand">（你）</span>
-                  </p>
-                  <p className="text-xs text-ink-3">建立 {group.createdAt}</p>
+            <div className="flex items-stretch gap-2">
+              <div className="min-w-0 flex-1 rounded-xl border border-line p-3">
+                <div className="flex items-center gap-3">
+                  <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="sm" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-ink">
+                      {group.hostName}
+                      <span className="ml-1.5 text-xs font-normal text-brand">（你）</span>
+                    </p>
+                    <p className="text-xs text-ink-3">建立 {group.createdAt}</p>
+                  </div>
+                  <span className="flex shrink-0 items-center gap-1 rounded-full bg-brand-subtle px-2.5 py-0.5 text-xs font-semibold text-brand">
+                    <Shield size={11} /> 團主
+                  </span>
                 </div>
-                <span className="flex shrink-0 items-center gap-1 rounded-full bg-brand-subtle px-2.5 py-0.5 text-xs font-semibold text-brand">
-                  <Shield size={11} /> 團主
-                </span>
               </div>
+              <div className="w-14 shrink-0" />
             </div>
             {members.map(m => {
               const app      = appByMemberId[m.userId]
               const removable = !CONFIRMED_STATUSES.includes(m.paymentStatus)
               return (
-                <div key={m.id} className="rounded-xl border border-line p-3">
-                  <div className="flex items-center gap-3">
-                    <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-ink">{m.userName}</p>
-                      <p className="text-xs text-ink-3">加入 {m.joinedAt}</p>
+                <div key={m.id} className="flex items-stretch gap-2">
+                  <div className="min-w-0 flex-1 rounded-xl border border-line p-3">
+                    <div className="flex items-center gap-3">
+                      <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-ink">{m.userName}</p>
+                        <p className="text-xs text-ink-3">加入 {m.joinedAt}</p>
+                      </div>
                     </div>
-                    <PaymentStatusBadge status={m.paymentStatus} />
-                  </div>
-                  <div className="mt-2 flex flex-wrap items-center gap-2 pl-9">
-                    {app?.message && (
-                      <p className="w-full text-xs italic text-ink-3">「{app.message}」</p>
-                    )}
-                    <button
-                      onClick={() => {
-                        setShowMembers(false)
-                        onClose()
-                        window.dispatchEvent(new CustomEvent('pm:open-messages', { detail: { groupId: group.id } }))
-                      }}
-                      className="flex items-center gap-1 rounded-lg border border-line px-2.5 py-1 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised hover:text-ink"
-                    >
-                      <MessageCircle size={11} /> 聯絡
-                    </button>
-                    {m.paymentStatus === 'markedPaid' && (
-                      <button
-                        onClick={() => onConfirmMember?.(m)}
-                        className="flex items-center gap-1 rounded-lg bg-success-subtle px-2.5 py-1 text-xs font-semibold text-success-text transition-colors hover:bg-success-subtle/80"
-                      >
-                        <Shield size={11} /> 確認收款
-                      </button>
-                    )}
-                    {removable && (
-                      <button
-                        onClick={() => { setShowMembers(false); setRemovingMember(m) }}
-                        className="flex items-center gap-1 text-xs text-red-400 hover:text-red-600"
-                      >
-                        <UserX size={12} /> 移除成員
-                      </button>
+                    {(app?.message || removable) && (
+                      <div className="mt-2 flex flex-wrap items-center gap-2 pl-9">
+                        {app?.message && (
+                          <p className="w-full text-xs italic text-ink-3">「{app.message}」</p>
+                        )}
+                        {removable && (
+                          <button
+                            onClick={() => { setShowMembers(false); setRemovingMember(m) }}
+                            className="flex items-center gap-1 text-xs text-red-400 hover:text-red-600"
+                          >
+                            <UserX size={12} /> 移除成員
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
+                  <button
+                    onClick={() => {
+                      setShowMembers(false)
+                      onClose()
+                      window.dispatchEvent(new CustomEvent('pm:open-messages', { detail: { groupId: group.id } }))
+                    }}
+                    className="flex w-14 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl bg-brand text-xs font-semibold text-white transition-colors hover:bg-brand-hover"
+                  >
+                    <MessageCircle size={15} />聯絡
+                  </button>
                 </div>
               )
             })}
@@ -452,7 +453,7 @@ export default function HostGroupView({ group, members, applications, onConfirmM
       <Modal
         isOpen={showActivateGroupConfirm}
         onClose={() => setShowActivateGroupConfirm(false)}
-        title="確認啟用群組"
+        title={<span className="flex items-center gap-1.5"><Radio size={16} className="text-brand" />啟用群組</span>}
         maxWidth="max-w-sm"
         sub
         footer={
@@ -513,7 +514,7 @@ export default function HostGroupView({ group, members, applications, onConfirmM
       </Modal>
 
       {/* ── 收款紀錄 Modal ── */}
-      <Modal isOpen={showBilling} onClose={() => setShowBilling(false)} title="收款紀錄" maxWidth="max-w-lg" sub>
+      <Modal isOpen={showBilling} onClose={() => setShowBilling(false)} title="收款管理" maxWidth="max-w-lg" sub>
         <div className="max-h-[60vh] overflow-y-auto">
           {isActivated ? (
             /* 已啟用後：顯示歷史收款清單 */

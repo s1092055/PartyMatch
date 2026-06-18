@@ -18,8 +18,9 @@ import Button from "../../shared/ui/Button";
 import Modal from '../../shared/ui/Modal'
 import LoginPromptModal from "../../shared/ui/LoginPromptModal";
 import { createGroup } from "../../shared/stores/groupStore";
+import { createNotification } from "../../shared/stores/notificationStore";
 import { getServiceById } from "../../shared/utils/serviceUtils";
-import { isAuthenticated } from "../../shared/stores/authStore";
+import { isAuthenticated, getCurrentUser } from "../../shared/stores/authStore";
 
 const STEP_COMPONENTS = [Step1Service, Step2Plan, Step3Settings, Step4Preview];
 const STEP_LABELS = [
@@ -188,6 +189,16 @@ export default function CreateGroupModal() {
 
     const groupData = mapFormToGroup(form);
     const group = createGroup(groupData);
+    const host = getCurrentUser();
+    if (host) {
+      createNotification({
+        userId:  host.id,
+        type:    'group_created',
+        title:   '群組已成功建立',
+        message: `「${group.serviceName}」群組已上架，開始招募成員中！`,
+        meta:    { groupId: group.id },
+      });
+    }
     window.dispatchEvent(new CustomEvent('pm:group-created', { detail: { groupId: group.id } }));
     setSubmitted(true);
   }

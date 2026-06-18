@@ -1,10 +1,12 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { CheckCircle2 } from 'lucide-react'
 import Modal from '../../../shared/ui/Modal'
 import Button from '../../../shared/ui/Button'
 import { createApplication } from '../../../shared/stores/applicationStore'
 
 export default function ApplyJoinModal({ group, isOpen, onClose, onSuccess }) {
+  const navigate = useNavigate()
   const [message, setMessage] = useState('')
   const [agreed, setAgreed] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -43,7 +45,7 @@ export default function ApplyJoinModal({ group, isOpen, onClose, onSuccess }) {
           </div>
           <p className="text-base font-bold text-ink">申請已送出！</p>
           <p className="text-sm text-ink-3">等待團主審核後即可加入，請留意通知。</p>
-          <Button variant="primary" size="md" className="mt-2 min-w-[7rem]" onClick={handleClose}>
+          <Button variant="primary" size="md" className="mt-2 min-w-[7rem]" onClick={() => { navigate('/my-subscriptions', { state: { tab: 'processing' } }); window.dispatchEvent(new CustomEvent('pm:set-sub-tab', { detail: { tab: 'processing' } })); handleClose(); }}>
             確認
           </Button>
         </div>

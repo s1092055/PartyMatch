@@ -50,14 +50,22 @@ async function flushConversationUpdate(conversationId) {
 }
 
 export function subscribeToConversations(userId, onUpdate) {
+  // 避免 array-contains + orderBy 跨欄位複合索引需求，改 client-side 排序
   const q = query(
     collection(db, 'conversations'),
     where('participants', 'array-contains', userId),
-    orderBy('lastMessageAt', 'desc'),
   )
   return onSnapshot(
     q,
-    snapshot => onUpdate(snapshot.docs.map(d => ({ id: d.id, ...d.data() }))),
+    snapshot => {
+      const convs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
+      convs.sort((a, b) => {
+        const aMs = a.lastMessageAt?.toMillis?.() ?? 0
+        const bMs = b.lastMessageAt?.toMillis?.() ?? 0
+        return bMs - aMs
+      })
+      onUpdate(convs)
+    },
     err => console.error('[messagesApi] subscribeToConversations error:', err),
   )
 }
@@ -165,11 +173,14 @@ export async function createGroupConversation({ groupId, groupName, serviceId, h
 // 新成員加入群組對話（申請通過時呼叫）
 // 用 setDoc + merge 確保對話文件不存在時也不會出錯
 export async function addParticipantToConversation(conversationId, userId, { name, avatarInitial, avatarColor }) {
-  await setDoc(doc(db, 'conversations', conversationId), {
+  const ref = doc(db, 'conversations', conversationId)
+  const snap = await getDoc(ref)
+  if (!snap.exists()) return
+  await updateDoc(ref, {
     participants: arrayUnion(userId),
     [`participantMeta.${userId}`]: { name, avatarInitial, avatarColor },
     [`unreadCounts.${userId}`]: 0,
-  }, { merge: true })
+  })
 }
 
 export async function leaveConversation(conversationId, userId) {

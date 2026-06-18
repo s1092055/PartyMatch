@@ -24,7 +24,6 @@ export default function GroupModalShell({
   mobileFooter,
   hideRecruitBar,
   confirmedCount,
-  memberCount,
   pendingBadge,
   centeredCta,
   children,

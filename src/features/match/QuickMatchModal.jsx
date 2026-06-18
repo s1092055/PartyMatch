@@ -11,6 +11,8 @@ import CreateGroupStepper from '../create/components/CreateGroupStepper'
 import Button from '../../shared/ui/Button'
 import Modal from '../../shared/ui/Modal'
 import { getGroups } from '../../shared/stores/groupStore'
+import { getApplicationsByUserId } from '../../shared/stores/applicationStore'
+import { getCurrentUser } from '../../shared/stores/authStore'
 import { matchGroups } from '../../shared/utils/matchGroups'
 
 const DEFAULT_CONDITIONS = {
@@ -189,6 +191,12 @@ function Step3({ conditions, onChange }) {
 
 function Step4({ results, conditions, onClose }) {
   const navigate = useNavigate()
+  const activeUser = getCurrentUser()
+  const memberGroupIds = new Set(
+    activeUser
+      ? getApplicationsByUserId(activeUser.id).filter(a => a.status === 'approved').map(a => a.groupId)
+      : []
+  )
 
   function handleExplore() {
     onClose()
@@ -238,7 +246,7 @@ function Step4({ results, conditions, onClose }) {
                 {i + 1}
               </span>
             )}
-            <ExploreGroupCard group={group} onBeforeNavigate={onClose} />
+            <ExploreGroupCard group={group} onBeforeNavigate={onClose} isMember={memberGroupIds.has(group.id)} />
           </div>
         ))}
       </div>

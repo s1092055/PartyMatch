@@ -5,7 +5,7 @@ import { getSubscriptionsByUserId, initSubscriptions, markSubscriptionPaid } fro
 import { getMemberByUserAndGroup, initMembers, updateMember } from '../../shared/stores/memberStore'
 import { createNotification } from '../../shared/stores/notificationStore'
 import { getApplicationsByUserId, initApplications } from '../../shared/stores/applicationStore'
-import { getGroupById } from '../../shared/stores/groupStore'
+import { getGroupById, initGroups } from '../../shared/stores/groupStore'
 import { getCurrentUser } from '../../shared/stores/authStore'
 import SubscriptionCard from './components/SubscriptionCard'
 import EmptyState from '../../shared/ui/EmptyState'
@@ -15,8 +15,8 @@ import { daysUntil, formatRelativeDate, todayISO } from '../../shared/utils/date
 
 const FILTER_TABS = [
   { key: 'all',          label: '全部'     },
-  { key: 'processing',   label: '待處理'   },
-  { key: 'active',       label: '已啟用'   },
+  { key: 'processing',   label: '處理中'   },
+  { key: 'active',       label: '啟用中'   },
   { key: 'upcoming',     label: '即將續訂' },
   { key: 'applications', label: '申請紀錄' },
 ]
@@ -53,16 +53,27 @@ export default function SubscriptionsPage() {
   const activeUser = getCurrentUser()
   const activeUserId = activeUser?.id ?? null
   const [activeTab, setActiveTab] = useState(() => location.state?.tab ?? 'all')
-
-  useEffect(() => {
-    if (location.state?.tab) setActiveTab(location.state.tab)
-  }, [location.state?.tab]) // eslint-disable-line react-hooks/exhaustive-deps
-
   const [subs, setSubs] = useState(() =>
     activeUserId ? enrichSubs(getSubscriptionsByUserId(activeUserId)) : []
   )
   const [viewGroupId, setViewGroupId] = useState(null)
+  const [autoOpenPayment, setAutoOpenPayment] = useState(false)
   const [toast, setToast] = useState(null)
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (location.state?.tab) setActiveTab(location.state.tab)
+    if (location.state?.openGroupId) {
+      setViewGroupId(location.state.openGroupId)
+      setAutoOpenPayment(!!location.state.openPayment)
+    }
+  }, [location.key]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    function onSetTab(e) { if (e.detail?.tab) setActiveTab(e.detail.tab) }
+    window.addEventListener('pm:set-sub-tab', onSetTab)
+    return () => window.removeEventListener('pm:set-sub-tab', onSetTab)
+  }, [])
   const toastTimerRef = useRef(null)
 
   useEffect(() => {
@@ -79,7 +90,7 @@ export default function SubscriptionsPage() {
         return
       }
       try {
-        await Promise.all([initSubscriptions(), initMembers(), initApplications()])
+        await Promise.all([initGroups(), initSubscriptions(), initMembers(), initApplications()])
       } catch (error) {
         console.error(error)
       }
@@ -191,9 +202,10 @@ export default function SubscriptionsPage() {
 
 <GroupViewModal
         isOpen={!!viewGroupId}
-        onClose={() => setViewGroupId(null)}
+        onClose={() => { setViewGroupId(null); setAutoOpenPayment(false) }}
         groupId={viewGroupId}
-        onMarkPaid={sub => { markAsPaid(sub); setViewGroupId(null) }}
+        autoOpenPayment={autoOpenPayment}
+        onMarkPaid={sub => { markAsPaid(sub); setViewGroupId(null); setAutoOpenPayment(false) }}
       />
 
       <div role="status" aria-live="polite" aria-atomic="true" className="pointer-events-none fixed bottom-6 left-1/2 z-50 -translate-x-1/2">

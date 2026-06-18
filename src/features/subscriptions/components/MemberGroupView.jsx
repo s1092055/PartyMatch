@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   CheckCircle2, CreditCard, LogOut, MessageCircle, Receipt, Shield, Users,
 } from 'lucide-react'
@@ -16,11 +16,16 @@ import { getPaymentRecordsBySubscriptionId } from '../../../shared/stores/paymen
 import { getCurrentUser } from '../../../shared/stores/authStore'
 import { scheduleLeaveGroup } from '../../../shared/utils/leaveGroupFlow'
 
-export default function MemberGroupView({ group, onMarkPaid, onClose }) {
+export default function MemberGroupView({ group, onMarkPaid, onClose, autoOpenPayment }) {
   const [confirmingLeave, setConfirmingLeave] = useState(false)
   const [showMembers, setShowMembers]         = useState(false)
   const [showPayments, setShowPayments]       = useState(false)
   const [paymentOpen, setPaymentOpen]         = useState(false)
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (autoOpenPayment) setPaymentOpen(true)
+  }, [autoOpenPayment])
 
   const currentUser = getCurrentUser()
   const members     = getMembersByGroupId(group.id)
@@ -32,7 +37,6 @@ export default function MemberGroupView({ group, onMarkPaid, onClose }) {
 
   const serviceDef       = getServiceById(group.serviceId)
   const planDef          = serviceDef?.plans.find(p => p.name === group.planName)
-  const isEnded          = ['paused', 'cancelled', 'ended'].includes(group.status)
   const isPaymentRelevant = !['recruiting', 'full'].includes(group.status)
 
   function openMessages() {
@@ -54,7 +58,8 @@ export default function MemberGroupView({ group, onMarkPaid, onClose }) {
   }
 
   const isPaymentPhase = ['group_active', 'pending_activation', 'pending_confirmation'].includes(group.status)
-  const hasPendingPayment = !!sub && sub.paymentStatus === 'pending' && isPaymentPhase
+  const hasServiceInfo    = !!myMember?.serviceInfo?.email
+  const hasPendingPayment = !!sub && sub.paymentStatus === 'pending' && isPaymentPhase && hasServiceInfo
   const hasPaid = !!myMember && ['markedPaid', 'confirmed'].includes(myMember.paymentStatus) && isPaymentPhase
 
   const paymentCta = hasPendingPayment ? (
@@ -86,15 +91,14 @@ export default function MemberGroupView({ group, onMarkPaid, onClose }) {
         ) : undefined
       }
       bottomBar={(() => {
-        const btnCount = 1 + (isPaymentRelevant ? 1 : 0) + (!isEnded ? 1 : 0)
-        const colsCls = btnCount === 3 ? 'grid-cols-3' : btnCount === 2 ? 'grid-cols-2' : 'grid-cols-1'
+        const colsCls = isPaymentRelevant ? 'grid-cols-4' : 'grid-cols-2'
         return (
           <div className={`grid gap-1 p-2 ${colsCls}`}>
             <button
               onClick={() => setShowMembers(true)}
               className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
             >
-              <Users size={17} /> 成員名單
+              <Users size={17} /> 成員管理
             </button>
             {isPaymentRelevant && (
               <button
@@ -104,14 +108,20 @@ export default function MemberGroupView({ group, onMarkPaid, onClose }) {
                 <Receipt size={17} /> 付款紀錄
               </button>
             )}
-            {!isEnded && (
+            {isPaymentRelevant && (
               <button
-                onClick={() => setConfirmingLeave(true)}
-                className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-danger transition-colors hover:bg-danger-subtle"
+                onClick={openMessages}
+                className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
               >
-                <LogOut size={17} /> 退出群組
+                <MessageCircle size={17} /> 群組訊息
               </button>
             )}
+            <button
+              onClick={() => setConfirmingLeave(true)}
+              className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-danger transition-colors hover:bg-danger-subtle"
+            >
+              <LogOut size={17} /> 退出群組
+            </button>
           </div>
         )
       })()}
@@ -136,46 +146,64 @@ export default function MemberGroupView({ group, onMarkPaid, onClose }) {
       )}
 
       {/* ── 成員名單 Modal ── */}
-      <Modal isOpen={showMembers} onClose={() => setShowMembers(false)} title={`成員名單（${members.length + 1} 人）`} maxWidth="max-w-lg" sub>
+      <Modal isOpen={showMembers} onClose={() => setShowMembers(false)} title={`成員管理（${members.length + 1} 人）`} maxWidth="max-w-lg" sub>
         <div className="max-h-[60vh] overflow-y-auto p-5">
           <div className="space-y-2">
-            <div className="rounded-xl border border-line p-3">
-              <div className="flex flex-wrap items-center gap-3">
-                <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="sm" />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-ink">{group.hostName}</p>
+            <div className="flex items-stretch gap-2">
+              <div className="min-w-0 flex-1 rounded-xl border border-line p-3">
+                <div className="flex items-center gap-3">
+                  <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="sm" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-ink">{group.hostName}</p>
+                  </div>
+                  <span className="flex shrink-0 items-center gap-1 rounded-full bg-brand-subtle px-2.5 py-0.5 text-xs font-semibold text-brand">
+                    <Shield size={11} /> 團主
+                  </span>
                 </div>
-                <span className="flex shrink-0 items-center gap-1 rounded-full bg-brand-subtle px-2.5 py-0.5 text-xs font-semibold text-brand">
-                  <Shield size={11} /> 團主
-                </span>
-                <button
-                  onClick={() => { setShowMembers(false); openMessages() }}
-                  className="hidden shrink-0 items-center gap-1 rounded-lg border border-line px-2.5 py-1 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised hover:text-ink lg:flex"
-                >
-                  <MessageCircle size={11} /> 聯絡團主
-                </button>
               </div>
-              <div className="mt-2 flex justify-end pl-9 lg:hidden">
-                <button
-                  onClick={() => { setShowMembers(false); openMessages() }}
-                  className="flex items-center gap-1 rounded-lg border border-line px-2.5 py-1 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised hover:text-ink"
-                >
-                  <MessageCircle size={11} /> 聯絡團主
-                </button>
-              </div>
+              <button
+                onClick={() => { setShowMembers(false); openMessages() }}
+                className="flex w-14 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl bg-brand text-xs font-semibold text-white transition-colors hover:bg-brand-hover"
+              >
+                <MessageCircle size={15} />聯絡
+              </button>
             </div>
             {members.filter(m => m.userId !== currentUser?.id).map(m => (
-              <div key={m.id} className="rounded-xl border border-line p-3">
-                <div className="flex items-center gap-3">
-                  <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-ink">{m.userName}</p>
-                    <p className="text-xs text-ink-3">加入 {m.joinedAt}</p>
+              <div key={m.id} className="flex items-stretch gap-2">
+                <div className="min-w-0 flex-1 rounded-xl border border-line p-3">
+                  <div className="flex items-center gap-3">
+                    <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-ink">{m.userName}</p>
+                      <p className="text-xs text-ink-3">加入 {m.joinedAt}</p>
+                    </div>
                   </div>
-                  <PaymentStatusBadge status={m.paymentStatus} />
                 </div>
+                <button
+                  onClick={() => { setShowMembers(false); openMessages() }}
+                  className="flex w-14 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl bg-brand text-xs font-semibold text-white transition-colors hover:bg-brand-hover"
+                >
+                  <MessageCircle size={15} />聯絡
+                </button>
               </div>
             ))}
+            {myMember && (
+              <div className="flex items-stretch gap-2">
+                <div className="min-w-0 flex-1 rounded-xl border border-line p-3">
+                  <div className="flex items-center gap-3">
+                    <Avatar initial={myMember.userAvatarInitial} color={myMember.userAvatarColor} size="sm" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-ink">
+                        {myMember.userName}
+                        <span className="ml-1.5 text-xs font-normal text-brand">（你）</span>
+                      </p>
+                      <p className="text-xs text-ink-3">加入 {myMember.joinedAt}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="w-14 shrink-0" />
+              </div>
+            )}
           </div>
         </div>
       </Modal>

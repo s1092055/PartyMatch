@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { activateGroup, activateGroupChat, confirmGroupPayments, endGroup, getGroupById, getGroupsByHostId, startRenewalCycle, updateGroup } from '../../shared/stores/groupStore'
 import { adjustCreditScore } from '../../shared/stores/authStore'
 import { CREDIT_RULES } from '../../shared/utils/creditScore'
@@ -23,7 +23,7 @@ const STATUS_FILTER_TABS = [
   { key: 'all',        label: '全部'   },
   { key: 'recruiting', label: '招募中' },
   { key: 'pending',    label: '待啟用' },
-  { key: 'active',     label: '已啟用' },
+  { key: 'active',     label: '啟用中' },
   { key: 'cancelled',  label: '已結束' },
 ]
 
@@ -52,16 +52,40 @@ function loadManageData(activeUser) {
 
 export default function ManagePage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const activeUser = getCurrentUser()
-  const activeUserId = activeUser?.id ?? null
 
   const [manageData, setManageData] = useState(() => loadManageData(activeUser))
   const [errors, setErrors] = useState({})
   const [statusFilter, setStatusFilter] = useState('all')
 
-const [viewGroupId, setViewGroupId]                   = useState(null)
-  const [historyModalGroupId, setHistoryModalGroupId] = useState(null)
-  const [renewalModalGroupId, setRenewalModalGroupId] = useState(null)
+  const [viewGroupId, setViewGroupId]                     = useState(null)
+  const [autoOpenActivateGroup, setAutoOpenActivateGroup] = useState(false)
+  const [autoOpenApplications, setAutoOpenApplications]   = useState(false)
+  const [historyModalGroupId, setHistoryModalGroupId]     = useState(null)
+  const [renewalModalGroupId, setRenewalModalGroupId]     = useState(null)
+
+  function applyOpenManageGroup({ groupId, openGroupId, statusFilter: sf, openActivateGroup, openApplications }) {
+    const gId = groupId ?? openGroupId
+    if (!gId) return
+    if (sf) setStatusFilter(sf)
+    setViewGroupId(gId)
+    setAutoOpenActivateGroup(!!openActivateGroup)
+    setAutoOpenApplications(!!openApplications)
+  }
+
+  // 跨頁面：從 location.state 讀（ManagePage 剛掛載時）
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (location.state?.openGroupId) applyOpenManageGroup(location.state)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 同頁面：custom event（ManagePage 已掛載，event 直接接到）
+  useEffect(() => {
+    function onOpenManageGroup(e) { applyOpenManageGroup(e.detail ?? {}) }
+    window.addEventListener('pm:open-manage-group', onOpenManageGroup)
+    return () => window.removeEventListener('pm:open-manage-group', onOpenManageGroup)
+  }, [])
 
 useEffect(() => {
     function reload() {
@@ -172,14 +196,13 @@ async function handleActivateGroup() {
       payload: { serviceName: group.serviceName, serviceId: group.serviceId },
     })
 
-    groupMembers.forEach(m => {
-      createNotification({
-        userId:  m.userId,
-        type:    'group_chat_opened',
-        title:   '群組已啟用，請前往付款',
-        message: `「${group.serviceName}」群組已啟用！請前往我的訂閱完成付款。`,
-        meta:    { groupId: viewGroupId },
-      })
+    // members 端的 group_chat_opened 通知由 conversationStore listener 自行建立（避免跨用戶寫入）
+    createNotification({
+      userId:  group.hostId,
+      type:    'group_chat_opened',
+      title:   '群組聊天室已開啟',
+      message: `「${group.serviceName}」群組已啟用，聊天室已建立，點擊查看。`,
+      meta:    { groupId: viewGroupId },
     })
 
     // 立即將新對話放入 store，不等 Firestore onSnapshot 回傳，避免 pm:open-messages 發出時找不到對話
@@ -265,6 +288,10 @@ function handleActivate(renewalDate) {
     const updatedGroup = activateGroup(viewGroupId, renewalDate || null)
     if (updatedGroup) {
       activateGroupSubscriptions(viewGroupId, updatedGroup.nextBillingDate)
+      sendSystemMessage(
+        `group_${viewGroupId}`,
+        `${updatedGroup.serviceName} 訂閱服務已正式啟用！下次扣款日：${updatedGroup.nextBillingDate}。`
+      ).catch(console.error)
       getMembersByGroupId(viewGroupId).forEach(m => {
         createNotification({
           userId:  m.userId,
@@ -372,12 +399,7 @@ function handleApprove(appId) {
     }
     if (seatPatch) updateGroup(app.groupId, seatPatch)
 
-    createNotification({
-      userId:  applicantId,
-      type:    'application_approved',
-      title:   '申請已通過',
-      message: `你申請加入的「${app.groupName ?? app.serviceName}」群組已通過審核，歡迎加入！`,
-    })
+    // application_approved 通知由 member 端的 applicationStore listener 自行建立（避免跨用戶寫入）
 
     if (seatPatch?.status === 'full') {
       createNotification({
@@ -385,6 +407,7 @@ function handleApprove(appId) {
         type:    'group_full',
         title:   '群組名額已滿',
         message: `「${app.groupName ?? app.serviceName}」群組名額已滿，可以開始確認成員付款並啟用服務了。`,
+        meta:    { groupId: app.groupId },
       })
     }
 
@@ -409,15 +432,8 @@ function handleApprove(appId) {
     const app = applications.find(a => a.id === appId)
     if (!app || app.status !== 'pending') return
 
-    const applicantId = app.applicantId ?? app.userId
     updateApplicationStatus(appId, 'rejected')
-
-    createNotification({
-      userId:  applicantId,
-      type:    'application_rejected',
-      title:   '申請未通過',
-      message: `很抱歉，你申請加入的「${app.groupName ?? app.serviceName}」群組申請未通過。`,
-    })
+    // application_rejected 通知由 member 端的 applicationStore listener 自行建立（避免跨用戶寫入）
 
     setManageData(prev => ({
       ...prev,
@@ -479,7 +495,7 @@ function handleApprove(appId) {
 
 <GroupViewModal
         isOpen={!!viewGroupId}
-        onClose={() => { setViewGroupId(null); refreshGroups() }}
+        onClose={() => { setViewGroupId(null); setAutoOpenActivateGroup(false); setAutoOpenApplications(false); refreshGroups() }}
         groupId={viewGroupId}
         onConfirmMember={handleConfirmMember}
         onActivate={handleActivate}
@@ -488,6 +504,8 @@ function handleApprove(appId) {
         onApprove={handleApprove}
         onReject={handleReject}
         errors={errors}
+        autoOpenActivateGroup={autoOpenActivateGroup}
+        autoOpenApplications={autoOpenApplications}
       />
       {historyModalGroup && (
         <GroupHistoryModal

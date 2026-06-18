@@ -28,8 +28,10 @@ const NOTIFICATION_META = {
   joined:               { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-subscriptions' },
   application_approved: { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-subscriptions', state: { tab: 'applications' } },
   application_rejected: { icon: AlertCircle,   iconColor: 'text-danger',     link: '/my-subscriptions', state: { tab: 'applications' } },
-  application_sent:     { icon: CheckCircle2,  iconColor: 'text-brand',      link: '/my-subscriptions', state: { tab: 'applications' } },
+  application_sent:     { icon: CheckCircle2,  iconColor: 'text-brand',      link: '/my-subscriptions', state: { tab: 'processing' } },
+  group_created:        { icon: CheckCircle2,  iconColor: 'text-success',    link: '/manage-groups' },
   new_application:      { icon: UserPlus,      iconColor: 'text-brand',      link: '/manage-groups' },
+  group_full:           { icon: UserPlus,      iconColor: 'text-brand',      link: '/manage-groups' },
   group_chat_opened:    { icon: MessageSquare, iconColor: 'text-brand',      link: null },
   system:               { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/explore' },
   announcement:         { icon: AlertCircle,   iconColor: 'text-brand',      link: '/explore' },
@@ -76,8 +78,18 @@ export default function FloatingMessages() {
       setNotifications(authenticated ? getMergedNotifications(activeUserId) : getSystemNotifications())
       setOpen(true)
     }
+    function onNotifChanged() {
+      const activeUser = getCurrentUser()
+      const activeUserId = activeUser?.id
+      const authenticated = isAuthenticated()
+      setNotifications(authenticated ? getMergedNotifications(activeUserId) : getSystemNotifications())
+    }
     window.addEventListener('pm:open-notify', onOpen)
-    return () => window.removeEventListener('pm:open-notify', onOpen)
+    window.addEventListener('pm:notif-changed', onNotifChanged)
+    return () => {
+      window.removeEventListener('pm:open-notify', onOpen)
+      window.removeEventListener('pm:notif-changed', onNotifChanged)
+    }
   }, [])
 
   useEffect(() => {
@@ -121,6 +133,30 @@ export default function FloatingMessages() {
 
     if (notification.type === 'group_chat_opened' && notification.meta?.groupId) {
       window.dispatchEvent(new CustomEvent('pm:open-messages', { detail: { groupId: notification.meta.groupId } }))
+      return
+    }
+
+    if (notification.type === 'group_created' && notification.meta?.groupId) {
+      navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId } })
+      window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: notification.meta.groupId } }))
+      return
+    }
+
+    if (notification.type === 'application_sent' && notification.meta?.groupId) {
+      navigate('/my-subscriptions', { state: { tab: 'processing' } })
+      window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: notification.meta.groupId } }))
+      return
+    }
+
+    if (notification.type === 'new_application' && notification.meta?.groupId) {
+      navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId, statusFilter: 'recruiting', openApplications: true } })
+      window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: notification.meta.groupId, statusFilter: 'recruiting', openApplications: true } }))
+      return
+    }
+
+    if (notification.type === 'group_full' && notification.meta?.groupId) {
+      navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId, openActivateGroup: true } })
+      window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: notification.meta.groupId, openActivateGroup: true } }))
       return
     }
 

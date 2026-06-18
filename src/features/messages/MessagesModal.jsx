@@ -61,8 +61,13 @@ export default function MessagesModal() {
       const groupId = e?.detail?.groupId
       if (groupId) setSelectedId(`group_${groupId}`)
     }
+    function onClose() { setIsOpen(false) }
     window.addEventListener('pm:open-messages', onOpen)
-    return () => window.removeEventListener('pm:open-messages', onOpen)
+    window.addEventListener('pm:close-messages', onClose)
+    return () => {
+      window.removeEventListener('pm:open-messages', onOpen)
+      window.removeEventListener('pm:close-messages', onClose)
+    }
   }, [])
 
   useEffect(() => {

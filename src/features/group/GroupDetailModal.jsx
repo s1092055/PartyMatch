@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 import { getGroupById, getGroups } from '../../shared/stores/groupStore'
 import { getServiceById } from '../../shared/utils/serviceUtils'
-import { getApplicationByUserAndGroup } from '../../shared/stores/applicationStore'
+import { getApplicationByUserAndGroup, getApplicationsByUserId } from '../../shared/stores/applicationStore'
 import { isCurrentUserMember, getMemberByUserAndGroup } from '../../shared/stores/memberStore'
 import { isGroupFavorited, toggleFavorite } from '../../shared/stores/favoriteStore'
 import { getCurrentUser } from '../../shared/stores/authStore'
@@ -113,13 +113,21 @@ export default function GroupDetailModal() {
     ]
   }, [groupId, activeUserId]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const memberGroupIds = useMemo(() => new Set(
+    activeUserId
+      ? getApplicationsByUserId(activeUserId).filter(a => a.status === 'approved').map(a => a.groupId)
+      : []
+  ), [activeUserId])
+
   if (!isOpen || !group) return null
 
   const isHost           = group.hostId === activeUserId
   const isMember         = isCurrentUserMember(group.id)
   const memberRecord     = activeUserId ? getMemberByUserAndGroup(activeUserId, group.id) : null
-  const isPendingPayment = isMember && memberRecord?.paymentStatus === 'pending'
-  const isMarkedPaid     = isMember && memberRecord?.paymentStatus === 'markedPaid'
+  const isPaymentPhase   = ['pending_confirmation', 'pending_activation', 'active'].includes(group.status)
+  const isPendingPayment = isMember && memberRecord?.paymentStatus === 'pending' && isPaymentPhase
+  const isMarkedPaid     = isMember && memberRecord?.paymentStatus === 'markedPaid' && isPaymentPhase
+  const isWaitingMembers = isMember && ['recruiting', 'full'].includes(group.status)
   const isFull           = (group.openSeats ?? 0) <= 0
   const canApply         = !isHost && !isMember && !applied && !isFull && !!activeUserId
 
@@ -145,6 +153,11 @@ export default function GroupDetailModal() {
     if (isHost) return (
       <div className="flex items-center gap-2 rounded-xl bg-brand-subtle px-4 py-3 text-sm font-medium text-brand">
         <ShieldCheck size={15} />你是此群組的團主
+      </div>
+    )
+    if (isWaitingMembers) return (
+      <div className="flex items-center gap-2 rounded-xl bg-raised px-4 py-3 text-sm font-medium text-ink-2">
+        <CheckCircle2 size={15} />已加入，需等待其他人加入
       </div>
     )
     if (isPendingPayment) return (
@@ -254,7 +267,7 @@ export default function GroupDetailModal() {
           <div className="flex gap-3 overflow-x-auto px-0.5 pb-3 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:hidden">
             {picks.map(g => (
               <div key={g.id} className="w-64 shrink-0">
-                <ExploreGroupCard group={g} />
+                <ExploreGroupCard group={g} isMember={memberGroupIds.has(g.id)} />
               </div>
             ))}
           </div>
@@ -279,7 +292,7 @@ export default function GroupDetailModal() {
                   {Array.from({ length: totalSlides }).map((_, si) => (
                     <div key={si} style={{ width: `${100 / totalSlides}%` }}>
                       <div className="grid grid-cols-3 gap-3">
-                        {picks.slice(si * 3, si * 3 + 3).map(g => <ExploreGroupCard key={g.id} group={g} />)}
+                        {picks.slice(si * 3, si * 3 + 3).map(g => <ExploreGroupCard key={g.id} group={g} isMember={memberGroupIds.has(g.id)} />)}
                       </div>
                     </div>
                   ))}
