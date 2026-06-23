@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
-  Banknote, Check, CheckCircle2, ChevronDown, ChevronUp,
-  ClipboardList, MessageCircle, PlayCircle, Radio, Shield, UserX, Users, X,
+  AlertTriangle, Banknote, Check, CheckCircle2, ChevronDown, ChevronUp,
+  ClipboardList, CreditCard, MessageCircle, PlayCircle, Radio, Shield, UserX, Users, X,
 } from 'lucide-react'
 import Avatar from '../../../shared/ui/Avatar'
 import ProgressBar from '../../../shared/ui/ProgressBar'
-import PaymentStatusBadge from '../../subscriptions/components/PaymentStatusBadge'
 import CreditScoreBadge from '../../../shared/ui/CreditScoreBadge'
 import Modal from '../../../shared/ui/Modal'
 import ConfirmDialog from '../../../shared/ui/ConfirmDialog'
@@ -13,8 +12,8 @@ import GroupModalShell from '../../../shared/ui/GroupModalShell'
 import EmptyState from '../../../shared/ui/EmptyState'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import { getServiceById } from '../../../shared/utils/serviceUtils'
-import { formatRelativeDate, toISODate, todayISO } from '../../../shared/utils/date'
-import { CONFIRMED_STATUSES, READY_TO_ACTIVATE_STATUSES } from '../../../shared/constants/paymentStatus'
+import { formatRelativeDate, toISODate } from '../../../shared/utils/date'
+import { CONFIRMED_STATUSES } from '../../../shared/constants/paymentStatus'
 import { getSubscriptionByUserAndGroup } from '../../../shared/stores/subscriptionStore'
 import { getPaymentRecordsBySubscriptionId } from '../../../shared/stores/paymentStore'
 
@@ -85,34 +84,69 @@ function ApplicationCard({ app, groupFull, error, onApprove, onReject }) {
 
 // ── 團主視角 ──────────────────────────────────────────────────────────────────
 
-function defaultRenewalDate(billingCycle) {
-  const d = new Date()
-  if (billingCycle === 'yearly') {
-    d.setFullYear(d.getFullYear() + 1)
-  } else {
-    d.setMonth(d.getMonth() + 1)
-  }
-  return toISODate(d)
-}
 
-export default function HostGroupView({ group, members, applications, onConfirmMember, onRemoveMember, onActivate, onActivateGroup, onApprove, onReject, errors, onClose, autoOpenActivateGroup, autoOpenApplications }) {
+const ISSUE_TYPES = [
+  { key: 'amount_mismatch',  label: '付款金額不符',      desc: '金額與應付金額不一致' },
+  { key: 'proof_incomplete', label: '截圖不清晰或不完整', desc: '無法辨識截圖中的付款資訊' },
+  { key: 'wrong_info',       label: '付款資訊有誤',       desc: '截圖顯示的資訊有誤' },
+  { key: 'other',            label: '其他問題',           desc: '請填寫說明' },
+]
+
+export default function HostGroupView({ group, members, applications, onConfirmMember, onReportPaymentIssue, onRemoveMember, onActivate, onActivateGroup, onApprove, onReject, errors, onClose, autoOpenActivateGroup, autoOpenApplications, autoOpenBilling }) {
   const [showActivate, setShowActivate]                   = useState(false)
-  const [renewalDate, setRenewalDate]                     = useState('')
   const [removingMember, setRemovingMember]               = useState(null)
   const [showMembers, setShowMembers]                     = useState(false)
   const [showApplications, setShowApplications]           = useState(false)
   const [showBilling, setShowBilling]                     = useState(false)
   const [showActivateGroupConfirm, setShowActivateGroupConfirm] = useState(false)
+  const [expandedBillingMembers, setExpandedBillingMembers] = useState(new Set())
+  const [reportModalMember, setReportModalMember] = useState(null)
+  // null or member object
+  const [issueType, setIssueType] = useState('')
+  const [issueNote, setIssueNote] = useState('')
+
+  function openReportModal(member) {
+    setShowBilling(false)
+    setIssueType('')
+    setIssueNote('')
+    setReportModalMember(member)
+  }
+
+  function closeReportModal(reopen = false) {
+    setReportModalMember(null)
+    setIssueType('')
+    setIssueNote('')
+    if (reopen) setShowBilling(true)
+  }
+
+  function handleSendIssueReport() {
+    if (!issueType || !reportModalMember) return
+    onReportPaymentIssue?.(reportModalMember, issueType, issueNote)
+    closeReportModal(false)
+  }
+
+  function toggleBillingMember(memberId) {
+    setExpandedBillingMembers(prev => {
+      const next = new Set(prev)
+      next.has(memberId) ? next.delete(memberId) : next.add(memberId)
+      return next
+    })
+  }
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (autoOpenActivateGroup && ['full', 'pending_confirmation'].includes(group.status)) setShowActivateGroupConfirm(true)
-  }, [autoOpenActivateGroup, group.status])
+  }, [autoOpenActivateGroup]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (autoOpenApplications) setShowApplications(true)
   }, [autoOpenApplications])
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (autoOpenBilling) setShowBilling(true)
+  }, [autoOpenBilling])
 
   const serviceDef    = getServiceById(group.serviceId)
   const planDef       = serviceDef?.plans.find(p => p.name === group.planName)
@@ -120,42 +154,44 @@ export default function HostGroupView({ group, members, applications, onConfirmM
   const pendingApps   = applications.filter(a => a.status === 'pending')
   const groupFull     = group.openSeats <= 0
 
-  let confirmedCount   = 0
-  let allReadyActivate = members.length > 0
+  let confirmedCount = 0
   for (const m of members) {
     if (CONFIRMED_STATUSES.includes(m.paymentStatus)) confirmedCount++
-    if (!READY_TO_ACTIVATE_STATUSES.includes(m.paymentStatus)) allReadyActivate = false
   }
   const markedPaidCount = members.filter(m => m.paymentStatus === 'markedPaid').length
-  const canActivateNow  = allReadyActivate && group.openSeats <= 0 && ['pending_confirmation', 'pending_activation'].includes(group.status)
+  const canActivateNow  = group.status === 'pending_activation'
   const isActivated     = ['active', 'paused', 'cancelled', 'ended'].includes(group.status)
 
-  const autoRenewalDate = useMemo(() => defaultRenewalDate(group.billingCycle), [group.billingCycle])
-
   const [finalConfirmed, setFinalConfirmed] = useState(false)
+  const [memberChecks, setMemberChecks]     = useState({})
+
+  const allMembersChecked = members.length > 0 && members.every(m => memberChecks[m.id])
 
   function openActivate() {
-    setRenewalDate(autoRenewalDate)
     setFinalConfirmed(false)
+    setMemberChecks({})
     setShowActivate(true)
   }
 
   function closeActivate() {
     setShowActivate(false)
-    setRenewalDate('')
     setFinalConfirmed(false)
+    setMemberChecks({})
   }
 
   function handleActivateConfirm() {
-    onActivate?.(renewalDate || null)
+    onActivate?.(null)
     setShowActivate(false)
-    setRenewalDate('')
     setFinalConfirmed(false)
+    setMemberChecks({})
     onClose()
   }
 
   const activateGroupCta = group.status === 'full' && (
-    <div className="p-4">
+    <div className="space-y-2 px-4 py-3">
+      <div className="flex items-center justify-center rounded-xl bg-success-subtle px-4 py-3 text-sm font-extrabold text-success-text">
+        招募完成，請點擊啟用群組
+      </div>
       <button
         onClick={() => setShowActivateGroupConfirm(true)}
         className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
@@ -166,7 +202,11 @@ export default function HostGroupView({ group, members, applications, onConfirmM
   )
 
   const activateCta = canActivateNow && (
-    <div className="p-4">
+    <div className="space-y-2 px-4 py-3">
+      <div className="flex items-center justify-center gap-2 rounded-xl bg-success-subtle px-4 py-3 text-sm font-extrabold text-success-text">
+        <CheckCircle2 size={15} />
+        所有付款已確認，可以啟用服務了
+      </div>
       <button
         onClick={openActivate}
         className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
@@ -190,14 +230,14 @@ export default function HostGroupView({ group, members, applications, onConfirmM
       centeredCta={activateGroupCta || activateCta || undefined}
       bottomBar={(() => {
         return (
-          <div className="grid grid-cols-3 gap-1 p-2">
+          <div className={`grid grid-cols-${isRecruiting ? 2 : 3} gap-1 p-2`}>
             <button
               onClick={() => setShowMembers(true)}
               className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
             >
               <Users size={17} /> 成員管理
             </button>
-            {isRecruiting && (
+            {isRecruiting ? (
               <button
                 onClick={() => setShowApplications(true)}
                 className="relative flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
@@ -212,31 +252,32 @@ export default function HostGroupView({ group, members, applications, onConfirmM
                 </span>
                 申請管理
               </button>
-            )}
-            <button
-              onClick={() => setShowBilling(true)}
-              className="relative flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
-            >
-              <span className="relative">
-                <Banknote size={17} />
-                {markedPaidCount > 0 && (
-                  <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-warning-text px-0.5 text-[10px] font-bold text-white">
-                    {markedPaidCount}
+            ) : (
+              <>
+                <button
+                  onClick={() => setShowBilling(true)}
+                  className="relative flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
+                >
+                  <span className="relative">
+                    <Banknote size={17} />
+                    {markedPaidCount > 0 && (
+                      <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-warning-text px-0.5 text-[10px] font-bold text-white">
+                        {markedPaidCount}
+                      </span>
+                    )}
                   </span>
-                )}
-              </span>
-              收款管理
-            </button>
-            {!isRecruiting && (
-              <button
-                onClick={() => {
-                  onClose()
-                  window.dispatchEvent(new CustomEvent('pm:open-messages', { detail: { groupId: group.id } }))
-                }}
-                className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
-              >
-                <MessageCircle size={17} /> 群組訊息
-              </button>
+                  收款管理
+                </button>
+                <button
+                  onClick={() => {
+                    onClose()
+                    window.dispatchEvent(new CustomEvent('pm:open-messages', { detail: { groupId: group.id } }))
+                  }}
+                  className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
+                >
+                  <MessageCircle size={17} /> 群組訊息
+                </button>
+              </>
             )}
           </div>
         )
@@ -266,86 +307,80 @@ export default function HostGroupView({ group, members, applications, onConfirmM
             </div>
           </div>
 
-          {/* ② 成員付款確認 */}
+          {/* ② 逐一確認成員已加入外部服務 */}
           <div className="px-5 pt-5">
             <div className="mb-2 flex items-center justify-between">
-              <p className="text-xs font-semibold text-ink-2">成員付款確認</p>
-              <p className="text-xs text-ink-3">{confirmedCount} / {members.length} 已確認</p>
+              <p className="text-xs font-semibold text-ink-2">確認成員已加入外部服務</p>
+              <p className="text-xs text-ink-3">
+                {Object.values(memberChecks).filter(Boolean).length} / {members.length} 已確認
+              </p>
             </div>
-            <ProgressBar value={confirmedCount} max={members.length} className="mb-3" />
+            <p className="mb-3 text-xs text-ink-3">請在外部訂閱平台（{group.serviceName}）確認每位成員的帳號已完成設定，再逐一打勾。</p>
             <div className="space-y-2">
               {members.length === 0 ? (
                 <p className="py-2 text-center text-sm text-ink-3">尚無成員</p>
-              ) : members.map(m => {
-                const isConfirmed = CONFIRMED_STATUSES.includes(m.paymentStatus)
-                return (
-                  <div key={m.id} className="flex items-center gap-3 rounded-xl border border-line p-3">
-                    <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-ink">{m.userName}</p>
-                    </div>
-                    <PaymentStatusBadge status={m.paymentStatus} />
-                    {m.paymentStatus === 'markedPaid' && (
-                      <button
-                        onClick={() => onConfirmMember?.(m)}
-                        className="shrink-0 flex items-center gap-1 rounded-lg bg-success-subtle px-2.5 py-1 text-xs font-semibold text-success-text transition-colors hover:bg-success-subtle/80"
-                      >
-                        <CheckCircle2 size={11} /> 確認收款
-                      </button>
-                    )}
-                    {isConfirmed && <CheckCircle2 size={16} className="shrink-0 text-success" />}
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* ③ 成員服務帳號 */}
-          <div className="px-5 pt-5">
-            <p className="mb-2 text-xs font-semibold text-ink-2">成員服務帳號</p>
-            <div className="space-y-2">
-              {members.map(m => (
-                <div key={m.id} className="flex items-center gap-3 rounded-xl border border-line p-3">
+              ) : members.map(m => (
+                <label
+                  key={m.id}
+                  className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-colors ${
+                    memberChecks[m.id] ? 'border-success/40 bg-success-subtle' : 'border-line hover:bg-raised'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={!!memberChecks[m.id]}
+                    onChange={e => setMemberChecks(prev => ({ ...prev, [m.id]: e.target.checked }))}
+                    className="h-4 w-4 shrink-0 accent-brand"
+                  />
                   <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-ink">{m.userName}</p>
                     {m.serviceInfo?.email ? (
                       <p className="text-xs text-ink-3">{m.serviceInfo.email}</p>
                     ) : (
-                      <p className="text-xs text-ink-4">尚未填寫</p>
+                      <p className="text-xs text-ink-4">尚未填寫帳號</p>
                     )}
                   </div>
-                </div>
+                  {memberChecks[m.id] && <CheckCircle2 size={16} className="shrink-0 text-success" />}
+                </label>
               ))}
             </div>
           </div>
 
-          {/* ④ 下次扣款日 */}
-          <div className="px-5 pt-5">
-            <label className="mb-1.5 block text-xs font-semibold text-ink-2">
-              下次扣款日
-              <span className="ml-1 font-normal text-ink-3">（依方案自動推算，可調整）</span>
-            </label>
-            <input
-              type="date"
-              min={todayISO()}
-              value={renewalDate}
-              onChange={e => setRenewalDate(e.target.value)}
-              className="w-full rounded-xl border border-line bg-canvas px-3.5 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-brand/20"
-            />
-          </div>
+          {/* ③ 下次扣款日（唯讀顯示） */}
+          {(() => {
+            const d = new Date()
+            if (group.billingCycle === 'yearly') d.setFullYear(d.getFullYear() + 1)
+            else d.setMonth(d.getMonth() + 1)
+            const nextDate = toISODate(d)
+            return (
+              <div className="mx-5 mt-5 flex items-center justify-between rounded-xl border border-line bg-raised px-4 py-3">
+                <div>
+                  <p className="text-xs font-semibold text-ink-2">下次扣款日</p>
+                  <p className="mt-0.5 text-xs text-ink-4">啟用後自動設定，不可修改</p>
+                </div>
+                <p className="text-base font-extrabold text-ink">{nextDate}</p>
+              </div>
+            )
+          })()}
 
-          {/* ⑤ 最終確認 + 按鈕 */}
+          {/* ④ 最終確認 + 按鈕 */}
           <div className="space-y-3 p-5">
-            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-line p-3.5 transition-colors hover:bg-raised">
+            {!allMembersChecked && (
+              <p className="rounded-xl bg-warning-subtle px-4 py-2.5 text-xs font-semibold text-warning-text">
+                請先逐一確認所有成員已在外部服務完成設定
+              </p>
+            )}
+            <label className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3.5 transition-colors ${allMembersChecked ? 'border-line hover:bg-raised' : 'pointer-events-none border-line opacity-40'}`}>
               <input
                 type="checkbox"
                 checked={finalConfirmed}
                 onChange={e => setFinalConfirmed(e.target.checked)}
+                disabled={!allMembersChecked}
                 className="mt-0.5 h-4 w-4 shrink-0 accent-brand"
               />
               <span className="text-sm font-medium leading-relaxed text-ink">
-                我已完成外部訂閱設定並將所有成員加入服務，同意平台依此結果進行撥款
+                我確認所有成員皆已完成外部服務設定，同意平台依此結果進行撥款
               </span>
             </label>
             <div className="flex gap-2">
@@ -355,7 +390,7 @@ export default function HostGroupView({ group, members, applications, onConfirmM
               >取消</button>
               <button
                 onClick={handleActivateConfirm}
-                disabled={!finalConfirmed}
+                disabled={!allMembersChecked || !finalConfirmed}
                 className="flex-1 rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
               >確認啟用</button>
             </div>
@@ -504,7 +539,7 @@ export default function HostGroupView({ group, members, applications, onConfirmM
                   app={app}
                   groupFull={groupFull}
                   error={errors?.[app.id]}
-                  onApprove={onApprove}
+                  onApprove={app => { onApprove?.(app); setShowApplications(false) }}
                   onReject={onReject}
                 />
               ))}
@@ -514,7 +549,7 @@ export default function HostGroupView({ group, members, applications, onConfirmM
       </Modal>
 
       {/* ── 收款紀錄 Modal ── */}
-      <Modal isOpen={showBilling} onClose={() => setShowBilling(false)} title="收款管理" maxWidth="max-w-lg" sub>
+      <Modal isOpen={showBilling} onClose={() => setShowBilling(false)} title="收款管理" icon={<Banknote size={18} className="text-brand" />} maxWidth="max-w-lg" sub>
         <div className="max-h-[60vh] overflow-y-auto">
           {isActivated ? (
             /* 已啟用後：顯示歷史收款清單 */
@@ -524,20 +559,25 @@ export default function HostGroupView({ group, members, applications, onConfirmM
               ) : (
                 <div className="space-y-4">
                   {members.map(m => {
-                    const sub     = getSubscriptionByUserAndGroup(m.userId, group.id)
-                    const records = sub ? getPaymentRecordsBySubscriptionId(sub.id).sort((a, b) => (b.paidAt ?? '').localeCompare(a.paidAt ?? '')) : []
+                    const sub      = getSubscriptionByUserAndGroup(m.userId, group.id)
+                    const records  = sub ? getPaymentRecordsBySubscriptionId(sub.id).sort((a, b) => (b.paidAt ?? '').localeCompare(a.paidAt ?? '')) : []
+                    const expanded = expandedBillingMembers.has(m.id)
                     return (
-                      <div key={m.id}>
-                        <div className="mb-2 flex items-center gap-2">
+                      <div key={m.id} className="overflow-hidden rounded-xl border border-line">
+                        <button
+                          onClick={() => toggleBillingMember(m.id)}
+                          className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-raised"
+                        >
                           <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
-                          <p className="text-sm font-semibold text-ink">{m.userName}</p>
-                          <span className="ml-auto text-xs text-ink-3">{records.length} 筆</span>
-                        </div>
-                        {records.length === 0 ? (
-                          <p className="pl-9 text-xs text-ink-3">尚無收款紀錄</p>
-                        ) : (
-                          <div className="overflow-hidden rounded-xl border border-line">
-                            {records.map(rec => (
+                          <p className="min-w-0 flex-1 text-sm font-semibold text-ink">{m.userName}</p>
+                          <span className="text-xs text-ink-3">{records.length} 筆</span>
+                          {expanded ? <ChevronUp size={14} className="shrink-0 text-ink-3" /> : <ChevronDown size={14} className="shrink-0 text-ink-3" />}
+                        </button>
+                        {expanded && (
+                          <div className="border-t border-line-subtle">
+                            {records.length === 0 ? (
+                              <p className="px-4 py-3 text-xs text-ink-3">尚無收款紀錄</p>
+                            ) : records.map(rec => (
                               <div key={rec.id} className="flex items-center gap-3 border-b border-line-subtle px-4 py-3 last:border-0">
                                 <CheckCircle2 size={14} className="shrink-0 text-success" />
                                 <div className="min-w-0 flex-1">
@@ -579,31 +619,168 @@ export default function HostGroupView({ group, members, applications, onConfirmM
                   <EmptyState icon={Banknote} title="目前尚無成員" />
                 ) : (
                   <div className="space-y-2">
-                    {members.map(m => (
-                      <div key={m.id} className="flex items-center gap-3 rounded-xl border border-line p-3">
-                        <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-semibold text-ink">{m.userName}</p>
-                          <p className="text-xs text-ink-3">加入 {m.joinedAt}</p>
-                        </div>
-                        {m.paymentStatus === 'markedPaid' ? (
+                    {members.map(m => {
+                      const sub      = getSubscriptionByUserAndGroup(m.userId, group.id)
+                      const records  = sub ? getPaymentRecordsBySubscriptionId(sub.id).sort((a, b) => (b.paidAt ?? '').localeCompare(a.paidAt ?? '')) : []
+                      const expanded = expandedBillingMembers.has(m.id)
+                      return (
+                        <div key={m.id} className="overflow-hidden rounded-xl border border-line">
                           <button
-                            onClick={() => onConfirmMember?.(m)}
-                            className="shrink-0 flex items-center gap-1 rounded-lg bg-success-subtle px-2.5 py-1 text-xs font-semibold text-success-text transition-colors hover:bg-success-subtle/80"
+                            onClick={() => toggleBillingMember(m.id)}
+                            className="flex w-full items-center gap-3 p-3 text-left transition-colors hover:bg-raised"
                           >
-                            <CheckCircle2 size={11} /> 確認收款
+                            <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-semibold text-ink">{m.userName}</p>
+                            </div>
+                            <span className={`text-xs font-semibold ${CONFIRMED_STATUSES.includes(m.paymentStatus) ? 'text-success' : 'text-ink-3'}`}>
+                              {CONFIRMED_STATUSES.includes(m.paymentStatus) ? '已確認' : '待確認'}
+                            </span>
+                            {expanded ? <ChevronUp size={14} className="shrink-0 text-ink-3" /> : <ChevronDown size={14} className="shrink-0 text-ink-3" />}
                           </button>
-                        ) : (
-                          <PaymentStatusBadge status={m.paymentStatus} />
-                        )}
-                      </div>
-                    ))}
+                          {expanded && (
+                            <div className="border-t border-line-subtle px-4 py-3 space-y-3">
+                              {m.paymentStatus === 'markedPaid' && sub ? (
+                                <>
+                                  <div className="space-y-2">
+                                    <div className="flex items-center gap-3">
+                                      <CreditCard size={14} className="shrink-0 text-ink-3" />
+                                      <div className="min-w-0 flex-1">
+                                        <p className="text-sm font-semibold text-ink">成員已付款</p>
+                                        <p className="text-xs text-ink-3">{m.lastPaidAt ?? '—'}</p>
+                                      </div>
+                                      <span className="shrink-0 text-sm font-bold text-ink">
+                                        NT${m.paidAmount ?? sub.pricePerSeat}
+                                        {m.paidAmount && m.paidAmount !== sub.pricePerSeat && (
+                                          <span className="ml-1 text-xs font-normal text-warning-text">（應付 NT${sub.pricePerSeat}）</span>
+                                        )}
+                                      </span>
+                                    </div>
+                                    {m.paymentProofUrl ? (
+                                      <a href={m.paymentProofUrl} target="_blank" rel="noopener noreferrer">
+                                        <img
+                                          src={m.paymentProofUrl}
+                                          alt="付款截圖"
+                                          className="w-full rounded-xl border border-line object-contain transition-opacity hover:opacity-80"
+                                        />
+                                      </a>
+                                    ) : (
+                                      <p className="text-xs text-ink-4">尚未上傳截圖</p>
+                                    )}
+                                  </div>
+
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => onConfirmMember?.(m)}
+                                      className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-success py-2 text-xs font-semibold text-white transition-colors hover:opacity-80"
+                                    >
+                                      <CheckCircle2 size={11} /> 確認收款
+                                    </button>
+                                    <button
+                                      onClick={() => openReportModal(m)}
+                                      className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-warning/60 py-2 text-xs font-semibold text-warning-text transition-colors hover:bg-warning-subtle"
+                                    >
+                                      <AlertTriangle size={11} /> 回報問題
+                                    </button>
+                                  </div>
+                                </>
+                              ) : records.length === 0 ? (
+                                <p className="text-xs text-ink-3">尚無付款紀錄</p>
+                              ) : records.map(rec => (
+                                <div key={rec.id} className="flex items-center gap-3">
+                                  <CheckCircle2 size={14} className="shrink-0 text-success" />
+                                  <div className="min-w-0 flex-1">
+                                    <p className="text-sm font-semibold text-ink">{rec.periodLabel || rec.paidAt}</p>
+                                    <p className="text-xs text-ink-3">{rec.paidAt?.slice(0, 10)}</p>
+                                  </div>
+                                  <span className="shrink-0 text-sm font-bold text-success">NT${rec.amount}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
                   </div>
                 )}
               </div>
             </>
           )}
         </div>
+      </Modal>
+
+      {/* ── 回報問題 Modal ── */}
+      <Modal
+        isOpen={!!reportModalMember}
+        onClose={() => closeReportModal(true)}
+        title="回報付款問題"
+        icon={<AlertTriangle size={18} className="text-warning-text" />}
+        maxWidth="max-w-sm"
+        sub
+      >
+        {reportModalMember && (
+          <div className="p-5 space-y-4">
+            {/* 成員資訊 */}
+            <div className="flex items-center gap-3 rounded-xl bg-raised px-4 py-3">
+              <Avatar initial={reportModalMember.userAvatarInitial} color={reportModalMember.userAvatarColor} size="sm" />
+              <p className="text-sm font-semibold text-ink">{reportModalMember.userName}</p>
+            </div>
+
+            {/* 問題類型 */}
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-ink-2">選擇問題類型</p>
+              {ISSUE_TYPES.map(t => (
+                <label
+                  key={t.key}
+                  className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors ${
+                    issueType === t.key
+                      ? 'border-warning/60 bg-warning-subtle'
+                      : 'border-line hover:bg-raised'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    checked={issueType === t.key}
+                    onChange={() => setIssueType(t.key)}
+                    className="mt-0.5 shrink-0 accent-warning-text"
+                  />
+                  <div>
+                    <p className="text-sm font-semibold text-ink">{t.label}</p>
+                    <p className="text-xs text-ink-3">{t.desc}</p>
+                  </div>
+                </label>
+              ))}
+            </div>
+
+            {/* 補充說明（其他問題才顯示） */}
+            {issueType === 'other' && (
+              <textarea
+                rows={3}
+                placeholder="請描述問題內容..."
+                value={issueNote}
+                onChange={e => setIssueNote(e.target.value)}
+                className="w-full resize-none rounded-xl border border-line bg-canvas px-3 py-2.5 text-sm text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand"
+              />
+            )}
+
+            {/* 按鈕 */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => closeReportModal(true)}
+                className="flex-1 rounded-xl border border-line py-2.5 text-sm font-semibold text-ink-2 transition-colors hover:bg-raised"
+              >
+                取消
+              </button>
+              <button
+                onClick={handleSendIssueReport}
+                disabled={!issueType || (issueType === 'other' && !issueNote.trim())}
+                className="flex-1 rounded-xl bg-warning py-2.5 text-sm font-bold text-white transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                發送通知
+              </button>
+            </div>
+          </div>
+        )}
       </Modal>
     </GroupModalShell>
   )

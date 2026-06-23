@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { getGroupById } from '../stores/groupStore'
 import { getMembersByGroupId } from '../stores/memberStore'
 import { getApplicationsByGroupId } from '../stores/applicationStore'
@@ -7,10 +8,17 @@ import MemberGroupView from '../../features/subscriptions/components/MemberGroup
 
 export default function GroupViewModal({
   isOpen, onClose, groupId,
-  onConfirmMember, onActivate, onActivateGroup, onRemoveMember,
+  onConfirmMember, onReportPaymentIssue, onActivate, onActivateGroup, onRemoveMember,
   onMarkPaid, onApprove, onReject, errors,
-  autoOpenPayment, autoOpenActivateGroup, autoOpenApplications,
+  autoOpenPayment, autoOpenActivateGroup, autoOpenApplications, autoOpenBilling,
 }) {
+  const [, setTick] = useState(0)
+  useEffect(() => {
+    function onGroupsChanged() { setTick(t => t + 1) }
+    window.addEventListener('pm:groups-changed', onGroupsChanged)
+    return () => window.removeEventListener('pm:groups-changed', onGroupsChanged)
+  }, [])
+
   if (!isOpen || !groupId) return null
   const group = getGroupById(groupId)
   if (!group) return null
@@ -22,12 +30,13 @@ export default function GroupViewModal({
   if (isHost) return (
     <HostGroupView
       group={group} members={members} applications={applications}
-      onConfirmMember={onConfirmMember} onRemoveMember={onRemoveMember}
+      onConfirmMember={onConfirmMember} onReportPaymentIssue={onReportPaymentIssue} onRemoveMember={onRemoveMember}
       onActivate={onActivate} onActivateGroup={onActivateGroup}
       onApprove={onApprove} onReject={onReject}
       errors={errors} onClose={onClose}
       autoOpenActivateGroup={autoOpenActivateGroup}
       autoOpenApplications={autoOpenApplications}
+      autoOpenBilling={autoOpenBilling}
     />
   )
   return <MemberGroupView group={group} onMarkPaid={onMarkPaid} onClose={onClose} autoOpenPayment={autoOpenPayment} />

@@ -5,7 +5,7 @@ import { adjustCreditScore } from '../../shared/stores/authStore'
 import { CREDIT_RULES } from '../../shared/utils/creditScore'
 import { getApplicationsByHostId, updateApplicationStatus } from '../../shared/stores/applicationStore'
 import { getMembersByGroupId, createMember, isUserGroupMember, removeMember, resetMemberPaymentsForGroup, updateMember } from '../../shared/stores/memberStore'
-import { activateGroupSubscriptions, confirmSubscriptionPayment, createSubscription, getSubscriptionByUserAndGroup, getSubscriptionsByGroupId, resetSubscriptionPaymentsForGroup } from '../../shared/stores/subscriptionStore'
+import { activateGroupSubscriptions, confirmSubscriptionPayment, createSubscription, getSubscriptionByUserAndGroup, getSubscriptionsByGroupId, resetSubscriptionPayment, resetSubscriptionPaymentsForGroup } from '../../shared/stores/subscriptionStore'
 import { createPaymentRecord, getPaymentRecordCountBySubIds } from '../../shared/stores/paymentStore'
 import { createNotification } from '../../shared/stores/notificationStore'
 import { getCurrentUser } from '../../shared/stores/authStore'
@@ -62,16 +62,18 @@ export default function ManagePage() {
   const [viewGroupId, setViewGroupId]                     = useState(null)
   const [autoOpenActivateGroup, setAutoOpenActivateGroup] = useState(false)
   const [autoOpenApplications, setAutoOpenApplications]   = useState(false)
+  const [autoOpenBilling, setAutoOpenBilling]             = useState(false)
   const [historyModalGroupId, setHistoryModalGroupId]     = useState(null)
   const [renewalModalGroupId, setRenewalModalGroupId]     = useState(null)
 
-  function applyOpenManageGroup({ groupId, openGroupId, statusFilter: sf, openActivateGroup, openApplications }) {
+  function applyOpenManageGroup({ groupId, openGroupId, statusFilter: sf, openActivateGroup, openApplications, openBilling }) {
     const gId = groupId ?? openGroupId
     if (!gId) return
     if (sf) setStatusFilter(sf)
     setViewGroupId(gId)
     setAutoOpenActivateGroup(!!openActivateGroup)
     setAutoOpenApplications(!!openApplications)
+    setAutoOpenBilling(!!openBilling)
   }
 
   // 跨頁面：從 location.state 讀（ManagePage 剛掛載時）
@@ -189,11 +191,11 @@ async function handleActivateGroup() {
         avatarColor:   m.userAvatarColor,
       })
     }
-    await sendSystemMessage(convId, `${group.serviceName} 群組已啟用，請前往「我的訂閱」完成付款！`)
     await sendActionMessage(convId, {
       text: `請填寫你在 ${group.serviceName} 使用的服務帳號（電子信箱），以便團主幫你設定訂閱。`,
       actionType: 'fill_service_info',
       payload: { serviceName: group.serviceName, serviceId: group.serviceId },
+      participants: groupMembers.map(m => m.userId),
     })
 
     // members 端的 group_chat_opened 通知由 conversationStore listener 自行建立（避免跨用戶寫入）
@@ -252,7 +254,9 @@ function handleRemoveMember(member) {
       message: `團主已將你移出「${groupLabel}」群組。`,
     })
     const convId = `group_${member.groupId}`
-    sendSystemMessage(convId, `${member.userName} 已被移出群組`).catch(console.error)
+    const remainingMembers = getMembersByGroupId(member.groupId).filter(m => m.userId !== member.userId)
+    const convParticipants = [group?.hostId, ...remainingMembers.map(m => m.userId)].filter(Boolean)
+    sendSystemMessage(convId, `${member.userName} 已被移出群組`, convParticipants).catch(console.error)
     leaveConversation(convId, member.userId).catch(console.error)
   }
 
@@ -269,15 +273,64 @@ function handleConfirmMember(member) {
     createNotification({
       userId:  member.userId,
       type:    'payment_confirmed',
-      title:   '付款已確認',
-      message: `團主已確認你在「${member.groupName ?? ''}」的付款，感謝！`,
+      title:   '付款已確認，等待團主啟用服務',
+      message: `團主已確認你在「${member.groupName ?? ''}」的付款，請等待服務啟用。`,
     })
 
     const updatedMembers = getMembersByGroupId(member.groupId)
     const groupSnapshot = getGroupById(member.groupId)
     const allConfirmed = updatedMembers.length > 0 &&
       updatedMembers.every(m => CONFIRMED_STATUSES.includes(m.paymentStatus))
-    if (allConfirmed && groupSnapshot?.openSeats <= 0) confirmGroupPayments(member.groupId)
+    if (allConfirmed && groupSnapshot?.openSeats <= 0) {
+      confirmGroupPayments(member.groupId)
+      createNotification({
+        userId:  activeUser.id,
+        type:    'all_payments_confirmed',
+        title:   '所有付款已確認，可以啟用服務了',
+        message: `「${groupSnapshot?.serviceName ?? ''}」所有成員付款已確認，請立即啟用服務。`,
+        meta:    { groupId: member.groupId },
+      })
+    }
+
+    refreshGroups()
+  }
+
+  const PAYMENT_ISSUE_MESSAGES = {
+    amount_mismatch:  (name, price) => `@${name} 你的付款金額與應付金額（NT$${price}）不符，請重新確認後補件。`,
+    proof_incomplete: (name)        => `@${name} 你上傳的付款截圖不清晰或資訊不完整，請重新上傳完整截圖。`,
+    wrong_info:       (name)        => `@${name} 你的付款資訊有誤，請確認後重新補件。`,
+    other:            (name, _, note) => `@${name} ${note}`,
+  }
+
+  function handleReportPaymentIssue(member, issueType, issueNote) {
+    updateMember(member.id, { paymentStatus: 'pending', paymentProofUrl: null })
+    const sub = getSubscriptionByUserAndGroup(member.userId, member.groupId)
+    if (sub) resetSubscriptionPayment(sub.id)
+
+    const group = getGroupById(member.groupId)
+    const pricePerSeat = sub?.pricePerSeat ?? group?.pricePerSeat ?? 0
+    const msgFn = PAYMENT_ISSUE_MESSAGES[issueType] ?? PAYMENT_ISSUE_MESSAGES.other
+    const text = msgFn(member.userName, pricePerSeat, issueNote)
+
+    const allMembers = getMembersByGroupId(member.groupId)
+    const participants = [activeUser.id, ...allMembers.map(m => m.userId)]
+    const convId = `group_${member.groupId}`
+    sendSystemMessage(convId, text, participants).catch(console.error)
+    sendActionMessage(convId, {
+      text: '點擊下方按鈕重新上傳付款憑證',
+      actionType: 'request_resubmit',
+      payload: { targetUserId: member.userId },
+      visibleTo: [member.userId],
+      participants: [member.userId],
+    }).catch(console.error)
+
+    createNotification({
+      userId:  member.userId,
+      type:    'payment_issue',
+      title:   '付款資訊需要修正',
+      message: `團主在「${member.groupName ?? group?.serviceName ?? ''}」發現付款問題，請前往重新補件。`,
+      meta:    { groupId: member.groupId },
+    })
 
     refreshGroups()
   }
@@ -288,16 +341,27 @@ function handleActivate(renewalDate) {
     const updatedGroup = activateGroup(viewGroupId, renewalDate || null)
     if (updatedGroup) {
       activateGroupSubscriptions(viewGroupId, updatedGroup.nextBillingDate)
+      const activateMembers = getMembersByGroupId(viewGroupId)
+      const activateParticipants = [activeUser.id, ...activateMembers.map(m => m.userId)]
       sendSystemMessage(
         `group_${viewGroupId}`,
-        `${updatedGroup.serviceName} 訂閱服務已正式啟用！下次扣款日：${updatedGroup.nextBillingDate}。`
+        `${updatedGroup.serviceName} 訂閱服務已正式啟用！下次扣款日：${updatedGroup.nextBillingDate}。`,
+        activateParticipants
       ).catch(console.error)
+      createNotification({
+        userId:  activeUser.id,
+        type:    'group_activated',
+        title:   '服務已正式啟用',
+        message: `「${updatedGroup.serviceName}」群組已成功啟用！下次扣款日：${updatedGroup.nextBillingDate}。`,
+        meta:    { groupId: viewGroupId },
+      })
       getMembersByGroupId(viewGroupId).forEach(m => {
         createNotification({
           userId:  m.userId,
           type:    'group_activated',
           title:   '服務已正式啟用',
           message: `「${updatedGroup.serviceName}」群組已啟用！下次扣款日：${updatedGroup.nextBillingDate}。`,
+          meta:    { groupId: viewGroupId },
         })
       })
     }
@@ -338,7 +402,8 @@ function handleActivate(renewalDate) {
         message: `「${groupLabel}」群組已由團主結束，合購服務將不再續訂。`,
       })
     })
-    sendSystemMessage(`group_${renewalModalGroupId}`, `團主已結束「${groupLabel}」群組`).catch(console.error)
+    const endParticipants = [group?.hostId, ...groupMembers.map(m => m.userId)].filter(Boolean)
+    sendSystemMessage(`group_${renewalModalGroupId}`, `團主已結束「${groupLabel}」群組`, endParticipants).catch(console.error)
 
     setRenewalModalGroupId(null)
     refreshGroups()
@@ -406,7 +471,7 @@ function handleApprove(appId) {
         userId:  group.hostId,
         type:    'group_full',
         title:   '群組名額已滿',
-        message: `「${app.groupName ?? app.serviceName}」群組名額已滿，可以開始確認成員付款並啟用服務了。`,
+        message: `「${app.groupName ?? app.serviceName}」群組名額已滿，可以點擊啟用群組了。`,
         meta:    { groupId: app.groupId },
       })
     }
@@ -448,7 +513,7 @@ function handleApprove(appId) {
 
   function groupHandlers(g) {
     return {
-      onViewGroup:   () => { refreshGroups(); setViewGroupId(g.id) },
+      onViewGroup:   () => { refreshGroups(); setViewGroupId(g.id); setAutoOpenActivateGroup(false); setAutoOpenApplications(false); setAutoOpenBilling(false) },
       onViewHistory: () => setHistoryModalGroupId(g.id),
       onRenewal:     () => setRenewalModalGroupId(g.id),
     }
@@ -495,9 +560,10 @@ function handleApprove(appId) {
 
 <GroupViewModal
         isOpen={!!viewGroupId}
-        onClose={() => { setViewGroupId(null); setAutoOpenActivateGroup(false); setAutoOpenApplications(false); refreshGroups() }}
+        onClose={() => { setViewGroupId(null); setAutoOpenActivateGroup(false); setAutoOpenApplications(false); setAutoOpenBilling(false); refreshGroups() }}
         groupId={viewGroupId}
         onConfirmMember={handleConfirmMember}
+        onReportPaymentIssue={handleReportPaymentIssue}
         onActivate={handleActivate}
         onActivateGroup={handleActivateGroup}
         onRemoveMember={handleRemoveMember}
@@ -506,6 +572,7 @@ function handleApprove(appId) {
         errors={errors}
         autoOpenActivateGroup={autoOpenActivateGroup}
         autoOpenApplications={autoOpenApplications}
+        autoOpenBilling={autoOpenBilling}
       />
       {historyModalGroup && (
         <GroupHistoryModal
