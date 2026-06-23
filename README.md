@@ -82,7 +82,7 @@ Demo seed 會讀取 `.env`，建立或重用 demo 帳號，並寫入 groups、me
 | 快速配對 | 側欄 / 首頁 CTA | 不需登入 | 選服務、選方案、設定預算與條件，自動推薦符合群組 |
 | 群組詳情 | 群組卡片 / 搜尋結果 | 不需登入可看；申請需登入 | 方案、名額、規則、帳號需求、群組狀態 Badge、團主資訊、推薦群組（排除自己的群組）、申請加入 |
 | 申請加入 | 群組詳情 Modal | 需登入 | 建立申請紀錄、通知團主、保留送出成功畫面 |
-| 我的訂閱 | `/my-subscriptions` | 需登入 | 訂閱清單、待處理 / 已啟用 / 即將續訂分類、標記付款、申請紀錄、查看群組 |
+| 我的訂閱 | `/my-subscriptions` | 需登入 | 訂閱清單、待處理 / 已啟用 / 即將續訂分類、標記付款、申請紀錄、查看群組、退出群組（招募中 / 額滿狀態才可執行） |
 | 我的收藏 | `/favorites` | 需登入 | 收藏群組、分類篩選、取消收藏 |
 | 帳號中心 | `/account` | 需登入 | 個人資料寫回 Firebase users、付款方式/通知偏好本機持久化 |
 | 通知中心 | 右上角通知按鈕 | 訪客可看系統公告；會員看個人通知 | 付款、申請、系統通知；會員可標記已讀 |
@@ -135,8 +135,8 @@ stateDiagram-v2
 
 | 狀態 | 說明 | 下一步操作者 |
 |------|------|------------|
-| `recruiting` | 公開招募中，接受申請 | 團主審核申請 |
-| `full` | 名額額滿，等待團主開啟群組對話 | 團主點「開啟群組聊天室」 |
+| `recruiting` | 公開招募中，接受申請；成員可退出群組 | 團主審核申請 |
+| `full` | 名額額滿，等待團主開啟群組對話；成員仍可退出（會釋出名額，狀態退回 `recruiting`） | 團主點「開啟群組聊天室」 |
 | `pending_confirmation` | 收款階段：成員填寫帳號資訊、標記付款；團主逐筆確認 | 全員確認後自動推進 |
 | `pending_activation` | 收款完成，等待團主啟用服務 | 團主點「啟用服務」 |
 | `active` | 服務運作中；到期時團主可開始新一期收款 | 團主續訂或結束 |
@@ -410,12 +410,12 @@ src/
 | `src/features/create/CreateGroupModal.jsx` | `Step1Service`～`Step4Preview`、`LivePreviewPanel`、`createGroup()` | props: `form`、`onChange`；送出後建立 group，並觸發 `pm:group-created` |
 | `src/features/match/QuickMatchModal.jsx` | `ServiceSelectionGrid`、`MatchSummaryPanel`、`matchGroups()`、`ExploreGroupCard` | `conditions` 狀態流過各步驟；結果頁以群組卡片呈現匹配結果 |
 | `src/features/manage/ManagePage.jsx` | `HostedGroupCard`、`GroupViewModal`、`RenewalModal`、`GroupHistoryModal` | 管理頁集中處理審核、建立 member/subscription、確認付款、啟用群組；審核與收款確認已整合至 GroupViewModal 子 Modal，不再使用獨立 ApplicationsModal |
-| `src/features/subscriptions/SubscriptionsPage.jsx` | `SubscriptionCard`、`GroupViewModal`、`subscriptionStore`、`memberStore` | 重新同步訂閱資料；以待處理、已啟用、即將續訂分類顯示；標記付款時同步 subscription 與 member 狀態並建立通知 |
+| `src/features/subscriptions/SubscriptionsPage.jsx` | `SubscriptionCard`、`GroupViewModal`、`subscriptionStore`、`memberStore` | 重新同步訂閱資料；以待處理、已啟用、即將續訂分類顯示；標記付款時同步 subscription 與 member 狀態並建立通知；`handleLeaveGroup` 負責移除 member、刪除 subscription、更新群組名額（full → recruiting 狀態回退）並通知本人與團主 |
 | `src/features/messages/MessagesModal.jsx` | `conversationStore`、`messagesApi`、子元件 `ConversationList`、`ChatWindow`、`ConfirmDialog` | 接收 `pm:open-messages` / `pm:open-dm`；監聽 `pm:convs-changed` 同步對話列表；透過 `subscribeToMessages` 訂閱即時訊息；狀態管理與 UI 渲染分離 |
 | `src/shared/layout/FloatingMessages.jsx` | `notificationStore` | 接收 `pm:open-notify`；訪客只取公開系統公告，會員合併個人通知與系統公告 |
 | `src/shared/ui/GroupViewModal.jsx` | `HostGroupView`、`MemberGroupView`、`groupStore`、`memberStore`、`applicationStore`、`authStore` | 薄殼：讀取 group 與 currentUser，依 isHost 決定渲染 HostGroupView 或 MemberGroupView |
-| `src/features/manage/components/HostGroupView.jsx` | `GroupModalShell`、`Modal`、`ConfirmDialog`、`PaymentStatusBadge` | 團主視角；底部三按鈕開啟成員名單 / 申請管理 / 收款紀錄子 Modal；名額全確認時顯示啟用服務 CTA |
-| `src/features/subscriptions/components/MemberGroupView.jsx` | `GroupModalShell`、`Modal`、`ConfirmDialog`、`PaymentStatusBadge`、`leaveGroupFlow` | 成員視角；底部三按鈕開啟成員名單 / 付款紀錄 / 退出群組；待付款時顯示標記已付款 CTA |
+| `src/features/manage/components/HostGroupView.jsx` | `GroupModalShell`、`Modal`、`ConfirmDialog`、`PaymentStatusBadge` | 團主視角；底部按鈕「成員名單 / 申請管理（招募中）或 收款紀錄 / 群組訊息（啟用後）」；移除成員功能限定在 `recruiting`/`full` 狀態（啟用群組前）；名額全確認時顯示啟用服務 CTA |
+| `src/features/subscriptions/components/MemberGroupView.jsx` | `GroupModalShell`、`Modal`、`ConfirmDialog`、`PaymentStatusBadge` | 成員視角；底部按鈕「成員名單」已重命名（原成員管理）；`recruiting`/`full` 狀態下額外顯示「退出群組」按鈕，確認後呼叫 `onLeaveGroup`；待付款時顯示標記已付款 CTA |
 | `src/shared/stores/*` | `src/shared/api/*`、`src/shared/utils/*` | stores 保存前端快取並封裝業務流程，api 檔只處理 Firestore CRUD/subscribe |
 
 ---
@@ -431,7 +431,7 @@ src/
 | `groupStore` | `groups` | 群組 CRUD、狀態推進、啟用/續訂/結束 |
 | `applicationStore` | `applications` | 申請建立與審核狀態 |
 | `memberStore` | `members` | 群組成員、付款狀態、移除成員 |
-| `subscriptionStore` | `subscriptions` | 成員訂閱、標記付款、確認付款、啟用訂閱 |
+| `subscriptionStore` | `subscriptions` | 成員訂閱、標記付款、確認付款、啟用訂閱、`removeSubscription`（成員退出群組時刪除） |
 | `paymentStore` | `paymentRecords` | 付款紀錄統計 |
 | `notificationStore` | `notifications` | 個人通知、公開系統公告、未讀數 |
 | `favoriteStore` | `favorites` | 收藏群組 |
