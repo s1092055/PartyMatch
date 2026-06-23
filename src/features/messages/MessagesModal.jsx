@@ -11,7 +11,6 @@ import {
   getOrCreateDmConversation,
   leaveConversation,
 } from '../../shared/api/messagesApi'
-import { scheduleLeaveGroup } from '../../shared/utils/leaveGroupFlow'
 import ConfirmDialog from '../../shared/ui/ConfirmDialog'
 import ConversationList, { CONV_TABS } from './components/ConversationList'
 import ChatWindow from './components/ChatWindow'
@@ -180,26 +179,6 @@ export default function MessagesModal() {
     handleSend()
   }
 
-  function handleRequestLeaveGroup() {
-    const user = getCurrentUser()
-    if (!selectedId || !user) return
-    setMenuOpen(false)
-    const conv = getConversations().find(c => c.id === selectedId)
-    const groupName = conv?.name ?? '此群組'
-    const groupId = conv?.groupId ?? (selectedId.startsWith('group_') ? selectedId.slice('group_'.length) : null)
-    setConfirmDialog({
-      title: '退出群組',
-      message: `確定要退出「${groupName}」嗎？退出後會立即釋出你的名額並離開聊天室，之後想再加入需要重新申請並等待團主審核；已產生的費用不會自動退還。`,
-      confirmLabel: '退出',
-      danger: true,
-      onConfirm: () => {
-        setConfirmDialog(null)
-        setSelectedId(null)
-        scheduleLeaveGroup({ conversationId: selectedId, groupId, user, groupName })
-      },
-    })
-  }
-
   function handleRequestDeleteConversation() {
     const user = getCurrentUser()
     if (!selectedId || !user) return
@@ -293,7 +272,6 @@ export default function MessagesModal() {
               onSend={handleSend}
               onKeyDown={handleKeyDown}
               onInputChange={v => { setCanSend(v.trim().length > 0); setSendError(false) }}
-              onRequestLeaveGroup={handleRequestLeaveGroup}
               onRequestDeleteConversation={handleRequestDeleteConversation}
             />
           </div>

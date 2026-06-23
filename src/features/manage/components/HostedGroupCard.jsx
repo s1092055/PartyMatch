@@ -112,7 +112,7 @@ export default function HostedGroupCard({
         )}
         {isActivated || ['recruiting', 'full'].includes(group.status) ? (
           <StatCell label="成員人數">
-            {members.length} 人
+            {members.length + 1} 人
           </StatCell>
         ) : (
           <StatCell

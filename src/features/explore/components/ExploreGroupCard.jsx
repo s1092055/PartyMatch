@@ -97,8 +97,8 @@ export default function ExploreGroupCard({ group, onFavChange, onBeforeNavigate,
 
       <div className="flex justify-center">
         {isMember ? (
-          <span className="rounded-full bg-brand-subtle px-3.5 py-1 text-sm font-extrabold text-brand">
-            已加入
+          <span className="rounded-full bg-success-subtle px-3.5 py-1 text-sm font-extrabold text-success-text">
+            申請通過
           </span>
         ) : isApplied ? (
           <span className="rounded-full bg-warning-subtle px-3.5 py-1 text-sm font-extrabold text-warning-text">

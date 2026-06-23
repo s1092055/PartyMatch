@@ -1,8 +1,8 @@
 import { startTransition, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowRight, Compass, PlusCircle, Search, Sparkles, X, Zap } from 'lucide-react'
-import { getGroups, initLiveGroups, teardownLiveGroups } from '../../shared/stores/groupStore'
-import { getApplicationsByUserId } from '../../shared/stores/applicationStore'
+import { getGroups, initLiveGroups } from '../../shared/stores/groupStore'
+import { getApplicationsByUserId, getMemberGroupIds } from '../../shared/stores/applicationStore'
 import { getServiceById } from '../../shared/utils/serviceUtils'
 import { getCurrentUser } from '../../shared/stores/authStore'
 import EmptyState from '../../shared/ui/EmptyState'
@@ -65,13 +65,10 @@ export default function ExplorePage() {
 
   const { appliedGroupIds, memberGroupIds } = useMemo(() => {
     if (!activeUserId) return { appliedGroupIds: new Set(), memberGroupIds: new Set() }
-    const applied = new Set()
-    const member  = new Set()
-    getApplicationsByUserId(activeUserId).forEach(a => {
-      if (a.status === 'pending')  applied.add(a.groupId)
-      if (a.status === 'approved') member.add(a.groupId)
-    })
-    return { appliedGroupIds: applied, memberGroupIds: member }
+    const applied = new Set(
+      getApplicationsByUserId(activeUserId).filter(a => a.status === 'pending').map(a => a.groupId)
+    )
+    return { appliedGroupIds: applied, memberGroupIds: getMemberGroupIds(activeUserId) }
   }, [activeUserId, tick]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -81,7 +78,6 @@ export default function ExplorePage() {
     window.addEventListener('pm:groups-changed', onGroupsChanged)
     window.addEventListener('pm:applications-changed', onApplicationsChanged)
     return () => {
-      teardownLiveGroups()
       window.removeEventListener('pm:groups-changed', onGroupsChanged)
       window.removeEventListener('pm:applications-changed', onApplicationsChanged)
     }

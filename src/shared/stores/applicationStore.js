@@ -87,6 +87,13 @@ export function getApplicationsByUserId(userId) {
   return _apps.filter(a => (a.applicantId ?? a.userId) === userId).sort(byNewest)
 }
 
+export function getMemberGroupIds(userId) {
+  if (!userId) return new Set()
+  return new Set(
+    _apps.filter(a => (a.applicantId ?? a.userId) === userId && a.status === 'approved').map(a => a.groupId)
+  )
+}
+
 export function getApplicationByUserAndGroup(userId, groupId) {
   return _apps.find(
     a => (a.applicantId ?? a.userId) === userId && a.groupId === groupId

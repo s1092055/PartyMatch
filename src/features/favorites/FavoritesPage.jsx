@@ -6,7 +6,7 @@ import { getCurrentUser } from '../../shared/stores/authStore'
 import PageHeader from '../../shared/layout/PageHeader'
 import { getFavoritesByUserId } from '../../shared/stores/favoriteStore'
 import { getGroupById } from '../../shared/stores/groupStore'
-import { getApplicationsByUserId } from '../../shared/stores/applicationStore'
+import { getMemberGroupIds } from '../../shared/stores/applicationStore'
 import { getServiceById } from '../../shared/utils/serviceUtils'
 import ExploreGroupCard from '../explore/components/ExploreGroupCard'
 import CategoryPills from '../../shared/ui/CategoryPills'
@@ -24,12 +24,7 @@ export default function FavoritesPage() {
   const navigate = useNavigate()
   const activeUser = getCurrentUser()
   const [groups, setGroups] = useState(loadFavGroups)
-  const memberGroupIds = useMemo(() => {
-    if (!activeUser?.id) return new Set()
-    return new Set(
-      getApplicationsByUserId(activeUser.id).filter(a => a.status === 'approved').map(a => a.groupId)
-    )
-  }, [activeUser?.id])
+  const memberGroupIds = useMemo(() => getMemberGroupIds(activeUser?.id), [activeUser?.id])
   const [activeCategory, setActiveCategory] = useState('all')
 
   function handleFavChange(isFav, groupId) {

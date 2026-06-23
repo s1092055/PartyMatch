@@ -12,7 +12,7 @@ export async function initGroups() {
 }
 
 export function initLiveGroups() {
-  teardownLiveGroups()
+  if (_unsub) return
   _unsub = subscribeToGroups(groups => {
     _groups = groups
     if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('pm:groups-changed'))
@@ -75,7 +75,7 @@ export function updateGroup(id, patch) {
 }
 
 export function activateGroupChat(id) {
-  return updateGroup(id, { status: 'group_active' })
+  return updateGroup(id, { status: 'pending_confirmation' })
 }
 
 export function confirmGroupPayments(id) {

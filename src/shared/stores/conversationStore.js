@@ -1,6 +1,6 @@
 import { subscribeToConversations } from '../api/messagesApi'
 import { getActiveUserProfile } from './authStore'
-import { createNotification } from './notificationStore'
+import { createNotification, getNotifications } from './notificationStore'
 
 let _conversations = []
 let _unsub = null
@@ -9,12 +9,35 @@ export function initConversations(userId) {
   teardownConversations()
   let _prevConvIds = null  // null = 首次 snapshot，建立基線不發通知
   _unsub = subscribeToConversations(userId, convs => {
-    if (_prevConvIds !== null) {
-      const currentUser = getActiveUserProfile()
+    const currentUser = getActiveUserProfile()
+    if (_prevConvIds === null) {
+      // 冷啟動：補上離線期間錯過的 group_chat_opened 通知（只處理有 hostId 的新格式文件）
+      if (currentUser) {
+        const existingGroupChatIds = new Set(
+          getNotifications(currentUser.id)
+            .filter(n => n.type === 'group_chat_opened')
+            .map(n => n.meta?.groupId)
+            .filter(Boolean)
+        )
+        convs.forEach(conv => {
+          if (conv.type === 'group' && conv.groupId && conv.hostId && conv.hostId !== currentUser.id) {
+            if (!existingGroupChatIds.has(conv.groupId)) {
+              createNotification({
+                userId:  currentUser.id,
+                type:    'group_chat_opened',
+                title:   '群組聊天室已開啟',
+                message: `「${conv.name ?? conv.groupName}」群組聊天室已建立，點擊前往查看。`,
+                meta:    { groupId: conv.groupId },
+              })
+            }
+          }
+        })
+      }
+    } else {
       if (currentUser) {
         convs.forEach(conv => {
           // 第一次出現的群組對話，且當前用戶不是團主 → 成員收到聊天室開啟通知
-          if (!_prevConvIds.has(conv.id) && conv.type === 'group' && conv.groupId && conv.hostId !== currentUser.id) {
+          if (!_prevConvIds.has(conv.id) && conv.type === 'group' && conv.groupId && conv.hostId && conv.hostId !== currentUser.id) {
             createNotification({
               userId:  currentUser.id,
               type:    'group_chat_opened',

@@ -3,6 +3,7 @@ import Badge from '../../../shared/ui/Badge'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import { effectiveStatus } from '../../../shared/utils/subscriptionStatus'
 import { daysUntil } from '../../../shared/utils/date'
+import { getMembersByGroupId } from '../../../shared/stores/memberStore'
 
 const STATUS_BADGE_CLASS = {
   active:               'bg-success-subtle text-success-text',
@@ -40,6 +41,7 @@ export default function SubscriptionCard({ sub, onViewGroup }) {
   const isActive      = sub.status === 'active' || sub.groupStatus === 'active'
   const groupStatus   = sub.groupStatus ?? sub.status
   const displayStatus = getDisplayStatus(sub)
+  const memberCount   = getMembersByGroupId(sub.groupId).length + 1
 
   const paymentLabel = {
     pending:            '待付款',
@@ -64,7 +66,10 @@ export default function SubscriptionCard({ sub, onViewGroup }) {
       onClick={() => onViewGroup?.(sub)}
     >
       <div className="flex justify-center">
-        <Badge variant={groupStatus} className={STATUS_BADGE_CLASS[displayStatus] ?? ''} />
+        <Badge
+          variant={groupStatus === 'recruiting' ? 'member_joined' : groupStatus}
+          className={STATUS_BADGE_CLASS[displayStatus] ?? ''}
+        />
       </div>
 
       <div className="mt-4 flex justify-center">
@@ -83,15 +88,19 @@ export default function SubscriptionCard({ sub, onViewGroup }) {
       <div className="my-4 border-t border-line-subtle" />
 
       <div className="grid grid-cols-3 divide-x divide-line-subtle rounded-lg border border-line-subtle">
-        <StatCell label="付款狀態" highlight={paymentHighlight}>
-          {paymentLabel}
-        </StatCell>
-        <StatCell label={isActive ? '下次扣款' : '加入日期'}>
-          {isActive ? (sub.nextBillingDate ?? '—') : (sub.joinedAt ?? '—')}
-        </StatCell>
-        <StatCell label="團主">
-          {sub.hostName ?? '—'}
-        </StatCell>
+        {isActive ? (
+          <>
+            <StatCell label="付款狀態" highlight={paymentHighlight}>{paymentLabel}</StatCell>
+            <StatCell label="下次扣款">{sub.nextBillingDate ?? '—'}</StatCell>
+            <StatCell label="團主">{sub.hostName ?? '—'}</StatCell>
+          </>
+        ) : (
+          <>
+            <StatCell label="團主">{sub.hostName ?? '—'}</StatCell>
+            <StatCell label="成員人數">{memberCount} 人</StatCell>
+            <StatCell label="加入日期">{sub.joinedAt ?? '—'}</StatCell>
+          </>
+        )}
       </div>
 
       <div className="mt-auto pt-5">

@@ -25,12 +25,17 @@ export default function GroupModalShell({
   hideRecruitBar,
   confirmedCount,
   pendingBadge,
+  pendingBadgeColor,
   centeredCta,
+  statusBadgeOverride,
   children,
 }) {
   const showPaymentBar = ['group_active', 'pending_activation', 'pending_confirmation'].includes(group.status) && confirmedCount !== undefined
   const showCenteredBadge = (showPaymentBar || !!pendingBadge) && !centeredCta
   const centeredBadgeLabel = pendingBadge ?? '付款確認中'
+  const centeredBadgeCls = pendingBadgeColor === 'success'
+    ? 'bg-success-subtle text-success-text'
+    : 'bg-warning-subtle text-warning-text'
   useScrollLock(true)
 
   const summaryRef    = useRef(null)
@@ -102,17 +107,19 @@ export default function GroupModalShell({
 
               <div ref={summaryRef} className="hidden lg:order-2 lg:block lg:w-[20rem] lg:shrink-0">
                 {(() => {
-                  const infoRows = getInfoRows(group)
+                  const infoRows = getInfoRows(group).map(row =>
+                    row.badge === group.status && statusBadgeOverride
+                      ? { ...row, badge: statusBadgeOverride }
+                      : row
+                  )
                   const tags = group.tags ?? []
                   return (
                     <div className="card divide-y divide-line-subtle overflow-hidden">
                       {centeredCta ? (
                         <div className="px-6 py-4 lg:px-8">{centeredCta}</div>
                       ) : showCenteredBadge ? (
-                        <div className="flex items-center justify-center px-6 py-5 lg:px-8">
-                          <span className="rounded-full bg-warning-subtle px-5 py-1.5 text-sm font-extrabold text-warning-text">
-                            {centeredBadgeLabel}
-                          </span>
+                        <div className={`mx-4 my-3 flex items-center justify-center rounded-xl px-6 py-4 text-sm font-extrabold lg:mx-6 ${centeredBadgeCls}`}>
+                          {centeredBadgeLabel}
                         </div>
                       ) : !hideRecruitBar && (
                         <>
@@ -173,11 +180,9 @@ export default function GroupModalShell({
               {centeredCta}
             </div>
           ) : showCenteredBadge ? (
-            <div className="shrink-0 border-t border-line-subtle bg-canvas px-6 py-3 lg:hidden">
-              <div className="flex items-center justify-center">
-                <span className="rounded-full bg-warning-subtle px-5 py-1.5 text-sm font-extrabold text-warning-text">
-                  {centeredBadgeLabel}
-                </span>
+            <div className="shrink-0 border-t border-line-subtle px-4 py-3 lg:hidden">
+              <div className={`flex items-center justify-center rounded-xl px-4 py-3 text-sm font-extrabold ${centeredBadgeCls}`}>
+                {centeredBadgeLabel}
               </div>
             </div>
           ) : !hideRecruitBar && (

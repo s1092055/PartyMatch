@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, Compass, RotateCcw, Zap } from 'lucide-react'
 import ServiceSelectionGrid from './components/ServiceSelectionGrid'
@@ -11,7 +11,7 @@ import CreateGroupStepper from '../create/components/CreateGroupStepper'
 import Button from '../../shared/ui/Button'
 import Modal from '../../shared/ui/Modal'
 import { getGroups } from '../../shared/stores/groupStore'
-import { getApplicationsByUserId } from '../../shared/stores/applicationStore'
+import { getMemberGroupIds } from '../../shared/stores/applicationStore'
 import { getCurrentUser } from '../../shared/stores/authStore'
 import { matchGroups } from '../../shared/utils/matchGroups'
 
@@ -192,10 +192,15 @@ function Step3({ conditions, onChange }) {
 function Step4({ results, conditions, onClose }) {
   const navigate = useNavigate()
   const activeUser = getCurrentUser()
-  const memberGroupIds = new Set(
-    activeUser
-      ? getApplicationsByUserId(activeUser.id).filter(a => a.status === 'approved').map(a => a.groupId)
-      : []
+  const [tick, setTick] = useState(0)
+  useEffect(() => {
+    function onChanged() { setTick(t => t + 1) }
+    window.addEventListener('pm:applications-changed', onChanged)
+    return () => window.removeEventListener('pm:applications-changed', onChanged)
+  }, [])
+  const memberGroupIds = useMemo(
+    () => getMemberGroupIds(activeUser?.id),
+    [activeUser?.id, tick], // eslint-disable-line react-hooks/exhaustive-deps
   )
 
   function handleExplore() {
