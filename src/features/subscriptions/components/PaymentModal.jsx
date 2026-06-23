@@ -1,55 +1,59 @@
-import { useState } from 'react'
-import { CheckCircle2, CreditCard, Lock, X } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { CheckCircle2, CreditCard, ImagePlus, X } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
-
-function formatCardNumber(value) {
-  const digits = value.replace(/\D/g, '').slice(0, 16)
-  return digits.replace(/(.{4})/g, '$1 ').trim()
-}
-
-function formatExpiry(value) {
-  const digits = value.replace(/\D/g, '').slice(0, 4)
-  if (digits.length <= 2) return digits
-  return `${digits.slice(0, 2)} / ${digits.slice(2)}`
-}
-
-function InputField({ label, id, ...props }) {
-  return (
-    <div>
-      <label htmlFor={id} className="mb-1.5 block text-xs font-semibold text-ink-3">{label}</label>
-      <input
-        id={id}
-        className="w-full rounded-xl border border-line bg-canvas px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition-colors placeholder:text-ink-4 focus:border-brand focus:ring-1 focus:ring-brand"
-        {...props}
-      />
-    </div>
-  )
-}
+import { uploadPaymentProof } from '../../../shared/api/storageApi'
+import { getCurrentUser } from '../../../shared/stores/authStore'
 
 export default function PaymentModal({ isOpen, onClose, sub, onSuccess }) {
-  const [name, setName]         = useState('測試持卡人')
-  const [card, setCard]         = useState('4242 4242 4242 4242')
-  const [expiry, setExpiry]     = useState('12 / 28')
-  const [cvv, setCvv]           = useState('123')
-  const [success, setSuccess]   = useState(false)
+  const [file, setFile]           = useState(null)
+  const [preview, setPreview]     = useState(null)
+  const [amount, setAmount]       = useState(String(sub?.pricePerSeat ?? ''))
+  const [uploading, setUploading] = useState(false)
+  const [success, setSuccess]     = useState(false)
+  const inputRef = useRef(null)
 
   if (!isOpen || !sub) return null
 
-  const canSubmit = name.trim() && card.replace(/\s/g, '').length === 16 && expiry.length >= 4 && cvv.length >= 3
+  function handleFileChange(e) {
+    const f = e.target.files?.[0]
+    if (!f) return
+    setFile(f)
+    setPreview(URL.createObjectURL(f))
+  }
 
-  function handleConfirm() {
-    if (!canSubmit) return
-    onSuccess?.()
-    setSuccess(true)
+  function handleDrop(e) {
+    e.preventDefault()
+    const f = e.dataTransfer.files?.[0]
+    if (!f) return
+    setFile(f)
+    setPreview(URL.createObjectURL(f))
+  }
+
+  const parsedAmount = Number(amount)
+  const canSubmit = file && parsedAmount > 0
+
+  async function handleConfirm() {
+    if (!canSubmit || uploading) return
+    setUploading(true)
+    try {
+      const user = getCurrentUser()
+      const proofUrl = await uploadPaymentProof(sub.groupId, user?.id ?? 'unknown', file)
+      onSuccess?.(proofUrl, Number(amount))
+      setSuccess(true)
+    } catch (err) {
+      console.error('[PaymentModal] upload failed:', err)
+    } finally {
+      setUploading(false)
+    }
   }
 
   function handleClose() {
+    setFile(null)
+    setPreview(null)
+    setAmount(String(sub?.pricePerSeat ?? ''))
+    setUploading(false)
     setSuccess(false)
-    setName('測試持卡人')
-    setCard('4242 4242 4242 4242')
-    setExpiry('12 / 28')
-    setCvv('123')
     onClose()
   }
 
@@ -79,7 +83,7 @@ export default function PaymentModal({ isOpen, onClose, sub, onSuccess }) {
                 <CheckCircle2 size={36} className="text-success" />
               </div>
               <div>
-                <p className="text-xl font-extrabold text-ink">付款成功</p>
+                <p className="text-xl font-extrabold text-ink">付款截圖已上傳</p>
                 <p className="mt-1.5 text-sm text-ink-3">已通知團主確認付款，請等待確認</p>
               </div>
               <button
@@ -91,7 +95,8 @@ export default function PaymentModal({ isOpen, onClose, sub, onSuccess }) {
             </div>
           ) : (
             <div className="p-6">
-              <div className="mb-6 flex items-center gap-3 rounded-xl bg-raised px-4 py-3">
+              {/* 服務資訊 */}
+              <div className="mb-5 flex items-center gap-3 rounded-xl bg-raised px-4 py-3">
                 <ServiceLogo serviceId={sub.serviceId} size={36} className="rounded-lg" />
                 <div className="min-w-0 flex-1">
                   <p className="font-bold text-ink">{sub.serviceName}</p>
@@ -103,55 +108,86 @@ export default function PaymentModal({ isOpen, onClose, sub, onSuccess }) {
                 </div>
               </div>
 
-              <div className="space-y-4" autoComplete="off">
-                <InputField
-                  label="持卡人姓名"
-                  id="pay-name"
-                  placeholder="與信用卡上相同"
-                  autoComplete="off"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                />
-                <InputField
-                  label="卡號"
-                  id="pay-card"
-                  placeholder="0000 0000 0000 0000"
-                  autoComplete="off"
-                  value={card}
-                  onChange={e => setCard(formatCardNumber(e.target.value))}
-                  inputMode="numeric"
-                />
-                <div className="grid grid-cols-2 gap-3">
-                  <InputField
-                    label="有效期限"
-                    id="pay-expiry"
-                    placeholder="MM / YY"
-                    autoComplete="off"
-                    value={expiry}
-                    onChange={e => setExpiry(formatExpiry(e.target.value))}
+              {/* 付款說明 */}
+              <div className="mb-4 rounded-xl border border-line bg-canvas p-4 text-sm text-ink-2 leading-relaxed">
+                <p className="font-semibold text-ink mb-1">付款流程</p>
+                <ol className="list-decimal list-inside space-y-1 text-xs text-ink-3">
+                  <li>依照團主提供的方式完成付款（銀行轉帳、LINE Pay 等）</li>
+                  <li>截取付款完成的畫面</li>
+                  <li>上傳截圖作為憑證，等待團主確認</li>
+                </ol>
+              </div>
+
+              {/* 付款金額 */}
+              <div className="mb-4">
+                <label className="mb-1.5 block text-xs font-semibold text-ink-2">
+                  付款金額
+                  <span className="ml-1 font-normal text-ink-4">（應付 NT${sub.pricePerSeat}）</span>
+                </label>
+                <div className="flex items-center gap-2 rounded-xl border border-line bg-canvas px-3.5 py-2.5 focus-within:border-brand focus-within:ring-1 focus-within:ring-brand">
+                  <span className="text-sm font-semibold text-ink-3">NT$</span>
+                  <input
+                    type="number"
+                    min="1"
+                    value={amount}
+                    onChange={e => setAmount(e.target.value)}
+                    placeholder={String(sub.pricePerSeat)}
+                    className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-ink outline-none"
                     inputMode="numeric"
-                  />
-                  <InputField
-                    label="安全碼"
-                    id="pay-cvv"
-                    placeholder="CVV"
-                    autoComplete="off"
-                    value={cvv}
-                    onChange={e => setCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                    inputMode="numeric"
-                    type="password"
                   />
                 </div>
+                {parsedAmount > 0 && parsedAmount !== sub.pricePerSeat && (
+                  <p className="mt-1 text-xs text-warning-text">
+                    金額與應付金額不符，請確認
+                  </p>
+                )}
               </div>
+
+              {/* 截圖上傳區 */}
+              <div
+                onClick={() => inputRef.current?.click()}
+                onDragOver={e => e.preventDefault()}
+                onDrop={handleDrop}
+                className="relative mb-4 flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-line transition-colors hover:border-brand hover:bg-brand-subtle/20"
+              >
+                <input
+                  ref={inputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+                {preview ? (
+                  <img
+                    src={preview}
+                    alt="付款截圖預覽"
+                    className="max-h-48 w-full rounded-xl object-contain p-2"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center gap-2 p-6 text-center">
+                    <ImagePlus size={28} className="text-ink-4" />
+                    <p className="text-sm font-semibold text-ink-2">點擊或拖曳上傳截圖</p>
+                    <p className="text-xs text-ink-4">支援 JPG、PNG、HEIC</p>
+                  </div>
+                )}
+              </div>
+
+              {preview && (
+                <button
+                  onClick={() => { setFile(null); setPreview(null) }}
+                  className="mb-3 flex items-center gap-1 text-xs text-ink-3 transition-colors hover:text-danger"
+                >
+                  <X size={12} /> 重新選擇截圖
+                </button>
+              )}
 
               <button
                 onClick={handleConfirm}
-                disabled={!canSubmit}
-                className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3 text-sm font-bold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
+                disabled={!canSubmit || uploading}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3 text-sm font-bold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
               >
-                <Lock size={14} /> 確認付款 NT${sub.pricePerSeat}
+                {uploading ? '上傳中...' : '送出付款憑證'}
               </button>
-              <p className="mt-2.5 text-center text-xs text-ink-4">此為模擬付款，不會產生真實扣款</p>
             </div>
           )}
         </div>

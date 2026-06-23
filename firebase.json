@@ -1,0 +1,6 @@
+{
+  "storage": {
+    "rules": "storage.rules",
+    "bucket": "partymatch-72c9e.firebasestorage.app"
+  }
+}

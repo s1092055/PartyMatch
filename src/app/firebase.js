@@ -15,7 +15,7 @@ const firebaseApp = initializeApp(firebaseConfig)
 
 // Safari 的 WebSocket/WebChannel 連線常靜默斷線，用 experimentalForceLongPolling 改為 HTTP long-polling。
 // memoryLocalCache 避免 IndexedDB bloom filter 錯誤（persistentLocalCache 與 long-polling 組合會觸發）。
-export const db = initializeFirestore(firebaseApp, {
+export const db   = initializeFirestore(firebaseApp, {
   localCache: memoryLocalCache(),
   experimentalForceLongPolling: true,
 })
