@@ -31,9 +31,11 @@ export default function GroupModalShell({
   hidden,
   children,
 }) {
+  function handleClose() { onClose() }
+
   const showPaymentBar = ['group_active', 'pending_activation', 'pending_confirmation'].includes(group.status) && confirmedCount !== undefined
   const showCenteredBadge = (showPaymentBar || !!pendingBadge) && !centeredCta
-  const centeredBadgeLabel = pendingBadge ?? '付款確認中'
+  const centeredBadgeLabel = pendingBadge ?? '收款確認中'
   const centeredBadgeCls = pendingBadgeColor === 'success'
     ? 'bg-success-subtle text-success-text'
     : 'bg-warning-subtle text-warning-text'
@@ -72,11 +74,11 @@ export default function GroupModalShell({
 
   return createPortal(
     <>
-      <div className="fixed inset-0 z-[55] bg-black/50" onClick={onClose} />
+      <div className="fixed inset-0 z-[55] bg-black/50 animate-backdrop-in" onClick={handleClose} />
 
       <div className="pointer-events-none fixed inset-0 z-[56] flex items-center justify-center p-4 md:p-8">
         <div
-          className="pointer-events-auto flex w-full flex-col overflow-hidden rounded-2xl bg-canvas shadow-2xl animate-fade-in-up md:max-w-5xl"
+          className="pointer-events-auto flex w-full flex-col overflow-hidden rounded-2xl bg-canvas shadow-2xl md:max-w-5xl animate-modal-in"
           style={{ height: 'min(92vh, 860px)' }}
         >
           <div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-5 lg:px-8">
@@ -85,7 +87,7 @@ export default function GroupModalShell({
               <span className="text-lg font-extrabold text-ink">{group.serviceName}</span>
             </div>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
               aria-label="關閉"
             >

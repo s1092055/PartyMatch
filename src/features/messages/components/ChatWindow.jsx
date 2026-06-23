@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, CheckCircle2, ChevronDown, Clock, MoreVertical, Send, SquarePen, Trash2, Users, X } from 'lucide-react'
 import ConversationAvatar from './ConversationAvatar'
 import { getMembersByGroupId, getMemberByUserAndGroup, updateMember } from '../../../shared/stores/memberStore'
+import { CONFIRMED_STATUSES } from '../../../shared/constants/paymentStatus'
 import { getGroupById } from '../../../shared/stores/groupStore'
 import { getCurrentUser } from '../../../shared/stores/authStore'
 import { markConversationRead, addParticipantToConversation, fetchOlderMessages, sendActionMessage } from '../../../shared/api/messagesApi'
@@ -530,20 +531,27 @@ export default function ChatWindow({
                   )
                 }
                 if (msg.actionType === 'all_service_info_filled') {
+                  const allConfirmed = groupMembers.length > 0 && groupMembers.every(m => CONFIRMED_STATUSES.includes(m.paymentStatus))
                   return (
                     <div key={msg.id} className="flex justify-center">
                       <div className="w-64 rounded-2xl border border-success/30 bg-success-subtle px-4 py-3 text-center shadow-sm">
                         <p className="mb-2 text-xs text-ink-2">{msg.text}</p>
-                        <button
-                          onClick={() => {
-                            window.dispatchEvent(new CustomEvent('pm:close-messages'))
-                            navigate('/manage-groups', { state: { openGroupId: conversationGroupId, openBilling: true } })
-                            window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: conversationGroupId, openBilling: true } }))
-                          }}
-                          className="w-full rounded-lg bg-success px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:opacity-90"
-                        >
-                          前往收款管理
-                        </button>
+                        {allConfirmed ? (
+                          <p className="flex items-center justify-center gap-1 text-xs font-semibold text-success">
+                            <CheckCircle2 size={13} /> 已確認收款
+                          </p>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              window.dispatchEvent(new CustomEvent('pm:close-messages'))
+                              navigate('/manage-groups', { state: { openGroupId: conversationGroupId, openBilling: true } })
+                              window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: conversationGroupId, openBilling: true } }))
+                            }}
+                            className="w-full rounded-lg bg-success px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:opacity-90"
+                          >
+                            前往收款管理
+                          </button>
+                        )}
                       </div>
                     </div>
                   )

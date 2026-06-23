@@ -1,4 +1,4 @@
-const BASE = 'inline-flex items-center justify-center gap-2 font-bold rounded-inner transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:pointer-events-none hover:-translate-y-0.5 active:scale-95'
+const BASE = 'inline-flex items-center justify-center gap-2 font-bold rounded-inner focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:pointer-events-none'
 
 const VARIANTS = {
   primary:   'bg-brand text-white hover:bg-brand-hover focus:ring-brand shadow-button hover:shadow-card-hover',

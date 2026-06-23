@@ -129,7 +129,9 @@ export default function GroupDetailModal() {
   const isMember         = isCurrentUserMember(group.id)
   const memberRecord     = activeUserId ? getMemberByUserAndGroup(activeUserId, group.id) : null
   const isPaymentPhase   = ['pending_confirmation', 'pending_activation', 'active'].includes(group.status)
-  const isPendingPayment = isMember && memberRecord?.paymentStatus === 'pending' && isPaymentPhase
+  const hasServiceInfo   = !!memberRecord?.serviceInfo?.email
+  const needsFillInfo    = isMember && isPaymentPhase && !hasServiceInfo
+  const isPendingPayment = isMember && ['pending', 'payment_failed'].includes(memberRecord?.paymentStatus) && isPaymentPhase && hasServiceInfo
   const isMarkedPaid     = isMember && memberRecord?.paymentStatus === 'markedPaid' && isPaymentPhase
   const isWaitingMembers = isMember && ['recruiting', 'full'].includes(group.status)
   const isFull           = (group.openSeats ?? 0) <= 0
@@ -165,10 +167,21 @@ export default function GroupDetailModal() {
         {group.status === 'full' ? '招募完成，等待團主啟用群組' : '已通過申請，需等待其他人加入'}
       </div>
     )
+    if (needsFillInfo) return (
+      <button
+        onClick={() => { handleClose(); navigate('/my-subscriptions', { state: { openGroupId: group.id } }) }}
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
+      >
+        <CreditCard size={15} /> 填寫服務帳號
+      </button>
+    )
     if (isPendingPayment) return (
-      <div className="flex items-center justify-center gap-2 rounded-xl bg-warning-subtle px-4 py-3 text-sm font-medium text-warning-text">
-        <CreditCard size={15} />已加入，請前往「我的訂閱」完成付款
-      </div>
+      <button
+        onClick={() => { handleClose(); navigate('/my-subscriptions', { state: { openGroupId: group.id, openPayment: true } }) }}
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
+      >
+        <CreditCard size={15} /> {memberRecord?.paymentStatus === 'payment_failed' ? '重新上傳付款憑證' : '前往付款'}
+      </button>
     )
     if (isMarkedPaid) return (
       <div className="flex items-center justify-center gap-2 rounded-xl bg-purple-subtle px-4 py-3 text-sm font-medium text-purple-text">

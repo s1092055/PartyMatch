@@ -23,6 +23,7 @@ readFileSync(resolve(__dir, '../.env'), 'utf8')
 
 import { initializeApp } from 'firebase/app'
 import { getFirestore, collection, getDocs, writeBatch, doc } from 'firebase/firestore'
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth'
 
 const firebaseApp = initializeApp({
   apiKey:            process.env.VITE_FIREBASE_API_KEY,
@@ -32,7 +33,8 @@ const firebaseApp = initializeApp({
   messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
   appId:             process.env.VITE_FIREBASE_APP_ID,
 })
-const db = getFirestore(firebaseApp)
+const db   = getFirestore(firebaseApp)
+const auth = getAuth(firebaseApp)
 
 const FLAT_COLLECTIONS = [
   'groups', 'members', 'applications',
@@ -80,6 +82,17 @@ async function clearConversations() {
 }
 
 async function main() {
+  const email    = process.env.ADMIN_EMAIL
+  const password = process.env.ADMIN_PASSWORD
+  if (email && password) {
+    try {
+      await signInWithEmailAndPassword(auth, email, password)
+      console.log(`  ✓ 已登入 ${email}`)
+    } catch (e) {
+      console.warn(`  ⚠ 登入失敗（${e.message}），以未登入模式繼續`)
+    }
+  }
+
   console.log(`\n⚠️  清除 ${process.env.VITE_FIREBASE_PROJECT_ID} 的所有正式資料\n`)
   for (const col of FLAT_COLLECTIONS) await clearCollection(col)
   await clearConversations()

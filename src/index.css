@@ -219,12 +219,11 @@
   }
 
   .card-hover {
-    transition: box-shadow 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+    transition: box-shadow 0.1s ease, border-color 0.1s ease;
   }
   .card-hover:hover {
     box-shadow: var(--shadow-card-hover);
     border-color: var(--color-brand-border);
-    transform: translateY(-1px);
   }
 
   .card-divider {
@@ -569,12 +568,55 @@
 }
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 .animate-fade-in-up {
   animation: fadeInUp 0.4s ease-out both;
+  animation-delay: 1ms;
+  will-change: opacity;
+  backface-visibility: hidden;
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes modalOut {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.96); }
+}
+
+@keyframes backdropIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes backdropOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+.animate-modal-in {
+  animation: modalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: opacity, transform;
+  backface-visibility: hidden;
+}
+
+.animate-modal-out {
+  animation: modalOut 0.2s ease-in both;
+  will-change: opacity, transform;
+  backface-visibility: hidden;
+}
+
+.animate-backdrop-in {
+  animation: backdropIn 0.25s ease-out both;
+}
+
+.animate-backdrop-out {
+  animation: backdropOut 0.2s ease-in both;
 }
 
 /* ── Reduced motion ── */

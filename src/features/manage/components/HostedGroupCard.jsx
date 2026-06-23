@@ -57,9 +57,10 @@ export default function HostedGroupCard({
 }) {
   const displayStatus = getGroupDisplayStatus(group)
 
-  const hasMarkedPaid     = members.some(m => m.paymentStatus === 'markedPaid')
-  const paidCount         = members.filter(m => CONFIRMED_STATUSES.includes(m.paymentStatus)).length
-  const collectionState   = getCollectionState({ group, hasMarkedPaid, paidCount, paymentTarget: members.length })
+  const hasMarkedPaid   = members.some(m => m.paymentStatus === 'markedPaid')
+  const markedPaidCount = members.filter(m => m.paymentStatus === 'markedPaid').length
+  const paidCount       = members.filter(m => CONFIRMED_STATUSES.includes(m.paymentStatus)).length
+  const collectionState = getCollectionState({ group, hasMarkedPaid, paidCount, paymentTarget: members.length })
 
   const collectionHighlight = {
     '正常':   'text-success-text',
@@ -70,14 +71,14 @@ export default function HostedGroupCard({
     '等待啟用': 'text-ink-3',
   }[collectionState] ?? 'text-warning-text'
 
-  const isActivated = ['active', 'paused', 'cancelled', 'ended'].includes(group.status)
+  const isActivated    = ['active', 'paused', 'cancelled', 'ended'].includes(group.status)
+  const isPaymentPhase = ['pending_confirmation', 'pending_activation'].includes(group.status)
 
   return (
     <article
       className="card card-hover group relative flex min-h-full cursor-pointer flex-col overflow-hidden rounded-card border-line bg-surface p-5 shadow-[0_18px_45px_-32px_rgb(20_44_91_/_0.48)]"
       onClick={onViewGroup}
     >
-
       <div className="flex justify-center">
         <Badge variant={group.status} className={STATUS_BADGE_CLASS[displayStatus] ?? ''} />
       </div>
@@ -101,6 +102,13 @@ export default function HostedGroupCard({
         {isActivated ? (
           <StatCell label="收款紀錄">
             {paymentCount} 件
+          </StatCell>
+        ) : isPaymentPhase ? (
+          <StatCell
+            label="待確認付款"
+            highlight={markedPaidCount > 0 ? 'text-warning-text' : undefined}
+          >
+            {markedPaidCount} 人
           </StatCell>
         ) : (
           <StatCell
