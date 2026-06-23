@@ -264,10 +264,16 @@ function handleConfirmMember(member) {
     adjustCreditScore(member.userId, CREDIT_RULES.PAYMENT_CONFIRMED).catch(console.error)
     updateMember(member.id, { paymentStatus: 'confirmed' })
 
+    // 重新從 store 讀取最新 member 資料，確保 paymentProofUrl/paidAmount 是最新值
+    const freshMember = getMembersByGroupId(member.groupId).find(m => m.id === member.id) ?? member
     const sub = getSubscriptionByUserAndGroup(member.userId, member.groupId)
     if (sub) {
       confirmSubscriptionPayment(sub.id)
-      createPaymentRecord({ subscriptionId: sub.id, amount: sub.pricePerSeat })
+      createPaymentRecord({
+        subscriptionId: sub.id,
+        amount:   freshMember.paidAmount ?? sub.pricePerSeat,
+        proofUrl: freshMember.paymentProofUrl ?? null,
+      })
     }
 
     createNotification({
@@ -296,14 +302,14 @@ function handleConfirmMember(member) {
   }
 
   const PAYMENT_ISSUE_MESSAGES = {
-    amount_mismatch:  (name, price) => `@${name} 你的付款金額與應付金額（NT$${price}）不符，請重新確認後補件。`,
-    proof_incomplete: (name)        => `@${name} 你上傳的付款截圖不清晰或資訊不完整，請重新上傳完整截圖。`,
-    wrong_info:       (name)        => `@${name} 你的付款資訊有誤，請確認後重新補件。`,
-    other:            (name, _, note) => `@${name} ${note}`,
+    amount_mismatch:  (name, price, note) => `@${name} 你的付款金額與應付金額（NT$${price}）不符，請重新確認後補件。${note ? `\n備注：${note}` : ''}`,
+    proof_incomplete: (name, _, note)     => `@${name} 你上傳的付款截圖不清晰或資訊不完整，請重新上傳完整截圖。${note ? `\n備注：${note}` : ''}`,
+    wrong_info:       (name, _, note)     => `@${name} 你的付款資訊有誤，請確認後重新補件。${note ? `\n備注：${note}` : ''}`,
+    other:            (name, _, note)     => `@${name} ${note}`,
   }
 
   function handleReportPaymentIssue(member, issueType, issueNote) {
-    updateMember(member.id, { paymentStatus: 'pending', paymentProofUrl: null })
+    updateMember(member.id, { paymentStatus: 'payment_failed', paymentProofUrl: null })
     const sub = getSubscriptionByUserAndGroup(member.userId, member.groupId)
     if (sub) resetSubscriptionPayment(sub.id)
 

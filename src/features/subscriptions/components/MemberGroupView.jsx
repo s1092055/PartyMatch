@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import {
-  CheckCircle2, CreditCard, MessageCircle, Receipt, Shield, Users,
+  ChevronDown, ChevronUp, ClipboardEdit, CreditCard, MessageCircle, Receipt, Shield, Users,
 } from 'lucide-react'
 import PaymentModal from './PaymentModal'
 import Avatar from '../../../shared/ui/Avatar'
@@ -9,14 +9,20 @@ import GroupModalShell from '../../../shared/ui/GroupModalShell'
 import EmptyState from '../../../shared/ui/EmptyState'
 import PaymentStatusBadge from './PaymentStatusBadge'
 import { getServiceById } from '../../../shared/utils/serviceUtils'
-import { getMembersByGroupId } from '../../../shared/stores/memberStore'
+import { getMembersByGroupId, updateMember } from '../../../shared/stores/memberStore'
 import { getSubscriptionByUserAndGroup } from '../../../shared/stores/subscriptionStore'
 import { getPaymentRecordsBySubscriptionId, initPayments } from '../../../shared/stores/paymentStore'
 import { getCurrentUser } from '../../../shared/stores/authStore'
+import { sendActionMessage } from '../../../shared/api/messagesApi'
+
 export default function MemberGroupView({ group, onMarkPaid, onClose, autoOpenPayment }) {
   const [showMembers, setShowMembers]         = useState(false)
   const [showPayments, setShowPayments]       = useState(false)
   const [paymentOpen, setPaymentOpen]         = useState(false)
+  const [fillInfoOpen, setFillInfoOpen]       = useState(false)
+  const [fillInfoEmail, setFillInfoEmail]     = useState('')
+  const [fillInfoLoading, setFillInfoLoading] = useState(false)
+  const [expandedPayRec, setExpandedPayRec]   = useState(null)
   useEffect(() => {
     initPayments()
   }, [])
@@ -43,42 +49,103 @@ export default function MemberGroupView({ group, onMarkPaid, onClose, autoOpenPa
     window.dispatchEvent(new CustomEvent('pm:open-messages', { detail: { groupId: group.id } }))
   }
 
+  async function handleFillInfoSubmit() {
+    if (!fillInfoEmail.trim() || !myMember) return
+    setFillInfoLoading(true)
+    try {
+      await updateMember(myMember.id, { serviceInfo: { email: fillInfoEmail.trim() } })
+      const convId = `group_${group.id}`
+      const allMembers = getMembersByGroupId(group.id)
+      if (group.hostId) {
+        await sendActionMessage(convId, {
+          actionType: 'member_filled_service_info',
+          text: `${myMember.userName} 已完成填寫服務帳號`,
+          visibleTo: [group.hostId],
+          participants: [group.hostId],
+        })
+      }
+      await sendActionMessage(convId, {
+        actionType: 'go_to_payment',
+        text: '你已完成填寫服務帳號，請前往付款以完成加入流程。',
+        visibleTo: [currentUser.id],
+        participants: [currentUser.id],
+      })
+      const allFilled = allMembers.every(m => m.id === myMember.id ? true : !!m.serviceInfo?.email)
+      if (allFilled && group.hostId) {
+        await sendActionMessage(convId, {
+          actionType: 'all_service_info_filled',
+          text: '所有成員已完成填寫服務帳號，現在可以進行收款確認。',
+          visibleTo: [group.hostId],
+          participants: [group.hostId],
+        })
+      }
+      setFillInfoOpen(false)
+      setFillInfoEmail('')
+      setPaymentOpen(true)
+    } finally {
+      setFillInfoLoading(false)
+    }
+  }
+
   const isPaymentPhase = ['active', 'pending_activation', 'pending_confirmation'].includes(group.status)
   const hasServiceInfo    = !!myMember?.serviceInfo?.email
-  const hasPendingPayment = !!sub && sub.paymentStatus === 'pending' && isPaymentPhase && hasServiceInfo
-  const isGroupPending    = ['pending_activation', 'pending_confirmation'].includes(group.status)
-  const hasMarkedPaid     = !!myMember && myMember.paymentStatus === 'markedPaid' && isGroupPending
-  const hasConfirmedPaid  = !!myMember && myMember.paymentStatus === 'confirmed'  && isGroupPending
+  const hasPendingPayment  = !!sub && ['pending', 'payment_failed'].includes(sub.paymentStatus) && isPaymentPhase && hasServiceInfo
+  const hasPaymentFailed   = !!myMember && myMember.paymentStatus === 'payment_failed'
+  const isGroupPending     = ['pending_activation', 'pending_confirmation'].includes(group.status)
+  const hasMarkedPaid      = !!myMember && myMember.paymentStatus === 'markedPaid' && isGroupPending
+  const hasConfirmedPaid   = !!myMember && myMember.paymentStatus === 'confirmed'  && isGroupPending
+
+  const needsFillInfo   = !!sub && isPaymentPhase && !hasServiceInfo
+  const serviceInfoCta  = needsFillInfo ? (
+    <div className="p-4">
+      <button
+        onClick={() => setFillInfoOpen(true)}
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
+      >
+        <ClipboardEdit size={14} /> 填寫服務帳號
+      </button>
+    </div>
+  ) : undefined
+
+  const shellHidden = showMembers || showPayments || fillInfoOpen
 
   const paymentCta = hasPendingPayment ? (
     <div className="p-4">
       <button
         onClick={() => setPaymentOpen(true)}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
+        className={`flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold text-white transition-colors ${
+          hasPaymentFailed ? 'bg-danger hover:opacity-90' : 'bg-brand hover:bg-brand-hover'
+        }`}
       >
-        <CreditCard size={14} /> 前往付款
+        <CreditCard size={14} /> {hasPaymentFailed ? '重新上傳付款憑證' : '前往付款'}
       </button>
     </div>
   ) : undefined
 
   return (
+    <>
     <GroupModalShell
       onClose={onClose}
       group={group}
       service={serviceDef}
       plan={planDef}
+      hidden={shellHidden}
       hideRecruitBar
-      centeredCta={paymentCta}
+      centeredCta={serviceInfoCta || paymentCta}
       statusBadgeOverride={['recruiting', 'full'].includes(group.status) && !!sub ? 'member_joined' : undefined}
       pendingBadge={
         hasConfirmedPaid  ? '付款已確認，等待團主啟用服務' :
         hasMarkedPaid     ? '已付款，等待團主確認' :
+        hasPaymentFailed  ? '付款憑證有問題，請重新補件' :
+        needsFillInfo     ? '請填寫服務帳號以完成加入流程' :
         group.status === 'full' && !!sub ? '招募完成，等待團主啟用群組' :
         group.status === 'recruiting' && !!sub ? '已通過申請，需等待其他人加入' :
         undefined
       }
       pendingBadgeColor={
-        hasConfirmedPaid || (['recruiting', 'full'].includes(group.status) && !!sub) ? 'success' : undefined
+        hasConfirmedPaid || (['recruiting', 'full'].includes(group.status) && !!sub) ? 'success' :
+        hasPaymentFailed ? 'danger' :
+        undefined
       }
       summaryExtraRows={
         myMember ? (
@@ -125,20 +192,81 @@ export default function MemberGroupView({ group, onMarkPaid, onClose, autoOpenPa
         onSuccess={(proofUrl, paidAmount) => { onMarkPaid?.(sub, proofUrl, paidAmount) }}
       />
 
-      {/* ── 成員名單 Modal ── */}
-      <Modal isOpen={showMembers} onClose={() => setShowMembers(false)} title={`成員管理（${members.length + 1} 人）`} maxWidth="max-w-lg" sub>
-        <div className="max-h-[60vh] overflow-y-auto p-5">
-          <div className="space-y-2">
-            <div className="flex items-stretch gap-2">
+    </GroupModalShell>
+
+    {/* ── 填寫服務帳號 Modal ── */}
+    <Modal
+      isOpen={fillInfoOpen}
+      onClose={() => { setFillInfoOpen(false); setFillInfoEmail('') }}
+      title="填寫服務帳號"
+      icon={<ClipboardEdit size={18} className="text-brand" />}
+      maxWidth="max-w-sm"
+      sub
+    >
+      <div className="p-5 space-y-4">
+        <p className="text-sm text-ink-3">請填寫你的 {group.serviceName} 帳號，團主將使用此帳號將你加入訂閱方案。</p>
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold text-ink-2">
+            {group.serviceName} 帳號（Email）
+          </label>
+          <input
+            type="email"
+            value={fillInfoEmail}
+            onChange={e => setFillInfoEmail(e.target.value)}
+            placeholder="your@email.com"
+            className="w-full rounded-xl border border-line bg-canvas px-3.5 py-2.5 text-sm text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand"
+          />
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => { setFillInfoOpen(false); setFillInfoEmail('') }}
+            className="flex-1 rounded-xl border border-line py-2.5 text-sm font-semibold text-ink-2 transition-colors hover:bg-raised"
+          >
+            取消
+          </button>
+          <button
+            onClick={handleFillInfoSubmit}
+            disabled={!fillInfoEmail.trim() || fillInfoLoading}
+            className="flex-1 rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {fillInfoLoading ? '送出中...' : '確認送出'}
+          </button>
+        </div>
+      </div>
+    </Modal>
+
+    {/* ── 成員名單 Modal ── */}
+    <Modal isOpen={showMembers} onClose={() => setShowMembers(false)} title={`成員管理（${members.length + 1} 人）`} maxWidth="max-w-lg" sub>
+      <div className="max-h-[60vh] overflow-y-auto p-5">
+        <div className="space-y-2">
+          <div className="flex items-stretch gap-2">
+            <div className="min-w-0 flex-1 rounded-xl border border-line p-3">
+              <div className="flex items-center gap-3">
+                <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="sm" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-ink">{group.hostName}</p>
+                </div>
+                <span className="flex shrink-0 items-center gap-1 rounded-full bg-brand-subtle px-2.5 py-0.5 text-xs font-semibold text-brand">
+                  <Shield size={11} /> 團主
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={() => { setShowMembers(false); openMessages() }}
+              className="flex w-14 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl bg-brand text-xs font-semibold text-white transition-colors hover:bg-brand-hover"
+            >
+              <MessageCircle size={15} />聯絡
+            </button>
+          </div>
+          {members.filter(m => m.userId !== currentUser?.id).map(m => (
+            <div key={m.id} className="flex items-stretch gap-2">
               <div className="min-w-0 flex-1 rounded-xl border border-line p-3">
                 <div className="flex items-center gap-3">
-                  <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="sm" />
+                  <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-ink">{group.hostName}</p>
+                    <p className="text-sm font-semibold text-ink">{m.userName}</p>
+                    <p className="text-xs text-ink-3">加入 {m.joinedAt}</p>
                   </div>
-                  <span className="flex shrink-0 items-center gap-1 rounded-full bg-brand-subtle px-2.5 py-0.5 text-xs font-semibold text-brand">
-                    <Shield size={11} /> 團主
-                  </span>
                 </div>
               </div>
               <button
@@ -148,67 +276,106 @@ export default function MemberGroupView({ group, onMarkPaid, onClose, autoOpenPa
                 <MessageCircle size={15} />聯絡
               </button>
             </div>
-            {members.filter(m => m.userId !== currentUser?.id).map(m => (
-              <div key={m.id} className="flex items-stretch gap-2">
-                <div className="min-w-0 flex-1 rounded-xl border border-line p-3">
-                  <div className="flex items-center gap-3">
-                    <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-ink">{m.userName}</p>
-                      <p className="text-xs text-ink-3">加入 {m.joinedAt}</p>
-                    </div>
-                  </div>
-                </div>
-                <button
-                  onClick={() => { setShowMembers(false); openMessages() }}
-                  className="flex w-14 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl bg-brand text-xs font-semibold text-white transition-colors hover:bg-brand-hover"
-                >
-                  <MessageCircle size={15} />聯絡
-                </button>
-              </div>
-            ))}
-            {myMember && (
-              <div className="flex items-stretch gap-2">
-                <div className="min-w-0 flex-1 rounded-xl border border-line p-3">
-                  <div className="flex items-center gap-3">
-                    <Avatar initial={myMember.userAvatarInitial} color={myMember.userAvatarColor} size="sm" />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-ink">
-                        {myMember.userName}
-                        <span className="ml-1.5 text-xs font-normal text-brand">（你）</span>
-                      </p>
-                      <p className="text-xs text-ink-3">加入 {myMember.joinedAt}</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="w-14 shrink-0" />
-              </div>
-            )}
-          </div>
-        </div>
-      </Modal>
-
-      {/* ── 付款紀錄 Modal ── */}
-      <Modal isOpen={showPayments} onClose={() => setShowPayments(false)} title="付款紀錄" maxWidth="max-w-lg" sub>
-        <div className="max-h-[60vh] overflow-y-auto p-5">
-          {payRecords.length === 0 ? (
-            <EmptyState icon={Receipt} title="尚無付款紀錄" />
-          ) : (
-            <div className="overflow-hidden rounded-xl border border-line">
-              {payRecords.map(rec => (
-                <div key={rec.id} className="flex items-center gap-3 border-b border-line-subtle px-4 py-3 last:border-0">
-                  <CheckCircle2 size={15} className="shrink-0 text-success" />
+          ))}
+          {myMember && (
+            <div className="flex items-stretch gap-2">
+              <div className="min-w-0 flex-1 rounded-xl border border-line p-3">
+                <div className="flex items-center gap-3">
+                  <Avatar initial={myMember.userAvatarInitial} color={myMember.userAvatarColor} size="sm" />
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-ink">{rec.periodLabel || rec.paidAt}</p>
-                    <p className="text-xs text-ink-3">{rec.paidAt}</p>
+                    <p className="text-sm font-semibold text-ink">
+                      {myMember.userName}
+                      <span className="ml-1.5 text-xs font-normal text-brand">（你）</span>
+                    </p>
+                    <p className="text-xs text-ink-3">加入 {myMember.joinedAt}</p>
                   </div>
-                  <span className="shrink-0 text-sm font-bold text-success">NT${rec.amount}</span>
                 </div>
-              ))}
+              </div>
+              <div className="w-14 shrink-0" />
             </div>
           )}
         </div>
-      </Modal>
-    </GroupModalShell>
+      </div>
+    </Modal>
+
+    {/* ── 付款紀錄 Modal ── */}
+    <Modal isOpen={showPayments} onClose={() => setShowPayments(false)} title="付款紀錄" maxWidth="max-w-lg" sub>
+      <div className="max-h-[60vh] overflow-y-auto p-5 space-y-2">
+        {myMember && ['markedPaid', 'payment_failed'].includes(myMember.paymentStatus) && (() => {
+          const key    = 'pending-payment'
+          const open   = expandedPayRec === key
+          const failed = myMember.paymentStatus === 'payment_failed'
+          return (
+            <div className="overflow-hidden rounded-xl border border-line">
+              <button
+                onClick={() => setExpandedPayRec(open ? null : key)}
+                className="flex w-full items-center gap-3 p-3 text-left transition-colors hover:bg-raised"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-ink">本期付款</p>
+                </div>
+                <span className={`text-xs font-semibold ${failed ? 'text-danger' : 'text-warning-text'}`}>
+                  {failed ? '付款失敗' : '待確認'}
+                </span>
+                {open ? <ChevronUp size={14} className="shrink-0 text-ink-3" /> : <ChevronDown size={14} className="shrink-0 text-ink-3" />}
+              </button>
+              {open && (
+                <div className="border-t border-line-subtle px-4 py-3 space-y-2">
+                  <div className="flex items-center gap-3">
+                    <CreditCard size={14} className="shrink-0 text-ink-3" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-ink">已付款金額</p>
+                      {myMember.lastPaidAt && <p className="text-xs text-ink-3">{myMember.lastPaidAt}</p>}
+                    </div>
+                    <span className="shrink-0 text-sm font-bold text-ink">NT${myMember.paidAmount ?? sub?.pricePerSeat ?? '—'}</span>
+                  </div>
+                  {myMember.paymentProofUrl ? (
+                    <a href={myMember.paymentProofUrl} target="_blank" rel="noopener noreferrer">
+                      <img src={myMember.paymentProofUrl} alt="付款截圖" className="w-full rounded-xl border border-line object-contain transition-opacity hover:opacity-80" />
+                    </a>
+                  ) : (
+                    <p className="text-xs text-ink-4">尚未上傳截圖</p>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        })()}
+        {payRecords.length === 0 && !(['markedPaid', 'payment_failed'].includes(myMember?.paymentStatus)) && (
+          <EmptyState icon={Receipt} title="尚無付款紀錄" />
+        )}
+        {payRecords.map(rec => {
+          const open = expandedPayRec === rec.id
+          return (
+            <div key={rec.id} className="overflow-hidden rounded-xl border border-line">
+              <button
+                onClick={() => setExpandedPayRec(open ? null : rec.id)}
+                className="flex w-full items-center gap-3 p-3 text-left transition-colors hover:bg-raised"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-ink">已完成付款</p>
+                  <p className="text-xs text-ink-3">{rec.paidAt?.slice(0, 10)}</p>
+                </div>
+                <span className="shrink-0 text-sm font-bold text-success">NT${rec.amount}</span>
+                <span className="text-xs font-semibold text-success">已確認</span>
+                {open ? <ChevronUp size={14} className="shrink-0 text-ink-3" /> : <ChevronDown size={14} className="shrink-0 text-ink-3" />}
+              </button>
+              {open && (
+                <div className="border-t border-line-subtle px-4 py-3 space-y-2">
+                  {rec.proofUrl ? (
+                    <a href={rec.proofUrl} target="_blank" rel="noopener noreferrer">
+                      <img src={rec.proofUrl} alt="付款截圖" className="w-full rounded-xl border border-line object-contain transition-opacity hover:opacity-80" />
+                    </a>
+                  ) : (
+                    <p className="text-xs text-ink-4">無截圖紀錄</p>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </Modal>
+  </>
   )
 }

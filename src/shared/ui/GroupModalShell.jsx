@@ -28,6 +28,7 @@ export default function GroupModalShell({
   pendingBadgeColor,
   centeredCta,
   statusBadgeOverride,
+  hidden,
   children,
 }) {
   const showPaymentBar = ['group_active', 'pending_activation', 'pending_confirmation'].includes(group.status) && confirmedCount !== undefined
@@ -66,6 +67,8 @@ export default function GroupModalShell({
     if (summaryRef.current) ro.observe(summaryRef.current)
     return () => ro.disconnect()
   }, [group?.id])
+
+  if (hidden) return null
 
   return createPortal(
     <>

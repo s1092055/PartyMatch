@@ -12,10 +12,9 @@ export async function uploadPaymentProof(_groupId, _userId, file) {
   const base64 = await fileToBase64(file)
 
   const formData = new FormData()
-  formData.append('key', apiKey)
   formData.append('image', base64)
 
-  const res = await fetch('https://api.imgbb.com/1/upload', {
+  const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
     method: 'POST',
     body: formData,
   })

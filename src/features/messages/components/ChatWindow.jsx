@@ -483,6 +483,10 @@ export default function ChatWindow({
                           <p className="flex items-center justify-center gap-1 text-xs font-semibold text-ink-3">
                             <Clock size={13} /> 付款確認中
                           </p>
+                        ) : payStatus === 'payment_failed' ? (
+                          <p className="flex items-center justify-center gap-1 text-xs font-semibold text-danger">
+                            <X size={13} /> 付款失敗
+                          </p>
                         ) : (
                           <button
                             onClick={() => {

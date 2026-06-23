@@ -17,7 +17,7 @@ export function getPaymentRecordCountBySubIds(subIds) {
   return _payments.filter(p => idSet.has(p.subscriptionId)).length
 }
 
-export function createPaymentRecord({ subscriptionId, amount, periodLabel }) {
+export function createPaymentRecord({ subscriptionId, amount, periodLabel, proofUrl }) {
   const now     = nowISO()
   const dateStr = todayISO()
   const record = {
@@ -26,6 +26,7 @@ export function createPaymentRecord({ subscriptionId, amount, periodLabel }) {
     amount,
     paidAt:         now,
     periodLabel:    periodLabel ?? dateStr.slice(0, 7).replace('-', '年') + '月',
+    ...(proofUrl ? { proofUrl } : {}),
   }
   _payments = [..._payments, record]
   insertPaymentRecord(record).catch(console.error)
