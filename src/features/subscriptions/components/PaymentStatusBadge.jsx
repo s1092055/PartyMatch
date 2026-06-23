@@ -3,7 +3,7 @@ import { CheckCircle2, Clock, Hourglass } from 'lucide-react'
 const CONFIG = {
   paid:       { label: '已確認收款', cls: 'bg-success-subtle text-success-text', Icon: CheckCircle2 },
   confirmed:  { label: '已確認收款', cls: 'bg-success-subtle text-success-text', Icon: CheckCircle2 },
-  markedPaid: { label: '已標記付款', cls: 'bg-purple-subtle  text-purple-text',  Icon: Hourglass   },
+  markedPaid: { label: '已付款',     cls: 'bg-purple-subtle  text-purple-text',  Icon: Hourglass   },
   pending:    { label: '待付款',     cls: 'bg-warning-subtle text-warning-text', Icon: Clock       },
 }
 

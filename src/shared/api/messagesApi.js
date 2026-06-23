@@ -156,6 +156,7 @@ export async function createGroupConversation({ groupId, groupName, serviceId, h
   await setDoc(doc(db, 'conversations', convId), {
     type: 'group',
     groupId,
+    hostId,
     name: groupName,
     serviceId: serviceId ?? null,
     avatarInitial: null,
@@ -190,16 +191,19 @@ export async function leaveConversation(conversationId, userId) {
 }
 
 // 傳送系統訊息（成員加入、狀態變更等）
-export async function sendSystemMessage(conversationId, text) {
+export async function sendSystemMessage(conversationId, text, participants = []) {
   await addDoc(collection(db, 'conversations', conversationId, 'messages'), {
     type: 'system',
     text,
     createdAt: serverTimestamp(),
   })
+  if (participants.length > 0) {
+    scheduleConversationUpdate(conversationId, { text, participants, senderId: null })
+  }
 }
 
 // 傳送行動訊息（需要互動或僅特定成員可見）
-export async function sendActionMessage(conversationId, { text, actionType, payload = {}, visibleTo = null }) {
+export async function sendActionMessage(conversationId, { text, actionType, payload = {}, visibleTo = null, participants = [] }) {
   await addDoc(collection(db, 'conversations', conversationId, 'messages'), {
     type: 'action',
     actionType,
@@ -208,4 +212,8 @@ export async function sendActionMessage(conversationId, { text, actionType, payl
     ...(visibleTo ? { visibleTo } : {}),
     createdAt: serverTimestamp(),
   })
+  const targets = visibleTo ?? participants
+  if (targets.length > 0) {
+    scheduleConversationUpdate(conversationId, { text, participants: targets, senderId: null })
+  }
 }

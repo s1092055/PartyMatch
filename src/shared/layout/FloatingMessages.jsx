@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { AlertCircle, Bell, CheckCircle2, Clock, CreditCard, MessageSquare, UserPlus, X } from 'lucide-react'
 import { getCurrentUser, isAuthenticated } from '../stores/authStore'
+import { getGroupById } from '../stores/groupStore'
 import {
   getNotifications,
   getSystemNotifications,
@@ -18,6 +19,7 @@ function getMergedNotifications(userId) {
     (a, b) => String(b.createdAt ?? '').localeCompare(String(a.createdAt ?? ''))
   )
 }
+import { getSubscriptionByUserAndGroup } from '../stores/subscriptionStore'
 import { formatRelativeDate } from '../utils/date'
 import { useScrollLock } from '../utils/hooks'
 import EmptyState from '../ui/EmptyState'
@@ -25,14 +27,17 @@ import EmptyState from '../ui/EmptyState'
 const NOTIFICATION_META = {
   payment:              { icon: CreditCard,    iconColor: 'text-brand',      link: '/my-subscriptions' },
   payment_reminder:     { icon: Clock,         iconColor: 'text-amber-500',  link: '/my-subscriptions' },
+  member_payment_marked:    { icon: CreditCard,    iconColor: 'text-success',    link: '/manage-groups' },
+  all_payments_confirmed:   { icon: CheckCircle2,  iconColor: 'text-success',    link: '/manage-groups' },
   joined:               { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-subscriptions' },
-  application_approved: { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-subscriptions', state: { tab: 'applications' } },
+  application_approved: { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-subscriptions', state: { tab: 'processing' } },
   application_rejected: { icon: AlertCircle,   iconColor: 'text-danger',     link: '/my-subscriptions', state: { tab: 'applications' } },
   application_sent:     { icon: CheckCircle2,  iconColor: 'text-brand',      link: '/my-subscriptions', state: { tab: 'processing' } },
   group_created:        { icon: CheckCircle2,  iconColor: 'text-success',    link: '/manage-groups' },
   new_application:      { icon: UserPlus,      iconColor: 'text-brand',      link: '/manage-groups' },
   group_full:           { icon: UserPlus,      iconColor: 'text-brand',      link: '/manage-groups' },
   group_chat_opened:    { icon: MessageSquare, iconColor: 'text-brand',      link: null },
+  group_activated:      { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-subscriptions' },
   system:               { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/explore' },
   announcement:         { icon: AlertCircle,   iconColor: 'text-brand',      link: '/explore' },
   platform:             { icon: AlertCircle,   iconColor: 'text-brand',      link: '/explore' },
@@ -43,7 +48,7 @@ function getMeta(type) {
   return NOTIFICATION_META[type] ?? NOTIFICATION_META.default
 }
 
-const PAYMENT_TYPES = ['payment', 'payment_reminder', 'payment_confirmed']
+const PAYMENT_TYPES = ['payment', 'payment_reminder', 'payment_confirmed', 'member_payment_marked', 'all_payments_confirmed']
 const APPLY_TYPES   = ['joined', 'application_approved', 'application_rejected', 'application_sent', 'new_application', 'application']
 const SYSTEM_TYPES  = ['system', 'announcement', 'platform']
 
@@ -143,8 +148,22 @@ export default function FloatingMessages() {
     }
 
     if (notification.type === 'application_sent' && notification.meta?.groupId) {
-      navigate('/my-subscriptions', { state: { tab: 'processing' } })
-      window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: notification.meta.groupId } }))
+      const gId = notification.meta.groupId
+      const user = getCurrentUser()
+      const hasSub = user ? !!getSubscriptionByUserAndGroup(user.id, gId) : false
+      if (hasSub) {
+        // 申請已通過，以成員視角開啟
+        navigate('/my-subscriptions', { state: { openGroupId: gId } })
+      } else {
+        // 申請仍待審核，以探索視角開啟（與 ApplicationCard 一致）
+        navigate('/my-subscriptions', { state: { tab: 'processing' } })
+        window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: gId } }))
+      }
+      return
+    }
+
+    if (notification.type === 'application_approved' && notification.meta?.groupId) {
+      navigate('/my-subscriptions', { state: { openGroupId: notification.meta.groupId } })
       return
     }
 
@@ -155,8 +174,33 @@ export default function FloatingMessages() {
     }
 
     if (notification.type === 'group_full' && notification.meta?.groupId) {
-      navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId, openActivateGroup: true } })
-      window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: notification.meta.groupId, openActivateGroup: true } }))
+      const grp = getGroupById(notification.meta.groupId)
+      const openActivateGroup = grp?.status === 'full'
+      navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId, openActivateGroup } })
+      window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: notification.meta.groupId, openActivateGroup } }))
+      return
+    }
+
+    if (notification.type === 'member_payment_marked' && notification.meta?.groupId) {
+      navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId, openBilling: true } })
+      window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: notification.meta.groupId, openBilling: true } }))
+      return
+    }
+
+    if (notification.type === 'all_payments_confirmed' && notification.meta?.groupId) {
+      navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId } })
+      window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: notification.meta.groupId } }))
+      return
+    }
+
+    if (notification.type === 'group_activated' && notification.meta?.groupId) {
+      const grp = getGroupById(notification.meta.groupId)
+      if (grp && grp.hostId === userId) {
+        navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId } })
+        window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: notification.meta.groupId } }))
+      } else {
+        navigate('/my-subscriptions', { state: { openGroupId: notification.meta.groupId } })
+      }
       return
     }
 

@@ -57,7 +57,7 @@ export const HOME_FEATURES = [
   {
     icon: CreditCard,
     title: '我的訂閱',
-    desc: '查看所有加入的訂閱、付款狀態和繳費紀錄，可以直接標記付款或聯絡團主，再也不怕漏繳。',
+    desc: '查看所有加入的訂閱、付款狀態和繳費紀錄，可以直接完成付款或聯絡團主，再也不怕漏繳。',
     videoSrc: null,
     badge: '訂閱',
     action: { type: 'navigate', path: '/my-subscriptions' },
@@ -126,7 +126,7 @@ export const HOW_IT_WORKS_STEPS = [
   {
     step: 4,
     title: '完成付款',
-    desc: '申請通過後，依照團主指定方式完成分攤費用，並在平台標記付款。',
+    desc: '申請通過後，依照團主指定方式完成分攤費用，並在平台完成付款。',
     videoUrl: null,
   },
   {
@@ -169,7 +169,7 @@ export const HOST_TASKS = [
   {
     icon: CheckCircle2,
     title: '確認付款',
-    desc: '成員標記付款後，確認你已收到款項，點擊確認即完成這筆紀錄。',
+    desc: '成員完成付款後，確認你已收到款項，點擊確認即完成這筆紀錄。',
   },
   {
     icon: UserX,

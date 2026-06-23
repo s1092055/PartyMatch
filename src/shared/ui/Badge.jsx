@@ -75,6 +75,10 @@ const VARIANTS = {
     cls: 'bg-purple-subtle text-purple-text',
     dot: 'bg-purple',
   },
+  member_joined: {
+    cls: 'bg-success-subtle text-success-text',
+    dot: 'bg-success',
+  },
   default: {
     cls: 'bg-raised text-ink-2',
     dot: null,
@@ -89,7 +93,7 @@ const LABELS = {
   paused:             '已結束',
   cancelled:          '已結束',
   full:               '已滿員',
-  pending_confirmation: '待確認',
+  pending_confirmation: '團主收款中',
   ended:              '已結束',
   closed:             '已關閉',
   approval:           '審核加入',
@@ -98,9 +102,10 @@ const LABELS = {
   overdue:            '逾期',
   verified:           '已驗證',
   upcoming:           '即將續訂',
-  markedPaid:         '已標記付款',
+  markedPaid:         '已付款',
   confirmed:          '付款已確認',
   waiting_activation: '等待團主啟用',
+  member_joined:      '申請通過',
 }
 
 export default function Badge({ variant = 'default', label, className = '' }) {

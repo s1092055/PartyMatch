@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 import { getGroupById, getGroups } from '../../shared/stores/groupStore'
 import { getServiceById } from '../../shared/utils/serviceUtils'
-import { getApplicationByUserAndGroup, getApplicationsByUserId } from '../../shared/stores/applicationStore'
+import { getApplicationByUserAndGroup, getMemberGroupIds } from '../../shared/stores/applicationStore'
 import { isCurrentUserMember, getMemberByUserAndGroup } from '../../shared/stores/memberStore'
 import { isGroupFavorited, toggleFavorite } from '../../shared/stores/favoriteStore'
 import { getCurrentUser } from '../../shared/stores/authStore'
@@ -77,9 +77,17 @@ export default function GroupDetailModal() {
   const [isFav, setIsFav]                   = useState(false)
   const [recPage, setRecPage]               = useState(0)
 
+  const [tick, setTick] = useState(0)
+
   const isOpen       = !!groupId
   const activeUser   = getCurrentUser()
   const activeUserId = activeUser?.id
+
+  useEffect(() => {
+    function onGroupsChanged() { setTick(t => t + 1) }
+    window.addEventListener('pm:groups-changed', onGroupsChanged)
+    return () => window.removeEventListener('pm:groups-changed', onGroupsChanged)
+  }, [])
 
   useEffect(() => {
     function onOpen(e) {
@@ -111,13 +119,9 @@ export default function GroupDetailModal() {
       ...recruiting.filter(g => g.serviceId === group.serviceId),
       ...recruiting.filter(g => g.serviceId !== group.serviceId),
     ]
-  }, [groupId, activeUserId]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [groupId, activeUserId, tick]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const memberGroupIds = useMemo(() => new Set(
-    activeUserId
-      ? getApplicationsByUserId(activeUserId).filter(a => a.status === 'approved').map(a => a.groupId)
-      : []
-  ), [activeUserId])
+  const memberGroupIds = useMemo(() => getMemberGroupIds(activeUserId), [activeUserId])
 
   if (!isOpen || !group) return null
 
@@ -151,27 +155,28 @@ export default function GroupDetailModal() {
       </Button>
     )
     if (isHost) return (
-      <div className="flex items-center gap-2 rounded-xl bg-brand-subtle px-4 py-3 text-sm font-medium text-brand">
+      <div className="flex items-center justify-center gap-2 rounded-xl bg-brand-subtle px-4 py-3 text-sm font-medium text-brand">
         <ShieldCheck size={15} />你是此群組的團主
       </div>
     )
     if (isWaitingMembers) return (
-      <div className="flex items-center gap-2 rounded-xl bg-raised px-4 py-3 text-sm font-medium text-ink-2">
-        <CheckCircle2 size={15} />已加入，需等待其他人加入
+      <div className="flex items-center justify-center gap-2 rounded-xl bg-success-subtle px-4 py-3 text-sm font-medium text-success-text">
+        <CheckCircle2 size={15} />
+        {group.status === 'full' ? '招募完成，等待團主啟用群組' : '已通過申請，需等待其他人加入'}
       </div>
     )
     if (isPendingPayment) return (
-      <div className="flex items-center gap-2 rounded-xl bg-warning-subtle px-4 py-3 text-sm font-medium text-warning-text">
+      <div className="flex items-center justify-center gap-2 rounded-xl bg-warning-subtle px-4 py-3 text-sm font-medium text-warning-text">
         <CreditCard size={15} />已加入，請前往「我的訂閱」完成付款
       </div>
     )
     if (isMarkedPaid) return (
-      <div className="flex items-center gap-2 rounded-xl bg-purple-subtle px-4 py-3 text-sm font-medium text-purple-text">
-        <CheckCircle2 size={15} />已標記付款，等待團主確認
+      <div className="flex items-center justify-center gap-2 rounded-xl bg-purple-subtle px-4 py-3 text-sm font-medium text-purple-text">
+        <CheckCircle2 size={15} />已付款，等待團主確認
       </div>
     )
     if (isMember) return (
-      <div className="flex items-center gap-2 rounded-xl bg-success-subtle px-4 py-3 text-sm font-medium text-success-text">
+      <div className="flex items-center justify-center gap-2 rounded-xl bg-success-subtle px-4 py-3 text-sm font-medium text-success-text">
         <CheckCircle2 size={15} />已加入此群組
       </div>
     )
@@ -179,7 +184,7 @@ export default function GroupDetailModal() {
       <Button variant="ghost" size="lg" className="w-full border border-line" disabled>已額滿</Button>
     )
     if (applied) return (
-      <div className="flex items-center gap-2 rounded-xl bg-warning-subtle px-4 py-3 text-sm font-medium text-warning-text">
+      <div className="flex items-center justify-center gap-2 rounded-xl bg-warning-subtle px-4 py-3 text-sm font-medium text-warning-text">
         <CheckCircle2 size={15} />已送出申請，等待團主審核
       </div>
     )
@@ -204,6 +209,7 @@ export default function GroupDetailModal() {
       group={group}
       service={service}
       plan={plan}
+      hideRecruitBar={isMember || isHost || group.status !== 'recruiting'}
       summaryFavoriteSlot={
         <button
           onClick={toggleFav}
@@ -330,6 +336,7 @@ export default function GroupDetailModal() {
           isOpen={applyModalOpen}
           onClose={() => setApplyModalOpen(false)}
           onSuccess={() => { setApplied(true); setApplyModalOpen(false) }}
+          onDone={handleClose}
         />
       )}
     </GroupModalShell>
