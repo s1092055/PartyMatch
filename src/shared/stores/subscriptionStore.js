@@ -104,6 +104,13 @@ export function activateGroupSubscriptions(groupId, nextBillingDate) {
   targets.forEach(s => patchSubscription(s.id, patch).catch(console.error))
 }
 
+export function resetSubscriptionPayment(id) {
+  const patch = { paymentStatus: 'pending' }
+  const updatedSub = applyPatch(id, patch)
+  if (updatedSub) emitSubscriptionsChanged({ type: 'payment_reset', subscription: updatedSub })
+  patchSubscription(id, patch).catch(console.error)
+}
+
 export function resetSubscriptionPaymentsForGroup(groupId) {
   const patch = { paymentStatus: 'pending' }
   const targets = _subs.filter(s => s.groupId === groupId)

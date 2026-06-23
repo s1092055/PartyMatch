@@ -1,26 +1,25 @@
 import { useEffect, useState } from 'react'
 import {
-  CheckCircle2, CreditCard, LogOut, MessageCircle, Receipt, Shield, Users,
+  CheckCircle2, CreditCard, MessageCircle, Receipt, Shield, Users,
 } from 'lucide-react'
 import PaymentModal from './PaymentModal'
 import Avatar from '../../../shared/ui/Avatar'
 import Modal from '../../../shared/ui/Modal'
-import ConfirmDialog from '../../../shared/ui/ConfirmDialog'
 import GroupModalShell from '../../../shared/ui/GroupModalShell'
 import EmptyState from '../../../shared/ui/EmptyState'
 import PaymentStatusBadge from './PaymentStatusBadge'
 import { getServiceById } from '../../../shared/utils/serviceUtils'
 import { getMembersByGroupId } from '../../../shared/stores/memberStore'
 import { getSubscriptionByUserAndGroup } from '../../../shared/stores/subscriptionStore'
-import { getPaymentRecordsBySubscriptionId } from '../../../shared/stores/paymentStore'
+import { getPaymentRecordsBySubscriptionId, initPayments } from '../../../shared/stores/paymentStore'
 import { getCurrentUser } from '../../../shared/stores/authStore'
-import { scheduleLeaveGroup } from '../../../shared/utils/leaveGroupFlow'
-
 export default function MemberGroupView({ group, onMarkPaid, onClose, autoOpenPayment }) {
-  const [confirmingLeave, setConfirmingLeave] = useState(false)
   const [showMembers, setShowMembers]         = useState(false)
   const [showPayments, setShowPayments]       = useState(false)
   const [paymentOpen, setPaymentOpen]         = useState(false)
+  useEffect(() => {
+    initPayments()
+  }, [])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -44,23 +43,12 @@ export default function MemberGroupView({ group, onMarkPaid, onClose, autoOpenPa
     window.dispatchEvent(new CustomEvent('pm:open-messages', { detail: { groupId: group.id } }))
   }
 
-  function handleLeaveConfirm() {
-    setConfirmingLeave(false)
-    if (currentUser) {
-      scheduleLeaveGroup({
-        conversationId: `group_${group.id}`,
-        groupId: group.id,
-        user: currentUser,
-        groupName: group.groupName ?? group.serviceName,
-      })
-    }
-    onClose()
-  }
-
-  const isPaymentPhase = ['group_active', 'pending_activation', 'pending_confirmation'].includes(group.status)
+  const isPaymentPhase = ['active', 'pending_activation', 'pending_confirmation'].includes(group.status)
   const hasServiceInfo    = !!myMember?.serviceInfo?.email
   const hasPendingPayment = !!sub && sub.paymentStatus === 'pending' && isPaymentPhase && hasServiceInfo
-  const hasPaid = !!myMember && ['markedPaid', 'confirmed'].includes(myMember.paymentStatus) && isPaymentPhase
+  const isGroupPending    = ['pending_activation', 'pending_confirmation'].includes(group.status)
+  const hasMarkedPaid     = !!myMember && myMember.paymentStatus === 'markedPaid' && isGroupPending
+  const hasConfirmedPaid  = !!myMember && myMember.paymentStatus === 'confirmed'  && isGroupPending
 
   const paymentCta = hasPendingPayment ? (
     <div className="p-4">
@@ -81,7 +69,17 @@ export default function MemberGroupView({ group, onMarkPaid, onClose, autoOpenPa
       plan={planDef}
       hideRecruitBar
       centeredCta={paymentCta}
-      pendingBadge={hasPaid ? '群組等待啟用中' : undefined}
+      statusBadgeOverride={['recruiting', 'full'].includes(group.status) && !!sub ? 'member_joined' : undefined}
+      pendingBadge={
+        hasConfirmedPaid  ? '付款已確認，等待團主啟用服務' :
+        hasMarkedPaid     ? '已付款，等待團主確認' :
+        group.status === 'full' && !!sub ? '招募完成，等待團主啟用群組' :
+        group.status === 'recruiting' && !!sub ? '已通過申請，需等待其他人加入' :
+        undefined
+      }
+      pendingBadgeColor={
+        hasConfirmedPaid || (['recruiting', 'full'].includes(group.status) && !!sub) ? 'success' : undefined
+      }
       summaryExtraRows={
         myMember ? (
           <div className="px-6 py-4 lg:px-8">
@@ -91,9 +89,9 @@ export default function MemberGroupView({ group, onMarkPaid, onClose, autoOpenPa
         ) : undefined
       }
       bottomBar={(() => {
-        const colsCls = isPaymentRelevant ? 'grid-cols-4' : 'grid-cols-2'
+        const btnCount = 1 + (isPaymentRelevant ? 2 : 0)
         return (
-          <div className={`grid gap-1 p-2 ${colsCls}`}>
+          <div className={`grid grid-cols-${btnCount} gap-1 p-2`}>
             <button
               onClick={() => setShowMembers(true)}
               className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
@@ -116,12 +114,6 @@ export default function MemberGroupView({ group, onMarkPaid, onClose, autoOpenPa
                 <MessageCircle size={17} /> 群組訊息
               </button>
             )}
-            <button
-              onClick={() => setConfirmingLeave(true)}
-              className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-danger transition-colors hover:bg-danger-subtle"
-            >
-              <LogOut size={17} /> 退出群組
-            </button>
           </div>
         )
       })()}
@@ -130,20 +122,8 @@ export default function MemberGroupView({ group, onMarkPaid, onClose, autoOpenPa
         isOpen={paymentOpen}
         onClose={() => setPaymentOpen(false)}
         sub={sub}
-        onSuccess={() => { onMarkPaid?.(sub) }}
+        onSuccess={(proofUrl, paidAmount) => { onMarkPaid?.(sub, proofUrl, paidAmount) }}
       />
-
-      {/* 退出群組確認 */}
-      {confirmingLeave && (
-        <ConfirmDialog
-          title="退出群組"
-          message={`確定要退出「${group.groupName ?? group.serviceName}」嗎？退出後會立即釋出你的名額並離開聊天室，之後想再加入需要重新申請並等待團主審核；已產生的費用不會自動退還。`}
-          confirmLabel="退出"
-          danger
-          onConfirm={handleLeaveConfirm}
-          onCancel={() => setConfirmingLeave(false)}
-        />
-      )}
 
       {/* ── 成員名單 Modal ── */}
       <Modal isOpen={showMembers} onClose={() => setShowMembers(false)} title={`成員管理（${members.length + 1} 人）`} maxWidth="max-w-lg" sub>

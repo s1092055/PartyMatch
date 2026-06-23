@@ -5,12 +5,14 @@ import { getSubscriptionsByUserId, initSubscriptions, markSubscriptionPaid } fro
 import { getMemberByUserAndGroup, initMembers, updateMember } from '../../shared/stores/memberStore'
 import { createNotification } from '../../shared/stores/notificationStore'
 import { getApplicationsByUserId, initApplications } from '../../shared/stores/applicationStore'
-import { getGroupById, initGroups } from '../../shared/stores/groupStore'
+import { getGroupById, initLiveGroups } from '../../shared/stores/groupStore'
 import { getCurrentUser } from '../../shared/stores/authStore'
 import SubscriptionCard from './components/SubscriptionCard'
 import EmptyState from '../../shared/ui/EmptyState'
 import GroupViewModal from '../../shared/ui/GroupViewModal'
 import FilterTabsBar from '../../shared/ui/FilterTabsBar'
+import ServiceLogo from '../../shared/ui/ServiceLogo'
+import Button from '../../shared/ui/Button'
 import { daysUntil, formatRelativeDate, todayISO } from '../../shared/utils/date'
 
 const FILTER_TABS = [
@@ -20,6 +22,7 @@ const FILTER_TABS = [
   { key: 'upcoming',     label: '即將續訂' },
   { key: 'applications', label: '申請紀錄' },
 ]
+
 
 function enrichSubs(rawSubs) {
   return rawSubs.map(s => {
@@ -89,8 +92,9 @@ export default function SubscriptionsPage() {
         syncFromMemory()
         return
       }
+      initLiveGroups()
       try {
-        await Promise.all([initGroups(), initSubscriptions(), initMembers(), initApplications()])
+        await Promise.all([initSubscriptions(), initMembers(), initApplications()])
       } catch (error) {
         console.error(error)
       }
@@ -103,6 +107,7 @@ export default function SubscriptionsPage() {
 
     reloadFromSource()
     window.addEventListener('pm:subscriptions-changed', syncFromMemory)
+    
     window.addEventListener('pm:applications-changed', syncFromMemory)
     window.addEventListener('pm:groups-changed', syncFromMemory)
     window.addEventListener('focus', reloadFromSource)
@@ -117,11 +122,12 @@ export default function SubscriptionsPage() {
     }
   }, [activeUserId])
 
-  const userApplications = activeUserId ? getApplicationsByUserId(activeUserId) : []
+  const userApplications   = activeUserId ? getApplicationsByUserId(activeUserId) : []
+  const pendingApplications = userApplications.filter(a => a.status === 'pending')
 
   const filterCounts = {
-    all:          subs.length,
-    processing:   filterSubs(subs, 'processing').length,
+    all:          subs.length + pendingApplications.length,
+    processing:   filterSubs(subs, 'processing').length + pendingApplications.length,
     active:       filterSubs(subs, 'active').length,
     upcoming:     filterSubs(subs, 'upcoming').length,
     applications: userApplications.length,
@@ -133,21 +139,38 @@ export default function SubscriptionsPage() {
     toastTimerRef.current = setTimeout(() => setToast(null), 3000)
   }
 
-  function markAsPaid(sub) {
+  function markAsPaid(sub, proofUrl, paidAmount) {
     const now = todayISO()
     markSubscriptionPaid(sub.id)
 
     const member = getMemberByUserAndGroup(activeUser?.id, sub.groupId)
-    if (member) updateMember(member.id, { paymentStatus: 'markedPaid', lastPaidAt: now })
+    if (member) updateMember(member.id, {
+      paymentStatus: 'markedPaid',
+      lastPaidAt: now,
+      ...(proofUrl ? { paymentProofUrl: proofUrl } : {}),
+      ...(paidAmount ? { paidAmount } : {}),
+    })
 
     createNotification({
       userId: activeUser?.id,
       type: 'payment',
-      title: '付款已標記',
-      message: `${sub.serviceName} ${sub.planName} 已標記付款，等待團主確認。`,
+      title: '已付款，等待團主確認',
+      message: `${sub.serviceName} ${sub.planName} 已付款，等待團主確認。`,
     })
+
+    const group = getGroupById(sub.groupId)
+    if (group?.hostId) {
+      createNotification({
+        userId: group.hostId,
+        type: 'member_payment_marked',
+        title: '成員已付款',
+        message: `${activeUser?.name ?? '成員'} 已在 ${sub.serviceName} ${sub.planName} 完成付款，請前往確認收款。`,
+        meta: { groupId: sub.groupId },
+      })
+    }
+
     setSubs(activeUserId ? enrichSubs(getSubscriptionsByUserId(activeUserId)) : [])
-    showToast('已標記付款，等待團主確認')
+    showToast('已付款，等待團主確認')
   }
 
   const filtered = useMemo(
@@ -179,7 +202,35 @@ export default function SubscriptionsPage() {
               ))
             )}
           </div>
-        ) : filtered.length === 0 ? (
+        ) : activeTab === 'processing' ? (
+          <>
+            {pendingApplications.length === 0 && filtered.length === 0 ? (
+              <EmptyState icon={ClipboardList} title="此分類沒有訂閱項目" />
+            ) : (
+              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                {pendingApplications.map(app => {
+                  const group = getGroupById(app.groupId)
+                  if (!group) return null
+                  return (
+                    <ApplicationCard
+                      key={app.id}
+                      app={app}
+                      group={group}
+                      onViewGroup={() => window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: app.groupId } }))}
+                    />
+                  )
+                })}
+                {filtered.map(sub => (
+                  <SubscriptionCard
+                    key={sub.id}
+                    sub={sub}
+                    onViewGroup={sub => setViewGroupId(sub.groupId)}
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        ) : filtered.length === 0 && (activeTab !== 'all' || pendingApplications.length === 0) ? (
           <EmptyState
             icon={ClipboardList}
             title={activeTab === 'all' ? '你還沒有加入任何群組' : '此分類沒有訂閱項目'}
@@ -189,6 +240,18 @@ export default function SubscriptionsPage() {
           />
         ) : (
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            {activeTab === 'all' && pendingApplications.map(app => {
+              const group = getGroupById(app.groupId)
+              if (!group) return null
+              return (
+                <ApplicationCard
+                  key={app.id}
+                  app={app}
+                  group={group}
+                  onViewGroup={() => window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: app.groupId } }))}
+                />
+              )
+            })}
             {filtered.map(sub => (
               <SubscriptionCard
                 key={sub.id}
@@ -205,7 +268,7 @@ export default function SubscriptionsPage() {
         onClose={() => { setViewGroupId(null); setAutoOpenPayment(false) }}
         groupId={viewGroupId}
         autoOpenPayment={autoOpenPayment}
-        onMarkPaid={sub => { markAsPaid(sub); setViewGroupId(null); setAutoOpenPayment(false) }}
+        onMarkPaid={(sub, proofUrl, paidAmount) => { markAsPaid(sub, proofUrl, paidAmount); setViewGroupId(null); setAutoOpenPayment(false) }}
       />
 
       <div role="status" aria-live="polite" aria-atomic="true" className="pointer-events-none fixed bottom-6 left-1/2 z-50 -translate-x-1/2">
@@ -223,6 +286,59 @@ const APP_STATUS_CONFIG = {
   pending:  { label: '審核中', Icon: Clock,       cls: 'bg-warning-subtle text-warning-text',   dot: 'bg-warning'  },
   approved: { label: '已核准', Icon: CheckCircle, cls: 'bg-success-subtle text-success-text',   dot: 'bg-success'  },
   rejected: { label: '已拒絕', Icon: XCircle,     cls: 'bg-danger-subtle  text-danger',          dot: 'bg-danger'   },
+}
+
+function ApplicationCard({ app, group, onViewGroup }) {
+  return (
+    <article
+      className="card card-hover group relative flex min-h-full cursor-pointer flex-col overflow-hidden rounded-card border-line bg-surface p-5 shadow-[0_18px_45px_-32px_rgb(20_44_91_/_0.48)]"
+      onClick={onViewGroup}
+    >
+      <div className="flex justify-center">
+        <span className="rounded-full bg-warning-subtle px-3.5 py-1 text-sm font-extrabold text-warning-text">
+          已申請
+        </span>
+      </div>
+
+      <div className="mt-4 flex justify-center">
+        <ServiceLogo serviceId={app.serviceId} size={80} className="rounded-logo border-line-strong" />
+      </div>
+
+      <div className="mt-3 text-center">
+        <h2 className="text-xl font-black leading-tight text-ink">{app.serviceName ?? app.groupName}</h2>
+        <p className="mt-1 text-sm font-semibold text-ink-3">{app.planName}</p>
+        {group.pricePerSeat != null && (
+          <p className="mt-1 text-base font-extrabold text-ink">
+            NT${group.pricePerSeat}
+            <span className="ml-1 text-xs font-normal text-ink-4">/席/月</span>
+          </p>
+        )}
+      </div>
+
+      <div className="my-4 border-t border-line-subtle" />
+
+      <div className="grid grid-cols-3 divide-x divide-line-subtle rounded-lg border border-line-subtle">
+        <div className="flex flex-col items-center gap-0.5 py-2.5 text-center">
+          <span className="text-2xs font-bold text-ink-3">審核狀態</span>
+          <span className="text-sm font-black leading-tight text-warning-text">審核中</span>
+        </div>
+        <div className="flex flex-col items-center gap-0.5 py-2.5 text-center">
+          <span className="text-2xs font-bold text-ink-3">申請時間</span>
+          <span className="text-sm font-black leading-tight text-ink">{formatRelativeDate(app.createdAt)}</span>
+        </div>
+        <div className="flex flex-col items-center gap-0.5 py-2.5 text-center">
+          <span className="text-2xs font-bold text-ink-3">團主</span>
+          <span className="text-sm font-black leading-tight text-ink">{app.hostName ?? '—'}</span>
+        </div>
+      </div>
+
+      <div className="mt-auto pt-5">
+        <Button onClick={e => { e.stopPropagation(); onViewGroup?.() }} className="w-full">
+          查看群組
+        </Button>
+      </div>
+    </article>
+  )
 }
 
 function ApplicationRow({ app }) {

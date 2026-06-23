@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, CheckCircle2, ChevronDown, LogOut, MoreVertical, Send, SquarePen, Trash2, Users, X } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, ChevronDown, Clock, MoreVertical, Send, SquarePen, Trash2, Users, X } from 'lucide-react'
 import ConversationAvatar from './ConversationAvatar'
 import { getMembersByGroupId, getMemberByUserAndGroup, updateMember } from '../../../shared/stores/memberStore'
 import { getGroupById } from '../../../shared/stores/groupStore'
 import { getCurrentUser } from '../../../shared/stores/authStore'
-import { markConversationRead, addParticipantToConversation, fetchOlderMessages, sendSystemMessage } from '../../../shared/api/messagesApi'
+import { markConversationRead, addParticipantToConversation, fetchOlderMessages, sendActionMessage } from '../../../shared/api/messagesApi'
 import { getUserProfile } from '../../../shared/api/usersApi'
 import { formatTime } from '../utils'
 
@@ -49,7 +49,7 @@ export default function ChatWindow({
   menuOpen, showMembers,
   isComposingRef, lastCompositionEndRef, inputFocusedRef,
   onBack, onMenuToggle, onMembersToggle, onSend, onKeyDown, onInputChange,
-  onRequestLeaveGroup, onRequestDeleteConversation,
+  onRequestDeleteConversation,
 }) {
   // 用來在 userProfileCache（模組層、非 React state）有新結果時強制重新 render
   const [, setProfileResolveTick] = useState(0)
@@ -65,7 +65,27 @@ export default function ChatWindow({
     const member = getMemberByUserAndGroup(userId, conversationGroupId)
     if (!member) return
     await updateMember(member.id, { serviceInfo: { email: fillInfoEmail.trim() } })
-    await sendSystemMessage(selectedId, `${member.userName} 已完成填寫服務帳號`)
+    if (group?.hostId) {
+      await sendActionMessage(selectedId, {
+        actionType: 'member_filled_service_info',
+        text: `${member.userName} 已完成填寫服務帳號`,
+        visibleTo: [group.hostId],
+      })
+    }
+    await sendActionMessage(selectedId, {
+      actionType: 'go_to_payment',
+      text: '你已完成填寫服務帳號，請前往付款以完成加入流程。',
+      visibleTo: [userId],
+    })
+    const updatedMembers = getMembersByGroupId(conversationGroupId)
+    const allFilled = updatedMembers.every(m => !!m.serviceInfo?.email)
+    if (allFilled && group?.hostId) {
+      await sendActionMessage(selectedId, {
+        actionType: 'all_service_info_filled',
+        text: '所有成員已完成填寫服務帳號，現在可以進行收款確認。',
+        visibleTo: [group.hostId],
+      })
+    }
     setFillInfoDone(true)
     setFillInfoOpen(false)
   }
@@ -291,13 +311,6 @@ export default function ChatWindow({
                     <Users size={15} />
                     群組成員
                   </button>
-                  <button
-                    onClick={onRequestLeaveGroup}
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-raised"
-                  >
-                    <LogOut size={15} />
-                    退出群組
-                  </button>
                   <div className="my-1 h-px bg-line-subtle" />
                 </>
               )}
@@ -432,20 +445,9 @@ export default function ChatWindow({
                       <div className="w-64 rounded-2xl border border-line bg-white px-4 py-3 text-center shadow-sm">
                         <p className="mb-2 text-xs text-ink-3">{msg.text}</p>
                         {alreadyFilled ? (
-                          <div className="space-y-2">
-                            <p className="flex items-center justify-center gap-1 text-xs font-semibold text-success-text">
-                              <CheckCircle2 size={13} /> 已填寫完成
-                            </p>
-                            <button
-                              onClick={() => {
-                                window.dispatchEvent(new CustomEvent('pm:close-messages'))
-                                navigate('/my-subscriptions', { state: { openGroupId: conversationGroupId, openPayment: true } })
-                              }}
-                              className="w-full rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-brand-hover"
-                            >
-                              前往付款
-                            </button>
-                          </div>
+                          <p className="flex items-center justify-center gap-1 text-xs font-semibold text-success-text">
+                            <CheckCircle2 size={13} /> 已填寫完成
+                          </p>
                         ) : (
                           <button
                             onClick={() => setFillInfoOpen(true)}
@@ -454,6 +456,90 @@ export default function ChatWindow({
                             填寫服務帳號
                           </button>
                         )}
+                      </div>
+                    </div>
+                  )
+                }
+                if (msg.actionType === 'member_filled_service_info') {
+                  return (
+                    <div key={msg.id} className="flex justify-center">
+                      <p className="rounded-full bg-raised px-3 py-1 text-xs text-ink-3">{msg.text}</p>
+                    </div>
+                  )
+                }
+
+                if (msg.actionType === 'go_to_payment') {
+                  const payMember = getMemberByUserAndGroup(userId, conversationGroupId)
+                  const payStatus = payMember?.paymentStatus
+                  return (
+                    <div key={msg.id} className="flex justify-center">
+                      <div className="w-64 rounded-2xl border border-brand/30 bg-brand-subtle px-4 py-3 text-center shadow-sm">
+                        <p className="mb-2 text-xs text-ink-2">{msg.text}</p>
+                        {payStatus === 'confirmed' ? (
+                          <p className="flex items-center justify-center gap-1 text-xs font-semibold text-success-text">
+                            <CheckCircle2 size={13} /> 已完成付款
+                          </p>
+                        ) : payStatus === 'markedPaid' ? (
+                          <p className="flex items-center justify-center gap-1 text-xs font-semibold text-ink-3">
+                            <Clock size={13} /> 付款確認中
+                          </p>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              window.dispatchEvent(new CustomEvent('pm:close-messages'))
+                              navigate('/my-subscriptions', { state: { openGroupId: conversationGroupId, openPayment: true } })
+                            }}
+                            className="w-full rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-brand-hover"
+                          >
+                            前往付款
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )
+                }
+                if (msg.actionType === 'request_resubmit') {
+                  const payMember = getMemberByUserAndGroup(userId, conversationGroupId)
+                  const alreadyResubmitted = payMember?.paymentStatus === 'markedPaid' || payMember?.paymentStatus === 'confirmed'
+                  return (
+                    <div key={msg.id} className="flex justify-center">
+                      <div className="w-64 rounded-2xl border border-warning/30 bg-warning-subtle px-4 py-3 text-center shadow-sm">
+                        <p className="mb-1 text-xs font-semibold text-warning-text">需要補件</p>
+                        <p className="mb-2 text-xs text-ink-2">{msg.text}</p>
+                        {alreadyResubmitted ? (
+                          <p className="flex items-center justify-center gap-1 text-xs font-semibold text-ink-3">
+                            <CheckCircle2 size={13} /> 已重新提交
+                          </p>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              window.dispatchEvent(new CustomEvent('pm:close-messages'))
+                              navigate('/my-subscriptions', { state: { openGroupId: conversationGroupId, openPayment: true } })
+                            }}
+                            className="w-full rounded-lg bg-warning px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:opacity-90"
+                          >
+                            重新上傳付款憑證
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )
+                }
+                if (msg.actionType === 'all_service_info_filled') {
+                  return (
+                    <div key={msg.id} className="flex justify-center">
+                      <div className="w-64 rounded-2xl border border-success/30 bg-success-subtle px-4 py-3 text-center shadow-sm">
+                        <p className="mb-2 text-xs text-ink-2">{msg.text}</p>
+                        <button
+                          onClick={() => {
+                            window.dispatchEvent(new CustomEvent('pm:close-messages'))
+                            navigate('/manage-groups', { state: { openGroupId: conversationGroupId, openBilling: true } })
+                            window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: conversationGroupId, openBilling: true } }))
+                          }}
+                          className="w-full rounded-lg bg-success px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:opacity-90"
+                        >
+                          前往收款管理
+                        </button>
                       </div>
                     </div>
                   )
