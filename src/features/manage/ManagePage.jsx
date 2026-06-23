@@ -238,7 +238,8 @@ function handleRemoveMember(member) {
     if (seats) {
       const newUsed = Math.max(0, seats.usedSeats - 1)
       const newOpen = seats.openSeats + 1
-      updateGroup(member.groupId, { usedSeats: newUsed, openSeats: newOpen })
+      const statusPatch = group?.status === 'full' ? { status: 'recruiting' } : {}
+      updateGroup(member.groupId, { usedSeats: newUsed, openSeats: newOpen, ...statusPatch })
       setManageData(prev => ({
         ...prev,
         members: prev.hostedGroups.flatMap(g => getMembersByGroupId(g.id)),

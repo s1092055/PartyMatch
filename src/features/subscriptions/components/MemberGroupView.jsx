@@ -265,6 +265,7 @@ export default function MemberGroupView({ group, onMarkPaid, onLeaveGroup, onClo
               <button
                 onClick={() => {
                   setShowMembers(false)
+                  onClose()
                   window.dispatchEvent(new CustomEvent('pm:open-dm', {
                     detail: {
                       hostId: group.hostId,
@@ -291,6 +292,7 @@ export default function MemberGroupView({ group, onMarkPaid, onLeaveGroup, onClo
                 <button
                   onClick={() => {
                     setShowMembers(false)
+                    onClose()
                     window.dispatchEvent(new CustomEvent('pm:open-dm', {
                       detail: {
                         hostId: m.userId,
