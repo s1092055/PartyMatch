@@ -310,7 +310,9 @@ export default function QuickMatchModal() {
   }
 
   function handleStartMatch() {
-    const matched = matchGroups(getGroups(), conditions)
+    const activeUserId = getCurrentUser()?.id
+    const candidateGroups = getGroups().filter(g => g.hostId !== activeUserId)
+    const matched = matchGroups(candidateGroups, conditions)
     setResults(matched)
     setStep(4)
   }
