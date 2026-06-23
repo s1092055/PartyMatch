@@ -3,12 +3,12 @@ import { getPlanChips, getInfoRows } from '../utils/groupDisplay'
 import Badge from './Badge'
 
 const TAG_CONFIG = {
-  '審核制':    { Icon: Clock,     cls: 'bg-amber-50  border border-amber-200 text-amber-700'  },
-  '每月付款':  { Icon: Calendar,  cls: 'bg-blue-50   border border-blue-200  text-blue-700'   },
-  '年付':      { Icon: Calendar,  cls: 'bg-blue-50   border border-blue-200  text-blue-700'   },
-  '需自備帳號': { Icon: User,     cls: 'bg-green-50  border border-green-200 text-green-700'  },
-  '共享帳號':  { Icon: Users,     cls: 'bg-purple-50 border border-purple-200 text-purple-700' },
-  '自動加入':  { Icon: CheckCircle2, cls: 'bg-teal-50 border border-teal-200 text-teal-700'   },
+  '審核制':    { Icon: Clock,        cls: 'bg-amber-50  border border-amber-200 text-amber-700'   },
+  '每月付款':  { Icon: Calendar,     cls: 'bg-blue-50   border border-blue-200  text-blue-700'    },
+  '年付':      { Icon: Calendar,     cls: 'bg-blue-50   border border-blue-200  text-blue-700'    },
+  '需自備帳號': { Icon: User,        cls: 'bg-green-50  border border-green-200 text-green-700'   },
+  '共享帳號':  { Icon: Users,        cls: 'bg-purple-50 border border-purple-200 text-purple-700' },
+  '自動加入':  { Icon: CheckCircle2, cls: 'bg-teal-50   border border-teal-200  text-teal-700'    },
 }
 const DEFAULT_TAG = { Icon: Info, cls: 'bg-raised border border-line text-ink-2' }
 
@@ -16,7 +16,7 @@ export function TagChip({ label, size = 'md' }) {
   const { Icon, cls } = TAG_CONFIG[label] ?? DEFAULT_TAG
   const textSize = size === 'sm' ? 'text-[11px]' : 'text-xs'
   const iconSize = size === 'sm' ? 10 : 12
-  const px = size === 'sm' ? 'px-2 py-0.5' : 'px-2.5 py-1'
+  const px       = size === 'sm' ? 'px-2 py-0.5' : 'px-2.5 py-1'
   return (
     <span className={`inline-flex shrink-0 items-center gap-1 rounded-full font-semibold ${textSize} ${px} ${cls}`}>
       <Icon size={iconSize} />
@@ -78,61 +78,51 @@ function RulesList({ allRules }) {
   )
 }
 
-export default function GroupOverviewContent({ group, service, plan, desktopReviewsSection = null, mobileReviewsSection = null }) {
+export default function GroupOverviewContent({ group, service, plan, reviewsSection = null, statusBadgeOverride }) {
   const planChips = getPlanChips(group, plan)
-  const allRules = [
+  const allRules  = [
     ...(group.requirements ? [group.requirements] : []),
     ...(group.rules ?? []),
   ]
-  const infoRows = getInfoRows(group)
+  const infoRows = getInfoRows(group).map(row =>
+    row.badge === group.status && statusBadgeOverride
+      ? { ...row, badge: statusBadgeOverride }
+      : row
+  )
   const tags = group.tags ?? []
 
   return (
-    <>
-      <div className="hidden divide-y divide-line-subtle lg:block">
-        <div className="space-y-4 py-5">
-          <p className="text-lg font-black text-brand">服務介紹</p>
-          <ServiceIntro service={service} plan={plan} planChips={planChips} />
-        </div>
-        <div className="space-y-3 py-5">
-          <p className="text-lg font-black text-brand">加入條件與規則</p>
-          <RulesList allRules={allRules} />
-        </div>
-        {desktopReviewsSection}
+    <div className="divide-y divide-line-subtle">
+      <div className="pb-5 pt-0">
+        <p className="mb-4 text-lg font-black text-brand">群組資訊</p>
+        {infoRows.length > 0 && (
+          <div className="space-y-2">
+            {infoRows.map(({ label, value, badge }) => (
+              <div key={label} className="flex items-center gap-3 text-sm">
+                <span className="w-16 shrink-0 text-ink-4">{label}</span>
+                <span className="text-ink-2">{badge ? <Badge variant={badge} /> : value}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        {tags.length > 0 && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {tags.map(tag => <TagChip key={tag} label={tag} />)}
+          </div>
+        )}
       </div>
 
-      <div className="lg:hidden">
-        <div className="border-b border-line-subtle px-2 py-6">
-          <p className="mb-4 text-lg font-black text-brand">群組資訊</p>
-          {infoRows.length > 0 && (
-            <div className="space-y-2">
-              {infoRows.map(({ label, value, badge }) => (
-                <div key={label} className="flex items-center gap-3 text-sm">
-                  <span className="w-16 shrink-0 text-ink-4">{label}</span>
-                  <span className="text-ink-2">{badge ? <Badge variant={badge} /> : value}</span>
-                </div>
-              ))}
-            </div>
-          )}
-          {tags.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-2">
-              {tags.map(tag => <TagChip key={tag} label={tag} />)}
-            </div>
-          )}
-        </div>
-
-        <div className="space-y-4 border-b border-line-subtle px-2 py-6">
-          <p className="text-lg font-black text-brand">服務介紹</p>
-          <ServiceIntro service={service} plan={plan} planChips={planChips} />
-        </div>
-
-        <div className="space-y-4 px-2 pt-6 pb-1">
-          <p className="text-lg font-black text-brand">加入條件與規則</p>
-          <RulesList allRules={allRules} />
-        </div>
-
-        {mobileReviewsSection && <div className="px-2">{mobileReviewsSection}</div>}
+      <div className="space-y-4 py-5">
+        <p className="text-lg font-black text-brand">服務介紹</p>
+        <ServiceIntro service={service} plan={plan} planChips={planChips} />
       </div>
-    </>
+
+      <div className="space-y-4 py-5">
+        <p className="text-lg font-black text-brand">加入條件與規則</p>
+        <RulesList allRules={allRules} />
+      </div>
+
+      {reviewsSection && <div className="py-5">{reviewsSection}</div>}
+    </div>
   )
 }

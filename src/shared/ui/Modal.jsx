@@ -28,11 +28,9 @@ export default function Modal({
 
   useEffect(() => {
     if (!controlled) return
-    if (isOpen) {
-      setShouldRender(true)
-    } else {
-      setShouldRender(false)
-    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (isOpen) setShouldRender(true)
+    else setShouldRender(false)
   }, [isOpen]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {

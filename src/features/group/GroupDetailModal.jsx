@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  CheckCircle2, ChevronLeft, ChevronRight,
+  CheckCircle2, ChevronRight,
   CreditCard, Heart, LogIn, MessageCircle, ShieldCheck, Star,
 } from 'lucide-react'
 import { getGroupById, getGroups } from '../../shared/stores/groupStore'
@@ -75,7 +75,6 @@ export default function GroupDetailModal() {
   const [applyModalOpen, setApplyModalOpen] = useState(false)
   const [applied, setApplied]               = useState(false)
   const [isFav, setIsFav]                   = useState(false)
-  const [recPage, setRecPage]               = useState(0)
 
   const [tick, setTick] = useState(0)
 
@@ -93,7 +92,6 @@ export default function GroupDetailModal() {
     function onOpen(e) {
       const gId = e.detail?.groupId ?? null
       setGroupId(gId)
-      setRecPage(0)
       setApplyModalOpen(false)
       if (gId && activeUserId) {
         const existingApp = getApplicationByUserAndGroup(activeUserId, gId)
@@ -213,8 +211,7 @@ export default function GroupDetailModal() {
   }
 
   const hostStars  = group.hostRating != null ? Math.round(group.hostRating / 20) : 0
-  const totalSlides = Math.max(1, Math.ceil(picks.length / 3))
-  const reviews    = <HostReviews group={group} hostStars={hostStars} headerClassName="text-lg font-black text-brand" />
+  const reviews    =<HostReviews group={group} hostStars={hostStars} headerClassName="text-lg font-black text-brand" />
 
   return (
     <GroupModalShell
@@ -279,66 +276,14 @@ export default function GroupDetailModal() {
         </div>
       }
       afterColumns={picks.length > 0 && (
-        <div className="border-t border-line px-8 pb-4 pt-5 lg:pb-10">
+        <div className="border-t border-line px-6 pb-4 pt-5">
           <h3 className="mb-4 text-lg font-black text-brand">其他推薦群組</h3>
-
-          {/* 手機版：橫向捲動 */}
-          <div className="flex gap-3 overflow-x-auto px-0.5 pb-3 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:hidden">
+          <div className="flex gap-3 overflow-x-auto px-0.5 pb-3 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {picks.map(g => (
               <div key={g.id} className="w-64 shrink-0">
                 <ExploreGroupCard group={g} isMember={memberGroupIds.has(g.id)} />
               </div>
             ))}
-          </div>
-
-          {/* 桌機版：輪播 */}
-          <div className="hidden lg:block">
-            <div className="flex items-center gap-2">
-              {totalSlides > 1 && (
-                <button
-                  onClick={() => setRecPage(p => Math.max(0, p - 1))}
-                  disabled={recPage === 0}
-                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-line bg-canvas text-ink-3 shadow-sm transition-colors hover:bg-raised disabled:opacity-0"
-                >
-                  <ChevronLeft size={16} />
-                </button>
-              )}
-              <div className="min-w-0 flex-1 px-0.5 py-2 [overflow-x:clip]">
-                <div
-                  className="flex transition-transform duration-300 ease-in-out"
-                  style={{ width: `${totalSlides * 100}%`, transform: `translateX(-${recPage * (100 / totalSlides)}%)` }}
-                >
-                  {Array.from({ length: totalSlides }).map((_, si) => (
-                    <div key={si} style={{ width: `${100 / totalSlides}%` }}>
-                      <div className="grid grid-cols-3 gap-3">
-                        {picks.slice(si * 3, si * 3 + 3).map(g => <ExploreGroupCard key={g.id} group={g} isMember={memberGroupIds.has(g.id)} />)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              {totalSlides > 1 && (
-                <button
-                  onClick={() => setRecPage(p => Math.min(totalSlides - 1, p + 1))}
-                  disabled={recPage === totalSlides - 1}
-                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-line bg-canvas text-ink-3 shadow-sm transition-colors hover:bg-raised disabled:opacity-0"
-                >
-                  <ChevronRight size={16} />
-                </button>
-              )}
-            </div>
-            {totalSlides > 1 && (
-              <div className="mt-4 flex justify-center gap-2">
-                {Array.from({ length: totalSlides }).map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setRecPage(i)}
-                    className={`h-2 rounded-full transition-all ${i === recPage ? 'w-5 bg-ink' : 'w-2 bg-line hover:bg-ink-4'}`}
-                    aria-label={`第 ${i + 1} 頁`}
-                  />
-                ))}
-              </div>
-            )}
           </div>
         </div>
       )}

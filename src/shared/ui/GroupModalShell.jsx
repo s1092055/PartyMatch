@@ -1,12 +1,9 @@
-import { useEffect, useLayoutEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { X } from 'lucide-react'
+import { ChevronDown, ChevronUp, X } from 'lucide-react'
 import ServiceLogo from './ServiceLogo'
 import GroupOverviewContent from './GroupOverviewContent'
 import ProgressBar from './ProgressBar'
-import Badge from './Badge'
-import { TagChip } from './GroupOverviewContent'
-import { getInfoRows } from '../utils/groupDisplay'
 import { useScrollLock } from '../utils/hooks'
 
 export default function GroupModalShell({
@@ -14,11 +11,7 @@ export default function GroupModalShell({
   group,
   service,
   plan,
-  summaryFavoriteSlot,
   summaryExtraRows,
-  summaryFooter,
-  desktopReviewsSection,
-  mobileReviewsSection,
   afterColumns,
   bottomBar,
   mobileFooter,
@@ -29,20 +22,32 @@ export default function GroupModalShell({
   centeredCta,
   statusBadgeOverride,
   hidden,
+  // kept for backward compat (no longer rendered)
+  // eslint-disable-next-line no-unused-vars
+  summaryFooter,
+  // eslint-disable-next-line no-unused-vars
+  desktopReviewsSection,
+  mobileReviewsSection,
   children,
 }) {
-  function handleClose() { onClose() }
+  const [atTop, setAtTop] = useState(true)
 
-  const showPaymentBar = ['group_active', 'pending_activation', 'pending_confirmation'].includes(group.status) && confirmedCount !== undefined
+  function handleClose() { onClose() }
+  function handleScroll(e) { setAtTop(e.currentTarget.scrollTop < 50) }
+  function scrollToTop() { scrollBodyRef.current?.scrollTo({ top: 0, behavior: 'smooth' }) }
+  function scrollDown() { scrollBodyRef.current?.scrollBy({ top: 200, behavior: 'smooth' }) }
+
+  const showPaymentBar   = ['group_active', 'pending_activation', 'pending_confirmation'].includes(group.status) && confirmedCount !== undefined
   const showCenteredBadge = (showPaymentBar || !!pendingBadge) && !centeredCta
   const centeredBadgeLabel = pendingBadge ?? '收款確認中'
-  const centeredBadgeCls = pendingBadgeColor === 'success'
+  const centeredBadgeCls   = pendingBadgeColor === 'success'
     ? 'bg-success-subtle text-success-text'
-    : 'bg-warning-subtle text-warning-text'
+    : pendingBadgeColor === 'danger'
+      ? 'bg-danger-subtle text-danger'
+      : 'bg-warning-subtle text-warning-text'
+
   useScrollLock(true)
 
-  const summaryRef    = useRef(null)
-  const leftColRef    = useRef(null)
   const scrollBodyRef = useRef(null)
 
   useEffect(() => {
@@ -51,23 +56,8 @@ export default function GroupModalShell({
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [onClose])
 
-  useLayoutEffect(() => {
-    const syncHeight = () => {
-      const summary = summaryRef.current
-      const left    = leftColRef.current
-      if (!summary || !left) return
-      if (window.innerWidth >= 1024) {
-        left.style.height = summary.offsetHeight + 'px'
-      } else {
-        left.style.height = ''
-      }
-    }
-    syncHeight()
+  useEffect(() => {
     if (scrollBodyRef.current) scrollBodyRef.current.scrollTop = 0
-    if (leftColRef.current) leftColRef.current.scrollTop = 0
-    const ro = new ResizeObserver(syncHeight)
-    if (summaryRef.current) ro.observe(summaryRef.current)
-    return () => ro.disconnect()
   }, [group?.id])
 
   if (hidden) return null
@@ -78,13 +68,14 @@ export default function GroupModalShell({
 
       <div className="pointer-events-none fixed inset-0 z-[56] flex items-center justify-center p-4 md:p-8">
         <div
-          className="pointer-events-auto flex w-full flex-col overflow-hidden rounded-2xl bg-canvas shadow-2xl md:max-w-5xl animate-modal-in"
-          style={{ height: 'min(92vh, 860px)' }}
+          className="pointer-events-auto flex w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-canvas shadow-2xl animate-modal-in"
+          style={{ height: 'min(92vh, 720px)' }}
         >
-          <div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-5 lg:px-8">
+          {/* Header */}
+          <div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-4">
             <div className="flex items-center gap-2.5">
-              <ServiceLogo serviceId={group.serviceId} size={28} className="rounded-lg" />
-              <span className="text-lg font-extrabold text-ink">{group.serviceName}</span>
+              <ServiceLogo serviceId={group.serviceId} size={26} className="rounded-lg" />
+              <span className="text-base font-extrabold text-ink">{group.serviceName}</span>
             </div>
             <button
               onClick={handleClose}
@@ -95,128 +86,72 @@ export default function GroupModalShell({
             </button>
           </div>
 
-          <div ref={scrollBodyRef} className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <div className="flex flex-col gap-4 px-6 pb-0 pt-3 lg:flex-row lg:items-start lg:gap-6 lg:p-8">
-              <div
-                ref={leftColRef}
-                className="order-2 min-w-0 flex-1 overflow-y-auto lg:order-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-              >
-                <GroupOverviewContent
-                  group={group}
-                  service={service}
-                  plan={plan}
-                  desktopReviewsSection={desktopReviewsSection}
-                  mobileReviewsSection={mobileReviewsSection}
-                />
-              </div>
+          {/* Scrollable content */}
+          <div ref={scrollBodyRef} onScroll={handleScroll} className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="px-6 py-5">
+              <GroupOverviewContent
+                group={group}
+                service={service}
+                plan={plan}
+                reviewsSection={mobileReviewsSection}
+                statusBadgeOverride={statusBadgeOverride}
+              />
 
-              <div ref={summaryRef} className="hidden lg:order-2 lg:block lg:w-[20rem] lg:shrink-0">
-                {(() => {
-                  const infoRows = getInfoRows(group).map(row =>
-                    row.badge === group.status && statusBadgeOverride
-                      ? { ...row, badge: statusBadgeOverride }
-                      : row
-                  )
-                  const tags = group.tags ?? []
-                  return (
-                    <div className="card divide-y divide-line-subtle overflow-hidden">
-                      {centeredCta ? (
-                        <div className="px-6 py-4 lg:px-8">{centeredCta}</div>
-                      ) : showCenteredBadge ? (
-                        <div className={`mx-4 my-3 flex items-center justify-center rounded-xl px-6 py-4 text-sm font-extrabold lg:mx-6 ${centeredBadgeCls}`}>
-                          {centeredBadgeLabel}
-                        </div>
-                      ) : !hideRecruitBar && (
-                        <>
-                          <div className="flex items-start justify-between px-6 py-4 lg:px-8">
-                            <div>
-                              <p className="mb-0.5 text-xs font-medium text-ink-4">每席價格</p>
-                              <div className="flex items-baseline gap-1">
-                                <span className="text-3xl font-extrabold text-ink">NT${group.pricePerSeat}</span>
-                                <span className="text-sm text-ink-3">/每月</span>
-                              </div>
-                            </div>
-                            {summaryFavoriteSlot}
-                          </div>
-                          <div className="px-6 py-4 lg:px-8">
-                            <div className="mb-2 flex items-center justify-between text-sm">
-                              <span className="text-ink-3">剩餘名額</span>
-                              <span className="font-semibold text-ink">{group.openSeats} 位</span>
-                            </div>
-                            <ProgressBar value={group.usedSeats} max={group.totalSeats} />
-                          </div>
-                        </>
-                      )}
-
-                      {tags.length > 0 && (
-                        <div className="flex flex-wrap gap-2 px-6 py-4 lg:px-8">
-                          {tags.map(tag => <TagChip key={tag} label={tag} />)}
-                        </div>
-                      )}
-
-                      {infoRows.length > 0 && (
-                        <div className="px-6 py-4 lg:px-8">
-                          <div className="space-y-2">
-                            {infoRows.map(({ label, value, badge }) => (
-                              <div key={label} className="flex gap-3 text-sm">
-                                <span className="w-14 shrink-0 text-ink-4">{label}</span>
-                                <span className="flex-1 text-ink-2">
-                                  {badge ? <Badge variant={badge} /> : value}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {summaryExtraRows}
-                      {summaryFooter}
-                    </div>
-                  )
-                })()}
-              </div>
+              {summaryExtraRows}
             </div>
 
             {afterColumns}
+
+            {/* Scroll hint / back-to-top button */}
+            <div className="sticky bottom-3 flex justify-end pr-3 pointer-events-none">
+              <button
+                onClick={atTop ? scrollDown : scrollToTop}
+                className="pointer-events-auto grid h-8 w-8 place-items-center rounded-full border border-line bg-canvas shadow-md text-ink-3 transition-colors hover:text-ink animate-bounce"
+                title={atTop ? '往下捲動' : '回到頂部'}
+              >
+                {atTop ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+              </button>
+            </div>
           </div>
 
+          {/* Summary: price / CTA / badge — fixed above action buttons */}
           {centeredCta ? (
-            <div className="shrink-0 border-t border-line-subtle bg-canvas px-4 py-3 lg:hidden">
+            <div className="shrink-0 border-t border-line bg-canvas px-6 py-4">
               {centeredCta}
             </div>
           ) : showCenteredBadge ? (
-            <div className="shrink-0 border-t border-line-subtle px-4 py-3 lg:hidden">
+            <div className="shrink-0 border-t border-line px-6 py-3">
               <div className={`flex items-center justify-center rounded-xl px-4 py-3 text-sm font-extrabold ${centeredBadgeCls}`}>
                 {centeredBadgeLabel}
               </div>
             </div>
-          ) : !hideRecruitBar && (
-            <div className="shrink-0 border-t border-line-subtle bg-canvas px-6 py-3 lg:hidden">
-              <div className="flex items-center gap-4">
-                <div className="shrink-0">
-                  <p className="mb-0.5 text-xs text-ink-4">每席價格</p>
-                  <div className="flex items-baseline gap-0.5">
-                    <span className="text-xl font-extrabold text-ink">NT${group.pricePerSeat}</span>
-                    <span className="text-xs text-ink-3">/每月</span>
+          ) : !hideRecruitBar ? (
+            <div className="shrink-0 border-t border-line bg-canvas px-6 py-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="mb-0.5 text-xs font-medium text-ink-4">每席價格</p>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-2xl font-extrabold text-ink">NT${group.pricePerSeat}</span>
+                    <span className="text-sm text-ink-3">/每月</span>
                   </div>
                 </div>
-                <div className="flex-1">
-                  <ProgressBar value={group.usedSeats} max={group.totalSeats} />
-                </div>
-                <div className="shrink-0 text-right">
+                <div className="text-right">
                   <p className="mb-0.5 text-xs text-ink-4">剩餘名額</p>
-                  <p className="text-sm font-semibold text-ink">{group.openSeats} / {group.totalSeats} 席</p>
+                  <p className="text-lg font-extrabold text-ink">{group.openSeats} / {group.totalSeats} 席</p>
                 </div>
               </div>
+              <div className="mt-3">
+                <ProgressBar value={group.usedSeats} max={group.totalSeats} />
+              </div>
             </div>
-          )}
+          ) : null}
 
+          {/* Fixed bottom action bars */}
           {mobileFooter && (
-            <div className="shrink-0 border-t border-line bg-canvas lg:hidden">
+            <div className="shrink-0 border-t border-line bg-canvas">
               {mobileFooter}
             </div>
           )}
-
           {bottomBar && (
             <div className="shrink-0 border-t border-line bg-canvas">
               {bottomBar}

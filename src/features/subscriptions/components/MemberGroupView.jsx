@@ -152,7 +152,7 @@ export default function MemberGroupView({ group, onMarkPaid, onLeaveGroup, onClo
       }
       summaryExtraRows={
         myMember ? (
-          <div className="px-6 py-4 lg:px-8">
+          <div className="border-t border-line-subtle py-4">
             <p className="mb-2 text-xs text-ink-4">我的付款狀態</p>
             <PaymentStatusBadge status={myMember.paymentStatus} />
           </div>
