@@ -30,10 +30,13 @@ export default function GroupModalShell({
   mobileReviewsSection,
   children,
 }) {
-  const [atTop, setAtTop] = useState(true)
+  const [atBottom, setAtBottom] = useState(false)
 
   function handleClose() { onClose() }
-  function handleScroll(e) { setAtTop(e.currentTarget.scrollTop < 50) }
+  function handleScroll(e) {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget
+    setAtBottom(scrollTop + clientHeight >= scrollHeight - 20)
+  }
   function scrollToTop() { scrollBodyRef.current?.scrollTo({ top: 0, behavior: 'smooth' }) }
   function scrollDown() { scrollBodyRef.current?.scrollBy({ top: 200, behavior: 'smooth' }) }
 
@@ -105,11 +108,11 @@ export default function GroupModalShell({
             {/* Scroll hint / back-to-top button */}
             <div className="sticky bottom-3 flex justify-end pr-3 pointer-events-none">
               <button
-                onClick={atTop ? scrollDown : scrollToTop}
+                onClick={atBottom ? scrollToTop : scrollDown}
                 className="pointer-events-auto grid h-8 w-8 place-items-center rounded-full border border-line bg-canvas shadow-md text-ink-3 transition-colors hover:text-ink animate-bounce"
-                title={atTop ? '往下捲動' : '回到頂部'}
+                title={atBottom ? '回到頂部' : '往下捲動'}
               >
-                {atTop ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+                {atBottom ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
               </button>
             </div>
           </div>
