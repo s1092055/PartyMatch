@@ -1,4 +1,4 @@
-import { readAllSubscriptions, subscribeToSubscriptions, insertSubscription, patchSubscription } from '../api/subscriptionsApi'
+import { readAllSubscriptions, subscribeToSubscriptions, insertSubscription, patchSubscription, deleteSubscriptionRecord } from '../api/subscriptionsApi'
 import { normalizeSubscription } from '../utils/modelNormalizers'
 import { todayISO } from '../utils/date'
 import { createId } from '../utils/storage'
@@ -109,6 +109,12 @@ export function resetSubscriptionPayment(id) {
   const updatedSub = applyPatch(id, patch)
   if (updatedSub) emitSubscriptionsChanged({ type: 'payment_reset', subscription: updatedSub })
   patchSubscription(id, patch).catch(console.error)
+}
+
+export function removeSubscription(id) {
+  _subs = _subs.filter(s => s.id !== id)
+  emitSubscriptionsChanged({ type: 'removed', id })
+  deleteSubscriptionRecord(id).catch(console.error)
 }
 
 export function resetSubscriptionPaymentsForGroup(groupId) {

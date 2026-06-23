@@ -1,5 +1,5 @@
 import { db } from '../../app/firebase'
-import { collection, doc, getDocs, onSnapshot, setDoc, updateDoc } from 'firebase/firestore'
+import { collection, deleteDoc, doc, getDocs, onSnapshot, setDoc, updateDoc } from 'firebase/firestore'
 import { normalizeSubscription } from '../utils/modelNormalizers'
 import { demoAwareCollection } from './demoCollection'
 import { stripUndefined } from './firestoreUtils'
@@ -26,4 +26,8 @@ export async function insertSubscription(record) {
 
 export async function patchSubscription(id, patch) {
   await updateDoc(doc(db, COLLECTION, id), patch)
+}
+
+export async function deleteSubscriptionRecord(id) {
+  await deleteDoc(doc(db, COLLECTION, id))
 }

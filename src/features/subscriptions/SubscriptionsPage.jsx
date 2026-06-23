@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { CheckCircle, ClipboardList, Clock, XCircle } from 'lucide-react'
-import { getSubscriptionsByUserId, initSubscriptions, markSubscriptionPaid } from '../../shared/stores/subscriptionStore'
-import { getMemberByUserAndGroup, initMembers, updateMember } from '../../shared/stores/memberStore'
+import { getSubscriptionsByUserId, initSubscriptions, markSubscriptionPaid, removeSubscription } from '../../shared/stores/subscriptionStore'
+import { getMemberByUserAndGroup, initMembers, removeMember, updateMember } from '../../shared/stores/memberStore'
 import { createNotification } from '../../shared/stores/notificationStore'
 import { getApplicationsByUserId, initApplications } from '../../shared/stores/applicationStore'
-import { getGroupById, initLiveGroups } from '../../shared/stores/groupStore'
+import { getGroupById, initLiveGroups, updateGroup } from '../../shared/stores/groupStore'
 import { getCurrentUser } from '../../shared/stores/authStore'
 import SubscriptionCard from './components/SubscriptionCard'
 import EmptyState from '../../shared/ui/EmptyState'
@@ -173,6 +173,45 @@ export default function SubscriptionsPage() {
     showToast('已付款，等待團主確認')
   }
 
+  function handleLeaveGroup() {
+    if (!viewGroupId || !activeUser) return
+    const group  = getGroupById(viewGroupId)
+    const member = getMemberByUserAndGroup(activeUser.id, viewGroupId)
+    if (!member || !group) return
+
+    removeMember(member.id)
+
+    const newUsed = Math.max(0, group.usedSeats - 1)
+    const newOpen = group.openSeats + 1
+    const statusPatch = group.status === 'full' ? { status: 'recruiting' } : {}
+    updateGroup(viewGroupId, { usedSeats: newUsed, openSeats: newOpen, ...statusPatch })
+
+    const sub = getSubscriptionsByUserId(activeUser.id).find(s => s.groupId === viewGroupId)
+    if (sub) removeSubscription(sub.id)
+
+    createNotification({
+      userId:  activeUser.id,
+      type:    'member_left',
+      title:   '已退出群組',
+      message: `你已成功退出「${group.serviceName}」群組，名額已釋出。`,
+    })
+
+    if (group.hostId) {
+      createNotification({
+        userId:  group.hostId,
+        type:    'member_left',
+        title:   '成員退出群組',
+        message: `${activeUser.displayName ?? activeUser.name ?? '成員'} 已退出「${group.serviceName}」群組，目前剩餘 ${newOpen} 個名額。`,
+        meta:    { groupId: viewGroupId },
+      })
+    }
+
+    setViewGroupId(null)
+    setAutoOpenPayment(false)
+    setSubs(activeUserId ? enrichSubs(getSubscriptionsByUserId(activeUserId)) : [])
+    showToast('已成功退出群組')
+  }
+
   const filtered = useMemo(
     () => activeTab === 'applications' ? [] : filterSubs(subs, activeTab),
     [subs, activeTab],
@@ -269,6 +308,7 @@ export default function SubscriptionsPage() {
         groupId={viewGroupId}
         autoOpenPayment={autoOpenPayment}
         onMarkPaid={(sub, proofUrl, paidAmount) => { markAsPaid(sub, proofUrl, paidAmount); setViewGroupId(null); setAutoOpenPayment(false) }}
+        onLeaveGroup={handleLeaveGroup}
       />
 
       <div role="status" aria-live="polite" aria-atomic="true" className="pointer-events-none fixed bottom-6 left-1/2 z-50 -translate-x-1/2">

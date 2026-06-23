@@ -238,7 +238,7 @@ export default function HostGroupView({ group, members, applications, onConfirmM
               onClick={() => setShowMembers(true)}
               className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
             >
-              <Users size={17} /> 成員管理
+              <Users size={17} /> 成員名單
             </button>
             {isRecruiting ? (
               <button
@@ -401,17 +401,6 @@ export default function HostGroupView({ group, members, applications, onConfirmM
         </div>
       </Modal>
 
-      {/* 移除成員確認 */}
-      {removingMember && (
-        <ConfirmDialog
-          title="移除成員"
-          message={`確定要將「${removingMember.userName}」移出群組嗎？對方會立即失去名額與聊天室存取權限，且會收到通知；若要再加入需要重新提出申請。`}
-          confirmLabel="移除"
-          danger
-          onConfirm={() => { onRemoveMember?.(removingMember); setRemovingMember(null) }}
-          onCancel={() => setRemovingMember(null)}
-        />
-      )}
 
       {/* ── 啟用群組確認 Modal ── */}
       <Modal
@@ -461,69 +450,72 @@ export default function HostGroupView({ group, members, applications, onConfirmM
     <Modal
       isOpen={showMembers}
       onClose={() => setShowMembers(false)}
-      title={`成員管理（${members.length + 1} 人）`}
+      title={`成員名單（${members.length + 1} 人）`}
+      icon={<Users size={18} className="text-brand" />}
       maxWidth="max-w-lg"
       sub
     >
-      <div className="max-h-[60vh] overflow-y-auto p-5">
+      <div className="h-[60vh] overflow-y-auto p-5">
         <div className="space-y-2">
-          <div className="flex items-stretch gap-2">
-            <div className="min-w-0 flex-1 rounded-xl border border-line p-3">
-              <div className="flex items-center gap-3">
-                <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="sm" />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-ink">
-                    {group.hostName}
-                    <span className="ml-1.5 text-xs font-normal text-brand">（你）</span>
-                  </p>
-                  <p className="text-xs text-ink-3">建立 {group.createdAt}</p>
-                </div>
-                <span className="flex shrink-0 items-center gap-1 rounded-full bg-brand-subtle px-2.5 py-0.5 text-xs font-semibold text-brand">
-                  <Shield size={11} /> 團主
-                </span>
+          <div className="rounded-xl border border-line p-3">
+            <div className="flex items-center gap-3">
+              <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="sm" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-ink">
+                  {group.hostName}
+                  <span className="ml-1.5 text-xs font-normal text-brand">（你）</span>
+                </p>
+                <p className="text-xs text-ink-3">{group.createdAt} 建立</p>
               </div>
+              <span className="flex shrink-0 items-center gap-1 rounded-full bg-brand-subtle px-2.5 py-0.5 text-xs font-semibold text-brand">
+                <Shield size={11} /> 團主
+              </span>
             </div>
-            <div className="w-14 shrink-0" />
           </div>
           {members.map(m => {
             const app      = appByMemberId[m.userId]
-            const removable = !CONFIRMED_STATUSES.includes(m.paymentStatus)
+            const removable = ['recruiting', 'full'].includes(group.status) && !CONFIRMED_STATUSES.includes(m.paymentStatus)
             return (
-              <div key={m.id} className="flex items-stretch gap-2">
-                <div className="min-w-0 flex-1 rounded-xl border border-line p-3">
-                  <div className="flex items-center gap-3">
-                    <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-ink">{m.userName}</p>
-                      <p className="text-xs text-ink-3">加入 {m.joinedAt}</p>
-                    </div>
+              <div key={m.id} className="rounded-xl border border-line p-3">
+                <div className="flex items-center gap-3">
+                  <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-ink">{m.userName}</p>
+                    <p className="text-xs text-ink-3">{m.joinedAt} 加入</p>
                   </div>
-                  {(app?.message || removable) && (
-                    <div className="mt-2 flex flex-wrap items-center gap-2 pl-9">
-                      {app?.message && (
-                        <p className="w-full text-xs italic text-ink-3">「{app.message}」</p>
-                      )}
-                      {removable && (
-                        <button
-                          onClick={() => { setShowMembers(false); setRemovingMember(m) }}
-                          className="flex items-center gap-1 text-xs text-red-400 hover:text-red-600"
-                        >
-                          <UserX size={12} /> 移除成員
-                        </button>
-                      )}
-                    </div>
-                  )}
+                  <div className="flex shrink-0 items-center gap-1">
+                    <button
+                      onClick={() => {
+                        setShowMembers(false)
+                        onClose()
+                        window.dispatchEvent(new CustomEvent('pm:open-dm', {
+                          detail: {
+                            hostId: m.userId,
+                            hostName: m.userName,
+                            hostAvatarInitial: m.userAvatarInitial,
+                            hostAvatarColor: m.userAvatarColor,
+                          },
+                        }))
+                      }}
+                      className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-brand"
+                    >
+                      <MessageCircle size={20} />
+                    </button>
+                    {removable && (
+                      <button
+                        onClick={() => setRemovingMember(m)}
+                        className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-red-500"
+                      >
+                        <UserX size={20} />
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <button
-                  onClick={() => {
-                    setShowMembers(false)
-                    onClose()
-                    window.dispatchEvent(new CustomEvent('pm:open-messages', { detail: { groupId: group.id } }))
-                  }}
-                  className="flex w-14 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl bg-brand text-xs font-semibold text-white transition-colors hover:bg-brand-hover"
-                >
-                  <MessageCircle size={15} />聯絡
-                </button>
+                {app?.message && (
+                  <div className="mt-2 pl-9">
+                    <p className="text-xs italic text-ink-3">「{app.message}」</p>
+                  </div>
+                )}
               </div>
             )
           })}
@@ -532,8 +524,8 @@ export default function HostGroupView({ group, members, applications, onConfirmM
     </Modal>
 
     {/* ── 申請管理 Modal ── */}
-    <Modal isOpen={showApplications} onClose={() => setShowApplications(false)} title="申請管理" maxWidth="max-w-lg" sub>
-      <div className="max-h-[60vh] overflow-y-auto p-5">
+    <Modal isOpen={showApplications} onClose={() => setShowApplications(false)} title="申請管理" icon={<ClipboardList size={18} className="text-brand" />} maxWidth="max-w-lg" sub>
+      <div className="h-[60vh] overflow-y-auto p-5">
         {applications.length === 0 ? (
           <EmptyState icon={ClipboardList} title="目前沒有任何申請紀錄" description="你的群組暫時沒有新的加入申請。" />
         ) : (
@@ -799,6 +791,18 @@ export default function HostGroupView({ group, members, applications, onConfirmM
         </div>
       )}
     </Modal>
+
+    {/* 移除成員確認 */}
+    {removingMember && (
+      <ConfirmDialog
+        title="移除成員"
+        message={`確定要將「${removingMember.userName}」移出群組嗎？對方會立即失去名額與聊天室存取權限，且會收到通知；若要再加入需要重新提出申請。`}
+        confirmLabel="移除"
+        danger
+        onConfirm={() => { onRemoveMember?.(removingMember); setRemovingMember(null) }}
+        onCancel={() => setRemovingMember(null)}
+      />
+    )}
   </>
   )
 }

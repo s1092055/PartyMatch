@@ -9,7 +9,7 @@ import MemberGroupView from '../../features/subscriptions/components/MemberGroup
 export default function GroupViewModal({
   isOpen, onClose, groupId,
   onConfirmMember, onReportPaymentIssue, onActivate, onActivateGroup, onRemoveMember,
-  onMarkPaid, onApprove, onReject, errors,
+  onMarkPaid, onLeaveGroup, onApprove, onReject, errors,
   autoOpenPayment, autoOpenActivateGroup, autoOpenApplications, autoOpenBilling,
 }) {
   const [, setTick] = useState(0)
@@ -39,5 +39,5 @@ export default function GroupViewModal({
       autoOpenBilling={autoOpenBilling}
     />
   )
-  return <MemberGroupView group={group} onMarkPaid={onMarkPaid} onClose={onClose} autoOpenPayment={autoOpenPayment} />
+  return <MemberGroupView group={group} onMarkPaid={onMarkPaid} onLeaveGroup={onLeaveGroup} onClose={onClose} autoOpenPayment={autoOpenPayment} />
 }

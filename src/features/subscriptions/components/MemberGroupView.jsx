@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import {
-  ChevronDown, ChevronUp, ClipboardEdit, CreditCard, MessageCircle, Receipt, Shield, Users,
+  ChevronDown, ChevronUp, ClipboardEdit, CreditCard, LogOut, MessageCircle, Receipt, Shield, Users,
 } from 'lucide-react'
 import PaymentModal from './PaymentModal'
 import Avatar from '../../../shared/ui/Avatar'
 import Modal from '../../../shared/ui/Modal'
+import ConfirmDialog from '../../../shared/ui/ConfirmDialog'
 import GroupModalShell from '../../../shared/ui/GroupModalShell'
 import EmptyState from '../../../shared/ui/EmptyState'
 import PaymentStatusBadge from './PaymentStatusBadge'
@@ -15,7 +16,7 @@ import { getPaymentRecordsBySubscriptionId, initPayments } from '../../../shared
 import { getCurrentUser } from '../../../shared/stores/authStore'
 import { sendActionMessage } from '../../../shared/api/messagesApi'
 
-export default function MemberGroupView({ group, onMarkPaid, onClose, autoOpenPayment }) {
+export default function MemberGroupView({ group, onMarkPaid, onLeaveGroup, onClose, autoOpenPayment }) {
   const [showMembers, setShowMembers]         = useState(false)
   const [showPayments, setShowPayments]       = useState(false)
   const [paymentOpen, setPaymentOpen]         = useState(false)
@@ -23,6 +24,7 @@ export default function MemberGroupView({ group, onMarkPaid, onClose, autoOpenPa
   const [fillInfoEmail, setFillInfoEmail]     = useState('')
   const [fillInfoLoading, setFillInfoLoading] = useState(false)
   const [expandedPayRec, setExpandedPayRec]   = useState(null)
+  const [leaveConfirm, setLeaveConfirm]       = useState(false)
   useEffect(() => {
     initPayments()
   }, [])
@@ -107,7 +109,8 @@ export default function MemberGroupView({ group, onMarkPaid, onClose, autoOpenPa
     </div>
   ) : undefined
 
-  const shellHidden = showMembers || showPayments || fillInfoOpen
+  const canLeaveGroup = ['recruiting', 'full'].includes(group.status) && !!myMember
+  const shellHidden = showMembers || showPayments || fillInfoOpen || paymentOpen
 
   const paymentCta = hasPendingPayment ? (
     <div className="p-4">
@@ -156,14 +159,14 @@ export default function MemberGroupView({ group, onMarkPaid, onClose, autoOpenPa
         ) : undefined
       }
       bottomBar={(() => {
-        const btnCount = 1 + (isPaymentRelevant ? 2 : 0)
+        const btnCount = 1 + (isPaymentRelevant ? 2 : 0) + (canLeaveGroup ? 1 : 0)
         return (
           <div className={`grid grid-cols-${btnCount} gap-1 p-2`}>
             <button
               onClick={() => setShowMembers(true)}
               className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
             >
-              <Users size={17} /> 成員管理
+              <Users size={17} /> 成員名單
             </button>
             {isPaymentRelevant && (
               <button
@@ -181,18 +184,26 @@ export default function MemberGroupView({ group, onMarkPaid, onClose, autoOpenPa
                 <MessageCircle size={17} /> 群組訊息
               </button>
             )}
+            {canLeaveGroup && (
+              <button
+                onClick={() => setLeaveConfirm(true)}
+                className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-danger transition-colors hover:bg-red-50"
+              >
+                <LogOut size={17} /> 退出群組
+              </button>
+            )}
           </div>
         )
       })()}
     >
-      <PaymentModal
-        isOpen={paymentOpen}
-        onClose={() => setPaymentOpen(false)}
-        sub={sub}
-        onSuccess={(proofUrl, paidAmount) => { onMarkPaid?.(sub, proofUrl, paidAmount) }}
-      />
-
     </GroupModalShell>
+
+    <PaymentModal
+      isOpen={paymentOpen}
+      onClose={() => setPaymentOpen(false)}
+      sub={sub}
+      onSuccess={(proofUrl, paidAmount) => { onMarkPaid?.(sub, proofUrl, paidAmount) }}
+    />
 
     {/* ── 填寫服務帳號 Modal ── */}
     <Modal
@@ -236,70 +247,97 @@ export default function MemberGroupView({ group, onMarkPaid, onClose, autoOpenPa
     </Modal>
 
     {/* ── 成員名單 Modal ── */}
-    <Modal isOpen={showMembers} onClose={() => setShowMembers(false)} title={`成員管理（${members.length + 1} 人）`} maxWidth="max-w-lg" sub>
-      <div className="max-h-[60vh] overflow-y-auto p-5">
+    <Modal isOpen={showMembers} onClose={() => setShowMembers(false)} title={`成員名單（${members.length + 1} 人）`} icon={<Users size={18} className="text-brand" />} maxWidth="max-w-lg" sub>
+      <div className="h-[60vh] overflow-y-auto p-5">
         <div className="space-y-2">
-          <div className="flex items-stretch gap-2">
-            <div className="min-w-0 flex-1 rounded-xl border border-line p-3">
-              <div className="flex items-center gap-3">
-                <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="sm" />
-                <div className="min-w-0 flex-1">
+          <div className="rounded-xl border border-line p-3">
+            <div className="flex items-center gap-3">
+              <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="sm" />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
                   <p className="text-sm font-semibold text-ink">{group.hostName}</p>
+                  <span className="flex shrink-0 items-center gap-1 rounded-full bg-brand-subtle px-2.5 py-0.5 text-xs font-semibold text-brand">
+                    <Shield size={11} /> 團主
+                  </span>
                 </div>
-                <span className="flex shrink-0 items-center gap-1 rounded-full bg-brand-subtle px-2.5 py-0.5 text-xs font-semibold text-brand">
-                  <Shield size={11} /> 團主
-                </span>
-              </div>
-            </div>
-            <button
-              onClick={() => { setShowMembers(false); openMessages() }}
-              className="flex w-14 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl bg-brand text-xs font-semibold text-white transition-colors hover:bg-brand-hover"
-            >
-              <MessageCircle size={15} />聯絡
-            </button>
-          </div>
-          {members.filter(m => m.userId !== currentUser?.id).map(m => (
-            <div key={m.id} className="flex items-stretch gap-2">
-              <div className="min-w-0 flex-1 rounded-xl border border-line p-3">
-                <div className="flex items-center gap-3">
-                  <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-ink">{m.userName}</p>
-                    <p className="text-xs text-ink-3">加入 {m.joinedAt}</p>
-                  </div>
-                </div>
+                <p className="text-xs text-ink-3">{group.createdAt} 建立</p>
               </div>
               <button
-                onClick={() => { setShowMembers(false); openMessages() }}
-                className="flex w-14 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl bg-brand text-xs font-semibold text-white transition-colors hover:bg-brand-hover"
+                onClick={() => {
+                  setShowMembers(false)
+                  window.dispatchEvent(new CustomEvent('pm:open-dm', {
+                    detail: {
+                      hostId: group.hostId,
+                      hostName: group.hostName,
+                      hostAvatarInitial: group.hostAvatarInitial,
+                      hostAvatarColor: group.hostAvatarColor,
+                    },
+                  }))
+                }}
+                className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-brand"
               >
-                <MessageCircle size={15} />聯絡
+                <MessageCircle size={20} />
               </button>
+            </div>
+          </div>
+          {members.filter(m => m.userId !== currentUser?.id).map(m => (
+            <div key={m.id} className="rounded-xl border border-line p-3">
+              <div className="flex items-center gap-3">
+                <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-ink">{m.userName}</p>
+                  <p className="text-xs text-ink-3">{m.joinedAt} 加入</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowMembers(false)
+                    window.dispatchEvent(new CustomEvent('pm:open-dm', {
+                      detail: {
+                        hostId: m.userId,
+                        hostName: m.userName,
+                        hostAvatarInitial: m.userAvatarInitial,
+                        hostAvatarColor: m.userAvatarColor,
+                      },
+                    }))
+                  }}
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-brand"
+                >
+                  <MessageCircle size={20} />
+                </button>
+              </div>
             </div>
           ))}
           {myMember && (
-            <div className="flex items-stretch gap-2">
-              <div className="min-w-0 flex-1 rounded-xl border border-line p-3">
-                <div className="flex items-center gap-3">
-                  <Avatar initial={myMember.userAvatarInitial} color={myMember.userAvatarColor} size="sm" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-ink">
-                      {myMember.userName}
-                      <span className="ml-1.5 text-xs font-normal text-brand">（你）</span>
-                    </p>
-                    <p className="text-xs text-ink-3">加入 {myMember.joinedAt}</p>
-                  </div>
+            <div className="rounded-xl border border-line p-3">
+              <div className="flex items-center gap-3">
+                <Avatar initial={myMember.userAvatarInitial} color={myMember.userAvatarColor} size="sm" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-ink">
+                    {myMember.userName}
+                    <span className="ml-1.5 text-xs font-normal text-brand">（你）</span>
+                  </p>
+                  <p className="text-xs text-ink-3">{myMember.joinedAt} 加入</p>
                 </div>
               </div>
-              <div className="w-14 shrink-0" />
             </div>
           )}
         </div>
       </div>
     </Modal>
 
+    {leaveConfirm && (
+      <ConfirmDialog
+        title="退出群組"
+        message={`確定要退出「${group.serviceName}」群組嗎？退出後名額將釋出，若要再加入需要重新提出申請。`}
+        confirmLabel="退出"
+        danger
+        onConfirm={() => { setLeaveConfirm(false); onLeaveGroup?.() }}
+        onCancel={() => setLeaveConfirm(false)}
+      />
+    )}
+
     {/* ── 付款紀錄 Modal ── */}
-    <Modal isOpen={showPayments} onClose={() => setShowPayments(false)} title="付款紀錄" maxWidth="max-w-lg" sub>
+    <Modal isOpen={showPayments} onClose={() => setShowPayments(false)} title="付款紀錄" icon={<Receipt size={18} className="text-brand" />} maxWidth="max-w-lg" sub>
       <div className="max-h-[60vh] overflow-y-auto p-5 space-y-2">
         {myMember && ['markedPaid', 'payment_failed'].includes(myMember.paymentStatus) && (() => {
           const key    = 'pending-payment'
