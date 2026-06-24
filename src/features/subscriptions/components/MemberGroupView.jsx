@@ -8,7 +8,6 @@ import Modal from '../../../shared/ui/Modal'
 import ConfirmDialog from '../../../shared/ui/ConfirmDialog'
 import GroupModalShell from '../../../shared/ui/GroupModalShell'
 import EmptyState from '../../../shared/ui/EmptyState'
-import PaymentStatusBadge from './PaymentStatusBadge'
 import { getServiceById } from '../../../shared/utils/serviceUtils'
 import { getMembersByGroupId, updateMember } from '../../../shared/stores/memberStore'
 import { getSubscriptionByUserAndGroup } from '../../../shared/stores/subscriptionStore'
@@ -99,13 +98,16 @@ export default function MemberGroupView({ group, onMarkPaid, onLeaveGroup, onClo
 
   const needsFillInfo   = !!sub && isPaymentPhase && !hasServiceInfo
   const serviceInfoCta  = needsFillInfo ? (
-    <div className="p-4">
-      <button
-        onClick={() => setFillInfoOpen(true)}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
-      >
-        <ClipboardEdit size={14} /> 填寫服務帳號
-      </button>
+    <div className="flex justify-center py-2">
+      <div className="relative">
+        <span className="absolute inset-1 rounded-xl bg-brand animate-ping opacity-20" />
+        <button
+          onClick={() => setFillInfoOpen(true)}
+          className="relative flex items-center gap-2 rounded-xl bg-brand px-6 py-2 text-sm font-bold text-white shadow-md transition-colors hover:bg-brand-hover"
+        >
+          <ClipboardEdit size={14} /> 填寫服務帳號
+        </button>
+      </div>
     </div>
   ) : undefined
 
@@ -113,15 +115,18 @@ export default function MemberGroupView({ group, onMarkPaid, onLeaveGroup, onClo
   const shellHidden = showMembers || showPayments || fillInfoOpen || paymentOpen
 
   const paymentCta = hasPendingPayment ? (
-    <div className="p-4">
-      <button
-        onClick={() => setPaymentOpen(true)}
-        className={`flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold text-white transition-colors ${
-          hasPaymentFailed ? 'bg-danger hover:opacity-90' : 'bg-brand hover:bg-brand-hover'
-        }`}
-      >
-        <CreditCard size={14} /> {hasPaymentFailed ? '重新上傳付款憑證' : '前往付款'}
-      </button>
+    <div className="flex justify-center py-2">
+      <div className="relative">
+        {hasPaymentFailed && <span className="absolute inset-1 rounded-xl bg-danger animate-ping opacity-20" />}
+        <button
+          onClick={() => setPaymentOpen(true)}
+          className={`relative flex items-center gap-2 rounded-xl px-6 py-2 text-sm font-bold text-white shadow-md transition-colors ${
+            hasPaymentFailed ? 'bg-danger hover:opacity-90' : 'bg-brand hover:bg-brand-hover'
+          }`}
+        >
+          <CreditCard size={14} /> {hasPaymentFailed ? '重新上傳付款憑證' : '前往付款'}
+        </button>
+      </div>
     </div>
   ) : undefined
 
@@ -134,6 +139,15 @@ export default function MemberGroupView({ group, onMarkPaid, onLeaveGroup, onClo
       plan={planDef}
       hidden={shellHidden}
       hideRecruitBar
+      headerBanner={needsFillInfo ? (
+        <div className="flex items-center justify-center bg-brand-subtle px-6 py-3 text-sm font-extrabold text-brand">
+          請填寫服務帳號以完成加入流程
+        </div>
+      ) : hasPaymentFailed ? (
+        <div className="flex items-center justify-center bg-danger-subtle px-6 py-3 text-sm font-extrabold text-danger">
+          付款失敗，請重新完成補件
+        </div>
+      ) : undefined}
       centeredCta={serviceInfoCta || paymentCta}
       statusBadgeOverride={['recruiting', 'full'].includes(group.status) && !!sub ? 'member_joined' : undefined}
       pendingBadge={
@@ -150,14 +164,7 @@ export default function MemberGroupView({ group, onMarkPaid, onLeaveGroup, onClo
         hasPaymentFailed ? 'danger' :
         undefined
       }
-      summaryExtraRows={
-        myMember ? (
-          <div className="border-t border-line-subtle py-4">
-            <p className="mb-2 text-xs text-ink-4">我的付款狀態</p>
-            <PaymentStatusBadge status={myMember.paymentStatus} />
-          </div>
-        ) : undefined
-      }
+      summaryExtraRows={undefined}
       bottomBar={(() => {
         const btnCount = 1 + (isPaymentRelevant ? 2 : 0) + (canLeaveGroup ? 1 : 0)
         return (
@@ -213,8 +220,17 @@ export default function MemberGroupView({ group, onMarkPaid, onLeaveGroup, onClo
       icon={<ClipboardEdit size={18} className="text-brand" />}
       maxWidth="max-w-sm"
       sub
+      footer={
+        <button
+          onClick={handleFillInfoSubmit}
+          disabled={!fillInfoEmail.trim() || fillInfoLoading}
+          className="flex-1 rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {fillInfoLoading ? '送出中...' : '確認送出'}
+        </button>
+      }
     >
-      <div className="p-5 space-y-4">
+      <div className="flex-1 min-h-0 overflow-y-auto p-5 space-y-4">
         <p className="text-sm text-ink-3">請填寫你的 {group.serviceName} 帳號，團主將使用此帳號將你加入訂閱方案。</p>
         <div>
           <label className="mb-1.5 block text-xs font-semibold text-ink-2">
@@ -228,27 +244,12 @@ export default function MemberGroupView({ group, onMarkPaid, onLeaveGroup, onClo
             className="w-full rounded-xl border border-line bg-canvas px-3.5 py-2.5 text-sm text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand"
           />
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => { setFillInfoOpen(false); setFillInfoEmail('') }}
-            className="flex-1 rounded-xl border border-line py-2.5 text-sm font-semibold text-ink-2 transition-colors hover:bg-raised"
-          >
-            取消
-          </button>
-          <button
-            onClick={handleFillInfoSubmit}
-            disabled={!fillInfoEmail.trim() || fillInfoLoading}
-            className="flex-1 rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {fillInfoLoading ? '送出中...' : '確認送出'}
-          </button>
-        </div>
       </div>
     </Modal>
 
     {/* ── 成員名單 Modal ── */}
     <Modal isOpen={showMembers} onClose={() => setShowMembers(false)} title={`成員名單（${members.length + 1} 人）`} icon={<Users size={18} className="text-brand" />} maxWidth="max-w-lg" sub>
-      <div className="h-[60vh] overflow-y-auto p-5">
+      <div className="h-[60vh] min-h-0 overflow-y-auto p-5">
         <div className="space-y-2">
           <div className="rounded-xl border border-line p-3">
             <div className="flex items-center gap-3">
@@ -340,7 +341,7 @@ export default function MemberGroupView({ group, onMarkPaid, onLeaveGroup, onClo
 
     {/* ── 付款紀錄 Modal ── */}
     <Modal isOpen={showPayments} onClose={() => setShowPayments(false)} title="付款紀錄" icon={<Receipt size={18} className="text-brand" />} maxWidth="max-w-lg" sub>
-      <div className="max-h-[60vh] overflow-y-auto p-5 space-y-2">
+      <div className="h-[60vh] min-h-0 overflow-y-auto p-5 space-y-2">
         {myMember && ['markedPaid', 'payment_failed'].includes(myMember.paymentStatus) && (() => {
           const key    = 'pending-payment'
           const open   = expandedPayRec === key

@@ -16,6 +16,7 @@ import { formatRelativeDate, toISODate } from '../../../shared/utils/date'
 import { CONFIRMED_STATUSES } from '../../../shared/constants/paymentStatus'
 import { getSubscriptionByUserAndGroup } from '../../../shared/stores/subscriptionStore'
 import { getPaymentRecordsBySubscriptionId } from '../../../shared/stores/paymentStore'
+import CustomSelect from '../../../shared/ui/CustomSelect'
 
 // ── 申請卡片 ──────────────────────────────────────────────────────────────────
 
@@ -40,8 +41,10 @@ function ApplicationCard({ app, groupFull, error, onApprove, onReject }) {
               <p className="mt-0.5 text-2xs text-ink-4">{formatRelativeDate(app.createdAt)}</p>
             </div>
             {!isPending && (
-              <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${app.status === 'approved' ? 'bg-success-subtle text-success-text' : 'bg-red-50 text-red-600'}`}>
-                {app.status === 'approved' ? '已核准' : '已拒絕'}
+              <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                app.status === 'approved' ? 'bg-success-subtle text-success-text' : 'bg-danger-subtle text-danger-text'
+              }`}>
+                {app.status === 'approved' ? '已核准' : app.status === 'removed' ? '已移除' : '已拒絕'}
               </span>
             )}
           </div>
@@ -92,11 +95,12 @@ const ISSUE_TYPES = [
   { key: 'other',            label: '其他問題',           desc: '請填寫說明' },
 ]
 
-export default function HostGroupView({ group, members, applications, onConfirmMember, onReportPaymentIssue, onRemoveMember, onActivate, onActivateGroup, onApprove, onReject, errors, onClose, autoOpenActivateGroup, autoOpenApplications, autoOpenBilling }) {
+export default function HostGroupView({ group, members, applications, onConfirmMember, onReportPaymentIssue, onRemoveMember, onActivate, onActivateGroup, onApprove, onReject, errors, onClose, autoOpenActivateGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling }) {
   const [showActivate, setShowActivate]                   = useState(false)
   const [removingMember, setRemovingMember]               = useState(null)
   const [showMembers, setShowMembers]                     = useState(false)
   const [showApplications, setShowApplications]           = useState(false)
+  const [appFilter, setAppFilter]                         = useState('all')
   const [showBilling, setShowBilling]                     = useState(false)
   const [showActivateGroupConfirm, setShowActivateGroupConfirm] = useState(false)
   const [expandedBillingMembers, setExpandedBillingMembers] = useState(new Set())
@@ -148,6 +152,10 @@ export default function HostGroupView({ group, members, applications, onConfirmM
     if (autoOpenBilling) setShowBilling(true)
   }, [autoOpenBilling])
 
+  useEffect(() => {
+    if (autoOpenActivate) { openActivate(); onAutoOpenActivateDone?.() }
+  }, [autoOpenActivate]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const serviceDef    = getServiceById(group.serviceId)
   const planDef       = serviceDef?.plans.find(p => p.name === group.planName)
   const appByMemberId = Object.fromEntries(applications.map(a => [(a.applicantId ?? a.userId), a]))
@@ -187,32 +195,44 @@ export default function HostGroupView({ group, members, applications, onConfirmM
     onClose()
   }
 
+  const activateGroupBanner = group.status === 'full' && (
+    <div className="flex items-center justify-center bg-success-subtle px-6 py-3 text-sm font-extrabold text-success-text">
+      招募完成，請點擊啟用群組
+    </div>
+  )
+
   const activateGroupCta = group.status === 'full' && (
-    <div className="space-y-2 px-4 py-3">
-      <div className="flex items-center justify-center rounded-xl bg-success-subtle px-4 py-3 text-sm font-extrabold text-success-text">
-        招募完成，請點擊啟用群組
+    <div className="flex justify-center py-2">
+      <div className="relative">
+        {!showActivateGroupConfirm && <span className="absolute inset-1 rounded-xl bg-success animate-ping opacity-20" />}
+        <button
+          onClick={() => setShowActivateGroupConfirm(true)}
+          className="relative flex items-center gap-2 rounded-xl bg-success px-6 py-2 text-sm font-bold text-white shadow-md transition-colors hover:bg-success-text"
+        >
+          <Radio size={15} /> 啟用群組
+        </button>
       </div>
-      <button
-        onClick={() => setShowActivateGroupConfirm(true)}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
-      >
-        <Radio size={15} /> 啟用群組
-      </button>
+    </div>
+  )
+
+  const activateBanner = canActivateNow && (
+    <div className="flex items-center justify-center gap-2 bg-success-subtle px-6 py-3 text-sm font-extrabold text-success-text">
+      <CheckCircle2 size={15} />
+      所有付款已確認，可以啟用服務了
     </div>
   )
 
   const activateCta = canActivateNow && (
-    <div className="space-y-2 px-4 py-3">
-      <div className="flex items-center justify-center gap-2 rounded-xl bg-success-subtle px-4 py-3 text-sm font-extrabold text-success-text">
-        <CheckCircle2 size={15} />
-        所有付款已確認，可以啟用服務了
+    <div className="flex justify-center py-2">
+      <div className="relative">
+        {!showActivate && <span className="absolute inset-1 rounded-xl bg-success animate-ping opacity-20" />}
+        <button
+          onClick={openActivate}
+          className="relative flex items-center gap-2 rounded-xl bg-success px-6 py-2 text-sm font-bold text-white shadow-md transition-colors hover:bg-success-text"
+        >
+          <PlayCircle size={15} /> 啟用服務
+        </button>
       </div>
-      <button
-        onClick={openActivate}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
-      >
-        <PlayCircle size={15} /> 啟用服務
-      </button>
     </div>
   )
 
@@ -230,7 +250,10 @@ export default function HostGroupView({ group, members, applications, onConfirmM
       confirmedCount={confirmedCount}
       memberCount={members.length}
       hidden={shellHidden}
+      headerBanner={activateGroupBanner || activateBanner || undefined}
       centeredCta={activateGroupCta || activateCta || undefined}
+      pendingBadge="收款中"
+      statusBadgeOverride={group.status === 'pending_confirmation' ? { variant: 'pending_confirmation', label: '收款中' } : undefined}
       bottomBar={(() => {
         return (
           <div className={`grid grid-cols-${isRecruiting ? 2 : 3} gap-1 p-2`}>
@@ -291,12 +314,18 @@ export default function HostGroupView({ group, members, applications, onConfirmM
         isOpen={showActivate}
         onClose={closeActivate}
         title="啟用服務"
-        icon={<PlayCircle size={18} className="text-brand" />}
+        icon={<PlayCircle size={18} className="text-success" />}
         maxWidth="max-w-lg"
         sub
+        footer={
+          <button
+            onClick={handleActivateConfirm}
+            disabled={!allMembersChecked || !finalConfirmed}
+            className="flex-1 rounded-xl bg-success py-2.5 text-sm font-bold text-white transition-colors hover:bg-success-text disabled:cursor-not-allowed disabled:opacity-40"
+          >確認啟用</button>
+        }
       >
-        <div className="max-h-[70vh] overflow-y-auto">
-
+        <div className="flex-1 min-h-0 overflow-y-auto">
           {/* ① 服務摘要 */}
           <div className="flex items-center gap-3 border-b border-line-subtle px-5 py-4">
             <ServiceLogo serviceId={group.serviceId} size={40} className="rounded-xl" />
@@ -367,7 +396,7 @@ export default function HostGroupView({ group, members, applications, onConfirmM
             )
           })()}
 
-          {/* ④ 最終確認 + 按鈕 */}
+          {/* ④ 最終確認 */}
           <div className="space-y-3 p-5">
             {!allMembersChecked && (
               <p className="rounded-xl bg-warning-subtle px-4 py-2.5 text-xs font-semibold text-warning-text">
@@ -386,63 +415,38 @@ export default function HostGroupView({ group, members, applications, onConfirmM
                 我確認所有成員皆已完成外部服務設定，同意平台依此結果進行撥款
               </span>
             </label>
-            <div className="flex gap-2">
-              <button
-                onClick={closeActivate}
-                className="flex-1 rounded-xl border border-line py-2.5 text-sm font-semibold text-ink-2 transition-colors hover:bg-raised"
-              >取消</button>
-              <button
-                onClick={handleActivateConfirm}
-                disabled={!allMembersChecked || !finalConfirmed}
-                className="flex-1 rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
-              >確認啟用</button>
+          </div>
+        </div>
+      </Modal>
+
+
+      {/* ── 啟用群組確認 Dialog ── */}
+      {showActivateGroupConfirm && (
+        <ConfirmDialog
+          icon={<Radio size={18} className="text-success" />}
+          title="啟用群組"
+          message="啟用後將開啟群組聊天室，系統會通知所有成員進行付款，並提示成員提供服務帳號資訊。"
+          confirmLabel="確認啟用"
+          onCancel={() => setShowActivateGroupConfirm(false)}
+          onConfirm={() => { setShowActivateGroupConfirm(false); onActivateGroup?.() }}
+        >
+          {members.length > 0 && (
+            <div className="mt-3 rounded-xl bg-raised p-3 space-y-1.5">
+              {members.map(m => (
+                <div key={m.id} className="flex items-center gap-2">
+                  <span
+                    className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-[10px] font-black text-white"
+                    style={{ background: m.userAvatarColor }}
+                  >
+                    {m.userAvatarInitial}
+                  </span>
+                  <p className="text-sm text-ink">{m.userName}</p>
+                </div>
+              ))}
             </div>
-          </div>
-        </div>
-      </Modal>
-
-
-      {/* ── 啟用群組確認 Modal ── */}
-      <Modal
-        isOpen={showActivateGroupConfirm}
-        onClose={() => setShowActivateGroupConfirm(false)}
-        title={<span className="flex items-center gap-1.5"><Radio size={16} className="text-brand" />啟用群組</span>}
-        maxWidth="max-w-sm"
-        sub
-        footer={
-          <>
-            <button
-              onClick={() => setShowActivateGroupConfirm(false)}
-              className="flex-1 rounded-xl border border-line py-2.5 text-sm font-semibold text-ink-2 transition-colors hover:bg-raised"
-            >
-              取消
-            </button>
-            <button
-              onClick={() => { setShowActivateGroupConfirm(false); onActivateGroup?.() }}
-              className="flex-1 rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
-            >
-              確認啟用
-            </button>
-          </>
-        }
-      >
-        <div className="px-5 py-4 space-y-3">
-          <p className="text-sm text-ink-3">啟用後將開啟群組聊天室，系統會通知所有成員進行付款，並提示成員提供服務帳號資訊。</p>
-          <div className="rounded-xl bg-raised p-3 space-y-1.5">
-            {members.map(m => (
-              <div key={m.id} className="flex items-center gap-2">
-                <span
-                  className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-[10px] font-black text-white"
-                  style={{ background: m.userAvatarColor }}
-                >
-                  {m.userAvatarInitial}
-                </span>
-                <p className="text-sm text-ink">{m.userName}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </Modal>
+          )}
+        </ConfirmDialog>
+      )}
 
     </GroupModalShell>
 
@@ -455,7 +459,7 @@ export default function HostGroupView({ group, members, applications, onConfirmM
       maxWidth="max-w-lg"
       sub
     >
-      <div className="h-[60vh] overflow-y-auto p-5">
+      <div className="h-[60vh] min-h-0 overflow-y-auto p-5">
         <div className="space-y-2">
           <div className="rounded-xl border border-line p-3">
             <div className="flex items-center gap-3">
@@ -524,30 +528,50 @@ export default function HostGroupView({ group, members, applications, onConfirmM
     </Modal>
 
     {/* ── 申請管理 Modal ── */}
-    <Modal isOpen={showApplications} onClose={() => setShowApplications(false)} title="申請管理" icon={<ClipboardList size={18} className="text-brand" />} maxWidth="max-w-lg" sub>
-      <div className="h-[60vh] overflow-y-auto p-5">
+    <Modal isOpen={showApplications} onClose={() => { setShowApplications(false); setAppFilter('all') }} title="申請管理" icon={<ClipboardList size={18} className="text-brand" />} maxWidth="max-w-lg" sub>
+      {applications.length > 0 && (
+        <div className="px-5 py-3">
+          <CustomSelect
+            value={appFilter}
+            onChange={setAppFilter}
+            options={[
+              { value: 'all',      label: `全部（${applications.length}）` },
+              { value: 'pending',  label: `審核中（${applications.filter(a => a.status === 'pending').length}）` },
+              { value: 'approved', label: `已核准（${applications.filter(a => a.status === 'approved').length}）` },
+              { value: 'removed',  label: `已移除（${applications.filter(a => a.status === 'removed').length}）` },
+              { value: 'rejected', label: `已拒絕（${applications.filter(a => a.status === 'rejected').length}）` },
+            ]}
+          />
+        </div>
+      )}
+      <div className="h-[60vh] min-h-0 overflow-y-auto px-5 pb-5 pt-2">
         {applications.length === 0 ? (
           <EmptyState icon={ClipboardList} title="目前沒有任何申請紀錄" description="你的群組暫時沒有新的加入申請。" />
-        ) : (
-          <div className="space-y-3">
-            {applications.map(app => (
-              <ApplicationCard
-                key={app.id}
-                app={app}
-                groupFull={groupFull}
-                error={errors?.[app.id]}
-                onApprove={app => { onApprove?.(app); setShowApplications(false) }}
-                onReject={onReject}
-              />
-            ))}
-          </div>
-        )}
+        ) : (() => {
+          const filteredApps = applications.filter(a => appFilter === 'all' || a.status === appFilter)
+          return filteredApps.length === 0
+            ? <EmptyState icon={ClipboardList} title="沒有符合的申請紀錄" />
+            : (
+              <div className="space-y-3">
+                {filteredApps.map(app => (
+                  <ApplicationCard
+                    key={app.id}
+                    app={app}
+                    groupFull={groupFull}
+                    error={errors?.[app.id]}
+                    onApprove={app => { onApprove?.(app); setShowApplications(false); setAppFilter('all') }}
+                    onReject={onReject}
+                  />
+                ))}
+              </div>
+            )
+        })()}
       </div>
     </Modal>
 
     {/* ── 收款紀錄 Modal ── */}
     <Modal isOpen={showBilling} onClose={() => setShowBilling(false)} title="收款管理" icon={<Banknote size={18} className="text-brand" />} maxWidth="max-w-lg" sub>
-        <div className="max-h-[60vh] overflow-y-auto">
+        <div className="h-[60vh] min-h-0 overflow-y-auto">
           {isActivated ? (
             /* 已啟用後：顯示歷史收款清單 */
             <div className="p-5">
@@ -637,14 +661,18 @@ export default function HostGroupView({ group, members, applications, onConfirmM
                             <div className="min-w-0 flex-1">
                               <p className="text-sm font-semibold text-ink">{m.userName}</p>
                             </div>
-                            <span className={`text-xs font-semibold ${CONFIRMED_STATUSES.includes(m.paymentStatus) ? 'text-success' : 'text-ink-3'}`}>
-                              {CONFIRMED_STATUSES.includes(m.paymentStatus) ? '已確認' : '待確認'}
+                            <span className={`text-xs font-semibold ${
+                              CONFIRMED_STATUSES.includes(m.paymentStatus) ? 'text-success' :
+                              m.paymentStatus === 'payment_failed' ? 'text-danger' : 'text-ink-3'
+                            }`}>
+                              {CONFIRMED_STATUSES.includes(m.paymentStatus) ? '已確認' :
+                               m.paymentStatus === 'payment_failed' ? '補件中' : '待確認'}
                             </span>
                             {expanded ? <ChevronUp size={14} className="shrink-0 text-ink-3" /> : <ChevronDown size={14} className="shrink-0 text-ink-3" />}
                           </button>
                           {expanded && (
                             <div className="border-t border-line-subtle px-4 py-3 space-y-3">
-                              {m.paymentStatus === 'markedPaid' && sub ? (
+                              {m.paymentStatus === 'markedPaid' ? (
                                 <>
                                   <div className="space-y-2">
                                     <div className="flex items-center gap-3">
@@ -654,9 +682,9 @@ export default function HostGroupView({ group, members, applications, onConfirmM
                                         <p className="text-xs text-ink-3">{m.lastPaidAt ?? '—'}</p>
                                       </div>
                                       <span className="shrink-0 text-sm font-bold text-ink">
-                                        NT${m.paidAmount ?? sub.pricePerSeat}
-                                        {m.paidAmount && m.paidAmount !== sub.pricePerSeat && (
-                                          <span className="ml-1 text-xs font-normal text-warning-text">（應付 NT${sub.pricePerSeat}）</span>
+                                        NT${m.paidAmount ?? group.pricePerSeat}
+                                        {m.paidAmount && m.paidAmount !== group.pricePerSeat && (
+                                          <span className="ml-1 text-xs font-normal text-warning-text">（應付 NT${group.pricePerSeat}）</span>
                                         )}
                                       </span>
                                     </div>
@@ -687,6 +715,35 @@ export default function HostGroupView({ group, members, applications, onConfirmM
                                       <AlertTriangle size={11} /> 回報問題
                                     </button>
                                   </div>
+                                </>
+                              ) : m.paymentStatus === 'payment_failed' ? (
+                                <>
+                                  <div className="flex items-center gap-2 rounded-lg bg-danger-subtle px-3 py-2 text-xs font-semibold text-danger">
+                                    <AlertTriangle size={12} /> 付款問題已回報，等待成員重新補件
+                                  </div>
+                                  {m.paymentIssueType && (
+                                    <div className="space-y-1 rounded-lg bg-raised px-3 py-2.5">
+                                      <p className="text-xs font-semibold text-ink-3">回報原因</p>
+                                      <p className="text-sm font-semibold text-ink">
+                                        {ISSUE_TYPES.find(t => t.key === m.paymentIssueType)?.label ?? m.paymentIssueType}
+                                      </p>
+                                      {m.paymentIssueNote && (
+                                        <p className="text-xs text-ink-3">{m.paymentIssueNote}</p>
+                                      )}
+                                    </div>
+                                  )}
+                                  {m.paymentProofUrl && (
+                                    <div className="space-y-1.5">
+                                      <p className="text-xs text-ink-4">上次提交的截圖</p>
+                                      <a href={m.paymentProofUrl} target="_blank" rel="noopener noreferrer">
+                                        <img
+                                          src={m.paymentProofUrl}
+                                          alt="付款截圖"
+                                          className="w-full rounded-xl border border-line object-contain opacity-60 transition-opacity hover:opacity-90"
+                                        />
+                                      </a>
+                                    </div>
+                                  )}
                                 </>
                               ) : records.length === 0 ? (
                                 <p className="text-xs text-ink-3">尚無付款紀錄</p>
@@ -726,11 +783,21 @@ export default function HostGroupView({ group, members, applications, onConfirmM
       onClose={() => closeReportModal(true)}
       title="回報付款問題"
       icon={<AlertTriangle size={18} className="text-warning-text" />}
-      maxWidth="max-w-sm"
+      maxWidth="max-w-lg"
+      height="min(calc(100vh - 2rem), 540px)"
       sub
+      footer={
+        <button
+          onClick={handleSendIssueReport}
+          disabled={!issueType || (issueType === 'other' && !issueNote.trim())}
+          className="flex-1 rounded-xl bg-warning py-2.5 text-sm font-bold text-white transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          發送通知
+        </button>
+      }
     >
       {reportModalMember && (
-        <div className="p-5 space-y-4">
+        <div className="flex-1 min-h-0 overflow-y-auto p-5 space-y-4">
           <div className="flex items-center gap-3 rounded-xl bg-raised px-4 py-3">
             <Avatar initial={reportModalMember.userAvatarInitial} color={reportModalMember.userAvatarColor} size="sm" />
             <p className="text-sm font-semibold text-ink">{reportModalMember.userName}</p>
@@ -773,21 +840,6 @@ export default function HostGroupView({ group, members, applications, onConfirmM
               )}
             </div>
           )}
-          <div className="flex gap-2">
-            <button
-              onClick={() => closeReportModal(true)}
-              className="flex-1 rounded-xl border border-line py-2.5 text-sm font-semibold text-ink-2 transition-colors hover:bg-raised"
-            >
-              取消
-            </button>
-            <button
-              onClick={handleSendIssueReport}
-              disabled={!issueType || (issueType === 'other' && !issueNote.trim())}
-              className="flex-1 rounded-xl bg-warning py-2.5 text-sm font-bold text-white transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              發送通知
-            </button>
-          </div>
         </div>
       )}
     </Modal>

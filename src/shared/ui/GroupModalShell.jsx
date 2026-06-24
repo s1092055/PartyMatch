@@ -20,6 +20,7 @@ export default function GroupModalShell({
   pendingBadge,
   pendingBadgeColor,
   centeredCta,
+  headerBanner,
   statusBadgeOverride,
   hidden,
   // kept for backward compat (no longer rendered)
@@ -88,6 +89,15 @@ export default function GroupModalShell({
               <X size={18} />
             </button>
           </div>
+          {(headerBanner || showCenteredBadge) && (
+            <div className="shrink-0">
+              {headerBanner ?? (
+                <div className={`flex items-center justify-center px-6 py-3 text-sm font-extrabold ${centeredBadgeCls}`}>
+                  {centeredBadgeLabel}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Scrollable content */}
           <div ref={scrollBodyRef} onScroll={handleScroll} className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -117,16 +127,10 @@ export default function GroupModalShell({
             </div>
           </div>
 
-          {/* Summary: price / CTA / badge — fixed above action buttons */}
+          {/* Summary: price / CTA — fixed above action buttons */}
           {centeredCta ? (
-            <div className="shrink-0 border-t border-line bg-canvas px-6 py-4">
+            <div className="shrink-0 border-t border-line bg-canvas px-6 py-2">
               {centeredCta}
-            </div>
-          ) : showCenteredBadge ? (
-            <div className="shrink-0 border-t border-line px-6 py-3">
-              <div className={`flex items-center justify-center rounded-xl px-4 py-3 text-sm font-extrabold ${centeredBadgeCls}`}>
-                {centeredBadgeLabel}
-              </div>
             </div>
           ) : !hideRecruitBar ? (
             <div className="shrink-0 border-t border-line bg-canvas px-6 py-4">

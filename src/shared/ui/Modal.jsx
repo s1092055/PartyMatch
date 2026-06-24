@@ -59,8 +59,8 @@ export default function Modal({
           onClick={handleClose}
         />
         <div
-          className={`relative w-full ${resolvedMaxWidth} card overflow-hidden p-0 animate-modal-in`}
-          style={height ? { height } : undefined}
+          className={`relative flex w-full flex-col ${resolvedMaxWidth} card overflow-hidden p-0 animate-modal-in`}
+          style={height ? { height, maxHeight: 'calc(100vh - 2rem)' } : { maxHeight: 'calc(100vh - 2rem)' }}
         >
           {(title || icon) && (
             <div className="flex items-center border-b border-line-subtle px-3 py-3">

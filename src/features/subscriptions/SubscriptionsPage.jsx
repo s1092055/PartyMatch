@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { CheckCircle, ClipboardList, Clock, XCircle } from 'lucide-react'
+import { CheckCircle, ClipboardList, Clock, UserMinus, XCircle } from 'lucide-react'
 import { getSubscriptionsByUserId, initSubscriptions, markSubscriptionPaid, removeSubscription } from '../../shared/stores/subscriptionStore'
 import { getMemberByUserAndGroup, initMembers, removeMember, updateMember } from '../../shared/stores/memberStore'
 import { createNotification } from '../../shared/stores/notificationStore'
@@ -107,7 +107,6 @@ export default function SubscriptionsPage() {
 
     reloadFromSource()
     window.addEventListener('pm:subscriptions-changed', syncFromMemory)
-    
     window.addEventListener('pm:applications-changed', syncFromMemory)
     window.addEventListener('pm:groups-changed', syncFromMemory)
     window.addEventListener('focus', reloadFromSource)
@@ -326,6 +325,7 @@ const APP_STATUS_CONFIG = {
   pending:  { label: '審核中', Icon: Clock,       cls: 'bg-warning-subtle text-warning-text',   dot: 'bg-warning'  },
   approved: { label: '已核准', Icon: CheckCircle, cls: 'bg-success-subtle text-success-text',   dot: 'bg-success'  },
   rejected: { label: '已拒絕', Icon: XCircle,     cls: 'bg-danger-subtle  text-danger',          dot: 'bg-danger'   },
+  removed:  { label: '已被移除', Icon: UserMinus,  cls: 'bg-danger-subtle  text-danger',          dot: 'bg-danger'   },
 }
 
 function ApplicationCard({ app, group, onViewGroup }) {

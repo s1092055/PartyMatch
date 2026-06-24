@@ -21,6 +21,7 @@ readFileSync(resolve(__dir, '../.env'), 'utf8')
     process.env[key] = val
   })
 
+import { execSync } from 'child_process'
 import { initializeApp } from 'firebase/app'
 import { getFirestore, collection, getDocs, writeBatch, doc } from 'firebase/firestore'
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth'
@@ -59,26 +60,17 @@ async function clearCollection(name) {
 }
 
 async function clearConversations() {
-  const convSnap = await getDocs(collection(db, 'conversations'))
-  if (convSnap.empty) { console.log(`  – ${'conversations'.padEnd(20)} 0 筆`); return }
-
-  let msgTotal = 0
-  for (const convDoc of convSnap.docs) {
-    const msgSnap = await getDocs(collection(db, 'conversations', convDoc.id, 'messages'))
-    if (!msgSnap.empty) {
-      for (let i = 0; i < msgSnap.docs.length; i += CHUNK) {
-        const batch = writeBatch(db)
-        msgSnap.docs.slice(i, i + CHUNK).forEach(m =>
-          batch.delete(doc(db, 'conversations', convDoc.id, 'messages', m.id))
-        )
-        await batch.commit()
-      }
-      msgTotal += msgSnap.docs.length
-    }
+  // 使用 Firebase CLI 刪除，繞過 Firestore 安全規則（client SDK 只能讀到自己參與的對話）
+  const projectId = process.env.VITE_FIREBASE_PROJECT_ID
+  try {
+    execSync(
+      `firebase firestore:delete conversations --project=${projectId} --recursive --force`,
+      { stdio: 'pipe' }
+    )
+    console.log(`  ✓ ${'conversations'.padEnd(20)} 已清空（含所有子集合）`)
+  } catch {
+    console.warn(`  ⚠ conversations 清除失敗，請手動至 Firebase Console 刪除`)
   }
-
-  await deleteInBatches(convSnap.docs, 'conversations')
-  console.log(`  ✓ ${'conversations'.padEnd(20)} 刪除 ${convSnap.docs.length} 筆對話、${msgTotal} 筆訊息`)
 }
 
 async function main() {

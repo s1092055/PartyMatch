@@ -93,10 +93,11 @@ Demo seed 會讀取 `.env`，建立或重用 demo 帳號，並寫入 groups、me
 | 功能 | 入口 | 目前內容 |
 |------|------|----------|
 | 建立群組 | 側欄「建立群組」/ `/create-group` | 4 步驟表單：選服務、選方案、群組設定（名額、帳號需求、加入規則）、確認預覽送出 |
-| 群組管理 | `/manage-groups` | 群組卡片、狀態篩選、待處理申請、本期收款、付款狀態 |
-| 審核申請 | GroupViewModal → 申請管理子 Modal | 核准後建立 member + subscription，名額同步更新；拒絕後通知申請者 |
-| 成員付款確認 | GroupViewModal → 收款紀錄子 Modal | 成員標記付款後，團主逐筆確認；全員確認後推進狀態 |
-| 啟用服務 | GroupViewModal 摘要卡 / 手機黏底列 | 名額/付款完成後啟用群組，通知所有成員 |
+| 群組管理 | `/manage-groups` | 群組卡片、狀態篩選（全部／招募中／處理中／啟用中／已結束）、待處理申請、本期收款、付款狀態；`markedPaid` 成員觸發收款管理 badge |
+| 審核申請 | GroupViewModal → 申請管理子 Modal | 核准後建立 member + subscription，名額同步更新；拒絕後通知申請者；支援 dropdown 篩選（全部／審核中／已核准／已移除／已拒絕） |
+| 移除成員 | GroupViewModal → 成員名單子 Modal | 限 `recruiting`/`full` 狀態；移除後建立 `removed` 申請紀錄、刪除 subscription、同步信用分數、發送含 `meta.groupId` 通知；被移除成員可重新申請 |
+| 成員付款確認 | GroupViewModal → 收款管理子 Modal | 成員標記付款後，團主逐筆確認（需 subscription 存在才可確認）；確認後清除殘留問題欄位；全員確認後推進狀態；可回報付款問題（原因存入 `paymentIssueType`/`paymentIssueNote`）；成員重新補件後狀態回到 `markedPaid` |
+| 啟用服務 | GroupViewModal header banner + CTA 按鈕；點擊「所有付款已確認」通知直達 | 名額/付款完成後顯示全寬 banner 提示；CTA 按鈕帶 ping 動畫（綠色）；確認為 Dialog 形式；通知點擊透過 `autoOpenActivate` 自動開啟啟用服務 modal |
 | 續訂或結束 | RenewalModal / store 函式 | 開始新一期收款後自動重設成員與訂閱付款狀態並發送通知；結束服務後群組進入已結束狀態 |
 | 歷史紀錄 | GroupHistoryModal | 已有歷史檢視元件，卡片入口尚待補強 |
 
@@ -107,7 +108,7 @@ Demo seed 會讀取 `.env`，建立或重用 demo 帳號，並寫入 groups、me
 | `AppNav` | 桌機側欄、手機 Header、右側通知/訊息按鈕、未讀 badge、未登入鎖頭提示 |
 | `MobileSearch` | 手機/側欄搜尋入口，可搜尋服務與群組 |
 | `ModalShell` | 快速配對、建立群組、訊息中心共用 Modal 外殼 |
-| `GroupModalShell` | 探索、管理、訂閱三處群組詳情 Modal 共用的兩欄佈局殼（header、左欄內容、右欄摘要卡含 badge 狀態顯示、手機/平板價格＋名額摘要條、底部操作列、手機黏底列） |
+| `GroupModalShell` | 探索、管理、訂閱三處群組詳情 Modal 共用的兩欄佈局殼；新增 `headerBanner` prop（modal header 下方全寬提示條）；`showCenteredBadge`（收款中等狀態 badge）亦整合至 headerBanner 位置顯示 |
 | `GroupDetailModal` | 探索頁群組詳情（`pm:open-group` 事件驅動）；使用 `GroupModalShell`，含收藏、申請加入、聯絡團主、推薦群組輪播 |
 | `GroupViewModal` | 薄殼：依登入者角色決定渲染 `HostGroupView`（`features/manage`）或 `MemberGroupView`（`features/subscriptions`） |
 | `FilterTabsBar` | 管理群組、我的訂閱等頁面的可重用分頁篩選列 |
@@ -414,8 +415,8 @@ src/
 | `src/features/messages/MessagesModal.jsx` | `conversationStore`、`messagesApi`、子元件 `ConversationList`、`ChatWindow`、`ConfirmDialog` | 接收 `pm:open-messages` / `pm:open-dm`；監聽 `pm:convs-changed` 同步對話列表；透過 `subscribeToMessages` 訂閱即時訊息；狀態管理與 UI 渲染分離 |
 | `src/shared/layout/FloatingMessages.jsx` | `notificationStore` | 接收 `pm:open-notify`；訪客只取公開系統公告，會員合併個人通知與系統公告 |
 | `src/shared/ui/GroupViewModal.jsx` | `HostGroupView`、`MemberGroupView`、`groupStore`、`memberStore`、`applicationStore`、`authStore` | 薄殼：讀取 group 與 currentUser，依 isHost 決定渲染 HostGroupView 或 MemberGroupView |
-| `src/features/manage/components/HostGroupView.jsx` | `GroupModalShell`、`Modal`、`ConfirmDialog`、`PaymentStatusBadge` | 團主視角；底部按鈕「成員名單 / 申請管理（招募中）或 收款紀錄 / 群組訊息（啟用後）」；移除成員功能限定在 `recruiting`/`full` 狀態（啟用群組前）；名額全確認時顯示啟用服務 CTA |
-| `src/features/subscriptions/components/MemberGroupView.jsx` | `GroupModalShell`、`Modal`、`ConfirmDialog`、`PaymentStatusBadge` | 成員視角；底部按鈕「成員名單」已重命名（原成員管理）；`recruiting`/`full` 狀態下額外顯示「退出群組」按鈕，確認後呼叫 `onLeaveGroup`；待付款時顯示標記已付款 CTA |
+| `src/features/manage/components/HostGroupView.jsx` | `GroupModalShell`、`Modal`、`ConfirmDialog` | 團主視角；底部按鈕「成員名單 / 申請管理（招募中，含 dropdown 篩選）或 收款管理 / 群組訊息（啟用後）」；移除成員限定在 `recruiting`/`full` 狀態；header banner + ping 動畫 CTA 引導啟用群組；sub Modal 均採 `footer` prop 固定按鈕防視窗裁切 |
+| `src/features/subscriptions/components/MemberGroupView.jsx` | `GroupModalShell`、`Modal`、`ConfirmDialog` | 成員視角；付款失敗時 header 顯示「付款失敗，請重新完成補件」banner；填寫服務帳號與重新上傳付款憑證均採 ping 動畫 CTA；`recruiting`/`full` 狀態下顯示退出群組按鈕 |
 | `src/shared/stores/*` | `src/shared/api/*`、`src/shared/utils/*` | stores 保存前端快取並封裝業務流程，api 檔只處理 Firestore CRUD/subscribe |
 
 ---
@@ -452,6 +453,9 @@ src/
 | `pm:notif-changed` | `notificationStore` | `AppNav` 更新通知未讀 badge |
 | `pm:convs-changed` | `conversationStore`（每次快照更新或 teardown） | `AppNav` 更新訊息未讀 badge、`MessagesModal` 重新讀取對話列表 |
 | `pm:auth-changed` | `authStore` | `AppNav` 重新讀取使用者狀態 |
+| `pm:members-changed` | `memberStore`（createMember / updateMember / removeMember） | `GroupDetailModal`、`SubscriptionsPage` 即時更新申請狀態與 CTA |
+| `pm:applications-changed` | `applicationStore` | `GroupDetailModal`、`SubscriptionsPage` 更新申請 CTA |
+| `pm:open-manage-group` | `FloatingMessages`（通知點擊）、跨頁面導覽 | `ManagePage` 開啟指定群組 modal；支援 `openActivateGroup`、`openActivate`、`openApplications`、`openBilling` 旗標自動展開對應子 modal |
 
 ---
 
@@ -475,7 +479,8 @@ src/
 | 狀態 | 成員端含義 | 團主端含義 |
 |------|------------|------------|
 | `pending` | 尚未標記付款 | 等待成員付款 |
-| `markedPaid` | 已標記付款，等待團主確認 | 待確認收款 |
+| `markedPaid` | 已標記付款，等待團主確認 | 待確認收款；收款管理按鈕顯示 badge |
+| `payment_failed` | 付款被回報問題，需重新上傳憑證 | 已回報問題，等待成員補件；成員補件後自動回到 `markedPaid` |
 | `confirmed` | 團主已確認 | 已完成確認 |
 | `paid` | 舊格式，視為已付款 | 舊格式，視為已確認 |
 | `overdue` | 已逾期，需補繳 | 可提醒成員付款 |
@@ -546,7 +551,7 @@ Demo seed 內容包含：
 |------|------|----------|
 | 正式金流串接 | 付款流程目前為展示用途（標記即可），尚未串接 ECPay / 綠界或其他金流 API | `subscriptionStore.js`、付款相關頁面 |
 | 2FA / 身份驗證強化 | 目前僅 Firebase Email/Password + Google 登入，未實作第二驗證因素 | `authStore.js` |
-| RWD 小螢幕優化 | 部分頁面（尤其 Modal 底部操作列）在 375px 以下螢幕仍有 overflow 可再優化 | `HostGroupView.jsx`、`MemberGroupView.jsx`、`GroupModalShell.jsx` |
+| RWD 小螢幕優化 | sub Modal 已採 `flex-col max-h-[calc(100vh-2rem)]` + footer prop 固定按鈕；list modal 內容區 `h-[60vh] min-h-0` 可在視窗壓縮時收縮並垂直捲動；ping 動畫 CTA 仍有極窄螢幕視覺問題 | `Modal.jsx`、`HostGroupView.jsx`、`MemberGroupView.jsx` |
 | 探索頁搜尋結果 URL 分享 | 目前篩選條件存於 sessionStorage，URL 無法直接分享當前篩選狀態 | `ExplorePage.jsx` |
 | 快速配對結果分頁 | 配對結果目前一次顯示全部，資料量大時需加入分頁或虛擬捲動 | `QuickMatchModal.jsx` |
 

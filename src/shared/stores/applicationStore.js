@@ -95,9 +95,11 @@ export function getMemberGroupIds(userId) {
 }
 
 export function getApplicationByUserAndGroup(userId, groupId) {
-  return _apps.find(
+  const matches = _apps.filter(
     a => (a.applicantId ?? a.userId) === userId && a.groupId === groupId
-  ) ?? null
+  )
+  if (!matches.length) return null
+  return matches.sort((a, b) => String(b.createdAt ?? '').localeCompare(String(a.createdAt ?? '')))[0]
 }
 
 export function getApplicationsByHostId(hostId, groups) {

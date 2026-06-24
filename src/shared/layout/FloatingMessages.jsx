@@ -38,6 +38,8 @@ const NOTIFICATION_META = {
   group_full:           { icon: UserPlus,      iconColor: 'text-brand',      link: '/manage-groups' },
   group_chat_opened:    { icon: MessageSquare, iconColor: 'text-brand',      link: null },
   group_activated:      { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-subscriptions' },
+  member_removed:       { icon: AlertCircle,   iconColor: 'text-danger',     link: '/explore' },
+  member_left:          { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/manage-groups' },
   system:               { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/explore' },
   announcement:         { icon: AlertCircle,   iconColor: 'text-brand',      link: '/explore' },
   platform:             { icon: AlertCircle,   iconColor: 'text-brand',      link: '/explore' },
@@ -162,8 +164,22 @@ export default function FloatingMessages() {
       return
     }
 
+    if (notification.type === 'member_removed' && notification.meta?.groupId) {
+      navigate('/explore')
+      window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: notification.meta.groupId } }))
+      return
+    }
+
     if (notification.type === 'application_approved' && notification.meta?.groupId) {
-      navigate('/my-subscriptions', { state: { openGroupId: notification.meta.groupId } })
+      const gId = notification.meta.groupId
+      const user = getCurrentUser()
+      const hasSub = user ? !!getSubscriptionByUserAndGroup(user.id, gId) : false
+      if (hasSub) {
+        navigate('/my-subscriptions', { state: { openGroupId: gId } })
+      } else {
+        navigate('/explore')
+        window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: gId } }))
+      }
       return
     }
 
@@ -188,8 +204,8 @@ export default function FloatingMessages() {
     }
 
     if (notification.type === 'all_payments_confirmed' && notification.meta?.groupId) {
-      navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId } })
-      window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: notification.meta.groupId } }))
+      navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId, openActivate: true } })
+      window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: notification.meta.groupId, openActivate: true } }))
       return
     }
 

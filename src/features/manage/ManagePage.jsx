@@ -3,9 +3,9 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { activateGroup, activateGroupChat, confirmGroupPayments, endGroup, getGroupById, getGroupsByHostId, startRenewalCycle, updateGroup } from '../../shared/stores/groupStore'
 import { adjustCreditScore } from '../../shared/stores/authStore'
 import { CREDIT_RULES } from '../../shared/utils/creditScore'
-import { getApplicationsByHostId, updateApplicationStatus } from '../../shared/stores/applicationStore'
+import { getApplicationByUserAndGroup, getApplicationsByHostId, updateApplicationStatus } from '../../shared/stores/applicationStore'
 import { getMembersByGroupId, createMember, isUserGroupMember, removeMember, resetMemberPaymentsForGroup, updateMember } from '../../shared/stores/memberStore'
-import { activateGroupSubscriptions, confirmSubscriptionPayment, createSubscription, getSubscriptionByUserAndGroup, getSubscriptionsByGroupId, resetSubscriptionPayment, resetSubscriptionPaymentsForGroup } from '../../shared/stores/subscriptionStore'
+import { activateGroupSubscriptions, confirmSubscriptionPayment, createSubscription, getSubscriptionByUserAndGroup, getSubscriptionsByGroupId, removeSubscription, resetSubscriptionPayment, resetSubscriptionPaymentsForGroup } from '../../shared/stores/subscriptionStore'
 import { createPaymentRecord, getPaymentRecordCountBySubIds } from '../../shared/stores/paymentStore'
 import { createNotification } from '../../shared/stores/notificationStore'
 import { getCurrentUser } from '../../shared/stores/authStore'
@@ -22,7 +22,7 @@ import RenewalModal from './components/RenewalModal'
 const STATUS_FILTER_TABS = [
   { key: 'all',        label: '全部'   },
   { key: 'recruiting', label: '招募中' },
-  { key: 'pending',    label: '待啟用' },
+  { key: 'pending',    label: '處理中' },
   { key: 'active',     label: '啟用中' },
   { key: 'cancelled',  label: '已結束' },
 ]
@@ -61,17 +61,19 @@ export default function ManagePage() {
 
   const [viewGroupId, setViewGroupId]                     = useState(null)
   const [autoOpenActivateGroup, setAutoOpenActivateGroup] = useState(false)
+  const [autoOpenActivate, setAutoOpenActivate]           = useState(false)
   const [autoOpenApplications, setAutoOpenApplications]   = useState(false)
   const [autoOpenBilling, setAutoOpenBilling]             = useState(false)
   const [historyModalGroupId, setHistoryModalGroupId]     = useState(null)
   const [renewalModalGroupId, setRenewalModalGroupId]     = useState(null)
 
-  function applyOpenManageGroup({ groupId, openGroupId, statusFilter: sf, openActivateGroup, openApplications, openBilling }) {
+  function applyOpenManageGroup({ groupId, openGroupId, statusFilter: sf, openActivateGroup, openActivate, openApplications, openBilling }) {
     const gId = groupId ?? openGroupId
     if (!gId) return
     if (sf) setStatusFilter(sf)
     setViewGroupId(gId)
     setAutoOpenActivateGroup(!!openActivateGroup)
+    setAutoOpenActivate(!!openActivate)
     setAutoOpenApplications(!!openApplications)
     setAutoOpenBilling(!!openBilling)
   }
@@ -234,6 +236,10 @@ function handleRemoveMember(member) {
     const group = getGroupById(member.groupId)
     adjustCreditScore(member.userId, CREDIT_RULES.MEMBER_REMOVED).catch(console.error)
     removeMember(member.id)
+    const app = getApplicationByUserAndGroup(member.userId, member.groupId)
+    if (app) updateApplicationStatus(app.id, 'removed')
+    const sub = getSubscriptionByUserAndGroup(member.userId, member.groupId)
+    if (sub) removeSubscription(sub.id)
     const seats = seatMap[member.groupId]
     if (seats) {
       const newUsed = Math.max(0, seats.usedSeats - 1)
@@ -245,6 +251,11 @@ function handleRemoveMember(member) {
         members: prev.hostedGroups.flatMap(g => getMembersByGroupId(g.id)),
         seatMap: { ...prev.seatMap, [member.groupId]: { usedSeats: newUsed, openSeats: newOpen } },
       }))
+    } else {
+      setManageData(prev => ({
+        ...prev,
+        members: prev.hostedGroups.flatMap(g => getMembersByGroupId(g.id)),
+      }))
     }
 
     const groupLabel = group?.groupName ?? group?.serviceName ?? '群組'
@@ -253,6 +264,7 @@ function handleRemoveMember(member) {
       type:    'member_removed',
       title:   '已被移出群組',
       message: `團主已將你移出「${groupLabel}」群組。`,
+      meta:    { groupId: member.groupId },
     })
     const convId = `group_${member.groupId}`
     const remainingMembers = getMembersByGroupId(member.groupId).filter(m => m.userId !== member.userId)
@@ -262,20 +274,20 @@ function handleRemoveMember(member) {
   }
 
 function handleConfirmMember(member) {
+    const sub = getSubscriptionByUserAndGroup(member.userId, member.groupId)
+    if (!sub) return
+
     adjustCreditScore(member.userId, CREDIT_RULES.PAYMENT_CONFIRMED).catch(console.error)
-    updateMember(member.id, { paymentStatus: 'confirmed' })
+    updateMember(member.id, { paymentStatus: 'confirmed', paymentIssueType: null, paymentIssueNote: null })
 
     // 重新從 store 讀取最新 member 資料，確保 paymentProofUrl/paidAmount 是最新值
     const freshMember = getMembersByGroupId(member.groupId).find(m => m.id === member.id) ?? member
-    const sub = getSubscriptionByUserAndGroup(member.userId, member.groupId)
-    if (sub) {
-      confirmSubscriptionPayment(sub.id)
-      createPaymentRecord({
-        subscriptionId: sub.id,
-        amount:   freshMember.paidAmount ?? sub.pricePerSeat,
-        proofUrl: freshMember.paymentProofUrl ?? null,
-      })
-    }
+    confirmSubscriptionPayment(sub.id)
+    createPaymentRecord({
+      subscriptionId: sub.id,
+      amount:   freshMember.paidAmount ?? sub.pricePerSeat,
+      proofUrl: freshMember.paymentProofUrl ?? null,
+    })
 
     createNotification({
       userId:  member.userId,
@@ -310,7 +322,7 @@ function handleConfirmMember(member) {
   }
 
   function handleReportPaymentIssue(member, issueType, issueNote) {
-    updateMember(member.id, { paymentStatus: 'payment_failed', paymentProofUrl: null })
+    updateMember(member.id, { paymentStatus: 'payment_failed', paymentProofUrl: null, paymentIssueType: issueType, paymentIssueNote: issueNote || null })
     const sub = getSubscriptionByUserAndGroup(member.userId, member.groupId)
     if (sub) resetSubscriptionPayment(sub.id)
 
@@ -520,7 +532,7 @@ function handleApprove(appId) {
 
   function groupHandlers(g) {
     return {
-      onViewGroup:   () => { refreshGroups(); setViewGroupId(g.id); setAutoOpenActivateGroup(false); setAutoOpenApplications(false); setAutoOpenBilling(false) },
+      onViewGroup:   () => { refreshGroups(); setViewGroupId(g.id); setAutoOpenActivateGroup(false); setAutoOpenActivate(false); setAutoOpenApplications(false); setAutoOpenBilling(false) },
       onViewHistory: () => setHistoryModalGroupId(g.id),
       onRenewal:     () => setRenewalModalGroupId(g.id),
     }
@@ -567,7 +579,7 @@ function handleApprove(appId) {
 
 <GroupViewModal
         isOpen={!!viewGroupId}
-        onClose={() => { setViewGroupId(null); setAutoOpenActivateGroup(false); setAutoOpenApplications(false); setAutoOpenBilling(false); refreshGroups() }}
+        onClose={() => { setViewGroupId(null); setAutoOpenActivateGroup(false); setAutoOpenActivate(false); setAutoOpenApplications(false); setAutoOpenBilling(false); refreshGroups() }}
         groupId={viewGroupId}
         onConfirmMember={handleConfirmMember}
         onReportPaymentIssue={handleReportPaymentIssue}
@@ -578,6 +590,8 @@ function handleApprove(appId) {
         onReject={handleReject}
         errors={errors}
         autoOpenActivateGroup={autoOpenActivateGroup}
+        autoOpenActivate={autoOpenActivate}
+        onAutoOpenActivateDone={() => setAutoOpenActivate(false)}
         autoOpenApplications={autoOpenApplications}
         autoOpenBilling={autoOpenBilling}
       />

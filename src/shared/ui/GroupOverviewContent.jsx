@@ -100,7 +100,11 @@ export default function GroupOverviewContent({ group, service, plan, reviewsSect
             {infoRows.map(({ label, value, badge }) => (
               <div key={label} className="flex items-center gap-3 text-sm">
                 <span className="w-16 shrink-0 text-ink-4">{label}</span>
-                <span className="text-ink-2">{badge ? <Badge variant={badge} /> : value}</span>
+                <span className="text-ink-2">{badge ? (
+                  typeof badge === 'object'
+                    ? <Badge variant={badge.variant} label={badge.label} />
+                    : <Badge variant={badge} />
+                ) : value}</span>
               </div>
             ))}
           </div>

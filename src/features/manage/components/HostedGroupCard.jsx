@@ -80,7 +80,7 @@ export default function HostedGroupCard({
       onClick={onViewGroup}
     >
       <div className="flex justify-center">
-        <Badge variant={group.status} className={STATUS_BADGE_CLASS[displayStatus] ?? ''} />
+        <Badge variant={group.status} label={group.status === 'pending_confirmation' ? '收款中' : undefined} className={STATUS_BADGE_CLASS[displayStatus] ?? ''} />
       </div>
 
       <div className="mt-4 flex justify-center">

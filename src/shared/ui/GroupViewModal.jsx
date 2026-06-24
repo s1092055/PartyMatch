@@ -10,7 +10,7 @@ export default function GroupViewModal({
   isOpen, onClose, groupId,
   onConfirmMember, onReportPaymentIssue, onActivate, onActivateGroup, onRemoveMember,
   onMarkPaid, onLeaveGroup, onApprove, onReject, errors,
-  autoOpenPayment, autoOpenActivateGroup, autoOpenApplications, autoOpenBilling,
+  autoOpenPayment, autoOpenActivateGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling,
 }) {
   const [, setTick] = useState(0)
   useEffect(() => {
@@ -35,6 +35,8 @@ export default function GroupViewModal({
       onApprove={onApprove} onReject={onReject}
       errors={errors} onClose={onClose}
       autoOpenActivateGroup={autoOpenActivateGroup}
+      autoOpenActivate={autoOpenActivate}
+      onAutoOpenActivateDone={onAutoOpenActivateDone}
       autoOpenApplications={autoOpenApplications}
       autoOpenBilling={autoOpenBilling}
     />

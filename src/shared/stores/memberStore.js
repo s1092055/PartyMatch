@@ -50,17 +50,20 @@ export function createMember({ groupId, groupName, userId, userName, userAvatarI
   }
   _members.push(member)
   insertMember(member).catch(console.error)
+  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('pm:members-changed'))
   return member
 }
 
 export function updateMember(memberId, patch) {
   _members = _members.map(m => m.id === memberId ? { ...m, ...patch } : m)
   patchMember(memberId, patch).catch(console.error)
+  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('pm:members-changed'))
 }
 
 export function removeMember(memberId) {
   _members = _members.filter(m => m.id !== memberId)
   deleteMemberRecord(memberId).catch(console.error)
+  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('pm:members-changed'))
 }
 
 export function resetMemberPaymentsForGroup(groupId) {

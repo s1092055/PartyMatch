@@ -16,6 +16,13 @@ import GroupModalShell from '../../shared/ui/GroupModalShell'
 import ApplyJoinModal from './components/ApplyJoinModal'
 import ExploreGroupCard from '../explore/components/ExploreGroupCard'
 
+function computeIsApplied(app, groupId) {
+  if (!app) return false
+  return app.status !== 'rejected'
+    && app.status !== 'removed'
+    && !(app.status === 'approved' && !isCurrentUserMember(groupId))
+}
+
 // ── 團主評價 ──────────────────────────────────────────────────────────────────
 
 function HostReviews({ group, hostStars, headerClassName }) {
@@ -89,13 +96,26 @@ export default function GroupDetailModal() {
   }, [])
 
   useEffect(() => {
+    function refreshApplied() {
+      if (!groupId || !activeUserId) return
+      setApplied(computeIsApplied(getApplicationByUserAndGroup(activeUserId, groupId), groupId))
+      setTick(t => t + 1)
+    }
+    window.addEventListener('pm:applications-changed', refreshApplied)
+    window.addEventListener('pm:members-changed', refreshApplied)
+    return () => {
+      window.removeEventListener('pm:applications-changed', refreshApplied)
+      window.removeEventListener('pm:members-changed', refreshApplied)
+    }
+  }, [groupId, activeUserId])
+
+  useEffect(() => {
     function onOpen(e) {
       const gId = e.detail?.groupId ?? null
       setGroupId(gId)
       setApplyModalOpen(false)
       if (gId && activeUserId) {
-        const existingApp = getApplicationByUserAndGroup(activeUserId, gId)
-        setApplied(!!existingApp && existingApp.status !== 'rejected')
+        setApplied(computeIsApplied(getApplicationByUserAndGroup(activeUserId, gId), gId))
         setIsFav(isGroupFavorited(activeUserId, gId))
       } else {
         setApplied(false)
@@ -166,12 +186,17 @@ export default function GroupDetailModal() {
       </div>
     )
     if (needsFillInfo) return (
-      <button
-        onClick={() => { handleClose(); navigate('/my-subscriptions', { state: { openGroupId: group.id } }) }}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
-      >
-        <CreditCard size={15} /> 填寫服務帳號
-      </button>
+      <div className="flex justify-center">
+        <div className="relative">
+          <span className="absolute inset-1 rounded-xl bg-brand animate-ping opacity-20" />
+          <button
+            onClick={() => { handleClose(); navigate('/my-subscriptions', { state: { openGroupId: group.id } }) }}
+            className="relative flex items-center gap-2 rounded-xl bg-brand px-6 py-2 text-sm font-bold text-white shadow-md transition-colors hover:bg-brand-hover"
+          >
+            <CreditCard size={15} /> 填寫服務帳號
+          </button>
+        </div>
+      </div>
     )
     if (isPendingPayment) return (
       <button
@@ -236,7 +261,7 @@ export default function GroupDetailModal() {
               onClick={openDm}
               className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl border border-line px-4 py-2.5 text-sm font-semibold text-ink-2 transition-colors hover:border-brand hover:text-brand"
             >
-              聯絡團主 <MessageCircle size={15} />
+              <MessageCircle size={15} /> 聯絡團主
             </button>
           )}
           {renderCTA()}
@@ -269,7 +294,7 @@ export default function GroupDetailModal() {
                 onClick={openDm}
                 className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-line px-4 py-2.5 text-sm font-semibold text-ink-2 transition-colors hover:border-brand hover:text-brand"
               >
-                聯絡團主 <MessageCircle size={15} />
+                <MessageCircle size={15} /> 聯絡團主
               </button>
             )}
           </div>
