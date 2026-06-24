@@ -12,8 +12,8 @@ const VARIANTS = {
     dot: 'bg-warning',
   },
   active: {
-    cls: 'bg-brand-subtle text-brand',
-    dot: 'bg-brand',
+    cls: 'bg-success-subtle text-success-text',
+    dot: 'bg-success',
   },
   paused: {
     cls: 'bg-slate-100 text-slate-500',
@@ -89,7 +89,7 @@ const LABELS = {
   recruiting:         '招募中',
   group_active:       '收款中',
   pending_activation: '待啟用',
-  active:             '已啟用',
+  active:             '啟用中',
   paused:             '已結束',
   cancelled:          '已結束',
   full:               '已滿員',

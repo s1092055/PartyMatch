@@ -252,7 +252,7 @@ export default function HostGroupView({ group, members, applications, onConfirmM
       hidden={shellHidden}
       headerBanner={activateGroupBanner || activateBanner || undefined}
       centeredCta={activateGroupCta || activateCta || undefined}
-      pendingBadge="收款中"
+      pendingBadge={group.status === 'pending_confirmation' ? '收款中' : undefined}
       statusBadgeOverride={group.status === 'pending_confirmation' ? { variant: 'pending_confirmation', label: '收款中' } : undefined}
       bottomBar={(() => {
         return (
@@ -339,7 +339,24 @@ export default function HostGroupView({ group, members, applications, onConfirmM
             </div>
           </div>
 
-          {/* ② 逐一確認成員已加入外部服務 */}
+          {/* ② 下次扣款日（唯讀顯示） */}
+          {(() => {
+            const d = new Date()
+            if (group.billingCycle === 'yearly') d.setFullYear(d.getFullYear() + 1)
+            else d.setMonth(d.getMonth() + 1)
+            const nextDate = toISODate(d)
+            return (
+              <div className="mx-5 mt-5 flex items-center justify-between rounded-xl border border-line bg-raised px-4 py-3">
+                <div>
+                  <p className="text-xs font-semibold text-ink-2">下次扣款日</p>
+                  <p className="mt-0.5 text-xs text-ink-4">啟用後自動設定，不可修改</p>
+                </div>
+                <p className="text-base font-extrabold text-ink">{nextDate}</p>
+              </div>
+            )
+          })()}
+
+          {/* ③ 逐一確認成員已加入外部服務 */}
           <div className="px-5 pt-5">
             <div className="mb-2 flex items-center justify-between">
               <p className="text-xs font-semibold text-ink-2">確認成員已加入外部服務</p>
@@ -378,23 +395,6 @@ export default function HostGroupView({ group, members, applications, onConfirmM
               ))}
             </div>
           </div>
-
-          {/* ③ 下次扣款日（唯讀顯示） */}
-          {(() => {
-            const d = new Date()
-            if (group.billingCycle === 'yearly') d.setFullYear(d.getFullYear() + 1)
-            else d.setMonth(d.getMonth() + 1)
-            const nextDate = toISODate(d)
-            return (
-              <div className="mx-5 mt-5 flex items-center justify-between rounded-xl border border-line bg-raised px-4 py-3">
-                <div>
-                  <p className="text-xs font-semibold text-ink-2">下次扣款日</p>
-                  <p className="mt-0.5 text-xs text-ink-4">啟用後自動設定，不可修改</p>
-                </div>
-                <p className="text-base font-extrabold text-ink">{nextDate}</p>
-              </div>
-            )
-          })()}
 
           {/* ④ 最終確認 */}
           <div className="space-y-3 p-5">
