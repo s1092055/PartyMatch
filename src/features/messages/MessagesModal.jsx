@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { MessageSquare } from 'lucide-react'
+import { ChevronLeft, MessageSquare } from 'lucide-react'
 import Modal from '../../shared/ui/Modal'
 import LoginPromptModal from '../../shared/ui/LoginPromptModal'
 import { getCurrentUser, isAuthenticated } from '../../shared/stores/authStore'
@@ -232,8 +232,23 @@ export default function MessagesModal() {
       )}
       <Modal
         onClose={handleClose}
-        icon={<MessageSquare size={20} className="text-brand" />}
-        title="訊息"
+        icon={selectedId && selected
+          ? <>
+              <button
+                onClick={() => setSelectedId(null)}
+                className="md:hidden grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+                aria-label="返回"
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <MessageSquare size={20} className="hidden md:block text-brand" />
+            </>
+          : <MessageSquare size={20} className="text-brand" />
+        }
+        title={selectedId && selected
+          ? <><span className="md:hidden">{selected.name}</span><span className="hidden md:inline">訊息</span></>
+          : '訊息'
+        }
         height="min(88vh, 820px)"
       >
         <div className="relative flex-1 overflow-hidden">
