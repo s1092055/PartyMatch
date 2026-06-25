@@ -251,27 +251,32 @@ export default function MessagesModal() {
         }
         height="min(88vh, 820px)"
       >
-        <div className="relative flex-1 overflow-hidden">
-          {/* Mobile: 200% 寬滑動軌道；desktop: 正常並排 flex */}
+        <div className="relative flex-1 overflow-hidden md:flex">
+          {/* Mobile: absolute panels, max-md: variant slides in/out; Desktop: normal flex row */}
           <div className={[
-            'flex h-full w-[200%] transition-transform duration-300 ease-in-out',
-            'md:w-full md:translate-x-0',
-            selectedId ? '-translate-x-1/2' : 'translate-x-0',
+            'absolute inset-0 flex flex-col overflow-hidden border-r border-line',
+            'transition-transform duration-300 ease-in-out',
+            'md:static md:inset-auto md:w-80 md:shrink-0 lg:w-96',
+            selectedId ? 'max-md:-translate-x-full' : '',
           ].join(' ')}>
-            <div className="flex w-1/2 shrink-0 flex-col overflow-hidden md:w-80 lg:w-96">
-              <ConversationList
-                filteredConvs={filteredConvs}
-                activeTab={activeTab}
-                selectedId={selectedId}
-                user={user}
-                searchQuery={searchQuery}
-                onSelectConversation={setSelectedId}
-                onTabChange={setActiveTab}
-                onSearchChange={setSearchQuery}
-              />
-            </div>
+            <ConversationList
+              filteredConvs={filteredConvs}
+              activeTab={activeTab}
+              selectedId={selectedId}
+              user={user}
+              searchQuery={searchQuery}
+              onSelectConversation={setSelectedId}
+              onTabChange={setActiveTab}
+              onSearchChange={setSearchQuery}
+            />
+          </div>
 
-          <div className="relative flex w-1/2 flex-col overflow-hidden md:w-auto md:flex-1">
+          <div className={[
+            'absolute inset-0 flex flex-col overflow-hidden',
+            'transition-transform duration-300 ease-in-out',
+            'md:static md:inset-auto md:flex-1',
+            selectedId ? '' : 'max-md:translate-x-full',
+          ].join(' ')}>
             <ChatWindow
               selected={selected}
               selectedId={selectedId}
@@ -297,7 +302,6 @@ export default function MessagesModal() {
               onInputChange={v => { setCanSend(v.trim().length > 0); setSendError(false) }}
               onRequestDeleteConversation={handleRequestDeleteConversation}
             />
-          </div>
           </div>
         </div>
       </Modal>
