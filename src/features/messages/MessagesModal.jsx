@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { ChevronLeft, MessageSquare, MoreVertical, Trash2, Users } from 'lucide-react'
+import ConversationAvatar from './components/ConversationAvatar'
 import Modal from '../../shared/ui/Modal'
 import LoginPromptModal from '../../shared/ui/LoginPromptModal'
 import { getCurrentUser, isAuthenticated } from '../../shared/stores/authStore'
@@ -241,6 +242,9 @@ export default function MessagesModal() {
               >
                 <ChevronLeft size={18} />
               </button>
+              <div className="max-md:block hidden shrink-0">
+                <ConversationAvatar conversation={selected} size={28} />
+              </div>
               <MessageSquare size={20} className="max-md:hidden text-brand" />
             </>
           : <MessageSquare size={20} className="text-brand" />
@@ -289,7 +293,7 @@ export default function MessagesModal() {
         <div className="relative flex-1 overflow-hidden md:flex">
           {/* Mobile: absolute panels, max-md: variant slides in/out; Desktop: normal flex row */}
           <div className={[
-            'absolute inset-0 flex flex-col overflow-hidden border-r border-line',
+            'absolute inset-0 flex flex-col overflow-hidden',
             'transition-transform duration-300 ease-in-out',
             'md:static md:inset-auto md:w-80 md:shrink-0 lg:w-96',
             selectedId ? 'max-md:-translate-x-full' : '',

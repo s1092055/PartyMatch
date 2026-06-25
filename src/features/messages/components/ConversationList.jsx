@@ -13,7 +13,7 @@ export { CONV_TABS }
 
 export default function ConversationList({ filteredConvs, activeTab, selectedId, user, searchQuery, onSelectConversation, onTabChange, onSearchChange }) {
   return (
-    <div className="flex w-full flex-col border-r border-line">
+    <div className="flex w-full flex-col md:border-r md:border-line">
       <div className="border-b border-line px-3 py-2">
         <div className="flex items-center gap-2 rounded-xl bg-raised px-3 py-2">
           <Search size={14} className="shrink-0 text-ink-4" />
