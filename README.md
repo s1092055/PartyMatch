@@ -64,7 +64,7 @@ Demo seed 會讀取 `.env`，建立或重用 demo 帳號，並寫入 groups、me
 | Frontend | React 19、Vite、React Router v7 |
 | UI | Tailwind CSS v4、lucide-react |
 | Backend / Data | Firebase Auth、Firebase Firestore |
-| Realtime | Firestore `onSnapshot` 用於訊息中心即時同步；以 `experimentalForceLongPolling` 解決 Safari WebChannel 靜默斷線問題 |
+| Realtime | Firestore `onSnapshot` 用於訊息即時同步；以 `experimentalForceLongPolling` 解決 Safari WebChannel 靜默斷線問題 |
 | State Layer | `src/shared/stores/*` 封裝業務邏輯 |
 | Data Access | `src/shared/api/*` 封裝 Firestore CRUD |
 | Demo Data | `scripts/seedDemo.mjs`、`scripts/clearDemo.mjs` |
@@ -86,7 +86,7 @@ Demo seed 會讀取 `.env`，建立或重用 demo 帳號，並寫入 groups、me
 | 我的收藏 | `/favorites` | 需登入 | 收藏群組、分類篩選、取消收藏 |
 | 帳號中心 | `/account` | 需登入 | 個人資料寫回 Firebase users、付款方式/通知偏好本機持久化 |
 | 通知中心 | 右上角通知按鈕 | 訪客可看系統公告；會員看個人通知 | 付款、申請、系統通知；會員可標記已讀 |
-| 訊息中心 | 右上角訊息按鈕 / 聯絡團主 | 需登入 | 群組對話、私人 DM、未讀數、退出/刪除對話、即時訊息 |
+| 訊息 | 右上角訊息按鈕 / 聯絡團主 | 需登入 | 群組對話、私人 DM、未讀數、退出/刪除對話、即時訊息；手機版點選對話後以滑動動畫（翻書效果）切換至聊天室，返回按鈕滑回列表 |
 
 ### 團主功能
 
@@ -107,8 +107,8 @@ Demo seed 會讀取 `.env`，建立或重用 demo 帳號，並寫入 groups、me
 |-------------|------|
 | `AppNav` | 桌機側欄、手機 Header、右側通知/訊息按鈕、未讀 badge、未登入鎖頭提示 |
 | `MobileSearch` | 手機/側欄搜尋入口，可搜尋服務與群組 |
-| `ModalShell` | 快速配對、建立群組、訊息中心共用 Modal 外殼 |
-| `GroupModalShell` | 探索、管理、訂閱三處群組詳情 Modal 共用的兩欄佈局殼；新增 `headerBanner` prop（modal header 下方全寬提示條）；`showCenteredBadge`（收款中等狀態 badge）亦整合至 headerBanner 位置顯示 |
+| `ModalShell` | 快速配對、建立群組、訊息共用 Modal 外殼 |
+| `GroupModalShell` | 探索、管理、訂閱三處群組詳情 Modal 共用的兩欄佈局殼；支援 `subPanel` prop 實現群組內頁（成員名單、申請管理、收款管理、付款紀錄）以滑動動畫（翻書效果）替換 Modal 主內容，返回按鈕滑回；`headerBanner` prop 支援 modal header 下方全寬提示條 |
 | `GroupDetailModal` | 探索頁群組詳情（`pm:open-group` 事件驅動）；使用 `GroupModalShell`，含收藏、申請加入、聯絡團主、推薦群組輪播 |
 | `GroupViewModal` | 薄殼：依登入者角色決定渲染 `HostGroupView`（`features/manage`）或 `MemberGroupView`（`features/subscriptions`） |
 | `FilterTabsBar` | 管理群組、我的訂閱等頁面的可重用分頁篩選列 |

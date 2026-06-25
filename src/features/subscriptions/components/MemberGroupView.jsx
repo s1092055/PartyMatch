@@ -129,7 +129,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
   function buildSubPanel() {
     if (activePanel === 'members') {
       return {
-        title: `成員名單（${members.length + 1} 人）`,
+        title: '成員名單',
         icon: <Users size={18} className="text-brand" />,
         content: (
           <div className="p-5 space-y-2">

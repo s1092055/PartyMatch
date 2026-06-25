@@ -233,22 +233,30 @@ export default function MessagesModal() {
       <Modal
         onClose={handleClose}
         icon={<MessageSquare size={20} className="text-brand" />}
-        title="訊息中心"
+        title="訊息"
         height="min(88vh, 820px)"
       >
-        <div className="flex flex-1 overflow-hidden">
-          <ConversationList
-            filteredConvs={filteredConvs}
-            activeTab={activeTab}
-            selectedId={selectedId}
-            user={user}
-            searchQuery={searchQuery}
-            onSelectConversation={setSelectedId}
-            onTabChange={setActiveTab}
-            onSearchChange={setSearchQuery}
-          />
+        <div className="relative flex-1 overflow-hidden">
+          {/* Mobile: 200% 寬滑動軌道；desktop: 正常並排 flex */}
+          <div className={[
+            'flex h-full w-[200%] transition-transform duration-300 ease-in-out',
+            'md:w-full md:translate-x-0',
+            selectedId ? '-translate-x-1/2' : 'translate-x-0',
+          ].join(' ')}>
+            <div className="flex w-1/2 shrink-0 flex-col overflow-hidden md:w-80 lg:w-96">
+              <ConversationList
+                filteredConvs={filteredConvs}
+                activeTab={activeTab}
+                selectedId={selectedId}
+                user={user}
+                searchQuery={searchQuery}
+                onSelectConversation={setSelectedId}
+                onTabChange={setActiveTab}
+                onSearchChange={setSearchQuery}
+              />
+            </div>
 
-          <div className={`relative flex flex-1 flex-col ${selectedId ? 'flex' : 'hidden md:flex'}`}>
+          <div className="relative flex w-1/2 flex-col overflow-hidden md:w-auto md:flex-1">
             <ChatWindow
               selected={selected}
               selectedId={selectedId}
@@ -274,6 +282,7 @@ export default function MessagesModal() {
               onInputChange={v => { setCanSend(v.trim().length > 0); setSendError(false) }}
               onRequestDeleteConversation={handleRequestDeleteConversation}
             />
+          </div>
           </div>
         </div>
       </Modal>

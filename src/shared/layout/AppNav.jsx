@@ -320,7 +320,7 @@ export default function AppNav({ variant = 'side' }) {
         <button
           type="button"
           aria-disabled="true"
-          aria-label={`訊息中心，${LOCKED_MESSAGE}`}
+          aria-label={`訊息，${LOCKED_MESSAGE}`}
           title={LOCKED_MESSAGE}
           onClick={preventLockedAction}
           className={`group/locked relative cursor-not-allowed !text-ink-4 hover:!translate-y-0 hover:!scale-100 hover:!text-ink-4 active:!scale-100 ${className}`}
@@ -336,7 +336,7 @@ export default function AppNav({ variant = 'side' }) {
       <button
         onClick={openMessages}
         className={className}
-        aria-label="訊息中心"
+        aria-label="訊息"
       >
         <MessageSquare size={iconSize} strokeWidth={2} />
       </button>
