@@ -99,10 +99,8 @@ const ISSUE_TYPES = [
 export default function HostGroupView({ group, members, applications, onConfirmMember, onReportPaymentIssue, onReportServiceInfoIssue, onRemoveMember, onActivate, onActivateGroup, onApprove, onReject, errors, onClose, autoOpenActivateGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling }) {
   const [showActivate, setShowActivate]                   = useState(false)
   const [removingMember, setRemovingMember]               = useState(null)
-  const [showMembers, setShowMembers]                     = useState(false)
-  const [showApplications, setShowApplications]           = useState(false)
+  const [activePanel, setActivePanel]                     = useState(null) // 'members' | 'applications' | 'billing' | null
   const [appFilter, setAppFilter]                         = useState('all')
-  const [showBilling, setShowBilling]                     = useState(false)
   const [showActivateGroupConfirm, setShowActivateGroupConfirm] = useState(false)
   const [paymentAccount, setPaymentAccount] = useState('')
   const [expandedBillingMembers, setExpandedBillingMembers] = useState(new Set())
@@ -112,17 +110,15 @@ export default function HostGroupView({ group, members, applications, onConfirmM
   const [issueNote, setIssueNote] = useState('')
 
   function openReportModal(member) {
-    setShowBilling(false)
     setIssueType('')
     setIssueNote('')
     setReportModalMember(member)
   }
 
-  function closeReportModal(reopen = false) {
+  function closeReportModal() {
     setReportModalMember(null)
     setIssueType('')
     setIssueNote('')
-    if (reopen) setShowBilling(true)
   }
 
   function handleSendIssueReport() {
@@ -146,12 +142,12 @@ export default function HostGroupView({ group, members, applications, onConfirmM
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (autoOpenApplications) setShowApplications(true)
+    if (autoOpenApplications) setActivePanel('applications')
   }, [autoOpenApplications])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (autoOpenBilling) setShowBilling(true)
+    if (autoOpenBilling) setActivePanel('billing')
   }, [autoOpenBilling])
 
   useEffect(() => {
@@ -241,7 +237,328 @@ export default function HostGroupView({ group, members, applications, onConfirmM
   )
 
   const isRecruiting = ['recruiting', 'full'].includes(group.status)
-  const shellHidden  = showMembers || showApplications || showBilling || !!reportModalMember
+
+  function buildSubPanel() {
+    if (activePanel === 'members') {
+      return {
+        title: `成員名單（${members.length + 1} 人）`,
+        icon: <Users size={18} className="text-brand" />,
+        content: (
+          <div className="p-5 space-y-2">
+            <div className="rounded-xl border border-line p-3">
+              <div className="flex items-center gap-3">
+                <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="sm" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-ink">
+                    {group.hostName}
+                    <span className="ml-1.5 text-xs font-normal text-brand">（你）</span>
+                  </p>
+                  <p className="text-xs text-ink-3">{group.createdAt} 建立</p>
+                </div>
+                <span className="flex shrink-0 items-center gap-1 rounded-full bg-brand-subtle px-2.5 py-0.5 text-xs font-semibold text-brand">
+                  <Shield size={11} /> 團主
+                </span>
+              </div>
+            </div>
+            {members.map(m => {
+              const app = appByMemberId[m.userId]
+              const removable = ['recruiting', 'full'].includes(group.status) && !CONFIRMED_STATUSES.includes(m.paymentStatus)
+              return (
+                <div key={m.id} className="rounded-xl border border-line p-3">
+                  <div className="flex items-center gap-3">
+                    <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-ink">{m.userName}</p>
+                      <p className="text-xs text-ink-3">{m.joinedAt} 加入</p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <button
+                        onClick={() => {
+                          setActivePanel(null)
+                          onClose()
+                          window.dispatchEvent(new CustomEvent('pm:open-dm', {
+                            detail: { hostId: m.userId, hostName: m.userName, hostAvatarInitial: m.userAvatarInitial, hostAvatarColor: m.userAvatarColor },
+                          }))
+                        }}
+                        className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-brand"
+                      >
+                        <MessageCircle size={20} />
+                      </button>
+                      {removable && (
+                        <button
+                          onClick={() => setRemovingMember(m)}
+                          className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-red-500"
+                        >
+                          <UserX size={20} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  {app?.message && (
+                    <div className="mt-2 pl-9">
+                      <p className="text-xs italic text-ink-3">「{app.message}」</p>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        ),
+      }
+    }
+
+    if (activePanel === 'applications') {
+      const memberUserIds = new Set(members.map(m => m.userId))
+      const isLeft = a => a.status === 'approved' && !memberUserIds.has(a.applicantId ?? a.userId)
+      const leftCount = applications.filter(isLeft).length
+      const approvedCount = applications.filter(a => a.status === 'approved' && !isLeft(a)).length
+      const filteredApps = applications.filter(a => {
+        if (appFilter === 'all') return true
+        if (appFilter === 'left') return isLeft(a)
+        if (appFilter === 'approved') return a.status === 'approved' && !isLeft(a)
+        return a.status === appFilter
+      })
+      return {
+        title: '申請管理',
+        icon: <ClipboardList size={18} className="text-brand" />,
+        stickyHeader: applications.length > 0 ? (
+          <div className="px-5 py-3 border-b border-line-subtle">
+            <CustomSelect
+              value={appFilter}
+              onChange={setAppFilter}
+              options={[
+                { value: 'all',      label: `全部（${applications.length}）` },
+                { value: 'pending',  label: `審核中（${applications.filter(a => a.status === 'pending').length}）` },
+                { value: 'approved', label: `已核准（${approvedCount}）` },
+                { value: 'left',     label: `已退出（${leftCount}）` },
+                { value: 'removed',  label: `已移除（${applications.filter(a => a.status === 'removed').length}）` },
+                { value: 'rejected', label: `已拒絕（${applications.filter(a => a.status === 'rejected').length}）` },
+              ]}
+            />
+          </div>
+        ) : null,
+        content: (
+          <div className="px-5 pb-5 pt-3">
+            {applications.length === 0 ? (
+              <EmptyState icon={ClipboardList} title="目前沒有任何申請紀錄" description="你的群組暫時沒有新的加入申請。" />
+            ) : filteredApps.length === 0 ? (
+              <EmptyState icon={ClipboardList} title="沒有符合的申請紀錄" />
+            ) : (
+              <div className="space-y-3">
+                {filteredApps.map(app => (
+                  <ApplicationCard
+                    key={app.id}
+                    app={app}
+                    isLeft={isLeft(app)}
+                    groupFull={groupFull}
+                    error={errors?.[app.id]}
+                    onApprove={app => { onApprove?.(app); setActivePanel(null); setAppFilter('all') }}
+                    onReject={onReject}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        ),
+      }
+    }
+
+    if (activePanel === 'billing') {
+      return {
+        title: '收款管理',
+        icon: <Banknote size={18} className="text-brand" />,
+        stickyHeader: (group.paymentMethod || group.paymentAccount) ? (
+          <div className="border-b border-line-subtle px-5 py-3 flex gap-4">
+            {group.paymentMethod && (
+              <div className="min-w-0">
+                <p className="text-2xs font-semibold text-ink-4">收款方式</p>
+                <p className="mt-0.5 text-sm text-ink">{group.paymentMethod}</p>
+              </div>
+            )}
+            {group.paymentAccount && (
+              <div className="min-w-0 flex-1">
+                <p className="text-2xs font-semibold text-ink-4">收款帳號</p>
+                <p className="mt-0.5 whitespace-pre-wrap text-sm font-semibold text-ink">{group.paymentAccount}</p>
+              </div>
+            )}
+          </div>
+        ) : null,
+        content: isActivated ? (
+          <div className="p-5">
+            {members.length === 0 ? (
+              <EmptyState icon={Banknote} title="目前尚無收款紀錄" />
+            ) : (
+              <div className="space-y-4">
+                {members.map(m => {
+                  const sub = getSubscriptionByUserAndGroup(m.userId, group.id)
+                  const records = sub ? getPaymentRecordsBySubscriptionId(sub.id).sort((a, b) => (b.paidAt ?? '').localeCompare(a.paidAt ?? '')) : []
+                  const expanded = expandedBillingMembers.has(m.id)
+                  return (
+                    <div key={m.id} className="overflow-hidden rounded-xl border border-line">
+                      <button onClick={() => toggleBillingMember(m.id)} className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-raised">
+                        <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
+                        <p className="min-w-0 flex-1 text-sm font-semibold text-ink">{m.userName}</p>
+                        <span className="text-xs text-ink-3">{records.length} 筆</span>
+                        {expanded ? <ChevronUp size={14} className="shrink-0 text-ink-3" /> : <ChevronDown size={14} className="shrink-0 text-ink-3" />}
+                      </button>
+                      {expanded && (
+                        <div className="border-t border-line-subtle">
+                          {records.length === 0 ? (
+                            <p className="px-4 py-3 text-xs text-ink-3">尚無收款紀錄</p>
+                          ) : records.map(rec => (
+                            <div key={rec.id} className="border-b border-line-subtle px-4 py-3 last:border-0 space-y-2">
+                              <div className="flex items-center gap-3">
+                                <CheckCircle2 size={14} className="shrink-0 text-success" />
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-sm font-semibold text-ink">已收款金額</p>
+                                  <p className="text-xs text-ink-3">{rec.paidAt?.slice(0, 10)}</p>
+                                </div>
+                                <span className="shrink-0 text-sm font-bold text-success">NT${rec.amount}</span>
+                              </div>
+                              {rec.proofUrl && (
+                                <a href={rec.proofUrl} target="_blank" rel="noopener noreferrer">
+                                  <img src={rec.proofUrl} alt="付款截圖" className="w-full rounded-xl border border-line object-contain transition-opacity hover:opacity-80" />
+                                </a>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        ) : (
+          <>
+            <div className="border-b border-line-subtle px-5 py-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="mb-0.5 text-xs text-ink-4">每席價格</p>
+                  <p className="text-xl font-extrabold text-ink">
+                    NT${group.pricePerSeat}
+                    <span className="ml-1 text-sm font-normal text-ink-3">/{group.billingCycle === 'yearly' ? '年' : '月'}</span>
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="mb-0.5 text-xs text-ink-4">收款確認進度</p>
+                  <p className="text-sm font-semibold text-ink">{confirmedCount} / {members.length} 已確認</p>
+                </div>
+              </div>
+              <ProgressBar value={confirmedCount} max={members.length} className="mt-3" />
+            </div>
+            <div className="p-5">
+              {members.length === 0 ? (
+                <EmptyState icon={Banknote} title="目前尚無成員" />
+              ) : (
+                <div className="space-y-2">
+                  {members.map(m => {
+                    const sub = getSubscriptionByUserAndGroup(m.userId, group.id)
+                    const records = sub ? getPaymentRecordsBySubscriptionId(sub.id).sort((a, b) => (b.paidAt ?? '').localeCompare(a.paidAt ?? '')) : []
+                    const expanded = expandedBillingMembers.has(m.id)
+                    return (
+                      <div key={m.id} className="overflow-hidden rounded-xl border border-line">
+                        <button onClick={() => toggleBillingMember(m.id)} className="flex w-full items-center gap-3 p-3 text-left transition-colors hover:bg-raised">
+                          <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-semibold text-ink">{m.userName}</p>
+                          </div>
+                          <span className={`text-xs font-semibold ${CONFIRMED_STATUSES.includes(m.paymentStatus) ? 'text-success' : m.paymentStatus === 'payment_failed' ? 'text-danger' : 'text-ink-3'}`}>
+                            {CONFIRMED_STATUSES.includes(m.paymentStatus) ? '已確認' : m.paymentStatus === 'payment_failed' ? '補件中' : '待確認'}
+                          </span>
+                          {expanded ? <ChevronUp size={14} className="shrink-0 text-ink-3" /> : <ChevronDown size={14} className="shrink-0 text-ink-3" />}
+                        </button>
+                        {expanded && (
+                          <div className="border-t border-line-subtle px-4 py-3 space-y-3">
+                            {m.paymentStatus === 'markedPaid' ? (
+                              <>
+                                <div className="space-y-2">
+                                  <div className="flex items-center gap-3">
+                                    <CreditCard size={14} className="shrink-0 text-ink-3" />
+                                    <div className="min-w-0 flex-1">
+                                      <p className="text-sm font-semibold text-ink">成員已付款</p>
+                                      <p className="text-xs text-ink-3">{m.lastPaidAt ?? '—'}</p>
+                                    </div>
+                                    <span className="shrink-0 text-sm font-bold text-ink">
+                                      NT${m.paidAmount ?? group.pricePerSeat}
+                                      {m.paidAmount && m.paidAmount !== group.pricePerSeat && (
+                                        <span className="ml-1 text-xs font-normal text-warning-text">（應付 NT${group.pricePerSeat}）</span>
+                                      )}
+                                    </span>
+                                  </div>
+                                  {m.paymentProofUrl ? (
+                                    <a href={m.paymentProofUrl} target="_blank" rel="noopener noreferrer">
+                                      <img src={m.paymentProofUrl} alt="付款截圖" className="w-full rounded-xl border border-line object-contain transition-opacity hover:opacity-80" />
+                                    </a>
+                                  ) : (
+                                    <p className="text-xs text-ink-4">尚未上傳截圖</p>
+                                  )}
+                                </div>
+                                <div className="flex gap-2">
+                                  <button onClick={() => onConfirmMember?.(m)} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-success py-2 text-xs font-semibold text-white transition-colors hover:opacity-80">
+                                    <CheckCircle2 size={11} /> 確認收款
+                                  </button>
+                                  <button onClick={() => openReportModal(m)} className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-warning/60 py-2 text-xs font-semibold text-warning-text transition-colors hover:bg-warning-subtle">
+                                    <AlertTriangle size={11} /> 回報問題
+                                  </button>
+                                </div>
+                              </>
+                            ) : m.paymentStatus === 'payment_failed' ? (
+                              <>
+                                <div className="flex items-center gap-2 rounded-lg bg-danger-subtle px-3 py-2 text-xs font-semibold text-danger">
+                                  <AlertTriangle size={12} /> 付款問題已回報，等待成員重新補件
+                                </div>
+                                {m.paymentIssueType && (
+                                  <div className="space-y-1 rounded-lg bg-raised px-3 py-2.5">
+                                    <p className="text-xs font-semibold text-ink-3">回報原因</p>
+                                    <p className="text-sm font-semibold text-ink">{ISSUE_TYPES.find(t => t.key === m.paymentIssueType)?.label ?? m.paymentIssueType}</p>
+                                    {m.paymentIssueNote && <p className="text-xs text-ink-3">{m.paymentIssueNote}</p>}
+                                  </div>
+                                )}
+                                {m.paymentProofUrl && (
+                                  <div className="space-y-1.5">
+                                    <p className="text-xs text-ink-4">上次提交的截圖</p>
+                                    <a href={m.paymentProofUrl} target="_blank" rel="noopener noreferrer">
+                                      <img src={m.paymentProofUrl} alt="付款截圖" className="w-full rounded-xl border border-line object-contain opacity-60 transition-opacity hover:opacity-90" />
+                                    </a>
+                                  </div>
+                                )}
+                              </>
+                            ) : records.length === 0 ? (
+                              <p className="text-xs text-ink-3">尚無付款紀錄</p>
+                            ) : records.map(rec => (
+                              <div key={rec.id} className="space-y-2">
+                                <div className="flex items-center gap-3">
+                                  <CheckCircle2 size={14} className="shrink-0 text-success" />
+                                  <div className="min-w-0 flex-1">
+                                    <p className="text-sm font-semibold text-ink">已收款金額</p>
+                                    <p className="text-xs text-ink-3">{rec.paidAt?.slice(0, 10)}</p>
+                                  </div>
+                                  <span className="shrink-0 text-sm font-bold text-success">NT${rec.amount}</span>
+                                </div>
+                                {rec.proofUrl && (
+                                  <a href={rec.proofUrl} target="_blank" rel="noopener noreferrer">
+                                    <img src={rec.proofUrl} alt="付款截圖" className="w-full rounded-xl border border-line object-contain transition-opacity hover:opacity-80" />
+                                  </a>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          </>
+        ),
+      }
+    }
+
+    return null
+  }
 
   return (
     <>
@@ -253,7 +570,6 @@ export default function HostGroupView({ group, members, applications, onConfirmM
       hideRecruitBar={group.status !== 'recruiting'}
       confirmedCount={confirmedCount}
       memberCount={members.length}
-      hidden={shellHidden}
       headerBanner={activateGroupBanner || activateBanner || undefined}
       centeredCta={activateGroupCta || activateCta || undefined}
       extraInfoRows={[
@@ -261,18 +577,20 @@ export default function HostGroupView({ group, members, applications, onConfirmM
       ]}
       pendingBadge={group.status === 'pending_confirmation' ? '收款中' : undefined}
       statusBadgeOverride={group.status === 'pending_confirmation' ? { variant: 'pending_confirmation', label: '收款中' } : undefined}
+      subPanel={activePanel ? buildSubPanel() : null}
+      onSubPanelBack={() => { setActivePanel(null); setAppFilter('all') }}
       bottomBar={(() => {
         return (
           <div className={`grid grid-cols-${isRecruiting ? 2 : 3} gap-1 p-2`}>
             <button
-              onClick={() => setShowMembers(true)}
+              onClick={() => setActivePanel('members')}
               className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
             >
               <Users size={17} /> 成員名單
             </button>
             {isRecruiting ? (
               <button
-                onClick={() => setShowApplications(true)}
+                onClick={() => setActivePanel('applications')}
                 className="relative flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
               >
                 <span className="relative">
@@ -288,7 +606,7 @@ export default function HostGroupView({ group, members, applications, onConfirmM
             ) : (
               <>
                 <button
-                  onClick={() => setShowBilling(true)}
+                  onClick={() => setActivePanel('billing')}
                   className="relative flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
                 >
                   <span className="relative">
@@ -502,368 +820,10 @@ export default function HostGroupView({ group, members, applications, onConfirmM
 
     </GroupModalShell>
 
-    {/* ── 成員名單 Modal ── */}
-    <Modal
-      isOpen={showMembers}
-      onClose={() => setShowMembers(false)}
-      title={`成員名單（${members.length + 1} 人）`}
-      icon={<Users size={18} className="text-brand" />}
-      maxWidth="max-w-lg"
-      sub
-    >
-      <div className="h-[60vh] min-h-0 overflow-y-auto p-5">
-        <div className="space-y-2">
-          <div className="rounded-xl border border-line p-3">
-            <div className="flex items-center gap-3">
-              <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="sm" />
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-ink">
-                  {group.hostName}
-                  <span className="ml-1.5 text-xs font-normal text-brand">（你）</span>
-                </p>
-                <p className="text-xs text-ink-3">{group.createdAt} 建立</p>
-              </div>
-              <span className="flex shrink-0 items-center gap-1 rounded-full bg-brand-subtle px-2.5 py-0.5 text-xs font-semibold text-brand">
-                <Shield size={11} /> 團主
-              </span>
-            </div>
-          </div>
-          {members.map(m => {
-            const app      = appByMemberId[m.userId]
-            const removable = ['recruiting', 'full'].includes(group.status) && !CONFIRMED_STATUSES.includes(m.paymentStatus)
-            return (
-              <div key={m.id} className="rounded-xl border border-line p-3">
-                <div className="flex items-center gap-3">
-                  <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-ink">{m.userName}</p>
-                    <p className="text-xs text-ink-3">{m.joinedAt} 加入</p>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-1">
-                    <button
-                      onClick={() => {
-                        setShowMembers(false)
-                        onClose()
-                        window.dispatchEvent(new CustomEvent('pm:open-dm', {
-                          detail: {
-                            hostId: m.userId,
-                            hostName: m.userName,
-                            hostAvatarInitial: m.userAvatarInitial,
-                            hostAvatarColor: m.userAvatarColor,
-                          },
-                        }))
-                      }}
-                      className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-brand"
-                    >
-                      <MessageCircle size={20} />
-                    </button>
-                    {removable && (
-                      <button
-                        onClick={() => setRemovingMember(m)}
-                        className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-red-500"
-                      >
-                        <UserX size={20} />
-                      </button>
-                    )}
-                  </div>
-                </div>
-                {app?.message && (
-                  <div className="mt-2 pl-9">
-                    <p className="text-xs italic text-ink-3">「{app.message}」</p>
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
-      </div>
-    </Modal>
-
-    {/* ── 申請管理 Modal ── */}
-    <Modal isOpen={showApplications} onClose={() => { setShowApplications(false); setAppFilter('all') }} title="申請管理" icon={<ClipboardList size={18} className="text-brand" />} maxWidth="max-w-lg" sub>
-      {applications.length > 0 && (() => {
-        const memberUserIds = new Set(members.map(m => m.userId))
-        const isLeft = a => a.status === 'approved' && !memberUserIds.has(a.applicantId ?? a.userId)
-        const leftCount     = applications.filter(isLeft).length
-        const approvedCount = applications.filter(a => a.status === 'approved' && !isLeft(a)).length
-        return (
-          <div className="px-5 py-3">
-            <CustomSelect
-              value={appFilter}
-              onChange={setAppFilter}
-              options={[
-                { value: 'all',      label: `全部（${applications.length}）` },
-                { value: 'pending',  label: `審核中（${applications.filter(a => a.status === 'pending').length}）` },
-                { value: 'approved', label: `已核准（${approvedCount}）` },
-                { value: 'left',     label: `已退出（${leftCount}）` },
-                { value: 'removed',  label: `已移除（${applications.filter(a => a.status === 'removed').length}）` },
-                { value: 'rejected', label: `已拒絕（${applications.filter(a => a.status === 'rejected').length}）` },
-              ]}
-            />
-          </div>
-        )
-      })()}
-      <div className="h-[60vh] min-h-0 overflow-y-auto px-5 pb-5 pt-2">
-        {applications.length === 0 ? (
-          <EmptyState icon={ClipboardList} title="目前沒有任何申請紀錄" description="你的群組暫時沒有新的加入申請。" />
-        ) : (() => {
-          const memberUserIds = new Set(members.map(m => m.userId))
-          const isLeft = a => a.status === 'approved' && !memberUserIds.has(a.applicantId ?? a.userId)
-          const filteredApps = applications.filter(a => {
-            if (appFilter === 'all')      return true
-            if (appFilter === 'left')     return isLeft(a)
-            if (appFilter === 'approved') return a.status === 'approved' && !isLeft(a)
-            return a.status === appFilter
-          })
-          return filteredApps.length === 0
-            ? <EmptyState icon={ClipboardList} title="沒有符合的申請紀錄" />
-            : (
-              <div className="space-y-3">
-                {filteredApps.map(app => (
-                  <ApplicationCard
-                    key={app.id}
-                    app={app}
-                    isLeft={isLeft(app)}
-                    groupFull={groupFull}
-                    error={errors?.[app.id]}
-                    onApprove={app => { onApprove?.(app); setShowApplications(false); setAppFilter('all') }}
-                    onReject={onReject}
-                  />
-                ))}
-              </div>
-            )
-        })()}
-      </div>
-    </Modal>
-
-    {/* ── 收款紀錄 Modal ── */}
-    <Modal isOpen={showBilling} onClose={() => setShowBilling(false)} title="收款管理" icon={<Banknote size={18} className="text-brand" />} maxWidth="max-w-lg" sub>
-        {(group.paymentMethod || group.paymentAccount) && (
-          <div className="shrink-0 border-b border-line-subtle px-5 py-3 flex gap-4">
-            {group.paymentMethod && (
-              <div className="min-w-0">
-                <p className="text-2xs font-semibold text-ink-4">收款方式</p>
-                <p className="mt-0.5 text-sm text-ink">{group.paymentMethod}</p>
-              </div>
-            )}
-            {group.paymentAccount && (
-              <div className="min-w-0 flex-1">
-                <p className="text-2xs font-semibold text-ink-4">收款帳號</p>
-                <p className="mt-0.5 whitespace-pre-wrap text-sm font-semibold text-ink">{group.paymentAccount}</p>
-              </div>
-            )}
-          </div>
-        )}
-        <div className="h-[60vh] min-h-0 overflow-y-auto scrollbar-none">
-          {isActivated ? (
-            /* 已啟用後：顯示歷史收款清單 */
-            <div className="p-5">
-              {members.length === 0 ? (
-                <EmptyState icon={Banknote} title="目前尚無收款紀錄" />
-              ) : (
-                <div className="space-y-4">
-                  {members.map(m => {
-                    const sub      = getSubscriptionByUserAndGroup(m.userId, group.id)
-                    const records  = sub ? getPaymentRecordsBySubscriptionId(sub.id).sort((a, b) => (b.paidAt ?? '').localeCompare(a.paidAt ?? '')) : []
-                    const expanded = expandedBillingMembers.has(m.id)
-                    return (
-                      <div key={m.id} className="overflow-hidden rounded-xl border border-line">
-                        <button
-                          onClick={() => toggleBillingMember(m.id)}
-                          className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-raised"
-                        >
-                          <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
-                          <p className="min-w-0 flex-1 text-sm font-semibold text-ink">{m.userName}</p>
-                          <span className="text-xs text-ink-3">{records.length} 筆</span>
-                          {expanded ? <ChevronUp size={14} className="shrink-0 text-ink-3" /> : <ChevronDown size={14} className="shrink-0 text-ink-3" />}
-                        </button>
-                        {expanded && (
-                          <div className="border-t border-line-subtle">
-                            {records.length === 0 ? (
-                              <p className="px-4 py-3 text-xs text-ink-3">尚無收款紀錄</p>
-                            ) : records.map(rec => (
-                              <div key={rec.id} className="border-b border-line-subtle px-4 py-3 last:border-0 space-y-2">
-                                <div className="flex items-center gap-3">
-                                  <CheckCircle2 size={14} className="shrink-0 text-success" />
-                                  <div className="min-w-0 flex-1">
-                                    <p className="text-sm font-semibold text-ink">已收款金額</p>
-                                    <p className="text-xs text-ink-3">{rec.paidAt?.slice(0, 10)}</p>
-                                  </div>
-                                  <span className="shrink-0 text-sm font-bold text-success">NT${rec.amount}</span>
-                                </div>
-                                {rec.proofUrl && (
-                                  <a href={rec.proofUrl} target="_blank" rel="noopener noreferrer">
-                                    <img src={rec.proofUrl} alt="付款截圖" className="w-full rounded-xl border border-line object-contain transition-opacity hover:opacity-80" />
-                                  </a>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-          ) : (
-            /* 收款確認階段：顯示確認收款介面 */
-            <>
-              <div className="border-b border-line-subtle px-5 py-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="mb-0.5 text-xs text-ink-4">每席價格</p>
-                    <p className="text-xl font-extrabold text-ink">
-                      NT${group.pricePerSeat}
-                      <span className="ml-1 text-sm font-normal text-ink-3">/{group.billingCycle === 'yearly' ? '年' : '月'}</span>
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="mb-0.5 text-xs text-ink-4">收款確認進度</p>
-                    <p className="text-sm font-semibold text-ink">{confirmedCount} / {members.length} 已確認</p>
-                  </div>
-                </div>
-                <ProgressBar value={confirmedCount} max={members.length} className="mt-3" />
-              </div>
-              <div className="p-5">
-                {members.length === 0 ? (
-                  <EmptyState icon={Banknote} title="目前尚無成員" />
-                ) : (
-                  <div className="space-y-2">
-                    {members.map(m => {
-                      const sub      = getSubscriptionByUserAndGroup(m.userId, group.id)
-                      const records  = sub ? getPaymentRecordsBySubscriptionId(sub.id).sort((a, b) => (b.paidAt ?? '').localeCompare(a.paidAt ?? '')) : []
-                      const expanded = expandedBillingMembers.has(m.id)
-                      return (
-                        <div key={m.id} className="overflow-hidden rounded-xl border border-line">
-                          <button
-                            onClick={() => toggleBillingMember(m.id)}
-                            className="flex w-full items-center gap-3 p-3 text-left transition-colors hover:bg-raised"
-                          >
-                            <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
-                            <div className="min-w-0 flex-1">
-                              <p className="text-sm font-semibold text-ink">{m.userName}</p>
-                            </div>
-                            <span className={`text-xs font-semibold ${
-                              CONFIRMED_STATUSES.includes(m.paymentStatus) ? 'text-success' :
-                              m.paymentStatus === 'payment_failed' ? 'text-danger' : 'text-ink-3'
-                            }`}>
-                              {CONFIRMED_STATUSES.includes(m.paymentStatus) ? '已確認' :
-                               m.paymentStatus === 'payment_failed' ? '補件中' : '待確認'}
-                            </span>
-                            {expanded ? <ChevronUp size={14} className="shrink-0 text-ink-3" /> : <ChevronDown size={14} className="shrink-0 text-ink-3" />}
-                          </button>
-                          {expanded && (
-                            <div className="border-t border-line-subtle px-4 py-3 space-y-3">
-                              {m.paymentStatus === 'markedPaid' ? (
-                                <>
-                                  <div className="space-y-2">
-                                    <div className="flex items-center gap-3">
-                                      <CreditCard size={14} className="shrink-0 text-ink-3" />
-                                      <div className="min-w-0 flex-1">
-                                        <p className="text-sm font-semibold text-ink">成員已付款</p>
-                                        <p className="text-xs text-ink-3">{m.lastPaidAt ?? '—'}</p>
-                                      </div>
-                                      <span className="shrink-0 text-sm font-bold text-ink">
-                                        NT${m.paidAmount ?? group.pricePerSeat}
-                                        {m.paidAmount && m.paidAmount !== group.pricePerSeat && (
-                                          <span className="ml-1 text-xs font-normal text-warning-text">（應付 NT${group.pricePerSeat}）</span>
-                                        )}
-                                      </span>
-                                    </div>
-                                    {m.paymentProofUrl ? (
-                                      <a href={m.paymentProofUrl} target="_blank" rel="noopener noreferrer">
-                                        <img
-                                          src={m.paymentProofUrl}
-                                          alt="付款截圖"
-                                          className="w-full rounded-xl border border-line object-contain transition-opacity hover:opacity-80"
-                                        />
-                                      </a>
-                                    ) : (
-                                      <p className="text-xs text-ink-4">尚未上傳截圖</p>
-                                    )}
-                                  </div>
-
-                                  <div className="flex gap-2">
-                                    <button
-                                      onClick={() => onConfirmMember?.(m)}
-                                      className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-success py-2 text-xs font-semibold text-white transition-colors hover:opacity-80"
-                                    >
-                                      <CheckCircle2 size={11} /> 確認收款
-                                    </button>
-                                    <button
-                                      onClick={() => openReportModal(m)}
-                                      className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-warning/60 py-2 text-xs font-semibold text-warning-text transition-colors hover:bg-warning-subtle"
-                                    >
-                                      <AlertTriangle size={11} /> 回報問題
-                                    </button>
-                                  </div>
-                                </>
-                              ) : m.paymentStatus === 'payment_failed' ? (
-                                <>
-                                  <div className="flex items-center gap-2 rounded-lg bg-danger-subtle px-3 py-2 text-xs font-semibold text-danger">
-                                    <AlertTriangle size={12} /> 付款問題已回報，等待成員重新補件
-                                  </div>
-                                  {m.paymentIssueType && (
-                                    <div className="space-y-1 rounded-lg bg-raised px-3 py-2.5">
-                                      <p className="text-xs font-semibold text-ink-3">回報原因</p>
-                                      <p className="text-sm font-semibold text-ink">
-                                        {ISSUE_TYPES.find(t => t.key === m.paymentIssueType)?.label ?? m.paymentIssueType}
-                                      </p>
-                                      {m.paymentIssueNote && (
-                                        <p className="text-xs text-ink-3">{m.paymentIssueNote}</p>
-                                      )}
-                                    </div>
-                                  )}
-                                  {m.paymentProofUrl && (
-                                    <div className="space-y-1.5">
-                                      <p className="text-xs text-ink-4">上次提交的截圖</p>
-                                      <a href={m.paymentProofUrl} target="_blank" rel="noopener noreferrer">
-                                        <img
-                                          src={m.paymentProofUrl}
-                                          alt="付款截圖"
-                                          className="w-full rounded-xl border border-line object-contain opacity-60 transition-opacity hover:opacity-90"
-                                        />
-                                      </a>
-                                    </div>
-                                  )}
-                                </>
-                              ) : records.length === 0 ? (
-                                <p className="text-xs text-ink-3">尚無付款紀錄</p>
-                              ) : records.map(rec => (
-                                <div key={rec.id} className="space-y-2">
-                                  <div className="flex items-center gap-3">
-                                    <CheckCircle2 size={14} className="shrink-0 text-success" />
-                                    <div className="min-w-0 flex-1">
-                                      <p className="text-sm font-semibold text-ink">已收款金額</p>
-                                      <p className="text-xs text-ink-3">{rec.paidAt?.slice(0, 10)}</p>
-                                    </div>
-                                    <span className="shrink-0 text-sm font-bold text-success">NT${rec.amount}</span>
-                                  </div>
-                                  {rec.proofUrl && (
-                                    <a href={rec.proofUrl} target="_blank" rel="noopener noreferrer">
-                                      <img src={rec.proofUrl} alt="付款截圖" className="w-full rounded-xl border border-line object-contain transition-opacity hover:opacity-80" />
-                                    </a>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-        </div>
-      </Modal>
-
     {/* ── 回報問題 Modal ── */}
     <Modal
       isOpen={!!reportModalMember}
-      onClose={() => closeReportModal(true)}
+      onClose={() => closeReportModal()}
       title="回報付款問題"
       icon={<AlertTriangle size={18} className="text-warning-text" />}
       maxWidth="max-w-lg"
