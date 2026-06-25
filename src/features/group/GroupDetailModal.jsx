@@ -256,6 +256,9 @@ export default function GroupDetailModal() {
       plan={plan}
       hidden={showMembers}
       hideRecruitBar={isMember || isHost || group.status !== 'recruiting'}
+      extraInfoRows={[
+        ...(group.paymentMethod ? [{ label: '付款方式', value: group.paymentMethod }] : []),
+      ]}
       statusBadgeOverride={isMember && group.status === 'recruiting' ? 'member_joined' : undefined}
       headerBanner={
         isWaitingMembers ? (

@@ -12,6 +12,7 @@ export default function GroupModalShell({
   service,
   plan,
   summaryExtraRows,
+  extraInfoRows = [],
   afterColumns,
   bottomBar,
   mobileFooter,
@@ -108,6 +109,7 @@ export default function GroupModalShell({
                 plan={plan}
                 reviewsSection={mobileReviewsSection}
                 statusBadgeOverride={statusBadgeOverride}
+                extraRows={extraInfoRows}
               />
 
               {summaryExtraRows}

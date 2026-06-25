@@ -78,17 +78,20 @@ function RulesList({ allRules }) {
   )
 }
 
-export default function GroupOverviewContent({ group, service, plan, reviewsSection = null, statusBadgeOverride }) {
+export default function GroupOverviewContent({ group, service, plan, reviewsSection = null, statusBadgeOverride, extraRows = [] }) {
   const planChips = getPlanChips(group, plan)
   const allRules  = [
     ...(group.requirements ? [group.requirements] : []),
     ...(group.rules ?? []),
   ]
-  const infoRows = getInfoRows(group).map(row =>
-    row.badge === group.status && statusBadgeOverride
-      ? { ...row, badge: statusBadgeOverride }
-      : row
-  )
+  const infoRows = [
+    ...getInfoRows(group).map(row =>
+      row.badge === group.status && statusBadgeOverride
+        ? { ...row, badge: statusBadgeOverride }
+        : row
+    ),
+    ...extraRows,
+  ]
   const tags = group.tags ?? []
 
   return (

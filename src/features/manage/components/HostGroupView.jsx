@@ -256,6 +256,9 @@ export default function HostGroupView({ group, members, applications, onConfirmM
       hidden={shellHidden}
       headerBanner={activateGroupBanner || activateBanner || undefined}
       centeredCta={activateGroupCta || activateCta || undefined}
+      extraInfoRows={[
+        ...(group.paymentMethod ? [{ label: '收款方式', value: group.paymentMethod }] : []),
+      ]}
       pendingBadge={group.status === 'pending_confirmation' ? '收款中' : undefined}
       statusBadgeOverride={group.status === 'pending_confirmation' ? { variant: 'pending_confirmation', label: '收款中' } : undefined}
       bottomBar={(() => {
@@ -446,6 +449,7 @@ export default function HostGroupView({ group, members, applications, onConfirmM
         onClose={() => { setShowActivateGroupConfirm(false); setPaymentAccount('') }}
         title="啟用群組"
         icon={<Radio size={18} className="text-success" />}
+        height="min(520px, 90vh)"
         sub
         footer={
           <div className="flex gap-2 w-full">
@@ -461,7 +465,7 @@ export default function HostGroupView({ group, members, applications, onConfirmM
           </div>
         }
       >
-        <div className="space-y-4 px-1">
+        <div className="flex-1 min-h-0 overflow-y-auto space-y-4 px-5 py-4">
           <p className="text-sm text-ink-3">啟用後將開啟群組聊天室，系統會通知所有成員進行付款。</p>
           <div>
             <label className="mb-1.5 block text-xs font-semibold text-ink-2">
@@ -634,6 +638,22 @@ export default function HostGroupView({ group, members, applications, onConfirmM
 
     {/* ── 收款紀錄 Modal ── */}
     <Modal isOpen={showBilling} onClose={() => setShowBilling(false)} title="收款管理" icon={<Banknote size={18} className="text-brand" />} maxWidth="max-w-lg" sub>
+        {(group.paymentMethod || group.paymentAccount) && (
+          <div className="shrink-0 border-b border-line-subtle px-5 py-3 flex gap-4">
+            {group.paymentMethod && (
+              <div className="min-w-0">
+                <p className="text-2xs font-semibold text-ink-4">收款方式</p>
+                <p className="mt-0.5 text-sm text-ink">{group.paymentMethod}</p>
+              </div>
+            )}
+            {group.paymentAccount && (
+              <div className="min-w-0 flex-1">
+                <p className="text-2xs font-semibold text-ink-4">收款帳號</p>
+                <p className="mt-0.5 whitespace-pre-wrap text-sm font-semibold text-ink">{group.paymentAccount}</p>
+              </div>
+            )}
+          </div>
+        )}
         <div className="h-[60vh] min-h-0 overflow-y-auto scrollbar-none">
           {isActivated ? (
             /* 已啟用後：顯示歷史收款清單 */

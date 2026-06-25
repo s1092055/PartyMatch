@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import {
-  ChevronDown, ChevronUp, CreditCard, LogOut, MessageCircle, Receipt, Shield, Users,
+  CheckCircle2, ChevronDown, ChevronUp, CreditCard, LogOut, MessageCircle, Receipt, Shield, Users,
 } from 'lucide-react'
 import CombinedServicePaymentModal from './CombinedServicePaymentModal'
 import Avatar from '../../../shared/ui/Avatar'
@@ -22,6 +22,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
   const [showMembers, setShowMembers]         = useState(false)
   const [showPayments, setShowPayments]       = useState(false)
   const [combinedModalOpen, setCombinedModalOpen] = useState(false)
+  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false)
   const [expandedPayRec, setExpandedPayRec]   = useState(null)
   const [leaveConfirm, setLeaveConfirm]       = useState(false)
 
@@ -124,6 +125,8 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
         })
       }
     }
+
+    setShowPaymentSuccess(true)
   }
 
   return (
@@ -164,6 +167,9 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
           </div>
         </div>
       ) : undefined}
+      extraInfoRows={[
+        ...(group.paymentMethod ? [{ label: '付款方式', value: group.paymentMethod }] : []),
+      ]}
       statusBadgeOverride={group.status === 'recruiting' && !!sub ? 'member_joined' : undefined}
       pendingBadge={
         hasConfirmedPaid  ? '付款已確認，等待團主啟用服務' :
@@ -318,6 +324,16 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
         danger
         onConfirm={() => { setLeaveConfirm(false); onLeaveGroup?.() }}
         onCancel={() => setLeaveConfirm(false)}
+      />
+    )}
+
+    {showPaymentSuccess && (
+      <ConfirmDialog
+        icon={<CheckCircle2 size={18} className="text-success" />}
+        title="提交成功"
+        message="付款截圖已上傳，已通知團主確認付款，請等待確認。"
+        confirmLabel="完成"
+        onConfirm={() => setShowPaymentSuccess(false)}
       />
     )}
 

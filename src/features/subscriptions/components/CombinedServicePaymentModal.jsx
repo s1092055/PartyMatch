@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { CheckCircle2, ClipboardEdit, CreditCard, ImagePlus, X } from 'lucide-react'
+import { ClipboardEdit, CreditCard, ImagePlus, X } from 'lucide-react'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import { uploadPaymentProof } from '../../../shared/api/storageApi'
 import { getCurrentUser } from '../../../shared/stores/authStore'
@@ -16,7 +16,6 @@ export default function CombinedServicePaymentModal({ isOpen, onClose, group, me
   const [preview, setPreview]   = useState(null)
   const [amount, setAmount]     = useState(String(sub?.pricePerSeat ?? ''))
   const [uploading, setUploading] = useState(false)
-  const [success, setSuccess]   = useState(false)
   const inputRef = useRef(null)
 
   if (!isOpen || !sub) return null
@@ -45,7 +44,6 @@ export default function CombinedServicePaymentModal({ isOpen, onClose, group, me
     setPreview(null)
     setAmount(String(sub?.pricePerSeat ?? ''))
     setUploading(false)
-    setSuccess(false)
     onClose()
   }
 
@@ -57,10 +55,9 @@ export default function CombinedServicePaymentModal({ isOpen, onClose, group, me
       const proofUrl = await uploadPaymentProof(sub.groupId, user?.id ?? 'unknown', file)
       const serviceInfoChanged = needsEmail || hasServiceInfoIssue
       await onSubmit({ serviceEmail: email, proofUrl, paidAmount: Number(amount), serviceInfoChanged })
-      setSuccess(true)
+      handleClose()
     } catch (err) {
       console.error('[CombinedServicePaymentModal] submit failed:', err)
-    } finally {
       setUploading(false)
     }
   }
@@ -80,9 +77,7 @@ export default function CombinedServicePaymentModal({ isOpen, onClose, group, me
           <div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-4">
             <div className="flex items-center gap-2">
               {titleIcon}
-              <span className="font-extrabold text-ink">
-                {success ? '提交成功' : title}
-              </span>
+              <span className="font-extrabold text-ink">{title}</span>
             </div>
             <button
               onClick={handleClose}
@@ -93,26 +88,7 @@ export default function CombinedServicePaymentModal({ isOpen, onClose, group, me
             </button>
           </div>
 
-          {/* Success */}
-          {success ? (
-            <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-12 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-success-subtle">
-                <CheckCircle2 size={36} className="text-success" />
-              </div>
-              <div>
-                <p className="text-xl font-extrabold text-ink">付款截圖已上傳</p>
-                <p className="mt-1.5 text-sm text-ink-3">已通知團主確認付款，請等待確認</p>
-              </div>
-              <button
-                onClick={handleClose}
-                className="mt-2 w-full rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
-              >
-                完成
-              </button>
-            </div>
-
-          ) : (
-            <>
+          <>
               <div className="flex-1 min-h-0 overflow-y-auto scrollbar-none p-5 space-y-4">
                 {hasServiceInfoIssue && (
                   <div className="rounded-xl border border-warning/40 bg-warning-subtle px-4 py-3">
@@ -246,7 +222,6 @@ export default function CombinedServicePaymentModal({ isOpen, onClose, group, me
                 </button>
               </div>
             </>
-          )}
         </div>
       </div>
     </>,

@@ -11,7 +11,7 @@ import CreateGroupStepper from '../create/components/CreateGroupStepper'
 import Button from '../../shared/ui/Button'
 import Modal from '../../shared/ui/Modal'
 import { getGroups } from '../../shared/stores/groupStore'
-import { getMemberGroupIds } from '../../shared/stores/applicationStore'
+import { getMemberGroupIds } from '../../shared/stores/memberStore'
 import { getCurrentUser } from '../../shared/stores/authStore'
 import { matchGroups } from '../../shared/utils/matchGroups'
 

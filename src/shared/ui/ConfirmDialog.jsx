@@ -13,12 +13,14 @@ export default function ConfirmDialog({ title, message, confirmLabel, danger = f
         {message && <p className="text-sm leading-relaxed text-ink-3">{message}</p>}
         {children}
         <div className="mt-6 flex gap-3">
-          <button
-            onClick={onCancel}
-            className="flex-1 rounded-xl border border-line py-2.5 text-sm font-bold text-ink transition-colors hover:bg-raised"
-          >
-            取消
-          </button>
+          {onCancel && (
+            <button
+              onClick={onCancel}
+              className="flex-1 rounded-xl border border-line py-2.5 text-sm font-bold text-ink transition-colors hover:bg-raised"
+            >
+              取消
+            </button>
+          )}
           <button
             onClick={onConfirm}
             className={`flex-1 rounded-xl py-2.5 text-sm font-bold text-white transition-colors ${

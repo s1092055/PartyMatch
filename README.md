@@ -92,12 +92,12 @@ Demo seed 會讀取 `.env`，建立或重用 demo 帳號，並寫入 groups、me
 
 | 功能 | 入口 | 目前內容 |
 |------|------|----------|
-| 建立群組 | 側欄「建立群組」/ `/create-group` | 4 步驟表單：選服務、選方案、群組設定（名額、帳號需求、加入規則）、確認預覽送出 |
+| 建立群組 | 側欄「建立群組」/ `/create-group` | 4 步驟表單：選服務、選方案、群組設定（名額、帳號需求、加入規則、**收款方式**）、確認預覽送出 |
 | 群組管理 | `/manage-groups` | 群組卡片、狀態篩選（全部／招募中／處理中／啟用中／已結束）、待處理申請、本期收款、付款狀態；`markedPaid` 成員觸發收款管理 badge |
 | 審核申請 | GroupViewModal → 申請管理子 Modal | 核准後建立 member + subscription，名額同步更新；拒絕後通知申請者；支援 dropdown 篩選（全部／審核中／已核准／已移除／已拒絕） |
 | 移除成員 | GroupViewModal → 成員名單子 Modal | 限 `recruiting`/`full` 狀態；移除後建立 `removed` 申請紀錄、刪除 subscription、同步信用分數、發送含 `meta.groupId` 通知；被移除成員可重新申請 |
 | 成員付款確認 | GroupViewModal → 收款管理子 Modal | 成員標記付款後，團主逐筆確認（需 subscription 存在才可確認）；確認後清除殘留問題欄位；全員確認後推進狀態；可回報付款問題（原因存入 `paymentIssueType`/`paymentIssueNote`）；成員重新補件後狀態回到 `markedPaid` |
-| 啟用服務 | GroupViewModal header banner + CTA 按鈕；點擊「所有付款已確認」通知直達 | 名額/付款完成後顯示全寬 banner 提示；CTA 按鈕帶 ping 動畫（綠色）；確認為 Dialog 形式；通知點擊透過 `autoOpenActivate` 自動開啟啟用服務 modal |
+| 啟用服務 | GroupViewModal header banner + CTA 按鈕；點擊「所有付款已確認」通知直達 | 名額/付款完成後顯示全寬 banner 提示；CTA 按鈕帶 ping 動畫（綠色）；確認為 **Modal** 形式，需填寫**收款帳號**後才可啟用；收款帳號與收款方式顯示於收款管理 Modal 頂部 |
 | 續訂或結束 | RenewalModal / store 函式 | 開始新一期收款後自動重設成員與訂閱付款狀態並發送通知；結束服務後群組進入已結束狀態 |
 | 歷史紀錄 | GroupHistoryModal | 已有歷史檢視元件，卡片入口尚待補強 |
 
@@ -416,7 +416,7 @@ src/
 | `src/shared/layout/FloatingMessages.jsx` | `notificationStore` | 接收 `pm:open-notify`；訪客只取公開系統公告，會員合併個人通知與系統公告 |
 | `src/shared/ui/GroupViewModal.jsx` | `HostGroupView`、`MemberGroupView`、`groupStore`、`memberStore`、`applicationStore`、`authStore` | 薄殼：讀取 group 與 currentUser，依 isHost 決定渲染 HostGroupView 或 MemberGroupView |
 | `src/features/manage/components/HostGroupView.jsx` | `GroupModalShell`、`Modal`、`ConfirmDialog` | 團主視角；底部按鈕「成員名單 / 申請管理（招募中，含 dropdown 篩選）或 收款管理 / 群組訊息（啟用後）」；移除成員限定在 `recruiting`/`full` 狀態；header banner + ping 動畫 CTA 引導啟用群組；sub Modal 均採 `footer` prop 固定按鈕防視窗裁切 |
-| `src/features/subscriptions/components/MemberGroupView.jsx` | `GroupModalShell`、`Modal`、`ConfirmDialog` | 成員視角；付款失敗時 header 顯示「付款失敗，請重新完成補件」banner；填寫服務帳號與重新上傳付款憑證均採 ping 動畫 CTA；`recruiting`/`full` 狀態下顯示退出群組按鈕 |
+| `src/features/subscriptions/components/MemberGroupView.jsx` | `GroupModalShell`、`Modal`、`ConfirmDialog`、`CombinedServicePaymentModal` | 成員視角；付款失敗時 header 顯示「付款失敗，請重新完成補件」banner；填寫服務帳號與上傳付款憑證合併為**單步驟 Modal**；提交成功後以 ConfirmDialog 顯示成功提示；`recruiting`/`full` 狀態下顯示退出群組按鈕 |
 | `src/shared/stores/*` | `src/shared/api/*`、`src/shared/utils/*` | stores 保存前端快取並封裝業務流程，api 檔只處理 Firestore CRUD/subscribe |
 
 ---
