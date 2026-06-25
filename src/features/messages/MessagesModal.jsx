@@ -237,24 +237,20 @@ export default function MessagesModal() {
           ? <>
               <button
                 onClick={() => setSelectedId(null)}
-                className="max-md:grid hidden h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+                className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
                 aria-label="返回"
               >
                 <ChevronLeft size={18} />
               </button>
-              <div className="max-md:block hidden shrink-0">
+              <div className="shrink-0">
                 <ConversationAvatar conversation={selected} size={28} />
               </div>
-              <MessageSquare size={20} className="max-md:hidden text-brand" />
             </>
           : <MessageSquare size={20} className="text-brand" />
         }
-        title={selectedId && selected
-          ? <><span className="max-md:inline hidden">{selected.name}</span><span className="hidden md:inline">訊息</span></>
-          : '訊息'
-        }
+        title={selectedId && selected ? selected.name : '訊息'}
         headerEnd={selectedId && selected ? (
-          <div ref={menuRef} className="relative max-md:block hidden">
+          <div ref={menuRef} className="relative">
             <button
               onClick={() => setMenuOpen(v => !v)}
               className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
@@ -290,53 +286,47 @@ export default function MessagesModal() {
         hideClose={!!(selectedId && selected)}
         height="min(88vh, 820px)"
       >
-        <div className="relative flex-1 overflow-hidden md:flex">
-          {/* Mobile: absolute panels, max-md: variant slides in/out; Desktop: normal flex row */}
-          <div className={[
-            'absolute inset-0 flex flex-col overflow-hidden',
-            'transition-transform duration-300 ease-in-out',
-            'md:static md:inset-auto md:w-80 md:shrink-0 lg:w-96',
-            selectedId ? 'max-md:-translate-x-full' : '',
-          ].join(' ')}>
-            <ConversationList
-              filteredConvs={filteredConvs}
-              activeTab={activeTab}
-              selectedId={selectedId}
-              user={user}
-              searchQuery={searchQuery}
-              onSelectConversation={setSelectedId}
-              onTabChange={setActiveTab}
-              onSearchChange={setSearchQuery}
-            />
-          </div>
-
-          <div className={[
-            'absolute inset-0 flex flex-col overflow-hidden',
-            'transition-transform duration-300 ease-in-out',
-            'md:static md:inset-auto md:flex-1',
-            selectedId ? '' : 'max-md:translate-x-full',
-          ].join(' ')}>
-            <ChatWindow
-              selected={selected}
-              selectedId={selectedId}
-              messages={messages}
-              loadingMessages={loadingMessages}
-              user={user}
-              sending={sending}
-              sendError={sendError}
-              canSend={canSend}
-              inputRef={inputRef}
-              messagesEndRef={messagesEndRef}
-              showMembers={showMembers}
-              isComposingRef={isComposingRef}
-              lastCompositionEndRef={lastCompositionEndRef}
-              inputFocusedRef={inputFocusedRef}
-              onMembersToggle={setShowMembers}
-              onSend={handleSend}
-              onKeyDown={handleKeyDown}
-              onInputChange={v => { setCanSend(v.trim().length > 0); setSendError(false) }}
-              onRequestDeleteConversation={handleRequestDeleteConversation}
-            />
+        {/* 200% 寬軌道 + inline style transform：與 GroupModalShell 相同做法 */}
+        <div className="relative flex-1 overflow-hidden">
+          <div
+            className="flex h-full transition-transform duration-300 ease-in-out"
+            style={{ width: '200%', transform: selectedId ? 'translateX(-50%)' : 'translateX(0)' }}
+          >
+            <div className="flex w-1/2 min-w-0 flex-col overflow-hidden">
+              <ConversationList
+                filteredConvs={filteredConvs}
+                activeTab={activeTab}
+                selectedId={selectedId}
+                user={user}
+                searchQuery={searchQuery}
+                onSelectConversation={setSelectedId}
+                onTabChange={setActiveTab}
+                onSearchChange={setSearchQuery}
+              />
+            </div>
+            <div className="flex w-1/2 min-w-0 flex-col overflow-hidden">
+              <ChatWindow
+                selected={selected}
+                selectedId={selectedId}
+                messages={messages}
+                loadingMessages={loadingMessages}
+                user={user}
+                sending={sending}
+                sendError={sendError}
+                canSend={canSend}
+                inputRef={inputRef}
+                messagesEndRef={messagesEndRef}
+                showMembers={showMembers}
+                isComposingRef={isComposingRef}
+                lastCompositionEndRef={lastCompositionEndRef}
+                inputFocusedRef={inputFocusedRef}
+                onMembersToggle={setShowMembers}
+                onSend={handleSend}
+                onKeyDown={handleKeyDown}
+                onInputChange={v => { setCanSend(v.trim().length > 0); setSendError(false) }}
+                onRequestDeleteConversation={handleRequestDeleteConversation}
+              />
+            </div>
           </div>
         </div>
       </Modal>

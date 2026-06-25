@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CheckCircle2, ChevronDown, Clock, MoreVertical, Send, SquarePen, Trash2, Users, X } from 'lucide-react'
+import { CheckCircle2, ChevronDown, Clock, Send, SquarePen, X } from 'lucide-react'
 import ConversationAvatar from './ConversationAvatar'
 import { getMembersByGroupId, getMemberByUserAndGroup } from '../../../shared/stores/memberStore'
 import { CONFIRMED_STATUSES } from '../../../shared/constants/paymentStatus'
@@ -52,8 +52,6 @@ export default function ChatWindow({
   onMembersToggle, onSend, onKeyDown, onInputChange,
   onRequestDeleteConversation,
 }) {
-  const [menuOpen, setMenuOpen] = useState(false)
-  const menuRef = useRef(null)
   // 用來在 userProfileCache（模組層、非 React state）有新結果時強制重新 render
   const [, setProfileResolveTick] = useState(0)
   const [, setMemberTick] = useState(0)
@@ -65,15 +63,6 @@ export default function ChatWindow({
     window.addEventListener('pm:members-changed', onMembersChanged)
     return () => window.removeEventListener('pm:members-changed', onMembersChanged)
   }, [])
-
-  useEffect(() => {
-    if (!menuOpen) return
-    function onClickOutside(e) {
-      if (!menuRef.current?.contains(e.target)) setMenuOpen(false)
-    }
-    document.addEventListener('mousedown', onClickOutside)
-    return () => document.removeEventListener('mousedown', onClickOutside)
-  }, [menuOpen])
 
   const userId = user?.id
   const otherIds = selected?.participants?.filter(p => p !== userId) ?? []
@@ -261,48 +250,6 @@ export default function ChatWindow({
 
   return (
     <>
-      {/* 聊天室名稱 header：手機版由 modal header 處理，桌機版才顯示 */}
-      <div className="hidden md:flex h-14 shrink-0 items-center gap-3 border-b border-line px-4">
-        <ConversationAvatar conversation={selected} size={36} />
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-extrabold text-ink">{selected.name}</p>
-          {selected.type === 'group' && (
-            <p className="text-xs text-ink-3">{selected.participants?.length ?? 2} 位成員</p>
-          )}
-        </div>
-        <div ref={menuRef} className="relative shrink-0">
-          <button
-            onClick={() => setMenuOpen(v => !v)}
-            className="grid h-9 w-9 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
-            aria-label="更多選項"
-          >
-            <MoreVertical size={18} />
-          </button>
-          {menuOpen && (
-            <div className="absolute right-0 top-full z-20 mt-1 w-44 overflow-hidden rounded-2xl border border-line bg-white p-1 shadow-popover">
-              {selected.type === 'group' && (
-                <>
-                  <button
-                    onClick={() => { onMembersToggle(v => !v); setMenuOpen(false) }}
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-raised"
-                  >
-                    <Users size={15} />
-                    群組成員
-                  </button>
-                  <div className="my-1 h-px bg-line-subtle" />
-                </>
-              )}
-              <button
-                onClick={onRequestDeleteConversation}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-danger transition-colors hover:bg-danger-subtle"
-              >
-                <Trash2 size={15} />
-                刪除對話
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
 
       {/* 成員面板 */}
       {showMembers && selected.type === 'group' && (() => {
