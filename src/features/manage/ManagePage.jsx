@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { activateGroup, activateGroupChat, confirmGroupPayments, endGroup, getGroupById, getGroupsByHostId, startRenewalCycle, updateGroup } from '../../shared/stores/groupStore'
 import { adjustCreditScore } from '../../shared/stores/authStore'
@@ -27,7 +27,7 @@ const STATUS_FILTER_TABS = [
   { key: 'cancelled',  label: '已結束' },
 ]
 
-const PENDING_STATUSES   = new Set(['full', 'group_active', 'pending_confirmation', 'pending_activation'])
+const PENDING_STATUSES   = new Set(['full', 'active', 'pending_confirmation', 'pending_activation'])
 const CANCELLED_STATUSES = new Set(['paused', 'cancelled', 'ended'])
 
 function matchesFilter(group, filterKey) {
@@ -168,12 +168,13 @@ useEffect(() => {
     setManageData(prev => ({ ...prev, hostedGroups: getGroupsByHostId(activeUser.id) }))
   }
 
-async function handleActivateGroup() {
+async function handleActivateGroup(paymentAccount) {
     if (!viewGroupId) return
     const group = getGroupById(viewGroupId)
     if (!group) return
     const groupMembers = getMembersByGroupId(viewGroupId)
 
+    if (paymentAccount) updateGroup(viewGroupId, { paymentAccount })
     activateGroupChat(viewGroupId)
 
     const convId = `group_${viewGroupId}`
@@ -199,6 +200,9 @@ async function handleActivateGroup() {
       payload: { serviceName: group.serviceName, serviceId: group.serviceId },
       participants: groupMembers.map(m => m.userId),
     })
+    if (paymentAccount) {
+      await sendSystemMessage(convId, `團主已提供收款資訊，請依照以下方式完成付款：\n${paymentAccount}`)
+    }
 
     // members 端的 group_chat_opened 通知由 conversationStore listener 自行建立（避免跨用戶寫入）
     createNotification({
@@ -314,11 +318,11 @@ function handleConfirmMember(member) {
     refreshGroups()
   }
 
-  const PAYMENT_ISSUE_MESSAGES = {
-    amount_mismatch:  (name, price, note) => `@${name} 你的付款金額與應付金額（NT$${price}）不符，請重新確認後補件。${note ? `\n備注：${note}` : ''}`,
-    proof_incomplete: (name, _, note)     => `@${name} 你上傳的付款截圖不清晰或資訊不完整，請重新上傳完整截圖。${note ? `\n備注：${note}` : ''}`,
-    wrong_info:       (name, _, note)     => `@${name} 你的付款資訊有誤，請確認後重新補件。${note ? `\n備注：${note}` : ''}`,
-    other:            (name, _, note)     => `@${name} ${note}`,
+  const PAYMENT_ISSUE_REASONS = {
+    amount_mismatch:  (price, note) => `你的付款金額與應付金額（NT$${price}）不符，請重新確認後補件。${note ? `備注：${note}` : ''}`,
+    proof_incomplete: (_, note)     => `你上傳的付款截圖不清晰或資訊不完整，請重新上傳完整截圖。${note ? `備注：${note}` : ''}`,
+    wrong_info:       (_, note)     => `你的付款資訊有誤，請確認後重新補件。${note ? `備注：${note}` : ''}`,
+    other:            (_, note)     => note,
   }
 
   function handleReportPaymentIssue(member, issueType, issueNote) {
@@ -328,15 +332,16 @@ function handleConfirmMember(member) {
 
     const group = getGroupById(member.groupId)
     const pricePerSeat = sub?.pricePerSeat ?? group?.pricePerSeat ?? 0
-    const msgFn = PAYMENT_ISSUE_MESSAGES[issueType] ?? PAYMENT_ISSUE_MESSAGES.other
-    const text = msgFn(member.userName, pricePerSeat, issueNote)
+    const reasonFn = PAYMENT_ISSUE_REASONS[issueType] ?? PAYMENT_ISSUE_REASONS.other
+    const reasonText = reasonFn(pricePerSeat, issueNote)
 
     const allMembers = getMembersByGroupId(member.groupId)
     const participants = [activeUser.id, ...allMembers.map(m => m.userId)]
     const convId = `group_${member.groupId}`
-    sendSystemMessage(convId, text, participants).catch(console.error)
+    // 所有人看到簡短提示；詳細原因只放進當事人的 action card
+    sendSystemMessage(convId, `${member.userName}，已被要求重新補件`, participants).catch(console.error)
     sendActionMessage(convId, {
-      text: '點擊下方按鈕重新上傳付款憑證',
+      text: reasonText,
       actionType: 'request_resubmit',
       payload: { targetUserId: member.userId },
       visibleTo: [member.userId],
@@ -460,19 +465,21 @@ function handleApprove(appId) {
       })
     }
 
-    createSubscription({
-      userId:            applicantId,
-      groupId:           group.id,
-      serviceId:         group.serviceId,
-      serviceName:       group.serviceName,
-      planName:          group.planName,
-      hostName:          group.hostName,
-      hostAvatarInitial: group.hostAvatarInitial,
-      hostAvatarColor:   group.hostAvatarColor,
-      pricePerSeat:      group.pricePerSeat,
-      billingCycle:      group.billingCycle,
-      nextBillingDate:   group.nextBillingDate,
-    })
+    if (!getSubscriptionByUserAndGroup(applicantId, group.id)) {
+      createSubscription({
+        userId:            applicantId,
+        groupId:           group.id,
+        serviceId:         group.serviceId,
+        serviceName:       group.serviceName,
+        planName:          group.planName,
+        hostName:          group.hostName,
+        hostAvatarInitial: group.hostAvatarInitial,
+        hostAvatarColor:   group.hostAvatarColor,
+        pricePerSeat:      group.pricePerSeat,
+        billingCycle:      group.billingCycle,
+        nextBillingDate:   group.nextBillingDate,
+      })
+    }
 
     const newUsedSeats = alreadyMember ? seats.usedSeats : seats.usedSeats + 1
     const newOpenSeats = alreadyMember ? seats.openSeats : seats.openSeats - 1
@@ -512,6 +519,33 @@ function handleApprove(appId) {
     removeError(appId)
   }
 
+  function handleReportServiceInfoIssue(member, note) {
+    updateMember(member.id, { serviceInfoIssueNote: note })
+
+    const group = getGroupById(member.groupId)
+    const convId = `group_${member.groupId}`
+    const allMembers = getMembersByGroupId(member.groupId)
+    const participants = [activeUser.id, ...allMembers.map(m => m.userId)]
+
+    sendSystemMessage(convId, `${member.userName}，服務帳號需要修正`, participants).catch(console.error)
+    sendActionMessage(convId, {
+      actionType: 'request_service_resubmit',
+      text: note,
+      visibleTo: [member.userId],
+      participants: [member.userId],
+    }).catch(console.error)
+
+    createNotification({
+      userId:  member.userId,
+      type:    'service_info_issue',
+      title:   '服務帳號需要修正',
+      message: `團主在「${member.groupName ?? group?.serviceName ?? ''}」發現服務帳號問題，請前往修正。`,
+      meta:    { groupId: member.groupId },
+    })
+
+    refreshGroups()
+  }
+
   function handleReject(appId) {
     const app = applications.find(a => a.id === appId)
     if (!app || app.status !== 'pending') return
@@ -530,13 +564,15 @@ function handleApprove(appId) {
     setErrors(prev => { const next = { ...prev }; delete next[id]; return next })
   }
 
-  function groupHandlers(g) {
-    return {
+  const groupHandlersMap = useMemo(
+    () => Object.fromEntries(displayGroups.map(g => [g.id, {
       onViewGroup:   () => { refreshGroups(); setViewGroupId(g.id); setAutoOpenActivateGroup(false); setAutoOpenActivate(false); setAutoOpenApplications(false); setAutoOpenBilling(false) },
       onViewHistory: () => setHistoryModalGroupId(g.id),
       onRenewal:     () => setRenewalModalGroupId(g.id),
-    }
-  }
+    }])),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [displayGroups],
+  )
 
   return (
     <div className="px-2 md:px-4 lg:px-16">
@@ -570,7 +606,7 @@ function handleApprove(appId) {
                 members={membersMap[g.id] ?? []}
                 pendingAppCount={applicationCounts[g.id] ?? 0}
                 paymentCount={paymentCounts[g.id] ?? 0}
-                {...groupHandlers(g)}
+                {...groupHandlersMap[g.id]}
               />
             ))}
           </div>
@@ -583,6 +619,7 @@ function handleApprove(appId) {
         groupId={viewGroupId}
         onConfirmMember={handleConfirmMember}
         onReportPaymentIssue={handleReportPaymentIssue}
+        onReportServiceInfoIssue={handleReportServiceInfoIssue}
         onActivate={handleActivate}
         onActivateGroup={handleActivateGroup}
         onRemoveMember={handleRemoveMember}

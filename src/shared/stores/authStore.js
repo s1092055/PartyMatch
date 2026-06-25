@@ -73,7 +73,6 @@ export function initAuth() {
       unsubscribe()
       if (firebaseUser) {
         _currentUser = await buildUserProfile(firebaseUser)
-        initConversations(_currentUser.id)
         initUserNotifications(_currentUser.id)
         initLiveApplications()
         initLiveGroups()

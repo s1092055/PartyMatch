@@ -36,6 +36,7 @@ const INITIAL_FORM = {
   pricePerSeat: 0,
   billingCycle: "monthly",
   totalSeats: 2,
+  paymentMethod: "",
   requirements: "",
   rules: [""],
 };
@@ -56,6 +57,7 @@ function mapFormToGroup(form) {
     usedSeats: 1,
     openSeats: totalSeats - 1,
     joinMode: "approval",
+    paymentMethod: form.paymentMethod.trim(),
     requirements: form.requirements.trim(),
     rules,
     tags,
@@ -85,6 +87,7 @@ function getStepErrors(step, form) {
       ) {
         errors.push(`開放名額需介於 1 至 ${maxSeats - 1} 位`);
       }
+      if (!form.paymentMethod.trim()) errors.push("請填寫收款方式");
       if (rules.length > 5) errors.push("群組規則最多 5 條");
       if (rules.some((rule) => rule.length > 80))
         errors.push("每條群組規則最多 80 字");

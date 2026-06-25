@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import {
-  ChevronDown, ChevronUp, ClipboardEdit, CreditCard, LogOut, MessageCircle, Receipt, Shield, Users,
+  ChevronDown, ChevronUp, CreditCard, LogOut, MessageCircle, Receipt, Shield, Users,
 } from 'lucide-react'
-import PaymentModal from './PaymentModal'
+import CombinedServicePaymentModal from './CombinedServicePaymentModal'
 import Avatar from '../../../shared/ui/Avatar'
 import Modal from '../../../shared/ui/Modal'
 import ConfirmDialog from '../../../shared/ui/ConfirmDialog'
@@ -10,27 +10,26 @@ import GroupModalShell from '../../../shared/ui/GroupModalShell'
 import EmptyState from '../../../shared/ui/EmptyState'
 import { getServiceById } from '../../../shared/utils/serviceUtils'
 import { getMembersByGroupId, updateMember } from '../../../shared/stores/memberStore'
-import { getSubscriptionByUserAndGroup } from '../../../shared/stores/subscriptionStore'
+import { getGroupById } from '../../../shared/stores/groupStore'
+import { getSubscriptionByUserAndGroup, markSubscriptionPaid } from '../../../shared/stores/subscriptionStore'
 import { getPaymentRecordsBySubscriptionId, initPayments } from '../../../shared/stores/paymentStore'
+import { createNotification } from '../../../shared/stores/notificationStore'
 import { getCurrentUser } from '../../../shared/stores/authStore'
 import { sendActionMessage } from '../../../shared/api/messagesApi'
+import { todayISO } from '../../../shared/utils/date'
 
-export default function MemberGroupView({ group, onMarkPaid, onLeaveGroup, onClose, autoOpenPayment }) {
+export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpenPayment }) {
   const [showMembers, setShowMembers]         = useState(false)
   const [showPayments, setShowPayments]       = useState(false)
-  const [paymentOpen, setPaymentOpen]         = useState(false)
-  const [fillInfoOpen, setFillInfoOpen]       = useState(false)
-  const [fillInfoEmail, setFillInfoEmail]     = useState('')
-  const [fillInfoLoading, setFillInfoLoading] = useState(false)
+  const [combinedModalOpen, setCombinedModalOpen] = useState(false)
   const [expandedPayRec, setExpandedPayRec]   = useState(null)
   const [leaveConfirm, setLeaveConfirm]       = useState(false)
-  useEffect(() => {
-    initPayments()
-  }, [])
+
+  useEffect(() => { initPayments() }, [])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (autoOpenPayment) setPaymentOpen(true)
+    if (autoOpenPayment) setCombinedModalOpen(true)
   }, [autoOpenPayment])
 
   const currentUser = getCurrentUser()
@@ -41,94 +40,91 @@ export default function MemberGroupView({ group, onMarkPaid, onLeaveGroup, onClo
     ? getPaymentRecordsBySubscriptionId(sub.id).sort((a, b) => (b.paidAt ?? '').localeCompare(a.paidAt ?? ''))
     : []
 
-  const serviceDef       = getServiceById(group.serviceId)
-  const planDef          = serviceDef?.plans.find(p => p.name === group.planName)
+  const serviceDef        = getServiceById(group.serviceId)
+  const planDef           = serviceDef?.plans.find(p => p.name === group.planName)
   const isPaymentRelevant = !['recruiting', 'full'].includes(group.status)
+  const isPaymentPhase    = ['active', 'pending_activation', 'pending_confirmation'].includes(group.status)
+
+  const hasServiceInfoIssue = !!myMember?.serviceInfoIssueNote
+  const hasServiceInfo      = !!myMember?.serviceInfo?.email && !hasServiceInfoIssue
+  const hasPaymentFailed    = myMember?.paymentStatus === 'payment_failed'
+  const needsFillInfo       = !!sub && isPaymentPhase && !hasServiceInfo
+  const hasPendingPayment   = !!sub && ['pending', 'payment_failed'].includes(myMember?.paymentStatus) && isPaymentPhase && hasServiceInfo
+  const isGroupPending      = ['pending_activation', 'pending_confirmation'].includes(group.status)
+  const hasMarkedPaid       = !!myMember && myMember.paymentStatus === 'markedPaid' && isGroupPending
+  const hasConfirmedPaid    = !!myMember && myMember.paymentStatus === 'confirmed' && isGroupPending
+
+  const showCombinedCta = (needsFillInfo || hasPendingPayment)
+  const canLeaveGroup   = ['recruiting', 'full'].includes(group.status) && !!myMember
+  const shellHidden     = showMembers || showPayments || combinedModalOpen
 
   function openMessages() {
     onClose()
     window.dispatchEvent(new CustomEvent('pm:open-messages', { detail: { groupId: group.id } }))
   }
 
-  async function handleFillInfoSubmit() {
-    if (!fillInfoEmail.trim() || !myMember) return
-    setFillInfoLoading(true)
-    try {
-      await updateMember(myMember.id, { serviceInfo: { email: fillInfoEmail.trim() } })
+  async function handleCombinedSubmit({ serviceEmail, proofUrl, paidAmount, serviceInfoChanged }) {
+    const now = todayISO()
+
+    if (serviceInfoChanged && myMember) {
+      await updateMember(myMember.id, { serviceInfo: { email: serviceEmail.trim() }, serviceInfoIssueNote: null })
       const convId = `group_${group.id}`
-      const allMembers = getMembersByGroupId(group.id)
       if (group.hostId) {
-        await sendActionMessage(convId, {
+        sendActionMessage(convId, {
           actionType: 'member_filled_service_info',
           text: `${myMember.userName} 已完成填寫服務帳號`,
           visibleTo: [group.hostId],
           participants: [group.hostId],
-        })
+        }).catch(console.error)
       }
-      await sendActionMessage(convId, {
+      sendActionMessage(convId, {
         actionType: 'go_to_payment',
         text: '你已完成填寫服務帳號，請前往付款以完成加入流程。',
         visibleTo: [currentUser.id],
         participants: [currentUser.id],
-      })
-      const allFilled = allMembers.every(m => m.id === myMember.id ? true : !!m.serviceInfo?.email)
+      }).catch(console.error)
+      const updatedMembers = getMembersByGroupId(group.id)
+      const allFilled = updatedMembers.every(m => !!m.serviceInfo?.email)
       if (allFilled && group.hostId) {
-        await sendActionMessage(convId, {
+        sendActionMessage(convId, {
           actionType: 'all_service_info_filled',
           text: '所有成員已完成填寫服務帳號，現在可以進行收款確認。',
           visibleTo: [group.hostId],
           participants: [group.hostId],
+        }).catch(console.error)
+      }
+    }
+
+    if (sub) {
+      markSubscriptionPaid(sub.id)
+      if (myMember) {
+        await updateMember(myMember.id, {
+          paymentStatus: 'markedPaid',
+          lastPaidAt: now,
+          paymentProofUrl: proofUrl,
+          paidAmount,
+          paymentIssueType: null,
+          paymentIssueNote: null,
         })
       }
-      setFillInfoOpen(false)
-      setFillInfoEmail('')
-      setPaymentOpen(true)
-    } finally {
-      setFillInfoLoading(false)
+      createNotification({
+        userId: currentUser.id,
+        type: 'payment',
+        title: '已付款，等待團主確認',
+        message: `${sub.serviceName} ${sub.planName} 已付款，等待團主確認。`,
+      })
+      const grp = getGroupById(sub.groupId)
+      if (grp?.hostId) {
+        createNotification({
+          userId: grp.hostId,
+          type: 'member_payment_marked',
+          title: '成員已付款',
+          message: `${currentUser?.name ?? '成員'} 已在 ${sub.serviceName} ${sub.planName} 完成付款，請前往確認收款。`,
+          meta: { groupId: sub.groupId },
+        })
+      }
     }
   }
-
-  const isPaymentPhase = ['active', 'pending_activation', 'pending_confirmation'].includes(group.status)
-  const hasServiceInfo    = !!myMember?.serviceInfo?.email
-  const hasPendingPayment  = !!sub && ['pending', 'payment_failed'].includes(sub.paymentStatus) && isPaymentPhase && hasServiceInfo
-  const hasPaymentFailed   = !!myMember && myMember.paymentStatus === 'payment_failed'
-  const isGroupPending     = ['pending_activation', 'pending_confirmation'].includes(group.status)
-  const hasMarkedPaid      = !!myMember && myMember.paymentStatus === 'markedPaid' && isGroupPending
-  const hasConfirmedPaid   = !!myMember && myMember.paymentStatus === 'confirmed'  && isGroupPending
-
-  const needsFillInfo   = !!sub && isPaymentPhase && !hasServiceInfo
-  const serviceInfoCta  = needsFillInfo ? (
-    <div className="flex justify-center py-2">
-      <div className="relative">
-        <span className="absolute inset-1 rounded-xl bg-brand animate-ping opacity-20" />
-        <button
-          onClick={() => setFillInfoOpen(true)}
-          className="relative flex items-center gap-2 rounded-xl bg-brand px-6 py-2 text-sm font-bold text-white shadow-md transition-colors hover:bg-brand-hover"
-        >
-          <ClipboardEdit size={14} /> 填寫服務帳號
-        </button>
-      </div>
-    </div>
-  ) : undefined
-
-  const canLeaveGroup = ['recruiting', 'full'].includes(group.status) && !!myMember
-  const shellHidden = showMembers || showPayments || fillInfoOpen || paymentOpen
-
-  const paymentCta = hasPendingPayment ? (
-    <div className="flex justify-center py-2">
-      <div className="relative">
-        {hasPaymentFailed && <span className="absolute inset-1 rounded-xl bg-danger animate-ping opacity-20" />}
-        <button
-          onClick={() => setPaymentOpen(true)}
-          className={`relative flex items-center gap-2 rounded-xl px-6 py-2 text-sm font-bold text-white shadow-md transition-colors ${
-            hasPaymentFailed ? 'bg-danger hover:opacity-90' : 'bg-brand hover:bg-brand-hover'
-          }`}
-        >
-          <CreditCard size={14} /> {hasPaymentFailed ? '重新上傳付款憑證' : '前往付款'}
-        </button>
-      </div>
-    </div>
-  ) : undefined
 
   return (
     <>
@@ -139,21 +135,41 @@ export default function MemberGroupView({ group, onMarkPaid, onLeaveGroup, onClo
       plan={planDef}
       hidden={shellHidden}
       hideRecruitBar
-      headerBanner={needsFillInfo ? (
-        <div className="flex items-center justify-center bg-brand-subtle px-6 py-3 text-sm font-extrabold text-brand">
-          請填寫服務帳號以完成加入流程
+      headerBanner={hasServiceInfoIssue ? (
+        <div className="flex items-center justify-center bg-warning-subtle px-6 py-3 text-sm font-extrabold text-warning-text">
+          服務帳號有問題，需要修正
         </div>
       ) : hasPaymentFailed ? (
         <div className="flex items-center justify-center bg-danger-subtle px-6 py-3 text-sm font-extrabold text-danger">
           付款失敗，請重新完成補件
         </div>
+      ) : needsFillInfo ? (
+        <div className="flex items-center justify-center bg-brand-subtle px-6 py-3 text-sm font-extrabold text-brand">
+          請填寫服務帳號以完成加入流程
+        </div>
       ) : undefined}
-      centeredCta={serviceInfoCta || paymentCta}
-      statusBadgeOverride={['recruiting', 'full'].includes(group.status) && !!sub ? 'member_joined' : undefined}
+      centeredCta={showCombinedCta ? (
+        <div className="flex justify-center py-2">
+          <div className="relative">
+            <span className={`absolute inset-1 rounded-xl animate-ping opacity-20 ${(hasPaymentFailed || hasServiceInfoIssue) ? 'bg-danger' : 'bg-brand'}`} />
+            <button
+              onClick={() => setCombinedModalOpen(true)}
+              className={`relative flex items-center gap-2 rounded-xl px-6 py-2 text-sm font-bold text-white shadow-md transition-colors ${
+                (hasPaymentFailed || hasServiceInfoIssue) ? 'bg-danger hover:opacity-90' : 'bg-brand hover:bg-brand-hover'
+              }`}
+            >
+              <CreditCard size={14} />
+              {hasServiceInfoIssue ? '修正服務帳號' : needsFillInfo ? '填寫服務帳號' : hasPaymentFailed ? '重新上傳付款憑證' : '前往付款'}
+            </button>
+          </div>
+        </div>
+      ) : undefined}
+      statusBadgeOverride={group.status === 'recruiting' && !!sub ? 'member_joined' : undefined}
       pendingBadge={
         hasConfirmedPaid  ? '付款已確認，等待團主啟用服務' :
         hasMarkedPaid     ? '已付款，等待團主確認' :
         hasPaymentFailed  ? '付款憑證有問題，請重新補件' :
+        hasServiceInfoIssue ? '服務帳號需要修正' :
         needsFillInfo     ? '請填寫服務帳號以完成加入流程' :
         group.status === 'full' && !!sub ? '招募完成，等待團主啟用群組' :
         group.status === 'recruiting' && !!sub ? '已通過申請，需等待其他人加入' :
@@ -161,10 +177,9 @@ export default function MemberGroupView({ group, onMarkPaid, onLeaveGroup, onClo
       }
       pendingBadgeColor={
         hasConfirmedPaid || (['recruiting', 'full'].includes(group.status) && !!sub) ? 'success' :
-        hasPaymentFailed ? 'danger' :
+        hasPaymentFailed || hasServiceInfoIssue ? 'danger' :
         undefined
       }
-      summaryExtraRows={undefined}
       bottomBar={(() => {
         const btnCount = 1 + (isPaymentRelevant ? 2 : 0) + (canLeaveGroup ? 1 : 0)
         return (
@@ -205,47 +220,14 @@ export default function MemberGroupView({ group, onMarkPaid, onLeaveGroup, onClo
     >
     </GroupModalShell>
 
-    <PaymentModal
-      isOpen={paymentOpen}
-      onClose={() => setPaymentOpen(false)}
+    <CombinedServicePaymentModal
+      isOpen={combinedModalOpen}
+      onClose={() => setCombinedModalOpen(false)}
+      group={group}
+      member={myMember}
       sub={sub}
-      onSuccess={(proofUrl, paidAmount) => { onMarkPaid?.(sub, proofUrl, paidAmount) }}
+      onSubmit={handleCombinedSubmit}
     />
-
-    {/* ── 填寫服務帳號 Modal ── */}
-    <Modal
-      isOpen={fillInfoOpen}
-      onClose={() => { setFillInfoOpen(false); setFillInfoEmail('') }}
-      title="填寫服務帳號"
-      icon={<ClipboardEdit size={18} className="text-brand" />}
-      maxWidth="max-w-sm"
-      sub
-      footer={
-        <button
-          onClick={handleFillInfoSubmit}
-          disabled={!fillInfoEmail.trim() || fillInfoLoading}
-          className="flex-1 rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          {fillInfoLoading ? '送出中...' : '確認送出'}
-        </button>
-      }
-    >
-      <div className="flex-1 min-h-0 overflow-y-auto p-5 space-y-4">
-        <p className="text-sm text-ink-3">請填寫你的 {group.serviceName} 帳號，團主將使用此帳號將你加入訂閱方案。</p>
-        <div>
-          <label className="mb-1.5 block text-xs font-semibold text-ink-2">
-            {group.serviceName} 帳號（Email）
-          </label>
-          <input
-            type="email"
-            value={fillInfoEmail}
-            onChange={e => setFillInfoEmail(e.target.value)}
-            placeholder="your@email.com"
-            className="w-full rounded-xl border border-line bg-canvas px-3.5 py-2.5 text-sm text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand"
-          />
-        </div>
-      </div>
-    </Modal>
 
     {/* ── 成員名單 Modal ── */}
     <Modal isOpen={showMembers} onClose={() => setShowMembers(false)} title={`成員名單（${members.length + 1} 人）`} icon={<Users size={18} className="text-brand" />} maxWidth="max-w-lg" sub>

@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import Badge from '../../../shared/ui/Badge'
 import Button from '../../../shared/ui/Button'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
@@ -8,7 +9,6 @@ const STATUS_BADGE_CLASS = {
   active:               'bg-success-subtle text-success-text',
   active_renewal:       'bg-success-subtle text-success-text',
   recruiting:           'bg-success-subtle text-success-text',
-  group_active:         'bg-brand-subtle text-brand',
   pending_confirmation: 'bg-warning-subtle text-warning-text',
   pending_activation:   'bg-warning-subtle text-warning-text',
   full:                 'bg-slate-100 text-slate-500',
@@ -21,7 +21,7 @@ function getCollectionState({ group, hasMarkedPaid, paidCount, paymentTarget }) 
   if (['paused', 'cancelled', 'ended'].includes(group.status)) return '已結束'
   if (group.status === 'recruiting') return '招募中'
   if (group.status === 'full') return '等待啟用'
-  if (group.status === 'group_active') return hasMarkedPaid ? '待確認' : '收款中'
+  if (group.status === 'pending_confirmation') return hasMarkedPaid ? '待確認' : '收款中'
   if (group.status === 'pending_activation') return '已收款'
   if (paymentTarget > 0 && paidCount < paymentTarget && group.status === 'active') return '追蹤中'
   return '正常'
@@ -48,7 +48,7 @@ function StatCell({ label, children, onClick, highlight }) {
   return content
 }
 
-export default function HostedGroupCard({
+function HostedGroupCard({
   group,
   members,
   pendingAppCount,
@@ -76,7 +76,7 @@ export default function HostedGroupCard({
 
   return (
     <article
-      className="card card-hover group relative flex min-h-full cursor-pointer flex-col overflow-hidden rounded-card border-line bg-surface p-5 shadow-[0_18px_45px_-32px_rgb(20_44_91_/_0.48)]"
+      className="card card-hover group relative flex min-h-full cursor-pointer flex-col overflow-hidden rounded-card border-line bg-surface p-5 shadow-[0_18px_45px_-32px_rgb(20_44_91_/_0.48)] transition-all duration-200"
       onClick={onViewGroup}
     >
       <div className="flex justify-center">
@@ -152,3 +152,14 @@ export default function HostedGroupCard({
     </article>
   )
 }
+
+export default memo(HostedGroupCard, (prev, next) =>
+  prev.group.id === next.group.id &&
+  prev.group.status === next.group.status &&
+  prev.group.usedSeats === next.group.usedSeats &&
+  prev.group.openSeats === next.group.openSeats &&
+  prev.pendingAppCount === next.pendingAppCount &&
+  prev.paymentCount === next.paymentCount &&
+  prev.members.length === next.members.length &&
+  prev.onViewGroup === next.onViewGroup
+)

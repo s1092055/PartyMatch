@@ -190,10 +190,8 @@ export default function FloatingMessages() {
     }
 
     if (notification.type === 'group_full' && notification.meta?.groupId) {
-      const grp = getGroupById(notification.meta.groupId)
-      const openActivateGroup = grp?.status === 'full'
-      navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId, openActivateGroup } })
-      window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: notification.meta.groupId, openActivateGroup } }))
+      navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId } })
+      window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: notification.meta.groupId } }))
       return
     }
 

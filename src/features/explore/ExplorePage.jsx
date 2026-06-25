@@ -2,7 +2,8 @@ import { startTransition, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowRight, Compass, PlusCircle, Search, Sparkles, X, Zap } from 'lucide-react'
 import { getGroups, initLiveGroups } from '../../shared/stores/groupStore'
-import { getApplicationsByUserId, getMemberGroupIds } from '../../shared/stores/applicationStore'
+import { getApplicationsByUserId } from '../../shared/stores/applicationStore'
+import { getMemberGroupIds } from '../../shared/stores/memberStore'
 import { getServiceById } from '../../shared/utils/serviceUtils'
 import { getCurrentUser } from '../../shared/stores/authStore'
 import EmptyState from '../../shared/ui/EmptyState'
@@ -72,14 +73,15 @@ export default function ExplorePage() {
   }, [activeUserId, tick]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    function onGroupsChanged() { setTick(t => t + 1) }
-    function onApplicationsChanged() { setTick(t => t + 1) }
+    function onChanged() { setTick(t => t + 1) }
     initLiveGroups()
-    window.addEventListener('pm:groups-changed', onGroupsChanged)
-    window.addEventListener('pm:applications-changed', onApplicationsChanged)
+    window.addEventListener('pm:groups-changed', onChanged)
+    window.addEventListener('pm:applications-changed', onChanged)
+    window.addEventListener('pm:members-changed', onChanged)
     return () => {
-      window.removeEventListener('pm:groups-changed', onGroupsChanged)
-      window.removeEventListener('pm:applications-changed', onApplicationsChanged)
+      window.removeEventListener('pm:groups-changed', onChanged)
+      window.removeEventListener('pm:applications-changed', onChanged)
+      window.removeEventListener('pm:members-changed', onChanged)
     }
   }, [])
 

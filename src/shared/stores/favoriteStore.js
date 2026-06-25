@@ -19,11 +19,13 @@ export function isGroupFavorited(userId, groupId) {
 export function toggleFavorite(userId, groupId) {
   if (isGroupFavorited(userId, groupId)) {
     removeFavorite(userId, groupId)
+    window.dispatchEvent(new CustomEvent('pm:favorites-changed'))
     return false
   }
   const fav = { id: createId('fav'), userId, groupId, createdAt: todayISO() }
   _favs.push(fav)
   insertFavorite(fav).catch(console.error)
+  window.dispatchEvent(new CustomEvent('pm:favorites-changed'))
   return true
 }
 

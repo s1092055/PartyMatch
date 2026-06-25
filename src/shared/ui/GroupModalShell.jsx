@@ -41,7 +41,7 @@ export default function GroupModalShell({
   function scrollToTop() { scrollBodyRef.current?.scrollTo({ top: 0, behavior: 'smooth' }) }
   function scrollDown() { scrollBodyRef.current?.scrollBy({ top: 200, behavior: 'smooth' }) }
 
-  const showPaymentBar   = ['group_active', 'pending_activation', 'pending_confirmation'].includes(group.status) && confirmedCount !== undefined
+  const showPaymentBar   = ['pending_activation', 'pending_confirmation'].includes(group.status) && confirmedCount !== undefined
   const showCenteredBadge = (showPaymentBar || !!pendingBadge) && !centeredCta
   const centeredBadgeLabel = pendingBadge ?? '收款確認中'
   const centeredBadgeCls   = pendingBadgeColor === 'success'

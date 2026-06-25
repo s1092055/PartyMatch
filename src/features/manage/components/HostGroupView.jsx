@@ -20,7 +20,7 @@ import CustomSelect from '../../../shared/ui/CustomSelect'
 
 // ── 申請卡片 ──────────────────────────────────────────────────────────────────
 
-function ApplicationCard({ app, groupFull, error, onApprove, onReject }) {
+function ApplicationCard({ app, groupFull, error, onApprove, onReject, isLeft = false }) {
   const [expanded, setExpanded] = useState(false)
   const name    = app.applicantName ?? app.userName ?? '申請者'
   const initial = app.applicantAvatarInitial ?? app.userAvatarInitial ?? name[0]
@@ -42,9 +42,10 @@ function ApplicationCard({ app, groupFull, error, onApprove, onReject }) {
             </div>
             {!isPending && (
               <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                isLeft ? 'bg-slate-100 text-slate-500' :
                 app.status === 'approved' ? 'bg-success-subtle text-success-text' : 'bg-danger-subtle text-danger-text'
               }`}>
-                {app.status === 'approved' ? '已核准' : app.status === 'removed' ? '已移除' : '已拒絕'}
+                {isLeft ? '已退出' : app.status === 'approved' ? '已核准' : app.status === 'removed' ? '已移除' : '已拒絕'}
               </span>
             )}
           </div>
@@ -95,7 +96,7 @@ const ISSUE_TYPES = [
   { key: 'other',            label: '其他問題',           desc: '請填寫說明' },
 ]
 
-export default function HostGroupView({ group, members, applications, onConfirmMember, onReportPaymentIssue, onRemoveMember, onActivate, onActivateGroup, onApprove, onReject, errors, onClose, autoOpenActivateGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling }) {
+export default function HostGroupView({ group, members, applications, onConfirmMember, onReportPaymentIssue, onReportServiceInfoIssue, onRemoveMember, onActivate, onActivateGroup, onApprove, onReject, errors, onClose, autoOpenActivateGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling }) {
   const [showActivate, setShowActivate]                   = useState(false)
   const [removingMember, setRemovingMember]               = useState(null)
   const [showMembers, setShowMembers]                     = useState(false)
@@ -103,6 +104,7 @@ export default function HostGroupView({ group, members, applications, onConfirmM
   const [appFilter, setAppFilter]                         = useState('all')
   const [showBilling, setShowBilling]                     = useState(false)
   const [showActivateGroupConfirm, setShowActivateGroupConfirm] = useState(false)
+  const [paymentAccount, setPaymentAccount] = useState('')
   const [expandedBillingMembers, setExpandedBillingMembers] = useState(new Set())
   const [reportModalMember, setReportModalMember] = useState(null)
   // null or member object
@@ -139,7 +141,7 @@ export default function HostGroupView({ group, members, applications, onConfirmM
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (autoOpenActivateGroup && ['full', 'pending_confirmation'].includes(group.status)) setShowActivateGroupConfirm(true)
+    if (autoOpenActivateGroup && group.status === 'full') setShowActivateGroupConfirm(true)
   }, [autoOpenActivateGroup]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -170,8 +172,10 @@ export default function HostGroupView({ group, members, applications, onConfirmM
   const canActivateNow  = group.status === 'pending_activation'
   const isActivated     = ['active', 'paused', 'cancelled', 'ended'].includes(group.status)
 
-  const [finalConfirmed, setFinalConfirmed] = useState(false)
-  const [memberChecks, setMemberChecks]     = useState({})
+  const [finalConfirmed, setFinalConfirmed]         = useState(false)
+  const [memberChecks, setMemberChecks]             = useState({})
+  const [serviceIssueMember, setServiceIssueMember] = useState(null)
+  const [serviceIssueNote, setServiceIssueNote]     = useState('')
 
   const allMembersChecked = members.length > 0 && members.every(m => memberChecks[m.id])
 
@@ -369,29 +373,45 @@ export default function HostGroupView({ group, members, applications, onConfirmM
               {members.length === 0 ? (
                 <p className="py-2 text-center text-sm text-ink-3">尚無成員</p>
               ) : members.map(m => (
-                <label
+                <div
                   key={m.id}
-                  className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-colors ${
-                    memberChecks[m.id] ? 'border-success/40 bg-success-subtle' : 'border-line hover:bg-raised'
+                  className={`rounded-xl border p-3 transition-colors ${
+                    memberChecks[m.id] ? 'border-success/40 bg-success-subtle' :
+                    m.serviceInfoIssueNote ? 'border-warning/40 bg-warning-subtle' :
+                    'border-line'
                   }`}
                 >
-                  <input
-                    type="checkbox"
-                    checked={!!memberChecks[m.id]}
-                    onChange={e => setMemberChecks(prev => ({ ...prev, [m.id]: e.target.checked }))}
-                    className="h-4 w-4 shrink-0 accent-brand"
-                  />
-                  <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-ink">{m.userName}</p>
-                    {m.serviceInfo?.email ? (
-                      <p className="text-xs text-ink-3">{m.serviceInfo.email}</p>
-                    ) : (
-                      <p className="text-xs text-ink-4">尚未填寫帳號</p>
-                    )}
-                  </div>
-                  {memberChecks[m.id] && <CheckCircle2 size={16} className="shrink-0 text-success" />}
-                </label>
+                  <label className="flex cursor-pointer items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={!!memberChecks[m.id]}
+                      onChange={e => setMemberChecks(prev => ({ ...prev, [m.id]: e.target.checked }))}
+                      className="h-4 w-4 shrink-0 accent-brand"
+                    />
+                    <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-ink">{m.userName}</p>
+                      {m.serviceInfoIssueNote ? (
+                        <p className="text-xs text-warning-text">帳號問題已回報，等待修正</p>
+                      ) : m.serviceInfo?.email ? (
+                        <p className="text-xs text-ink-3">{m.serviceInfo.email}</p>
+                      ) : (
+                        <p className="text-xs text-ink-4">尚未填寫帳號</p>
+                      )}
+                    </div>
+                    {memberChecks[m.id] && <CheckCircle2 size={16} className="shrink-0 text-success" />}
+                  </label>
+                  {m.serviceInfo?.email && !memberChecks[m.id] && (
+                    <div className="mt-2 flex justify-end">
+                      <button
+                        onClick={() => { setServiceIssueMember(m); setServiceIssueNote(m.serviceInfoIssueNote ?? '') }}
+                        className="flex items-center gap-1 rounded-lg border border-warning/60 px-2.5 py-1 text-xs font-semibold text-warning-text transition-colors hover:bg-warning-subtle"
+                      >
+                        <AlertTriangle size={11} /> 帳號問題
+                      </button>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           </div>
@@ -420,18 +440,46 @@ export default function HostGroupView({ group, members, applications, onConfirmM
       </Modal>
 
 
-      {/* ── 啟用群組確認 Dialog ── */}
-      {showActivateGroupConfirm && (
-        <ConfirmDialog
-          icon={<Radio size={18} className="text-success" />}
-          title="啟用群組"
-          message="啟用後將開啟群組聊天室，系統會通知所有成員進行付款，並提示成員提供服務帳號資訊。"
-          confirmLabel="確認啟用"
-          onCancel={() => setShowActivateGroupConfirm(false)}
-          onConfirm={() => { setShowActivateGroupConfirm(false); onActivateGroup?.() }}
-        >
+      {/* ── 啟用群組 Modal（含填寫收款帳號）── */}
+      <Modal
+        isOpen={showActivateGroupConfirm}
+        onClose={() => { setShowActivateGroupConfirm(false); setPaymentAccount('') }}
+        title="啟用群組"
+        icon={<Radio size={18} className="text-success" />}
+        sub
+        footer={
+          <div className="flex gap-2 w-full">
+            <button
+              onClick={() => { setShowActivateGroupConfirm(false); setPaymentAccount('') }}
+              className="flex-1 rounded-xl border border-line py-2.5 text-sm font-semibold text-ink-2 transition-colors hover:bg-raised"
+            >取消</button>
+            <button
+              onClick={() => { setShowActivateGroupConfirm(false); onActivateGroup?.(paymentAccount.trim()); setPaymentAccount('') }}
+              disabled={!paymentAccount.trim()}
+              className="flex-1 rounded-xl bg-success py-2.5 text-sm font-bold text-white transition-colors hover:bg-success/90 disabled:cursor-not-allowed disabled:opacity-40"
+            >確認啟用</button>
+          </div>
+        }
+      >
+        <div className="space-y-4 px-1">
+          <p className="text-sm text-ink-3">啟用後將開啟群組聊天室，系統會通知所有成員進行付款。</p>
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold text-ink-2">
+              收款帳號資訊<span className="ml-0.5 text-danger">*</span>
+            </label>
+            <textarea
+              rows={3}
+              placeholder={`例如：\n台新銀行 帳號 0123-4567-8901\n戶名：王小明`}
+              value={paymentAccount}
+              onChange={e => setPaymentAccount(e.target.value)}
+              maxLength={300}
+              className="w-full resize-none rounded-xl border border-line bg-canvas px-3.5 py-2.5 text-sm text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand"
+            />
+            <p className="mt-1 pl-1 text-xs text-ink-4">成員付款時將看到此資訊，請確認正確後再啟用</p>
+          </div>
           {members.length > 0 && (
-            <div className="mt-3 rounded-xl bg-raised p-3 space-y-1.5">
+            <div className="rounded-xl bg-raised p-3 space-y-1.5">
+              <p className="text-xs font-semibold text-ink-3 mb-2">即將通知以下成員</p>
               {members.map(m => (
                 <div key={m.id} className="flex items-center gap-2">
                   <span
@@ -445,8 +493,8 @@ export default function HostGroupView({ group, members, applications, onConfirmM
               ))}
             </div>
           )}
-        </ConfirmDialog>
-      )}
+        </div>
+      </Modal>
 
     </GroupModalShell>
 
@@ -529,26 +577,40 @@ export default function HostGroupView({ group, members, applications, onConfirmM
 
     {/* ── 申請管理 Modal ── */}
     <Modal isOpen={showApplications} onClose={() => { setShowApplications(false); setAppFilter('all') }} title="申請管理" icon={<ClipboardList size={18} className="text-brand" />} maxWidth="max-w-lg" sub>
-      {applications.length > 0 && (
-        <div className="px-5 py-3">
-          <CustomSelect
-            value={appFilter}
-            onChange={setAppFilter}
-            options={[
-              { value: 'all',      label: `全部（${applications.length}）` },
-              { value: 'pending',  label: `審核中（${applications.filter(a => a.status === 'pending').length}）` },
-              { value: 'approved', label: `已核准（${applications.filter(a => a.status === 'approved').length}）` },
-              { value: 'removed',  label: `已移除（${applications.filter(a => a.status === 'removed').length}）` },
-              { value: 'rejected', label: `已拒絕（${applications.filter(a => a.status === 'rejected').length}）` },
-            ]}
-          />
-        </div>
-      )}
+      {applications.length > 0 && (() => {
+        const memberUserIds = new Set(members.map(m => m.userId))
+        const isLeft = a => a.status === 'approved' && !memberUserIds.has(a.applicantId ?? a.userId)
+        const leftCount     = applications.filter(isLeft).length
+        const approvedCount = applications.filter(a => a.status === 'approved' && !isLeft(a)).length
+        return (
+          <div className="px-5 py-3">
+            <CustomSelect
+              value={appFilter}
+              onChange={setAppFilter}
+              options={[
+                { value: 'all',      label: `全部（${applications.length}）` },
+                { value: 'pending',  label: `審核中（${applications.filter(a => a.status === 'pending').length}）` },
+                { value: 'approved', label: `已核准（${approvedCount}）` },
+                { value: 'left',     label: `已退出（${leftCount}）` },
+                { value: 'removed',  label: `已移除（${applications.filter(a => a.status === 'removed').length}）` },
+                { value: 'rejected', label: `已拒絕（${applications.filter(a => a.status === 'rejected').length}）` },
+              ]}
+            />
+          </div>
+        )
+      })()}
       <div className="h-[60vh] min-h-0 overflow-y-auto px-5 pb-5 pt-2">
         {applications.length === 0 ? (
           <EmptyState icon={ClipboardList} title="目前沒有任何申請紀錄" description="你的群組暫時沒有新的加入申請。" />
         ) : (() => {
-          const filteredApps = applications.filter(a => appFilter === 'all' || a.status === appFilter)
+          const memberUserIds = new Set(members.map(m => m.userId))
+          const isLeft = a => a.status === 'approved' && !memberUserIds.has(a.applicantId ?? a.userId)
+          const filteredApps = applications.filter(a => {
+            if (appFilter === 'all')      return true
+            if (appFilter === 'left')     return isLeft(a)
+            if (appFilter === 'approved') return a.status === 'approved' && !isLeft(a)
+            return a.status === appFilter
+          })
           return filteredApps.length === 0
             ? <EmptyState icon={ClipboardList} title="沒有符合的申請紀錄" />
             : (
@@ -557,6 +619,7 @@ export default function HostGroupView({ group, members, applications, onConfirmM
                   <ApplicationCard
                     key={app.id}
                     app={app}
+                    isLeft={isLeft(app)}
                     groupFull={groupFull}
                     error={errors?.[app.id]}
                     onApprove={app => { onApprove?.(app); setShowApplications(false); setAppFilter('all') }}
@@ -571,7 +634,7 @@ export default function HostGroupView({ group, members, applications, onConfirmM
 
     {/* ── 收款紀錄 Modal ── */}
     <Modal isOpen={showBilling} onClose={() => setShowBilling(false)} title="收款管理" icon={<Banknote size={18} className="text-brand" />} maxWidth="max-w-lg" sub>
-        <div className="h-[60vh] min-h-0 overflow-y-auto">
+        <div className="h-[60vh] min-h-0 overflow-y-auto scrollbar-none">
           {isActivated ? (
             /* 已啟用後：顯示歷史收款清單 */
             <div className="p-5">
@@ -797,7 +860,7 @@ export default function HostGroupView({ group, members, applications, onConfirmM
       }
     >
       {reportModalMember && (
-        <div className="flex-1 min-h-0 overflow-y-auto p-5 space-y-4">
+        <div className="flex-1 min-h-0 overflow-y-auto scrollbar-none p-5 space-y-4">
           <div className="flex items-center gap-3 rounded-xl bg-raised px-4 py-3">
             <Avatar initial={reportModalMember.userAvatarInitial} color={reportModalMember.userAvatarColor} size="sm" />
             <p className="text-sm font-semibold text-ink">{reportModalMember.userName}</p>
@@ -840,6 +903,53 @@ export default function HostGroupView({ group, members, applications, onConfirmM
               )}
             </div>
           )}
+        </div>
+      )}
+    </Modal>
+
+    {/* ── 回報帳號問題 Modal ── */}
+    <Modal
+      isOpen={!!serviceIssueMember}
+      onClose={() => { setServiceIssueMember(null); setServiceIssueNote('') }}
+      title="回報帳號問題"
+      icon={<AlertTriangle size={18} className="text-warning-text" />}
+      maxWidth="max-w-sm"
+      sub
+      footer={
+        <button
+          onClick={() => {
+            if (!serviceIssueNote.trim() || !serviceIssueMember) return
+            onReportServiceInfoIssue?.(serviceIssueMember, serviceIssueNote.trim())
+            setServiceIssueMember(null)
+            setServiceIssueNote('')
+          }}
+          disabled={!serviceIssueNote.trim()}
+          className="flex-1 rounded-xl bg-warning py-2.5 text-sm font-bold text-white transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          發送通知
+        </button>
+      }
+    >
+      {serviceIssueMember && (
+        <div className="flex-1 min-h-0 overflow-y-auto p-5 space-y-4">
+          <div className="flex items-center gap-3 rounded-xl bg-raised px-4 py-3">
+            <Avatar initial={serviceIssueMember.userAvatarInitial} color={serviceIssueMember.userAvatarColor} size="sm" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-ink">{serviceIssueMember.userName}</p>
+              <p className="text-xs text-ink-3">{serviceIssueMember.serviceInfo?.email ?? '—'}</p>
+            </div>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold text-ink-2">說明帳號問題</label>
+            <textarea
+              rows={3}
+              autoFocus
+              placeholder="例如：此 Email 無法加入訂閱方案，請更換帳號..."
+              value={serviceIssueNote}
+              onChange={e => setServiceIssueNote(e.target.value)}
+              className="w-full resize-none rounded-xl border border-line bg-canvas px-3 py-2.5 text-sm text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand"
+            />
+          </div>
         </div>
       )}
     </Modal>

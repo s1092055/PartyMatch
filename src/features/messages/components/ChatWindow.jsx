@@ -2,11 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, CheckCircle2, ChevronDown, Clock, MoreVertical, Send, SquarePen, Trash2, Users, X } from 'lucide-react'
 import ConversationAvatar from './ConversationAvatar'
-import { getMembersByGroupId, getMemberByUserAndGroup, updateMember } from '../../../shared/stores/memberStore'
+import { getMembersByGroupId, getMemberByUserAndGroup } from '../../../shared/stores/memberStore'
 import { CONFIRMED_STATUSES } from '../../../shared/constants/paymentStatus'
 import { getGroupById } from '../../../shared/stores/groupStore'
 import { getCurrentUser } from '../../../shared/stores/authStore'
-import { markConversationRead, addParticipantToConversation, fetchOlderMessages, sendActionMessage } from '../../../shared/api/messagesApi'
+import { markConversationRead, addParticipantToConversation, fetchOlderMessages } from '../../../shared/api/messagesApi'
 import { getUserProfile } from '../../../shared/api/usersApi'
 import { formatTime } from '../utils'
 
@@ -54,42 +54,15 @@ export default function ChatWindow({
 }) {
   // 用來在 userProfileCache（模組層、非 React state）有新結果時強制重新 render
   const [, setProfileResolveTick] = useState(0)
+  const [, setMemberTick] = useState(0)
 
   const navigate = useNavigate()
 
-  const [fillInfoOpen, setFillInfoOpen] = useState(false)
-  const [fillInfoEmail, setFillInfoEmail] = useState('')
-  const [fillInfoDone, setFillInfoDone] = useState(false)
-
-  async function handleFillInfoSubmit() {
-    if (!fillInfoEmail.trim() || !conversationGroupId || !userId) return
-    const member = getMemberByUserAndGroup(userId, conversationGroupId)
-    if (!member) return
-    await updateMember(member.id, { serviceInfo: { email: fillInfoEmail.trim() } })
-    if (group?.hostId) {
-      await sendActionMessage(selectedId, {
-        actionType: 'member_filled_service_info',
-        text: `${member.userName} 已完成填寫服務帳號`,
-        visibleTo: [group.hostId],
-      })
-    }
-    await sendActionMessage(selectedId, {
-      actionType: 'go_to_payment',
-      text: '你已完成填寫服務帳號，請前往付款以完成加入流程。',
-      visibleTo: [userId],
-    })
-    const updatedMembers = getMembersByGroupId(conversationGroupId)
-    const allFilled = updatedMembers.every(m => !!m.serviceInfo?.email)
-    if (allFilled && group?.hostId) {
-      await sendActionMessage(selectedId, {
-        actionType: 'all_service_info_filled',
-        text: '所有成員已完成填寫服務帳號，現在可以進行收款確認。',
-        visibleTo: [group.hostId],
-      })
-    }
-    setFillInfoDone(true)
-    setFillInfoOpen(false)
-  }
+  useEffect(() => {
+    function onMembersChanged() { setMemberTick(t => t + 1) }
+    window.addEventListener('pm:members-changed', onMembersChanged)
+    return () => window.removeEventListener('pm:members-changed', onMembersChanged)
+  }, [])
 
   const userId = user?.id
   const otherIds = selected?.participants?.filter(p => p !== userId) ?? []
@@ -440,7 +413,7 @@ export default function ChatWindow({
                   }
                   // 成員只看到自己的填寫狀態
                   const myMember = getMemberByUserAndGroup(userId, conversationGroupId)
-                  const alreadyFilled = fillInfoDone || !!myMember?.serviceInfo?.email
+                  const alreadyFilled = !!myMember?.serviceInfo?.email && !myMember?.serviceInfoIssueNote
                   return (
                     <div key={msg.id} className="flex justify-center">
                       <div className="w-64 rounded-2xl border border-line bg-white px-4 py-3 text-center shadow-sm">
@@ -451,7 +424,10 @@ export default function ChatWindow({
                           </p>
                         ) : (
                           <button
-                            onClick={() => setFillInfoOpen(true)}
+                            onClick={() => {
+                              window.dispatchEvent(new CustomEvent('pm:close-messages'))
+                              navigate('/my-subscriptions', { state: { openGroupId: conversationGroupId } })
+                            }}
                             className="rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-brand-hover"
                           >
                             填寫服務帳號
@@ -509,8 +485,8 @@ export default function ChatWindow({
                   return (
                     <div key={msg.id} className="flex justify-center">
                       <div className="w-64 rounded-2xl border border-warning/30 bg-warning-subtle px-4 py-3 text-center shadow-sm">
-                        <p className="mb-1 text-xs font-semibold text-warning-text">需要補件</p>
-                        <p className="mb-2 text-xs text-ink-2">{msg.text}</p>
+                        <p className="mb-2 text-xs font-semibold text-warning-text">需要補件</p>
+                        {msg.text && <p className="mb-3 rounded-lg bg-white/60 px-3 py-2 text-left text-xs text-ink-2">{msg.text}</p>}
                         {alreadyResubmitted ? (
                           <p className="flex items-center justify-center gap-1 text-xs font-semibold text-ink-3">
                             <CheckCircle2 size={13} /> 已重新提交
@@ -524,6 +500,33 @@ export default function ChatWindow({
                             className="w-full rounded-lg bg-warning px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:opacity-90"
                           >
                             重新上傳付款憑證
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )
+                }
+                if (msg.actionType === 'request_service_resubmit') {
+                  const svcMember = getMemberByUserAndGroup(userId, conversationGroupId)
+                  const alreadyFixed = !!svcMember?.serviceInfo?.email && !svcMember?.serviceInfoIssueNote
+                  return (
+                    <div key={msg.id} className="flex justify-center">
+                      <div className="w-64 rounded-2xl border border-warning/30 bg-warning-subtle px-4 py-3 text-center shadow-sm">
+                        <p className="mb-2 text-xs font-semibold text-warning-text">服務帳號需要修正</p>
+                        {msg.text && <p className="mb-3 rounded-lg bg-white/60 px-3 py-2 text-left text-xs text-ink-2">{msg.text}</p>}
+                        {alreadyFixed ? (
+                          <p className="flex items-center justify-center gap-1 text-xs font-semibold text-ink-3">
+                            <CheckCircle2 size={13} /> 已重新填寫
+                          </p>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              window.dispatchEvent(new CustomEvent('pm:close-messages'))
+                              navigate('/my-subscriptions', { state: { openGroupId: conversationGroupId } })
+                            }}
+                            className="w-full rounded-lg bg-warning px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:opacity-90"
+                          >
+                            重新填寫服務帳號
                           </button>
                         )}
                       </div>
@@ -654,40 +657,6 @@ export default function ChatWindow({
         </div>
       </div>
 
-      {fillInfoOpen && (
-        <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl">
-            <p className="mb-1 text-base font-bold text-ink">填寫服務帳號</p>
-            <p className="mb-4 text-xs text-ink-3">
-              請輸入你在 {group?.serviceName ?? '此服務'} 使用的電子信箱，以便團主設定你的訂閱帳號。
-            </p>
-            <input
-              type="email"
-              autoFocus
-              value={fillInfoEmail}
-              onChange={e => setFillInfoEmail(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') handleFillInfoSubmit() }}
-              placeholder="you@example.com"
-              className="mb-4 w-full rounded-xl border border-line bg-canvas px-3.5 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-brand/20"
-            />
-            <div className="flex gap-2">
-              <button
-                onClick={() => { setFillInfoOpen(false); setFillInfoEmail('') }}
-                className="flex-1 rounded-xl border border-line py-2.5 text-sm font-semibold text-ink-2 transition-colors hover:bg-raised"
-              >
-                取消
-              </button>
-              <button
-                onClick={handleFillInfoSubmit}
-                disabled={!fillInfoEmail.trim()}
-                className="flex-1 rounded-xl bg-brand py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover disabled:opacity-40"
-              >
-                確認送出
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   )
 }

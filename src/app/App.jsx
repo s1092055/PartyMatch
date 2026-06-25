@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { RouterProvider } from 'react-router-dom'
 import router from './router'
 import ToastContainer from '../shared/ui/ToastContainer'
-import { initAuth } from '../shared/stores/authStore'
+import { initAuth, getCurrentUser } from '../shared/stores/authStore'
 import { initServices } from '../shared/stores/serviceStore'
 import { initGroups } from '../shared/stores/groupStore'
 import { initApplications, checkMissedApplicationNotifications } from '../shared/stores/applicationStore'
@@ -11,6 +11,7 @@ import { initMembers } from '../shared/stores/memberStore'
 import { initFavorites } from '../shared/stores/favoriteStore'
 import { initNotifications } from '../shared/stores/notificationStore'
 import { initPayments } from '../shared/stores/paymentStore'
+import { initConversations } from '../shared/stores/conversationStore'
 
 export default function App() {
   const [ready, setReady] = useState(false)
@@ -27,7 +28,14 @@ export default function App() {
       initNotifications(),
       initPayments(),
     ])
-      .then(() => { checkMissedApplicationNotifications(); setReady(true) })
+      .then(() => {
+        // initConversations 必須在 initNotifications 完成後才執行，
+        // 否則冷啟動的通知判斷會讀到空的 notifications，導致重複建立通知。
+        const user = getCurrentUser()
+        if (user) initConversations(user.id)
+        checkMissedApplicationNotifications()
+        setReady(true)
+      })
       .catch(err => {
         console.error('[App] Init failed:', err)
         setReady(true)

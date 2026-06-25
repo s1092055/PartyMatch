@@ -2,6 +2,7 @@
 // 過期才真正寫入系統訊息／退出聊天室／釋出名額／移除成員記錄／通知團主。
 import { getGroupById, updateGroup } from '../stores/groupStore'
 import { getMemberByUserAndGroup, removeMember } from '../stores/memberStore'
+import { getSubscriptionsByUserId, removeSubscription } from '../stores/subscriptionStore'
 import { createNotification } from '../stores/notificationStore'
 import { leaveConversation, sendSystemMessage } from '../api/messagesApi'
 import { toast } from './toast'
@@ -19,6 +20,8 @@ async function finalizeLeaveGroup(conversationId, groupId, user) {
   const group = groupId ? getGroupById(groupId) : null
   const member = groupId ? getMemberByUserAndGroup(user.id, groupId) : null
   if (member) removeMember(member.id)
+  const sub = groupId ? getSubscriptionsByUserId(user.id).find(s => s.groupId === groupId) : null
+  if (sub) removeSubscription(sub.id)
   if (group) {
     updateGroup(group.id, {
       usedSeats: Math.max(0, (group.usedSeats ?? 1) - 1),

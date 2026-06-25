@@ -8,8 +8,8 @@ import MemberGroupView from '../../features/subscriptions/components/MemberGroup
 
 export default function GroupViewModal({
   isOpen, onClose, groupId,
-  onConfirmMember, onReportPaymentIssue, onActivate, onActivateGroup, onRemoveMember,
-  onMarkPaid, onLeaveGroup, onApprove, onReject, errors,
+  onConfirmMember, onReportPaymentIssue, onReportServiceInfoIssue, onActivate, onActivateGroup, onRemoveMember,
+  onLeaveGroup, onApprove, onReject, errors,
   autoOpenPayment, autoOpenActivateGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling,
 }) {
   const [, setTick] = useState(0)
@@ -30,7 +30,9 @@ export default function GroupViewModal({
   if (isHost) return (
     <HostGroupView
       group={group} members={members} applications={applications}
-      onConfirmMember={onConfirmMember} onReportPaymentIssue={onReportPaymentIssue} onRemoveMember={onRemoveMember}
+      onConfirmMember={onConfirmMember} onReportPaymentIssue={onReportPaymentIssue}
+      onReportServiceInfoIssue={onReportServiceInfoIssue}
+      onRemoveMember={onRemoveMember}
       onActivate={onActivate} onActivateGroup={onActivateGroup}
       onApprove={onApprove} onReject={onReject}
       errors={errors} onClose={onClose}
@@ -41,5 +43,5 @@ export default function GroupViewModal({
       autoOpenBilling={autoOpenBilling}
     />
   )
-  return <MemberGroupView group={group} onMarkPaid={onMarkPaid} onLeaveGroup={onLeaveGroup} onClose={onClose} autoOpenPayment={autoOpenPayment} />
+  return <MemberGroupView group={group} onLeaveGroup={onLeaveGroup} onClose={onClose} autoOpenPayment={autoOpenPayment} />
 }

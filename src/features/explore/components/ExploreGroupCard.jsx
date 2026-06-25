@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { memo, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Heart,
@@ -53,10 +53,16 @@ function buildFeatureChips(group) {
   }))
 }
 
-export default function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = false, isApplied = false, isMember = false }) {
+function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = false, isApplied = false, isMember = false }) {
   const navigate = useNavigate()
   const activeUser = getCurrentUser()
   const [isFav, setIsFav] = useState(() => activeUser ? isGroupFavorited(activeUser.id, group.id) : false)
+
+  useEffect(() => {
+    function sync() { setIsFav(activeUser ? isGroupFavorited(activeUser.id, group.id) : false) }
+    window.addEventListener('pm:favorites-changed', sync)
+    return () => window.removeEventListener('pm:favorites-changed', sync)
+  }, [activeUser, group.id])
 
   const usedRatio = group.totalSeats > 0 ? Math.min(group.usedSeats / group.totalSeats, 1) : 0
   const isLastSeat = group.openSeats === 1
@@ -78,7 +84,7 @@ export default function ExploreGroupCard({ group, onFavChange, onBeforeNavigate,
 
   return (
     <article
-      className="card card-hover group relative flex min-h-full cursor-pointer flex-col overflow-hidden rounded-card border-line bg-surface px-6 py-5 shadow-[0_18px_45px_-32px_rgb(20_44_91_/_0.48)]"
+      className="card card-hover group relative flex min-h-full cursor-pointer flex-col overflow-hidden rounded-card border-line bg-surface px-6 py-5 shadow-[0_18px_45px_-32px_rgb(20_44_91_/_0.48)] transition-all duration-200"
       onClick={openDetails}
     >
       {!hideActions && (
@@ -186,3 +192,14 @@ export default function ExploreGroupCard({ group, onFavChange, onBeforeNavigate,
     </article>
   )
 }
+
+export default memo(ExploreGroupCard, (prev, next) =>
+  prev.group.id === next.group.id &&
+  prev.group.status === next.group.status &&
+  prev.group.openSeats === next.group.openSeats &&
+  prev.isApplied === next.isApplied &&
+  prev.isMember === next.isMember &&
+  prev.hideActions === next.hideActions &&
+  prev.onFavChange === next.onFavChange &&
+  prev.onBeforeNavigate === next.onBeforeNavigate
+)

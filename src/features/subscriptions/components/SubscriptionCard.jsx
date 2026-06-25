@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import Button from '../../../shared/ui/Button'
 import Badge from '../../../shared/ui/Badge'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
@@ -9,7 +10,6 @@ const STATUS_BADGE_CLASS = {
   active:               'bg-success-subtle text-success-text',
   active_renewal:       'bg-success-subtle text-success-text',
   recruiting:           'bg-success-subtle text-success-text',
-  group_active:         'bg-brand-subtle text-brand',
   pending_confirmation: 'bg-warning-subtle text-warning-text',
   pending_activation:   'bg-warning-subtle text-warning-text',
   full:                 'bg-slate-100 text-slate-500',
@@ -36,7 +36,7 @@ function StatCell({ label, children, highlight }) {
   )
 }
 
-export default function SubscriptionCard({ sub, onViewGroup }) {
+function SubscriptionCard({ sub, onViewGroup }) {
   const status        = effectiveStatus(sub)
   const isActive      = sub.status === 'active' || sub.groupStatus === 'active'
   const groupStatus   = sub.groupStatus ?? sub.status
@@ -62,7 +62,7 @@ export default function SubscriptionCard({ sub, onViewGroup }) {
 
   return (
     <article
-      className="card card-hover group relative flex min-h-full cursor-pointer flex-col overflow-hidden rounded-card border-line bg-surface p-5 shadow-[0_18px_45px_-32px_rgb(20_44_91_/_0.48)]"
+      className="card card-hover group relative flex min-h-full cursor-pointer flex-col overflow-hidden rounded-card border-line bg-surface p-5 shadow-[0_18px_45px_-32px_rgb(20_44_91_/_0.48)] transition-all duration-200"
       onClick={() => onViewGroup?.(sub)}
     >
       <div className="flex justify-center">
@@ -111,3 +111,11 @@ export default function SubscriptionCard({ sub, onViewGroup }) {
     </article>
   )
 }
+
+export default memo(SubscriptionCard, (prev, next) =>
+  prev.sub.id === next.sub.id &&
+  prev.sub.groupStatus === next.sub.groupStatus &&
+  prev.sub.paymentStatus === next.sub.paymentStatus &&
+  prev.sub.nextBillingDate === next.sub.nextBillingDate &&
+  prev.onViewGroup === next.onViewGroup
+)

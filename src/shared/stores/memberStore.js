@@ -34,6 +34,11 @@ export function isUserGroupMember(userId, groupId) {
   return _members.some(m => m.userId === userId && m.groupId === groupId)
 }
 
+export function getMemberGroupIds(userId) {
+  if (!userId) return new Set()
+  return new Set(_members.filter(m => m.userId === userId).map(m => m.groupId))
+}
+
 export function createMember({ groupId, groupName, userId, userName, userAvatarInitial, userAvatarColor }) {
   const member = {
     id:               createId('mem'),

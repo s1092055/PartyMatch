@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { CheckCircle, ClipboardList, Clock, UserMinus, XCircle } from 'lucide-react'
-import { getSubscriptionsByUserId, initSubscriptions, markSubscriptionPaid, removeSubscription } from '../../shared/stores/subscriptionStore'
+import { getSubscriptionsByUserId, initSubscriptions, removeSubscription } from '../../shared/stores/subscriptionStore'
 import { getMemberByUserAndGroup, initMembers, removeMember, updateMember } from '../../shared/stores/memberStore'
 import { createNotification } from '../../shared/stores/notificationStore'
 import { getApplicationsByUserId, initApplications } from '../../shared/stores/applicationStore'
@@ -13,7 +13,8 @@ import GroupViewModal from '../../shared/ui/GroupViewModal'
 import FilterTabsBar from '../../shared/ui/FilterTabsBar'
 import ServiceLogo from '../../shared/ui/ServiceLogo'
 import Button from '../../shared/ui/Button'
-import { daysUntil, formatRelativeDate, todayISO } from '../../shared/utils/date'
+import { toast } from '../../shared/utils/toast'
+import { daysUntil, formatRelativeDate } from '../../shared/utils/date'
 
 const FILTER_TABS = [
   { key: 'all',          label: '全部'     },
@@ -61,7 +62,6 @@ export default function SubscriptionsPage() {
   )
   const [viewGroupId, setViewGroupId] = useState(null)
   const [autoOpenPayment, setAutoOpenPayment] = useState(false)
-  const [toast, setToast] = useState(null)
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -77,8 +77,6 @@ export default function SubscriptionsPage() {
     window.addEventListener('pm:set-sub-tab', onSetTab)
     return () => window.removeEventListener('pm:set-sub-tab', onSetTab)
   }, [])
-  const toastTimerRef = useRef(null)
-
   useEffect(() => {
     let cancelled = false
 
@@ -132,46 +130,6 @@ export default function SubscriptionsPage() {
     applications: userApplications.length,
   }
 
-  function showToast(msg) {
-    if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
-    setToast(msg)
-    toastTimerRef.current = setTimeout(() => setToast(null), 3000)
-  }
-
-  function markAsPaid(sub, proofUrl, paidAmount) {
-    const now = todayISO()
-    markSubscriptionPaid(sub.id)
-
-    const member = getMemberByUserAndGroup(activeUser?.id, sub.groupId)
-    if (member) updateMember(member.id, {
-      paymentStatus: 'markedPaid',
-      lastPaidAt: now,
-      ...(proofUrl ? { paymentProofUrl: proofUrl } : {}),
-      ...(paidAmount ? { paidAmount } : {}),
-    })
-
-    createNotification({
-      userId: activeUser?.id,
-      type: 'payment',
-      title: '已付款，等待團主確認',
-      message: `${sub.serviceName} ${sub.planName} 已付款，等待團主確認。`,
-    })
-
-    const group = getGroupById(sub.groupId)
-    if (group?.hostId) {
-      createNotification({
-        userId: group.hostId,
-        type: 'member_payment_marked',
-        title: '成員已付款',
-        message: `${activeUser?.name ?? '成員'} 已在 ${sub.serviceName} ${sub.planName} 完成付款，請前往確認收款。`,
-        meta: { groupId: sub.groupId },
-      })
-    }
-
-    setSubs(activeUserId ? enrichSubs(getSubscriptionsByUserId(activeUserId)) : [])
-    showToast('已付款，等待團主確認')
-  }
-
   function handleLeaveGroup() {
     if (!viewGroupId || !activeUser) return
     const group  = getGroupById(viewGroupId)
@@ -208,13 +166,15 @@ export default function SubscriptionsPage() {
     setViewGroupId(null)
     setAutoOpenPayment(false)
     setSubs(activeUserId ? enrichSubs(getSubscriptionsByUserId(activeUserId)) : [])
-    showToast('已成功退出群組')
+    toast('已成功退出群組')
   }
 
   const filtered = useMemo(
     () => activeTab === 'applications' ? [] : filterSubs(subs, activeTab),
     [subs, activeTab],
   )
+
+  const onViewGroup = useCallback(sub => setViewGroupId(sub.groupId), [])
 
   return (
     <div className="px-2 md:px-4 lg:px-16">
@@ -262,7 +222,7 @@ export default function SubscriptionsPage() {
                   <SubscriptionCard
                     key={sub.id}
                     sub={sub}
-                    onViewGroup={sub => setViewGroupId(sub.groupId)}
+                    onViewGroup={onViewGroup}
                   />
                 ))}
               </div>
@@ -306,17 +266,9 @@ export default function SubscriptionsPage() {
         onClose={() => { setViewGroupId(null); setAutoOpenPayment(false) }}
         groupId={viewGroupId}
         autoOpenPayment={autoOpenPayment}
-        onMarkPaid={(sub, proofUrl, paidAmount) => { markAsPaid(sub, proofUrl, paidAmount); setViewGroupId(null); setAutoOpenPayment(false) }}
         onLeaveGroup={handleLeaveGroup}
       />
 
-      <div role="status" aria-live="polite" aria-atomic="true" className="pointer-events-none fixed bottom-6 left-1/2 z-50 -translate-x-1/2">
-        {toast && (
-          <div className="rounded-2xl bg-ink px-5 py-3 text-sm font-medium text-white shadow-xl">
-            {toast}
-          </div>
-        )}
-      </div>
     </div>
   )
 }

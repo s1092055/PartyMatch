@@ -3,10 +3,6 @@ const VARIANTS = {
     cls: 'bg-success-subtle text-success-text',
     dot: 'bg-success',
   },
-  group_active: {
-    cls: 'bg-brand-subtle text-brand',
-    dot: 'bg-brand',
-  },
   pending_activation: {
     cls: 'bg-warning-subtle text-warning-text',
     dot: 'bg-warning',
@@ -87,7 +83,6 @@ const VARIANTS = {
 
 const LABELS = {
   recruiting:         '招募中',
-  group_active:       '收款中',
   pending_activation: '待啟用',
   active:             '啟用中',
   paused:             '已結束',

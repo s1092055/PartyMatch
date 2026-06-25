@@ -31,14 +31,14 @@ export function initLiveApplications() {
           const prevStatus = _prevStatuses.get(app.id)
           const applicantId = app.applicantId ?? app.userId
 
-          // 新申請且當前用戶是團主 → 通知自己
+          // 新申請且當前用戶是團主 → 即時通知（唯一建立路徑，不會重複）
           if (prevStatus === undefined && app.hostId === currentUser.id) {
             createNotification({
               userId:  currentUser.id,
               type:    'new_application',
               title:   '收到新的加入申請',
               message: `${app.applicantName ?? '有人'} 申請加入「${app.groupName ?? app.serviceName}」群組。`,
-              meta:    { groupId: app.groupId },
+              meta:    { groupId: app.groupId, applicationId: app.id },
             })
           }
 
@@ -134,47 +134,62 @@ export function createApplication({ groupId, groupName, serviceId, serviceName, 
   })
   _apps.push(app)
   insertApplication(app).catch(console.error)
+  // 只通知申請人自己；團主通知由 onSnapshot（即時）或 checkMissedNewApplicationNotifications（冷啟動）處理
   createNotification({
     userId:  app.applicantId,
     type:    'application_sent',
     title:   '申請已送出',
     message: `你的加入申請已送達「${app.groupName ?? app.serviceName}」團主，等待審核。`,
-    meta:    { groupId: app.groupId },
+    meta:    { groupId: app.groupId, applicationId: app.id },
   })
   emitApplicationsChanged({ type: 'created', application: app })
   return app
 }
 
-// 冷啟動補通知：在 initApplications + initNotifications 都完成後呼叫，
-// 補上在 app 未開啟期間已變更的申請狀態通知（避免冷啟動遺漏）
+// 冷啟動補通知：initApplications + initNotifications 都完成後呼叫
 export function checkMissedApplicationNotifications() {
   const currentUser = getActiveUserProfile()
   if (!currentUser) return
+
   const existingNotifAppIds = new Set(
     getNotifications(currentUser.id)
-      .filter(n => n.type === 'application_approved' || n.type === 'application_rejected')
+      .filter(n => ['application_approved', 'application_rejected', 'new_application'].includes(n.type))
       .map(n => n.meta?.applicationId)
       .filter(Boolean)
   )
+
   _apps.forEach(app => {
     const applicantId = app.applicantId ?? app.userId
-    if (applicantId !== currentUser.id) return
-    if (existingNotifAppIds.has(app.id)) return
-    if (app.status === 'approved') {
+
+    // 補申請人遺漏的狀態通知
+    if (applicantId === currentUser.id && !existingNotifAppIds.has(app.id)) {
+      if (app.status === 'approved') {
+        createNotification({
+          userId:  currentUser.id,
+          type:    'application_approved',
+          title:   '申請已通過',
+          message: `你申請加入的「${app.groupName ?? app.serviceName}」群組已通過審核，歡迎加入！`,
+          meta:    { applicationId: app.id, groupId: app.groupId },
+        })
+      } else if (app.status === 'rejected') {
+        createNotification({
+          userId:  currentUser.id,
+          type:    'application_rejected',
+          title:   '申請未通過',
+          message: `很抱歉，你申請加入的「${app.groupName ?? app.serviceName}」群組申請未通過。`,
+          meta:    { applicationId: app.id },
+        })
+      }
+    }
+
+    // 補團主遺漏的新申請通知（離線期間送達的申請）
+    if (app.hostId === currentUser.id && app.status === 'pending' && !existingNotifAppIds.has(app.id)) {
       createNotification({
         userId:  currentUser.id,
-        type:    'application_approved',
-        title:   '申請已通過',
-        message: `你申請加入的「${app.groupName ?? app.serviceName}」群組已通過審核，歡迎加入！`,
-        meta:    { applicationId: app.id, groupId: app.groupId },
-      })
-    } else if (app.status === 'rejected') {
-      createNotification({
-        userId:  currentUser.id,
-        type:    'application_rejected',
-        title:   '申請未通過',
-        message: `很抱歉，你申請加入的「${app.groupName ?? app.serviceName}」群組申請未通過。`,
-        meta:    { applicationId: app.id },
+        type:    'new_application',
+        title:   '收到新的加入申請',
+        message: `${app.applicantName ?? '有人'} 申請加入「${app.groupName ?? app.serviceName}」群組。`,
+        meta:    { groupId: app.groupId, applicationId: app.id },
       })
     }
   })

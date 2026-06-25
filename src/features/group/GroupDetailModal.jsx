@@ -2,30 +2,27 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   CheckCircle2, ChevronRight,
-  CreditCard, Heart, LogIn, MessageCircle, ShieldCheck, Star,
+  CreditCard, Heart, LogIn, LogOut, MessageCircle, Shield, ShieldCheck, Star, Users,
 } from 'lucide-react'
 import { getGroupById, getGroups } from '../../shared/stores/groupStore'
 import { getServiceById } from '../../shared/utils/serviceUtils'
-import { getApplicationByUserAndGroup, getMemberGroupIds } from '../../shared/stores/applicationStore'
-import { isCurrentUserMember, getMemberByUserAndGroup } from '../../shared/stores/memberStore'
+import { getApplicationByUserAndGroup, getApplicationsByUserId } from '../../shared/stores/applicationStore'
+import { isCurrentUserMember, getMemberByUserAndGroup, getMembersByGroupId, getMemberGroupIds } from '../../shared/stores/memberStore'
 import { isGroupFavorited, toggleFavorite } from '../../shared/stores/favoriteStore'
 import { getCurrentUser } from '../../shared/stores/authStore'
+import { scheduleLeaveGroup } from '../../shared/utils/leaveGroupFlow'
+import { toast } from '../../shared/utils/toast'
 import Avatar from '../../shared/ui/Avatar'
 import Button from '../../shared/ui/Button'
+import Modal from '../../shared/ui/Modal'
+import ConfirmDialog from '../../shared/ui/ConfirmDialog'
 import GroupModalShell from '../../shared/ui/GroupModalShell'
 import ApplyJoinModal from './components/ApplyJoinModal'
 import ExploreGroupCard from '../explore/components/ExploreGroupCard'
 
-function computeIsApplied(app, groupId) {
-  if (!app) return false
-  return app.status !== 'rejected'
-    && app.status !== 'removed'
-    && !(app.status === 'approved' && !isCurrentUserMember(groupId))
-}
-
 // ── 團主評價 ──────────────────────────────────────────────────────────────────
 
-function HostReviews({ group, hostStars, headerClassName }) {
+function HostReviews({ group, hostStars, headerClassName, onDm }) {
   return (
     <div className="space-y-4 py-5">
       <p className={headerClassName}>團主評價</p>
@@ -44,6 +41,15 @@ function HostReviews({ group, hostStars, headerClassName }) {
             )}
           </div>
         </div>
+        {onDm && (
+          <button
+            onClick={onDm}
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-line text-ink-3 transition-colors hover:border-brand hover:text-brand"
+            aria-label="聯絡團主"
+          >
+            <MessageCircle size={16} />
+          </button>
+        )}
       </div>
       {(group.reviews ?? []).length === 0 ? (
         <p className="py-4 text-center text-sm text-ink-4">尚無評價</p>
@@ -80,10 +86,10 @@ export default function GroupDetailModal() {
   const navigate = useNavigate()
   const [groupId, setGroupId]               = useState(null)
   const [applyModalOpen, setApplyModalOpen] = useState(false)
-  const [applied, setApplied]               = useState(false)
   const [isFav, setIsFav]                   = useState(false)
-
-  const [tick, setTick] = useState(0)
+  const [tick, setTick]                     = useState(0)
+  const [showMembers, setShowMembers]       = useState(false)
+  const [leaveConfirm, setLeaveConfirm]     = useState(false)
 
   const isOpen       = !!groupId
   const activeUser   = getCurrentUser()
@@ -96,31 +102,21 @@ export default function GroupDetailModal() {
   }, [])
 
   useEffect(() => {
-    function refreshApplied() {
-      if (!groupId || !activeUserId) return
-      setApplied(computeIsApplied(getApplicationByUserAndGroup(activeUserId, groupId), groupId))
-      setTick(t => t + 1)
-    }
-    window.addEventListener('pm:applications-changed', refreshApplied)
-    window.addEventListener('pm:members-changed', refreshApplied)
+    function onStoreChanged() { setTick(t => t + 1) }
+    window.addEventListener('pm:applications-changed', onStoreChanged)
+    window.addEventListener('pm:members-changed', onStoreChanged)
     return () => {
-      window.removeEventListener('pm:applications-changed', refreshApplied)
-      window.removeEventListener('pm:members-changed', refreshApplied)
+      window.removeEventListener('pm:applications-changed', onStoreChanged)
+      window.removeEventListener('pm:members-changed', onStoreChanged)
     }
-  }, [groupId, activeUserId])
+  }, [])
 
   useEffect(() => {
     function onOpen(e) {
       const gId = e.detail?.groupId ?? null
       setGroupId(gId)
       setApplyModalOpen(false)
-      if (gId && activeUserId) {
-        setApplied(computeIsApplied(getApplicationByUserAndGroup(activeUserId, gId), gId))
-        setIsFav(isGroupFavorited(activeUserId, gId))
-      } else {
-        setApplied(false)
-        setIsFav(false)
-      }
+      setIsFav(gId && activeUserId ? isGroupFavorited(activeUserId, gId) : false)
     }
     window.addEventListener('pm:open-group', onOpen)
     return () => window.removeEventListener('pm:open-group', onOpen)
@@ -139,23 +135,48 @@ export default function GroupDetailModal() {
     ]
   }, [groupId, activeUserId, tick]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const memberGroupIds = useMemo(() => getMemberGroupIds(activeUserId), [activeUserId])
+  const memberGroupIds  = useMemo(() => getMemberGroupIds(activeUserId), [activeUserId])
+  const appliedGroupIds = useMemo(() => {
+    if (!activeUserId) return new Set()
+    return new Set(getApplicationsByUserId(activeUserId).filter(a => a.status === 'pending').map(a => a.groupId))
+  }, [activeUserId, tick]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!isOpen || !group) return null
 
   const isHost           = group.hostId === activeUserId
   const isMember         = isCurrentUserMember(group.id)
   const memberRecord     = activeUserId ? getMemberByUserAndGroup(activeUserId, group.id) : null
-  const isPaymentPhase   = ['pending_confirmation', 'pending_activation', 'active'].includes(group.status)
-  const hasServiceInfo   = !!memberRecord?.serviceInfo?.email
-  const needsFillInfo    = isMember && isPaymentPhase && !hasServiceInfo
-  const isPendingPayment = isMember && ['pending', 'payment_failed'].includes(memberRecord?.paymentStatus) && isPaymentPhase && hasServiceInfo
+  const isPaymentPhase      = ['pending_confirmation', 'pending_activation', 'active'].includes(group.status)
+  const hasServiceInfoIssue = !!memberRecord?.serviceInfoIssueNote
+  const hasServiceInfo      = !!memberRecord?.serviceInfo?.email && !hasServiceInfoIssue
+  const needsFillInfo       = isMember && isPaymentPhase && !hasServiceInfo
+  const isPendingPayment    = isMember && ['pending', 'payment_failed'].includes(memberRecord?.paymentStatus) && isPaymentPhase && hasServiceInfo
+  const hasPaymentFailed    = memberRecord?.paymentStatus === 'payment_failed'
   const isMarkedPaid     = isMember && memberRecord?.paymentStatus === 'markedPaid' && isPaymentPhase
   const isWaitingMembers = isMember && ['recruiting', 'full'].includes(group.status)
   const isFull           = (group.openSeats ?? 0) <= 0
-  const canApply         = !isHost && !isMember && !applied && !isFull && !!activeUserId
 
-  function handleClose() { setGroupId(null) }
+  // 直接從 store 讀取申請狀態，避免 state 在審核過渡期間不一致
+  // approved && !isMember → false，確保退出後可重新申請
+  const app          = activeUserId ? getApplicationByUserAndGroup(activeUserId, group.id) : null
+  const appStatus    = app?.status
+  const hasActiveApp = !!app && appStatus !== 'rejected' && appStatus !== 'removed' && !(appStatus === 'approved' && !isMember)
+  const isPendingApp = appStatus === 'pending'
+
+  const canApply = !isHost && !isMember && !hasActiveApp && !isFull && !!activeUserId
+
+  function handleClose() { setGroupId(null); setShowMembers(false); setLeaveConfirm(false) }
+
+  function handleLeave() {
+    setLeaveConfirm(false)
+    scheduleLeaveGroup({
+      conversationId: `group_${groupId}`,
+      groupId,
+      user: { id: activeUserId, name: activeUser?.name ?? activeUser?.displayName ?? '成員' },
+      groupName: group.serviceName,
+      onScheduled: handleClose,
+    })
+  }
   function openDm() {
     handleClose()
     window.dispatchEvent(new CustomEvent('pm:open-dm', {
@@ -179,32 +200,25 @@ export default function GroupDetailModal() {
         <ShieldCheck size={15} />你是此群組的團主
       </div>
     )
-    if (isWaitingMembers) return (
-      <div className="flex items-center justify-center gap-2 rounded-xl bg-success-subtle px-4 py-3 text-sm font-medium text-success-text">
-        <CheckCircle2 size={15} />
-        {group.status === 'full' ? '招募完成，等待團主啟用群組' : '已通過申請，需等待其他人加入'}
-      </div>
-    )
-    if (needsFillInfo) return (
+    if (isWaitingMembers) return null
+    if (needsFillInfo || isPendingPayment) return (
       <div className="flex justify-center">
-        <div className="relative">
-          <span className="absolute inset-1 rounded-xl bg-brand animate-ping opacity-20" />
+        <div className="relative w-full">
+          <span className={`absolute inset-1 rounded-xl animate-ping opacity-20 ${(hasPaymentFailed || hasServiceInfoIssue) ? 'bg-danger' : 'bg-brand'}`} />
           <button
-            onClick={() => { handleClose(); navigate('/my-subscriptions', { state: { openGroupId: group.id } }) }}
-            className="relative flex items-center gap-2 rounded-xl bg-brand px-6 py-2 text-sm font-bold text-white shadow-md transition-colors hover:bg-brand-hover"
+            onClick={() => {
+              handleClose()
+              navigate('/my-subscriptions', { state: { openGroupId: group.id, ...(isPendingPayment ? { openPayment: true } : {}) } })
+            }}
+            className={`relative flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white transition-colors ${
+              (hasPaymentFailed || hasServiceInfoIssue) ? 'bg-danger hover:opacity-90' : 'bg-brand hover:bg-brand-hover'
+            }`}
           >
-            <CreditCard size={15} /> 填寫服務帳號
+            <CreditCard size={15} />
+            {hasServiceInfoIssue ? '修正服務帳號' : needsFillInfo ? '填寫服務帳號' : hasPaymentFailed ? '重新上傳付款憑證' : '前往付款'}
           </button>
         </div>
       </div>
-    )
-    if (isPendingPayment) return (
-      <button
-        onClick={() => { handleClose(); navigate('/my-subscriptions', { state: { openGroupId: group.id, openPayment: true } }) }}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
-      >
-        <CreditCard size={15} /> {memberRecord?.paymentStatus === 'payment_failed' ? '重新上傳付款憑證' : '前往付款'}
-      </button>
     )
     if (isMarkedPaid) return (
       <div className="flex items-center justify-center gap-2 rounded-xl bg-purple-subtle px-4 py-3 text-sm font-medium text-purple-text">
@@ -219,32 +233,42 @@ export default function GroupDetailModal() {
     if (isFull) return (
       <Button variant="ghost" size="lg" className="w-full border border-line" disabled>已額滿</Button>
     )
-    if (applied) return (
-      <div className="flex items-center justify-center gap-2 rounded-xl bg-warning-subtle px-4 py-3 text-sm font-medium text-warning-text">
-        <CheckCircle2 size={15} />已送出申請，等待團主審核
-      </div>
-    )
-    return (
-      <Button
-        size="lg"
-        className="w-full bg-[#1a1f36] text-white hover:bg-[#252b47]"
-        onClick={() => setApplyModalOpen(true)}
-      >
-        申請加入 <ChevronRight size={16} />
-      </Button>
-    )
+    if (hasActiveApp) return null
+    return null
   }
 
-  const hostStars  = group.hostRating != null ? Math.round(group.hostRating / 20) : 0
-  const reviews    =<HostReviews group={group} hostStars={hostStars} headerClassName="text-lg font-black text-brand" />
+  const hostStars = group.hostRating != null ? Math.round(group.hostRating / 20) : 0
+  const reviews   = (
+    <HostReviews
+      group={group}
+      hostStars={hostStars}
+      headerClassName="text-lg font-black text-brand"
+      onDm={activeUserId && !isHost ? openDm : undefined}
+    />
+  )
 
   return (
+    <>
     <GroupModalShell
       onClose={handleClose}
       group={group}
       service={service}
       plan={plan}
+      hidden={showMembers}
       hideRecruitBar={isMember || isHost || group.status !== 'recruiting'}
+      statusBadgeOverride={isMember && group.status === 'recruiting' ? 'member_joined' : undefined}
+      headerBanner={
+        isWaitingMembers ? (
+          <div className="flex items-center justify-center gap-2 bg-success-subtle px-6 py-3 text-sm font-medium text-success-text">
+            <CheckCircle2 size={15} />
+            {group.status === 'full' ? '招募完成，等待團主啟用群組' : '已通過申請，需等待其他人加入'}
+          </div>
+        ) : isPendingApp ? (
+          <div className="flex items-center justify-center gap-2 bg-warning-subtle px-6 py-3 text-sm font-medium text-warning-text">
+            <CheckCircle2 size={15} />已送出申請，等待團主審核
+          </div>
+        ) : undefined
+      }
       summaryFavoriteSlot={
         <button
           onClick={toggleFav}
@@ -254,50 +278,51 @@ export default function GroupDetailModal() {
           <Heart size={19} className={isFav ? 'fill-red-500 text-red-500' : 'text-ink-4'} />
         </button>
       }
-      summaryFooter={
-        <div className="px-6 py-4 lg:px-8">
-          {activeUserId && !isHost && (
-            <button
-              onClick={openDm}
-              className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl border border-line px-4 py-2.5 text-sm font-semibold text-ink-2 transition-colors hover:border-brand hover:text-brand"
-            >
-              <MessageCircle size={15} /> 聯絡團主
-            </button>
-          )}
-          {renderCTA()}
-          {canApply && (
-            <p className="mt-2 text-center text-xs text-ink-4">申請後需經團主審核，通過後即可加入群組</p>
-          )}
-          {group.openSeats <= 2 && !isFull && canApply && (
-            <p className="mt-1 text-center text-xs text-warning-text">僅剩 {group.openSeats} 個名額</p>
-          )}
-        </div>
-      }
+      summaryFooter={null}
       desktopReviewsSection={reviews}
       mobileReviewsSection={reviews}
       mobileFooter={
         <div className="px-6 py-3">
-          {renderCTA()}
-          <div className="mt-2 flex gap-2">
-            <button
-              onClick={toggleFav}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors ${
-                isFav ? 'border-red-100 bg-red-50 text-red-500' : 'border-line text-ink-2 hover:border-red-200 hover:text-red-400'
-              }`}
-              aria-label={isFav ? '取消收藏' : '加入收藏'}
-            >
-              <Heart size={15} className={isFav ? 'fill-red-500' : ''} />
-              {isFav ? '已收藏' : '收藏'}
-            </button>
-            {activeUserId && !isHost && (
+          {isWaitingMembers ? (
+            <div className="grid grid-cols-2 gap-1">
               <button
-                onClick={openDm}
-                className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-line px-4 py-2.5 text-sm font-semibold text-ink-2 transition-colors hover:border-brand hover:text-brand"
+                onClick={() => setShowMembers(true)}
+                className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
               >
-                <MessageCircle size={15} /> 聯絡團主
+                <Users size={17} /> 成員名單
               </button>
-            )}
-          </div>
+              <button
+                onClick={() => setLeaveConfirm(true)}
+                className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-danger transition-colors hover:bg-red-50"
+              >
+                <LogOut size={17} /> 退出群組
+              </button>
+            </div>
+          ) : canApply ? (
+            <>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="lg"
+                  className="flex-1 bg-[#1a1f36] text-white hover:bg-[#252b47]"
+                  onClick={() => setApplyModalOpen(true)}
+                >
+                  申請加入 <ChevronRight size={16} />
+                </Button>
+                <button
+                  onClick={toggleFav}
+                  className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl border transition-colors ${
+                    isFav ? 'border-red-100 bg-red-50 text-red-500' : 'border-line text-ink-2 hover:border-red-200 hover:text-red-400'
+                  }`}
+                  aria-label={isFav ? '取消收藏' : '加入收藏'}
+                >
+                  <Heart size={18} className={isFav ? 'fill-red-500' : ''} />
+                </button>
+              </div>
+              <p className="mt-2 text-center text-xs text-ink-4">申請後需經團主審核，通過後即可加入群組</p>
+            </>
+          ) : (
+            renderCTA()
+          )}
         </div>
       }
       afterColumns={picks.length > 0 && (
@@ -306,7 +331,7 @@ export default function GroupDetailModal() {
           <div className="flex gap-3 overflow-x-auto px-0.5 pb-3 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {picks.map(g => (
               <div key={g.id} className="w-64 shrink-0">
-                <ExploreGroupCard group={g} isMember={memberGroupIds.has(g.id)} />
+                <ExploreGroupCard group={g} isApplied={appliedGroupIds.has(g.id)} isMember={memberGroupIds.has(g.id)} />
               </div>
             ))}
           </div>
@@ -318,10 +343,78 @@ export default function GroupDetailModal() {
           group={group}
           isOpen={applyModalOpen}
           onClose={() => setApplyModalOpen(false)}
-          onSuccess={() => { setApplied(true); setApplyModalOpen(false) }}
+          onSuccess={() => {
+            setApplyModalOpen(false)
+            handleClose()
+            toast('申請已送出，等待團主審核', 'success', {
+              persistent: true,
+              action: { label: '前往查看', onClick: () => navigate('/my-subscriptions', { state: { tab: 'processing' } }) },
+            })
+          }}
           onDone={handleClose}
         />
       )}
     </GroupModalShell>
+
+    {/* 成員名單 */}
+    {group && (
+      <Modal
+        isOpen={showMembers}
+        onClose={() => setShowMembers(false)}
+        title={`成員名單（${getMembersByGroupId(groupId).filter(m => m.userId !== group.hostId).length + 1} 人）`}
+        icon={<Users size={18} className="text-brand" />}
+        maxWidth="max-w-lg"
+        sub
+      >
+        <div className="h-[60vh] min-h-0 overflow-y-auto p-5">
+          <div className="space-y-2">
+            <div className="rounded-xl border border-line p-3">
+              <div className="flex items-center gap-3">
+                <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="sm" />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold text-ink">{group.hostName}</p>
+                    <span className="flex shrink-0 items-center gap-1 rounded-full bg-brand-subtle px-2.5 py-0.5 text-xs font-semibold text-brand">
+                      <Shield size={11} /> 團主
+                    </span>
+                  </div>
+                  <p className="text-xs text-ink-3">{group.createdAt} 建立</p>
+                </div>
+                <button
+                  onClick={() => { setShowMembers(false); openDm() }}
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-brand"
+                >
+                  <MessageCircle size={20} />
+                </button>
+              </div>
+            </div>
+            {getMembersByGroupId(groupId).filter(m => m.userId !== activeUserId).map(m => (
+              <div key={m.id} className="rounded-xl border border-line p-3">
+                <div className="flex items-center gap-3">
+                  <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-ink">{m.userName}</p>
+                    <p className="text-xs text-ink-3">{m.joinedAt} 加入</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Modal>
+    )}
+
+    {/* 退出確認 */}
+    {leaveConfirm && (
+      <ConfirmDialog
+        title="確認退出群組？"
+        message={`退出後將釋出名額，需重新申請才能加入「${group?.serviceName}」。`}
+        confirmLabel="退出群組"
+        danger
+        onConfirm={handleLeave}
+        onCancel={() => setLeaveConfirm(false)}
+      />
+    )}
+    </>
   )
 }

@@ -557,14 +557,24 @@ export default function AppNav({ variant = 'side' }) {
         <Link to="/" className="flex items-center gap-2" aria-label="回首頁">
           <img src={logoUrl} alt="PartyMatch" className="h-8 w-8" />
         </Link>
-        <button
-          onClick={() => setDrawerOpen(v => !v)}
-          className="relative grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink"
-          aria-label="開啟選單"
-        >
-          <Menu size={22} strokeWidth={2} />
-          <RedDot show={(unreadNotifs > 0 || unreadMsgs > 0) && !drawerOpen} />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={openNotify}
+            className="relative grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink"
+            aria-label="通知中心"
+          >
+            <Bell size={22} strokeWidth={2} />
+            <Badge count={unreadNotifs} />
+          </button>
+          <button
+            onClick={() => setDrawerOpen(v => !v)}
+            className="relative grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink"
+            aria-label="開啟選單"
+          >
+            <Menu size={22} strokeWidth={2} />
+            <RedDot show={unreadMsgs > 0 && !drawerOpen} />
+          </button>
+        </div>
       </header>
 
       {/* Mobile overlay */}
@@ -595,20 +605,12 @@ export default function AppNav({ variant = 'side' }) {
         </div>
 
         <nav className="flex-1 overflow-y-auto px-3 py-4">
-          {/* 通知 & 訊息快捷按鈕 */}
-          <div className="mb-3 grid grid-cols-2 gap-2">
-            <button
-              onClick={openNotify}
-              className="relative flex h-12 items-center justify-center gap-2 rounded-2xl bg-raised text-sm font-bold text-ink-2 transition-colors hover:bg-line-subtle hover:text-brand"
-            >
-              <Bell size={18} strokeWidth={2.1} />
-              通知
-              <Badge count={unreadNotifs} />
-            </button>
+          {/* 訊息快捷按鈕 */}
+          <div className="mb-3">
             {loggedIn ? (
               <button
                 onClick={openMessages}
-                className="relative flex h-12 items-center justify-center gap-2 rounded-2xl bg-raised text-sm font-bold text-ink-2 transition-colors hover:bg-line-subtle hover:text-brand"
+                className="relative flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-raised text-sm font-bold text-ink-2 transition-colors hover:bg-line-subtle hover:text-brand"
               >
                 <MessageSquare size={18} strokeWidth={2.1} />
                 訊息
@@ -620,7 +622,7 @@ export default function AppNav({ variant = 'side' }) {
                 aria-disabled="true"
                 title={LOCKED_MESSAGE}
                 onClick={preventLockedAction}
-                className="group/locked relative flex h-12 cursor-not-allowed items-center justify-center gap-2 rounded-2xl bg-raised text-sm font-bold text-ink-4"
+                className="group/locked relative flex h-12 w-full cursor-not-allowed items-center justify-center gap-2 rounded-2xl bg-raised text-sm font-bold text-ink-4"
               >
                 <MessageSquare size={18} strokeWidth={2.1} className="opacity-55" />
                 訊息
