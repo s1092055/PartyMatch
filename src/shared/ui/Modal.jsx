@@ -14,6 +14,7 @@ export default function Modal({
   height,
   outerPadding = 'p-4 md:p-8',
   sub = false,
+  hideClose = false,
   children,
 }) {
   const resolvedMaxWidth = maxWidth ?? (sub ? 'max-w-md' : 'max-w-5xl')
@@ -100,7 +101,7 @@ export default function Modal({
             </div>
             <div className="flex items-center gap-1">
               {headerEnd}
-              <button onClick={handleClose} className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink" aria-label="關閉">
+              <button onClick={handleClose} className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink ${hideClose ? 'max-md:hidden' : ''}`} aria-label="關閉">
                 <X size={18} />
               </button>
             </div>

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, CheckCircle2, ChevronDown, Clock, MoreVertical, Send, SquarePen, Trash2, Users, X } from 'lucide-react'
+import { CheckCircle2, ChevronDown, Clock, MoreVertical, Send, SquarePen, Trash2, Users, X } from 'lucide-react'
 import ConversationAvatar from './ConversationAvatar'
 import { getMembersByGroupId, getMemberByUserAndGroup } from '../../../shared/stores/memberStore'
 import { CONFIRMED_STATUSES } from '../../../shared/constants/paymentStatus'
@@ -46,12 +46,14 @@ function toMillis(ts) {
 export default function ChatWindow({
   selected, selectedId, messages, loadingMessages, user,
   sending, sendError, canSend,
-  inputRef, messagesEndRef, menuRef,
-  menuOpen, showMembers,
+  inputRef, messagesEndRef,
+  showMembers,
   isComposingRef, lastCompositionEndRef, inputFocusedRef,
-  onBack, onMenuToggle, onMembersToggle, onSend, onKeyDown, onInputChange,
+  onMembersToggle, onSend, onKeyDown, onInputChange,
   onRequestDeleteConversation,
 }) {
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef(null)
   // 用來在 userProfileCache（模組層、非 React state）有新結果時強制重新 render
   const [, setProfileResolveTick] = useState(0)
   const [, setMemberTick] = useState(0)
@@ -63,6 +65,15 @@ export default function ChatWindow({
     window.addEventListener('pm:members-changed', onMembersChanged)
     return () => window.removeEventListener('pm:members-changed', onMembersChanged)
   }, [])
+
+  useEffect(() => {
+    if (!menuOpen) return
+    function onClickOutside(e) {
+      if (!menuRef.current?.contains(e.target)) setMenuOpen(false)
+    }
+    document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [menuOpen])
 
   const userId = user?.id
   const otherIds = selected?.participants?.filter(p => p !== userId) ?? []
@@ -250,15 +261,8 @@ export default function ChatWindow({
 
   return (
     <>
-      {/* 聊天室名稱 header */}
-      <div className="flex h-14 shrink-0 items-center gap-3 border-b border-line px-4">
-        <button
-          onClick={onBack}
-          className="mr-1 grid h-9 w-9 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink md:hidden"
-          aria-label="返回"
-        >
-          <ArrowLeft size={18} />
-        </button>
+      {/* 聊天室名稱 header：手機版由 modal header 處理，桌機版才顯示 */}
+      <div className="hidden md:flex h-14 shrink-0 items-center gap-3 border-b border-line px-4">
         <ConversationAvatar conversation={selected} size={36} />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-extrabold text-ink">{selected.name}</p>
@@ -268,7 +272,7 @@ export default function ChatWindow({
         </div>
         <div ref={menuRef} className="relative shrink-0">
           <button
-            onClick={() => onMenuToggle(v => !v)}
+            onClick={() => setMenuOpen(v => !v)}
             className="grid h-9 w-9 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
             aria-label="更多選項"
           >
@@ -279,7 +283,7 @@ export default function ChatWindow({
               {selected.type === 'group' && (
                 <>
                   <button
-                    onClick={() => { onMembersToggle(v => !v); onMenuToggle(false) }}
+                    onClick={() => { onMembersToggle(v => !v); setMenuOpen(false) }}
                     className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-raised"
                   >
                     <Users size={15} />

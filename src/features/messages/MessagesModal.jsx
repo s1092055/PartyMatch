@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ChevronLeft, MessageSquare } from 'lucide-react'
+import { ChevronLeft, MessageSquare, MoreVertical, Trash2, Users } from 'lucide-react'
 import Modal from '../../shared/ui/Modal'
 import LoginPromptModal from '../../shared/ui/LoginPromptModal'
 import { getCurrentUser, isAuthenticated } from '../../shared/stores/authStore'
@@ -236,19 +236,54 @@ export default function MessagesModal() {
           ? <>
               <button
                 onClick={() => setSelectedId(null)}
-                className="md:hidden grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+                className="max-md:grid hidden h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
                 aria-label="返回"
               >
                 <ChevronLeft size={18} />
               </button>
-              <MessageSquare size={20} className="hidden md:block text-brand" />
+              <MessageSquare size={20} className="max-md:hidden text-brand" />
             </>
           : <MessageSquare size={20} className="text-brand" />
         }
         title={selectedId && selected
-          ? <><span className="md:hidden">{selected.name}</span><span className="hidden md:inline">訊息</span></>
+          ? <><span className="max-md:inline hidden">{selected.name}</span><span className="hidden md:inline">訊息</span></>
           : '訊息'
         }
+        headerEnd={selectedId && selected ? (
+          <div ref={menuRef} className="relative max-md:block hidden">
+            <button
+              onClick={() => setMenuOpen(v => !v)}
+              className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+              aria-label="更多選項"
+            >
+              <MoreVertical size={18} />
+            </button>
+            {menuOpen && (
+              <div className="absolute right-0 top-full z-20 mt-1 w-44 overflow-hidden rounded-2xl border border-line bg-white p-1 shadow-popover">
+                {selected.type === 'group' && (
+                  <>
+                    <button
+                      onClick={() => { setShowMembers(v => !v); setMenuOpen(false) }}
+                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-raised"
+                    >
+                      <Users size={15} />
+                      群組成員
+                    </button>
+                    <div className="my-1 h-px bg-line-subtle" />
+                  </>
+                )}
+                <button
+                  onClick={handleRequestDeleteConversation}
+                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-danger transition-colors hover:bg-danger-subtle"
+                >
+                  <Trash2 size={15} />
+                  刪除對話
+                </button>
+              </div>
+            )}
+          </div>
+        ) : null}
+        hideClose={!!(selectedId && selected)}
         height="min(88vh, 820px)"
       >
         <div className="relative flex-1 overflow-hidden md:flex">
@@ -288,14 +323,10 @@ export default function MessagesModal() {
               canSend={canSend}
               inputRef={inputRef}
               messagesEndRef={messagesEndRef}
-              menuRef={menuRef}
-              menuOpen={menuOpen}
               showMembers={showMembers}
               isComposingRef={isComposingRef}
               lastCompositionEndRef={lastCompositionEndRef}
               inputFocusedRef={inputFocusedRef}
-              onBack={() => setSelectedId(null)}
-              onMenuToggle={setMenuOpen}
               onMembersToggle={setShowMembers}
               onSend={handleSend}
               onKeyDown={handleKeyDown}
