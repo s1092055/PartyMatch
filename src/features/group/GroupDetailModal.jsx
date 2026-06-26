@@ -135,11 +135,10 @@ export default function GroupDetailModal() {
     ]
   }, [groupId, activeUserId, tick]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const memberGroupIds  = useMemo(() => getMemberGroupIds(activeUserId), [activeUserId])
-  const appliedGroupIds = useMemo(() => {
-    if (!activeUserId) return new Set()
-    return new Set(getApplicationsByUserId(activeUserId).filter(a => a.status === 'pending').map(a => a.groupId))
-  }, [activeUserId, tick]) // eslint-disable-line react-hooks/exhaustive-deps
+  const memberGroupIds  = activeUserId ? getMemberGroupIds(activeUserId) : []
+  const appliedGroupIds = activeUserId
+    ? new Set(getApplicationsByUserId(activeUserId).filter(a => a.status === 'pending').map(a => a.groupId))
+    : new Set()
 
   if (!isOpen || !group) return null
 
