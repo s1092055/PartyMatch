@@ -39,6 +39,13 @@ function matchesFilter(group, filterKey) {
   return true
 }
 
+function calcApprovalSeatPatch(seats, alreadyMember) {
+  if (alreadyMember) return null
+  const newUsedSeats = seats.usedSeats + 1
+  const newOpenSeats = seats.openSeats - 1
+  return { usedSeats: newUsedSeats, openSeats: newOpenSeats, ...(newOpenSeats === 0 ? { status: 'full' } : {}) }
+}
+
 function loadManageData(activeUser) {
   if (!activeUser) return { hostedGroups: [], applications: [], members: [], seatMap: {} }
   const hostedGroups = getGroupsByHostId(activeUser.id)
@@ -67,10 +74,10 @@ export default function ManagePage() {
   const [historyModalGroupId, setHistoryModalGroupId]     = useState(null)
   const [renewalModalGroupId, setRenewalModalGroupId]     = useState(null)
 
-  function applyOpenManageGroup({ groupId, openGroupId, statusFilter: sf, openActivateGroup, openActivate, openApplications, openBilling }) {
+  function applyOpenManageGroup({ groupId, openGroupId, statusFilter: selectedStatusFilter, openActivateGroup, openActivate, openApplications, openBilling }) {
     const gId = groupId ?? openGroupId
     if (!gId) return
-    if (sf) setStatusFilter(sf)
+    if (selectedStatusFilter) setStatusFilter(selectedStatusFilter)
     setViewGroupId(gId)
     setAutoOpenActivateGroup(!!openActivateGroup)
     setAutoOpenActivate(!!openActivate)
@@ -481,13 +488,9 @@ function handleApprove(appId) {
       })
     }
 
-    const newUsedSeats = alreadyMember ? seats.usedSeats : seats.usedSeats + 1
-    const newOpenSeats = alreadyMember ? seats.openSeats : seats.openSeats - 1
-    const seatPatch = alreadyMember ? null : {
-      usedSeats: newUsedSeats,
-      openSeats: newOpenSeats,
-      ...(newOpenSeats === 0 ? { status: 'full' } : {}),
-    }
+    const seatPatch = calcApprovalSeatPatch(seats, alreadyMember)
+    const newUsedSeats = seatPatch?.usedSeats ?? seats.usedSeats
+    const newOpenSeats = seatPatch?.openSeats ?? seats.openSeats
     if (seatPatch) updateGroup(app.groupId, seatPatch)
 
     // application_approved 通知由 member 端的 applicationStore listener 自行建立（避免跨用戶寫入）

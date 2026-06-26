@@ -138,6 +138,7 @@ export default function MessagesModal() {
     if (!text || !selectedId) return
     const user = getCurrentUser()
     if (!user) return
+    if (!selected) return
 
     setCanSend(false)
     setSendError(false)

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Lock, Mail, User } from 'lucide-react'
-import AuthLayout, { AuthInput, AuthDivider, GoogleMark, PasswordToggle } from '../components/AuthLayout'
+import AuthLayout, { AuthInput, AuthDivider, AuthError, GoogleMark, PasswordToggle } from '../components/AuthLayout'
 import Button from '../../../shared/ui/Button'
 import { loginWithGoogle, registerUser } from '../../../shared/stores/authStore'
 
@@ -58,7 +58,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <AuthLayout illustrationTitle="開始更聰明的訂閱方式">
+    <AuthLayout>
       <div className="mt-10">
         <h1 className="text-4xl font-extrabold leading-tight text-ink md:text-4xl">註冊 PartyMatch</h1>
         <p className="mt-5 text-base font-medium leading-relaxed text-ink-3">
@@ -119,11 +119,7 @@ export default function RegisterPage() {
           </span>
         </label>
 
-        {error && (
-          <div className="rounded-[var(--radius-inner)] border border-danger-subtle bg-danger-subtle px-4 py-3 text-sm font-semibold text-danger-text">
-            {error}
-          </div>
-        )}
+        <AuthError message={error} />
 
         <Button type="submit" size="lg" className="h-[3.75rem] w-full text-lg" disabled={!canSubmit}>
           {loading ? '註冊中…' : '註冊'}

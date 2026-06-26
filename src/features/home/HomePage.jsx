@@ -90,7 +90,7 @@ export default function HomePage() {
               style={{ animation: 'marquee 30s linear infinite', width: 'max-content' }}
             >
               {[...ALL_SERVICES, ...ALL_SERVICES].map((s, i) => (
-                <div key={i} className="shrink-0">
+                <div key={`${s.id}-${i >= ALL_SERVICES.length ? 'b' : 'a'}`} className="shrink-0">
                   <ServiceLogo serviceId={s.id} size={52} />
                 </div>
               ))}

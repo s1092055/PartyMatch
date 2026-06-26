@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Lock, Mail } from 'lucide-react'
-import AuthLayout, { AuthInput, AuthDivider, GoogleMark, PasswordToggle } from '../components/AuthLayout'
+import AuthLayout, { AuthInput, AuthDivider, AuthError, GoogleMark, PasswordToggle } from '../components/AuthLayout'
 import Button from '../../../shared/ui/Button'
 import { loginUser, loginWithGoogle } from '../../../shared/stores/authStore'
 import { toast } from '../../../shared/utils/toast'
@@ -50,7 +50,7 @@ export default function LoginPage() {
   }
 
   return (
-    <AuthLayout illustrationTitle="更聰明的訂閱方式">
+    <AuthLayout>
       <div className="mt-12">
         <h1 className="text-4xl font-extrabold leading-tight text-ink md:text-4xl">登入 PartyMatch</h1>
         <p className="mt-5 text-base font-medium leading-relaxed text-ink-3">
@@ -83,11 +83,7 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        {error && (
-          <div className="rounded-[var(--radius-inner)] border border-danger-subtle bg-danger-subtle px-4 py-3 text-sm font-semibold text-danger-text">
-            {error}
-          </div>
-        )}
+        <AuthError message={error} />
 
         <Button type="submit" size="lg" className="h-[3.75rem] w-full text-lg" disabled={!canSubmit}>
           {loading ? '登入中…' : '登入'}

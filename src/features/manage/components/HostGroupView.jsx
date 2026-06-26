@@ -238,9 +238,8 @@ export default function HostGroupView({ group, members, applications, onConfirmM
 
   const isRecruiting = ['recruiting', 'full'].includes(group.status)
 
-  function buildSubPanel() {
-    if (activePanel === 'members') {
-      return {
+  function buildMembersPanel() {
+    return {
         title: '成員名單',
         icon: <Users size={18} className="text-brand" />,
         content: (
@@ -305,9 +304,9 @@ export default function HostGroupView({ group, members, applications, onConfirmM
           </div>
         ),
       }
-    }
+  }
 
-    if (activePanel === 'applications') {
+  function buildApplicationsPanel() {
       const memberUserIds = new Set(members.map(m => m.userId))
       const isLeft = a => a.status === 'approved' && !memberUserIds.has(a.applicantId ?? a.userId)
       const leftCount = applications.filter(isLeft).length
@@ -361,10 +360,10 @@ export default function HostGroupView({ group, members, applications, onConfirmM
           </div>
         ),
       }
-    }
+  }
 
-    if (activePanel === 'billing') {
-      return {
+  function buildBillingPanel() {
+    return {
         title: '收款管理',
         icon: <Banknote size={18} className="text-brand" />,
         stickyHeader: (group.paymentMethod || group.paymentAccount) ? (
@@ -555,8 +554,12 @@ export default function HostGroupView({ group, members, applications, onConfirmM
           </>
         ),
       }
-    }
+  }
 
+  function buildSubPanel() {
+    if (activePanel === 'members') return buildMembersPanel()
+    if (activePanel === 'applications') return buildApplicationsPanel()
+    if (activePanel === 'billing') return buildBillingPanel()
     return null
   }
 

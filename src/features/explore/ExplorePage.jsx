@@ -20,7 +20,7 @@ const DEFAULT_FILTERS = {
   sortBy:   'recommended',
 }
 
-const score = g => g.hostRating / 100
+function calcHostScore(g) { return g.hostRating / 100 }
 
 function applyFilters(groups, { keyword, category, service, maxPrice, sortBy }) {
   let result = groups.filter(g => g.status === 'recruiting' && g.openSeats > 0)
@@ -43,7 +43,7 @@ function applyFilters(groups, { keyword, category, service, maxPrice, sortBy }) 
     case 'rating':    result.sort((a, b) => b.hostRating - a.hostRating); break
     case 'price_asc': result.sort((a, b) => a.pricePerSeat - b.pricePerSeat); break
     case 'seats':     result.sort((a, b) => a.openSeats - b.openSeats); break
-    default:          result.sort((a, b) => score(b) - score(a))
+    default:          result.sort((a, b) => calcHostScore(b) - calcHostScore(a))
   }
 
   return result

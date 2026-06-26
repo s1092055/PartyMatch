@@ -62,6 +62,15 @@ export function AuthDivider() {
   )
 }
 
+export function AuthError({ message }) {
+  if (!message) return null
+  return (
+    <div className="rounded-[var(--radius-inner)] border border-danger-subtle bg-danger-subtle px-4 py-3 text-sm font-semibold text-danger-text">
+      {message}
+    </div>
+  )
+}
+
 export function GoogleMark() {
   return (
     <span className="grid h-6 w-6 place-items-center rounded-full bg-white text-base font-black shadow-sm">

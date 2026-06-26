@@ -26,15 +26,15 @@ function PasswordField({ label, value, onChange }) {
 }
 
 export default function SecurityTab() {
-  const [pw, setPw] = useState({ current: '', next: '', confirm: '' })
+  const [passwordForm, setPasswordForm] = useState({ current: '', next: '', confirm: '' })
   const [saved, setSaved] = useState(false)
   const [twoFaMsg, setTwoFaMsg] = useState(false)
   const [loggedOutDevice, setLoggedOutDevice] = useState(null)
 
   function handleSave() {
-    if (!pw.current || !pw.next || pw.next !== pw.confirm) return
+    if (!passwordForm.current || !passwordForm.next || passwordForm.next !== passwordForm.confirm) return
     setSaved(true)
-    setPw({ current: '', next: '', confirm: '' })
+    setPasswordForm({ current: '', next: '', confirm: '' })
     setTimeout(() => setSaved(false), 3000)
   }
 
@@ -57,11 +57,11 @@ export default function SecurityTab() {
           <span className="text-sm font-semibold text-slate-700">修改密碼</span>
         </div>
         <div className="p-5 space-y-3">
-          <PasswordField label="目前密碼"   value={pw.current}  onChange={v => setPw(p => ({ ...p, current: v }))} />
-          <PasswordField label="新密碼"     value={pw.next}     onChange={v => setPw(p => ({ ...p, next: v }))} />
-          <PasswordField label="確認新密碼" value={pw.confirm}  onChange={v => setPw(p => ({ ...p, confirm: v }))} />
+          <PasswordField label="目前密碼"   value={passwordForm.current}  onChange={v => setPasswordForm(p => ({ ...p, current: v }))} />
+          <PasswordField label="新密碼"     value={passwordForm.next}     onChange={v => setPasswordForm(p => ({ ...p, next: v }))} />
+          <PasswordField label="確認新密碼" value={passwordForm.confirm}  onChange={v => setPasswordForm(p => ({ ...p, confirm: v }))} />
 
-          {pw.next && pw.confirm && pw.next !== pw.confirm && (
+          {passwordForm.next && passwordForm.confirm && passwordForm.next !== passwordForm.confirm && (
             <p className="text-xs text-red-500">兩次密碼輸入不一致</p>
           )}
 
@@ -73,7 +73,7 @@ export default function SecurityTab() {
 
           <button
             onClick={handleSave}
-            disabled={!pw.current || !pw.next || pw.next !== pw.confirm}
+            disabled={!passwordForm.current || !passwordForm.next || passwordForm.next !== passwordForm.confirm}
             className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:pointer-events-none text-white text-sm font-semibold py-2 rounded-lg transition-colors"
           >
             更新密碼
