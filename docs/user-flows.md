@@ -68,7 +68,7 @@ flowchart TD
   G -->|拒絕| H[收到申請未通過通知]
   G -->|核准| I[建立 member + subscription]
   I --> J[收到申請通過通知]
-  J --> K[等待團主開啟群組聊天室]
+  J --> K[等待團主啟用群組]
   K --> L[收到群組聊天室已開啟通知]
   L --> M[我的訂閱出現群組，狀態 pending_confirmation]
   M --> N[填寫訂閱帳號資訊]
