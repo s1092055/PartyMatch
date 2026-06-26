@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { ChevronLeft, MessageSquare, MoreVertical, Trash2, Users } from 'lucide-react'
+import { ChevronLeft, MessageSquare } from 'lucide-react'
 import ConversationAvatar from './components/ConversationAvatar'
+import ConversationMenu from './components/ConversationMenu'
 import Modal from '../../shared/ui/Modal'
 import LoginPromptModal from '../../shared/ui/LoginPromptModal'
 import { getCurrentUser, isAuthenticated } from '../../shared/stores/authStore'
@@ -36,22 +37,25 @@ export default function MessagesModal() {
   const [sending, setSending] = useState(false)
   const [sendError, setSendError] = useState(false)
   const [loadingMessages, setLoadingMessages] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
   const [showMembers, setShowMembers] = useState(false)
   const [confirmDialog, setConfirmDialog] = useState(null)
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768)
 
-  const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
   const isComposingRef = useRef(false)
   const lastCompositionEndRef = useRef(0)
   const inputFocusedRef = useRef(false)
-  const menuRef = useRef(null)
 
   useEffect(() => {
-    /* eslint-disable react-hooks/set-state-in-effect */
-    setMenuOpen(false)
+    const mq = window.matchMedia('(max-width: 767px)')
+    const handler = (e) => setIsMobile(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setShowMembers(false)
-    /* eslint-enable react-hooks/set-state-in-effect */
   }, [selectedId])
 
   useEffect(() => {
@@ -120,20 +124,6 @@ export default function MessagesModal() {
     return () => { unsub(); setMessages([]); setLoadingMessages(false) }
   }, [selectedId])
 
-  // 訊息送達時／切換對話時是否自動捲到底部，改由 ChatWindow 自行判斷
-  // （見 ChatWindow 的 scrollContainerRef 相關 effect）：
-  // - 切換對話、訊息剛載入：強制捲到底部
-  // - 已開著對話收到新訊息：只有使用者目前已在底部附近才自動捲動，避免把正在往上看舊訊息的人拉回底部
-
-  useEffect(() => {
-    if (!menuOpen) return
-    function onClickOutside(e) {
-      if (!menuRef.current?.contains(e.target)) setMenuOpen(false)
-    }
-    document.addEventListener('mousedown', onClickOutside)
-    return () => document.removeEventListener('mousedown', onClickOutside)
-  }, [menuOpen])
-
   function handleClose() {
     setIsOpen(false)
     setSelectedId(null)
@@ -183,7 +173,6 @@ export default function MessagesModal() {
   function handleRequestDeleteConversation() {
     const user = getCurrentUser()
     if (!selectedId || !user) return
-    setMenuOpen(false)
     setConfirmDialog({
       title: '刪除對話',
       message: '確定要刪除此對話嗎？刪除後對話將從列表中移除。',
@@ -233,7 +222,7 @@ export default function MessagesModal() {
       )}
       <Modal
         onClose={handleClose}
-        icon={selectedId && selected
+        icon={isMobile && selectedId && selected
           ? <>
               <button
                 onClick={() => setSelectedId(null)}
@@ -248,51 +237,37 @@ export default function MessagesModal() {
             </>
           : <MessageSquare size={20} className="text-brand" />
         }
-        title={selectedId && selected ? selected.name : '訊息'}
-        headerEnd={selectedId && selected ? (
-          <div ref={menuRef} className="relative">
-            <button
-              onClick={() => setMenuOpen(v => !v)}
-              className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
-              aria-label="更多選項"
-            >
-              <MoreVertical size={18} />
-            </button>
-            {menuOpen && (
-              <div className="absolute right-0 top-full z-20 mt-1 w-44 overflow-hidden rounded-2xl border border-line bg-white p-1 shadow-popover">
-                {selected.type === 'group' && (
-                  <>
-                    <button
-                      onClick={() => { setShowMembers(v => !v); setMenuOpen(false) }}
-                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-raised"
-                    >
-                      <Users size={15} />
-                      群組成員
-                    </button>
-                    <div className="my-1 h-px bg-line-subtle" />
-                  </>
-                )}
-                <button
-                  onClick={handleRequestDeleteConversation}
-                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-danger transition-colors hover:bg-danger-subtle"
-                >
-                  <Trash2 size={15} />
-                  刪除對話
-                </button>
-              </div>
-            )}
-          </div>
-        ) : null}
-        hideClose={!!(selectedId && selected)}
+        title={isMobile && selectedId && selected ? selected.name : '訊息'}
+        headerEnd={isMobile && selectedId && selected
+          ? <ConversationMenu
+              key={selectedId}
+              selected={selected}
+              onMembersToggle={() => setShowMembers(v => !v)}
+              onDeleteConversation={handleRequestDeleteConversation}
+            />
+          : null
+        }
+        hideClose={isMobile && !!(selectedId && selected)}
         height="min(88vh, 820px)"
       >
-        {/* 200% 寬軌道 + inline style transform：與 GroupModalShell 相同做法 */}
-        <div className="relative flex-1 overflow-hidden">
+        {/* 手機：200% slide 軌道；桌機：兩欄並排 */}
+        <div className="relative flex-1 overflow-hidden" style={{ minHeight: 0 }}>
+          {/* track 用 absolute top/bottom 取得確定高度，不依賴 flex-1 層層傳遞 */}
           <div
-            className="flex h-full transition-transform duration-300 ease-in-out"
-            style={{ width: '200%', transform: selectedId ? 'translateX(-50%)' : 'translateX(0)' }}
+            className="absolute top-0 left-0 bottom-0 flex transition-transform duration-300 ease-in-out"
+            style={{
+              width: isMobile ? '200%' : '100%',
+              transform: isMobile && selectedId ? 'translateX(-50%)' : 'translateX(0)',
+            }}
           >
-            <div className="flex w-1/2 min-w-0 flex-col overflow-hidden">
+            {/* 左欄：對話列表 */}
+            <div
+              className="flex flex-col overflow-hidden"
+              style={isMobile
+                ? { width: '50%', flexShrink: 0 }
+                : { width: '288px', flexShrink: 0, borderRight: '1px solid var(--color-line)' }
+              }
+            >
               <ConversationList
                 filteredConvs={filteredConvs}
                 activeTab={activeTab}
@@ -304,7 +279,14 @@ export default function MessagesModal() {
                 onSearchChange={setSearchQuery}
               />
             </div>
-            <div className="flex w-1/2 min-w-0 flex-col overflow-hidden">
+            {/* 右欄：聊天視窗 */}
+            <div
+              className="relative flex flex-col overflow-hidden"
+              style={isMobile
+                ? { width: '50%', flexShrink: 0 }
+                : { flex: '1 1 0%' }
+              }
+            >
               <ChatWindow
                 selected={selected}
                 selectedId={selectedId}
@@ -315,7 +297,6 @@ export default function MessagesModal() {
                 sendError={sendError}
                 canSend={canSend}
                 inputRef={inputRef}
-                messagesEndRef={messagesEndRef}
                 showMembers={showMembers}
                 isComposingRef={isComposingRef}
                 lastCompositionEndRef={lastCompositionEndRef}

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CheckCircle2, ChevronDown, Clock, Send, SquarePen, X } from 'lucide-react'
 import ConversationAvatar from './ConversationAvatar'
+import ConversationMenu from './ConversationMenu'
 import { getMembersByGroupId, getMemberByUserAndGroup } from '../../../shared/stores/memberStore'
 import { CONFIRMED_STATUSES } from '../../../shared/constants/paymentStatus'
 import { getGroupById } from '../../../shared/stores/groupStore'
@@ -46,7 +47,7 @@ function toMillis(ts) {
 export default function ChatWindow({
   selected, selectedId, messages, loadingMessages, user,
   sending, sendError, canSend,
-  inputRef, messagesEndRef,
+  inputRef,
   showMembers,
   isComposingRef, lastCompositionEndRef, inputFocusedRef,
   onMembersToggle, onSend, onKeyDown, onInputChange,
@@ -188,7 +189,9 @@ export default function ChatWindow({
   }
 
   function scrollToBottom(behavior = 'smooth') {
-    messagesEndRef.current?.scrollIntoView({ behavior })
+    const el = scrollContainerRef.current
+    if (!el) return
+    el.scrollTo({ top: el.scrollHeight, behavior })
   }
 
   async function loadOlderMessages() {
@@ -251,6 +254,18 @@ export default function ChatWindow({
   return (
     <>
 
+      {/* 桌機標題列（手機由 modal header 取代） */}
+      <div className="hidden md:flex shrink-0 items-center gap-3 border-b border-line px-5 py-3">
+        <ConversationAvatar conversation={selected} size={32} />
+        <span className="flex-1 truncate font-extrabold text-ink">{selected.name}</span>
+        <ConversationMenu
+          key={selectedId}
+          selected={selected}
+          onMembersToggle={() => onMembersToggle(v => !v)}
+          onDeleteConversation={onRequestDeleteConversation}
+        />
+      </div>
+
       {/* 成員面板 */}
       {showMembers && selected.type === 'group' && (() => {
         return (
@@ -293,13 +308,13 @@ export default function ChatWindow({
       })()}
 
       {/* 訊息區 */}
-      <div className="relative flex-1 overflow-hidden">
+      <div className="relative flex flex-col flex-1 min-h-0 overflow-hidden">
       {/* overscroll-contain：避免 Safari/WebKit 在送出訊息觸發 scrollIntoView smooth 時，
           捲動容器產生 rubber-band 回彈，短暫露出底部空白區域 */}
       <div
         ref={scrollContainerRef}
         onScroll={handleMessagesScroll}
-        className="h-full overflow-y-auto overscroll-contain bg-canvas"
+        className="flex-1 min-h-0 overflow-y-auto overscroll-contain bg-canvas [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {loadingMessages ? (
           <div className="space-y-3 px-4 py-4">
@@ -552,7 +567,6 @@ export default function ChatWindow({
                 </div>
               )
             })}
-            <div ref={messagesEndRef} />
           </div>
         )}
       </div>
