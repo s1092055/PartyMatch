@@ -53,7 +53,7 @@ export default function HomePage() {
           PartyMatch<br />
         </h1>
         <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-ink-3">
-          PartyMatch 是訂閱共享媒合平台
+          共享訂閱群組媒合平台——找團、申請、付款、溝通，全都在同一個地方完成。
         </p>
         <div className="mx-auto mt-12 flex items-center justify-center gap-8 md:gap-14">
           {STATS.map(({ value, label }) => (
