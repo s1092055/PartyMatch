@@ -6,17 +6,20 @@ import {
 import Avatar from '../../../shared/ui/Avatar'
 import ProgressBar from '../../../shared/ui/ProgressBar'
 import CreditScoreBadge from '../../../shared/ui/CreditScoreBadge'
-import Modal from '../../../shared/ui/Modal'
 import ConfirmDialog from '../../../shared/ui/ConfirmDialog'
 import GroupModalShell from '../../../shared/ui/GroupModalShell'
 import EmptyState from '../../../shared/ui/EmptyState'
-import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import { getServiceById } from '../../../shared/utils/serviceUtils'
-import { formatRelativeDate, toISODate } from '../../../shared/utils/date'
+import { formatRelativeDate } from '../../../shared/utils/date'
 import { CONFIRMED_STATUSES } from '../../../shared/constants/paymentStatus'
 import { getSubscriptionByUserAndGroup } from '../../../shared/stores/subscriptionStore'
 import { getPaymentRecordsBySubscriptionId } from '../../../shared/stores/paymentStore'
 import CustomSelect from '../../../shared/ui/CustomSelect'
+import ActivateServiceModal from './ActivateServiceModal'
+import ActivateGroupModal from './ActivateGroupModal'
+import ReportPaymentModal from './ReportPaymentModal'
+import { ISSUE_TYPES } from '../data/paymentIssueTypes'
+import ReportServiceIssueModal from './ReportServiceIssueModal'
 
 // ── 申請卡片 ──────────────────────────────────────────────────────────────────
 
@@ -89,12 +92,6 @@ function ApplicationCard({ app, groupFull, error, onApprove, onReject, isLeft = 
 // ── 團主視角 ──────────────────────────────────────────────────────────────────
 
 
-const ISSUE_TYPES = [
-  { key: 'amount_mismatch',  label: '付款金額不符',      desc: '金額與應付金額不一致' },
-  { key: 'proof_incomplete', label: '截圖不清晰或不完整', desc: '無法辨識截圖中的付款資訊' },
-  { key: 'wrong_info',       label: '付款資訊有誤',       desc: '截圖顯示的資訊有誤' },
-  { key: 'other',            label: '其他問題',           desc: '請填寫說明' },
-]
 
 export default function HostGroupView({ group, members, applications, onConfirmMember, onReportPaymentIssue, onReportServiceInfoIssue, onRemoveMember, onActivate, onActivateGroup, onApprove, onReject, errors, onClose, autoOpenActivateGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling }) {
   const [showActivate, setShowActivate]                   = useState(false)
@@ -637,305 +634,53 @@ export default function HostGroupView({ group, members, applications, onConfirmM
         )
       })()}
     >
-      {/* ── 啟用服務 Modal ── */}
-      <Modal
+      <ActivateServiceModal
         isOpen={showActivate}
         onClose={closeActivate}
-        title="啟用服務"
-        icon={<PlayCircle size={18} className="text-success" />}
-        maxWidth="max-w-lg"
-        sub
-        footer={
-          <button
-            onClick={handleActivateConfirm}
-            disabled={!allMembersChecked || !finalConfirmed}
-            className="flex-1 rounded-xl bg-success py-2.5 text-sm font-bold text-white transition-colors hover:bg-success-text disabled:cursor-not-allowed disabled:opacity-40"
-          >確認啟用</button>
-        }
-      >
-        <div className="flex-1 min-h-0 overflow-y-auto">
-          {/* ① 服務摘要 */}
-          <div className="flex items-center gap-3 border-b border-line-subtle px-5 py-4">
-            <ServiceLogo serviceId={group.serviceId} size={40} className="rounded-xl" />
-            <div className="min-w-0 flex-1">
-              <p className="font-bold text-ink">{group.serviceName}</p>
-              <p className="text-xs text-ink-3">{group.planName} · NT${group.pricePerSeat}/席/{group.billingCycle === 'yearly' ? '年' : '月'}</p>
-            </div>
-            <div className="rounded-xl bg-success-subtle px-3 py-1.5 text-right">
-              <p className="text-xs text-success-text">撥款金額</p>
-              <p className="text-base font-extrabold text-success-text">NT${group.pricePerSeat * members.length}</p>
-            </div>
-          </div>
+        onConfirm={handleActivateConfirm}
+        group={group}
+        members={members}
+        memberChecks={memberChecks}
+        setMemberChecks={setMemberChecks}
+        finalConfirmed={finalConfirmed}
+        setFinalConfirmed={setFinalConfirmed}
+        allMembersChecked={allMembersChecked}
+        onOpenServiceIssue={m => { setServiceIssueMember(m); setServiceIssueNote(m.serviceInfoIssueNote ?? '') }}
+      />
 
-          {/* ② 下次扣款日（唯讀顯示） */}
-          {(() => {
-            const d = new Date()
-            if (group.billingCycle === 'yearly') d.setFullYear(d.getFullYear() + 1)
-            else d.setMonth(d.getMonth() + 1)
-            const nextDate = toISODate(d)
-            return (
-              <div className="mx-5 mt-5 flex items-center justify-between rounded-xl border border-line bg-raised px-4 py-3">
-                <div>
-                  <p className="text-xs font-semibold text-ink-2">下次扣款日</p>
-                  <p className="mt-0.5 text-xs text-ink-4">啟用後自動設定，不可修改</p>
-                </div>
-                <p className="text-base font-extrabold text-ink">{nextDate}</p>
-              </div>
-            )
-          })()}
-
-          {/* ③ 逐一確認成員已加入外部服務 */}
-          <div className="px-5 pt-5">
-            <div className="mb-2 flex items-center justify-between">
-              <p className="text-xs font-semibold text-ink-2">確認成員已加入外部服務</p>
-              <p className="text-xs text-ink-3">
-                {Object.values(memberChecks).filter(Boolean).length} / {members.length} 已確認
-              </p>
-            </div>
-            <p className="mb-3 text-xs text-ink-3">請在外部訂閱平台（{group.serviceName}）確認每位成員的帳號已完成設定，再逐一打勾。</p>
-            <div className="space-y-2">
-              {members.length === 0 ? (
-                <p className="py-2 text-center text-sm text-ink-3">尚無成員</p>
-              ) : members.map(m => (
-                <div
-                  key={m.id}
-                  className={`rounded-xl border p-3 transition-colors ${
-                    memberChecks[m.id] ? 'border-success/40 bg-success-subtle' :
-                    m.serviceInfoIssueNote ? 'border-warning/40 bg-warning-subtle' :
-                    'border-line'
-                  }`}
-                >
-                  <label className="flex cursor-pointer items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={!!memberChecks[m.id]}
-                      onChange={e => setMemberChecks(prev => ({ ...prev, [m.id]: e.target.checked }))}
-                      className="h-4 w-4 shrink-0 accent-brand"
-                    />
-                    <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-ink">{m.userName}</p>
-                      {m.serviceInfoIssueNote ? (
-                        <p className="text-xs text-warning-text">帳號問題已回報，等待修正</p>
-                      ) : m.serviceInfo?.email ? (
-                        <p className="text-xs text-ink-3">{m.serviceInfo.email}</p>
-                      ) : (
-                        <p className="text-xs text-ink-4">尚未填寫帳號</p>
-                      )}
-                    </div>
-                    {memberChecks[m.id] && <CheckCircle2 size={16} className="shrink-0 text-success" />}
-                  </label>
-                  {m.serviceInfo?.email && !memberChecks[m.id] && (
-                    <div className="mt-2 flex justify-end">
-                      <button
-                        onClick={() => { setServiceIssueMember(m); setServiceIssueNote(m.serviceInfoIssueNote ?? '') }}
-                        className="flex items-center gap-1 rounded-lg border border-warning/60 px-2.5 py-1 text-xs font-semibold text-warning-text transition-colors hover:bg-warning-subtle"
-                      >
-                        <AlertTriangle size={11} /> 帳號問題
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* ④ 最終確認 */}
-          <div className="space-y-3 p-5">
-            {!allMembersChecked && (
-              <p className="rounded-xl bg-warning-subtle px-4 py-2.5 text-xs font-semibold text-warning-text">
-                請先逐一確認所有成員已在外部服務完成設定
-              </p>
-            )}
-            <label className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3.5 transition-colors ${allMembersChecked ? 'border-line hover:bg-raised' : 'pointer-events-none border-line opacity-40'}`}>
-              <input
-                type="checkbox"
-                checked={finalConfirmed}
-                onChange={e => setFinalConfirmed(e.target.checked)}
-                disabled={!allMembersChecked}
-                className="mt-0.5 h-4 w-4 shrink-0 accent-brand"
-              />
-              <span className="text-sm font-medium leading-relaxed text-ink">
-                我確認所有成員皆已完成外部服務設定，同意平台依此結果進行撥款
-              </span>
-            </label>
-          </div>
-        </div>
-      </Modal>
-
-
-      {/* ── 啟用群組 Modal（含填寫收款帳號）── */}
-      <Modal
+      <ActivateGroupModal
         isOpen={showActivateGroupConfirm}
-        onClose={() => { setShowActivateGroupConfirm(false); setPaymentAccount('') }}
-        title="啟用群組"
-        icon={<Radio size={18} className="text-success" />}
-        height="min(520px, 90vh)"
-        sub
-        footer={
-          <div className="flex gap-2 w-full">
-            <button
-              onClick={() => { setShowActivateGroupConfirm(false); setPaymentAccount('') }}
-              className="flex-1 rounded-xl border border-line py-2.5 text-sm font-semibold text-ink-2 transition-colors hover:bg-raised"
-            >取消</button>
-            <button
-              onClick={() => { setShowActivateGroupConfirm(false); onActivateGroup?.(paymentAccount.trim()); setPaymentAccount('') }}
-              disabled={!paymentAccount.trim()}
-              className="flex-1 rounded-xl bg-success py-2.5 text-sm font-bold text-white transition-colors hover:bg-success/90 disabled:cursor-not-allowed disabled:opacity-40"
-            >確認啟用</button>
-          </div>
-        }
-      >
-        <div className="flex-1 min-h-0 overflow-y-auto space-y-4 px-5 py-4">
-          <p className="text-sm text-ink-3">啟用後將開啟群組聊天室，系統會通知所有成員進行付款。</p>
-          <div>
-            <label className="mb-1.5 block text-xs font-semibold text-ink-2">
-              收款帳號資訊<span className="ml-0.5 text-danger">*</span>
-            </label>
-            <textarea
-              rows={3}
-              placeholder={`例如：\n台新銀行 帳號 0123-4567-8901\n戶名：王小明`}
-              value={paymentAccount}
-              onChange={e => setPaymentAccount(e.target.value)}
-              maxLength={300}
-              className="w-full resize-none rounded-xl border border-line bg-canvas px-3.5 py-2.5 text-sm text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand"
-            />
-            <p className="mt-1 pl-1 text-xs text-ink-4">成員付款時將看到此資訊，請確認正確後再啟用</p>
-          </div>
-          {members.length > 0 && (
-            <div className="rounded-xl bg-raised p-3 space-y-1.5">
-              <p className="text-xs font-semibold text-ink-3 mb-2">即將通知以下成員</p>
-              {members.map(m => (
-                <div key={m.id} className="flex items-center gap-2">
-                  <span
-                    className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-[10px] font-black text-white"
-                    style={{ background: m.userAvatarColor }}
-                  >
-                    {m.userAvatarInitial}
-                  </span>
-                  <p className="text-sm text-ink">{m.userName}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </Modal>
+        onClose={() => setShowActivateGroupConfirm(false)}
+        paymentAccount={paymentAccount}
+        setPaymentAccount={setPaymentAccount}
+        members={members}
+        onConfirm={account => { setShowActivateGroupConfirm(false); onActivateGroup?.(account) }}
+      />
 
     </GroupModalShell>
 
-    {/* ── 回報問題 Modal ── */}
-    <Modal
-      isOpen={!!reportModalMember}
-      onClose={() => closeReportModal()}
-      title="回報付款問題"
-      icon={<AlertTriangle size={18} className="text-warning-text" />}
-      maxWidth="max-w-lg"
-      height="min(calc(100vh - 2rem), 540px)"
-      sub
-      footer={
-        <button
-          onClick={handleSendIssueReport}
-          disabled={!issueType || (issueType === 'other' && !issueNote.trim())}
-          className="flex-1 rounded-xl bg-warning py-2.5 text-sm font-bold text-white transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          發送通知
-        </button>
-      }
-    >
-      {reportModalMember && (
-        <div className="flex-1 min-h-0 overflow-y-auto scrollbar-none p-5 space-y-4">
-          <div className="flex items-center gap-3 rounded-xl bg-raised px-4 py-3">
-            <Avatar initial={reportModalMember.userAvatarInitial} color={reportModalMember.userAvatarColor} size="sm" />
-            <p className="text-sm font-semibold text-ink">{reportModalMember.userName}</p>
-          </div>
-          <div className="space-y-2">
-            <p className="text-xs font-semibold text-ink-2">選擇問題類型</p>
-            {ISSUE_TYPES.map(t => (
-              <label
-                key={t.key}
-                className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors ${
-                  issueType === t.key
-                    ? 'border-warning/60 bg-warning-subtle'
-                    : 'border-line hover:bg-raised'
-                }`}
-              >
-                <input
-                  type="radio"
-                  checked={issueType === t.key}
-                  onChange={() => setIssueType(t.key)}
-                  className="mt-0.5 shrink-0 accent-warning-text"
-                />
-                <div>
-                  <p className="text-sm font-semibold text-ink">{t.label}</p>
-                  <p className="text-xs text-ink-3">{t.desc}</p>
-                </div>
-              </label>
-            ))}
-          </div>
-          {issueType && (
-            <div>
-              <textarea
-                rows={3}
-                placeholder={issueType === 'other' ? '請描述問題內容...' : '補充說明（選填）'}
-                value={issueNote}
-                onChange={e => setIssueNote(e.target.value)}
-                className="w-full resize-none rounded-xl border border-line bg-canvas px-3 py-2.5 text-sm text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand"
-              />
-              {issueType === 'other' && !issueNote.trim() && (
-                <p className="mt-1 text-xs text-warning-text">其他問題請填寫說明內容</p>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-    </Modal>
+    <ReportPaymentModal
+      member={reportModalMember}
+      onClose={closeReportModal}
+      onSubmit={handleSendIssueReport}
+      issueType={issueType}
+      setIssueType={setIssueType}
+      issueNote={issueNote}
+      setIssueNote={setIssueNote}
+    />
 
-    {/* ── 回報帳號問題 Modal ── */}
-    <Modal
-      isOpen={!!serviceIssueMember}
+    <ReportServiceIssueModal
+      member={serviceIssueMember}
       onClose={() => { setServiceIssueMember(null); setServiceIssueNote('') }}
-      title="回報帳號問題"
-      icon={<AlertTriangle size={18} className="text-warning-text" />}
-      maxWidth="max-w-sm"
-      sub
-      footer={
-        <button
-          onClick={() => {
-            if (!serviceIssueNote.trim() || !serviceIssueMember) return
-            onReportServiceInfoIssue?.(serviceIssueMember, serviceIssueNote.trim())
-            setServiceIssueMember(null)
-            setServiceIssueNote('')
-          }}
-          disabled={!serviceIssueNote.trim()}
-          className="flex-1 rounded-xl bg-warning py-2.5 text-sm font-bold text-white transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          發送通知
-        </button>
-      }
-    >
-      {serviceIssueMember && (
-        <div className="flex-1 min-h-0 overflow-y-auto p-5 space-y-4">
-          <div className="flex items-center gap-3 rounded-xl bg-raised px-4 py-3">
-            <Avatar initial={serviceIssueMember.userAvatarInitial} color={serviceIssueMember.userAvatarColor} size="sm" />
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-ink">{serviceIssueMember.userName}</p>
-              <p className="text-xs text-ink-3">{serviceIssueMember.serviceInfo?.email ?? '—'}</p>
-            </div>
-          </div>
-          <div>
-            <label className="mb-1.5 block text-xs font-semibold text-ink-2">說明帳號問題</label>
-            <textarea
-              rows={3}
-              autoFocus
-              placeholder="例如：此 Email 無法加入訂閱方案，請更換帳號..."
-              value={serviceIssueNote}
-              onChange={e => setServiceIssueNote(e.target.value)}
-              className="w-full resize-none rounded-xl border border-line bg-canvas px-3 py-2.5 text-sm text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand"
-            />
-          </div>
-        </div>
-      )}
-    </Modal>
+      note={serviceIssueNote}
+      setNote={setServiceIssueNote}
+      onSubmit={() => {
+        if (!serviceIssueNote.trim() || !serviceIssueMember) return
+        onReportServiceInfoIssue?.(serviceIssueMember, serviceIssueNote.trim())
+        setServiceIssueMember(null)
+        setServiceIssueNote('')
+      }}
+    />
 
     {/* 移除成員確認 */}
     {removingMember && (
