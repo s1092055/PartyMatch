@@ -239,7 +239,6 @@ export default function ChatWindow({
     } else {
       setShowScrollToBottom(true)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messages])
 
   if (!selected) {

@@ -14,7 +14,8 @@ const CONFIG = {
 export default function ToastContainer() {
   const [toasts, setToasts] = useState([])
   const toastsRef = useRef(toasts)
-  toastsRef.current = toasts
+
+  useEffect(() => { toastsRef.current = toasts }, [toasts])
 
   useEffect(() => {
     function remove(id) {

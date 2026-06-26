@@ -254,7 +254,6 @@ export default function GroupDetailModal() {
       group={group}
       service={service}
       plan={plan}
-      hidden={showMembers}
       hideRecruitBar={isMember || isHost || group.status !== 'recruiting'}
       extraInfoRows={[
         ...(group.paymentMethod ? [{ label: '付款方式', value: group.paymentMethod }] : []),
@@ -281,8 +280,6 @@ export default function GroupDetailModal() {
           <Heart size={19} className={isFav ? 'fill-red-500 text-red-500' : 'text-ink-4'} />
         </button>
       }
-      summaryFooter={null}
-      desktopReviewsSection={reviews}
       mobileReviewsSection={reviews}
       mobileFooter={
         <div className="px-6 py-3">

@@ -3,7 +3,7 @@ import { collection, doc, getDocs, setDoc, writeBatch } from 'firebase/firestore
 
 export async function readAllServices() {
   const snapshot = await getDocs(collection(db, 'services'))
-  return snapshot.docs.map(d => ({ ...d.data(), id: d.id }))
+  return snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
 }
 
 export async function upsertService(service) {

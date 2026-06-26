@@ -86,6 +86,16 @@ export function initAuth() {
   })
 }
 
+function bootUserSession(userId) {
+  initConversations(userId)
+  initUserNotifications(userId)
+  initLiveApplications()
+  initLiveGroups()
+  initLiveMembers()
+  initLiveSubscriptions()
+  window.dispatchEvent(new CustomEvent('pm:auth-changed'))
+}
+
 export function isAuthenticated() { return !!_currentUser }
 export function getCurrentUser()  { return _currentUser }
 
@@ -104,13 +114,7 @@ export async function loginUser({ email, password }) {
   try {
     const result = await signInWithEmailAndPassword(auth, email, password)
     _currentUser = await buildUserProfile(result.user)
-    initConversations(_currentUser.id)
-    initUserNotifications(_currentUser.id)
-    initLiveApplications()
-    initLiveGroups()
-    initLiveMembers()
-    initLiveSubscriptions()
-    window.dispatchEvent(new CustomEvent('pm:auth-changed'))
+    bootUserSession(_currentUser.id)
     return { ok: true, user: _currentUser }
   } catch (err) {
     return { ok: false, error: mapAuthError(err.code) }
@@ -123,13 +127,7 @@ export async function loginWithGoogle() {
     const result = await signInWithPopup(auth, provider)
     await ensureUserProfile(result.user)
     _currentUser = await buildUserProfile(result.user)
-    initConversations(_currentUser.id)
-    initUserNotifications(_currentUser.id)
-    initLiveApplications()
-    initLiveGroups()
-    initLiveMembers()
-    initLiveSubscriptions()
-    window.dispatchEvent(new CustomEvent('pm:auth-changed'))
+    bootUserSession(_currentUser.id)
     return { ok: true, user: _currentUser }
   } catch (err) {
     return { ok: false, error: mapAuthError(err.code) }
@@ -157,13 +155,7 @@ export async function registerUser({ name, email, password }) {
     await setDoc(doc(db, 'users', result.user.uid), profile)
 
     _currentUser = { id: result.user.uid, ...profile, displayName: name }
-    initConversations(_currentUser.id)
-    initUserNotifications(_currentUser.id)
-    initLiveApplications()
-    initLiveGroups()
-    initLiveMembers()
-    initLiveSubscriptions()
-    window.dispatchEvent(new CustomEvent('pm:auth-changed'))
+    bootUserSession(_currentUser.id)
     return { ok: true, user: _currentUser }
   } catch (err) {
     return { ok: false, error: mapAuthError(err.code) }

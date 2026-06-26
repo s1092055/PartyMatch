@@ -25,13 +25,6 @@ export default function GroupModalShell({
   statusBadgeOverride,
   subPanel = null,       // { title, icon, stickyHeader?, content, footer? }
   onSubPanelBack = null,
-  // kept for backward compat, no longer used
-  // eslint-disable-next-line no-unused-vars
-  hidden,
-  // eslint-disable-next-line no-unused-vars
-  summaryFooter,
-  // eslint-disable-next-line no-unused-vars
-  desktopReviewsSection,
   mobileReviewsSection,
   children,
 }) {
@@ -73,10 +66,10 @@ export default function GroupModalShell({
     if (scrollBodyRef.current) scrollBodyRef.current.scrollTop = 0
   }, [group?.id])
 
-  // Reset sub-panel scroll when switching panels
+  // Reset sub-panel scroll when switching panels (intentionally depends on title only, not the whole object)
   useEffect(() => {
     if (subPanel && subScrollRef.current) subScrollRef.current.scrollTop = 0
-  }, [subPanel?.title])
+  }, [subPanel?.title]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return createPortal(
     <>

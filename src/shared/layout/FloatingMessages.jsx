@@ -4,12 +4,11 @@ import { useNavigate } from 'react-router-dom'
 import { AlertCircle, Bell, CheckCircle2, Clock, CreditCard, MessageSquare, UserPlus, X } from 'lucide-react'
 import { getCurrentUser, isAuthenticated } from '../stores/authStore'
 import { getGroupById } from '../stores/groupStore'
-import {
-  getNotifications,
-  getSystemNotifications,
-  markAllAsRead,
-  markNotificationAsRead,
-} from '../stores/notificationStore'
+import { getNotifications, getSystemNotifications, markAllAsRead, markNotificationAsRead } from '../stores/notificationStore'
+import { getSubscriptionByUserAndGroup } from '../stores/subscriptionStore'
+import { formatRelativeDate } from '../utils/date'
+import { useScrollLock } from '../utils/hooks'
+import EmptyState from '../ui/EmptyState'
 
 function getMergedNotifications(userId) {
   const personal = userId ? getNotifications(userId) : []
@@ -19,10 +18,6 @@ function getMergedNotifications(userId) {
     (a, b) => String(b.createdAt ?? '').localeCompare(String(a.createdAt ?? ''))
   )
 }
-import { getSubscriptionByUserAndGroup } from '../stores/subscriptionStore'
-import { formatRelativeDate } from '../utils/date'
-import { useScrollLock } from '../utils/hooks'
-import EmptyState from '../ui/EmptyState'
 
 const NOTIFICATION_META = {
   payment:              { icon: CreditCard,    iconColor: 'text-brand',      link: '/my-subscriptions' },
