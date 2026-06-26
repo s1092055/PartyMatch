@@ -8,7 +8,7 @@
 stateDiagram-v2
   [*] --> recruiting : 團主建立群組
   recruiting --> full : 名額額滿（最後一個申請被核准）
-  full --> pending_confirmation : 團主開啟群組聊天室
+  full --> pending_confirmation : 團主啟用群組（填寫收款帳號）
   pending_confirmation --> pending_activation : 全員付款確認完成
   pending_activation --> active : 團主啟用服務
   active --> pending_confirmation : 團主開始新一期收款（續訂）
@@ -20,7 +20,7 @@ stateDiagram-v2
 | 狀態 | 說明 | 下一步操作者 |
 |------|------|------------|
 | `recruiting` | 公開招募中，接受申請；成員可退出群組 | 團主審核申請 |
-| `full` | 名額額滿，等待團主開啟群組對話；成員仍可退出（會釋出名額，狀態退回 `recruiting`） | 團主點「開啟群組聊天室」 |
+| `full` | 名額額滿，等待團主啟用群組；成員仍可退出（會釋出名額，狀態退回 `recruiting`） | 團主點「啟用群組」並填寫收款帳號 |
 | `pending_confirmation` | 收款階段：成員填寫帳號資訊、標記付款；團主逐筆確認 | 全員確認後自動推進 |
 | `pending_activation` | 收款完成，等待團主啟用服務 | 團主點「啟用服務」 |
 | `active` | 服務運作中；到期時團主可開始新一期收款 | 團主續訂或結束 |
@@ -112,25 +112,25 @@ flowchart TD
   K --> L{名額是否額滿}
   L -->|否| G
   L -->|是| M[群組狀態推進至 full]
-  M --> N[點擊開啟群組聊天室]
-  N --> O[建立 conversation，狀態推進至 pending_confirmation]
-  O --> P[等待成員填帳號資訊並標記付款]
-  P --> Q[進入收款紀錄逐筆確認]
-  Q --> R{全員已確認且名額額滿}
-  R -->|否| Q
-  R -->|是| S[狀態自動推進至 pending_activation]
-  S --> T[點擊啟用服務]
-  T --> U[群組 active，更新下次扣款日，通知成員]
-  U --> V{到期後}
-  V -->|續訂| W[開始新一期收款 → 狀態回到 pending_confirmation]
-  V -->|結束| X[endGroup → 狀態 ended]
+  M --> N[點擊啟用群組]
+  N --> O[填寫收款帳號後確認啟用]
+  O --> P[建立 conversation，狀態推進至 pending_confirmation，通知成員付款]
+  Q --> R[等待成員填帳號資訊並標記付款]
+  R --> S{全員已確認且名額額滿}
+  S -->|否| R
+  S -->|是| T[狀態自動推進至 pending_activation]
+  T --> U[點擊啟用服務]
+  U --> V[群組 active，更新下次扣款日，通知成員]
+  V --> W{到期後}
+  W -->|續訂| X[開始新一期收款 → 狀態回到 pending_confirmation]
+  W -->|結束| Y[endGroup → 狀態 ended]
 ```
 
 操作說明：
 
 1. 從側欄點「建立群組」開始 4 步驟表單；建立成功狀態為 `recruiting`。
 2. 在「群組管理」點卡片「查看群組」開啟 HostGroupViewModal，從底部列進入「申請管理」或「收款紀錄」子 Modal。
-3. 所有名額核准完畢後，GroupViewModal 出現「開啟群組聊天室」按鈕；點擊後進入 `pending_confirmation`。
+3. 所有名額核准完畢後，GroupViewModal 出現「啟用群組」按鈕（含 ping 動畫）；點擊後填寫收款帳號並確認，系統建立群組聊天室並推進至 `pending_confirmation`，通知所有成員付款。
 4. 全員確認後自動推進至 `pending_activation`；啟用按鈕出現（含 ping 動畫）。
 5. 啟用後進入 `active`；到期後可選擇「開始新一期收款」或「結束群組」。
 

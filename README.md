@@ -91,6 +91,8 @@ recruiting → full → pending_confirmation → pending_activation → active �
 
 每個狀態轉換都有對應的角色與觸發條件，詳見[操作流程文件](docs/user-flows.md)。
 
+> `full` 時，團主點「啟用群組」並填寫收款帳號後確認，系統才會建立群組聊天室並推進至 `pending_confirmation`。
+
 ### 跨元件通訊
 
 全域 Modal 透過 `window.dispatchEvent` 以 `pm:open-*` 事件驅動，避免 React props 層層傳遞，也解決 `location.state` 在同頁面不可靠的問題。
