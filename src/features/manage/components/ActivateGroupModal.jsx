@@ -10,8 +10,8 @@ export default function ActivateGroupModal({ isOpen, onClose, paymentAccount, se
   function handleConfirm() {
     const account = paymentAccount.trim()
     if (!account) return
-    onConfirm(account)
     setPaymentAccount('')
+    onConfirm(account)
   }
 
   return (

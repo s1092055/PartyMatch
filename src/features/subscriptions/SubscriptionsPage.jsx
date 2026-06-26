@@ -13,7 +13,6 @@ import GroupViewModal from '../../shared/ui/GroupViewModal'
 import FilterTabsBar from '../../shared/ui/FilterTabsBar'
 import ServiceLogo from '../../shared/ui/ServiceLogo'
 import Button from '../../shared/ui/Button'
-import { toast } from '../../shared/utils/toast'
 import { daysUntil, formatRelativeDate } from '../../shared/utils/date'
 
 const FILTER_TABS = [
@@ -166,7 +165,6 @@ export default function SubscriptionsPage() {
     setViewGroupId(null)
     setAutoOpenPayment(false)
     setSubs(activeUserId ? enrichSubs(getSubscriptionsByUserId(activeUserId)) : [])
-    toast('已成功退出群組')
   }
 
   const filtered = useMemo(

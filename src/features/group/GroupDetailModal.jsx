@@ -10,12 +10,12 @@ import { getApplicationByUserAndGroup, getApplicationsByUserId } from '../../sha
 import { isCurrentUserMember, getMemberByUserAndGroup, getMembersByGroupId, getMemberGroupIds } from '../../shared/stores/memberStore'
 import { isGroupFavorited, toggleFavorite } from '../../shared/stores/favoriteStore'
 import { getCurrentUser } from '../../shared/stores/authStore'
-import { scheduleLeaveGroup } from '../../shared/utils/leaveGroupFlow'
+import { finalizeLeaveGroup } from '../../shared/utils/leaveGroupFlow'
 import { toast } from '../../shared/utils/toast'
 import Avatar from '../../shared/ui/Avatar'
 import Button from '../../shared/ui/Button'
 import Modal from '../../shared/ui/Modal'
-import ConfirmDialog from '../../shared/ui/ConfirmDialog'
+import CountdownConfirmDialog from '../../shared/ui/CountdownConfirmDialog'
 import GroupModalShell from '../../shared/ui/GroupModalShell'
 import ApplyJoinModal from './components/ApplyJoinModal'
 import ExploreGroupCard from '../explore/components/ExploreGroupCard'
@@ -168,13 +168,12 @@ export default function GroupDetailModal() {
 
   function handleLeave() {
     setLeaveConfirm(false)
-    scheduleLeaveGroup({
-      conversationId: `group_${groupId}`,
+    handleClose()
+    finalizeLeaveGroup(
+      `group_${groupId}`,
       groupId,
-      user: { id: activeUserId, name: activeUser?.name ?? activeUser?.displayName ?? '成員' },
-      groupName: group.serviceName,
-      onScheduled: handleClose,
-    })
+      { id: activeUserId, name: activeUser?.name ?? activeUser?.displayName ?? '成員' },
+    ).catch(console.error)
   }
   function openDm() {
     handleClose()
@@ -232,7 +231,6 @@ export default function GroupDetailModal() {
     if (isFull) return (
       <Button variant="ghost" size="lg" className="w-full border border-line" disabled>已額滿</Button>
     )
-    if (hasActiveApp) return null
     return null
   }
 
@@ -346,7 +344,6 @@ export default function GroupDetailModal() {
             setApplyModalOpen(false)
             handleClose()
             toast('申請已送出，等待團主審核', 'success', {
-              persistent: true,
               action: { label: '前往查看', onClick: () => navigate('/my-subscriptions', { state: { tab: 'processing' } }) },
             })
           }}
@@ -405,7 +402,7 @@ export default function GroupDetailModal() {
 
     {/* 退出確認 */}
     {leaveConfirm && (
-      <ConfirmDialog
+      <CountdownConfirmDialog
         title="確認退出群組？"
         message={`退出後將釋出名額，需重新申請才能加入「${group?.serviceName}」。`}
         confirmLabel="退出群組"

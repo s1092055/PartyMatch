@@ -14,6 +14,8 @@ import { formatRelativeDate } from '../../../shared/utils/date'
 import { CONFIRMED_STATUSES } from '../../../shared/constants/paymentStatus'
 import { getSubscriptionByUserAndGroup } from '../../../shared/stores/subscriptionStore'
 import { getPaymentRecordsBySubscriptionId } from '../../../shared/stores/paymentStore'
+import { getActiveUserProfile } from '../../../shared/stores/authStore'
+import { getNotifications, markNotificationAsRead } from '../../../shared/stores/notificationStore'
 import CustomSelect from '../../../shared/ui/CustomSelect'
 import ActivateServiceModal from './ActivateServiceModal'
 import ActivateGroupModal from './ActivateGroupModal'
@@ -91,8 +93,6 @@ function ApplicationCard({ app, groupFull, error, onApprove, onReject, isLeft = 
 
 // ── 團主視角 ──────────────────────────────────────────────────────────────────
 
-
-
 export default function HostGroupView({ group, members, applications, onConfirmMember, onReportPaymentIssue, onReportServiceInfoIssue, onRemoveMember, onActivate, onActivateGroup, onApprove, onReject, errors, onClose, autoOpenActivateGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling }) {
   const [showActivate, setShowActivate]                   = useState(false)
   const [removingMember, setRemovingMember]               = useState(null)
@@ -121,7 +121,7 @@ export default function HostGroupView({ group, members, applications, onConfirmM
   function handleSendIssueReport() {
     if (!issueType || !reportModalMember) return
     onReportPaymentIssue?.(reportModalMember, issueType, issueNote)
-    closeReportModal(false)
+    closeReportModal()
   }
 
   function toggleBillingMember(memberId) {
@@ -141,6 +141,15 @@ export default function HostGroupView({ group, members, applications, onConfirmM
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (autoOpenApplications) setActivePanel('applications')
   }, [autoOpenApplications])
+
+  useEffect(() => {
+    if (activePanel !== 'applications') return
+    const user = getActiveUserProfile()
+    if (!user) return
+    getNotifications(user.id)
+      .filter(n => n.type === 'new_application' && n.meta?.groupId === group.id && !n.isRead)
+      .forEach(n => markNotificationAsRead(n.id))
+  }, [activePanel, group.id])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect

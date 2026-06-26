@@ -18,6 +18,7 @@ export default function ActivateServiceModal({
   onOpenServiceIssue,
 }) {
   const nextDate = (() => {
+    if (!isOpen) return ''
     const d = new Date()
     if (group.billingCycle === 'yearly') d.setFullYear(d.getFullYear() + 1)
     else d.setMonth(d.getMonth() + 1)

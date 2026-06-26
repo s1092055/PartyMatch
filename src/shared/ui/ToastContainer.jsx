@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { AlertCircle, CheckCircle2, Info, X } from 'lucide-react'
 import { subscribeToast } from '../utils/toast'
@@ -13,9 +13,6 @@ const CONFIG = {
 
 export default function ToastContainer() {
   const [toasts, setToasts] = useState([])
-  const toastsRef = useRef(toasts)
-
-  useEffect(() => { toastsRef.current = toasts }, [toasts])
 
   useEffect(() => {
     function remove(id) {

@@ -6,6 +6,7 @@ import Modal from '../../shared/ui/Modal'
 import LoginPromptModal from '../../shared/ui/LoginPromptModal'
 import { getCurrentUser, isAuthenticated } from '../../shared/stores/authStore'
 import { getConversations } from '../../shared/stores/conversationStore'
+import { getNotifications, markNotificationAsRead } from '../../shared/stores/notificationStore'
 import {
   subscribeToMessages,
   sendMessage,
@@ -44,7 +45,6 @@ export default function MessagesModal() {
   const inputRef = useRef(null)
   const isComposingRef = useRef(false)
   const lastCompositionEndRef = useRef(0)
-  const inputFocusedRef = useRef(false)
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 767px)')
@@ -119,6 +119,11 @@ export default function MessagesModal() {
       const conv = getConversations().find(c => c.id === selectedId)
       if ((conv?.unreadCounts?.[user.id] ?? 0) > 0) {
         markConversationRead(selectedId, user.id).catch(console.error)
+      }
+      if (conv?.type === 'group' && conv.groupId) {
+        getNotifications(user.id)
+          .filter(n => n.meta?.groupId === conv.groupId && !n.isRead)
+          .forEach(n => markNotificationAsRead(n.id))
       }
     }
     return () => { unsub(); setMessages([]); setLoadingMessages(false) }
@@ -301,7 +306,6 @@ export default function MessagesModal() {
                 showMembers={showMembers}
                 isComposingRef={isComposingRef}
                 lastCompositionEndRef={lastCompositionEndRef}
-                inputFocusedRef={inputFocusedRef}
                 onMembersToggle={setShowMembers}
                 onSend={handleSend}
                 onKeyDown={handleKeyDown}

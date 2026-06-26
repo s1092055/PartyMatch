@@ -27,7 +27,7 @@ const STATUS_FILTER_TABS = [
   { key: 'cancelled',  label: '已結束' },
 ]
 
-const PENDING_STATUSES   = new Set(['full', 'active', 'pending_confirmation', 'pending_activation'])
+const PENDING_STATUSES   = new Set(['full', 'pending_confirmation', 'pending_activation'])
 const CANCELLED_STATUSES = new Set(['paused', 'cancelled', 'ended'])
 
 function matchesFilter(group, filterKey) {

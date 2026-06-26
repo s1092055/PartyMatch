@@ -5,6 +5,7 @@ import {
 import CombinedServicePaymentModal from './CombinedServicePaymentModal'
 import Avatar from '../../../shared/ui/Avatar'
 import ConfirmDialog from '../../../shared/ui/ConfirmDialog'
+import CountdownConfirmDialog from '../../../shared/ui/CountdownConfirmDialog'
 import GroupModalShell from '../../../shared/ui/GroupModalShell'
 import EmptyState from '../../../shared/ui/EmptyState'
 import { getServiceById } from '../../../shared/utils/serviceUtils'
@@ -396,7 +397,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
     />
 
     {leaveConfirm && (
-      <ConfirmDialog
+      <CountdownConfirmDialog
         title="退出群組"
         message={`確定要退出「${group.serviceName}」群組嗎？退出後名額將釋出，若要再加入需要重新提出申請。`}
         confirmLabel="退出"

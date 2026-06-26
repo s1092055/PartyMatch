@@ -49,7 +49,7 @@ export default function ChatWindow({
   sending, sendError, canSend,
   inputRef,
   showMembers,
-  isComposingRef, lastCompositionEndRef, inputFocusedRef,
+  isComposingRef, lastCompositionEndRef,
   onMembersToggle, onSend, onKeyDown, onInputChange,
   onRequestDeleteConversation,
 }) {
@@ -593,13 +593,11 @@ export default function ChatWindow({
             placeholder="輸入訊息..."
             onChange={e => onInputChange(e.target.value)}
             onFocus={() => {
-              inputFocusedRef.current = true
               const user = getCurrentUser()
               if (user && selectedId && (selected?.unreadCounts?.[user.id] ?? 0) > 0) {
                 markConversationRead(selectedId, user.id).catch(console.error)
               }
             }}
-            onBlur={() => { inputFocusedRef.current = false }}
             onCompositionStart={() => { isComposingRef.current = true }}
             onCompositionEnd={() => {
               isComposingRef.current = false

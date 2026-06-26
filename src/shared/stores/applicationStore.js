@@ -4,7 +4,7 @@ import { normalizeApplication } from '../utils/modelNormalizers'
 import { nowISO } from '../utils/date'
 import { createId } from '../utils/storage'
 import { getActiveUserProfile } from './authStore'
-import { createNotification, getNotifications } from './notificationStore'
+import { createNotification, getNotifications, markNotificationAsRead } from './notificationStore'
 
 let _apps = []
 let _unsub = null
@@ -193,6 +193,12 @@ export function updateApplicationStatus(id, status) {
   _apps = _apps.map(a => a.id === id ? { ...a, status } : a)
   emitApplicationsChanged({ type: 'status_changed', applicationId: id, status })
   patchApplication(id, { status }).catch(console.error)
+
+  if ((status === 'approved' || status === 'rejected') && app?.hostId) {
+    const notif = getNotifications(app.hostId)
+      .find(n => n.type === 'new_application' && n.meta?.applicationId === id && !n.isRead)
+    if (notif) markNotificationAsRead(notif.id)
+  }
 
   if (status === 'approved' && app) {
     const convId = `group_${app.groupId}`
