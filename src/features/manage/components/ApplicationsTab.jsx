@@ -4,12 +4,13 @@ import Avatar from '../../../shared/ui/Avatar'
 import CreditScoreBadge from '../../../shared/ui/CreditScoreBadge'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import EmptyState from '../../../shared/ui/EmptyState'
-import { getGroups } from '../../../shared/stores/groupStore'
+import { useGroupStore } from '../../../shared/stores/useGroupStore'
 import { formatRelativeDate } from '../../../shared/utils/date'
 
 function resolveServiceId(app) {
   if (app.serviceId) return app.serviceId
-  return new Map(getGroups().map(g => [g.id, g.serviceId])).get(app.groupId) ?? 'spotify'
+  const groups = useGroupStore.getState().groups
+  return new Map(groups.map(g => [g.id, g.serviceId])).get(app.groupId) ?? 'spotify'
 }
 
 function ApplicationCard({ app, groupFull, error, onApprove, onReject }) {

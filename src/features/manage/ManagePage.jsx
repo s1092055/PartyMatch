@@ -1,17 +1,53 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { activateGroup, activateGroupChat, confirmGroupPayments, endGroup, getGroupById, getGroupsByHostId, startRenewalCycle, updateGroup } from '../../shared/stores/groupStore'
-import { adjustCreditScore } from '../../shared/stores/authStore'
+import { useGroupStore } from '../../shared/stores/useGroupStore'
+import { useAuthStore } from '../../shared/stores/useAuthStore'
 import { CREDIT_RULES } from '../../shared/utils/creditScore'
-import { getApplicationByUserAndGroup, getApplicationsByHostId, updateApplicationStatus } from '../../shared/stores/applicationStore'
-import { getMembersByGroupId, createMember, isUserGroupMember, removeMember, resetMemberPaymentsForGroup, updateMember } from '../../shared/stores/memberStore'
-import { activateGroupSubscriptions, confirmSubscriptionPayment, createSubscription, getSubscriptionByUserAndGroup, getSubscriptionsByGroupId, removeSubscription, resetSubscriptionPayment, resetSubscriptionPaymentsForGroup } from '../../shared/stores/subscriptionStore'
-import { createPaymentRecord, getPaymentRecordCountBySubIds } from '../../shared/stores/paymentStore'
-import { createNotification } from '../../shared/stores/notificationStore'
-import { getCurrentUser } from '../../shared/stores/authStore'
+import { useApplicationStore } from '../../shared/stores/useApplicationStore'
+import { useMemberStore } from '../../shared/stores/useMemberStore'
+import { useSubscriptionStore } from '../../shared/stores/useSubscriptionStore'
+import { usePaymentStore } from '../../shared/stores/usePaymentStore'
+import { useNotificationStore } from '../../shared/stores/useNotificationStore'
 import { addParticipantToConversation, createGroupConversation, leaveConversation, sendSystemMessage, sendActionMessage } from '../../shared/api/messagesApi'
-import { addConversationOptimistic } from '../../shared/stores/conversationStore'
+import { useConversationStore } from '../../shared/stores/useConversationStore'
 import { CONFIRMED_STATUSES } from '../../shared/constants/paymentStatus'
+
+// ── store 操作的精簡別名（事件處理器內呼叫，讀取最新 store 狀態）─────────────
+const getGroupById     = (id)      => useGroupStore.getState().getById(id)
+const getGroupsByHostId = (hostId) => useGroupStore.getState().getByHostId(hostId)
+const updateGroup      = (id, p)   => useGroupStore.getState().update(id, p)
+const activateGroup    = (id, d)   => useGroupStore.getState().activateGroup(id, d)
+const activateGroupChat   = (id)   => useGroupStore.getState().activateGroupChat(id)
+const confirmGroupPayments = (id)  => useGroupStore.getState().confirmGroupPayments(id)
+const startRenewalCycle = (id)     => useGroupStore.getState().startRenewalCycle(id)
+const endGroup         = (id)      => useGroupStore.getState().endGroup(id)
+
+const adjustCreditScore = (uid, d) => useAuthStore.getState().adjustCreditScore(uid, d)
+
+const getApplicationByUserAndGroup = (uid, gid)   => useApplicationStore.getState().getByUserAndGroup(uid, gid)
+const getApplicationsByHostId      = (hid, grps)  => useApplicationStore.getState().getByHostId(hid, grps)
+const updateApplicationStatus      = (id, status) => useApplicationStore.getState().updateStatus(id, status)
+
+const getMembersByGroupId        = (gid)    => useMemberStore.getState().getByGroupId(gid)
+const createMember               = (data)   => useMemberStore.getState().create(data)
+const isUserGroupMember          = (uid, gid) => useMemberStore.getState().isMember(uid, gid)
+const removeMember               = (id)     => useMemberStore.getState().remove(id)
+const resetMemberPaymentsForGroup = (gid)   => useMemberStore.getState().resetPaymentsForGroup(gid)
+const updateMember               = (id, p)  => useMemberStore.getState().update(id, p)
+
+const activateGroupSubscriptions      = (gid, d) => useSubscriptionStore.getState().activateGroupSubscriptions(gid, d)
+const confirmSubscriptionPayment      = (id)     => useSubscriptionStore.getState().confirmPayment(id)
+const createSubscription              = (data)   => useSubscriptionStore.getState().create(data)
+const getSubscriptionByUserAndGroup   = (uid, gid) => useSubscriptionStore.getState().getByUserAndGroup(uid, gid)
+const getSubscriptionsByGroupId       = (gid)    => useSubscriptionStore.getState().getByGroupId(gid)
+const removeSubscription              = (id)     => useSubscriptionStore.getState().remove(id)
+const resetSubscriptionPayment        = (id)     => useSubscriptionStore.getState().resetPayment(id)
+const resetSubscriptionPaymentsForGroup = (gid)  => useSubscriptionStore.getState().resetPaymentsForGroup(gid)
+
+const createPaymentRecord        = (data)    => usePaymentStore.getState().create(data)
+const getPaymentRecordCountBySubIds = (ids)  => usePaymentStore.getState().getCountBySubIds(ids)
+const createNotification         = (data)    => useNotificationStore.getState().create(data)
+const addConversationOptimistic  = (conv)    => useConversationStore.getState().addConversationOptimistic(conv)
 import EmptyState from '../../shared/ui/EmptyState'
 import GroupViewModal from '../../shared/ui/GroupViewModal'
 import FilterTabsBar from '../../shared/ui/FilterTabsBar'
@@ -60,7 +96,13 @@ function loadManageData(activeUser) {
 export default function ManagePage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const activeUser = getCurrentUser()
+  const activeUser = useAuthStore(s => s.user)
+
+  // 訂閱 store 切片，群組/申請/成員/訂閱更新時觸發 manageData 重新載入
+  const groupsState        = useGroupStore(s => s.groups)
+  const applicationsState  = useApplicationStore(s => s.applications)
+  const membersState       = useMemberStore(s => s.members)
+  const subscriptionsState = useSubscriptionStore(s => s.subscriptions)
 
   const [manageData, setManageData] = useState(() => loadManageData(activeUser))
   const [errors, setErrors] = useState({})
@@ -98,29 +140,11 @@ export default function ManagePage() {
     return () => window.removeEventListener('pm:open-manage-group', onOpenManageGroup)
   }, [])
 
-useEffect(() => {
-    function reload() {
-      if (!activeUser) return
-      setManageData(loadManageData(activeUser))
-    }
-    window.addEventListener('pm:applications-changed', reload)
-    window.addEventListener('pm:groups-changed', reload)
-    window.addEventListener('pm:members-changed', reload)
-    return () => {
-      window.removeEventListener('pm:applications-changed', reload)
-      window.removeEventListener('pm:groups-changed', reload)
-      window.removeEventListener('pm:members-changed', reload)
-    }
-  }, [activeUser])
-
+  // store 切片變動時重新載入 manageData（取代舊的 pm:*-changed 事件）
   useEffect(() => {
-    function onGroupCreated() {
-      if (!activeUser) return
-      setManageData(loadManageData(activeUser))
-    }
-    window.addEventListener('pm:group-created', onGroupCreated)
-    return () => window.removeEventListener('pm:group-created', onGroupCreated)
-  }, [activeUser])
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (activeUser) setManageData(loadManageData(activeUser))
+  }, [activeUser, groupsState, applicationsState, membersState, subscriptionsState])
 
   const { hostedGroups, applications, members, seatMap } = manageData
 

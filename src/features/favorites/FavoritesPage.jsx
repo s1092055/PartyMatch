@@ -2,36 +2,36 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Heart } from 'lucide-react'
 import EmptyState from '../../shared/ui/EmptyState'
-import { getCurrentUser } from '../../shared/stores/authStore'
+import { useAuthStore } from '../../shared/stores/useAuthStore'
 import PageHeader from '../../shared/layout/PageHeader'
-import { getFavoritesByUserId } from '../../shared/stores/favoriteStore'
-import { getGroupById } from '../../shared/stores/groupStore'
-import { getMemberGroupIds } from '../../shared/stores/memberStore'
+import { useFavoriteStore } from '../../shared/stores/useFavoriteStore'
+import { useGroupStore } from '../../shared/stores/useGroupStore'
+import { useMemberStore } from '../../shared/stores/useMemberStore'
 import { getServiceById } from '../../shared/utils/serviceUtils'
 import ExploreGroupCard from '../explore/components/ExploreGroupCard'
 import CategoryPills from '../../shared/ui/CategoryPills'
 
-function loadFavGroups() {
-  const activeUser = getCurrentUser()
-  if (!activeUser) return []
-
-  return getFavoritesByUserId(activeUser.id)
-    .map(f => getGroupById(f.groupId))
-    .filter(Boolean)
-}
-
 export default function FavoritesPage() {
   const navigate = useNavigate()
-  const activeUser = getCurrentUser()
-  const [groups, setGroups] = useState(loadFavGroups)
-  const memberGroupIds = useMemo(() => getMemberGroupIds(activeUser?.id), [activeUser?.id])
+  const activeUser = useAuthStore(s => s.user)
+  const favorites = useFavoriteStore(s => s.favorites)
+  const allGroups = useGroupStore(s => s.groups)
+  const members = useMemberStore(s => s.members)
   const [activeCategory, setActiveCategory] = useState('all')
 
-  function handleFavChange(isFav, groupId) {
-    if (!isFav) {
-      setGroups(prev => prev.filter(g => g.id !== groupId))
-    }
-  }
+  const groups = useMemo(() => {
+    if (!activeUser) return []
+    const byId = new Map(allGroups.map(g => [g.id, g]))
+    return favorites
+      .filter(f => f.userId === activeUser.id)
+      .map(f => byId.get(f.groupId))
+      .filter(Boolean)
+  }, [activeUser, favorites, allGroups])
+
+  const memberGroupIds = useMemo(
+    () => new Set(members.filter(m => m.userId === activeUser?.id).map(m => m.groupId)),
+    [members, activeUser?.id],
+  )
 
   const filtered = activeCategory === 'all'
     ? groups
@@ -65,7 +65,6 @@ export default function FavoritesPage() {
               <ExploreGroupCard
                 key={group.id}
                 group={group}
-                onFavChange={handleFavChange}
                 isMember={memberGroupIds.has(group.id)}
               />
             ))}

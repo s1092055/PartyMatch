@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Lock, Mail, User } from 'lucide-react'
 import AuthLayout, { AuthInput, AuthDivider, AuthError, GoogleMark, PasswordToggle } from '../components/AuthLayout'
 import Button from '../../../shared/ui/Button'
-import { loginWithGoogle, registerUser } from '../../../shared/stores/authStore'
+import { useAuthStore } from '../../../shared/stores/useAuthStore'
 
 export default function RegisterPage() {
   const navigate = useNavigate()
@@ -35,7 +35,7 @@ export default function RegisterPage() {
     }
     setLoading(true)
     setError('')
-    const result = await registerUser(form)
+    const result = await useAuthStore.getState().register(form)
     setLoading(false)
     if (!result.ok) {
       setError(result.error)
@@ -48,7 +48,7 @@ export default function RegisterPage() {
     if (loading) return
     setLoading(true)
     setError('')
-    const result = await loginWithGoogle()
+    const result = await useAuthStore.getState().loginGoogle()
     setLoading(false)
     if (!result.ok) {
       setError(result.error)

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { Mail } from 'lucide-react'
 import AuthLayout, { AuthInput } from '../components/AuthLayout'
 import Button from '../../../shared/ui/Button'
-import { resetPassword } from '../../../shared/stores/authStore'
+import { useAuthStore } from '../../../shared/stores/useAuthStore'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
@@ -14,7 +14,7 @@ export default function ForgotPasswordPage() {
     e.preventDefault()
     if (!email.trim() || loading) return
     setLoading(true)
-    await resetPassword(email)
+    await useAuthStore.getState().resetPassword(email)
     setLoading(false)
     setSubmitted(true)
   }

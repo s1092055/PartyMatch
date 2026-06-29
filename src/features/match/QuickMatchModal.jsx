@@ -10,9 +10,9 @@ import ExploreGroupCard from '../explore/components/ExploreGroupCard'
 import CreateGroupStepper from '../create/components/CreateGroupStepper'
 import Button from '../../shared/ui/Button'
 import Modal from '../../shared/ui/Modal'
-import { getGroups } from '../../shared/stores/groupStore'
-import { getMemberGroupIds } from '../../shared/stores/memberStore'
-import { getCurrentUser } from '../../shared/stores/authStore'
+import { useGroupStore } from '../../shared/stores/useGroupStore'
+import { useMemberStore } from '../../shared/stores/useMemberStore'
+import { useAuthStore } from '../../shared/stores/useAuthStore'
 import { matchGroups } from '../../shared/utils/matchGroups'
 
 const DEFAULT_CONDITIONS = {
@@ -191,16 +191,11 @@ function Step3({ conditions, onChange }) {
 
 function Step4({ results, conditions, onClose }) {
   const navigate = useNavigate()
-  const activeUser = getCurrentUser()
-  const [tick, setTick] = useState(0)
-  useEffect(() => {
-    function onChanged() { setTick(t => t + 1) }
-    window.addEventListener('pm:applications-changed', onChanged)
-    return () => window.removeEventListener('pm:applications-changed', onChanged)
-  }, [])
+  const activeUserId = useAuthStore(s => s.user?.id)
+  const members = useMemberStore(s => s.members)
   const memberGroupIds = useMemo(
-    () => getMemberGroupIds(activeUser?.id),
-    [activeUser?.id, tick], // eslint-disable-line react-hooks/exhaustive-deps
+    () => new Set(members.filter(m => m.userId === activeUserId).map(m => m.groupId)),
+    [members, activeUserId],
   )
 
   function handleExplore() {
@@ -310,8 +305,8 @@ export default function QuickMatchModal() {
   }
 
   function handleStartMatch() {
-    const activeUserId = getCurrentUser()?.id
-    const candidateGroups = getGroups().filter(g => g.hostId !== activeUserId)
+    const activeUserId = useAuthStore.getState().user?.id
+    const candidateGroups = useGroupStore.getState().groups.filter(g => g.hostId !== activeUserId)
     const matched = matchGroups(candidateGroups, conditions)
     setResults(matched)
     setStep(4)

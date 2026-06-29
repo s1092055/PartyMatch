@@ -2,38 +2,38 @@ import { useEffect, useState } from 'react'
 import { RouterProvider } from 'react-router-dom'
 import router from './router'
 import ToastContainer from '../shared/ui/ToastContainer'
-import { initAuth, getCurrentUser } from '../shared/stores/authStore'
-import { initServices } from '../shared/stores/serviceStore'
-import { initGroups } from '../shared/stores/groupStore'
-import { initApplications, checkMissedApplicationNotifications } from '../shared/stores/applicationStore'
-import { initSubscriptions } from '../shared/stores/subscriptionStore'
-import { initMembers } from '../shared/stores/memberStore'
-import { initFavorites } from '../shared/stores/favoriteStore'
-import { initNotifications } from '../shared/stores/notificationStore'
-import { initPayments } from '../shared/stores/paymentStore'
-import { initConversations } from '../shared/stores/conversationStore'
+import { useAuthStore } from '../shared/stores/useAuthStore'
+import { useServiceStore } from '../shared/stores/useServiceStore'
+import { useGroupStore } from '../shared/stores/useGroupStore'
+import { useApplicationStore } from '../shared/stores/useApplicationStore'
+import { useSubscriptionStore } from '../shared/stores/useSubscriptionStore'
+import { useMemberStore } from '../shared/stores/useMemberStore'
+import { useFavoriteStore } from '../shared/stores/useFavoriteStore'
+import { useNotificationStore } from '../shared/stores/useNotificationStore'
+import { usePaymentStore } from '../shared/stores/usePaymentStore'
+import { useConversationStore } from '../shared/stores/useConversationStore'
 
 export default function App() {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
     Promise.all([
-      initAuth(),
-      initServices(),
-      initGroups(),
-      initApplications(),
-      initSubscriptions(),
-      initMembers(),
-      initFavorites(),
-      initNotifications(),
-      initPayments(),
+      useAuthStore.getState().init(),
+      useServiceStore.getState().init(),
+      useGroupStore.getState().init(),
+      useApplicationStore.getState().init(),
+      useSubscriptionStore.getState().init(),
+      useMemberStore.getState().init(),
+      useFavoriteStore.getState().init(),
+      useNotificationStore.getState().init(),
+      usePaymentStore.getState().init(),
     ])
       .then(() => {
-        // initConversations 必須在 initNotifications 完成後才執行，
+        // initConversations 必須在 notifications init 完成後才執行，
         // 否則冷啟動的通知判斷會讀到空的 notifications，導致重複建立通知。
-        const user = getCurrentUser()
-        if (user) initConversations(user.id)
-        checkMissedApplicationNotifications()
+        const user = useAuthStore.getState().getProfile()
+        if (user) useConversationStore.getState().init(user.id)
+        useApplicationStore.getState().checkMissedNotifications(user)
         setReady(true)
       })
       .catch(err => {

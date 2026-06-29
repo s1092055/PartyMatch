@@ -3,10 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import { CheckCircle2, ChevronDown, Clock, Send, SquarePen, X } from 'lucide-react'
 import ConversationAvatar from './ConversationAvatar'
 import ConversationMenu from './ConversationMenu'
-import { getMembersByGroupId, getMemberByUserAndGroup } from '../../../shared/stores/memberStore'
+import { useMemberStore } from '../../../shared/stores/useMemberStore'
 import { CONFIRMED_STATUSES } from '../../../shared/constants/paymentStatus'
-import { getGroupById } from '../../../shared/stores/groupStore'
-import { getCurrentUser } from '../../../shared/stores/authStore'
+import { useGroupStore } from '../../../shared/stores/useGroupStore'
+import { useAuthStore } from '../../../shared/stores/useAuthStore'
+
+const getMemberByUserAndGroup = (uid, gid) => useMemberStore.getState().getByUserAndGroup(uid, gid)
+const getCurrentUser = () => useAuthStore.getState().user
 import { markConversationRead, addParticipantToConversation, fetchOlderMessages } from '../../../shared/api/messagesApi'
 import { getUserProfile } from '../../../shared/api/usersApi'
 import { formatTime } from '../utils'
@@ -55,23 +58,20 @@ export default function ChatWindow({
 }) {
   // 用來在 userProfileCache（模組層、非 React state）有新結果時強制重新 render
   const [, setProfileResolveTick] = useState(0)
-  const [, setMemberTick] = useState(0)
 
   const navigate = useNavigate()
 
-  useEffect(() => {
-    function onMembersChanged() { setMemberTick(t => t + 1) }
-    window.addEventListener('pm:members-changed', onMembersChanged)
-    return () => window.removeEventListener('pm:members-changed', onMembersChanged)
-  }, [])
+  // 訂閱 store 切片，群組/成員更新時自動重新渲染
+  const allGroups = useGroupStore(s => s.groups)
+  const allMembers = useMemberStore(s => s.members)
 
   const userId = user?.id
   const otherIds = selected?.participants?.filter(p => p !== userId) ?? []
   const conversationGroupId = selected?.type === 'group'
     ? selected.groupId ?? (selectedId?.startsWith('group_') ? selectedId.slice('group_'.length) : null)
     : null
-  const group = conversationGroupId ? getGroupById(conversationGroupId) : null
-  const groupMembers = conversationGroupId ? getMembersByGroupId(conversationGroupId) : []
+  const group = conversationGroupId ? (allGroups.find(g => g.id === conversationGroupId) ?? null) : null
+  const groupMembers = conversationGroupId ? allMembers.filter(m => m.groupId === conversationGroupId) : []
   const memberMap = Object.fromEntries(groupMembers.map(m => [m.userId, m]))
   const metaHostId = group?.hostName
     ? selected?.participants?.find(pid => selected.participantMeta?.[pid]?.name === group.hostName)

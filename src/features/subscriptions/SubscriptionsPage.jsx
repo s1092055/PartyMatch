@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { CheckCircle, ClipboardList, Clock, UserMinus, XCircle } from 'lucide-react'
-import { getSubscriptionsByUserId, initSubscriptions, removeSubscription } from '../../shared/stores/subscriptionStore'
-import { getMemberByUserAndGroup, initMembers, removeMember } from '../../shared/stores/memberStore'
-import { createNotification } from '../../shared/stores/notificationStore'
-import { getApplicationsByUserId, initApplications } from '../../shared/stores/applicationStore'
-import { getGroupById, initLiveGroups, updateGroup } from '../../shared/stores/groupStore'
-import { getCurrentUser } from '../../shared/stores/authStore'
+import { useSubscriptionStore } from '../../shared/stores/useSubscriptionStore'
+import { useMemberStore } from '../../shared/stores/useMemberStore'
+import { useNotificationStore } from '../../shared/stores/useNotificationStore'
+import { useApplicationStore } from '../../shared/stores/useApplicationStore'
+import { useGroupStore } from '../../shared/stores/useGroupStore'
+import { useAuthStore } from '../../shared/stores/useAuthStore'
 import SubscriptionCard from './components/SubscriptionCard'
+
+const getGroupById = (id) => useGroupStore.getState().getById(id)
 import EmptyState from '../../shared/ui/EmptyState'
 import GroupViewModal from '../../shared/ui/GroupViewModal'
 import FilterTabsBar from '../../shared/ui/FilterTabsBar'
@@ -53,11 +55,20 @@ function filterSubs(subs, tab) {
 export default function SubscriptionsPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const activeUser = getCurrentUser()
+  const activeUser = useAuthStore(s => s.user)
   const activeUserId = activeUser?.id ?? null
+  // 訂閱 store 切片，訂閱/群組/申請更新時自動重算
+  const subscriptionsState = useSubscriptionStore(s => s.subscriptions)
+  const groupsState        = useGroupStore(s => s.groups)
+  const applicationsState  = useApplicationStore(s => s.applications)
   const [activeTab, setActiveTab] = useState(() => location.state?.tab ?? 'all')
-  const [subs, setSubs] = useState(() =>
-    activeUserId ? enrichSubs(getSubscriptionsByUserId(activeUserId)) : []
+  const subs = useMemo(
+    () => activeUserId
+      ? enrichSubs(subscriptionsState.filter(s => s.userId === activeUserId))
+      : [],
+    // groupsState 為刻意依賴：enrichSubs 讀取群組狀態，群組更新時需重算
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [activeUserId, subscriptionsState, groupsState],
   )
   const [viewGroupId, setViewGroupId] = useState(null)
   const [autoOpenPayment, setAutoOpenPayment] = useState(false)
@@ -76,49 +87,33 @@ export default function SubscriptionsPage() {
     window.addEventListener('pm:set-sub-tab', onSetTab)
     return () => window.removeEventListener('pm:set-sub-tab', onSetTab)
   }, [])
+  // 回到頁面（focus / 可見）時重新從 Firestore 載入最新資料；store 更新會自動觸發重新渲染
   useEffect(() => {
-    let cancelled = false
-
-    function syncFromMemory() {
-      if (cancelled) return
-      setSubs(activeUserId ? enrichSubs(getSubscriptionsByUserId(activeUserId)) : [])
+    if (!activeUserId) return
+    function reloadFromSource() {
+      Promise.all([
+        useSubscriptionStore.getState().init(),
+        useMemberStore.getState().init(),
+        useApplicationStore.getState().init(),
+        useGroupStore.getState().init(),
+      ]).catch(console.error)
     }
-
-    async function reloadFromSource() {
-      if (!activeUserId) {
-        syncFromMemory()
-        return
-      }
-      initLiveGroups()
-      try {
-        await Promise.all([initSubscriptions(), initMembers(), initApplications()])
-      } catch (error) {
-        console.error(error)
-      }
-      syncFromMemory()
-    }
-
     function handleVisibilityChange() {
       if (document.visibilityState === 'visible') reloadFromSource()
     }
-
     reloadFromSource()
-    window.addEventListener('pm:subscriptions-changed', syncFromMemory)
-    window.addEventListener('pm:applications-changed', syncFromMemory)
-    window.addEventListener('pm:groups-changed', syncFromMemory)
     window.addEventListener('focus', reloadFromSource)
     document.addEventListener('visibilitychange', handleVisibilityChange)
     return () => {
-      cancelled = true
-      window.removeEventListener('pm:subscriptions-changed', syncFromMemory)
-      window.removeEventListener('pm:applications-changed', syncFromMemory)
-      window.removeEventListener('pm:groups-changed', syncFromMemory)
       window.removeEventListener('focus', reloadFromSource)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   }, [activeUserId])
 
-  const userApplications   = activeUserId ? getApplicationsByUserId(activeUserId) : []
+  const userApplications   = activeUserId
+    ? applicationsState.filter(a => (a.applicantId ?? a.userId) === activeUserId)
+        .sort((a, b) => String(b.createdAt ?? '').localeCompare(String(a.createdAt ?? '')))
+    : []
   const pendingApplications = userApplications.filter(a => a.status === 'pending')
 
   const filterCounts = {
@@ -132,20 +127,20 @@ export default function SubscriptionsPage() {
   function handleLeaveGroup() {
     if (!viewGroupId || !activeUser) return
     const group  = getGroupById(viewGroupId)
-    const member = getMemberByUserAndGroup(activeUser.id, viewGroupId)
+    const member = useMemberStore.getState().getByUserAndGroup(activeUser.id, viewGroupId)
     if (!member || !group) return
 
-    removeMember(member.id)
+    useMemberStore.getState().remove(member.id)
 
     const newUsed = Math.max(0, group.usedSeats - 1)
     const newOpen = group.openSeats + 1
     const statusPatch = group.status === 'full' ? { status: 'recruiting' } : {}
-    updateGroup(viewGroupId, { usedSeats: newUsed, openSeats: newOpen, ...statusPatch })
+    useGroupStore.getState().update(viewGroupId, { usedSeats: newUsed, openSeats: newOpen, ...statusPatch })
 
-    const sub = getSubscriptionsByUserId(activeUser.id).find(s => s.groupId === viewGroupId)
-    if (sub) removeSubscription(sub.id)
+    const sub = useSubscriptionStore.getState().getByUserId(activeUser.id).find(s => s.groupId === viewGroupId)
+    if (sub) useSubscriptionStore.getState().remove(sub.id)
 
-    createNotification({
+    useNotificationStore.getState().create({
       userId:  activeUser.id,
       type:    'member_left',
       title:   '已退出群組',
@@ -153,7 +148,7 @@ export default function SubscriptionsPage() {
     })
 
     if (group.hostId) {
-      createNotification({
+      useNotificationStore.getState().create({
         userId:  group.hostId,
         type:    'member_left',
         title:   '成員退出群組',
@@ -164,7 +159,6 @@ export default function SubscriptionsPage() {
 
     setViewGroupId(null)
     setAutoOpenPayment(false)
-    setSubs(activeUserId ? enrichSubs(getSubscriptionsByUserId(activeUserId)) : [])
   }
 
   const filtered = useMemo(

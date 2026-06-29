@@ -4,7 +4,8 @@ import { CheckCircle2 } from 'lucide-react'
 import Modal from '../../../shared/ui/Modal'
 import Button from '../../../shared/ui/Button'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
-import { createApplication } from '../../../shared/stores/applicationStore'
+import { useApplicationStore } from '../../../shared/stores/useApplicationStore'
+import { useAuthStore } from '../../../shared/stores/useAuthStore'
 
 export default function ApplyJoinModal({ group, isOpen, onClose, onSuccess, onDone }) {
   const navigate = useNavigate()
@@ -14,7 +15,7 @@ export default function ApplyJoinModal({ group, isOpen, onClose, onSuccess, onDo
 
   function handleSubmit() {
     if (!agreed) return
-    createApplication({
+    useApplicationStore.getState().create({
       groupId: group.id,
       groupName: group.groupName || group.serviceName,
       serviceId: group.serviceId,
@@ -25,7 +26,7 @@ export default function ApplyJoinModal({ group, isOpen, onClose, onSuccess, onDo
       hostAvatarInitial: group.hostAvatarInitial,
       hostAvatarColor: group.hostAvatarColor,
       message,
-    })
+    }, useAuthStore.getState().getProfile())
     setSubmitted(true)
     onSuccess?.()
   }

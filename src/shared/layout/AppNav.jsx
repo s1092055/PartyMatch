@@ -2,9 +2,9 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { Bell, ChevronDown, Lock, LogIn, LogOut, Menu, MessageSquare, Search, X } from 'lucide-react'
 import logoUrl from '../../assets/Logo.svg'
-import { getCurrentUser, isAuthenticated, logoutUser } from '../stores/authStore'
-import { getUnreadCount } from '../stores/notificationStore'
-import { getUnreadMsgCount } from '../stores/conversationStore'
+import { useAuthStore } from '../stores/useAuthStore'
+import { useNotificationStore } from '../stores/useNotificationStore'
+import { useConversationStore } from '../stores/useConversationStore'
 import { NAV_SECTIONS } from '../constants/nav'
 import { useClickOutside, useScrollLock } from '../utils/hooks'
 
@@ -51,16 +51,9 @@ function LockedHint({ className = '' }) {
 
 export default function AppNav({ variant = 'side' }) {
   const navigate = useNavigate()
-  const [, forceUpdate] = useState(0)
 
-  useEffect(() => {
-    function onAuthChanged() { forceUpdate(n => n + 1) }
-    window.addEventListener('pm:auth-changed', onAuthChanged)
-    return () => window.removeEventListener('pm:auth-changed', onAuthChanged)
-  }, [])
-
-  const loggedIn = isAuthenticated()
-  const currentUser = getCurrentUser()
+  const loggedIn = useAuthStore(s => s.loggedIn)
+  const currentUser = useAuthStore(s => s.user)
   const userName = currentUser?.name ?? currentUser?.displayName ?? '使用者'
   const userEmail = currentUser?.email ?? ''
   const avatarInitial = userName[0] ?? 'U'
@@ -68,8 +61,8 @@ export default function AppNav({ variant = 'side' }) {
 
   const [activePanel, setActivePanel] = useState(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [unreadNotifs, setUnreadNotifs] = useState(() => loggedIn && currentUser?.id ? getUnreadCount(currentUser.id) : 0)
-  const [unreadMsgs, setUnreadMsgs] = useState(() => loggedIn && currentUser?.id ? getUnreadMsgCount(currentUser.id) : 0)
+  const unreadNotifs = useNotificationStore(s => loggedIn && currentUser?.id ? s.getUnreadCount(currentUser.id) : 0)
+  const unreadMsgs = useConversationStore(s => loggedIn && currentUser?.id ? s.getUnreadMsgCount(currentUser.id) : 0)
 
   const userMenuRef      = useRef(null)
   const userMenuMobileRef = useRef(null)
@@ -87,20 +80,6 @@ export default function AppNav({ variant = 'side' }) {
   useScrollLock(drawerOpen)
 
   useClickOutside(showUserMenu, [userMenuRef, userMenuMobileRef], () => setActivePanel(null))
-
-  useEffect(() => {
-    if (!loggedIn || !currentUser?.id) return
-    function onNotifChanged() { setUnreadNotifs(getUnreadCount(currentUser.id)) }
-    window.addEventListener('pm:notif-changed', onNotifChanged)
-    return () => window.removeEventListener('pm:notif-changed', onNotifChanged)
-  }, [loggedIn, currentUser?.id])
-
-  useEffect(() => {
-    if (!loggedIn || !currentUser?.id) return
-    function onConvsChanged() { setUnreadMsgs(getUnreadMsgCount(currentUser.id)) }
-    window.addEventListener('pm:convs-changed', onConvsChanged)
-    return () => window.removeEventListener('pm:convs-changed', onConvsChanged)
-  }, [loggedIn, currentUser?.id])
 
   function closeAll() { setActivePanel(null); setDrawerOpen(false); document.activeElement?.blur() }
 
@@ -133,7 +112,7 @@ export default function AppNav({ variant = 'side' }) {
   }
 
   async function confirmLogout() {
-    try { await logoutUser() } catch { /* proceed regardless */ }
+    try { await useAuthStore.getState().logout() } catch { /* proceed regardless */ }
     window.location.replace('/login')
   }
 

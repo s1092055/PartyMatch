@@ -1,11 +1,11 @@
 import { startTransition, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowRight, Compass, PlusCircle, Search, Sparkles, X, Zap } from 'lucide-react'
-import { getGroups, initLiveGroups } from '../../shared/stores/groupStore'
-import { getApplicationsByUserId } from '../../shared/stores/applicationStore'
-import { getMemberGroupIds } from '../../shared/stores/memberStore'
+import { useGroupStore } from '../../shared/stores/useGroupStore'
+import { useApplicationStore } from '../../shared/stores/useApplicationStore'
+import { useMemberStore } from '../../shared/stores/useMemberStore'
 import { getServiceById } from '../../shared/utils/serviceUtils'
-import { getCurrentUser } from '../../shared/stores/authStore'
+import { useAuthStore } from '../../shared/stores/useAuthStore'
 import EmptyState from '../../shared/ui/EmptyState'
 import PageHeader from '../../shared/layout/PageHeader'
 import RevealSection from '../../shared/ui/RevealSection'
@@ -56,34 +56,28 @@ export default function ExplorePage() {
     keyword: searchParams.get('q') ?? '',
   }))
   const navigate = useNavigate()
-  const activeUserId = getCurrentUser()?.id
-  const [tick, setTick] = useState(0)
+  const activeUserId = useAuthStore(s => s.user?.id)
+  const groups = useGroupStore(s => s.groups)
+  const applications = useApplicationStore(s => s.applications)
+  const members = useMemberStore(s => s.members)
 
   const allGroups = useMemo(
-    () => getGroups().filter(g => g.hostId !== activeUserId),
-    [activeUserId, tick], // eslint-disable-line react-hooks/exhaustive-deps
+    () => groups.filter(g => g.hostId !== activeUserId),
+    [groups, activeUserId],
   )
 
   const { appliedGroupIds, memberGroupIds } = useMemo(() => {
     if (!activeUserId) return { appliedGroupIds: new Set(), memberGroupIds: new Set() }
     const applied = new Set(
-      getApplicationsByUserId(activeUserId).filter(a => a.status === 'pending').map(a => a.groupId)
+      applications
+        .filter(a => (a.applicantId ?? a.userId) === activeUserId && a.status === 'pending')
+        .map(a => a.groupId)
     )
-    return { appliedGroupIds: applied, memberGroupIds: getMemberGroupIds(activeUserId) }
-  }, [activeUserId, tick]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    function onChanged() { setTick(t => t + 1) }
-    initLiveGroups()
-    window.addEventListener('pm:groups-changed', onChanged)
-    window.addEventListener('pm:applications-changed', onChanged)
-    window.addEventListener('pm:members-changed', onChanged)
-    return () => {
-      window.removeEventListener('pm:groups-changed', onChanged)
-      window.removeEventListener('pm:applications-changed', onChanged)
-      window.removeEventListener('pm:members-changed', onChanged)
-    }
-  }, [])
+    const memberIds = new Set(
+      members.filter(m => m.userId === activeUserId).map(m => m.groupId)
+    )
+    return { appliedGroupIds: applied, memberGroupIds: memberIds }
+  }, [activeUserId, applications, members])
 
   useEffect(() => {
     const q = searchParams.get('q') ?? ''

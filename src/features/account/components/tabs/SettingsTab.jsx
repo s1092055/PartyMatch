@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Globe, LogOut, Shield, Trash2 } from 'lucide-react'
-import { logoutUser } from '../../../../shared/stores/authStore'
+import { useAuthStore } from '../../../../shared/stores/useAuthStore'
 import { readStorage, writeStorage } from '../../../../shared/utils/storage'
 import Toggle from '../../../../shared/ui/Toggle'
 
@@ -56,7 +56,7 @@ export default function SettingsTab() {
   }
 
   function handleLogout() {
-    logoutUser()
+    useAuthStore.getState().logout()
     navigate('/login', { replace: true })
   }
 

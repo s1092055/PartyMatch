@@ -17,10 +17,10 @@ import Step4Preview from "./components/steps/Step4Preview";
 import Button from "../../shared/ui/Button";
 import Modal from '../../shared/ui/Modal'
 import LoginPromptModal from "../../shared/ui/LoginPromptModal";
-import { createGroup } from "../../shared/stores/groupStore";
-import { createNotification } from "../../shared/stores/notificationStore";
+import { useGroupStore } from "../../shared/stores/useGroupStore";
+import { useNotificationStore } from "../../shared/stores/useNotificationStore";
 import { getServiceById } from "../../shared/utils/serviceUtils";
-import { isAuthenticated, getCurrentUser } from "../../shared/stores/authStore";
+import { useAuthStore } from "../../shared/stores/useAuthStore";
 
 const STEP_COMPONENTS = [Step1Service, Step2Plan, Step3Settings, Step4Preview];
 const STEP_LABELS = [
@@ -116,7 +116,7 @@ export default function CreateGroupModal() {
 
   useEffect(() => {
     function handler() {
-      if (!isAuthenticated()) { setShowLoginPrompt(true); return }
+      if (!useAuthStore.getState().loggedIn) { setShowLoginPrompt(true); return }
       setIsOpen(true);
       setStep(1);
       setForm(INITIAL_FORM);
@@ -191,10 +191,10 @@ export default function CreateGroupModal() {
     }
 
     const groupData = mapFormToGroup(form);
-    const group = createGroup(groupData);
-    const host = getCurrentUser();
+    const host = useAuthStore.getState().getProfile();
+    const group = useGroupStore.getState().create(groupData, host);
     if (host) {
-      createNotification({
+      useNotificationStore.getState().create({
         userId:  host.id,
         type:    'group_created',
         title:   '群組已成功建立',

@@ -4,12 +4,12 @@ import {
   CheckCircle2, ChevronRight,
   CreditCard, Heart, LogIn, LogOut, MessageCircle, Shield, ShieldCheck, Star, Users,
 } from 'lucide-react'
-import { getGroupById, getGroups } from '../../shared/stores/groupStore'
+import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { getServiceById } from '../../shared/utils/serviceUtils'
-import { getApplicationByUserAndGroup, getApplicationsByUserId } from '../../shared/stores/applicationStore'
-import { isCurrentUserMember, getMemberByUserAndGroup, getMembersByGroupId, getMemberGroupIds } from '../../shared/stores/memberStore'
-import { isGroupFavorited, toggleFavorite } from '../../shared/stores/favoriteStore'
-import { getCurrentUser } from '../../shared/stores/authStore'
+import { useApplicationStore } from '../../shared/stores/useApplicationStore'
+import { useMemberStore } from '../../shared/stores/useMemberStore'
+import { useFavoriteStore } from '../../shared/stores/useFavoriteStore'
+import { useAuthStore } from '../../shared/stores/useAuthStore'
 import { finalizeLeaveGroup } from '../../shared/utils/leaveGroupFlow'
 import { toast } from '../../shared/utils/toast'
 import Avatar from '../../shared/ui/Avatar'
@@ -86,65 +86,57 @@ export default function GroupDetailModal() {
   const navigate = useNavigate()
   const [groupId, setGroupId]               = useState(null)
   const [applyModalOpen, setApplyModalOpen] = useState(false)
-  const [isFav, setIsFav]                   = useState(false)
-  const [tick, setTick]                     = useState(0)
   const [showMembers, setShowMembers]       = useState(false)
   const [leaveConfirm, setLeaveConfirm]     = useState(false)
 
   const isOpen       = !!groupId
-  const activeUser   = getCurrentUser()
+  const activeUser   = useAuthStore(s => s.user)
   const activeUserId = activeUser?.id
 
-  useEffect(() => {
-    function onGroupsChanged() { setTick(t => t + 1) }
-    window.addEventListener('pm:groups-changed', onGroupsChanged)
-    return () => window.removeEventListener('pm:groups-changed', onGroupsChanged)
-  }, [])
-
-  useEffect(() => {
-    function onStoreChanged() { setTick(t => t + 1) }
-    window.addEventListener('pm:applications-changed', onStoreChanged)
-    window.addEventListener('pm:members-changed', onStoreChanged)
-    return () => {
-      window.removeEventListener('pm:applications-changed', onStoreChanged)
-      window.removeEventListener('pm:members-changed', onStoreChanged)
-    }
-  }, [])
+  // 訂閱 store 切片，群組/申請/成員/收藏更新時自動重新渲染
+  const groups       = useGroupStore(s => s.groups)
+  const applications = useApplicationStore(s => s.applications)
+  const members      = useMemberStore(s => s.members)
+  const isFav        = useFavoriteStore(s => groupId && activeUserId ? s.isFavorited(activeUserId, groupId) : false)
 
   useEffect(() => {
     function onOpen(e) {
-      const gId = e.detail?.groupId ?? null
-      setGroupId(gId)
+      setGroupId(e.detail?.groupId ?? null)
       setApplyModalOpen(false)
-      setIsFav(gId && activeUserId ? isGroupFavorited(activeUserId, gId) : false)
     }
     window.addEventListener('pm:open-group', onOpen)
     return () => window.removeEventListener('pm:open-group', onOpen)
-  }, [activeUserId])
+  }, [])
 
-  const group   = isOpen ? getGroupById(groupId) : null
+  const group   = isOpen ? (groups.find(g => g.id === groupId) ?? null) : null
   const service = group ? getServiceById(group.serviceId) : null
   const plan    = service?.plans.find(p => p.name === group?.planName)
 
   const picks = useMemo(() => {
     if (!group) return []
-    const recruiting = getGroups().filter(g => g.status === 'recruiting' && g.openSeats > 0 && g.id !== group.id && g.hostId !== activeUserId)
+    const recruiting = groups.filter(g => g.status === 'recruiting' && g.openSeats > 0 && g.id !== group.id && g.hostId !== activeUserId)
     return [
       ...recruiting.filter(g => g.serviceId === group.serviceId),
       ...recruiting.filter(g => g.serviceId !== group.serviceId),
     ]
-  }, [groupId, activeUserId, tick]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [group, groups, activeUserId])
 
-  const memberGroupIds  = activeUserId ? getMemberGroupIds(activeUserId) : []
-  const appliedGroupIds = activeUserId
-    ? new Set(getApplicationsByUserId(activeUserId).filter(a => a.status === 'pending').map(a => a.groupId))
-    : new Set()
+  const memberGroupIds  = useMemo(
+    () => new Set(members.filter(m => m.userId === activeUserId).map(m => m.groupId)),
+    [members, activeUserId],
+  )
+  const appliedGroupIds = useMemo(
+    () => activeUserId
+      ? new Set(applications.filter(a => (a.applicantId ?? a.userId) === activeUserId && a.status === 'pending').map(a => a.groupId))
+      : new Set(),
+    [applications, activeUserId],
+  )
 
   if (!isOpen || !group) return null
 
   const isHost           = group.hostId === activeUserId
-  const isMember         = isCurrentUserMember(group.id)
-  const memberRecord     = activeUserId ? getMemberByUserAndGroup(activeUserId, group.id) : null
+  const isMember         = activeUserId ? members.some(m => m.userId === activeUserId && m.groupId === group.id) : false
+  const memberRecord     = activeUserId ? (members.find(m => m.userId === activeUserId && m.groupId === group.id) ?? null) : null
   const isPaymentPhase      = ['pending_confirmation', 'pending_activation', 'active'].includes(group.status)
   const hasServiceInfoIssue = !!memberRecord?.serviceInfoIssueNote
   const hasServiceInfo      = !!memberRecord?.serviceInfo?.email && !hasServiceInfoIssue
@@ -157,7 +149,7 @@ export default function GroupDetailModal() {
 
   // 直接從 store 讀取申請狀態，避免 state 在審核過渡期間不一致
   // approved && !isMember → false，確保退出後可重新申請
-  const app          = activeUserId ? getApplicationByUserAndGroup(activeUserId, group.id) : null
+  const app          = activeUserId ? useApplicationStore.getState().getByUserAndGroup(activeUserId, group.id) : null
   const appStatus    = app?.status
   const hasActiveApp = !!app && appStatus !== 'rejected' && appStatus !== 'removed' && !(appStatus === 'approved' && !isMember)
   const isPendingApp = appStatus === 'pending'
@@ -182,7 +174,7 @@ export default function GroupDetailModal() {
     }))
   }
   function toggleFav() {
-    if (activeUserId) setIsFav(toggleFavorite(activeUserId, group.id))
+    if (activeUserId) useFavoriteStore.getState().toggle(activeUserId, group.id)
     else navigate(`/login?redirectTo=/groups/${group.id}`)
   }
 
@@ -357,7 +349,7 @@ export default function GroupDetailModal() {
       <Modal
         isOpen={showMembers}
         onClose={() => setShowMembers(false)}
-        title={`成員名單（${getMembersByGroupId(groupId).filter(m => m.userId !== group.hostId).length + 1} 人）`}
+        title={`成員名單（${members.filter(m => m.groupId === groupId && m.userId !== group.hostId).length + 1} 人）`}
         icon={<Users size={18} className="text-brand" />}
         maxWidth="max-w-lg"
         sub
@@ -384,7 +376,7 @@ export default function GroupDetailModal() {
                 </button>
               </div>
             </div>
-            {getMembersByGroupId(groupId).filter(m => m.userId !== activeUserId).map(m => (
+            {members.filter(m => m.groupId === groupId && m.userId !== activeUserId).map(m => (
               <div key={m.id} className="rounded-xl border border-line p-3">
                 <div className="flex items-center gap-3">
                   <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />

@@ -1,5 +1,8 @@
-import { getServices, getServiceById as _getById } from '../stores/serviceStore'
+import { useServiceStore } from '../stores/useServiceStore'
 import kkboxIcon from '../../assets/KKBOX-icon.png'
+
+const getServices = () => useServiceStore.getState().services
+const _getById = (id) => useServiceStore.getState().getById(id)
 import masterclassIcon from '../../assets/masterclass-icon.png'
 
 const ICONIFY_API_BASE = 'https://api.iconify.design'

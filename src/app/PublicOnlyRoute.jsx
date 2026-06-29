@@ -1,8 +1,8 @@
 import { Navigate, Outlet } from 'react-router-dom'
-import { isAuthenticated } from '../shared/stores/authStore'
+import { useAuthStore } from '../shared/stores/useAuthStore'
 
 export default function PublicOnlyRoute({ children }) {
-  if (isAuthenticated()) {
+  if (useAuthStore(s => s.loggedIn)) {
     return <Navigate to="/" replace />
   }
 

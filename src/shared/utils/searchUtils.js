@@ -1,5 +1,5 @@
-import { getGroups } from '../stores/groupStore'
-import { getCurrentUser } from '../stores/authStore'
+import { useGroupStore } from '../stores/useGroupStore'
+import { useAuthStore } from '../stores/useAuthStore'
 
 const SEARCH_STORAGE_KEY = 'pm_recent_searches'
 const MAX_RECENT = 8
@@ -30,8 +30,8 @@ export function removeRecentSearch(term) {
 export function searchGroups(query) {
   if (!query.trim()) return []
   const q = query.trim().toLowerCase()
-  const activeUserId = getCurrentUser()?.id
-  return getGroups()
+  const activeUserId = useAuthStore.getState().user?.id
+  return useGroupStore.getState().groups
     .filter(g => g.status === 'recruiting' && g.hostId !== activeUserId)
     .filter(g =>
       g.serviceName?.toLowerCase().includes(q) ||

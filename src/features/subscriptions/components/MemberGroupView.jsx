@@ -9,12 +9,15 @@ import CountdownConfirmDialog from '../../../shared/ui/CountdownConfirmDialog'
 import GroupModalShell from '../../../shared/ui/GroupModalShell'
 import EmptyState from '../../../shared/ui/EmptyState'
 import { getServiceById } from '../../../shared/utils/serviceUtils'
-import { getMembersByGroupId, updateMember } from '../../../shared/stores/memberStore'
-import { getGroupById } from '../../../shared/stores/groupStore'
-import { getSubscriptionByUserAndGroup, markSubscriptionPaid } from '../../../shared/stores/subscriptionStore'
-import { getPaymentRecordsBySubscriptionId, initPayments } from '../../../shared/stores/paymentStore'
-import { createNotification } from '../../../shared/stores/notificationStore'
-import { getCurrentUser } from '../../../shared/stores/authStore'
+import { useMemberStore } from '../../../shared/stores/useMemberStore'
+import { useGroupStore } from '../../../shared/stores/useGroupStore'
+import { useSubscriptionStore } from '../../../shared/stores/useSubscriptionStore'
+import { usePaymentStore } from '../../../shared/stores/usePaymentStore'
+import { useNotificationStore } from '../../../shared/stores/useNotificationStore'
+import { useAuthStore } from '../../../shared/stores/useAuthStore'
+
+const getGroupById = (id) => useGroupStore.getState().getById(id)
+const getPaymentRecordsBySubscriptionId = (sid) => usePaymentStore.getState().getBySubscriptionId(sid)
 import { sendActionMessage } from '../../../shared/api/messagesApi'
 import { todayISO } from '../../../shared/utils/date'
 
@@ -25,16 +28,18 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
   const [expandedPayRec, setExpandedPayRec]   = useState(null)
   const [leaveConfirm, setLeaveConfirm]       = useState(false)
 
-  useEffect(() => { initPayments() }, [])
+  useEffect(() => { usePaymentStore.getState().init() }, [])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (autoOpenPayment) setCombinedModalOpen(true)
   }, [autoOpenPayment])
 
-  const currentUser = getCurrentUser()
-  const members     = getMembersByGroupId(group.id)
-  const sub         = currentUser ? getSubscriptionByUserAndGroup(currentUser.id, group.id) : null
+  const currentUser = useAuthStore(s => s.user)
+  const allMembers  = useMemberStore(s => s.members)
+  const subscriptions = useSubscriptionStore(s => s.subscriptions)
+  const members     = allMembers.filter(m => m.groupId === group.id)
+  const sub         = currentUser ? (subscriptions.find(s => s.userId === currentUser.id && s.groupId === group.id) ?? null) : null
   const myMember    = currentUser ? members.find(m => m.userId === currentUser.id) ?? null : null
   const payRecords  = sub
     ? getPaymentRecordsBySubscriptionId(sub.id).sort((a, b) => (b.paidAt ?? '').localeCompare(a.paidAt ?? ''))
@@ -66,7 +71,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
     const now = todayISO()
 
     if (serviceInfoChanged && myMember) {
-      await updateMember(myMember.id, { serviceInfo: { email: serviceEmail.trim() }, serviceInfoIssueNote: null })
+      await useMemberStore.getState().update(myMember.id, { serviceInfo: { email: serviceEmail.trim() }, serviceInfoIssueNote: null })
       const convId = `group_${group.id}`
       if (group.hostId) {
         sendActionMessage(convId, {
@@ -82,7 +87,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
         visibleTo: [currentUser.id],
         participants: [currentUser.id],
       }).catch(console.error)
-      const updatedMembers = getMembersByGroupId(group.id)
+      const updatedMembers = useMemberStore.getState().getByGroupId(group.id)
       const allFilled = updatedMembers.every(m => !!m.serviceInfo?.email)
       if (allFilled && group.hostId) {
         sendActionMessage(convId, {
@@ -95,9 +100,9 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
     }
 
     if (sub) {
-      markSubscriptionPaid(sub.id)
+      useSubscriptionStore.getState().markPaid(sub.id)
       if (myMember) {
-        await updateMember(myMember.id, {
+        await useMemberStore.getState().update(myMember.id, {
           paymentStatus: 'markedPaid',
           lastPaidAt: now,
           paymentProofUrl: proofUrl,
@@ -106,7 +111,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
           paymentIssueNote: null,
         })
       }
-      createNotification({
+      useNotificationStore.getState().create({
         userId: currentUser.id,
         type: 'payment',
         title: '已付款，等待團主確認',
@@ -114,7 +119,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
       })
       const grp = getGroupById(sub.groupId)
       if (grp?.hostId) {
-        createNotification({
+        useNotificationStore.getState().create({
           userId: grp.hostId,
           type: 'member_payment_marked',
           title: '成員已付款',

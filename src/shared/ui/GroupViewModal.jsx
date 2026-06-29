@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react'
-import { getGroupById } from '../stores/groupStore'
-import { getMembersByGroupId } from '../stores/memberStore'
-import { getApplicationsByGroupId } from '../stores/applicationStore'
-import { getCurrentUser } from '../stores/authStore'
+import { useGroupStore } from '../stores/useGroupStore'
+import { useMemberStore } from '../stores/useMemberStore'
+import { useApplicationStore } from '../stores/useApplicationStore'
+import { useAuthStore } from '../stores/useAuthStore'
 import HostGroupView from '../../features/manage/components/HostGroupView'
 import MemberGroupView from '../../features/subscriptions/components/MemberGroupView'
 
@@ -12,20 +11,22 @@ export default function GroupViewModal({
   onLeaveGroup, onApprove, onReject, errors,
   autoOpenPayment, autoOpenActivateGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling,
 }) {
-  const [, setTick] = useState(0)
-  useEffect(() => {
-    function onGroupsChanged() { setTick(t => t + 1) }
-    window.addEventListener('pm:groups-changed', onGroupsChanged)
-    return () => window.removeEventListener('pm:groups-changed', onGroupsChanged)
-  }, [])
+  // 訂閱 store 切片，群組/成員/申請更新時自動重新渲染
+  const groups       = useGroupStore(s => s.groups)
+  const allMembers   = useMemberStore(s => s.members)
+  const applicationsState = useApplicationStore(s => s.applications)
+  const currentUser  = useAuthStore(s => s.user)
 
   if (!isOpen || !groupId) return null
-  const group = getGroupById(groupId)
+  const group = groups.find(g => g.id === groupId) ?? null
   if (!group) return null
-  const currentUser  = getCurrentUser()
   const isHost       = currentUser?.id === group.hostId
-  const members      = getMembersByGroupId(groupId)
-  const applications = isHost ? getApplicationsByGroupId(groupId) : []
+  const members      = allMembers.filter(m => m.groupId === groupId)
+  const applications = isHost
+    ? applicationsState
+        .filter(a => a.groupId === groupId)
+        .sort((a, b) => String(b.createdAt ?? '').localeCompare(String(a.createdAt ?? '')))
+    : []
 
   if (isHost) return (
     <HostGroupView

@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { ClipboardEdit, CreditCard, ImagePlus, X } from 'lucide-react'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import { uploadPaymentProof } from '../../../shared/api/storageApi'
-import { getCurrentUser } from '../../../shared/stores/authStore'
+import { useAuthStore } from '../../../shared/stores/useAuthStore'
 
 export default function CombinedServicePaymentModal({ isOpen, onClose, group, member, sub, onSubmit }) {
   const hasServiceInfoIssue = !!member?.serviceInfoIssueNote
@@ -51,7 +51,7 @@ export default function CombinedServicePaymentModal({ isOpen, onClose, group, me
     if (!canSubmit || uploading) return
     setUploading(true)
     try {
-      const user = getCurrentUser()
+      const user = useAuthStore.getState().user
       const proofUrl = await uploadPaymentProof(sub.groupId, user?.id ?? 'unknown', file)
       const serviceInfoChanged = needsEmail || hasServiceInfoIssue
       await onSubmit({ serviceEmail: email, proofUrl, paidAmount: Number(amount), serviceInfoChanged })

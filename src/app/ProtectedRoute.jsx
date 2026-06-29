@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { LogIn, Lock } from 'lucide-react'
-import { isAuthenticated } from '../shared/stores/authStore'
+import { useAuthStore } from '../shared/stores/useAuthStore'
 import { useScrollLock } from '../shared/utils/hooks'
 
 export default function ProtectedRoute({ children }) {
   const location = useLocation()
   const navigate = useNavigate()
   const [cancelled, setCancelled] = useState(false)
-  const authenticated = isAuthenticated()
+  const authenticated = useAuthStore(s => s.loggedIn)
   const showModal = !authenticated && !cancelled
 
   useScrollLock(showModal)

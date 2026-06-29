@@ -12,10 +12,13 @@ import EmptyState from '../../../shared/ui/EmptyState'
 import { getServiceById } from '../../../shared/utils/serviceUtils'
 import { formatRelativeDate } from '../../../shared/utils/date'
 import { CONFIRMED_STATUSES } from '../../../shared/constants/paymentStatus'
-import { getSubscriptionByUserAndGroup } from '../../../shared/stores/subscriptionStore'
-import { getPaymentRecordsBySubscriptionId } from '../../../shared/stores/paymentStore'
-import { getActiveUserProfile } from '../../../shared/stores/authStore'
-import { getNotifications, markNotificationAsRead } from '../../../shared/stores/notificationStore'
+import { useSubscriptionStore } from '../../../shared/stores/useSubscriptionStore'
+import { usePaymentStore } from '../../../shared/stores/usePaymentStore'
+import { useAuthStore } from '../../../shared/stores/useAuthStore'
+import { useNotificationStore } from '../../../shared/stores/useNotificationStore'
+
+const getSubscriptionByUserAndGroup = (uid, gid) => useSubscriptionStore.getState().getByUserAndGroup(uid, gid)
+const getPaymentRecordsBySubscriptionId = (sid)  => usePaymentStore.getState().getBySubscriptionId(sid)
 import CustomSelect from '../../../shared/ui/CustomSelect'
 import ActivateServiceModal from './ActivateServiceModal'
 import ActivateGroupModal from './ActivateGroupModal'
@@ -144,11 +147,12 @@ export default function HostGroupView({ group, members, applications, onConfirmM
 
   useEffect(() => {
     if (activePanel !== 'applications') return
-    const user = getActiveUserProfile()
+    const user = useAuthStore.getState().getProfile()
     if (!user) return
-    getNotifications(user.id)
+    const notifStore = useNotificationStore.getState()
+    notifStore.getByUserId(user.id)
       .filter(n => n.type === 'new_application' && n.meta?.groupId === group.id && !n.isRead)
-      .forEach(n => markNotificationAsRead(n.id))
+      .forEach(n => notifStore.markRead(n.id))
   }, [activePanel, group.id])
 
   useEffect(() => {

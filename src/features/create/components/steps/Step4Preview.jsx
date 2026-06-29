@@ -1,7 +1,7 @@
 import { CheckCircle2, ListChecks } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { getServiceById } from '../../../../shared/utils/serviceUtils'
-import { getActiveUserProfile } from '../../../../shared/stores/authStore'
+import { useAuthStore } from '../../../../shared/stores/useAuthStore'
 import ExploreGroupCard from '../../../explore/components/ExploreGroupCard'
 
 function todayLabel() {
@@ -20,7 +20,8 @@ function Row({ label, value }) {
 
 export default function Step4Preview({ form, agreedToTerms, onAgreeChange }) {
   const service = getServiceById(form.serviceId)
-  const activeUser = getActiveUserProfile()
+  const user = useAuthStore(s => s.user)
+  const activeUser = user ? useAuthStore.getState().getProfile() : null
   const today = todayLabel()
 
   const group = {

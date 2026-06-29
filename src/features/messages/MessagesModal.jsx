@@ -4,9 +4,12 @@ import ConversationAvatar from './components/ConversationAvatar'
 import ConversationMenu from './components/ConversationMenu'
 import Modal from '../../shared/ui/Modal'
 import LoginPromptModal from '../../shared/ui/LoginPromptModal'
-import { getCurrentUser, isAuthenticated } from '../../shared/stores/authStore'
-import { getConversations } from '../../shared/stores/conversationStore'
-import { getNotifications, markNotificationAsRead } from '../../shared/stores/notificationStore'
+import { useAuthStore } from '../../shared/stores/useAuthStore'
+import { useConversationStore } from '../../shared/stores/useConversationStore'
+import { useNotificationStore } from '../../shared/stores/useNotificationStore'
+
+const getCurrentUser = () => useAuthStore.getState().user
+const isAuthenticated = () => useAuthStore.getState().loggedIn
 import {
   subscribeToMessages,
   sendMessage,
@@ -33,7 +36,7 @@ export default function MessagesModal() {
   const [activeTab, setActiveTab] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [canSend, setCanSend] = useState(false)
-  const [conversations, setConversations] = useState([])
+  const conversations = useConversationStore(s => s.conversations)
   const [messages, setMessages] = useState([])
   const [sending, setSending] = useState(false)
   const [sendError, setSendError] = useState(false)
@@ -95,17 +98,6 @@ export default function MessagesModal() {
   }, [])
 
   useEffect(() => {
-    if (!isOpen) return
-    function onConvsChanged() { setConversations(getConversations()) }
-    onConvsChanged()
-    window.addEventListener('pm:convs-changed', onConvsChanged)
-    return () => {
-      window.removeEventListener('pm:convs-changed', onConvsChanged)
-      setConversations([])
-    }
-  }, [isOpen])
-
-  useEffect(() => {
     if (!selectedId) return
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoadingMessages(true)
@@ -116,14 +108,15 @@ export default function MessagesModal() {
     )
     const user = getCurrentUser()
     if (user) {
-      const conv = getConversations().find(c => c.id === selectedId)
+      const conv = useConversationStore.getState().getById(selectedId)
       if ((conv?.unreadCounts?.[user.id] ?? 0) > 0) {
         markConversationRead(selectedId, user.id).catch(console.error)
       }
       if (conv?.type === 'group' && conv.groupId) {
-        getNotifications(user.id)
+        const notifStore = useNotificationStore.getState()
+        notifStore.getByUserId(user.id)
           .filter(n => n.meta?.groupId === conv.groupId && !n.isRead)
-          .forEach(n => markNotificationAsRead(n.id))
+          .forEach(n => notifStore.markRead(n.id))
       }
     }
     return () => { unsub(); setMessages([]); setLoadingMessages(false) }

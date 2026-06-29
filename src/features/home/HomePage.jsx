@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { ArrowRight, Compass, Zap } from 'lucide-react'
 import Button from '../../shared/ui/Button'
 import logoUrl from '../../assets/Logo.svg'
-import { isAuthenticated } from '../../shared/stores/authStore'
-import { getGroups } from '../../shared/stores/groupStore'
+import { useAuthStore } from '../../shared/stores/useAuthStore'
+import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { listServiceTypes } from '../../shared/utils/serviceUtils'
 import AppNav from '../../shared/layout/AppNav'
 import MobileSearch from '../../shared/layout/MobileSearch'
@@ -26,8 +26,9 @@ const QuickMatchModal = lazy(() => import('../match/QuickMatchModal'))
 
 export default function HomePage() {
   const navigate = useNavigate()
-  const loggedIn = isAuthenticated()
-  const activeGroupCount = getGroups().filter(g => g.status === 'recruiting' && g.openSeats > 0).length
+  const loggedIn = useAuthStore(s => s.loggedIn)
+  const groups = useGroupStore(s => s.groups)
+  const activeGroupCount = groups.filter(g => g.status === 'recruiting' && g.openSeats > 0).length
 
   const STATS = [
     { value: '30+',                    label: '支援服務' },

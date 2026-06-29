@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useState } from 'react'
+import { memo, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Heart,
@@ -7,8 +7,8 @@ import {
 } from 'lucide-react'
 import Badge from '../../../shared/ui/Badge'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
-import { isGroupFavorited, toggleFavorite } from '../../../shared/stores/favoriteStore'
-import { getCurrentUser } from '../../../shared/stores/authStore'
+import { useFavoriteStore } from '../../../shared/stores/useFavoriteStore'
+import { useAuthStore } from '../../../shared/stores/useAuthStore'
 
 // Tags that are too generic or junk to show as feature chips
 const JUNK_TAGS = new Set(['立即加入', '審核加入', '需要審核', '需審核', '名額剩 1'])
@@ -55,14 +55,8 @@ function buildFeatureChips(group) {
 
 function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = false, isApplied = false, isMember = false }) {
   const navigate = useNavigate()
-  const activeUser = getCurrentUser()
-  const [isFav, setIsFav] = useState(() => activeUser ? isGroupFavorited(activeUser.id, group.id) : false)
-
-  useEffect(() => {
-    function sync() { setIsFav(activeUser ? isGroupFavorited(activeUser.id, group.id) : false) }
-    window.addEventListener('pm:favorites-changed', sync)
-    return () => window.removeEventListener('pm:favorites-changed', sync)
-  }, [activeUser, group.id])
+  const activeUser = useAuthStore(s => s.user)
+  const isFav = useFavoriteStore(s => activeUser ? s.isFavorited(activeUser.id, group.id) : false)
 
   const usedRatio = group.totalSeats > 0 ? Math.min(group.usedSeats / group.totalSeats, 1) : 0
   const isLastSeat = group.openSeats === 1
@@ -77,8 +71,7 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
   function handleFav(e) {
     e.stopPropagation()
     if (!activeUser) { onBeforeNavigate?.(); navigate('/login'); return }
-    const next = toggleFavorite(activeUser.id, group.id)
-    setIsFav(next)
+    const next = useFavoriteStore.getState().toggle(activeUser.id, group.id)
     onFavChange?.(next, group.id)
   }
 

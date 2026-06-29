@@ -1,10 +1,11 @@
 import ExploreGroupCard from "../../explore/components/ExploreGroupCard";
 import { getServiceById } from "../../../shared/utils/serviceUtils";
-import { getActiveUserProfile } from "../../../shared/stores/authStore";
+import { useAuthStore } from "../../../shared/stores/useAuthStore";
 
 export default function LivePreviewPanel({ form }) {
   const service = getServiceById(form.serviceId);
-  const activeUser = getActiveUserProfile();
+  const user = useAuthStore(s => s.user);
+  const activeUser = user ? useAuthStore.getState().getProfile() : null;
 
   const group = {
     id: "__preview__",

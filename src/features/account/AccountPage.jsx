@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { updateCurrentUserProfile, getActiveUserProfile } from "../../shared/stores/authStore";
-import { getSubscriptionsByUserId } from "../../shared/stores/subscriptionStore";
+import { useAuthStore } from "../../shared/stores/useAuthStore";
+import { useSubscriptionStore } from "../../shared/stores/useSubscriptionStore";
 import Tabs from "../../shared/ui/Tabs";
 import PageHeader from "../../shared/layout/PageHeader";
 import ProfileHeaderCard from "./components/ProfileHeaderCard";
@@ -22,7 +22,7 @@ const TABS = [
 export default function AccountPage() {
   const [activeTab, setActiveTab] = useState("profile");
   const [user, setUser] = useState(() => {
-    const profile = getActiveUserProfile();
+    const profile = useAuthStore.getState().getProfile();
     return {
       ...profile,
       phone: profile?.phone ?? "",
@@ -31,12 +31,12 @@ export default function AccountPage() {
     };
   });
 
-  const allSubs    = getSubscriptionsByUserId(user.id)
+  const allSubs    = useSubscriptionStore(s => s.subscriptions.filter(sub => sub.userId === user.id))
   const activeSubs = allSubs.filter(s => s.status === 'active')
 
   function handleUserChange(key, value) {
     setUser((prev) => ({ ...prev, [key]: value }));
-    updateCurrentUserProfile({ [key]: value }).catch(console.error);
+    useAuthStore.getState().updateProfile({ [key]: value }).catch(console.error);
   }
 
   return (

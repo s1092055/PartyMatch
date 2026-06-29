@@ -2,17 +2,22 @@ import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { AlertCircle, Bell, CheckCircle2, Clock, CreditCard, MessageSquare, UserPlus, X } from 'lucide-react'
-import { getCurrentUser, isAuthenticated } from '../stores/authStore'
-import { getGroupById } from '../stores/groupStore'
-import { getNotifications, getSystemNotifications, markAllAsRead, markNotificationAsRead } from '../stores/notificationStore'
-import { getSubscriptionByUserAndGroup } from '../stores/subscriptionStore'
+import { useAuthStore } from '../stores/useAuthStore'
+import { useGroupStore } from '../stores/useGroupStore'
+import { useNotificationStore } from '../stores/useNotificationStore'
+import { useSubscriptionStore } from '../stores/useSubscriptionStore'
 import { formatRelativeDate } from '../utils/date'
 import { useScrollLock } from '../utils/hooks'
 import EmptyState from '../ui/EmptyState'
 
+const getGroupById = (id) => useGroupStore.getState().getById(id)
+const getCurrentUser = () => useAuthStore.getState().user
+const getSubscriptionByUserAndGroup = (uid, gid) => useSubscriptionStore.getState().getByUserAndGroup(uid, gid)
+
 function getMergedNotifications(userId) {
-  const personal = userId ? getNotifications(userId) : []
-  const system   = getSystemNotifications().filter(n => n.id !== 'system_guest_welcome')
+  const notifStore = useNotificationStore.getState()
+  const personal = userId ? notifStore.getByUserId(userId) : []
+  const system   = notifStore.getSystemNotifications().filter(n => n.id !== 'system_guest_welcome')
   const seen     = new Set(personal.map(n => n.id))
   return [...personal, ...system.filter(n => !seen.has(n.id))].sort(
     (a, b) => String(b.createdAt ?? '').localeCompare(String(a.createdAt ?? ''))
@@ -62,40 +67,33 @@ const TABS = [
 
 export default function FloatingMessages() {
   const navigate = useNavigate()
-  const loggedIn = isAuthenticated()
-  const currentUser = getCurrentUser()
+  const loggedIn = useAuthStore(s => s.loggedIn)
+  const currentUser = useAuthStore(s => s.user)
   const userId = currentUser?.id
+  // 訂閱通知 store，通知更新時自動重新計算列表
+  const notificationsState = useNotificationStore(s => s.notifications)
 
   const [open, setOpen] = useState(false)
   const [activeTab, setActiveTab] = useState(() => loggedIn ? 'all' : 'system')
-  const [notifications, setNotifications] = useState(() =>
-    loggedIn ? getMergedNotifications(userId) : getSystemNotifications()
+
+  const notifications = useMemo(
+    () => loggedIn
+      ? getMergedNotifications(userId)
+      : useNotificationStore.getState().getSystemNotifications(),
+    // notificationsState 為刻意依賴：通知 store 更新時重新計算列表
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [loggedIn, userId, notificationsState],
   )
 
   useScrollLock(open)
 
   useEffect(() => {
     function onOpen() {
-      const activeUser = getCurrentUser()
-      const activeUserId = activeUser?.id
-      const authenticated = isAuthenticated()
-
-      setActiveTab(authenticated ? 'all' : 'system')
-      setNotifications(authenticated ? getMergedNotifications(activeUserId) : getSystemNotifications())
+      setActiveTab(useAuthStore.getState().loggedIn ? 'all' : 'system')
       setOpen(true)
     }
-    function onNotifChanged() {
-      const activeUser = getCurrentUser()
-      const activeUserId = activeUser?.id
-      const authenticated = isAuthenticated()
-      setNotifications(authenticated ? getMergedNotifications(activeUserId) : getSystemNotifications())
-    }
     window.addEventListener('pm:open-notify', onOpen)
-    window.addEventListener('pm:notif-changed', onNotifChanged)
-    return () => {
-      window.removeEventListener('pm:open-notify', onOpen)
-      window.removeEventListener('pm:notif-changed', onNotifChanged)
-    }
+    return () => window.removeEventListener('pm:open-notify', onOpen)
   }, [])
 
   useEffect(() => {
@@ -119,8 +117,7 @@ export default function FloatingMessages() {
 
   function handleMarkAllRead() {
     if (!userId) return
-    markAllAsRead(userId)
-    setNotifications(getMergedNotifications(userId))
+    useNotificationStore.getState().markAllRead(userId)
   }
 
   function handleClick(notification) {
@@ -133,8 +130,7 @@ export default function FloatingMessages() {
       return
     }
 
-    markNotificationAsRead(notification.id)
-    setNotifications(getMergedNotifications(userId))
+    useNotificationStore.getState().markRead(notification.id)
     setOpen(false)
 
     if (notification.type === 'group_chat_opened' && notification.meta?.groupId) {

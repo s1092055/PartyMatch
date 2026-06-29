@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Lock, Mail } from 'lucide-react'
 import AuthLayout, { AuthInput, AuthDivider, AuthError, GoogleMark, PasswordToggle } from '../components/AuthLayout'
 import Button from '../../../shared/ui/Button'
-import { loginUser, loginWithGoogle } from '../../../shared/stores/authStore'
+import { useAuthStore } from '../../../shared/stores/useAuthStore'
 import { toast } from '../../../shared/utils/toast'
 
 function safeRedirect(path) {
@@ -25,7 +25,7 @@ export default function LoginPage() {
     if (!canSubmit) return
     setLoading(true)
     setError('')
-    const result = await loginUser({ email, password })
+    const result = await useAuthStore.getState().login({ email, password })
     if (!result.ok) {
       setLoading(false)
       setError(result.error)
@@ -39,7 +39,7 @@ export default function LoginPage() {
     if (loading) return
     setLoading(true)
     setError('')
-    const result = await loginWithGoogle()
+    const result = await useAuthStore.getState().loginGoogle()
     setLoading(false)
     if (!result.ok) {
       setError(result.error)
