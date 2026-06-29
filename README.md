@@ -77,7 +77,7 @@ React 19 + React Router v7
   Firebase Auth + Firestore
 ```
 
-App 啟動時並行呼叫所有 Store 的 `init()`，將資料一次性載入記憶體。讀取走 Store（同步），寫入走 API（非同步，fire-and-forget 更新記憶體）。
+App 啟動時以 `Promise.all` 並行初始化前 9 個 Store；`initConversations` 需等 `initNotifications` 完成後才依序呼叫，確保冷啟動通知判斷能讀到正確的通知紀錄。讀取走 Store（同步），寫入走 API（非同步，fire-and-forget 更新記憶體）。
 
 ### 群組狀態機
 
@@ -85,8 +85,11 @@ App 啟動時並行呼叫所有 Store 的 `init()`，將資料一次性載入記
 
 ```
 recruiting → full → pending_confirmation → pending_activation → active → ended
-                                                                    ↑
-                                                     active（續訂）─┘
+                                                                    │        ↑
+                                                                    └────────┘
+                                                                  active（續訂）
+                                                                    │
+                                                          paused / cancelled（異常結束）
 ```
 
 每個狀態轉換都有對應的角色與觸發條件，詳見[操作流程文件](docs/user-flows.md)。

@@ -14,7 +14,7 @@ export { CONV_TABS }
 export default function ConversationList({ filteredConvs, activeTab, selectedId, user, searchQuery, onSelectConversation, onTabChange, onSearchChange }) {
   return (
     <div className="flex flex-1 min-h-0 flex-col">
-      <div className="border-b border-line px-3 py-2">
+      <div className="px-3 py-2">
         <div className="flex items-center gap-2 rounded-xl bg-raised px-3 py-2">
           <Search size={14} className="shrink-0 text-ink-4" />
           <input

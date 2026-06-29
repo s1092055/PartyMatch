@@ -4,50 +4,192 @@
 
 ```txt
 src/
+├── main.jsx                    # React app 進入點
+├── index.css                   # Tailwind v4 theme tokens 與 component primitives
 ├── app/
 │   ├── App.jsx                 # 初始化 stores 並掛載 RouterProvider
 │   ├── firebase.js             # Firebase app / db / auth
+│   ├── ProtectedRoute.jsx      # 需登入路由守衛
+│   ├── PublicOnlyRoute.jsx     # 已登入則重導的路由守衛
 │   ├── redirects.jsx           # Modal 型路由重導
 │   └── router.jsx              # React Router 設定
-├── assets/                     # Logo 與本地服務 icon
+├── assets/                     # Logo 與本地服務 icon（KKBOX、masterclass PNG）
 ├── features/
 │   ├── account/                # 帳號中心
-│   ├── auth/                   # 登入、註冊、忘記密碼
-│   ├── create/                 # 建立群組 Modal
-│   ├── explore/                # 探索群組
-│   ├── favorites/              # 我的收藏
-│   ├── group/                  # 群組詳情與申請加入
-│   ├── home/                   # 首頁與首頁文案資料
-│   ├── legal/                  # 法務頁
-│   ├── manage/                 # 團主管理
+│   │   ├── AccountPage.jsx
 │   │   └── components/
-│   │       └── HostGroupView.jsx   # 團主視角群組 Modal
+│   │       ├── AccountSidebar.jsx
+│   │       ├── ProfileHeaderCard.jsx
+│   │       └── tabs/
+│   │           ├── NotificationTab.jsx
+│   │           ├── PaymentMethodsTab.jsx
+│   │           ├── PersonalInfoTab.jsx
+│   │           ├── SecurityTab.jsx
+│   │           └── SettingsTab.jsx
+│   ├── auth/                   # 登入、註冊、忘記密碼
+│   │   ├── components/
+│   │   │   ├── AuthIllustration.jsx
+│   │   │   └── AuthLayout.jsx
+│   │   ├── forgot-password/
+│   │   │   └── ForgotPasswordPage.jsx
+│   │   ├── login/
+│   │   │   └── LoginPage.jsx
+│   │   └── register/
+│   │       └── RegisterPage.jsx
+│   ├── create/                 # 建立群組 Modal
+│   │   ├── CreateGroupModal.jsx
+│   │   └── components/
+│   │       ├── CreateGroupStepper.jsx
+│   │       ├── LivePreviewPanel.jsx
+│   │       └── steps/
+│   │           ├── Step1Service.jsx
+│   │           ├── Step2Plan.jsx
+│   │           ├── Step3Settings.jsx
+│   │           └── Step4Preview.jsx
+│   ├── explore/                # 探索群組
+│   │   ├── ExplorePage.jsx
+│   │   └── components/
+│   │       ├── ExploreGroupCard.jsx
+│   │       └── FilterBar.jsx
+│   ├── favorites/              # 我的收藏
+│   │   └── FavoritesPage.jsx
+│   ├── group/                  # 群組詳情與申請加入
+│   │   ├── GroupDetailModal.jsx
+│   │   └── components/
+│   │       └── ApplyJoinModal.jsx
+│   ├── home/                   # 首頁
+│   │   ├── HomePage.jsx
+│   │   ├── components/
+│   │   │   ├── ExtraFeatures.jsx
+│   │   │   ├── FAQ.jsx
+│   │   │   ├── FeatureCards.jsx
+│   │   │   ├── HostGuide.jsx
+│   │   │   └── HowItWorks.jsx
+│   │   └── data/
+│   │       └── homeContent.js
+│   ├── legal/                  # 法務頁
+│   │   ├── DisclaimerPage.jsx
+│   │   ├── PrivacyPage.jsx
+│   │   └── TermsPage.jsx
+│   ├── manage/                 # 團主管理
+│   │   ├── ManagePage.jsx
+│   │   ├── components/
+│   │   │   ├── ActivateGroupModal.jsx
+│   │   │   ├── ActivateServiceModal.jsx
+│   │   │   ├── ApplicationsModal.jsx
+│   │   │   ├── ApplicationsTab.jsx
+│   │   │   ├── GroupHistoryModal.jsx
+│   │   │   ├── HostGroupView.jsx      # 團主視角群組 Modal
+│   │   │   ├── HostedGroupCard.jsx
+│   │   │   ├── RenewalModal.jsx
+│   │   │   ├── ReportPaymentModal.jsx
+│   │   │   └── ReportServiceIssueModal.jsx
+│   │   ├── data/
+│   │   │   └── paymentIssueTypes.js
+│   │   └── utils/
+│   │       └── groupActionMap.js
 │   ├── match/                  # 快速配對
+│   │   ├── QuickMatchModal.jsx
+│   │   └── components/
+│   │       ├── MatchConditionBar.jsx
+│   │       ├── MatchSummaryPanel.jsx
+│   │       └── ServiceSelectionGrid.jsx
 │   ├── messages/               # 訊息中心
 │   │   ├── MessagesModal.jsx   # 狀態管理與 orchestration
 │   │   ├── utils.js            # formatTime 共用工具
-│   │   └── components/         # ConversationList、ChatWindow、ConfirmDialog 等
+│   │   └── components/
+│   │       ├── ChatWindow.jsx
+│   │       ├── ConversationAvatar.jsx
+│   │       ├── ConversationList.jsx
+│   │       └── ConversationMenu.jsx
 │   └── subscriptions/          # 我的訂閱
+│       ├── SubscriptionsPage.jsx
 │       └── components/
+│           ├── CombinedServicePaymentModal.jsx
 │           ├── MemberGroupView.jsx    # 成員視角群組 Modal
-│           └── PaymentStatusBadge.jsx # 付款狀態 badge
+│           ├── PaymentStatusBadge.jsx
+│           └── SubscriptionCard.jsx
 ├── shared/
 │   ├── api/                    # Firestore 資料存取
+│   │   ├── applicationsApi.js
+│   │   ├── demoCollection.js   # demo / prod collection 切換
+│   │   ├── favoritesApi.js
+│   │   ├── firestoreUtils.js
+│   │   ├── groupsApi.js
+│   │   ├── membersApi.js
+│   │   ├── messagesApi.js
+│   │   ├── notificationsApi.js
+│   │   ├── paymentsApi.js
+│   │   ├── servicesApi.js
+│   │   ├── storageApi.js
+│   │   ├── subscriptionsApi.js
+│   │   └── usersApi.js
 │   ├── constants/              # nav、paymentStatus 等常數
-│   ├── data/                   # services.mock.js（30 種訂閱服務）
-│   ├── layout/                 # AppLayout、AppNav、FloatingMessages、MobileSearch
-│   ├── route/                  # ProtectedRoute、PublicOnlyRoute
+│   │   ├── nav.js
+│   │   └── paymentStatus.js
+│   ├── data/
+│   │   └── serviceCatalog.js   # 30 種訂閱服務定義
+│   ├── layout/                 # 全域版面元件
+│   │   ├── AppFooter.jsx
+│   │   ├── AppLayout.jsx
+│   │   ├── AppNav.jsx
+│   │   ├── FloatingMessages.jsx
+│   │   ├── MobileSearch.jsx
+│   │   ├── PageHeader.jsx
+│   │   └── ScrollToTop.jsx
 │   ├── stores/                 # 前端業務邏輯與資料快取
-│   ├── ui/                     # 共用 UI 元件（GroupModalShell、GroupViewModal 等）
-│   └── utils/                  # 日期、搜尋、配對、狀態、toast 等工具
-└── index.css                   # Tailwind v4 theme tokens 與 component primitives
+│   │   ├── applicationStore.js
+│   │   ├── authStore.js
+│   │   ├── conversationStore.js
+│   │   ├── favoriteStore.js
+│   │   ├── groupStore.js
+│   │   ├── memberStore.js
+│   │   ├── notificationStore.js
+│   │   ├── paymentStore.js
+│   │   ├── serviceStore.js
+│   │   └── subscriptionStore.js
+│   ├── ui/                     # 共用 UI 元件
+│   │   ├── Avatar.jsx
+│   │   ├── Badge.jsx
+│   │   ├── Button.jsx
+│   │   ├── CategoryPills.jsx
+│   │   ├── ConfirmDialog.jsx
+│   │   ├── CountdownConfirmDialog.jsx
+│   │   ├── CreditScoreBadge.jsx
+│   │   ├── CustomSelect.jsx
+│   │   ├── EmptyState.jsx
+│   │   ├── FilterTabsBar.jsx
+│   │   ├── GroupModalShell.jsx
+│   │   ├── GroupOverviewContent.jsx
+│   │   ├── GroupViewModal.jsx
+│   │   ├── LoginPromptModal.jsx
+│   │   ├── Modal.jsx
+│   │   ├── ProgressBar.jsx
+│   │   ├── RevealSection.jsx
+│   │   ├── ServiceLogo.jsx
+│   │   ├── Tabs.jsx
+│   │   ├── ToastContainer.jsx
+│   │   └── Toggle.jsx
+│   └── utils/                  # 工具函式
+│       ├── creditScore.js
+│       ├── date.js
+│       ├── groupDisplay.js
+│       ├── hooks.js
+│       ├── leaveGroupFlow.js
+│       ├── matchGroups.js
+│       ├── modelNormalizers.js
+│       ├── searchUtils.js
+│       ├── serviceUtils.js
+│       ├── storage.js
+│       ├── subscriptionStatus.js
+│       └── toast.js
 ```
 
 ---
 
 ## Store 設計
 
-8 個 Store 均遵循相同結構：
+10 個 Store（含 `conversationStore`）+ `messagesApi` 均遵循相同結構：
 
 ```javascript
 let _data = []
@@ -81,10 +223,11 @@ export function updateRecord(id, patch) { ... }      // 同步回傳，fire-and-
 
 | 主要檔案 | 連動對象 | props / event / function |
 |----------|----------|--------------------------|
-| `src/app/App.jsx` | `router.jsx`、所有 `init*Store()`、`ToastContainer` | App 啟動時並行初始化所有 Store |
+| `src/app/App.jsx` | `router.jsx`、所有 `init*Store()`、`ToastContainer` | Promise.all 並行初始化前 9 個 Store；`initConversations` 需等 `initNotifications` 完成後才依序呼叫（避免冷啟動通知重複），接著呼叫 `checkMissedApplicationNotifications` |
 | `src/app/router.jsx` | `AppLayout`、`ProtectedRoute`、`PublicOnlyRoute`、`redirects.jsx` | 定義公開頁、受保護頁、Modal 型 redirect route |
-| `src/shared/layout/AppLayout.jsx` | `AppNav`、`MobileSearch`、`FloatingMessages`、`MessagesModal`、`CreateGroupModal`、`GroupDetailModal`、`QuickMatchModal` | 統一掛載跨頁共用導覽與全域 Modal |
-| `src/shared/layout/AppNav.jsx` | `NAV_SECTIONS`、`authStore`、`notificationStore`、`conversationStore` | 未登入項目顯示鎖頭；`pm:open-*` 事件開啟各 Modal；監聽 `pm:notif-changed` / `pm:convs-changed` 更新未讀 badge |
+| `src/shared/layout/AppLayout.jsx` | `AppNav`、`AppFooter`、`MobileSearch`、`FloatingMessages`、`BackToTopButton`、`MessagesModal`、`CreateGroupModal`、`GroupDetailModal`、`QuickMatchModal` | 統一掛載跨頁共用導覽、全域 Modal 與頁尾 |
+| `src/shared/layout/AppNav.jsx` | `NAV_SECTIONS`、`authStore`、`notificationStore`、`conversationStore`、`hooks` | 未登入項目顯示鎖頭；dispatch `pm:open-create` / `pm:open-match` / `pm:open-messages` / `pm:open-notify` / `pm:open-search`；監聽 `pm:notif-changed` / `pm:convs-changed` 更新未讀 badge |
+| `src/shared/layout/FloatingMessages.jsx` | `notificationStore`、`conversationStore`、`MessagesModal`（inline） | 監聽 `pm:open-notify` 顯示通知 panel；監聽 `pm:notif-changed` 更新通知列表；通知點擊後依類型 dispatch 對應 `pm:open-*` 事件 |
 | `src/shared/ui/GroupModalShell.jsx` | `GroupOverviewContent`、`Badge`、`ProgressBar`、`ServiceLogo` | 三個群組詳情 Modal 共用的兩欄佈局殼；管理 scroll lock、Escape 關閉、左右欄高度同步 |
 | `src/features/group/GroupDetailModal.jsx` | `GroupModalShell`、`ApplyJoinModal`、`favoriteStore`、`applicationStore` | 接收 `pm:open-group`；依使用者狀態顯示申請、收藏、付款 CTA；含推薦群組輪播 |
 | `src/shared/ui/GroupViewModal.jsx` | `HostGroupView`、`MemberGroupView` | 薄殼：依 `isHost` 決定渲染 HostGroupView 或 MemberGroupView |
@@ -129,7 +272,7 @@ export function updateRecord(id, patch) { ... }      // 同步回傳，fire-and-
 |------|------|
 | `AppNav` | 桌機側欄、手機 Header、通知 / 訊息按鈕、未讀 badge |
 | `MobileSearch` | 手機 / 側欄搜尋入口 |
-| `ModalShell` | 快速配對、建立群組、訊息共用 Modal 外殼 |
+| `Modal` | 通用 Modal 外殼；支援 `sub` prop（子 modal 模式，z-index 提升、左上角返回鍵）；`isOpen` 為 undefined 時為非受控模式 |
 | `GroupModalShell` | 探索、管理、訂閱三處共用的兩欄佈局殼；`subPanel` prop 實現子 Modal 滑動動畫 |
 | `FilterTabsBar` | 管理群組、我的訂閱等頁面的可重用分頁篩選列 |
 | `ToastContainer` / `toast.js` | 全域提示訊息（含 `aria-live="polite"` 無障礙支援） |

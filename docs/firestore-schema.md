@@ -32,12 +32,12 @@ Demo 模式下讀寫對應的 `demo_*` collection（例如 `demo_groups`），�
 | `pm:open-notify` | AppNav 通知按鈕 | `FloatingMessages` |
 | `pm:open-messages` | AppNav / 訂閱卡 / 群組操作 | `MessagesModal` |
 | `pm:open-dm` | 聯絡團主 | `MessagesModal` 建立或取得 DM |
-| `pm:open-manage-group` | 通知點擊 / 跨頁導覽 | `ManagePage` 開啟指定群組 Modal（支援 `openActivateGroup`、`openApplications`、`openBilling` 旗標） |
+| `pm:open-manage-group` | 通知點擊 / `FloatingMessages` / `ChatWindow` | `ManagePage` 開啟指定群組 Modal（支援 `openActivate`、`openActivateGroup`、`openApplications`、`openBilling` 旗標） |
 | `pm:notif-changed` | `notificationStore` | `AppNav` 更新通知未讀 badge |
 | `pm:convs-changed` | `conversationStore` | `AppNav` 更新訊息未讀 badge；`MessagesModal` 重新讀取對話列表 |
 | `pm:auth-changed` | `authStore` | `AppNav` 重新讀取使用者狀態 |
-| `pm:members-changed` | `memberStore` | `GroupDetailModal`、`SubscriptionsPage` 更新 CTA |
-| `pm:applications-changed` | `applicationStore` | `GroupDetailModal`、`SubscriptionsPage` 更新申請 CTA |
+| `pm:members-changed` | `memberStore` | `GroupDetailModal`、`ChatWindow`、`ExplorePage`、`ManagePage` 重新讀取成員狀態 |
+| `pm:applications-changed` | `applicationStore` | `GroupDetailModal`、`QuickMatchModal`、`ExplorePage`、`SubscriptionsPage`、`ManagePage` 重新讀取申請狀態 |
 
 ---
 
@@ -50,7 +50,8 @@ Demo 模式下讀寫對應的 `demo_*` collection（例如 `demo_groups`），�
 | `pending_confirmation` | 收款階段：成員填帳號、標記付款；團主逐筆確認 | 逐筆確認付款 |
 | `pending_activation` | 款項全員確認，等待啟用 | 啟用服務 |
 | `active` | 服務已啟用 | 開始新一期收款或結束服務 |
-| `paused` / `cancelled` / `ended` | 已結束或暫停 | 歷史狀態，唯讀 |
+| `paused` / `cancelled` | 異常暫停或取消，前端與 `ended` 同視為「已結束」 | 歷史狀態，唯讀 |
+| `ended` | 正常結束 | 歷史狀態，唯讀 |
 
 ---
 
