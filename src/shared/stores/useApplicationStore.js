@@ -23,7 +23,7 @@ export const useApplicationStore = create((set, get) => ({
     set({ loading: true, error: null })
     try {
       const applications = await readAllApplications()
-      set({ applications, loading: false })
+      set({ applications: applications.map(normalizeApplication), loading: false })
     } catch (err) {
       set({ error: err.message, loading: false })
     }

@@ -32,14 +32,16 @@ export default function App() {
       await Promise.all([
         useAuthStore.getState().init(),
         useServiceStore.getState().init(),
-        useGroupStore.getState().init(),
-        useNotificationStore.getState().init(), // optionalAuth：未登入只拿公開通知
+        useGroupStore.getState().init({ all: false }), // 未登入只拿招募中群組（探索頁）
+        useNotificationStore.getState().init(),
       ])
 
       // 第二階段：只有已登入才載入私人資料
       const user = useAuthStore.getState().getProfile()
       if (user) {
+        // 已登入：重新拉所有狀態的群組，覆蓋第一階段的 recruiting-only 資料
         await Promise.all([
+          useGroupStore.getState().init({ all: true }),
           useApplicationStore.getState().init(),
           useSubscriptionStore.getState().init(),
           useMemberStore.getState().init(),

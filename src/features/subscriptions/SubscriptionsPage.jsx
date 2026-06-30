@@ -29,7 +29,18 @@ const FILTER_TABS = [
 function enrichSubs(rawSubs) {
   return rawSubs.map(s => {
     const group = getGroupById(s.groupId)
-    return { ...s, groupStatus: group?.status ?? s.groupStatus ?? s.status }
+    if (!group) return { ...s, groupStatus: s.groupStatus ?? s.status }
+    return {
+      ...s,
+      groupStatus:       group.status,
+      serviceName:       s.serviceName  || group.serviceName,
+      serviceId:         s.serviceId    || group.serviceId,
+      planName:          s.planName     || group.planName,
+      pricePerSeat:      s.pricePerSeat || group.pricePerSeat,
+      hostName:          s.hostName     || group.hostName,
+      hostAvatarInitial: s.hostAvatarInitial || group.hostAvatarInitial,
+      hostAvatarColor:   s.hostAvatarColor   || group.hostAvatarColor,
+    }
   })
 }
 

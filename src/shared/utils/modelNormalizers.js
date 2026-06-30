@@ -1,19 +1,41 @@
 export function normalizeApplication(app) {
-  const applicantId = app.applicantId ?? app.userId
-  const applicantName = app.applicantName ?? app.userName ?? '申請者'
+  // 後端回傳巢狀 user（申請人）和 group（含 service、host）
+  const user    = app.user    ?? {}
+  const group   = app.group   ?? {}
+  const service = group.service ?? {}
+  const host    = group.host    ?? {}
+
+  const applicantId   = app.applicantId   ?? app.userId   ?? user.id   ?? ''
+  const applicantName = app.applicantName ?? app.userName ?? user.name ?? '申請者'
+
+  const createdAt = app.createdAt
+    ? String(app.createdAt).slice(0, 10)
+    : ''
 
   return {
     ...app,
     applicantId,
     applicantName,
-    applicantAvatarInitial: app.applicantAvatarInitial ?? app.userAvatarInitial ?? applicantName[0],
-    applicantAvatarColor: app.applicantAvatarColor ?? app.userAvatarColor ?? '#94A3B8',
-    userId: app.userId ?? applicantId,
-    userName: app.userName ?? applicantName,
-    userAvatarInitial: app.userAvatarInitial ?? app.applicantAvatarInitial ?? applicantName[0],
-    userAvatarColor: app.userAvatarColor ?? app.applicantAvatarColor ?? '#94A3B8',
-    groupName: app.groupName ?? app.serviceName ?? '未命名群組',
-    status: app.status ?? 'pending',
+    applicantAvatarInitial: app.applicantAvatarInitial ?? user.avatarInitial ?? applicantName[0] ?? '?',
+    applicantAvatarColor:   app.applicantAvatarColor   ?? user.avatarColor   ?? '#94A3B8',
+    applicantCreditScore:   app.applicantCreditScore   ?? user.creditScore   ?? 80,
+    userId:                 app.userId ?? applicantId,
+    userName:               app.userName ?? applicantName,
+    userAvatarInitial:      app.userAvatarInitial ?? user.avatarInitial ?? applicantName[0] ?? '?',
+    userAvatarColor:        app.userAvatarColor   ?? user.avatarColor   ?? '#94A3B8',
+    // 群組 / 服務資訊（從巢狀 group 展平）
+    groupId:    app.groupId   ?? group.id      ?? '',
+    groupName:  app.groupName ?? service.name  ?? '未命名群組',
+    serviceName: app.serviceName ?? service.name ?? '',
+    serviceId:   app.serviceId   ?? service.id  ?? group.serviceId ?? '',
+    planName:    app.planName    ?? group.planName ?? '',
+    // 團主資訊（從巢狀 group.host 展平）
+    hostId:            app.hostId            ?? group.hostId   ?? host.id   ?? '',
+    hostName:          app.hostName          ?? host.name      ?? '',
+    hostAvatarInitial: app.hostAvatarInitial ?? host.avatarInitial ?? '',
+    hostAvatarColor:   app.hostAvatarColor   ?? host.avatarColor   ?? '#94A3B8',
+    status:    app.status ?? 'pending',
+    createdAt,
   }
 }
 
@@ -84,15 +106,17 @@ export function normalizeSubscription(sub) {
     ...sub,
     paymentStatus:     sub.paymentStatus ?? sub.status ?? 'pending',
     status:            sub.status ?? 'pending',
+    groupStatus:       sub.groupStatus ?? group.status ?? '',
     // 服務資訊
-    serviceName:       sub.serviceName       ?? service.name ?? group.planName ?? '',
-    serviceId:         sub.serviceId         ?? service.id   ?? group.serviceId ?? '',
-    planName:          sub.planName          ?? group.planName ?? '',
-    pricePerSeat:      sub.pricePerSeat      ?? group.monthlyFee ?? 0,
+    serviceName:       sub.serviceName  ?? service.name    ?? group.planName  ?? '',
+    serviceId:         sub.serviceId    ?? service.id      ?? group.serviceId ?? '',
+    planName:          sub.planName     ?? group.planName  ?? '',
+    pricePerSeat:      sub.pricePerSeat ?? group.monthlyFee ?? 0,
     // 團主資訊
     hostName:          sub.hostName          ?? host.name          ?? '',
     hostAvatarInitial: sub.hostAvatarInitial ?? host.avatarInitial ?? '',
     hostAvatarColor:   sub.hostAvatarColor   ?? host.avatarColor   ?? '#94A3B8',
     createdAt,
+    joinedAt:          sub.joinedAt ?? createdAt,
   }
 }

@@ -11,6 +11,7 @@ async function initPrivateStores(userId) {
     { usePaymentStore },
     { useConversationStore },
     { useNotificationStore },
+    { useGroupStore },
   ] = await Promise.all([
     import('./useApplicationStore'),
     import('./useSubscriptionStore'),
@@ -19,9 +20,10 @@ async function initPrivateStores(userId) {
     import('./usePaymentStore'),
     import('./useConversationStore'),
     import('./useNotificationStore'),
+    import('./useGroupStore'),
   ])
-  // notification 在 App 第一階段已 init（含個人通知），這裡重新拉以確保登入後取到個人資料
   await Promise.all([
+    useGroupStore.getState().init({ all: true }),  // 登入後取得所有群組
     useApplicationStore.getState().init(),
     useSubscriptionStore.getState().init(),
     useMemberStore.getState().init(),

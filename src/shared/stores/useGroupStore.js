@@ -14,10 +14,11 @@ export const useGroupStore = create((set, get) => ({
   error:   null,
 
   // ── 初始化 ──────────────────────────────────────────────────────────────────
-  init: async () => {
+  // all=true 時取得所有群組（含 active/full 等），供已登入用戶使用
+  init: async ({ all = false } = {}) => {
     set({ loading: true, error: null })
     try {
-      const groups = await readAllGroups()
+      const groups = await readAllGroups(all ? { status: 'all' } : { status: 'recruiting' })
       set({ groups: groups.map(normalizeGroup), loading: false })
     } catch (err) {
       set({ error: err.message, loading: false })

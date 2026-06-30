@@ -15,18 +15,19 @@ const reviewSchema = z.object({
   status: z.enum(['approved', 'rejected', 'removed']),
 })
 
-// GET /applications?groupId=&userId=
+// GET /applications — 回傳與目前用戶相關的申請（作為申請人 or 作為團主）
 router.get('/', requireAuth, async (req, res, next) => {
   try {
-    const { groupId, userId } = req.query
     const applications = await prisma.application.findMany({
       where: {
-        ...(groupId && { groupId }),
-        ...(userId  && { userId }),
+        OR: [
+          { userId: req.user.id },                  // 我是申請人
+          { group: { hostId: req.user.id } },       // 我是團主
+        ],
       },
       include: {
         user:  { select: { id: true, name: true, avatarColor: true, avatarInitial: true, creditScore: true } },
-        group: { select: { id: true, planName: true, service: true } },
+        group: { select: { id: true, hostId: true, planName: true, serviceId: true, service: { select: { id: true, name: true } }, host: { select: { id: true, name: true } } } },
       },
       orderBy: { createdAt: 'desc' },
     })

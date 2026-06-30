@@ -41,7 +41,8 @@ router.get('/', optionalAuth, async (req, res, next) => {
 
     const groups = await prisma.group.findMany({
       where: {
-        status: status,
+        // status=all 時不過濾狀態，讓已登入用戶的群組 store 能取得所有群組
+        ...(status !== 'all' && { status }),
         ...(serviceId && { serviceId }),
         ...(q && {
           OR: [
