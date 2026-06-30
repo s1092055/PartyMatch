@@ -1,33 +1,17 @@
-import { db } from '../../app/firebase'
-import { collection, deleteDoc, doc, getDocs, onSnapshot, setDoc, updateDoc } from 'firebase/firestore'
-import { normalizeSubscription } from '../utils/modelNormalizers'
-import { demoAwareCollection } from './demoCollection'
-import { stripUndefined } from './firestoreUtils'
+import client from './axiosClient'
 
-const COLLECTION = demoAwareCollection('subscriptions')
-
-export async function readAllSubscriptions() {
-  const snapshot = await getDocs(collection(db, COLLECTION))
-  return snapshot.docs.map(d => normalizeSubscription({ id: d.id, ...d.data() }))
+export async function readAllSubscriptions(params = {}) {
+  return client.get('/subscriptions', { params })
 }
 
-export function subscribeToSubscriptions(onUpdate) {
-  return onSnapshot(
-    collection(db, COLLECTION),
-    snapshot => onUpdate(snapshot.docs.map(d => normalizeSubscription({ id: d.id, ...d.data() }))),
-    err => console.error('[subscriptionsApi] subscribe error:', err),
-  )
-}
-
-export async function insertSubscription(record) {
-  await setDoc(doc(db, COLLECTION, record.id), stripUndefined(record))
-  return normalizeSubscription(record)
+export async function insertSubscription(data) {
+  return client.post('/subscriptions', data)
 }
 
 export async function patchSubscription(id, patch) {
-  await updateDoc(doc(db, COLLECTION, id), patch)
+  return client.patch(`/subscriptions/${id}`, patch)
 }
 
 export async function deleteSubscriptionRecord(id) {
-  await deleteDoc(doc(db, COLLECTION, id))
+  return client.delete(`/subscriptions/${id}`)
 }

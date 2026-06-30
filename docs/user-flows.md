@@ -181,7 +181,7 @@ flowchart TD
   G -->|群組| H[團主開啟群組聊天室時建立 conversation]
   G -->|私訊| I[聯絡團主時建立或取得 DM]
   H --> J[成員收到群組聊天室已開啟通知]
-  I --> K[Firestore onSnapshot 即時同步 messages]
+  I --> K[REST polling 每 5 秒同步 messages]
   H --> K
   K --> L[未讀數回寫 unreadCounts]
 ```
@@ -191,4 +191,4 @@ flowchart TD
 1. 訪客可打開通知中心，但只看到系統公告；個人通知需登入。
 2. 通知依類型分為付款、申請、系統三頁，可標記已讀。
 3. 群組聊天室在團主點「啟用群組」並確認後建立；成員收到通知。
-4. 訊息透過 Firestore `onSnapshot` 即時同步；成員加入或退出時寫入系統訊息。
+4. 訊息透過 REST API polling（每 5 秒）同步；成員加入或退出時寫入系統訊息。

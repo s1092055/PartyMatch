@@ -7,17 +7,12 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "seed:demo": "node scripts/seedDemo.mjs",
-    "clear:demo": "node scripts/clearDemo.mjs",
-    "clear:prod": "node scripts/clearProd.mjs",
-    "seed:services": "node scripts/seedServices.mjs"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.4",
     "@tanstack/react-query": "^5.101.2",
     "axios": "^1.18.1",
-    "firebase": "^12.13.0",
     "lucide-react": "^1.14.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",

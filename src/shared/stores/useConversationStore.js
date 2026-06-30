@@ -36,7 +36,7 @@ function maybeNotifyGroupChats(convs, currentUser) {
 export const useConversationStore = create((set, get) => ({
   conversations: [],
 
-  // ── 初始化（建立 Firestore 監聽 + 冷啟動補通知）─────────────────────────────
+  // ── 初始化（啟動 polling + 冷啟動補通知）────────────────────────────────────
   init: (userId) => {
     if (!userId) return
     get().teardown()

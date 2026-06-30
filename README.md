@@ -4,8 +4,6 @@
 
 支援 Netflix、Spotify、YouTube Premium、ChatGPT Plus 等 30 種服務，提供探索群組、快速配對、申請審核、付款追蹤、即時聊天室的完整流程。
 
-**[Live Demo](#)** &nbsp;|&nbsp; Demo 帳號：`demo@partymatch.tw` / `demo1234`
-
 ---
 
 ## 為什麼做這個專案？
@@ -46,7 +44,7 @@ PartyMatch 的設計目標是：在一個平台上完整處理**媒合 → 申�
 |------|------|
 | 申請加入 | 送出申請、等待審核；即時收到審核結果通知 |
 | 我的訂閱 | 查看訂閱狀態、填寫帳號資訊、標記已付款 |
-| 訊息中心 | 群組聊天室、私人 DM，Firestore 即時同步 |
+| 訊息中心 | 群組聊天室、私人 DM，REST API polling 同步 |
 | 收藏 / 通知 / 帳號 | 收藏群組、查看個人通知、管理個人資料 |
 
 ### 團主
@@ -72,12 +70,25 @@ React 19 + React Router v7
           │
     Shared Stores (src/shared/stores/)  ← 記憶體快取 + 業務邏輯
           │
-    Firestore API (src/shared/api/)     ← Firestore CRUD 封裝
+    API Layer (src/shared/api/)         ← REST API 封裝（axios）
           │
-  Firebase Auth + Firestore
+  Express 後端 (server/src/)
+          │
+    MySQL（Prisma ORM）+ Redis（快取 / Session）
 ```
 
-App 啟動時以 `Promise.all` 並行初始化前 9 個 Store；`initConversations` 需等 `initNotifications` 完成後才依序呼叫，確保冷啟動通知判斷能讀到正確的通知紀錄。讀取走 Store（同步），寫入走 API（非同步，fire-and-forget 更新記憶體）。
+App 啟動時分兩階段初始化：
+1. **公開資料**（不需 token）：auth、services、groups、notifications
+2. **私人資料**（已登入才執行）：applications、subscriptions、members、favorites、payments、conversations
+
+讀取走 Store（同步），寫入走 API（非同步）。
+
+### 認證機制
+
+- JWT accessToken + refreshToken 雙 token 設計
+- accessToken 存於 `localStorage`，每次 request 自動帶入 `Authorization: Bearer` header
+- 收到 401 且有 token 時自動導向 `/login`（session 過期）
+- 未登入呼叫受保護端點的 401 靜默處理（不跳轉、不報錯）
 
 ### 群組狀態機
 
@@ -92,7 +103,7 @@ recruiting → full → pending_confirmation → pending_activation → active �
                                                           paused / cancelled（異常結束）
 ```
 
-每個狀態轉換都有對應的角色與觸發條件，詳見[操作流程文件](docs/user-flows.md)。
+每個狀態轉換都有對應的角色與觸發條件。
 
 > `full` 時，團主點「啟用群組」並填寫收款帳號後確認，系統才會建立群組聊天室並推進至 `pending_confirmation`。
 
@@ -108,17 +119,17 @@ recruiting → full → pending_confirmation → pending_activation → active �
 
 同一個使用者可以同時是某群組的團主，也是另一個群組的成員。`GroupViewModal` 為薄殼，依登入者是否為 `hostId` 決定渲染 `HostGroupView`（審核、收款、啟用）或 `MemberGroupView`（付款、退出）。
 
-### 2. Firestore 即時聊天 + Safari 相容
+### 2. 完整端對端資料流
 
-訊息中心使用 Firestore `onSnapshot` 實現即時同步。Safari 在特定網路條件下 WebChannel 會靜默斷線，透過 `experimentalForceLongPolling` 強制使用 LongPolling 解決。
+申請 → 審核 → 成員建立 → 訂閱建立 → 付款確認 → 啟用服務，每一步由 Store 封裝業務邏輯，API 層只做 REST CRUD，兩層職責清楚分離。
 
-### 3. 完整端對端資料流
+### 3. 兩階段 App 啟動
 
-申請 → 審核 → 成員建立 → 訂閱建立 → 付款確認 → 啟用服務，每一步由 Store 封裝業務邏輯，API 層只做 Firestore CRUD，兩層職責清楚分離。
+未登入時只載入公開資料，避免受保護端點在未認證狀態下被呼叫。登入後才動態初始化私人 Store，登出時停止 conversations polling，確保不會有殘留的 auth 請求。
 
-### 4. Demo / 正式環境隔離
+### 4. 訊息輪詢架構
 
-Demo 資料與正式資料存放於完全獨立的 Firestore collection（`demo_groups` vs. `groups`），由 `VITE_DEMO_MODE` 環境變數控制，兩者 document 不互相污染。
+聊天室採用 REST polling（每 5 秒），部署成本低、無需額外的長連線基礎設施，適合現階段規模。
 
 ---
 
@@ -126,32 +137,66 @@ Demo 資料與正式資料存放於完全獨立的 Firestore collection（`demo_
 
 | 類別 | 技術 |
 |------|------|
-| Frontend | React 19、Vite、React Router v7 |
+| Frontend | React 19、Vite、React Router v7、Zustand |
 | UI | Tailwind CSS v4（token 定義於 `index.css`）、lucide-react |
-| Backend | Firebase Auth、Firebase Firestore |
-| Realtime | Firestore `onSnapshot`、`experimentalForceLongPolling` |
+| Backend | Node.js、Express |
+| 資料庫 | MySQL + Prisma ORM |
+| 快取 | Redis |
+| 認證 | JWT（accessToken + refreshToken） |
+| 圖片上傳 | Imgbb API |
 | Architecture | Feature-based、Store + API 雙層分離、事件驅動跨元件通訊 |
 
 ---
 
 ## 快速開始
 
+### 前置需求
+
+- Node.js 18+
+- MySQL 8+
+- Redis 7+
+
+### 啟動前端
+
 ```bash
 npm install
 npm run dev   # http://localhost:5173
 ```
 
-複製 `.env.example` 並填入 Firebase 設定後即可啟動。詳見[開發指南](docs/development.md)。
+複製 `.env.example` 並填入設定值：
+
+```env
+VITE_API_BASE_URL=http://localhost:3001/api
+VITE_IMGBB_API_KEY=你的 Imgbb API Key
+```
+
+### 啟動後端
+
+```bash
+cd server
+npm install
+npx prisma migrate dev   # 建立資料表
+npm run dev              # http://localhost:3001
+```
+
+複製 `server/.env.example` 並填入設定值（DATABASE_URL、JWT_SECRET 等）。
+
+### 查看資料庫
+
+```bash
+cd server
+npx prisma studio   # http://localhost:5555
+```
 
 ---
 
 ## 未來規劃
 
-- [ ] Firestore Security Rules 補全（目前僅前端 ProtectedRoute）
 - [ ] 正式金流串接（ECPay / 綠界）
 - [ ] 信用評分完整機制（扣 / 加分邏輯）
-- [ ] 逾期付款排程通知（Cloud Functions）
-- [ ] 狀態管理遷移 Zustand + TypeScript
+- [ ] 逾期付款排程通知
+- [ ] WebSocket 取代輪詢（訊息即時性提升）
+- [ ] TypeScript 型別覆蓋
 
 ---
 
@@ -161,5 +206,5 @@ npm run dev   # http://localhost:5173
 |------|------|
 | [架構與資料層](docs/architecture.md) | 資料夾結構、Store 設計、主要檔案連動 |
 | [操作流程](docs/user-flows.md) | 申請、付款、啟用等完整流程圖與群組狀態機 |
-| [Firestore Schema](docs/firestore-schema.md) | Collection 設計、事件驅動清單、狀態流程 |
-| [開發指南](docs/development.md) | 環境變數、指令、Demo 資料、打包 |
+| [資料庫 Schema](docs/database-schema.md) | MySQL Table 設計、事件驅動清單、狀態流程 |
+| [開發指南](docs/development.md) | 環境變數、指令、首次啟動流程、待完成項目 |

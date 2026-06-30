@@ -31,8 +31,11 @@ client.interceptors.response.use(
   (error) => {
     const status = error.response?.status
 
-    if (status === 401) {
+    // 只有「帶過 token 卻被拒絕」才視為 session 過期，自動跳登入
+    // 沒帶 token 的 401（未登入呼叫 auth 端點）直接靜默拒絕，不跳轉
+    if (status === 401 && tokenManager.get()) {
       tokenManager.remove()
+      localStorage.removeItem('pm_refresh_token')
       window.location.replace('/login')
     }
 

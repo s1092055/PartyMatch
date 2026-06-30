@@ -3,7 +3,7 @@ import { SERVICES } from '../data/serviceCatalog'
 import { readAllServices } from '../api/servicesApi'
 
 export const useServiceStore = create((set, get) => ({
-  // 先用本地 catalog，讓 Firestore 回應前服務資料就可用
+  // 先用本地 catalog 作為初始值，API 回應後覆蓋
   services: [...SERVICES],
   loading:  false,
   error:    null,
@@ -18,7 +18,7 @@ export const useServiceStore = create((set, get) => ({
         set({ loading: false })
       }
     } catch (err) {
-      console.warn('[serviceStore] Firestore unavailable, using local catalog:', err.message)
+      console.warn('[serviceStore] API unavailable, using local catalog:', err.message)
       set({ loading: false })
     }
   },

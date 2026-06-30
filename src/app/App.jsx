@@ -27,29 +27,37 @@ export default function App() {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    Promise.all([
-      useAuthStore.getState().init(),
-      useServiceStore.getState().init(),
-      useGroupStore.getState().init(),
-      useApplicationStore.getState().init(),
-      useSubscriptionStore.getState().init(),
-      useMemberStore.getState().init(),
-      useFavoriteStore.getState().init(),
-      useNotificationStore.getState().init(),
-      usePaymentStore.getState().init(),
-    ])
-      .then(() => {
-        // initConversations 必須在 notifications init 完成後才執行，
-        // 否則冷啟動的通知判斷會讀到空的 notifications，導致重複建立通知。
-        const user = useAuthStore.getState().getProfile()
-        if (user) useConversationStore.getState().init(user.id)
+    async function bootApp() {
+      // 第一階段：公開資料 + 驗證身份（不需要 token）
+      await Promise.all([
+        useAuthStore.getState().init(),
+        useServiceStore.getState().init(),
+        useGroupStore.getState().init(),
+        useNotificationStore.getState().init(),
+      ])
+
+      // 第二階段：只有已登入才載入私人資料
+      const user = useAuthStore.getState().getProfile()
+      if (user) {
+        await Promise.all([
+          useApplicationStore.getState().init(),
+          useSubscriptionStore.getState().init(),
+          useMemberStore.getState().init(),
+          useFavoriteStore.getState().init(),
+          usePaymentStore.getState().init(),
+        ])
+        // initConversations 必須在 notifications init 完成後才執行
+        useConversationStore.getState().init(user.id)
         useApplicationStore.getState().checkMissedNotifications(user)
-        setReady(true)
-      })
-      .catch(err => {
-        console.error('[App] Init failed:', err)
-        setReady(true)
-      })
+      }
+
+      setReady(true)
+    }
+
+    bootApp().catch(err => {
+      console.error('[App] Init failed:', err)
+      setReady(true)
+    })
   }, [])
 
   if (!ready) {

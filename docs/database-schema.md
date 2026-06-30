@@ -1,21 +1,23 @@
-# Firestore Schema 與狀態流程
+# 資料庫 Schema 與狀態流程
 
-## Collection 對應
+資料庫使用 **MySQL 8**，以 **Prisma ORM** 管理 schema 與 migration。完整定義見 `server/prisma/schema.prisma`。
 
-| Collection | 說明 |
-|------------|------|
-| `users` | Firebase Auth 帳號 + 個人資料（信用分數、付款方式偏好等） |
-| `services` | 30 種訂閱服務清單與方案價格 |
+## Table 對應
+
+| Table | 說明 |
+|-------|------|
+| `users` | 使用者帳號、密碼 hash、Google ID、信用分數 |
+| `refresh_tokens` | JWT refresh token，支援多裝置登入 |
+| `services` | 30 種訂閱服務清單與方案（JSON 欄位） |
 | `groups` | 群組主資料（狀態、名額、方案、收款帳號等） |
 | `applications` | 申請紀錄（`pending` / `approved` / `rejected` / `removed`） |
-| `members` | 群組成員（`hostId` / `userId` / 付款狀態） |
-| `subscriptions` | 成員訂閱（帳號資訊、付款狀態、下次扣款日） |
-| `paymentRecords` | 付款紀錄（統計用） |
+| `members` | 群組成員（付款狀態、訂閱帳號） |
+| `subscriptions` | 成員訂閱（帳號資訊、付款狀態、下次扣款日、付款憑證） |
+| `payment_records` | 付款紀錄（統計用） |
 | `notifications` | 個人通知 + 系統公告（`isPublic: true` 為公告） |
-| `favorites` | 收藏群組（`userId` + `groupId`） |
-| `conversations` | 對話（群組聊天室 / DM）；子集合 `messages` 存訊息 |
-
-Demo 模式下讀寫對應的 `demo_*` collection（例如 `demo_groups`），兩者完全隔離。
+| `favorites` | 收藏群組（`userId` + `groupId` 唯一索引） |
+| `conversations` | 對話（群組聊天室 / DM）；`participants`、`unreadCounts`、`lastMessage` 為 JSON 欄位 |
+| `messages` | 訊息（屬於某個 conversation） |
 
 ---
 
@@ -33,11 +35,11 @@ Demo 模式下讀寫對應的 `demo_*` collection（例如 `demo_groups`），�
 | `pm:open-messages` | AppNav / 訂閱卡 / 群組操作 | `MessagesModal` |
 | `pm:open-dm` | 聯絡團主 | `MessagesModal` 建立或取得 DM |
 | `pm:open-manage-group` | 通知點擊 / `FloatingMessages` / `ChatWindow` | `ManagePage` 開啟指定群組 Modal（支援 `openActivate`、`openActivateGroup`、`openApplications`、`openBilling` 旗標） |
-| `pm:notif-changed` | `notificationStore` | `AppNav` 更新通知未讀 badge |
-| `pm:convs-changed` | `conversationStore` | `AppNav` 更新訊息未讀 badge；`MessagesModal` 重新讀取對話列表 |
-| `pm:auth-changed` | `authStore` | `AppNav` 重新讀取使用者狀態 |
-| `pm:members-changed` | `memberStore` | `GroupDetailModal`、`ChatWindow`、`ExplorePage`、`ManagePage` 重新讀取成員狀態 |
-| `pm:applications-changed` | `applicationStore` | `GroupDetailModal`、`QuickMatchModal`、`ExplorePage`、`SubscriptionsPage`、`ManagePage` 重新讀取申請狀態 |
+| `pm:notif-changed` | `useNotificationStore` | `AppNav` 更新通知未讀 badge |
+| `pm:convs-changed` | `useConversationStore` | `AppNav` 更新訊息未讀 badge；`MessagesModal` 重新讀取對話列表 |
+| `pm:auth-changed` | `useAuthStore` | `AppNav` 重新讀取使用者狀態 |
+| `pm:members-changed` | `useMemberStore` | `GroupDetailModal`、`ChatWindow`、`ExplorePage`、`ManagePage` 重新讀取成員狀態 |
+| `pm:applications-changed` | `useApplicationStore` | `GroupDetailModal`、`QuickMatchModal`、`ExplorePage`、`SubscriptionsPage`、`ManagePage` 重新讀取申請狀態 |
 
 ---
 
@@ -75,7 +77,8 @@ Demo 模式下讀寫對應的 `demo_*` collection（例如 `demo_groups`），�
 
 | 類別 | 限制 |
 |------|------|
-| 安全性 | Firestore Security Rules 尚未補全，正式上線前需建立 `firestore.rules` |
+| 認證 | Google OAuth 尚未實作（目前回傳 stub 錯誤） |
+| 認證 | 重設密碼寄信尚未實作（目前回傳 stub 錯誤） |
 | 資料一致性 | 若只有 subscription 無對應 member，團主端成員狀態可能無法同步；需在核准申請時確保兩筆同時建立 |
-| 前端驗證 | 前端已有 ProtectedRoute 與 UI 鎖定，但後端 Rules 未設置 |
 | 金流 | 付款流程為展示用途（標記即可），尚未串接正式金流 |
+| 即時性 | 訊息中心採用 5 秒 polling，非 WebSocket 即時推送 |
