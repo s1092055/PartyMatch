@@ -1,0 +1,259 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Enums ──────────────────────────────────────────────────────────────────────
+
+enum GroupStatus {
+  recruiting
+  full
+  pending_confirmation
+  pending_activation
+  active
+  paused
+  cancelled
+  ended
+}
+
+enum ApplicationStatus {
+  pending
+  approved
+  rejected
+  removed
+}
+
+enum PaymentStatus {
+  pending
+  markedPaid
+  payment_failed
+  confirmed
+  paid
+  overdue
+  waiting_activation
+}
+
+enum ConversationType {
+  group
+  dm
+}
+
+enum NotificationType {
+  payment_reminder
+  payment_confirmed
+  payment_failed
+  application_sent
+  application_approved
+  application_rejected
+  group_created
+  group_activated
+  group_chat_opened
+  member_joined
+  member_left
+  system
+}
+
+// ── Models ─────────────────────────────────────────────────────────────────────
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  passwordHash  String?
+  googleId      String?  @unique
+  name          String
+  avatarColor   String?
+  avatarInitial String?
+  creditScore   Int      @default(100)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  hostedGroups  Group[]         @relation("HostedGroups")
+  applications  Application[]
+  members       Member[]
+  subscriptions Subscription[]
+  notifications Notification[]
+  favorites     Favorite[]
+  sentMessages  Message[]
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("refresh_tokens")
+}
+
+model Service {
+  id       String  @id
+  name     String
+  category String
+  logoUrl  String?
+  plans    Json    // [{ id, name, maxMembers, monthlyFee, currency }]
+
+  groups   Group[]
+
+  @@map("services")
+}
+
+model Group {
+  id              String      @id @default(cuid())
+  hostId          String
+  host            User        @relation("HostedGroups", fields: [hostId], references: [id])
+  serviceId       String
+  service         Service     @relation(fields: [serviceId], references: [id])
+  planId          String
+  planName        String
+  status          GroupStatus @default(recruiting)
+  maxMembers      Int
+  currentMembers  Int         @default(0)
+  monthlyFee      Float
+  currency        String      @default("TWD")
+  rules           String?
+  minCreditScore  Int         @default(0)
+  minGroupAge     Int         @default(0)
+  paymentAccount  String?
+  nextBillingDate DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  applications    Application[]
+  members         Member[]
+  subscriptions   Subscription[]
+  favorites       Favorite[]
+  conversations   Conversation[]
+  notifications   Notification[]
+
+  @@map("groups")
+}
+
+model Application {
+  id        String            @id @default(cuid())
+  groupId   String
+  group     Group             @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status    ApplicationStatus @default(pending)
+  message   String?
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@unique([groupId, userId])
+  @@map("applications")
+}
+
+model Member {
+  id                  String        @id @default(cuid())
+  groupId             String
+  group               Group         @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId              String
+  user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paymentStatus       PaymentStatus @default(pending)
+  subscriptionAccount String?
+  joinedAt            DateTime      @default(now())
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  @@unique([groupId, userId])
+  @@map("members")
+}
+
+model Subscription {
+  id                  String        @id @default(cuid())
+  groupId             String
+  group               Group         @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId              String
+  user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status              PaymentStatus @default(pending)
+  subscriptionAccount String?
+  paymentProofUrl     String?
+  nextBillingDate     DateTime?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  paymentRecords  PaymentRecord[]
+
+  @@unique([groupId, userId])
+  @@map("subscriptions")
+}
+
+model PaymentRecord {
+  id             String       @id @default(cuid())
+  subscriptionId String
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  amount         Float
+  periodLabel    String?
+  proofUrl       String?
+  paidAt         DateTime     @default(now())
+  createdAt      DateTime     @default(now())
+
+  @@map("payment_records")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String?
+  user      User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  groupId   String?
+  group     Group?           @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  isPublic  Boolean          @default(false)
+  type      NotificationType
+  title     String
+  message   String
+  meta      Json?
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  @@map("notifications")
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  groupId   String
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, groupId])
+  @@map("favorites")
+}
+
+model Conversation {
+  id           String           @id @default(cuid())
+  type         ConversationType
+  groupId      String?
+  group        Group?           @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  participants Json             @default("[]")
+  unreadCounts Json             @default("{}")
+  lastMessage  Json?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  messages     Message[]
+
+  @@map("conversations")
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String?
+  sender         User?        @relation(fields: [senderId], references: [id], onDelete: SetNull)
+  content        String
+  type           String       @default("text")
+  createdAt      DateTime     @default(now())
+
+  @@map("messages")
+}

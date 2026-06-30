@@ -1,0 +1,112 @@
+import { Router } from 'express'
+import { z } from 'zod'
+import prisma from '../lib/prisma.js'
+import { requireAuth, optionalAuth } from '../middleware/auth.js'
+import { validate } from '../middleware/validate.js'
+
+const router = Router()
+
+const createGroupSchema = z.object({
+  serviceId:     z.string().min(1),
+  planId:        z.string().min(1),
+  planName:      z.string().min(1),
+  maxMembers:    z.number().int().min(2).max(10),
+  monthlyFee:    z.number().positive(),
+  currency:      z.string().default('TWD'),
+  rules:         z.string().optional(),
+  minCreditScore: z.number().int().min(0).default(0),
+  minGroupAge:   z.number().int().min(0).default(0),
+})
+
+const updateGroupSchema = z.object({
+  status:         z.enum(['recruiting','full','pending_confirmation','pending_activation','active','paused','cancelled','ended']).optional(),
+  paymentAccount: z.string().optional(),
+  nextBillingDate: z.string().datetime().optional(),
+})
+
+// GET /groups — 探索群組（公開）
+router.get('/', optionalAuth, async (req, res, next) => {
+  try {
+    const { serviceId, category, status = 'recruiting', q } = req.query
+
+    const groups = await prisma.group.findMany({
+      where: {
+        status: status,
+        ...(serviceId && { serviceId }),
+        ...(q && {
+          OR: [
+            { service: { name: { contains: q, mode: 'insensitive' } } },
+            { planName:  { contains: q, mode: 'insensitive' } },
+          ],
+        }),
+        ...(category && { service: { category } }),
+      },
+      include: {
+        host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, creditScore: true } },
+        service: true,
+        _count:  { select: { members: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    res.json(groups)
+  } catch (err) { next(err) }
+})
+
+// GET /groups/:id
+router.get('/:id', optionalAuth, async (req, res, next) => {
+  try {
+    const group = await prisma.group.findUnique({
+      where: { id: req.params.id },
+      include: {
+        host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, creditScore: true } },
+        service: true,
+        members: {
+          include: { user: { select: { id: true, name: true, avatarColor: true, avatarInitial: true } } },
+        },
+      },
+    })
+    if (!group) return res.status(404).json({ message: '群組不存在' })
+    res.json(group)
+  } catch (err) { next(err) }
+})
+
+// POST /groups
+router.post('/', requireAuth, validate(createGroupSchema), async (req, res, next) => {
+  try {
+    const group = await prisma.group.create({
+      data: { ...req.body, hostId: req.user.id },
+      include: { service: true },
+    })
+    res.status(201).json(group)
+  } catch (err) { next(err) }
+})
+
+// PATCH /groups/:id
+router.patch('/:id', requireAuth, validate(updateGroupSchema), async (req, res, next) => {
+  try {
+    const group = await prisma.group.findUnique({ where: { id: req.params.id } })
+    if (!group) return res.status(404).json({ message: '群組不存在' })
+    if (group.hostId !== req.user.id) return res.status(403).json({ message: '僅團主可操作' })
+
+    const updated = await prisma.group.update({
+      where: { id: req.params.id },
+      data:  req.body,
+    })
+    res.json(updated)
+  } catch (err) { next(err) }
+})
+
+// DELETE /groups/:id
+router.delete('/:id', requireAuth, async (req, res, next) => {
+  try {
+    const group = await prisma.group.findUnique({ where: { id: req.params.id } })
+    if (!group) return res.status(404).json({ message: '群組不存在' })
+    if (group.hostId !== req.user.id) return res.status(403).json({ message: '僅團主可操作' })
+
+    await prisma.group.delete({ where: { id: req.params.id } })
+    res.status(204).end()
+  } catch (err) { next(err) }
+})
+
+export default router
