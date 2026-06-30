@@ -49,6 +49,7 @@ enum NotificationType {
   application_sent
   application_approved
   application_rejected
+  new_application
   group_created
   group_activated
   group_chat_opened
