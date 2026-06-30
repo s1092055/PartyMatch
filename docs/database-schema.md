@@ -9,10 +9,10 @@
 | `users` | 使用者帳號、密碼 hash、Google ID、信用分數 |
 | `refresh_tokens` | JWT refresh token，支援多裝置登入 |
 | `services` | 30 種訂閱服務清單與方案（JSON 欄位） |
-| `groups` | 群組主資料（狀態、名額、方案、收款帳號等） |
-| `applications` | 申請紀錄（`pending` / `approved` / `rejected` / `removed`） |
-| `members` | 群組成員（付款狀態、訂閱帳號） |
-| `subscriptions` | 成員訂閱（帳號資訊、付款狀態、下次扣款日、付款憑證） |
+| `groups` | 群組主資料（狀態、名額、方案、收款帳號、`paymentMethod`、`billingCycle` 等） |
+| `applications` | 申請紀錄（`pending` / `approved` / `rejected` / `removed`）；被拒絕後可重新申請（更新為 `pending`，不重建記錄） |
+| `members` | 群組成員（付款狀態、訂閱帳號、`paymentProofUrl`、`paidAmount`、`lastPaidAt`、`serviceInfo`、`serviceInfoIssueNote`、`paymentIssueType`、`paymentIssueNote`） |
+| `subscriptions` | 成員訂閱（帳號資訊、付款狀態、下次扣款日、付款憑證、`lastPaidAt`） |
 | `payment_records` | 付款紀錄（統計用） |
 | `notifications` | 個人通知 + 系統公告（`isPublic: true` 為公告） |
 | `favorites` | 收藏群組（`userId` + `groupId` 唯一索引） |
@@ -73,12 +73,19 @@
 
 ---
 
+## NotificationType 枚舉值
+
+後端 Prisma schema 定義的完整通知類型：
+
+`new_application`、`application_approved`、`application_rejected`、`group_chat_opened`、`group_activated`、`group_full`、`group_ended`、`member_removed`、`member_payment_marked`、`payment_due`、`payment_issue`、`service_info_issue`、`all_payments_confirmed`、`payment`
+
+---
+
 ## 已知限制
 
 | 類別 | 限制 |
 |------|------|
 | 認證 | Google OAuth 尚未實作（目前回傳 stub 錯誤） |
 | 認證 | 重設密碼寄信尚未實作（目前回傳 stub 錯誤） |
-| 資料一致性 | 若只有 subscription 無對應 member，團主端成員狀態可能無法同步；需在核准申請時確保兩筆同時建立 |
 | 金流 | 付款流程為展示用途（標記即可），尚未串接正式金流 |
 | 即時性 | 訊息中心採用 5 秒 polling，非 WebSocket 即時推送 |

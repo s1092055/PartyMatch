@@ -12,7 +12,8 @@
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "db:seed": "node prisma/seed.js",
-    "db:clear": "node prisma/clearProd.js"
+    "db:clear": "node prisma/clearProd.js",
+    "db:clear-data": "node prisma/clearData.js"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",

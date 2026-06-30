@@ -58,8 +58,10 @@ PORT=3001
 |------|------|
 | `npm run dev` | 啟動 Express 開發伺服器（http://localhost:3001） |
 | `npx prisma migrate dev` | 執行 migration 並同步資料庫 schema |
+| `npx prisma db push` | 直接同步 schema 變更（不建立 migration 歷史，適合開發期快速迭代） |
 | `npx prisma studio` | 開啟資料庫視覺化介面（http://localhost:5555） |
 | `npx prisma generate` | 重新產生 Prisma Client |
+| `npm run db:clear-data` | 清空所有資料（保留 users 與 services），用於重設測試環境 |
 
 ---
 
@@ -109,7 +111,6 @@ zip -r partymatch.zip . \
 |------|------|----------|
 | Google OAuth | 目前 `loginGoogle()` 回傳 stub 錯誤，需實作後端 OAuth 流程 | `useAuthStore.js`、`server/src/routes/auth.js` |
 | 重設密碼寄信 | 目前 `resetPassword()` 回傳 stub 錯誤，需串接 email 服務 | `useAuthStore.js`、`server/src/routes/auth.js` |
-| 資料一致性 guard | 核准申請時確保 subscription + member 同時建立 | `useApplicationStore.js` |
 | 信用評分完整機制 | 扣 / 加分邏輯尚未串通完整流程 | `useAuthStore.js`、`useMemberStore.js` |
 
 ### 中優先度

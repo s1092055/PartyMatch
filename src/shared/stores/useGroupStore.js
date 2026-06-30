@@ -66,7 +66,7 @@ export const useGroupStore = create((set, get) => ({
     return group
   },
 
-  // ── 更新群組（fire-and-forget 寫 Firestore，回傳更新後的 group）────────────
+  // ── 更新群組（樂觀更新本地 state，同步 PATCH 至後端）────────────────────────
   update: (id, patch) => {
     let updated = null
     set(s => ({

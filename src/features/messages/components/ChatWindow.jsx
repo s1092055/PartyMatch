@@ -14,8 +14,8 @@ import { markConversationRead, addParticipantToConversation, fetchOlderMessages 
 import { getUserProfile } from '../../../shared/api/usersApi'
 import { formatTime } from '../utils'
 
-// 名稱解析的最後備援：當對話的 participantMeta 缺漏（例如舊版資料損壞）且使用者也不在
-// memberStore 裡時，直接查 users collection。模組層快取在對話間共用，避免重複查詢。
+// 名稱解析的最後備援：當 participantMeta 缺漏且使用者不在 memberStore 時，
+// 呼叫 GET /users/:id 補全。模組層快取在對話間共用，避免重複查詢。
 const userProfileCache = new Map()
 const inFlightProfileFetches = new Set()
 
@@ -125,8 +125,7 @@ export default function ChatWindow({
       .map(pid => getParticipantName(pid))
   }
 
-  // 名稱解析鏈（member 記錄／對話 participantMeta／團主名）都查不到時，
-  // 最後查一次 users collection；查到後順手補寫回 participantMeta，修復損壞的舊資料。
+  // 名稱解析鏈（member 記錄／participantMeta／團主名）都查不到時，呼叫 REST API 補全。
   const unresolvedIds = (selected?.participants ?? [])
     .filter(pid => !userProfileCache.has(pid) && !knownName(pid))
   const unresolvedKey = unresolvedIds.join(',')

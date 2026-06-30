@@ -48,6 +48,7 @@ const createPaymentRecord        = (data)    => usePaymentStore.getState().creat
 const getPaymentRecordCountBySubIds = (ids)  => usePaymentStore.getState().getCountBySubIds(ids)
 const createNotification         = (data)    => useNotificationStore.getState().create(data)
 const addConversationOptimistic  = (conv)    => useConversationStore.getState().addConversationOptimistic(conv)
+const getConvByGroupId           = (gid)     => useConversationStore.getState().getByGroupId(gid)
 import EmptyState from '../../shared/ui/EmptyState'
 import GroupViewModal from '../../shared/ui/GroupViewModal'
 import FilterTabsBar from '../../shared/ui/FilterTabsBar'
@@ -208,22 +209,11 @@ async function handleActivateGroup(paymentAccount) {
     if (paymentAccount) updateGroup(viewGroupId, { paymentAccount })
     activateGroupChat(viewGroupId)
 
-    const convId = `group_${viewGroupId}`
-    await createGroupConversation({
-      groupId:           viewGroupId,
-      groupName:         group.serviceName ?? viewGroupId,
-      serviceId:         group.serviceId ?? null,
-      hostId:            group.hostId,
-      hostName:          group.hostName,
-      hostAvatarInitial: group.hostAvatarInitial,
-      hostAvatarColor:   group.hostAvatarColor,
-    })
+    // 建立群組聊天室，取得後端回傳的真實 conversation ID
+    const conv = await createGroupConversation({ groupId: viewGroupId })
+    const convId = conv.id
     for (const m of groupMembers) {
-      await addParticipantToConversation(convId, m.userId, {
-        name:          m.userName,
-        avatarInitial: m.userAvatarInitial,
-        avatarColor:   m.userAvatarColor,
-      })
+      await addParticipantToConversation(convId, m.userId)
     }
     await sendActionMessage(convId, {
       text: `請填寫你在 ${group.serviceName} 使用的服務帳號（電子信箱），以便團主幫你設定訂閱。`,
@@ -244,7 +234,7 @@ async function handleActivateGroup(paymentAccount) {
       meta:    { groupId: viewGroupId },
     })
 
-    // 立即將新對話放入 store，不等 Firestore onSnapshot 回傳，避免 pm:open-messages 發出時找不到對話
+    // 樂觀更新：使用後端回傳的真實 conv.id
     const participantMeta = {
       [group.hostId]: { name: group.hostName, avatarInitial: group.hostAvatarInitial, avatarColor: group.hostAvatarColor },
       ...Object.fromEntries(groupMembers.map(m => [m.userId, { name: m.userName, avatarInitial: m.userAvatarInitial, avatarColor: m.userAvatarColor }])),
@@ -301,11 +291,13 @@ function handleRemoveMember(member) {
       message: `團主已將你移出「${groupLabel}」群組。`,
       meta:    { groupId: member.groupId },
     })
-    const convId = `group_${member.groupId}`
+    const convId = getConvByGroupId(member.groupId)?.id
     const remainingMembers = getMembersByGroupId(member.groupId).filter(m => m.userId !== member.userId)
     const convParticipants = [group?.hostId, ...remainingMembers.map(m => m.userId)].filter(Boolean)
-    sendSystemMessage(convId, `${member.userName} 已被移出群組`, convParticipants).catch(console.error)
-    leaveConversation(convId, member.userId).catch(console.error)
+    if (convId) {
+      sendSystemMessage(convId, `${member.userName} 已被移出群組`, convParticipants).catch(console.error)
+      leaveConversation(convId, member.userId).catch(console.error)
+    }
   }
 
 function handleConfirmMember(member) {
@@ -368,10 +360,10 @@ function handleConfirmMember(member) {
 
     const allMembers = getMembersByGroupId(member.groupId)
     const participants = [activeUser.id, ...allMembers.map(m => m.userId)]
-    const convId = `group_${member.groupId}`
+    const convId = getConvByGroupId(member.groupId)?.id
     // 所有人看到簡短提示；詳細原因只放進當事人的 action card
-    sendSystemMessage(convId, `${member.userName}，已被要求重新補件`, participants).catch(console.error)
-    sendActionMessage(convId, {
+    if (convId) sendSystemMessage(convId, `${member.userName}，已被要求重新補件`, participants).catch(console.error)
+    if (convId) sendActionMessage(convId, {
       text: reasonText,
       actionType: 'request_resubmit',
       payload: { targetUserId: member.userId },
@@ -398,8 +390,9 @@ function handleActivate(renewalDate) {
       activateGroupSubscriptions(viewGroupId, updatedGroup.nextBillingDate)
       const activateMembers = getMembersByGroupId(viewGroupId)
       const activateParticipants = [activeUser.id, ...activateMembers.map(m => m.userId)]
-      sendSystemMessage(
-        `group_${viewGroupId}`,
+      const activateConvId = getConvByGroupId(viewGroupId)?.id
+      if (activateConvId) sendSystemMessage(
+        activateConvId,
         `${updatedGroup.serviceName} 訂閱服務已正式啟用！下次扣款日：${updatedGroup.nextBillingDate}。`,
         activateParticipants
       ).catch(console.error)
@@ -458,7 +451,8 @@ function handleActivate(renewalDate) {
       })
     })
     const endParticipants = [group?.hostId, ...groupMembers.map(m => m.userId)].filter(Boolean)
-    sendSystemMessage(`group_${renewalModalGroupId}`, `團主已結束「${groupLabel}」群組`, endParticipants).catch(console.error)
+    const endConvId = getConvByGroupId(renewalModalGroupId)?.id
+    if (endConvId) sendSystemMessage(endConvId, `團主已結束「${groupLabel}」群組`, endParticipants).catch(console.error)
 
     setRenewalModalGroupId(null)
     refreshGroups()
@@ -550,12 +544,12 @@ function handleApprove(appId) {
     updateMember(member.id, { serviceInfoIssueNote: note })
 
     const group = getGroupById(member.groupId)
-    const convId = `group_${member.groupId}`
+    const convId = getConvByGroupId(member.groupId)?.id
     const allMembers = getMembersByGroupId(member.groupId)
     const participants = [activeUser.id, ...allMembers.map(m => m.userId)]
 
-    sendSystemMessage(convId, `${member.userName}，服務帳號需要修正`, participants).catch(console.error)
-    sendActionMessage(convId, {
+    if (convId) sendSystemMessage(convId, `${member.userName}，服務帳號需要修正`, participants).catch(console.error)
+    if (convId) sendActionMessage(convId, {
       actionType: 'request_service_resubmit',
       text: note,
       visibleTo: [member.userId],

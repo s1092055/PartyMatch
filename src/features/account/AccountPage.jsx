@@ -31,7 +31,8 @@ export default function AccountPage() {
     };
   });
 
-  const allSubs    = useSubscriptionStore(s => s.subscriptions.filter(sub => sub.userId === user.id))
+  const subscriptions = useSubscriptionStore(s => s.subscriptions)
+  const allSubs    = subscriptions.filter(sub => sub.userId === user.id)
   const activeSubs = allSubs.filter(s => s.status === 'active')
 
   function handleUserChange(key, value) {

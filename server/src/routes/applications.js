@@ -47,7 +47,17 @@ router.post('/', requireAuth, validate(applySchema), async (req, res, next) => {
     const existing = await prisma.application.findUnique({
       where: { groupId_userId: { groupId, userId: req.user.id } },
     })
-    if (existing) return res.status(409).json({ message: '你已申請過此群組' })
+    if (existing) {
+      // 已被拒絕或移除 → 允許重新申請（重置為 pending）
+      if (existing.status === 'rejected' || existing.status === 'removed') {
+        const application = await prisma.application.update({
+          where: { id: existing.id },
+          data:  { status: 'pending', message: message ?? existing.message },
+        })
+        return res.status(201).json(application)
+      }
+      return res.status(409).json({ message: '你已有一筆進行中的申請' })
+    }
 
     const application = await prisma.application.create({
       data: { groupId, userId: req.user.id, message },
@@ -73,7 +83,6 @@ router.patch('/:id', requireAuth, validate(reviewSchema), async (req, res, next)
     })
 
     if (status === 'approved') {
-      // 建立 member + subscription
       await prisma.$transaction([
         prisma.member.create({
           data: { groupId: application.groupId, userId: application.userId },
@@ -86,6 +95,22 @@ router.patch('/:id', requireAuth, validate(reviewSchema), async (req, res, next)
           data:  { currentMembers: { increment: 1 } },
         }),
       ])
+
+      // 核准後自動檢查是否額滿，若滿則推進到 full
+      const latestGroup = await prisma.group.findUnique({
+        where: { id: application.groupId },
+        select: { currentMembers: true, maxMembers: true, status: true },
+      })
+      if (
+        latestGroup &&
+        latestGroup.currentMembers >= latestGroup.maxMembers &&
+        latestGroup.status === 'recruiting'
+      ) {
+        await prisma.group.update({
+          where: { id: application.groupId },
+          data:  { status: 'full' },
+        })
+      }
     }
 
     res.json(updated)

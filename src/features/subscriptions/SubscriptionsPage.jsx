@@ -98,7 +98,7 @@ export default function SubscriptionsPage() {
     window.addEventListener('pm:set-sub-tab', onSetTab)
     return () => window.removeEventListener('pm:set-sub-tab', onSetTab)
   }, [])
-  // 回到頁面（focus / 可見）時重新從 Firestore 載入最新資料；store 更新會自動觸發重新渲染
+  // 回到頁面（focus / 可見）時從 REST API 重新同步資料
   useEffect(() => {
     if (!activeUserId) return
     function reloadFromSource() {

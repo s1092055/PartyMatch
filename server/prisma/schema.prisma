@@ -46,6 +46,8 @@ enum NotificationType {
   payment_reminder
   payment_confirmed
   payment_failed
+  payment_due
+  payment_issue
   application_sent
   application_approved
   application_rejected
@@ -53,8 +55,15 @@ enum NotificationType {
   group_created
   group_activated
   group_chat_opened
+  group_full
+  group_ended
   member_joined
   member_left
+  member_removed
+  member_payment_marked
+  all_payments_confirmed
+  service_info_issue
+  payment
   system
 }
 
@@ -124,6 +133,8 @@ model Group {
   minCreditScore  Int         @default(0)
   minGroupAge     Int         @default(0)
   paymentAccount  String?
+  paymentMethod   String?
+  billingCycle    String?
   nextBillingDate DateTime?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
@@ -161,6 +172,13 @@ model Member {
   user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   paymentStatus       PaymentStatus @default(pending)
   subscriptionAccount String?
+  paymentProofUrl     String?
+  paidAmount          Float?
+  lastPaidAt          DateTime?
+  serviceInfo         Json?
+  serviceInfoIssueNote String?
+  paymentIssueType    String?
+  paymentIssueNote    String?
   joinedAt            DateTime      @default(now())
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
@@ -178,6 +196,7 @@ model Subscription {
   status              PaymentStatus @default(pending)
   subscriptionAccount String?
   paymentProofUrl     String?
+  lastPaidAt          DateTime?
   nextBillingDate     DateTime?
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt

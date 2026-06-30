@@ -420,9 +420,7 @@ export default function AppNav({ variant = 'side' }) {
 
       {/* Desktop floating sidebar */}
       <aside
-        className={`group/nav fixed bottom-4 left-4 top-4 z-50 hidden w-16 flex-col rounded-2xl border border-line bg-white shadow-sm transition-[width] duration-300 ease-out hover:w-56 focus-within:w-56 md:flex ${
-          showUserMenu ? '' : 'overflow-hidden'
-        }`}
+        className="group/nav fixed bottom-4 left-4 top-4 z-50 hidden w-16 flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-sm transition-[width] duration-300 ease-out hover:w-56 focus-within:w-56 md:flex"
       >
         <Link
           to="/"

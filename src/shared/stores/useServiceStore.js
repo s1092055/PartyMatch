@@ -15,10 +15,18 @@ export const useServiceStore = create((set, get) => ({
       if (data.length > 0) {
         // 將 API 資料與本地 catalog 合併：API 補充後端欄位，local 保留 iconId/color/initial 等圖示欄位
         const localMap = Object.fromEntries(SERVICES.map(s => [s.id, s]))
-        const merged = data.map(apiService => ({
-          ...(localMap[apiService.id] ?? {}),
-          ...apiService,
-        }))
+        const merged = data.map(apiService => {
+          const base = { ...(localMap[apiService.id] ?? {}), ...apiService }
+          // 後端 plan 欄位為 maxMembers/monthlyFee，前端元件統一使用 maxSeats/monthlyPrice
+          if (Array.isArray(base.plans)) {
+            base.plans = base.plans.map(p => ({
+              ...p,
+              maxSeats:     p.maxSeats     ?? p.maxMembers ?? 0,
+              monthlyPrice: p.monthlyPrice ?? p.monthlyFee ?? 0,
+            }))
+          }
+          return base
+        })
         set({ services: merged.sort((a, b) => (a.sortOrder ?? 999) - (b.sortOrder ?? 999)), loading: false })
       } else {
         set({ loading: false })

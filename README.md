@@ -121,7 +121,7 @@ recruiting → full → pending_confirmation → pending_activation → active �
 
 ### 2. 完整端對端資料流
 
-申請 → 審核 → 成員建立 → 訂閱建立 → 付款確認 → 啟用服務，每一步由 Store 封裝業務邏輯，API 層只做 REST CRUD，兩層職責清楚分離。
+申請 → 審核 → 成員建立 → 訂閱建立 → 付款確認 → 啟用服務，每一步由 Store 封裝業務邏輯，API 層只做 REST CRUD，兩層職責清楚分離。審核通過時後端自動核算名額並推進群組至 `full` 狀態；被拒絕的申請可重新提出（`rejected → pending`），無需刪除重建。
 
 ### 3. 兩階段 App 啟動
 

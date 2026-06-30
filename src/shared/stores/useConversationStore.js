@@ -65,7 +65,8 @@ export const useConversationStore = create((set, get) => ({
   },
 
   // ── 選取器 ──────────────────────────────────────────────────────────────────
-  getById: (id) => get().conversations.find(c => c.id === id) ?? null,
+  getById:        (id)      => get().conversations.find(c => c.id === id) ?? null,
+  getByGroupId:   (groupId) => get().conversations.find(c => c.type === 'group' && c.groupId === groupId) ?? null,
 
   getUnreadMsgCount: (userId) => {
     if (!userId) return 0

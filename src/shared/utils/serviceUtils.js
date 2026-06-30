@@ -7,7 +7,7 @@ import masterclassIcon from '../../assets/masterclass-icon.png'
 
 const ICONIFY_API_BASE = 'https://api.iconify.design'
 
-// Local PNG assets that can't be stored in Firestore
+// 需要本地 PNG 資源的服務（無法從 Iconify 取得）
 const LOCAL_ICON_ASSETS = {
   'kkbox':       kkboxIcon,
   'masterclass': masterclassIcon,
