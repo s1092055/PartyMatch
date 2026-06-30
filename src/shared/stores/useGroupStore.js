@@ -18,7 +18,7 @@ export const useGroupStore = create((set, get) => ({
     set({ loading: true, error: null })
     try {
       const groups = await readAllGroups()
-      set({ groups, loading: false })
+      set({ groups: groups.map(normalizeGroup), loading: false })
     } catch (err) {
       set({ error: err.message, loading: false })
     }
@@ -56,7 +56,12 @@ export const useGroupStore = create((set, get) => ({
       ...data,
     })
     set(s => ({ groups: [...s.groups, group] }))
-    insertGroup(group).catch(err => console.error('[groupStore] create failed:', err))
+    insertGroup(group).then(saved => {
+      if (saved?.id) {
+        const normalized = normalizeGroup({ ...saved })
+        set(s => ({ groups: s.groups.map(g => g.id === group.id ? normalized : g) }))
+      }
+    }).catch(err => console.error('[groupStore] create failed:', err))
     return group
   },
 

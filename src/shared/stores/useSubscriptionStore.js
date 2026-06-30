@@ -18,7 +18,7 @@ export const useSubscriptionStore = create((set, get) => ({
     set({ loading: true, error: null })
     try {
       const subscriptions = await readAllSubscriptions()
-      set({ subscriptions, loading: false })
+      set({ subscriptions: subscriptions.map(normalizeSubscription), loading: false })
     } catch (err) {
       set({ error: err.message, loading: false })
     }
