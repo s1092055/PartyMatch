@@ -6,12 +6,19 @@ import { validate } from '../middleware/validate.js'
 
 const router = Router()
 
+const paymentStatusEnum = z.enum(['pending','markedPaid','payment_failed','confirmed','paid','overdue','waiting_activation'])
+
 const updateSubscriptionSchema = z.object({
   subscriptionAccount: z.string().optional(),
   paymentProofUrl:     z.string().url().optional(),
-  status:              z.enum(['pending','markedPaid','payment_failed','confirmed','paid','overdue','waiting_activation']).optional(),
-  nextBillingDate:     z.string().datetime().optional(),
-})
+  status:              paymentStatusEnum.optional(),
+  paymentStatus:       paymentStatusEnum.optional(),
+  nextBillingDate:     z.string().optional(),
+}).transform(data => ({
+  ...data,
+  // 接受前端送來的 paymentStatus，統一對應到 status 欄位
+  ...(data.paymentStatus && !data.status ? { status: data.paymentStatus } : {}),
+}))
 
 // GET /subscriptions?userId=&groupId=
 router.get('/', requireAuth, async (req, res, next) => {
@@ -64,16 +71,18 @@ router.patch('/:id', requireAuth, validate(updateSubscriptionSchema), async (req
     const isHost  = sub.group.hostId === req.user.id
     if (!isOwner && !isHost) return res.status(403).json({ message: '無操作權限' })
 
+    // eslint-disable-next-line no-unused-vars
+    const { paymentStatus: _ps, ...updateData } = req.body
     const updated = await prisma.subscription.update({
       where: { id: req.params.id },
-      data:  req.body,
+      data:  updateData,
     })
 
     // 同步 member.paymentStatus
-    if (req.body.status) {
+    if (updateData.status) {
       await prisma.member.updateMany({
         where: { groupId: sub.groupId, userId: sub.userId },
-        data:  { paymentStatus: req.body.status },
+        data:  { paymentStatus: updateData.status },
       })
     }
 

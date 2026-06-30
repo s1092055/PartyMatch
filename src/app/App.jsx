@@ -33,7 +33,7 @@ export default function App() {
         useAuthStore.getState().init(),
         useServiceStore.getState().init(),
         useGroupStore.getState().init(),
-        useNotificationStore.getState().init(),
+        useNotificationStore.getState().init(), // optionalAuth：未登入只拿公開通知
       ])
 
       // 第二階段：只有已登入才載入私人資料

@@ -23,11 +23,29 @@ router.get('/', optionalAuth, async (req, res, next) => {
 // POST /notifications — 建立通知（內部服務或系統管理用）
 router.post('/', requireAuth, async (req, res, next) => {
   try {
-    const { userId, type, title, body, link, isPublic } = req.body
+    const { userId, type, title, message, body, meta, isPublic } = req.body
     const notif = await prisma.notification.create({
-      data: { userId, type, title, body, link, isPublic: isPublic ?? false },
+      data: {
+        userId,
+        type,
+        title,
+        message: message ?? body ?? '',
+        meta:    meta ?? undefined,
+        isPublic: isPublic ?? false,
+      },
     })
     res.status(201).json(notif)
+  } catch (err) { next(err) }
+})
+
+// PATCH /notifications/read-all — 必須在 /:id/read 前面，否則會被攔截
+router.patch('/read-all', requireAuth, async (req, res, next) => {
+  try {
+    await prisma.notification.updateMany({
+      where: { userId: req.user.id, isRead: false },
+      data:  { isRead: true },
+    })
+    res.json({ success: true })
   } catch (err) { next(err) }
 })
 
@@ -39,17 +57,6 @@ router.patch('/:id/read', requireAuth, async (req, res, next) => {
     if (notif.userId !== req.user.id) return res.status(403).json({ message: '無操作權限' })
 
     await prisma.notification.update({ where: { id: req.params.id }, data: { isRead: true } })
-    res.json({ success: true })
-  } catch (err) { next(err) }
-})
-
-// PATCH /notifications/read-all
-router.patch('/read-all', requireAuth, async (req, res, next) => {
-  try {
-    await prisma.notification.updateMany({
-      where: { userId: req.user.id, isRead: false },
-      data:  { isRead: true },
-    })
     res.json({ success: true })
   } catch (err) { next(err) }
 })

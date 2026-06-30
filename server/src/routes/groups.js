@@ -7,21 +7,31 @@ import { validate } from '../middleware/validate.js'
 const router = Router()
 
 const createGroupSchema = z.object({
-  serviceId:     z.string().min(1),
-  planId:        z.string().min(1),
-  planName:      z.string().min(1),
-  maxMembers:    z.number().int().min(2).max(10),
-  monthlyFee:    z.number().positive(),
-  currency:      z.string().default('TWD'),
-  rules:         z.string().optional(),
+  serviceId:      z.string().min(1),
+  planId:         z.string().optional(),
+  planName:       z.string().min(1),
+  // 接受前端的 totalSeats 或標準的 maxMembers
+  maxMembers:     z.number().int().min(2).max(10).optional(),
+  totalSeats:     z.number().int().min(2).max(10).optional(),
+  // 接受前端的 pricePerSeat 或標準的 monthlyFee
+  monthlyFee:     z.number().min(0).optional(),
+  pricePerSeat:   z.number().min(0).optional(),
+  currency:       z.string().default('TWD'),
+  rules:          z.union([z.string(), z.array(z.string())]).optional(),
   minCreditScore: z.number().int().min(0).default(0),
-  minGroupAge:   z.number().int().min(0).default(0),
-})
+  minGroupAge:    z.number().int().min(0).default(0),
+}).transform(data => ({
+  ...data,
+  maxMembers:  data.maxMembers  ?? data.totalSeats  ?? 6,
+  monthlyFee:  data.monthlyFee  ?? data.pricePerSeat ?? 0,
+  planId:      data.planId      ?? data.planName,
+  rules:       Array.isArray(data.rules) ? data.rules.join('\n') : (data.rules ?? ''),
+}))
 
 const updateGroupSchema = z.object({
-  status:         z.enum(['recruiting','full','pending_confirmation','pending_activation','active','paused','cancelled','ended']).optional(),
-  paymentAccount: z.string().optional(),
-  nextBillingDate: z.string().datetime().optional(),
+  status:          z.enum(['recruiting','full','pending_confirmation','pending_activation','active','paused','cancelled','ended']).optional(),
+  paymentAccount:  z.string().optional(),
+  nextBillingDate: z.string().optional(),
 })
 
 // GET /groups — 探索群組（公開）
@@ -74,9 +84,12 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
 // POST /groups
 router.post('/', requireAuth, validate(createGroupSchema), async (req, res, next) => {
   try {
+    // 過濾前端送來的非資料庫欄位，只留 Prisma schema 接受的欄位
+    const allowed = ['serviceId','planId','planName','maxMembers','monthlyFee','currency','rules','minCreditScore','minGroupAge']
+    const data = Object.fromEntries(Object.entries(req.body).filter(([k]) => allowed.includes(k)))
     const group = await prisma.group.create({
-      data: { ...req.body, hostId: req.user.id },
-      include: { service: true },
+      data: { ...data, hostId: req.user.id },
+      include: { service: true, host: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, creditScore: true } } },
     })
     res.status(201).json(group)
   } catch (err) { next(err) }

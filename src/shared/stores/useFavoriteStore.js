@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { readAllFavorites, insertFavorite, deleteFavoriteById } from '../api/favoritesApi'
+import { readAllFavorites, toggleFavorite } from '../api/favoritesApi'
 import { todayISO } from '../utils/date'
 import { createId } from '../utils/storage'
 
@@ -29,12 +29,12 @@ export const useFavoriteStore = create((set, get) => ({
     const existing = get().favorites.find(f => f.userId === userId && f.groupId === groupId)
     if (existing) {
       set(s => ({ favorites: s.favorites.filter(f => f.id !== existing.id) }))
-      deleteFavoriteById(existing.id).catch(console.error)
+      toggleFavorite(groupId).catch(console.error)
       return false
     }
     const fav = { id: createId('fav'), userId, groupId, createdAt: todayISO() }
     set(s => ({ favorites: [...s.favorites, fav] }))
-    insertFavorite(fav).catch(console.error)
+    toggleFavorite(groupId).catch(console.error)
     return true
   },
 }))

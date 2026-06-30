@@ -20,6 +20,7 @@ async function initPrivateStores(userId) {
     import('./useConversationStore'),
     import('./useNotificationStore'),
   ])
+  // notification 在 App 第一階段已 init（含個人通知），這裡重新拉以確保登入後取到個人資料
   await Promise.all([
     useApplicationStore.getState().init(),
     useSubscriptionStore.getState().init(),
@@ -30,6 +31,33 @@ async function initPrivateStores(userId) {
   ])
   useConversationStore.getState().init(userId)
   useApplicationStore.getState().checkMissedNotifications({ id: userId })
+}
+
+async function clearPrivateStores() {
+  const [
+    { useApplicationStore },
+    { useSubscriptionStore },
+    { useMemberStore },
+    { useFavoriteStore },
+    { usePaymentStore },
+    { useConversationStore },
+    { useNotificationStore },
+  ] = await Promise.all([
+    import('./useApplicationStore'),
+    import('./useSubscriptionStore'),
+    import('./useMemberStore'),
+    import('./useFavoriteStore'),
+    import('./usePaymentStore'),
+    import('./useConversationStore'),
+    import('./useNotificationStore'),
+  ])
+  useConversationStore.getState().teardown()
+  useApplicationStore.getState    && useApplicationStore.setState({ applications: [] })
+  useSubscriptionStore.getState   && useSubscriptionStore.setState({ subscriptions: [] })
+  useMemberStore.getState         && useMemberStore.setState({ members: [] })
+  useFavoriteStore.getState       && useFavoriteStore.setState({ favorites: [] })
+  usePaymentStore.getState        && usePaymentStore.setState({ payments: [] })
+  useNotificationStore.getState   && useNotificationStore.setState({ notifications: [] })
 }
 
 function activeProfile(user) {
@@ -99,10 +127,8 @@ export const useAuthStore = create((set, get) => ({
     tokenManager.remove()
     localStorage.removeItem('pm_refresh_token')
     set({ user: null, loggedIn: false })
-    // 停掉 conversations polling，避免登出後繼續發 auth 請求
-    import('./useConversationStore').then(({ useConversationStore }) => {
-      useConversationStore.getState().teardown()
-    })
+    // 清空所有私人 store 狀態，避免下一個用戶看到舊資料
+    clearPrivateStores().catch(console.error)
   },
 
   // ── 忘記密碼（尚未實作後端寄信功能）────────────────────────────────────────

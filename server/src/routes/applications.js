@@ -7,11 +7,12 @@ import { validate } from '../middleware/validate.js'
 const router = Router()
 
 const applySchema = z.object({
+  groupId: z.string().min(1),
   message: z.string().max(300).optional(),
 })
 
 const reviewSchema = z.object({
-  action: z.enum(['approved', 'rejected']),
+  status: z.enum(['approved', 'rejected', 'removed']),
 })
 
 // GET /applications?groupId=&userId=
@@ -64,13 +65,13 @@ router.patch('/:id', requireAuth, validate(reviewSchema), async (req, res, next)
     if (!application) return res.status(404).json({ message: '申請不存在' })
     if (application.group.hostId !== req.user.id) return res.status(403).json({ message: '僅團主可審核' })
 
-    const { action } = req.body
+    const { status } = req.body
     const updated = await prisma.application.update({
       where: { id: req.params.id },
-      data:  { status: action },
+      data:  { status },
     })
 
-    if (action === 'approved') {
+    if (status === 'approved') {
       // 建立 member + subscription
       await prisma.$transaction([
         prisma.member.create({

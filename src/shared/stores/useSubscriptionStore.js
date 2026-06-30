@@ -75,13 +75,13 @@ export const useSubscriptionStore = create((set, get) => ({
   },
 
   // ── 標記付款 ────────────────────────────────────────────────────────────────
-  markPaid: (id) => get().update(id, { paymentStatus: 'markedPaid', lastPaidAt: todayISO() }),
+  markPaid: (id) => get().update(id, { status: 'markedPaid' }),
 
   // ── 確認收款 ────────────────────────────────────────────────────────────────
-  confirmPayment: (id) => get().update(id, { paymentStatus: 'confirmed' }),
+  confirmPayment: (id) => get().update(id, { status: 'confirmed' }),
 
   // ── 重設付款狀態 ────────────────────────────────────────────────────────────
-  resetPayment: (id) => get().update(id, { paymentStatus: 'pending' }),
+  resetPayment: (id) => get().update(id, { status: 'pending' }),
 
   // ── 啟用群組所有訂閱 ────────────────────────────────────────────────────────
   activateGroupSubscriptions: (groupId, nextBillingDate) => {
@@ -97,7 +97,7 @@ export const useSubscriptionStore = create((set, get) => ({
 
   // ── 重設群組所有訂閱付款狀態（續訂用）──────────────────────────────────────
   resetPaymentsForGroup: (groupId) => {
-    const patch = { paymentStatus: 'pending' }
+    const patch = { status: 'pending' }
     const targets = get().subscriptions.filter(s => s.groupId === groupId)
     set(s => ({
       subscriptions: s.subscriptions.map(sub =>

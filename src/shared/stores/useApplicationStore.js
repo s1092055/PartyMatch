@@ -4,7 +4,7 @@ import {
   insertApplication,
   patchApplication,
 } from '../api/applicationsApi'
-import { addParticipantToConversation, sendSystemMessage } from '../api/messagesApi'
+
 import { normalizeApplication } from '../utils/modelNormalizers'
 import { nowISO } from '../utils/date'
 import { createId } from '../utils/storage'
@@ -50,11 +50,12 @@ export const useApplicationStore = create((set, get) => ({
   },
 
   // ── 送出申請 ────────────────────────────────────────────────────────────────
-  create: (data, activeUser) => {
+  create: async (data, activeUser) => {
     if (!activeUser) throw new Error('登入後才能申請加入群組')
     const { groupId, groupName, serviceId, serviceName, planName, hostId, hostName, hostAvatarInitial, hostAvatarColor, message } = data
+    const tempId = createId('app')
     const app = normalizeApplication({
-      id:                     createId('app'),
+      id:                     tempId,
       groupId,
       groupName,
       serviceId,
@@ -75,7 +76,17 @@ export const useApplicationStore = create((set, get) => ({
       updatedAt:              nowISO(),
     })
     set(s => ({ applications: [app, ...s.applications] }))
-    insertApplication(app).catch(console.error)
+    try {
+      // 只送後端需要的欄位，並用後端回傳的 DB id 取代本地 tempId
+      const saved = await insertApplication({ groupId, message: message ?? '' })
+      set(s => ({
+        applications: s.applications.map(a => a.id === tempId ? { ...a, id: saved.id } : a),
+      }))
+      app.id = saved.id
+    } catch (err) {
+      set(s => ({ applications: s.applications.filter(a => a.id !== tempId) }))
+      throw err
+    }
     // 只通知申請人自己；團主通知由冷啟動補通知處理
     useNotificationStore.getState().create({
       userId:  app.applicantId,
@@ -100,19 +111,6 @@ export const useApplicationStore = create((set, get) => ({
       const notif = notifStore.getByUserId(app.hostId)
         .find(n => n.type === 'new_application' && n.meta?.applicationId === id && !n.isRead)
       if (notif) notifStore.markRead(notif.id)
-    }
-
-    if (status === 'approved' && app) {
-      const convId = `group_${app.groupId}`
-      const applicantId = app.applicantId ?? app.userId
-      const applicantName = app.applicantName ?? app.userName ?? '新成員'
-      addParticipantToConversation(convId, applicantId, {
-        name:          applicantName,
-        avatarInitial: app.applicantAvatarInitial ?? applicantName[0] ?? '?',
-        avatarColor:   app.applicantAvatarColor   ?? '#94A3B8',
-      })
-        .then(() => sendSystemMessage(convId, `${applicantName} 加入了群組`))
-        .catch(console.error)
     }
   },
 
