@@ -1,4 +1,4 @@
-import { Compass, CreditCard, Heart, LayoutGrid, PlusCircle, User, Zap } from 'lucide-react'
+import { Compass, CreditCard, Heart, LayoutGrid, PlusCircle, Zap } from 'lucide-react'
 
 export const NAV_SECTIONS = [
   {
@@ -14,7 +14,6 @@ export const NAV_SECTIONS = [
     items: [
       { to: '/my-subscriptions', label: '我的訂閱',  icon: CreditCard },
       { to: '/favorites',        label: '我的收藏',  icon: Heart },
-      { to: '/account',          label: '帳號中心',  icon: User },
     ],
   },
   {

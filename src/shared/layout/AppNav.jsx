@@ -1,12 +1,12 @@
-import { Fragment, useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { Bell, ChevronDown, Lock, LogIn, LogOut, Menu, MessageSquare, Search, X } from 'lucide-react'
+import { Bell, Lock, LogIn, Menu, MessageSquare, Search, X } from 'lucide-react'
 import logoUrl from '../../assets/Logo.svg'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useNotificationStore } from '../stores/useNotificationStore'
 import { useConversationStore } from '../stores/useConversationStore'
 import { NAV_SECTIONS } from '../constants/nav'
-import { useClickOutside, useScrollLock } from '../utils/hooks'
+import { useScrollLock } from '../utils/hooks'
 
 const LOCKED_MESSAGE = '請先登入會員'
 
@@ -59,19 +59,13 @@ export default function AppNav({ variant = 'side' }) {
   const avatarInitial = userName[0] ?? 'U'
   const avatarColor = currentUser?.avatarColor ?? null
 
-  const [activePanel, setActivePanel] = useState(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const unreadNotifs = useNotificationStore(s => loggedIn && currentUser?.id ? s.getUnreadCount(currentUser.id) : 0)
   const unreadMsgs = useConversationStore(s => loggedIn && currentUser?.id ? s.getUnreadMsgCount(currentUser.id) : 0)
 
-  const userMenuRef      = useRef(null)
-  const userMenuMobileRef = useRef(null)
-
-  const showUserMenu = activePanel === 'userMenu'
-
   useEffect(() => {
     function onKeyDown(e) {
-      if (e.key === 'Escape') { setActivePanel(null); setDrawerOpen(false) }
+      if (e.key === 'Escape') { setDrawerOpen(false) }
     }
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
@@ -79,9 +73,7 @@ export default function AppNav({ variant = 'side' }) {
 
   useScrollLock(drawerOpen)
 
-  useClickOutside(showUserMenu, [userMenuRef, userMenuMobileRef], () => setActivePanel(null))
-
-  function closeAll() { setActivePanel(null); setDrawerOpen(false); document.activeElement?.blur() }
+  function closeAll() { setDrawerOpen(false); document.activeElement?.blur() }
 
   function openSearch() {
     setDrawerOpen(false)
@@ -109,11 +101,6 @@ export default function AppNav({ variant = 'side' }) {
   function openMatch() {
     closeAll()
     window.dispatchEvent(new CustomEvent('pm:open-match'))
-  }
-
-  async function confirmLogout() {
-    try { await useAuthStore.getState().logout() } catch { /* proceed regardless */ }
-    window.location.replace('/login')
   }
 
   function preventLockedAction(e, redirectTo) {
@@ -375,39 +362,23 @@ export default function AppNav({ variant = 'side' }) {
 
           <div className="shrink-0 border-t border-line px-3 pb-8 pt-3">
             {loggedIn ? (
-              <div ref={userMenuRef} className="relative">
-                <button
-                  onClick={() => setActivePanel(p => p === 'userMenu' ? null : 'userMenu')}
-                  className="flex h-14 w-full items-center gap-3 rounded-2xl px-3 text-left transition-all hover:bg-raised"
-                  aria-label="開啟使用者選單"
+              <Link
+                to="/account"
+                onClick={closeAll}
+                className="flex h-14 w-full items-center gap-3 rounded-2xl px-3 text-left transition-all hover:bg-raised"
+                aria-label="前往帳號中心"
+              >
+                <span
+                  className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-black text-white shadow-md"
+                  style={{ background: avatarColor ?? 'linear-gradient(135deg, #cbd5e1, #64748b)' }}
                 >
-                  <span
-                    className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-black text-white shadow-md"
-                    style={{ background: avatarColor ?? 'linear-gradient(135deg, #cbd5e1, #64748b)' }}
-                  >
-                    {avatarInitial}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-extrabold text-ink">{userName}</p>
-                    <p className="truncate text-xs text-ink-3">{userEmail}</p>
-                  </div>
-                  <ChevronDown
-                    size={16}
-                    className={`shrink-0 text-ink-3 transition-transform duration-200 ${showUserMenu ? 'rotate-180' : ''}`}
-                  />
-                </button>
-                {showUserMenu && (
-                  <div className="absolute bottom-full left-0 right-0 mb-2 overflow-hidden rounded-2xl border border-line bg-white p-2 shadow-popover">
-                    <button
-                      onClick={confirmLogout}
-                      className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold text-danger transition-all hover:bg-danger-subtle"
-                    >
-                      <LogOut size={16} />
-                      登出
-                    </button>
-                  </div>
-                )}
-              </div>
+                  {avatarInitial}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-extrabold text-ink">{userName}</p>
+                  <p className="truncate text-xs text-ink-3">{userEmail}</p>
+                </div>
+              </Link>
             ) : (
               <Link
                 to="/login"
@@ -481,37 +452,24 @@ export default function AppNav({ variant = 'side' }) {
 
         <div className="px-2 pb-4">
           {loggedIn ? (
-            <div ref={userMenuRef} className="relative">
-              <button
-                onClick={() => setActivePanel(p => p === 'userMenu' ? null : 'userMenu')}
-                className="flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left transition-all hover:bg-raised"
-                aria-label="開啟使用者選單"
+            <Link
+              to="/account"
+              onClick={closeAll}
+              className="flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left transition-all hover:bg-raised"
+              aria-label="前往帳號中心"
+            >
+              <span
+                className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-black text-white shadow-md"
+                style={{ background: avatarColor ?? 'linear-gradient(135deg, #cbd5e1, #64748b)' }}
               >
-                <span
-                  className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-black text-white shadow-md"
-                  style={{ background: avatarColor ?? 'linear-gradient(135deg, #cbd5e1, #64748b)' }}
-                >
-                  {avatarInitial}
-                  <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
-                </span>
-                <span className="min-w-0 flex-1 opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
-                  <span className="block truncate text-sm font-extrabold text-ink">{userName}</span>
-                  <span className="block truncate text-xs font-medium text-ink-3">{userEmail}</span>
-                </span>
-              </button>
-
-              {showUserMenu && (
-                <div className="absolute bottom-0 left-[calc(100%+0.75rem)] w-52 overflow-hidden rounded-2xl border border-line bg-white p-2 shadow-popover">
-                  <button
-                    onClick={confirmLogout}
-                    className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-danger transition-all hover:bg-danger-subtle"
-                  >
-                    <LogOut size={16} />
-                    登出
-                  </button>
-                </div>
-              )}
-            </div>
+                {avatarInitial}
+                <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
+              </span>
+              <span className="min-w-0 flex-1 opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
+                <span className="block truncate text-sm font-extrabold text-ink">{userName}</span>
+                <span className="block truncate text-xs font-medium text-ink-3">{userEmail}</span>
+              </span>
+            </Link>
           ) : (
             <div className="flex flex-col gap-1.5">
               <Link
@@ -625,40 +583,24 @@ export default function AppNav({ variant = 'side' }) {
 
         <div className="shrink-0 border-t border-line px-3 pb-8 pt-3">
           {loggedIn ? (
-            <div ref={userMenuMobileRef} className="relative">
-              <button
-                onClick={() => setActivePanel(p => p === 'userMenu' ? null : 'userMenu')}
-                className="flex h-14 w-full items-center gap-3 rounded-2xl px-3 text-left transition-all hover:bg-raised"
-                aria-label="開啟使用者選單"
+            <Link
+              to="/account"
+              onClick={closeAll}
+              className="flex h-14 w-full items-center gap-3 rounded-2xl px-3 text-left transition-all hover:bg-raised"
+              aria-label="前往帳號中心"
+            >
+              <span
+                className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-black text-white shadow-md"
+                style={{ background: avatarColor ?? 'linear-gradient(135deg, #cbd5e1, #64748b)' }}
               >
-                <span
-                  className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-black text-white shadow-md"
-                  style={{ background: avatarColor ?? 'linear-gradient(135deg, #cbd5e1, #64748b)' }}
-                >
-                  {avatarInitial}
-                  <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-extrabold text-ink">{userName}</p>
-                  <p className="truncate text-xs text-ink-3">{userEmail}</p>
-                </div>
-                <ChevronDown
-                  size={16}
-                  className={`shrink-0 text-ink-3 transition-transform duration-200 ${showUserMenu ? 'rotate-180' : ''}`}
-                />
-              </button>
-              {showUserMenu && (
-                <div className="absolute bottom-full left-0 right-0 mb-2 overflow-hidden rounded-2xl border border-line bg-white p-2 shadow-popover">
-                  <button
-                    onClick={confirmLogout}
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold text-danger transition-all hover:bg-danger-subtle"
-                  >
-                    <LogOut size={16} />
-                    登出
-                  </button>
-                </div>
-              )}
-            </div>
+                {avatarInitial}
+                <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-extrabold text-ink">{userName}</p>
+                <p className="truncate text-xs text-ink-3">{userEmail}</p>
+              </div>
+            </Link>
           ) : (
             <Link
               to="/login"
