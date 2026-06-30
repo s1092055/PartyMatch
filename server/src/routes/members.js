@@ -13,14 +13,21 @@ const patchMemberSchema = z.object({
   lastPaidAt:          z.string().optional(),
 })
 
-// GET /members?groupId=&userId=
+// GET /members — 回傳與目前用戶相關的成員（所在群組 or 所主持群組的成員）
 router.get('/', requireAuth, async (req, res, next) => {
   try {
-    const { groupId, userId } = req.query
+    const { groupId } = req.query
     const members = await prisma.member.findMany({
       where: {
-        ...(groupId && { groupId }),
-        ...(userId  && { userId }),
+        ...(groupId
+          ? { groupId }
+          : {
+              OR: [
+                { userId: req.user.id },                    // 我自己是成員
+                { group: { hostId: req.user.id } },         // 我是團主，取得我群組的所有成員
+              ],
+            }
+        ),
       },
       include: {
         user: { select: { id: true, name: true, avatarColor: true, avatarInitial: true } },

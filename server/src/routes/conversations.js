@@ -15,15 +15,37 @@ const dmSchema = z.object({
   targetUserId: z.string().min(1),
 })
 
-// GET /conversations — 我的所有對話
+// GET /conversations — 我的所有對話（含群組服務資訊與 DM 參與者資訊）
 router.get('/', requireAuth, async (req, res, next) => {
   try {
     const conversations = await prisma.conversation.findMany({
       where:   { participants: { string_contains: `"${req.user.id}"` } },
-      include: { group: { select: { id: true, service: true } } },
+      include: { group: { select: { id: true, planName: true, hostId: true, service: { select: { id: true, name: true } } } } },
       orderBy: { updatedAt: 'desc' },
     })
-    res.json(conversations)
+
+    // 為 DM 對話補上參與者 meta（name / avatarInitial / avatarColor）
+    const allParticipantIds = [...new Set(
+      conversations.flatMap(c => {
+        const ids = Array.isArray(c.participants) ? c.participants : JSON.parse(c.participants ?? '[]')
+        return ids
+      })
+    )]
+    const users = allParticipantIds.length
+      ? await prisma.user.findMany({
+          where:  { id: { in: allParticipantIds } },
+          select: { id: true, name: true, avatarInitial: true, avatarColor: true },
+        })
+      : []
+    const userMap = Object.fromEntries(users.map(u => [u.id, u]))
+
+    const enriched = conversations.map(c => {
+      const ids = Array.isArray(c.participants) ? c.participants : JSON.parse(c.participants ?? '[]')
+      const participantMeta = Object.fromEntries(ids.map(id => [id, userMap[id] ?? {}]))
+      return { ...c, participantMeta }
+    })
+
+    res.json(enriched)
   } catch (err) { next(err) }
 })
 

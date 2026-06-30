@@ -1,4 +1,5 @@
 import client from './axiosClient'
+import { normalizeConversation } from '../utils/modelNormalizers'
 
 export const MESSAGES_PAGE_SIZE = 50
 const POLL_INTERVAL_MS = 5000
@@ -67,7 +68,7 @@ export function subscribeToConversations(_userId, onUpdate) {
     if (!active) return
     try {
       const convs = await fetchConversations()
-      if (active) onUpdate(convs)
+      if (active) onUpdate(convs.map(normalizeConversation))
     } catch { /* ignore */ }
   }
 

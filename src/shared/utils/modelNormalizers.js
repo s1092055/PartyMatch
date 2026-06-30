@@ -1,3 +1,35 @@
+export function normalizeConversation(conv) {
+  const group   = conv.group   ?? {}
+  const service = group.service ?? {}
+  // group 對話：serviceId / name 從巢狀 group.service 提取
+  if (conv.type === 'group') {
+    return {
+      ...conv,
+      serviceId: conv.serviceId ?? service.id  ?? '',
+      name:      conv.name      ?? service.name ?? group.planName ?? '群組對話',
+      hostId:    conv.hostId    ?? group.hostId ?? '',
+    }
+  }
+  // DM 對話：保留原始結構，name/avatarInitial/avatarColor 由 MessagesModal 從 participantMeta 推導
+  return conv
+}
+
+export function normalizeMember(m) {
+  const user = m.user ?? {}
+  const userName = m.userName ?? user.name ?? '成員'
+  const joinedAt = m.joinedAt ? String(m.joinedAt).slice(0, 10) : ''
+
+  return {
+    ...m,
+    userName,
+    userAvatarInitial: m.userAvatarInitial ?? user.avatarInitial ?? userName[0] ?? '?',
+    userAvatarColor:   m.userAvatarColor   ?? user.avatarColor   ?? '#94A3B8',
+    userId:            m.userId            ?? user.id            ?? '',
+    paymentStatus:     m.paymentStatus     ?? 'pending',
+    joinedAt,
+  }
+}
+
 export function normalizeApplication(app) {
   // 後端回傳巢狀 user（申請人）和 group（含 service、host）
   const user    = app.user    ?? {}

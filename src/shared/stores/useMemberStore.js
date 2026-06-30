@@ -5,6 +5,7 @@ import {
   patchMember,
   deleteMemberRecord,
 } from '../api/membersApi'
+import { normalizeMember } from '../utils/modelNormalizers'
 import { todayISO } from '../utils/date'
 import { createId } from '../utils/storage'
 
@@ -17,7 +18,7 @@ export const useMemberStore = create((set, get) => ({
     set({ loading: true, error: null })
     try {
       const members = await readAllMembers()
-      set({ members, loading: false })
+      set({ members: members.map(normalizeMember), loading: false })
     } catch (err) {
       set({ error: err.message, loading: false })
     }
