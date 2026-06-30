@@ -13,7 +13,13 @@ export const useServiceStore = create((set, get) => ({
     try {
       const data = await readAllServices()
       if (data.length > 0) {
-        set({ services: data.sort((a, b) => (a.sortOrder ?? 999) - (b.sortOrder ?? 999)), loading: false })
+        // 將 API 資料與本地 catalog 合併：API 補充後端欄位，local 保留 iconId/color/initial 等圖示欄位
+        const localMap = Object.fromEntries(SERVICES.map(s => [s.id, s]))
+        const merged = data.map(apiService => ({
+          ...(localMap[apiService.id] ?? {}),
+          ...apiService,
+        }))
+        set({ services: merged.sort((a, b) => (a.sortOrder ?? 999) - (b.sortOrder ?? 999)), loading: false })
       } else {
         set({ loading: false })
       }

@@ -3,6 +3,7 @@ import {
   readAllNotifications,
   insertNotification,
   patchNotification,
+  markAllNotificationsRead,
 } from '../api/notificationsApi'
 import { nowISO, todayISO } from '../utils/date'
 import { createId } from '../utils/storage'
@@ -80,10 +81,11 @@ export const useNotificationStore = create((set, get) => ({
     return get().notifications.filter(n => n.userId === userId && !n.isRead).length
   },
 
-  // ── 新增通知（本地推入 + 寫入 Firestore）────────────────────────────────────
-  create: ({ userId, type, title, message, meta }) => {
+  // ── 新增通知（本地推入 + 寫入後端，再將 tempId 替換成後端真實 ID）──────────
+  create: async ({ userId, type, title, message, meta }) => {
+    const tempId = createId('notif')
     const notif = {
-      id:        createId('notif'),
+      id:        tempId,
       userId,
       type,
       title,
@@ -93,7 +95,17 @@ export const useNotificationStore = create((set, get) => ({
       ...(meta ? { meta } : {}),
     }
     set(s => ({ notifications: [notif, ...s.notifications] }))
-    insertNotification(notif).catch(console.error)
+    try {
+      const saved = await insertNotification(notif)
+      if (saved?.id && saved.id !== tempId) {
+        set(s => ({
+          notifications: s.notifications.map(n => n.id === tempId ? { ...n, id: saved.id } : n),
+        }))
+        notif.id = saved.id
+      }
+    } catch (err) {
+      console.error('[notificationStore] create failed:', err)
+    }
     return notif
   },
 
@@ -107,10 +119,9 @@ export const useNotificationStore = create((set, get) => ({
 
   // ── 全部標記已讀 ────────────────────────────────────────────────────────────
   markAllRead: (userId) => {
-    const unread = get().notifications.filter(n => n.userId === userId && !n.isRead)
     set(s => ({
       notifications: s.notifications.map(n => n.userId === userId ? { ...n, isRead: true } : n),
     }))
-    unread.forEach(n => patchNotification(n.id, { isRead: true }).catch(console.error))
+    markAllNotificationsRead().catch(console.error)
   },
 }))
