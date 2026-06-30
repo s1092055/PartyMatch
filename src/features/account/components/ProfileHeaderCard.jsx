@@ -10,7 +10,7 @@ export default function ProfileHeaderCard({ user, joinedCount, onEdit }) {
           className="w-20 h-20 rounded-full flex items-center justify-center text-white text-3xl font-bold"
           style={{ backgroundColor: user.avatarColor }}
         >
-          {user.displayName[0]}
+          {(user.displayName ?? '使')[0]}
         </div>
         {user.isVerified && (
           <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-white flex items-center justify-center shadow">
@@ -35,7 +35,7 @@ export default function ProfileHeaderCard({ user, joinedCount, onEdit }) {
             <Calendar size={14} className="text-ink-3" />
             <div>
               <p className="text-xs text-ink-3">加入時間</p>
-              <p className="text-sm font-semibold text-ink-2">{user.joinedAt}</p>
+              <p className="text-sm font-semibold text-ink-2">{user.joinedAt ?? String(user.createdAt ?? '').slice(0, 10)}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">

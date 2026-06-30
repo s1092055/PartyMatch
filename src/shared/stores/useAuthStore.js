@@ -65,9 +65,11 @@ async function clearPrivateStores() {
 function activeProfile(user) {
   if (!user) return null
   const displayName = user.displayName?.trim() || user.name?.trim() || '使用者'
+  const joinedAt = user.joinedAt ?? String(user.createdAt ?? '').slice(0, 10)
   return {
     ...user,
     displayName,
+    joinedAt,
     avatarInitial: user.avatarInitial ?? displayName[0] ?? 'U',
     avatarColor:   user.avatarColor ?? '#3B82F6',
   }
