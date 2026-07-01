@@ -315,6 +315,9 @@ export default function AppNav() {
       <header className="fixed left-0 right-0 top-0 z-50 flex h-14 items-center justify-between border-b border-line bg-white px-4 md:hidden">
         <a href="/" className="flex items-center gap-2" aria-label="回首頁">
           <img src={logoUrl} alt="PartyMatch" className="h-8 w-8" />
+          <span className="text-[1rem] font-extrabold">
+            <span className="text-brand">Party</span><span className="text-ink">Match</span>
+          </span>
         </a>
         <div className="flex items-center gap-1">
           <button
@@ -324,29 +327,26 @@ export default function AppNav() {
           >
             <Search size={22} strokeWidth={2} />
           </button>
-          <div className="relative">
-            {loggedIn ? (
-              <button
-                onClick={openMessages}
-                className="relative grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink"
-                aria-label="訊息"
-              >
-                <MessageSquare size={22} strokeWidth={2} />
-                <Badge count={unreadMsgs} />
-              </button>
-            ) : (
-              <button
-                type="button"
-                aria-disabled="true"
-                aria-label={`訊息，${LOCKED_MESSAGE}`}
-                onClick={preventLockedAction}
-                className="group/locked relative grid h-10 w-10 cursor-not-allowed place-items-center rounded-full text-ink-4"
-              >
-                <MessageSquare size={22} strokeWidth={2} className="opacity-55" />
-                <Lock size={11} strokeWidth={2.3} className="absolute right-1.5 top-1.5 rounded-full bg-white" />
-              </button>
-            )}
-          </div>
+          {loggedIn ? (
+            <button
+              onClick={openMessages}
+              className="relative grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink"
+              aria-label="訊息"
+            >
+              <MessageSquare size={22} strokeWidth={2} />
+              <Badge count={unreadMsgs} />
+            </button>
+          ) : (
+            <button
+              type="button"
+              aria-disabled="true"
+              aria-label={`訊息，${LOCKED_MESSAGE}`}
+              onClick={preventLockedAction}
+              className="relative grid h-10 w-10 cursor-not-allowed place-items-center rounded-full text-ink-3 opacity-40"
+            >
+              <MessageSquare size={22} strokeWidth={2} />
+            </button>
+          )}
           <button
             onClick={openNotify}
             className="relative grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink"
