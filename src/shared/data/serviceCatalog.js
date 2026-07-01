@@ -16,6 +16,7 @@ export const SERVICES = [
         description: '最多 6 人共享，各自獨立帳號與個人化推薦歌單。',
         monthlyPrice: 298,
         maxSeats: 6,
+        tags: ['音樂', '家庭共享', '無廣告', '離線下載'],
         features: [
           '最多 6 個獨立帳號，需同住一個地址',
           '無廣告音樂串流，無限跳曲',
@@ -32,6 +33,7 @@ export const SERVICES = [
         description: '2 人共享，適合情侶或室友，各自保有獨立收聽紀錄。',
         monthlyPrice: 228,
         maxSeats: 2,
+        tags: ['音樂', '2人共享', '無廣告', '離線下載'],
         features: [
           '2 個獨立帳號，適合同住伴侶',
           '無廣告音樂串流，無限跳曲',
@@ -61,6 +63,7 @@ export const SERVICES = [
         description: '最多 6 位同住家庭成員，各自享有無廣告與背景播放功能。',
         monthlyPrice: 479,
         maxSeats: 6,
+        tags: ['影音', '家庭共享', '無廣告', '背景播放', '離線下載'],
         features: [
           '最多 6 人共享（含主帳號），需同一住所',
           '全員享有無廣告影片播放',
@@ -90,6 +93,7 @@ export const SERVICES = [
         description: '含插播廣告，1080p 畫質，2 台裝置同時觀看。',
         monthlyPrice: 270,
         maxSeats: 2,
+        tags: ['影音', '1080p', '含廣告', '離線下載'],
         features: [
           'Full HD 1080p 畫質',
           '同時在 2 台裝置上串流',
@@ -104,6 +108,7 @@ export const SERVICES = [
         description: '無廣告，1080p 畫質，2 台裝置同時觀看，支援下載。',
         monthlyPrice: 380,
         maxSeats: 2,
+        tags: ['影音', '無廣告', '1080p', '離線下載'],
         features: [
           'Full HD 1080p 畫質',
           '同時在 2 台裝置上串流',
@@ -118,6 +123,7 @@ export const SERVICES = [
         description: '無廣告，4K+HDR 畫質，4 台裝置同時觀看，支援空間音訊。',
         monthlyPrice: 460,
         maxSeats: 4,
+        tags: ['影音', '4K', '無廣告', 'HDR', 'Dolby Atmos'],
         features: [
           '4K Ultra HD + HDR（含 Dolby Vision）畫質',
           '同時在 4 台裝置上串流',
@@ -147,6 +153,7 @@ export const SERVICES = [
         monthlyPrice: 270,
         yearlyPrice: 2790,
         maxSeats: 2,
+        tags: ['影音', '含廣告', 'Disney', 'Marvel', 'Star Wars'],
         features: [
           '4K UHD 畫質串流',
           '最多同時 4 台裝置串流',
@@ -161,6 +168,7 @@ export const SERVICES = [
         monthlyPrice: 320,
         yearlyPrice: 3280,
         maxSeats: 4,
+        tags: ['影音', '4K', '無廣告', 'Dolby Atmos', '離線下載'],
         features: [
           '4K UHD 畫質串流',
           '最多同時 4 台裝置串流',
@@ -190,6 +198,7 @@ export const SERVICES = [
         monthlyPrice: 65,
         yearlyPrice: 655,
         maxSeats: 5,
+        tags: ['雲端', '家庭共享', '100GB', 'VPN'],
         features: [
           '100GB 雲端儲存，適用 Google 相簿、雲端硬碟、Gmail',
           '最多 5 位家庭成員共享儲存空間，各自資料獨立',
@@ -205,6 +214,7 @@ export const SERVICES = [
         monthlyPrice: 330,
         yearlyPrice: 3326,
         maxSeats: 5,
+        tags: ['雲端', 'AI', '2TB', 'Gemini Advanced'],
         features: [
           '2TB 雲端儲存，適用 Google 相簿、雲端硬碟、Gmail',
           '最多 5 位家庭成員共享儲存與 AI 福利',
@@ -220,6 +230,7 @@ export const SERVICES = [
         monthlyPrice: 650,
         yearlyPrice: 6552,
         maxSeats: 5,
+        tags: ['雲端', 'AI', '5TB', 'Gemini Pro'],
         features: [
           '5TB 雲端儲存，適用 Google 相簿、雲端硬碟、Gmail',
           '最多 5 位家庭成員共享儲存與 AI 福利',
@@ -250,6 +261,7 @@ export const SERVICES = [
         monthlyPrice: 1920,
         yearlyPrice: 19200,
         maxSeats: 2,
+        tags: ['AI工具', 'GPT-4o', '團隊共享', 'AI繪圖'],
         features: [
           '存取 GPT-4o 及所有進階模型（o1、o3、GPT-4.5）',
           '進階資料分析（上傳 Excel、CSV、PDF 等）',
@@ -280,6 +292,7 @@ export const SERVICES = [
         monthlyPrice: 150,
         yearlyPrice: 1500,
         maxSeats: 6,
+        tags: ['影音', '家庭共享', 'Apple Original', '離線下載'],
         features: [
           '透過 Family Sharing 最多 6 人共享，無需額外費用',
           '每位成員擁有各自的個人化觀看偏好與紀錄',
@@ -308,6 +321,7 @@ export const SERVICES = [
         description: '1080p 畫質，3 台裝置同時觀看，含所有 HBO 及 Max 內容。',
         monthlyPrice: 270,
         maxSeats: 3,
+        tags: ['影音', '無廣告', '1080p', '離線下載'],
         features: [
           'Full HD 1080p 畫質',
           '同時最多 2 台裝置串流',
@@ -322,6 +336,7 @@ export const SERVICES = [
         description: '4K 畫質，4 台裝置同時觀看，支援 Dolby Vision 與離線下載。',
         monthlyPrice: 380,
         maxSeats: 4,
+        tags: ['影音', '4K', '無廣告', 'Dolby Atmos', '離線下載'],
         features: [
           '4K UHD + Dolby Vision 畫質',
           '同時最多 4 台裝置串流',
@@ -350,6 +365,7 @@ export const SERVICES = [
         description: '最多 5 人共享 Nitro 福利，含每人每月 2 個伺服器加成。',
         monthlyPrice: 325,
         maxSeats: 5,
+        tags: ['通訊', '家庭共享', 'HD畫質', '伺服器加成'],
         features: [
           '1 位方案擁有者 + 最多 5 位成員，共 6 人',
           '所有成員享有完整 Nitro 福利',
@@ -378,6 +394,7 @@ export const SERVICES = [
         description: '無廣告，4 台裝置同時觀看，支援離線下載。',
         monthlyPrice: 390,
         maxSeats: 4,
+        tags: ['影音', '動漫', '無廣告', '離線下載'],
         features: [
           '無廣告動漫串流',
           '最多同時 4 台裝置串流',
@@ -393,6 +410,7 @@ export const SERVICES = [
         description: '無廣告，6 台裝置同時觀看，額外享有實體周邊好禮折扣。',
         monthlyPrice: 520,
         maxSeats: 6,
+        tags: ['影音', '動漫', '無廣告', '離線下載', '周邊禮包'],
         features: [
           '包含所有 Mega Fan 功能',
           '最多同時 6 台裝置串流',
@@ -421,6 +439,7 @@ export const SERVICES = [
         monthlyPrice: 249,
         yearlyPrice: 2490,
         maxSeats: 6,
+        tags: ['音樂', '家庭共享', '無損音質', '離線下載', 'Dolby Atmos'],
         features: [
           '最多 6 位家庭成員共享，透過 Family Sharing 管理',
           '每位成員擁有獨立帳號，各自的音樂庫與播放清單',
@@ -450,6 +469,7 @@ export const SERVICES = [
         monthlyPrice: 249,
         yearlyPrice: 2190,
         maxSeats: 5,
+        tags: ['音樂', '家庭共享', '無廣告', '離線下載', '華語音樂'],
         features: [
           '3 人小家庭或 6 人大家庭方案可選',
           '每位成員擁有獨立帳號，音樂庫與推薦各自獨立',
@@ -478,6 +498,7 @@ export const SERVICES = [
         description: '2 人共享，享有 Claude 3.5 Sonnet 高優先使用權，含擴充上下文視窗功能。',
         monthlyPrice: 649,
         maxSeats: 2,
+        tags: ['AI工具', '2人共享', '長文本', '程式碼'],
         features: [
           '比免費方案多 5 倍以上的使用額度',
           '存取所有 Claude 模型，包含最新 Claude Opus',
@@ -508,6 +529,7 @@ export const SERVICES = [
         monthlyPrice: 975,
         yearlyPrice: 9360,
         maxSeats: 3,
+        tags: ['AI工具', 'AI繪圖', '3人共享', '商業授權'],
         features: [
           '每月 15 小時快速 GPU 運算時間',
           '無限 Relax 模式生成（不消耗快速時間，速度較慢）',
@@ -524,6 +546,7 @@ export const SERVICES = [
         monthlyPrice: 1950,
         yearlyPrice: 18720,
         maxSeats: 4,
+        tags: ['AI工具', 'AI繪圖', '隱私模式', '商業授權'],
         features: [
           '每月 30 小時快速 GPU 運算時間',
           '無限 Relax 模式生成',
@@ -553,6 +576,7 @@ export const SERVICES = [
         monthlyPrice: 649,
         yearlyPrice: 6500,
         maxSeats: 2,
+        tags: ['AI工具', 'AI搜尋', '2人共享', '多模型支援'],
         features: [
           '每日 300+ 次進階 AI 搜尋（Pro Search）',
           '可選擇 GPT-4o、Claude、Sonar Large 等多款 AI 模型',
@@ -582,6 +606,7 @@ export const SERVICES = [
         monthlyPrice: 649,
         yearlyPrice: 6240,
         maxSeats: 2,
+        tags: ['AI工具', 'AI編程', '2人共享', '程式碼補全'],
         features: [
           '無限 Tab 自動補全（不消耗點數）',
           '每月 $20 點數用於高級模型（Claude Sonnet、GPT-4o 等）',
@@ -598,6 +623,7 @@ export const SERVICES = [
         monthlyPrice: 1300,
         yearlyPrice: 12480,
         maxSeats: 4,
+        tags: ['AI工具', 'AI編程', '企業功能', '隱私保護'],
         features: [
           '包含所有 Pro 方案的 AI 功能',
           '強制執行隱私保護模式（程式碼零資料保留）',
@@ -627,6 +653,7 @@ export const SERVICES = [
         monthlyPrice: 329,
         yearlyPrice: 2990,
         maxSeats: 6,
+        tags: ['辦公', '家庭共享', '1TB儲存', 'Office全套'],
         features: [
           '最多 6 人使用，每人各自帳號',
           '完整 Microsoft 365 應用程式：Word、Excel、PowerPoint、Outlook 等',
@@ -655,6 +682,7 @@ export const SERVICES = [
         description: '包含所有 Adobe CC 應用程式，含 100GB 雲端儲存，適合全方位創作者。',
         monthlyPrice: 1800,
         maxSeats: 2,
+        tags: ['辦公', 'AI創作', '設計', 'Photoshop', 'Premiere Pro'],
         features: [
           '存取 20+ 款 Adobe 創意應用程式（Photoshop、Illustrator、Premiere Pro、After Effects 等）',
           '包含網頁版、行動版與 iPad 版 App 的完整存取',
@@ -669,6 +697,7 @@ export const SERVICES = [
         description: '選擇任一款 Adobe CC 應用程式，含 100GB 雲端儲存，適合專項創作需求。',
         monthlyPrice: 715,
         maxSeats: 2,
+        tags: ['辦公', '設計', 'AI創作', '單一軟體'],
         features: [
           '自選任一款 Adobe CC 應用程式（如 Photoshop 或 Illustrator）',
           '包含所選 App 的最新版本與定期更新',
@@ -697,6 +726,7 @@ export const SERVICES = [
         monthlyPrice: 1600,
         yearlyPrice: 16000,
         maxSeats: 5,
+        tags: ['辦公', '設計', '多人協作', 'AI設計', '品牌管理'],
         features: [
           '最少 3 人起，每位成員共享品牌素材庫',
           '最多 100 個品牌套件（Brand Kit），適合多品牌管理',
@@ -726,6 +756,7 @@ export const SERVICES = [
         monthlyPrice: 1920,
         yearlyPrice: 18432,
         maxSeats: 3,
+        tags: ['辦公', '知識管理', '多人協作', 'AI助理'],
         features: [
           '無限工作區成員，最多 250 個來賓席位',
           '無限版本歷史記錄',
@@ -755,6 +786,7 @@ export const SERVICES = [
         monthlyPrice: 90,
         yearlyPrice: 900,
         maxSeats: 5,
+        tags: ['雲端', '家庭共享', '200GB', '隱私保護'],
         features: [
           '200GB iCloud 儲存空間（可與最多 5 位家庭成員共享）',
           'iCloud Private Relay：隱藏 Safari IP 與瀏覽活動',
@@ -770,6 +802,7 @@ export const SERVICES = [
         monthlyPrice: 300,
         yearlyPrice: 2900,
         maxSeats: 5,
+        tags: ['雲端', '家庭共享', '2TB', '隱私保護'],
         features: [
           '2TB iCloud 儲存空間（可與最多 5 位家庭成員共享）',
           'iCloud Private Relay：隱藏 Safari IP 與瀏覽活動',
@@ -797,6 +830,7 @@ export const SERVICES = [
         description: '最多 6 人，共享 2TB 儲存空間，各自獨立帳號與私人資料夾。',
         monthlyPrice: 650,
         maxSeats: 6,
+        tags: ['雲端', '家庭共享', '2TB', '版本歷史'],
         features: [
           '最多 6 位成員，各自獨立帳號與私人資料夾',
           '2TB 共享儲存空間',
@@ -825,6 +859,7 @@ export const SERVICES = [
         description: '最多 6 人，各自保有獨立學習進度與語言課程，共享 Super 無廣告功能。',
         monthlyPrice: 499,
         maxSeats: 6,
+        tags: ['學習', '家庭共享', '無廣告', '語言學習'],
         features: [
           '主帳號 + 最多 5 位成員，共 6 人，各自獨立進度',
           '無廣告語言學習體驗',
@@ -853,6 +888,7 @@ export const SERVICES = [
         description: '2 人共享，無限觀看所有 MasterClass 課程，支援多裝置離線下載。',
         monthlyPrice: 488,
         maxSeats: 2,
+        tags: ['學習', '2人共享', '離線下載', '名師課程'],
         features: [
           '2 人各自獨立帳號，同時在 2 台裝置串流',
           '完整存取所有 MasterClass 課程（200+ 門，涵蓋各領域）',
@@ -867,6 +903,7 @@ export const SERVICES = [
         description: '最多 6 人共享，各自獨立帳號，無限觀看所有課程內容。',
         monthlyPrice: 650,
         maxSeats: 6,
+        tags: ['學習', '家庭共享', '離線下載', '名師課程'],
         features: [
           '最多 6 人各自獨立帳號，同時在 6 台裝置串流',
           '完整存取所有 MasterClass 課程（200+ 門，涵蓋各領域）',
@@ -895,6 +932,7 @@ export const SERVICES = [
         monthlyPrice: 98,
           yearlyPrice: 1179,
         maxSeats: 8,
+        tags: ['遊戲', '家庭共享', '線上對戰', '經典遊戲庫'],
         features: [
           '最多 8 個 Nintendo Account 共享（12 個月方案）',
           'Nintendo Switch 線上多人連線對戰',
@@ -911,6 +949,7 @@ export const SERVICES = [
         monthlyPrice: 200,
         yearlyPrice: 2399,
         maxSeats: 8,
+        tags: ['遊戲', '家庭共享', '線上對戰', 'N64', 'DLC內容'],
         features: [
           '包含所有基本方案功能（NES、SNES、Game Boy 遊戲庫）',
           'Nintendo 64 經典遊戲庫（含線上對戰功能）',
@@ -938,6 +977,7 @@ export const SERVICES = [
         description: '6 台裝置，VPN 核心功能與惡意廣告封鎖，適合基本隱私保護需求。',
         monthlyPrice: 375,
         maxSeats: 6,
+        tags: ['VPN', '廣告封鎖', '隱私保護', '全球節點'],
         features: [
           '最多 10 台裝置同時連線',
           '存取全球 7,000+ 台伺服器（110+ 個國家）',
@@ -953,6 +993,7 @@ export const SERVICES = [
         description: '6 台裝置，含密碼管理器與進階惡意軟體掃描功能。',
         monthlyPrice: 487,
         maxSeats: 6,
+        tags: ['VPN', '密碼管理', '廣告封鎖', '隱私保護'],
         features: [
           '包含所有 Basic 方案功能',
           'Threat Protection Pro：進階廣告與惡意軟體防護',
@@ -966,6 +1007,7 @@ export const SERVICES = [
         description: '6 台裝置，含 1TB 雲端備份、網路威脅防護與身份盜竊警示。',
         monthlyPrice: 650,
         maxSeats: 6,
+        tags: ['VPN', '雲端備份', '身份保護', '隱私保護'],
         features: [
           '包含所有 Plus 方案功能',
           'NordLocker 1TB 加密雲端儲存空間',
@@ -993,6 +1035,7 @@ export const SERVICES = [
         description: '5 台裝置同時連線，彈性月付，無需長期綁約。',
         monthlyPrice: 390,
         maxSeats: 5,
+        tags: ['VPN', '高速', '解鎖地區限制', '彈性月付'],
         features: [
           '存取 3,000+ 台伺服器（105 個國家）',
           '最多 10 台裝置同時連線',
@@ -1008,6 +1051,7 @@ export const SERVICES = [
         description: '5 台裝置同時連線，年繳享優惠，費用約為月繳的 67%。',
         monthlyPrice: 260,
         maxSeats: 5,
+        tags: ['VPN', '高速', '解鎖地區限制', '年繳優惠'],
         features: [
           '包含所有月繳方案功能',
           '存取 3,000+ 台伺服器（105 個國家）',
@@ -1037,6 +1081,7 @@ export const SERVICES = [
         description: 'Apple Music + Apple TV+ + Apple Arcade + 50GB iCloud+，適合單人使用。',
         monthlyPrice: 245,
         maxSeats: 1,
+        tags: ['套組', 'Apple Music', 'Apple TV+', 'Apple Arcade'],
         features: [
           'Apple Music（個人）：1 億首歌曲，無廣告',
           'Apple TV+：全部 Apple 自製原創電影與影集',
@@ -1051,6 +1096,7 @@ export const SERVICES = [
         description: 'Apple Music + Apple TV+ + Apple Arcade + 200GB iCloud+，最多 6 位家庭成員共享。',
         monthlyPrice: 375,
         maxSeats: 6,
+        tags: ['套組', '家庭共享', 'Apple Music', 'Apple TV+'],
         features: [
           '透過 Family Sharing 最多 6 位家庭成員共享',
           'Apple Music（家庭）：最多 6 人各自獨立帳號',

@@ -1,9 +1,11 @@
+import { createPortal } from 'react-dom'
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ChevronLeft,
   ChevronRight,
   AlertCircle,
+  CheckCircle2,
   Eye,
   Info,
   PlusCircle,
@@ -43,9 +45,10 @@ const INITIAL_FORM = {
 
 function mapFormToGroup(form) {
   const service = getServiceById(form.serviceId);
+  const plan = service?.plans.find(p => p.name === form.planName);
   const totalSeats = form.totalSeats;
   const rules = form.rules.map((r) => r.trim()).filter(Boolean);
-  const tags = [service?.category].filter(Boolean);
+  const tags = [...new Set([...(plan?.tags ?? []), service?.category].filter(Boolean))];
 
   return {
     serviceId: form.serviceId,
@@ -209,9 +212,38 @@ export default function CreateGroupModal() {
   if (showLoginPrompt) return <LoginPromptModal onClose={() => setShowLoginPrompt(false)} />
   if (!isOpen) return null;
 
+  if (submitted) return createPortal(
+    <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/50 p-4 sm:items-center">
+      <div className="w-full max-w-sm animate-fade-in-up rounded-2xl bg-white p-6 shadow-2xl text-center">
+        <div className="flex justify-center mb-4">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
+            <CheckCircle2 size={28} className="text-emerald-500" />
+          </div>
+        </div>
+        <h3 className="text-lg font-extrabold text-ink mb-1">群組已成功上架！</h3>
+        <p className="text-sm text-ink-3 leading-relaxed">你的群組現在已開放招募成員</p>
+        <div className="mt-6 flex gap-3">
+          <button
+            onClick={() => setIsOpen(false)}
+            className="flex-1 rounded-xl border border-line py-2.5 text-sm font-bold text-ink transition-colors hover:bg-raised"
+          >
+            關閉
+          </button>
+          <button
+            onClick={() => { setIsOpen(false); navigate('/manage-groups'); }}
+            className="flex-1 rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
+          >
+            前往群組管理
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  )
+
   const StepComponent = STEP_COMPONENTS[step - 1];
 
-  const headerEnd = !submitted && step < 4 && !showPreview && (
+  const headerEnd = step < 4 && !showPreview && (
     <button
       onClick={() => setShowPreview(true)}
       className="lg:hidden flex items-center gap-1.5 rounded-full border border-line px-3 h-8 text-xs font-bold text-ink-2 transition-colors hover:bg-raised hover:text-ink mr-2"
@@ -222,7 +254,7 @@ export default function CreateGroupModal() {
     </button>
   );
 
-  const footer = !submitted && (
+  const footer = (
     <>
       <Button variant="secondary" size="md" className="flex-1" onClick={handleBack}>
         <ChevronLeft size={15} />
@@ -256,27 +288,7 @@ export default function CreateGroupModal() {
       </div>
 
       <div className="flex-1 overflow-y-auto px-6 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {submitted ? (
-          <div className="flex flex-col items-center justify-center gap-5 py-16 px-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
-              <svg className="h-8 w-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <div className="text-center">
-              <h2 className="page-title">群組已成功上架！</h2>
-              <p className="mt-1 text-sm text-slate-500">你的群組現在已開放招募成員</p>
-            </div>
-            <div className="flex flex-col items-center gap-2 w-full max-w-xs">
-              <Button variant="primary" size="md" className="w-full" onClick={() => { setIsOpen(false); navigate('/manage-groups'); }}>
-                前往群組管理
-              </Button>
-              <Button variant="secondary" size="md" className="w-full" onClick={() => setIsOpen(false)}>
-                繼續留在此頁
-              </Button>
-            </div>
-          </div>
-        ) : (() => {
+        {(() => {
             const service = getServiceById(form.serviceId)
             const desc = step === 1
               ? service?.description

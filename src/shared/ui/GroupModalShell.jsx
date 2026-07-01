@@ -148,8 +148,8 @@ export default function GroupModalShell({
                     <div>
                       <p className="mb-0.5 text-xs font-medium text-ink-4">每席價格</p>
                       <div className="flex items-baseline gap-1">
-                        <span className="text-2xl font-extrabold text-ink">NT${group.pricePerSeat}</span>
-                        <span className="text-sm text-ink-3">/每月</span>
+                        <span className="text-2xl font-extrabold text-ink">NT${group.billingCycle === 'yearly' ? group.pricePerSeat * 12 : group.pricePerSeat}</span>
+                        <span className="text-sm text-ink-3">{group.billingCycle === 'yearly' ? '/年' : '/月'}</span>
                       </div>
                     </div>
                     <div className="text-right">

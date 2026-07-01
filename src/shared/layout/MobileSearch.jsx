@@ -177,7 +177,7 @@ export default function MobileSearch() {
                     <ServiceLogo serviceId={group.serviceId} size={36} className="shrink-0" />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-bold text-ink">{group.serviceName}</p>
-                      <p className="truncate text-xs text-ink-3">{group.planName} · NT${group.pricePerSeat}/月</p>
+                      <p className="truncate text-xs text-ink-3">{group.planName} · NT${group.billingCycle === 'yearly' ? group.pricePerSeat * 12 : group.pricePerSeat}/{group.billingCycle === 'yearly' ? '年' : '月'}</p>
                     </div>
                     <span className="shrink-0 rounded-full bg-raised px-2 py-0.5 text-xs font-bold text-ink-3">
                       審核

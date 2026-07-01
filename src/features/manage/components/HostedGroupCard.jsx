@@ -91,8 +91,8 @@ function HostedGroupCard({
         <h2 className="text-xl font-black leading-tight text-ink">{group.serviceName}</h2>
         <p className="mt-1 text-sm font-semibold text-ink-3">{group.planName}</p>
         <p className="mt-1 text-base font-extrabold text-ink">
-          NT${group.pricePerSeat}
-          <span className="ml-1 text-xs font-normal text-ink-4">/席/月</span>
+          NT${group.billingCycle === 'yearly' ? group.pricePerSeat * 12 : group.pricePerSeat}
+          <span className="ml-1 text-xs font-normal text-ink-4">{group.billingCycle === 'yearly' ? '/席/年' : '/席/月'}</span>
         </p>
       </div>
 

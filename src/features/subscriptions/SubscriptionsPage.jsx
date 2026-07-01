@@ -39,6 +39,7 @@ function enrichSubs(rawSubs) {
       serviceId:         s.serviceId    || group.serviceId,
       planName:          s.planName     || group.planName,
       pricePerSeat:      s.pricePerSeat || group.pricePerSeat,
+      billingCycle:      s.billingCycle || group.billingCycle,
       hostName:          s.hostName     || group.hostName,
       hostAvatarInitial: s.hostAvatarInitial || group.hostAvatarInitial,
       hostAvatarColor:   s.hostAvatarColor   || group.hostAvatarColor,
@@ -309,8 +310,8 @@ function ApplicationCard({ app, group, onViewGroup }) {
         <p className="mt-1 text-sm font-semibold text-ink-3">{app.planName}</p>
         {group.pricePerSeat != null && (
           <p className="mt-1 text-base font-extrabold text-ink">
-            NT${group.pricePerSeat}
-            <span className="ml-1 text-xs font-normal text-ink-4">/席/月</span>
+            NT${group.billingCycle === 'yearly' ? group.pricePerSeat * 12 : group.pricePerSeat}
+            <span className="ml-1 text-xs font-normal text-ink-4">{group.billingCycle === 'yearly' ? '/席/年' : '/席/月'}</span>
           </p>
         )}
       </div>

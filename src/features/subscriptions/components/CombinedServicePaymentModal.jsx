@@ -141,8 +141,8 @@ export default function CombinedServicePaymentModal({ isOpen, onClose, group, me
                     <p className="text-xs text-ink-3">{sub.planName}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-extrabold text-ink">NT${sub.pricePerSeat}</p>
-                    <p className="text-xs text-ink-4">/席/月</p>
+                    <p className="text-lg font-extrabold text-ink">NT${group.billingCycle === 'yearly' ? sub.pricePerSeat * 12 : sub.pricePerSeat}</p>
+                    <p className="text-xs text-ink-4">{group.billingCycle === 'yearly' ? '/席/年' : '/席/月'}</p>
                   </div>
                 </div>
 

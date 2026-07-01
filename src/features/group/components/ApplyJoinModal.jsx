@@ -64,8 +64,10 @@ export default function ApplyJoinModal({ group, isOpen, onClose, onSuccess, onDo
                 </div>
               </div>
               <div className="text-right shrink-0">
-                <span className="text-xl font-extrabold text-brand">NT${group?.pricePerSeat}</span>
-                <span className="text-xs text-ink-3"> /月</span>
+                <p className="text-xl font-extrabold text-brand">
+                  NT${group?.billingCycle === 'yearly' ? group.pricePerSeat * 12 : group?.pricePerSeat}
+                  <span className="ml-0.5 text-xs font-normal text-ink-3">{group?.billingCycle === 'yearly' ? '/年' : '/月'}</span>
+                </p>
               </div>
             </div>
             <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-3">
