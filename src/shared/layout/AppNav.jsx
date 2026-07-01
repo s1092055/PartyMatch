@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useState } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Bell, Lock, LogIn, Menu, MessageSquare, Search, X } from 'lucide-react'
 import logoUrl from '../../assets/Logo.svg'
 import { useAuthStore } from '../stores/useAuthStore'
@@ -51,6 +51,7 @@ function LockedHint({ className = '' }) {
 
 export default function AppNav({ variant = 'side' }) {
   const navigate = useNavigate()
+  const { pathname } = useLocation()
 
   const loggedIn = useAuthStore(s => s.loggedIn)
   const currentUser = useAuthStore(s => s.user)
@@ -167,22 +168,21 @@ export default function AppNav({ variant = 'side' }) {
       )
     }
 
+    const isActive = pathname === item.to
     return (
-      <NavLink
+      <a
         key={item.to}
-        to={item.to}
+        href={item.to}
         onClick={closeAll}
-        className={({ isActive }) =>
-          `flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm transition-all hover:-translate-y-0.5 active:scale-[0.96] ${
-            isActive
-              ? 'bg-brand-subtle font-extrabold text-brand'
-              : 'font-bold text-ink-2 hover:bg-raised hover:text-brand'
-          }`
-        }
+        className={`flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm transition-all hover:-translate-y-0.5 active:scale-[0.96] ${
+          isActive
+            ? 'bg-brand-subtle font-extrabold text-brand'
+            : 'font-bold text-ink-2 hover:bg-raised hover:text-brand'
+        }`}
       >
         <item.icon size={20} strokeWidth={2.1} />
         {item.label}
-      </NavLink>
+      </a>
     )
   }
 
@@ -257,18 +257,17 @@ export default function AppNav({ variant = 'side' }) {
       )
     }
 
+    const isActive = pathname === item.to
     return (
-      <NavLink
+      <a
         key={item.to}
-        to={item.to}
+        href={item.to}
         onClick={closeAll}
-        className={({ isActive }) =>
-          `flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-[0.95rem] transition-all hover:-translate-y-0.5 active:scale-[0.96] ${
-            isActive
-              ? 'bg-brand-subtle font-extrabold text-brand'
-              : 'font-bold text-ink-2 hover:bg-raised hover:text-brand'
-          }`
-        }
+        className={`flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-[0.95rem] transition-all hover:-translate-y-0.5 active:scale-[0.96] ${
+          isActive
+            ? 'bg-brand-subtle font-extrabold text-brand'
+            : 'font-bold text-ink-2 hover:bg-raised hover:text-brand'
+        }`}
       >
         <span className="grid h-9 w-9 shrink-0 place-items-center">
           <item.icon size={22} strokeWidth={2.1} />
@@ -276,7 +275,7 @@ export default function AppNav({ variant = 'side' }) {
         <span className="whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
           {item.label}
         </span>
-      </NavLink>
+      </a>
     )
   }
 
