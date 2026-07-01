@@ -1,12 +1,11 @@
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Bell, Lock, LogIn, Menu, MessageSquare, Search, X } from 'lucide-react'
+import { Bell, Compass, CreditCard, LayoutGrid, Lock, LogIn, MessageSquare, PlusCircle, Search, Zap } from 'lucide-react'
 import logoUrl from '../../assets/Logo.svg'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useNotificationStore } from '../stores/useNotificationStore'
 import { useConversationStore } from '../stores/useConversationStore'
 import { NAV_SECTIONS } from '../constants/nav'
-import { useScrollLock } from '../utils/hooks'
 
 const LOCKED_MESSAGE = '請先登入會員'
 
@@ -17,11 +16,6 @@ function Badge({ count }) {
       {count > 99 ? '99+' : count}
     </span>
   )
-}
-
-function RedDot({ show }) {
-  if (!show) return null
-  return <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500" />
 }
 
 const PROTECTED_NAV_ROUTES = new Set([
@@ -49,7 +43,7 @@ function LockedHint({ className = '' }) {
   )
 }
 
-export default function AppNav({ variant = 'side' }) {
+export default function AppNav() {
   const navigate = useNavigate()
   const { pathname } = useLocation()
 
@@ -60,24 +54,12 @@ export default function AppNav({ variant = 'side' }) {
   const avatarInitial = userName[0] ?? 'U'
   const avatarColor = currentUser?.avatarColor ?? null
 
-  const [drawerOpen, setDrawerOpen] = useState(false)
   const unreadNotifs = useNotificationStore(s => loggedIn && currentUser?.id ? s.getUnreadCount(currentUser.id) : 0)
   const unreadMsgs = useConversationStore(s => loggedIn && currentUser?.id ? s.getUnreadMsgCount(currentUser.id) : 0)
 
-  useEffect(() => {
-    function onKeyDown(e) {
-      if (e.key === 'Escape') { setDrawerOpen(false) }
-    }
-    document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
-  }, [])
-
-  useScrollLock(drawerOpen)
-
-  function closeAll() { setDrawerOpen(false); document.activeElement?.blur() }
+  function closeAll() { document.activeElement?.blur() }
 
   function openSearch() {
-    setDrawerOpen(false)
     document.activeElement?.blur()
     window.dispatchEvent(new CustomEvent('pm:open-search'))
   }
@@ -114,76 +96,6 @@ export default function AppNav({ variant = 'side' }) {
 
   function isGuestLocked(item) {
     return !loggedIn && isProtectedNavItem(item)
-  }
-
-  function renderDrawerItem(item) {
-    if (isGuestLocked(item)) {
-      const Icon = item.icon ?? Lock
-      const redirectTo = item.type === 'create' ? '/create-group' : item.to
-
-      return (
-        <button
-          key={getNavItemKey(item)}
-          type="button"
-          aria-label={`${item.label}，${LOCKED_MESSAGE}`}
-          title={LOCKED_MESSAGE}
-          onClick={e => preventLockedAction(e, redirectTo)}
-          className="group/locked relative flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-4 transition-colors hover:!translate-y-0 hover:bg-raised active:!scale-100"
-        >
-          <Icon size={20} strokeWidth={2.1} />
-          <span className="flex-1 text-left">{item.label}</span>
-          <Lock size={15} strokeWidth={2.2} className="shrink-0" />
-          <LockedHint className="right-3 top-1/2 -translate-y-1/2" />
-        </button>
-      )
-    }
-
-    if (item.type === 'search') {
-      return (
-        <button key="search" onClick={openSearch}
-          className="flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-2 transition-all hover:bg-raised hover:text-brand">
-          <Search size={20} strokeWidth={2.1} />
-          搜尋
-        </button>
-      )
-    }
-
-    if (item.type === 'create') {
-      return (
-        <button key="create" onClick={openCreate}
-          className="flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-2 transition-all hover:bg-raised hover:text-brand">
-          <item.icon size={20} strokeWidth={2.1} />
-          {item.label}
-        </button>
-      )
-    }
-
-    if (item.type === 'match') {
-      return (
-        <button key="match" onClick={openMatch}
-          className="flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm font-bold text-ink-2 transition-all hover:bg-raised hover:text-brand">
-          <item.icon size={20} strokeWidth={2.1} />
-          {item.label}
-        </button>
-      )
-    }
-
-    const isActive = pathname === item.to
-    return (
-      <a
-        key={item.to}
-        href={item.to}
-        onClick={closeAll}
-        className={`flex h-12 w-full items-center gap-3 rounded-2xl px-3 text-sm transition-all hover:-translate-y-0.5 active:scale-[0.96] ${
-          isActive
-            ? 'bg-brand-subtle font-extrabold text-brand'
-            : 'font-bold text-ink-2 hover:bg-raised hover:text-brand'
-        }`}
-      >
-        <item.icon size={20} strokeWidth={2.1} />
-        {item.label}
-      </a>
-    )
   }
 
   function renderSideItem(item) {
@@ -308,93 +220,6 @@ export default function AppNav({ variant = 'side' }) {
     )
   }
 
-  if (variant === 'top') {
-    return (
-      <>
-        {/* Floating menu button */}
-        <button
-          onClick={() => setDrawerOpen(true)}
-          className="fixed right-6 top-4 z-50 flex h-10 w-10 items-center justify-center rounded-full border border-line bg-white shadow-sm text-ink-2 transition-all hover:bg-raised hover:text-ink"
-          aria-label="開啟選單"
-        >
-          <Menu size={20} strokeWidth={2} />
-        </button>
-
-        {/* Shared drawer overlay */}
-        <div
-          onClick={() => setDrawerOpen(false)}
-          className={`fixed inset-0 z-50 bg-black/50 transition-opacity duration-300 ${
-            drawerOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
-          }`}
-        />
-
-        {/* Shared drawer */}
-        <div
-          className={`fixed inset-y-0 right-0 z-[51] flex w-72 flex-col bg-white shadow-2xl transition-transform duration-300 ease-out ${
-            drawerOpen ? 'translate-x-0' : 'translate-x-full'
-          }`}
-        >
-          <div className="flex h-14 shrink-0 items-center justify-between border-b border-line px-4">
-            <span className="text-base font-extrabold">
-              <span className="text-brand">Party</span><span className="text-ink">Match</span>
-            </span>
-            <button
-              onClick={() => setDrawerOpen(false)}
-              className="grid h-11 w-11 place-items-center rounded-full text-ink-3 transition-all hover:bg-raised hover:text-ink"
-              aria-label="關閉選單"
-            >
-              <X size={20} />
-            </button>
-          </div>
-
-          <nav className="flex-1 overflow-y-auto px-3 py-4">
-            {NAV_SECTIONS.map((section, i) => (
-              <Fragment key={section.label}>
-                {i > 0 && <div className="my-2 h-px bg-line-subtle" />}
-                <p className="mb-1 mt-1 px-3 text-xs font-extrabold uppercase tracking-widest text-ink-4">
-                  {section.label}
-                </p>
-                {section.items.map(renderDrawerItem)}
-              </Fragment>
-            ))}
-          </nav>
-
-          <div className="shrink-0 border-t border-line px-3 pb-8 pt-3">
-            {loggedIn ? (
-              <Link
-                to="/account"
-                onClick={closeAll}
-                className="flex h-14 w-full items-center gap-3 rounded-2xl px-3 text-left transition-all hover:bg-raised"
-                aria-label="前往帳號中心"
-              >
-                <span
-                  className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-black text-white shadow-md"
-                  style={{ background: avatarColor ?? 'linear-gradient(135deg, #cbd5e1, #64748b)' }}
-                >
-                  {avatarInitial}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-extrabold text-ink">{userName}</p>
-                  <p className="truncate text-xs text-ink-3">{userEmail}</p>
-                </div>
-              </Link>
-            ) : (
-              <Link
-                to="/login"
-                onClick={closeAll}
-                className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-brand text-sm font-bold text-white transition-all hover:-translate-y-0.5 active:scale-[0.96] hover:bg-brand-hover"
-              >
-                <LogIn size={18} strokeWidth={2.1} />
-                登入
-              </Link>
-            )}
-          </div>
-        </div>
-
-      </>
-    )
-  }
-
   return (
     <>
       {/* Desktop action buttons — fixed top-right */}
@@ -493,6 +318,36 @@ export default function AppNav({ variant = 'side' }) {
         </a>
         <div className="flex items-center gap-1">
           <button
+            onClick={openSearch}
+            className="relative grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink"
+            aria-label="搜尋"
+          >
+            <Search size={22} strokeWidth={2} />
+          </button>
+          <div className="relative">
+            {loggedIn ? (
+              <button
+                onClick={openMessages}
+                className="relative grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink"
+                aria-label="訊息"
+              >
+                <MessageSquare size={22} strokeWidth={2} />
+                <Badge count={unreadMsgs} />
+              </button>
+            ) : (
+              <button
+                type="button"
+                aria-disabled="true"
+                aria-label={`訊息，${LOCKED_MESSAGE}`}
+                onClick={preventLockedAction}
+                className="group/locked relative grid h-10 w-10 cursor-not-allowed place-items-center rounded-full text-ink-4"
+              >
+                <MessageSquare size={22} strokeWidth={2} className="opacity-55" />
+                <Lock size={11} strokeWidth={2.3} className="absolute right-1.5 top-1.5 rounded-full bg-white" />
+              </button>
+            )}
+          </div>
+          <button
             onClick={openNotify}
             className="relative grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink"
             aria-label="通知中心"
@@ -500,117 +355,102 @@ export default function AppNav({ variant = 'side' }) {
             <Bell size={22} strokeWidth={2} />
             <Badge count={unreadNotifs} />
           </button>
-          <button
-            onClick={() => setDrawerOpen(v => !v)}
-            className="relative grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink"
-            aria-label="開啟選單"
-          >
-            <Menu size={22} strokeWidth={2} />
-            <RedDot show={unreadMsgs > 0 && !drawerOpen} />
-          </button>
         </div>
       </header>
 
-      {/* Mobile overlay */}
-      <div
-        onClick={() => setDrawerOpen(false)}
-        className={`fixed inset-0 z-50 bg-black/50 transition-opacity duration-300 md:hidden ${
-          drawerOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
-        }`}
-      />
-
-      {/* Mobile drawer */}
-      <div
-        className={`fixed inset-y-0 right-0 z-[51] flex w-72 flex-col bg-white shadow-2xl transition-transform duration-300 ease-out md:hidden ${
-          drawerOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
+      {/* Mobile bottom dock */}
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-50 border-t border-line bg-white md:hidden"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
-        <div className="flex h-14 shrink-0 items-center justify-between border-b border-line px-4">
-          <span className="text-base font-extrabold">
-            <span className="text-brand">Party</span><span className="text-ink">Match</span>
-          </span>
-          <button
-            onClick={() => setDrawerOpen(false)}
-            className="grid h-11 w-11 place-items-center rounded-full text-ink-3 transition-all hover:bg-raised hover:text-ink"
-            aria-label="關閉選單"
-          >
-            <X size={20} />
-          </button>
-        </div>
+        <div className="flex h-16 items-stretch">
 
-        <nav className="flex-1 overflow-y-auto px-3 py-4">
-          {/* 訊息快捷按鈕 */}
-          <div className="mb-3">
+          {/* 探索 */}
+          <a
+            href="/explore"
+            className={`flex flex-1 flex-col items-center justify-center gap-0.5 text-[0.65rem] font-bold transition-colors ${pathname === '/explore' ? 'text-brand' : 'text-ink-3'}`}
+          >
+            <Compass size={22} strokeWidth={2.1} />
+            探索
+          </a>
+
+          {/* 快速配對 */}
+          <button
+            onClick={openMatch}
+            className="flex flex-1 flex-col items-center justify-center gap-0.5 text-[0.65rem] font-bold text-ink-3 transition-colors active:scale-95"
+          >
+            <Zap size={22} strokeWidth={2.1} />
+            配對
+          </button>
+
+          {/* 建立群組 — 中央圓形按鈕 */}
+          <div className="flex flex-1 items-center justify-center">
             {loggedIn ? (
               <button
-                onClick={openMessages}
-                className="relative flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-raised text-sm font-bold text-ink-2 transition-colors hover:bg-line-subtle hover:text-brand"
+                onClick={openCreate}
+                className="flex h-12 w-12 items-center justify-center rounded-full bg-brand text-white shadow-lg transition-all active:scale-95 hover:bg-brand-hover"
+                aria-label="建立群組"
               >
-                <MessageSquare size={18} strokeWidth={2.1} />
-                訊息
-                <Badge count={unreadMsgs} />
+                <PlusCircle size={24} strokeWidth={2} />
               </button>
             ) : (
               <button
-                type="button"
-                aria-disabled="true"
-                title={LOCKED_MESSAGE}
-                onClick={preventLockedAction}
-                className="group/locked relative flex h-12 w-full cursor-not-allowed items-center justify-center gap-2 rounded-2xl bg-raised text-sm font-bold text-ink-4"
+                onClick={e => preventLockedAction(e, '/create-group')}
+                className="group/locked relative flex h-12 w-12 items-center justify-center rounded-full bg-brand/50 text-white shadow-md"
+                aria-label={`建立群組，${LOCKED_MESSAGE}`}
               >
-                <MessageSquare size={18} strokeWidth={2.1} className="opacity-55" />
-                訊息
-                <Lock size={11} strokeWidth={2.3} className="absolute right-2 top-2 rounded-full bg-raised text-ink-4" />
-                <LockedHint className="left-1/2 top-full mt-1 -translate-x-1/2" />
+                <PlusCircle size={24} strokeWidth={2} />
+                <Lock size={10} strokeWidth={2.5} className="absolute right-0.5 top-0.5 rounded-full bg-white p-0.5 text-ink-4" />
               </button>
             )}
           </div>
-          <div className="mb-2 h-px bg-line-subtle" />
 
-          {NAV_SECTIONS.map((section, i) => (
-            <Fragment key={section.label}>
-              {i > 0 && <div className="my-2 h-px bg-line-subtle" />}
-              <p className="mb-1 mt-1 px-3 text-xs font-extrabold uppercase tracking-widest text-ink-4">
-                {section.label}
-              </p>
-              {section.items.map(renderDrawerItem)}
-            </Fragment>
-          ))}
-        </nav>
-
-        <div className="shrink-0 border-t border-line px-3 pb-8 pt-3">
+          {/* 我的訂閱 */}
           {loggedIn ? (
-            <Link
-              to="/account"
-              onClick={closeAll}
-              className="flex h-14 w-full items-center gap-3 rounded-2xl px-3 text-left transition-all hover:bg-raised"
-              aria-label="前往帳號中心"
+            <a
+              href="/my-subscriptions"
+              className={`flex flex-1 flex-col items-center justify-center gap-0.5 text-[0.65rem] font-bold transition-colors ${pathname === '/my-subscriptions' ? 'text-brand' : 'text-ink-3'}`}
             >
-              <span
-                className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-black text-white shadow-md"
-                style={{ background: avatarColor ?? 'linear-gradient(135deg, #cbd5e1, #64748b)' }}
-              >
-                {avatarInitial}
-                <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-extrabold text-ink">{userName}</p>
-                <p className="truncate text-xs text-ink-3">{userEmail}</p>
-              </div>
-            </Link>
+              <CreditCard size={22} strokeWidth={2.1} />
+              訂閱
+            </a>
           ) : (
-            <Link
-              to="/login"
-              onClick={closeAll}
-              className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-brand text-sm font-bold text-white transition-all hover:-translate-y-0.5 active:scale-[0.96] hover:bg-brand-hover"
+            <button
+              onClick={e => preventLockedAction(e, '/my-subscriptions')}
+              className="flex flex-1 flex-col items-center justify-center gap-0.5 text-[0.65rem] font-bold text-ink-4"
             >
-              <LogIn size={18} strokeWidth={2.1} />
-              登入
-            </Link>
+              <span className="relative">
+                <CreditCard size={22} strokeWidth={2.1} />
+                <Lock size={9} strokeWidth={2.5} className="absolute -right-1 -top-0.5 rounded-full bg-white text-ink-4" />
+              </span>
+              訂閱
+            </button>
           )}
-        </div>
-      </div>
 
+          {/* 群組管理 */}
+          {loggedIn ? (
+            <a
+              href="/manage-groups"
+              className={`flex flex-1 flex-col items-center justify-center gap-0.5 text-[0.65rem] font-bold transition-colors ${pathname === '/manage-groups' ? 'text-brand' : 'text-ink-3'}`}
+            >
+              <LayoutGrid size={22} strokeWidth={2.1} />
+              管理
+            </a>
+          ) : (
+            <button
+              onClick={e => preventLockedAction(e, '/manage-groups')}
+              className="flex flex-1 flex-col items-center justify-center gap-0.5 text-[0.65rem] font-bold text-ink-4"
+            >
+              <span className="relative">
+                <LayoutGrid size={22} strokeWidth={2.1} />
+                <Lock size={9} strokeWidth={2.5} className="absolute -right-1 -top-0.5 rounded-full bg-white text-ink-4" />
+              </span>
+              管理
+            </button>
+          )}
+
+        </div>
+      </nav>
     </>
   )
 }
