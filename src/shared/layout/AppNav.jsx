@@ -368,7 +368,7 @@ export default function AppNav() {
           {/* 探索 */}
           <a
             href="/explore"
-            className={`flex flex-1 flex-col items-center justify-center gap-0.5 text-[0.65rem] font-bold transition-colors ${pathname === '/explore' ? 'text-brand' : 'text-ink-3'}`}
+            className={`flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold transition-colors ${pathname === '/explore' ? 'text-brand' : 'text-ink-3'}`}
           >
             <Compass size={22} strokeWidth={2.1} />
             探索
@@ -377,39 +377,39 @@ export default function AppNav() {
           {/* 快速配對 */}
           <button
             onClick={openMatch}
-            className="flex flex-1 flex-col items-center justify-center gap-0.5 text-[0.65rem] font-bold text-ink-3 transition-colors active:scale-95"
+            className="flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold text-ink-3 transition-colors active:text-brand"
           >
             <Zap size={22} strokeWidth={2.1} />
             配對
           </button>
 
           {/* 建立群組 — 中央圓形按鈕 */}
-          <div className="flex flex-1 items-center justify-center">
+          <div className="flex flex-1 flex-col items-center justify-center gap-1">
             {loggedIn ? (
               <button
                 onClick={openCreate}
-                className="flex h-12 w-12 items-center justify-center rounded-full bg-brand text-white shadow-lg transition-all active:scale-95 hover:bg-brand-hover"
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-brand text-white shadow-lg transition-all active:scale-95 hover:bg-brand-hover"
                 aria-label="建立群組"
               >
-                <PlusCircle size={24} strokeWidth={2} />
+                <PlusCircle size={22} strokeWidth={2} />
               </button>
             ) : (
               <button
                 onClick={e => preventLockedAction(e, '/create-group')}
-                className="group/locked relative flex h-12 w-12 items-center justify-center rounded-full bg-brand/50 text-white shadow-md"
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-brand text-white shadow-md opacity-50"
                 aria-label={`建立群組，${LOCKED_MESSAGE}`}
               >
-                <PlusCircle size={24} strokeWidth={2} />
-                <Lock size={10} strokeWidth={2.5} className="absolute right-0.5 top-0.5 rounded-full bg-white p-0.5 text-ink-4" />
+                <PlusCircle size={22} strokeWidth={2} />
               </button>
             )}
+            <span className="text-[0.65rem] font-bold text-ink-3">建立</span>
           </div>
 
           {/* 我的訂閱 */}
           {loggedIn ? (
             <a
               href="/my-subscriptions"
-              className={`flex flex-1 flex-col items-center justify-center gap-0.5 text-[0.65rem] font-bold transition-colors ${pathname === '/my-subscriptions' ? 'text-brand' : 'text-ink-3'}`}
+              className={`flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold transition-colors ${pathname === '/my-subscriptions' ? 'text-brand' : 'text-ink-3'}`}
             >
               <CreditCard size={22} strokeWidth={2.1} />
               訂閱
@@ -417,12 +417,9 @@ export default function AppNav() {
           ) : (
             <button
               onClick={e => preventLockedAction(e, '/my-subscriptions')}
-              className="flex flex-1 flex-col items-center justify-center gap-0.5 text-[0.65rem] font-bold text-ink-4"
+              className="flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold text-ink-3 opacity-40"
             >
-              <span className="relative">
-                <CreditCard size={22} strokeWidth={2.1} />
-                <Lock size={9} strokeWidth={2.5} className="absolute -right-1 -top-0.5 rounded-full bg-white text-ink-4" />
-              </span>
+              <CreditCard size={22} strokeWidth={2.1} />
               訂閱
             </button>
           )}
@@ -431,7 +428,7 @@ export default function AppNav() {
           {loggedIn ? (
             <a
               href="/manage-groups"
-              className={`flex flex-1 flex-col items-center justify-center gap-0.5 text-[0.65rem] font-bold transition-colors ${pathname === '/manage-groups' ? 'text-brand' : 'text-ink-3'}`}
+              className={`flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold transition-colors ${pathname === '/manage-groups' ? 'text-brand' : 'text-ink-3'}`}
             >
               <LayoutGrid size={22} strokeWidth={2.1} />
               管理
@@ -439,12 +436,9 @@ export default function AppNav() {
           ) : (
             <button
               onClick={e => preventLockedAction(e, '/manage-groups')}
-              className="flex flex-1 flex-col items-center justify-center gap-0.5 text-[0.65rem] font-bold text-ink-4"
+              className="flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold text-ink-3 opacity-40"
             >
-              <span className="relative">
-                <LayoutGrid size={22} strokeWidth={2.1} />
-                <Lock size={9} strokeWidth={2.5} className="absolute -right-1 -top-0.5 rounded-full bg-white text-ink-4" />
-              </span>
+              <LayoutGrid size={22} strokeWidth={2.1} />
               管理
             </button>
           )}
