@@ -4,6 +4,7 @@ import {
   insertApplication,
   patchApplication,
 } from '../api/applicationsApi'
+import { insertNotification } from '../api/notificationsApi'
 
 import { normalizeApplication } from '../utils/modelNormalizers'
 import { nowISO } from '../utils/date'
@@ -92,7 +93,7 @@ export const useApplicationStore = create((set, get) => ({
       throw err
     }
     const notifStore = useNotificationStore.getState()
-    // 通知申請人
+    // 通知申請人（本人，即時寫入本地 store + DB）
     notifStore.create({
       userId:  app.applicantId,
       type:    'application_sent',
@@ -100,15 +101,15 @@ export const useApplicationStore = create((set, get) => ({
       message: `你的加入申請已送達「${app.groupName ?? app.serviceName}」團主，等待審核。`,
       meta:    { groupId: app.groupId, applicationId: app.id },
     })
-    // 直接通知團主（含重新申請情境）
+    // 宿主通知：只寫入 DB，宿主刷新頁面後自然出現（不即時推入對方 session 的 store）
     if (app.hostId) {
-      notifStore.create({
+      insertNotification({
         userId:  app.hostId,
         type:    'new_application',
         title:   '收到新的加入申請',
         message: `${app.applicantName ?? '有人'} 申請加入「${app.groupName ?? app.serviceName}」群組。`,
         meta:    { groupId: app.groupId, applicationId: app.id },
-      })
+      }).catch(console.error)
     }
     return app
   },
