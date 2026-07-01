@@ -1,7 +1,6 @@
-import { CheckCircle2, Calendar, Users, Edit2 } from 'lucide-react'
-import CreditScoreBadge from '../../../shared/ui/CreditScoreBadge'
+import { CheckCircle2 } from 'lucide-react'
 
-export default function ProfileHeaderCard({ user, joinedCount, onEdit }) {
+export default function ProfileHeaderCard({ user }) {
   return (
     <div className="card p-6 mb-5 flex flex-col md:flex-row items-start md:items-center gap-5">
 
@@ -28,39 +27,9 @@ export default function ProfileHeaderCard({ user, joinedCount, onEdit }) {
             </span>
           )}
         </div>
-        <p className="text-sm text-ink-3 mb-4">{user.email}</p>
-
-        <div className="flex flex-wrap gap-5">
-          <div className="flex items-center gap-2">
-            <Calendar size={14} className="text-ink-3" />
-            <div>
-              <p className="text-xs text-ink-3">加入時間</p>
-              <p className="text-sm font-semibold text-ink-2">{user.joinedAt ?? String(user.createdAt ?? '').slice(0, 10)}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Users size={14} className="text-ink-3" />
-            <div>
-              <p className="text-xs text-ink-3">已加入群組</p>
-              <p className="text-sm font-semibold text-ink-2">{joinedCount} 個</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <div>
-              <p className="text-xs text-ink-3 mb-1">信用分數</p>
-              <CreditScoreBadge score={user.creditScore} size="md" />
-            </div>
-          </div>
-        </div>
+        <p className="text-sm text-ink-3">{user.email}</p>
       </div>
 
-<button
-        onClick={onEdit}
-        className="flex items-center gap-1.5 text-sm text-ink-3 border border-line px-3 py-2 rounded-[var(--radius-inner)] hover:bg-raised transition-colors shrink-0"
-      >
-        <Edit2 size={14} />
-        編輯資料
-      </button>
     </div>
   )
 }

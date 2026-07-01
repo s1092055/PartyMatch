@@ -40,7 +40,7 @@ export const useMemberStore = create((set, get) => ({
     get().members.find(m => m.userId === userId && m.groupId === groupId) ?? null,
 
   // ── 加入 ────────────────────────────────────────────────────────────────────
-  create: ({ groupId, groupName, userId, userName, userAvatarInitial, userAvatarColor }) => {
+  create: ({ groupId, groupName, userId, userName, userAvatarInitial, userAvatarColor, skipApiCall = false }) => {
     const member = {
       id:               createId('mem'),
       groupId,
@@ -55,7 +55,7 @@ export const useMemberStore = create((set, get) => ({
       lastPaidAt:       null,
     }
     set(s => ({ members: [...s.members, member] }))
-    insertMember(member).catch(console.error)
+    if (!skipApiCall) insertMember(member).catch(console.error)
     return member
   },
 

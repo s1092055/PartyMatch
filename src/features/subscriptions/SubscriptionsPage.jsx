@@ -7,6 +7,8 @@ import { useNotificationStore } from '../../shared/stores/useNotificationStore'
 import { useApplicationStore } from '../../shared/stores/useApplicationStore'
 import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { useAuthStore } from '../../shared/stores/useAuthStore'
+import { useConversationStore } from '../../shared/stores/useConversationStore'
+import { sendSystemMessage } from '../../shared/api/messagesApi'
 import SubscriptionCard from './components/SubscriptionCard'
 
 const getGroupById = (id) => useGroupStore.getState().getById(id)
@@ -40,6 +42,8 @@ function enrichSubs(rawSubs) {
       hostName:          s.hostName     || group.hostName,
       hostAvatarInitial: s.hostAvatarInitial || group.hostAvatarInitial,
       hostAvatarColor:   s.hostAvatarColor   || group.hostAvatarColor,
+      usedSeats:         group.usedSeats,
+      totalSeats:        group.totalSeats,
     }
   })
 }
@@ -106,7 +110,7 @@ export default function SubscriptionsPage() {
         useSubscriptionStore.getState().init(),
         useMemberStore.getState().init(),
         useApplicationStore.getState().init(),
-        useGroupStore.getState().init(),
+        useGroupStore.getState().init({ all: true }),
       ]).catch(console.error)
     }
     function handleVisibilityChange() {
@@ -143,10 +147,22 @@ export default function SubscriptionsPage() {
 
     useMemberStore.getState().remove(member.id)
 
+    // 同步把 application 標為 removed，讓成員可重新申請
+    const app = useApplicationStore.getState().applications.find(
+      a => a.groupId === viewGroupId && (a.applicantId ?? a.userId) === activeUser.id && a.status === 'approved'
+    )
+    if (app) useApplicationStore.getState().updateStatus(app.id, 'removed')
+
+    // 樂觀更新 group local state（後端 DELETE /members 同步更新 currentMembers 與 status）
     const newUsed = Math.max(0, group.usedSeats - 1)
     const newOpen = group.openSeats + 1
     const statusPatch = group.status === 'full' ? { status: 'recruiting' } : {}
-    useGroupStore.getState().update(viewGroupId, { usedSeats: newUsed, openSeats: newOpen, ...statusPatch })
+    useGroupStore.setState(s => ({
+      groups: s.groups.map(g => g.id === viewGroupId
+        ? { ...g, usedSeats: newUsed, openSeats: newOpen, ...statusPatch }
+        : g
+      ),
+    }))
 
     const sub = useSubscriptionStore.getState().getByUserId(activeUser.id).find(s => s.groupId === viewGroupId)
     if (sub) useSubscriptionStore.getState().remove(sub.id)
@@ -166,6 +182,14 @@ export default function SubscriptionsPage() {
         message: `${activeUser.displayName ?? activeUser.name ?? '成員'} 已退出「${group.serviceName}」群組，目前剩餘 ${newOpen} 個名額。`,
         meta:    { groupId: viewGroupId },
       })
+    }
+
+    // 若群組聊天室已存在，寫系統訊息讓團主透過 polling 5 秒內看到
+    const convId = useConversationStore.getState().getByGroupId(viewGroupId)?.id
+    if (convId) {
+      const memberName = activeUser.displayName ?? activeUser.name ?? '成員'
+      const remainingParticipants = [group.hostId].filter(Boolean)
+      sendSystemMessage(convId, `${memberName} 已退出群組`, remainingParticipants).catch(console.error)
     }
 
     setViewGroupId(null)

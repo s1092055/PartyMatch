@@ -4,7 +4,6 @@ import Badge from '../../../shared/ui/Badge'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import { effectiveStatus } from '../../../shared/utils/subscriptionStatus'
 import { daysUntil } from '../../../shared/utils/date'
-import { useMemberStore } from '../../../shared/stores/useMemberStore'
 
 const STATUS_BADGE_CLASS = {
   active:               'bg-success-subtle text-success-text',
@@ -41,7 +40,7 @@ function SubscriptionCard({ sub, onViewGroup }) {
   const isActive      = sub.status === 'active' || sub.groupStatus === 'active'
   const groupStatus   = sub.groupStatus ?? sub.status
   const displayStatus = getDisplayStatus(sub)
-  const memberCount   = useMemberStore(s => s.members.filter(m => m.groupId === sub.groupId).length) + 1
+  const memberCount   = sub.usedSeats ?? 0
 
   const paymentLabel = {
     pending:            '待付款',

@@ -15,11 +15,13 @@ import { useSubscriptionStore } from '../../../shared/stores/useSubscriptionStor
 import { usePaymentStore } from '../../../shared/stores/usePaymentStore'
 import { useNotificationStore } from '../../../shared/stores/useNotificationStore'
 import { useAuthStore } from '../../../shared/stores/useAuthStore'
+import { useConversationStore } from '../../../shared/stores/useConversationStore'
+import { sendActionMessage } from '../../../shared/api/messagesApi'
+import { todayISO } from '../../../shared/utils/date'
 
 const getGroupById = (id) => useGroupStore.getState().getById(id)
 const getPaymentRecordsBySubscriptionId = (sid) => usePaymentStore.getState().getBySubscriptionId(sid)
-import { sendActionMessage } from '../../../shared/api/messagesApi'
-import { todayISO } from '../../../shared/utils/date'
+const getConvByGroupId = (gid) => useConversationStore.getState().getByGroupId(gid)
 
 export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpenPayment }) {
   const [activePanel, setActivePanel]         = useState(null) // 'members' | 'payments' | null
@@ -72,8 +74,8 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
 
     if (serviceInfoChanged && myMember) {
       await useMemberStore.getState().update(myMember.id, { serviceInfo: { email: serviceEmail.trim() }, serviceInfoIssueNote: null })
-      const convId = `group_${group.id}`
-      if (group.hostId) {
+      const convId = getConvByGroupId(group.id)?.id
+      if (convId && group.hostId) {
         sendActionMessage(convId, {
           actionType: 'member_filled_service_info',
           text: `${myMember.userName} 已完成填寫服務帳號`,
@@ -81,15 +83,17 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
           participants: [group.hostId],
         }).catch(console.error)
       }
-      sendActionMessage(convId, {
-        actionType: 'go_to_payment',
-        text: '你已完成填寫服務帳號，請前往付款以完成加入流程。',
-        visibleTo: [currentUser.id],
-        participants: [currentUser.id],
-      }).catch(console.error)
+      if (convId) {
+        sendActionMessage(convId, {
+          actionType: 'go_to_payment',
+          text: '你已完成填寫服務帳號，請前往付款以完成加入流程。',
+          visibleTo: [currentUser.id],
+          participants: [currentUser.id],
+        }).catch(console.error)
+      }
       const updatedMembers = useMemberStore.getState().getByGroupId(group.id)
       const allFilled = updatedMembers.every(m => !!m.serviceInfo?.email)
-      if (allFilled && group.hostId) {
+      if (convId && allFilled && group.hostId) {
         sendActionMessage(convId, {
           actionType: 'all_service_info_filled',
           text: '所有成員已完成填寫服務帳號，現在可以進行收款確認。',

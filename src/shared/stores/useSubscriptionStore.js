@@ -32,7 +32,7 @@ export const useSubscriptionStore = create((set, get) => ({
 
   // ── 建立訂閱（已存在則回傳既有）──────────────────────────────────────────────
   create: (data) => {
-    const { userId, groupId, serviceName, planName, serviceId, hostName, hostAvatarInitial, hostAvatarColor, pricePerSeat, billingCycle, nextBillingDate } = data
+    const { userId, groupId, serviceName, planName, serviceId, hostName, hostAvatarInitial, hostAvatarColor, pricePerSeat, billingCycle, nextBillingDate, skipApiCall = false } = data
     const existing = get().getByUserAndGroup(userId, groupId)
     if (existing) return existing
     const now = todayISO()
@@ -56,7 +56,7 @@ export const useSubscriptionStore = create((set, get) => ({
       updatedAt:        now,
     })
     set(s => ({ subscriptions: [...s.subscriptions, sub] }))
-    insertSubscription(sub).catch(console.error)
+    if (!skipApiCall) insertSubscription(sub).catch(console.error)
     return sub
   },
 

@@ -147,6 +147,29 @@ export default function ManagePage() {
     if (activeUser) setManageData(loadManageData(activeUser))
   }, [activeUser, groupsState, applicationsState, membersState, subscriptionsState])
 
+  // 回到頁面（focus / 可見）時從後端重新同步，接收其他用戶的操作（成員退出、申請等）
+  useEffect(() => {
+    if (!activeUser) return
+    function reloadFromSource() {
+      Promise.all([
+        useGroupStore.getState().init({ all: true }),
+        useMemberStore.getState().init(),
+        useApplicationStore.getState().init(),
+        useSubscriptionStore.getState().init(),
+      ]).catch(console.error)
+    }
+    function handleVisibilityChange() {
+      if (document.visibilityState === 'visible') reloadFromSource()
+    }
+    reloadFromSource()
+    window.addEventListener('focus', reloadFromSource)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => {
+      window.removeEventListener('focus', reloadFromSource)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [activeUser])
+
   const { hostedGroups, applications, members, seatMap } = manageData
 
   const allGroups = useMemo(
@@ -487,6 +510,7 @@ function handleApprove(appId) {
         userName:          applicantName,
         userAvatarInitial: app.applicantAvatarInitial ?? app.userAvatarInitial ?? applicantName[0],
         userAvatarColor:   app.applicantAvatarColor   ?? app.userAvatarColor   ?? '#94A3B8',
+        skipApiCall:       true, // 後端 PATCH /applications 核准時已在 transaction 建立 member
       })
     }
 
@@ -503,6 +527,7 @@ function handleApprove(appId) {
         pricePerSeat:      group.pricePerSeat,
         billingCycle:      group.billingCycle,
         nextBillingDate:   group.nextBillingDate,
+        skipApiCall:       true, // 後端 PATCH /applications 核准時已在 transaction 建立 subscription
       })
     }
 

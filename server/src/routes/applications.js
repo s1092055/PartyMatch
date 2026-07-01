@@ -84,11 +84,15 @@ router.patch('/:id', requireAuth, validate(reviewSchema), async (req, res, next)
 
     if (status === 'approved') {
       await prisma.$transaction([
-        prisma.member.create({
-          data: { groupId: application.groupId, userId: application.userId },
+        prisma.member.upsert({
+          where:  { groupId_userId: { groupId: application.groupId, userId: application.userId } },
+          create: { groupId: application.groupId, userId: application.userId },
+          update: {},
         }),
-        prisma.subscription.create({
-          data: { groupId: application.groupId, userId: application.userId },
+        prisma.subscription.upsert({
+          where:  { groupId_userId: { groupId: application.groupId, userId: application.userId } },
+          create: { groupId: application.groupId, userId: application.userId },
+          update: {},
         }),
         prisma.group.update({
           where: { id: application.groupId },

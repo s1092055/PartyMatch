@@ -80,21 +80,36 @@ export const useApplicationStore = create((set, get) => ({
       // 只送後端需要的欄位，並用後端回傳的 DB id 取代本地 tempId
       const saved = await insertApplication({ groupId, message: message ?? '' })
       set(s => ({
-        applications: s.applications.map(a => a.id === tempId ? { ...a, id: saved.id } : a),
+        // 先移除可能存在的舊紀錄（重新申請時 saved.id 與舊的 rejected 紀錄相同）
+        // 再將 tempId 替換為真實 id
+        applications: s.applications
+          .filter(a => a.id !== saved.id)
+          .map(a => a.id === tempId ? { ...a, id: saved.id, status: 'pending' } : a),
       }))
       app.id = saved.id
     } catch (err) {
       set(s => ({ applications: s.applications.filter(a => a.id !== tempId) }))
       throw err
     }
-    // 只通知申請人自己；團主通知由冷啟動補通知處理
-    useNotificationStore.getState().create({
+    const notifStore = useNotificationStore.getState()
+    // 通知申請人
+    notifStore.create({
       userId:  app.applicantId,
       type:    'application_sent',
       title:   '申請已送出',
       message: `你的加入申請已送達「${app.groupName ?? app.serviceName}」團主，等待審核。`,
       meta:    { groupId: app.groupId, applicationId: app.id },
     })
+    // 直接通知團主（含重新申請情境）
+    if (app.hostId) {
+      notifStore.create({
+        userId:  app.hostId,
+        type:    'new_application',
+        title:   '收到新的加入申請',
+        message: `${app.applicantName ?? '有人'} 申請加入「${app.groupName ?? app.serviceName}」群組。`,
+        meta:    { groupId: app.groupId, applicationId: app.id },
+      })
+    }
     return app
   },
 

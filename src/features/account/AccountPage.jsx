@@ -32,7 +32,7 @@ export default function AccountPage() {
   });
 
   const subscriptions = useSubscriptionStore(s => s.subscriptions)
-  const allSubs    = subscriptions.filter(sub => sub.userId === user.id)
+  const allSubs = subscriptions.filter(sub => sub.userId === user.id)
   const activeSubs = allSubs.filter(s => s.status === 'active')
 
   function handleUserChange(key, value) {
@@ -44,7 +44,7 @@ export default function AccountPage() {
     <div>
       <PageHeader title="帳號中心" className="mb-6 text-center" />
 
-      <ProfileHeaderCard user={user} joinedCount={allSubs.length} onEdit={() => setActiveTab("profile")} />
+      <ProfileHeaderCard user={user} />
 
       <div className="flex flex-col lg:flex-row gap-5 lg:items-start">
         <div className="flex-1 min-w-0">

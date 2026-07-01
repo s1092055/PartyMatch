@@ -7,6 +7,7 @@ import Avatar from '../../../shared/ui/Avatar'
 import ProgressBar from '../../../shared/ui/ProgressBar'
 import CreditScoreBadge from '../../../shared/ui/CreditScoreBadge'
 import ConfirmDialog from '../../../shared/ui/ConfirmDialog'
+import CountdownConfirmDialog from '../../../shared/ui/CountdownConfirmDialog'
 import GroupModalShell from '../../../shared/ui/GroupModalShell'
 import EmptyState from '../../../shared/ui/EmptyState'
 import { getServiceById } from '../../../shared/utils/serviceUtils'
@@ -695,9 +696,9 @@ export default function HostGroupView({ group, members, applications, onConfirmM
       }}
     />
 
-    {/* 移除成員確認 */}
+    {/* 移除成員確認（倒數 5 秒才可確認） */}
     {removingMember && (
-      <ConfirmDialog
+      <CountdownConfirmDialog
         title="移除成員"
         message={`確定要將「${removingMember.userName}」移出群組嗎？對方會立即失去名額與聊天室存取權限，且會收到通知；若要再加入需要重新提出申請。`}
         confirmLabel="移除"
