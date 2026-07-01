@@ -198,7 +198,7 @@ export default function GroupDetailModal() {
           <button
             onClick={() => {
               handleClose()
-              navigate('/my-subscriptions', { state: { openGroupId: group.id, ...(isPendingPayment ? { openPayment: true } : {}) } })
+              navigate('/my-groups?view=member', { state: { openGroupId: group.id, ...(isPendingPayment ? { openPayment: true } : {}) } })
             }}
             className={`relative flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white transition-colors ${
               (hasPaymentFailed || hasServiceInfoIssue) ? 'bg-danger hover:opacity-90' : 'bg-brand hover:bg-brand-hover'
@@ -336,7 +336,7 @@ export default function GroupDetailModal() {
             setApplyModalOpen(false)
             handleClose()
             toast('申請已送出，等待團主審核', 'success', {
-              action: { label: '前往查看', onClick: () => navigate('/my-subscriptions', { state: { tab: 'processing' } }) },
+              action: { label: '前往查看', onClick: () => navigate('/my-groups?view=member', { state: { tab: 'processing' } }) },
             })
           }}
           onDone={handleClose}

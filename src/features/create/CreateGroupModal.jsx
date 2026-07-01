@@ -230,7 +230,7 @@ export default function CreateGroupModal() {
             關閉
           </button>
           <button
-            onClick={() => { setIsOpen(false); navigate('/manage-groups'); }}
+            onClick={() => { setIsOpen(false); navigate('/my-groups?view=host'); }}
             className="flex-1 rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
           >
             前往群組管理

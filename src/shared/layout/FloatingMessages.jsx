@@ -25,29 +25,29 @@ function getMergedNotifications(userId) {
 }
 
 const NOTIFICATION_META = {
-  payment:              { icon: CreditCard,    iconColor: 'text-brand',      link: '/my-subscriptions' },
-  payment_reminder:     { icon: Clock,         iconColor: 'text-amber-500',  link: '/my-subscriptions' },
-  member_payment_marked:    { icon: CreditCard,    iconColor: 'text-success',    link: '/manage-groups' },
-  all_payments_confirmed:   { icon: CheckCircle2,  iconColor: 'text-success',    link: '/manage-groups' },
-  joined:               { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-subscriptions' },
-  application_approved: { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-subscriptions', state: { tab: 'processing' } },
-  application_rejected: { icon: AlertCircle,   iconColor: 'text-danger',     link: '/my-subscriptions', state: { tab: 'applications' } },
-  application_sent:     { icon: CheckCircle2,  iconColor: 'text-brand',      link: '/my-subscriptions', state: { tab: 'processing' } },
-  group_created:        { icon: CheckCircle2,  iconColor: 'text-success',    link: '/manage-groups' },
-  new_application:      { icon: UserPlus,      iconColor: 'text-brand',      link: '/manage-groups' },
-  group_full:           { icon: UserPlus,      iconColor: 'text-brand',      link: '/manage-groups' },
+  payment:              { icon: CreditCard,    iconColor: 'text-brand',      link: '/my-groups?view=member' },
+  payment_reminder:     { icon: Clock,         iconColor: 'text-amber-500',  link: '/my-groups?view=member' },
+  member_payment_marked:    { icon: CreditCard,    iconColor: 'text-success',    link: '/my-groups?view=host' },
+  all_payments_confirmed:   { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-groups?view=host' },
+  joined:               { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-groups?view=member' },
+  application_approved: { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-groups?view=member', state: { tab: 'processing' } },
+  application_rejected: { icon: AlertCircle,   iconColor: 'text-danger',     link: '/my-groups?view=member', state: { tab: 'applications' } },
+  application_sent:     { icon: CheckCircle2,  iconColor: 'text-brand',      link: '/my-groups?view=member', state: { tab: 'processing' } },
+  group_created:        { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-groups?view=host' },
+  new_application:      { icon: UserPlus,      iconColor: 'text-brand',      link: '/my-groups?view=host' },
+  group_full:           { icon: UserPlus,      iconColor: 'text-brand',      link: '/my-groups?view=host' },
   group_chat_opened:    { icon: MessageSquare, iconColor: 'text-brand',      link: null },
-  group_activated:      { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-subscriptions' },
-  payment_confirmed:    { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-subscriptions' },
-  payment_issue:        { icon: AlertCircle,   iconColor: 'text-danger',     link: '/my-subscriptions' },
-  service_info_issue:   { icon: AlertCircle,   iconColor: 'text-amber-500',  link: '/my-subscriptions' },
+  group_activated:      { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-groups?view=member' },
+  payment_confirmed:    { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-groups?view=member' },
+  payment_issue:        { icon: AlertCircle,   iconColor: 'text-danger',     link: '/my-groups?view=member' },
+  service_info_issue:   { icon: AlertCircle,   iconColor: 'text-amber-500',  link: '/my-groups?view=member' },
   group_ended:          { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/explore' },
   member_removed:       { icon: AlertCircle,   iconColor: 'text-danger',     link: '/explore' },
-  member_left:          { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/manage-groups' },
+  member_left:          { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/my-groups?view=host' },
   system:               { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/explore' },
   announcement:         { icon: AlertCircle,   iconColor: 'text-brand',      link: '/explore' },
   platform:             { icon: AlertCircle,   iconColor: 'text-brand',      link: '/explore' },
-  default:              { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/my-subscriptions' },
+  default:              { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/my-groups?view=member' },
 }
 
 function getMeta(type) {
@@ -123,7 +123,7 @@ export default function FloatingMessages() {
   function handleClick(notification) {
     if (!userId) {
       const link = getMeta(notification.type).link
-      if (link && !['/my-subscriptions', '/manage-groups', '/account', '/favorites'].includes(link)) {
+      if (link && !['/my-groups?view=member', '/my-groups?view=host', '/account', '/favorites'].includes(link)) {
         setOpen(false)
         navigate(link)
       }
@@ -139,7 +139,7 @@ export default function FloatingMessages() {
     }
 
     if (notification.type === 'group_created' && notification.meta?.groupId) {
-      navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId } })
+      navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId } })
       window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: notification.meta.groupId } }))
       return
     }
@@ -150,10 +150,10 @@ export default function FloatingMessages() {
       const hasSub = user ? !!getSubscriptionByUserAndGroup(user.id, gId) : false
       if (hasSub) {
         // 申請已通過，以成員視角開啟
-        navigate('/my-subscriptions', { state: { openGroupId: gId } })
+        navigate('/my-groups?view=member', { state: { openGroupId: gId } })
       } else {
         // 申請仍待審核，以探索視角開啟（與 ApplicationCard 一致）
-        navigate('/my-subscriptions', { state: { tab: 'processing' } })
+        navigate('/my-groups?view=member', { state: { tab: 'processing' } })
         window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: gId } }))
       }
       return
@@ -170,7 +170,7 @@ export default function FloatingMessages() {
       const user = getCurrentUser()
       const hasSub = user ? !!getSubscriptionByUserAndGroup(user.id, gId) : false
       if (hasSub) {
-        navigate('/my-subscriptions', { state: { openGroupId: gId } })
+        navigate('/my-groups?view=member', { state: { openGroupId: gId } })
       } else {
         navigate('/explore')
         window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: gId } }))
@@ -179,25 +179,25 @@ export default function FloatingMessages() {
     }
 
     if (notification.type === 'new_application' && notification.meta?.groupId) {
-      navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId, statusFilter: 'recruiting', openApplications: true } })
+      navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId, statusFilter: 'recruiting', openApplications: true } })
       window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: notification.meta.groupId, statusFilter: 'recruiting', openApplications: true } }))
       return
     }
 
     if (notification.type === 'group_full' && notification.meta?.groupId) {
-      navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId } })
+      navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId } })
       window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: notification.meta.groupId } }))
       return
     }
 
     if (notification.type === 'member_payment_marked' && notification.meta?.groupId) {
-      navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId, openBilling: true } })
+      navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId, openBilling: true } })
       window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: notification.meta.groupId, openBilling: true } }))
       return
     }
 
     if (notification.type === 'all_payments_confirmed' && notification.meta?.groupId) {
-      navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId, openActivate: true } })
+      navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId, openActivate: true } })
       window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: notification.meta.groupId, openActivate: true } }))
       return
     }
@@ -205,10 +205,10 @@ export default function FloatingMessages() {
     if (notification.type === 'group_activated' && notification.meta?.groupId) {
       const grp = getGroupById(notification.meta.groupId)
       if (grp && grp.hostId === userId) {
-        navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId } })
+        navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId } })
         window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: notification.meta.groupId } }))
       } else {
-        navigate('/my-subscriptions', { state: { openGroupId: notification.meta.groupId } })
+        navigate('/my-groups?view=member', { state: { openGroupId: notification.meta.groupId } })
       }
       return
     }

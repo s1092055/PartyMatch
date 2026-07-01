@@ -95,7 +95,7 @@ function loadManageData(activeUser) {
   return { hostedGroups, applications, members, seatMap }
 }
 
-export default function ManagePage() {
+export default function ManagePage({ embedded = false }) {
   const navigate = useNavigate()
   const location = useLocation()
   const activeUser = useAuthStore(s => s.user)
@@ -608,9 +608,11 @@ function handleApprove(appId) {
 
   return (
     <div className="px-2 md:px-4 lg:px-16">
-      <div className="mb-6 text-center">
-        <h1 className="page-title">群組管理</h1>
-      </div>
+      {!embedded && (
+        <div className="mb-6 text-center">
+          <h1 className="page-title">群組管理</h1>
+        </div>
+      )}
 
       <div>
         <FilterTabsBar

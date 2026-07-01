@@ -1,6 +1,8 @@
-import { Fragment } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Bell, Compass, CreditCard, LayoutGrid, Lock, LogIn, MessageSquare, PlusCircle, Search, Zap } from 'lucide-react'
+import { useState } from 'react'
+import { createPortal } from 'react-dom'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { Bell, Compass, LayoutGrid, Lock, LogIn, MessageSquare, PlusCircle, Search, Zap } from 'lucide-react'
+import { toast } from '../utils/toast'
 import logoUrl from '../../assets/Logo.svg'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useNotificationStore } from '../stores/useNotificationStore'
@@ -19,10 +21,9 @@ function Badge({ count }) {
 }
 
 const PROTECTED_NAV_ROUTES = new Set([
-  '/my-subscriptions',
+  '/my-groups',
   '/favorites',
   '/account',
-  '/manage-groups',
 ])
 
 function getNavItemKey(item) {
@@ -46,6 +47,8 @@ function LockedHint({ className = '' }) {
 export default function AppNav() {
   const navigate = useNavigate()
   const { pathname } = useLocation()
+  const [searchParams] = useSearchParams()
+  const [lockedTip, setLockedTip] = useState(null)
 
   const loggedIn = useAuthStore(s => s.loggedIn)
   const currentUser = useAuthStore(s => s.user)
@@ -89,9 +92,14 @@ export default function AppNav() {
   function preventLockedAction(e, redirectTo) {
     e.preventDefault()
     e.stopPropagation()
-    const target = redirectTo || '/'
     closeAll()
-    navigate(`/login?redirectTo=${encodeURIComponent(target)}`)
+    const target = redirectTo || '/'
+    toast(LOCKED_MESSAGE, 'info', {
+      action: {
+        label: '前往登入',
+        onClick: () => navigate(`/login?redirectTo=${encodeURIComponent(target)}`),
+      },
+    })
   }
 
   function isGuestLocked(item) {
@@ -108,17 +116,15 @@ export default function AppNav() {
           key={getNavItemKey(item)}
           type="button"
           aria-label={`${item.label}，${LOCKED_MESSAGE}`}
-          title={LOCKED_MESSAGE}
           onClick={e => preventLockedAction(e, redirectTo)}
-          className="group/locked relative flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-4 transition-colors hover:!translate-y-0 hover:bg-raised active:!scale-100"
+          onMouseEnter={e => setLockedTip({ top: e.clientY + 14, left: e.clientX + 12 })}
+          onMouseMove={e => setLockedTip({ top: e.clientY + 14, left: e.clientX + 12 })}
+          onMouseLeave={() => setLockedTip(null)}
+          className="relative flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-4 transition-colors hover:bg-raised"
         >
           <span className="relative grid h-9 w-9 shrink-0 place-items-center">
             <Icon size={22} strokeWidth={2.1} />
-            <Lock
-              size={11}
-              strokeWidth={2.3}
-              className="absolute right-0 top-0 rounded-full bg-white text-ink-4"
-            />
+            <Lock size={11} strokeWidth={2.3} className="absolute right-0 top-0 rounded-full bg-canvas text-ink-4" />
           </span>
           <span className="whitespace-nowrap font-bold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
             {item.label}
@@ -130,7 +136,7 @@ export default function AppNav() {
     if (item.type === 'search') {
       return (
         <button key="search" onClick={openSearch} aria-label="搜尋"
-          className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:bg-raised hover:text-brand">
+          className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand active:scale-[0.96]">
           <span className="grid h-9 w-9 shrink-0 place-items-center">
             <Search size={22} strokeWidth={2.1} />
           </span>
@@ -144,7 +150,7 @@ export default function AppNav() {
     if (item.type === 'create') {
       return (
         <button key="create" onClick={openCreate} aria-label={item.label}
-          className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:bg-raised hover:text-brand">
+          className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand active:scale-[0.96]">
           <span className="grid h-9 w-9 shrink-0 place-items-center">
             <item.icon size={22} strokeWidth={2.1} />
           </span>
@@ -158,7 +164,7 @@ export default function AppNav() {
     if (item.type === 'match') {
       return (
         <button key="match" onClick={openMatch} aria-label={item.label}
-          className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:bg-raised hover:text-brand">
+          className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand active:scale-[0.96]">
           <span className="grid h-9 w-9 shrink-0 place-items-center">
             <item.icon size={22} strokeWidth={2.1} />
           </span>
@@ -169,16 +175,20 @@ export default function AppNav() {
       )
     }
 
-    const isActive = pathname === item.to
+    const isActive = pathname === item.to && (
+      !item.view ||
+      searchParams.get('view') === item.view ||
+      (!searchParams.get('view') && item.view === 'member')
+    )
     return (
       <a
-        key={item.to}
-        href={item.to}
+        key={item.view ? `${item.to}?view=${item.view}` : item.to}
+        href={item.view ? `${item.to}?view=${item.view}` : item.to}
         onClick={closeAll}
         className={`flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-[0.95rem] transition-all hover:-translate-y-0.5 active:scale-[0.96] ${
           isActive
             ? 'bg-brand-subtle font-extrabold text-brand'
-            : 'font-bold text-ink-2 hover:bg-raised hover:text-brand'
+            : 'font-bold text-ink-2 hover:bg-brand-subtle hover:text-brand'
         }`}
       >
         <span className="grid h-9 w-9 shrink-0 place-items-center">
@@ -203,7 +213,7 @@ export default function AppNav() {
           className={`group/locked relative cursor-not-allowed !text-ink-4 hover:!translate-y-0 hover:!scale-100 hover:!text-ink-4 active:!scale-100 ${className}`}
         >
           <MessageSquare size={iconSize} strokeWidth={2} className="opacity-55" />
-          <Lock size={13} strokeWidth={2.3} className="absolute right-2 top-2 rounded-full bg-white" />
+          <Lock size={13} strokeWidth={2.3} className="absolute right-2 top-2 rounded-full bg-canvas" />
           <LockedHint className={tooltipClassName} />
         </button>
       )
@@ -222,11 +232,22 @@ export default function AppNav() {
 
   return (
     <>
+      {/* Sidebar locked tooltip portal */}
+      {lockedTip && createPortal(
+        <span
+          className="pointer-events-none fixed z-[200] whitespace-nowrap rounded-lg bg-ink px-2.5 py-1.5 text-xs font-bold text-white shadow-lg"
+          style={{ top: lockedTip.top, left: lockedTip.left }}
+        >
+          {LOCKED_MESSAGE}
+        </span>,
+        document.body
+      )}
+
       {/* Desktop action buttons — fixed top-right */}
       <div className="fixed top-6 z-50 hidden flex-col gap-3 md:flex lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
         <button
           onClick={openNotify}
-          className="relative grid h-12 w-12 place-items-center rounded-full border border-line bg-white shadow-md text-ink-2 transition-all hover:scale-105 hover:bg-raised hover:text-ink active:scale-95"
+          className="relative grid h-12 w-12 place-items-center rounded-full border border-white/40 bg-slate-100/70 shadow-md backdrop-blur-md text-ink-2 transition-all hover:scale-105 hover:bg-slate-100/90 hover:text-ink active:scale-95"
           aria-label="通知"
         >
           <Bell size={20} strokeWidth={2} />
@@ -234,7 +255,7 @@ export default function AppNav() {
         </button>
         <div className="relative">
           {renderMessageButton({
-            className: 'grid h-12 w-12 place-items-center rounded-full border border-line bg-white shadow-md text-ink-2 transition-all hover:scale-105 hover:bg-raised hover:text-ink active:scale-95',
+            className: 'grid h-12 w-12 place-items-center rounded-full border border-white/40 bg-slate-100/70 shadow-md backdrop-blur-md text-ink-2 transition-all hover:scale-105 hover:bg-slate-100/90 hover:text-ink active:scale-95',
             iconSize: 20,
             tooltipClassName: 'right-full top-1/2 mr-2 -translate-y-1/2',
           })}
@@ -244,7 +265,7 @@ export default function AppNav() {
 
       {/* Desktop floating sidebar */}
       <aside
-        className="group/nav fixed bottom-4 left-4 top-4 z-50 hidden w-16 flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-sm transition-[width] duration-300 ease-out hover:w-56 focus-within:w-56 md:flex"
+        className="group/nav fixed bottom-4 left-4 top-4 z-50 hidden w-16 flex-col overflow-hidden rounded-2xl border border-white/40 bg-slate-100/80 shadow-sm backdrop-blur-md transition-[width] duration-300 ease-out hover:w-56 focus-within:w-56 md:flex"
       >
         <a
           href="/"
@@ -259,16 +280,8 @@ export default function AppNav() {
         </a>
 
         <nav className="flex flex-1 flex-col overflow-x-hidden overflow-y-auto px-2 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <div className="my-auto space-y-0.5">
-            {NAV_SECTIONS.map((section, i) => (
-              <Fragment key={section.label}>
-                {i > 0 && <div className="mx-2 my-2 h-px bg-line-subtle" />}
-                <p className="mb-1 mt-1 whitespace-nowrap px-2 text-[0.6rem] font-extrabold uppercase tracking-widest text-ink-4 opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
-                  {section.label}
-                </p>
-                {section.items.map(renderSideItem)}
-              </Fragment>
-            ))}
+          <div className="my-auto space-y-6">
+            {NAV_SECTIONS.flatMap(section => section.items).map(renderSideItem)}
           </div>
         </nav>
 
@@ -312,7 +325,7 @@ export default function AppNav() {
       </aside>
 
       {/* Mobile header */}
-      <header className="fixed left-0 right-0 top-0 z-50 flex h-14 items-center justify-between border-b border-line bg-white px-4 md:hidden">
+      <header className="fixed left-0 right-0 top-0 z-50 flex h-14 items-center justify-between border-b border-white/30 bg-slate-100/80 px-4 backdrop-blur-md md:hidden">
         <a href="/" className="flex items-center gap-2" aria-label="回首頁">
           <img src={logoUrl} alt="PartyMatch" className="h-8 w-8" />
           <span className="text-[1rem] font-extrabold">
@@ -360,7 +373,7 @@ export default function AppNav() {
 
       {/* Mobile bottom dock */}
       <nav
-        className="fixed bottom-0 left-0 right-0 z-50 border-t border-line bg-white md:hidden"
+        className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/30 bg-slate-100/80 backdrop-blur-md md:hidden"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         <div className="flex h-16 items-stretch">
@@ -402,44 +415,48 @@ export default function AppNav() {
                 <PlusCircle size={22} strokeWidth={2} />
               </button>
             )}
-            <span className="text-[0.65rem] font-bold text-ink-3">建立</span>
           </div>
 
-          {/* 我的訂閱 */}
+          {/* 我的 */}
           {loggedIn ? (
             <a
-              href="/my-subscriptions"
-              className={`flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold transition-colors ${pathname === '/my-subscriptions' ? 'text-brand' : 'text-ink-3'}`}
+              href="/my-groups"
+              className={`flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold transition-colors ${pathname.startsWith('/my-groups') ? 'text-brand' : 'text-ink-3'}`}
             >
-              <CreditCard size={22} strokeWidth={2.1} />
-              訂閱
+              <LayoutGrid size={22} strokeWidth={2.1} />
+              我的
             </a>
           ) : (
             <button
-              onClick={e => preventLockedAction(e, '/my-subscriptions')}
+              onClick={e => preventLockedAction(e, '/my-groups')}
               className="flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold text-ink-3 opacity-40"
             >
-              <CreditCard size={22} strokeWidth={2.1} />
-              訂閱
+              <LayoutGrid size={22} strokeWidth={2.1} />
+              我的
             </button>
           )}
 
-          {/* 群組管理 */}
+          {/* 帳號 / 登入 */}
           {loggedIn ? (
-            <a
-              href="/manage-groups"
-              className={`flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold transition-colors ${pathname === '/manage-groups' ? 'text-brand' : 'text-ink-3'}`}
+            <button
+              onClick={() => navigate('/account')}
+              className={`flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold transition-colors ${pathname === '/account' ? 'text-brand' : 'text-ink-3'}`}
             >
-              <LayoutGrid size={22} strokeWidth={2.1} />
-              管理
-            </a>
+              <span
+                className="flex h-6 w-6 items-center justify-center rounded-full text-[0.6rem] font-black text-white shadow"
+                style={{ background: avatarColor ?? 'linear-gradient(135deg, #cbd5e1, #64748b)' }}
+              >
+                {avatarInitial}
+              </span>
+              帳號
+            </button>
           ) : (
             <button
-              onClick={e => preventLockedAction(e, '/manage-groups')}
-              className="flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold text-ink-3 opacity-40"
+              onClick={() => navigate('/login')}
+              className="flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold text-ink-3 transition-colors active:text-brand"
             >
-              <LayoutGrid size={22} strokeWidth={2.1} />
-              管理
+              <LogIn size={22} strokeWidth={2.1} />
+              登入
             </button>
           )}
 

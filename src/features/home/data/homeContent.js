@@ -51,7 +51,7 @@ export const HOME_FEATURES = [
     desc: '審核申請、確認付款、管理成員，所有群組操作集中在一頁。啟用、續訂、結束群組一手掌控。',
     videoSrc: null,
     badge: '管理',
-    action: { type: 'navigate', path: '/manage-groups' },
+    action: { type: 'navigate', path: '/my-groups?view=host' },
     cta: '前往管理',
   },
   {
@@ -60,7 +60,7 @@ export const HOME_FEATURES = [
     desc: '查看所有加入的訂閱、付款狀態和繳費紀錄，可以直接完成付款或聯絡團主，再也不怕漏繳。',
     videoSrc: null,
     badge: '訂閱',
-    action: { type: 'navigate', path: '/my-subscriptions' },
+    action: { type: 'navigate', path: '/my-groups?view=member' },
     cta: '查看訂閱',
   },
 ]

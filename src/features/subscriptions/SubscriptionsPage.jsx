@@ -68,7 +68,7 @@ function filterSubs(subs, tab) {
   }
 }
 
-export default function SubscriptionsPage() {
+export default function SubscriptionsPage({ embedded = false }) {
   const navigate = useNavigate()
   const location = useLocation()
   const activeUser = useAuthStore(s => s.user)
@@ -187,9 +187,11 @@ export default function SubscriptionsPage() {
 
   return (
     <div className="px-2 md:px-4 lg:px-16">
-      <div className="mb-6 text-center">
-        <h1 className="page-title">我的訂閱</h1>
-      </div>
+      {!embedded && (
+        <div className="mb-6 text-center">
+          <h1 className="page-title">我的訂閱</h1>
+        </div>
+      )}
 
       <div>
         <FilterTabsBar
