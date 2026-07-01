@@ -70,7 +70,9 @@ src/
 │   │   ├── DisclaimerPage.jsx
 │   │   ├── PrivacyPage.jsx
 │   │   └── TermsPage.jsx
-│   ├── manage/                 # 團主管理
+│   ├── my-groups/              # 我的群組（成員 + 團主合併頁）
+│   │   └── MyGroupsPage.jsx   # tab wrapper；?view=member / ?view=host 切換子頁面
+│   ├── manage/                 # 團主管理（團主邏輯，內嵌於 my-groups host tab）
 │   │   ├── ManagePage.jsx
 │   │   ├── components/
 │   │   │   ├── ActivateGroupModal.jsx
@@ -101,7 +103,7 @@ src/
 │   │       ├── ConversationAvatar.jsx
 │   │       ├── ConversationList.jsx
 │   │       └── ConversationMenu.jsx
-│   └── subscriptions/          # 我的訂閱
+│   └── subscriptions/          # 成員訂閱（成員邏輯，內嵌於 my-groups member tab）
 │       ├── SubscriptionsPage.jsx
 │       └── components/
 │           ├── CombinedServicePaymentModal.jsx
@@ -226,7 +228,7 @@ init: async () => {
 | `src/app/router.jsx` | `AppLayout`、`ProtectedRoute`、`PublicOnlyRoute`、`redirects.jsx` | 定義公開頁、受保護頁、Modal 型 redirect route |
 | `src/shared/api/axiosClient.js` | 所有 API 模組 | 自動帶 JWT header；401 + 有 token 時跳登入；無 token 的 401 靜默處理 |
 | `src/shared/layout/AppLayout.jsx` | `AppNav`、`AppFooter`、`MobileSearch`、`FloatingMessages`、`MessagesModal`、`CreateGroupModal`、`GroupDetailModal`、`QuickMatchModal` | 統一掛載跨頁共用導覽、全域 Modal 與頁尾 |
-| `src/shared/layout/AppNav.jsx` | `NAV_SECTIONS`、`authStore`、`notificationStore`、`conversationStore`、`hooks` | 未登入項目顯示鎖頭；dispatch `pm:open-*` 事件；監聽 `pm:notif-changed` / `pm:convs-changed` 更新未讀 badge；使用者欄位點擊直接導航至 `/account`（已無下拉選單，登出功能移至帳號中心 SettingsTab） |
+| `src/shared/layout/AppNav.jsx` | `NAV_SECTIONS`、`authStore`、`notificationStore`、`conversationStore`、`toast` | 電腦版：毛玻璃側欄（`bg-slate-100/80 backdrop-blur-md`），按鈕 hover 顯示品牌色，鎖定按鈕以 portal tooltip 跟隨鼠標顯示提示；手機版：固定 header + 底部 dock（探索、配對、建立、我的、帳號/登入）；未登入點擊鎖定項目改發 Toast（附「前往登入」按鈕）而非直接跳轉 |
 | `src/shared/layout/FloatingMessages.jsx` | `notificationStore`、`conversationStore` | 監聽 `pm:open-notify` 顯示通知 panel；通知點擊後依類型 dispatch 對應 `pm:open-*` 事件 |
 | `src/shared/ui/GroupModalShell.jsx` | `GroupOverviewContent`、`Badge`、`ProgressBar`、`ServiceLogo` | 三個群組詳情 Modal 共用的兩欄佈局殼；管理 scroll lock、Escape 關閉 |
 | `src/features/group/GroupDetailModal.jsx` | `GroupModalShell`、`ApplyJoinModal`、`favoriteStore`、`applicationStore` | 接收 `pm:open-group`；依使用者狀態顯示申請、收藏、付款 CTA |
@@ -259,8 +261,9 @@ init: async () => {
 |------|------|
 | `/quick-match` | 快速配對重導（觸發 `pm:open-match`） |
 | `/create-group` | 建立群組重導（觸發 `pm:open-create`） |
-| `/manage-groups` | 群組管理 |
-| `/my-subscriptions` | 我的訂閱 |
+| `/my-groups` | 我的群組（`?view=member` 成員訂閱、`?view=host` 團主管理） |
+| `/my-subscriptions` | redirect → `/my-groups?view=member` |
+| `/manage-groups` | redirect → `/my-groups?view=host` |
 | `/favorites` | 我的收藏 |
 | `/account` | 帳號中心 |
 
@@ -274,6 +277,6 @@ init: async () => {
 | `MobileSearch` | 手機 / 側欄搜尋入口 |
 | `Modal` | 通用 Modal 外殼；支援 `sub` prop（子 modal 模式，z-index 提升、左上角返回鍵）；`isOpen` 為 undefined 時為非受控模式 |
 | `GroupModalShell` | 探索、管理、訂閱三處共用的兩欄佈局殼；`subPanel` prop 實現子 Modal 滑動動畫 |
-| `FilterTabsBar` | 管理群組、我的訂閱等頁面的可重用分頁篩選列 |
+| `FilterTabsBar` | 我的群組（成員 / 團主）頁面的分頁篩選列；樣式對齊 `CategoryPills`（`bg-raised` active、`scale-105` transform、置中） |
 | `ToastContainer` / `toast.js` | 全域提示訊息（含 `aria-live="polite"` 無障礙支援） |
 | `ServiceLogo` | 依 serviceId 顯示本地或服務資料中的 Logo |
