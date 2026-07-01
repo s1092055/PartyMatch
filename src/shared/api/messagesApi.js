@@ -60,6 +60,10 @@ export async function leaveConversation(conversationId) {
   return client.patch(`/conversations/${conversationId}/participants`, { action: 'leave' })
 }
 
+export async function removeParticipantFromConversation(conversationId, userId) {
+  return client.patch(`/conversations/${conversationId}/participants`, { action: 'remove', userId })
+}
+
 // 以輪詢取代即時監聽，每 POLL_INTERVAL_MS 毫秒向 REST API 拉取一次
 export function subscribeToConversations(_userId, onUpdate) {
   let active = true

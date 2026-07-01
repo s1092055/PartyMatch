@@ -7,8 +7,10 @@ import { validate } from '../middleware/validate.js'
 const router = Router()
 
 const sendMessageSchema = z.object({
-  content: z.string().min(1).max(2000),
-  type:    z.enum(['text', 'system']).default('text'),
+  content:    z.string().min(1).max(2000),
+  type:       z.enum(['text', 'system', 'action']).default('text'),
+  actionType: z.string().optional(),
+  payload:    z.record(z.unknown()).optional(),
 })
 
 const dmSchema = z.object({
@@ -132,9 +134,16 @@ router.post('/:id/messages', requireAuth, validate(sendMessageSchema), async (re
       return res.status(403).json({ message: '無發送權限' })
     }
 
-    const { content, type } = req.body
+    const { content, type, actionType, payload } = req.body
     const message = await prisma.message.create({
-      data: { conversationId: req.params.id, senderId: req.user.id, content, type },
+      data: {
+        conversationId: req.params.id,
+        senderId: req.user.id,
+        content,
+        type,
+        ...(actionType !== undefined && { actionType }),
+        ...(payload    !== undefined && { payload }),
+      },
       include: { sender: { select: { id: true, name: true, avatarColor: true, avatarInitial: true } } },
     })
 
@@ -175,8 +184,18 @@ router.patch('/:id/participants', requireAuth, async (req, res, next) => {
     } else if (action === 'leave') {
       const idx = participants.indexOf(req.user.id)
       if (idx !== -1) participants.splice(idx, 1)
+    } else if (action === 'remove') {
+      // 僅群組對話的團主可移除特定成員
+      if (conversation.type !== 'group') return res.status(400).json({ message: '僅群組聊天室可移除成員' })
+      const group = conversation.groupId
+        ? await prisma.group.findUnique({ where: { id: conversation.groupId }, select: { hostId: true } })
+        : null
+      if (!group || group.hostId !== req.user.id) return res.status(403).json({ message: '僅團主可移除成員' })
+      if (!userId) return res.status(400).json({ message: '缺少 userId' })
+      const idx = participants.indexOf(userId)
+      if (idx !== -1) participants.splice(idx, 1)
     } else {
-      return res.status(400).json({ message: 'action 必須為 add 或 leave' })
+      return res.status(400).json({ message: 'action 必須為 add、leave 或 remove' })
     }
 
     const updated = await prisma.conversation.update({

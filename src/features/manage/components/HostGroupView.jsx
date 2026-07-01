@@ -6,7 +6,6 @@ import {
 import Avatar from '../../../shared/ui/Avatar'
 import ProgressBar from '../../../shared/ui/ProgressBar'
 import CreditScoreBadge from '../../../shared/ui/CreditScoreBadge'
-import ConfirmDialog from '../../../shared/ui/ConfirmDialog'
 import CountdownConfirmDialog from '../../../shared/ui/CountdownConfirmDialog'
 import GroupModalShell from '../../../shared/ui/GroupModalShell'
 import EmptyState from '../../../shared/ui/EmptyState'

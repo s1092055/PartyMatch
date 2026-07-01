@@ -273,6 +273,8 @@ model Message {
   sender         User?        @relation(fields: [senderId], references: [id], onDelete: SetNull)
   content        String
   type           String       @default("text")
+  actionType     String?
+  payload        Json?
   createdAt      DateTime     @default(now())
 
   @@map("messages")

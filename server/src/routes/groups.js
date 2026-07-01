@@ -100,12 +100,31 @@ router.post('/', requireAuth, validate(createGroupSchema), async (req, res, next
   } catch (err) { next(err) }
 })
 
+const ALLOWED_TRANSITIONS = {
+  recruiting:           ['full', 'cancelled'],
+  full:                 ['recruiting', 'pending_confirmation', 'cancelled'],
+  pending_confirmation: ['pending_activation', 'cancelled'],
+  pending_activation:   ['active', 'cancelled'],
+  active:               ['paused', 'ended', 'pending_confirmation'],
+  paused:               ['active', 'ended'],
+  cancelled:            [],
+  ended:                [],
+}
+
 // PATCH /groups/:id
 router.patch('/:id', requireAuth, validate(updateGroupSchema), async (req, res, next) => {
   try {
     const group = await prisma.group.findUnique({ where: { id: req.params.id } })
     if (!group) return res.status(404).json({ message: '群組不存在' })
     if (group.hostId !== req.user.id) return res.status(403).json({ message: '僅團主可操作' })
+
+    const { status } = req.body
+    if (status && status !== group.status) {
+      const allowed = ALLOWED_TRANSITIONS[group.status] ?? []
+      if (!allowed.includes(status)) {
+        return res.status(400).json({ message: `不允許從 ${group.status} 轉換為 ${status}` })
+      }
+    }
 
     const updated = await prisma.group.update({
       where: { id: req.params.id },

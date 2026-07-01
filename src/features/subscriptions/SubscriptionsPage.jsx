@@ -102,28 +102,6 @@ export default function SubscriptionsPage() {
     window.addEventListener('pm:set-sub-tab', onSetTab)
     return () => window.removeEventListener('pm:set-sub-tab', onSetTab)
   }, [])
-  // 回到頁面（focus / 可見）時從 REST API 重新同步資料
-  useEffect(() => {
-    if (!activeUserId) return
-    function reloadFromSource() {
-      Promise.all([
-        useSubscriptionStore.getState().init(),
-        useMemberStore.getState().init(),
-        useApplicationStore.getState().init(),
-        useGroupStore.getState().init({ all: true }),
-      ]).catch(console.error)
-    }
-    function handleVisibilityChange() {
-      if (document.visibilityState === 'visible') reloadFromSource()
-    }
-    reloadFromSource()
-    window.addEventListener('focus', reloadFromSource)
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    return () => {
-      window.removeEventListener('focus', reloadFromSource)
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-    }
-  }, [activeUserId])
 
   const userApplications   = activeUserId
     ? applicationsState.filter(a => (a.applicantId ?? a.userId) === activeUserId)
@@ -147,11 +125,15 @@ export default function SubscriptionsPage() {
 
     useMemberStore.getState().remove(member.id)
 
-    // 同步把 application 標為 removed，讓成員可重新申請
-    const app = useApplicationStore.getState().applications.find(
+    // 樂觀把 application 標為 removed（後端 DELETE /members 已在 transaction 更新 DB）
+    const appToRemove = useApplicationStore.getState().applications.find(
       a => a.groupId === viewGroupId && (a.applicantId ?? a.userId) === activeUser.id && a.status === 'approved'
     )
-    if (app) useApplicationStore.getState().updateStatus(app.id, 'removed')
+    if (appToRemove) {
+      useApplicationStore.setState(s => ({
+        applications: s.applications.map(a => a.id === appToRemove.id ? { ...a, status: 'removed' } : a),
+      }))
+    }
 
     // 樂觀更新 group local state（後端 DELETE /members 同步更新 currentMembers 與 status）
     const newUsed = Math.max(0, group.usedSeats - 1)
@@ -188,8 +170,7 @@ export default function SubscriptionsPage() {
     const convId = useConversationStore.getState().getByGroupId(viewGroupId)?.id
     if (convId) {
       const memberName = activeUser.displayName ?? activeUser.name ?? '成員'
-      const remainingParticipants = [group.hostId].filter(Boolean)
-      sendSystemMessage(convId, `${memberName} 已退出群組`, remainingParticipants).catch(console.error)
+      sendSystemMessage(convId, `${memberName} 已退出群組`).catch(console.error)
     }
 
     setViewGroupId(null)

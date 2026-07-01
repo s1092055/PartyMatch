@@ -8,7 +8,7 @@ import { useMemberStore } from '../../shared/stores/useMemberStore'
 import { useSubscriptionStore } from '../../shared/stores/useSubscriptionStore'
 import { usePaymentStore } from '../../shared/stores/usePaymentStore'
 import { useNotificationStore } from '../../shared/stores/useNotificationStore'
-import { addParticipantToConversation, createGroupConversation, leaveConversation, sendSystemMessage, sendActionMessage } from '../../shared/api/messagesApi'
+import { createGroupConversation, removeParticipantFromConversation, sendSystemMessage, sendActionMessage } from '../../shared/api/messagesApi'
 import { useConversationStore } from '../../shared/stores/useConversationStore'
 import { CONFIRMED_STATUSES } from '../../shared/constants/paymentStatus'
 
@@ -162,9 +162,11 @@ export default function ManagePage() {
       if (document.visibilityState === 'visible') reloadFromSource()
     }
     reloadFromSource()
+    const interval = setInterval(reloadFromSource, 30_000)
     window.addEventListener('focus', reloadFromSource)
     document.addEventListener('visibilitychange', handleVisibilityChange)
     return () => {
+      clearInterval(interval)
       window.removeEventListener('focus', reloadFromSource)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
@@ -230,25 +232,22 @@ async function handleActivateGroup(paymentAccount) {
     const groupMembers = getMembersByGroupId(viewGroupId)
 
     if (paymentAccount) updateGroup(viewGroupId, { paymentAccount })
-    activateGroupChat(viewGroupId)
 
-    // 建立群組聊天室，取得後端回傳的真實 conversation ID
+    // 先建立聊天室（後端 POST /conversations/group 已包含所有成員），再推進群組狀態
     const conv = await createGroupConversation({ groupId: viewGroupId })
     const convId = conv.id
-    for (const m of groupMembers) {
-      await addParticipantToConversation(convId, m.userId)
-    }
+    activateGroupChat(viewGroupId)
+
     await sendActionMessage(convId, {
       text: `請填寫你在 ${group.serviceName} 使用的服務帳號（電子信箱），以便團主幫你設定訂閱。`,
       actionType: 'fill_service_info',
       payload: { serviceName: group.serviceName, serviceId: group.serviceId },
-      participants: groupMembers.map(m => m.userId),
     })
     if (paymentAccount) {
       await sendSystemMessage(convId, `團主已提供收款資訊，請依照以下方式完成付款：\n${paymentAccount}`)
     }
 
-    // members 端的 group_chat_opened 通知由 conversationStore listener 自行建立（避免跨用戶寫入）
+    // 通知團主自己
     createNotification({
       userId:  group.hostId,
       type:    'group_chat_opened',
@@ -256,28 +255,37 @@ async function handleActivateGroup(paymentAccount) {
       message: `「${group.serviceName}」群組已啟用，聊天室已建立，點擊查看。`,
       meta:    { groupId: viewGroupId },
     })
+    // 直接通知所有成員（不依賴 conversationStore listener）
+    groupMembers.forEach(m => {
+      createNotification({
+        userId:  m.userId,
+        type:    'group_chat_opened',
+        title:   '群組聊天室已開啟',
+        message: `「${group.serviceName}」群組聊天室已建立，請進入填寫服務帳號並完成付款。`,
+        meta:    { groupId: viewGroupId },
+      })
+    })
 
-    // 樂觀更新：使用後端回傳的真實 conv.id
+    // 樂觀新增聊天室到本地 store
     const participantMeta = {
       [group.hostId]: { name: group.hostName, avatarInitial: group.hostAvatarInitial, avatarColor: group.hostAvatarColor },
       ...Object.fromEntries(groupMembers.map(m => [m.userId, { name: m.userName, avatarInitial: m.userAvatarInitial, avatarColor: m.userAvatarColor }])),
     }
     addConversationOptimistic({
-      id:              convId,
-      type:            'group',
-      groupId:         viewGroupId,
-      name:            group.serviceName ?? viewGroupId,
-      serviceId:       group.serviceId ?? null,
-      participants:    [group.hostId, ...groupMembers.map(m => m.userId)],
+      id:           convId,
+      type:         'group',
+      groupId:      viewGroupId,
+      hostId:       group.hostId,
+      name:         group.serviceName ?? viewGroupId,
+      serviceId:    group.serviceId ?? null,
+      participants: [group.hostId, ...groupMembers.map(m => m.userId)],
       participantMeta,
-      unreadCounts:    { [group.hostId]: 0 },
-      lastMessage:     '',
-      lastMessageAt:   null,
+      unreadCounts: { [group.hostId]: 0 },
+      lastMessage:  '',
+      lastMessageAt: null,
     })
 
-    const targetGroupId = viewGroupId
     setViewGroupId(null)
-    window.dispatchEvent(new CustomEvent('pm:open-messages', { detail: { groupId: targetGroupId } }))
   }
 
 function handleRemoveMember(member) {
@@ -315,11 +323,9 @@ function handleRemoveMember(member) {
       meta:    { groupId: member.groupId },
     })
     const convId = getConvByGroupId(member.groupId)?.id
-    const remainingMembers = getMembersByGroupId(member.groupId).filter(m => m.userId !== member.userId)
-    const convParticipants = [group?.hostId, ...remainingMembers.map(m => m.userId)].filter(Boolean)
     if (convId) {
-      sendSystemMessage(convId, `${member.userName} 已被移出群組`, convParticipants).catch(console.error)
-      leaveConversation(convId, member.userId).catch(console.error)
+      sendSystemMessage(convId, `${member.userName} 已被移出群組`).catch(console.error)
+      removeParticipantFromConversation(convId, member.userId).catch(console.error)
     }
   }
 
@@ -381,17 +387,12 @@ function handleConfirmMember(member) {
     const reasonFn = PAYMENT_ISSUE_REASONS[issueType] ?? PAYMENT_ISSUE_REASONS.other
     const reasonText = reasonFn(pricePerSeat, issueNote)
 
-    const allMembers = getMembersByGroupId(member.groupId)
-    const participants = [activeUser.id, ...allMembers.map(m => m.userId)]
     const convId = getConvByGroupId(member.groupId)?.id
-    // 所有人看到簡短提示；詳細原因只放進當事人的 action card
-    if (convId) sendSystemMessage(convId, `${member.userName}，已被要求重新補件`, participants).catch(console.error)
+    if (convId) sendSystemMessage(convId, `${member.userName}，已被要求重新補件`).catch(console.error)
     if (convId) sendActionMessage(convId, {
       text: reasonText,
       actionType: 'request_resubmit',
       payload: { targetUserId: member.userId },
-      visibleTo: [member.userId],
-      participants: [member.userId],
     }).catch(console.error)
 
     createNotification({
@@ -411,13 +412,10 @@ function handleActivate(renewalDate) {
     const updatedGroup = activateGroup(viewGroupId, renewalDate || null)
     if (updatedGroup) {
       activateGroupSubscriptions(viewGroupId, updatedGroup.nextBillingDate)
-      const activateMembers = getMembersByGroupId(viewGroupId)
-      const activateParticipants = [activeUser.id, ...activateMembers.map(m => m.userId)]
       const activateConvId = getConvByGroupId(viewGroupId)?.id
       if (activateConvId) sendSystemMessage(
         activateConvId,
-        `${updatedGroup.serviceName} 訂閱服務已正式啟用！下次扣款日：${updatedGroup.nextBillingDate}。`,
-        activateParticipants
+        `${updatedGroup.serviceName} 訂閱服務已正式啟用！下次扣款日：${updatedGroup.nextBillingDate}。`
       ).catch(console.error)
       createNotification({
         userId:  activeUser.id,
@@ -473,9 +471,8 @@ function handleActivate(renewalDate) {
         message: `「${groupLabel}」群組已由團主結束，合購服務將不再續訂。`,
       })
     })
-    const endParticipants = [group?.hostId, ...groupMembers.map(m => m.userId)].filter(Boolean)
     const endConvId = getConvByGroupId(renewalModalGroupId)?.id
-    if (endConvId) sendSystemMessage(endConvId, `團主已結束「${groupLabel}」群組`, endParticipants).catch(console.error)
+    if (endConvId) sendSystemMessage(endConvId, `團主已結束「${groupLabel}」群組`).catch(console.error)
 
     setRenewalModalGroupId(null)
     refreshGroups()
@@ -536,7 +533,14 @@ function handleApprove(appId) {
     const newOpenSeats = seatPatch?.openSeats ?? seats.openSeats
     if (seatPatch) updateGroup(app.groupId, seatPatch)
 
-    // application_approved 通知由 member 端的 applicationStore listener 自行建立（避免跨用戶寫入）
+    // 直接通知申請人（不依賴冷啟動補通知）
+    createNotification({
+      userId:  applicantId,
+      type:    'application_approved',
+      title:   '申請已通過',
+      message: `恭喜！你加入「${app.groupName ?? app.serviceName}」群組的申請已通過，請前往我的訂閱查看。`,
+      meta:    { groupId: app.groupId, applicationId: appId },
+    })
 
     if (seatPatch?.status === 'full') {
       createNotification({
@@ -570,15 +574,12 @@ function handleApprove(appId) {
 
     const group = getGroupById(member.groupId)
     const convId = getConvByGroupId(member.groupId)?.id
-    const allMembers = getMembersByGroupId(member.groupId)
-    const participants = [activeUser.id, ...allMembers.map(m => m.userId)]
 
-    if (convId) sendSystemMessage(convId, `${member.userName}，服務帳號需要修正`, participants).catch(console.error)
+    if (convId) sendSystemMessage(convId, `${member.userName}，服務帳號需要修正`).catch(console.error)
     if (convId) sendActionMessage(convId, {
       actionType: 'request_service_resubmit',
       text: note,
-      visibleTo: [member.userId],
-      participants: [member.userId],
+      payload: { targetUserId: member.userId },
     }).catch(console.error)
 
     createNotification({
@@ -597,7 +598,14 @@ function handleApprove(appId) {
     if (!app || app.status !== 'pending') return
 
     updateApplicationStatus(appId, 'rejected')
-    // application_rejected 通知由 member 端的 applicationStore listener 自行建立（避免跨用戶寫入）
+    // 直接通知申請人
+    createNotification({
+      userId:  app.applicantId ?? app.userId,
+      type:    'application_rejected',
+      title:   '申請未通過',
+      message: `很遺憾，你加入「${app.groupName ?? app.serviceName}」群組的申請未通過，你可以繼續探索其他群組。`,
+      meta:    { groupId: app.groupId, applicationId: appId },
+    })
 
     setManageData(prev => ({
       ...prev,

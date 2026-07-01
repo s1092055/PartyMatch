@@ -114,7 +114,7 @@ export const useNotificationStore = create((set, get) => ({
     set(s => ({
       notifications: s.notifications.map(n => n.id === id ? { ...n, isRead: true } : n),
     }))
-    patchNotification(id, { isRead: true }).catch(console.error)
+    patchNotification(id).catch(console.error)
   },
 
   // ── 全部標記已讀 ────────────────────────────────────────────────────────────

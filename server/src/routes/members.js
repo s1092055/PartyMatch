@@ -118,7 +118,7 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
       // 成員自行退出：把 application 標為 removed，讓成員可重新申請
       if (isSelf && !isHost) {
         await tx.application.updateMany({
-          where: { groupId: existing.groupId, applicantId: existing.userId, status: 'approved' },
+          where: { groupId: existing.groupId, userId: existing.userId, status: 'approved' },
           data:  { status: 'removed' },
         })
       }
