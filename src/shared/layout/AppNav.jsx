@@ -422,8 +422,8 @@ export default function AppNav({ variant = 'side' }) {
       <aside
         className="group/nav fixed bottom-4 left-4 top-4 z-50 hidden w-16 flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-sm transition-[width] duration-300 ease-out hover:w-56 focus-within:w-56 md:flex"
       >
-        <Link
-          to="/"
+        <a
+          href="/"
           onClick={closeAll}
           className="flex h-16 shrink-0 items-center gap-3 px-4"
           aria-label="回首頁"
@@ -432,7 +432,7 @@ export default function AppNav({ variant = 'side' }) {
           <span className="whitespace-nowrap text-[1.1rem] font-extrabold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
             <span className="text-brand">Party</span><span className="text-ink">Match</span>
           </span>
-        </Link>
+        </a>
 
         <nav className="flex flex-1 flex-col overflow-x-hidden overflow-y-auto px-2 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="my-auto space-y-0.5">
@@ -489,9 +489,9 @@ export default function AppNav({ variant = 'side' }) {
 
       {/* Mobile header */}
       <header className="fixed left-0 right-0 top-0 z-50 flex h-14 items-center justify-between border-b border-line bg-white px-4 md:hidden">
-        <Link to="/" className="flex items-center gap-2" aria-label="回首頁">
+        <a href="/" className="flex items-center gap-2" aria-label="回首頁">
           <img src={logoUrl} alt="PartyMatch" className="h-8 w-8" />
-        </Link>
+        </a>
         <div className="flex items-center gap-1">
           <button
             onClick={openNotify}
