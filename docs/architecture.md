@@ -175,8 +175,6 @@ src/
 │       ├── date.js
 │       ├── groupDisplay.js
 │       ├── hooks.js
-│       ├── leaveGroupFlow.js
-│       ├── matchGroups.js
 │       ├── modelNormalizers.js
 │       ├── searchUtils.js
 │       ├── serviceUtils.js
@@ -214,7 +212,7 @@ init: async () => {
 | `useMemberStore` | `/members` | 群組成員、付款狀態、移除成員 |
 | `useSubscriptionStore` | `/subscriptions` | 成員訂閱、標記付款、確認付款、啟用訂閱 |
 | `usePaymentStore` | `/payments` | 付款紀錄統計 |
-| `useNotificationStore` | `/notifications` | 個人通知、公開系統公告、未讀數 |
+| `useNotificationStore` | `/notifications` | 個人通知、公開系統公告、未讀數；`startPolling(userId)` 每 10 秒輪詢，偵測到新 `member_removed`/`member_left` 時廣播 `pm:refresh-member-stores`，偵測到新 `new_application` 時廣播 `pm:refresh-application-store` |
 | `useFavoriteStore` | `/favorites` | 收藏群組 |
 | `useConversationStore` | `/conversations`（polling） | 對話列表快取、計算未讀訊息數；每 5 秒輪詢；登出時 `teardown()` |
 
@@ -224,16 +222,16 @@ init: async () => {
 
 | 主要檔案 | 連動對象 | props / event / function |
 |----------|----------|--------------------------|
-| `src/app/App.jsx` | `router.jsx`、所有 Store | 兩階段初始化；未登入只載入公開資料，避免呼叫受保護端點 |
+| `src/app/App.jsx` | `router.jsx`、所有 Store | 兩階段初始化；未登入只載入公開資料，避免呼叫受保護端點；監聽 `pm:refresh-member-stores`（成員異動後同步 group/member/subscription/application）與 `pm:refresh-application-store`（新申請到達後同步申請資料） |
 | `src/app/router.jsx` | `AppLayout`、`ProtectedRoute`、`PublicOnlyRoute`、`redirects.jsx` | 定義公開頁、受保護頁、Modal 型 redirect route |
 | `src/shared/api/axiosClient.js` | 所有 API 模組 | 自動帶 JWT header；401 + 有 token 時跳登入；無 token 的 401 靜默處理 |
 | `src/shared/layout/AppLayout.jsx` | `AppNav`、`AppFooter`、`MobileSearch`、`FloatingMessages`、`MessagesModal`、`CreateGroupModal`、`GroupDetailModal`、`QuickMatchModal` | 統一掛載跨頁共用導覽、全域 Modal 與頁尾 |
 | `src/shared/layout/AppNav.jsx` | `NAV_SECTIONS`、`authStore`、`notificationStore`、`conversationStore`、`toast` | 電腦版：毛玻璃側欄（`bg-slate-100/80 backdrop-blur-md`），按鈕 hover 顯示品牌色，鎖定按鈕以 portal tooltip 跟隨鼠標顯示提示；手機版：固定 header + 底部 dock（探索、配對、建立、我的、帳號/登入）；未登入點擊鎖定項目改發 Toast（附「前往登入」按鈕）而非直接跳轉 |
-| `src/shared/layout/FloatingMessages.jsx` | `notificationStore`、`conversationStore` | 監聽 `pm:open-notify` 顯示通知 panel；通知點擊後依類型 dispatch 對應 `pm:open-*` 事件 |
-| `src/shared/ui/GroupModalShell.jsx` | `GroupOverviewContent`、`Badge`、`ProgressBar`、`ServiceLogo` | 三個群組詳情 Modal 共用的兩欄佈局殼；管理 scroll lock、Escape 關閉 |
+| `src/shared/layout/FloatingMessages.jsx` | `notificationStore`、`conversationStore`、`applicationStore` | 監聽 `pm:open-notify` 顯示通知 panel；通知點擊後依類型 dispatch 對應 `pm:open-*` 事件；`new_application` 點擊時先 await `applicationStore.init()` 再開 Modal，確保資料已更新；`member_left`（成員退出）host 端點擊前廣播 `pm:refresh-member-stores` |
+| `src/shared/ui/GroupModalShell.jsx` | `GroupOverviewContent`、`Badge`、`ProgressBar`、`ServiceLogo` | 三個群組詳情 Modal 共用的滑動軌道殼（300% 寬、三層 panel）；`subPanel` 滑入第二層、`subSubPanel` 滑入第三層，支援 `headerRight` slot；管理 scroll lock、Escape 逐層關閉 |
 | `src/features/group/GroupDetailModal.jsx` | `GroupModalShell`、`ApplyJoinModal`、`favoriteStore`、`applicationStore` | 接收 `pm:open-group`；依使用者狀態顯示申請、收藏、付款 CTA |
 | `src/shared/ui/GroupViewModal.jsx` | `HostGroupView`、`MemberGroupView` | 薄殼：依 `isHost` 決定渲染 HostGroupView 或 MemberGroupView |
-| `src/features/manage/components/HostGroupView.jsx` | `GroupModalShell`、子 Modal | 團主視角；成員名單、申請管理（招募中）/ 收款管理（收款階段）、啟用 CTA |
+| `src/features/manage/components/HostGroupView.jsx` | `GroupModalShell`、子 Modal | 團主視角；成員名單（含移除成員）、申請管理（僅待審核）→ 審核紀錄（第三層 panel，含篩選）/ 收款管理（收款階段）、啟用 CTA |
 | `src/features/subscriptions/components/MemberGroupView.jsx` | `GroupModalShell`、`CombinedServicePaymentModal` | 成員視角；填寫帳號 + 上傳憑證合併為單步驟 Modal |
 | `src/features/messages/MessagesModal.jsx` | `conversationStore`、`messagesApi`、`ConversationList`、`ChatWindow` | 接收 `pm:open-messages` / `pm:open-dm`；透過 `subscribeToMessages` polling 同步訊息 |
 | `src/shared/stores/*` | `src/shared/api/*`、`src/shared/utils/*` | Stores 保存前端快取並封裝業務流程，api 只做 REST CRUD |
@@ -276,7 +274,7 @@ init: async () => {
 | `AppNav` | 桌機側欄、手機 Header、通知 / 訊息按鈕、未讀 badge |
 | `MobileSearch` | 手機 / 側欄搜尋入口 |
 | `Modal` | 通用 Modal 外殼；支援 `sub` prop（子 modal 模式，z-index 提升、左上角返回鍵）；`isOpen` 為 undefined 時為非受控模式 |
-| `GroupModalShell` | 探索、管理、訂閱三處共用的兩欄佈局殼；`subPanel` prop 實現子 Modal 滑動動畫 |
+| `GroupModalShell` | 探索、管理、訂閱三處共用的滑動軌道殼；`subPanel`（第二層）+ `subSubPanel`（第三層）prop 實現翻書滑動動畫；支援各層 `headerRight` slot |
 | `FilterTabsBar` | 我的群組（成員 / 團主）頁面的分頁篩選列；樣式對齊 `CategoryPills`（`bg-raised` active、`scale-105` transform、置中） |
 | `ToastContainer` / `toast.js` | 全域提示訊息（含 `aria-live="polite"` 無障礙支援） |
 | `ServiceLogo` | 依 serviceId 顯示本地或服務資料中的 Logo |

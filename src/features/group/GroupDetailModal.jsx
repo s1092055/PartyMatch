@@ -10,11 +10,10 @@ import { useApplicationStore } from '../../shared/stores/useApplicationStore'
 import { useMemberStore } from '../../shared/stores/useMemberStore'
 import { useFavoriteStore } from '../../shared/stores/useFavoriteStore'
 import { useAuthStore } from '../../shared/stores/useAuthStore'
-import { finalizeLeaveGroup } from '../../shared/utils/leaveGroupFlow'
+import { finalizeLeaveGroup } from './utils/leaveGroupFlow'
 import { toast } from '../../shared/utils/toast'
 import Avatar from '../../shared/ui/Avatar'
 import Button from '../../shared/ui/Button'
-import Modal from '../../shared/ui/Modal'
 import CountdownConfirmDialog from '../../shared/ui/CountdownConfirmDialog'
 import GroupModalShell from '../../shared/ui/GroupModalShell'
 import ApplyJoinModal from './components/ApplyJoinModal'
@@ -151,7 +150,7 @@ export default function GroupDetailModal() {
   // approved && !isMember → false，確保退出後可重新申請
   const app          = activeUserId ? useApplicationStore.getState().getByUserAndGroup(activeUserId, group.id) : null
   const appStatus    = app?.status
-  const hasActiveApp = !!app && appStatus !== 'rejected' && appStatus !== 'removed' && !(appStatus === 'approved' && !isMember)
+  const hasActiveApp = !!app && appStatus !== 'rejected' && appStatus !== 'removed' && appStatus !== 'left' && !(appStatus === 'approved' && !isMember)
   const isPendingApp = appStatus === 'pending'
 
   const canApply = !isHost && !isMember && !hasActiveApp && !isFull && !!activeUserId
@@ -162,7 +161,6 @@ export default function GroupDetailModal() {
     setLeaveConfirm(false)
     handleClose()
     finalizeLeaveGroup(
-      `group_${groupId}`,
       groupId,
       { id: activeUserId, name: activeUser?.name ?? activeUser?.displayName ?? '成員' },
     ).catch(console.error)
@@ -248,6 +246,46 @@ export default function GroupDetailModal() {
         ...(group.paymentMethod ? [{ label: '付款方式', value: group.paymentMethod }] : []),
       ]}
       statusBadgeOverride={isMember && group.status === 'recruiting' ? 'member_joined' : undefined}
+      subPanel={showMembers ? {
+        title: `成員名單（${members.filter(m => m.groupId === groupId && m.userId !== group.hostId).length + 1} 人）`,
+        icon: <Users size={18} className="text-brand" />,
+        content: (
+          <div className="p-5 space-y-2">
+            <div className="rounded-xl border border-line p-3">
+              <div className="flex items-center gap-3">
+                <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="sm" />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold text-ink">{group.hostName}</p>
+                    <span className="flex shrink-0 items-center gap-1 rounded-full bg-brand-subtle px-2.5 py-0.5 text-xs font-semibold text-brand">
+                      <Shield size={11} /> 團主
+                    </span>
+                  </div>
+                  <p className="text-xs text-ink-3">{group.createdAt} 建立</p>
+                </div>
+                <button
+                  onClick={() => { setShowMembers(false); openDm() }}
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-brand"
+                >
+                  <MessageCircle size={20} />
+                </button>
+              </div>
+            </div>
+            {members.filter(m => m.groupId === groupId && m.userId !== activeUserId).map(m => (
+              <div key={m.id} className="rounded-xl border border-line p-3">
+                <div className="flex items-center gap-3">
+                  <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-ink">{m.userName}</p>
+                    <p className="text-xs text-ink-3">{m.joinedAt} 加入</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ),
+      } : null}
+      onSubPanelBack={() => setShowMembers(false)}
       headerBanner={
         isWaitingMembers ? (
           <div className="flex items-center justify-center gap-2 bg-success-subtle px-6 py-3 text-sm font-medium text-success-text">
@@ -344,53 +382,6 @@ export default function GroupDetailModal() {
       )}
     </GroupModalShell>
 
-    {/* 成員名單 */}
-    {group && (
-      <Modal
-        isOpen={showMembers}
-        onClose={() => setShowMembers(false)}
-        title={`成員名單（${members.filter(m => m.groupId === groupId && m.userId !== group.hostId).length + 1} 人）`}
-        icon={<Users size={18} className="text-brand" />}
-        maxWidth="max-w-lg"
-        sub
-      >
-        <div className="h-[60vh] min-h-0 overflow-y-auto p-5">
-          <div className="space-y-2">
-            <div className="rounded-xl border border-line p-3">
-              <div className="flex items-center gap-3">
-                <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="sm" />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-semibold text-ink">{group.hostName}</p>
-                    <span className="flex shrink-0 items-center gap-1 rounded-full bg-brand-subtle px-2.5 py-0.5 text-xs font-semibold text-brand">
-                      <Shield size={11} /> 團主
-                    </span>
-                  </div>
-                  <p className="text-xs text-ink-3">{group.createdAt} 建立</p>
-                </div>
-                <button
-                  onClick={() => { setShowMembers(false); openDm() }}
-                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-brand"
-                >
-                  <MessageCircle size={20} />
-                </button>
-              </div>
-            </div>
-            {members.filter(m => m.groupId === groupId && m.userId !== activeUserId).map(m => (
-              <div key={m.id} className="rounded-xl border border-line p-3">
-                <div className="flex items-center gap-3">
-                  <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-ink">{m.userName}</p>
-                    <p className="text-xs text-ink-3">{m.joinedAt} 加入</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </Modal>
-    )}
 
     {/* 退出確認 */}
     {leaveConfirm && (

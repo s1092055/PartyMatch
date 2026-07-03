@@ -52,7 +52,8 @@ PartyMatch 的設計目標是：在一個平台上完整處理**媒合 → 申�
 | 功能 | 說明 |
 |------|------|
 | 建立群組 | 4 步驟表單：選服務 → 選方案 → 設定條件 → 確認送出 |
-| 審核申請 | 核准 / 拒絕申請；支援狀態篩選 |
+| 審核申請 | 待審核申請單獨列出，點右上角「審核紀錄」可滑入歷史紀錄（含篩選） |
+| 移除成員 | 群組在 `recruiting` / `full` 期間可將已核准成員移出；進入收款階段後名單鎖定 |
 | 收款管理 | 逐筆確認成員付款；可回報付款問題 |
 | 啟用服務 | 全員付款確認後，填入收款帳號並啟用 |
 | 續訂 / 結束 | 開始新一期收款，或結束群組 |
@@ -107,9 +108,13 @@ recruiting → full → pending_confirmation → pending_activation → active �
 
 > `full` 時，團主點「啟用群組」並填寫收款帳號後確認，系統才會建立群組聊天室並推進至 `pending_confirmation`。
 
+### 成員異動規則
+
+`recruiting` / `full` 狀態下，成員可自行退出、團主可移除成員：後端刪除 member 記錄、將 application 標為 `left` / `removed`、subscription 一併刪除，名額釋出（`full` 退回 `recruiting`）；被移除或自行退出的申請狀態允許再次申請同一群組。進入 `pending_confirmation` 後成員名單不可再變動，前後端均設有狀態守衛。
+
 ### 跨元件通訊
 
-全域 Modal 透過 `window.dispatchEvent` 以 `pm:open-*` 事件驅動，避免 React props 層層傳遞，也解決 `location.state` 在同頁面不可靠的問題。
+全域 Modal 透過 `window.dispatchEvent` 以 `pm:open-*` 事件驅動，避免 React props 層層傳遞，也解決 `location.state` 在同頁面不可靠的問題。成員異動事件（退出、被移除）透過 `pm:refresh-member-stores` 事件通知 App.jsx 同步所有相關 Store。
 
 ---
 
@@ -125,11 +130,19 @@ recruiting → full → pending_confirmation → pending_activation → active �
 
 ### 3. 兩階段 App 啟動
 
-未登入時只載入公開資料，避免受保護端點在未認證狀態下被呼叫。登入後才動態初始化私人 Store，登出時停止 conversations polling，確保不會有殘留的 auth 請求。
+未登入時只載入公開資料，避免受保護端點在未認證狀態下被呼叫。登入後才動態初始化私人 Store，並啟動通知 polling；登出時一律呼叫 `teardown()` 清除 polling 計時器與 Store 狀態，確保不會有殘留的 auth 請求。登出再登入（不重整頁面）時，`initPrivateStores` 會重新呼叫 `startPolling`，確保通知持續同步。
 
-### 4. 訊息輪詢架構
+### 4. 通知驅動的即時資料同步
+
+通知採用 REST polling（每 10 秒）。偵測到新 `new_application` 通知時自動 refresh 申請 Store，讓團主點擊通知時申請資料已是最新狀態；偵測到成員異動通知時廣播 `pm:refresh-member-stores` 事件，同步更新群組、成員、訂閱、申請四個 Store。
+
+### 5. 訊息輪詢架構
 
 聊天室採用 REST polling（每 5 秒），部署成本低、無需額外的長連線基礎設施，適合現階段規模。
+
+### 6. 三層滑動 Panel
+
+群組 Modal（`GroupModalShell`）採用 300% 寬度的滑動軌道，支援主面板 → 子面板 → 子子面板三層滑入動畫。申請管理子面板右上角的「審核紀錄」按鈕觸發第三層面板，保持一致的「翻書」視覺效果，不需要額外的 overlay Modal。
 
 ---
 

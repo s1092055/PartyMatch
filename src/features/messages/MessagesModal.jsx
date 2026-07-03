@@ -11,12 +11,14 @@ import { useNotificationStore } from '../../shared/stores/useNotificationStore'
 const getCurrentUser = () => useAuthStore.getState().user
 const isAuthenticated = () => useAuthStore.getState().loggedIn
 import {
+  fetchConversations,
   subscribeToMessages,
   sendMessage,
   markConversationRead,
   getOrCreateDmConversation,
   leaveConversation,
 } from '../../shared/api/messagesApi'
+import { normalizeConversation } from '../../shared/utils/modelNormalizers'
 import ConfirmDialog from '../../shared/ui/ConfirmDialog'
 import ConversationList, { CONV_TABS } from './components/ConversationList'
 import ChatWindow from './components/ChatWindow'
@@ -62,11 +64,28 @@ export default function MessagesModal() {
   }, [selectedId])
 
   useEffect(() => {
-    function onOpen(e) {
+    async function onOpen(e) {
       if (!isAuthenticated()) { setShowLoginPrompt(true); return }
       setIsOpen(true)
       const groupId = e?.detail?.groupId
-      if (groupId) setSelectedId(`group_${groupId}`)
+      if (!groupId) return
+      let conv = useConversationStore.getState().getByGroupId(groupId)
+      if (!conv) {
+        // 對話尚未進 store（成員端剛收到通知），主動 fetch 一次再查
+        try {
+          const convs = await fetchConversations()
+          const fetched = convs.map(normalizeConversation)
+          const fetchedIds = new Set(fetched.map(c => c.id))
+          useConversationStore.setState(s => ({
+            conversations: [
+              ...fetched,
+              ...s.conversations.filter(c => !fetchedIds.has(c.id)),
+            ],
+          }))
+          conv = useConversationStore.getState().getByGroupId(groupId)
+        } catch { /* ignore */ }
+      }
+      if (conv) setSelectedId(conv.id)
     }
     function onClose() { setIsOpen(false) }
     window.addEventListener('pm:open-messages', onOpen)
@@ -82,16 +101,17 @@ export default function MessagesModal() {
       if (!isAuthenticated()) { setShowLoginPrompt(true); return }
       const user = getCurrentUser()
       if (!user) return
-      const { hostId, hostName, hostAvatarInitial, hostAvatarColor } = e.detail ?? {}
+      const { hostId } = e.detail ?? {}
       if (!hostId) return
       setIsOpen(true)
-      const convId = await getOrCreateDmConversation(
-        user.id,
-        { name: user.name, avatarInitial: user.name?.[0] ?? '?', avatarColor: user.avatarColor ?? '#64748b' },
-        hostId,
-        { name: hostName, avatarInitial: hostAvatarInitial ?? hostName?.[0] ?? '?', avatarColor: hostAvatarColor ?? '#64748b' },
-      )
-      setSelectedId(convId)
+      try {
+        const conv = await getOrCreateDmConversation(hostId)
+        useConversationStore.getState().addConversationOptimistic(normalizeConversation(conv))
+        useConversationStore.getState().refresh(user.id)
+        setSelectedId(conv.id)
+      } catch (err) {
+        console.error('[MessagesModal] DM 建立失敗:', err)
+      }
     }
     window.addEventListener('pm:open-dm', onOpenDm)
     return () => window.removeEventListener('pm:open-dm', onOpenDm)

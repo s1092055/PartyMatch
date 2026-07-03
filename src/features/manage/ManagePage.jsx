@@ -53,6 +53,7 @@ const getConvByGroupId           = (gid)     => useConversationStore.getState().
 import EmptyState from '../../shared/ui/EmptyState'
 import GroupViewModal from '../../shared/ui/GroupViewModal'
 import FilterTabsBar from '../../shared/ui/FilterTabsBar'
+import RevealSection from '../../shared/ui/RevealSection'
 import HostedGroupCard from './components/HostedGroupCard'
 import GroupHistoryModal from './components/GroupHistoryModal'
 import RenewalModal from './components/RenewalModal'
@@ -273,23 +274,19 @@ function handleRemoveMember(member) {
     if (app) updateApplicationStatus(app.id, 'removed')
     const sub = getSubscriptionByUserAndGroup(member.userId, member.groupId)
     if (sub) removeSubscription(sub.id)
-    const seats = seatMap[member.groupId]
-    if (seats) {
-      const newUsed = Math.max(0, seats.usedSeats - 1)
-      const newOpen = seats.openSeats + 1
-      const statusPatch = group?.status === 'full' ? { status: 'recruiting' } : {}
-      updateGroup(member.groupId, { usedSeats: newUsed, openSeats: newOpen, ...statusPatch })
-      setManageData(prev => ({
-        ...prev,
-        members: prev.hostedGroups.flatMap(g => getMembersByGroupId(g.id)),
+    const seats = seatMap[member.groupId] ?? (group ? { usedSeats: group.usedSeats, openSeats: group.openSeats } : null)
+    const newUsed = seats ? Math.max(0, seats.usedSeats - 1) : undefined
+    const newOpen = seats ? seats.openSeats + 1 : undefined
+    const statusPatch = group?.status === 'full' ? { status: 'recruiting' } : {}
+    const seatPatch = newUsed !== undefined ? { usedSeats: newUsed, openSeats: newOpen, ...statusPatch } : statusPatch
+    updateGroup(member.groupId, seatPatch)
+    setManageData(prev => ({
+      ...prev,
+      members: prev.hostedGroups.flatMap(g => getMembersByGroupId(g.id)),
+      ...(newUsed !== undefined && {
         seatMap: { ...prev.seatMap, [member.groupId]: { usedSeats: newUsed, openSeats: newOpen } },
-      }))
-    } else {
-      setManageData(prev => ({
-        ...prev,
-        members: prev.hostedGroups.flatMap(g => getMembersByGroupId(g.id)),
-      }))
-    }
+      }),
+    }))
 
     const groupLabel = group?.groupName ?? group?.serviceName ?? '群組'
     insertNotification({
@@ -455,7 +452,7 @@ function handleActivate(renewalDate) {
     refreshGroups()
   }
 
-function handleApprove(appId) {
+async function handleApprove(appId) {
     const app = applications.find(a => a.id === appId)
     if (!app || app.status !== 'pending') return
 
@@ -474,36 +471,19 @@ function handleApprove(appId) {
       return
     }
 
-    updateApplicationStatus(appId, 'approved')
-
-    if (!alreadyMember) {
-      createMember({
-        groupId:           app.groupId,
-        groupName:         app.groupName ?? app.serviceName,
-        userId:            applicantId,
-        userName:          applicantName,
-        userAvatarInitial: app.applicantAvatarInitial ?? app.userAvatarInitial ?? applicantName[0],
-        userAvatarColor:   app.applicantAvatarColor   ?? app.userAvatarColor   ?? '#94A3B8',
-        skipApiCall:       true, // 後端 PATCH /applications 核准時已在 transaction 建立 member
-      })
+    // 等後端 transaction 完成（在 DB 建立 member + subscription）再 init，確保 store 持有真實 DB ID
+    try {
+      await updateApplicationStatus(appId, 'approved')
+    } catch (err) {
+      console.error('[handleApprove] failed:', err)
+      setErrors(prev => ({ ...prev, [appId]: '核准失敗，請重試' }))
+      await useApplicationStore.getState().init()
+      return
     }
-
-    if (!getSubscriptionByUserAndGroup(applicantId, group.id)) {
-      createSubscription({
-        userId:            applicantId,
-        groupId:           group.id,
-        serviceId:         group.serviceId,
-        serviceName:       group.serviceName,
-        planName:          group.planName,
-        hostName:          group.hostName,
-        hostAvatarInitial: group.hostAvatarInitial,
-        hostAvatarColor:   group.hostAvatarColor,
-        pricePerSeat:      group.pricePerSeat,
-        billingCycle:      group.billingCycle,
-        nextBillingDate:   group.nextBillingDate,
-        skipApiCall:       true, // 後端 PATCH /applications 核准時已在 transaction 建立 subscription
-      })
-    }
+    await Promise.all([
+      useMemberStore.getState().init(),
+      useSubscriptionStore.getState().init(),
+    ])
 
     const seatPatch = calcApprovalSeatPatch(seats, alreadyMember)
     const newUsedSeats = seatPatch?.usedSeats ?? seats.usedSeats
@@ -575,7 +555,7 @@ function handleApprove(appId) {
     const app = applications.find(a => a.id === appId)
     if (!app || app.status !== 'pending') return
 
-    updateApplicationStatus(appId, 'rejected')
+    updateApplicationStatus(appId, 'rejected').catch(console.error)
     // 申請人通知：只寫 DB，申請人刷新後才看到
     insertNotification({
       userId:  app.applicantId ?? app.userId,
@@ -633,15 +613,16 @@ function handleApprove(appId) {
           <EmptyState title="此分類目前沒有群組" />
         ) : (
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {displayGroups.map(g => (
-              <HostedGroupCard
-                key={g.id}
-                group={g}
-                members={membersMap[g.id] ?? []}
-                pendingAppCount={applicationCounts[g.id] ?? 0}
-                paymentCount={paymentCounts[g.id] ?? 0}
-                {...groupHandlersMap[g.id]}
-              />
+            {displayGroups.map((g, i) => (
+              <RevealSection key={g.id} delay={i * 60}>
+                <HostedGroupCard
+                  group={g}
+                  members={membersMap[g.id] ?? []}
+                  pendingAppCount={applicationCounts[g.id] ?? 0}
+                  paymentCount={paymentCounts[g.id] ?? 0}
+                  {...groupHandlersMap[g.id]}
+                />
+              </RevealSection>
             ))}
           </div>
         )}

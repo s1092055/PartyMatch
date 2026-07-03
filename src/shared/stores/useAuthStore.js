@@ -32,6 +32,7 @@ async function initPrivateStores(userId) {
     useNotificationStore.getState().init(),
   ])
   useConversationStore.getState().init(userId)
+  useNotificationStore.getState().startPolling(userId)
   useApplicationStore.getState().checkMissedNotifications({ id: userId })
 }
 
@@ -54,12 +55,12 @@ async function clearPrivateStores() {
     import('./useNotificationStore'),
   ])
   useConversationStore.getState().teardown()
+  useNotificationStore.getState?.().teardown?.()
   useApplicationStore.getState    && useApplicationStore.setState({ applications: [] })
   useSubscriptionStore.getState   && useSubscriptionStore.setState({ subscriptions: [] })
   useMemberStore.getState         && useMemberStore.setState({ members: [] })
   useFavoriteStore.getState       && useFavoriteStore.setState({ favorites: [] })
   usePaymentStore.getState        && usePaymentStore.setState({ payments: [] })
-  useNotificationStore.getState   && useNotificationStore.setState({ notifications: [] })
 }
 
 function activeProfile(user) {

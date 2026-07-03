@@ -48,8 +48,8 @@ router.post('/', requireAuth, validate(applySchema), async (req, res, next) => {
       where: { groupId_userId: { groupId, userId: req.user.id } },
     })
     if (existing) {
-      // 已被拒絕或移除 → 允許重新申請（重置為 pending）
-      if (existing.status === 'rejected' || existing.status === 'removed') {
+      // 已被拒絕、移除或自行退出 → 允許重新申請（重置為 pending）
+      if (existing.status === 'rejected' || existing.status === 'removed' || existing.status === 'left') {
         const application = await prisma.application.update({
           where: { id: existing.id },
           data:  { status: 'pending', message: message ?? existing.message },

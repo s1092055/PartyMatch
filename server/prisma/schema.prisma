@@ -25,6 +25,7 @@ enum ApplicationStatus {
   approved
   rejected
   removed
+  left
 }
 
 enum PaymentStatus {

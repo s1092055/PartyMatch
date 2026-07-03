@@ -17,6 +17,7 @@ import GroupViewModal from '../../shared/ui/GroupViewModal'
 import FilterTabsBar from '../../shared/ui/FilterTabsBar'
 import ServiceLogo from '../../shared/ui/ServiceLogo'
 import Button from '../../shared/ui/Button'
+import RevealSection from '../../shared/ui/RevealSection'
 import { daysUntil, formatRelativeDate } from '../../shared/utils/date'
 
 const FILTER_TABS = [
@@ -126,13 +127,13 @@ export default function SubscriptionsPage({ embedded = false }) {
 
     useMemberStore.getState().remove(member.id)
 
-    // 樂觀把 application 標為 removed（後端 DELETE /members 已在 transaction 更新 DB）
+    // 樂觀把 application 標為 left（後端 DELETE /members 已在 transaction 更新 DB）
     const appToRemove = useApplicationStore.getState().applications.find(
       a => a.groupId === viewGroupId && (a.applicantId ?? a.userId) === activeUser.id && a.status === 'approved'
     )
     if (appToRemove) {
       useApplicationStore.setState(s => ({
-        applications: s.applications.map(a => a.id === appToRemove.id ? { ...a, status: 'removed' } : a),
+        applications: s.applications.map(a => a.id === appToRemove.id ? { ...a, status: 'left' } : a),
       }))
     }
 
@@ -206,8 +207,10 @@ export default function SubscriptionsPage({ embedded = false }) {
             {userApplications.length === 0 ? (
               <EmptyState icon={ClipboardList} title="沒有申請紀錄" />
             ) : (
-              userApplications.map(app => (
-                <ApplicationRow key={app.id} app={app} />
+              userApplications.map((app, i) => (
+                <RevealSection key={app.id} delay={i * 60}>
+                  <ApplicationRow app={app} />
+                </RevealSection>
               ))
             )}
           </div>
@@ -217,24 +220,26 @@ export default function SubscriptionsPage({ embedded = false }) {
               <EmptyState icon={ClipboardList} title="此分類沒有訂閱項目" />
             ) : (
               <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                {pendingApplications.map(app => {
+                {pendingApplications.map((app, i) => {
                   const group = getGroupById(app.groupId)
                   if (!group) return null
                   return (
-                    <ApplicationCard
-                      key={app.id}
-                      app={app}
-                      group={group}
-                      onViewGroup={() => window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: app.groupId } }))}
-                    />
+                    <RevealSection key={app.id} delay={i * 60}>
+                      <ApplicationCard
+                        app={app}
+                        group={group}
+                        onViewGroup={() => window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: app.groupId } }))}
+                      />
+                    </RevealSection>
                   )
                 })}
-                {filtered.map(sub => (
-                  <SubscriptionCard
-                    key={sub.id}
-                    sub={sub}
-                    onViewGroup={onViewGroup}
-                  />
+                {filtered.map((sub, i) => (
+                  <RevealSection key={sub.id} delay={(pendingApplications.length + i) * 60}>
+                    <SubscriptionCard
+                      sub={sub}
+                      onViewGroup={onViewGroup}
+                    />
+                  </RevealSection>
                 ))}
               </div>
             )}
@@ -249,24 +254,26 @@ export default function SubscriptionsPage({ embedded = false }) {
           />
         ) : (
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {activeTab === 'all' && pendingApplications.map(app => {
+            {activeTab === 'all' && pendingApplications.map((app, i) => {
               const group = getGroupById(app.groupId)
               if (!group) return null
               return (
-                <ApplicationCard
-                  key={app.id}
-                  app={app}
-                  group={group}
-                  onViewGroup={() => window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: app.groupId } }))}
-                />
+                <RevealSection key={app.id} delay={i * 60}>
+                  <ApplicationCard
+                    app={app}
+                    group={group}
+                    onViewGroup={() => window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: app.groupId } }))}
+                  />
+                </RevealSection>
               )
             })}
-            {filtered.map(sub => (
-              <SubscriptionCard
-                key={sub.id}
-                sub={sub}
-                onViewGroup={sub => setViewGroupId(sub.groupId)}
-              />
+            {filtered.map((sub, i) => (
+              <RevealSection key={sub.id} delay={(activeTab === 'all' ? pendingApplications.length + i : i) * 60}>
+                <SubscriptionCard
+                  sub={sub}
+                  onViewGroup={sub => setViewGroupId(sub.groupId)}
+                />
+              </RevealSection>
             ))}
           </div>
         )}
@@ -289,6 +296,7 @@ const APP_STATUS_CONFIG = {
   approved: { label: '已核准', Icon: CheckCircle, cls: 'bg-success-subtle text-success-text',   dot: 'bg-success'  },
   rejected: { label: '已拒絕', Icon: XCircle,     cls: 'bg-danger-subtle  text-danger',          dot: 'bg-danger'   },
   removed:  { label: '已被移除', Icon: UserMinus,  cls: 'bg-danger-subtle  text-danger',          dot: 'bg-danger'   },
+  left:     { label: '已退出', Icon: UserMinus,   cls: 'bg-ink-subtle     text-ink-3',           dot: 'bg-ink-3'    },
 }
 
 function ApplicationCard({ app, group, onViewGroup }) {

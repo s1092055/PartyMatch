@@ -1,17 +1,42 @@
+export function normalizeMessage(msg) {
+  const sender = msg.sender ?? {}
+  return {
+    ...msg,
+    text:          msg.text          ?? msg.content        ?? '',
+    senderName:    msg.senderName    ?? sender.name        ?? '',
+    avatarInitial: msg.avatarInitial ?? sender.avatarInitial ?? '',
+    avatarColor:   msg.avatarColor   ?? sender.avatarColor   ?? '#64748b',
+  }
+}
+
+function extractLastMessage(conv) {
+  const raw = conv.lastMessage
+  if (!raw) return { lastMessage: '', lastMessageAt: conv.updatedAt ?? null }
+  if (typeof raw === 'object') {
+    return {
+      lastMessage:   raw.content   ?? '',
+      lastMessageAt: raw.createdAt ?? conv.updatedAt ?? null,
+    }
+  }
+  return { lastMessage: raw, lastMessageAt: conv.updatedAt ?? null }
+}
+
 export function normalizeConversation(conv) {
   const group   = conv.group   ?? {}
   const service = group.service ?? {}
-  // group 對話：serviceId / name 從巢狀 group.service 提取
+  const { lastMessage, lastMessageAt } = extractLastMessage(conv)
+
   if (conv.type === 'group') {
     return {
       ...conv,
-      serviceId: conv.serviceId ?? service.id  ?? '',
-      name:      conv.name      ?? service.name ?? group.planName ?? '群組對話',
-      hostId:    conv.hostId    ?? group.hostId ?? '',
+      serviceId:     conv.serviceId ?? service.id   ?? '',
+      name:          conv.name      ?? service.name ?? group.planName ?? '群組對話',
+      hostId:        conv.hostId    ?? group.hostId ?? '',
+      lastMessage,
+      lastMessageAt,
     }
   }
-  // DM 對話：保留原始結構，name/avatarInitial/avatarColor 由 MessagesModal 從 participantMeta 推導
-  return conv
+  return { ...conv, lastMessage, lastMessageAt }
 }
 
 export function normalizeMember(m) {

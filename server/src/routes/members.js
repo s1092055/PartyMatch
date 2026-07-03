@@ -99,9 +99,9 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
     const isSelf   = existing.userId === req.user.id
     if (!isHost && !isSelf) return res.status(403).json({ message: '無操作權限' })
 
-    // 成員只能在 recruiting / full 階段退出（付款階段不允許）
-    if (isSelf && !isHost && !['recruiting', 'full'].includes(existing.group.status)) {
-      return res.status(400).json({ message: '付款確認階段無法退出群組' })
+    // 群組啟用後（pending_confirmation 以後）成員名單不可再變動
+    if (!['recruiting', 'full'].includes(existing.group.status)) {
+      return res.status(400).json({ message: '群組啟用後無法變更成員名單' })
     }
 
     const newCount = await prisma.$transaction(async (tx) => {
@@ -115,11 +115,11 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
         },
         select: { currentMembers: true },
       })
-      // 成員自行退出：把 application 標為 removed，讓成員可重新申請
+      // 成員自行退出：把 application 標為 left，讓成員可重新申請
       if (isSelf && !isHost) {
         await tx.application.updateMany({
           where: { groupId: existing.groupId, userId: existing.userId, status: 'approved' },
-          data:  { status: 'removed' },
+          data:  { status: 'left' },
         })
       }
       return updated.currentMembers

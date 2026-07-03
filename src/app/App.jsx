@@ -27,6 +27,28 @@ export default function App() {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
+    function onRefreshMemberStores() {
+      const user = useAuthStore.getState().getProfile()
+      if (!user) return
+      useGroupStore.getState().init({ all: true })
+      useMemberStore.getState().init()
+      useSubscriptionStore.getState().init()
+      useApplicationStore.getState().init()
+    }
+    function onRefreshApplicationStore() {
+      const user = useAuthStore.getState().getProfile()
+      if (!user) return
+      useApplicationStore.getState().init()
+    }
+    window.addEventListener('pm:refresh-member-stores', onRefreshMemberStores)
+    window.addEventListener('pm:refresh-application-store', onRefreshApplicationStore)
+    return () => {
+      window.removeEventListener('pm:refresh-member-stores', onRefreshMemberStores)
+      window.removeEventListener('pm:refresh-application-store', onRefreshApplicationStore)
+    }
+  }, [])
+
+  useEffect(() => {
     async function bootApp() {
       // 第一階段：公開資料 + 驗證身份（不需要 token）
       await Promise.all([
@@ -50,6 +72,7 @@ export default function App() {
         ])
         // initConversations 必須在 notifications init 完成後才執行
         useConversationStore.getState().init(user.id)
+        useNotificationStore.getState().startPolling(user.id)
         useApplicationStore.getState().checkMissedNotifications(user)
       }
 

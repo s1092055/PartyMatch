@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
   AlertTriangle, Banknote, Check, CheckCircle2, ChevronDown, ChevronUp,
-  ClipboardList, CreditCard, MessageCircle, PlayCircle, Radio, Shield, UserX, Users, X,
+  ClipboardList, CreditCard, History, MessageCircle, PlayCircle, Radio, Shield, UserX, Users, X,
 } from 'lucide-react'
 import Avatar from '../../../shared/ui/Avatar'
 import ProgressBar from '../../../shared/ui/ProgressBar'
@@ -28,12 +28,20 @@ import ReportServiceIssueModal from './ReportServiceIssueModal'
 
 // ── 申請卡片 ──────────────────────────────────────────────────────────────────
 
-function ApplicationCard({ app, groupFull, error, onApprove, onReject, isLeft = false }) {
+const APP_STATUS_BADGE = {
+  approved: { cls: 'bg-success-subtle text-success-text', label: '已核准' },
+  left:     { cls: 'bg-slate-100 text-slate-500',         label: '已退出' },
+  removed:  { cls: 'bg-danger-subtle text-danger-text',   label: '已移除' },
+  rejected: { cls: 'bg-danger-subtle text-danger-text',   label: '已拒絕' },
+}
+
+function ApplicationCard({ app, groupFull, error, onApprove, onReject }) {
   const [expanded, setExpanded] = useState(false)
   const name    = app.applicantName ?? app.userName ?? '申請者'
   const initial = app.applicantAvatarInitial ?? app.userAvatarInitial ?? name[0]
   const color   = app.applicantAvatarColor ?? app.userAvatarColor ?? '#94A3B8'
   const isPending = app.status === 'pending'
+  const badge = APP_STATUS_BADGE[app.status]
 
   return (
     <div className={`rounded-2xl border border-line bg-surface p-4 transition-opacity ${isPending ? '' : 'opacity-60'}`}>
@@ -48,12 +56,9 @@ function ApplicationCard({ app, groupFull, error, onApprove, onReject, isLeft = 
               </div>
               <p className="mt-0.5 text-2xs text-ink-4">{formatRelativeDate(app.createdAt)}</p>
             </div>
-            {!isPending && (
-              <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${
-                isLeft ? 'bg-slate-100 text-slate-500' :
-                app.status === 'approved' ? 'bg-success-subtle text-success-text' : 'bg-danger-subtle text-danger-text'
-              }`}>
-                {isLeft ? '已退出' : app.status === 'approved' ? '已核准' : app.status === 'removed' ? '已移除' : '已拒絕'}
+            {!isPending && badge && (
+              <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${badge.cls}`}>
+                {badge.label}
               </span>
             )}
           </div>
@@ -100,7 +105,8 @@ export default function HostGroupView({ group, members, applications, onConfirmM
   const [showActivate, setShowActivate]                   = useState(false)
   const [removingMember, setRemovingMember]               = useState(null)
   const [activePanel, setActivePanel]                     = useState(null) // 'members' | 'applications' | 'billing' | null
-  const [appFilter, setAppFilter]                         = useState('all')
+  const [showReviewHistory, setShowReviewHistory]         = useState(false)
+  const [reviewFilter, setReviewFilter]                   = useState('all')
   const [showActivateGroupConfirm, setShowActivateGroupConfirm] = useState(false)
   const [paymentAccount, setPaymentAccount] = useState('')
   const [expandedBillingMembers, setExpandedBillingMembers] = useState(new Set())
@@ -317,59 +323,87 @@ export default function HostGroupView({ group, members, applications, onConfirmM
   }
 
   function buildApplicationsPanel() {
-      const memberUserIds = new Set(members.map(m => m.userId))
-      const isLeft = a => a.status === 'approved' && !memberUserIds.has(a.applicantId ?? a.userId)
-      const leftCount = applications.filter(isLeft).length
-      const approvedCount = applications.filter(a => a.status === 'approved' && !isLeft(a)).length
-      const filteredApps = applications.filter(a => {
-        if (appFilter === 'all') return true
-        if (appFilter === 'left') return isLeft(a)
-        if (appFilter === 'approved') return a.status === 'approved' && !isLeft(a)
-        return a.status === appFilter
-      })
-      return {
-        title: '申請管理',
-        icon: <ClipboardList size={18} className="text-brand" />,
-        stickyHeader: applications.length > 0 ? (
-          <div className="px-5 py-3 border-b border-line-subtle">
-            <CustomSelect
-              value={appFilter}
-              onChange={setAppFilter}
-              options={[
-                { value: 'all',      label: `全部（${applications.length}）` },
-                { value: 'pending',  label: `審核中（${applications.filter(a => a.status === 'pending').length}）` },
-                { value: 'approved', label: `已核准（${approvedCount}）` },
-                { value: 'left',     label: `已退出（${leftCount}）` },
-                { value: 'removed',  label: `已移除（${applications.filter(a => a.status === 'removed').length}）` },
-                { value: 'rejected', label: `已拒絕（${applications.filter(a => a.status === 'rejected').length}）` },
-              ]}
-            />
-          </div>
-        ) : null,
-        content: (
-          <div className="px-5 pb-5 pt-3">
-            {applications.length === 0 ? (
-              <EmptyState icon={ClipboardList} title="目前沒有任何申請紀錄" description="你的群組暫時沒有新的加入申請。" />
-            ) : filteredApps.length === 0 ? (
-              <EmptyState icon={ClipboardList} title="沒有符合的申請紀錄" />
-            ) : (
-              <div className="space-y-3">
-                {filteredApps.map(app => (
-                  <ApplicationCard
-                    key={app.id}
-                    app={app}
-                    isLeft={isLeft(app)}
-                    groupFull={groupFull}
-                    error={errors?.[app.id]}
-                    onApprove={app => { onApprove?.(app); setActivePanel(null); setAppFilter('all') }}
-                    onReject={onReject}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        ),
-      }
+    return {
+      title: '申請管理',
+      icon: <ClipboardList size={18} className="text-brand" />,
+      headerRight: (
+        <button
+          onClick={() => setShowReviewHistory(true)}
+          className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-brand"
+          title="審核紀錄"
+        >
+          <History size={18} />
+        </button>
+      ),
+      content: (
+        <div className="px-5 pb-5 pt-3">
+          {pendingApps.length === 0 ? (
+            <EmptyState icon={ClipboardList} title="目前沒有待審核的申請" description="新申請會出現在這裡。" />
+          ) : (
+            <div className="space-y-3">
+              {pendingApps.map(app => (
+                <ApplicationCard
+                  key={app.id}
+                  app={app}
+                  groupFull={groupFull}
+                  error={errors?.[app.id]}
+                  onApprove={app => { onApprove?.(app); setActivePanel(null) }}
+                  onReject={onReject}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      ),
+    }
+  }
+
+  function buildReviewHistoryPanel() {
+    const reviewedApps = applications.filter(a => a.status !== 'pending')
+    const filteredApps = reviewFilter === 'all'
+      ? reviewedApps
+      : reviewedApps.filter(a => a.status === reviewFilter)
+    return {
+      title: '審核紀錄',
+      icon: <History size={18} className="text-brand" />,
+      stickyHeader: reviewedApps.length > 0 ? (
+        <div className="border-b border-line-subtle px-5 py-3">
+          <CustomSelect
+            value={reviewFilter}
+            onChange={setReviewFilter}
+            options={[
+              { value: 'all',      label: `全部（${reviewedApps.length}）` },
+              { value: 'approved', label: `已核准（${reviewedApps.filter(a => a.status === 'approved').length}）` },
+              { value: 'left',     label: `已退出（${reviewedApps.filter(a => a.status === 'left').length}）` },
+              { value: 'removed',  label: `已移除（${reviewedApps.filter(a => a.status === 'removed').length}）` },
+              { value: 'rejected', label: `已拒絕（${reviewedApps.filter(a => a.status === 'rejected').length}）` },
+            ]}
+          />
+        </div>
+      ) : null,
+      content: (
+        <div className="px-5 pb-5 pt-3">
+          {reviewedApps.length === 0 ? (
+            <EmptyState icon={History} title="尚無審核紀錄" description="核准或拒絕申請後會顯示在這裡。" />
+          ) : filteredApps.length === 0 ? (
+            <EmptyState icon={History} title="沒有符合的紀錄" />
+          ) : (
+            <div className="space-y-3">
+              {filteredApps.map(app => (
+                <ApplicationCard
+                  key={app.id}
+                  app={app}
+                  groupFull={groupFull}
+                  error={errors?.[app.id]}
+                  onApprove={() => {}}
+                  onReject={() => {}}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      ),
+    }
   }
 
   function buildBillingPanel() {
@@ -591,7 +625,9 @@ export default function HostGroupView({ group, members, applications, onConfirmM
       pendingBadge={group.status === 'pending_confirmation' ? '收款中' : undefined}
       statusBadgeOverride={group.status === 'pending_confirmation' ? { variant: 'pending_confirmation', label: '收款中' } : undefined}
       subPanel={activePanel ? buildSubPanel() : null}
-      onSubPanelBack={() => { setActivePanel(null); setAppFilter('all') }}
+      onSubPanelBack={() => { setActivePanel(null); setShowReviewHistory(false); setReviewFilter('all') }}
+      subSubPanel={showReviewHistory && activePanel === 'applications' ? buildReviewHistoryPanel() : null}
+      onSubSubPanelBack={() => { setShowReviewHistory(false); setReviewFilter('all') }}
       bottomBar={(() => {
         return (
           <div className={`grid grid-cols-${isRecruiting ? 2 : 3} gap-1 p-2`}>

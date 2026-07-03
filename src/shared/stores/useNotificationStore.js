@@ -8,6 +8,11 @@ import {
 import { nowISO, todayISO } from '../utils/date'
 import { createId } from '../utils/storage'
 
+const POLL_INTERVAL_MS = 10000
+
+let _notifTimer = null
+let _notifUserId = null
+
 const SYSTEM_NOTIFICATION_TYPES = new Set(['system', 'announcement', 'platform'])
 
 function byNewest(a, b) {
@@ -63,6 +68,35 @@ export const useNotificationStore = create((set, get) => ({
     } catch (err) {
       set({ error: err.message, loading: false })
     }
+  },
+
+  startPolling: (userId) => {
+    if (_notifTimer) clearInterval(_notifTimer)
+    _notifUserId = userId
+
+    async function poll() {
+      if (!_notifUserId) return
+      try {
+        const latest = await readAllNotifications()
+        const currentIds = new Set(useNotificationStore.getState().notifications.map(n => n.id))
+        const newNotifs = latest.filter(n => n.userId === _notifUserId && !currentIds.has(n.id))
+        if (newNotifs.some(n => n.type === 'member_removed' || n.type === 'member_left')) {
+          window.dispatchEvent(new CustomEvent('pm:refresh-member-stores'))
+        }
+        if (newNotifs.some(n => n.type === 'new_application')) {
+          window.dispatchEvent(new CustomEvent('pm:refresh-application-store'))
+        }
+        set({ notifications: latest })
+      } catch { /* silent */ }
+    }
+
+    _notifTimer = setInterval(poll, POLL_INTERVAL_MS)
+  },
+
+  teardown: () => {
+    if (_notifTimer) { clearInterval(_notifTimer); _notifTimer = null }
+    _notifUserId = null
+    set({ notifications: [] })
   },
 
   // ── 選取器 ──────────────────────────────────────────────────────────────────

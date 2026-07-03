@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { AlertCircle, Bell, CheckCircle2, Clock, CreditCard, MessageSquare, UserPlus, X } from 'lucide-react'
 import { useAuthStore } from '../stores/useAuthStore'
+import { useApplicationStore } from '../stores/useApplicationStore'
 import { useGroupStore } from '../stores/useGroupStore'
 import { useNotificationStore } from '../stores/useNotificationStore'
 import { useSubscriptionStore } from '../stores/useSubscriptionStore'
@@ -159,7 +160,21 @@ export default function FloatingMessages() {
       return
     }
 
+    if (notification.type === 'member_left') {
+      if (notification.meta?.groupId) {
+        // 團主收到「成員退出群組」通知
+        window.dispatchEvent(new CustomEvent('pm:refresh-member-stores'))
+        navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId } })
+        window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: notification.meta.groupId } }))
+      } else {
+        // 成員自己收到「已退出群組」確認通知
+        navigate('/my-groups?view=member')
+      }
+      return
+    }
+
     if (notification.type === 'member_removed' && notification.meta?.groupId) {
+      window.dispatchEvent(new CustomEvent('pm:refresh-member-stores'))
       navigate('/explore')
       window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: notification.meta.groupId } }))
       return
@@ -180,7 +195,9 @@ export default function FloatingMessages() {
 
     if (notification.type === 'new_application' && notification.meta?.groupId) {
       navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId, statusFilter: 'recruiting', openApplications: true } })
-      window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: notification.meta.groupId, statusFilter: 'recruiting', openApplications: true } }))
+      useApplicationStore.getState().init().finally(() => {
+        window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: notification.meta.groupId, statusFilter: 'recruiting', openApplications: true } }))
+      })
       return
     }
 

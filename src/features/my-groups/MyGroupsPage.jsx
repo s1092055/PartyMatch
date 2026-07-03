@@ -23,14 +23,14 @@ export default function MyGroupsPage() {
         <h1 className="page-title">我的群組</h1>
       </div>
       {/* Tab switcher */}
-      <div className="mb-6 flex justify-center gap-2">
+      <div className="mb-6 flex gap-2 px-2 md:px-4 lg:px-16">
         {TABS.map(tab => {
           const Icon = tab.icon
           return (
             <button
               key={tab.key}
               onClick={() => switchTab(tab.key)}
-              className={`flex flex-col items-center gap-1 rounded-xl px-6 py-2.5 text-sm font-bold transition-all ${
+              className={`flex flex-1 flex-col items-center gap-1 rounded-xl py-2.5 text-sm font-bold transition-all ${
                 activeView === tab.key
                   ? 'bg-brand text-white'
                   : 'text-ink-3 hover:bg-raised hover:text-ink'

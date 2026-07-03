@@ -55,7 +55,13 @@ export const useMemberStore = create((set, get) => ({
       lastPaidAt:       null,
     }
     set(s => ({ members: [...s.members, member] }))
-    if (!skipApiCall) insertMember(member).catch(console.error)
+    if (!skipApiCall) {
+      insertMember(member).then(saved => {
+        if (saved?.id && saved.id !== member.id) {
+          set(s => ({ members: s.members.map(m => m.id === member.id ? { ...m, id: saved.id } : m) }))
+        }
+      }).catch(console.error)
+    }
     return member
   },
 

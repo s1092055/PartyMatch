@@ -1,5 +1,5 @@
 import client from './axiosClient'
-import { normalizeConversation } from '../utils/modelNormalizers'
+import { normalizeConversation, normalizeMessage } from '../utils/modelNormalizers'
 
 export const MESSAGES_PAGE_SIZE = 50
 const POLL_INTERVAL_MS = 5000
@@ -13,9 +13,10 @@ export async function getOrCreateDmConversation(targetUserId) {
 }
 
 export async function fetchMessages(conversationId, { cursor, limit = MESSAGES_PAGE_SIZE } = {}) {
-  return client.get(`/conversations/${conversationId}/messages`, {
+  const messages = await client.get(`/conversations/${conversationId}/messages`, {
     params: { ...(cursor && { cursor }), limit },
   })
+  return messages.map(normalizeMessage)
 }
 
 export async function fetchOlderMessages(conversationId, oldestCreatedAt, pageSize = MESSAGES_PAGE_SIZE) {

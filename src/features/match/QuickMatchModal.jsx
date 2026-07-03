@@ -13,7 +13,7 @@ import Modal from '../../shared/ui/Modal'
 import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { useMemberStore } from '../../shared/stores/useMemberStore'
 import { useAuthStore } from '../../shared/stores/useAuthStore'
-import { matchGroups } from '../../shared/utils/matchGroups'
+import { matchGroups } from './utils/matchGroups'
 
 const DEFAULT_CONDITIONS = {
   services:      [],

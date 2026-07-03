@@ -56,7 +56,13 @@ export const useSubscriptionStore = create((set, get) => ({
       updatedAt:        now,
     })
     set(s => ({ subscriptions: [...s.subscriptions, sub] }))
-    if (!skipApiCall) insertSubscription(sub).catch(console.error)
+    if (!skipApiCall) {
+      insertSubscription(sub).then(saved => {
+        if (saved?.id && saved.id !== sub.id) {
+          set(s => ({ subscriptions: s.subscriptions.map(s2 => s2.id === sub.id ? { ...s2, id: saved.id } : s2) }))
+        }
+      }).catch(console.error)
+    }
     return sub
   },
 

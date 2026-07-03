@@ -120,7 +120,6 @@ export const useApplicationStore = create((set, get) => ({
     set(s => ({
       applications: s.applications.map(a => a.id === id ? { ...a, status } : a),
     }))
-    patchApplication(id, { status }).catch(console.error)
 
     const notifStore = useNotificationStore.getState()
     if ((status === 'approved' || status === 'rejected') && app?.hostId) {
@@ -128,6 +127,8 @@ export const useApplicationStore = create((set, get) => ({
         .find(n => n.type === 'new_application' && n.meta?.applicationId === id && !n.isRead)
       if (notif) notifStore.markRead(notif.id)
     }
+
+    return patchApplication(id, { status })
   },
 
   // ── 撤回申請 ────────────────────────────────────────────────────────────────

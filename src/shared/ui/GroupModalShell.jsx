@@ -23,14 +23,17 @@ export default function GroupModalShell({
   centeredCta,
   headerBanner,
   statusBadgeOverride,
-  subPanel = null,       // { title, icon, stickyHeader?, content, footer? }
+  subPanel = null,       // { title, icon, headerRight?, stickyHeader?, content, footer? }
   onSubPanelBack = null,
+  subSubPanel = null,    // { title, icon, headerRight?, stickyHeader?, content, footer? }
+  onSubSubPanelBack = null,
   mobileReviewsSection,
   children,
 }) {
   const [atBottom, setAtBottom] = useState(false)
-  const scrollBodyRef = useRef(null)
-  const subScrollRef  = useRef(null)
+  const scrollBodyRef  = useRef(null)
+  const subScrollRef   = useRef(null)
+  const subSubScrollRef = useRef(null)
 
   function handleClose() { onClose() }
   function handleScroll(e) {
@@ -54,22 +57,27 @@ export default function GroupModalShell({
   useEffect(() => {
     function onKeyDown(e) {
       if (e.key === 'Escape') {
-        if (subPanel && onSubPanelBack) onSubPanelBack()
+        if (subSubPanel && onSubSubPanelBack) onSubSubPanelBack()
+        else if (subPanel && onSubPanelBack) onSubPanelBack()
         else onClose()
       }
     }
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
-  }, [onClose, subPanel, onSubPanelBack])
+  }, [onClose, subPanel, onSubPanelBack, subSubPanel, onSubSubPanelBack])
 
   useEffect(() => {
     if (scrollBodyRef.current) scrollBodyRef.current.scrollTop = 0
   }, [group?.id])
 
-  // Reset sub-panel scroll when switching panels (intentionally depends on title only, not the whole object)
+  // Reset sub-panel scroll when switching panels
   useEffect(() => {
     if (subPanel && subScrollRef.current) subScrollRef.current.scrollTop = 0
   }, [subPanel?.title]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (subSubPanel && subSubScrollRef.current) subSubScrollRef.current.scrollTop = 0
+  }, [subSubPanel?.title]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return createPortal(
     <>
@@ -80,13 +88,20 @@ export default function GroupModalShell({
           className="pointer-events-auto flex w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-canvas shadow-2xl animate-modal-in"
           style={{ height: 'min(92vh, 720px)' }}
         >
-          {/* Slide track: 200% wide, translates to show main or sub panel */}
+          {/* Slide track: 300% wide — 3 equal panels; translateX by -33.33% per step */}
           <div
             className="flex h-full transition-transform duration-300 ease-in-out"
-            style={{ width: '200%', transform: subPanel ? 'translateX(-50%)' : 'translateX(0)' }}
+            style={{
+              width: '300%',
+              transform: subSubPanel
+                ? 'translateX(-66.67%)'
+                : subPanel
+                  ? 'translateX(-33.33%)'
+                  : 'translateX(0)',
+            }}
           >
             {/* ── MAIN PANEL ── */}
-            <div className="flex w-1/2 min-w-0 flex-col overflow-hidden">
+            <div className="flex w-1/3 min-w-0 flex-col overflow-hidden">
               {/* Header */}
               <div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-4">
                 <div className="flex items-center gap-2.5">
@@ -172,7 +187,7 @@ export default function GroupModalShell({
             </div>
 
             {/* ── SUB PANEL ── */}
-            <div className="flex w-1/2 min-w-0 flex-col overflow-hidden">
+            <div className="flex w-1/3 min-w-0 flex-col overflow-hidden">
               {/* Sub header */}
               <div className="flex shrink-0 items-center gap-2 border-b border-line px-4 py-4">
                 <button
@@ -183,7 +198,8 @@ export default function GroupModalShell({
                   <ChevronLeft size={18} />
                 </button>
                 {subPanel?.icon && <span className="shrink-0">{subPanel.icon}</span>}
-                <span className="font-extrabold text-ink">{subPanel?.title ?? ''}</span>
+                <span className="min-w-0 flex-1 font-extrabold text-ink">{subPanel?.title ?? ''}</span>
+                {subPanel?.headerRight && <div className="shrink-0">{subPanel.headerRight}</div>}
               </div>
 
               {/* Sticky sub-header (optional non-scrollable section) */}
@@ -200,6 +216,40 @@ export default function GroupModalShell({
               {subPanel?.footer && (
                 <div className="shrink-0 border-t border-line px-5 py-4">
                   {subPanel.footer}
+                </div>
+              )}
+            </div>
+
+            {/* ── SUB-SUB PANEL ── */}
+            <div className="flex w-1/3 min-w-0 flex-col overflow-hidden">
+              {/* Sub-sub header */}
+              <div className="flex shrink-0 items-center gap-2 border-b border-line px-4 py-4">
+                <button
+                  onClick={onSubSubPanelBack}
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+                  aria-label="返回"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                {subSubPanel?.icon && <span className="shrink-0">{subSubPanel.icon}</span>}
+                <span className="min-w-0 flex-1 font-extrabold text-ink">{subSubPanel?.title ?? ''}</span>
+                {subSubPanel?.headerRight && <div className="shrink-0">{subSubPanel.headerRight}</div>}
+              </div>
+
+              {/* Sticky sub-sub-header (optional) */}
+              {subSubPanel?.stickyHeader && (
+                <div className="shrink-0">{subSubPanel.stickyHeader}</div>
+              )}
+
+              {/* Scrollable sub-sub-body */}
+              <div ref={subSubScrollRef} className="flex-1 min-h-0 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {subSubPanel?.content}
+              </div>
+
+              {/* Sub-sub footer */}
+              {subSubPanel?.footer && (
+                <div className="shrink-0 border-t border-line px-5 py-4">
+                  {subSubPanel.footer}
                 </div>
               )}
             </div>
