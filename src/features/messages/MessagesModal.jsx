@@ -130,7 +130,7 @@ export default function MessagesModal() {
     if (user) {
       const conv = useConversationStore.getState().getById(selectedId)
       if ((conv?.unreadCounts?.[user.id] ?? 0) > 0) {
-        markConversationRead(selectedId, user.id).catch(console.error)
+        markConversationRead(selectedId).catch(console.error)
       }
       if (conv?.type === 'group' && conv.groupId) {
         const notifStore = useNotificationStore.getState()

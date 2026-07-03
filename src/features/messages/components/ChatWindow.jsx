@@ -10,7 +10,7 @@ import { useAuthStore } from '../../../shared/stores/useAuthStore'
 
 const getMemberByUserAndGroup = (uid, gid) => useMemberStore.getState().getByUserAndGroup(uid, gid)
 const getCurrentUser = () => useAuthStore.getState().user
-import { markConversationRead, addParticipantToConversation, fetchOlderMessages } from '../../../shared/api/messagesApi'
+import { markConversationRead, fetchOlderMessages } from '../../../shared/api/messagesApi'
 import { getUserProfile } from '../../../shared/api/usersApi'
 import { formatTime } from '../utils'
 
@@ -138,9 +138,6 @@ export default function ChatWindow({
       getUserProfile(pid)
         .then(profile => {
           userProfileCache.set(pid, profile)
-          if (profile?.name && selectedId) {
-            addParticipantToConversation(selectedId, pid, profile).catch(console.error)
-          }
         })
         .catch(err => { console.error('[ChatWindow] getUserProfile failed:', err); userProfileCache.set(pid, null) })
         .finally(() => {
@@ -594,7 +591,7 @@ export default function ChatWindow({
             onFocus={() => {
               const user = getCurrentUser()
               if (user && selectedId && (selected?.unreadCounts?.[user.id] ?? 0) > 0) {
-                markConversationRead(selectedId, user.id).catch(console.error)
+                markConversationRead(selectedId).catch(console.error)
               }
             }}
             onCompositionStart={() => { isComposingRef.current = true }}

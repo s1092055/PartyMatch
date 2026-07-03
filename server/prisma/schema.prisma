@@ -257,6 +257,7 @@ model Conversation {
   group        Group?           @relation(fields: [groupId], references: [id], onDelete: SetNull)
   participants Json             @default("[]")
   unreadCounts Json             @default("{}")
+  lastReadAt   Json             @default("{}")
   lastMessage  Json?
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt

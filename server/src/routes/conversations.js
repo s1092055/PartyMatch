@@ -21,7 +21,7 @@ const dmSchema = z.object({
 router.get('/', requireAuth, async (req, res, next) => {
   try {
     const conversations = await prisma.conversation.findMany({
-      where:   { participants: { string_contains: `"${req.user.id}"` } },
+      where:   { participants: { array_contains: req.user.id } },
       include: { group: { select: { id: true, planName: true, hostId: true, service: { select: { id: true, name: true } } } } },
       orderBy: { updatedAt: 'desc' },
     })
@@ -214,10 +214,11 @@ router.patch('/:id/read', requireAuth, async (req, res, next) => {
 
     const unreadCounts = { ...(conversation.unreadCounts ?? {}) }
     delete unreadCounts[req.user.id]
+    const lastReadAt = { ...(conversation.lastReadAt ?? {}), [req.user.id]: new Date().toISOString() }
 
     await prisma.conversation.update({
       where: { id: req.params.id },
-      data:  { unreadCounts },
+      data:  { unreadCounts, lastReadAt },
     })
     res.json({ success: true })
   } catch (err) { next(err) }

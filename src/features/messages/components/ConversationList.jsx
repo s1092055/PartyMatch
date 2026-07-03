@@ -3,10 +3,9 @@ import ConversationAvatar from './ConversationAvatar'
 import { formatTime } from '../utils'
 
 const CONV_TABS = [
-  { id: 'all',    label: '全部', filter: () => true },
-  { id: 'group',  label: '群組', filter: c => c.type === 'group' },
-  { id: 'dm',     label: '個人', filter: c => c.type === 'dm' },
-  { id: 'system', label: '系統', filter: c => c.type === 'system' },
+  { id: 'all',   label: '全部', filter: () => true },
+  { id: 'group', label: '群組', filter: c => c.type === 'group' },
+  { id: 'dm',    label: '個人', filter: c => c.type === 'dm' },
 ]
 
 export { CONV_TABS }
