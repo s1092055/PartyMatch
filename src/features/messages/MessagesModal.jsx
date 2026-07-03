@@ -18,7 +18,7 @@ import {
   getOrCreateDmConversation,
   leaveConversation,
 } from '../../shared/api/messagesApi'
-import { normalizeConversation } from '../../shared/utils/modelNormalizers'
+import { normalizeConversation, normalizeMessage } from '../../shared/utils/modelNormalizers'
 import ConfirmDialog from '../../shared/ui/ConfirmDialog'
 import ConversationList, { CONV_TABS } from './components/ConversationList'
 import ChatWindow from './components/ChatWindow'
@@ -131,6 +131,13 @@ export default function MessagesModal() {
       const conv = useConversationStore.getState().getById(selectedId)
       if ((conv?.unreadCounts?.[user.id] ?? 0) > 0) {
         markConversationRead(selectedId).catch(console.error)
+        useConversationStore.setState(s => ({
+          conversations: s.conversations.map(c =>
+            c.id === selectedId
+              ? { ...c, unreadCounts: { ...c.unreadCounts, [user.id]: 0 } }
+              : c
+          ),
+        }))
       }
       if (conv?.type === 'group' && conv.groupId) {
         const notifStore = useNotificationStore.getState()
@@ -162,17 +169,35 @@ export default function MessagesModal() {
     setSendError(false)
     if (inputRef.current) inputRef.current.value = ''
     requestAnimationFrame(() => inputRef.current?.focus())
+
+    const tempId = `temp-${Date.now()}`
+    const optimisticMsg = normalizeMessage({
+      id:          tempId,
+      senderId:    user.id,
+      sender:      { id: user.id, name: user.name, avatarInitial: user.name?.[0] ?? '?', avatarColor: user.avatarColor ?? '#64748b' },
+      content:     text,
+      type:        'text',
+      createdAt:   new Date().toISOString(),
+    })
+    setMessages(prev => [...prev, optimisticMsg])
+
     setSending(true)
     try {
-      await sendMessage(selectedId, user.id, {
+      const saved = await sendMessage(selectedId, user.id, {
         senderName: user.name,
         avatarInitial: user.name?.[0] ?? '?',
         avatarColor: user.avatarColor ?? '#64748b',
         text,
         participants: selected?.participants ?? [],
       })
+      const msg = normalizeMessage(saved)
+      setMessages(prev => prev.some(m => m.id === msg.id)
+        ? prev.filter(m => m.id !== tempId)
+        : prev.map(m => m.id === tempId ? msg : m)
+      )
     } catch (error) {
       console.error('[MessagesModal] send failed:', error)
+      setMessages(prev => prev.filter(m => m.id !== tempId))
       if (inputRef.current) inputRef.current.value = text
       setCanSend(true)
       setSendError(true)

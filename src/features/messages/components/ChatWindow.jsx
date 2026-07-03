@@ -11,6 +11,7 @@ import { useAuthStore } from '../../../shared/stores/useAuthStore'
 const getMemberByUserAndGroup = (uid, gid) => useMemberStore.getState().getByUserAndGroup(uid, gid)
 const getCurrentUser = () => useAuthStore.getState().user
 import { markConversationRead, fetchOlderMessages } from '../../../shared/api/messagesApi'
+import { useConversationStore } from '../../../shared/stores/useConversationStore'
 import { getUserProfile } from '../../../shared/api/usersApi'
 import { formatTime } from '../utils'
 
@@ -592,6 +593,13 @@ export default function ChatWindow({
               const user = getCurrentUser()
               if (user && selectedId && (selected?.unreadCounts?.[user.id] ?? 0) > 0) {
                 markConversationRead(selectedId).catch(console.error)
+                useConversationStore.setState(s => ({
+                  conversations: s.conversations.map(c =>
+                    c.id === selectedId
+                      ? { ...c, unreadCounts: { ...c.unreadCounts, [user.id]: 0 } }
+                      : c
+                  ),
+                }))
               }
             }}
             onCompositionStart={() => { isComposingRef.current = true }}
