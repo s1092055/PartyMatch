@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { CheckCircle, ClipboardList, Clock, UserMinus, XCircle } from 'lucide-react'
+import { ClipboardList } from 'lucide-react'
 import { useSubscriptionStore } from '../../shared/stores/useSubscriptionStore'
 import { useMemberStore } from '../../shared/stores/useMemberStore'
 import { useNotificationStore } from '../../shared/stores/useNotificationStore'
@@ -21,11 +21,11 @@ import RevealSection from '../../shared/ui/RevealSection'
 import { daysUntil, formatRelativeDate } from '../../shared/utils/date'
 
 const FILTER_TABS = [
-  { key: 'all',          label: '全部'     },
-  { key: 'processing',   label: '處理中'   },
-  { key: 'active',       label: '啟用中'   },
-  { key: 'upcoming',     label: '即將續訂' },
-  { key: 'applications', label: '申請紀錄' },
+  { key: 'all',        label: '全部'     },
+  { key: 'processing', label: '處理中'   },
+  { key: 'active',     label: '啟用中'   },
+  { key: 'upcoming',   label: '即將續訂' },
+  { key: 'ended',      label: '已結束'   },
 ]
 
 
@@ -60,12 +60,15 @@ function isProcessingSubscription(sub) {
   return !['cancelled', 'ended'].includes(groupStatus)
 }
 
+const ENDED_STATUSES = new Set(['paused', 'cancelled', 'ended'])
+
 function filterSubs(subs, tab) {
   switch (tab) {
     case 'processing': return subs.filter(isProcessingSubscription)
     case 'active':     return subs.filter(isActivatedSubscription)
     case 'upcoming':   return subs.filter(s => { const d = daysUntil(s.nextBillingDate); return isActivatedSubscription(s) && d >= 0 && d <= 7 })
-    default:         return subs
+    case 'ended':      return subs.filter(s => ENDED_STATUSES.has(s.groupStatus ?? s.status))
+    default:           return subs
   }
 }
 
@@ -105,18 +108,16 @@ export default function SubscriptionsPage({ embedded = false }) {
     return () => window.removeEventListener('pm:set-sub-tab', onSetTab)
   }, [])
 
-  const userApplications   = activeUserId
-    ? applicationsState.filter(a => (a.applicantId ?? a.userId) === activeUserId)
-        .sort((a, b) => String(b.createdAt ?? '').localeCompare(String(a.createdAt ?? '')))
+  const pendingApplications = activeUserId
+    ? applicationsState.filter(a => (a.applicantId ?? a.userId) === activeUserId && a.status === 'pending')
     : []
-  const pendingApplications = userApplications.filter(a => a.status === 'pending')
 
   const filterCounts = {
-    all:          subs.length + pendingApplications.length,
-    processing:   filterSubs(subs, 'processing').length + pendingApplications.length,
-    active:       filterSubs(subs, 'active').length,
-    upcoming:     filterSubs(subs, 'upcoming').length,
-    applications: userApplications.length,
+    all:        subs.length + pendingApplications.length,
+    processing: filterSubs(subs, 'processing').length + pendingApplications.length,
+    active:     filterSubs(subs, 'active').length,
+    upcoming:   filterSubs(subs, 'upcoming').length,
+    ended:      filterSubs(subs, 'ended').length,
   }
 
   function handleLeaveGroup() {
@@ -180,7 +181,7 @@ export default function SubscriptionsPage({ embedded = false }) {
   }
 
   const filtered = useMemo(
-    () => activeTab === 'applications' ? [] : filterSubs(subs, activeTab),
+    () => filterSubs(subs, activeTab),
     [subs, activeTab],
   )
 
@@ -202,19 +203,7 @@ export default function SubscriptionsPage({ embedded = false }) {
           counts={filterCounts}
         />
 
-        {activeTab === 'applications' ? (
-          <div className="space-y-3">
-            {userApplications.length === 0 ? (
-              <EmptyState icon={ClipboardList} title="沒有申請紀錄" />
-            ) : (
-              userApplications.map((app, i) => (
-                <RevealSection key={app.id} delay={i * 60}>
-                  <ApplicationRow app={app} />
-                </RevealSection>
-              ))
-            )}
-          </div>
-        ) : activeTab === 'processing' ? (
+        {activeTab === 'processing' ? (
           <>
             {pendingApplications.length === 0 && filtered.length === 0 ? (
               <EmptyState icon={ClipboardList} title="此分類沒有訂閱項目" />
@@ -291,14 +280,6 @@ export default function SubscriptionsPage({ embedded = false }) {
   )
 }
 
-const APP_STATUS_CONFIG = {
-  pending:  { label: '審核中', Icon: Clock,       cls: 'bg-warning-subtle text-warning-text',   dot: 'bg-warning'  },
-  approved: { label: '已核准', Icon: CheckCircle, cls: 'bg-success-subtle text-success-text',   dot: 'bg-success'  },
-  rejected: { label: '已拒絕', Icon: XCircle,     cls: 'bg-danger-subtle  text-danger',          dot: 'bg-danger'   },
-  removed:  { label: '已被移除', Icon: UserMinus,  cls: 'bg-danger-subtle  text-danger',          dot: 'bg-danger'   },
-  left:     { label: '已退出', Icon: UserMinus,   cls: 'bg-ink-subtle     text-ink-3',           dot: 'bg-ink-3'    },
-}
-
 function ApplicationCard({ app, group, onViewGroup }) {
   return (
     <article
@@ -352,21 +333,3 @@ function ApplicationCard({ app, group, onViewGroup }) {
   )
 }
 
-function ApplicationRow({ app }) {
-  const cfg = APP_STATUS_CONFIG[app.status] ?? APP_STATUS_CONFIG.pending
-  return (
-    <div className="card flex w-full items-center gap-4 p-4">
-      <div className={`h-2.5 w-2.5 shrink-0 rounded-full ${cfg.dot}`} />
-      <div className="min-w-0 flex-1">
-        <p className="font-semibold text-ink">{app.groupName}</p>
-        <p className="mt-0.5 text-xs text-ink-3">
-          {app.planName ? `${app.planName} · ` : ''}申請於 {formatRelativeDate(app.createdAt)}
-        </p>
-      </div>
-      <span className={`flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${cfg.cls}`}>
-        <cfg.Icon size={11} />
-        {cfg.label}
-      </span>
-    </div>
-  )
-}

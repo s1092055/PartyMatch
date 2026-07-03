@@ -8,21 +8,21 @@ export default function FilterTabsBar({ tabs, value, onChange, counts = {} }) {
 
   return (
     <>
-      {/* Dropdown — mobile & tablet */}
-      <div className="mb-4 lg:hidden">
+      {/* Dropdown — mobile */}
+      <div className="mb-4 md:hidden">
         <CustomSelect value={value} onChange={onChange} options={options} />
       </div>
 
-      {/* Pills — desktop */}
-      <div className="mb-4 hidden justify-center gap-1.5 overflow-x-auto py-1 lg:flex [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {/* Pills — tablet & desktop */}
+      <div className="mb-4 hidden gap-2 py-1 md:flex">
         {tabs.map(tab => (
           <button
             key={tab.key}
             onClick={() => onChange(tab.key)}
-            className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all ${
+            className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all ${
               value === tab.key
-                ? 'scale-105 bg-raised text-ink'
-                : 'bg-transparent text-ink-2 hover:scale-105 hover:bg-raised hover:text-ink'
+                ? 'bg-raised text-ink'
+                : 'bg-raised/50 text-ink-3 hover:bg-raised hover:text-ink'
             }`}
           >
             {tab.label}
