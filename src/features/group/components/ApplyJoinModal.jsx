@@ -53,7 +53,6 @@ export default function ApplyJoinModal({ group, isOpen, onClose, onSuccess, onDo
         </div>
       ) : (
         <>
-          
           <div className="px-5 pt-4 pb-3 bg-canvas border-b border-line-subtle">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
@@ -81,7 +80,6 @@ export default function ApplyJoinModal({ group, isOpen, onClose, onSuccess, onDo
           </div>
 
           <div className="px-5 py-4 flex flex-col gap-4">
-            
             <div>
               <label className="block text-xs font-medium text-ink-2 mb-1.5">
                 申請備註
@@ -96,7 +94,7 @@ export default function ApplyJoinModal({ group, isOpen, onClose, onSuccess, onDo
               />
             </div>
 
-<label className="flex items-start gap-2.5 cursor-pointer select-none">
+            <label className="flex items-start gap-2.5 cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={agreed}
@@ -108,7 +106,7 @@ export default function ApplyJoinModal({ group, isOpen, onClose, onSuccess, onDo
               </span>
             </label>
 
-<div className="flex gap-3 pt-1">
+            <div className="flex gap-3 pt-1">
               <Button variant="ghost" size="md" className="flex-1 border border-line" onClick={handleClose}>
                 取消
               </Button>
