@@ -44,15 +44,15 @@ router.post('/', requireAuth, validate(applySchema), async (req, res, next) => {
     if (group.status !== 'recruiting') return res.status(400).json({ message: '此群組目前不開放申請' })
     if (group.hostId === req.user.id) return res.status(400).json({ message: '團主不能申請自己的群組' })
 
-    const existing = await prisma.application.findUnique({
-      where: { groupId_userId: { groupId, userId: req.user.id } },
+    const existing = await prisma.application.findFirst({
+      where:   { groupId, userId: req.user.id },
+      orderBy: { createdAt: 'desc' },
     })
     if (existing) {
-      // 已被拒絕、移除或自行退出 → 允許重新申請（重置為 pending）
+      // 已被拒絕、移除或自行退出 → 允許重新申請（建立新記錄，保留歷史）
       if (existing.status === 'rejected' || existing.status === 'removed' || existing.status === 'left') {
-        const application = await prisma.application.update({
-          where: { id: existing.id },
-          data:  { status: 'pending', message: message ?? existing.message },
+        const application = await prisma.application.create({
+          data: { groupId, userId: req.user.id, message },
         })
         return res.status(201).json(application)
       }

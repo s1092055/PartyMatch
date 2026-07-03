@@ -81,10 +81,7 @@ export const useApplicationStore = create((set, get) => ({
       // 只送後端需要的欄位，並用後端回傳的 DB id 取代本地 tempId
       const saved = await insertApplication({ groupId, message: message ?? '' })
       set(s => ({
-        // 先移除可能存在的舊紀錄（重新申請時 saved.id 與舊的 rejected 紀錄相同）
-        // 再將 tempId 替換為真實 id
         applications: s.applications
-          .filter(a => a.id !== saved.id)
           .map(a => a.id === tempId ? { ...a, id: saved.id, status: 'pending' } : a),
       }))
       app.id = saved.id

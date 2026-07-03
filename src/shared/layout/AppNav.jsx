@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import { Bell, Compass, LayoutGrid, Lock, LogIn, MessageSquare, PlusCircle, Search, Zap } from 'lucide-react'
+import { Bell, Compass, Heart, LayoutGrid, Lock, LogIn, MessageSquare, PlusCircle, Search, Zap } from 'lucide-react'
 import { toast } from '../utils/toast'
 import logoUrl from '../../assets/Logo.svg'
 import { useAuthStore } from '../stores/useAuthStore'
@@ -49,6 +49,17 @@ export default function AppNav() {
   const { pathname } = useLocation()
   const [searchParams] = useSearchParams()
   const [lockedTip, setLockedTip] = useState(null)
+  const [myMenuOpen, setMyMenuOpen] = useState(false)
+  const myMenuRef = useRef(null)
+
+  useEffect(() => {
+    if (!myMenuOpen) return
+    function handleOutside(e) {
+      if (myMenuRef.current && !myMenuRef.current.contains(e.target)) setMyMenuOpen(false)
+    }
+    document.addEventListener('pointerdown', handleOutside)
+    return () => document.removeEventListener('pointerdown', handleOutside)
+  }, [myMenuOpen])
 
   const loggedIn = useAuthStore(s => s.loggedIn)
   const currentUser = useAuthStore(s => s.user)
@@ -417,24 +428,47 @@ export default function AppNav() {
             )}
           </div>
 
-          {/* 我的 */}
-          {loggedIn ? (
-            <a
-              href="/my-groups"
-              className={`flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold transition-colors ${pathname.startsWith('/my-groups') ? 'text-brand' : 'text-ink-3'}`}
-            >
-              <LayoutGrid size={22} strokeWidth={2.1} />
-              我的
-            </a>
-          ) : (
-            <button
-              onClick={e => preventLockedAction(e, '/my-groups')}
-              className="flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold text-ink-3 opacity-40"
-            >
-              <LayoutGrid size={22} strokeWidth={2.1} />
-              我的
-            </button>
-          )}
+          {/* 我的 — dropdown */}
+          <div ref={myMenuRef} className="relative flex flex-1 flex-col items-center justify-center">
+            {/* 向上展開 dropdown */}
+            {myMenuOpen && loggedIn && (
+              <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 flex flex-row gap-1 rounded-2xl border border-white/40 bg-slate-100/95 p-1.5 shadow-popover backdrop-blur-md">
+                <a
+                  href="/my-groups"
+                  onClick={() => setMyMenuOpen(false)}
+                  className={`flex flex-col items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-bold whitespace-nowrap transition-colors hover:bg-raised ${pathname.startsWith('/my-groups') ? 'text-brand' : 'text-ink'}`}
+                >
+                  <LayoutGrid size={20} strokeWidth={2.1} />
+                  我的群組
+                </a>
+                <a
+                  href="/favorites"
+                  onClick={() => setMyMenuOpen(false)}
+                  className={`flex flex-col items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-bold whitespace-nowrap transition-colors hover:bg-raised ${pathname === '/favorites' ? 'text-brand' : 'text-ink'}`}
+                >
+                  <Heart size={20} strokeWidth={2.1} />
+                  我的收藏
+                </a>
+              </div>
+            )}
+            {loggedIn ? (
+              <button
+                onClick={() => setMyMenuOpen(v => !v)}
+                className={`flex flex-col items-center gap-1 text-[0.65rem] font-bold transition-colors ${(pathname.startsWith('/my-groups') || pathname === '/favorites') ? 'text-brand' : myMenuOpen ? 'text-brand' : 'text-ink-3'}`}
+              >
+                <LayoutGrid size={22} strokeWidth={2.1} />
+                我的
+              </button>
+            ) : (
+              <button
+                onClick={e => preventLockedAction(e, '/my-groups')}
+                className="flex flex-col items-center gap-1 text-[0.65rem] font-bold text-ink-3 opacity-40"
+              >
+                <LayoutGrid size={22} strokeWidth={2.1} />
+                我的
+              </button>
+            )}
+          </div>
 
           {/* 帳號 / 登入 */}
           {loggedIn ? (
