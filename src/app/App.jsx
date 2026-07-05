@@ -11,7 +11,6 @@ import { useSubscriptionStore } from '../shared/stores/useSubscriptionStore'
 import { useMemberStore } from '../shared/stores/useMemberStore'
 import { useFavoriteStore } from '../shared/stores/useFavoriteStore'
 import { useNotificationStore } from '../shared/stores/useNotificationStore'
-import { usePaymentStore } from '../shared/stores/usePaymentStore'
 import { useConversationStore } from '../shared/stores/useConversationStore'
 
 const queryClient = new QueryClient({
@@ -68,7 +67,6 @@ export default function App() {
           useSubscriptionStore.getState().init(),
           useMemberStore.getState().init(),
           useFavoriteStore.getState().init(),
-          usePaymentStore.getState().init(),
         ])
         // initConversations 必須在 notifications init 完成後才執行
         useConversationStore.getState().init(user.id)

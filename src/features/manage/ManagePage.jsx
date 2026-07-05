@@ -6,7 +6,6 @@ import { CREDIT_RULES } from '../../shared/utils/creditScore'
 import { useApplicationStore } from '../../shared/stores/useApplicationStore'
 import { useMemberStore } from '../../shared/stores/useMemberStore'
 import { useSubscriptionStore } from '../../shared/stores/useSubscriptionStore'
-import { usePaymentStore } from '../../shared/stores/usePaymentStore'
 import { useNotificationStore } from '../../shared/stores/useNotificationStore'
 import { createGroupConversation, removeParticipantFromConversation, sendSystemMessage, sendActionMessage } from '../../shared/api/messagesApi'
 import { insertNotification } from '../../shared/api/notificationsApi'
@@ -39,8 +38,6 @@ const getSubscriptionByUserAndGroup   = (uid, gid) => useSubscriptionStore.getSt
 const getSubscriptionsByGroupId       = (gid)    => useSubscriptionStore.getState().getByGroupId(gid)
 const removeSubscription              = (id)     => useSubscriptionStore.getState().remove(id)
 
-const createPaymentRecord        = (data)    => usePaymentStore.getState().create(data)
-const getPaymentRecordCountBySubIds = (ids)  => usePaymentStore.getState().getCountBySubIds(ids)
 const createNotification         = (data)    => useNotificationStore.getState().create(data)
 const addConversationOptimistic  = (conv)    => useConversationStore.getState().addConversationOptimistic(conv)
 const getConvByGroupId           = (gid)     => useConversationStore.getState().getByGroupId(gid)
@@ -180,14 +177,6 @@ export default function ManagePage({ embedded = false }) {
     return counts
   }, [applications])
 
-  const paymentCounts = useMemo(() => {
-    const counts = {}
-    allGroups.forEach(g => {
-      const subs = getSubscriptionsByGroupId(g.id)
-      counts[g.id] = getPaymentRecordCountBySubIds(subs.map(s => s.id))
-    })
-    return counts
-  }, [allGroups])
 
   const getModalGroup = id => id ? allGroups.find(g => g.id === id) : null
   const historyModalGroup = getModalGroup(historyModalGroupId)
@@ -520,7 +509,7 @@ async function handleApprove(appId) {
                   group={g}
                   members={membersMap[g.id] ?? []}
                   pendingAppCount={applicationCounts[g.id] ?? 0}
-                  paymentCount={paymentCounts[g.id] ?? 0}
+                  paymentCount={0}
                   {...groupHandlersMap[g.id]}
                 />
               </RevealSection>

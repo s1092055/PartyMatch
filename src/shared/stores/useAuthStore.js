@@ -8,7 +8,6 @@ async function initPrivateStores(userId) {
     { useSubscriptionStore },
     { useMemberStore },
     { useFavoriteStore },
-    { usePaymentStore },
     { useConversationStore },
     { useNotificationStore },
     { useGroupStore },
@@ -17,18 +16,16 @@ async function initPrivateStores(userId) {
     import('./useSubscriptionStore'),
     import('./useMemberStore'),
     import('./useFavoriteStore'),
-    import('./usePaymentStore'),
     import('./useConversationStore'),
     import('./useNotificationStore'),
     import('./useGroupStore'),
   ])
   await Promise.all([
-    useGroupStore.getState().init({ all: true }),  // 登入後取得所有群組
+    useGroupStore.getState().init({ all: true }),
     useApplicationStore.getState().init(),
     useSubscriptionStore.getState().init(),
     useMemberStore.getState().init(),
     useFavoriteStore.getState().init(),
-    usePaymentStore.getState().init(),
     useNotificationStore.getState().init(),
   ])
   useConversationStore.getState().init(userId)
@@ -42,7 +39,6 @@ async function clearPrivateStores() {
     { useSubscriptionStore },
     { useMemberStore },
     { useFavoriteStore },
-    { usePaymentStore },
     { useConversationStore },
     { useNotificationStore },
   ] = await Promise.all([
@@ -50,7 +46,6 @@ async function clearPrivateStores() {
     import('./useSubscriptionStore'),
     import('./useMemberStore'),
     import('./useFavoriteStore'),
-    import('./usePaymentStore'),
     import('./useConversationStore'),
     import('./useNotificationStore'),
   ])
@@ -60,7 +55,6 @@ async function clearPrivateStores() {
   useSubscriptionStore.getState   && useSubscriptionStore.setState({ subscriptions: [] })
   useMemberStore.getState         && useMemberStore.setState({ members: [] })
   useFavoriteStore.getState       && useFavoriteStore.setState({ favorites: [] })
-  usePaymentStore.getState        && usePaymentStore.setState({ payments: [] })
 }
 
 function activeProfile(user) {

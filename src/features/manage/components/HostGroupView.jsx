@@ -11,12 +11,10 @@ import EmptyState from '../../../shared/ui/EmptyState'
 import { getServiceById } from '../../../shared/utils/serviceUtils'
 import { formatRelativeDate } from '../../../shared/utils/date'
 import { useSubscriptionStore } from '../../../shared/stores/useSubscriptionStore'
-import { usePaymentStore } from '../../../shared/stores/usePaymentStore'
 import { useAuthStore } from '../../../shared/stores/useAuthStore'
 import { useNotificationStore } from '../../../shared/stores/useNotificationStore'
 
 const getSubscriptionByUserAndGroup = (uid, gid) => useSubscriptionStore.getState().getByUserAndGroup(uid, gid)
-const getPaymentRecordsBySubscriptionId = (sid)  => usePaymentStore.getState().getBySubscriptionId(sid)
 import CustomSelect from '../../../shared/ui/CustomSelect'
 import ActivateServiceModal from './ActivateServiceModal'
 import ReportServiceIssueModal from './ReportServiceIssueModal'
@@ -398,7 +396,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
               <div className="space-y-4">
                 {members.map(m => {
                   const sub = getSubscriptionByUserAndGroup(m.userId, group.id)
-                  const records = sub ? getPaymentRecordsBySubscriptionId(sub.id).sort((a, b) => (b.paidAt ?? '').localeCompare(a.paidAt ?? '')) : []
+                  const records = []
                   const expanded = expandedBillingMembers.has(m.id)
                   return (
                     <div key={m.id} className="overflow-hidden rounded-xl border border-line">
@@ -445,7 +443,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
               <div className="space-y-2">
                 {members.map(m => {
                   const sub = getSubscriptionByUserAndGroup(m.userId, group.id)
-                  const records = sub ? getPaymentRecordsBySubscriptionId(sub.id).sort((a, b) => (b.paidAt ?? '').localeCompare(a.paidAt ?? '')) : []
+                  const records = []
                   const expanded = expandedBillingMembers.has(m.id)
                   return (
                     <div key={m.id} className="overflow-hidden rounded-xl border border-line">
