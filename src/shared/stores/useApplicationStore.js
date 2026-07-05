@@ -3,6 +3,7 @@ import {
   readAllApplications,
   insertApplication,
   patchApplication,
+  deleteApplication,
 } from '../api/applicationsApi'
 import { insertNotification } from '../api/notificationsApi'
 
@@ -128,8 +129,18 @@ export const useApplicationStore = create((set, get) => ({
     return patchApplication(id, { status })
   },
 
-  // ── 撤回申請 ────────────────────────────────────────────────────────────────
-  withdraw: (id) => get().updateStatus(id, 'removed'),
+  // ── 撤回申請（申請人自行取消 pending 申請）────────────────────────────────
+  withdraw: async (id) => {
+    set(s => ({
+      applications: s.applications.map(a => a.id === id ? { ...a, status: 'withdrawn' } : a),
+    }))
+    try {
+      await deleteApplication(id)
+    } catch (err) {
+      await get().init()
+      throw err
+    }
+  },
 
   // 冷啟動補通知：init + notifications init 都完成後呼叫
   checkMissedNotifications: (currentUser) => {

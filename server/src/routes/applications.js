@@ -50,7 +50,7 @@ router.post('/', requireAuth, validate(applySchema), async (req, res, next) => {
     })
     if (existing) {
       // 已被拒絕、移除或自行退出 → 允許重新申請（建立新記錄，保留歷史）
-      if (existing.status === 'rejected' || existing.status === 'removed' || existing.status === 'left') {
+      if (existing.status === 'rejected' || existing.status === 'removed' || existing.status === 'left' || existing.status === 'withdrawn') {
         const application = await prisma.application.create({
           data: { groupId, userId: req.user.id, message },
         })
@@ -63,6 +63,22 @@ router.post('/', requireAuth, validate(applySchema), async (req, res, next) => {
       data: { groupId, userId: req.user.id, message },
     })
     res.status(201).json(application)
+  } catch (err) { next(err) }
+})
+
+// DELETE /applications/:id — 申請人撤回自己的 pending 申請
+router.delete('/:id', requireAuth, async (req, res, next) => {
+  try {
+    const application = await prisma.application.findUnique({ where: { id: req.params.id } })
+    if (!application) return res.status(404).json({ message: '申請不存在' })
+    if (application.userId !== req.user.id) return res.status(403).json({ message: '僅申請人可撤回' })
+    if (application.status !== 'pending') return res.status(400).json({ message: '只能撤回審核中的申請' })
+
+    const updated = await prisma.application.update({
+      where: { id: req.params.id },
+      data:  { status: 'withdrawn' },
+    })
+    res.json(updated)
   } catch (err) { next(err) }
 })
 

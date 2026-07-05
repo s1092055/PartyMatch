@@ -88,8 +88,10 @@ export default function GroupDetailModal() {
   const [applyMessage, setApplyMessage]     = useState('')
   const [applyAgreed, setApplyAgreed]       = useState(false)
   const [applySubmitted, setApplySubmitted] = useState(false)
-  const [showMembers, setShowMembers]       = useState(false)
-  const [leaveConfirm, setLeaveConfirm]     = useState(false)
+  const [showMembers, setShowMembers]           = useState(false)
+  const [leaveConfirm, setLeaveConfirm]         = useState(false)
+  const [withdrawConfirm, setWithdrawConfirm]   = useState(false)
+  const [withdrawing, setWithdrawing]           = useState(false)
 
   const isOpen       = !!groupId
   const activeUser   = useAuthStore(s => s.user)
@@ -157,12 +159,23 @@ export default function GroupDetailModal() {
   // approved && !isMember → false，確保退出後可重新申請
   const app          = activeUserId ? useApplicationStore.getState().getByUserAndGroup(activeUserId, group.id) : null
   const appStatus    = app?.status
-  const hasActiveApp = !!app && appStatus !== 'rejected' && appStatus !== 'removed' && appStatus !== 'left' && !(appStatus === 'approved' && !isMember)
+  const hasActiveApp = !!app && appStatus !== 'rejected' && appStatus !== 'removed' && appStatus !== 'left' && appStatus !== 'withdrawn' && !(appStatus === 'approved' && !isMember)
   const isPendingApp = appStatus === 'pending'
 
   const canApply = !isHost && !isMember && !hasActiveApp && !isFull && !!activeUserId
 
-  function handleClose() { setGroupId(null); setShowMembers(false); setLeaveConfirm(false); resetApply() }
+  function handleClose() { setGroupId(null); setShowMembers(false); setLeaveConfirm(false); setWithdrawConfirm(false); resetApply() }
+
+  async function handleWithdraw() {
+    if (withdrawing || !app) return
+    setWithdrawing(true)
+    try {
+      await useApplicationStore.getState().withdraw(app.id)
+      setWithdrawConfirm(false)
+    } finally {
+      setWithdrawing(false)
+    }
+  }
 
   function handleApply() {
     if (!applyAgreed) return
@@ -241,6 +254,21 @@ export default function GroupDetailModal() {
       <div className="flex items-center justify-center gap-2 rounded-xl bg-success-subtle px-4 py-3 text-sm font-medium text-success-text">
         <CheckCircle2 size={15} />已加入此群組
       </div>
+    )
+    if (isPendingApp) return (
+      withdrawConfirm ? (
+        <div className="flex gap-2">
+          <Button variant="ghost" size="lg" className="flex-1 border border-line" onClick={() => setWithdrawConfirm(false)}>返回</Button>
+          <Button variant="danger" size="lg" className="flex-1" disabled={withdrawing} onClick={handleWithdraw}>
+            {withdrawing ? '處理中…' : '確認取消'}
+          </Button>
+        </div>
+      ) : (
+        <Button variant="ghost" size="lg" className="w-full border border-line text-ink-3 hover:border-danger hover:text-danger"
+          onClick={() => setWithdrawConfirm(true)}>
+          取消申請
+        </Button>
+      )
     )
     if (isFull) return (
       <Button variant="ghost" size="lg" className="w-full border border-line" disabled>已額滿</Button>
@@ -417,6 +445,20 @@ export default function GroupDetailModal() {
                 <LogOut size={17} /> 退出群組
               </button>
             </div>
+          ) : isPendingApp ? (
+            withdrawConfirm ? (
+              <div className="flex gap-2">
+                <Button variant="ghost" size="lg" className="flex-1 border border-line" onClick={() => setWithdrawConfirm(false)}>返回</Button>
+                <Button variant="danger" size="lg" className="flex-1" disabled={withdrawing} onClick={handleWithdraw}>
+                  {withdrawing ? '處理中…' : '確認取消'}
+                </Button>
+              </div>
+            ) : (
+              <Button variant="ghost" size="lg" className="w-full border border-line text-ink-3 hover:border-danger hover:text-danger"
+                onClick={() => setWithdrawConfirm(true)}>
+                取消申請
+              </Button>
+            )
           ) : canApply ? (
             <>
               <div className="flex items-center gap-2">
