@@ -35,7 +35,7 @@ export default function ProfileHeaderCard({ user }) {
         <p className="text-xs font-medium text-ink-4">代幣餘額</p>
         <div className="flex items-center gap-2">
           <div className="flex items-baseline gap-1.5">
-            <TokenBadge className="text-xs px-2 py-1" />
+            <TokenBadge className="h-7 w-7 text-xs" />
             <span className="text-2xl font-black text-ink">{(user.tokenBalance ?? 0).toLocaleString()}</span>
           </div>
           <button

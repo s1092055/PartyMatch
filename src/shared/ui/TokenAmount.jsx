@@ -5,7 +5,7 @@
 
 export function TokenBadge({ className = '' }) {
   return (
-    <span className={`inline-flex items-center justify-center rounded-full bg-brand px-1.5 py-0.5 text-[10px] font-black leading-none text-white ${className}`}>
+    <span className={`inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand text-[9px] font-black leading-none text-white ${className}`}>
       PM
     </span>
   )
