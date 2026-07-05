@@ -14,8 +14,10 @@ stateDiagram-v2
   disputed --> active : 平台客服裁定後（撥款或退款）→ 群組回 active
   active --> pending_confirmation : 團主開始新一期
   active --> ended : 團主結束群組
-  pending_confirmation --> ended : 團主結束群組
-  pending_activation --> ended : 團主結束群組
+  recruiting --> cancelled : 團主解散群組（啟用前）
+  full --> cancelled : 團主解散群組（啟用前）
+  pending_confirmation --> cancelled : 團主解散群組（啟用前）
+  pending_activation --> cancelled : 團主解散群組（啟用前）
 ```
 
 | 狀態 | 說明 | 推進條件 |
@@ -27,7 +29,8 @@ stateDiagram-v2
 | `confirming` | 服務啟用後最長 48 小時確認期；成員可主動確認、向團主反應或向平台申訴；逾期未操作則自動撥款 | 成員主動確認（即時結束）或逾期未操作（惰性求值）|
 | `disputed` | 成員向平台正式申訴；代管金額凍結，客服 3 天內裁定；裁定只影響申訴的那位成員 | 平台客服手動推進 |
 | `active` | 服務運作中；成員名單不可再變動 | 團主開始新一期或結束群組 |
-| `ended` / `cancelled` / `paused` | 群組已結束，唯讀 | — |
+| `cancelled` | 團主在服務啟用前解散群組；所有代管金額退還成員代幣餘額 | — |
+| `ended` | 服務到期後團主正常結束群組 | — |
 
 ---
 
@@ -155,7 +158,15 @@ flowchart TD
   F -->|客服裁定：成員獲勝| G[退款給該成員，成員離開\n群組回 active（其餘成員不受影響）]
 ```
 
-### 2-E 到期後（`active`）
+### 2-E 解散群組（啟用前）
+
+```mermaid
+flowchart TD
+  A[群組狀態為 recruiting / full / pending_confirmation / pending_activation] --> B[點擊解散群組並確認]
+  B --> C[所有代管金額退還各成員代幣餘額\n群組狀態 cancelled\n通知所有成員]
+```
+
+### 2-F 到期後（`active`）
 
 ```mermaid
 flowchart TD
@@ -196,6 +207,7 @@ flowchart TD
 | 申請核准 | `user.tokenBalance` -= 席位費用；`group.escrowTokens` += 費用 | `escrow` |
 | 確認期結束（無爭議） | `group.escrowTokens` → `host.tokenBalance` | `release` |
 | 成員退出 / 被移除 | `group.escrowTokens` → `user.tokenBalance`（退還） | `refund` |
+| 團主解散群組（`cancelled`） | 所有成員 `group.escrowTokens` → 各 `user.tokenBalance`（退還） | `refund` |
 | 爭議申訴：成員獲勝 | `group.escrowTokens` → `user.tokenBalance`（退還） | `refund` |
 | 爭議申訴：團主獲勝 | `group.escrowTokens` → `host.tokenBalance` | `release` |
 
