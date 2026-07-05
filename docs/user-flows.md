@@ -8,7 +8,7 @@ stateDiagram-v2
   recruiting --> full : 名額額滿（最後申請核准）
   full --> pending_confirmation : 團主鎖定群組
   pending_confirmation --> pending_activation : 全員填寫帳號資訊完成
-  pending_activation --> confirming : 團主啟用服務（扣款日設定，48h 確認期開始）
+  pending_activation --> confirming : 團主啟用服務（48h 確認期開始）
   confirming --> active : 成員主動確認 / 逾期未操作（自動撥款）
   confirming --> disputed : 成員向平台正式申訴
   disputed --> active : 平台客服裁定後（撥款或退款）→ 群組回 active
@@ -82,7 +82,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  A[收到服務已啟用通知\n扣款日已設定，48h 確認期開始] --> B{48h 內操作}
+  A[收到服務已啟用通知，48h 確認期開始] --> B{48h 內操作}
   B -->|主動確認服務正常| C[確認期立即結束\n代管金額即時撥款給團主\n收到確認完成通知]
   B -->|向團主反應問題| D[透過群組聊天室溝通\n狀態維持 confirming，倒數繼續]
   B -->|向平台正式申訴| E[進入爭議申訴流程 → 見 1-E]
@@ -138,7 +138,7 @@ flowchart TD
 ```mermaid
 flowchart TD
   A[GroupViewModal 出現鎖定群組按鈕] --> B[點擊鎖定群組]
-  B --> C[系統建立群組聊天室\n推進至 pending_confirmation\n通知所有成員填寫帳號資訊]
+  B --> C[系統設定各成員訂閱的下次扣款日\n建立群組聊天室\n推進至 pending_confirmation\n通知所有成員填寫帳號資訊]
   C --> D[等待全員填寫訂閱帳號資訊]
   D --> E[全員完成 → 系統自動推進至 pending_activation\n啟用服務按鈕出現]
 ```
@@ -147,8 +147,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  A[點擊啟用服務] --> B[系統設定各成員訂閱的下次扣款日]
-  B --> C[群組進入 confirming\nconfirmDeadline = 啟用時間 + 48h\n通知所有成員服務已啟用]
+  A[點擊啟用服務] --> C[群組進入 confirming\nconfirmDeadline = 啟用時間 + 48h\n通知所有成員服務已啟用]
   C --> D{48h 確認期結果}
   D -->|無申訴（主動確認或逾期）| E[代管金額撥款至團主代幣餘額\n群組回 active]
   D -->|有成員向平台申訴| F[群組進入 disputed，等待客服裁定]
