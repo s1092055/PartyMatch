@@ -1,4 +1,5 @@
-import { CheckCircle2 } from 'lucide-react'
+import { CheckCircle2, Plus } from 'lucide-react'
+import { TokenBadge } from '../../../shared/ui/TokenAmount'
 
 export default function ProfileHeaderCard({ user }) {
   return (
@@ -28,6 +29,23 @@ export default function ProfileHeaderCard({ user }) {
           )}
         </div>
         <p className="text-sm text-ink-3">{user.email}</p>
+      </div>
+
+      <div className="flex flex-col items-end gap-1.5 shrink-0">
+        <p className="text-xs font-medium text-ink-4">代幣餘額</p>
+        <div className="flex items-center gap-2">
+          <div className="flex items-baseline gap-1.5">
+            <TokenBadge className="text-xs px-2 py-1" />
+            <span className="text-2xl font-black text-ink">{(user.tokenBalance ?? 0).toLocaleString()}</span>
+          </div>
+          <button
+            className="grid h-8 w-8 place-items-center rounded-full border border-brand text-brand transition-colors hover:bg-brand hover:text-white"
+            aria-label="儲值"
+            title="儲值"
+          >
+            <Plus size={16} />
+          </button>
+        </div>
       </div>
 
     </div>
