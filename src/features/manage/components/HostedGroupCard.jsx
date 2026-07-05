@@ -2,7 +2,6 @@ import { memo } from 'react'
 import Badge from '../../../shared/ui/Badge'
 import Button from '../../../shared/ui/Button'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
-import { CONFIRMED_STATUSES } from '../../../shared/constants/paymentStatus'
 import { getGroupDisplayStatus } from '../utils/groupActionMap'
 
 const STATUS_BADGE_CLASS = {
@@ -12,13 +11,12 @@ const STATUS_BADGE_CLASS = {
   pending_confirmation: 'bg-warning-subtle text-warning-text',
   pending_activation:   'bg-warning-subtle text-warning-text',
   full:                 'bg-slate-100 text-slate-500',
-  paused:               'bg-slate-100 text-slate-500',
   cancelled:            'bg-danger-subtle text-danger-text',
   ended:                'bg-slate-100 text-slate-400',
 }
 
 function getCollectionState({ group, hasMarkedPaid, paidCount, paymentTarget }) {
-  if (['paused', 'cancelled', 'ended'].includes(group.status)) return '已結束'
+  if (['cancelled', 'ended'].includes(group.status)) return '已結束'
   if (group.status === 'recruiting') return '招募中'
   if (group.status === 'full') return '等待啟用'
   if (group.status === 'pending_confirmation') return hasMarkedPaid ? '待確認' : '收款中'
@@ -57,10 +55,7 @@ function HostedGroupCard({
 }) {
   const displayStatus = getGroupDisplayStatus(group)
 
-  const hasMarkedPaid   = members.some(m => m.paymentStatus === 'markedPaid')
-  const markedPaidCount = members.filter(m => m.paymentStatus === 'markedPaid').length
-  const paidCount       = members.filter(m => CONFIRMED_STATUSES.includes(m.paymentStatus)).length
-  const collectionState = getCollectionState({ group, hasMarkedPaid, paidCount, paymentTarget: members.length })
+  const collectionState = getCollectionState({ group, hasMarkedPaid: false, paidCount: 0, paymentTarget: members.length })
 
   const collectionHighlight = {
     '正常':   'text-success-text',
@@ -71,8 +66,7 @@ function HostedGroupCard({
     '等待啟用': 'text-ink-3',
   }[collectionState] ?? 'text-warning-text'
 
-  const isActivated    = ['active', 'paused', 'cancelled', 'ended'].includes(group.status)
-  const isPaymentPhase = ['pending_confirmation', 'pending_activation'].includes(group.status)
+  const isActivated    = ['active', 'cancelled', 'ended'].includes(group.status)
 
   return (
     <article
@@ -103,13 +97,6 @@ function HostedGroupCard({
           <StatCell label="收款紀錄">
             {paymentCount} 件
           </StatCell>
-        ) : isPaymentPhase ? (
-          <StatCell
-            label="待確認付款"
-            highlight={markedPaidCount > 0 ? 'text-warning-text' : undefined}
-          >
-            {markedPaidCount} 人
-          </StatCell>
         ) : (
           <StatCell
             label="待處理申請"
@@ -118,18 +105,9 @@ function HostedGroupCard({
             {pendingAppCount} 件
           </StatCell>
         )}
-        {isActivated || ['recruiting', 'full'].includes(group.status) ? (
-          <StatCell label="成員人數">
-            {members.length + 1} 人
-          </StatCell>
-        ) : (
-          <StatCell
-            label="收款進度"
-            highlight={hasMarkedPaid ? 'text-warning-text' : undefined}
-          >
-            {paidCount}/{members.length} 人
-          </StatCell>
-        )}
+        <StatCell label="成員人數">
+          {members.length + 1} 人
+        </StatCell>
         {group.status === 'recruiting' ? (
           <StatCell label="建立日期">
             {group.createdAt ?? '—'}

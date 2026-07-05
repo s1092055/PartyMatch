@@ -2,7 +2,6 @@ import { memo } from 'react'
 import Button from '../../../shared/ui/Button'
 import Badge from '../../../shared/ui/Badge'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
-import { effectiveStatus } from '../../../shared/utils/subscriptionStatus'
 import { daysUntil } from '../../../shared/utils/date'
 
 const STATUS_BADGE_CLASS = {
@@ -12,7 +11,6 @@ const STATUS_BADGE_CLASS = {
   pending_confirmation: 'bg-warning-subtle text-warning-text',
   pending_activation:   'bg-warning-subtle text-warning-text',
   full:                 'bg-slate-100 text-slate-500',
-  paused:               'bg-slate-100 text-slate-500',
   cancelled:            'bg-danger-subtle text-danger-text',
   ended:                'bg-slate-100 text-slate-400',
 }
@@ -36,28 +34,10 @@ function StatCell({ label, children, highlight }) {
 }
 
 function SubscriptionCard({ sub, onViewGroup }) {
-  const status        = effectiveStatus(sub)
   const isActive      = sub.status === 'active' || sub.groupStatus === 'active'
   const groupStatus   = sub.groupStatus ?? sub.status
   const displayStatus = getDisplayStatus(sub)
   const memberCount   = sub.usedSeats ?? 0
-
-  const paymentLabel = {
-    pending:            '待付款',
-    markedPaid:         '已付款',
-    confirmed:          '已付款',
-    paid:               '已付款',
-    waiting_activation: '等待啟用',
-    overdue:            '逾期未付',
-  }[status] ?? '待付款'
-
-  const paymentHighlight = {
-    pending:    'text-warning-text',
-    markedPaid: 'text-warning-text',
-    overdue:    'text-danger-text',
-    confirmed:  'text-success-text',
-    paid:       'text-success-text',
-  }[status]
 
   return (
     <article
@@ -89,9 +69,9 @@ function SubscriptionCard({ sub, onViewGroup }) {
       <div className="grid grid-cols-3 divide-x divide-line-subtle rounded-lg border border-line-subtle">
         {isActive ? (
           <>
-            <StatCell label="付款狀態" highlight={paymentHighlight}>{paymentLabel}</StatCell>
             <StatCell label="下次扣款">{sub.nextBillingDate ?? '—'}</StatCell>
             <StatCell label="團主">{sub.hostName ?? '—'}</StatCell>
+            <StatCell label="加入日期">{sub.joinedAt ?? '—'}</StatCell>
           </>
         ) : (
           <>
@@ -114,7 +94,6 @@ function SubscriptionCard({ sub, onViewGroup }) {
 export default memo(SubscriptionCard, (prev, next) =>
   prev.sub.id === next.sub.id &&
   prev.sub.groupStatus === next.sub.groupStatus &&
-  prev.sub.paymentStatus === next.sub.paymentStatus &&
   prev.sub.nextBillingDate === next.sub.nextBillingDate &&
   prev.onViewGroup === next.onViewGroup
 )

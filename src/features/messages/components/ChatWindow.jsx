@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CheckCircle2, ChevronDown, Clock, Send, SquarePen, X } from 'lucide-react'
+import { CheckCircle2, ChevronDown, Send, SquarePen, X } from 'lucide-react'
 import ConversationAvatar from './ConversationAvatar'
 import ConversationMenu from './ConversationMenu'
 import { useMemberStore } from '../../../shared/stores/useMemberStore'
-import { CONFIRMED_STATUSES } from '../../../shared/constants/paymentStatus'
 import { useGroupStore } from '../../../shared/stores/useGroupStore'
 import { useAuthStore } from '../../../shared/stores/useAuthStore'
 
@@ -407,67 +406,6 @@ export default function ChatWindow({
                   )
                 }
 
-                if (msg.actionType === 'go_to_payment') {
-                  const payMember = getMemberByUserAndGroup(userId, conversationGroupId)
-                  const payStatus = payMember?.paymentStatus
-                  return (
-                    <div key={msg.id} className="flex justify-center">
-                      <div className="w-64 rounded-2xl border border-brand/30 bg-brand-subtle px-4 py-3 text-center shadow-sm">
-                        <p className="mb-2 text-xs text-ink-2">{msg.text}</p>
-                        {payStatus === 'confirmed' ? (
-                          <p className="flex items-center justify-center gap-1 text-xs font-semibold text-success-text">
-                            <CheckCircle2 size={13} /> 已完成付款
-                          </p>
-                        ) : payStatus === 'markedPaid' ? (
-                          <p className="flex items-center justify-center gap-1 text-xs font-semibold text-ink-3">
-                            <Clock size={13} /> 付款確認中
-                          </p>
-                        ) : payStatus === 'payment_failed' ? (
-                          <p className="flex items-center justify-center gap-1 text-xs font-semibold text-danger">
-                            <X size={13} /> 付款失敗
-                          </p>
-                        ) : (
-                          <button
-                            onClick={() => {
-                              window.dispatchEvent(new CustomEvent('pm:close-messages'))
-                              navigate('/my-groups?view=member', { state: { openGroupId: conversationGroupId, openPayment: true } })
-                            }}
-                            className="w-full rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-brand-hover"
-                          >
-                            前往付款
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )
-                }
-                if (msg.actionType === 'request_resubmit') {
-                  const payMember = getMemberByUserAndGroup(userId, conversationGroupId)
-                  const alreadyResubmitted = payMember?.paymentStatus === 'markedPaid' || payMember?.paymentStatus === 'confirmed'
-                  return (
-                    <div key={msg.id} className="flex justify-center">
-                      <div className="w-64 rounded-2xl border border-warning/30 bg-warning-subtle px-4 py-3 text-center shadow-sm">
-                        <p className="mb-2 text-xs font-semibold text-warning-text">需要補件</p>
-                        {msg.text && <p className="mb-3 rounded-lg bg-white/60 px-3 py-2 text-left text-xs text-ink-2">{msg.text}</p>}
-                        {alreadyResubmitted ? (
-                          <p className="flex items-center justify-center gap-1 text-xs font-semibold text-ink-3">
-                            <CheckCircle2 size={13} /> 已重新提交
-                          </p>
-                        ) : (
-                          <button
-                            onClick={() => {
-                              window.dispatchEvent(new CustomEvent('pm:close-messages'))
-                              navigate('/my-groups?view=member', { state: { openGroupId: conversationGroupId, openPayment: true } })
-                            }}
-                            className="w-full rounded-lg bg-warning px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:opacity-90"
-                          >
-                            重新上傳付款憑證
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )
-                }
                 if (msg.actionType === 'request_service_resubmit') {
                   const svcMember = getMemberByUserAndGroup(userId, conversationGroupId)
                   const alreadyFixed = !!svcMember?.serviceInfo?.email && !svcMember?.serviceInfoIssueNote
@@ -496,27 +434,20 @@ export default function ChatWindow({
                   )
                 }
                 if (msg.actionType === 'all_service_info_filled') {
-                  const allConfirmed = groupMembers.length > 0 && groupMembers.every(m => CONFIRMED_STATUSES.includes(m.paymentStatus))
                   return (
                     <div key={msg.id} className="flex justify-center">
                       <div className="w-64 rounded-2xl border border-success/30 bg-success-subtle px-4 py-3 text-center shadow-sm">
                         <p className="mb-2 text-xs text-ink-2">{msg.text}</p>
-                        {allConfirmed ? (
-                          <p className="flex items-center justify-center gap-1 text-xs font-semibold text-success">
-                            <CheckCircle2 size={13} /> 已確認收款
-                          </p>
-                        ) : (
-                          <button
-                            onClick={() => {
-                              window.dispatchEvent(new CustomEvent('pm:close-messages'))
-                              navigate('/my-groups?view=host', { state: { openGroupId: conversationGroupId, openBilling: true } })
-                              window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: conversationGroupId, openBilling: true } }))
-                            }}
-                            className="w-full rounded-lg bg-success px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:opacity-90"
-                          >
-                            前往收款管理
-                          </button>
-                        )}
+                        <button
+                          onClick={() => {
+                            window.dispatchEvent(new CustomEvent('pm:close-messages'))
+                            navigate('/my-groups?view=host', { state: { openGroupId: conversationGroupId, openBilling: true } })
+                            window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: conversationGroupId, openBilling: true } }))
+                          }}
+                          className="w-full rounded-lg bg-success px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:opacity-90"
+                        >
+                          前往收款管理
+                        </button>
                       </div>
                     </div>
                   )

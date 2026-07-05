@@ -51,8 +51,6 @@ export const useMemberStore = create((set, get) => ({
       userAvatarColor,
       role:             'member',
       joinedAt:         todayISO(),
-      paymentStatus:    'pending',
-      lastPaidAt:       null,
     }
     set(s => ({ members: [...s.members, member] }))
     if (!skipApiCall) {
@@ -79,13 +77,4 @@ export const useMemberStore = create((set, get) => ({
     deleteMemberRecord(memberId).catch(console.error)
   },
 
-  // ── 重設群組成員付款狀態（續訂用）────────────────────────────────────────────
-  resetPaymentsForGroup: (groupId) => {
-    const patch = { paymentStatus: 'pending' }
-    const targets = get().members.filter(m => m.groupId === groupId)
-    set(s => ({
-      members: s.members.map(m => m.groupId === groupId ? { ...m, ...patch } : m),
-    }))
-    targets.forEach(m => patchMember(m.id, patch).catch(console.error))
-  },
 }))

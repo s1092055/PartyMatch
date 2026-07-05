@@ -11,8 +11,6 @@ import { useNotificationStore } from '../../shared/stores/useNotificationStore'
 import { createGroupConversation, removeParticipantFromConversation, sendSystemMessage, sendActionMessage } from '../../shared/api/messagesApi'
 import { insertNotification } from '../../shared/api/notificationsApi'
 import { useConversationStore } from '../../shared/stores/useConversationStore'
-import { CONFIRMED_STATUSES } from '../../shared/constants/paymentStatus'
-
 // ── store 操作的精簡別名（事件處理器內呼叫，讀取最新 store 狀態）─────────────
 const getGroupById     = (id)      => useGroupStore.getState().getById(id)
 const getGroupsByHostId = (hostId) => useGroupStore.getState().getByHostId(hostId)
@@ -33,17 +31,13 @@ const getMembersByGroupId        = (gid)    => useMemberStore.getState().getByGr
 const createMember               = (data)   => useMemberStore.getState().create(data)
 const isUserGroupMember          = (uid, gid) => useMemberStore.getState().isMember(uid, gid)
 const removeMember               = (id)     => useMemberStore.getState().remove(id)
-const resetMemberPaymentsForGroup = (gid)   => useMemberStore.getState().resetPaymentsForGroup(gid)
 const updateMember               = (id, p)  => useMemberStore.getState().update(id, p)
 
 const activateGroupSubscriptions      = (gid, d) => useSubscriptionStore.getState().activateGroupSubscriptions(gid, d)
-const confirmSubscriptionPayment      = (id)     => useSubscriptionStore.getState().confirmPayment(id)
 const createSubscription              = (data)   => useSubscriptionStore.getState().create(data)
 const getSubscriptionByUserAndGroup   = (uid, gid) => useSubscriptionStore.getState().getByUserAndGroup(uid, gid)
 const getSubscriptionsByGroupId       = (gid)    => useSubscriptionStore.getState().getByGroupId(gid)
 const removeSubscription              = (id)     => useSubscriptionStore.getState().remove(id)
-const resetSubscriptionPayment        = (id)     => useSubscriptionStore.getState().resetPayment(id)
-const resetSubscriptionPaymentsForGroup = (gid)  => useSubscriptionStore.getState().resetPaymentsForGroup(gid)
 
 const createPaymentRecord        = (data)    => usePaymentStore.getState().create(data)
 const getPaymentRecordCountBySubIds = (ids)  => usePaymentStore.getState().getCountBySubIds(ids)
@@ -67,7 +61,7 @@ const STATUS_FILTER_TABS = [
 ]
 
 const PENDING_STATUSES   = new Set(['full', 'pending_confirmation', 'pending_activation'])
-const CANCELLED_STATUSES = new Set(['paused', 'cancelled', 'ended'])
+const CANCELLED_STATUSES = new Set(['cancelled', 'ended'])
 
 function matchesFilter(group, filterKey) {
   if (filterKey === 'all')        return true
@@ -203,13 +197,11 @@ export default function ManagePage({ embedded = false }) {
     setManageData(prev => ({ ...prev, hostedGroups: getGroupsByHostId(activeUser.id) }))
   }
 
-async function handleActivateGroup(paymentAccount) {
+async function handleActivateGroup() {
     if (!viewGroupId) return
     const group = getGroupById(viewGroupId)
     if (!group) return
     const groupMembers = getMembersByGroupId(viewGroupId)
-
-    if (paymentAccount) updateGroup(viewGroupId, { paymentAccount })
 
     // 先建立聊天室（後端 POST /conversations/group 已包含所有成員），再推進群組狀態
     const conv = await createGroupConversation({ groupId: viewGroupId })
@@ -221,10 +213,6 @@ async function handleActivateGroup(paymentAccount) {
       actionType: 'fill_service_info',
       payload: { serviceName: group.serviceName, serviceId: group.serviceId },
     })
-    if (paymentAccount) {
-      await sendSystemMessage(convId, `團主已提供收款資訊，請依照以下方式完成付款：\n${paymentAccount}`)
-    }
-
     // 通知團主自己
     createNotification({
       userId:  group.hostId,
@@ -303,83 +291,6 @@ function handleRemoveMember(member) {
     }
   }
 
-function handleConfirmMember(member) {
-    const sub = getSubscriptionByUserAndGroup(member.userId, member.groupId)
-    if (!sub) return
-
-    adjustCreditScore(member.userId, CREDIT_RULES.PAYMENT_CONFIRMED).catch(console.error)
-    updateMember(member.id, { paymentStatus: 'confirmed', paymentIssueType: null, paymentIssueNote: null })
-
-    // 重新從 store 讀取最新 member 資料，確保 paymentProofUrl/paidAmount 是最新值
-    const freshMember = getMembersByGroupId(member.groupId).find(m => m.id === member.id) ?? member
-    confirmSubscriptionPayment(sub.id)
-    createPaymentRecord({
-      subscriptionId: sub.id,
-      amount:   freshMember.paidAmount ?? sub.pricePerSeat,
-      proofUrl: freshMember.paymentProofUrl ?? null,
-    })
-
-    insertNotification({
-      userId:  member.userId,
-      type:    'payment_confirmed',
-      title:   '付款已確認，等待團主啟用服務',
-      message: `團主已確認你在「${member.groupName ?? ''}」的付款，請等待服務啟用。`,
-    }).catch(console.error)
-
-    const updatedMembers = getMembersByGroupId(member.groupId)
-    const groupSnapshot = getGroupById(member.groupId)
-    const allConfirmed = updatedMembers.length > 0 &&
-      updatedMembers.every(m => CONFIRMED_STATUSES.includes(m.paymentStatus))
-    if (allConfirmed && groupSnapshot?.openSeats <= 0) {
-      confirmGroupPayments(member.groupId)
-      createNotification({
-        userId:  activeUser.id,
-        type:    'all_payments_confirmed',
-        title:   '所有付款已確認，可以啟用服務了',
-        message: `「${groupSnapshot?.serviceName ?? ''}」所有成員付款已確認，請立即啟用服務。`,
-        meta:    { groupId: member.groupId },
-      })
-    }
-
-    refreshGroups()
-  }
-
-  const PAYMENT_ISSUE_REASONS = {
-    amount_mismatch:  (price, note) => `你的付款金額與應付金額（NT$${price}）不符，請重新確認後補件。${note ? `備注：${note}` : ''}`,
-    proof_incomplete: (_, note)     => `你上傳的付款截圖不清晰或資訊不完整，請重新上傳完整截圖。${note ? `備注：${note}` : ''}`,
-    wrong_info:       (_, note)     => `你的付款資訊有誤，請確認後重新補件。${note ? `備注：${note}` : ''}`,
-    other:            (_, note)     => note,
-  }
-
-  function handleReportPaymentIssue(member, issueType, issueNote) {
-    updateMember(member.id, { paymentStatus: 'payment_failed', paymentProofUrl: null, paymentIssueType: issueType, paymentIssueNote: issueNote || null })
-    const sub = getSubscriptionByUserAndGroup(member.userId, member.groupId)
-    if (sub) resetSubscriptionPayment(sub.id)
-
-    const group = getGroupById(member.groupId)
-    const pricePerSeat = sub?.pricePerSeat ?? group?.pricePerSeat ?? 0
-    const reasonFn = PAYMENT_ISSUE_REASONS[issueType] ?? PAYMENT_ISSUE_REASONS.other
-    const reasonText = reasonFn(pricePerSeat, issueNote)
-
-    const convId = getConvByGroupId(member.groupId)?.id
-    if (convId) sendSystemMessage(convId, `${member.userName}，已被要求重新補件`).catch(console.error)
-    if (convId) sendActionMessage(convId, {
-      text: reasonText,
-      actionType: 'request_resubmit',
-      payload: { targetUserId: member.userId },
-    }).catch(console.error)
-
-    insertNotification({
-      userId:  member.userId,
-      type:    'payment_issue',
-      title:   '付款資訊需要修正',
-      message: `團主在「${member.groupName ?? group?.serviceName ?? ''}」發現付款問題，請前往重新補件。`,
-      meta:    { groupId: member.groupId },
-    }).catch(console.error)
-
-    refreshGroups()
-  }
-
 function handleActivate(renewalDate) {
     if (!viewGroupId) return
     adjustCreditScore(activeUser.id, CREDIT_RULES.GROUP_ACTIVATED).catch(console.error)
@@ -415,16 +326,6 @@ function handleActivate(renewalDate) {
   function handleStartRenewal() {
     if (!renewalModalGroupId) return
     startRenewalCycle(renewalModalGroupId)
-    resetMemberPaymentsForGroup(renewalModalGroupId)
-    resetSubscriptionPaymentsForGroup(renewalModalGroupId)
-    getMembersByGroupId(renewalModalGroupId).forEach(m => {
-      insertNotification({
-        userId:  m.userId,
-        type:    'payment_due',
-        title:   '新一期付款通知',
-        message: `「${m.groupName ?? ''}」已進入新一期收款，請至訂閱頁面完成付款。`,
-      }).catch(console.error)
-    })
     setRenewalModalGroupId(null)
     refreshGroups()
   }
@@ -632,8 +533,6 @@ async function handleApprove(appId) {
         isOpen={!!viewGroupId}
         onClose={() => { setViewGroupId(null); setAutoOpenActivateGroup(false); setAutoOpenActivate(false); setAutoOpenApplications(false); setAutoOpenBilling(false); refreshGroups() }}
         groupId={viewGroupId}
-        onConfirmMember={handleConfirmMember}
-        onReportPaymentIssue={handleReportPaymentIssue}
         onReportServiceInfoIssue={handleReportServiceInfoIssue}
         onActivate={handleActivate}
         onActivateGroup={handleActivateGroup}

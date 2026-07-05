@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   CheckCircle2, ChevronRight,
-  CreditCard, Heart, LogIn, LogOut, MessageCircle, Shield, ShieldCheck, Star, Users,
+  Heart, LogIn, LogOut, MessageCircle, Shield, ShieldCheck, Star, Users,
 } from 'lucide-react'
 import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { getServiceById } from '../../shared/utils/serviceUtils'
@@ -149,9 +149,6 @@ export default function GroupDetailModal() {
   const hasServiceInfoIssue = !!memberRecord?.serviceInfoIssueNote
   const hasServiceInfo      = !!memberRecord?.serviceInfo?.email && !hasServiceInfoIssue
   const needsFillInfo       = isMember && isPaymentPhase && !hasServiceInfo
-  const isPendingPayment    = isMember && ['pending', 'payment_failed'].includes(memberRecord?.paymentStatus) && isPaymentPhase && hasServiceInfo
-  const hasPaymentFailed    = memberRecord?.paymentStatus === 'payment_failed'
-  const isMarkedPaid     = isMember && memberRecord?.paymentStatus === 'markedPaid' && isPaymentPhase
   const isWaitingMembers = isMember && ['recruiting', 'full'].includes(group.status)
   const isFull           = (group.openSeats ?? 0) <= 0
 
@@ -226,28 +223,22 @@ export default function GroupDetailModal() {
       </div>
     )
     if (isWaitingMembers) return null
-    if (needsFillInfo || isPendingPayment) return (
+    if (needsFillInfo) return (
       <div className="flex justify-center">
         <div className="relative w-full">
-          <span className={`absolute inset-1 rounded-xl animate-ping opacity-20 ${(hasPaymentFailed || hasServiceInfoIssue) ? 'bg-danger' : 'bg-brand'}`} />
+          <span className={`absolute inset-1 rounded-xl animate-ping opacity-20 ${hasServiceInfoIssue ? 'bg-danger' : 'bg-brand'}`} />
           <button
             onClick={() => {
               handleClose()
-              navigate('/my-groups?view=member', { state: { openGroupId: group.id, ...(isPendingPayment ? { openPayment: true } : {}) } })
+              navigate('/my-groups?view=member', { state: { openGroupId: group.id } })
             }}
             className={`relative flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white transition-colors ${
-              (hasPaymentFailed || hasServiceInfoIssue) ? 'bg-danger hover:opacity-90' : 'bg-brand hover:bg-brand-hover'
+              hasServiceInfoIssue ? 'bg-danger hover:opacity-90' : 'bg-brand hover:bg-brand-hover'
             }`}
           >
-            <CreditCard size={15} />
-            {hasServiceInfoIssue ? '修正服務帳號' : needsFillInfo ? '填寫服務帳號' : hasPaymentFailed ? '重新上傳付款憑證' : '前往付款'}
+            {hasServiceInfoIssue ? '修正服務帳號' : '填寫服務帳號'}
           </button>
         </div>
-      </div>
-    )
-    if (isMarkedPaid) return (
-      <div className="flex items-center justify-center gap-2 rounded-xl bg-purple-subtle px-4 py-3 text-sm font-medium text-purple-text">
-        <CheckCircle2 size={15} />已付款，等待團主確認
       </div>
     )
     if (isMember) return (
@@ -294,9 +285,7 @@ export default function GroupDetailModal() {
       service={service}
       plan={plan}
       hideRecruitBar={isMember || isHost || group.status !== 'recruiting'}
-      extraInfoRows={[
-        ...(group.paymentMethod ? [{ label: '付款方式', value: group.paymentMethod }] : []),
-      ]}
+      extraInfoRows={[]}
       statusBadgeOverride={isMember && group.status === 'recruiting' ? 'member_joined' : undefined}
       subPanel={showApply ? {
         title: '申請加入群組',

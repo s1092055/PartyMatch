@@ -58,7 +58,6 @@ export default function Step4Preview({ form, agreedToTerms, onAgreeChange }) {
             <Row label="每人費用" value={`NT$${form.billingCycle === 'yearly' ? form.pricePerSeat * 12 : form.pricePerSeat}`} />
             <Row label="計費週期" value={form.billingCycle === 'monthly' ? '月繳' : '年繳'} />
             <Row label="開放名額" value={`${form.totalSeats - 1} 人`} />
-            <Row label="收款方式" value={form.paymentMethod?.trim() || '未填寫'} />
             <Row label="帳號需求" value={form.requirements.trim() || '無'} />
             <Row label="建立日期" value={today} />
           </div>

@@ -14,8 +14,9 @@ enum GroupStatus {
   full
   pending_confirmation
   pending_activation
+  confirming
+  disputed
   active
-  paused
   cancelled
   ended
 }
@@ -29,14 +30,17 @@ enum ApplicationStatus {
   withdrawn
 }
 
-enum PaymentStatus {
+enum SubscriptionStatus {
   pending
-  markedPaid
-  payment_failed
-  confirmed
-  paid
-  overdue
-  waiting_activation
+  active
+  ended
+}
+
+enum TokenTransactionType {
+  topup
+  escrow
+  release
+  refund
 }
 
 enum ConversationType {
@@ -45,11 +49,6 @@ enum ConversationType {
 }
 
 enum NotificationType {
-  payment_reminder
-  payment_confirmed
-  payment_failed
-  payment_due
-  payment_issue
   application_sent
   application_approved
   application_rejected
@@ -62,10 +61,10 @@ enum NotificationType {
   member_joined
   member_left
   member_removed
-  member_payment_marked
-  all_payments_confirmed
   service_info_issue
-  payment
+  token_topup
+  escrow_released
+  dispute_raised
   system
 }
 
@@ -80,17 +79,19 @@ model User {
   avatarColor   String?
   avatarInitial String?
   creditScore   Int      @default(100)
+  tokenBalance  Int      @default(0)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  hostedGroups  Group[]         @relation("HostedGroups")
-  applications  Application[]
-  members       Member[]
-  subscriptions Subscription[]
-  notifications Notification[]
-  favorites     Favorite[]
-  sentMessages  Message[]
-  refreshTokens RefreshToken[]
+  hostedGroups     Group[]              @relation("HostedGroups")
+  applications     Application[]
+  members          Member[]
+  subscriptions    Subscription[]
+  notifications    Notification[]
+  favorites        Favorite[]
+  sentMessages     Message[]
+  refreshTokens    RefreshToken[]
+  tokenTransactions TokenTransaction[]
 
   @@map("users")
 }
@@ -134,19 +135,21 @@ model Group {
   rules           String?
   minCreditScore  Int         @default(0)
   minGroupAge     Int         @default(0)
-  paymentAccount  String?
-  paymentMethod   String?
   billingCycle    String?
   nextBillingDate DateTime?
+  escrowTokens    Int         @default(0)
+  confirmDeadline DateTime?
+  disputeDeadline DateTime?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
-  applications    Application[]
-  members         Member[]
-  subscriptions   Subscription[]
-  favorites       Favorite[]
-  conversations   Conversation[]
-  notifications   Notification[]
+  applications      Application[]
+  members           Member[]
+  subscriptions     Subscription[]
+  favorites         Favorite[]
+  conversations     Conversation[]
+  notifications     Notification[]
+  tokenTransactions TokenTransaction[]
 
   @@map("groups")
 }
@@ -166,59 +169,50 @@ model Application {
 }
 
 model Member {
-  id                  String        @id @default(cuid())
-  groupId             String
-  group               Group         @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  userId              String
-  user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  paymentStatus       PaymentStatus @default(pending)
-  subscriptionAccount String?
-  paymentProofUrl     String?
-  paidAmount          Float?
-  lastPaidAt          DateTime?
-  serviceInfo         Json?
+  id                   String   @id @default(cuid())
+  groupId              String
+  group                Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId               String
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  serviceInfo          Json?
   serviceInfoIssueNote String?
-  paymentIssueType    String?
-  paymentIssueNote    String?
-  joinedAt            DateTime      @default(now())
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
+  disputeEvidenceUrl   String?
+  joinedAt             DateTime @default(now())
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   @@unique([groupId, userId])
   @@map("members")
 }
 
 model Subscription {
-  id                  String        @id @default(cuid())
-  groupId             String
-  group               Group         @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  userId              String
-  user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  status              PaymentStatus @default(pending)
-  subscriptionAccount String?
-  paymentProofUrl     String?
-  lastPaidAt          DateTime?
-  nextBillingDate     DateTime?
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
-
-  paymentRecords  PaymentRecord[]
+  id              String             @id @default(cuid())
+  groupId         String
+  group           Group              @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status          SubscriptionStatus @default(pending)
+  lastPaidAt      DateTime?
+  nextBillingDate DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
 
   @@unique([groupId, userId])
   @@map("subscriptions")
 }
 
-model PaymentRecord {
-  id             String       @id @default(cuid())
-  subscriptionId String
-  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
-  amount         Float
-  periodLabel    String?
-  proofUrl       String?
-  paidAt         DateTime     @default(now())
-  createdAt      DateTime     @default(now())
+model TokenTransaction {
+  id            String               @id @default(cuid())
+  userId        String
+  user          User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type          TokenTransactionType
+  amount        Int
+  relatedGroupId String?
+  relatedGroup  Group?               @relation(fields: [relatedGroupId], references: [id], onDelete: SetNull)
+  note          String?
+  createdAt     DateTime             @default(now())
 
-  @@map("payment_records")
+  @@map("token_transactions")
 }
 
 model Notification {

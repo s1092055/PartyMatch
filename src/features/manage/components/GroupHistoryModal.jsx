@@ -4,7 +4,6 @@ import Avatar from '../../../shared/ui/Avatar'
 import Badge from '../../../shared/ui/Badge'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import EmptyState from '../../../shared/ui/EmptyState'
-import { CONFIRMED_STATUSES } from '../../../shared/constants/paymentStatus'
 
 const STATUS_TIMELINE = {
   cancelled: [
@@ -27,7 +26,7 @@ export default function GroupHistoryModal({ isOpen, onClose, group, members }) {
   if (!group) return null
 
   const timeline = STATUS_TIMELINE[group.status] ?? STATUS_TIMELINE.ended
-  const paidCount = members.filter(m => CONFIRMED_STATUSES.includes(m.paymentStatus)).length
+  const paidCount = 0
 
   return (
     <Modal
@@ -107,15 +106,6 @@ export default function GroupHistoryModal({ isOpen, onClose, group, members }) {
                     <p className="text-sm font-semibold text-ink">{m.userName}</p>
                     <p className="text-xs text-ink-3">加入於 {m.joinedAt}</p>
                   </div>
-                  {CONFIRMED_STATUSES.includes(m.paymentStatus) ? (
-                    <span className="flex shrink-0 items-center gap-1 rounded-full bg-success-subtle px-2 py-0.5 text-xs font-semibold text-success-text">
-                      <CheckCircle2 size={10} /> 已付款
-                    </span>
-                  ) : (
-                    <span className="flex shrink-0 items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-ink-3">
-                      <Clock size={10} /> 未付款
-                    </span>
-                  )}
                 </div>
               ))}
             </div>

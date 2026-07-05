@@ -43,14 +43,6 @@ const VARIANTS = {
     cls: 'bg-warning-subtle text-warning-text',
     dot: 'bg-warning',
   },
-  paid: {
-    cls: 'bg-success-subtle text-success-text',
-    dot: null,
-  },
-  overdue: {
-    cls: 'bg-danger-subtle text-danger-text',
-    dot: 'bg-danger',
-  },
   verified: {
     cls: 'bg-info-subtle text-info-text',
     dot: null,
@@ -58,18 +50,6 @@ const VARIANTS = {
   upcoming: {
     cls: 'bg-brand-subtle text-brand',
     dot: 'bg-brand',
-  },
-  markedPaid: {
-    cls: 'bg-purple-subtle text-purple-text',
-    dot: 'bg-purple',
-  },
-  confirmed: {
-    cls: 'bg-success-subtle text-success-text',
-    dot: 'bg-success',
-  },
-  waiting_activation: {
-    cls: 'bg-purple-subtle text-purple-text',
-    dot: 'bg-purple',
   },
   member_joined: {
     cls: 'bg-success-subtle text-success-text',
@@ -85,21 +65,15 @@ const LABELS = {
   recruiting:         '招募中',
   pending_activation: '待啟用',
   active:             '啟用中',
-  paused:             '已結束',
   cancelled:          '已結束',
   full:               '已滿員',
   pending_confirmation: '團主收款中',
   ended:              '已結束',
   closed:             '已關閉',
   approval:           '審核加入',
-  pending:            '待付款',
-  paid:               '已付款',
-  overdue:            '逾期',
+  pending:            '待確認',
   verified:           '已驗證',
   upcoming:           '即將續訂',
-  markedPaid:         '已付款',
-  confirmed:          '付款已確認',
-  waiting_activation: '等待團主啟用',
   member_joined:      '申請通過',
 }
 

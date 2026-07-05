@@ -50,7 +50,6 @@ export function normalizeMember(m) {
     userAvatarInitial: m.userAvatarInitial ?? user.avatarInitial ?? userName[0] ?? '?',
     userAvatarColor:   m.userAvatarColor   ?? user.avatarColor   ?? '#94A3B8',
     userId:            m.userId            ?? user.id            ?? '',
-    paymentStatus:     m.paymentStatus     ?? 'pending',
     joinedAt,
   }
 }
@@ -161,7 +160,6 @@ export function normalizeSubscription(sub) {
 
   return {
     ...sub,
-    paymentStatus:     sub.paymentStatus ?? sub.status ?? 'pending',
     status:            sub.status ?? 'pending',
     groupStatus:       sub.groupStatus ?? group.status ?? '',
     // 服務資訊

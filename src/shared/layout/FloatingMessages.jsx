@@ -26,10 +26,6 @@ function getMergedNotifications(userId) {
 }
 
 const NOTIFICATION_META = {
-  payment:              { icon: CreditCard,    iconColor: 'text-brand',      link: '/my-groups?view=member' },
-  payment_reminder:     { icon: Clock,         iconColor: 'text-amber-500',  link: '/my-groups?view=member' },
-  member_payment_marked:    { icon: CreditCard,    iconColor: 'text-success',    link: '/my-groups?view=host' },
-  all_payments_confirmed:   { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-groups?view=host' },
   joined:               { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-groups?view=member' },
   application_approved: { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-groups?view=member', state: { tab: 'processing' } },
   application_rejected: { icon: AlertCircle,   iconColor: 'text-danger',     link: '/my-groups?view=member', state: { tab: 'applications' } },
@@ -39,8 +35,6 @@ const NOTIFICATION_META = {
   group_full:           { icon: UserPlus,      iconColor: 'text-brand',      link: '/my-groups?view=host' },
   group_chat_opened:    { icon: MessageSquare, iconColor: 'text-brand',      link: null },
   group_activated:      { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-groups?view=member' },
-  payment_confirmed:    { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-groups?view=member' },
-  payment_issue:        { icon: AlertCircle,   iconColor: 'text-danger',     link: '/my-groups?view=member' },
   service_info_issue:   { icon: AlertCircle,   iconColor: 'text-amber-500',  link: '/my-groups?view=member' },
   group_ended:          { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/explore' },
   member_removed:       { icon: AlertCircle,   iconColor: 'text-danger',     link: '/explore' },
@@ -55,7 +49,7 @@ function getMeta(type) {
   return NOTIFICATION_META[type] ?? NOTIFICATION_META.default
 }
 
-const PAYMENT_TYPES = ['payment', 'payment_reminder', 'payment_confirmed', 'member_payment_marked', 'all_payments_confirmed']
+const PAYMENT_TYPES = []
 const APPLY_TYPES   = ['joined', 'application_approved', 'application_rejected', 'application_sent', 'new_application', 'application']
 const SYSTEM_TYPES  = ['system', 'announcement', 'platform']
 
@@ -204,18 +198,6 @@ export default function FloatingMessages() {
     if (notification.type === 'group_full' && notification.meta?.groupId) {
       navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId } })
       window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: notification.meta.groupId } }))
-      return
-    }
-
-    if (notification.type === 'member_payment_marked' && notification.meta?.groupId) {
-      navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId, openBilling: true } })
-      window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: notification.meta.groupId, openBilling: true } }))
-      return
-    }
-
-    if (notification.type === 'all_payments_confirmed' && notification.meta?.groupId) {
-      navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId, openActivate: true } })
-      window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: notification.meta.groupId, openActivate: true } }))
       return
     }
 

@@ -62,17 +62,6 @@ export default function Step3Settings({ form, onChange }) {
         </div>
       </Field>
 
-<Field label="收款方式" required hint="指定你接受的收款管道，實際帳號資訊將於啟用群組時填寫">
-        <textarea
-          rows={2}
-          placeholder="例如：銀行轉帳、LINE Pay、街口支付"
-          value={form.paymentMethod}
-          onChange={e => onChange('paymentMethod', e.target.value)}
-          maxLength={100}
-          className="field w-full resize-none"
-        />
-      </Field>
-
 <Field label="帳號需求" hint="說明成員是否需要自備帳號，或有其他帳號相關條件（選填）">
         <textarea
           rows={2}

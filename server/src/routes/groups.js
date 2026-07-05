@@ -31,9 +31,7 @@ const createGroupSchema = z.object({
 }))
 
 const updateGroupSchema = z.object({
-  status:          z.enum(['recruiting','full','pending_confirmation','pending_activation','active','paused','cancelled','ended']).optional(),
-  paymentAccount:  z.string().optional(),
-  paymentMethod:   z.string().optional(),
+  status:          z.enum(['recruiting','full','pending_confirmation','pending_activation','active','confirming','disputed','cancelled','ended']).optional(),
   billingCycle:    z.enum(['monthly', 'yearly']).optional(),
   nextBillingDate: z.string().optional(),
 })
@@ -105,8 +103,9 @@ const ALLOWED_TRANSITIONS = {
   full:                 ['recruiting', 'pending_confirmation', 'cancelled'],
   pending_confirmation: ['pending_activation', 'cancelled'],
   pending_activation:   ['active', 'cancelled'],
-  active:               ['paused', 'ended', 'pending_confirmation'],
-  paused:               ['active', 'ended'],
+  active:               ['confirming', 'ended', 'pending_confirmation'],
+  confirming:           ['active', 'disputed', 'cancelled'],
+  disputed:             ['confirming', 'cancelled', 'ended'],
   cancelled:            [],
   ended:                [],
 }

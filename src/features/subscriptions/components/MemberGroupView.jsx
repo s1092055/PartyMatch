@@ -1,41 +1,19 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import {
-  CheckCircle2, ChevronDown, ChevronUp, CreditCard, LogOut, MessageCircle, Receipt, Shield, Users,
+  CheckCircle2, LogOut, MessageCircle, Shield, Users,
 } from 'lucide-react'
-import CombinedServicePaymentModal from './CombinedServicePaymentModal'
 import Avatar from '../../../shared/ui/Avatar'
-import ConfirmDialog from '../../../shared/ui/ConfirmDialog'
 import CountdownConfirmDialog from '../../../shared/ui/CountdownConfirmDialog'
 import GroupModalShell from '../../../shared/ui/GroupModalShell'
-import EmptyState from '../../../shared/ui/EmptyState'
 import { getServiceById } from '../../../shared/utils/serviceUtils'
 import { useMemberStore } from '../../../shared/stores/useMemberStore'
 import { useGroupStore } from '../../../shared/stores/useGroupStore'
 import { useSubscriptionStore } from '../../../shared/stores/useSubscriptionStore'
-import { usePaymentStore } from '../../../shared/stores/usePaymentStore'
-import { useNotificationStore } from '../../../shared/stores/useNotificationStore'
 import { useAuthStore } from '../../../shared/stores/useAuthStore'
-import { useConversationStore } from '../../../shared/stores/useConversationStore'
-import { sendActionMessage } from '../../../shared/api/messagesApi'
-import { todayISO } from '../../../shared/utils/date'
 
-const getGroupById = (id) => useGroupStore.getState().getById(id)
-const getPaymentRecordsBySubscriptionId = (sid) => usePaymentStore.getState().getBySubscriptionId(sid)
-const getConvByGroupId = (gid) => useConversationStore.getState().getByGroupId(gid)
-
-export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpenPayment }) {
-  const [activePanel, setActivePanel]         = useState(null) // 'members' | 'payments' | null
-  const [combinedModalOpen, setCombinedModalOpen] = useState(false)
-  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false)
-  const [expandedPayRec, setExpandedPayRec]   = useState(null)
-  const [leaveConfirm, setLeaveConfirm]       = useState(false)
-
-  useEffect(() => { usePaymentStore.getState().init() }, [])
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (autoOpenPayment) setCombinedModalOpen(true)
-  }, [autoOpenPayment])
+export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
+  const [activePanel, setActivePanel] = useState(null) // 'members' | null
+  const [leaveConfirm, setLeaveConfirm] = useState(false)
 
   const currentUser = useAuthStore(s => s.user)
   const allMembers  = useMemberStore(s => s.members)
@@ -43,97 +21,19 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
   const members     = allMembers.filter(m => m.groupId === group.id)
   const sub         = currentUser ? (subscriptions.find(s => s.userId === currentUser.id && s.groupId === group.id) ?? null) : null
   const myMember    = currentUser ? members.find(m => m.userId === currentUser.id) ?? null : null
-  const payRecords  = sub
-    ? getPaymentRecordsBySubscriptionId(sub.id).sort((a, b) => (b.paidAt ?? '').localeCompare(a.paidAt ?? ''))
-    : []
 
   const serviceDef        = getServiceById(group.serviceId)
   const planDef           = serviceDef?.plans.find(p => p.name === group.planName)
   const isPaymentRelevant = !['recruiting', 'full'].includes(group.status)
-  const isPaymentPhase    = ['active', 'pending_activation', 'pending_confirmation'].includes(group.status)
 
   const hasServiceInfoIssue = !!myMember?.serviceInfoIssueNote
   const hasServiceInfo      = !!myMember?.serviceInfo?.email && !hasServiceInfoIssue
-  const hasPaymentFailed    = myMember?.paymentStatus === 'payment_failed'
-  const needsFillInfo       = !!sub && isPaymentPhase && !hasServiceInfo
-  const hasPendingPayment   = !!sub && ['pending', 'payment_failed'].includes(myMember?.paymentStatus) && isPaymentPhase && hasServiceInfo
-  const isGroupPending      = ['pending_activation', 'pending_confirmation'].includes(group.status)
-  const hasMarkedPaid       = !!myMember && myMember.paymentStatus === 'markedPaid' && isGroupPending
-  const hasConfirmedPaid    = !!myMember && myMember.paymentStatus === 'confirmed' && isGroupPending
-
-  const showCombinedCta = (needsFillInfo || hasPendingPayment)
-  const canLeaveGroup   = ['recruiting', 'full'].includes(group.status) && !!myMember
+  const needsFillInfo       = !!sub && isPaymentRelevant && !hasServiceInfo
+  const canLeaveGroup       = ['recruiting', 'full'].includes(group.status) && !!myMember
 
   function openMessages() {
     onClose()
     window.dispatchEvent(new CustomEvent('pm:open-messages', { detail: { groupId: group.id } }))
-  }
-
-  async function handleCombinedSubmit({ serviceEmail, proofUrl, paidAmount, serviceInfoChanged }) {
-    const now = todayISO()
-
-    if (serviceInfoChanged && myMember) {
-      await useMemberStore.getState().update(myMember.id, { serviceInfo: { email: serviceEmail.trim() }, serviceInfoIssueNote: null })
-      const convId = getConvByGroupId(group.id)?.id
-      if (convId && group.hostId) {
-        sendActionMessage(convId, {
-          actionType: 'member_filled_service_info',
-          text: `${myMember.userName} 已完成填寫服務帳號`,
-          visibleTo: [group.hostId],
-          participants: [group.hostId],
-        }).catch(console.error)
-      }
-      if (convId) {
-        sendActionMessage(convId, {
-          actionType: 'go_to_payment',
-          text: '你已完成填寫服務帳號，請前往付款以完成加入流程。',
-          visibleTo: [currentUser.id],
-          participants: [currentUser.id],
-        }).catch(console.error)
-      }
-      const updatedMembers = useMemberStore.getState().getByGroupId(group.id)
-      const allFilled = updatedMembers.every(m => !!m.serviceInfo?.email)
-      if (convId && allFilled && group.hostId) {
-        sendActionMessage(convId, {
-          actionType: 'all_service_info_filled',
-          text: '所有成員已完成填寫服務帳號，現在可以進行收款確認。',
-          visibleTo: [group.hostId],
-          participants: [group.hostId],
-        }).catch(console.error)
-      }
-    }
-
-    if (sub) {
-      useSubscriptionStore.getState().markPaid(sub.id)
-      if (myMember) {
-        await useMemberStore.getState().update(myMember.id, {
-          paymentStatus: 'markedPaid',
-          lastPaidAt: now,
-          paymentProofUrl: proofUrl,
-          paidAmount,
-          paymentIssueType: null,
-          paymentIssueNote: null,
-        })
-      }
-      useNotificationStore.getState().create({
-        userId: currentUser.id,
-        type: 'payment',
-        title: '已付款，等待團主確認',
-        message: `${sub.serviceName} ${sub.planName} 已付款，等待團主確認。`,
-      })
-      const grp = getGroupById(sub.groupId)
-      if (grp?.hostId) {
-        useNotificationStore.getState().create({
-          userId: grp.hostId,
-          type: 'member_payment_marked',
-          title: '成員已付款',
-          message: `${currentUser?.name ?? '成員'} 已在 ${sub.serviceName} ${sub.planName} 完成付款，請前往確認收款。`,
-          meta: { groupId: sub.groupId },
-        })
-      }
-    }
-
-    setShowPaymentSuccess(true)
   }
 
   function buildSubPanel() {
@@ -211,90 +111,6 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
       }
     }
 
-    if (activePanel === 'payments') {
-      return {
-        title: '付款紀錄',
-        icon: <Receipt size={18} className="text-brand" />,
-        content: (
-          <div className="p-5 space-y-2">
-            {myMember && ['markedPaid', 'payment_failed'].includes(myMember.paymentStatus) && (() => {
-              const key    = 'pending-payment'
-              const open   = expandedPayRec === key
-              const failed = myMember.paymentStatus === 'payment_failed'
-              return (
-                <div className="overflow-hidden rounded-xl border border-line">
-                  <button
-                    onClick={() => setExpandedPayRec(open ? null : key)}
-                    className="flex w-full items-center gap-3 p-3 text-left transition-colors hover:bg-raised"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-ink">本期付款</p>
-                    </div>
-                    <span className={`text-xs font-semibold ${failed ? 'text-danger' : 'text-warning-text'}`}>
-                      {failed ? '付款失敗' : '待確認'}
-                    </span>
-                    {open ? <ChevronUp size={14} className="shrink-0 text-ink-3" /> : <ChevronDown size={14} className="shrink-0 text-ink-3" />}
-                  </button>
-                  {open && (
-                    <div className="border-t border-line-subtle px-4 py-3 space-y-2">
-                      <div className="flex items-center gap-3">
-                        <CreditCard size={14} className="shrink-0 text-ink-3" />
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-semibold text-ink">已付款金額</p>
-                          {myMember.lastPaidAt && <p className="text-xs text-ink-3">{myMember.lastPaidAt}</p>}
-                        </div>
-                        <span className="shrink-0 text-sm font-bold text-ink">NT${myMember.paidAmount ?? sub?.pricePerSeat ?? '—'}</span>
-                      </div>
-                      {myMember.paymentProofUrl ? (
-                        <a href={myMember.paymentProofUrl} target="_blank" rel="noopener noreferrer">
-                          <img src={myMember.paymentProofUrl} alt="付款截圖" className="w-full rounded-xl border border-line object-contain transition-opacity hover:opacity-80" />
-                        </a>
-                      ) : (
-                        <p className="text-xs text-ink-4">尚未上傳截圖</p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )
-            })()}
-            {payRecords.length === 0 && !(['markedPaid', 'payment_failed'].includes(myMember?.paymentStatus)) && (
-              <EmptyState icon={Receipt} title="尚無付款紀錄" />
-            )}
-            {payRecords.map(rec => {
-              const open = expandedPayRec === rec.id
-              return (
-                <div key={rec.id} className="overflow-hidden rounded-xl border border-line">
-                  <button
-                    onClick={() => setExpandedPayRec(open ? null : rec.id)}
-                    className="flex w-full items-center gap-3 p-3 text-left transition-colors hover:bg-raised"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-ink">已完成付款</p>
-                      <p className="text-xs text-ink-3">{rec.paidAt?.slice(0, 10)}</p>
-                    </div>
-                    <span className="shrink-0 text-sm font-bold text-success">NT${rec.amount}</span>
-                    <span className="text-xs font-semibold text-success">已確認</span>
-                    {open ? <ChevronUp size={14} className="shrink-0 text-ink-3" /> : <ChevronDown size={14} className="shrink-0 text-ink-3" />}
-                  </button>
-                  {open && (
-                    <div className="border-t border-line-subtle px-4 py-3 space-y-2">
-                      {rec.proofUrl ? (
-                        <a href={rec.proofUrl} target="_blank" rel="noopener noreferrer">
-                          <img src={rec.proofUrl} alt="付款截圖" className="w-full rounded-xl border border-line object-contain transition-opacity hover:opacity-80" />
-                        </a>
-                      ) : (
-                        <p className="text-xs text-ink-4">無截圖紀錄</p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        ),
-      }
-    }
-
     return null
   }
 
@@ -310,39 +126,14 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
         <div className="flex items-center justify-center bg-warning-subtle px-6 py-3 text-sm font-extrabold text-warning-text">
           服務帳號有問題，需要修正
         </div>
-      ) : hasPaymentFailed ? (
-        <div className="flex items-center justify-center bg-danger-subtle px-6 py-3 text-sm font-extrabold text-danger">
-          付款失敗，請重新完成補件
-        </div>
       ) : needsFillInfo ? (
         <div className="flex items-center justify-center bg-brand-subtle px-6 py-3 text-sm font-extrabold text-brand">
           請填寫服務帳號以完成加入流程
         </div>
       ) : undefined}
-      centeredCta={showCombinedCta ? (
-        <div className="flex justify-center py-2">
-          <div className="relative">
-            <span className={`absolute inset-1 rounded-xl animate-ping opacity-20 ${(hasPaymentFailed || hasServiceInfoIssue) ? 'bg-danger' : 'bg-brand'}`} />
-            <button
-              onClick={() => setCombinedModalOpen(true)}
-              className={`relative flex items-center gap-2 rounded-xl px-6 py-2 text-sm font-bold text-white shadow-md transition-colors ${
-                (hasPaymentFailed || hasServiceInfoIssue) ? 'bg-danger hover:opacity-90' : 'bg-brand hover:bg-brand-hover'
-              }`}
-            >
-              <CreditCard size={14} />
-              {hasServiceInfoIssue ? '修正服務帳號' : needsFillInfo ? '填寫服務帳號' : hasPaymentFailed ? '重新上傳付款憑證' : '前往付款'}
-            </button>
-          </div>
-        </div>
-      ) : undefined}
-      extraInfoRows={[
-        ...(group.paymentMethod ? [{ label: '付款方式', value: group.paymentMethod }] : []),
-      ]}
+      extraInfoRows={[]}
       statusBadgeOverride={group.status === 'recruiting' && !!sub ? 'member_joined' : undefined}
       pendingBadge={
-        hasConfirmedPaid  ? '付款已確認，等待團主啟用服務' :
-        hasMarkedPaid     ? '已付款，等待團主確認' :
-        hasPaymentFailed  ? '付款憑證有問題，請重新補件' :
         hasServiceInfoIssue ? '服務帳號需要修正' :
         needsFillInfo     ? '請填寫服務帳號以完成加入流程' :
         group.status === 'full' && !!sub ? '招募完成，等待團主啟用群組' :
@@ -350,12 +141,12 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
         undefined
       }
       pendingBadgeColor={
-        hasConfirmedPaid || (['recruiting', 'full'].includes(group.status) && !!sub) ? 'success' :
-        hasPaymentFailed || hasServiceInfoIssue ? 'danger' :
+        (['recruiting', 'full'].includes(group.status) && !!sub) ? 'success' :
+        hasServiceInfoIssue ? 'danger' :
         undefined
       }
       bottomBar={(() => {
-        const btnCount = 1 + (isPaymentRelevant ? 2 : 0) + (canLeaveGroup ? 1 : 0)
+        const btnCount = 1 + (isPaymentRelevant ? 1 : 0) + (canLeaveGroup ? 1 : 0)
         return (
           <div className={`grid grid-cols-${btnCount} gap-1 p-2`}>
             <button
@@ -364,14 +155,6 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
             >
               <Users size={17} /> 成員名單
             </button>
-            {isPaymentRelevant && (
-              <button
-                onClick={() => setActivePanel('payments')}
-                className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
-              >
-                <Receipt size={17} /> 付款紀錄
-              </button>
-            )}
             {isPaymentRelevant && (
               <button
                 onClick={openMessages}
@@ -396,15 +179,6 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
     >
     </GroupModalShell>
 
-    <CombinedServicePaymentModal
-      isOpen={combinedModalOpen}
-      onClose={() => setCombinedModalOpen(false)}
-      group={group}
-      member={myMember}
-      sub={sub}
-      onSubmit={handleCombinedSubmit}
-    />
-
     {leaveConfirm && (
       <CountdownConfirmDialog
         title="退出群組"
@@ -413,16 +187,6 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
         danger
         onConfirm={() => { setLeaveConfirm(false); onLeaveGroup?.() }}
         onCancel={() => setLeaveConfirm(false)}
-      />
-    )}
-
-    {showPaymentSuccess && (
-      <ConfirmDialog
-        icon={<CheckCircle2 size={18} className="text-success" />}
-        title="提交成功"
-        message="付款截圖已上傳，已通知團主確認付款，請等待確認。"
-        confirmLabel="完成"
-        onConfirm={() => setShowPaymentSuccess(false)}
       />
     )}
 
