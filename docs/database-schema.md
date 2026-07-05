@@ -9,7 +9,7 @@
 | `users` | 使用者帳號、密碼 hash、Google ID、信用分數、`tokenBalance`（平台代幣餘額，1:1 對應 TWD） |
 | `refresh_tokens` | JWT refresh token，支援多裝置登入 |
 | `services` | 30 種訂閱服務清單與方案（JSON 欄位） |
-| `groups` | 群組主資料（狀態、名額、方案、`billingCycle`、`escrowTokens`（代管中代幣總額）、`confirmDeadline`（`confirming` 狀態的確認截止時間）） |
+| `groups` | 群組主資料（狀態、名額、方案、`billingCycle`、`escrowTokens`（代管中代幣總額）、`confirmDeadline`（`confirming` 狀態的確認截止時間，啟用時間 + 48h）、`disputeDeadline`（`disputed` 狀態的裁定截止時間，申訴提出時間 + 3 天）） |
 | `applications` | 申請紀錄（`pending` / `approved` / `rejected` / `removed` / `left`）；被拒絕後可重新申請（建立新記錄，保留歷史） |
 | `members` | 群組成員（`serviceInfo` 訂閱帳號資訊、`serviceInfoIssueNote`、`disputeEvidenceUrl`（僅申訴階段使用，成員提供的爭議佐證截圖）） |
 | `subscriptions` | 成員訂閱（帳號資訊、訂閱狀態、下次扣款日、`lastPaidAt`） |
@@ -53,7 +53,7 @@
 | `pending_confirmation` | 帳號資訊填寫階段：成員填寫訂閱帳號資訊；**付款已在核准時代管完成，本階段無任何付款操作** | 全員填寫完成後自動推進 |
 | `pending_activation` | 帳號資訊齊全，等待團主啟用服務 | 啟用服務 |
 | `confirming` | 服務啟用後最長 2 天（48 小時）確認期倒數；成員主動確認則倒數立即結束並撥款；成員向平台申訴則進入 `disputed`；倒數結束未操作則自動撥款 | 成員主動確認（即時結束）/ 向平台申訴 / 後端惰性自動撥款 |
-| `disputed` | 有成員向平台正式申訴；代管金額凍結，由平台客服在 3 天內裁定並附說明；裁定只影響申訴的那位成員，其餘成員不受影響；**成員獲勝** → 退款給該成員並離開群組、群組回 `active`；**團主獲勝** → 代管撥款給團主、群組回 `active` | 平台客服裁定後手動推進 |
+| `disputed` | 有成員向平台正式申訴；`disputeDeadline` 設為申訴提出時間 + 3 天；代管金額凍結，由平台客服在期限內裁定並附說明；裁定只影響申訴的那位成員，其餘成員不受影響；**成員獲勝** → 退款給該成員並離開群組、群組回 `active`；**團主獲勝** → 代管撥款給團主、群組回 `active` | 平台客服裁定後手動推進 |
 | `active` | 服務已啟用 | 開始新一期或結束群組 |
 | `paused` / `cancelled` | 異常暫停或取消，前端與 `ended` 同視為「已結束」 | 歷史狀態，唯讀 |
 | `ended` | 正常結束 | 歷史狀態，唯讀 |
