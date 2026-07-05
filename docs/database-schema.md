@@ -10,7 +10,7 @@
 | `refresh_tokens` | JWT refresh token，支援多裝置登入 |
 | `services` | 30 種訂閱服務清單與方案（JSON 欄位） |
 | `groups` | 群組主資料（狀態、名額、方案、`billingCycle`、`escrowTokens`（代管中代幣總額）、`confirmDeadline`（`confirming` 狀態的確認截止時間，啟用時間 + 48h）、`disputeDeadline`（`disputed` 狀態的裁定截止時間，申訴提出時間 + 3 天）） |
-| `applications` | 申請紀錄（`pending` / `approved` / `rejected` / `removed` / `left`）；被拒絕後可重新申請（建立新記錄，保留歷史） |
+| `applications` | 申請紀錄（`pending` / `approved` / `rejected` / `removed` / `left` / `withdrawn`）；`withdrawn` 為申請人在審核前自行取消；被拒絕、移除、退出或自行取消後可重新申請（建立新記錄，保留歷史） |
 | `members` | 群組成員（`serviceInfo` 訂閱帳號資訊、`serviceInfoIssueNote`、`disputeEvidenceUrl`（僅申訴階段使用，成員提供的爭議佐證截圖）） |
 | `subscriptions` | 成員訂閱（帳號資訊、訂閱狀態、下次扣款日、`lastPaidAt`） |
 | `payment_records` | 代幣帳務紀錄（統計用） |
