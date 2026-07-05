@@ -84,8 +84,8 @@ router.patch('/:id', requireAuth, validate(patchMemberSchema), async (req, res, 
 router.delete('/:id', requireAuth, async (req, res, next) => {
   try {
     const existing = await prisma.member.findUnique({
-      where: { id: req.params.id },
-      include: { group: { select: { hostId: true, status: true } } },
+      where:   { id: req.params.id },
+      include: { group: { select: { id: true, hostId: true, status: true, monthlyFee: true, billingCycle: true, escrowTokens: true } } },
     })
     if (!existing) return res.status(404).json({ message: '成員不存在' })
 
@@ -98,22 +98,49 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
       return res.status(400).json({ message: '群組啟用後無法變更成員名單' })
     }
 
+    // 計算退款金額（從 escrow 退還給成員）
+    const seatCost = existing.group.billingCycle === 'yearly'
+      ? Math.round(existing.group.monthlyFee * 12)
+      : Math.round(existing.group.monthlyFee)
+    const refundAmount = Math.min(seatCost, existing.group.escrowTokens)
+
     const newCount = await prisma.$transaction(async (tx) => {
       await tx.member.delete({ where: { id: req.params.id } })
       const updated = await tx.group.update({
         where: { id: existing.groupId },
         data:  {
           currentMembers: { decrement: 1 },
-          // 若群組在 full 狀態有人退出，退回 recruiting
+          escrowTokens:   { decrement: refundAmount },
           ...(existing.group.status === 'full' ? { status: 'recruiting' } : {}),
         },
         select: { currentMembers: true },
+      })
+      // 退款給成員
+      await tx.user.update({
+        where: { id: existing.userId },
+        data:  { tokenBalance: { increment: refundAmount } },
+      })
+      await tx.tokenTransaction.create({
+        data: {
+          userId:        existing.userId,
+          type:          'refund',
+          amount:        refundAmount,
+          relatedGroupId: existing.groupId,
+          note:          isHost ? '被團主移除，代管退款' : '自行退出，代管退款',
+        },
       })
       // 成員自行退出：把 application 標為 left，讓成員可重新申請
       if (isSelf && !isHost) {
         await tx.application.updateMany({
           where: { groupId: existing.groupId, userId: existing.userId, status: 'approved' },
           data:  { status: 'left' },
+        })
+      }
+      // 被移除：把 application 標為 removed
+      if (isHost && !isSelf) {
+        await tx.application.updateMany({
+          where: { groupId: existing.groupId, userId: existing.userId, status: 'approved' },
+          data:  { status: 'removed' },
         })
       }
       return updated.currentMembers

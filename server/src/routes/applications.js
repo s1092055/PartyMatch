@@ -86,8 +86,8 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
 router.patch('/:id', requireAuth, validate(reviewSchema), async (req, res, next) => {
   try {
     const application = await prisma.application.findUnique({
-      where: { id: req.params.id },
-      include: { group: true },
+      where:   { id: req.params.id },
+      include: { group: { select: { id: true, hostId: true, status: true, monthlyFee: true, billingCycle: true, currentMembers: true, maxMembers: true } } },
     })
     if (!application) return res.status(404).json({ message: '申請不存在' })
     if (application.group.hostId !== req.user.id) return res.status(403).json({ message: '僅團主可審核' })
@@ -99,7 +99,22 @@ router.patch('/:id', requireAuth, validate(reviewSchema), async (req, res, next)
     })
 
     if (status === 'approved') {
+      // 計算席位費用（yearly = monthlyFee * 12）
+      const seatCost = application.group.billingCycle === 'yearly'
+        ? Math.round(application.group.monthlyFee * 12)
+        : Math.round(application.group.monthlyFee)
+
+      // 檢查申請人代幣餘額是否足夠
+      const applicant = await prisma.user.findUnique({
+        where:  { id: application.userId },
+        select: { tokenBalance: true },
+      })
+      if (applicant.tokenBalance < seatCost) {
+        return res.status(400).json({ message: '申請人代幣餘額不足，無法核准' })
+      }
+
       await prisma.$transaction([
+        // 建立成員與訂閱記錄
         prisma.member.upsert({
           where:  { groupId_userId: { groupId: application.groupId, userId: application.userId } },
           create: { groupId: application.groupId, userId: application.userId },
@@ -110,9 +125,24 @@ router.patch('/:id', requireAuth, validate(reviewSchema), async (req, res, next)
           create: { groupId: application.groupId, userId: application.userId },
           update: {},
         }),
+        // 代管：扣除申請人代幣，增加群組 escrowTokens
+        prisma.user.update({
+          where: { id: application.userId },
+          data:  { tokenBalance: { decrement: seatCost } },
+        }),
         prisma.group.update({
           where: { id: application.groupId },
-          data:  { currentMembers: { increment: 1 } },
+          data:  { currentMembers: { increment: 1 }, escrowTokens: { increment: seatCost } },
+        }),
+        // 寫入代幣交易紀錄
+        prisma.tokenTransaction.create({
+          data: {
+            userId:        application.userId,
+            type:          'escrow',
+            amount:        -seatCost,
+            relatedGroupId: application.groupId,
+            note:          `加入群組代管 ${seatCost} PM`,
+          },
         }),
       ])
 

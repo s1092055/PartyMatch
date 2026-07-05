@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import client, { tokenManager } from '../api/axiosClient'
+import { fetchTokenBalance, topupTokens } from '../api/tokensApi'
 
 // 登入 / 註冊後才初始化需要 auth 的 stores，避免未登入時呼叫受保護端點
 async function initPrivateStores(userId) {
@@ -87,6 +88,20 @@ export const useAuthStore = create((set, get) => ({
   },
 
   getProfile: () => activeProfile(get().user),
+
+  // ── 代幣 ────────────────────────────────────────────────────────────────────
+  refreshTokenBalance: async () => {
+    try {
+      const { tokenBalance } = await fetchTokenBalance()
+      set(s => ({ user: s.user ? { ...s.user, tokenBalance } : s.user }))
+    } catch { /* silent */ }
+  },
+
+  topup: async (amount) => {
+    const { tokenBalance } = await topupTokens(amount)
+    set(s => ({ user: s.user ? { ...s.user, tokenBalance } : s.user }))
+    return tokenBalance
+  },
 
   // ── 登入 ────────────────────────────────────────────────────────────────────
   login: async ({ email, password }) => {
