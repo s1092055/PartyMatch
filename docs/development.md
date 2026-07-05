@@ -109,6 +109,8 @@ zip -r partymatch.zip . \
 
 | 項目 | 說明 | 相關檔案 |
 |------|------|----------|
+| 代幣系統實作 | 新增 `tokenBalance` 欄位至 User、`escrowTokens`/`confirmDeadline` 至 Group、`TokenTransaction` 資料表；實作儲值（模擬）、代管扣款、撥款、退款 API | `server/prisma/schema.prisma`、`server/src/routes/tokens.js`（待建）、`useAuthStore.js` |
+| `confirming` / `disputed` 狀態流程 | 實作啟用服務後的 24h 確認窗口，含惰性自動撥款（讀取 group 時觸發）、成員確認、爭議提出 | `server/src/routes/groups.js`、`useGroupStore.js`、`MemberGroupView.jsx` |
 | Google OAuth | 目前 `loginGoogle()` 回傳 stub 錯誤，需實作後端 OAuth 流程 | `useAuthStore.js`、`server/src/routes/auth.js` |
 | 重設密碼寄信 | 目前 `resetPassword()` 回傳 stub 錯誤，需串接 email 服務 | `useAuthStore.js`、`server/src/routes/auth.js` |
 | 信用評分完整機制 | 扣 / 加分邏輯尚未串通完整流程 | `useAuthStore.js`、`useMemberStore.js` |
@@ -117,6 +119,7 @@ zip -r partymatch.zip . \
 
 | 項目 | 說明 | 相關檔案 |
 |------|------|----------|
+| 帳戶代幣餘額顯示 | 在帳號中心顯示目前代幣餘額與交易紀錄，並提供模擬儲值入口 | `AccountPage.jsx`、`PersonalInfoTab.jsx` |
 | RenewalModal 完整實作 | 「開始新一期收款」與「結束服務」為雛形，需完整測試 | `RenewalModal.jsx`、`useGroupStore.js` |
 | GroupHistoryModal 入口補強 | 元件已存在，群組卡片缺少明確入口 | `GroupHistoryModal.jsx`、`HostedGroupCard.jsx` |
 | 逾期付款提醒流程 | `overdue` 狀態可識別但未自動觸發通知 | `useSubscriptionStore.js`、`useNotificationStore.js` |
@@ -126,7 +129,7 @@ zip -r partymatch.zip . \
 
 | 項目 | 說明 |
 |------|------|
-| 正式金流串接 | ECPay / 綠界或其他金流 API |
+| 正式金流串接 | ECPay / 綠界或其他金流 API，取代目前模擬儲值 |
 | WebSocket 取代輪詢 | 訊息中心目前每 5 秒 polling，WebSocket 可降低延遲 |
 | 探索頁篩選條件 URL 分享 | 目前存於 sessionStorage |
 | 快速配對結果分頁 | 資料量大時需分頁或虛擬捲動 |

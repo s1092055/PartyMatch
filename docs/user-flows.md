@@ -2,16 +2,19 @@
 
 ## 群組狀態機
 
-群組從建立到結束共經歷六個主要狀態（另有 `paused` / `cancelled` 同視為結束狀態），每個狀態有對應的操作角色與觸發條件。
+群組從建立到結束共經歷多個狀態（另有 `paused` / `cancelled` 同視為結束狀態），每個狀態有對應的操作角色與觸發條件。
 
 ```mermaid
 stateDiagram-v2
   [*] --> recruiting : 團主建立群組
   recruiting --> full : 名額額滿（最後一個申請被核准）
-  full --> pending_confirmation : 團主啟用群組（填寫收款帳號）
-  pending_confirmation --> pending_activation : 全員付款確認完成
-  pending_activation --> active : 團主啟用服務
-  active --> pending_confirmation : 團主開始新一期收款（續訂）
+  full --> pending_confirmation : 團主鎖定群組（建立群組聊天室）
+  pending_confirmation --> pending_activation : 全員填寫訂閱帳號資訊完成
+  pending_activation --> confirming : 團主啟用服務（進入 48h 爭議申請窗口）
+  confirming --> active : 逾期未提出爭議（自動撥款）
+  confirming --> disputed : 成員提出爭議
+  disputed --> active : 平台客服 3 天內裁定（附說明）→ 撥款或退款
+  active --> pending_confirmation : 團主開始新一期（成員重新填帳號資訊）
   active --> ended : 團主結束群組
   pending_confirmation --> ended : 團主結束群組
   pending_activation --> ended : 團主結束群組
@@ -20,10 +23,12 @@ stateDiagram-v2
 | 狀態 | 說明 | 下一步操作者 |
 |------|------|------------|
 | `recruiting` | 公開招募中，接受申請；成員可自行退出、團主可移除成員 | 團主審核申請；最後一個申請被核准且名額額滿時，後端自動推進至 `full` |
-| `full` | 名額額滿，等待團主啟用群組；成員仍可自行退出或被團主移除（會釋出名額，狀態退回 `recruiting`） | 團主點「啟用群組」並填寫收款帳號 |
-| `pending_confirmation` | 收款階段：成員填寫帳號資訊、標記付款；團主逐筆確認；**成員名單不可再變動** | 全員確認後自動推進 |
-| `pending_activation` | 收款完成，等待團主啟用服務；**成員名單不可再變動** | 團主點「啟用服務」 |
-| `active` | 服務運作中；到期時團主可開始新一期收款；**成員名單不可再變動** | 團主續訂或結束 |
+| `full` | 名額額滿，等待團主鎖定群組；成員仍可自行退出或被團主移除（會釋出名額，狀態退回 `recruiting`）| 團主點「鎖定群組」 |
+| `pending_confirmation` | 帳號資訊填寫階段：成員填寫各自的訂閱帳號資訊（email 等）；付款已在核准時透過代管機制完成，**本階段不需付款操作**；**成員名單不可再變動** | 全員填寫完成後自動推進 |
+| `pending_activation` | 帳號資訊齊全，等待團主啟用服務；**成員名單不可再變動** | 團主點「啟用服務」 |
+| `confirming` | 服務啟用後的 2 天（48 小時）爭議申請窗口；成員若有問題須主動提出爭議，逾期未提出則代管金額自動撥款給團主 | 成員提出爭議；後端惰性自動撥款 |
+| `disputed` | 有成員在爭議申請窗口內提出爭議；代管金額凍結，由平台客服在 **3 天內**裁定責任歸屬並附上說明；**此階段才需要提供截圖等佐證**，正常流程無需任何付款憑證 | 平台客服裁定後手動推進至 `active` 或退款 |
+| `active` | 服務運作中；**成員名單不可再變動** | 團主開始新一期或結束群組 |
 | `ended` | 群組已結束（唯讀） | — |
 | `paused` / `cancelled` | 異常暫停或取消，前端與 `ended` 同視為「已結束」顯示 | — |
 
@@ -62,41 +67,45 @@ flowchart TD
 flowchart TD
   A[會員打開群組詳情] --> B[確認方案、價格、規則]
   B --> C[點擊申請加入]
-  C --> D[填寫申請留言]
+  C --> CB{檢查代幣餘額是否足夠席位費用}
+  CB -->|餘額不足| CB1[提示前往帳戶儲值]
+  CB -->|餘額充足| D[在 subPanel 填寫申請留言並勾選同意]
   D --> E[送出申請 → 建立 application]
   E --> F[通知團主有新申請]
   F --> G{團主審核}
-  G -->|拒絕| H[收到申請未通過通知]
-  G -->|核准| I[建立 member + subscription]
+  G -->|拒絕| H[收到申請未通過通知，可重新申請]
+  G -->|核准| I[user.tokenBalance 扣除席位費用\ngroup.escrowTokens 增加\n建立 member + subscription]
   I --> J[收到申請通過通知]
   J --> K{等待啟用期間 recruiting / full}
   K -->|成員決定退出| K1[點擊退出群組並確認]
-  K1 --> K2[刪除 member + subscription\napplication → left\n群組名額 +1\nfull 退回 recruiting]
+  K1 --> K2[刪除 member + subscription\napplication → left\n代管費用退還 → user.tokenBalance\n群組名額 +1\nfull 退回 recruiting]
   K2 --> K3[通知團主；成員可重新申請加入]
   K -->|繼續等待| L[收到群組聊天室已開啟通知]
   L --> M[我的訂閱出現群組，狀態 pending_confirmation]
   M --> N[填寫訂閱帳號資訊]
-  N --> O[完成實際付款後點標記已付款]
-  O --> P[通知團主確認收款]
-  P --> Q{團主逐筆確認}
-  Q -->|尚未確認| P
-  Q -->|全員確認| R[群組進入 pending_activation]
-  R --> S{團主啟用服務}
-  S -->|尚未啟用| R
-  S -->|已啟用| T[收到服務已啟用通知]
-  T --> U[訂閱移至已啟用，更新下次扣款日]
-  U --> V[到期前出現在即將續訂提醒]
+  N --> O{全員填寫完成}
+  O -->|尚未全員| N
+  O -->|完成| P[群組進入 pending_activation]
+  P --> Q{團主啟用服務}
+  Q -->|已啟用| R[群組進入 confirming 狀態，48h 計時開始]
+  R --> S{成員在 2 天內提出爭議}
+  S -->|2 天內提出爭議| U[群組進入 disputed，等待平台裁定]
+  S -->|逾期未提出爭議| T[代管金額撥款給團主，群組 active]
+  T --> V[訂閱移至已啟用，更新下次扣款日]
+  V --> W[到期前出現在即將續訂提醒]
 ```
 
 操作說明：
 
-1. 在群組詳情送出申請，系統建立申請資料並通知團主。
-2. 團主核准後建立成員與訂閱資料，傳送申請通過通知。
-3. **等待啟用期間（`recruiting` / `full`）**，成員可點擊「退出群組」離開：後端刪除 member 記錄並將 application 標為 `left`，subscription 一併刪除，名額釋出；申請狀態 `left` 允許再次申請同一群組。
-4. 名額額滿後，團主點「啟用群組」並填寫收款帳號，確認後系統建立群組聊天室並推進至 `pending_confirmation`；成員收到通知。進入此階段後成員名單不可再變動。
-5. 成員需先**填寫訂閱帳號資訊**，才能看到「標記已付款」按鈕。
-6. 標記後通知團主確認；全員確認後群組自動推進至 `pending_activation`。
-7. 團主啟用後，訂閱移到「已啟用」分類，接近到期日時出現在「即將續訂」提醒。
+1. 在群組詳情點「申請加入」，系統檢查代幣餘額是否足夠支付席位費用；餘額不足時提示前往帳戶儲值。
+2. 申請表單以 `GroupModalShell` 的 `subPanel` 翻書動畫呈現；填寫留言、勾選同意條款後送出。
+3. 團主核准後，席位費用從成員帳戶扣除並代管於平台（`escrowTokens`），同時建立成員與訂閱資料。**付款至此完成，後續不需任何付款操作。**
+4. **等待啟用期間（`recruiting` / `full`）**，成員可點擊「退出群組」離開：代管費用退還，後端刪除 member 並將 application 標為 `left`；申請狀態 `left` 允許再次申請同一群組。被拒絕的申請保留歷史紀錄，可重新申請（建立新記錄）。
+5. 名額額滿後，團主點「鎖定群組」，系統建立群組聊天室並推進至 `pending_confirmation`；成員收到通知。進入此階段後成員名單不可再變動。
+6. 成員在「我的訂閱」填寫訂閱帳號資訊（用於共享訂閱的帳號 email 等）。全員填寫完成後自動推進至 `pending_activation`。
+7. 團主啟用服務後，群組進入 `confirming` 狀態，`confirmDeadline` 設為啟用時間 + 2 天（48 小時）。
+8. 服務啟用後成員有 2 天（48 小時）可提出爭議；逾期未提出則後端惰性求值在下次讀取 group 時自動完成撥款；提出爭議則進入 `disputed`，代管金額凍結等待平台裁定。
+9. 群組回到 `active` 後，訂閱移到「已啟用」分類，接近到期日時出現在「即將續訂」提醒。
 
 ---
 
@@ -112,79 +121,106 @@ flowchart TD
   F --> G{有新申請嗎}
   G -->|有| H[查看申請者資料]
   H --> I{核准或拒絕}
-  I -->|拒絕| J[通知申請者]
-  I -->|核准| K[建立 member + subscription，名額 -1]
+  I -->|拒絕| J[通知申請者；申請者可重新申請]
+  I -->|核准| K[member.tokenBalance 自動扣除\nescrow 增加\n建立 member + subscription，名額 -1]
   K --> KR{需要移除已核准成員}
   KR -->|是 recruiting / full| KR1[在成員名單點移除並確認]
-  KR1 --> KR2[刪除 member + subscription\napplication → removed\n群組名額 +1\nfull 退回 recruiting]
+  KR1 --> KR2[刪除 member + subscription\napplication → removed\n代管費用退還成員\n群組名額 +1\nfull 退回 recruiting]
   KR2 --> KR3[通知被移除成員；被移除成員可重新申請]
   KR3 --> G
   KR -->|否| L{名額是否額滿}
   L -->|否| G
   L -->|是| M[後端自動推進群組狀態至 full]
-  M --> N[點擊啟用群組]
-  N --> O[填寫收款帳號後確認啟用]
-  O --> P[建立 conversation，狀態推進至 pending_confirmation，通知成員付款]
-  P --> Q[等待成員填帳號資訊並標記付款]
-  Q --> R{全員已確認且名額額滿}
-  R -->|否| Q
-  R -->|是| S[狀態自動推進至 pending_activation]
+  M --> N[點擊鎖定群組]
+  N --> O[建立 conversation，狀態推進至 pending_confirmation，通知成員填寫帳號資訊]
+  O --> P[等待成員填寫訂閱帳號資訊]
+  P --> Q{全員帳號資訊已填寫}
+  Q -->|否| P
+  Q -->|是| R[狀態自動推進至 pending_activation]
+  R --> S[啟用按鈕出現]
   S --> T[點擊啟用服務]
-  T --> U[群組 active，更新下次扣款日，通知成員]
-  U --> V{到期後}
-  V -->|續訂| W[開始新一期收款 → 狀態回到 pending_confirmation]
-  V -->|結束| X[endGroup → 狀態 ended]
+  T --> U[群組進入 confirming，confirmDeadline = now + 48h]
+  U --> V{48h 確認期結果}
+  V -->|無爭議 / 逾期| W[代管金額撥款給團主，群組 active]
+  V -->|有爭議| X[群組 disputed，平台介入]
+  W --> Y{到期後}
+  Y -->|續訂| Z[開始新一期 → pending_confirmation]
+  Y -->|結束| AA[endGroup → ended]
 ```
 
 操作說明：
 
 1. 從側欄點「建立群組」開始 4 步驟表單；建立成功狀態為 `recruiting`。
-2. 在「群組管理」點卡片「查看群組」開啟 HostGroupViewModal，從底部列進入「申請管理」或「收款紀錄」子 Modal。
-3. **`recruiting` / `full` 期間**，團主可在成員名單移除已核准的成員：後端刪除 member 記錄並將 application 標為 `removed`，subscription 一併刪除，名額釋出；被移除成員收到通知，申請狀態 `removed` 允許再次申請。
-4. 所有名額核准完畢後，GroupViewModal 出現「啟用群組」按鈕（含 ping 動畫）；點擊後填寫收款帳號並確認，系統建立群組聊天室並推進至 `pending_confirmation`，通知所有成員付款。進入此階段後成員名單不可再變動。
-5. 全員確認後自動推進至 `pending_activation`；啟用按鈕出現（含 ping 動畫）。
-6. 啟用後進入 `active`；到期後可選擇「開始新一期收款」或「結束群組」。
+2. 在「群組管理」點卡片「查看群組」開啟 HostGroupViewModal，從底部列進入「申請管理」子 Modal。
+3. 團主核准申請後，席位費用**由系統自動代管**，無需向成員收款或確認付款。
+4. **`recruiting` / `full` 期間**，團主可在成員名單移除已核准的成員：代管費用退還，後端刪除 member 並將 application 標為 `removed`；被移除成員收到通知，可重新申請。
+5. 所有名額核准完畢後，GroupViewModal 出現「鎖定群組」按鈕；點擊後系統建立群組聊天室並推進至 `pending_confirmation`，通知所有成員填寫訂閱帳號資訊。進入此階段後成員名單不可再變動。
+6. 全員填寫帳號資訊後自動推進至 `pending_activation`；啟用按鈕出現（含 ping 動畫）。
+7. 啟用後群組進入 `confirming` 狀態（48h 計時）。無爭議或逾期後代管金額撥款給團主，群組進入 `active`；到期後可選擇「開始新一期」或「結束群組」。
 
 ---
 
-## 4. 付款確認與啟用服務
+## 4. 帳號資訊填寫與啟用服務
 
 ```mermaid
 flowchart TD
   A[群組進入 pending_confirmation] --> B[成員在我的訂閱開啟群組詳情]
-  B --> C[填寫訂閱帳號資訊 email]
-  C --> D[完成實際轉帳]
-  D --> E[點擊標記已付款]
-  E --> F[subscription → markedPaid，member 同步]
-  F --> G[通知團主待確認]
-  G --> H[團主進入群組管理 → 收款紀錄]
-  H --> I[逐筆點確認收款]
-  I --> J{全員 confirmed 且名額額滿}
-  J -->|否| H
-  J -->|是| K[群組狀態自動推進至 pending_activation]
-  K --> L[啟用按鈕出現在 HostGroupViewModal]
-  L --> M[團主點啟用服務]
-  M --> N[subscriptions 更新下次扣款日]
-  N --> O[群組狀態 active]
-  O --> P[通知所有成員服務已啟用]
+  B --> C[填寫訂閱帳號資訊 email 等]
+  C --> D{全員帳號資訊填寫完成}
+  D -->|尚未全員| C
+  D -->|完成| E[群組狀態自動推進至 pending_activation]
+  E --> F[啟用按鈕出現在 HostGroupViewModal]
+  F --> G[團主點啟用服務]
+  G --> H[群組進入 confirming，confirmDeadline = now + 48h]
+  H --> I{48h 確認期}
+  I -->|成員提出爭議| K[group.status → disputed\n代管凍結，平台介入]
+  I -->|逾期未提出爭議| J[host.tokenBalance += escrow\ngroup.escrowTokens = 0\ntoken_transaction: release]
+  J --> L[subscriptions 更新下次扣款日，群組 active]
+  L --> M[通知所有成員服務已啟用]
 ```
 
 操作說明：
 
-1. 成員需先填寫**訂閱帳號資訊**，才會看到「標記已付款」按鈕。
-2. 標記後系統通知團主；團主在「收款紀錄」子 Modal 逐筆確認。
-3. 全員確認且名額額滿 → 自動推進 `pending_activation`；啟用按鈕出現。
-4. 啟用後訂閱更新下次扣款日，成員收通知。
+1. 成員在「我的訂閱」開啟群組，填寫用於共享訂閱的帳號資訊（email 等）。**無需任何付款操作**，費用已在申請核准時代管。
+2. 全員填寫完成後群組自動推進至 `pending_activation`；啟用按鈕出現。
+3. 啟用後群組進入 `confirming` 狀態，`confirmDeadline` 設為啟用時間 + 2 天（48 小時）。
+4. 成員有 2 天（48 小時）可提出爭議；逾期未提出，代管金額自動撥款給團主，群組回 `active`，訂閱更新下次扣款日，成員收通知。
+5. 若成員在 2 天內提出爭議，群組進入 `disputed`，代管金額凍結；平台客服將在 3 天內裁定責任歸屬並附上說明，結果為撥款給團主或退款給成員。
 
 ---
 
-## 5. 訊息與通知
+## 5. 代幣與帳戶管理
+
+```mermaid
+flowchart TD
+  A[使用者進入帳號中心] --> B[點擊儲值]
+  B --> C[選擇儲值金額]
+  C --> D[模擬確認 → user.tokenBalance += 金額\n寫入 token_transaction: topup]
+  D --> E[顯示最新餘額]
+  E --> F{使用場景}
+  F -->|申請群組| G[檢查餘額 ≥ 席位費用]
+  G -->|不足| H[提示儲值]
+  G -->|充足| I[允許送出申請]
+  F -->|核准申請| J[自動扣除 → escrow\n寫入 token_transaction: escrow]
+  F -->|服務確認完成| K[撥款給團主\n寫入 token_transaction: release]
+  F -->|成員退出 / 被移除| L[退還代管金額\n寫入 token_transaction: refund]
+```
+
+操作說明：
+
+1. 現階段儲值為模擬模式：點擊後直接增加餘額，不串接外部金流。
+2. 所有代幣異動（儲值、代管、撥款、退款）均記錄至 `token_transactions`，提供完整審計軌跡。
+3. 申請時僅做餘額檢查，不預扣；核准後才扣除並進入代管。
+
+---
+
+## 6. 訊息與通知
 
 ```mermaid
 flowchart TD
   A{使用者狀態} -->|訪客| B[通知中心只顯示系統公告]
   A -->|會員| C[通知中心顯示個人通知與未讀數]
-  C --> D[付款、申請、系統三個分頁]
+  C --> D[代幣帳務、申請、系統三個分頁]
   A -->|會員| E[訊息中心可開啟]
   A -->|訪客| F[訊息中心鎖定並提示登入]
   E --> G{對話類型}
@@ -199,6 +235,6 @@ flowchart TD
 操作說明：
 
 1. 訪客可打開通知中心，但只看到系統公告；個人通知需登入。
-2. 通知依類型分為付款、申請、系統三頁，可標記已讀。
-3. 群組聊天室在團主點「啟用群組」並確認後建立；成員收到通知。
+2. 通知依類型分為代幣帳務、申請、系統三頁，可標記已讀。
+3. 群組聊天室在團主點「鎖定群組」並確認後建立；成員收到通知。
 4. 訊息透過 REST API polling（每 5 秒）同步；成員加入或退出時寫入系統訊息。
