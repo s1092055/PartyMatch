@@ -14,7 +14,7 @@ export function TokenBadge({ className = '' }) {
 export default function TokenAmount({ amount, cycle, className = '', badgeSize = '', unitClassName = '' }) {
   const unit = cycle === 'yearly' ? '/年' : cycle === 'monthly' ? '/月' : ''
   return (
-    <span className={`inline-flex items-baseline gap-1 ${className}`}>
+    <span className={`inline-flex items-center gap-1 ${className}`}>
       <TokenBadge className={badgeSize} />
       <span>{amount}</span>
       {unit && <span className={`text-xs font-normal text-ink-3 ${unitClassName}`}>{unit}</span>}
