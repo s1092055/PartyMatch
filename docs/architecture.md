@@ -106,9 +106,7 @@ src/
 │   └── subscriptions/          # 成員訂閱（成員邏輯，內嵌於 my-groups member tab）
 │       ├── SubscriptionsPage.jsx
 │       └── components/
-│           ├── CombinedServicePaymentModal.jsx
 │           ├── MemberGroupView.jsx    # 成員視角群組 Modal
-│           ├── PaymentStatusBadge.jsx
 │           └── SubscriptionCard.jsx
 ├── shared/
 │   ├── api/                    # REST API 封裝（axios）
@@ -119,14 +117,12 @@ src/
 │   │   ├── membersApi.js
 │   │   ├── messagesApi.js
 │   │   ├── notificationsApi.js
-│   │   ├── paymentsApi.js
 │   │   ├── servicesApi.js
 │   │   ├── storageApi.js
 │   │   ├── subscriptionsApi.js
 │   │   └── usersApi.js
-│   ├── constants/              # nav、paymentStatus 等常數
-│   │   ├── nav.js
-│   │   └── paymentStatus.js
+│   ├── constants/              # nav 等常數
+│   │   └── nav.js
 │   ├── data/
 │   │   └── serviceCatalog.js   # 30 種訂閱服務定義（API 失敗時的 fallback）
 │   ├── layout/                 # 全域版面元件
@@ -145,7 +141,6 @@ src/
 │   │   ├── useGroupStore.js
 │   │   ├── useMemberStore.js
 │   │   ├── useNotificationStore.js
-│   │   ├── usePaymentStore.js
 │   │   ├── useServiceStore.js
 │   │   └── useSubscriptionStore.js
 │   ├── ui/                     # 共用 UI 元件
@@ -169,7 +164,8 @@ src/
 │   │   ├── ServiceLogo.jsx
 │   │   ├── Tabs.jsx
 │   │   ├── ToastContainer.jsx
-│   │   └── Toggle.jsx
+│   │   ├── Toggle.jsx
+│   │   └── TokenAmount.jsx     # PM 代幣金額顯示（TokenBadge + TokenAmount）
 │   └── utils/                  # 工具函式
 │       ├── creditScore.js
 │       ├── date.js
@@ -191,7 +187,7 @@ App 啟動時分兩階段初始化（`App.jsx`）：
 
 **第一階段**（不需 token，公開資料）：`authStore`、`serviceStore`、`groupStore`、`notificationStore`
 
-**第二階段**（已登入才執行）：`applicationStore`、`subscriptionStore`、`memberStore`、`favoriteStore`、`paymentStore`、`conversationStore`
+**第二階段**（已登入才執行）：`applicationStore`、`subscriptionStore`、`memberStore`、`favoriteStore`、`conversationStore`
 
 登入 / 註冊成功後，`authStore` 呼叫 `initPrivateStores()` 動態 import 並初始化第二階段 stores，避免循環依賴。
 

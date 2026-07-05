@@ -109,21 +109,23 @@ zip -r partymatch.zip . \
 
 | 項目 | 說明 | 相關檔案 |
 |------|------|----------|
-| 代幣系統實作 | 新增 `tokenBalance` 欄位至 User、`escrowTokens`/`confirmDeadline` 至 Group、`TokenTransaction` 資料表；實作儲值（模擬）、代管扣款、撥款、退款 API | `server/prisma/schema.prisma`、`server/src/routes/tokens.js`（待建）、`useAuthStore.js` |
-| `confirming` / `disputed` 狀態流程 | 實作啟用服務後的 24h 確認窗口，含惰性自動撥款（讀取 group 時觸發）、成員確認、爭議提出 | `server/src/routes/groups.js`、`useGroupStore.js`、`MemberGroupView.jsx` |
+| 代幣 API 路由 | Schema 已完成；待實作儲值（模擬）、代管扣款、撥款、退款端點，並在核准申請時自動執行代管 | `server/src/routes/tokens.js`（待建）、`server/src/routes/applications.js`、`useAuthStore.js` |
+| 鎖定群組端點 | 實作 `POST /groups/:id/lock`：`full → pending_confirmation`，設定成員訂閱 `nextBillingDate`，建立群組聊天室 | `server/src/routes/groups.js`、`useGroupStore.js` |
+| 啟用服務端點 | 實作 `POST /groups/:id/activate`：`pending_activation → confirming`，設定 `confirmDeadline`（啟用時間 + 48h） | `server/src/routes/groups.js`、`useGroupStore.js`、`HostGroupView.jsx` |
+| `confirming` / `disputed` 狀態流程 | 實作成員確認（即時撥款）、向平台申訴（`disputed`）、惰性自動撥款（讀取 group 時觸發） | `server/src/routes/groups.js`、`useGroupStore.js`、`MemberGroupView.jsx` |
 | Google OAuth | 目前 `loginGoogle()` 回傳 stub 錯誤，需實作後端 OAuth 流程 | `useAuthStore.js`、`server/src/routes/auth.js` |
 | 重設密碼寄信 | 目前 `resetPassword()` 回傳 stub 錯誤，需串接 email 服務 | `useAuthStore.js`、`server/src/routes/auth.js` |
-| 信用評分完整機制 | 扣 / 加分邏輯尚未串通完整流程 | `useAuthStore.js`、`useMemberStore.js` |
 
 ### 中優先度
 
 | 項目 | 說明 | 相關檔案 |
 |------|------|----------|
-| 帳戶代幣餘額顯示 | 在帳號中心顯示目前代幣餘額與交易紀錄，並提供模擬儲值入口 | `AccountPage.jsx`、`PersonalInfoTab.jsx` |
-| RenewalModal 完整實作 | 「開始新一期收款」與「結束服務」為雛形，需完整測試 | `RenewalModal.jsx`、`useGroupStore.js` |
+| 帳戶儲值功能 | ProfileHeaderCard 已顯示代幣餘額；需串接儲值按鈕至 `POST /tokens/topup` | `ProfileHeaderCard.jsx`、`server/src/routes/tokens.js` |
+| 帳戶交易紀錄 | 在帳號中心顯示 `token_transactions` 歷史明細 | `AccountPage.jsx`、`PersonalInfoTab.jsx` |
+| RenewalModal 完整實作 | 「開始新一期」與「結束服務」為雛形，需完整測試 | `RenewalModal.jsx`、`useGroupStore.js` |
 | GroupHistoryModal 入口補強 | 元件已存在，群組卡片缺少明確入口 | `GroupHistoryModal.jsx`、`HostedGroupCard.jsx` |
-| 逾期付款提醒流程 | `overdue` 狀態可識別但未自動觸發通知 | `useSubscriptionStore.js`、`useNotificationStore.js` |
 | 即將續訂通知 | 接近 `nextBillingDate` 時未自動提醒 | `useSubscriptionStore.js` |
+| 信用評分完整機制 | 扣 / 加分邏輯尚未串通完整流程 | `useAuthStore.js`、`useMemberStore.js` |
 
 ### 低優先度
 
