@@ -2,6 +2,7 @@ import { AlertTriangle, CheckCircle2, PlayCircle } from 'lucide-react'
 import Modal from '../../../shared/ui/Modal'
 import Avatar from '../../../shared/ui/Avatar'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
+import TokenAmount from '../../../shared/ui/TokenAmount'
 import { toISODate } from '../../../shared/utils/date'
 
 export default function ActivateServiceModal({
@@ -47,11 +48,11 @@ export default function ActivateServiceModal({
           <ServiceLogo serviceId={group.serviceId} size={40} className="rounded-xl" />
           <div className="min-w-0 flex-1">
             <p className="font-bold text-ink">{group.serviceName}</p>
-            <p className="text-xs text-ink-3">{group.planName} · NT${group.pricePerSeat}/席/{group.billingCycle === 'yearly' ? '年' : '月'}</p>
+            <p className="text-xs text-ink-3">{group.planName} · <TokenAmount amount={group.pricePerSeat} cycle={group.billingCycle === 'yearly' ? 'yearly' : 'monthly'} /> /席</p>
           </div>
           <div className="rounded-xl bg-success-subtle px-3 py-1.5 text-right">
             <p className="text-xs text-success-text">撥款金額</p>
-            <p className="text-base font-extrabold text-success-text">NT${group.pricePerSeat * members.length}</p>
+            <p className="text-base font-extrabold text-success-text"><TokenAmount amount={group.pricePerSeat * members.length} /></p>
           </div>
         </div>
 

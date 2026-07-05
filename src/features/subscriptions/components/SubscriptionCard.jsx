@@ -2,6 +2,7 @@ import { memo } from 'react'
 import Button from '../../../shared/ui/Button'
 import Badge from '../../../shared/ui/Badge'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
+import TokenAmount from '../../../shared/ui/TokenAmount'
 import { daysUntil } from '../../../shared/utils/date'
 
 const STATUS_BADGE_CLASS = {
@@ -59,8 +60,10 @@ function SubscriptionCard({ sub, onViewGroup }) {
         <h2 className="text-xl font-black leading-tight text-ink">{sub.serviceName}</h2>
         <p className="mt-1 text-sm font-semibold text-ink-3">{sub.planName}</p>
         <p className="mt-1 text-base font-extrabold text-ink">
-          NT${sub.billingCycle === 'yearly' ? sub.pricePerSeat * 12 : sub.pricePerSeat}
-          <span className="ml-1 text-xs font-normal text-ink-4">{sub.billingCycle === 'yearly' ? '/席/年' : '/席/月'}</span>
+          <TokenAmount
+            amount={sub.billingCycle === 'yearly' ? sub.pricePerSeat * 12 : sub.pricePerSeat}
+            cycle={sub.billingCycle === 'yearly' ? 'yearly' : 'monthly'}
+          />
         </p>
       </div>
 

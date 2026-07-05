@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { getServiceById } from '../../../../shared/utils/serviceUtils'
 import { useAuthStore } from '../../../../shared/stores/useAuthStore'
 import ExploreGroupCard from '../../../explore/components/ExploreGroupCard'
+import TokenAmount from '../../../../shared/ui/TokenAmount'
 
 function todayLabel() {
   const d = new Date()
@@ -55,7 +56,12 @@ export default function Step4Preview({ form, agreedToTerms, onAgreeChange }) {
           <div className="bg-white border border-slate-200 rounded-xl px-5 lg:flex-1 lg:flex lg:flex-col">
             <Row label="團主"     value={activeUser?.displayName ?? '使用者'} />
             <Row label="服務"     value={`${service?.fullName} · ${form.planName}`} />
-            <Row label="每人費用" value={`NT$${form.billingCycle === 'yearly' ? form.pricePerSeat * 12 : form.pricePerSeat}`} />
+            <Row label="每人費用" value={
+              <TokenAmount
+                amount={form.billingCycle === 'yearly' ? form.pricePerSeat * 12 : form.pricePerSeat}
+                cycle={form.billingCycle === 'yearly' ? 'yearly' : 'monthly'}
+              />
+            } />
             <Row label="計費週期" value={form.billingCycle === 'monthly' ? '月繳' : '年繳'} />
             <Row label="開放名額" value={`${form.totalSeats - 1} 人`} />
             <Row label="帳號需求" value={form.requirements.trim() || '無'} />

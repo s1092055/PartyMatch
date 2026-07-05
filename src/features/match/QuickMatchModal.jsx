@@ -4,6 +4,7 @@ import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, Compass, RotateCc
 import ServiceSelectionGrid from './components/ServiceSelectionGrid'
 import MatchSummaryPanel from './components/MatchSummaryPanel'
 import ServiceLogo from '../../shared/ui/ServiceLogo'
+import TokenAmount from '../../shared/ui/TokenAmount'
 import { getServiceById } from '../../shared/utils/serviceUtils'
 import MatchConditionBar from './components/MatchConditionBar'
 import ExploreGroupCard from '../explore/components/ExploreGroupCard'
@@ -87,7 +88,7 @@ function Step2({ conditions, onChangePlan }) {
                     }`}
                   >
                     <p className="text-sm font-bold">{plan.name}</p>
-                    <p className="text-xs text-ink-4 mt-0.5">NT${plan.monthlyPrice}/月・最多 {plan.maxSeats} 人</p>
+                    <p className="text-xs text-ink-4 mt-0.5"><TokenAmount amount={plan.monthlyPrice} cycle="monthly" /> · 最多 {plan.maxSeats} 人</p>
                   </button>
                 ))}
               </div>
@@ -109,7 +110,7 @@ function Step3({ conditions, onChange }) {
         <div>
           <div className="mb-3 flex items-center justify-between">
             <label className="text-sm font-bold text-ink">預算上限</label>
-            <span className="text-sm font-bold text-brand">NT${conditions.maxPrice} 以下</span>
+            <span className="text-sm font-bold text-brand"><TokenAmount amount={conditions.maxPrice} /> 以下</span>
           </div>
           <div className="relative pt-1">
             <div className="relative h-1.5 rounded-full bg-line">
@@ -121,8 +122,8 @@ function Step3({ conditions, onChange }) {
               className="absolute inset-0 h-1.5 w-full cursor-pointer opacity-0"
             />
             <div className="mt-1 flex justify-between">
-              <span className="text-xs text-ink-4">NT$50</span>
-              <span className="text-xs text-ink-4">NT$500</span>
+              <span className="text-xs text-ink-4"><TokenAmount amount={50} /></span>
+              <span className="text-xs text-ink-4"><TokenAmount amount={500} /></span>
             </div>
           </div>
         </div>

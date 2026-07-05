@@ -4,6 +4,7 @@ import { CheckCircle2 } from 'lucide-react'
 import Modal from '../../../shared/ui/Modal'
 import Button from '../../../shared/ui/Button'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
+import TokenAmount from '../../../shared/ui/TokenAmount'
 import { useApplicationStore } from '../../../shared/stores/useApplicationStore'
 import { useAuthStore } from '../../../shared/stores/useAuthStore'
 
@@ -64,8 +65,10 @@ export default function ApplyJoinModal({ group, isOpen, onClose, onSuccess, onDo
               </div>
               <div className="text-right shrink-0">
                 <p className="text-xl font-extrabold text-brand">
-                  NT${group?.billingCycle === 'yearly' ? group.pricePerSeat * 12 : group?.pricePerSeat}
-                  <span className="ml-0.5 text-xs font-normal text-ink-3">{group?.billingCycle === 'yearly' ? '/年' : '/月'}</span>
+                  <TokenAmount
+                    amount={group?.billingCycle === 'yearly' ? group.pricePerSeat * 12 : group?.pricePerSeat}
+                    cycle={group?.billingCycle === 'yearly' ? 'yearly' : 'monthly'}
+                  />
                 </p>
               </div>
             </div>

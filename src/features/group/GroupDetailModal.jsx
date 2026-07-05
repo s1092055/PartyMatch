@@ -17,6 +17,7 @@ import Button from '../../shared/ui/Button'
 import CountdownConfirmDialog from '../../shared/ui/CountdownConfirmDialog'
 import GroupModalShell from '../../shared/ui/GroupModalShell'
 import ServiceLogo from '../../shared/ui/ServiceLogo'
+import TokenAmount from '../../shared/ui/TokenAmount'
 import ExploreGroupCard from '../explore/components/ExploreGroupCard'
 
 // ── 團主評價 ──────────────────────────────────────────────────────────────────
@@ -305,8 +306,10 @@ export default function GroupDetailModal() {
                       <p className="text-xs text-ink-3">{group.planName}</p>
                     </div>
                     <p className="shrink-0 text-base font-extrabold text-brand">
-                      NT${group.billingCycle === 'yearly' ? group.pricePerSeat * 12 : group.pricePerSeat}
-                      <span className="ml-0.5 text-xs font-normal text-ink-3">{group.billingCycle === 'yearly' ? '/年' : '/月'}</span>
+                      <TokenAmount
+                        amount={group.billingCycle === 'yearly' ? group.pricePerSeat * 12 : group.pricePerSeat}
+                        cycle={group.billingCycle === 'yearly' ? 'yearly' : 'monthly'}
+                      />
                     </p>
                   </div>
                 </div>

@@ -14,6 +14,7 @@ import SubscriptionCard from './components/SubscriptionCard'
 const getGroupById = (id) => useGroupStore.getState().getById(id)
 import EmptyState from '../../shared/ui/EmptyState'
 import GroupViewModal from '../../shared/ui/GroupViewModal'
+import TokenAmount from '../../shared/ui/TokenAmount'
 import FilterTabsBar from '../../shared/ui/FilterTabsBar'
 import ServiceLogo from '../../shared/ui/ServiceLogo'
 import Button from '../../shared/ui/Button'
@@ -301,8 +302,10 @@ function ApplicationCard({ app, group, onViewGroup }) {
         <p className="mt-1 text-sm font-semibold text-ink-3">{app.planName}</p>
         {group.pricePerSeat != null && (
           <p className="mt-1 text-base font-extrabold text-ink">
-            NT${group.billingCycle === 'yearly' ? group.pricePerSeat * 12 : group.pricePerSeat}
-            <span className="ml-1 text-xs font-normal text-ink-4">{group.billingCycle === 'yearly' ? '/席/年' : '/席/月'}</span>
+            <TokenAmount
+              amount={group.billingCycle === 'yearly' ? group.pricePerSeat * 12 : group.pricePerSeat}
+              cycle={group.billingCycle === 'yearly' ? 'yearly' : 'monthly'}
+            />
           </p>
         )}
       </div>

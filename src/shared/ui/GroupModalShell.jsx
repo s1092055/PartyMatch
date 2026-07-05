@@ -4,6 +4,7 @@ import { ChevronDown, ChevronLeft, ChevronUp, X } from 'lucide-react'
 import ServiceLogo from './ServiceLogo'
 import GroupOverviewContent from './GroupOverviewContent'
 import ProgressBar from './ProgressBar'
+import TokenAmount from './TokenAmount'
 import { useScrollLock } from '../utils/hooks'
 
 export default function GroupModalShell({
@@ -162,9 +163,12 @@ export default function GroupModalShell({
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="mb-0.5 text-xs font-medium text-ink-4">每席價格</p>
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-2xl font-extrabold text-ink">NT${group.billingCycle === 'yearly' ? group.pricePerSeat * 12 : group.pricePerSeat}</span>
-                        <span className="text-sm text-ink-3">{group.billingCycle === 'yearly' ? '/年' : '/月'}</span>
+                      <div>
+                        <TokenAmount
+                          amount={group.billingCycle === 'yearly' ? group.pricePerSeat * 12 : group.pricePerSeat}
+                          cycle={group.billingCycle === 'yearly' ? 'yearly' : 'monthly'}
+                          className="text-2xl font-extrabold"
+                        />
                       </div>
                     </div>
                     <div className="text-right">

@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import Badge from '../../../shared/ui/Badge'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
+import TokenAmount from '../../../shared/ui/TokenAmount'
 import { useFavoriteStore } from '../../../shared/stores/useFavoriteStore'
 import { useAuthStore } from '../../../shared/stores/useAuthStore'
 
@@ -136,9 +137,11 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
         ))}
       </div>
 
-      <p className="my-4 text-center text-2xl font-black leading-none text-ink">
-        NT${group.billingCycle === 'yearly' ? group.pricePerSeat * 12 : group.pricePerSeat}
-        <span className="ml-1 text-sm font-semibold text-ink-3">{group.billingCycle === 'yearly' ? '/ 年' : '/ 月'}</span>
+      <p className="my-4 flex justify-center text-2xl font-black leading-none text-ink">
+        <TokenAmount
+          amount={group.billingCycle === 'yearly' ? group.pricePerSeat * 12 : group.pricePerSeat}
+          cycle={group.billingCycle === 'yearly' ? 'yearly' : 'monthly'}
+        />
       </p>
 
       <div className="mb-4 border-t border-line-subtle" />

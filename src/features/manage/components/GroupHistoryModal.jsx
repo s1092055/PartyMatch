@@ -4,6 +4,7 @@ import Avatar from '../../../shared/ui/Avatar'
 import Badge from '../../../shared/ui/Badge'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import EmptyState from '../../../shared/ui/EmptyState'
+import TokenAmount from '../../../shared/ui/TokenAmount'
 
 const STATUS_TIMELINE = {
   cancelled: [
@@ -60,7 +61,7 @@ export default function GroupHistoryModal({ isOpen, onClose, group, members }) {
             <p className="text-xs text-ink-3">已付款</p>
           </div>
           <div className="rounded-2xl border border-line-subtle p-3 text-center">
-            <p className="text-lg font-extrabold text-ink">{`NT$${group.pricePerSeat}`}</p>
+            <p className="text-lg font-extrabold text-ink"><TokenAmount amount={group.pricePerSeat} /></p>
             <p className="text-xs text-ink-3">每人費用</p>
           </div>
         </div>
