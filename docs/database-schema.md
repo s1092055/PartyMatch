@@ -52,8 +52,8 @@
 | `full` | 名額已滿，等待團主鎖定群組 | 點「鎖定群組」 |
 | `pending_confirmation` | 帳號資訊填寫階段：成員填寫訂閱帳號資訊；**付款已在核准時代管完成，本階段無任何付款操作** | 全員填寫完成後自動推進 |
 | `pending_activation` | 帳號資訊齊全，等待團主啟用服務 | 啟用服務 |
-| `confirming` | 服務啟用後 2 天（48 小時）爭議申請窗口；成員若有問題須主動提出爭議，逾期未提出則代管金額自動撥款給團主 | 成員提出爭議；後端惰性自動撥款 |
-| `disputed` | 有成員在爭議申請窗口內提出爭議；代管金額凍結，由平台客服在 3 天內裁定責任歸屬並附上說明，結果為撥款給團主或退款給成員 | 平台客服裁定後手動推進至 `active` 或退款 |
+| `confirming` | 服務啟用後最長 2 天（48 小時）確認期倒數；成員主動確認則倒數立即結束並撥款；成員向平台申訴則進入 `disputed`；倒數結束未操作則自動撥款 | 成員主動確認（即時結束）/ 向平台申訴 / 後端惰性自動撥款 |
+| `disputed` | 有成員向平台正式申訴；代管金額凍結，由平台客服在 3 天內裁定責任歸屬並附上說明，結果為撥款給團主或退款給成員 | 平台客服裁定後手動推進至 `active` 或退款 |
 | `active` | 服務已啟用 | 開始新一期或結束群組 |
 | `paused` / `cancelled` | 異常暫停或取消，前端與 `ended` 同視為「已結束」 | 歷史狀態，唯讀 |
 | `ended` | 正常結束 | 歷史狀態，唯讀 |
@@ -74,8 +74,10 @@
 全員填寫帳號資訊 → 團主啟用服務：群組進入 confirming，設定 confirmDeadline（啟用時間 + 48h）
      ↓
 48h 窗口內
-├── 成員提出爭議 → 群組進入 disputed，代管金額凍結；成員可提供截圖佐證（disputeEvidenceUrl）
-└── 逾期未提出爭議 → 後端惰性求值（讀取 group 時若 confirming + deadline 已過，自動撥款給團主）
+├── 成員主動確認服務正常 → 確認期立即結束，即時撥款給團主；token_transaction（type: release）
+├── 成員向團主反應問題 → 透過群組聊天室溝通，狀態維持 confirming，計時持續
+├── 成員向平台正式申訴 → 群組進入 disputed，代管凍結；成員可提供截圖佐證（disputeEvidenceUrl）；客服 3 天內裁定
+└── 逾期未操作 → 後端惰性求值（讀取 group 時若 confirming + deadline 已過，自動撥款給團主）
 ```
 
 ### 儲值（模擬）
@@ -102,7 +104,7 @@
 
 後端 Prisma schema 定義的完整通知類型：
 
-`new_application`、`application_approved`、`application_rejected`、`group_chat_opened`、`group_activated`、`group_full`、`group_ended`、`member_removed`、`member_left`、`service_info_issue`、`token_topup`、`escrow_released`、`dispute_raised`
+`new_application`、`application_approved`、`application_rejected`、`group_chat_opened`、`group_activated`、`group_full`、`group_ended`、`member_removed`、`member_left`、`service_info_issue`、`token_topup`、`escrow_released`（成員主動確認或逾期自動撥款後發送）、`dispute_raised`
 
 ---
 
