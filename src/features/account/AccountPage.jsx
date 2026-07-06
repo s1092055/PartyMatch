@@ -1,10 +1,10 @@
 import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { useAuthStore } from "../../shared/stores/useAuthStore";
 import { useSubscriptionStore } from "../../shared/stores/useSubscriptionStore";
 import Tabs from "../../shared/ui/Tabs";
 import PageHeader from "../../shared/layout/PageHeader";
 import ProfileHeaderCard from "./components/ProfileHeaderCard";
-import AccountSidebar from "./components/AccountSidebar";
 import PersonalInfoTab from "./components/tabs/PersonalInfoTab";
 import PaymentMethodsTab from "./components/tabs/PaymentMethodsTab";
 import NotificationTab from "./components/tabs/NotificationTab";
@@ -12,15 +12,25 @@ import SecurityTab from "./components/tabs/SecurityTab";
 import SettingsTab from "./components/tabs/SettingsTab";
 
 const TABS = [
-  { value: "profile", label: "個人資料" },
-  { value: "payment", label: "付款方式" },
+  { value: "profile",       label: "個人資料" },
+  { value: "payment",       label: "付款方式" },
   { value: "notifications", label: "通知偏好" },
-  { value: "security", label: "安全驗證" },
-  { value: "settings", label: "設定" },
+  { value: "security",      label: "安全驗證" },
+  { value: "settings",      label: "設定" },
 ];
+
+function TabContent({ value, user, onChange }) {
+  if (value === "profile")       return <PersonalInfoTab user={user} onChange={onChange} />
+  if (value === "payment")       return <PaymentMethodsTab />
+  if (value === "notifications") return <NotificationTab />
+  if (value === "security")      return <SecurityTab />
+  if (value === "settings")      return <SettingsTab />
+  return null
+}
 
 export default function AccountPage() {
   const [activeTab, setActiveTab] = useState("profile");
+  const [openAccordion, setOpenAccordion] = useState("profile");
   const [user, setUser] = useState(() => {
     const profile = useAuthStore.getState().getProfile();
     return {
@@ -41,32 +51,46 @@ export default function AccountPage() {
   }
 
   return (
-    <div>
+    <div className="px-2 md:px-4 lg:px-8 lg:px-16">
       <PageHeader title="帳號中心" className="mb-6 text-center" />
 
-      <ProfileHeaderCard user={user} />
+      <ProfileHeaderCard user={user} activeSubs={activeSubs} totalSubs={allSubs.length} />
 
-      <div className="flex flex-col lg:flex-row gap-5 lg:items-start">
-        <div className="flex-1 min-w-0">
-          <Tabs
-            tabs={TABS}
-            active={activeTab}
-            onChange={setActiveTab}
-            className="mb-4"
-          />
+      {/* 桌面版：Tabs */}
+      <div className="hidden md:block">
+        <Tabs
+          tabs={TABS}
+          active={activeTab}
+          onChange={setActiveTab}
+          className="mb-4"
+        />
+        <TabContent value={activeTab} user={user} onChange={handleUserChange} />
+      </div>
 
-          {activeTab === "profile" && (
-            <PersonalInfoTab user={user} onChange={handleUserChange} />
-          )}
-          {activeTab === "payment" && <PaymentMethodsTab />}
-          {activeTab === "notifications" && <NotificationTab />}
-          {activeTab === "security" && <SecurityTab />}
-          {activeTab === "settings" && <SettingsTab />}
-        </div>
-
-        <div className="w-full lg:w-[18rem] shrink-0">
-          <AccountSidebar user={user} activeSubs={activeSubs} totalSubs={allSubs.length} />
-        </div>
+      {/* 手機版：Accordion */}
+      <div className="md:hidden space-y-2">
+        {TABS.map(tab => {
+          const isOpen = openAccordion === tab.value
+          return (
+            <div key={tab.value} className="card overflow-hidden">
+              <button
+                onClick={() => setOpenAccordion(isOpen ? null : tab.value)}
+                className="flex w-full items-center justify-between px-4 py-3.5 text-left"
+              >
+                <span className="font-bold text-ink">{tab.label}</span>
+                <ChevronDown
+                  size={18}
+                  className={`shrink-0 text-ink-3 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                />
+              </button>
+              {isOpen && (
+                <div className="border-t border-line px-4 py-4">
+                  <TabContent value={tab.value} user={user} onChange={handleUserChange} />
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
     </div>
   );

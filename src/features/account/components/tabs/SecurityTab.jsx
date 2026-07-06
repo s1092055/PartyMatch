@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { KeyRound, ShieldCheck, Smartphone, Eye, EyeOff, CheckCircle2, Info } from 'lucide-react'
+import { KeyRound, Mail, ShieldCheck, Smartphone, Eye, EyeOff, CheckCircle2, Info, XCircle } from 'lucide-react'
 
 function PasswordField({ label, value, onChange }) {
   const [show, setShow] = useState(false)
@@ -48,9 +48,41 @@ export default function SecurityTab() {
     setTimeout(() => setLoggedOutDevice(null), 3000)
   }
 
+  const VERIFICATIONS = [
+    { icon: Smartphone, label: '手機號碼', verified: true },
+    { icon: Mail,       label: '電子信箱', verified: true },
+    { icon: ShieldCheck,label: '身分驗證', verified: false },
+  ]
+
   return (
     <div className="space-y-4">
-      
+
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+        <div className="flex items-center gap-2 px-5 py-3.5 border-b border-slate-100">
+          <ShieldCheck size={15} className="text-emerald-500" />
+          <span className="text-sm font-semibold text-slate-700">驗證狀態</span>
+        </div>
+        <div className="p-5 space-y-3">
+          {VERIFICATIONS.map(({ icon: Icon, label, verified }) => (
+            <div key={label} className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm text-slate-600">
+                <Icon size={14} className="text-slate-400" />
+                {label}
+              </div>
+              {verified ? (
+                <span className="flex items-center gap-1 text-xs text-emerald-600 font-medium">
+                  <CheckCircle2 size={13} /> 已驗證
+                </span>
+              ) : (
+                <button className="flex items-center gap-1 text-xs text-amber-600 hover:text-amber-700 font-medium">
+                  <XCircle size={13} /> 立即驗證
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
         <div className="flex items-center gap-2 px-5 py-3.5 border-b border-slate-100">
           <KeyRound size={15} className="text-slate-400" />
