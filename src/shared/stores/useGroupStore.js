@@ -138,27 +138,6 @@ export const useGroupStore = create((set, get) => ({
     }))
   },
 
-  // ── 啟用聊天室（full → pending_confirmation）─────────────────────────────────
-  activateGroupChat: (id) => get().update(id, { status: 'pending_confirmation' }),
-
-  // ── 確認收款完成（pending_confirmation → pending_activation）──────────────────
-  confirmGroupPayments: (id) => get().update(id, { status: 'pending_activation' }),
-
-  // ── 啟用群組服務（pending_activation → active）───────────────────────────────
-  activateGroup: (id, customNextBillingDate = null) => {
-    const group = get().getById(id)
-    if (!group) return null
-    const activatedAt = todayISO()
-    let nextBillingDate = customNextBillingDate
-    if (!nextBillingDate) {
-      const d = new Date(activatedAt)
-      if (group.billingCycle === 'yearly') d.setFullYear(d.getFullYear() + 1)
-      else d.setMonth(d.getMonth() + 1)
-      nextBillingDate = toISODate(d)
-    }
-    return get().update(id, { status: 'active', activatedAt, nextBillingDate })
-  },
-
   // ── 開始續訂週期（→ pending_confirmation，推進下次扣款日）─────────────────────
   startRenewalCycle: (id) => {
     const group = get().getById(id)

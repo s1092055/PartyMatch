@@ -1,24 +1,19 @@
 import { useEffect, useState } from 'react'
-import { ArrowDownLeft, ArrowUpRight, Coins, Lock, TrendingUp } from 'lucide-react'
+import { ArrowDownLeft, Coins, Lock, TrendingUp } from 'lucide-react'
 import { useAuthStore } from '../../../../shared/stores/useAuthStore'
 import { fetchTokenBalance } from '../../../../shared/api/tokensApi'
+import { toISODate } from '../../../../shared/utils/date'
 import TopupModal from '../../../../shared/ui/TopupModal'
 
 const TYPE_CONFIG = {
-  topup:   { label: '儲值',     icon: ArrowDownLeft, color: 'text-success',  sign: '+' },
-  escrow:  { label: '代管扣除', icon: Lock,          color: 'text-warning-text', sign: '' },
-  release: { label: '款項撥付', icon: TrendingUp,    color: 'text-success',  sign: '+' },
-  refund:  { label: '退款',     icon: ArrowDownLeft, color: 'text-brand',    sign: '+' },
+  topup:   { label: '儲值',     icon: ArrowDownLeft, color: 'text-success'      },
+  escrow:  { label: '代管扣除', icon: Lock,          color: 'text-warning-text' },
+  release: { label: '款項撥付', icon: TrendingUp,    color: 'text-success'      },
+  refund:  { label: '退款',     icon: ArrowDownLeft, color: 'text-brand'        },
 }
 
 function getConfig(type) {
-  return TYPE_CONFIG[type] ?? { label: type, icon: Coins, color: 'text-ink-3', sign: '' }
-}
-
-function formatDate(iso) {
-  if (!iso) return ''
-  const d = new Date(iso)
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  return TYPE_CONFIG[type] ?? { label: type, icon: Coins, color: 'text-ink-3' }
 }
 
 export default function TokenTab() {
@@ -90,7 +85,7 @@ export default function TokenTab() {
                       )}
                     </div>
                     {tx.note && <p className="text-xs text-ink-4 mt-0.5 truncate">{tx.note}</p>}
-                    <p className="text-xs text-ink-4">{formatDate(tx.createdAt)}</p>
+                    <p className="text-xs text-ink-4">{toISODate(new Date(tx.createdAt))}</p>
                   </div>
                   <p className={`shrink-0 text-sm font-bold tabular-nums ${isNegative ? 'text-danger' : cfg.color}`}>
                     {isNegative ? `−${absAmount.toLocaleString()}` : `+${absAmount.toLocaleString()}`} PM

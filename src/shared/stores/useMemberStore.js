@@ -73,6 +73,7 @@ export const useMemberStore = create((set, get) => ({
 
   // ── 填寫服務帳號（pending_confirmation 階段）──────────────────────────────────
   fillServiceInfo: async (memberId, groupId, serviceInfo) => {
+    const prior = get().members.find(m => m.id === memberId)?.serviceInfo ?? null
     set(s => ({
       members: s.members.map(m => m.id === memberId ? { ...m, serviceInfo } : m),
     }))
@@ -84,12 +85,19 @@ export const useMemberStore = create((set, get) => ({
         useGroupStore.getState().setGroupStatus(groupId, res._groupAdvanced)
       }
     } catch (err) {
-      // 回滾
+      // 回滾至先前值，而非清空
       set(s => ({
-        members: s.members.map(m => m.id === memberId ? { ...m, serviceInfo: null } : m),
+        members: s.members.map(m => m.id === memberId ? { ...m, serviceInfo: prior } : m),
       }))
       throw err
     }
+  },
+
+  // ── 確認服務（本地標記 confirmedAt，不呼叫後端）──────────────────────────────
+  markConfirmed: (memberId) => {
+    set(s => ({
+      members: s.members.map(m => m.id === memberId ? { ...m, confirmedAt: new Date().toISOString() } : m),
+    }))
   },
 
   // ── 移除 ────────────────────────────────────────────────────────────────────

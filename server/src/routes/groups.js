@@ -81,17 +81,18 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
     })
     if (!group) return res.status(404).json({ message: '群組不存在' })
 
-    // 惰性自動撥款：confirming 且 confirmDeadline 已到期
+    // 惰性自動撥款：confirming 且 confirmDeadline 已到期（callback 式 transaction 以 status 重查保持冪等）
     if (group.status === 'confirming' && group.confirmDeadline && new Date(group.confirmDeadline) <= new Date()) {
-      await prisma.$transaction([
-        prisma.group.update({ where: { id: group.id }, data: { status: 'active', confirmDeadline: null } }),
-        prisma.user.update({ where: { id: group.hostId }, data: { tokenBalance: { increment: group.escrowTokens } } }),
-        prisma.group.update({ where: { id: group.id }, data: { escrowTokens: 0 } }),
-        prisma.tokenTransaction.create({
-          data: { userId: group.hostId, type: 'release', amount: group.escrowTokens, relatedGroupId: group.id, note: '確認期逾期，自動撥款' },
-        }),
-        prisma.subscription.updateMany({ where: { groupId: group.id }, data: { status: 'active' } }),
-      ])
+      await prisma.$transaction(async (tx) => {
+        const fresh = await tx.group.findUnique({ where: { id: group.id }, select: { status: true, escrowTokens: true } })
+        if (fresh?.status !== 'confirming') return // 已被其他請求處理，跳過
+        await tx.group.update({ where: { id: group.id }, data: { status: 'active', confirmDeadline: null, escrowTokens: 0 } })
+        await tx.user.update({ where: { id: group.hostId }, data: { tokenBalance: { increment: fresh.escrowTokens } } })
+        await tx.tokenTransaction.create({
+          data: { userId: group.hostId, type: 'release', amount: fresh.escrowTokens, relatedGroupId: group.id, note: '確認期逾期，自動撥款' },
+        })
+        await tx.subscription.updateMany({ where: { groupId: group.id }, data: { status: 'active' } })
+      })
       return res.json({ ...group, status: 'active', confirmDeadline: null, escrowTokens: 0 })
     }
 
@@ -232,7 +233,7 @@ router.post('/:id/confirm', requireAuth, async (req, res, next) => {
           data:  { status: 'active' },
         }),
       ])
-      return res.json({ group: updated, released: true })
+      return res.json({ group: { ...updated, escrowTokens: 0 }, released: true })
     }
 
     res.json({ group: null, released: false })

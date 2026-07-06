@@ -26,6 +26,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
   const allMembers  = useMemberStore(s => s.members)
   const subscriptions = useSubscriptionStore(s => s.subscriptions)
   const fillServiceInfo = useMemberStore(s => s.fillServiceInfo)
+  const markConfirmed   = useMemberStore(s => s.markConfirmed)
   const confirmService  = useGroupStore(s => s.confirmService)
   const disputeGroup    = useGroupStore(s => s.disputeGroup)
   const members     = allMembers.filter(m => m.groupId === group.id)
@@ -59,6 +60,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
         toast('確認完成，款項已撥付給團主！', 'success')
         onClose()
       } else {
+        if (myMember) markConfirmed(myMember.id)
         toast('已確認，等待其他成員確認中', 'success')
       }
     } catch (err) {

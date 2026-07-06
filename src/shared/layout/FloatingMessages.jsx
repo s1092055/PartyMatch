@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
-import { AlertCircle, Bell, CheckCircle2, Clock, CreditCard, MessageSquare, UserPlus, X } from 'lucide-react'
+import { AlertCircle, Bell, CheckCircle2, MessageSquare, UserPlus, X } from 'lucide-react'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useApplicationStore } from '../stores/useApplicationStore'
 import { useGroupStore } from '../stores/useGroupStore'

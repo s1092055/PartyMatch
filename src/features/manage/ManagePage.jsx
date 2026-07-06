@@ -8,6 +8,7 @@ import { useMemberStore } from '../../shared/stores/useMemberStore'
 import { useSubscriptionStore } from '../../shared/stores/useSubscriptionStore'
 import { useNotificationStore } from '../../shared/stores/useNotificationStore'
 import { createGroupConversation, removeParticipantFromConversation, sendSystemMessage, sendActionMessage } from '../../shared/api/messagesApi'
+import { toast } from '../../shared/utils/toast'
 import { insertNotification } from '../../shared/api/notificationsApi'
 import { useConversationStore } from '../../shared/stores/useConversationStore'
 // ── store 操作的精簡別名（事件處理器內呼叫，讀取最新 store 狀態）─────────────
@@ -281,7 +282,12 @@ async function handleActivate() {
     if (!group) return
     const groupMembers = getMembersByGroupId(viewGroupId)
 
-    await activateService(viewGroupId)
+    try {
+      await activateService(viewGroupId)
+    } catch (err) {
+      toast(err?.message ?? '啟用失敗，請稍後再試', 'error')
+      return
+    }
 
     const activateConvId = getConvByGroupId(viewGroupId)?.id
     if (activateConvId) sendSystemMessage(
@@ -316,7 +322,12 @@ async function handleActivate() {
     if (!group) return
     const groupMembers = getMembersByGroupId(viewGroupId)
 
-    await useGroupStore.getState().cancelGroup(viewGroupId)
+    try {
+      await useGroupStore.getState().cancelGroup(viewGroupId)
+    } catch (err) {
+      toast(err?.message ?? '解散失敗，請稍後再試', 'error')
+      return
+    }
 
     // 通知所有成員
     groupMembers.forEach(m => {
