@@ -15,6 +15,7 @@ export default function Modal({
   outerPadding = 'p-4 md:p-8',
   sub = false,
   hideClose = false,
+  hideBack = false,
   children,
 }) {
   const resolvedMaxWidth = maxWidth ?? (sub ? 'max-w-md' : 'max-w-5xl')
@@ -65,9 +66,13 @@ export default function Modal({
         >
           {(title || icon) && (
             <div className="flex items-center border-b border-line-subtle px-3 py-3">
-              <button onClick={handleClose} className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink">
-                <ChevronLeft size={20} />
-              </button>
+              {hideBack ? (
+                <div className="h-9 w-9 shrink-0" />
+              ) : (
+                <button onClick={handleClose} className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink">
+                  <ChevronLeft size={20} />
+                </button>
+              )}
               <div className="flex min-w-0 flex-1 items-center gap-2 px-1">
                 {icon}
                 {title && <h2 className="truncate text-base font-extrabold text-ink">{title}</h2>}

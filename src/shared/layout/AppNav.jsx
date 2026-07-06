@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import { Bell, Compass, Heart, LayoutGrid, Lock, LogIn, Menu, MessageSquare, PlusCircle, Search, Zap } from 'lucide-react'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { Bell, Compass, Heart, LayoutGrid, Lock, LogIn, LogOut, Menu, MessageSquare, PlusCircle, Search, Zap } from 'lucide-react'
 import { toast } from '../utils/toast'
 import logoUrl from '../../assets/Logo.svg'
 import { useAuthStore } from '../stores/useAuthStore'
@@ -347,8 +347,8 @@ export default function AppNav() {
 
         <div className="px-2 pb-4">
           {loggedIn ? (
-            <Link
-              to="/account"
+            <a
+              href="/account"
               onClick={closeAll}
               className="flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left transition-all hover:bg-raised"
               aria-label="前往帳號中心"
@@ -363,11 +363,11 @@ export default function AppNav() {
               <span className="min-w-0 flex-1 opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
                 <span className="block truncate text-sm font-extrabold text-ink">{userName}</span>
               </span>
-            </Link>
+            </a>
           ) : (
             <div className="flex flex-col gap-1.5">
-              <Link
-                to="/login"
+              <a
+                href="/login"
                 onClick={closeAll}
                 className="flex h-12 w-full items-center gap-3 rounded-2xl bg-brand px-1 text-sm font-bold text-white transition-all hover:-translate-y-0.5 active:scale-[0.96] hover:bg-brand-hover"
               >
@@ -377,7 +377,7 @@ export default function AppNav() {
                 <span className="whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
                   登入
                 </span>
-              </Link>
+              </a>
             </div>
           )}
         </div>
@@ -392,20 +392,31 @@ export default function AppNav() {
               <span className="text-brand">Party</span><span className="text-ink">Match</span>
             </span>
           </a>
-          <button
-            onClick={() => setMobileMenuOpen(v => !v)}
-            className={`relative grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink ${mobileMenuOpen ? 'bg-raised text-ink' : ''}`}
-            aria-label="選單"
-            aria-expanded={mobileMenuOpen}
-          >
-            <Menu size={22} strokeWidth={2} />
-            <Badge count={unreadNotifs + unreadMsgs} />
-          </button>
+          <div className="flex items-center gap-1">
+            {/* 通知按鈕 */}
+            <button
+              onClick={openNotify}
+              className="relative grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink"
+              aria-label="通知"
+            >
+              <Bell size={20} strokeWidth={2} />
+              <Badge count={unreadNotifs} />
+            </button>
+            {/* 漢堡選單 */}
+            <button
+              onClick={() => setMobileMenuOpen(v => !v)}
+              className={`relative grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink ${mobileMenuOpen ? 'bg-raised text-ink' : ''}`}
+              aria-label="選單"
+              aria-expanded={mobileMenuOpen}
+            >
+              <Menu size={22} strokeWidth={2} />
+            </button>
+          </div>
         </header>
 
         {/* Full-width dropdown */}
         {mobileMenuOpen && (
-          <div className="rounded-b-2xl border border-t-0 border-white/40 bg-slate-100/95 px-4 py-3 shadow-sm backdrop-blur-md flex flex-col gap-1">
+          <div className="flex flex-col gap-1 rounded-b-2xl border border-t-0 border-white/40 bg-slate-100/95 px-4 py-3 shadow-sm backdrop-blur-md">
             <button
               onClick={() => { setMobileMenuOpen(false); openSearch() }}
               className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-raised"
@@ -423,42 +434,42 @@ export default function AppNav() {
                 <span className="rounded-full bg-brand px-2 py-0.5 text-xs font-bold text-white">加值</span>
               </button>
             )}
-            <button
-              onClick={() => { setMobileMenuOpen(false); openNotify() }}
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-raised"
-            >
-              <Bell size={20} strokeWidth={2} className="shrink-0 text-ink-2" />
-              <span className="flex-1 text-sm font-bold text-ink">通知</span>
-              {unreadNotifs > 0 && (
-                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[0.6rem] font-black text-white">
-                  {unreadNotifs > 99 ? '99+' : unreadNotifs}
-                </span>
-              )}
-            </button>
             {loggedIn ? (
-              <button
-                onClick={() => { setMobileMenuOpen(false); openMessages() }}
+              <a
+                href="/account"
+                onClick={() => setMobileMenuOpen(false)}
                 className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-raised"
               >
-                <MessageSquare size={20} strokeWidth={2} className="shrink-0 text-ink-2" />
-                <span className="flex-1 text-sm font-bold text-ink">訊息</span>
-                {unreadMsgs > 0 && (
-                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[0.6rem] font-black text-white">
-                    {unreadMsgs > 99 ? '99+' : unreadMsgs}
-                  </span>
-                )}
-              </button>
+                <span
+                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[0.6rem] font-black text-white shadow"
+                  style={{ background: avatarColor ?? 'linear-gradient(135deg, #cbd5e1, #64748b)' }}
+                >
+                  {avatarInitial}
+                </span>
+                <span className="flex-1 text-sm font-bold text-ink">{userName}</span>
+                <span className="text-xs text-ink-3">帳號設定</span>
+              </a>
             ) : (
-              <button
-                type="button"
-                aria-disabled="true"
-                onClick={e => { setMobileMenuOpen(false); preventLockedAction(e) }}
-                className="group/locked relative flex w-full cursor-not-allowed items-center gap-3 rounded-xl px-3 py-3 text-left opacity-40"
+              <a
+                href="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-raised"
               >
-                <MessageSquare size={20} strokeWidth={2} className="shrink-0 text-ink-2" />
-                <span className="text-sm font-bold text-ink">訊息</span>
-                <LockedHint className="left-full top-1/2 ml-2 -translate-y-1/2" />
-              </button>
+                <LogIn size={20} strokeWidth={2} className="shrink-0 text-ink-2" />
+                <span className="text-sm font-bold text-ink">登入</span>
+              </a>
+            )}
+            {loggedIn && (
+              <>
+                <div className="my-1 border-t border-line-subtle" />
+                <button
+                  onClick={() => { setMobileMenuOpen(false); useAuthStore.getState().logout(); navigate('/login', { replace: true }) }}
+                  className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-danger transition-colors hover:bg-danger-subtle"
+                >
+                  <LogOut size={20} strokeWidth={2} className="shrink-0" />
+                  <span className="text-sm font-bold">登出</span>
+                </button>
+              </>
             )}
           </div>
         )}
@@ -554,27 +565,25 @@ export default function AppNav() {
             )}
           </div>
 
-          {/* 帳號 / 登入 */}
+          {/* 訊息 */}
           {loggedIn ? (
             <button
-              onClick={() => navigate('/account')}
-              className={`flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold transition-colors ${pathname === '/account' ? 'text-brand' : 'text-ink-3'}`}
+              onClick={openMessages}
+              className="relative flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold text-ink-3 transition-colors active:text-brand"
             >
-              <span
-                className="flex h-6 w-6 items-center justify-center rounded-full text-[0.6rem] font-black text-white shadow"
-                style={{ background: avatarColor ?? 'linear-gradient(135deg, #cbd5e1, #64748b)' }}
-              >
-                {avatarInitial}
+              <span className="relative">
+                <MessageSquare size={22} strokeWidth={2.1} />
+                <Badge count={unreadMsgs} />
               </span>
-              帳號
+              訊息
             </button>
           ) : (
             <button
-              onClick={() => navigate('/login')}
-              className="flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold text-ink-3 transition-colors active:text-brand"
+              onClick={e => preventLockedAction(e)}
+              className="flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold text-ink-3 opacity-40"
             >
-              <LogIn size={22} strokeWidth={2.1} />
-              登入
+              <MessageSquare size={22} strokeWidth={2.1} />
+              訊息
             </button>
           )}
 
