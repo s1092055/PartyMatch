@@ -8,10 +8,12 @@ import {
   confirmGroupApi,
   cancelGroupApi,
   disputeGroupApi,
+  adjudicateGroupApi,
+  renewGroupApi,
 } from '../api/groupsApi'
 import { normalizeGroup } from '../utils/modelNormalizers'
 import { createId } from '../utils/storage'
-import { toISODate, todayISO } from '../utils/date'
+import { todayISO } from '../utils/date'
 
 export const useGroupStore = create((set, get) => ({
   groups:  [],
@@ -138,14 +140,23 @@ export const useGroupStore = create((set, get) => ({
     }))
   },
 
-  // ── 開始續訂週期（→ pending_confirmation，推進下次扣款日）─────────────────────
-  startRenewalCycle: (id) => {
-    const group = get().getById(id)
-    if (!group) return null
-    const base = new Date(group.nextBillingDate ?? todayISO())
-    if (group.billingCycle === 'yearly') base.setFullYear(base.getFullYear() + 1)
-    else base.setMonth(base.getMonth() + 1)
-    return get().update(id, { status: 'pending_confirmation', nextBillingDate: toISODate(base) })
+  // ── 開始新一期（active → pending_confirmation，後端同步重置成員帳號資訊）──────
+  startRenewalCycle: async (id) => {
+    const updated = await renewGroupApi(id)
+    set(s => ({
+      groups: s.groups.map(g => g.id === id ? normalizeGroup({ ...g, ...updated }) : g),
+    }))
+    return updated
+  },
+
+  // ── 裁定申訴（管理員）──────────────────────────────────────────────────────
+  adjudicateGroup: async (id, payload) => {
+    const res = await adjudicateGroupApi(id, payload)
+    // 讓呼叫端觸發完整 refresh，確保成員與訂閱狀態同步
+    set(s => ({
+      groups: s.groups.map(g => g.id === id ? { ...g, status: 'active', disputeDeadline: null } : g),
+    }))
+    return res
   },
 
   // ── 結束群組 ────────────────────────────────────────────────────────────────

@@ -39,10 +39,21 @@ router.get('/', requireAuth, async (req, res, next) => {
 router.post('/', requireAuth, validate(applySchema), async (req, res, next) => {
   try {
     const { groupId, message } = req.body
-    const group = await prisma.group.findUnique({ where: { id: groupId } })
+    const [group, applicant] = await Promise.all([
+      prisma.group.findUnique({ where: { id: groupId } }),
+      prisma.user.findUnique({ where: { id: req.user.id }, select: { tokenBalance: true } }),
+    ])
     if (!group) return res.status(404).json({ message: '群組不存在' })
     if (group.status !== 'recruiting') return res.status(400).json({ message: '此群組目前不開放申請' })
     if (group.hostId === req.user.id) return res.status(400).json({ message: '團主不能申請自己的群組' })
+
+    // 餘額預檢：確保申請人有足夠代幣支付未來的代管費用
+    const seatCost = group.billingCycle === 'yearly'
+      ? Math.round(group.monthlyFee * 12)
+      : Math.round(group.monthlyFee)
+    if ((applicant?.tokenBalance ?? 0) < seatCost) {
+      return res.status(400).json({ message: `代幣餘額不足，需要 ${seatCost} PM（目前 ${applicant?.tokenBalance ?? 0} PM）`, code: 'INSUFFICIENT_BALANCE', required: seatCost })
+    }
 
     const existing = await prisma.application.findFirst({
       where:   { groupId, userId: req.user.id },

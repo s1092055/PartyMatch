@@ -36,6 +36,14 @@ export async function disputeGroupApi(id, { reason, evidenceUrl }) {
   return client.post(`/groups/${id}/dispute`, { reason, evidenceUrl })
 }
 
+export async function adjudicateGroupApi(id, { winner, reason }) {
+  return client.post(`/groups/${id}/adjudicate`, { winner, reason })
+}
+
+export async function renewGroupApi(id) {
+  return client.post(`/groups/${id}/renew`)
+}
+
 export async function deleteGroup(id) {
   return client.delete(`/groups/${id}`)
 }

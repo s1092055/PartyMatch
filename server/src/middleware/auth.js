@@ -1,4 +1,5 @@
 import { verifyAccessToken } from '../utils/jwt.js'
+import prisma from '../lib/prisma.js'
 
 export function requireAuth(req, res, next) {
   const header = req.headers.authorization
@@ -13,6 +14,21 @@ export function requireAuth(req, res, next) {
   } catch {
     res.status(401).json({ message: 'Token 無效或已過期' })
   }
+}
+
+export async function requireAdmin(req, res, next) {
+  const header = req.headers.authorization
+  if (!header?.startsWith('Bearer ')) {
+    return res.status(401).json({ message: '未授權，請先登入' })
+  }
+  try {
+    req.user = verifyAccessToken(header.slice(7))
+  } catch {
+    return res.status(401).json({ message: 'Token 無效或已過期' })
+  }
+  const user = await prisma.user.findUnique({ where: { id: req.user.id }, select: { isAdmin: true } })
+  if (!user?.isAdmin) return res.status(403).json({ message: '需要管理員權限' })
+  next()
 }
 
 export function optionalAuth(req, res, next) {

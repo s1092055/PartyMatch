@@ -80,6 +80,7 @@ model User {
   avatarInitial String?
   creditScore   Int      @default(100)
   tokenBalance  Int      @default(0)
+  isAdmin       Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

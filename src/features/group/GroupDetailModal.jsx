@@ -11,6 +11,7 @@ import { useMemberStore } from '../../shared/stores/useMemberStore'
 import { useFavoriteStore } from '../../shared/stores/useFavoriteStore'
 import { useAuthStore } from '../../shared/stores/useAuthStore'
 import { finalizeLeaveGroup } from './utils/leaveGroupFlow'
+import { toast } from '../../shared/utils/toast'
 import Avatar from '../../shared/ui/Avatar'
 import Button from '../../shared/ui/Button'
 import CountdownConfirmDialog from '../../shared/ui/CountdownConfirmDialog'
@@ -174,21 +175,30 @@ export default function GroupDetailModal() {
     }
   }
 
-  function handleApply() {
+  async function handleApply() {
     if (!applyAgreed) return
-    useApplicationStore.getState().create({
-      groupId: group.id,
-      groupName: group.groupName || group.serviceName,
-      serviceId: group.serviceId,
-      serviceName: group.serviceName,
-      planName: group.planName,
-      hostId: group.hostId,
-      hostName: group.hostName,
-      hostAvatarInitial: group.hostAvatarInitial,
-      hostAvatarColor: group.hostAvatarColor,
-      message: applyMessage,
-    }, useAuthStore.getState().getProfile())
-    setApplySubmitted(true)
+    try {
+      await useApplicationStore.getState().create({
+        groupId: group.id,
+        groupName: group.groupName || group.serviceName,
+        serviceId: group.serviceId,
+        serviceName: group.serviceName,
+        planName: group.planName,
+        hostId: group.hostId,
+        hostName: group.hostName,
+        hostAvatarInitial: group.hostAvatarInitial,
+        hostAvatarColor: group.hostAvatarColor,
+        message: applyMessage,
+      }, useAuthStore.getState().getProfile())
+      setApplySubmitted(true)
+    } catch (err) {
+      const msg = err?.response?.data?.message ?? err?.message ?? '申請失敗，請稍後再試'
+      if (err?.response?.data?.code === 'INSUFFICIENT_BALANCE') {
+        toast(`代幣不足：${msg}，請前往帳號中心儲值`, 'error')
+      } else {
+        toast(msg, 'error')
+      }
+    }
   }
 
   function handleLeave() {

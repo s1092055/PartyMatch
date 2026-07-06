@@ -93,6 +93,15 @@ export const useMemberStore = create((set, get) => ({
     }
   },
 
+  // ── 新一期開始時清空整個群組的帳號資訊（後端已重置）────────────────────────────
+  clearGroupServiceInfos: (groupId) => {
+    set(s => ({
+      members: s.members.map(m =>
+        m.groupId === groupId ? { ...m, serviceInfo: null, serviceInfoIssueNote: null, confirmedAt: null } : m
+      ),
+    }))
+  },
+
   // ── 確認服務（本地標記 confirmedAt，不呼叫後端）──────────────────────────────
   markConfirmed: (memberId) => {
     set(s => ({

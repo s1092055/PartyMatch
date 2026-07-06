@@ -36,7 +36,7 @@ router.post('/register', validate(registerSchema), async (req, res, next) => {
         avatarInitial: name[0].toUpperCase(),
         avatarColor: randomAvatarColor(),
       },
-      select: { id: true, email: true, name: true, creditScore: true, avatarColor: true, avatarInitial: true },
+      select: { id: true, email: true, name: true, creditScore: true, tokenBalance: true, isAdmin: true, avatarColor: true, avatarInitial: true },
     })
 
     const accessToken  = signAccessToken({ id: user.id, email: user.email })
@@ -107,7 +107,7 @@ router.get('/me', requireAuth, async (req, res, next) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
-      select: { id: true, email: true, name: true, creditScore: true, avatarColor: true, avatarInitial: true, createdAt: true },
+      select: { id: true, email: true, name: true, creditScore: true, tokenBalance: true, isAdmin: true, avatarColor: true, avatarInitial: true, createdAt: true },
     })
     if (!user) return res.status(404).json({ message: '使用者不存在' })
     res.json(user)

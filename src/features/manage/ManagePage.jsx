@@ -30,6 +30,7 @@ const getMembersByGroupId        = (gid)    => useMemberStore.getState().getByGr
 const isUserGroupMember          = (uid, gid) => useMemberStore.getState().isMember(uid, gid)
 const removeMember               = (id)     => useMemberStore.getState().remove(id)
 const updateMember               = (id, p)  => useMemberStore.getState().update(id, p)
+const clearMemberServiceInfos    = (gid)    => useMemberStore.getState().clearGroupServiceInfos(gid)
 
 const getSubscriptionByUserAndGroup   = (uid, gid) => useSubscriptionStore.getState().getByUserAndGroup(uid, gid)
 const removeSubscription              = (id)     => useSubscriptionStore.getState().remove(id)
@@ -344,11 +345,17 @@ async function handleActivate() {
     refreshGroups()
   }
 
-  function handleStartRenewal() {
+  async function handleStartRenewal() {
     if (!renewalModalGroupId) return
     const group = getGroupById(renewalModalGroupId)
     const groupMembers = getMembersByGroupId(renewalModalGroupId)
-    startRenewalCycle(renewalModalGroupId)
+    try {
+      await startRenewalCycle(renewalModalGroupId)
+    } catch (err) {
+      toast(err?.message ?? '開始新一期失敗，請稍後再試', 'error')
+      return
+    }
+    clearMemberServiceInfos(renewalModalGroupId)
     const convId = getConvByGroupId(renewalModalGroupId)?.id
     if (convId) sendSystemMessage(
       convId, `新一期已開始，請重新填寫訂閱帳號資訊。`

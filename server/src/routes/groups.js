@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { z } from 'zod'
 import prisma from '../lib/prisma.js'
-import { requireAuth, optionalAuth } from '../middleware/auth.js'
+import { requireAuth, optionalAuth, requireAdmin } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
 
 const router = Router()
@@ -121,7 +121,7 @@ const ALLOWED_TRANSITIONS = {
   pending_activation:   ['active', 'cancelled'],
   active:               ['confirming', 'ended', 'pending_confirmation'],
   confirming:           ['active', 'disputed', 'cancelled'],
-  disputed:             ['confirming', 'cancelled', 'ended'],
+  disputed:             ['confirming', 'active', 'cancelled', 'ended'],
   cancelled:            [],
   ended:                [],
 }
@@ -354,6 +354,107 @@ router.post('/:id/lock', requireAuth, async (req, res, next) => {
       prisma.subscription.updateMany({
         where: { groupId: req.params.id },
         data:  { nextBillingDate },
+      }),
+    ])
+
+    res.json(updated)
+  } catch (err) { next(err) }
+})
+
+// POST /groups/:id/adjudicate — 平台裁定申訴（需管理員）
+// winner: 'member' → 退款給申訴成員並移出群組；'host' → 撥款給團主
+router.post('/:id/adjudicate', requireAdmin, async (req, res, next) => {
+  try {
+    const { winner, reason } = req.body
+    if (!['member', 'host'].includes(winner)) return res.status(400).json({ message: 'winner 必須為 member 或 host' })
+    if (!reason?.trim()) return res.status(400).json({ message: '請填寫裁定說明' })
+
+    const group = await prisma.group.findUnique({
+      where:   { id: req.params.id },
+      include: { members: { include: { user: { select: { id: true } } } } },
+    })
+    if (!group) return res.status(404).json({ message: '群組不存在' })
+    if (group.status !== 'disputed') return res.status(400).json({ message: `群組狀態為 ${group.status}，不在申訴期` })
+
+    // 找申訴成員（有 serviceInfoIssueNote 的那位）
+    const disputeMember = group.members.find(m => m.serviceInfoIssueNote)
+    if (!disputeMember) return res.status(400).json({ message: '找不到申訴成員' })
+
+    const seatCost = group.billingCycle === 'yearly'
+      ? Math.round(group.monthlyFee * 12)
+      : Math.round(group.monthlyFee)
+
+    if (winner === 'member') {
+      // 退款給申訴成員，移出群組，其他人代管不變，群組回 active
+      await prisma.$transaction([
+        prisma.group.update({
+          where: { id: group.id },
+          data:  { status: 'active', disputeDeadline: null, escrowTokens: { decrement: seatCost } },
+        }),
+        prisma.user.update({
+          where: { id: disputeMember.userId },
+          data:  { tokenBalance: { increment: seatCost } },
+        }),
+        prisma.tokenTransaction.create({
+          data: { userId: disputeMember.userId, type: 'refund', amount: seatCost, relatedGroupId: group.id, note: `申訴裁定：${reason.trim()}` },
+        }),
+        prisma.member.delete({ where: { id: disputeMember.id } }),
+        prisma.subscription.updateMany({
+          where: { groupId: group.id, userId: disputeMember.userId },
+          data:  { status: 'cancelled' },
+        }),
+      ])
+    } else {
+      // 撥款給團主，群組回 active，全員訂閱啟用
+      await prisma.$transaction([
+        prisma.group.update({
+          where: { id: group.id },
+          data:  { status: 'active', disputeDeadline: null, escrowTokens: 0 },
+        }),
+        prisma.user.update({
+          where: { id: group.hostId },
+          data:  { tokenBalance: { increment: group.escrowTokens } },
+        }),
+        prisma.tokenTransaction.create({
+          data: { userId: group.hostId, type: 'release', amount: group.escrowTokens, relatedGroupId: group.id, note: `申訴裁定：${reason.trim()}` },
+        }),
+        prisma.subscription.updateMany({ where: { groupId: group.id }, data: { status: 'active' } }),
+      ])
+    }
+
+    res.json({ winner, disputeMemberId: disputeMember.userId })
+  } catch (err) { next(err) }
+})
+
+// POST /groups/:id/renew — active → pending_confirmation，重置成員帳號資訊
+router.post('/:id/renew', requireAuth, async (req, res, next) => {
+  try {
+    const group = await prisma.group.findUnique({
+      where: { id: req.params.id },
+      include: { members: true },
+    })
+    if (!group) return res.status(404).json({ message: '群組不存在' })
+    if (group.hostId !== req.user.id) return res.status(403).json({ message: '僅團主可操作' })
+    if (group.status !== 'active') return res.status(400).json({ message: `群組狀態為 ${group.status}，無法開始新一期（需為 active）` })
+
+    const base = new Date(group.nextBillingDate ?? new Date())
+    if (group.billingCycle === 'yearly') base.setFullYear(base.getFullYear() + 1)
+    else base.setMonth(base.getMonth() + 1)
+
+    const [updated] = await prisma.$transaction([
+      prisma.group.update({
+        where: { id: req.params.id },
+        data:  { status: 'pending_confirmation', nextBillingDate: base },
+        include: {
+          host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, creditScore: true } },
+          service: true,
+          _count:  { select: { members: true } },
+        },
+      }),
+      // 清空所有成員的服務帳號資訊，讓他們重新填寫
+      prisma.member.updateMany({
+        where: { groupId: req.params.id },
+        data:  { serviceInfo: null, serviceInfoIssueNote: null, confirmedAt: null },
       }),
     ])
 

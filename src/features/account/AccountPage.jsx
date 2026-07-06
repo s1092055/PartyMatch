@@ -7,12 +7,13 @@ import PageHeader from "../../shared/layout/PageHeader";
 import ProfileHeaderCard from "./components/ProfileHeaderCard";
 import PersonalInfoTab from "./components/tabs/PersonalInfoTab";
 import TokenTab from "./components/tabs/TokenTab";
+import AdminTab from "./components/tabs/AdminTab";
 import PaymentMethodsTab from "./components/tabs/PaymentMethodsTab";
 import NotificationTab from "./components/tabs/NotificationTab";
 import SecurityTab from "./components/tabs/SecurityTab";
 import SettingsTab from "./components/tabs/SettingsTab";
 
-const TABS = [
+const BASE_TABS = [
   { value: "profile",       label: "個人資料" },
   { value: "tokens",        label: "代幣帳戶" },
   { value: "payment",       label: "付款方式" },
@@ -28,12 +29,14 @@ function TabContent({ value, user, onChange }) {
   if (value === "notifications") return <NotificationTab />
   if (value === "security")      return <SecurityTab />
   if (value === "settings")      return <SettingsTab />
+  if (value === "admin")         return <AdminTab />
   return null
 }
 
 export default function AccountPage() {
   const [activeTab, setActiveTab] = useState("profile");
   const [openAccordion, setOpenAccordion] = useState("profile");
+  const isAdmin = useAuthStore(s => s.user?.isAdmin ?? false)
   const [user, setUser] = useState(() => {
     const profile = useAuthStore.getState().getProfile();
     return {
@@ -43,6 +46,8 @@ export default function AccountPage() {
       lineId: profile?.lineId ?? "",
     };
   });
+
+  const TABS = isAdmin ? [...BASE_TABS, { value: "admin", label: "管理員" }] : BASE_TABS
 
   const subscriptions = useSubscriptionStore(s => s.subscriptions)
   const allSubs = subscriptions.filter(sub => sub.userId === user.id)
