@@ -76,7 +76,22 @@ router.patch('/:id', requireAuth, validate(patchMemberSchema), async (req, res, 
       where: { id: req.params.id },
       data:  req.body,
     })
-    res.json(member)
+
+    // 填寫 serviceInfo 後，檢查是否全員完成 → 自動推進 pending_confirmation → pending_activation
+    let groupAdvancedStatus = null
+    if (req.body.serviceInfo !== undefined) {
+      const allMembers = await prisma.member.findMany({ where: { groupId: existing.groupId } })
+      const allFilled  = allMembers.every(m => m.serviceInfo != null)
+      if (allFilled) {
+        const grp = await prisma.group.findUnique({ where: { id: existing.groupId }, select: { status: true } })
+        if (grp?.status === 'pending_confirmation') {
+          await prisma.group.update({ where: { id: existing.groupId }, data: { status: 'pending_activation' } })
+          groupAdvancedStatus = 'pending_activation'
+        }
+      }
+    }
+
+    res.json(groupAdvancedStatus ? { ...member, _groupAdvanced: groupAdvancedStatus } : member)
   } catch (err) { next(err) }
 })
 

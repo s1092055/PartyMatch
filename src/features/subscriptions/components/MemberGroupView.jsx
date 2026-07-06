@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import {
-  CheckCircle2, LogOut, MessageCircle, Shield, Users,
+  CheckCircle2, LogOut, MessageCircle, Shield, Users, ClipboardEdit,
 } from 'lucide-react'
 import Avatar from '../../../shared/ui/Avatar'
 import CountdownConfirmDialog from '../../../shared/ui/CountdownConfirmDialog'
@@ -10,14 +10,18 @@ import { useMemberStore } from '../../../shared/stores/useMemberStore'
 import { useGroupStore } from '../../../shared/stores/useGroupStore'
 import { useSubscriptionStore } from '../../../shared/stores/useSubscriptionStore'
 import { useAuthStore } from '../../../shared/stores/useAuthStore'
+import { toast } from '../../../shared/utils/toast'
 
 export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
-  const [activePanel, setActivePanel] = useState(null) // 'members' | null
+  const [activePanel, setActivePanel] = useState(null) // 'members' | 'fillInfo' | null
   const [leaveConfirm, setLeaveConfirm] = useState(false)
+  const [fillEmail, setFillEmail] = useState('')
+  const [fillLoading, setFillLoading] = useState(false)
 
   const currentUser = useAuthStore(s => s.user)
   const allMembers  = useMemberStore(s => s.members)
   const subscriptions = useSubscriptionStore(s => s.subscriptions)
+  const fillServiceInfo = useMemberStore(s => s.fillServiceInfo)
   const members     = allMembers.filter(m => m.groupId === group.id)
   const sub         = currentUser ? (subscriptions.find(s => s.userId === currentUser.id && s.groupId === group.id) ?? null) : null
   const myMember    = currentUser ? members.find(m => m.userId === currentUser.id) ?? null : null
@@ -36,7 +40,60 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
     window.dispatchEvent(new CustomEvent('pm:open-messages', { detail: { groupId: group.id } }))
   }
 
+  async function handleFillSubmit(e) {
+    e.preventDefault()
+    if (!fillEmail.trim() || !myMember) return
+    setFillLoading(true)
+    try {
+      await fillServiceInfo(myMember.id, group.id, { email: fillEmail.trim() })
+      setActivePanel(null)
+      toast('帳號資訊已送出', 'success')
+    } catch (err) {
+      toast(err?.message ?? '送出失敗，請稍後再試', 'error')
+    } finally {
+      setFillLoading(false)
+    }
+  }
+
   function buildSubPanel() {
+    if (activePanel === 'fillInfo') {
+      const existingEmail = myMember?.serviceInfo?.email ?? ''
+      return {
+        title: '填寫服務帳號',
+        icon: <ClipboardEdit size={18} className="text-brand" />,
+        content: (
+          <form onSubmit={handleFillSubmit} className="p-5 space-y-4">
+            <p className="text-sm text-ink-3">
+              請填寫你用於 <span className="font-semibold text-ink">{group.serviceName}</span> 的帳號電子信箱，團主將使用此資訊幫你設定訂閱。
+            </p>
+            {existingEmail && (
+              <div className="rounded-lg bg-success-subtle px-3 py-2 text-sm text-success-text flex items-center gap-2">
+                <CheckCircle2 size={14} /> 目前已填：{existingEmail}
+              </div>
+            )}
+            <div>
+              <label className="block text-xs text-ink-3 mb-1.5">帳號電子信箱</label>
+              <input
+                type="email"
+                value={fillEmail}
+                onChange={e => setFillEmail(e.target.value)}
+                placeholder="example@gmail.com"
+                required
+                className="w-full rounded-xl border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={!fillEmail.trim() || fillLoading}
+              className="w-full rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-dark disabled:opacity-40 disabled:pointer-events-none"
+            >
+              {fillLoading ? '送出中…' : '送出帳號資訊'}
+            </button>
+          </form>
+        ),
+      }
+    }
+
     if (activePanel === 'members') {
       return {
         title: '成員名單',
@@ -146,7 +203,8 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
         undefined
       }
       bottomBar={(() => {
-        const btnCount = 1 + (isPaymentRelevant ? 1 : 0) + (canLeaveGroup ? 1 : 0)
+        const showFillBtn = needsFillInfo || hasServiceInfoIssue
+        const btnCount = 1 + (isPaymentRelevant ? 1 : 0) + (showFillBtn ? 1 : 0) + (canLeaveGroup ? 1 : 0)
         return (
           <div className={`grid grid-cols-${btnCount} gap-1 p-2`}>
             <button
@@ -155,6 +213,14 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
             >
               <Users size={17} /> 成員名單
             </button>
+            {showFillBtn && (
+              <button
+                onClick={() => { setFillEmail(myMember?.serviceInfo?.email ?? ''); setActivePanel('fillInfo') }}
+                className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-brand transition-colors hover:bg-brand-subtle"
+              >
+                <ClipboardEdit size={17} /> 填寫帳號
+              </button>
+            )}
             {isPaymentRelevant && (
               <button
                 onClick={openMessages}

@@ -71,6 +71,27 @@ export const useMemberStore = create((set, get) => ({
     return patchMember(memberId, patch).catch(console.error)
   },
 
+  // ── 填寫服務帳號（pending_confirmation 階段）──────────────────────────────────
+  fillServiceInfo: async (memberId, groupId, serviceInfo) => {
+    set(s => ({
+      members: s.members.map(m => m.id === memberId ? { ...m, serviceInfo } : m),
+    }))
+    try {
+      const res = await patchMember(memberId, { serviceInfo })
+      if (res?._groupAdvanced) {
+        // 全員填完，後端已自動推進群組狀態
+        const { useGroupStore } = await import('./useGroupStore')
+        useGroupStore.getState().setGroupStatus(groupId, res._groupAdvanced)
+      }
+    } catch (err) {
+      // 回滾
+      set(s => ({
+        members: s.members.map(m => m.id === memberId ? { ...m, serviceInfo: null } : m),
+      }))
+      throw err
+    }
+  },
+
   // ── 移除 ────────────────────────────────────────────────────────────────────
   remove: (memberId) => {
     set(s => ({ members: s.members.filter(m => m.id !== memberId) }))

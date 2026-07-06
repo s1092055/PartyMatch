@@ -20,6 +20,10 @@ export async function lockGroupApi(id) {
   return client.post(`/groups/${id}/lock`)
 }
 
+export async function activateGroupApi(id) {
+  return client.post(`/groups/${id}/activate`)
+}
+
 export async function deleteGroup(id) {
   return client.delete(`/groups/${id}`)
 }

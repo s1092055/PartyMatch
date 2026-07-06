@@ -133,6 +133,30 @@ router.patch('/:id', requireAuth, validate(updateGroupSchema), async (req, res, 
   } catch (err) { next(err) }
 })
 
+// POST /groups/:id/activate — pending_activation → confirming（48h 確認期開始）
+router.post('/:id/activate', requireAuth, async (req, res, next) => {
+  try {
+    const group = await prisma.group.findUnique({ where: { id: req.params.id } })
+    if (!group) return res.status(404).json({ message: '群組不存在' })
+    if (group.hostId !== req.user.id) return res.status(403).json({ message: '僅團主可操作' })
+    if (group.status !== 'pending_activation') return res.status(400).json({ message: `群組狀態為 ${group.status}，無法啟用（需為 pending_activation）` })
+
+    const confirmDeadline = new Date()
+    confirmDeadline.setHours(confirmDeadline.getHours() + 48)
+
+    const updated = await prisma.group.update({
+      where: { id: req.params.id },
+      data: { status: 'confirming', confirmDeadline },
+      include: {
+        host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, creditScore: true } },
+        service: true,
+        _count:  { select: { members: true } },
+      },
+    })
+    res.json(updated)
+  } catch (err) { next(err) }
+})
+
 // POST /groups/:id/lock — full → pending_confirmation
 router.post('/:id/lock', requireAuth, async (req, res, next) => {
   try {

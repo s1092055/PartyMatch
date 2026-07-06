@@ -27,6 +27,14 @@ const VARIANTS = {
     cls: 'bg-orange-50 text-orange-600',
     dot: 'bg-orange-400',
   },
+  confirming: {
+    cls: 'bg-info-subtle text-info-text',
+    dot: 'bg-info',
+  },
+  disputed: {
+    cls: 'bg-danger-subtle text-danger-text',
+    dot: 'bg-danger',
+  },
   ended: {
     cls: 'bg-slate-100 text-slate-400',
     dot: null,
@@ -67,7 +75,9 @@ const LABELS = {
   active:             '啟用中',
   cancelled:          '已結束',
   full:               '已滿員',
-  pending_confirmation: '團主收款中',
+  pending_confirmation: '待填帳號',
+  confirming:           '確認期中',
+  disputed:             '申訴中',
   ended:              '已結束',
   closed:             '已關閉',
   approval:           '審核加入',

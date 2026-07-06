@@ -12,6 +12,8 @@ const STATUS_BADGE_CLASS = {
   pending_confirmation: 'bg-warning-subtle text-warning-text',
   pending_activation:   'bg-warning-subtle text-warning-text',
   full:                 'bg-slate-100 text-slate-500',
+  confirming:           'bg-info-subtle text-info-text',
+  disputed:             'bg-danger-subtle text-danger-text',
   cancelled:            'bg-danger-subtle text-danger-text',
   ended:                'bg-slate-100 text-slate-400',
 }

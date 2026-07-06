@@ -4,6 +4,7 @@ import {
   insertGroup,
   patchGroup,
   lockGroupApi,
+  activateGroupApi,
 } from '../api/groupsApi'
 import { normalizeGroup } from '../utils/modelNormalizers'
 import { createId } from '../utils/storage'
@@ -88,6 +89,22 @@ export const useGroupStore = create((set, get) => ({
       groups: s.groups.map(g => g.id === id ? normalizeGroup({ ...g, ...updated }) : g),
     }))
     return updated
+  },
+
+  // ── 啟用服務（pending_activation → confirming），後端設定 confirmDeadline ──────
+  activateService: async (id) => {
+    const updated = await activateGroupApi(id)
+    set(s => ({
+      groups: s.groups.map(g => g.id === id ? normalizeGroup({ ...g, ...updated }) : g),
+    }))
+    return updated
+  },
+
+  // ── 本地狀態更新（不呼叫後端，供 fillServiceInfo 自動推進使用）──────────────────
+  setGroupStatus: (id, status) => {
+    set(s => ({
+      groups: s.groups.map(g => g.id === id ? { ...g, status } : g),
+    }))
   },
 
   // ── 啟用聊天室（full → pending_confirmation）─────────────────────────────────

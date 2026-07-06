@@ -12,6 +12,8 @@ const STATUS_BADGE_CLASS = {
   pending_confirmation: 'bg-warning-subtle text-warning-text',
   pending_activation:   'bg-warning-subtle text-warning-text',
   full:                 'bg-slate-100 text-slate-500',
+  confirming:           'bg-info-subtle text-info-text',
+  disputed:             'bg-danger-subtle text-danger-text',
   cancelled:            'bg-danger-subtle text-danger-text',
   ended:                'bg-slate-100 text-slate-400',
 }
@@ -20,8 +22,10 @@ function getCollectionState({ group, hasMarkedPaid, paidCount, paymentTarget }) 
   if (['cancelled', 'ended'].includes(group.status)) return '已結束'
   if (group.status === 'recruiting') return '招募中'
   if (group.status === 'full') return '等待啟用'
-  if (group.status === 'pending_confirmation') return hasMarkedPaid ? '待確認' : '收款中'
-  if (group.status === 'pending_activation') return '已收款'
+  if (group.status === 'pending_confirmation') return '待填帳號'
+  if (group.status === 'pending_activation') return '待啟用服務'
+  if (group.status === 'confirming') return '確認期中'
+  if (group.status === 'disputed') return '申訴中'
   if (paymentTarget > 0 && paidCount < paymentTarget && group.status === 'active') return '追蹤中'
   return '正常'
 }

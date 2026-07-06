@@ -14,10 +14,8 @@ import { useConversationStore } from '../../shared/stores/useConversationStore'
 const getGroupById     = (id)      => useGroupStore.getState().getById(id)
 const getGroupsByHostId = (hostId) => useGroupStore.getState().getByHostId(hostId)
 const updateGroup      = (id, p)   => useGroupStore.getState().update(id, p)
-const activateGroup    = (id, d)   => useGroupStore.getState().activateGroup(id, d)
-const activateGroupChat   = (id)   => useGroupStore.getState().activateGroupChat(id)
 const lockGroup           = (id)   => useGroupStore.getState().lockGroup(id)
-const confirmGroupPayments = (id)  => useGroupStore.getState().confirmGroupPayments(id)
+const activateService     = (id)   => useGroupStore.getState().activateService(id)
 const startRenewalCycle = (id)     => useGroupStore.getState().startRenewalCycle(id)
 const endGroup         = (id)      => useGroupStore.getState().endGroup(id)
 
@@ -28,15 +26,11 @@ const getApplicationsByHostId      = (hid, grps)  => useApplicationStore.getStat
 const updateApplicationStatus      = (id, status) => useApplicationStore.getState().updateStatus(id, status)
 
 const getMembersByGroupId        = (gid)    => useMemberStore.getState().getByGroupId(gid)
-const createMember               = (data)   => useMemberStore.getState().create(data)
 const isUserGroupMember          = (uid, gid) => useMemberStore.getState().isMember(uid, gid)
 const removeMember               = (id)     => useMemberStore.getState().remove(id)
 const updateMember               = (id, p)  => useMemberStore.getState().update(id, p)
 
-const activateGroupSubscriptions      = (gid, d) => useSubscriptionStore.getState().activateGroupSubscriptions(gid, d)
-const createSubscription              = (data)   => useSubscriptionStore.getState().create(data)
 const getSubscriptionByUserAndGroup   = (uid, gid) => useSubscriptionStore.getState().getByUserAndGroup(uid, gid)
-const getSubscriptionsByGroupId       = (gid)    => useSubscriptionStore.getState().getByGroupId(gid)
 const removeSubscription              = (id)     => useSubscriptionStore.getState().remove(id)
 
 const createNotification         = (data)    => useNotificationStore.getState().create(data)
@@ -281,34 +275,37 @@ function handleRemoveMember(member) {
     }
   }
 
-function handleActivate(renewalDate) {
+async function handleActivate() {
     if (!viewGroupId) return
-    adjustCreditScore(activeUser.id, CREDIT_RULES.GROUP_ACTIVATED).catch(console.error)
-    const updatedGroup = activateGroup(viewGroupId, renewalDate || null)
-    if (updatedGroup) {
-      activateGroupSubscriptions(viewGroupId, updatedGroup.nextBillingDate)
-      const activateConvId = getConvByGroupId(viewGroupId)?.id
-      if (activateConvId) sendSystemMessage(
-        activateConvId,
-        `${updatedGroup.serviceName} 訂閱服務已正式啟用！下次扣款日：${updatedGroup.nextBillingDate}。`
-      ).catch(console.error)
-      createNotification({
-        userId:  activeUser.id,
+    const group = getGroupById(viewGroupId)
+    if (!group) return
+    const groupMembers = getMembersByGroupId(viewGroupId)
+
+    await activateService(viewGroupId)
+
+    const activateConvId = getConvByGroupId(viewGroupId)?.id
+    if (activateConvId) sendSystemMessage(
+      activateConvId,
+      `${group.serviceName} 服務已啟用！請在 48 小時內確認服務是否正常運作。`
+    ).catch(console.error)
+
+    createNotification({
+      userId:  activeUser.id,
+      type:    'group_activated',
+      title:   '服務已啟用，確認期開始',
+      message: `「${group.serviceName}」群組服務已啟用，成員有 48 小時確認期。`,
+      meta:    { groupId: viewGroupId },
+    })
+    groupMembers.forEach(m => {
+      insertNotification({
+        userId:  m.userId,
         type:    'group_activated',
-        title:   '服務已正式啟用',
-        message: `「${updatedGroup.serviceName}」群組已成功啟用！下次扣款日：${updatedGroup.nextBillingDate}。`,
+        title:   '服務已啟用，請確認',
+        message: `「${group.serviceName}」服務已啟用！請在 48 小時內確認服務是否正常，否則將自動完成。`,
         meta:    { groupId: viewGroupId },
-      })
-      getMembersByGroupId(viewGroupId).forEach(m => {
-        insertNotification({
-          userId:  m.userId,
-          type:    'group_activated',
-          title:   '服務已正式啟用',
-          message: `「${updatedGroup.serviceName}」群組已啟用！下次扣款日：${updatedGroup.nextBillingDate}。`,
-          meta:    { groupId: viewGroupId },
-        }).catch(console.error)
-      })
-    }
+      }).catch(console.error)
+    })
+
     setViewGroupId(null)
     refreshGroups()
   }
@@ -354,7 +351,6 @@ async function handleApprove(appId) {
     }
 
     const applicantId = app.applicantId ?? app.userId
-    const applicantName = app.applicantName ?? app.userName ?? '新成員'
     const alreadyMember = isUserGroupMember(applicantId, app.groupId)
     const seats = seatMap[app.groupId] ?? { usedSeats: group.usedSeats, openSeats: group.openSeats }
     if (!alreadyMember && (!seats || seats.openSeats <= 0)) {
