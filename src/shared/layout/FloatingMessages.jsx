@@ -35,6 +35,8 @@ const NOTIFICATION_META = {
   group_full:           { icon: UserPlus,      iconColor: 'text-brand',      link: '/my-groups?view=host' },
   group_chat_opened:    { icon: MessageSquare, iconColor: 'text-brand',      link: null },
   group_activated:      { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-groups?view=member' },
+  group_cancelled:      { icon: AlertCircle,   iconColor: 'text-danger',     link: '/account' },
+  group_renewal:        { icon: CheckCircle2,  iconColor: 'text-brand',      link: '/my-groups?view=member' },
   service_info_issue:   { icon: AlertCircle,   iconColor: 'text-amber-500',  link: '/my-groups?view=member' },
   group_ended:          { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/explore' },
   member_removed:       { icon: AlertCircle,   iconColor: 'text-danger',     link: '/explore' },
@@ -49,15 +51,15 @@ function getMeta(type) {
   return NOTIFICATION_META[type] ?? NOTIFICATION_META.default
 }
 
-const PAYMENT_TYPES = []
+const PAYMENT_TYPES = ['group_chat_opened', 'group_activated', 'group_cancelled', 'group_ended', 'group_renewal']
 const APPLY_TYPES   = ['joined', 'application_approved', 'application_rejected', 'application_sent', 'new_application', 'application']
 const SYSTEM_TYPES  = ['system', 'announcement', 'platform']
 
 const TABS = [
-  { id: 'all',     label: '全部', filter: () => true },
-  { id: 'payment', label: '付款', filter: n => PAYMENT_TYPES.includes(n.type) },
-  { id: 'apply',   label: '申請', filter: n => APPLY_TYPES.includes(n.type) },
-  { id: 'system',  label: '系統', filter: n => SYSTEM_TYPES.includes(n.type) && (!n.userId || n.userId === 'system' || n.isPublic === true) },
+  { id: 'all',     label: '全部',   filter: () => true },
+  { id: 'payment', label: '代幣帳務', filter: n => PAYMENT_TYPES.includes(n.type) },
+  { id: 'apply',   label: '申請',   filter: n => APPLY_TYPES.includes(n.type) },
+  { id: 'system',  label: '系統',   filter: n => SYSTEM_TYPES.includes(n.type) && (!n.userId || n.userId === 'system' || n.isPublic === true) },
 ]
 
 export default function FloatingMessages() {

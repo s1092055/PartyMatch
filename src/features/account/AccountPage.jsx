@@ -6,6 +6,7 @@ import Tabs from "../../shared/ui/Tabs";
 import PageHeader from "../../shared/layout/PageHeader";
 import ProfileHeaderCard from "./components/ProfileHeaderCard";
 import PersonalInfoTab from "./components/tabs/PersonalInfoTab";
+import TokenTab from "./components/tabs/TokenTab";
 import PaymentMethodsTab from "./components/tabs/PaymentMethodsTab";
 import NotificationTab from "./components/tabs/NotificationTab";
 import SecurityTab from "./components/tabs/SecurityTab";
@@ -13,6 +14,7 @@ import SettingsTab from "./components/tabs/SettingsTab";
 
 const TABS = [
   { value: "profile",       label: "個人資料" },
+  { value: "tokens",        label: "代幣帳戶" },
   { value: "payment",       label: "付款方式" },
   { value: "notifications", label: "通知偏好" },
   { value: "security",      label: "安全驗證" },
@@ -21,6 +23,7 @@ const TABS = [
 
 function TabContent({ value, user, onChange }) {
   if (value === "profile")       return <PersonalInfoTab user={user} onChange={onChange} />
+  if (value === "tokens")        return <TokenTab />
   if (value === "payment")       return <PaymentMethodsTab />
   if (value === "notifications") return <NotificationTab />
   if (value === "security")      return <SecurityTab />
