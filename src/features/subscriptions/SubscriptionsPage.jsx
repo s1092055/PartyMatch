@@ -9,6 +9,7 @@ import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { useAuthStore } from '../../shared/stores/useAuthStore'
 import { useConversationStore } from '../../shared/stores/useConversationStore'
 import { sendSystemMessage } from '../../shared/api/messagesApi'
+import { insertNotification } from '../../shared/api/notificationsApi'
 import SubscriptionCard from './components/SubscriptionCard'
 
 const getGroupById = (id) => useGroupStore.getState().getById(id)
@@ -161,13 +162,13 @@ export default function SubscriptionsPage({ embedded = false }) {
     })
 
     if (group.hostId) {
-      useNotificationStore.getState().create({
+      insertNotification({
         userId:  group.hostId,
         type:    'member_left',
         title:   '成員退出群組',
         message: `${activeUser.displayName ?? activeUser.name ?? '成員'} 已退出「${group.serviceName}」群組，目前剩餘 ${newOpen} 個名額。`,
         meta:    { groupId: viewGroupId },
-      })
+      }).catch(console.error)
     }
 
     // 若群組聊天室已存在，寫系統訊息讓團主透過 polling 5 秒內看到

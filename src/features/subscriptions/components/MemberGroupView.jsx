@@ -57,6 +57,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
       const res = await confirmService(group.id)
       setConfirmDialog(false)
       if (res.released) {
+        useSubscriptionStore.getState().init().catch(console.error)
         toast('確認完成，款項已撥付給團主！', 'success')
         onClose()
       } else {

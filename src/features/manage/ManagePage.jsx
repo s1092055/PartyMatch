@@ -61,7 +61,7 @@ function matchesFilter(group, filterKey) {
   if (filterKey === 'all')        return true
   if (filterKey === 'recruiting') return group.status === 'recruiting'
   if (filterKey === 'pending')    return PENDING_STATUSES.has(group.status)
-  if (filterKey === 'active')     return group.status === 'active'
+  if (filterKey === 'active')     return ['active', 'confirming', 'disputed'].includes(group.status)
   if (filterKey === 'cancelled')  return CANCELLED_STATUSES.has(group.status)
   return true
 }
@@ -189,55 +189,59 @@ async function handleActivateGroup() {
     if (!group) return
     const groupMembers = getMembersByGroupId(viewGroupId)
 
-    // 先建立聊天室（後端 POST /conversations/group 已包含所有成員），再鎖定群組狀態
-    const conv = await createGroupConversation({ groupId: viewGroupId })
-    const convId = conv.id
-    await lockGroup(viewGroupId)
+    try {
+      // 先建立聊天室（後端 POST /conversations/group 已包含所有成員），再鎖定群組狀態
+      const conv = await createGroupConversation({ groupId: viewGroupId })
+      const convId = conv.id
+      await lockGroup(viewGroupId)
 
-    await sendActionMessage(convId, {
-      text: `請填寫你在 ${group.serviceName} 使用的服務帳號（電子信箱），以便團主幫你設定訂閱。`,
-      actionType: 'fill_service_info',
-      payload: { serviceName: group.serviceName, serviceId: group.serviceId },
-    })
-    // 通知團主自己
-    createNotification({
-      userId:  group.hostId,
-      type:    'group_chat_opened',
-      title:   '群組聊天室已開啟',
-      message: `「${group.serviceName}」群組已啟用，聊天室已建立，點擊查看。`,
-      meta:    { groupId: viewGroupId },
-    })
-    // 通知所有成員（只寫 DB，成員刷新後看到）
-    groupMembers.forEach(m => {
-      insertNotification({
-        userId:  m.userId,
+      await sendActionMessage(convId, {
+        text: `請填寫你在 ${group.serviceName} 使用的服務帳號（電子信箱），以便團主幫你設定訂閱。`,
+        actionType: 'fill_service_info',
+        payload: { serviceName: group.serviceName, serviceId: group.serviceId },
+      })
+      // 通知團主自己
+      createNotification({
+        userId:  group.hostId,
         type:    'group_chat_opened',
         title:   '群組聊天室已開啟',
-        message: `「${group.serviceName}」群組聊天室已建立，請進入填寫服務帳號並完成付款。`,
+        message: `「${group.serviceName}」群組已啟用，聊天室已建立，點擊查看。`,
         meta:    { groupId: viewGroupId },
-      }).catch(console.error)
-    })
+      })
+      // 通知所有成員（只寫 DB，成員刷新後看到）
+      groupMembers.forEach(m => {
+        insertNotification({
+          userId:  m.userId,
+          type:    'group_chat_opened',
+          title:   '群組聊天室已開啟',
+          message: `「${group.serviceName}」群組聊天室已建立，請進入填寫服務帳號並完成付款。`,
+          meta:    { groupId: viewGroupId },
+        }).catch(console.error)
+      })
 
-    // 樂觀新增聊天室到本地 store
-    const participantMeta = {
-      [group.hostId]: { name: group.hostName, avatarInitial: group.hostAvatarInitial, avatarColor: group.hostAvatarColor },
-      ...Object.fromEntries(groupMembers.map(m => [m.userId, { name: m.userName, avatarInitial: m.userAvatarInitial, avatarColor: m.userAvatarColor }])),
+      // 樂觀新增聊天室到本地 store
+      const participantMeta = {
+        [group.hostId]: { name: group.hostName, avatarInitial: group.hostAvatarInitial, avatarColor: group.hostAvatarColor },
+        ...Object.fromEntries(groupMembers.map(m => [m.userId, { name: m.userName, avatarInitial: m.userAvatarInitial, avatarColor: m.userAvatarColor }])),
+      }
+      addConversationOptimistic({
+        id:           convId,
+        type:         'group',
+        groupId:      viewGroupId,
+        hostId:       group.hostId,
+        name:         group.serviceName ?? viewGroupId,
+        serviceId:    group.serviceId ?? null,
+        participants: [group.hostId, ...groupMembers.map(m => m.userId)],
+        participantMeta,
+        unreadCounts: { [group.hostId]: 0 },
+        lastMessage:  '',
+        lastMessageAt: null,
+      })
+
+      setViewGroupId(null)
+    } catch (err) {
+      toast(err?.message ?? '鎖定群組失敗，請稍後再試', 'error')
     }
-    addConversationOptimistic({
-      id:           convId,
-      type:         'group',
-      groupId:      viewGroupId,
-      hostId:       group.hostId,
-      name:         group.serviceName ?? viewGroupId,
-      serviceId:    group.serviceId ?? null,
-      participants: [group.hostId, ...groupMembers.map(m => m.userId)],
-      participantMeta,
-      unreadCounts: { [group.hostId]: 0 },
-      lastMessage:  '',
-      lastMessageAt: null,
-    })
-
-    setViewGroupId(null)
   }
 
 function handleRemoveMember(member) {
