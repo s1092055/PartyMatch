@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import { Bell, Compass, Heart, LayoutGrid, Lock, LogIn, MessageSquare, PlusCircle, Search, Zap } from 'lucide-react'
+import { Bell, Compass, Heart, LayoutGrid, Lock, LogIn, Menu, MessageSquare, PlusCircle, Search, Zap } from 'lucide-react'
 import { toast } from '../utils/toast'
 import logoUrl from '../../assets/Logo.svg'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useNotificationStore } from '../stores/useNotificationStore'
 import { useConversationStore } from '../stores/useConversationStore'
 import { NAV_SECTIONS } from '../constants/nav'
+import { TokenBadge } from '../ui/TokenAmount'
+import TopupModal from '../ui/TopupModal'
 
 const LOCKED_MESSAGE = '請先登入會員'
 
@@ -51,6 +53,10 @@ export default function AppNav() {
   const [lockedTip, setLockedTip] = useState(null)
   const [myMenuOpen, setMyMenuOpen] = useState(false)
   const myMenuRef = useRef(null)
+  const [actionsOpen, setActionsOpen] = useState(false)
+  const actionsRef = useRef(null)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const mobileMenuRef = useRef(null)
 
   useEffect(() => {
     if (!myMenuOpen) return
@@ -61,12 +67,32 @@ export default function AppNav() {
     return () => document.removeEventListener('pointerdown', handleOutside)
   }, [myMenuOpen])
 
+  useEffect(() => {
+    if (!actionsOpen) return
+    function handleOutside(e) {
+      if (actionsRef.current && !actionsRef.current.contains(e.target)) setActionsOpen(false)
+    }
+    document.addEventListener('pointerdown', handleOutside)
+    return () => document.removeEventListener('pointerdown', handleOutside)
+  }, [actionsOpen])
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return
+    function handleOutside(e) {
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target)) setMobileMenuOpen(false)
+    }
+    document.addEventListener('pointerdown', handleOutside)
+    return () => document.removeEventListener('pointerdown', handleOutside)
+  }, [mobileMenuOpen])
+
   const loggedIn = useAuthStore(s => s.loggedIn)
   const currentUser = useAuthStore(s => s.user)
   const userName = currentUser?.name ?? currentUser?.displayName ?? '使用者'
-  const userEmail = currentUser?.email ?? ''
   const avatarInitial = userName[0] ?? 'U'
   const avatarColor = currentUser?.avatarColor ?? null
+
+  const tokenBalance = useAuthStore(s => s.user?.tokenBalance ?? 0)
+  const [topupOpen, setTopupOpen] = useState(false)
 
   const unreadNotifs = useNotificationStore(s => loggedIn && currentUser?.id ? s.getUnreadCount(currentUser.id) : 0)
   const unreadMsgs = useConversationStore(s => loggedIn && currentUser?.id ? s.getUnreadMsgCount(currentUser.id) : 0)
@@ -212,34 +238,6 @@ export default function AppNav() {
     )
   }
 
-  function renderMessageButton({ className, iconSize, tooltipClassName }) {
-    if (!loggedIn) {
-      return (
-        <button
-          type="button"
-          aria-disabled="true"
-          aria-label={`訊息，${LOCKED_MESSAGE}`}
-          title={LOCKED_MESSAGE}
-          onClick={preventLockedAction}
-          className={`group/locked relative cursor-not-allowed !text-ink-4 hover:!translate-y-0 hover:!scale-100 hover:!text-ink-4 active:!scale-100 ${className}`}
-        >
-          <MessageSquare size={iconSize} strokeWidth={2} className="opacity-55" />
-          <Lock size={13} strokeWidth={2.3} className="absolute right-2 top-2 rounded-full bg-canvas" />
-          <LockedHint className={tooltipClassName} />
-        </button>
-      )
-    }
-
-    return (
-      <button
-        onClick={openMessages}
-        className={className}
-        aria-label="訊息"
-      >
-        <MessageSquare size={iconSize} strokeWidth={2} />
-      </button>
-    )
-  }
 
   return (
     <>
@@ -254,24 +252,75 @@ export default function AppNav() {
         document.body
       )}
 
-      {/* Desktop action buttons — fixed top-right */}
-      <div className="fixed top-6 z-50 hidden flex-col gap-3 md:flex lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
+      {/* Desktop action buttons — fixed top-right, click dropdown */}
+      <div ref={actionsRef} className="fixed top-6 z-50 hidden md:block lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
+        {/* Trigger — always visible */}
         <button
-          onClick={openNotify}
-          className="relative grid h-12 w-12 place-items-center rounded-full border border-white/40 bg-slate-100/70 shadow-md backdrop-blur-md text-ink-2 transition-all hover:scale-105 hover:bg-slate-100/90 hover:text-ink active:scale-95"
-          aria-label="通知"
+          onClick={() => setActionsOpen(v => !v)}
+          className={`relative grid h-12 w-12 place-items-center rounded-full border border-white/40 bg-slate-100/70 shadow-md backdrop-blur-md text-ink-2 transition-all hover:bg-slate-100/90 hover:text-ink ${actionsOpen ? 'bg-slate-100/90 text-ink' : ''}`}
+          aria-label="選單"
+          aria-expanded={actionsOpen}
         >
-          <Bell size={20} strokeWidth={2} />
-          <Badge count={unreadNotifs} />
+          <Menu size={20} strokeWidth={2} />
+          <Badge count={unreadNotifs + unreadMsgs} />
         </button>
-        <div className="relative">
-          {renderMessageButton({
-            className: 'grid h-12 w-12 place-items-center rounded-full border border-white/40 bg-slate-100/70 shadow-md backdrop-blur-md text-ink-2 transition-all hover:scale-105 hover:bg-slate-100/90 hover:text-ink active:scale-95',
-            iconSize: 20,
-            tooltipClassName: 'right-full top-1/2 mr-2 -translate-y-1/2',
-          })}
-          <Badge count={unreadMsgs} />
+
+        {/* Dropdown panel */}
+        {actionsOpen && (
+        <div className="absolute right-0 top-full mt-2 flex w-52 flex-col gap-1 rounded-2xl border border-white/40 bg-slate-100/90 p-2 shadow-xl backdrop-blur-md">
+          {loggedIn && (
+            <button
+              onClick={() => { setActionsOpen(false); setTopupOpen(true) }}
+              className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-raised"
+              aria-label="代幣餘額，點擊加值"
+            >
+              <TokenBadge className="shrink-0" />
+              <span className="flex-1 text-sm font-bold text-ink">{tokenBalance.toLocaleString()} PM</span>
+              <span className="rounded-full bg-brand px-2 py-0.5 text-xs font-bold text-white">加值</span>
+            </button>
+          )}
+          <button
+            onClick={() => { setActionsOpen(false); openNotify() }}
+            className="relative flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-raised"
+            aria-label="通知"
+          >
+            <Bell size={18} strokeWidth={2} className="shrink-0 text-ink-2" />
+            <span className="flex-1 text-sm font-bold text-ink">通知</span>
+            {unreadNotifs > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[0.6rem] font-black text-white">
+                {unreadNotifs > 99 ? '99+' : unreadNotifs}
+              </span>
+            )}
+          </button>
+          {loggedIn ? (
+            <button
+              onClick={() => { setActionsOpen(false); openMessages() }}
+              className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-raised"
+              aria-label="訊息"
+            >
+              <MessageSquare size={18} strokeWidth={2} className="shrink-0 text-ink-2" />
+              <span className="flex-1 text-sm font-bold text-ink">訊息</span>
+              {unreadMsgs > 0 && (
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[0.6rem] font-black text-white">
+                  {unreadMsgs > 99 ? '99+' : unreadMsgs}
+                </span>
+              )}
+            </button>
+          ) : (
+            <button
+              type="button"
+              aria-disabled="true"
+              aria-label={`訊息，${LOCKED_MESSAGE}`}
+              onClick={e => { setActionsOpen(false); preventLockedAction(e) }}
+              className="group/locked relative flex w-full cursor-not-allowed items-center gap-2 rounded-xl px-3 py-2.5 text-left opacity-40"
+            >
+              <MessageSquare size={18} strokeWidth={2} className="shrink-0 text-ink-2" />
+              <span className="flex-1 text-sm font-bold text-ink">訊息</span>
+              <LockedHint className="right-full top-1/2 mr-2 -translate-y-1/2" />
+            </button>
+          )}
         </div>
+        )}
       </div>
 
       {/* Desktop floating sidebar */}
@@ -313,7 +362,6 @@ export default function AppNav() {
               </span>
               <span className="min-w-0 flex-1 opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
                 <span className="block truncate text-sm font-extrabold text-ink">{userName}</span>
-                <span className="block truncate text-xs font-medium text-ink-3">{userEmail}</span>
               </span>
             </Link>
           ) : (
@@ -335,57 +383,93 @@ export default function AppNav() {
         </div>
       </aside>
 
-      {/* Mobile header */}
-      <header className="fixed left-0 right-0 top-0 z-50 flex h-14 items-center justify-between border-b border-white/30 bg-slate-100/80 px-4 backdrop-blur-md md:hidden">
-        <a href="/" className="flex items-center gap-2" aria-label="回首頁">
-          <img src={logoUrl} alt="PartyMatch" className="h-8 w-8" />
-          <span className="text-[1rem] font-extrabold">
-            <span className="text-brand">Party</span><span className="text-ink">Match</span>
-          </span>
-        </a>
-        <div className="flex items-center gap-1">
+      {/* Mobile / Tablet header */}
+      <div ref={mobileMenuRef} className="fixed left-3 right-3 top-3 z-50 md:hidden">
+        <header className={`flex h-14 items-center justify-between border border-white/40 bg-slate-100/80 px-4 shadow-sm backdrop-blur-md ${mobileMenuOpen ? 'rounded-t-2xl border-b-0' : 'rounded-2xl'}`}>
+          <a href="/" className="flex items-center gap-2" aria-label="回首頁">
+            <img src={logoUrl} alt="PartyMatch" className="h-8 w-8" />
+            <span className="text-[1rem] font-extrabold">
+              <span className="text-brand">Party</span><span className="text-ink">Match</span>
+            </span>
+          </a>
           <button
-            onClick={openSearch}
-            className="relative grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink"
-            aria-label="搜尋"
+            onClick={() => setMobileMenuOpen(v => !v)}
+            className={`relative grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink ${mobileMenuOpen ? 'bg-raised text-ink' : ''}`}
+            aria-label="選單"
+            aria-expanded={mobileMenuOpen}
           >
-            <Search size={22} strokeWidth={2} />
+            <Menu size={22} strokeWidth={2} />
+            <Badge count={unreadNotifs + unreadMsgs} />
           </button>
-          {loggedIn ? (
-            <button
-              onClick={openMessages}
-              className="relative grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink"
-              aria-label="訊息"
-            >
-              <MessageSquare size={22} strokeWidth={2} />
-              <Badge count={unreadMsgs} />
-            </button>
-          ) : (
-            <button
-              type="button"
-              aria-disabled="true"
-              aria-label={`訊息，${LOCKED_MESSAGE}`}
-              onClick={preventLockedAction}
-              className="relative grid h-10 w-10 cursor-not-allowed place-items-center rounded-full text-ink-3 opacity-40"
-            >
-              <MessageSquare size={22} strokeWidth={2} />
-            </button>
-          )}
-          <button
-            onClick={openNotify}
-            className="relative grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink"
-            aria-label="通知中心"
-          >
-            <Bell size={22} strokeWidth={2} />
-            <Badge count={unreadNotifs} />
-          </button>
-        </div>
-      </header>
+        </header>
 
-      {/* Mobile bottom dock */}
+        {/* Full-width dropdown */}
+        {mobileMenuOpen && (
+          <div className="rounded-b-2xl border border-t-0 border-white/40 bg-slate-100/95 px-4 py-3 shadow-sm backdrop-blur-md flex flex-col gap-1">
+            <button
+              onClick={() => { setMobileMenuOpen(false); openSearch() }}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-raised"
+            >
+              <Search size={20} strokeWidth={2} className="shrink-0 text-ink-2" />
+              <span className="text-sm font-bold text-ink">搜尋</span>
+            </button>
+            {loggedIn && (
+              <button
+                onClick={() => { setMobileMenuOpen(false); setTopupOpen(true) }}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-raised"
+              >
+                <TokenBadge className="shrink-0" />
+                <span className="flex-1 text-sm font-bold text-ink">{tokenBalance.toLocaleString()} PM</span>
+                <span className="rounded-full bg-brand px-2 py-0.5 text-xs font-bold text-white">加值</span>
+              </button>
+            )}
+            <button
+              onClick={() => { setMobileMenuOpen(false); openNotify() }}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-raised"
+            >
+              <Bell size={20} strokeWidth={2} className="shrink-0 text-ink-2" />
+              <span className="flex-1 text-sm font-bold text-ink">通知</span>
+              {unreadNotifs > 0 && (
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[0.6rem] font-black text-white">
+                  {unreadNotifs > 99 ? '99+' : unreadNotifs}
+                </span>
+              )}
+            </button>
+            {loggedIn ? (
+              <button
+                onClick={() => { setMobileMenuOpen(false); openMessages() }}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-raised"
+              >
+                <MessageSquare size={20} strokeWidth={2} className="shrink-0 text-ink-2" />
+                <span className="flex-1 text-sm font-bold text-ink">訊息</span>
+                {unreadMsgs > 0 && (
+                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[0.6rem] font-black text-white">
+                    {unreadMsgs > 99 ? '99+' : unreadMsgs}
+                  </span>
+                )}
+              </button>
+            ) : (
+              <button
+                type="button"
+                aria-disabled="true"
+                onClick={e => { setMobileMenuOpen(false); preventLockedAction(e) }}
+                className="group/locked relative flex w-full cursor-not-allowed items-center gap-3 rounded-xl px-3 py-3 text-left opacity-40"
+              >
+                <MessageSquare size={20} strokeWidth={2} className="shrink-0 text-ink-2" />
+                <span className="text-sm font-bold text-ink">訊息</span>
+                <LockedHint className="left-full top-1/2 ml-2 -translate-y-1/2" />
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      <TopupModal isOpen={topupOpen} onClose={() => setTopupOpen(false)} />
+
+      {/* Mobile / Tablet bottom dock */}
       <nav
-        className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/30 bg-slate-100/80 backdrop-blur-md md:hidden"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+        className="fixed left-3 right-3 z-50 rounded-2xl border border-white/40 bg-slate-100/80 shadow-sm backdrop-blur-md md:hidden"
+        style={{ bottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
       >
         <div className="flex h-16 items-stretch">
 
