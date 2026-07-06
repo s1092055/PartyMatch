@@ -7,7 +7,7 @@ import MemberGroupView from '../../features/subscriptions/components/MemberGroup
 
 export default function GroupViewModal({
   isOpen, onClose, groupId,
-  onReportServiceInfoIssue, onActivate, onActivateGroup, onRemoveMember,
+  onReportServiceInfoIssue, onActivate, onActivateGroup, onCancelGroup, onRemoveMember,
   onLeaveGroup, onApprove, onReject, errors,
   autoOpenActivateGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling,
 }) {
@@ -33,7 +33,7 @@ export default function GroupViewModal({
       group={group} members={members} applications={applications}
       onReportServiceInfoIssue={onReportServiceInfoIssue}
       onRemoveMember={onRemoveMember}
-      onActivate={onActivate} onActivateGroup={onActivateGroup}
+      onActivate={onActivate} onActivateGroup={onActivateGroup} onCancelGroup={onCancelGroup}
       onApprove={onApprove} onReject={onReject}
       errors={errors} onClose={onClose}
       autoOpenActivateGroup={autoOpenActivateGroup}

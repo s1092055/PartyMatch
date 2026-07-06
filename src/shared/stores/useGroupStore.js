@@ -5,6 +5,8 @@ import {
   patchGroup,
   lockGroupApi,
   activateGroupApi,
+  confirmGroupApi,
+  cancelGroupApi,
 } from '../api/groupsApi'
 import { normalizeGroup } from '../utils/modelNormalizers'
 import { createId } from '../utils/storage'
@@ -98,6 +100,25 @@ export const useGroupStore = create((set, get) => ({
       groups: s.groups.map(g => g.id === id ? normalizeGroup({ ...g, ...updated }) : g),
     }))
     return updated
+  },
+
+  // ── 確認服務（confirming → active，若全員確認則釋出代管）──────────────────────
+  confirmService: async (id) => {
+    const res = await confirmGroupApi(id)
+    if (res.released && res.group) {
+      set(s => ({
+        groups: s.groups.map(g => g.id === id ? normalizeGroup({ ...g, ...res.group }) : g),
+      }))
+    }
+    return res
+  },
+
+  // ── 解散群組（→ cancelled，退還所有代管）──────────────────────────────────────
+  cancelGroup: async (id) => {
+    await cancelGroupApi(id)
+    set(s => ({
+      groups: s.groups.map(g => g.id === id ? { ...g, status: 'cancelled', escrowTokens: 0 } : g),
+    }))
   },
 
   // ── 本地狀態更新（不呼叫後端，供 fillServiceInfo 自動推進使用）──────────────────

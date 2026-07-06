@@ -310,6 +310,29 @@ async function handleActivate() {
     refreshGroups()
   }
 
+  async function handleCancelGroup() {
+    if (!viewGroupId) return
+    const group = getGroupById(viewGroupId)
+    if (!group) return
+    const groupMembers = getMembersByGroupId(viewGroupId)
+
+    await useGroupStore.getState().cancelGroup(viewGroupId)
+
+    // 通知所有成員
+    groupMembers.forEach(m => {
+      insertNotification({
+        userId:  m.userId,
+        type:    'group_cancelled',
+        title:   '群組已解散',
+        message: `「${group.serviceName}」群組已被團主解散，代管費用已退還至你的代幣餘額。`,
+        meta:    { groupId: viewGroupId },
+      }).catch(console.error)
+    })
+
+    setViewGroupId(null)
+    refreshGroups()
+  }
+
   function handleStartRenewal() {
     if (!renewalModalGroupId) return
     startRenewalCycle(renewalModalGroupId)
@@ -522,6 +545,7 @@ async function handleApprove(appId) {
         onReportServiceInfoIssue={handleReportServiceInfoIssue}
         onActivate={handleActivate}
         onActivateGroup={handleActivateGroup}
+        onCancelGroup={handleCancelGroup}
         onRemoveMember={handleRemoveMember}
         onApprove={handleApprove}
         onReject={handleReject}

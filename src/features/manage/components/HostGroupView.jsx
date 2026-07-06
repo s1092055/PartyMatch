@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
   Banknote, Check, CheckCircle2, ChevronDown, ChevronUp,
-  ClipboardList, History, MessageCircle, PlayCircle, Radio, Shield, UserX, Users, X,
+  ClipboardList, History, MessageCircle, PlayCircle, Radio, Shield, Trash2, UserX, Users, X,
 } from 'lucide-react'
 import Avatar from '../../../shared/ui/Avatar'
 import CreditScoreBadge from '../../../shared/ui/CreditScoreBadge'
@@ -94,13 +94,14 @@ function ApplicationCard({ app, groupFull, error, onApprove, onReject }) {
 
 // ── 團主視角 ──────────────────────────────────────────────────────────────────
 
-export default function HostGroupView({ group, members, applications, onReportServiceInfoIssue, onRemoveMember, onActivate, onActivateGroup, onApprove, onReject, errors, onClose, autoOpenActivateGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling }) {
+export default function HostGroupView({ group, members, applications, onReportServiceInfoIssue, onRemoveMember, onActivate, onActivateGroup, onCancelGroup, onApprove, onReject, errors, onClose, autoOpenActivateGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling }) {
   const [showActivate, setShowActivate]                   = useState(false)
   const [removingMember, setRemovingMember]               = useState(null)
   const [activePanel, setActivePanel]                     = useState(null) // 'members' | 'applications' | 'billing' | null
   const [showReviewHistory, setShowReviewHistory]         = useState(false)
   const [reviewFilter, setReviewFilter]                   = useState('all')
   const [showActivateGroupConfirm, setShowActivateGroupConfirm] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm]         = useState(false)
   const [expandedBillingMembers, setExpandedBillingMembers] = useState(new Set())
 
   function toggleBillingMember(memberId) {
@@ -227,6 +228,20 @@ export default function HostGroupView({ group, members, applications, onReportSe
           <PlayCircle size={15} /> 啟用服務
         </button>
       </div>
+    </div>
+  )
+
+  const cancellableStatuses = ['recruiting', 'full', 'pending_confirmation', 'pending_activation']
+  const canCancel = cancellableStatuses.includes(group.status)
+
+  const cancelCta = canCancel && (
+    <div className="flex justify-center py-2">
+      <button
+        onClick={() => setShowCancelConfirm(true)}
+        className="flex items-center gap-2 rounded-xl border border-danger px-5 py-1.5 text-sm font-semibold text-danger transition-colors hover:bg-danger-subtle"
+      >
+        <Trash2 size={14} /> 解散群組
+      </button>
     </div>
   )
 
@@ -571,6 +586,8 @@ export default function HostGroupView({ group, members, applications, onReportSe
         onOpenServiceIssue={m => { setServiceIssueMember(m); setServiceIssueNote(m.serviceInfoIssueNote ?? '') }}
       />
 
+      {cancelCta}
+
     </GroupModalShell>
 
     <ReportServiceIssueModal
@@ -585,6 +602,17 @@ export default function HostGroupView({ group, members, applications, onReportSe
         setServiceIssueNote('')
       }}
     />
+
+    {showCancelConfirm && (
+      <CountdownConfirmDialog
+        title="解散群組"
+        message={`確定要解散「${group.serviceName}」群組嗎？所有代管費用將退還給成員，此操作無法撤回。`}
+        confirmLabel="解散群組"
+        danger
+        onConfirm={() => { setShowCancelConfirm(false); onCancelGroup?.() }}
+        onCancel={() => setShowCancelConfirm(false)}
+      />
+    )}
 
     {/* 移除成員確認（倒數 5 秒才可確認） */}
     {removingMember && (

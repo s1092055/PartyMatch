@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import {
-  CheckCircle2, LogOut, MessageCircle, Shield, Users, ClipboardEdit,
+  CheckCircle2, LogOut, MessageCircle, Shield, Users, ClipboardEdit, ThumbsUp,
 } from 'lucide-react'
 import Avatar from '../../../shared/ui/Avatar'
 import CountdownConfirmDialog from '../../../shared/ui/CountdownConfirmDialog'
@@ -17,11 +17,14 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
   const [leaveConfirm, setLeaveConfirm] = useState(false)
   const [fillEmail, setFillEmail] = useState('')
   const [fillLoading, setFillLoading] = useState(false)
+  const [confirmLoading, setConfirmLoading] = useState(false)
+  const [confirmDialog, setConfirmDialog] = useState(false)
 
   const currentUser = useAuthStore(s => s.user)
   const allMembers  = useMemberStore(s => s.members)
   const subscriptions = useSubscriptionStore(s => s.subscriptions)
   const fillServiceInfo = useMemberStore(s => s.fillServiceInfo)
+  const confirmService  = useGroupStore(s => s.confirmService)
   const members     = allMembers.filter(m => m.groupId === group.id)
   const sub         = currentUser ? (subscriptions.find(s => s.userId === currentUser.id && s.groupId === group.id) ?? null) : null
   const myMember    = currentUser ? members.find(m => m.userId === currentUser.id) ?? null : null
@@ -32,12 +35,32 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
 
   const hasServiceInfoIssue = !!myMember?.serviceInfoIssueNote
   const hasServiceInfo      = !!myMember?.serviceInfo?.email && !hasServiceInfoIssue
-  const needsFillInfo       = !!sub && isPaymentRelevant && !hasServiceInfo
+  const needsFillInfo       = !!sub && isPaymentRelevant && !hasServiceInfo && group.status === 'pending_confirmation'
   const canLeaveGroup       = ['recruiting', 'full'].includes(group.status) && !!myMember
+  const canConfirm          = group.status === 'confirming' && !!myMember && !myMember.confirmedAt
+  const alreadyConfirmed    = group.status === 'confirming' && !!myMember?.confirmedAt
 
   function openMessages() {
     onClose()
     window.dispatchEvent(new CustomEvent('pm:open-messages', { detail: { groupId: group.id } }))
+  }
+
+  async function handleConfirmService() {
+    setConfirmLoading(true)
+    try {
+      const res = await confirmService(group.id)
+      setConfirmDialog(false)
+      if (res.released) {
+        toast('確認完成，款項已撥付給團主！', 'success')
+        onClose()
+      } else {
+        toast('已確認，等待其他成員確認中', 'success')
+      }
+    } catch (err) {
+      toast(err?.message ?? '確認失敗，請稍後再試', 'error')
+    } finally {
+      setConfirmLoading(false)
+    }
   }
 
   async function handleFillSubmit(e) {
@@ -179,20 +202,32 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
       service={serviceDef}
       plan={planDef}
       hideRecruitBar
-      headerBanner={hasServiceInfoIssue ? (
-        <div className="flex items-center justify-center bg-warning-subtle px-6 py-3 text-sm font-extrabold text-warning-text">
-          服務帳號有問題，需要修正
-        </div>
-      ) : needsFillInfo ? (
-        <div className="flex items-center justify-center bg-brand-subtle px-6 py-3 text-sm font-extrabold text-brand">
-          請填寫服務帳號以完成加入流程
-        </div>
-      ) : undefined}
+      headerBanner={
+        hasServiceInfoIssue ? (
+          <div className="flex items-center justify-center bg-warning-subtle px-6 py-3 text-sm font-extrabold text-warning-text">
+            服務帳號有問題，需要修正
+          </div>
+        ) : needsFillInfo ? (
+          <div className="flex items-center justify-center bg-brand-subtle px-6 py-3 text-sm font-extrabold text-brand">
+            請填寫服務帳號以完成加入流程
+          </div>
+        ) : canConfirm ? (
+          <div className="flex items-center justify-center bg-info-subtle px-6 py-3 text-sm font-extrabold text-info-text">
+            服務已啟用，請在 48 小時內確認是否正常
+          </div>
+        ) : alreadyConfirmed ? (
+          <div className="flex items-center justify-center bg-success-subtle px-6 py-3 text-sm font-extrabold text-success-text">
+            你已確認，等待其他成員或確認期結束
+          </div>
+        ) : undefined
+      }
       extraInfoRows={[]}
       statusBadgeOverride={group.status === 'recruiting' && !!sub ? 'member_joined' : undefined}
       pendingBadge={
         hasServiceInfoIssue ? '服務帳號需要修正' :
-        needsFillInfo     ? '請填寫服務帳號以完成加入流程' :
+        needsFillInfo       ? '請填寫服務帳號以完成加入流程' :
+        canConfirm          ? '確認期進行中，請確認服務' :
+        alreadyConfirmed    ? '已確認，等待確認期結束' :
         group.status === 'full' && !!sub ? '招募完成，等待團主啟用群組' :
         group.status === 'recruiting' && !!sub ? '已通過申請，需等待其他人加入' :
         undefined
@@ -200,11 +235,13 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
       pendingBadgeColor={
         (['recruiting', 'full'].includes(group.status) && !!sub) ? 'success' :
         hasServiceInfoIssue ? 'danger' :
+        canConfirm ? 'brand' :
+        alreadyConfirmed ? 'success' :
         undefined
       }
       bottomBar={(() => {
         const showFillBtn = needsFillInfo || hasServiceInfoIssue
-        const btnCount = 1 + (isPaymentRelevant ? 1 : 0) + (showFillBtn ? 1 : 0) + (canLeaveGroup ? 1 : 0)
+        const btnCount = 1 + (isPaymentRelevant ? 1 : 0) + (showFillBtn ? 1 : 0) + (canConfirm ? 1 : 0) + (canLeaveGroup ? 1 : 0)
         return (
           <div className={`grid grid-cols-${btnCount} gap-1 p-2`}>
             <button
@@ -219,6 +256,15 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
                 className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-brand transition-colors hover:bg-brand-subtle"
               >
                 <ClipboardEdit size={17} /> 填寫帳號
+              </button>
+            )}
+            {canConfirm && (
+              <button
+                onClick={() => setConfirmDialog(true)}
+                disabled={confirmLoading}
+                className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-success-text transition-colors hover:bg-success-subtle disabled:opacity-40"
+              >
+                <ThumbsUp size={17} /> 確認服務
               </button>
             )}
             {isPaymentRelevant && (
@@ -244,6 +290,16 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
       onSubPanelBack={() => setActivePanel(null)}
     >
     </GroupModalShell>
+
+    {confirmDialog && (
+      <CountdownConfirmDialog
+        title="確認服務正常"
+        message={`確認「${group.serviceName}」服務已正常啟用？確認後款項將立即撥付給團主，此操作無法撤回。`}
+        confirmLabel="確認服務正常"
+        onConfirm={handleConfirmService}
+        onCancel={() => setConfirmDialog(false)}
+      />
+    )}
 
     {leaveConfirm && (
       <CountdownConfirmDialog

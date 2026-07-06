@@ -24,6 +24,14 @@ export async function activateGroupApi(id) {
   return client.post(`/groups/${id}/activate`)
 }
 
+export async function confirmGroupApi(id) {
+  return client.post(`/groups/${id}/confirm`)
+}
+
+export async function cancelGroupApi(id) {
+  return client.post(`/groups/${id}/cancel`)
+}
+
 export async function deleteGroup(id) {
   return client.delete(`/groups/${id}`)
 }

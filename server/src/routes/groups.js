@@ -157,6 +157,115 @@ router.post('/:id/activate', requireAuth, async (req, res, next) => {
   } catch (err) { next(err) }
 })
 
+// POST /groups/:id/confirm — 成員確認服務正常（confirming 期間）
+router.post('/:id/confirm', requireAuth, async (req, res, next) => {
+  try {
+    const group = await prisma.group.findUnique({
+      where: { id: req.params.id },
+      include: { members: true, host: { select: { id: true } } },
+    })
+    if (!group) return res.status(404).json({ message: '群組不存在' })
+    if (group.status !== 'confirming') return res.status(400).json({ message: `群組狀態為 ${group.status}，不在確認期` })
+
+    const member = group.members.find(m => m.userId === req.user.id)
+    if (!member) return res.status(403).json({ message: '你不是此群組成員' })
+
+    const now = new Date()
+
+    // 標記此成員已確認
+    await prisma.member.update({
+      where: { id: member.id },
+      data:  { confirmedAt: now },
+    })
+
+    // 確認全員是否都已確認（含剛才更新的成員）
+    const updatedMembers = await prisma.member.findMany({ where: { groupId: req.params.id } })
+    const allConfirmed   = updatedMembers.every(m => m.id === member.id ? true : m.confirmedAt != null)
+    const deadlinePassed = group.confirmDeadline && new Date(group.confirmDeadline) <= now
+
+    if (allConfirmed || deadlinePassed) {
+      // 撥款：escrowTokens → host.tokenBalance
+      const [updated] = await prisma.$transaction([
+        prisma.group.update({
+          where: { id: req.params.id },
+          data:  { status: 'active', confirmDeadline: null },
+          include: {
+            host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, creditScore: true } },
+            service: true,
+            _count:  { select: { members: true } },
+          },
+        }),
+        prisma.user.update({
+          where: { id: group.host.id },
+          data:  { tokenBalance: { increment: group.escrowTokens } },
+        }),
+        prisma.group.update({
+          where: { id: req.params.id },
+          data:  { escrowTokens: 0 },
+        }),
+        prisma.tokenTransaction.create({
+          data: {
+            userId:        group.host.id,
+            type:          'release',
+            amount:        group.escrowTokens,
+            relatedGroupId: req.params.id,
+            note:          '確認期結束，代管款項撥付',
+          },
+        }),
+        prisma.subscription.updateMany({
+          where: { groupId: req.params.id },
+          data:  { status: 'active' },
+        }),
+      ])
+      return res.json({ group: updated, released: true })
+    }
+
+    res.json({ group: null, released: false })
+  } catch (err) { next(err) }
+})
+
+// POST /groups/:id/cancel — 解散群組（啟用前），退還所有代管給成員
+router.post('/:id/cancel', requireAuth, async (req, res, next) => {
+  try {
+    const group = await prisma.group.findUnique({
+      where:   { id: req.params.id },
+      include: { members: { include: { user: { select: { id: true } } } } },
+    })
+    if (!group) return res.status(404).json({ message: '群組不存在' })
+    if (group.hostId !== req.user.id) return res.status(403).json({ message: '僅團主可解散群組' })
+
+    const cancellable = ['recruiting', 'full', 'pending_confirmation', 'pending_activation']
+    if (!cancellable.includes(group.status)) {
+      return res.status(400).json({ message: `群組狀態為 ${group.status}，無法解散` })
+    }
+
+    // 計算每位成員的退款金額（席位費用）
+    const seatCost = group.billingCycle === 'yearly'
+      ? Math.round(group.monthlyFee * 12)
+      : Math.round(group.monthlyFee)
+
+    await prisma.$transaction([
+      prisma.group.update({ where: { id: req.params.id }, data: { status: 'cancelled', escrowTokens: 0 } }),
+      ...group.members.map(m =>
+        prisma.user.update({ where: { id: m.userId }, data: { tokenBalance: { increment: seatCost } } })
+      ),
+      ...group.members.map(m =>
+        prisma.tokenTransaction.create({
+          data: {
+            userId:        m.userId,
+            type:          'refund',
+            amount:        seatCost,
+            relatedGroupId: req.params.id,
+            note:          '群組解散，代管退款',
+          },
+        })
+      ),
+    ])
+
+    res.json({ status: 'cancelled' })
+  } catch (err) { next(err) }
+})
+
 // POST /groups/:id/lock — full → pending_confirmation
 router.post('/:id/lock', requireAuth, async (req, res, next) => {
   try {
