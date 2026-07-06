@@ -10,7 +10,8 @@ export default function AdminTab() {
   const [loading, setLoading]   = useState(false)
 
   const adjudicateGroup = useGroupStore(s => s.adjudicateGroup)
-  const groups = useGroupStore(s => s.groups.filter(g => g.status === 'disputed'))
+  const allGroups = useGroupStore(s => s.groups)
+  const groups = allGroups.filter(g => g.status === 'disputed')
 
   async function handleAdjudicate(e) {
     e.preventDefault()
