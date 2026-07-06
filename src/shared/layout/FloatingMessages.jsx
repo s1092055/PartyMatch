@@ -28,7 +28,7 @@ function getMergedNotifications(userId) {
 const NOTIFICATION_META = {
   joined:               { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-groups?view=member' },
   application_approved: { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-groups?view=member', state: { tab: 'processing' } },
-  application_rejected: { icon: AlertCircle,   iconColor: 'text-danger',     link: '/my-groups?view=member', state: { tab: 'applications' } },
+  application_rejected: { icon: AlertCircle,   iconColor: 'text-danger',     link: '/explore' },
   application_sent:     { icon: CheckCircle2,  iconColor: 'text-brand',      link: '/my-groups?view=member', state: { tab: 'processing' } },
   group_created:        { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-groups?view=host' },
   new_application:      { icon: UserPlus,      iconColor: 'text-brand',      link: '/my-groups?view=host' },
