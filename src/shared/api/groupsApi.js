@@ -32,6 +32,10 @@ export async function cancelGroupApi(id) {
   return client.post(`/groups/${id}/cancel`)
 }
 
+export async function disputeGroupApi(id, { reason, evidenceUrl }) {
+  return client.post(`/groups/${id}/dispute`, { reason, evidenceUrl })
+}
+
 export async function deleteGroup(id) {
   return client.delete(`/groups/${id}`)
 }

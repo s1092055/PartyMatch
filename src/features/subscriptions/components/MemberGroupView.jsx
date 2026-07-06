@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import {
-  CheckCircle2, LogOut, MessageCircle, Shield, Users, ClipboardEdit, ThumbsUp,
+  CheckCircle2, LogOut, MessageCircle, Shield, Users, ClipboardEdit, ThumbsUp, AlertTriangle,
 } from 'lucide-react'
 import Avatar from '../../../shared/ui/Avatar'
 import CountdownConfirmDialog from '../../../shared/ui/CountdownConfirmDialog'
@@ -19,12 +19,15 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
   const [fillLoading, setFillLoading] = useState(false)
   const [confirmLoading, setConfirmLoading] = useState(false)
   const [confirmDialog, setConfirmDialog] = useState(false)
+  const [disputeReason, setDisputeReason] = useState('')
+  const [disputeLoading, setDisputeLoading] = useState(false)
 
   const currentUser = useAuthStore(s => s.user)
   const allMembers  = useMemberStore(s => s.members)
   const subscriptions = useSubscriptionStore(s => s.subscriptions)
   const fillServiceInfo = useMemberStore(s => s.fillServiceInfo)
   const confirmService  = useGroupStore(s => s.confirmService)
+  const disputeGroup    = useGroupStore(s => s.disputeGroup)
   const members     = allMembers.filter(m => m.groupId === group.id)
   const sub         = currentUser ? (subscriptions.find(s => s.userId === currentUser.id && s.groupId === group.id) ?? null) : null
   const myMember    = currentUser ? members.find(m => m.userId === currentUser.id) ?? null : null
@@ -39,6 +42,8 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
   const canLeaveGroup       = ['recruiting', 'full'].includes(group.status) && !!myMember
   const canConfirm          = group.status === 'confirming' && !!myMember && !myMember.confirmedAt
   const alreadyConfirmed    = group.status === 'confirming' && !!myMember?.confirmedAt
+  const canDispute          = group.status === 'confirming' && !!myMember && !myMember.confirmedAt
+  const isDisputed          = group.status === 'disputed'
 
   function openMessages() {
     onClose()
@@ -63,6 +68,23 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
     }
   }
 
+  async function handleDisputeSubmit(e) {
+    e.preventDefault()
+    if (!disputeReason.trim()) return
+    setDisputeLoading(true)
+    try {
+      await disputeGroup(group.id, { reason: disputeReason.trim() })
+      setActivePanel(null)
+      setDisputeReason('')
+      toast('申訴已送出，客服將在 3 天內裁定', 'success')
+      onClose()
+    } catch (err) {
+      toast(err?.message ?? '申訴失敗，請稍後再試', 'error')
+    } finally {
+      setDisputeLoading(false)
+    }
+  }
+
   async function handleFillSubmit(e) {
     e.preventDefault()
     if (!fillEmail.trim() || !myMember) return
@@ -79,6 +101,39 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
   }
 
   function buildSubPanel() {
+    if (activePanel === 'dispute') {
+      return {
+        title: '向平台申訴',
+        icon: <AlertTriangle size={18} className="text-danger" />,
+        content: (
+          <form onSubmit={handleDisputeSubmit} className="p-5 space-y-4">
+            <div className="rounded-lg bg-warning-subtle px-3 py-2.5 text-sm text-warning-text">
+              <p className="font-semibold mb-1">申訴須知</p>
+              <p>申訴後群組進入申訴期，代管金額凍結，客服將在 3 天內裁定。請詳細說明問題。</p>
+            </div>
+            <div>
+              <label className="block text-xs text-ink-3 mb-1.5">申訴原因 <span className="text-danger">*</span></label>
+              <textarea
+                value={disputeReason}
+                onChange={e => setDisputeReason(e.target.value)}
+                placeholder="請描述服務未正常啟用的具體情況..."
+                rows={4}
+                required
+                className="w-full rounded-xl border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand resize-none"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={!disputeReason.trim() || disputeLoading}
+              className="w-full rounded-xl bg-danger py-2.5 text-sm font-bold text-white transition-colors hover:opacity-90 disabled:opacity-40 disabled:pointer-events-none"
+            >
+              {disputeLoading ? '送出中…' : '送出申訴'}
+            </button>
+          </form>
+        ),
+      }
+    }
+
     if (activePanel === 'fillInfo') {
       const existingEmail = myMember?.serviceInfo?.email ?? ''
       return {
@@ -219,6 +274,10 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
           <div className="flex items-center justify-center bg-success-subtle px-6 py-3 text-sm font-extrabold text-success-text">
             你已確認，等待其他成員或確認期結束
           </div>
+        ) : isDisputed ? (
+          <div className="flex items-center justify-center bg-danger-subtle px-6 py-3 text-sm font-extrabold text-danger-text">
+            申訴進行中，客服將在 3 天內裁定
+          </div>
         ) : undefined
       }
       extraInfoRows={[]}
@@ -228,6 +287,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
         needsFillInfo       ? '請填寫服務帳號以完成加入流程' :
         canConfirm          ? '確認期進行中，請確認服務' :
         alreadyConfirmed    ? '已確認，等待確認期結束' :
+        isDisputed          ? '申訴進行中' :
         group.status === 'full' && !!sub ? '招募完成，等待團主啟用群組' :
         group.status === 'recruiting' && !!sub ? '已通過申請，需等待其他人加入' :
         undefined
@@ -237,11 +297,12 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
         hasServiceInfoIssue ? 'danger' :
         canConfirm ? 'brand' :
         alreadyConfirmed ? 'success' :
+        isDisputed ? 'danger' :
         undefined
       }
       bottomBar={(() => {
         const showFillBtn = needsFillInfo || hasServiceInfoIssue
-        const btnCount = 1 + (isPaymentRelevant ? 1 : 0) + (showFillBtn ? 1 : 0) + (canConfirm ? 1 : 0) + (canLeaveGroup ? 1 : 0)
+        const btnCount = 1 + (isPaymentRelevant ? 1 : 0) + (showFillBtn ? 1 : 0) + (canConfirm ? 1 : 0) + (canDispute ? 1 : 0) + (canLeaveGroup ? 1 : 0)
         return (
           <div className={`grid grid-cols-${btnCount} gap-1 p-2`}>
             <button
@@ -265,6 +326,14 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
                 className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-success-text transition-colors hover:bg-success-subtle disabled:opacity-40"
               >
                 <ThumbsUp size={17} /> 確認服務
+              </button>
+            )}
+            {canDispute && (
+              <button
+                onClick={() => { setDisputeReason(''); setActivePanel('dispute') }}
+                className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-danger transition-colors hover:bg-danger-subtle"
+              >
+                <AlertTriangle size={17} /> 申訴
               </button>
             )}
             {isPaymentRelevant && (

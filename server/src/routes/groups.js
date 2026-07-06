@@ -80,6 +80,21 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
       },
     })
     if (!group) return res.status(404).json({ message: '群組不存在' })
+
+    // 惰性自動撥款：confirming 且 confirmDeadline 已到期
+    if (group.status === 'confirming' && group.confirmDeadline && new Date(group.confirmDeadline) <= new Date()) {
+      await prisma.$transaction([
+        prisma.group.update({ where: { id: group.id }, data: { status: 'active', confirmDeadline: null } }),
+        prisma.user.update({ where: { id: group.hostId }, data: { tokenBalance: { increment: group.escrowTokens } } }),
+        prisma.group.update({ where: { id: group.id }, data: { escrowTokens: 0 } }),
+        prisma.tokenTransaction.create({
+          data: { userId: group.hostId, type: 'release', amount: group.escrowTokens, relatedGroupId: group.id, note: '確認期逾期，自動撥款' },
+        }),
+        prisma.subscription.updateMany({ where: { groupId: group.id }, data: { status: 'active' } }),
+      ])
+      return res.json({ ...group, status: 'active', confirmDeadline: null, escrowTokens: 0 })
+    }
+
     res.json(group)
   } catch (err) { next(err) }
 })
@@ -221,6 +236,48 @@ router.post('/:id/confirm', requireAuth, async (req, res, next) => {
     }
 
     res.json({ group: null, released: false })
+  } catch (err) { next(err) }
+})
+
+// POST /groups/:id/dispute — 成員申訴（confirming → disputed）
+router.post('/:id/dispute', requireAuth, async (req, res, next) => {
+  try {
+    const { reason, evidenceUrl } = req.body
+    if (!reason?.trim()) return res.status(400).json({ message: '請填寫申訴原因' })
+
+    const group = await prisma.group.findUnique({
+      where: { id: req.params.id },
+      include: { members: true },
+    })
+    if (!group) return res.status(404).json({ message: '群組不存在' })
+    if (group.status !== 'confirming') return res.status(400).json({ message: `群組狀態為 ${group.status}，不在確認期` })
+
+    const member = group.members.find(m => m.userId === req.user.id)
+    if (!member) return res.status(403).json({ message: '你不是此群組成員' })
+
+    const disputeDeadline = new Date()
+    disputeDeadline.setDate(disputeDeadline.getDate() + 3)
+
+    const [updated] = await prisma.$transaction([
+      prisma.group.update({
+        where: { id: req.params.id },
+        data:  { status: 'disputed', disputeDeadline },
+        include: {
+          host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, creditScore: true } },
+          service: true,
+          _count:  { select: { members: true } },
+        },
+      }),
+      prisma.member.update({
+        where: { id: member.id },
+        data:  {
+          serviceInfoIssueNote: reason.trim(),
+          ...(evidenceUrl ? { disputeEvidenceUrl: evidenceUrl } : {}),
+        },
+      }),
+    ])
+
+    res.json(updated)
   } catch (err) { next(err) }
 })
 

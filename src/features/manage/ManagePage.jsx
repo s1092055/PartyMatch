@@ -335,7 +335,22 @@ async function handleActivate() {
 
   function handleStartRenewal() {
     if (!renewalModalGroupId) return
+    const group = getGroupById(renewalModalGroupId)
+    const groupMembers = getMembersByGroupId(renewalModalGroupId)
     startRenewalCycle(renewalModalGroupId)
+    const convId = getConvByGroupId(renewalModalGroupId)?.id
+    if (convId) sendSystemMessage(
+      convId, `新一期已開始，請重新填寫訂閱帳號資訊。`
+    ).catch(console.error)
+    groupMembers.forEach(m => {
+      insertNotification({
+        userId:  m.userId,
+        type:    'group_renewal',
+        title:   '新一期已開始',
+        message: `「${group?.serviceName}」群組開始新一期，請前往填寫最新服務帳號資訊。`,
+        meta:    { groupId: renewalModalGroupId },
+      }).catch(console.error)
+    })
     setRenewalModalGroupId(null)
     refreshGroups()
   }

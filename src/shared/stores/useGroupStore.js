@@ -7,6 +7,7 @@ import {
   activateGroupApi,
   confirmGroupApi,
   cancelGroupApi,
+  disputeGroupApi,
 } from '../api/groupsApi'
 import { normalizeGroup } from '../utils/modelNormalizers'
 import { createId } from '../utils/storage'
@@ -111,6 +112,15 @@ export const useGroupStore = create((set, get) => ({
       }))
     }
     return res
+  },
+
+  // ── 申訴（confirming → disputed）─────────────────────────────────────────────
+  disputeGroup: async (id, payload) => {
+    const updated = await disputeGroupApi(id, payload)
+    set(s => ({
+      groups: s.groups.map(g => g.id === id ? normalizeGroup({ ...g, ...updated }) : g),
+    }))
+    return updated
   },
 
   // ── 解散群組（→ cancelled，退還所有代管）──────────────────────────────────────
