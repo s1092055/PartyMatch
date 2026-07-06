@@ -3,6 +3,7 @@ import {
   readAllGroups,
   insertGroup,
   patchGroup,
+  lockGroupApi,
 } from '../api/groupsApi'
 import { normalizeGroup } from '../utils/modelNormalizers'
 import { createId } from '../utils/storage'
@@ -77,6 +78,15 @@ export const useGroupStore = create((set, get) => ({
       }),
     }))
     patchGroup(id, patch).catch(err => console.error('[groupStore] update failed:', err))
+    return updated
+  },
+
+  // ── 鎖定群組（full → pending_confirmation），後端同步設定 nextBillingDate ──────
+  lockGroup: async (id) => {
+    const updated = await lockGroupApi(id)
+    set(s => ({
+      groups: s.groups.map(g => g.id === id ? normalizeGroup({ ...g, ...updated }) : g),
+    }))
     return updated
   },
 

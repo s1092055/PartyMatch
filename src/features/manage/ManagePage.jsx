@@ -16,6 +16,7 @@ const getGroupsByHostId = (hostId) => useGroupStore.getState().getByHostId(hostI
 const updateGroup      = (id, p)   => useGroupStore.getState().update(id, p)
 const activateGroup    = (id, d)   => useGroupStore.getState().activateGroup(id, d)
 const activateGroupChat   = (id)   => useGroupStore.getState().activateGroupChat(id)
+const lockGroup           = (id)   => useGroupStore.getState().lockGroup(id)
 const confirmGroupPayments = (id)  => useGroupStore.getState().confirmGroupPayments(id)
 const startRenewalCycle = (id)     => useGroupStore.getState().startRenewalCycle(id)
 const endGroup         = (id)      => useGroupStore.getState().endGroup(id)
@@ -192,10 +193,10 @@ async function handleActivateGroup() {
     if (!group) return
     const groupMembers = getMembersByGroupId(viewGroupId)
 
-    // 先建立聊天室（後端 POST /conversations/group 已包含所有成員），再推進群組狀態
+    // 先建立聊天室（後端 POST /conversations/group 已包含所有成員），再鎖定群組狀態
     const conv = await createGroupConversation({ groupId: viewGroupId })
     const convId = conv.id
-    activateGroupChat(viewGroupId)
+    await lockGroup(viewGroupId)
 
     await sendActionMessage(convId, {
       text: `請填寫你在 ${group.serviceName} 使用的服務帳號（電子信箱），以便團主幫你設定訂閱。`,

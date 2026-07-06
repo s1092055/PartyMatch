@@ -16,6 +16,10 @@ export async function patchGroup(id, patch) {
   return client.patch(`/groups/${id}`, patch)
 }
 
+export async function lockGroupApi(id) {
+  return client.post(`/groups/${id}/lock`)
+}
+
 export async function deleteGroup(id) {
   return client.delete(`/groups/${id}`)
 }

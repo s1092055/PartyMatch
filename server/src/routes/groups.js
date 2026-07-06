@@ -133,6 +133,43 @@ router.patch('/:id', requireAuth, validate(updateGroupSchema), async (req, res, 
   } catch (err) { next(err) }
 })
 
+// POST /groups/:id/lock — full → pending_confirmation
+router.post('/:id/lock', requireAuth, async (req, res, next) => {
+  try {
+    const group = await prisma.group.findUnique({
+      where: { id: req.params.id },
+      include: { members: true },
+    })
+    if (!group) return res.status(404).json({ message: '群組不存在' })
+    if (group.hostId !== req.user.id) return res.status(403).json({ message: '僅團主可操作' })
+    if (group.status !== 'full') return res.status(400).json({ message: `群組狀態為 ${group.status}，無法鎖定（需為 full）` })
+
+    // 設定下次扣款日（從今天起算一個計費週期）
+    const nextBillingDate = new Date()
+    if (group.billingCycle === 'yearly') nextBillingDate.setFullYear(nextBillingDate.getFullYear() + 1)
+    else nextBillingDate.setMonth(nextBillingDate.getMonth() + 1)
+
+    // 更新群組狀態 + 所有成員訂閱的 nextBillingDate
+    const [updated] = await prisma.$transaction([
+      prisma.group.update({
+        where: { id: req.params.id },
+        data: { status: 'pending_confirmation' },
+        include: {
+          host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, creditScore: true } },
+          service: true,
+          _count:  { select: { members: true } },
+        },
+      }),
+      prisma.subscription.updateMany({
+        where: { groupId: req.params.id },
+        data:  { nextBillingDate },
+      }),
+    ])
+
+    res.json(updated)
+  } catch (err) { next(err) }
+})
+
 // DELETE /groups/:id
 router.delete('/:id', requireAuth, async (req, res, next) => {
   try {
