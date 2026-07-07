@@ -97,7 +97,6 @@ export default function ExplorePage() {
   }, [searchParams])
 
   const filtered = useMemo(() => applyFilters(allGroups, filters), [allGroups, filters])
-  const hasActiveFilters = filters.keyword || filters.category !== 'all' || filters.service !== 'all' || filters.maxPrice !== 'any'
 
   function handleFilterChange(patch) {
     setFilters(prev => ({ ...prev, ...patch }))
@@ -135,27 +134,11 @@ export default function ExplorePage() {
         </div>
       )}
 
-      <div className="mb-4 flex items-center justify-between">
-        <p className="text-sm font-medium text-ink-3">
-          {hasActiveFilters ? `找到 ${filtered.length} 個群組` : `共 ${filtered.length} 個群組`}
-        </p>
-        {hasActiveFilters && (
-          <button
-            onClick={() => setFilters(DEFAULT_FILTERS)}
-            className="text-sm font-bold text-brand hover:underline"
-          >
-            清除篩選
-          </button>
-        )}
-      </div>
-
       {filtered.length === 0 ? (
         <EmptyState
           icon={Compass}
           title="沒有符合條件的群組"
-          description="試著調整篩選條件，或清除所有篩選"
-          actionLabel="清除篩選"
-          onAction={() => setFilters(DEFAULT_FILTERS)}
+          description="試著調整篩選條件"
         />
       ) : (
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">

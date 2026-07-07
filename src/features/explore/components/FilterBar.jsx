@@ -7,7 +7,7 @@ export default function FilterBar({ filters, onChange }) {
         variant="grid"
         showAll
         active={filters.category}
-        onChange={val => onChange({ category: val, service: 'all' })}
+        onChange={val => onChange({ category: val === filters.category ? 'all' : val, service: 'all' })}
       />
     </div>
   )
