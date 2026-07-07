@@ -56,9 +56,6 @@ export default function AppNav() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const mobileMenuRef = useRef(null)
   const [desktopMenuOpen, setDesktopMenuOpen] = useState(false)
-  const [desktopMenuPos, setDesktopMenuPos] = useState(null)
-  const desktopMenuRef = useRef(null)
-  const desktopAvatarRef = useRef(null)
 
   useEffect(() => {
     if (!myMenuOpen) return
@@ -78,25 +75,6 @@ export default function AppNav() {
     return () => document.removeEventListener('pointerdown', handleOutside)
   }, [mobileMenuOpen])
 
-  useEffect(() => {
-    if (!desktopMenuOpen) return
-    function handleOutside(e) {
-      if (
-        desktopMenuRef.current && !desktopMenuRef.current.contains(e.target) &&
-        desktopAvatarRef.current && !desktopAvatarRef.current.contains(e.target)
-      ) setDesktopMenuOpen(false)
-    }
-    document.addEventListener('pointerdown', handleOutside)
-    return () => document.removeEventListener('pointerdown', handleOutside)
-  }, [desktopMenuOpen])
-
-  function toggleDesktopMenu() {
-    if (!desktopMenuOpen && desktopAvatarRef.current) {
-      const rect = desktopAvatarRef.current.getBoundingClientRect()
-      setDesktopMenuPos({ left: rect.right + 10, bottom: window.innerHeight - rect.bottom })
-    }
-    setDesktopMenuOpen(v => !v)
-  }
 
   const loggedIn = useAuthStore(s => s.loggedIn)
   const currentUser = useAuthStore(s => s.user)
@@ -301,60 +279,62 @@ export default function AppNav() {
         </div>
       </div>
 
-      {/* Desktop avatar dropdown — portal */}
-      {desktopMenuOpen && loggedIn && desktopMenuPos && createPortal(
-        <div
-          ref={desktopMenuRef}
-          className="fixed z-[100] w-64 overflow-hidden rounded-2xl border border-line bg-white shadow-2xl"
-          style={{ left: desktopMenuPos.left, bottom: desktopMenuPos.bottom }}
-        >
-          {/* 使用者資訊 */}
-          <div className="flex items-center gap-3 px-4 py-4">
-            <span
-              className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-base font-black text-white shadow-md"
-              style={{ background: avatarColor ?? 'linear-gradient(135deg, #cbd5e1, #64748b)' }}
-            >
-              {avatarInitial}
-              <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
-            </span>
-            <p className="min-w-0 truncate text-sm font-extrabold text-ink">{userName}</p>
-          </div>
+      {/* Desktop avatar modal — portal */}
+      {desktopMenuOpen && loggedIn && createPortal(
+        <>
+          <div
+            className="fixed inset-0 z-[99] bg-black/40 backdrop-blur-sm"
+            onClick={() => setDesktopMenuOpen(false)}
+          />
+          <div className="fixed left-1/2 top-1/2 z-[100] w-80 -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-line bg-white shadow-2xl">
+            {/* 使用者資訊 */}
+            <div className="flex items-center gap-4 px-5 py-5">
+              <span
+                className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-lg font-black text-white shadow-md"
+                style={{ background: avatarColor ?? 'linear-gradient(135deg, #cbd5e1, #64748b)' }}
+              >
+                {avatarInitial}
+                <span className="absolute bottom-0.5 right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
+              </span>
+              <p className="min-w-0 truncate text-base font-extrabold text-ink">{userName}</p>
+            </div>
 
-          {/* PM 幣餘額 */}
-          <div className="mx-3 mb-3 flex items-center gap-2 rounded-xl bg-raised px-3 py-2.5">
-            <TokenBadge className="shrink-0" />
-            <span className="flex-1 text-sm font-bold text-ink">{tokenBalance.toLocaleString()} PM</span>
-            <button
-              onClick={() => { setDesktopMenuOpen(false); setTopupOpen(true) }}
-              className="rounded-full bg-brand px-2.5 py-1 text-xs font-bold text-white transition-colors hover:bg-brand-hover active:opacity-80"
+            {/* PM 幣餘額 */}
+            <div className="mx-4 mb-4 flex items-center gap-2 rounded-xl bg-raised px-4 py-3">
+              <TokenBadge className="shrink-0" />
+              <span className="flex-1 text-sm font-bold text-ink">{tokenBalance.toLocaleString()} PM</span>
+              <button
+                onClick={() => { setDesktopMenuOpen(false); setTopupOpen(true) }}
+                className="rounded-full bg-brand px-3 py-1 text-xs font-bold text-white transition-colors hover:bg-brand-hover active:opacity-80"
+              >
+                加值
+              </button>
+            </div>
+
+            <div className="border-t border-line-subtle" />
+
+            {/* 帳號設定 */}
+            <a
+              href="/account"
+              onClick={() => setDesktopMenuOpen(false)}
+              className="flex w-full items-center gap-3 px-5 py-4 text-sm font-bold text-ink transition-colors hover:bg-raised"
             >
-              加值
+              <Settings size={17} strokeWidth={2} className="shrink-0 text-ink-3" />
+              前往帳號設定
+            </a>
+
+            <div className="border-t border-line-subtle" />
+
+            {/* 登出 */}
+            <button
+              onClick={() => { setDesktopMenuOpen(false); useAuthStore.getState().logout(); navigate('/login', { replace: true }) }}
+              className="flex w-full items-center gap-3 px-5 py-4 text-sm font-bold text-danger transition-colors hover:bg-danger-subtle"
+            >
+              <LogOut size={17} strokeWidth={2} className="shrink-0" />
+              登出
             </button>
           </div>
-
-          <div className="border-t border-line-subtle" />
-
-          {/* 帳號設定 */}
-          <a
-            href="/account"
-            onClick={() => setDesktopMenuOpen(false)}
-            className="flex w-full items-center gap-3 px-4 py-3.5 text-sm font-bold text-ink transition-colors hover:bg-raised"
-          >
-            <Settings size={17} strokeWidth={2} className="shrink-0 text-ink-3" />
-            前往帳號設定
-          </a>
-
-          <div className="border-t border-line-subtle" />
-
-          {/* 登出 */}
-          <button
-            onClick={() => { setDesktopMenuOpen(false); useAuthStore.getState().logout(); navigate('/login', { replace: true }) }}
-            className="flex w-full items-center gap-3 px-4 py-3.5 text-sm font-bold text-danger transition-colors hover:bg-danger-subtle"
-          >
-            <LogOut size={17} strokeWidth={2} className="shrink-0" />
-            登出
-          </button>
-        </div>,
+        </>,
         document.body
       )}
 
@@ -383,8 +363,7 @@ export default function AppNav() {
         <div className="px-2 pb-4">
           {loggedIn ? (
             <button
-              ref={desktopAvatarRef}
-              onClick={toggleDesktopMenu}
+              onClick={() => setDesktopMenuOpen(v => !v)}
               aria-label="個人選單"
               aria-expanded={desktopMenuOpen}
               className={`flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left transition-all hover:bg-raised ${desktopMenuOpen ? 'bg-raised' : ''}`}
