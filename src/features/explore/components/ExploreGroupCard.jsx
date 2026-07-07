@@ -8,6 +8,7 @@ import {
 import Badge from '../../../shared/ui/Badge'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import TokenAmount from '../../../shared/ui/TokenAmount'
+import ProgressBar from '../../../shared/ui/ProgressBar'
 import { useFavoriteStore } from '../../../shared/stores/useFavoriteStore'
 import { useAuthStore } from '../../../shared/stores/useAuthStore'
 
@@ -161,19 +162,7 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
                 <span className="text-ink-4"> / {group.totalSeats}</span>
               </p>
             </div>
-            <div
-              role="progressbar"
-              aria-valuenow={group.usedSeats}
-              aria-valuemin={0}
-              aria-valuemax={group.totalSeats}
-              aria-label="名額使用率"
-              className="mt-1.5 h-2 overflow-hidden rounded-full bg-line"
-            >
-              <div
-                className="h-full rounded-full bg-success transition-all"
-                style={{ width: `${usedRatio * 100}%` }}
-              />
-            </div>
+            <ProgressBar value={group.usedSeats} max={group.totalSeats} label="名額使用率" className="mt-1.5" />
           </>
         )}
       </div>

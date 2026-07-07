@@ -89,11 +89,10 @@ export default function ManagePage({ embedded = false }) {
   const location = useLocation()
   const activeUser = useAuthStore(s => s.user)
 
-  // 訂閱 store 切片，群組/申請/成員/訂閱更新時觸發 manageData 重新載入
+  // 訂閱 store 切片，群組/申請/成員更新時觸發 manageData 重新載入
   const groupsState        = useGroupStore(s => s.groups)
   const applicationsState  = useApplicationStore(s => s.applications)
   const membersState       = useMemberStore(s => s.members)
-  const subscriptionsState = useSubscriptionStore(s => s.subscriptions)
 
   const [manageData, setManageData] = useState(() => loadManageData(activeUser))
   const [errors, setErrors] = useState({})
@@ -135,7 +134,7 @@ export default function ManagePage({ embedded = false }) {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (activeUser) setManageData(loadManageData(activeUser))
-  }, [activeUser, groupsState, applicationsState, membersState, subscriptionsState])
+  }, [activeUser, groupsState, applicationsState, membersState])
 
 
   const { hostedGroups, applications, members, seatMap } = manageData

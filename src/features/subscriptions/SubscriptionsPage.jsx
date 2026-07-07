@@ -110,17 +110,20 @@ export default function SubscriptionsPage({ embedded = false }) {
     return () => window.removeEventListener('pm:set-sub-tab', onSetTab)
   }, [])
 
-  const pendingApplications = activeUserId
-    ? applicationsState.filter(a => (a.applicantId ?? a.userId) === activeUserId && a.status === 'pending')
-    : []
+  const pendingApplications = useMemo(
+    () => activeUserId
+      ? applicationsState.filter(a => (a.applicantId ?? a.userId) === activeUserId && a.status === 'pending')
+      : [],
+    [activeUserId, applicationsState],
+  )
 
-  const filterCounts = {
+  const filterCounts = useMemo(() => ({
     all:        subs.length + pendingApplications.length,
     processing: filterSubs(subs, 'processing').length + pendingApplications.length,
     active:     filterSubs(subs, 'active').length,
     upcoming:   filterSubs(subs, 'upcoming').length,
     ended:      filterSubs(subs, 'ended').length,
-  }
+  }), [subs, pendingApplications])
 
   function handleLeaveGroup() {
     if (!viewGroupId || !activeUser) return

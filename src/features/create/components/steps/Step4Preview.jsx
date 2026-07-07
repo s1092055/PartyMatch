@@ -1,14 +1,11 @@
 import { CheckCircle2, ListChecks } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { getServiceById } from '../../../../shared/utils/serviceUtils'
+import { toISODate } from '../../../../shared/utils/date'
 import { useAuthStore } from '../../../../shared/stores/useAuthStore'
 import ExploreGroupCard from '../../../explore/components/ExploreGroupCard'
 import TokenAmount from '../../../../shared/ui/TokenAmount'
 
-function todayLabel() {
-  const d = new Date()
-  return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`
-}
 
 function Row({ label, value }) {
   return (
@@ -23,7 +20,7 @@ export default function Step4Preview({ form, agreedToTerms, onAgreeChange }) {
   const service = getServiceById(form.serviceId)
   const user = useAuthStore(s => s.user)
   const activeUser = user ? useAuthStore.getState().getProfile() : null
-  const today = todayLabel()
+  const today = toISODate().replace(/-/g, '/')
 
   const group = {
     id: '__preview__',

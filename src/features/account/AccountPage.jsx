@@ -84,7 +84,7 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="px-2 md:px-4 lg:px-8 lg:px-16">
+    <div className="px-2 md:px-4 lg:px-16">
       <ProfileHeaderCard user={user} activeSubs={activeSubs} totalSubs={allSubs.length} />
 
       {/* 桌面版：左右 sidebar 佈局 */}

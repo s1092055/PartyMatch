@@ -51,6 +51,13 @@ export function computeNextBillingDate(day, baseDate = new Date()) {
   return toISODate(candidate)
 }
 
+export function advanceByCycle(date, billingCycle) {
+  const d = new Date(date)
+  if (billingCycle === 'yearly') d.setFullYear(d.getFullYear() + 1)
+  else d.setMonth(d.getMonth() + 1)
+  return d
+}
+
 function extractTime(dateLike) {
   const d = new Date(dateLike)
   if (Number.isNaN(d.getTime())) return ''

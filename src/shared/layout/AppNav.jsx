@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { Bell, Compass, Heart, LayoutGrid, Lock, LogIn, LogOut, MessageSquare, PlusCircle, Search, Settings, UserCircle2, Zap } from 'lucide-react'
 import { toast } from '../utils/toast'
+import { useClickOutside } from '../utils/hooks'
 import logoUrl from '../../assets/Logo.svg'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useNotificationStore } from '../stores/useNotificationStore'
@@ -57,23 +58,8 @@ export default function AppNav() {
   const mobileMenuRef = useRef(null)
   const [desktopMenuOpen, setDesktopMenuOpen] = useState(false)
 
-  useEffect(() => {
-    if (!myMenuOpen) return
-    function handleOutside(e) {
-      if (myMenuRef.current && !myMenuRef.current.contains(e.target)) setMyMenuOpen(false)
-    }
-    document.addEventListener('pointerdown', handleOutside)
-    return () => document.removeEventListener('pointerdown', handleOutside)
-  }, [myMenuOpen])
-
-  useEffect(() => {
-    if (!mobileMenuOpen) return
-    function handleOutside(e) {
-      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target)) setMobileMenuOpen(false)
-    }
-    document.addEventListener('pointerdown', handleOutside)
-    return () => document.removeEventListener('pointerdown', handleOutside)
-  }, [mobileMenuOpen])
+  useClickOutside(myMenuOpen, [myMenuRef], () => setMyMenuOpen(false))
+  useClickOutside(mobileMenuOpen, [mobileMenuRef], () => setMobileMenuOpen(false))
 
   useEffect(() => {
     setDesktopMenuOpen(false)
@@ -192,23 +178,10 @@ export default function AppNav() {
       )
     }
 
-    if (item.type === 'create') {
+    if (item.type === 'create' || item.type === 'match') {
+      const onClick = item.type === 'create' ? openCreate : openMatch
       return (
-        <button key="create" onClick={openCreate} aria-label={item.label}
-          className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand hover:text-white active:scale-[0.96]">
-          <span className="grid h-9 w-9 shrink-0 place-items-center">
-            <item.icon size={22} strokeWidth={2.1} />
-          </span>
-          <span className="whitespace-nowrap font-bold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
-            {item.label}
-          </span>
-        </button>
-      )
-    }
-
-    if (item.type === 'match') {
-      return (
-        <button key="match" onClick={openMatch} aria-label={item.label}
+        <button key={item.type} onClick={onClick} aria-label={item.label}
           className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand hover:text-white active:scale-[0.96]">
           <span className="grid h-9 w-9 shrink-0 place-items-center">
             <item.icon size={22} strokeWidth={2.1} />

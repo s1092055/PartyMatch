@@ -32,10 +32,10 @@ export function useClickOutside(enabled, refs, onClose) {
 
   useEffect(() => {
     if (!enabled) return
-    function handleMouseDown(e) {
+    function handlePointerDown(e) {
       if (refsRef.current.every(ref => !ref.current?.contains(e.target))) onCloseRef.current()
     }
-    document.addEventListener('mousedown', handleMouseDown)
-    return () => document.removeEventListener('mousedown', handleMouseDown)
+    document.addEventListener('pointerdown', handlePointerDown)
+    return () => document.removeEventListener('pointerdown', handlePointerDown)
   }, [enabled])
 }

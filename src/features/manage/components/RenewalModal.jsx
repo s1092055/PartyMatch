@@ -2,19 +2,14 @@ import { Calendar, RefreshCw, XCircle } from 'lucide-react'
 import Modal from '../../../shared/ui/Modal'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import Badge from '../../../shared/ui/Badge'
-import { daysUntil } from '../../../shared/utils/date'
+import { advanceByCycle, daysUntil, toISODate } from '../../../shared/utils/date'
 
 export default function RenewalModal({ isOpen, onClose, group, onStartRenewal, onEndGroup }) {
   if (!group) return null
 
   const days = daysUntil(group.nextBillingDate)
   const isOverdue = days < 0
-  const nextCycleDate = (() => {
-    const d = new Date(group.nextBillingDate)
-    if (group.billingCycle === 'yearly') d.setFullYear(d.getFullYear() + 1)
-    else d.setMonth(d.getMonth() + 1)
-    return d.toISOString().slice(0, 10)
-  })()
+  const nextCycleDate = toISODate(advanceByCycle(group.nextBillingDate, group.billingCycle))
 
   return (
     <Modal

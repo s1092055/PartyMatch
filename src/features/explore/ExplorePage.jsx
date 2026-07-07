@@ -1,4 +1,4 @@
-import { startTransition, useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowRight, Compass, PlusCircle, Search, Sparkles, X, Zap } from 'lucide-react'
 import { useGroupStore } from '../../shared/stores/useGroupStore'
@@ -11,16 +11,7 @@ import PageHeader from '../../shared/layout/PageHeader'
 import RevealSection from '../../shared/ui/RevealSection'
 import FilterBar from './components/FilterBar'
 import ExploreGroupCard from './components/ExploreGroupCard'
-
-const DEFAULT_FILTERS = {
-  keyword:  '',
-  category: 'all',
-  service:  'all',
-  maxPrice: 'any',
-  sortBy:   'recommended',
-}
-
-function calcHostScore(g) { return g.hostRating / 100 }
+import { DEFAULT_FILTERS } from './exploreConstants'
 
 function applyFilters(groups, { keyword, category, service, maxPrice, sortBy }) {
   let result = groups.filter(g => g.status === 'recruiting' && g.openSeats > 0)
@@ -43,7 +34,7 @@ function applyFilters(groups, { keyword, category, service, maxPrice, sortBy }) 
     case 'rating':    result.sort((a, b) => b.hostRating - a.hostRating); break
     case 'price_asc': result.sort((a, b) => a.pricePerSeat - b.pricePerSeat); break
     case 'seats':     result.sort((a, b) => a.openSeats - b.openSeats); break
-    default:          result.sort((a, b) => calcHostScore(b) - calcHostScore(a))
+    default:          result.sort((a, b) => b.hostRating - a.hostRating)
   }
 
   return result
@@ -51,14 +42,14 @@ function applyFilters(groups, { keyword, category, service, maxPrice, sortBy }) 
 
 export default function ExplorePage() {
   const [searchParams] = useSearchParams()
-  const [filters, setFilters] = useState(() => ({
+  const navigate = useNavigate()
+  const filters = useMemo(() => ({
     keyword:  searchParams.get('q') ?? '',
     category: searchParams.get('category') ?? 'all',
     service:  searchParams.get('service') ?? 'all',
     maxPrice: searchParams.get('maxPrice') ?? 'any',
     sortBy:   searchParams.get('sortBy') ?? 'recommended',
-  }))
-  const navigate = useNavigate()
+  }), [searchParams])
   const activeUserId = useAuthStore(s => s.user?.id)
   const groups = useGroupStore(s => s.groups)
   const applications = useApplicationStore(s => s.applications)
@@ -82,25 +73,10 @@ export default function ExplorePage() {
     return { appliedGroupIds: applied, memberGroupIds: memberIds }
   }, [activeUserId, applications, members])
 
-  useEffect(() => {
-    const q        = searchParams.get('q') ?? ''
-    const category = searchParams.get('category') ?? 'all'
-    const service  = searchParams.get('service') ?? 'all'
-    const maxPrice = searchParams.get('maxPrice') ?? 'any'
-    const sortBy   = searchParams.get('sortBy') ?? 'recommended'
-    startTransition(() => {
-      setFilters(prev => {
-        if (prev.keyword === q && prev.category === category && prev.service === service && prev.maxPrice === maxPrice && prev.sortBy === sortBy) return prev
-        return { keyword: q, category, service, maxPrice, sortBy }
-      })
-    })
-  }, [searchParams])
-
   const filtered = useMemo(() => applyFilters(allGroups, filters), [allGroups, filters])
 
   function handleFilterChange(patch) {
     const next = { ...filters, ...patch }
-    setFilters(next)
     const params = new URLSearchParams()
     if (next.keyword) params.set('q', next.keyword)
     if (next.category !== 'all') params.set('category', next.category)
@@ -132,7 +108,7 @@ export default function ExplorePage() {
           <span className="flex items-center gap-1.5 rounded-full bg-brand-subtle px-3 py-1 text-xs font-bold text-brand">
             {filters.keyword}
             <button
-              onClick={() => setFilters(prev => ({ ...prev, keyword: '' }))}
+              onClick={() => handleFilterChange({ keyword: '' })}
               aria-label="清除搜尋關鍵字"
               className="grid h-3.5 w-3.5 place-items-center rounded-full bg-brand/20 transition-colors hover:bg-brand/40"
             >
