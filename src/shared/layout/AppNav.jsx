@@ -449,51 +449,51 @@ export default function AppNav() {
         {mobileMenuOpen && loggedIn && (
           <div className="absolute right-0 top-full mt-2 w-64 overflow-hidden rounded-2xl border border-line bg-white shadow-2xl">
             {/* 使用者資訊 */}
-            <div className="flex items-center gap-3 px-4 py-4">
+            <div className="flex flex-col items-center gap-3 px-6 pt-6 pb-4">
               <span
-                className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-base font-black text-white shadow-md"
+                className="relative flex h-14 w-14 items-center justify-center rounded-full text-lg font-black text-white shadow-md"
                 style={{ background: avatarColor ?? 'linear-gradient(135deg, #cbd5e1, #64748b)' }}
               >
                 {avatarInitial}
-                <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
+                <span className="absolute bottom-0.5 right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-500" />
               </span>
-              <p className="min-w-0 truncate text-sm font-extrabold text-ink">{userName}</p>
+              <p className="text-sm font-extrabold text-ink">{userName}</p>
             </div>
 
             {/* PM 幣餘額 */}
-            <div className="mx-3 mb-3 flex items-center gap-2 rounded-xl bg-raised px-3 py-2.5">
-              <TokenBadge className="shrink-0" />
-              <span className="flex-1 text-sm font-bold text-ink">{tokenBalance.toLocaleString()} PM</span>
-              <button
-                onClick={() => { setMobileMenuOpen(false); setTopupOpen(true) }}
-                className="rounded-full bg-brand px-2.5 py-1 text-xs font-bold text-white transition-colors hover:bg-brand-hover active:opacity-80"
-              >
-                加值
-              </button>
+            <div className="mb-4 flex justify-center">
+              <div className="inline-flex items-center gap-2 rounded-xl bg-raised px-4 py-2.5">
+                <TokenBadge className="shrink-0" />
+                <span className="text-sm font-bold text-ink">{tokenBalance.toLocaleString()} PM</span>
+                <button
+                  onClick={() => { setMobileMenuOpen(false); setTopupOpen(true) }}
+                  className="rounded-full bg-brand px-2.5 py-1 text-xs font-bold text-white transition-colors hover:bg-brand-hover active:opacity-80"
+                >
+                  加值
+                </button>
+              </div>
             </div>
 
             <div className="border-t border-line-subtle" />
 
-            {/* 帳號設定 */}
-            <a
-              href="/account"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex w-full items-center gap-3 px-4 py-3.5 text-sm font-bold text-ink transition-colors hover:bg-raised"
-            >
-              <Settings size={17} strokeWidth={2} className="shrink-0 text-ink-3" />
-              前往帳號設定
-            </a>
-
-            <div className="border-t border-line-subtle" />
-
-            {/* 登出 */}
-            <button
-              onClick={() => { setMobileMenuOpen(false); useAuthStore.getState().logout(); navigate('/login', { replace: true }) }}
-              className="flex w-full items-center gap-3 px-4 py-3.5 text-sm font-bold text-danger transition-colors hover:bg-danger-subtle"
-            >
-              <LogOut size={17} strokeWidth={2} className="shrink-0" />
-              登出
-            </button>
+            {/* 帳號設定 + 登出 */}
+            <div className="flex divide-x divide-line-subtle">
+              <a
+                href="/account"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex flex-1 items-center justify-center gap-2 py-4 text-sm font-bold text-ink transition-colors hover:bg-raised"
+              >
+                <Settings size={16} strokeWidth={2} className="shrink-0 text-ink-3" />
+                帳號設定
+              </a>
+              <button
+                onClick={() => { setMobileMenuOpen(false); useAuthStore.getState().logout(); navigate('/login', { replace: true }) }}
+                className="flex flex-1 items-center justify-center gap-2 py-4 text-sm font-bold text-danger transition-colors hover:bg-danger-subtle"
+              >
+                <LogOut size={16} strokeWidth={2} className="shrink-0" />
+                登出
+              </button>
+            </div>
           </div>
         )}
       </div>
