@@ -143,7 +143,10 @@ export default function MobileSearch() {
       >
         {/* Header */}
         <div className="flex shrink-0 items-center justify-between border-b border-line px-5 py-4">
-          <h2 className="text-lg font-extrabold text-ink">搜尋</h2>
+          <div className="flex items-center gap-2">
+            <Search size={18} className="text-brand" />
+            <h2 className="text-lg font-extrabold text-ink">搜尋</h2>
+          </div>
           <button
             onClick={() => setIsOpen(false)}
             className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink active:scale-100 active:opacity-70"
