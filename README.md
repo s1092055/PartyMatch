@@ -117,6 +117,10 @@ recruiting → full → pending_confirmation → pending_activation → active �
 - **桌機版**：左側 floating sidebar，收合為 64px icon bar，hover 展開至 224px 顯示文字標籤；右上角為通知、訊息兩個獨立圓形按鈕（垂直排列，`hover:-translate-y-0.5 active:scale-[0.96]`）；sidebar 底部頭像點擊開啟置中 Modal（帳號資訊、PM 幣餘額含加值、帳號設定、登出）。
 - **手機版**：頂部 header + 底部 Dock；頂部右側以頭像取代漢堡選單，點擊展開 dropdown，樣式與桌機 modal 一致（頭像+名稱置中、PM 幣 inline、帳號設定與登出左右並排）；未登入時顯示 UserCircle2 icon 點擊導向登入頁。
 
+### 探索篩選與搜尋
+
+探索頁以 **URL query params 為唯一狀態來源**：`ExplorePage` 直接從 `useSearchParams()` 衍生篩選物件（無獨立 `filters` state），`handleFilterChange` 呼叫 `navigate(..., { replace: true })` 更新 URL；`MobileSearch` 開啟時讀取目前 URL 預填篩選，送出後同樣導向帶 params 的 `/explore`。兩個元件共用 `src/features/explore/exploreConstants.js` 的篩選預設值與選項常數。
+
 ### 跨元件通訊
 
 全域 Modal 透過 `window.dispatchEvent` 以 `pm:open-*` 事件驅動，避免 React props 層層傳遞，也解決 `location.state` 在同頁面不可靠的問題。成員異動事件（退出、被移除）透過 `pm:refresh-member-stores` 事件通知 App.jsx 同步所有相關 Store。
@@ -162,7 +166,7 @@ recruiting → full → pending_confirmation → pending_activation → active �
 | 快取 | Redis |
 | 認證 | JWT（accessToken + refreshToken） |
 | 圖片上傳 | Imgbb API |
-| Architecture | Feature-based、Store + API 雙層分離、事件驅動跨元件通訊 |
+| Architecture | Feature-based、Store + API 雙層分離、事件驅動跨元件通訊、URL 驅動篩選狀態 |
 
 ---
 
