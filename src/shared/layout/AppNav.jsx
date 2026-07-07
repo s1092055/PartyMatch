@@ -301,39 +301,39 @@ export default function AppNav() {
               </div>
 
               {/* PM 幣餘額 */}
-              <div className="mx-5 mb-5 flex items-center gap-2 rounded-xl bg-raised px-4 py-3">
-                <TokenBadge className="shrink-0" />
-                <span className="flex-1 text-sm font-bold text-ink">{tokenBalance.toLocaleString()} PM</span>
-                <button
-                  onClick={() => { setDesktopMenuOpen(false); setTopupOpen(true) }}
-                  className="rounded-full bg-brand px-3 py-1 text-xs font-bold text-white transition-colors hover:bg-brand-hover active:opacity-80"
-                >
-                  加值
-                </button>
+              <div className="mb-5 flex justify-center">
+                <div className="inline-flex items-center gap-2 rounded-xl bg-raised px-4 py-3">
+                  <TokenBadge className="shrink-0" />
+                  <span className="text-sm font-bold text-ink">{tokenBalance.toLocaleString()} PM</span>
+                  <button
+                    onClick={() => { setDesktopMenuOpen(false); setTopupOpen(true) }}
+                    className="rounded-full bg-brand px-3 py-1 text-xs font-bold text-white transition-colors hover:bg-brand-hover active:opacity-80"
+                  >
+                    加值
+                  </button>
+                </div>
               </div>
 
               <div className="border-t border-line-subtle" />
 
-              {/* 帳號設定 */}
-              <a
-                href="/account"
-                onClick={() => setDesktopMenuOpen(false)}
-                className="flex w-full items-center justify-center gap-2 px-6 py-4 text-sm font-bold text-ink transition-colors hover:bg-raised"
-              >
-                <Settings size={16} strokeWidth={2} className="shrink-0 text-ink-3" />
-                前往帳號設定
-              </a>
-
-              <div className="border-t border-line-subtle" />
-
-              {/* 登出 */}
-              <button
-                onClick={() => { setDesktopMenuOpen(false); useAuthStore.getState().logout(); navigate('/login', { replace: true }) }}
-                className="flex w-full items-center justify-center gap-2 px-6 py-4 text-sm font-bold text-danger transition-colors hover:bg-danger-subtle"
-              >
-                <LogOut size={16} strokeWidth={2} className="shrink-0" />
-                登出
-              </button>
+              {/* 帳號設定 + 登出 */}
+              <div className="flex divide-x divide-line-subtle">
+                <a
+                  href="/account"
+                  onClick={() => setDesktopMenuOpen(false)}
+                  className="flex flex-1 items-center justify-center gap-2 py-4 text-sm font-bold text-ink transition-colors hover:bg-raised"
+                >
+                  <Settings size={16} strokeWidth={2} className="shrink-0 text-ink-3" />
+                  帳號設定
+                </a>
+                <button
+                  onClick={() => { setDesktopMenuOpen(false); useAuthStore.getState().logout(); navigate('/login', { replace: true }) }}
+                  className="flex flex-1 items-center justify-center gap-2 py-4 text-sm font-bold text-danger transition-colors hover:bg-danger-subtle"
+                >
+                  <LogOut size={16} strokeWidth={2} className="shrink-0" />
+                  登出
+                </button>
+              </div>
             </div>
           </div>
         </>,
