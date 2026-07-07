@@ -453,10 +453,11 @@ useEffect(() => {
           {/* 探索 */}
           <a
             href="/explore"
-            className={`flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold transition-colors ${pathname === '/explore' ? 'text-brand' : 'text-ink-3'}`}
+            className={`relative flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold transition-colors ${pathname === '/explore' ? 'text-brand' : 'text-ink-3'}`}
           >
             <Compass size={22} strokeWidth={2.1} />
             探索
+            <span className={`absolute bottom-1.5 h-1 w-1 rounded-full bg-brand transition-opacity ${pathname === '/explore' ? 'opacity-100' : 'opacity-0'}`} />
           </a>
 
           {/* 快速配對 */}
@@ -491,6 +492,7 @@ useEffect(() => {
 
           {/* 我的 — dropdown */}
           <div ref={myMenuRef} className="relative flex flex-1 flex-col items-center justify-center">
+            <span className={`absolute bottom-1.5 h-1 w-1 rounded-full bg-brand transition-opacity ${(pathname.startsWith('/my-groups') || pathname === '/favorites') ? 'opacity-100' : 'opacity-0'}`} />
             {/* 向上展開 dropdown */}
             {myMenuOpen && loggedIn && (
               <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 flex flex-row gap-1 rounded-2xl border border-white/40 bg-slate-100/95 p-1.5 shadow-popover backdrop-blur-md">
