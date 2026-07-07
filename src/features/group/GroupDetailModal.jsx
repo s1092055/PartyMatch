@@ -94,6 +94,7 @@ export default function GroupDetailModal() {
   const [leaveConfirm, setLeaveConfirm]         = useState(false)
   const [withdrawConfirm, setWithdrawConfirm]   = useState(false)
   const [withdrawing, setWithdrawing]           = useState(false)
+  const [applying, setApplying]                 = useState(false)
 
   const isOpen       = !!groupId
   const activeUser   = useAuthStore(s => s.user)
@@ -177,7 +178,8 @@ export default function GroupDetailModal() {
   }
 
   async function handleApply() {
-    if (!applyAgreed) return
+    if (!applyAgreed || applying) return
+    setApplying(true)
     try {
       await useApplicationStore.getState().create({
         groupId: group.id,
@@ -199,6 +201,8 @@ export default function GroupDetailModal() {
       } else {
         toast(msg, 'error')
       }
+    } finally {
+      setApplying(false)
     }
   }
 
@@ -351,7 +355,7 @@ export default function GroupDetailModal() {
               </label>
               <div className="flex gap-3 pt-1">
                 <Button variant="ghost" size="md" className="flex-1 border border-line" onClick={resetApply}>取消</Button>
-                <Button variant="primary" size="md" className="flex-1" disabled={!applyAgreed} onClick={handleApply}>送出申請</Button>
+                <Button variant="primary" size="md" className="flex-1" disabled={!applyAgreed} loading={applying} onClick={handleApply}>送出申請</Button>
               </div>
             </div>
           </div>

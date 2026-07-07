@@ -121,8 +121,8 @@ export default function RegisterPage() {
 
         <AuthError message={error} />
 
-        <Button type="submit" size="lg" className="h-[3.75rem] w-full text-lg" disabled={!canSubmit}>
-          {loading ? '註冊中…' : '註冊'}
+        <Button type="submit" size="lg" className="h-[3.75rem] w-full text-lg" disabled={!!validationError} loading={loading}>
+          註冊
         </Button>
       </form>
 
@@ -133,7 +133,7 @@ export default function RegisterPage() {
         variant="ghost"
         size="lg"
         className="h-[3.5rem] w-full border border-line bg-surface text-base text-ink hover:bg-raised"
-        disabled={loading}
+        loading={loading}
         onClick={handleGoogleLogin}
       >
         <GoogleMark />

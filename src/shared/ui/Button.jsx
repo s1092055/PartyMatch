@@ -1,4 +1,4 @@
-const BASE = 'inline-flex items-center justify-center gap-2 font-bold rounded-inner focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:pointer-events-none'
+const BASE = 'inline-flex items-center justify-center gap-2 font-bold rounded-inner cursor-pointer transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed'
 
 const VARIANTS = {
   primary:   'bg-brand text-white hover:bg-brand-hover focus:ring-brand shadow-button hover:shadow-card-hover',
@@ -15,10 +15,12 @@ const SIZES = {
   lg: 'text-base px-6 h-12',
 }
 
-export default function Button({ variant = 'primary', size = 'md', className = '', children, ...props }) {
+export default function Button({ variant = 'primary', size = 'md', loading = false, className = '', children, ...props }) {
   return (
-    <button className={`${BASE} ${VARIANTS[variant]} ${SIZES[size]} ${className}`} {...props}>
-      {children}
+    <button disabled={loading || props.disabled} className={`${BASE} ${VARIANTS[variant]} ${SIZES[size]} ${className}`} {...props}>
+      {loading
+        ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+        : children}
     </button>
   )
 }

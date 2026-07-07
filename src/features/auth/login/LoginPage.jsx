@@ -85,8 +85,8 @@ export default function LoginPage() {
 
         <AuthError message={error} />
 
-        <Button type="submit" size="lg" className="h-[3.75rem] w-full text-lg" disabled={!canSubmit}>
-          {loading ? '登入中…' : '登入'}
+        <Button type="submit" size="lg" className="h-[3.75rem] w-full text-lg" disabled={!email.trim() || !password.trim()} loading={loading}>
+          登入
         </Button>
       </form>
 
@@ -97,7 +97,7 @@ export default function LoginPage() {
         variant="ghost"
         size="lg"
         className="h-[3.5rem] w-full border border-line bg-surface text-base text-ink hover:bg-raised"
-        disabled={loading}
+        loading={loading}
         onClick={handleGoogleLogin}
       >
         <GoogleMark />

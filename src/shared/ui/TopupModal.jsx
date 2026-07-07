@@ -75,10 +75,11 @@ export default function TopupModal({ isOpen, onClose }) {
             variant="primary"
             size="md"
             className="flex-1"
-            disabled={!selected || loading}
+            disabled={!selected}
+            loading={loading}
             onClick={handleTopup}
           >
-            {loading ? '處理中…' : selected ? `儲值 ${selected.toLocaleString()} PM` : '請選擇金額'}
+            {selected ? `儲值 ${selected.toLocaleString()} PM` : '請選擇金額'}
           </Button>
         </div>
 

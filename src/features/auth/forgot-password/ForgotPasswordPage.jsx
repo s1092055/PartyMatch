@@ -44,8 +44,8 @@ export default function ForgotPasswordPage() {
           </div>
         )}
 
-        <Button type="submit" size="lg" className="h-[3.75rem] w-full text-lg" disabled={!email.trim() || loading}>
-          {loading ? '寄送中…' : '送出重設連結'}
+        <Button type="submit" size="lg" className="h-[3.75rem] w-full text-lg" disabled={!email.trim()} loading={loading}>
+          送出重設連結
         </Button>
       </form>
 
