@@ -34,7 +34,7 @@ PartyMatch 的設計目標是：在一個平台上完整處理**媒合 → 申�
 
 | 功能 | 說明 |
 |------|------|
-| 探索群組 | 分類、服務、價格篩選；卡片點擊開啟詳情 Modal |
+| 探索群組 | 分類 pill 篩選（再點清除）；搜尋 Modal 含服務、價格、排序篩選；卡片點擊開啟詳情 Modal |
 | 快速配對 | 輸入服務、方案、預算，系統推薦最符合的群組 |
 | 群組詳情 | 查看方案、名額、規則、申請條件 |
 
@@ -111,6 +111,11 @@ recruiting → full → pending_confirmation → pending_activation → active �
 ### 成員異動規則
 
 `recruiting` / `full` 狀態下，成員可自行退出、團主可移除成員：後端刪除 member 記錄、將 application 標為 `left` / `removed`、subscription 一併刪除，名額釋出（`full` 退回 `recruiting`）；被移除或自行退出的申請狀態允許再次申請同一群組。進入 `pending_confirmation` 後成員名單不可再變動，前後端均設有狀態守衛。
+
+### 導覽設計
+
+- **桌機版**：左側 floating sidebar，收合為 64px icon bar，hover 展開至 224px 顯示文字標籤；右上角僅保留通知與訊息按鈕；點擊 sidebar 底部頭像開啟置中 Modal，顯示帳號資訊、PM 幣餘額（附加值）、帳號設定、登出。
+- **手機版**：頂部 header + 底部 Dock；頂部右側以頭像取代漢堡選單，點擊展開 dropdown 顯示相同的帳號操作；未登入時顯示 UserCircle2 icon 引導登入。
 
 ### 跨元件通訊
 
