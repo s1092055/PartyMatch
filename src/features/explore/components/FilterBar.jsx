@@ -1,48 +1,14 @@
-import { useMemo } from 'react'
-import { listServiceTypes } from '../../../shared/utils/serviceUtils'
-import CustomSelect from '../../../shared/ui/CustomSelect'
 import CategoryPills from '../../../shared/ui/CategoryPills'
 
-const PRICE_OPTIONS = [
-  { value: 'any',  label: '不限價格' },
-  { value: '100',  label: 'NT$100 以下' },
-  { value: '150',  label: 'NT$150 以下' },
-  { value: '200',  label: 'NT$200 以下' },
-]
-
-const SORT_OPTIONS = [
-  { value: 'recommended', label: '最新上架' },
-  { value: 'rating',      label: '評分最高' },
-  { value: 'price_asc',   label: '價格最低' },
-  { value: 'seats',       label: '名額快滿' },
-]
-
 export default function FilterBar({ filters, onChange }) {
-  const { category, service, maxPrice, sortBy } = filters
-
-  const serviceOptions = useMemo(() => {
-    const all = listServiceTypes()
-    const pool = category === 'all' ? all : all.filter(s => s.category === category)
-    return [
-      { value: 'all', label: '所有服務' },
-      ...pool.map(s => ({ value: s.id, label: s.name })),
-    ]
-  }, [category])
-
   return (
-    <div className="mb-6 space-y-4">
+    <div className="mb-6">
       <CategoryPills
         variant="grid"
         showAll
-        active={category}
+        active={filters.category}
         onChange={val => onChange({ category: val, service: 'all' })}
       />
-
-      <div className="flex gap-2 mt-6">
-        <CustomSelect value={service} onChange={v => onChange({ service: v })} options={serviceOptions} />
-        <CustomSelect value={maxPrice} onChange={v => onChange({ maxPrice: v })} options={PRICE_OPTIONS} />
-        <CustomSelect value={sortBy} onChange={v => onChange({ sortBy: v })} options={SORT_OPTIONS} />
-      </div>
     </div>
   )
 }

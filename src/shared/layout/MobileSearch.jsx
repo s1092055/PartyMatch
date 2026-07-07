@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, X, Zap } from 'lucide-react'
+import { Search, SlidersHorizontal, X, Zap } from 'lucide-react'
 import {
   addRecentSearch,
   loadRecentSearches,
@@ -8,17 +8,54 @@ import {
   saveRecentSearches,
   searchGroups,
 } from '../utils/searchUtils'
+import { listServiceTypes } from '../utils/serviceUtils'
 import ServiceLogo from '../ui/ServiceLogo'
+import CustomSelect from '../ui/CustomSelect'
+import CategoryPills from '../ui/CategoryPills'
 import { useScrollLock } from '../utils/hooks'
+
+const DEFAULT_FILTERS = {
+  category: 'all',
+  service:  'all',
+  maxPrice: 'any',
+  sortBy:   'recommended',
+}
+
+const PRICE_OPTIONS = [
+  { value: 'any',  label: '不限價格' },
+  { value: '100',  label: 'NT$100 以下' },
+  { value: '150',  label: 'NT$150 以下' },
+  { value: '200',  label: 'NT$200 以下' },
+]
+
+const SORT_OPTIONS = [
+  { value: 'recommended', label: '最新上架' },
+  { value: 'rating',      label: '評分最高' },
+  { value: 'price_asc',   label: '價格最低' },
+  { value: 'seats',       label: '名額快滿' },
+]
 
 export default function MobileSearch() {
   const navigate = useNavigate()
   const [isOpen, setIsOpen]                 = useState(false)
   const [searchQuery, setSearchQuery]       = useState('')
   const [recentSearches, setRecentSearches] = useState(loadRecentSearches)
+  const [filters, setFilters]               = useState(DEFAULT_FILTERS)
+  const [showFilters, setShowFilters]       = useState(false)
   const inputRef = useRef(null)
 
   const searchResults = useMemo(() => searchGroups(searchQuery), [searchQuery])
+
+  const serviceOptions = useMemo(() => {
+    const all = listServiceTypes()
+    const pool = filters.category === 'all' ? all : all.filter(s => s.category === filters.category)
+    return [
+      { value: 'all', label: '所有服務' },
+      ...pool.map(s => ({ value: s.id, label: s.name })),
+    ]
+  }, [filters.category])
+
+  const hasActiveFilters = filters.category !== 'all' || filters.service !== 'all' || filters.maxPrice !== 'any' || filters.sortBy !== 'recommended'
 
   useScrollLock(isOpen)
 
@@ -27,7 +64,13 @@ export default function MobileSearch() {
       setTimeout(() => inputRef.current?.focus(), 100)
     } else {
       let alive = true
-      const timer = setTimeout(() => { if (alive) setSearchQuery('') }, 0)
+      const timer = setTimeout(() => {
+        if (alive) {
+          setSearchQuery('')
+          setFilters(DEFAULT_FILTERS)
+          setShowFilters(false)
+        }
+      }, 0)
       return () => { alive = false; clearTimeout(timer) }
     }
   }, [isOpen])
@@ -46,10 +89,17 @@ export default function MobileSearch() {
 
   function handleSearchSubmit(term) {
     const t = (term ?? searchQuery).trim()
-    if (!t) return
-    addRecentSearch(t)
+    if (t) addRecentSearch(t)
     setRecentSearches(loadRecentSearches())
-    navigate(`/explore?q=${encodeURIComponent(t)}`)
+
+    const params = new URLSearchParams()
+    if (t) params.set('q', t)
+    if (filters.category !== 'all') params.set('category', filters.category)
+    if (filters.service !== 'all') params.set('service', filters.service)
+    if (filters.maxPrice !== 'any') params.set('maxPrice', filters.maxPrice)
+    if (filters.sortBy !== 'recommended') params.set('sortBy', filters.sortBy)
+
+    navigate(`/explore${params.toString() ? '?' + params.toString() : ''}`)
     setIsOpen(false)
   }
 
@@ -63,6 +113,17 @@ export default function MobileSearch() {
     saveRecentSearches([])
     setRecentSearches([])
   }
+
+  function updateFilter(patch) {
+    setFilters(prev => {
+      const next = { ...prev, ...patch }
+      // 切換分類時重設服務
+      if (patch.category) next.service = 'all'
+      return next
+    })
+  }
+
+  const canSubmit = !!searchQuery.trim() || hasActiveFilters
 
   return (
     <>
@@ -85,7 +146,7 @@ export default function MobileSearch() {
           <h2 className="text-lg font-extrabold text-ink">搜尋</h2>
           <button
             onClick={() => setIsOpen(false)}
-            className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+            className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink active:scale-100 active:opacity-70"
             aria-label="關閉"
           >
             <X size={18} />
@@ -93,7 +154,7 @@ export default function MobileSearch() {
         </div>
 
         {/* Search input */}
-        <div className="shrink-0 px-5 py-4">
+        <div className="shrink-0 px-5 pt-4 pb-3">
           <div className="relative">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3" />
             <input
@@ -115,6 +176,62 @@ export default function MobileSearch() {
             )}
           </div>
         </div>
+
+        {/* Filter toggle */}
+        <div className="shrink-0 px-5 pb-3">
+          <button
+            onClick={() => setShowFilters(v => !v)}
+            className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
+              hasActiveFilters
+                ? 'bg-brand text-white'
+                : 'bg-raised text-ink-3 hover:bg-brand-subtle hover:text-brand'
+            }`}
+          >
+            <SlidersHorizontal size={12} />
+            篩選
+            {hasActiveFilters && (
+              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-white/30 text-[10px]">
+                {[filters.category !== 'all', filters.service !== 'all', filters.maxPrice !== 'any', filters.sortBy !== 'recommended'].filter(Boolean).length}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Filter panel */}
+        {showFilters && (
+          <div className="shrink-0 border-t border-line-subtle bg-surface-soft px-5 py-4 space-y-4">
+            <CategoryPills
+              showAll
+              active={filters.category}
+              onChange={val => updateFilter({ category: val })}
+            />
+            <div className="flex gap-2">
+              <CustomSelect
+                value={filters.service}
+                onChange={v => updateFilter({ service: v })}
+                options={serviceOptions}
+              />
+              <CustomSelect
+                value={filters.maxPrice}
+                onChange={v => updateFilter({ maxPrice: v })}
+                options={PRICE_OPTIONS}
+              />
+              <CustomSelect
+                value={filters.sortBy}
+                onChange={v => updateFilter({ sortBy: v })}
+                options={SORT_OPTIONS}
+              />
+            </div>
+            {hasActiveFilters && (
+              <button
+                onClick={() => setFilters(DEFAULT_FILTERS)}
+                className="text-xs font-bold text-brand hover:text-brand-hover"
+              >
+                清除篩選
+              </button>
+            )}
+          </div>
+        )}
 
         <div className="h-px shrink-0 bg-line-subtle" />
 
@@ -194,7 +311,7 @@ export default function MobileSearch() {
           )}
         </div>
 
-        {searchQuery && (
+        {canSubmit && (
           <div className="shrink-0 border-t border-line px-4 py-3">
             <button
               onClick={() => handleSearchSubmit()}

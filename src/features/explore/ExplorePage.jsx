@@ -52,8 +52,11 @@ function applyFilters(groups, { keyword, category, service, maxPrice, sortBy }) 
 export default function ExplorePage() {
   const [searchParams] = useSearchParams()
   const [filters, setFilters] = useState(() => ({
-    ...DEFAULT_FILTERS,
-    keyword: searchParams.get('q') ?? '',
+    keyword:  searchParams.get('q') ?? '',
+    category: searchParams.get('category') ?? 'all',
+    service:  searchParams.get('service') ?? 'all',
+    maxPrice: searchParams.get('maxPrice') ?? 'any',
+    sortBy:   searchParams.get('sortBy') ?? 'recommended',
   }))
   const navigate = useNavigate()
   const activeUserId = useAuthStore(s => s.user?.id)
@@ -80,9 +83,16 @@ export default function ExplorePage() {
   }, [activeUserId, applications, members])
 
   useEffect(() => {
-    const q = searchParams.get('q') ?? ''
+    const q        = searchParams.get('q') ?? ''
+    const category = searchParams.get('category') ?? 'all'
+    const service  = searchParams.get('service') ?? 'all'
+    const maxPrice = searchParams.get('maxPrice') ?? 'any'
+    const sortBy   = searchParams.get('sortBy') ?? 'recommended'
     startTransition(() => {
-      setFilters(prev => prev.keyword === q ? prev : { ...prev, keyword: q })
+      setFilters(prev => {
+        if (prev.keyword === q && prev.category === category && prev.service === service && prev.maxPrice === maxPrice && prev.sortBy === sortBy) return prev
+        return { keyword: q, category, service, maxPrice, sortBy }
+      })
     })
   }, [searchParams])
 
