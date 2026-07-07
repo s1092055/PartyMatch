@@ -1,136 +1,169 @@
-import { useState } from 'react'
-import { Plus, Trash2 } from 'lucide-react'
-import { readStorage, writeStorage } from '../../../../shared/utils/storage'
-
-const PAYMENT_METHODS_KEY = 'pm_payment_methods'
-
-const INIT_CARDS = [
-  { id: 'card_001', brand: 'Visa',       last4: '4242', expiry: '12/27', isDefault: true },
-  { id: 'card_002', brand: 'Mastercard', last4: '8888', expiry: '08/26', isDefault: false },
-]
+import { useEffect, useState } from 'react'
+import { CreditCard, Plus, Trash2 } from 'lucide-react'
+import Modal from '../../../../shared/ui/Modal'
+import {
+  createPaymentMethod,
+  deletePaymentMethod,
+  fetchPaymentMethods,
+  setDefaultPaymentMethod,
+} from '../../../../shared/api/paymentMethodsApi'
 
 const BRAND_COLOR = {
-  Visa:       { bg: 'bg-blue-600',  text: 'VISA' },
-  Mastercard: { bg: 'bg-red-500',   text: 'MC' },
+  Visa:       { bg: 'bg-blue-600', text: 'VISA' },
+  Mastercard: { bg: 'bg-red-500',  text: 'MC'   },
 }
 
+const EMPTY_CARD = { number: '', expiry: '', cvc: '', name: '' }
+
 export default function PaymentMethodsTab() {
-  const [cards, setCards]       = useState(() => readStorage(PAYMENT_METHODS_KEY, INIT_CARDS))
-  const [showForm, setShowForm] = useState(false)
-  const [newCard, setNewCard]   = useState({ number: '', expiry: '', cvc: '', name: '' })
+  const [cards, setCards]       = useState([])
+  const [loading, setLoading]   = useState(true)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [saving, setSaving]     = useState(false)
+  const [newCard, setNewCard]   = useState(EMPTY_CARD)
 
-  function saveCards(next) {
-    setCards(next)
-    writeStorage(PAYMENT_METHODS_KEY, next)
-  }
+  useEffect(() => {
+    fetchPaymentMethods()
+      .then(data => {
+        const arr = Array.isArray(data) ? data : []
+        setCards([...arr.filter(c => c.isDefault), ...arr.filter(c => !c.isDefault)])
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [])
 
-  function setDefault(id) {
-    saveCards(cards.map(c => ({ ...c, isDefault: c.id === id })))
-  }
-
-  function remove(id) {
-    saveCards(cards.filter(c => c.id !== id))
-  }
-
-  function addCard() {
+  async function handleAdd() {
     if (!newCard.number || !newCard.expiry) return
-    saveCards([...cards, {
-      id: `card_${Date.now()}`,
-      brand: 'Visa',
-      last4: newCard.number.slice(-4),
-      expiry: newCard.expiry,
-      isDefault: false,
-    }])
-    setNewCard({ number: '', expiry: '', cvc: '', name: '' })
-    setShowForm(false)
+    setSaving(true)
+    try {
+      const created = await createPaymentMethod({
+        brand:  'Visa',
+        last4:  newCard.number.replace(/\s/g, '').slice(-4),
+        expiry: newCard.expiry,
+      })
+      setCards(prev => [...prev, created])
+      setNewCard(EMPTY_CARD)
+      setModalOpen(false)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setSaving(false)
+    }
   }
+
+  async function handleSetDefault(id) {
+    await setDefaultPaymentMethod(id).catch(console.error)
+    setCards(prev => {
+      const updated = prev.map(c => ({ ...c, isDefault: c.id === id }))
+      return [updated.find(c => c.isDefault), ...updated.filter(c => !c.isDefault)]
+    })
+  }
+
+  async function handleRemove(id) {
+    await deletePaymentMethod(id).catch(console.error)
+    setCards(prev => {
+      const next = prev.filter(c => c.id !== id)
+      if (next.length > 0 && !next.some(c => c.isDefault)) {
+        next[0] = { ...next[0], isDefault: true }
+      }
+      return next
+    })
+  }
+
+  function closeModal() {
+    setModalOpen(false)
+    setNewCard(EMPTY_CARD)
+  }
+
+  function field(key) {
+    return {
+      value: newCard[key],
+      onChange: e => setNewCard(p => ({ ...p, [key]: e.target.value })),
+    }
+  }
+
+  if (loading) return (
+    <div className="flex justify-center py-8">
+      <div className="h-5 w-5 animate-spin rounded-full border-2 border-brand border-t-transparent" />
+    </div>
+  )
 
   return (
-    <div className="space-y-3">
-      {cards.map(card => {
-        const style = BRAND_COLOR[card.brand] ?? { bg: 'bg-line-strong', text: card.brand }
-        return (
-          <div key={card.id} className="card p-4 flex items-center gap-4">
-            
-            <div className={`w-12 h-8 rounded-lg ${style.bg} flex items-center justify-center text-white text-xs font-bold shrink-0`}>
-              {style.text}
-            </div>
-
-<div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-ink-2">
-                  {card.brand} •••• {card.last4}
-                </span>
-                {card.isDefault && (
-                  <span className="badge badge-blue">預設</span>
-                )}
+    <>
+      <div className="space-y-3">
+        {cards.map(card => {
+          const style = BRAND_COLOR[card.brand] ?? { bg: 'bg-line-strong', text: card.brand }
+          return (
+            <div key={card.id} className="card flex items-center gap-4 p-4">
+              <div className={`flex h-8 w-12 shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white ${style.bg}`}>
+                {style.text}
               </div>
-              <p className="text-xs text-ink-3">到期日 {card.expiry}</p>
-            </div>
-
-<div className="flex items-center gap-2 shrink-0">
-              {!card.isDefault && (
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-ink-2">
+                    {card.brand} •••• {card.last4}
+                  </span>
+                  {card.isDefault && <span className="badge badge-blue">預設</span>}
+                </div>
+                <p className="text-xs text-ink-3">到期日 {card.expiry}</p>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                {!card.isDefault && (
+                  <button onClick={() => handleSetDefault(card.id)} className="text-xs text-brand hover:underline">
+                    設為預設
+                  </button>
+                )}
                 <button
-                  onClick={() => setDefault(card.id)}
-                  className="text-xs text-brand hover:underline"
+                  onClick={() => handleRemove(card.id)}
+                  className="flex h-7 w-7 items-center justify-center rounded-lg text-ink-4 transition-colors hover:bg-danger-subtle hover:text-danger"
                 >
-                  設為預設
+                  <Trash2 size={13} />
                 </button>
-              )}
-              <button
-                onClick={() => remove(card.id)}
-                className="w-7 h-7 flex items-center justify-center rounded-lg text-ink-4 hover:text-danger hover:bg-danger-subtle transition-colors"
-              >
-                <Trash2 size={13} />
-              </button>
+              </div>
             </div>
-          </div>
-        )
-      })}
+          )
+        })}
 
-{showForm ? (
-        <div className="bg-surface border-2 border-brand-border rounded-[var(--radius-card)] p-5 space-y-3">
-          <p className="text-sm font-semibold text-ink-2">新增付款方式</p>
-          <input
-            type="text" placeholder="卡號" maxLength={19}
-            value={newCard.number}
-            onChange={e => setNewCard(p => ({ ...p, number: e.target.value }))}
-            className="field py-2 px-3"
-          />
+        {cards.length < 2 && (
+          <button
+            onClick={() => setModalOpen(true)}
+            className="flex w-full items-center justify-center gap-2 rounded-[var(--radius-card)] border-2 border-dashed border-line py-4 text-sm text-ink-4 transition-colors hover:border-brand/40 hover:text-brand"
+          >
+            <Plus size={16} />
+            新增付款方式
+          </button>
+        )}
+      </div>
+
+      <Modal
+        isOpen={modalOpen}
+        onClose={closeModal}
+        title="新增付款方式"
+        icon={<CreditCard size={16} className="text-brand" />}
+        maxWidth="max-w-sm"
+        sub
+        footer={
+          <>
+            <button onClick={closeModal} className="btn btn-ghost flex-1">取消</button>
+            <button
+              onClick={handleAdd}
+              disabled={!newCard.number || !newCard.expiry || saving}
+              className="btn btn-primary flex-1"
+            >
+              {saving ? '新增中…' : '新增'}
+            </button>
+          </>
+        }
+      >
+        <div className="space-y-3 p-5">
+          <input type="text" placeholder="卡號" maxLength={19} className="field py-2 px-3" {...field('number')} />
           <div className="grid grid-cols-2 gap-3">
-            <input
-              type="text" placeholder="到期日 MM/YY" maxLength={5}
-              value={newCard.expiry}
-              onChange={e => setNewCard(p => ({ ...p, expiry: e.target.value }))}
-              className="field py-2 px-3"
-            />
-            <input
-              type="text" placeholder="CVC" maxLength={4}
-              value={newCard.cvc}
-              onChange={e => setNewCard(p => ({ ...p, cvc: e.target.value }))}
-              className="field py-2 px-3"
-            />
+            <input type="text" placeholder="到期日 MM/YY" maxLength={5} className="field py-2 px-3" {...field('expiry')} />
+            <input type="text" placeholder="CVC" maxLength={4} className="field py-2 px-3" {...field('cvc')} />
           </div>
-          <input
-            type="text" placeholder="持卡人姓名"
-            value={newCard.name}
-            onChange={e => setNewCard(p => ({ ...p, name: e.target.value }))}
-            className="field py-2 px-3"
-          />
-          <div className="flex gap-2">
-            <button onClick={addCard} className="btn btn-primary flex-1">新增</button>
-            <button onClick={() => setShowForm(false)} className="btn btn-ghost flex-1">取消</button>
-          </div>
+          <input type="text" placeholder="持卡人姓名" className="field py-2 px-3" {...field('name')} />
         </div>
-      ) : (
-        <button
-          onClick={() => setShowForm(true)}
-          className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-line rounded-[var(--radius-card)] py-4 text-sm text-ink-4 hover:border-brand-border hover:text-brand transition-colors"
-        >
-          <Plus size={16} />
-          新增付款方式
-        </button>
-      )}
-    </div>
+      </Modal>
+    </>
   )
 }

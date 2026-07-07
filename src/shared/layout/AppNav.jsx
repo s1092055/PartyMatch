@@ -54,17 +54,21 @@ export default function AppNav() {
   const [lockedTip, setLockedTip] = useState(null)
   const [myMenuOpen, setMyMenuOpen] = useState(false)
   const myMenuRef = useRef(null)
+  const [createMenuOpen, setCreateMenuOpen] = useState(false)
+  const createMenuRef = useRef(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const mobileMenuRef = useRef(null)
   const [desktopMenuOpen, setDesktopMenuOpen] = useState(false)
 
   useClickOutside(myMenuOpen, [myMenuRef], () => setMyMenuOpen(false))
+  useClickOutside(createMenuOpen, [createMenuRef], () => setCreateMenuOpen(false))
   useClickOutside(mobileMenuOpen, [mobileMenuRef], () => setMobileMenuOpen(false))
 
   useEffect(() => {
     setDesktopMenuOpen(false)
     setMobileMenuOpen(false)
     setMyMenuOpen(false)
+    setCreateMenuOpen(false)
   }, [pathname])
 
   const loggedIn = useAuthStore(s => s.loggedIn)
@@ -91,11 +95,7 @@ export default function AppNav() {
     setDesktopMenuOpen(false)
     setMobileMenuOpen(false)
     setMyMenuOpen(false)
-  }
-
-  function openSearch() {
-    document.activeElement?.blur()
-    window.dispatchEvent(new CustomEvent('pm:open-search'))
+    setCreateMenuOpen(false)
   }
 
   function openCreate() {
@@ -164,20 +164,6 @@ export default function AppNav() {
       )
     }
 
-    if (item.type === 'search') {
-      return (
-        <button key="search" onClick={openSearch} aria-label="搜尋"
-          className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand hover:text-white active:scale-[0.96]">
-          <span className="grid h-9 w-9 shrink-0 place-items-center">
-            <Search size={22} strokeWidth={2.1} />
-          </span>
-          <span className="whitespace-nowrap font-bold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
-            搜尋
-          </span>
-        </button>
-      )
-    }
-
     if (item.type === 'create' || item.type === 'match') {
       const onClick = item.type === 'create' ? openCreate : openMatch
       return (
@@ -237,10 +223,11 @@ export default function AppNav() {
       <div className="fixed top-6 z-50 hidden md:block lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
         <button
           onClick={openNotify}
-          className="relative grid h-12 w-12 place-items-center rounded-full border border-white/40 bg-slate-100/70 text-ink-2 shadow-md backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-brand hover:text-white active:scale-[0.96]"
+          className="relative flex h-10 items-center gap-2 rounded-xl border border-line bg-white px-4 text-sm font-bold text-ink-2 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand hover:text-white active:scale-[0.96]"
           aria-label="通知"
         >
-          <Bell size={18} strokeWidth={2} />
+          <Bell size={16} strokeWidth={2} />
+          通知
           <Badge count={unreadNotifs} />
         </button>
       </div>
@@ -250,10 +237,11 @@ export default function AppNav() {
         {loggedIn ? (
           <button
             onClick={openMessages}
-            className="relative grid h-12 w-12 place-items-center rounded-full border border-white/40 bg-slate-100/70 text-ink-2 shadow-md backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-brand hover:text-white active:scale-[0.96]"
+            className="relative flex h-10 items-center gap-2 rounded-xl border border-line bg-white px-4 text-sm font-bold text-ink-2 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand hover:text-white active:scale-[0.96]"
             aria-label="訊息"
           >
-            <MessageSquare size={18} strokeWidth={2} />
+            <MessageSquare size={16} strokeWidth={2} />
+            訊息
             <Badge count={unreadMsgs} />
           </button>
         ) : (
@@ -262,9 +250,10 @@ export default function AppNav() {
             aria-disabled="true"
             aria-label={`訊息，${LOCKED_MESSAGE}`}
             onClick={e => preventLockedAction(e)}
-            className="group/locked relative grid h-12 w-12 cursor-not-allowed place-items-center rounded-full border border-white/40 bg-slate-100/70 text-ink-2 opacity-40 shadow-md backdrop-blur-md"
+            className="group/locked relative flex h-10 cursor-not-allowed items-center gap-2 rounded-xl border border-line bg-white px-4 text-sm font-bold text-ink-2 opacity-40 shadow-sm"
           >
-            <MessageSquare size={18} strokeWidth={2} />
+            <MessageSquare size={16} strokeWidth={2} />
+            訊息
             <LockedHint className="right-full top-1/2 mr-2 -translate-y-1/2" />
           </button>
         )}
@@ -289,20 +278,6 @@ export default function AppNav() {
                   <span className="absolute bottom-0.5 right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-500" />
                 </span>
                 <p className="text-base font-extrabold text-ink">{userName}</p>
-              </div>
-
-              {/* PM 幣餘額 */}
-              <div className="mb-5 flex justify-center">
-                <div className="inline-flex items-center gap-2 rounded-xl bg-raised px-4 py-3">
-                  <TokenBadge className="shrink-0" />
-                  <span className="text-sm font-bold text-ink">{tokenBalance.toLocaleString()} PM</span>
-                  <button
-                    onClick={() => { setDesktopMenuOpen(false); setTopupOpen(true) }}
-                    className="rounded-full bg-brand px-3 py-1 text-xs font-bold text-white transition-colors hover:bg-brand-hover active:opacity-80"
-                  >
-                    加值
-                  </button>
-                </div>
               </div>
 
               <div className="border-t border-line-subtle" />
@@ -333,7 +308,7 @@ export default function AppNav() {
 
       {/* Desktop floating sidebar */}
       <aside
-        className="group/nav fixed bottom-4 left-4 top-4 z-50 hidden w-16 flex-col overflow-hidden rounded-2xl border border-white/40 bg-slate-100/80 shadow-sm backdrop-blur-md transition-[width] duration-300 ease-out hover:w-56 focus-within:w-56 md:flex"
+        className="group/nav fixed bottom-4 left-4 top-4 z-50 hidden w-16 flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-sm transition-[width] duration-300 ease-out hover:w-56 focus-within:w-56 md:flex"
       >
         <a
           href="/"
@@ -354,9 +329,23 @@ export default function AppNav() {
         </nav>
 
         <div className="px-2 pb-4">
+          {loggedIn && (
+            <div className="mb-2 flex h-10 w-full items-center gap-2 overflow-hidden rounded-xl bg-brand-subtle px-3 opacity-0 transition-all duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
+              <TokenBadge className="shrink-0" />
+              <span className="min-w-0 flex-1 truncate text-xs font-bold text-ink">
+                {tokenBalance.toLocaleString()} PM
+              </span>
+              <button
+                onClick={() => { document.activeElement?.blur(); setTopupOpen(true) }}
+                className="shrink-0 rounded-full bg-brand px-2.5 py-0.5 text-[11px] font-bold text-white transition-colors hover:bg-brand-hover"
+              >
+                加值
+              </button>
+            </div>
+          )}
           {loggedIn ? (
             <button
-              onClick={() => setDesktopMenuOpen(v => !v)}
+              onClick={() => { document.activeElement?.blur(); setDesktopMenuOpen(v => !v) }}
               aria-label="個人選單"
               aria-expanded={desktopMenuOpen}
               className={`flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left transition-all hover:bg-raised ${desktopMenuOpen ? 'bg-raised' : ''}`}
@@ -391,7 +380,7 @@ export default function AppNav() {
 
       {/* Mobile / Tablet header */}
       <div ref={mobileMenuRef} className="fixed left-3 right-3 top-3 z-50 md:hidden">
-        <header className="flex h-14 items-center justify-between rounded-2xl border border-white/40 bg-slate-100/80 px-4 shadow-sm backdrop-blur-md">
+        <header className="flex h-14 items-center justify-between rounded-2xl border border-line bg-white px-4 shadow-sm">
           <a href="/" className="flex items-center gap-2" aria-label="回首頁">
             <img src={logoUrl} alt="PartyMatch" className="h-8 w-8" />
             <span className="text-[1rem] font-extrabold">
@@ -399,14 +388,6 @@ export default function AppNav() {
             </span>
           </a>
           <div className="flex items-center gap-1">
-            {/* 搜尋按鈕 */}
-            <button
-              onClick={openSearch}
-              className="grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink"
-              aria-label="搜尋"
-            >
-              <Search size={20} strokeWidth={2} />
-            </button>
             {/* 通知按鈕 */}
             <button
               onClick={openNotify}
@@ -501,57 +482,76 @@ export default function AppNav() {
 
       {/* Mobile / Tablet bottom dock */}
       <nav
-        className="fixed left-3 right-3 z-50 rounded-2xl border border-white/40 bg-slate-100/80 shadow-sm backdrop-blur-md md:hidden"
+        className="fixed left-3 right-3 z-50 rounded-2xl border border-line bg-white shadow-sm md:hidden"
         style={{ bottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
       >
         <div className="flex h-16 items-stretch">
 
-          {/* 探索 */}
-          <a
-            href="/explore"
-            className={`relative flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold transition-colors ${pathname === '/explore' ? 'text-brand' : 'text-ink-3'}`}
-          >
-            <Compass size={22} strokeWidth={2.1} />
-            探索
-            <span className={`absolute bottom-1.5 h-1 w-1 rounded-full bg-brand transition-opacity ${pathname === '/explore' ? 'opacity-100' : 'opacity-0'}`} />
-          </a>
-
-          {/* 快速配對 */}
+          {/* 搜尋 */}
           <button
-            onClick={openMatch}
-            className="flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold text-ink-3 transition-colors active:text-brand"
+            onClick={() => window.dispatchEvent(new Event('pm:open-search'))}
+            className="relative flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold text-ink-3 transition-colors active:text-brand"
           >
-            <Zap size={22} strokeWidth={2.1} />
-            配對
+            <Search size={22} strokeWidth={2.1} />
+            搜尋
           </button>
 
-          {/* 建立群組 — 中央圓形按鈕 */}
-          <div className="flex flex-1 flex-col items-center justify-center gap-1">
-            {loggedIn ? (
-              <button
-                onClick={openCreate}
-                className="flex h-11 w-11 items-center justify-center rounded-full bg-brand text-white shadow-lg transition-all active:scale-95 hover:bg-brand-hover"
-                aria-label="建立群組"
-              >
-                <PlusCircle size={22} strokeWidth={2} />
-              </button>
-            ) : (
-              <button
-                onClick={e => preventLockedAction(e, '/create-group')}
-                className="flex h-11 w-11 items-center justify-center rounded-full bg-brand text-white shadow-md opacity-50"
-                aria-label={`建立群組，${LOCKED_MESSAGE}`}
-              >
-                <PlusCircle size={22} strokeWidth={2} />
-              </button>
+          {/* 功能 — 配對 + 建立群組 dropdown */}
+          <div ref={createMenuRef} className="relative flex flex-1 flex-col items-center justify-center">
+            {createMenuOpen && (
+              <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 flex flex-row gap-1 rounded-2xl border border-line bg-white p-1.5 shadow-popover">
+                <button
+                  onClick={() => { setCreateMenuOpen(false); openMatch() }}
+                  className="flex flex-col items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-bold whitespace-nowrap text-ink transition-colors hover:bg-raised"
+                >
+                  <Zap size={20} strokeWidth={2.1} />
+                  快速配對
+                </button>
+                {loggedIn ? (
+                  <button
+                    onClick={() => { setCreateMenuOpen(false); openCreate() }}
+                    className="flex flex-col items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-bold whitespace-nowrap text-ink transition-colors hover:bg-raised"
+                  >
+                    <PlusCircle size={20} strokeWidth={2.1} />
+                    建立群組
+                  </button>
+                ) : (
+                  <button
+                    onClick={e => { setCreateMenuOpen(false); preventLockedAction(e, '/create-group') }}
+                    className="flex flex-col items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-bold whitespace-nowrap text-ink-3 opacity-40"
+                  >
+                    <PlusCircle size={20} strokeWidth={2.1} />
+                    建立群組
+                  </button>
+                )}
+              </div>
             )}
+            <button
+              onClick={() => setCreateMenuOpen(v => !v)}
+              className={`flex flex-col items-center gap-1 text-[0.65rem] font-bold transition-colors ${createMenuOpen ? 'text-brand' : 'text-ink-3'}`}
+            >
+              <PlusCircle size={22} strokeWidth={2.1} />
+              功能
+            </button>
+          </div>
+
+          {/* 探索 — 中央圓形按鈕 */}
+          <div className="flex flex-1 flex-col items-center justify-center">
+            <a
+              href="/explore"
+              onClick={closeAll}
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-brand text-white shadow-lg transition-all active:scale-95 hover:bg-brand-hover"
+              aria-label="探索"
+            >
+              <Compass size={22} strokeWidth={2} />
+            </a>
           </div>
 
           {/* 我的 — dropdown */}
           <div ref={myMenuRef} className="relative flex flex-1 flex-col items-center justify-center">
             <span className={`absolute bottom-1.5 h-1 w-1 rounded-full bg-brand transition-opacity ${(pathname.startsWith('/my-groups') || pathname === '/favorites') ? 'opacity-100' : 'opacity-0'}`} />
-            {/* 向上展開 dropdown */}
             {myMenuOpen && loggedIn && (
-              <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 flex flex-row gap-1 rounded-2xl border border-white/40 bg-slate-100/95 p-1.5 shadow-popover backdrop-blur-md">
+              <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 flex flex-row gap-1 rounded-2xl border border-line bg-white p-1.5 shadow-popover">
                 <a
                   href="/my-groups"
                   onClick={() => setMyMenuOpen(false)}

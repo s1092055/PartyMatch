@@ -5,7 +5,6 @@ export const NAV_SECTIONS = [
     label: '探索',
     items: [
       { to: '/explore',     label: '探索群組', icon: Compass },
-      { type: 'search',     label: '搜尋' },
       { type: 'match',       label: '快速配對', icon: Zap },
     ],
   },

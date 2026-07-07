@@ -84,17 +84,31 @@ model User {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  hostedGroups     Group[]              @relation("HostedGroups")
-  applications     Application[]
-  members          Member[]
-  subscriptions    Subscription[]
-  notifications    Notification[]
-  favorites        Favorite[]
-  sentMessages     Message[]
-  refreshTokens    RefreshToken[]
+  hostedGroups      Group[]              @relation("HostedGroups")
+  applications      Application[]
+  members           Member[]
+  subscriptions     Subscription[]
+  notifications     Notification[]
+  favorites         Favorite[]
+  sentMessages      Message[]
+  refreshTokens     RefreshToken[]
   tokenTransactions TokenTransaction[]
+  paymentMethods    PaymentMethod[]
 
   @@map("users")
+}
+
+model PaymentMethod {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  brand     String
+  last4     String
+  expiry    String
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("payment_methods")
 }
 
 model RefreshToken {

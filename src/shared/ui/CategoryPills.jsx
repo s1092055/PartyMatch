@@ -15,7 +15,7 @@ const CATEGORIES = [
 
 const ALL_ITEM = { value: 'all', label: '全部', Icon: null }
 
-export default function CategoryPills({ active, onChange, variant = 'pills', showAll = false, className = '' }) {
+export default function CategoryPills({ active, onChange, variant = 'pills', showAll = false, className = '', innerRef = null }) {
   const items = showAll ? [ALL_ITEM, ...CATEGORIES] : CATEGORIES
 
   if (variant === 'grid') {
@@ -78,7 +78,7 @@ export default function CategoryPills({ active, onChange, variant = 'pills', sho
   }
 
   return (
-    <div className={`flex gap-1.5 overflow-x-auto py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${className}`}>
+    <div ref={innerRef} className={`flex gap-1.5 overflow-x-auto py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${className}`}>
       {items.map(cat => {
         const isActive = active === cat.value
         return (

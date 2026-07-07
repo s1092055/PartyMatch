@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { Bell, ChevronDown, Clock, CreditCard, Coins, Lock, Settings, Shield, User } from "lucide-react";
+import { Bell, ChevronDown, Clock, Coins, Lock, Settings, Shield, User } from "lucide-react";
 import { useAuthStore } from "../../shared/stores/useAuthStore";
-import { useSubscriptionStore } from "../../shared/stores/useSubscriptionStore";
 import ProfileHeaderCard from "./components/ProfileHeaderCard";
 import PersonalInfoTab from "./components/tabs/PersonalInfoTab";
 import TokenTab from "./components/tabs/TokenTab";
@@ -10,11 +9,10 @@ import SettingsTab from "./components/tabs/SettingsTab";
 
 const BASE_TABS = [
   { value: "profile",       label: "個人資料", icon: User       },
-  { value: "tokens",        label: "代幣帳戶", icon: Coins      },
-  { value: "payment",       label: "付款方式", icon: CreditCard, comingSoon: true },
+  { value: "tokens",        label: "付款設定", icon: Coins      },
   { value: "notifications", label: "通知偏好", icon: Bell,       comingSoon: true },
   { value: "security",      label: "安全驗證", icon: Lock,       comingSoon: true },
-  { value: "settings",      label: "設定",     icon: Settings   },
+  { value: "settings",      label: "其他設定", icon: Settings   },
 ];
 
 function TabReveal({ children }) {
@@ -74,10 +72,6 @@ export default function AccountPage() {
 
   const TABS = isAdmin ? [...BASE_TABS, { value: "admin", label: "管理員", icon: Shield }] : BASE_TABS
 
-  const subscriptions = useSubscriptionStore(s => s.subscriptions)
-  const allSubs = subscriptions.filter(sub => sub.userId === user.id)
-  const activeSubs = allSubs.filter(s => s.status === 'active')
-
   function handleUserChange(key, value) {
     setUser((prev) => ({ ...prev, [key]: value }));
     useAuthStore.getState().updateProfile({ [key]: value }).catch(console.error);
@@ -85,13 +79,13 @@ export default function AccountPage() {
 
   return (
     <div className="px-2 md:px-4 lg:px-16">
-      <ProfileHeaderCard user={user} activeSubs={activeSubs} totalSubs={allSubs.length} />
+      <ProfileHeaderCard user={user} />
 
       {/* 桌面版：左右 sidebar 佈局 */}
       <div className="hidden md:flex md:gap-6 lg:gap-8">
         {/* 左側 tab 選單 */}
-        <nav className="w-44 shrink-0">
-          <ul className="space-y-1">
+        <nav className="w-44 shrink-0 self-start">
+          <ul className="flex flex-col gap-1">
             {TABS.map(tab => {
               const Icon = tab.icon
               const isActive = activeTab === tab.value

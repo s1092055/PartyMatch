@@ -1,4 +1,4 @@
-import client from './axiosClient'
+import client, { tokenManager } from './axiosClient'
 import { normalizeConversation, normalizeMessage } from '../utils/modelNormalizers'
 
 export const MESSAGES_PAGE_SIZE = 50
@@ -70,7 +70,7 @@ export function subscribeToConversations(_userId, onUpdate) {
   let active = true
 
   async function poll() {
-    if (!active) return
+    if (!active || !tokenManager.get()) return
     try {
       const convs = await fetchConversations()
       if (active) onUpdate(convs.map(normalizeConversation))
@@ -91,7 +91,7 @@ export function subscribeToMessages(conversationId, onUpdate, onError) {
   let lastCount = 0
 
   async function poll() {
-    if (!active) return
+    if (!active || !tokenManager.get()) return
     try {
       const messages = await fetchMessages(conversationId)
       if (active) {

@@ -114,12 +114,20 @@ recruiting → full → pending_confirmation → pending_activation → active �
 
 ### 導覽設計
 
-- **桌機版**：左側 floating sidebar，收合為 64px icon bar，hover 展開至 224px 顯示文字標籤；右上角為通知、訊息兩個獨立圓形按鈕（垂直排列，`hover:-translate-y-0.5 active:scale-[0.96]`）；sidebar 底部頭像點擊開啟置中 Modal（帳號資訊、PM 幣餘額含加值、帳號設定、登出）。
-- **手機版**：頂部 header + 底部 Dock；頂部右側以頭像取代漢堡選單，點擊展開 dropdown，樣式與桌機 modal 一致（頭像+名稱置中、PM 幣 inline、帳號設定與登出左右並排）；未登入時顯示 UserCircle2 icon 點擊導向登入頁。
+- **桌機版**：左側 floating sidebar，收合為 64px icon bar，hover 展開至 224px 顯示文字標籤；sidebar 底部使用者按鈕上方顯示 PM 幣餘額（含加值按鈕），收合時隱藏、展開後顯示；頭像按鈕點擊開啟置中 Modal（帳號資訊、帳號設定、登出）；開啟 PM 儲值或使用者資訊 Modal 時，sidebar 自動收合（blur 移走焦點）。
+- **手機版**：頂部 header + 底部 Dock；頂部右側以頭像取代漢堡選單，點擊展開 dropdown（頭像+名稱置中、帳號設定與登出左右並排）；未登入時顯示 UserCircle2 icon 點擊導向登入頁。底部 Dock 由左至右：搜尋、功能（dropdown：快速配對 + 建立群組）、探索（中央圓形主按鈕）、我的（dropdown：我的群組 + 我的收藏）、訊息。Dock 已整合搜尋入口，header 不再顯示搜尋按鈕。
+
+### 帳號設定
+
+帳號設定頁（`/account`）分四個分頁：**個人資料**（基本資訊編輯）、**付款設定**（付款方式管理 + 交易紀錄）、**通知偏好**（開發中）、**安全驗證**（開發中）。付款方式最多儲存 2 種，存於後端 MySQL（`payment_methods` table）。PM 幣加值與交易紀錄整合於 TopupModal 的雙面板設計——主面板儲值、子面板查看交易紀錄，兩者以滑動動畫切換。
+
+### 我的群組統計
+
+`/my-groups` 頁面頂部顯示雙角色訂閱統計卡：**身為團主**（活躍群組、累計建立、月收 PM）與**身為成員**（活躍訂閱、累計訂閱、月支 PM），讓使用者一眼掌握兩種角色的概況。
 
 ### 探索篩選與搜尋
 
-探索頁以 **URL query params 為唯一狀態來源**：`ExplorePage` 直接從 `useSearchParams()` 衍生篩選物件（無獨立 `filters` state），`handleFilterChange` 呼叫 `navigate(..., { replace: true })` 更新 URL；`MobileSearch` 開啟時讀取目前 URL 預填篩選，送出後同樣導向帶 params 的 `/explore`。兩個元件共用 `src/features/explore/exploreConstants.js` 的篩選預設值與選項常數。
+探索頁以 **URL query params 為唯一狀態來源**：`ExplorePage` 直接從 `useSearchParams()` 衍生篩選物件（無獨立 `filters` state），`handleFilterChange` 呼叫 `navigate(..., { replace: true })` 更新 URL。搜尋 Modal（`MobileSearch`）開啟時，服務分類固定重置為「全部」；桌機版分類 pills 左右各有箭頭按鈕可平滑捲動；兩元件共用 `src/features/explore/exploreConstants.js` 的篩選預設值與選項常數。
 
 ### 跨元件通訊
 

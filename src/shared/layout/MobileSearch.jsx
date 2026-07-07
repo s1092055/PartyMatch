@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import { Search, SlidersHorizontal, X, Zap } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Search, SlidersHorizontal, X } from 'lucide-react'
 import {
   addRecentSearch,
   loadRecentSearches,
@@ -24,7 +24,8 @@ export default function MobileSearch() {
   const [recentSearches, setRecentSearches] = useState(loadRecentSearches)
   const [filters, setFilters]               = useState(DEFAULT_FILTERS)
   const [showFilters, setShowFilters]       = useState(false)
-  const inputRef = useRef(null)
+  const inputRef   = useRef(null)
+  const pillsRef   = useRef(null)
 
   const searchResults = useMemo(() => searchGroups(searchQuery), [searchQuery])
 
@@ -46,12 +47,13 @@ export default function MobileSearch() {
       if (pathname === '/explore') {
         setSearchQuery(searchParams.get('q') ?? '')
         setFilters({
-          category: searchParams.get('category') ?? 'all',
+          ...DEFAULT_FILTERS,
           service:  searchParams.get('service') ?? 'all',
           maxPrice: searchParams.get('maxPrice') ?? 'any',
           sortBy:   searchParams.get('sortBy') ?? 'recommended',
         })
       }
+      if (pillsRef.current) pillsRef.current.scrollLeft = 0
       setTimeout(() => inputRef.current?.focus(), 100)
     } else {
       const timer = setTimeout(() => {
@@ -113,8 +115,6 @@ export default function MobileSearch() {
     })
   }
 
-  const canSubmit = !!searchQuery.trim() || hasActiveFilters
-
   return (
     <>
       {/* Backdrop */}
@@ -169,7 +169,7 @@ export default function MobileSearch() {
             )}
           </div>
           <button
-            onClick={() => setShowFilters(v => !v)}
+            onClick={() => { setShowFilters(v => !v); if (pillsRef.current) pillsRef.current.scrollLeft = 0 }}
             className={`shrink-0 self-stretch flex items-center gap-1.5 rounded-xl px-3 text-xs font-bold transition-colors ${
               hasActiveFilters
                 ? 'bg-brand text-white'
@@ -189,11 +189,27 @@ export default function MobileSearch() {
         {/* Filter panel */}
         {showFilters && (
           <div className="shrink-0 border-t border-line-subtle bg-surface-soft px-5 py-4 space-y-4">
-            <CategoryPills
-              showAll
-              active={filters.category}
-              onChange={val => updateFilter({ category: val })}
-            />
+            <div className="relative flex items-center gap-1">
+              <button
+                onClick={() => pillsRef.current?.scrollBy({ left: -120, behavior: 'smooth' })}
+                className="hidden md:grid h-7 w-7 shrink-0 place-items-center rounded-full border border-line bg-canvas text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+              >
+                <ChevronLeft size={14} />
+              </button>
+              <CategoryPills
+                innerRef={pillsRef}
+                showAll
+                active={filters.category}
+                onChange={val => updateFilter({ category: val })}
+                className="flex-1"
+              />
+              <button
+                onClick={() => pillsRef.current?.scrollBy({ left: 120, behavior: 'smooth' })}
+                className="hidden md:grid h-7 w-7 shrink-0 place-items-center rounded-full border border-line bg-canvas text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+              >
+                <ChevronRight size={14} />
+              </button>
+            </div>
             <div className="flex gap-2">
               <CustomSelect
                 value={filters.service}
@@ -300,17 +316,6 @@ export default function MobileSearch() {
           )}
         </div>
 
-        {canSubmit && (
-          <div className="shrink-0 border-t border-line px-4 py-3">
-            <button
-              onClick={() => handleSearchSubmit()}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
-            >
-              <Zap size={14} />
-              在探索頁查看全部結果
-            </button>
-          </div>
-        )}
       </div>
     </>
   )
