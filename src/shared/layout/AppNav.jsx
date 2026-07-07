@@ -243,9 +243,8 @@ export default function AppNav() {
         document.body
       )}
 
-      {/* Desktop action buttons — fixed top-right */}
-      <div className="fixed top-6 z-50 hidden flex-col items-center gap-2 md:flex lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
-        {/* 通知 */}
+      {/* Desktop 通知按鈕 — fixed top-right */}
+      <div className="fixed top-6 z-50 hidden md:block lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
         <button
           onClick={openNotify}
           className="relative grid h-12 w-12 place-items-center rounded-full border border-white/40 bg-slate-100/70 text-ink-2 shadow-md backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-brand hover:text-white active:scale-[0.96]"
@@ -254,7 +253,10 @@ export default function AppNav() {
           <Bell size={18} strokeWidth={2} />
           <Badge count={unreadNotifs} />
         </button>
-        {/* 訊息 */}
+      </div>
+
+      {/* Desktop 訊息按鈕 — fixed bottom-right，對齊 sidebar 頭像 */}
+      <div className="fixed z-50 hidden md:block" style={{ bottom: '2.25rem', right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
         {loggedIn ? (
           <button
             onClick={openMessages}
