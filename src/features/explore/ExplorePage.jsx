@@ -99,11 +99,19 @@ export default function ExplorePage() {
   const filtered = useMemo(() => applyFilters(allGroups, filters), [allGroups, filters])
 
   function handleFilterChange(patch) {
-    setFilters(prev => ({ ...prev, ...patch }))
+    const next = { ...filters, ...patch }
+    setFilters(next)
+    const params = new URLSearchParams()
+    if (next.keyword) params.set('q', next.keyword)
+    if (next.category !== 'all') params.set('category', next.category)
+    if (next.service !== 'all') params.set('service', next.service)
+    if (next.maxPrice !== 'any') params.set('maxPrice', next.maxPrice)
+    if (next.sortBy !== 'recommended') params.set('sortBy', next.sortBy)
+    navigate(`/explore${params.toString() ? '?' + params.toString() : ''}`, { replace: true })
   }
 
   return (
-    <div className="px-2 md:px-4 lg:px-8 lg:px-16">
+    <div className="px-2 md:px-4 lg:px-16">
       <PageHeader title="探索群組" className="mb-4 text-center" />
 
       <div className="mx-auto mb-6 max-w-lg">

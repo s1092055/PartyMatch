@@ -75,6 +75,11 @@ export default function AppNav() {
     return () => document.removeEventListener('pointerdown', handleOutside)
   }, [mobileMenuOpen])
 
+  useEffect(() => {
+    setDesktopMenuOpen(false)
+    setMobileMenuOpen(false)
+    setMyMenuOpen(false)
+  }, [pathname])
 
   const loggedIn = useAuthStore(s => s.loggedIn)
   const currentUser = useAuthStore(s => s.user)
@@ -88,7 +93,19 @@ export default function AppNav() {
   const unreadNotifs = useNotificationStore(s => loggedIn && currentUser?.id ? s.getUnreadCount(currentUser.id) : 0)
   const unreadMsgs = useConversationStore(s => loggedIn && currentUser?.id ? s.getUnreadMsgCount(currentUser.id) : 0)
 
-  function closeAll() { document.activeElement?.blur() }
+  useEffect(() => {
+    if (!loggedIn) {
+      setDesktopMenuOpen(false)
+      setMobileMenuOpen(false)
+    }
+  }, [loggedIn])
+
+  function closeAll() {
+    document.activeElement?.blur()
+    setDesktopMenuOpen(false)
+    setMobileMenuOpen(false)
+    setMyMenuOpen(false)
+  }
 
   function openSearch() {
     document.activeElement?.blur()
@@ -409,6 +426,14 @@ export default function AppNav() {
             </span>
           </a>
           <div className="flex items-center gap-1">
+            {/* 搜尋按鈕 */}
+            <button
+              onClick={openSearch}
+              className="grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink"
+              aria-label="搜尋"
+            >
+              <Search size={20} strokeWidth={2} />
+            </button>
             {/* 通知按鈕 */}
             <button
               onClick={openNotify}

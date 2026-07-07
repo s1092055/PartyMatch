@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { Search, SlidersHorizontal, X, Zap } from 'lucide-react'
 import {
   addRecentSearch,
@@ -37,6 +37,8 @@ const SORT_OPTIONS = [
 
 export default function MobileSearch() {
   const navigate = useNavigate()
+  const { pathname } = useLocation()
+  const [searchParams] = useSearchParams()
   const [isOpen, setIsOpen]                 = useState(false)
   const [searchQuery, setSearchQuery]       = useState('')
   const [recentSearches, setRecentSearches] = useState(loadRecentSearches)
@@ -61,6 +63,15 @@ export default function MobileSearch() {
 
   useEffect(() => {
     if (isOpen) {
+      if (pathname === '/explore') {
+        setSearchQuery(searchParams.get('q') ?? '')
+        setFilters({
+          category: searchParams.get('category') ?? 'all',
+          service:  searchParams.get('service') ?? 'all',
+          maxPrice: searchParams.get('maxPrice') ?? 'any',
+          sortBy:   searchParams.get('sortBy') ?? 'recommended',
+        })
+      }
       setTimeout(() => inputRef.current?.focus(), 100)
     } else {
       let alive = true
@@ -73,6 +84,7 @@ export default function MobileSearch() {
       }, 0)
       return () => { alive = false; clearTimeout(timer) }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen])
 
   useEffect(() => {
