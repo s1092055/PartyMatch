@@ -151,6 +151,8 @@
 
   @media (max-width: 767px) {
     html { font-size: 15px; }
+    /* iOS Safari 對 font-size < 16px 的 input 會強制縮放整頁 */
+    input, select, textarea { font-size: 16px; }
   }
 
   @media (min-width: 768px) {

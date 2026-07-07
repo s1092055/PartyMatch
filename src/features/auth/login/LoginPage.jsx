@@ -63,6 +63,7 @@ export default function LoginPage() {
           icon={Mail}
           label="電子郵件"
           type="email"
+          autoComplete="email"
           placeholder="請輸入電子郵件"
           value={email}
           onChange={setEmail}
@@ -71,6 +72,7 @@ export default function LoginPage() {
           icon={Lock}
           label="密碼"
           type={showPassword ? 'text' : 'password'}
+          autoComplete="current-password"
           placeholder="請輸入密碼"
           value={password}
           onChange={setPassword}

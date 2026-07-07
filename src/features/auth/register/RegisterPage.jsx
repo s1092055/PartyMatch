@@ -70,6 +70,7 @@ export default function RegisterPage() {
         <AuthInput
           icon={User}
           label="顯示名稱"
+          autoComplete="name"
           placeholder="請輸入顯示名稱"
           value={form.name}
           onChange={value => updateField('name', value)}
@@ -78,6 +79,7 @@ export default function RegisterPage() {
           icon={Mail}
           label="電子郵件"
           type="email"
+          autoComplete="email"
           placeholder="請輸入電子郵件"
           value={form.email}
           onChange={value => updateField('email', value)}
@@ -86,6 +88,7 @@ export default function RegisterPage() {
           icon={Lock}
           label="密碼"
           type={showPassword ? 'text' : 'password'}
+          autoComplete="new-password"
           placeholder="請輸入密碼"
           value={form.password}
           onChange={value => updateField('password', value)}
@@ -95,6 +98,7 @@ export default function RegisterPage() {
           icon={Lock}
           label="確認密碼"
           type={showConfirmPassword ? 'text' : 'password'}
+          autoComplete="new-password"
           placeholder="請再次輸入密碼"
           value={form.confirmPassword}
           onChange={value => updateField('confirmPassword', value)}
