@@ -259,7 +259,7 @@ useEffect(() => {
         <div className="flex flex-col gap-1 rounded-2xl border border-white/40 bg-slate-100/70 p-1.5 shadow-md backdrop-blur-md">
           <button
             onClick={openNotify}
-            className="relative grid h-9 w-9 place-items-center rounded-xl text-ink-2 transition-all hover:bg-raised hover:text-ink"
+            className="relative grid h-9 w-9 place-items-center rounded-xl text-ink-2 transition-all hover:bg-raised hover:text-ink active:scale-100 active:opacity-70"
             aria-label="通知"
           >
             <Bell size={18} strokeWidth={2} />
@@ -268,7 +268,7 @@ useEffect(() => {
           {loggedIn ? (
             <button
               onClick={openMessages}
-              className="relative grid h-9 w-9 place-items-center rounded-xl text-ink-2 transition-all hover:bg-raised hover:text-ink"
+              className="relative grid h-9 w-9 place-items-center rounded-xl text-ink-2 transition-all hover:bg-raised hover:text-ink active:scale-100 active:opacity-70"
               aria-label="訊息"
             >
               <MessageSquare size={18} strokeWidth={2} />

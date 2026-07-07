@@ -13,7 +13,7 @@ export default function ConversationMenu({ selected, onMembersToggle }) {
     <div ref={menuRef} className="relative">
       <button
         onClick={() => setOpen(v => !v)}
-        className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+        className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink active:scale-100 active:opacity-70"
         aria-label="更多選項"
       >
         <MoreVertical size={18} />

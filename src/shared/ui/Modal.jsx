@@ -69,7 +69,7 @@ export default function Modal({
               {hideBack ? (
                 <div className="h-9 w-9 shrink-0" />
               ) : (
-                <button onClick={handleClose} className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink">
+                <button onClick={handleClose} className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink active:scale-100 active:opacity-70">
                   <ChevronLeft size={20} />
                 </button>
               )}
@@ -106,7 +106,7 @@ export default function Modal({
             </div>
             <div className="flex items-center gap-1">
               {headerEnd}
-              <button onClick={handleClose} className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink ${hideClose ? 'max-md:hidden' : ''}`} aria-label="關閉">
+              <button onClick={handleClose} className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink active:scale-100 active:opacity-70 ${hideClose ? 'max-md:hidden' : ''}`} aria-label="關閉">
                 <X size={18} />
               </button>
             </div>
