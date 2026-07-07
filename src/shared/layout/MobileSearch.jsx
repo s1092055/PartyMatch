@@ -153,9 +153,9 @@ export default function MobileSearch() {
           </button>
         </div>
 
-        {/* Search input */}
-        <div className="shrink-0 px-5 pt-4 pb-3">
-          <div className="relative">
+        {/* Search input + filter toggle */}
+        <div className="shrink-0 flex items-center gap-2 px-5 pt-4 pb-3">
+          <div className="relative flex-1">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3" />
             <input
               ref={inputRef}
@@ -175,19 +175,15 @@ export default function MobileSearch() {
               </button>
             )}
           </div>
-        </div>
-
-        {/* Filter toggle */}
-        <div className="shrink-0 px-5 pb-3">
           <button
             onClick={() => setShowFilters(v => !v)}
-            className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
+            className={`shrink-0 self-stretch flex items-center gap-1.5 rounded-xl px-3 text-xs font-bold transition-colors ${
               hasActiveFilters
                 ? 'bg-brand text-white'
                 : 'bg-raised text-ink-3 hover:bg-brand-subtle hover:text-brand'
             }`}
           >
-            <SlidersHorizontal size={12} />
+            <SlidersHorizontal size={14} />
             篩選
             {hasActiveFilters && (
               <span className="flex h-4 w-4 items-center justify-center rounded-full bg-white/30 text-[10px]">
