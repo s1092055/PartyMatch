@@ -164,7 +164,7 @@ export default function AppNav() {
     if (item.type === 'search') {
       return (
         <button key="search" onClick={openSearch} aria-label="搜尋"
-          className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand active:scale-[0.96]">
+          className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand hover:text-white active:scale-[0.96]">
           <span className="grid h-9 w-9 shrink-0 place-items-center">
             <Search size={22} strokeWidth={2.1} />
           </span>
@@ -178,7 +178,7 @@ export default function AppNav() {
     if (item.type === 'create') {
       return (
         <button key="create" onClick={openCreate} aria-label={item.label}
-          className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand active:scale-[0.96]">
+          className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand hover:text-white active:scale-[0.96]">
           <span className="grid h-9 w-9 shrink-0 place-items-center">
             <item.icon size={22} strokeWidth={2.1} />
           </span>
@@ -192,7 +192,7 @@ export default function AppNav() {
     if (item.type === 'match') {
       return (
         <button key="match" onClick={openMatch} aria-label={item.label}
-          className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand active:scale-[0.96]">
+          className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand hover:text-white active:scale-[0.96]">
           <span className="grid h-9 w-9 shrink-0 place-items-center">
             <item.icon size={22} strokeWidth={2.1} />
           </span>
@@ -216,7 +216,7 @@ export default function AppNav() {
         className={`flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-[0.95rem] transition-all hover:-translate-y-0.5 active:scale-[0.96] ${
           isActive
             ? 'bg-brand-subtle font-extrabold text-brand'
-            : 'font-bold text-ink-2 hover:bg-brand-subtle hover:text-brand'
+            : 'font-bold text-ink-2 hover:bg-brand hover:text-white'
         }`}
       >
         <span className="grid h-9 w-9 shrink-0 place-items-center">
