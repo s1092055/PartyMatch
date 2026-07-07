@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import { Bell, Compass, Heart, LayoutGrid, Lock, LogIn, LogOut, Menu, MessageSquare, PlusCircle, Search, Zap } from 'lucide-react'
+import { Bell, Compass, Heart, LayoutGrid, Lock, LogIn, LogOut, MessageSquare, PlusCircle, Search, Settings, UserCircle2, Zap } from 'lucide-react'
 import { toast } from '../utils/toast'
 import logoUrl from '../../assets/Logo.svg'
 import { useAuthStore } from '../stores/useAuthStore'
@@ -53,8 +53,12 @@ export default function AppNav() {
   const [lockedTip, setLockedTip] = useState(null)
   const [myMenuOpen, setMyMenuOpen] = useState(false)
   const myMenuRef = useRef(null)
-const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const mobileMenuRef = useRef(null)
+  const [desktopMenuOpen, setDesktopMenuOpen] = useState(false)
+  const [desktopMenuPos, setDesktopMenuPos] = useState(null)
+  const desktopMenuRef = useRef(null)
+  const desktopAvatarRef = useRef(null)
 
   useEffect(() => {
     if (!myMenuOpen) return
@@ -65,7 +69,7 @@ const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     return () => document.removeEventListener('pointerdown', handleOutside)
   }, [myMenuOpen])
 
-useEffect(() => {
+  useEffect(() => {
     if (!mobileMenuOpen) return
     function handleOutside(e) {
       if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target)) setMobileMenuOpen(false)
@@ -73,6 +77,26 @@ useEffect(() => {
     document.addEventListener('pointerdown', handleOutside)
     return () => document.removeEventListener('pointerdown', handleOutside)
   }, [mobileMenuOpen])
+
+  useEffect(() => {
+    if (!desktopMenuOpen) return
+    function handleOutside(e) {
+      if (
+        desktopMenuRef.current && !desktopMenuRef.current.contains(e.target) &&
+        desktopAvatarRef.current && !desktopAvatarRef.current.contains(e.target)
+      ) setDesktopMenuOpen(false)
+    }
+    document.addEventListener('pointerdown', handleOutside)
+    return () => document.removeEventListener('pointerdown', handleOutside)
+  }, [desktopMenuOpen])
+
+  function toggleDesktopMenu() {
+    if (!desktopMenuOpen && desktopAvatarRef.current) {
+      const rect = desktopAvatarRef.current.getBoundingClientRect()
+      setDesktopMenuPos({ left: rect.right + 10, bottom: window.innerHeight - rect.bottom })
+    }
+    setDesktopMenuOpen(v => !v)
+  }
 
   const loggedIn = useAuthStore(s => s.loggedIn)
   const currentUser = useAuthStore(s => s.user)
@@ -243,18 +267,6 @@ useEffect(() => {
 
       {/* Desktop action buttons — fixed top-right */}
       <div className="fixed top-6 z-50 hidden items-start gap-2 md:flex lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
-        {/* 代幣餘額 */}
-        {loggedIn && (
-          <button
-            onClick={() => setTopupOpen(true)}
-            className="flex items-center gap-2 rounded-2xl border border-white/40 bg-slate-100/70 px-3 py-2.5 shadow-md backdrop-blur-md transition-all hover:bg-slate-100/90"
-            aria-label="代幣餘額，點擊加值"
-          >
-            <TokenBadge className="shrink-0" />
-            <span className="text-sm font-bold text-ink">{tokenBalance.toLocaleString()} PM</span>
-          </button>
-        )}
-
         {/* 通知 + 訊息垂直排 */}
         <div className="flex flex-col gap-1 rounded-2xl border border-white/40 bg-slate-100/70 p-1.5 shadow-md backdrop-blur-md">
           <button
@@ -289,6 +301,63 @@ useEffect(() => {
         </div>
       </div>
 
+      {/* Desktop avatar dropdown — portal */}
+      {desktopMenuOpen && loggedIn && desktopMenuPos && createPortal(
+        <div
+          ref={desktopMenuRef}
+          className="fixed z-[100] w-64 overflow-hidden rounded-2xl border border-line bg-white shadow-2xl"
+          style={{ left: desktopMenuPos.left, bottom: desktopMenuPos.bottom }}
+        >
+          {/* 使用者資訊 */}
+          <div className="flex items-center gap-3 px-4 py-4">
+            <span
+              className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-base font-black text-white shadow-md"
+              style={{ background: avatarColor ?? 'linear-gradient(135deg, #cbd5e1, #64748b)' }}
+            >
+              {avatarInitial}
+              <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
+            </span>
+            <p className="min-w-0 truncate text-sm font-extrabold text-ink">{userName}</p>
+          </div>
+
+          {/* PM 幣餘額 */}
+          <div className="mx-3 mb-3 flex items-center gap-2 rounded-xl bg-raised px-3 py-2.5">
+            <TokenBadge className="shrink-0" />
+            <span className="flex-1 text-sm font-bold text-ink">{tokenBalance.toLocaleString()} PM</span>
+            <button
+              onClick={() => { setDesktopMenuOpen(false); setTopupOpen(true) }}
+              className="rounded-full bg-brand px-2.5 py-1 text-xs font-bold text-white transition-colors hover:bg-brand-hover active:opacity-80"
+            >
+              加值
+            </button>
+          </div>
+
+          <div className="border-t border-line-subtle" />
+
+          {/* 帳號設定 */}
+          <a
+            href="/account"
+            onClick={() => setDesktopMenuOpen(false)}
+            className="flex w-full items-center gap-3 px-4 py-3.5 text-sm font-bold text-ink transition-colors hover:bg-raised"
+          >
+            <Settings size={17} strokeWidth={2} className="shrink-0 text-ink-3" />
+            前往帳號設定
+          </a>
+
+          <div className="border-t border-line-subtle" />
+
+          {/* 登出 */}
+          <button
+            onClick={() => { setDesktopMenuOpen(false); useAuthStore.getState().logout(); navigate('/login', { replace: true }) }}
+            className="flex w-full items-center gap-3 px-4 py-3.5 text-sm font-bold text-danger transition-colors hover:bg-danger-subtle"
+          >
+            <LogOut size={17} strokeWidth={2} className="shrink-0" />
+            登出
+          </button>
+        </div>,
+        document.body
+      )}
+
       {/* Desktop floating sidebar */}
       <aside
         className="group/nav fixed bottom-4 left-4 top-4 z-50 hidden w-16 flex-col overflow-hidden rounded-2xl border border-white/40 bg-slate-100/80 shadow-sm backdrop-blur-md transition-[width] duration-300 ease-out hover:w-56 focus-within:w-56 md:flex"
@@ -313,11 +382,12 @@ useEffect(() => {
 
         <div className="px-2 pb-4">
           {loggedIn ? (
-            <a
-              href="/account"
-              onClick={closeAll}
-              className="flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left transition-all hover:bg-raised"
-              aria-label="前往帳號中心"
+            <button
+              ref={desktopAvatarRef}
+              onClick={toggleDesktopMenu}
+              aria-label="個人選單"
+              aria-expanded={desktopMenuOpen}
+              className={`flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left transition-all hover:bg-raised ${desktopMenuOpen ? 'bg-raised' : ''}`}
             >
               <span
                 className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-black text-white shadow-md"
@@ -329,29 +399,27 @@ useEffect(() => {
               <span className="min-w-0 flex-1 opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
                 <span className="block truncate text-sm font-extrabold text-ink">{userName}</span>
               </span>
-            </a>
+            </button>
           ) : (
-            <div className="flex flex-col gap-1.5">
-              <a
-                href="/login"
-                onClick={closeAll}
-                className="flex h-12 w-full items-center gap-3 rounded-2xl bg-brand px-1 text-sm font-bold text-white transition-all hover:-translate-y-0.5 active:scale-[0.96] hover:bg-brand-hover"
-              >
-                <span className="grid h-9 w-9 shrink-0 place-items-center">
-                  <LogIn size={20} strokeWidth={2.1} />
-                </span>
-                <span className="whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
-                  登入
-                </span>
-              </a>
-            </div>
+            <a
+              href="/login"
+              onClick={closeAll}
+              className="flex h-12 w-full items-center gap-3 rounded-2xl bg-brand px-1 text-sm font-bold text-white transition-all hover:-translate-y-0.5 active:scale-[0.96] hover:bg-brand-hover"
+            >
+              <span className="grid h-9 w-9 shrink-0 place-items-center">
+                <LogIn size={20} strokeWidth={2.1} />
+              </span>
+              <span className="whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
+                登入
+              </span>
+            </a>
           )}
         </div>
       </aside>
 
       {/* Mobile / Tablet header */}
       <div ref={mobileMenuRef} className="fixed left-3 right-3 top-3 z-50 md:hidden">
-        <header className={`flex h-14 items-center justify-between border border-white/40 bg-slate-100/80 px-4 shadow-sm backdrop-blur-md ${mobileMenuOpen ? 'rounded-t-2xl border-b-0' : 'rounded-2xl'}`}>
+        <header className="flex h-14 items-center justify-between rounded-2xl border border-white/40 bg-slate-100/80 px-4 shadow-sm backdrop-blur-md">
           <a href="/" className="flex items-center gap-2" aria-label="回首頁">
             <img src={logoUrl} alt="PartyMatch" className="h-8 w-8" />
             <span className="text-[1rem] font-extrabold">
@@ -368,75 +436,83 @@ useEffect(() => {
               <Bell size={20} strokeWidth={2} />
               <Badge count={unreadNotifs} />
             </button>
-            {/* 漢堡選單 */}
-            <button
-              onClick={() => setMobileMenuOpen(v => !v)}
-              className={`relative grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink ${mobileMenuOpen ? 'bg-raised text-ink' : ''}`}
-              aria-label="選單"
-              aria-expanded={mobileMenuOpen}
-            >
-              <Menu size={22} strokeWidth={2} />
-            </button>
-          </div>
-        </header>
-
-        {/* Full-width dropdown */}
-        {mobileMenuOpen && (
-          <div className="flex flex-col gap-1 rounded-b-2xl border border-t-0 border-white/40 bg-slate-100/95 px-4 py-3 shadow-sm backdrop-blur-md">
-            <button
-              onClick={() => { setMobileMenuOpen(false); openSearch() }}
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-raised"
-            >
-              <Search size={20} strokeWidth={2} className="shrink-0 text-ink-2" />
-              <span className="text-sm font-bold text-ink">搜尋</span>
-            </button>
-            {loggedIn && (
-              <button
-                onClick={() => { setMobileMenuOpen(false); setTopupOpen(true) }}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-raised"
-              >
-                <TokenBadge className="shrink-0" />
-                <span className="flex-1 text-sm font-bold text-ink">{tokenBalance.toLocaleString()} PM</span>
-                <span className="rounded-full bg-brand px-2 py-0.5 text-xs font-bold text-white">加值</span>
-              </button>
-            )}
+            {/* 頭像按鈕 / 登入按鈕 */}
             {loggedIn ? (
-              <a
-                href="/account"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-raised"
+              <button
+                onClick={() => setMobileMenuOpen(v => !v)}
+                aria-label="個人選單"
+                aria-expanded={mobileMenuOpen}
+                className="relative ml-1 shrink-0"
               >
                 <span
-                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[0.6rem] font-black text-white shadow"
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-black text-white shadow-md"
                   style={{ background: avatarColor ?? 'linear-gradient(135deg, #cbd5e1, #64748b)' }}
                 >
                   {avatarInitial}
                 </span>
-                <span className="flex-1 text-sm font-bold text-ink">{userName}</span>
-                <span className="text-xs text-ink-3">帳號設定</span>
-              </a>
+                <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white bg-emerald-500" />
+              </button>
             ) : (
               <a
                 href="/login"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-raised"
+                aria-label="前往登入"
+                className="relative ml-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-raised text-ink-3 transition-colors hover:bg-brand-subtle hover:text-brand"
               >
-                <LogIn size={20} strokeWidth={2} className="shrink-0 text-ink-2" />
-                <span className="text-sm font-bold text-ink">登入</span>
+                <UserCircle2 size={22} strokeWidth={1.8} />
               </a>
             )}
-            {loggedIn && (
-              <>
-                <div className="my-1 border-t border-line-subtle" />
-                <button
-                  onClick={() => { setMobileMenuOpen(false); useAuthStore.getState().logout(); navigate('/login', { replace: true }) }}
-                  className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-danger transition-colors hover:bg-danger-subtle"
-                >
-                  <LogOut size={20} strokeWidth={2} className="shrink-0" />
-                  <span className="text-sm font-bold">登出</span>
-                </button>
-              </>
-            )}
+          </div>
+        </header>
+
+        {/* Avatar dropdown */}
+        {mobileMenuOpen && loggedIn && (
+          <div className="absolute right-0 top-full mt-2 w-64 overflow-hidden rounded-2xl border border-line bg-white shadow-2xl">
+            {/* 使用者資訊 */}
+            <div className="flex items-center gap-3 px-4 py-4">
+              <span
+                className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-base font-black text-white shadow-md"
+                style={{ background: avatarColor ?? 'linear-gradient(135deg, #cbd5e1, #64748b)' }}
+              >
+                {avatarInitial}
+                <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
+              </span>
+              <p className="min-w-0 truncate text-sm font-extrabold text-ink">{userName}</p>
+            </div>
+
+            {/* PM 幣餘額 */}
+            <div className="mx-3 mb-3 flex items-center gap-2 rounded-xl bg-raised px-3 py-2.5">
+              <TokenBadge className="shrink-0" />
+              <span className="flex-1 text-sm font-bold text-ink">{tokenBalance.toLocaleString()} PM</span>
+              <button
+                onClick={() => { setMobileMenuOpen(false); setTopupOpen(true) }}
+                className="rounded-full bg-brand px-2.5 py-1 text-xs font-bold text-white transition-colors hover:bg-brand-hover active:opacity-80"
+              >
+                加值
+              </button>
+            </div>
+
+            <div className="border-t border-line-subtle" />
+
+            {/* 帳號設定 */}
+            <a
+              href="/account"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex w-full items-center gap-3 px-4 py-3.5 text-sm font-bold text-ink transition-colors hover:bg-raised"
+            >
+              <Settings size={17} strokeWidth={2} className="shrink-0 text-ink-3" />
+              前往帳號設定
+            </a>
+
+            <div className="border-t border-line-subtle" />
+
+            {/* 登出 */}
+            <button
+              onClick={() => { setMobileMenuOpen(false); useAuthStore.getState().logout(); navigate('/login', { replace: true }) }}
+              className="flex w-full items-center gap-3 px-4 py-3.5 text-sm font-bold text-danger transition-colors hover:bg-danger-subtle"
+            >
+              <LogOut size={17} strokeWidth={2} className="shrink-0" />
+              登出
+            </button>
           </div>
         )}
       </div>
