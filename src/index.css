@@ -221,7 +221,7 @@
   }
 
   .card-hover {
-    transition: box-shadow 0.1s ease, border-color 0.1s ease;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
   }
   .card-hover:hover {
     box-shadow: var(--shadow-card-hover);
