@@ -114,8 +114,8 @@ recruiting → full → pending_confirmation → pending_activation → active �
 
 ### 導覽設計
 
-- **桌機版**：左側 floating sidebar，收合為 64px icon bar，hover 展開至 224px 顯示文字標籤；右上角僅保留通知與訊息按鈕；點擊 sidebar 底部頭像開啟置中 Modal，顯示帳號資訊、PM 幣餘額（附加值）、帳號設定、登出。
-- **手機版**：頂部 header + 底部 Dock；頂部右側以頭像取代漢堡選單，點擊展開 dropdown 顯示相同的帳號操作；未登入時顯示 UserCircle2 icon 引導登入。
+- **桌機版**：左側 floating sidebar，收合為 64px icon bar，hover 展開至 224px 顯示文字標籤；右上角為通知、訊息兩個獨立圓形按鈕（垂直排列，`hover:-translate-y-0.5 active:scale-[0.96]`）；sidebar 底部頭像點擊開啟置中 Modal（帳號資訊、PM 幣餘額含加值、帳號設定、登出）。
+- **手機版**：頂部 header + 底部 Dock；頂部右側以頭像取代漢堡選單，點擊展開 dropdown，樣式與桌機 modal 一致（頭像+名稱置中、PM 幣 inline、帳號設定與登出左右並排）；未登入時顯示 UserCircle2 icon 點擊導向登入頁。
 
 ### 跨元件通訊
 

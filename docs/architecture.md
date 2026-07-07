@@ -222,7 +222,7 @@ init: async () => {
 | `src/app/router.jsx` | `AppLayout`、`ProtectedRoute`、`PublicOnlyRoute`、`redirects.jsx` | 定義公開頁、受保護頁、Modal 型 redirect route |
 | `src/shared/api/axiosClient.js` | 所有 API 模組 | 自動帶 JWT header；401 + 有 token 時跳登入；無 token 的 401 靜默處理 |
 | `src/shared/layout/AppLayout.jsx` | `AppNav`、`AppFooter`、`MobileSearch`、`FloatingMessages`、`MessagesModal`、`CreateGroupModal`、`GroupDetailModal`、`QuickMatchModal` | 統一掛載跨頁共用導覽、全域 Modal 與頁尾 |
-| `src/shared/layout/AppNav.jsx` | `NAV_SECTIONS`、`authStore`、`notificationStore`、`conversationStore`、`toast` | 電腦版：毛玻璃側欄（`bg-slate-100/80 backdrop-blur-md`），按鈕 hover 顯示品牌色，鎖定按鈕以 portal tooltip 跟隨鼠標顯示提示；手機版：固定 header + 底部 dock（探索、配對、建立、我的、帳號/登入）；「我的」按鈕點擊後向上展開 dropdown 選單，顯示「我的群組」與「我的收藏」兩個子入口（點選後關閉 dropdown 並導向對應頁面）；未登入點擊鎖定項目改發 Toast（附「前往登入」按鈕）而非直接跳轉 |
+| `src/shared/layout/AppNav.jsx` | `NAV_SECTIONS`、`authStore`、`notificationStore`、`conversationStore`、`toast` | **桌機版**：左側毛玻璃 sidebar（收合 64px / 展開 224px）；右上角通知與訊息為獨立圓形按鈕（`h-12 w-12`，垂直排列）；sidebar 底部頭像改為按鈕，點擊透過 createPortal 開啟置中 Modal（`animate-backdrop-in` + `animate-modal-in`），內容含大頭像+名稱、PM 幣 inline badge（附加值按鈕）、帳號設定與登出左右並排。**手機版**：頂部 header（Logo + 通知 + 頭像按鈕）+ 底部 Dock（探索、配對、建立、我的、訊息）；頂部頭像點擊展開 absolute dropdown，樣式與桌機 modal 對齊；未登入顯示 UserCircle2 icon 點擊導向登入；「我的」按鈕向上展開橫排 dropdown（我的群組 / 我的收藏）；未登入點擊鎖定項目發 Toast（附「前往登入」按鈕）|
 | `src/shared/layout/FloatingMessages.jsx` | `notificationStore`、`conversationStore`、`applicationStore` | 監聽 `pm:open-notify` 顯示通知 panel；通知點擊後依類型 dispatch 對應 `pm:open-*` 事件；`new_application` 點擊時先 await `applicationStore.init()` 再開 Modal，確保資料已更新；`member_left`（成員退出）host 端點擊前廣播 `pm:refresh-member-stores` |
 | `src/shared/ui/GroupModalShell.jsx` | `GroupOverviewContent`、`Badge`、`ProgressBar`、`ServiceLogo` | 三個群組詳情 Modal 共用的滑動軌道殼（300% 寬、三層 panel）；`subPanel` 滑入第二層、`subSubPanel` 滑入第三層，支援 `headerRight` slot；管理 scroll lock、Escape 逐層關閉 |
 | `src/features/group/GroupDetailModal.jsx` | `GroupModalShell`、`favoriteStore`、`applicationStore` | 接收 `pm:open-group`；依使用者狀態顯示申請、收藏、付款 CTA；申請加入流程以 `subPanel` 翻書動畫呈現（填寫留言 → 送出成功兩格水平滑動），不再開啟獨立 Modal |
@@ -242,7 +242,7 @@ init: async () => {
 |------|------|
 | `/` | 首頁 Landing Page |
 | `/explore` | 探索群組 |
-| `/explore?q=keyword` | 探索搜尋 |
+| `/explore?q=keyword&category=streaming&service=netflix&maxPrice=150&sortBy=rating` | 探索搜尋（含篩選，由 MobileSearch Modal 產生） |
 | `/groups/:groupId` | 群組詳情重導（轉到探索頁並開啟 Modal） |
 | `/login` | 登入（PublicOnlyRoute） |
 | `/register` | 註冊（PublicOnlyRoute） |
@@ -267,8 +267,8 @@ init: async () => {
 
 | 元件 | 用途 |
 |------|------|
-| `AppNav` | 桌機側欄、手機 Header、通知 / 訊息按鈕、未讀 badge |
-| `MobileSearch` | 手機 / 側欄搜尋入口 |
+| `AppNav` | 桌機側欄（含頭像 Modal）、手機 Header（含頭像 dropdown）+ 底部 Dock、通知 / 訊息圓形按鈕、未讀 badge |
+| `MobileSearch` | 全域搜尋 Modal（`pm:open-search` 觸發）；含關鍵字輸入、篩選面板（CategoryPills + 服務 / 價格 / 排序 CustomSelect）；送出時以 URL query params 傳遞篩選狀態至 `/explore` |
 | `Modal` | 通用 Modal 外殼；支援 `sub` prop（子 modal 模式，z-index 提升、左上角返回鍵）；`isOpen` 為 undefined 時為非受控模式 |
 | `GroupModalShell` | 探索、管理、訂閱三處共用的滑動軌道殼；`subPanel`（第二層）+ `subSubPanel`（第三層）prop 實現翻書滑動動畫；支援各層 `headerRight` slot |
 | `FilterTabsBar` | 我的群組（成員 / 團主）頁面的分頁篩選列；pill 全寬均分，inactive 使用 `bg-raised/50` 使 gap 可見；手機以 CustomSelect dropdown 取代；成員端分頁為「全部 / 處理中 / 啟用中 / 即將續訂 / 已結束」（「已結束」取代舊版「申請紀錄」分頁） |
