@@ -53,9 +53,7 @@ export default function AppNav() {
   const [lockedTip, setLockedTip] = useState(null)
   const [myMenuOpen, setMyMenuOpen] = useState(false)
   const myMenuRef = useRef(null)
-  const [actionsOpen, setActionsOpen] = useState(false)
-  const actionsRef = useRef(null)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const mobileMenuRef = useRef(null)
 
   useEffect(() => {
@@ -67,16 +65,7 @@ export default function AppNav() {
     return () => document.removeEventListener('pointerdown', handleOutside)
   }, [myMenuOpen])
 
-  useEffect(() => {
-    if (!actionsOpen) return
-    function handleOutside(e) {
-      if (actionsRef.current && !actionsRef.current.contains(e.target)) setActionsOpen(false)
-    }
-    document.addEventListener('pointerdown', handleOutside)
-    return () => document.removeEventListener('pointerdown', handleOutside)
-  }, [actionsOpen])
-
-  useEffect(() => {
+useEffect(() => {
     if (!mobileMenuOpen) return
     function handleOutside(e) {
       if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target)) setMobileMenuOpen(false)
@@ -252,75 +241,52 @@ export default function AppNav() {
         document.body
       )}
 
-      {/* Desktop action buttons — fixed top-right, click dropdown */}
-      <div ref={actionsRef} className="fixed top-6 z-50 hidden md:block lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
-        {/* Trigger — always visible */}
-        <button
-          onClick={() => setActionsOpen(v => !v)}
-          className={`relative grid h-12 w-12 place-items-center rounded-full border border-white/40 bg-slate-100/70 shadow-md backdrop-blur-md text-ink-2 transition-all hover:bg-slate-100/90 hover:text-ink ${actionsOpen ? 'bg-slate-100/90 text-ink' : ''}`}
-          aria-label="選單"
-          aria-expanded={actionsOpen}
-        >
-          <Menu size={20} strokeWidth={2} />
-          <Badge count={unreadNotifs + unreadMsgs} />
-        </button>
-
-        {/* Dropdown panel */}
-        {actionsOpen && (
-        <div className="absolute right-0 top-full mt-2 flex w-52 flex-col gap-1 rounded-2xl border border-white/40 bg-slate-100/90 p-2 shadow-xl backdrop-blur-md">
-          {loggedIn && (
-            <button
-              onClick={() => { setActionsOpen(false); setTopupOpen(true) }}
-              className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-raised"
-              aria-label="代幣餘額，點擊加值"
-            >
-              <TokenBadge className="shrink-0" />
-              <span className="flex-1 text-sm font-bold text-ink">{tokenBalance.toLocaleString()} PM</span>
-              <span className="rounded-full bg-brand px-2 py-0.5 text-xs font-bold text-white">加值</span>
-            </button>
-          )}
+      {/* Desktop action buttons — fixed top-right */}
+      <div className="fixed top-6 z-50 hidden items-start gap-2 md:flex lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
+        {/* 代幣餘額 */}
+        {loggedIn && (
           <button
-            onClick={() => { setActionsOpen(false); openNotify() }}
-            className="relative flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-raised"
+            onClick={() => setTopupOpen(true)}
+            className="flex items-center gap-2 rounded-2xl border border-white/40 bg-slate-100/70 px-3 py-2.5 shadow-md backdrop-blur-md transition-all hover:bg-slate-100/90"
+            aria-label="代幣餘額，點擊加值"
+          >
+            <TokenBadge className="shrink-0" />
+            <span className="text-sm font-bold text-ink">{tokenBalance.toLocaleString()} PM</span>
+          </button>
+        )}
+
+        {/* 通知 + 訊息垂直排 */}
+        <div className="flex flex-col gap-1 rounded-2xl border border-white/40 bg-slate-100/70 p-1.5 shadow-md backdrop-blur-md">
+          <button
+            onClick={openNotify}
+            className="relative grid h-9 w-9 place-items-center rounded-xl text-ink-2 transition-all hover:bg-raised hover:text-ink"
             aria-label="通知"
           >
-            <Bell size={18} strokeWidth={2} className="shrink-0 text-ink-2" />
-            <span className="flex-1 text-sm font-bold text-ink">通知</span>
-            {unreadNotifs > 0 && (
-              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[0.6rem] font-black text-white">
-                {unreadNotifs > 99 ? '99+' : unreadNotifs}
-              </span>
-            )}
+            <Bell size={18} strokeWidth={2} />
+            <Badge count={unreadNotifs} />
           </button>
           {loggedIn ? (
             <button
-              onClick={() => { setActionsOpen(false); openMessages() }}
-              className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-raised"
+              onClick={openMessages}
+              className="relative grid h-9 w-9 place-items-center rounded-xl text-ink-2 transition-all hover:bg-raised hover:text-ink"
               aria-label="訊息"
             >
-              <MessageSquare size={18} strokeWidth={2} className="shrink-0 text-ink-2" />
-              <span className="flex-1 text-sm font-bold text-ink">訊息</span>
-              {unreadMsgs > 0 && (
-                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[0.6rem] font-black text-white">
-                  {unreadMsgs > 99 ? '99+' : unreadMsgs}
-                </span>
-              )}
+              <MessageSquare size={18} strokeWidth={2} />
+              <Badge count={unreadMsgs} />
             </button>
           ) : (
             <button
               type="button"
               aria-disabled="true"
               aria-label={`訊息，${LOCKED_MESSAGE}`}
-              onClick={e => { setActionsOpen(false); preventLockedAction(e) }}
-              className="group/locked relative flex w-full cursor-not-allowed items-center gap-2 rounded-xl px-3 py-2.5 text-left opacity-40"
+              onClick={e => preventLockedAction(e)}
+              className="group/locked relative grid h-9 w-9 cursor-not-allowed place-items-center rounded-xl text-ink-2 opacity-40"
             >
-              <MessageSquare size={18} strokeWidth={2} className="shrink-0 text-ink-2" />
-              <span className="flex-1 text-sm font-bold text-ink">訊息</span>
+              <MessageSquare size={18} strokeWidth={2} />
               <LockedHint className="right-full top-1/2 mr-2 -translate-y-1/2" />
             </button>
           )}
         </div>
-        )}
       </div>
 
       {/* Desktop floating sidebar */}

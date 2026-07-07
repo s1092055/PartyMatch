@@ -16,7 +16,6 @@ import {
   sendMessage,
   markConversationRead,
   getOrCreateDmConversation,
-  leaveConversation,
 } from '../../shared/api/messagesApi'
 import { normalizeConversation, normalizeMessage } from '../../shared/utils/modelNormalizers'
 import ConfirmDialog from '../../shared/ui/ConfirmDialog'
@@ -214,23 +213,6 @@ export default function MessagesModal() {
     handleSend()
   }
 
-  function handleRequestDeleteConversation() {
-    const user = getCurrentUser()
-    if (!selectedId || !user) return
-    setConfirmDialog({
-      title: '刪除對話',
-      message: '確定要刪除此對話嗎？刪除後對話將從列表中移除。',
-      confirmLabel: '刪除',
-      danger: true,
-      onConfirm: async () => {
-        setConfirmDialog(null)
-        try {
-          await leaveConversation(selectedId, user.id)
-        } catch (e) { console.error(e) }
-        setSelectedId(null)
-      },
-    })
-  }
 
   if (showLoginPrompt) return <LoginPromptModal onClose={() => setShowLoginPrompt(false)} />
   if (!isOpen) return null
@@ -287,7 +269,6 @@ export default function MessagesModal() {
               key={selectedId}
               selected={selected}
               onMembersToggle={() => setShowMembers(v => !v)}
-              onDeleteConversation={handleRequestDeleteConversation}
             />
           : null
         }
@@ -335,7 +316,6 @@ export default function MessagesModal() {
                 selected={selected}
                 selectedId={selectedId}
                 messages={messages}
-                loadingMessages={loadingMessages}
                 user={user}
                 sending={sending}
                 sendError={sendError}
@@ -348,7 +328,6 @@ export default function MessagesModal() {
                 onSend={handleSend}
                 onKeyDown={handleKeyDown}
                 onInputChange={v => { setCanSend(v.trim().length > 0); setSendError(false) }}
-                onRequestDeleteConversation={handleRequestDeleteConversation}
               />
             </div>
           </div>

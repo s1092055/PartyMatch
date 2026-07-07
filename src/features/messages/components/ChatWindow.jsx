@@ -48,13 +48,12 @@ function toMillis(ts) {
 }
 
 export default function ChatWindow({
-  selected, selectedId, messages, loadingMessages, user,
+  selected, selectedId, messages, user,
   sending, sendError, canSend,
   inputRef,
   showMembers,
   isComposingRef, lastCompositionEndRef,
   onMembersToggle, onSend, onKeyDown, onInputChange,
-  onRequestDeleteConversation,
 }) {
   // 用來在 userProfileCache（模組層、非 React state）有新結果時強制重新 render
   const [, setProfileResolveTick] = useState(0)
@@ -257,7 +256,6 @@ export default function ChatWindow({
           key={selectedId}
           selected={selected}
           onMembersToggle={() => onMembersToggle(v => !v)}
-          onDeleteConversation={onRequestDeleteConversation}
         />
       </div>
 
@@ -311,17 +309,7 @@ export default function ChatWindow({
         onScroll={handleMessagesScroll}
         className="flex-1 min-h-0 overflow-y-auto overscroll-contain bg-canvas [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        {loadingMessages ? (
-          <div className="space-y-3 px-4 py-4">
-            {[80, 60, 90, 50].map((w, i) => (
-              <div key={i} className={`flex ${i % 2 === 0 ? 'justify-end' : 'items-end gap-2'}`}>
-                {i % 2 !== 0 && <div className="h-8 w-8 shrink-0 rounded-full bg-line animate-pulse" />}
-                <div className="h-9 animate-pulse rounded-2xl bg-line" style={{ width: `${w}%`, maxWidth: '70%' }} />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="space-y-3 px-4 py-4">
+        <div className="space-y-3 px-4 py-4">
             {loadingOlder && (
               <div className="flex justify-center py-2">
                 <div className="h-5 w-5 animate-spin rounded-full border-2 border-line border-t-ink-3" />
@@ -495,7 +483,6 @@ export default function ChatWindow({
               )
             })}
           </div>
-        )}
       </div>
 
       {showScrollToBottom && (
