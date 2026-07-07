@@ -244,11 +244,11 @@ export default function AppNav() {
       )}
 
       {/* Desktop action buttons — fixed top-right */}
-      <div className="fixed top-6 z-50 hidden items-center gap-2 md:flex lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
+      <div className="fixed top-6 z-50 hidden flex-col items-center gap-2 md:flex lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
         {/* 通知 */}
         <button
           onClick={openNotify}
-          className="relative grid h-10 w-10 place-items-center rounded-full border border-white/40 bg-slate-100/70 text-ink-2 shadow-md backdrop-blur-md transition-all hover:bg-slate-100/90 hover:text-ink active:scale-100 active:opacity-70"
+          className="relative grid h-9 w-9 place-items-center rounded-full border border-white/40 bg-slate-100/70 text-ink-2 shadow-md backdrop-blur-md transition-all hover:bg-slate-100/90 hover:text-ink active:scale-100 active:opacity-70"
           aria-label="通知"
         >
           <Bell size={18} strokeWidth={2} />
@@ -258,7 +258,7 @@ export default function AppNav() {
         {loggedIn ? (
           <button
             onClick={openMessages}
-            className="relative grid h-10 w-10 place-items-center rounded-full border border-white/40 bg-slate-100/70 text-ink-2 shadow-md backdrop-blur-md transition-all hover:bg-slate-100/90 hover:text-ink active:scale-100 active:opacity-70"
+            className="relative grid h-9 w-9 place-items-center rounded-full border border-white/40 bg-slate-100/70 text-ink-2 shadow-md backdrop-blur-md transition-all hover:bg-slate-100/90 hover:text-ink active:scale-100 active:opacity-70"
             aria-label="訊息"
           >
             <MessageSquare size={18} strokeWidth={2} />
@@ -270,7 +270,7 @@ export default function AppNav() {
             aria-disabled="true"
             aria-label={`訊息，${LOCKED_MESSAGE}`}
             onClick={e => preventLockedAction(e)}
-            className="group/locked relative grid h-10 w-10 cursor-not-allowed place-items-center rounded-full border border-white/40 bg-slate-100/70 text-ink-2 opacity-40 shadow-md backdrop-blur-md"
+            className="group/locked relative grid h-9 w-9 cursor-not-allowed place-items-center rounded-full border border-white/40 bg-slate-100/70 text-ink-2 opacity-40 shadow-md backdrop-blur-md"
           >
             <MessageSquare size={18} strokeWidth={2} />
             <LockedHint className="right-full top-1/2 mr-2 -translate-y-1/2" />
