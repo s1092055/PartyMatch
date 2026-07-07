@@ -244,39 +244,38 @@ export default function AppNav() {
       )}
 
       {/* Desktop action buttons — fixed top-right */}
-      <div className="fixed top-6 z-50 hidden items-start gap-2 md:flex lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
-        {/* 通知 + 訊息垂直排 */}
-        <div className="flex flex-col gap-1 rounded-2xl border border-white/40 bg-slate-100/70 p-1.5 shadow-md backdrop-blur-md">
+      <div className="fixed top-6 z-50 hidden items-center gap-2 md:flex lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
+        {/* 通知 */}
+        <button
+          onClick={openNotify}
+          className="relative grid h-10 w-10 place-items-center rounded-full border border-white/40 bg-slate-100/70 text-ink-2 shadow-md backdrop-blur-md transition-all hover:bg-slate-100/90 hover:text-ink active:scale-100 active:opacity-70"
+          aria-label="通知"
+        >
+          <Bell size={18} strokeWidth={2} />
+          <Badge count={unreadNotifs} />
+        </button>
+        {/* 訊息 */}
+        {loggedIn ? (
           <button
-            onClick={openNotify}
-            className="relative grid h-9 w-9 place-items-center rounded-xl text-ink-2 transition-all hover:bg-raised hover:text-ink active:scale-100 active:opacity-70"
-            aria-label="通知"
+            onClick={openMessages}
+            className="relative grid h-10 w-10 place-items-center rounded-full border border-white/40 bg-slate-100/70 text-ink-2 shadow-md backdrop-blur-md transition-all hover:bg-slate-100/90 hover:text-ink active:scale-100 active:opacity-70"
+            aria-label="訊息"
           >
-            <Bell size={18} strokeWidth={2} />
-            <Badge count={unreadNotifs} />
+            <MessageSquare size={18} strokeWidth={2} />
+            <Badge count={unreadMsgs} />
           </button>
-          {loggedIn ? (
-            <button
-              onClick={openMessages}
-              className="relative grid h-9 w-9 place-items-center rounded-xl text-ink-2 transition-all hover:bg-raised hover:text-ink active:scale-100 active:opacity-70"
-              aria-label="訊息"
-            >
-              <MessageSquare size={18} strokeWidth={2} />
-              <Badge count={unreadMsgs} />
-            </button>
-          ) : (
-            <button
-              type="button"
-              aria-disabled="true"
-              aria-label={`訊息，${LOCKED_MESSAGE}`}
-              onClick={e => preventLockedAction(e)}
-              className="group/locked relative grid h-9 w-9 cursor-not-allowed place-items-center rounded-xl text-ink-2 opacity-40"
-            >
-              <MessageSquare size={18} strokeWidth={2} />
-              <LockedHint className="right-full top-1/2 mr-2 -translate-y-1/2" />
-            </button>
-          )}
-        </div>
+        ) : (
+          <button
+            type="button"
+            aria-disabled="true"
+            aria-label={`訊息，${LOCKED_MESSAGE}`}
+            onClick={e => preventLockedAction(e)}
+            className="group/locked relative grid h-10 w-10 cursor-not-allowed place-items-center rounded-full border border-white/40 bg-slate-100/70 text-ink-2 opacity-40 shadow-md backdrop-blur-md"
+          >
+            <MessageSquare size={18} strokeWidth={2} />
+            <LockedHint className="right-full top-1/2 mr-2 -translate-y-1/2" />
+          </button>
+        )}
       </div>
 
       {/* Desktop avatar modal — portal */}
