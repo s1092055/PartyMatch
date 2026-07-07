@@ -248,7 +248,7 @@ export default function AppNav() {
         {/* 通知 */}
         <button
           onClick={openNotify}
-          className="relative grid h-12 w-12 place-items-center rounded-full border border-white/40 bg-slate-100/70 text-ink-2 shadow-md backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-slate-100/90 hover:text-ink active:scale-[0.96]"
+          className="relative grid h-12 w-12 place-items-center rounded-full border border-white/40 bg-slate-100/70 text-ink-2 shadow-md backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-brand hover:text-white active:scale-[0.96]"
           aria-label="通知"
         >
           <Bell size={18} strokeWidth={2} />
@@ -258,7 +258,7 @@ export default function AppNav() {
         {loggedIn ? (
           <button
             onClick={openMessages}
-            className="relative grid h-12 w-12 place-items-center rounded-full border border-white/40 bg-slate-100/70 text-ink-2 shadow-md backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-slate-100/90 hover:text-ink active:scale-[0.96]"
+            className="relative grid h-12 w-12 place-items-center rounded-full border border-white/40 bg-slate-100/70 text-ink-2 shadow-md backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-brand hover:text-white active:scale-[0.96]"
             aria-label="訊息"
           >
             <MessageSquare size={18} strokeWidth={2} />
