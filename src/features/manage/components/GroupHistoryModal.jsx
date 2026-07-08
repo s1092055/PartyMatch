@@ -39,7 +39,6 @@ export default function GroupHistoryModal({ isOpen, onClose, group, members }) {
       sub
     >
       <div className="max-h-[75vh] overflow-y-auto p-5">
-        
         <div className="flex items-center gap-3 rounded-2xl bg-raised p-4">
           <ServiceLogo serviceId={group.serviceId} size={42} />
           <div className="min-w-0 flex-1">

@@ -1,10 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  CheckCircle2, ChevronRight,
-  Heart, LogIn, LogOut, MessageCircle, Shield, ShieldCheck, Star, Users,
-} from 'lucide-react'
-import Modal from '../../shared/ui/Modal'
+import { CheckCircle2, Heart } from 'lucide-react'
 import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { getServiceById } from '../../shared/utils/serviceUtils'
 import { useApplicationStore } from '../../shared/stores/useApplicationStore'
@@ -13,75 +9,13 @@ import { useFavoriteStore } from '../../shared/stores/useFavoriteStore'
 import { useAuthStore } from '../../shared/stores/useAuthStore'
 import { finalizeLeaveGroup } from './utils/leaveGroupFlow'
 import { toast } from '../../shared/utils/toast'
-import Avatar from '../../shared/ui/Avatar'
-import Button from '../../shared/ui/Button'
 import CountdownConfirmDialog from '../../shared/ui/CountdownConfirmDialog'
 import GroupModalShell from '../../shared/ui/GroupModalShell'
-import ServiceLogo from '../../shared/ui/ServiceLogo'
-import TokenAmount from '../../shared/ui/TokenAmount'
 import ExploreGroupCard from '../explore/components/ExploreGroupCard'
-
-// ── 團主評價 ──────────────────────────────────────────────────────────────────
-
-function HostReviews({ group, hostStars, headerClassName, onDm }) {
-  return (
-    <div className="space-y-4 py-5">
-      <p className={headerClassName}>團主評價</p>
-      <div className="flex items-center gap-3 border-b border-line-subtle pb-4">
-        <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="md" />
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-ink">{group.hostName}（團主）</p>
-          <div className="mt-1 flex items-center gap-1.5">
-            <div className="flex gap-0.5">
-              {Array.from({ length: 5 }, (_, i) => (
-                <Star key={i} size={12} className={i < hostStars ? 'fill-amber-400 text-amber-400' : 'text-line'} />
-              ))}
-            </div>
-            {(group.hostReviewCount ?? 0) > 0 && (
-              <span className="text-xs text-ink-4">{group.hostReviewCount} 則評價</span>
-            )}
-          </div>
-        </div>
-        {onDm && (
-          <button
-            onClick={onDm}
-            className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-line text-ink-3 transition-colors hover:border-brand hover:text-brand"
-            aria-label="聯絡團主"
-          >
-            <MessageCircle size={16} />
-          </button>
-        )}
-      </div>
-      {(group.reviews ?? []).length === 0 ? (
-        <p className="py-4 text-center text-sm text-ink-4">尚無評價</p>
-      ) : (
-        (group.reviews ?? []).map(review => (
-          <div key={review.id} className="flex gap-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-raised text-xs font-bold text-ink-2">
-              {review.author?.[0] ?? '?'}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="mb-1 flex items-center justify-between">
-                <span className="text-sm font-semibold text-ink">{review.author}</span>
-                <span className="text-xs text-ink-4">{review.date}</span>
-              </div>
-              {review.rating != null && (
-                <div className="mb-1 flex gap-0.5">
-                  {Array.from({ length: 5 }, (_, i) => (
-                    <Star key={i} size={11} className={i < review.rating ? 'fill-amber-400 text-amber-400' : 'text-line'} />
-                  ))}
-                </div>
-              )}
-              <p className="text-sm leading-relaxed text-ink-3">{review.comment}</p>
-            </div>
-          </div>
-        ))
-      )}
-    </div>
-  )
-}
-
-// ── 主元件 ────────────────────────────────────────────────────────────────────
+import HostReviews from './components/HostReviews'
+import ApplyModal from './components/ApplyModal'
+import { buildMembersSubPanel } from './components/buildMembersSubPanel'
+import { buildMobileFooter } from './components/buildMobileFooter'
 
 export default function GroupDetailModal() {
   const navigate = useNavigate()
@@ -225,63 +159,6 @@ export default function GroupDetailModal() {
     else navigate(`/login?redirectTo=/groups/${group.id}`)
   }
 
-  function renderCTA() {
-    if (!activeUserId) return (
-      <Button variant="primary" size="lg" className="w-full"
-        onClick={() => navigate(`/login?redirectTo=/groups/${group.id}`)}>
-        <LogIn size={16} />登入以加入群組
-      </Button>
-    )
-    if (isHost) return (
-      <div className="flex items-center justify-center gap-2 rounded-xl bg-brand-subtle px-4 py-3 text-sm font-medium text-brand">
-        <ShieldCheck size={15} />你是此群組的團主
-      </div>
-    )
-    if (isWaitingMembers) return null
-    if (needsFillInfo) return (
-      <div className="flex justify-center">
-        <div className="relative w-full">
-          <span className={`absolute inset-1 rounded-xl animate-ping opacity-20 ${hasServiceInfoIssue ? 'bg-danger' : 'bg-brand'}`} />
-          <button
-            onClick={() => {
-              handleClose()
-              navigate('/my-groups?view=member', { state: { openGroupId: group.id } })
-            }}
-            className={`relative flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white transition-colors ${
-              hasServiceInfoIssue ? 'bg-danger hover:opacity-90' : 'bg-brand hover:bg-brand-hover'
-            }`}
-          >
-            {hasServiceInfoIssue ? '修正服務帳號' : '填寫服務帳號'}
-          </button>
-        </div>
-      </div>
-    )
-    if (isMember) return (
-      <div className="flex items-center justify-center gap-2 rounded-xl bg-success-subtle px-4 py-3 text-sm font-medium text-success-text">
-        <CheckCircle2 size={15} />已加入此群組
-      </div>
-    )
-    if (isPendingApp) return (
-      withdrawConfirm ? (
-        <div className="flex gap-2">
-          <Button variant="ghost" size="lg" className="flex-1 border border-line" onClick={() => setWithdrawConfirm(false)}>返回</Button>
-          <Button variant="danger" size="lg" className="flex-1" disabled={withdrawing} onClick={handleWithdraw}>
-            {withdrawing ? '處理中…' : '確認取消'}
-          </Button>
-        </div>
-      ) : (
-        <Button variant="ghost" size="lg" className="w-full border border-line text-ink-3 hover:border-danger hover:text-danger"
-          onClick={() => setWithdrawConfirm(true)}>
-          取消申請
-        </Button>
-      )
-    )
-    if (isFull) return (
-      <Button variant="ghost" size="lg" className="w-full border border-line" disabled>已額滿</Button>
-    )
-    return null
-  }
-
   const hostStars = group.hostRating != null ? Math.round(group.hostRating / 20) : 0
   const reviews   = (
     <HostReviews
@@ -295,95 +172,18 @@ export default function GroupDetailModal() {
   return (
     <>
     {/* 申請加入 sub-modal — 開啟時隱藏後方的群組詳情 */}
-    <Modal
+    <ApplyModal
+      group={group}
       isOpen={showApply}
       onClose={resetApply}
-      title={applySubmitted ? '申請已送出' : '申請加入群組'}
-      sub
-      maxWidth="max-w-md"
-      hideBack={applySubmitted}
-    >
-      {/* 翻書效果容器 */}
-      <div style={{ perspective: '700px' }}>
-        <div
-          style={{
-            transformStyle: 'preserve-3d',
-            transition: 'transform 0.55s cubic-bezier(0.4, 0, 0.2, 1)',
-            transform: applySubmitted ? 'rotateY(180deg)' : 'rotateY(0deg)',
-            position: 'relative',
-            minHeight: '320px',
-          }}
-        >
-          {/* 正面：申請表單 */}
-          <div style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }} className="absolute inset-0">
-            <div className="flex flex-col gap-4 p-5">
-              <div className="rounded-xl border border-line bg-raised/50 px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <ServiceLogo serviceId={group.serviceId} size={32} className="shrink-0 rounded-xl" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-bold text-ink truncate">{group.serviceName}</p>
-                    <p className="text-xs text-ink-3">{group.planName}</p>
-                  </div>
-                  <p className="shrink-0 text-base font-extrabold text-brand">
-                    <TokenAmount
-                      amount={group.billingCycle === 'yearly' ? group.pricePerSeat * 12 : group.pricePerSeat}
-                      cycle={group.billingCycle === 'yearly' ? 'yearly' : 'monthly'}
-                    />
-                  </p>
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-ink-2 mb-1.5">
-                  申請備註<span className="ml-1 text-ink-4 font-normal">（選填）</span>
-                </label>
-                <textarea
-                  value={applyMessage}
-                  onChange={e => setApplyMessage(e.target.value)}
-                  rows={3}
-                  placeholder="可以介紹自己或說明申請原因…"
-                  className="field w-full resize-none px-3 py-2.5 text-sm placeholder:text-ink-4"
-                />
-              </div>
-              <label className="flex items-start gap-2.5 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={applyAgreed}
-                  onChange={e => setApplyAgreed(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 accent-brand cursor-pointer shrink-0"
-                />
-                <span className="text-sm text-ink-2">我已閱讀並同意此群組的所有規則與付款條件</span>
-              </label>
-              <div className="flex gap-3 pt-1">
-                <Button variant="ghost" size="md" className="flex-1 border border-line" onClick={resetApply}>取消</Button>
-                <Button variant="primary" size="md" className="flex-1" disabled={!applyAgreed} loading={applying} onClick={handleApply}>送出申請</Button>
-              </div>
-            </div>
-          </div>
-
-          {/* 背面：申請成功 */}
-          <div
-            style={{
-              backfaceVisibility: 'hidden',
-              WebkitBackfaceVisibility: 'hidden',
-              transform: 'rotateY(180deg)',
-            }}
-            className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-5 py-10 text-center"
-          >
-            <div className="w-16 h-16 rounded-full bg-success-subtle flex items-center justify-center">
-              <CheckCircle2 size={30} className="text-success" />
-            </div>
-            <div className="space-y-1">
-              <p className="text-base font-bold text-ink">申請已送出！</p>
-              <p className="text-sm text-ink-3">等待團主審核後即可加入，請留意通知。</p>
-            </div>
-            <Button
-              variant="primary" size="md" className="mt-2 min-w-[7rem]"
-              onClick={resetApply}
-            >確認</Button>
-          </div>
-        </div>
-      </div>
-    </Modal>
+      applyMessage={applyMessage}
+      setApplyMessage={setApplyMessage}
+      applyAgreed={applyAgreed}
+      setApplyAgreed={setApplyAgreed}
+      applySubmitted={applySubmitted}
+      applying={applying}
+      onApply={handleApply}
+    />
 
     {/* 群組詳情 modal — 申請 sub-modal 開啟時隱藏 */}
     {!showApply && <GroupModalShell
@@ -394,45 +194,7 @@ export default function GroupDetailModal() {
       hideRecruitBar={isMember || isHost || group.status !== 'recruiting'}
       extraInfoRows={[]}
       statusBadgeOverride={isMember && group.status === 'recruiting' ? 'member_joined' : undefined}
-      subPanel={showMembers ? {
-        title: `成員名單（${members.filter(m => m.groupId === groupId && m.userId !== group.hostId).length + 1} 人）`,
-        icon: <Users size={18} className="text-brand" />,
-        content: (
-          <div className="p-5 space-y-2">
-            <div className="rounded-xl border border-line p-3">
-              <div className="flex items-center gap-3">
-                <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="sm" />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-semibold text-ink">{group.hostName}</p>
-                    <span className="flex shrink-0 items-center gap-1 rounded-full bg-brand-subtle px-2.5 py-0.5 text-xs font-semibold text-brand">
-                      <Shield size={11} /> 團主
-                    </span>
-                  </div>
-                  <p className="text-xs text-ink-3">{group.createdAt} 建立</p>
-                </div>
-                <button
-                  onClick={() => { setShowMembers(false); openDm() }}
-                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-brand"
-                >
-                  <MessageCircle size={20} />
-                </button>
-              </div>
-            </div>
-            {members.filter(m => m.groupId === groupId && m.userId !== activeUserId).map(m => (
-              <div key={m.id} className="rounded-xl border border-line p-3">
-                <div className="flex items-center gap-3">
-                  <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-ink">{m.userName}</p>
-                    <p className="text-xs text-ink-3">{m.joinedAt} 加入</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ),
-      } : null}
+      subPanel={showMembers ? buildMembersSubPanel({ group, groupId, members, activeUserId, setShowMembers, openDm }) : null}
       onSubPanelBack={() => { setShowMembers(false); resetApply() }}
       headerBanner={
         isWaitingMembers ? (
@@ -456,64 +218,13 @@ export default function GroupDetailModal() {
         </button>
       }
       mobileReviewsSection={reviews}
-      mobileFooter={
-        <div className="px-6 py-3">
-          {isWaitingMembers ? (
-            <div className="grid grid-cols-2 gap-1">
-              <button
-                onClick={() => setShowMembers(true)}
-                className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
-              >
-                <Users size={17} /> 成員名單
-              </button>
-              <button
-                onClick={() => setLeaveConfirm(true)}
-                className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-danger transition-colors hover:bg-red-50"
-              >
-                <LogOut size={17} /> 退出群組
-              </button>
-            </div>
-          ) : isPendingApp ? (
-            withdrawConfirm ? (
-              <div className="flex gap-2">
-                <Button variant="ghost" size="lg" className="flex-1 border border-line" onClick={() => setWithdrawConfirm(false)}>返回</Button>
-                <Button variant="danger" size="lg" className="flex-1" disabled={withdrawing} onClick={handleWithdraw}>
-                  {withdrawing ? '處理中…' : '確認取消'}
-                </Button>
-              </div>
-            ) : (
-              <Button variant="ghost" size="lg" className="w-full border border-line text-ink-3 hover:border-danger hover:text-danger"
-                onClick={() => setWithdrawConfirm(true)}>
-                取消申請
-              </Button>
-            )
-          ) : canApply ? (
-            <>
-              <div className="flex items-center gap-2">
-                <Button
-                  size="lg"
-                  className="flex-1 bg-[#1a1f36] text-white hover:bg-[#252b47]"
-                  onClick={() => setShowApply(true)}
-                >
-                  申請加入 <ChevronRight size={16} />
-                </Button>
-                <button
-                  onClick={toggleFav}
-                  className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl border transition-colors ${
-                    isFav ? 'border-red-100 bg-red-50 text-red-500' : 'border-line text-ink-2 hover:border-red-200 hover:text-red-400'
-                  }`}
-                  aria-label={isFav ? '取消收藏' : '加入收藏'}
-                >
-                  <Heart size={18} className={isFav ? 'fill-red-500' : ''} />
-                </button>
-              </div>
-              <p className="mt-2 text-center text-xs text-ink-4">申請後需經團主審核，通過後即可加入群組</p>
-            </>
-          ) : (
-            renderCTA()
-          )}
-        </div>
-      }
+      mobileFooter={buildMobileFooter({
+        group, activeUserId, navigate, handleClose,
+        isHost, isWaitingMembers, needsFillInfo, hasServiceInfoIssue,
+        isMember, isPendingApp, isFull, canApply, isFav,
+        withdrawConfirm, setWithdrawConfirm, withdrawing, handleWithdraw,
+        setShowMembers, setLeaveConfirm, setShowApply, toggleFav,
+      })}
       afterColumns={picks.length > 0 && (
         <div className="border-t border-line px-6 pb-4 pt-5">
           <h3 className="mb-4 text-lg font-black text-brand">其他推薦群組</h3>

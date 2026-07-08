@@ -1,0 +1,107 @@
+import { CheckCircle2 } from 'lucide-react'
+import Modal from '../../../shared/ui/Modal'
+import Button from '../../../shared/ui/Button'
+import ServiceLogo from '../../../shared/ui/ServiceLogo'
+import TokenAmount from '../../../shared/ui/TokenAmount'
+
+export default function ApplyModal({
+  group,
+  isOpen, onClose,
+  applyMessage, setApplyMessage,
+  applyAgreed, setApplyAgreed,
+  applySubmitted,
+  applying,
+  onApply,
+}) {
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={applySubmitted ? '申請已送出' : '申請加入群組'}
+      sub
+      maxWidth="max-w-md"
+      hideBack={applySubmitted}
+    >
+      {/* 翻書效果容器 */}
+      <div style={{ perspective: '700px' }}>
+        <div
+          style={{
+            transformStyle: 'preserve-3d',
+            transition: 'transform 0.55s cubic-bezier(0.4, 0, 0.2, 1)',
+            transform: applySubmitted ? 'rotateY(180deg)' : 'rotateY(0deg)',
+            position: 'relative',
+            minHeight: '320px',
+          }}
+        >
+          {/* 正面：申請表單 */}
+          <div style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }} className="absolute inset-0">
+            <div className="flex flex-col gap-4 p-5">
+              <div className="rounded-xl border border-line bg-raised/50 px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <ServiceLogo serviceId={group.serviceId} size={32} className="shrink-0 rounded-xl" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold text-ink truncate">{group.serviceName}</p>
+                    <p className="text-xs text-ink-3">{group.planName}</p>
+                  </div>
+                  <p className="shrink-0 text-base font-extrabold text-brand">
+                    <TokenAmount
+                      amount={group.billingCycle === 'yearly' ? group.pricePerSeat * 12 : group.pricePerSeat}
+                      cycle={group.billingCycle === 'yearly' ? 'yearly' : 'monthly'}
+                    />
+                  </p>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-ink-2 mb-1.5">
+                  申請備註<span className="ml-1 text-ink-4 font-normal">（選填）</span>
+                </label>
+                <textarea
+                  value={applyMessage}
+                  onChange={e => setApplyMessage(e.target.value)}
+                  rows={3}
+                  placeholder="可以介紹自己或說明申請原因…"
+                  className="field w-full resize-none px-3 py-2.5 text-sm placeholder:text-ink-4"
+                />
+              </div>
+              <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={applyAgreed}
+                  onChange={e => setApplyAgreed(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 accent-brand cursor-pointer shrink-0"
+                />
+                <span className="text-sm text-ink-2">我已閱讀並同意此群組的所有規則與付款條件</span>
+              </label>
+              <div className="flex gap-3 pt-1">
+                <Button variant="ghost" size="md" className="flex-1 border border-line" onClick={onClose}>取消</Button>
+                <Button variant="primary" size="md" className="flex-1" disabled={!applyAgreed} loading={applying} onClick={onApply}>送出申請</Button>
+              </div>
+            </div>
+          </div>
+
+          {/* 背面：申請成功 */}
+          <div
+            style={{
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden',
+              transform: 'rotateY(180deg)',
+            }}
+            className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-5 py-10 text-center"
+          >
+            <div className="w-16 h-16 rounded-full bg-success-subtle flex items-center justify-center">
+              <CheckCircle2 size={30} className="text-success" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-base font-bold text-ink">申請已送出！</p>
+              <p className="text-sm text-ink-3">等待團主審核後即可加入，請留意通知。</p>
+            </div>
+            <Button
+              variant="primary" size="md" className="mt-2 min-w-[7rem]"
+              onClick={onClose}
+            >確認</Button>
+          </div>
+        </div>
+      </div>
+    </Modal>
+  )
+}
