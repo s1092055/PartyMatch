@@ -1,5 +1,25 @@
 # 架構與資料層
 
+## 架構分層
+
+```
+React 19 + React Router v7
+          │
+    Feature Modules (src/features/)     ← UI 與頁面
+          │
+    Shared Stores (src/shared/stores/)  ← 記憶體快取 + 業務邏輯
+          │
+    API Layer (src/shared/api/)         ← REST API 封裝（axios）
+          │
+  Express 後端 (server/src/)
+          │
+    MySQL（Prisma ORM）+ Redis（快取 / Session）
+```
+
+讀取走 Store（同步），寫入走 API（非同步）。App 啟動時的兩階段初始化見下方「Store 設計」。
+
+---
+
 ## 資料夾結構
 
 ```txt
@@ -274,3 +294,87 @@ init: async () => {
 | `FilterTabsBar` | 我的群組（成員 / 團主）頁面的分頁篩選列；pill 全寬均分，inactive 使用 `bg-raised/50` 使 gap 可見；手機以 CustomSelect dropdown 取代；成員端分頁為「全部 / 處理中 / 啟用中 / 即將續訂 / 已結束」（「已結束」取代舊版「申請紀錄」分頁） |
 | `ToastContainer` / `toast.js` | 全域提示訊息（含 `aria-live="polite"` 無障礙支援） |
 | `ServiceLogo` | 依 serviceId 顯示本地或服務資料中的 Logo |
+
+---
+
+## 元件拆分
+
+原本 5 個 600 行以上的大型元件已拆分為「orchestrator（state/effects/handler）+ 純 UI 子元件或 panel builder」的結構，子元件多以明確參數傳入取代閉包依賴：
+
+| 原始檔案 | 行數變化 | 拆分方式 |
+|---------|---------|---------|
+| `shared/layout/AppNav.jsx` | 624 → 160 | 桌機 sidebar / 手機 header / 手機 dock 各自獨立元件 |
+| `features/manage/ManagePage.jsx` | 619 → 126 | 抽出 `hooks/useManageActions.js` 自訂 hook |
+| `features/manage/components/HostGroupView.jsx` | 625 → 297 | 4 個 panel builder（成員/申請/審核紀錄/收款） |
+| `features/messages/components/ChatWindow.jsx` | 546 → 174 | 抽出 `useParticipantNames`/`useMessageScroll` hook + `MessageBubble`/`ChatMembersPanel` 元件 |
+| `features/group/GroupDetailModal.jsx` | 545 → 256 | 抽出 `ApplyModal`/`HostReviews` 元件與 panel builder |
+
+---
+
+## 認證機制
+
+- JWT accessToken + refreshToken 雙 token 設計
+- accessToken 存於 `localStorage`，每次 request 自動帶入 `Authorization: Bearer` header
+- 收到 401 且有 token 時自動導向 `/login`（session 過期）
+- 未登入呼叫受保護端點的 401 靜默處理（不跳轉、不報錯）
+
+---
+
+## 成員異動規則
+
+`recruiting` / `full` 狀態下，成員可自行退出、團主可移除成員：後端刪除 member 記錄、將 application 標為 `left` / `removed`、subscription 一併刪除，名額釋出（`full` 退回 `recruiting`）；被移除或自行退出的申請狀態允許再次申請同一群組。進入 `pending_confirmation` 後成員名單不可再變動，前後端均設有狀態守衛。
+
+---
+
+## 導覽設計
+
+- **桌機版**：左側 floating sidebar，收合為 64px icon bar，hover 展開至 224px 顯示文字標籤；sidebar 底部使用者按鈕上方顯示 PM 幣餘額（含加值按鈕），收合時隱藏、展開後顯示；頭像按鈕點擊開啟置中 Modal（帳號資訊、帳號設定、登出）；開啟 PM 儲值或使用者資訊 Modal 時，sidebar 自動收合（blur 移走焦點）。
+- **手機版**：頂部 header + 底部 Dock；頂部右側以頭像取代漢堡選單，點擊展開 dropdown（頭像+名稱置中、帳號設定與登出左右並排）；未登入時顯示 UserCircle2 icon 點擊導向登入頁。底部 Dock 由左至右：搜尋、功能（dropdown：快速配對 + 建立群組）、探索（中央圓形主按鈕）、我的（dropdown：我的群組 + 我的收藏）、訊息。Dock 已整合搜尋入口，header 不再顯示搜尋按鈕。
+
+---
+
+## 帳號設定
+
+帳號設定頁（`/account`）分頁包含：**個人資料**（基本資訊編輯）、**付款設定**（付款方式管理 + 交易紀錄）、**通知偏好**（開發中）、**安全驗證**（開發中）、**其他設定**（一般偏好、隱私設定、刪除帳號），管理員另有**管理員**分頁。付款方式最多儲存 2 種，存於後端 MySQL（`payment_methods` table）。PM 幣加值與交易紀錄整合於 TopupModal 的雙面板設計——主面板儲值、子面板查看交易紀錄，兩者以滑動動畫切換。桌機版為左右 sidebar 分頁佈局；手機版為 accordion 展開收合，登出按鈕獨立置於 accordion 最底部並做全寬顯示，不再收在「其他設定」分頁內（桌機版登出仍在「其他設定」分頁中）。
+
+---
+
+## 我的群組統計
+
+`/my-groups` 頁面頂部顯示雙角色訂閱統計卡：**身為團主**（活躍群組、累計建立、月收 PM）與**身為成員**（活躍訂閱、累計訂閱、月支 PM），讓使用者一眼掌握兩種角色的概況。
+
+---
+
+## 探索篩選與搜尋
+
+探索頁以 **URL query params 為唯一狀態來源**：`ExplorePage` 直接從 `useSearchParams()` 衍生篩選物件（無獨立 `filters` state），`handleFilterChange` 呼叫 `navigate(..., { replace: true })` 更新 URL。搜尋 Modal（`MobileSearch`）開啟時，服務分類固定重置為「全部」；桌機版分類 pills 左右各有箭頭按鈕可平滑捲動；兩元件共用 `src/features/explore/exploreConstants.js` 的篩選預設值與選項常數。
+
+---
+
+## 跨元件通訊
+
+全域 Modal 透過 `window.dispatchEvent` 以 `pm:open-*` 事件驅動，避免 React props 層層傳遞，也解決 `location.state` 在同頁面不可靠的問題。成員異動事件（退出、被移除）透過 `pm:refresh-member-stores` 事件通知 App.jsx 同步所有相關 Store。完整事件清單見 [資料庫 Schema 文件](database-schema.md#事件驅動清單)。
+
+---
+
+## 技術亮點（實作細節）
+
+### 完整端對端資料流
+
+申請 → 審核 → 成員建立 → 訂閱建立 → 付款確認 → 啟用服務，每一步由 Store 封裝業務邏輯，API 層只做 REST CRUD，兩層職責清楚分離。審核通過時後端自動核算名額並推進群組至 `full` 狀態；被拒絕的申請可重新提出（`rejected → pending`），無需刪除重建。核准流程（餘額檢查、名額與招募狀態條件式更新、申請狀態變更、成員/訂閱建立、代幣代管扣款）整包在單一 Prisma `$transaction` 內執行；名額檢查採條件式 `updateMany`（`status: 'recruiting'` + `currentMembers < maxMembers`）而非先讀後寫，避免併發核准導致超額或核准到已非招募中的群組；餘額不足或名額已滿時全部回滾，避免申請卡在 `approved` 但成員/代管資料未建立的不一致狀態。`subscriptions` API 一律以登入者身分為授權範圍：`GET` 只回傳本人訂閱或本人主持群組內的訂閱、`DELETE` 僅限訂閱本人或該群組團主可操作；已移除原本可被任意使用者呼叫、繞過申請審核流程建立訂閱的 `POST /subscriptions`（訂閱一律由 `applications.js` 核准流程以 transaction 建立）。`members` API 的 `GET ?groupId=` 現會先驗證請求人是否為該群組成員或團主，非相關人員回傳 403。`notifications` API 的 `POST` 不再信任前端傳入的 `isPublic`（一律視為 false），且通知其他使用者時須驗證請求人與目標使用者皆與 `meta.groupId` 指定的群組有關聯（成員／團主／曾送出申請），避免任意使用者對其他人偽造通知。
+
+### 兩階段 App 啟動
+
+未登入時只載入公開資料，避免受保護端點在未認證狀態下被呼叫。登入後才動態初始化私人 Store，並啟動通知 polling；登出時一律呼叫 `teardown()` 清除 polling 計時器與 Store 狀態，確保不會有殘留的 auth 請求。登出再登入（不重整頁面）時，`initPrivateStores` 會重新呼叫 `startPolling`，確保通知持續同步。
+
+### 通知驅動的即時資料同步
+
+通知採用 REST polling（每 10 秒）。偵測到新 `new_application` 通知時自動 refresh 申請 Store，讓團主點擊通知時申請資料已是最新狀態；偵測到成員異動通知時廣播 `pm:refresh-member-stores` 事件，同步更新群組、成員、訂閱、申請四個 Store。
+
+### 訊息輪詢架構
+
+聊天室採用 REST polling（每 5 秒），部署成本低、無需額外的長連線基礎設施，適合現階段規模。
+
+### 三層滑動 Panel
+
+群組 Modal（`GroupModalShell`）採用 300% 寬度的滑動軌道，支援主面板 → 子面板 → 子子面板三層滑入動畫。申請管理子面板右上角的「審核紀錄」按鈕觸發第三層面板，保持一致的「翻書」視覺效果，不需要額外的 overlay Modal。

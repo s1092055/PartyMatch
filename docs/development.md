@@ -65,6 +65,12 @@ PORT=3001
 
 ---
 
+## ESLint 設定
+
+`eslint.config.js` 依目錄分開設定：`src/**` 套用 browser globals + React hooks 規則，`server/**` 與根目錄設定檔套用 Node globals，避免後端程式碼被誤判為瀏覽器環境（例如 `process is not defined`）。`npm run lint` 目前為零錯誤。
+
+---
+
 ## 首次啟動流程
 
 ```bash
