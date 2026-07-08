@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { Bell, Compass, Heart, LayoutGrid, Lock, LogIn, LogOut, MessageSquare, PlusCircle, Search, Settings, UserCircle2, Zap } from 'lucide-react'
@@ -64,12 +64,16 @@ export default function AppNav() {
   useClickOutside(createMenuOpen, [createMenuRef], () => setCreateMenuOpen(false))
   useClickOutside(mobileMenuOpen, [mobileMenuRef], () => setMobileMenuOpen(false))
 
-  useEffect(() => {
+  // 路由切換時關閉所有選單：於 render 期間比對前一次 pathname 並直接呼叫 setState，
+  // 避免用 useEffect（會多觸發一次無謂的 render-commit-effect 循環）
+  const [prevPathname, setPrevPathname] = useState(pathname)
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname)
     setDesktopMenuOpen(false)
     setMobileMenuOpen(false)
     setMyMenuOpen(false)
     setCreateMenuOpen(false)
-  }, [pathname])
+  }
 
   const loggedIn = useAuthStore(s => s.loggedIn)
   const currentUser = useAuthStore(s => s.user)
@@ -83,12 +87,14 @@ export default function AppNav() {
   const unreadNotifs = useNotificationStore(s => loggedIn && currentUser?.id ? s.getUnreadCount(currentUser.id) : 0)
   const unreadMsgs = useConversationStore(s => loggedIn && currentUser?.id ? s.getUnreadMsgCount(currentUser.id) : 0)
 
-  useEffect(() => {
+  const [prevLoggedIn, setPrevLoggedIn] = useState(loggedIn)
+  if (loggedIn !== prevLoggedIn) {
+    setPrevLoggedIn(loggedIn)
     if (!loggedIn) {
       setDesktopMenuOpen(false)
       setMobileMenuOpen(false)
     }
-  }, [loggedIn])
+  }
 
   function closeAll() {
     document.activeElement?.blur()

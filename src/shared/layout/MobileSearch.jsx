@@ -45,6 +45,8 @@ export default function MobileSearch() {
   useEffect(() => {
     if (isOpen) {
       if (pathname === '/explore') {
+        // 開啟時需同步 URL 參數並觸發 DOM focus/scroll 副作用，無法單純改用 render 期間衍生狀態
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSearchQuery(searchParams.get('q') ?? '')
         setFilters({
           ...DEFAULT_FILTERS,

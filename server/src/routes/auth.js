@@ -69,7 +69,7 @@ router.post('/login', validate(loginSchema), async (req, res, next) => {
 })
 
 // POST /auth/refresh
-router.post('/refresh', async (req, res, next) => {
+router.post('/refresh', async (req, res) => {
   try {
     const { refreshToken } = req.body
     if (!refreshToken) return res.status(401).json({ message: '缺少 refresh token' })

@@ -11,7 +11,6 @@ import PageHeader from '../../shared/layout/PageHeader'
 import RevealSection from '../../shared/ui/RevealSection'
 import FilterBar from './components/FilterBar'
 import ExploreGroupCard from './components/ExploreGroupCard'
-import { DEFAULT_FILTERS } from './exploreConstants'
 
 function applyFilters(groups, { keyword, category, service, maxPrice, sortBy }) {
   let result = groups.filter(g => g.status === 'recruiting' && g.openSeats > 0)

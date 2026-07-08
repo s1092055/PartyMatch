@@ -60,7 +60,6 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
   const activeUser = useAuthStore(s => s.user)
   const isFav = useFavoriteStore(s => activeUser ? s.isFavorited(activeUser.id, group.id) : false)
 
-  const usedRatio = group.totalSeats > 0 ? Math.min(group.usedSeats / group.totalSeats, 1) : 0
   const isLastSeat = group.openSeats === 1
   const featureChips = useMemo(() => buildFeatureChips(group), [group])
 

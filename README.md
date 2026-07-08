@@ -176,6 +176,8 @@ recruiting → full → pending_confirmation → pending_activation → active �
 | 圖片上傳 | Imgbb API |
 | Architecture | Feature-based、Store + API 雙層分離、事件驅動跨元件通訊、URL 驅動篩選狀態 |
 
+`eslint.config.js` 依目錄分開設定：`src/**` 套用 browser globals + React hooks 規則，`server/**` 與根目錄設定檔套用 Node globals，避免後端程式碼被誤判為瀏覽器環境（例如 `process is not defined`）。`npm run lint` 目前為零錯誤。
+
 ---
 
 ## 快速開始

@@ -30,8 +30,17 @@ export default function TopupModal({ isOpen, onClose }) {
 
   useScrollLock(!!isOpen)
 
+  // 關閉時重置選取狀態：於 render 期間比對前一次 isOpen 並直接呼叫 setState
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen)
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen)
+    if (!isOpen) { setSelected(null); setShowHistory(false) }
+  }
+
   useEffect(() => {
-    if (!isOpen) { setSelected(null); setShowHistory(false); return }
+    if (!isOpen) return
+    // 開啟時載入交易紀錄，載入中旗標需在發出請求前同步設定
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTxLoading(true)
     fetchTokenBalance()
       .then(res => setTransactions(res.transactions ?? []))

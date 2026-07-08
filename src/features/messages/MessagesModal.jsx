@@ -41,7 +41,6 @@ export default function MessagesModal() {
   const [messages, setMessages] = useState([])
   const [sending, setSending] = useState(false)
   const [sendError, setSendError] = useState(false)
-  const [loadingMessages, setLoadingMessages] = useState(false)
   const [showMembers, setShowMembers] = useState(false)
   const [confirmDialog, setConfirmDialog] = useState(null)
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768)
@@ -118,12 +117,10 @@ export default function MessagesModal() {
 
   useEffect(() => {
     if (!selectedId) return
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLoadingMessages(true)
     const unsub = subscribeToMessages(
       selectedId,
-      msgs => { setMessages(msgs); setLoadingMessages(false) },
-      () => setLoadingMessages(false),
+      msgs => setMessages(msgs),
+      () => {},
     )
     const user = getCurrentUser()
     if (user) {
@@ -145,7 +142,7 @@ export default function MessagesModal() {
           .forEach(n => notifStore.markRead(n.id))
       }
     }
-    return () => { unsub(); setMessages([]); setLoadingMessages(false) }
+    return () => { unsub(); setMessages([]) }
   }, [selectedId])
 
   function handleClose() {
@@ -169,7 +166,7 @@ export default function MessagesModal() {
     if (inputRef.current) inputRef.current.value = ''
     requestAnimationFrame(() => inputRef.current?.focus())
 
-    const tempId = `temp-${Date.now()}`
+    const tempId = `temp-${crypto.randomUUID()}`
     const optimisticMsg = normalizeMessage({
       id:          tempId,
       senderId:    user.id,

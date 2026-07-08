@@ -18,7 +18,7 @@ const STATUS_BADGE_CLASS = {
   ended:                'bg-slate-100 text-slate-400',
 }
 
-function getCollectionState({ group, hasMarkedPaid, paidCount, paymentTarget }) {
+function getCollectionState({ group, paidCount, paymentTarget }) {
   if (['cancelled', 'ended'].includes(group.status)) return '已結束'
   if (group.status === 'recruiting') return '招募中'
   if (group.status === 'full') return '等待啟用'

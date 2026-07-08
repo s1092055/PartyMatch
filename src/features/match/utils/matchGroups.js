@@ -40,6 +40,5 @@ export function matchGroups(groups, conditions) {
   return filtered
     .map(g => ({ ...g, _score: calcScore(g, conditions) }))
     .sort((a, b) => b._score - a._score)
-    // eslint-disable-next-line no-unused-vars
     .map(({ _score: _, ...g }) => g)
 }
