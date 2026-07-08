@@ -98,81 +98,110 @@ router.patch('/:id', requireAuth, validate(reviewSchema), async (req, res, next)
   try {
     const application = await prisma.application.findUnique({
       where:   { id: req.params.id },
-      include: { group: { select: { id: true, hostId: true, status: true, monthlyFee: true, billingCycle: true, currentMembers: true, maxMembers: true } } },
+      include: { group: { select: { hostId: true, monthlyFee: true, billingCycle: true } } },
     })
     if (!application) return res.status(404).json({ message: '申請不存在' })
     if (application.group.hostId !== req.user.id) return res.status(403).json({ message: '僅團主可審核' })
 
     const { status } = req.body
-    const updated = await prisma.application.update({
-      where: { id: req.params.id },
-      data:  { status },
-    })
 
-    if (status === 'approved') {
-      // 計算席位費用（yearly = monthlyFee * 12）
-      const seatCost = application.group.billingCycle === 'yearly'
-        ? Math.round(application.group.monthlyFee * 12)
-        : Math.round(application.group.monthlyFee)
+    if (status !== 'approved') {
+      const updated = await prisma.application.update({
+        where: { id: req.params.id },
+        data:  { status },
+      })
+      return res.json(updated)
+    }
 
-      // 檢查申請人代幣餘額是否足夠
-      const applicant = await prisma.user.findUnique({
+    // 計算席位費用（yearly = monthlyFee * 12）
+    const seatCost = application.group.billingCycle === 'yearly'
+      ? Math.round(application.group.monthlyFee * 12)
+      : Math.round(application.group.monthlyFee)
+
+    // 餘額檢查、名額檢查、審核狀態變更、成員/訂閱建立、代管扣款全部包在同一個 transaction，
+    // 避免餘額不足時 application 已變 approved 但後續建立失敗的資料不一致
+    const updated = await prisma.$transaction(async (tx) => {
+      const applicant = await tx.user.findUnique({
         where:  { id: application.userId },
         select: { tokenBalance: true },
       })
-      if (applicant.tokenBalance < seatCost) {
-        return res.status(400).json({ message: '申請人代幣餘額不足，無法核准' })
+      if (!applicant || applicant.tokenBalance < seatCost) {
+        const err = new Error('申請人代幣餘額不足，無法核准')
+        err.statusCode = 400
+        throw err
       }
 
-      await prisma.$transaction([
-        // 建立成員與訂閱記錄
-        prisma.member.upsert({
-          where:  { groupId_userId: { groupId: application.groupId, userId: application.userId } },
-          create: { groupId: application.groupId, userId: application.userId },
-          update: {},
-        }),
-        prisma.subscription.upsert({
-          where:  { groupId_userId: { groupId: application.groupId, userId: application.userId } },
-          create: { groupId: application.groupId, userId: application.userId },
-          update: {},
-        }),
-        // 代管：扣除申請人代幣，增加群組 escrowTokens
-        prisma.user.update({
-          where: { id: application.userId },
-          data:  { tokenBalance: { decrement: seatCost } },
-        }),
-        prisma.group.update({
-          where: { id: application.groupId },
-          data:  { currentMembers: { increment: 1 }, escrowTokens: { increment: seatCost } },
-        }),
-        // 寫入代幣交易紀錄
-        prisma.tokenTransaction.create({
-          data: {
-            userId:        application.userId,
-            type:          'escrow',
-            amount:        -seatCost,
-            relatedGroupId: application.groupId,
-            note:          `加入群組代管 ${seatCost} PM`,
-          },
-        }),
-      ])
+      const group = await tx.group.findUnique({
+        where:  { id: application.groupId },
+        select: { maxMembers: true },
+      })
+      if (!group) {
+        const err = new Error('群組不存在')
+        err.statusCode = 404
+        throw err
+      }
+
+      // 條件式更新：status/currentMembers 在寫入當下重新核對，避免併發核准導致超額或核准到已非招募中的群組
+      const capacity = await tx.group.updateMany({
+        where: {
+          id:             application.groupId,
+          status:         'recruiting',
+          currentMembers: { lt: group.maxMembers },
+        },
+        data: { currentMembers: { increment: 1 }, escrowTokens: { increment: seatCost } },
+      })
+      if (capacity.count === 0) {
+        const err = new Error('群組名額已滿或已結束招募，無法核准')
+        err.statusCode = 409
+        throw err
+      }
+
+      const app = await tx.application.update({
+        where: { id: req.params.id },
+        data:  { status: 'approved' },
+      })
+
+      // 建立成員與訂閱記錄
+      await tx.member.upsert({
+        where:  { groupId_userId: { groupId: application.groupId, userId: application.userId } },
+        create: { groupId: application.groupId, userId: application.userId },
+        update: {},
+      })
+      await tx.subscription.upsert({
+        where:  { groupId_userId: { groupId: application.groupId, userId: application.userId } },
+        create: { groupId: application.groupId, userId: application.userId },
+        update: {},
+      })
+      // 代管：扣除申請人代幣
+      await tx.user.update({
+        where: { id: application.userId },
+        data:  { tokenBalance: { decrement: seatCost } },
+      })
+      // 寫入代幣交易紀錄
+      await tx.tokenTransaction.create({
+        data: {
+          userId:        application.userId,
+          type:          'escrow',
+          amount:        -seatCost,
+          relatedGroupId: application.groupId,
+          note:          `加入群組代管 ${seatCost} PM`,
+        },
+      })
 
       // 核准後自動檢查是否額滿，若滿則推進到 full
-      const latestGroup = await prisma.group.findUnique({
-        where: { id: application.groupId },
-        select: { currentMembers: true, maxMembers: true, status: true },
+      const updatedGroup = await tx.group.findUnique({
+        where:  { id: application.groupId },
+        select: { currentMembers: true, maxMembers: true },
       })
-      if (
-        latestGroup &&
-        latestGroup.currentMembers >= latestGroup.maxMembers &&
-        latestGroup.status === 'recruiting'
-      ) {
-        await prisma.group.update({
+      if (updatedGroup.currentMembers >= updatedGroup.maxMembers) {
+        await tx.group.update({
           where: { id: application.groupId },
           data:  { status: 'full' },
         })
       }
-    }
+
+      return app
+    })
 
     res.json(updated)
   } catch (err) { next(err) }

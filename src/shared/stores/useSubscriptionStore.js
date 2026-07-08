@@ -1,13 +1,10 @@
 import { create } from 'zustand'
 import {
   readAllSubscriptions,
-  insertSubscription,
   patchSubscription,
   deleteSubscriptionRecord,
 } from '../api/subscriptionsApi'
 import { normalizeSubscription } from '../utils/modelNormalizers'
-import { todayISO } from '../utils/date'
-import { createId } from '../utils/storage'
 
 export const useSubscriptionStore = create((set, get) => ({
   subscriptions: [],
@@ -29,42 +26,6 @@ export const useSubscriptionStore = create((set, get) => ({
   getByUserId:  (userId)  => get().subscriptions.filter(s => s.userId === userId),
   getByUserAndGroup: (userId, groupId) =>
     get().subscriptions.find(s => s.userId === userId && s.groupId === groupId) ?? null,
-
-  // ── 建立訂閱（已存在則回傳既有）──────────────────────────────────────────────
-  create: (data) => {
-    const { userId, groupId, serviceName, planName, serviceId, hostName, hostAvatarInitial, hostAvatarColor, pricePerSeat, billingCycle, nextBillingDate, skipApiCall = false } = data
-    const existing = get().getByUserAndGroup(userId, groupId)
-    if (existing) return existing
-    const now = todayISO()
-    const sub = normalizeSubscription({
-      id:               createId('sub'),
-      userId,
-      groupId,
-      serviceName,
-      planName,
-      serviceId,
-      hostName,
-      hostAvatarInitial,
-      hostAvatarColor,
-      pricePerSeat,
-      billingCycle,
-      nextBillingDate,
-      joinedAt:         now,
-      paymentStatus:    'pending',
-      status:           'pending',
-      createdAt:        now,
-      updatedAt:        now,
-    })
-    set(s => ({ subscriptions: [...s.subscriptions, sub] }))
-    if (!skipApiCall) {
-      insertSubscription(sub).then(saved => {
-        if (saved?.id && saved.id !== sub.id) {
-          set(s => ({ subscriptions: s.subscriptions.map(s2 => s2.id === sub.id ? { ...s2, id: saved.id } : s2) }))
-        }
-      }).catch(console.error)
-    }
-    return sub
-  },
 
   // ── 更新 ────────────────────────────────────────────────────────────────────
   update: (id, patch) => {

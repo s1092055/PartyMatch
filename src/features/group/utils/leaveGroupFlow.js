@@ -48,6 +48,7 @@ export async function finalizeLeaveGroup(groupId, user) {
       type:    'member_left',
       title:   '成員退出群組',
       message: `${user.name} 已退出「${group.groupName ?? group.serviceName}」群組。`,
+      meta:    { groupId },
     })
   }
 }

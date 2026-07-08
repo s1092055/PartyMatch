@@ -390,6 +390,7 @@ async function handleActivate() {
         type:    'group_ended',
         title:   '群組已結束',
         message: `「${groupLabel}」群組已由團主結束，合購服務將不再續訂。`,
+        meta:    { groupId: renewalModalGroupId },
       }).catch(console.error)
     })
     const endConvId = getConvByGroupId(renewalModalGroupId)?.id

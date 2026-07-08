@@ -18,6 +18,10 @@ router.get('/', requireAuth, async (req, res, next) => {
     const { groupId } = req.query
     let where
     if (groupId) {
+      // 指定 groupId 時，需先確認請求人是該群組成員或團主
+      const isMember = await prisma.member.findFirst({ where: { groupId, userId: req.user.id } })
+      const isHost   = isMember ? null : await prisma.group.findFirst({ where: { id: groupId, hostId: req.user.id } })
+      if (!isMember && !isHost) return res.status(403).json({ message: '無權限查看此群組成員' })
       where = { groupId }
     } else {
       // 先找出用戶加入的所有 groupId，再一次撈這些群組的全部成員

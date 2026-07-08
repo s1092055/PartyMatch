@@ -4,6 +4,17 @@ import { requireAuth, optionalAuth } from '../middleware/auth.js'
 
 const router = Router()
 
+// 檢查 userId 是否與 groupId 有關聯（曾為成員、曾送出申請、或為團主）
+// Application 紀錄只會變更狀態、不會被刪除，因此即使成員已退出/被移除仍可通過檢查
+async function hasGroupRelationship(userId, groupId) {
+  const [member, application, group] = await Promise.all([
+    prisma.member.findFirst({ where: { groupId, userId } }),
+    prisma.application.findFirst({ where: { groupId, userId } }),
+    prisma.group.findFirst({ where: { id: groupId, hostId: userId } }),
+  ])
+  return Boolean(member || application || group)
+}
+
 // GET /notifications — 個人通知 + 系統公告
 router.get('/', optionalAuth, async (req, res, next) => {
   try {
@@ -20,10 +31,22 @@ router.get('/', optionalAuth, async (req, res, next) => {
   } catch (err) { next(err) }
 })
 
-// POST /notifications — 建立通知（內部服務或系統管理用）
+// POST /notifications — 建立通知；通知他人時須與目標 userId 同屬一個群組（成員/團主/申請人）
 router.post('/', requireAuth, async (req, res, next) => {
   try {
-    const { userId, type, title, message, body, meta, isPublic } = req.body
+    const { userId, type, title, message, body, meta } = req.body
+    if (!userId) return res.status(400).json({ message: '缺少通知對象' })
+
+    if (userId !== req.user.id) {
+      const groupId = meta?.groupId
+      if (!groupId) return res.status(403).json({ message: '無權限建立此通知' })
+      const [requesterOk, targetOk] = await Promise.all([
+        hasGroupRelationship(req.user.id, groupId),
+        hasGroupRelationship(userId, groupId),
+      ])
+      if (!requesterOk || !targetOk) return res.status(403).json({ message: '無權限建立此通知' })
+    }
+
     const notif = await prisma.notification.create({
       data: {
         userId,
@@ -31,7 +54,7 @@ router.post('/', requireAuth, async (req, res, next) => {
         title,
         message: message ?? body ?? '',
         meta:    meta ?? undefined,
-        isPublic: isPublic ?? false,
+        isPublic: false, // 公開系統公告一律由後端管理流程建立，一般使用者不可指定
       },
     })
     res.status(201).json(notif)

@@ -12,15 +12,18 @@ const updateSubscriptionSchema = z.object({
   nextBillingDate:     z.string().optional(),
 })
 
-// GET /subscriptions?userId=&groupId=
+// GET /subscriptions?groupId= — 回傳自己的訂閱，或自己主持群組內的所有訂閱
 router.get('/', requireAuth, async (req, res, next) => {
   try {
-    const { userId, groupId } = req.query
+    const { groupId } = req.query
+    const scope = {
+      OR: [
+        { userId: req.user.id },
+        { group: { hostId: req.user.id } },
+      ],
+    }
     const subscriptions = await prisma.subscription.findMany({
-      where: {
-        ...(userId  && { userId }),
-        ...(groupId && { groupId }),
-      },
+      where: groupId ? { AND: [scope, { groupId }] } : scope,
       include: {
         group: { include: { service: true, host: { select: { id: true, name: true } } } },
         user:  { select: { id: true, name: true } },
@@ -31,20 +34,19 @@ router.get('/', requireAuth, async (req, res, next) => {
   } catch (err) { next(err) }
 })
 
-// POST /subscriptions
-router.post('/', requireAuth, async (req, res, next) => {
-  try {
-    const { groupId, userId } = req.body
-    const sub = await prisma.subscription.create({
-      data: { groupId, userId: userId ?? req.user.id },
-    })
-    res.status(201).json(sub)
-  } catch (err) { next(err) }
-})
-
-// DELETE /subscriptions/:id
+// DELETE /subscriptions/:id — 訂閱本人或該群組團主可刪除
 router.delete('/:id', requireAuth, async (req, res, next) => {
   try {
+    const sub = await prisma.subscription.findUnique({
+      where:   { id: req.params.id },
+      include: { group: { select: { hostId: true } } },
+    })
+    if (!sub) return res.status(404).json({ message: '訂閱不存在' })
+
+    const isOwner = sub.userId === req.user.id
+    const isHost  = sub.group.hostId === req.user.id
+    if (!isOwner && !isHost) return res.status(403).json({ message: '無操作權限' })
+
     await prisma.subscription.delete({ where: { id: req.params.id } })
     res.status(204).end()
   } catch (err) { next(err) }
