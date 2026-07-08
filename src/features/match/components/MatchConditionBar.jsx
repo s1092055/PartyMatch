@@ -1,8 +1,10 @@
+import { useNavigate } from 'react-router-dom'
 import { Pencil } from 'lucide-react'
 import { getServiceById } from '../../../shared/utils/serviceUtils'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 
 export default function MatchConditionBar({ conditions, showEdit = true }) {
+  const navigate = useNavigate()
   const { services, maxPrice, minRating } = conditions
 
   return (
@@ -32,7 +34,7 @@ export default function MatchConditionBar({ conditions, showEdit = true }) {
 
       {showEdit && (
         <button
-          onClick={() => window.dispatchEvent(new CustomEvent('pm:open-match'))}
+          onClick={() => navigate('/quick-match')}
           className="ml-auto flex items-center gap-1 text-xs text-brand hover:underline"
         >
           <Pencil size={11} />

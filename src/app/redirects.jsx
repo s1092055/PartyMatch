@@ -1,24 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
-export function CreateGroupRedirect() {
-  const navigate = useNavigate()
-  useEffect(() => {
-    window.dispatchEvent(new CustomEvent('pm:open-create'))
-    navigate('/my-groups?view=host', { replace: true })
-  }, [navigate])
-  return null
-}
-
-export function QuickMatchRedirect() {
-  const navigate = useNavigate()
-  useEffect(() => {
-    window.dispatchEvent(new CustomEvent('pm:open-match'))
-    navigate('/explore', { replace: true })
-  }, [navigate])
-  return null
-}
-
 export function SubscriptionsRedirect() {
   const navigate = useNavigate()
   useEffect(() => { navigate('/my-groups?view=member', { replace: true }) }, [navigate])

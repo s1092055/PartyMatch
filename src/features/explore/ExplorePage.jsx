@@ -149,7 +149,7 @@ export default function ExplorePage() {
               </span>
             </div>
             <div
-              onClick={() => window.dispatchEvent(new CustomEvent('pm:open-create'))}
+              onClick={() => navigate('/create-group')}
               className="flex flex-1 cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-success/30 bg-success/5 p-5 transition-colors hover:border-success/60 hover:bg-success/10"
             >
               <div className="grid h-12 w-12 place-items-center rounded-2xl bg-success/10">

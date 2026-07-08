@@ -29,8 +29,6 @@
 | 事件 | 觸發者 | 接收者 |
 |------|--------|--------|
 | `pm:open-search` | AppNav / MobileSearch | `MobileSearch` |
-| `pm:open-match` | 首頁 CTA / AppNav / Redirect | `QuickMatchModal` |
-| `pm:open-create` | 首頁 CTA / AppNav / Redirect | `CreateGroupModal` |
 | `pm:open-group` | 群組卡片 / Redirect | `GroupDetailModal` |
 | `pm:open-notify` | AppNav 通知按鈕 | `FloatingMessages` |
 | `pm:open-messages` | AppNav / 訂閱卡 / 群組操作 | `MessagesModal` |
@@ -40,7 +38,7 @@
 | `pm:convs-changed` | `useConversationStore` | `AppNav` 更新訊息未讀 badge；`MessagesModal` 重新讀取對話列表 |
 | `pm:auth-changed` | `useAuthStore` | `AppNav` 重新讀取使用者狀態 |
 | `pm:members-changed` | `useMemberStore` | `GroupDetailModal`、`ChatWindow`、`ExplorePage`、`ManagePage` 重新讀取成員狀態 |
-| `pm:applications-changed` | `useApplicationStore` | `GroupDetailModal`、`QuickMatchModal`、`ExplorePage`、`SubscriptionsPage`、`ManagePage` 重新讀取申請狀態 |
+| `pm:applications-changed` | `useApplicationStore` | `GroupDetailModal`、`ExplorePage`、`SubscriptionsPage`、`ManagePage` 重新讀取申請狀態 |
 
 ---
 

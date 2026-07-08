@@ -1,7 +1,5 @@
 # PartyMatch
 
----
-
 ## 專案介紹
 
 PartyMatch 是一個共享訂閱媒合平台，讓使用者可以探索 Netflix、Spotify、YouTube Premium、Disney+ 等共享訂閱群組，也可以自己建立群組成為團主。

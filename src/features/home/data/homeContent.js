@@ -33,7 +33,7 @@ export const HOME_FEATURES = [
     desc: '告訴我們你要什麼，系統自動篩出最適合的群組讓你挑。省去逐一比較的時間，幾秒內找到選項。',
     videoSrc: null,
     badge: '配對',
-    action: { type: 'event', event: 'pm:open-match' },
+    action: { type: 'navigate', path: '/quick-match' },
     cta: '立即配對',
   },
   {
@@ -42,7 +42,7 @@ export const HOME_FEATURES = [
     desc: '自己當團主，設好方案和規則，等有興趣的人來申請。幾個步驟就能上架，開始招募成員。',
     videoSrc: null,
     badge: '建立',
-    action: { type: 'event', event: 'pm:open-create' },
+    action: { type: 'navigate', path: '/create-group' },
     cta: '建立群組',
   },
   {

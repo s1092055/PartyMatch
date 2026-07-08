@@ -20,9 +20,7 @@ import FAQ from './components/FAQ'
 import RevealSection from '../../shared/ui/RevealSection'
 
 const ALL_SERVICES = listServiceTypes()
-const CreateGroupModal = lazy(() => import('../create/CreateGroupModal'))
 const MessagesModal = lazy(() => import('../messages/MessagesModal'))
-const QuickMatchModal = lazy(() => import('../match/QuickMatchModal'))
 
 export default function HomePage() {
   const navigate = useNavigate()
@@ -43,8 +41,6 @@ export default function HomePage() {
       <ScrollToTop />
       <Suspense fallback={null}>
         <MessagesModal />
-        <CreateGroupModal />
-        <QuickMatchModal />
       </Suspense>
       <FloatingMessages />
 
@@ -72,7 +68,7 @@ export default function HomePage() {
           <Button
             size="lg"
             variant="secondary"
-            onClick={() => window.dispatchEvent(new CustomEvent('pm:open-match'))}
+            onClick={() => navigate('/quick-match')}
           >
             <Zap size={16} />
             快速配對

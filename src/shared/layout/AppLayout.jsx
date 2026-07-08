@@ -6,10 +6,8 @@ import MobileSearch from './MobileSearch'
 import FloatingMessages from './FloatingMessages'
 import BackToTopButton from './ScrollToTop'
 
-const CreateGroupModal = lazy(() => import('../../features/create/CreateGroupModal'))
 const GroupDetailModal = lazy(() => import('../../features/group/GroupDetailModal'))
 const MessagesModal = lazy(() => import('../../features/messages/MessagesModal'))
-const QuickMatchModal = lazy(() => import('../../features/match/QuickMatchModal'))
 
 function RouteScrollReset() {
   const { pathname } = useLocation()
@@ -33,9 +31,7 @@ export default function AppLayout() {
       <BackToTopButton />
       <Suspense fallback={null}>
         <MessagesModal />
-        <CreateGroupModal />
         <GroupDetailModal />
-        <QuickMatchModal />
       </Suspense>
     </div>
   )

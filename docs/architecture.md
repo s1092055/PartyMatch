@@ -55,10 +55,9 @@ src/
 │   │   │   └── LoginPage.jsx
 │   │   └── register/
 │   │       └── RegisterPage.jsx
-│   ├── create/                 # 建立群組 Modal
-│   │   ├── CreateGroupModal.jsx
+│   ├── create/                 # 建立群組（全螢幕步驟流程頁，/create-group）
+│   │   ├── CreateGroupPage.jsx
 │   │   └── components/
-│   │       ├── CreateGroupStepper.jsx
 │   │       ├── LivePreviewPanel.jsx
 │   │       └── steps/
 │   │           ├── Step1Service.jsx
@@ -109,12 +108,17 @@ src/
 │   │   │   └── paymentIssueTypes.js
 │   │   └── utils/
 │   │       └── groupActionMap.js
-│   ├── match/                  # 快速配對
-│   │   ├── QuickMatchModal.jsx
+│   ├── match/                  # 快速配對（全螢幕步驟流程頁，/quick-match）
+│   │   ├── QuickMatchPage.jsx
 │   │   └── components/
 │   │       ├── MatchConditionBar.jsx
 │   │       ├── MatchSummaryPanel.jsx
-│   │       └── ServiceSelectionGrid.jsx
+│   │       ├── ServiceSelectionGrid.jsx
+│   │       └── steps/
+│   │           ├── Step1Services.jsx
+│   │           ├── Step2Plans.jsx
+│   │           ├── Step3Filters.jsx
+│   │           └── Step4Results.jsx
 │   ├── messages/               # 訊息中心
 │   │   ├── MessagesModal.jsx   # 狀態管理與 orchestration
 │   │   ├── utils.js            # formatTime 共用工具
@@ -239,9 +243,11 @@ init: async () => {
 | 主要檔案 | 連動對象 | props / event / function |
 |----------|----------|--------------------------|
 | `src/app/App.jsx` | `router.jsx`、所有 Store | 兩階段初始化；未登入只載入公開資料，避免呼叫受保護端點；監聽 `pm:refresh-member-stores`（成員異動後同步 group/member/subscription/application）與 `pm:refresh-application-store`（新申請到達後同步申請資料） |
-| `src/app/router.jsx` | `AppLayout`、`ProtectedRoute`、`PublicOnlyRoute`、`redirects.jsx` | 定義公開頁、受保護頁、Modal 型 redirect route |
+| `src/app/router.jsx` | `AppLayout`、`ProtectedRoute`、`PublicOnlyRoute`、`redirects.jsx`、`CreateGroupPage`、`QuickMatchPage` | 定義公開頁、`AppLayout` 內的受保護頁、Modal 型 redirect route；`/create-group`、`/quick-match` 是獨立於 `AppLayout` 之外、由頂層 `ProtectedRoute` 包裹的全螢幕頁面 |
 | `src/shared/api/axiosClient.js` | 所有 API 模組 | 自動帶 JWT header；401 + 有 token 時跳登入；無 token 的 401 靜默處理 |
-| `src/shared/layout/AppLayout.jsx` | `AppNav`、`AppFooter`、`MobileSearch`、`FloatingMessages`、`MessagesModal`、`CreateGroupModal`、`GroupDetailModal`、`QuickMatchModal` | 統一掛載跨頁共用導覽、全域 Modal 與頁尾 |
+| `src/shared/layout/AppLayout.jsx` | `AppNav`、`AppFooter`、`MobileSearch`、`FloatingMessages`、`MessagesModal`、`GroupDetailModal` | 統一掛載跨頁共用導覽、全域 Modal 與頁尾 |
+| `src/shared/layout/FlowLayout.jsx` | `CreateGroupPage`、`QuickMatchPage` | 無 sidebar/dock 的全螢幕步驟流程殼：頂部細進度條、左上「返回」按鈕、置中內容區、底部固定 Prev/Next 導覽列 |
+| `src/shared/ui/SlideTrack.jsx` | `CreateGroupPage`、`QuickMatchPage` | 通用 N 面板水平滑動元件（`translateX` + `transition-transform duration-300 ease-in-out`），抽取自 `GroupModalShell`/`TopupModal` 的滑動手法 |
 | `src/shared/layout/AppNav.jsx` | `NAV_SECTIONS`、`authStore`、`notificationStore`、`conversationStore`、`toast` | **桌機版**：左側 sidebar（白底，收合 64px / 展開 224px，hover/focus-within 觸發）；通知與訊息為長型矩形按鈕（附文字標籤）；sidebar 底部使用者按鈕上方顯示 PM 幣餘額列（收合隱藏、展開顯示，含加值按鈕）；頭像按鈕點擊透過 createPortal 開啟置中 Modal（帳號資訊、帳號設定與登出），開啟任一 Modal 時 blur 讓 sidebar 自動收合。**手機版**：頂部 header（Logo + 通知 + 頭像按鈕，無搜尋按鈕）+ 底部 Dock（搜尋、功能 dropdown、探索中央圓形按鈕、我的 dropdown、訊息）；「功能」向上展開橫排 dropdown（快速配對 / 建立群組）；「我的」向上展開橫排 dropdown（我的群組 / 我的收藏）；未登入點擊鎖定項目發 Toast（附「前往登入」按鈕）|
 | `src/shared/layout/FloatingMessages.jsx` | `notificationStore`、`conversationStore`、`applicationStore` | 監聽 `pm:open-notify` 顯示通知 panel；通知點擊後依類型 dispatch 對應 `pm:open-*` 事件；`new_application` 點擊時先 await `applicationStore.init()` 再開 Modal，確保資料已更新；`member_left`（成員退出）host 端點擊前廣播 `pm:refresh-member-stores` |
 | `src/shared/ui/GroupModalShell.jsx` | `GroupOverviewContent`、`Badge`、`ProgressBar`、`ServiceLogo` | 三個群組詳情 Modal 共用的滑動軌道殼（300% 寬、三層 panel）；`subPanel` 滑入第二層、`subSubPanel` 滑入第三層，支援 `headerRight` slot；管理 scroll lock、Escape 逐層關閉 |
@@ -269,17 +275,22 @@ init: async () => {
 | `/forgot-password` | 忘記密碼（PublicOnlyRoute） |
 | `/disclaimer` / `/terms` / `/privacy` | 法務頁 |
 
-### 需登入頁面
+### 需登入頁面（`AppLayout` 子路由，含 sidebar/dock）
 
 | 路徑 | 頁面 |
 |------|------|
-| `/quick-match` | 快速配對重導（觸發 `pm:open-match`） |
-| `/create-group` | 建立群組重導（觸發 `pm:open-create`） |
 | `/my-groups` | 我的群組（`?view=member` 成員訂閱、`?view=host` 團主管理） |
 | `/my-subscriptions` | redirect → `/my-groups?view=member` |
 | `/manage-groups` | redirect → `/my-groups?view=host` |
 | `/favorites` | 我的收藏 |
 | `/account` | 帳號中心 |
+
+### 需登入頁面（獨立於 `AppLayout` 之外，無 sidebar/dock 的全螢幕流程）
+
+| 路徑 | 頁面 |
+|------|------|
+| `/create-group` | 建立群組（4 步驟 + 成功畫面，`SlideTrack` 翻書切換） |
+| `/quick-match` | 快速配對（3 步驟條件設定 + 配對結果，`SlideTrack` 翻書切換） |
 
 ---
 

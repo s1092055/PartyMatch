@@ -69,7 +69,7 @@ export default function AppNav() {
   function openCreate() {
     closeAll()
     if (!loggedIn) return
-    window.dispatchEvent(new CustomEvent('pm:open-create'))
+    navigate('/create-group')
   }
 
   function openNotify() {
@@ -85,7 +85,7 @@ export default function AppNav() {
 
   function openMatch() {
     closeAll()
-    window.dispatchEvent(new CustomEvent('pm:open-match'))
+    navigate('/quick-match')
   }
 
   function preventLockedAction(e, redirectTo) {
