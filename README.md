@@ -118,7 +118,7 @@ recruiting → full → pending_confirmation → pending_activation → active �
 
 每個狀態轉換都有對應的角色與觸發條件。
 
-> `full` 時，團主點「啟用群組」並填寫收款帳號後確認，系統才會建立群組聊天室並推進至 `pending_confirmation`。
+> `full` 時，團主點「鎖定群組」並填寫收款帳號後確認，系統才會建立群組聊天室並推進至 `pending_confirmation`。
 
 ### 成員異動規則
 

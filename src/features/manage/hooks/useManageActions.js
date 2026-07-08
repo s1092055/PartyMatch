@@ -65,19 +65,19 @@ export function useManageActions(activeUser) {
   const [statusFilter, setStatusFilter] = useState('all')
 
   const [viewGroupId, setViewGroupId]                     = useState(null)
-  const [autoOpenActivateGroup, setAutoOpenActivateGroup] = useState(false)
+  const [autoOpenLockGroup, setAutoOpenLockGroup] = useState(false)
   const [autoOpenActivate, setAutoOpenActivate]           = useState(false)
   const [autoOpenApplications, setAutoOpenApplications]   = useState(false)
   const [autoOpenBilling, setAutoOpenBilling]             = useState(false)
   const [historyModalGroupId, setHistoryModalGroupId]     = useState(null)
   const [renewalModalGroupId, setRenewalModalGroupId]     = useState(null)
 
-  function applyOpenManageGroup({ groupId, openGroupId, statusFilter: selectedStatusFilter, openActivateGroup, openActivate, openApplications, openBilling }) {
+  function applyOpenManageGroup({ groupId, openGroupId, statusFilter: selectedStatusFilter, openLockGroup, openActivate, openApplications, openBilling }) {
     const gId = groupId ?? openGroupId
     if (!gId) return
     if (selectedStatusFilter) setStatusFilter(selectedStatusFilter)
     setViewGroupId(gId)
-    setAutoOpenActivateGroup(!!openActivateGroup)
+    setAutoOpenLockGroup(!!openLockGroup)
     setAutoOpenActivate(!!openActivate)
     setAutoOpenApplications(!!openApplications)
     setAutoOpenBilling(!!openBilling)
@@ -148,7 +148,7 @@ export function useManageActions(activeUser) {
     setManageData(prev => ({ ...prev, hostedGroups: getGroupsByHostId(activeUser.id) }))
   }
 
-async function handleActivateGroup() {
+async function handleLockGroup() {
     if (!viewGroupId) return
     const group = getGroupById(viewGroupId)
     if (!group) return
@@ -170,7 +170,7 @@ async function handleActivateGroup() {
         userId:  group.hostId,
         type:    'group_chat_opened',
         title:   '群組聊天室已開啟',
-        message: `「${group.serviceName}」群組已啟用，聊天室已建立，點擊查看。`,
+        message: `「${group.serviceName}」群組已鎖定，聊天室已建立，點擊查看。`,
         meta:    { groupId: viewGroupId },
       })
       // 通知所有成員（只寫 DB，成員刷新後看到）
@@ -418,7 +418,7 @@ async function handleApprove(appId) {
         userId:  group.hostId,
         type:    'group_full',
         title:   '群組名額已滿',
-        message: `「${app.groupName ?? app.serviceName}」群組名額已滿，可以點擊啟用群組了。`,
+        message: `「${app.groupName ?? app.serviceName}」群組名額已滿，可以點擊鎖定群組了。`,
         meta:    { groupId: app.groupId },
       })
     }
@@ -491,7 +491,7 @@ async function handleApprove(appId) {
 
   const groupHandlersMap = useMemo(
     () => Object.fromEntries(displayGroups.map(g => [g.id, {
-      onViewGroup:   () => { refreshGroups(); setViewGroupId(g.id); setAutoOpenActivateGroup(false); setAutoOpenActivate(false); setAutoOpenApplications(false); setAutoOpenBilling(false) },
+      onViewGroup:   () => { refreshGroups(); setViewGroupId(g.id); setAutoOpenLockGroup(false); setAutoOpenActivate(false); setAutoOpenApplications(false); setAutoOpenBilling(false) },
       onViewHistory: () => setHistoryModalGroupId(g.id),
       onRenewal:     () => setRenewalModalGroupId(g.id),
     }])),
@@ -503,7 +503,7 @@ async function handleApprove(appId) {
     errors,
     statusFilter, setStatusFilter,
     viewGroupId, setViewGroupId,
-    autoOpenActivateGroup, setAutoOpenActivateGroup,
+    autoOpenLockGroup, setAutoOpenLockGroup,
     autoOpenActivate, setAutoOpenActivate,
     autoOpenApplications, setAutoOpenApplications,
     autoOpenBilling, setAutoOpenBilling,
@@ -513,7 +513,7 @@ async function handleApprove(appId) {
     historyModalGroup, renewalModalGroup,
     groupHandlersMap,
     refreshGroups,
-    handleActivateGroup,
+    handleLockGroup,
     handleRemoveMember,
     handleActivate,
     handleCancelGroup,

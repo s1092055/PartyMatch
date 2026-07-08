@@ -18,7 +18,7 @@ export default function ManagePage({ embedded = false }) {
     errors,
     statusFilter, setStatusFilter,
     viewGroupId, setViewGroupId,
-    autoOpenActivateGroup, setAutoOpenActivateGroup,
+    autoOpenLockGroup, setAutoOpenLockGroup,
     autoOpenActivate, setAutoOpenActivate,
     autoOpenApplications, setAutoOpenApplications,
     autoOpenBilling, setAutoOpenBilling,
@@ -28,7 +28,7 @@ export default function ManagePage({ embedded = false }) {
     historyModalGroup, renewalModalGroup,
     groupHandlersMap,
     refreshGroups,
-    handleActivateGroup,
+    handleLockGroup,
     handleRemoveMember,
     handleActivate,
     handleCancelGroup,
@@ -88,17 +88,17 @@ export default function ManagePage({ embedded = false }) {
 
       <GroupViewModal
         isOpen={!!viewGroupId}
-        onClose={() => { setViewGroupId(null); setAutoOpenActivateGroup(false); setAutoOpenActivate(false); setAutoOpenApplications(false); setAutoOpenBilling(false); refreshGroups() }}
+        onClose={() => { setViewGroupId(null); setAutoOpenLockGroup(false); setAutoOpenActivate(false); setAutoOpenApplications(false); setAutoOpenBilling(false); refreshGroups() }}
         groupId={viewGroupId}
         onReportServiceInfoIssue={handleReportServiceInfoIssue}
         onActivate={handleActivate}
-        onActivateGroup={handleActivateGroup}
+        onLockGroup={handleLockGroup}
         onCancelGroup={handleCancelGroup}
         onRemoveMember={handleRemoveMember}
         onApprove={handleApprove}
         onReject={handleReject}
         errors={errors}
-        autoOpenActivateGroup={autoOpenActivateGroup}
+        autoOpenLockGroup={autoOpenLockGroup}
         autoOpenActivate={autoOpenActivate}
         onAutoOpenActivateDone={() => setAutoOpenActivate(false)}
         autoOpenApplications={autoOpenApplications}

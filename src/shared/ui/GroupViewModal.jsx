@@ -7,9 +7,9 @@ import MemberGroupView from '../../features/subscriptions/components/MemberGroup
 
 export default function GroupViewModal({
   isOpen, onClose, groupId,
-  onReportServiceInfoIssue, onActivate, onActivateGroup, onCancelGroup, onRemoveMember,
+  onReportServiceInfoIssue, onActivate, onLockGroup, onCancelGroup, onRemoveMember,
   onLeaveGroup, onApprove, onReject, errors,
-  autoOpenActivateGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling,
+  autoOpenLockGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling,
 }) {
   // 訂閱 store 切片，群組/成員/申請更新時自動重新渲染
   const groups       = useGroupStore(s => s.groups)
@@ -33,10 +33,10 @@ export default function GroupViewModal({
       group={group} members={members} applications={applications}
       onReportServiceInfoIssue={onReportServiceInfoIssue}
       onRemoveMember={onRemoveMember}
-      onActivate={onActivate} onActivateGroup={onActivateGroup} onCancelGroup={onCancelGroup}
+      onActivate={onActivate} onLockGroup={onLockGroup} onCancelGroup={onCancelGroup}
       onApprove={onApprove} onReject={onReject}
       errors={errors} onClose={onClose}
-      autoOpenActivateGroup={autoOpenActivateGroup}
+      autoOpenLockGroup={autoOpenLockGroup}
       autoOpenActivate={autoOpenActivate}
       onAutoOpenActivateDone={onAutoOpenActivateDone}
       autoOpenApplications={autoOpenApplications}

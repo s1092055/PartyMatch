@@ -14,13 +14,13 @@ import { buildBillingPanel } from './hostGroupView/buildBillingPanel'
 
 // ── 團主視角 ──────────────────────────────────────────────────────────────────
 
-export default function HostGroupView({ group, members, applications, onReportServiceInfoIssue, onRemoveMember, onActivate, onActivateGroup, onCancelGroup, onApprove, onReject, errors, onClose, autoOpenActivateGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling }) {
+export default function HostGroupView({ group, members, applications, onReportServiceInfoIssue, onRemoveMember, onActivate, onLockGroup, onCancelGroup, onApprove, onReject, errors, onClose, autoOpenLockGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling }) {
   const [showActivate, setShowActivate]                   = useState(false)
   const [removingMember, setRemovingMember]               = useState(null)
   const [activePanel, setActivePanel]                     = useState(null) // 'members' | 'applications' | 'billing' | null
   const [showReviewHistory, setShowReviewHistory]         = useState(false)
   const [reviewFilter, setReviewFilter]                   = useState('all')
-  const [showActivateGroupConfirm, setShowActivateGroupConfirm] = useState(false)
+  const [showLockGroupConfirm, setShowLockGroupConfirm] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm]         = useState(false)
   const [expandedBillingMembers, setExpandedBillingMembers] = useState(new Set())
 
@@ -34,8 +34,8 @@ export default function HostGroupView({ group, members, applications, onReportSe
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (autoOpenActivateGroup && group.status === 'full') setShowActivateGroupConfirm(true)
-  }, [autoOpenActivateGroup]) // eslint-disable-line react-hooks/exhaustive-deps
+    if (autoOpenLockGroup && group.status === 'full') setShowLockGroupConfirm(true)
+  }, [autoOpenLockGroup]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -97,33 +97,33 @@ export default function HostGroupView({ group, members, applications, onReportSe
     onClose()
   }
 
-  const activateGroupBanner = group.status === 'full' && (
+  const lockGroupBanner = group.status === 'full' && (
     <div className="flex items-center justify-center bg-success-subtle px-6 py-3 text-sm font-extrabold text-success-text">
-      招募完成，請點擊啟用群組
+      招募完成，請點擊鎖定群組
     </div>
   )
 
-  const activateGroupCta = group.status === 'full' && (
+  const lockGroupCta = group.status === 'full' && (
     <div className="flex justify-center py-2">
       <div className="relative">
-        {!showActivateGroupConfirm && <span className="absolute inset-1 rounded-xl bg-success animate-ping opacity-20" />}
-        {showActivateGroupConfirm ? (
+        {!showLockGroupConfirm && <span className="absolute inset-1 rounded-xl bg-success animate-ping opacity-20" />}
+        {showLockGroupConfirm ? (
           <div className="flex gap-2">
             <button
-              onClick={() => setShowActivateGroupConfirm(false)}
+              onClick={() => setShowLockGroupConfirm(false)}
               className="rounded-xl border border-line px-4 py-2 text-sm font-semibold text-ink-2 transition-colors hover:bg-raised"
             >取消</button>
             <button
-              onClick={() => { setShowActivateGroupConfirm(false); onActivateGroup?.() }}
+              onClick={() => { setShowLockGroupConfirm(false); onLockGroup?.() }}
               className="rounded-xl bg-success px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-success-text"
-            >確認啟用</button>
+            >確認鎖定</button>
           </div>
         ) : (
           <button
-            onClick={() => setShowActivateGroupConfirm(true)}
+            onClick={() => setShowLockGroupConfirm(true)}
             className="relative flex items-center gap-2 rounded-xl bg-success px-6 py-2 text-sm font-bold text-white shadow-md transition-colors hover:bg-success-text"
           >
-            <Radio size={15} /> 啟用群組
+            <Radio size={15} /> 鎖定群組
           </button>
         )}
       </div>
@@ -182,8 +182,8 @@ export default function HostGroupView({ group, members, applications, onReportSe
       service={serviceDef}
       plan={planDef}
       hideRecruitBar={group.status !== 'recruiting'}
-      headerBanner={activateGroupBanner || activateBanner || undefined}
-      centeredCta={activateGroupCta || activateCta || undefined}
+      headerBanner={lockGroupBanner || activateBanner || undefined}
+      centeredCta={lockGroupCta || activateCta || undefined}
       extraInfoRows={[]}
       pendingBadge={group.status === 'pending_confirmation' ? '收款中' : undefined}
       statusBadgeOverride={group.status === 'pending_confirmation' ? { variant: 'pending_confirmation', label: '收款中' } : undefined}

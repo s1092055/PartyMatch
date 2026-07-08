@@ -291,7 +291,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
         canConfirm          ? '確認期進行中，請確認服務' :
         alreadyConfirmed    ? '已確認，等待確認期結束' :
         isDisputed          ? '申訴進行中' :
-        group.status === 'full' && !!sub ? '招募完成，等待團主啟用群組' :
+        group.status === 'full' && !!sub ? '招募完成，等待團主鎖定群組' :
         group.status === 'recruiting' && !!sub ? '已通過申請，需等待其他人加入' :
         undefined
       }
