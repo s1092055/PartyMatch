@@ -30,11 +30,20 @@ DATABASE_URL="mysql://root:password@localhost:3306/partymatch"
 REDIS_URL="redis://localhost:6379"
 
 # JWT 簽名金鑰（隨機長字串）
-JWT_SECRET=
+JWT_ACCESS_SECRET=
 JWT_REFRESH_SECRET=
+JWT_ACCESS_EXPIRES=15m
+JWT_REFRESH_EXPIRES=7d
+
+# Cloudinary 圖片上傳
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
 
 # 伺服器 port（預設 3001）
 PORT=3001
+CLIENT_ORIGIN=http://localhost:5173
+NODE_ENV=development
 ```
 
 不要把 `.env` 檔案 commit 到 Git。
@@ -115,10 +124,6 @@ zip -r partymatch.zip . \
 
 | 項目 | 說明 | 相關檔案 |
 |------|------|----------|
-| 代幣 API 路由 | Schema 已完成；待實作儲值（模擬）、代管扣款、撥款、退款端點，並在核准申請時自動執行代管 | `server/src/routes/tokens.js`（待建）、`server/src/routes/applications.js`、`useAuthStore.js` |
-| 鎖定群組端點 | 實作 `POST /groups/:id/lock`：`full → pending_confirmation`，設定成員訂閱 `nextBillingDate`，建立群組聊天室 | `server/src/routes/groups.js`、`useGroupStore.js` |
-| 啟用服務端點 | 實作 `POST /groups/:id/activate`：`pending_activation → confirming`，設定 `confirmDeadline`（啟用時間 + 48h） | `server/src/routes/groups.js`、`useGroupStore.js`、`HostGroupView.jsx` |
-| `confirming` / `disputed` 狀態流程 | 實作成員確認（即時撥款）、向平台申訴（`disputed`）、惰性自動撥款（讀取 group 時觸發） | `server/src/routes/groups.js`、`useGroupStore.js`、`MemberGroupView.jsx` |
 | Google OAuth | 目前 `loginGoogle()` 回傳 stub 錯誤，需實作後端 OAuth 流程 | `useAuthStore.js`、`server/src/routes/auth.js` |
 | 重設密碼寄信 | 目前 `resetPassword()` 回傳 stub 錯誤，需串接 email 服務 | `useAuthStore.js`、`server/src/routes/auth.js` |
 
@@ -126,8 +131,7 @@ zip -r partymatch.zip . \
 
 | 項目 | 說明 | 相關檔案 |
 |------|------|----------|
-| 帳戶儲值功能 | ProfileHeaderCard 已顯示代幣餘額；需串接儲值按鈕至 `POST /tokens/topup` | `ProfileHeaderCard.jsx`、`server/src/routes/tokens.js` |
-| 帳戶交易紀錄 | 在帳號中心顯示 `token_transactions` 歷史明細 | `AccountPage.jsx`、`PersonalInfoTab.jsx` |
+| 帳戶交易紀錄 | 在帳號中心顯示 `token_transactions` 歷史明細（`GET /tokens` 已回傳最近 50 筆，前端待顯示） | `AccountPage.jsx`、`PersonalInfoTab.jsx` |
 | RenewalModal 完整實作 | 「開始新一期」與「結束服務」為雛形，需完整測試 | `RenewalModal.jsx`、`useGroupStore.js` |
 | GroupHistoryModal 入口補強 | 元件已存在，群組卡片缺少明確入口 | `GroupHistoryModal.jsx`、`HostedGroupCard.jsx` |
 | 即將續訂通知 | 接近 `nextBillingDate` 時未自動提醒 | `useSubscriptionStore.js` |
