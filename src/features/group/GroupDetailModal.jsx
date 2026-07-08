@@ -131,7 +131,9 @@ export default function GroupDetailModal() {
     } catch (err) {
       const msg = err?.response?.data?.message ?? err?.message ?? '申請失敗，請稍後再試'
       if (err?.response?.data?.code === 'INSUFFICIENT_BALANCE') {
-        toast(`代幣不足：${msg}，請前往帳號中心儲值`, 'error')
+        toast(`代幣不足：${msg.replace(/（目前.*?）/, '')}`, 'error', {
+          action: { label: '前往儲值', onClick: () => window.dispatchEvent(new CustomEvent('pm:open-topup')) },
+        })
       } else {
         toast(msg, 'error')
       }

@@ -17,7 +17,7 @@ export default function TokenAmount({ amount, cycle, className = '', badgeSize =
     <span className={`inline-flex items-center gap-1 ${className}`}>
       <TokenBadge className={badgeSize} />
       <span>{amount}</span>
-      {unit && <span className={`text-xs font-normal text-ink-3 ${unitClassName}`}>{unit}</span>}
+      {unit && <span className={`text-ink-3 ${unitClassName}`}>{unit}</span>}
     </span>
   )
 }

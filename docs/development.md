@@ -66,11 +66,11 @@ NODE_ENV=development
 | 指令 | 用途 |
 |------|------|
 | `npm run dev` | 啟動 Express 開發伺服器（http://localhost:3001） |
-| `npx prisma migrate dev` | 執行 migration 並同步資料庫 schema |
-| `npx prisma db push` | 直接同步 schema 變更（不建立 migration 歷史，適合開發期快速迭代） |
+| `npx prisma db push` | 同步 schema 變更到資料庫。本專案未建立 migration 歷史（無 `prisma/migrations` 目錄），一律用 `db push` 同步，不要用 `migrate dev`（會因偵測不到既有 migration 歷史而要求重置資料庫） |
 | `npx prisma studio` | 開啟資料庫視覺化介面（http://localhost:5555） |
 | `npx prisma generate` | 重新產生 Prisma Client |
 | `npm run db:clear-data` | 清空所有資料（保留 users 與 services），用於重設測試環境 |
+| `npm run db:clear` | 清空所有正式版資料**含 users**（保留 services），執行前需在終端機輸入 `yes` 確認 |
 
 ---
 
@@ -93,7 +93,7 @@ npm install
 # 3. 後端依賴與資料庫初始化
 cd server
 npm install
-npx prisma migrate dev
+npx prisma db push
 
 # 4. 開兩個 terminal 分別啟動前後端
 # Terminal 1（根目錄）
@@ -126,6 +126,7 @@ zip -r partymatch.zip . \
 |------|------|----------|
 | Google OAuth | 目前 `loginGoogle()` 回傳 stub 錯誤，需實作後端 OAuth 流程 | `useAuthStore.js`、`server/src/routes/auth.js` |
 | 重設密碼寄信 | 目前 `resetPassword()` 回傳 stub 錯誤，需串接 email 服務 | `useAuthStore.js`、`server/src/routes/auth.js` |
+| 手機號碼簡訊驗證 | 註冊時手機號碼僅做格式驗證，未確認是否為本人持有，需串接簡訊 OTP 服務 | `RegisterPage.jsx`、`server/src/routes/auth.js` |
 
 ### 中優先度
 

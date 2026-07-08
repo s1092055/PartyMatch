@@ -24,23 +24,38 @@ export function useScrollLock(enabled) {
   }, [enabled])
 }
 
-// 往下捲動時隱藏、往上捲動或接近頁面頂端時顯示（用於行動版底部 Dock）
+// 共用捲動監聽：無論幾個元件訂閱，window 上只掛一個真正的 'scroll' listener（ref-count 釋放）
+const _scrollSubs = new Set()
+function _notifyScroll() {
+  const y = window.scrollY
+  _scrollSubs.forEach(fn => fn(y))
+}
+function subscribeScroll(fn) {
+  _scrollSubs.add(fn)
+  if (_scrollSubs.size === 1) window.addEventListener('scroll', _notifyScroll, { passive: true })
+  return () => {
+    _scrollSubs.delete(fn)
+    if (_scrollSubs.size === 0) window.removeEventListener('scroll', _notifyScroll)
+  }
+}
+
+export function useScrollY() {
+  const [y, setY] = useState(() => window.scrollY)
+  useEffect(() => subscribeScroll(setY), [])
+  return y
+}
+
+// 往下捲動時隱藏、往上捲動或接近頁面頂端時顯示（用於行動版底部 Dock 等固定元素）
 export function useHideOnScroll() {
   const [visible, setVisible] = useState(true)
-  const lastY = useRef(0)
+  const lastY = useRef(window.scrollY)
 
-  useEffect(() => {
-    lastY.current = window.scrollY
-    function onScroll() {
-      const y = window.scrollY
-      const delta = y - lastY.current
-      if (y < 50 || delta < -4) setVisible(true)
-      else if (delta > 4) setVisible(false)
-      lastY.current = y
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
+  useEffect(() => subscribeScroll(y => {
+    const delta = y - lastY.current
+    if (y < 50 || delta < -4) setVisible(true)
+    else if (delta > 4) setVisible(false)
+    lastY.current = y
+  }), [])
 
   return visible
 }

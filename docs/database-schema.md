@@ -6,14 +6,14 @@
 
 | Table | 說明 |
 |-------|------|
-| `users` | 使用者帳號、密碼 hash、Google ID、信用分數、`tokenBalance`（平台代幣餘額，1:1 對應 TWD） |
+| `users` | 使用者帳號、密碼 hash、手機號碼（`phone`，註冊必填）、Google ID、信用分數、`tokenBalance`（平台代幣餘額，1:1 對應 TWD） |
 | `refresh_tokens` | JWT refresh token，支援多裝置登入 |
+| `payment_methods` | 使用者付款方式（卡片末四碼、有效期限、是否為預設） |
 | `services` | 30 種訂閱服務清單與方案（JSON 欄位） |
 | `groups` | 群組主資料（狀態、名額、方案、`billingCycle`、`escrowTokens`（代管中代幣總額）、`confirmDeadline`（`confirming` 狀態的確認截止時間，啟用時間 + 48h）、`disputeDeadline`（`disputed` 狀態的裁定截止時間，申訴提出時間 + 3 天）） |
 | `applications` | 申請紀錄（`pending` / `approved` / `rejected` / `removed` / `left` / `withdrawn`）；`withdrawn` 為申請人在審核前自行取消；被拒絕、移除、退出或自行取消後可重新申請（建立新記錄，保留歷史） |
 | `members` | 群組成員（`serviceInfo` 訂閱帳號資訊、`serviceInfoIssueNote`、`disputeEvidenceUrl`（僅申訴階段使用，成員提供的爭議佐證截圖）） |
 | `subscriptions` | 成員訂閱（帳號資訊、訂閱狀態、下次扣款日、`lastPaidAt`） |
-| `payment_records` | 代幣帳務紀錄（統計用） |
 | `token_transactions` | 代幣交易審計日誌（`userId`、`type`、`amount`、`relatedGroupId`、`note`）；類型包含 `topup`（儲值）、`escrow`（凍結至代管）、`release`（撥款給團主）、`refund`（退還給成員） |
 | `notifications` | 個人通知 + 系統公告（`isPublic: true` 為公告） |
 | `favorites` | 收藏群組（`userId` + `groupId` 唯一索引） |
@@ -114,6 +114,7 @@
 |------|------|
 | 認證 | Google OAuth 尚未實作（目前回傳 stub 錯誤） |
 | 認證 | 重設密碼寄信尚未實作（目前回傳 stub 錯誤） |
+| 認證 | 註冊手機號碼僅做格式驗證（`09xxxxxxxx`），尚未串接簡訊 OTP 驗證是否為本人持有 |
 | 金流 | 代幣儲值為模擬模式（點擊即儲值），尚未串接正式金流 |
 | 代管 | `confirming` 狀態的自動撥款採惰性求值（讀取 group 時觸發），非排程任務 |
 | 即時性 | 訊息中心採用 5 秒 polling，非 WebSocket 即時推送 |

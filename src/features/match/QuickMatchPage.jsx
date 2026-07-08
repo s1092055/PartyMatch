@@ -84,28 +84,28 @@ export default function QuickMatchPage() {
 
   const footer = isResultStep ? (
     <>
-      <Button variant="secondary" size="md" className="flex-1" onClick={handleReset}>
+      <Button variant="secondary" size="md" className="min-w-0 flex-1" onClick={handleReset}>
         <RotateCcw size={15} />
         重新配對
       </Button>
-      <Button variant="secondary" size="md" className="flex-1" onClick={handleBack}>
+      <Button variant="secondary" size="md" className="min-w-0 flex-1" onClick={handleBack}>
         <ChevronLeft size={15} />
         調整條件
       </Button>
     </>
   ) : (
     <>
-      <Button variant="secondary" size="md" className="flex-1" onClick={handleBack}>
+      <Button variant="secondary" size="md" className="min-w-0 flex-1" onClick={handleBack}>
         <ChevronLeft size={15} />
         {step === 1 ? '取消' : '上一步'}
       </Button>
       {step < 3 ? (
-        <Button variant="primary" size="md" className="flex-1" disabled={!canNext} onClick={handleNext}>
+        <Button variant="primary" size="md" className="min-w-0 flex-1" disabled={!canNext} onClick={handleNext}>
           下一步
           <ChevronRight size={15} />
         </Button>
       ) : (
-        <Button variant="success" size="md" className="flex-1" onClick={handleStartMatch}>
+        <Button variant="success" size="md" className="min-w-0 flex-1" onClick={handleStartMatch}>
           <Zap size={15} />
           開始配對
         </Button>
@@ -114,7 +114,7 @@ export default function QuickMatchPage() {
   )
 
   return (
-    <FlowLayout onBack={leaveFlow} progress={(Math.min(step, 4) / 4) * 100} bottomNav={footer}>
+    <FlowLayout progress={(Math.min(step, 4) / 4) * 100} bottomNav={footer}>
       <SlideTrack activeIndex={step - 1} count={4}>
         <SlidePanel count={4}>
           <div className="flex flex-col gap-4 py-4 lg:flex-row lg:items-start">

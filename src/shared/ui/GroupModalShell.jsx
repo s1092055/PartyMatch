@@ -162,7 +162,7 @@ export default function GroupModalShell({
                 <div className="shrink-0 border-t border-line bg-canvas px-6 py-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="mb-0.5 text-xs font-medium text-ink-4">每席價格</p>
+                      <p className="mb-0.5 text-xs font-medium text-ink-4">每位價格</p>
                       <div>
                         <TokenAmount
                           amount={group.billingCycle === 'yearly' ? group.pricePerSeat * 12 : group.pricePerSeat}
@@ -173,7 +173,7 @@ export default function GroupModalShell({
                     </div>
                     <div className="text-right">
                       <p className="mb-0.5 text-xs text-ink-4">剩餘名額</p>
-                      <p className="text-lg font-extrabold text-ink">{group.openSeats} / {group.totalSeats} 席</p>
+                      <p className="text-lg font-extrabold text-ink">{group.openSeats} / {group.totalSeats} 位</p>
                     </div>
                   </div>
                   <div className="mt-3">

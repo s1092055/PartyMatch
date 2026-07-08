@@ -42,7 +42,7 @@ export default function ActivateServiceModal({
           <ServiceLogo serviceId={group.serviceId} size={40} className="rounded-xl" />
           <div className="min-w-0 flex-1">
             <p className="font-bold text-ink">{group.serviceName}</p>
-            <p className="text-xs text-ink-3">{group.planName} · <TokenAmount amount={group.pricePerSeat} cycle={group.billingCycle === 'yearly' ? 'yearly' : 'monthly'} /> /席</p>
+            <p className="text-xs text-ink-3">{group.planName} · <TokenAmount amount={group.pricePerSeat} cycle={group.billingCycle === 'yearly' ? 'yearly' : 'monthly'} /> /位</p>
           </div>
           <div className="rounded-xl bg-success-subtle px-3 py-1.5 text-right">
             <p className="text-xs text-success-text">撥款金額</p>

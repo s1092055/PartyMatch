@@ -1,6 +1,7 @@
 import ExploreGroupCard from "../../explore/components/ExploreGroupCard";
 import { getServiceById } from "../../../shared/utils/serviceUtils";
 import { useAuthStore } from "../../../shared/stores/useAuthStore";
+import { buildPreviewGroupId } from "../utils/previewGroupId";
 
 export default function LivePreviewPanel({ form }) {
   const service = getServiceById(form.serviceId);
@@ -8,7 +9,7 @@ export default function LivePreviewPanel({ form }) {
   const activeUser = user ? useAuthStore.getState().getProfile() : null;
 
   const group = {
-    id: "__preview__",
+    id: buildPreviewGroupId(form),
     serviceId: form.serviceId,
     serviceName: service?.fullName ?? service?.name ?? form.serviceId ?? "",
     planName: form.planName || "尚未選擇方案",

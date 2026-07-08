@@ -15,7 +15,7 @@ const CATEGORIES = [
 
 const ALL_ITEM = { value: 'all', label: '全部', Icon: null }
 
-export default function CategoryPills({ active, onChange, variant = 'pills', showAll = false, className = '', innerRef = null }) {
+export default function CategoryPills({ active, onChange, variant = 'pills', showAll = false, fullHeight = false, className = '', innerRef = null }) {
   const items = showAll ? [ALL_ITEM, ...CATEGORIES] : CATEGORIES
 
   if (variant === 'grid') {
@@ -52,22 +52,24 @@ export default function CategoryPills({ active, onChange, variant = 'pills', sho
 
   if (variant === 'vertical') {
     return (
-      <div className={`flex flex-col gap-0.5 py-0.5 px-0.5 ${className}`}>
+      <div className={`flex flex-col gap-1.5 ${fullHeight ? 'h-full' : 'py-0.5 px-0.5 gap-0.5'} ${className}`}>
         {items.map(cat => {
           const isActive = active === cat.value
           return (
             <button
               key={cat.value}
               onClick={() => onChange(cat.value)}
-              className={`flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-xs font-bold transition-colors ${
+              className={`flex w-full items-center gap-2.5 rounded-xl font-bold transition-colors ${
+                fullHeight ? 'flex-1 px-3 text-sm' : 'gap-2 px-2.5 py-2 text-xs'
+              } ${
                 isActive
                   ? 'bg-raised text-ink'
                   : 'bg-transparent text-ink-2 hover:bg-raised hover:text-ink'
               }`}
             >
               {cat.value === 'all'
-                ? <img src={logoUrl} alt="全部" className="h-[13px] w-[13px] shrink-0 rounded object-contain" />
-                : cat.Icon && <cat.Icon size={13} strokeWidth={2} className="shrink-0" />
+                ? <img src={logoUrl} alt="全部" className={`${fullHeight ? 'h-5 w-5' : 'h-[13px] w-[13px]'} shrink-0 rounded object-contain`} />
+                : cat.Icon && <cat.Icon size={fullHeight ? 20 : 13} strokeWidth={2} className="shrink-0" />
               }
               <span className="truncate">{cat.label}</span>
             </button>

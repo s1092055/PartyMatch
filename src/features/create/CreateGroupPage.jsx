@@ -5,16 +5,16 @@ import FlowLayout from '../../shared/layout/FlowLayout'
 import SlideTrack, { SlidePanel } from '../../shared/ui/SlideTrack'
 import LivePreviewPanel from './components/LivePreviewPanel'
 import Step1Service from './components/steps/Step1Service'
-import Step2Plan from './components/steps/Step2Plan'
-import Step3Settings from './components/steps/Step3Settings'
-import Step4Preview from './components/steps/Step4Preview'
+import Step2PlanSettings from './components/steps/Step2PlanSettings'
+import Step3Preview from './components/steps/Step3Preview'
 import Button from '../../shared/ui/Button'
 import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { useNotificationStore } from '../../shared/stores/useNotificationStore'
 import { getServiceById } from '../../shared/utils/serviceUtils'
 import { useAuthStore } from '../../shared/stores/useAuthStore'
 
-const STEP_COMPONENTS = [Step1Service, Step2Plan, Step3Settings, Step4Preview]
+const STEP_COMPONENTS = [Step1Service, Step2PlanSettings, Step3Preview]
+const STEP_TITLES = ['選擇服務', '方案與設定', '最後確認']
 
 const INITIAL_FORM = {
   serviceId: '',
@@ -58,10 +58,8 @@ function getStepErrors(step, form) {
     case 1:
       if (!form.serviceId) errors.push('請選擇一個訂閱服務')
       break
-    case 2:
+    case 2: {
       if (!form.planName) errors.push('請選擇方案')
-      break
-    case 3: {
       const service = getServiceById(form.serviceId)
       const plan = service?.plans.find(p => p.name === form.planName)
       const maxSeats = plan?.maxSeats ?? 10
@@ -80,7 +78,7 @@ function getStepErrors(step, form) {
 }
 
 function getFirstInvalidStep(form) {
-  return [1, 2, 3].find(step => getStepErrors(step, form).length > 0) ?? null
+  return [1, 2].find(step => getStepErrors(step, form).length > 0) ?? null
 }
 
 function calcPricePerSeat(plan, seats, billingCycle) {
@@ -138,12 +136,13 @@ export default function CreateGroupPage() {
   }
 
   function handleNext() {
-    if (canNext() && step < 4) { setStep(s => s + 1); setShowPreview(false) }
+    if (canNext() && step < 3) { setStep(s => s + 1); setShowPreview(false) }
   }
 
   function handleBack() {
-    if (step > 1) { setStep(s => s - 1); setShowPreview(false) }
-    else leaveFlow()
+    if (step <= 1) return
+    setStep(s => s - 1)
+    setShowPreview(false)
   }
 
   function handleSubmit() {
@@ -166,22 +165,28 @@ export default function CreateGroupPage() {
       })
     }
     window.dispatchEvent(new CustomEvent('pm:group-created', { detail: { groupId: group.id } }))
-    setStep(5)
+    setStep(4)
   }
 
-  const footer = step <= 4 && (
+  const footer = step <= 3 && (
     <>
-      <Button variant="secondary" size="md" className="flex-1" onClick={handleBack}>
-        <ChevronLeft size={15} />
-        {step === 1 ? '取消' : '上一步'}
-      </Button>
-      {step < 4 ? (
-        <Button variant="primary" size="md" className="flex-1" disabled={!canNext()} onClick={handleNext}>
+      {step === 1 ? (
+        <Button variant="secondary" size="md" className="min-w-0 flex-1" onClick={leaveFlow}>
+          取消建立
+        </Button>
+      ) : (
+        <Button variant="secondary" size="md" className="min-w-0 flex-1" onClick={handleBack}>
+          <ChevronLeft size={15} />
+          上一步
+        </Button>
+      )}
+      {step < 3 ? (
+        <Button variant="primary" size="md" className="min-w-0 flex-1" disabled={!canNext()} onClick={handleNext}>
           下一步
           <ChevronRight size={15} />
         </Button>
       ) : (
-        <Button variant="success" size="md" className="flex-1" disabled={!agreedToTerms} onClick={handleSubmit}>
+        <Button variant="success" size="md" className="min-w-0 flex-1" disabled={!agreedToTerms} onClick={handleSubmit}>
           確認建立
         </Button>
       )}
@@ -189,59 +194,89 @@ export default function CreateGroupPage() {
   )
 
   const service = getServiceById(form.serviceId)
-  const desc = step === 1
-    ? service?.description
-    : step === 2
-      ? service?.plans.find(p => p.name === form.planName)?.description
-      : null
-  const showErrors = stepErrors.length > 0 && step < 4
+  const desc = step === 2
+    ? service?.plans.find(p => p.name === form.planName)?.description
+    : null
+  const showErrors = stepErrors.length > 0 && step < 3
+
+  const errorBox = showErrors && (
+    <div className="flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2.5 text-xs text-amber-700">
+      <AlertCircle size={13} className="shrink-0" />
+      <span>{stepErrors[0]}</span>
+    </div>
+  )
+  const descBox = desc && (
+    <div className="flex items-start gap-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3">
+      <Info size={14} className="mt-0.5 shrink-0 text-blue-400" />
+      <p className="text-xs leading-relaxed text-blue-700">{desc}</p>
+    </div>
+  )
+  const footerNote = step < 3 && (descBox || errorBox) && (
+    <div className="lg:hidden">
+      {descBox}
+      {errorBox}
+    </div>
+  )
+
+  const previewButton = step < 3 && (
+    <button
+      onClick={() => setShowPreview(true)}
+      className="flex items-center gap-1.5 rounded-full border border-line px-3 h-8 text-xs font-bold text-ink-2 transition-colors hover:bg-raised hover:text-ink lg:hidden"
+      aria-label="顯示預覽"
+    >
+      <Eye size={14} />
+      顯示預覽
+    </button>
+  )
 
   return (
-    <FlowLayout onBack={leaveFlow} progress={(Math.min(step, 4) / 4) * 100} bottomNav={footer}>
-      <SlideTrack activeIndex={step - 1} count={5}>
+    <FlowLayout
+      progress={(Math.min(step, 3) / 3) * 100}
+      title={step <= 3 ? STEP_TITLES[step - 1] : undefined}
+      headerAction={previewButton || undefined}
+      footerNote={footerNote || undefined}
+      bottomNav={footer}
+    >
+      <SlideTrack activeIndex={step - 1} count={4}>
         {STEP_COMPONENTS.map((StepN, i) => {
           const n = i + 1
-          return (
-            <SlidePanel key={n} count={5}>
-              <div className="relative flex flex-col gap-4 py-4 lg:flex-row lg:items-start">
-                <div className="min-w-0 flex-1">
-                  <StepN form={form} onChange={onChange} agreedToTerms={agreedToTerms} onAgreeChange={setAgreedToTerms} />
-                  <div className="mt-4 space-y-2">
-                    {n === step && desc && (
-                      <div className="flex items-start gap-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3">
-                        <Info size={14} className="mt-0.5 shrink-0 text-blue-400" />
-                        <p className="text-xs leading-relaxed text-blue-700">{desc}</p>
-                      </div>
-                    )}
-                    {n === step && showErrors && (
-                      <div className="flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2.5 text-xs text-amber-700">
-                        <AlertCircle size={13} className="shrink-0" />
-                        <span>{stepErrors[0]}</span>
-                      </div>
-                    )}
+          const isActive = n === step
+
+          if (n === 1) {
+            return (
+              <SlidePanel key={n} count={4} className="lg:overflow-hidden">
+                <div className="flex h-full flex-col gap-4 py-4">
+                  <div className="lg:min-h-0 lg:flex-1">
+                    <StepN form={form} onChange={onChange} preview={<LivePreviewPanel form={form} />} />
                   </div>
                 </div>
-                {n < 4 && (
-                  <div className="hidden shrink-0 lg:block lg:w-72">
+              </SlidePanel>
+            )
+          }
+
+          return (
+            <SlidePanel key={n} count={4} className="lg:overflow-hidden">
+              <div className="flex h-full flex-col gap-4 py-4 lg:flex-row">
+                <div className="min-w-0 flex-1 lg:h-full lg:overflow-y-auto lg:pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  <StepN form={form} onChange={onChange} agreedToTerms={agreedToTerms} onAgreeChange={setAgreedToTerms} />
+                  {isActive && (
+                    <div className="mt-4 hidden space-y-2 lg:block">
+                      {descBox}
+                      {errorBox}
+                    </div>
+                  )}
+                </div>
+                {n < 3 && (
+                  <div className="hidden shrink-0 lg:block lg:w-72 lg:self-start">
                     <LivePreviewPanel form={form} />
                   </div>
-                )}
-                {n < 4 && (
-                  <button
-                    onClick={() => setShowPreview(true)}
-                    className="absolute right-0 top-4 flex items-center gap-1.5 rounded-full border border-line px-3 h-8 text-xs font-bold text-ink-2 transition-colors hover:bg-raised hover:text-ink lg:hidden"
-                    aria-label="顯示預覽"
-                  >
-                    <Eye size={14} />
-                    顯示預覽
-                  </button>
                 )}
               </div>
             </SlidePanel>
           )
         })}
 
-        <SlidePanel count={5}>
+        <SlidePanel count={4}>
           <div className="flex flex-col items-center py-16 text-center">
             <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
               <CheckCircle2 size={28} className="text-emerald-500" />
@@ -260,9 +295,9 @@ export default function CreateGroupPage() {
         </SlidePanel>
       </SlideTrack>
 
-      {showPreview && step < 4 && (
+      {showPreview && step < 3 && (
         <div
-          className="fixed inset-0 z-10 flex items-center justify-center bg-black/50 lg:hidden"
+          className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 lg:hidden"
           onClick={() => setShowPreview(false)}
         >
           <div className="mx-6 w-full max-w-xs" onClick={e => e.stopPropagation()}>

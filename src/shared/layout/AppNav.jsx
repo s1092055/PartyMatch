@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from '../utils/toast'
 import { useClickOutside } from '../utils/hooks'
@@ -45,6 +45,12 @@ export default function AppNav() {
 
   const tokenBalance = useAuthStore(s => s.user?.tokenBalance ?? 0)
   const [topupOpen, setTopupOpen] = useState(false)
+
+  useEffect(() => {
+    function openTopup() { setTopupOpen(true) }
+    window.addEventListener('pm:open-topup', openTopup)
+    return () => window.removeEventListener('pm:open-topup', openTopup)
+  }, [])
 
   const unreadNotifs = useNotificationStore(s => loggedIn && currentUser?.id ? s.getUnreadCount(currentUser.id) : 0)
   const unreadMsgs = useConversationStore(s => loggedIn && currentUser?.id ? s.getUnreadMsgCount(currentUser.id) : 0)
