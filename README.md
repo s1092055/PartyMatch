@@ -84,6 +84,18 @@ App 啟動時分兩階段初始化：
 
 讀取走 Store（同步），寫入走 API（非同步）。
 
+### 元件拆分
+
+原本 5 個 600 行以上的大型元件已拆分為「orchestrator（state/effects/handler）+ 純 UI 子元件或 panel builder」的結構，子元件多以明確參數傳入取代閉包依賴：
+
+| 原始檔案 | 行數變化 | 拆分方式 |
+|---------|---------|---------|
+| `shared/layout/AppNav.jsx` | 624 → 160 | 桌機 sidebar / 手機 header / 手機 dock 各自獨立元件 |
+| `features/manage/ManagePage.jsx` | 619 → 126 | 抽出 `hooks/useManageActions.js` 自訂 hook |
+| `features/manage/components/HostGroupView.jsx` | 625 → 297 | 4 個 panel builder（成員/申請/審核紀錄/收款） |
+| `features/messages/components/ChatWindow.jsx` | 546 → 174 | 抽出 `useParticipantNames`/`useMessageScroll` hook + `MessageBubble`/`ChatMembersPanel` 元件 |
+| `features/group/GroupDetailModal.jsx` | 545 → 256 | 抽出 `ApplyModal`/`HostReviews` 元件與 panel builder |
+
 ### 認證機制
 
 - JWT accessToken + refreshToken 雙 token 設計
