@@ -59,7 +59,7 @@ export default function MobileHeader({
             <a
               href="/login"
               aria-label="前往登入"
-              className="relative ml-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-raised text-ink-3 transition-colors hover:bg-brand-subtle hover:text-brand"
+              className="relative ml-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink-3 transition-colors hover:bg-brand-subtle hover:text-brand"
             >
               <UserCircle2 size={22} strokeWidth={1.8} />
             </a>

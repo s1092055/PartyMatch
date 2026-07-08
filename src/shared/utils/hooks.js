@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 // Reference counter so nested modals don't re-measure or prematurely release the lock.
 let _lockCount = 0
@@ -22,6 +22,27 @@ export function useScrollLock(enabled) {
       }
     }
   }, [enabled])
+}
+
+// 往下捲動時隱藏、往上捲動或接近頁面頂端時顯示（用於行動版底部 Dock）
+export function useHideOnScroll() {
+  const [visible, setVisible] = useState(true)
+  const lastY = useRef(0)
+
+  useEffect(() => {
+    lastY.current = window.scrollY
+    function onScroll() {
+      const y = window.scrollY
+      const delta = y - lastY.current
+      if (y < 50 || delta < -4) setVisible(true)
+      else if (delta > 4) setVisible(false)
+      lastY.current = y
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  return visible
 }
 
 export function useClickOutside(enabled, refs, onClose) {

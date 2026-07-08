@@ -14,7 +14,7 @@ function confirm(question) {
 }
 
 async function main() {
-  console.log('即將清空所有正式版使用者資料（users、groups、applications、members、subscriptions、payments、notifications、conversations、messages、favorites、refresh_tokens）')
+  console.log('即將清空所有正式版使用者資料（users、groups、applications、members、subscriptions、notifications、conversations、messages、favorites、refresh_tokens）')
   console.log('services 種子資料不受影響\n')
 
   const ans = await confirm('確定要清空嗎？請輸入 yes 繼續：')
@@ -37,9 +37,6 @@ async function main() {
 
   await prisma.favorite.deleteMany()
   console.log('  - favorites')
-
-  await prisma.paymentRecord.deleteMany()
-  console.log('  - payment_records')
 
   await prisma.subscription.deleteMany()
   console.log('  - subscriptions')

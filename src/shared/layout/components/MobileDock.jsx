@@ -1,5 +1,6 @@
 import { Compass, Heart, LayoutGrid, MessageSquare, PlusCircle, Search, Zap } from 'lucide-react'
 import { Badge } from './navShared'
+import { useHideOnScroll } from '../../utils/hooks'
 
 export default function MobileDock({
   pathname,
@@ -17,9 +18,11 @@ export default function MobileDock({
   myMenuRef,
   unreadMsgs,
 }) {
+  const visible = useHideOnScroll()
+
   return (
     <nav
-      className="fixed left-3 right-3 z-50 rounded-2xl border border-line bg-white shadow-sm md:hidden"
+      className={`fixed left-3 right-3 z-50 rounded-2xl border border-line bg-white shadow-sm transition-transform duration-300 ease-in-out md:hidden ${visible ? 'translate-y-0' : 'translate-y-[calc(100%+1rem)]'}`}
       style={{ bottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
     >
       <div className="flex h-16 items-stretch">

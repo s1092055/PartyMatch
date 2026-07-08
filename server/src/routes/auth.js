@@ -13,6 +13,7 @@ const registerSchema = z.object({
   email:    z.string().email(),
   password: z.string().min(8),
   name:     z.string().min(1).max(50),
+  phone:    z.string().regex(/^09\d{8}$/, '請輸入正確的手機號碼格式'),
 })
 
 const loginSchema = z.object({
@@ -23,7 +24,7 @@ const loginSchema = z.object({
 // POST /auth/register
 router.post('/register', validate(registerSchema), async (req, res, next) => {
   try {
-    const { email, password, name } = req.body
+    const { email, password, name, phone } = req.body
     const exists = await prisma.user.findUnique({ where: { email } })
     if (exists) return res.status(409).json({ message: '此 Email 已被註冊' })
 
@@ -33,10 +34,11 @@ router.post('/register', validate(registerSchema), async (req, res, next) => {
         email,
         passwordHash,
         name,
+        phone,
         avatarInitial: name[0].toUpperCase(),
         avatarColor: randomAvatarColor(),
       },
-      select: { id: true, email: true, name: true, creditScore: true, tokenBalance: true, isAdmin: true, avatarColor: true, avatarInitial: true },
+      select: { id: true, email: true, name: true, phone: true, creditScore: true, tokenBalance: true, isAdmin: true, avatarColor: true, avatarInitial: true },
     })
 
     const accessToken  = signAccessToken({ id: user.id, email: user.email })

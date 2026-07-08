@@ -122,9 +122,9 @@ export const useAuthStore = create((set, get) => ({
   },
 
   // ── 註冊 ────────────────────────────────────────────────────────────────────
-  register: async ({ name, email, password }) => {
+  register: async ({ name, email, password, phone }) => {
     try {
-      const { user, accessToken, refreshToken } = await client.post('/auth/register', { name, email, password })
+      const { user, accessToken, refreshToken } = await client.post('/auth/register', { name, email, password, phone })
       tokenManager.set(accessToken)
       if (refreshToken) localStorage.setItem('pm_refresh_token', refreshToken)
       set({ user, loggedIn: true })

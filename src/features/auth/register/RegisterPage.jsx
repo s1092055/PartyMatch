@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Lock, Mail, User } from 'lucide-react'
+import { Lock, Mail, Phone, User } from 'lucide-react'
 import AuthLayout, { AuthInput, AuthDivider, AuthError, GoogleMark, PasswordToggle } from '../components/AuthLayout'
 import Button from '../../../shared/ui/Button'
 import { useAuthStore } from '../../../shared/stores/useAuthStore'
@@ -10,6 +10,7 @@ export default function RegisterPage() {
   const [form, setForm] = useState({
     name: '',
     email: '',
+    phone: '',
     password: '',
     confirmPassword: '',
   })
@@ -85,6 +86,15 @@ export default function RegisterPage() {
           onChange={value => updateField('email', value)}
         />
         <AuthInput
+          icon={Phone}
+          label="手機號碼"
+          type="tel"
+          autoComplete="tel"
+          placeholder="請輸入手機號碼"
+          value={form.phone}
+          onChange={value => updateField('phone', value)}
+        />
+        <AuthInput
           icon={Lock}
           label="密碼"
           type={showPassword ? 'text' : 'password'}
@@ -157,6 +167,8 @@ export default function RegisterPage() {
 function getValidationError(form, accepted) {
   if (!form.name.trim()) return '請輸入顯示名稱'
   if (!form.email.trim()) return '請輸入電子郵件'
+  if (!form.phone.trim()) return '請輸入手機號碼'
+  if (!/^09\d{8}$/.test(form.phone.trim())) return '請輸入正確的手機號碼格式'
   if (form.password.length < 6) return '密碼至少需要 6 碼'
   if (form.confirmPassword !== form.password) return '確認密碼必須和密碼一致'
   if (!accepted) return '請先同意服務條款與隱私政策'
