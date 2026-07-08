@@ -44,7 +44,7 @@ function SectionCard({ title, icon: Icon, children }) {
   )
 }
 
-export default function SettingsTab() {
+export default function SettingsTab({ hideLogout = false }) {
   const navigate = useNavigate()
   const [prefs, setPrefs] = useState(loadPrefs)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -93,15 +93,17 @@ export default function SettingsTab() {
       </SectionCard>
 
       <SectionCard title="帳號操作" icon={LogOut}>
-        <div className="px-5 py-3.5">
-          <button
-            onClick={handleLogout}
-            className="flex w-full items-center gap-3 rounded-xl py-1 text-sm font-semibold text-ink-2 transition-colors hover:text-ink"
-          >
-            <LogOut size={16} className="shrink-0" />
-            登出帳號
-          </button>
-        </div>
+        {!hideLogout && (
+          <div className="px-5 py-3.5">
+            <button
+              onClick={handleLogout}
+              className="flex w-full items-center gap-3 rounded-xl py-1 text-sm font-semibold text-ink-2 transition-colors hover:text-ink"
+            >
+              <LogOut size={16} className="shrink-0" />
+              登出帳號
+            </button>
+          </div>
+        )}
         <div className="px-5 py-3.5">
           {!showDeleteConfirm ? (
             <button

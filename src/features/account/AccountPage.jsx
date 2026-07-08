@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Bell, ChevronDown, Clock, Coins, Lock, Settings, Shield, User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Bell, ChevronDown, Clock, Coins, Lock, LogOut, Settings, Shield, User } from "lucide-react";
 import { useAuthStore } from "../../shared/stores/useAuthStore";
 import ProfileHeaderCard from "./components/ProfileHeaderCard";
 import PersonalInfoTab from "./components/tabs/PersonalInfoTab";
@@ -46,17 +47,18 @@ function ComingSoonPlaceholder({ label }) {
   )
 }
 
-function TabContent({ value, user, onChange, tabs }) {
+function TabContent({ value, user, onChange, tabs, hideLogout = false }) {
   const tab = tabs.find(t => t.value === value)
   if (tab?.comingSoon) return <ComingSoonPlaceholder label={tab.label} />
   if (value === "profile")       return <PersonalInfoTab user={user} onChange={onChange} />
   if (value === "tokens")        return <TokenTab />
-  if (value === "settings")      return <SettingsTab />
+  if (value === "settings")      return <SettingsTab hideLogout={hideLogout} />
   if (value === "admin")         return <AdminTab />
   return null
 }
 
 export default function AccountPage() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("profile");
   const [openAccordion, setOpenAccordion] = useState("profile");
   const isAdmin = useAuthStore(s => s.user?.isAdmin ?? false)
@@ -75,6 +77,11 @@ export default function AccountPage() {
   function handleUserChange(key, value) {
     setUser((prev) => ({ ...prev, [key]: value }));
     useAuthStore.getState().updateProfile({ [key]: value }).catch(console.error);
+  }
+
+  function handleLogout() {
+    useAuthStore.getState().logout();
+    navigate('/login', { replace: true });
   }
 
   return (
@@ -144,13 +151,21 @@ export default function AccountPage() {
               {isOpen && (
                 <TabReveal key={tab.value}>
                   <div className="border-t border-line px-4 py-4">
-                    <TabContent value={tab.value} user={user} onChange={handleUserChange} tabs={TABS} />
+                    <TabContent value={tab.value} user={user} onChange={handleUserChange} tabs={TABS} hideLogout />
                   </div>
                 </TabReveal>
               )}
             </div>
           )
         })}
+
+        <button
+          onClick={handleLogout}
+          className="flex w-full items-center justify-center gap-2 rounded-2xl border border-line py-3.5 text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-ink"
+        >
+          <LogOut size={16} className="shrink-0" />
+          登出帳號
+        </button>
       </div>
     </div>
   );
