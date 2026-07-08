@@ -50,7 +50,7 @@ export default function FavoritesPage() {
         <EmptyState
           icon={Heart}
           title="尚無收藏群組"
-          description="在探索頁面或群組詳情頁點擊 ♥ 加入收藏"
+          description="在探索頁面或群組詳情頁點擊愛心圖示加入收藏"
           actionLabel="去探索群組"
           onAction={() => navigate('/explore')}
           className="py-16"

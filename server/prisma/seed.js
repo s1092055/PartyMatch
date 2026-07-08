@@ -33,7 +33,7 @@ const SERVICES = [
 ]
 
 async function main() {
-  console.log('🌱 開始寫入服務資料...')
+  console.log('開始寫入服務資料...')
   let count = 0
   for (const service of SERVICES) {
     await prisma.service.upsert({
@@ -43,9 +43,9 @@ async function main() {
     })
     count++
   }
-  console.log(`✅ 完成，共寫入 ${count} 筆服務資料`)
+  console.log(`完成，共寫入 ${count} 筆服務資料`)
 }
 
 main()
-  .catch(err => { console.error('❌ Seed 失敗:', err); process.exit(1) })
+  .catch(err => { console.error('Seed 失敗:', err); process.exit(1) })
   .finally(() => prisma.$disconnect())

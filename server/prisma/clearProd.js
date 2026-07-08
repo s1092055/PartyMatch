@@ -14,8 +14,8 @@ function confirm(question) {
 }
 
 async function main() {
-  console.log('⚠️  即將清空所有正式版使用者資料（users、groups、applications、members、subscriptions、payments、notifications、conversations、messages、favorites、refresh_tokens）')
-  console.log('   services 種子資料不受影響\n')
+  console.log('即將清空所有正式版使用者資料（users、groups、applications、members、subscriptions、payments、notifications、conversations、messages、favorites、refresh_tokens）')
+  console.log('services 種子資料不受影響\n')
 
   const ans = await confirm('確定要清空嗎？請輸入 yes 繼續：')
   if (ans !== 'yes') {
@@ -23,45 +23,45 @@ async function main() {
     return
   }
 
-  console.log('\n🗑️  開始清空...')
+  console.log('\n開始清空...')
 
   // 依照外鍵相依順序刪除
   await prisma.message.deleteMany()
-  console.log('  ✓ messages')
+  console.log('  - messages')
 
   await prisma.conversation.deleteMany()
-  console.log('  ✓ conversations')
+  console.log('  - conversations')
 
   await prisma.notification.deleteMany()
-  console.log('  ✓ notifications')
+  console.log('  - notifications')
 
   await prisma.favorite.deleteMany()
-  console.log('  ✓ favorites')
+  console.log('  - favorites')
 
   await prisma.paymentRecord.deleteMany()
-  console.log('  ✓ payment_records')
+  console.log('  - payment_records')
 
   await prisma.subscription.deleteMany()
-  console.log('  ✓ subscriptions')
+  console.log('  - subscriptions')
 
   await prisma.member.deleteMany()
-  console.log('  ✓ members')
+  console.log('  - members')
 
   await prisma.application.deleteMany()
-  console.log('  ✓ applications')
+  console.log('  - applications')
 
   await prisma.group.deleteMany()
-  console.log('  ✓ groups')
+  console.log('  - groups')
 
   await prisma.refreshToken.deleteMany()
-  console.log('  ✓ refresh_tokens')
+  console.log('  - refresh_tokens')
 
   await prisma.user.deleteMany()
-  console.log('  ✓ users')
+  console.log('  - users')
 
-  console.log('\n✅ 清空完成')
+  console.log('\n清空完成')
 }
 
 main()
-  .catch(err => { console.error('❌ 清空失敗:', err); process.exit(1) })
+  .catch(err => { console.error('清空失敗:', err); process.exit(1) })
   .finally(() => prisma.$disconnect())
