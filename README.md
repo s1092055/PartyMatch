@@ -1,9 +1,5 @@
 # PartyMatch
 
-> 共享訂閱媒合與管理平台，幫助使用者找到適合的訂閱夥伴，並集中管理群組、付款、續訂與溝通流程。
-
-支援 Netflix、Spotify、YouTube Premium、ChatGPT Plus 等 30 種服務，提供探索群組、快速配對、申請審核、付款追蹤、即時聊天室的完整流程。
-
 ---
 
 ## 專案介紹
@@ -162,3 +158,9 @@ npm run dev              # http://localhost:3001
 - [ ] TypeScript 型別覆蓋
 
 更詳細的待完成項目（依優先度分類）見 [開發指南](docs/development.md#待完成項目)。
+
+---
+
+## 注意事項
+
+本專案為個人作品集用途，儲值、付款、代管撥款等流程皆為模擬邏輯，未串接正式金流。正式環境所需的 API key、JWT secret、資料庫連線資訊與第三方服務設定皆未包含於此 repository，執行前請依 [開發指南](docs/development.md) 自行設定環境變數。
