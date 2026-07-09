@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight, Compass, Zap } from 'lucide-react'
+import { ArrowRight, Compass, Search } from 'lucide-react'
 import Button from '../../shared/ui/Button'
 import logoUrl from '../../assets/Logo.svg'
 import { useAuthStore } from '../../shared/stores/useAuthStore'
@@ -70,8 +70,8 @@ export default function HomePage() {
             variant="secondary"
             onClick={() => navigate('/quick-match')}
           >
-            <Zap size={16} />
-            快速配對
+            <Search size={16} />
+            快速查找
           </Button>
         </div>
       </section>

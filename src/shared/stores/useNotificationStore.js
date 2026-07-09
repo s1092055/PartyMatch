@@ -26,7 +26,7 @@ function getFallbackSystemNotifications() {
       userId:    'system',
       type:      'system',
       title:     '歡迎來到 PartyMatch',
-      message:   '你可以先探索群組與使用快速配對；登入後即可收藏、訂閱、建立與管理群組。',
+      message:   '你可以先探索群組與使用快速查找；登入後即可收藏、訂閱、建立與管理群組。',
       isRead:    true,
       createdAt: todayISO(),
       isPublic:  true,

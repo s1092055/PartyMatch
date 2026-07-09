@@ -4,7 +4,7 @@ import ServiceLogo from '../../../shared/ui/ServiceLogo'
 const FEATURES = [
   {
     icon: Users,
-    title: '快速配對',
+    title: '快速查找',
     desc: '找到合適的夥伴一起分攤訂閱費用。',
   },
   {

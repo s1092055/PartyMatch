@@ -1,69 +1,58 @@
-import { Sliders, ShieldCheck } from 'lucide-react'
+import { Sliders } from 'lucide-react'
 import { getServiceById } from '../../../shared/utils/serviceUtils'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 
 const GROUP_AGE_LABEL = { any: '不限', new: '三個月內', established: '三個月至一年', veteran: '一年以上' }
 
-export default function MatchSummaryPanel({ conditions }) {
+export default function MatchSummaryPanel({ conditions, filtersChosen }) {
   const { services, selectedPlans = {}, maxPrice, minRating, groupAge } = conditions
   const isEmpty = services.length === 0
 
   return (
-    <div className="sticky top-[7rem] panel overflow-hidden border-success/30">
-
-      <div className="flex items-center border-b border-success/20 bg-success-subtle px-4 py-4">
-        <div className="flex items-center gap-2 text-sm font-extrabold text-success-text">
-          <Sliders size={18} />
-          你的配對條件
-        </div>
+    <div className="flex h-full flex-col gap-5 rounded-xl bg-white p-5">
+      <div className="flex shrink-0 items-center gap-2">
+        <Sliders size={15} className="text-slate-400" />
+        <span className="text-sm font-semibold text-slate-700">你的選擇內容</span>
       </div>
 
-      <div className="p-5 space-y-5">
-
-        <div>
-          <p className="text-xs text-slate-400 mb-2">選擇的服務</p>
-          {isEmpty ? (
-            <p className="text-sm text-slate-300 italic">尚未選擇</p>
-          ) : (
-            <div className="space-y-2">
-              {services.map(id => {
-                const s = getServiceById(id)
-                if (!s) return null
-                const plan = selectedPlans[id]
-                return (
-                  <div key={id} className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <ServiceLogo serviceId={id} size={20} />
-                      <span className="text-xs font-bold text-ink">{s.name}</span>
-                    </div>
-                    <span className="text-xs text-ink-3 shrink-0">{plan && plan !== 'any' ? plan : '不限'}</span>
+      <div className="min-h-0 flex-1">
+        <p className="mb-2 text-xs text-slate-400">選擇的服務</p>
+        {isEmpty ? (
+          <p className="text-sm italic text-slate-300">尚未選擇</p>
+        ) : (
+          <div className="h-[calc(100%-1.25rem)] space-y-2 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {services.map(id => {
+              const s = getServiceById(id)
+              if (!s) return null
+              const plan = selectedPlans[id]
+              return (
+                <div key={id} className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <ServiceLogo serviceId={id} size={20} />
+                    <span className="text-xs font-bold text-ink">{s.name}</span>
                   </div>
-                )
-              })}
-            </div>
-          )}
-        </div>
+                  <span className="shrink-0 text-xs text-ink-3">{plan && plan !== 'any' ? plan : '不限'}</span>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
 
-        <div className="space-y-2.5 pt-2 border-t border-slate-100">
-          <Row label="預算上限" value={`NT$${maxPrice} 以下`} />
-          <Row label="最低評分" value={`${minRating} 以上`} />
-          <Row label="群組年資" value={GROUP_AGE_LABEL[groupAge] ?? '不限'} />
-        </div>
-
-<div className="flex items-start gap-3 rounded-xl border border-success/20 bg-success-subtle px-4 py-3 text-xs font-bold leading-relaxed text-success-text">
-          <ShieldCheck size={18} className="shrink-0" />
-          設定條件後點擊「開始配對」，系統將篩選所有符合條件的群組，並依推薦分數排列，前三名會標示排名。
-        </div>
+      <div className="shrink-0 space-y-4 border-t border-slate-100 pt-4">
+        <Row label="預算上限" value={filtersChosen ? `NT$${maxPrice} 以下` : '尚未選擇'} muted={!filtersChosen} />
+        <Row label="最低評分" value={filtersChosen ? `${minRating} 以上` : '尚未選擇'} muted={!filtersChosen} />
+        <Row label="群組年資" value={filtersChosen ? (GROUP_AGE_LABEL[groupAge] ?? '不限') : '尚未選擇'} muted={!filtersChosen} />
       </div>
     </div>
   )
 }
 
-function Row({ label, value }) {
+function Row({ label, value, muted }) {
   return (
     <div className="flex items-center justify-between">
       <span className="text-xs text-slate-400">{label}</span>
-      <span className="text-xs font-semibold text-slate-700">{value}</span>
+      <span className={muted ? 'text-xs italic text-slate-300' : 'text-xs font-semibold text-slate-700'}>{value}</span>
     </div>
   )
 }

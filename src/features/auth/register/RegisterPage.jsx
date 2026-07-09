@@ -63,7 +63,7 @@ export default function RegisterPage() {
       <div className="mt-10">
         <h1 className="text-4xl font-extrabold leading-tight text-ink md:text-4xl">註冊 PartyMatch</h1>
         <p className="mt-5 text-base font-medium leading-relaxed text-ink-3">
-          建立帳號後即可開始探索共享訂閱群組、快速配對並管理你的訂閱。
+          建立帳號後即可開始探索共享訂閱群組、快速查找並管理你的訂閱。
         </p>
       </div>
 

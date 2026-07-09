@@ -89,7 +89,7 @@ export default function Step2PlanSettings({ form, onChange }) {
               type="button"
               onClick={() => selectPlanAt(activeIndex - 1)}
               disabled={groupPlans.length <= 1 || activeIndex <= 0}
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-30"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-30"
               aria-label="上一個方案"
             >
               <ChevronLeft size={16} />

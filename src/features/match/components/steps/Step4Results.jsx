@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CheckCircle2, Compass, Zap } from 'lucide-react'
+import { Compass, Search } from 'lucide-react'
 import MatchConditionBar from '../MatchConditionBar'
 import ExploreGroupCard from '../../../explore/components/ExploreGroupCard'
 import { useMemberStore } from '../../../../shared/stores/useMemberStore'
@@ -18,7 +18,7 @@ export default function Step4Results({ results, conditions }) {
   if (results.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-14 text-center">
-        <Zap size={40} className="mb-4 text-ink-4" />
+        <Search size={40} className="mb-4 text-ink-4" />
         <p className="mb-1 text-base font-extrabold text-ink">沒有符合條件的群組</p>
         <p className="max-w-xs text-sm text-ink-3">
           試著調整預算上限、放寬評分要求，或選擇更多服務類型
@@ -36,15 +36,6 @@ export default function Step4Results({ results, conditions }) {
 
   return (
     <div className="pt-2 pb-3 lg:pt-3 lg:pb-6">
-      <div className="mb-4 flex items-center gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-success shadow-[0_8px_20px_-8px_rgb(16_178_108_/_0.6)]">
-          <CheckCircle2 size={18} className="text-white" />
-        </div>
-        <div>
-          <p className="font-extrabold text-ink">找到 {results.length} 個符合條件的群組</p>
-          <p className="text-xs text-ink-3">依照推薦分數排列，前三名標有排名徽章</p>
-        </div>
-      </div>
       <MatchConditionBar conditions={conditions} showEdit={false} />
       <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {results.map((group, i) => (

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 // Reference counter so nested modals don't re-measure or prematurely release the lock.
 let _lockCount = 0
@@ -58,6 +58,45 @@ export function useHideOnScroll() {
   }), [])
 
   return visible
+}
+
+// 捲動邊界偵測：回報是否可捲動、是否已到底部，並提供捲到頂/往下捲的控制函式
+// （多個翻頁式流程頁面與步驟卡片共用同一套邏輯，避免各自重複實作 ResizeObserver 監聽）
+export function useScrollEdge({ withMutationObserver = false } = {}) {
+  const [atBottom, setAtBottom] = useState(false)
+  const [canScroll, setCanScroll] = useState(false)
+  const elRef = useRef(null)
+  const resizeObserverRef = useRef(null)
+  const mutationObserverRef = useRef(null)
+
+  function updateScrollState(el) {
+    if (!el) return
+    const { scrollTop, scrollHeight, clientHeight } = el
+    setAtBottom(scrollTop + clientHeight >= scrollHeight - 20)
+    setCanScroll(scrollHeight > clientHeight + 20)
+  }
+  function handleScroll(e) { updateScrollState(e.currentTarget) }
+  function scrollToTop() { elRef.current?.scrollTo({ top: 0, behavior: 'smooth' }) }
+  function scrollDown()  { elRef.current?.scrollBy({ top: 200, behavior: 'smooth' }) }
+
+  const scrollRef = useCallback((el) => {
+    elRef.current = el
+    resizeObserverRef.current?.disconnect()
+    mutationObserverRef.current?.disconnect()
+    if (!el) return
+    const check = () => updateScrollState(el)
+    const observer = new ResizeObserver(check)
+    observer.observe(el)
+    resizeObserverRef.current = observer
+    if (withMutationObserver) {
+      const mutationObserver = new MutationObserver(check)
+      mutationObserver.observe(el, { childList: true, subtree: true })
+      mutationObserverRef.current = mutationObserver
+    }
+    updateScrollState(el)
+  }, [withMutationObserver])
+
+  return { scrollRef, elRef, atBottom, canScroll, handleScroll, scrollToTop, scrollDown }
 }
 
 export function useClickOutside(enabled, refs, onClose) {

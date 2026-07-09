@@ -1,4 +1,4 @@
-import { Compass, Heart, LayoutGrid, MessageSquare, PlusCircle, Search, Zap } from 'lucide-react'
+import { Compass, Heart, LayoutGrid, MessageSquare, PlusCircle, Search } from 'lucide-react'
 import { Badge } from './navShared'
 import { useHideOnScroll } from '../../utils/hooks'
 
@@ -44,8 +44,8 @@ export default function MobileDock({
                 onClick={() => { setCreateMenuOpen(false); openMatch() }}
                 className="flex flex-col items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-bold whitespace-nowrap text-ink transition-colors hover:bg-raised"
               >
-                <Zap size={20} strokeWidth={2.1} />
-                快速配對
+                <Search size={20} strokeWidth={2.1} />
+                快速查找
               </button>
               {loggedIn ? (
                 <button

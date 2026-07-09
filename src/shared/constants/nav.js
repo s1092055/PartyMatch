@@ -1,11 +1,11 @@
-import { Compass, Heart, LayoutGrid, PlusCircle, Zap } from 'lucide-react'
+import { Compass, Heart, LayoutGrid, PlusCircle, Search } from 'lucide-react'
 
 export const NAV_SECTIONS = [
   {
     label: '探索',
     items: [
       { to: '/explore',     label: '探索群組', icon: Compass },
-      { type: 'match',       label: '快速配對', icon: Zap },
+      { type: 'match',       label: '快速查找', icon: Search },
     ],
   },
   {

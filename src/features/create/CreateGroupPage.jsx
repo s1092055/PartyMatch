@@ -1,6 +1,6 @@
-import { useCallback, useRef, useState } from 'react'
+import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { AlertCircle, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Info } from 'lucide-react'
+import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, Info, PlusCircle } from 'lucide-react'
 import FlowLayout from '../../shared/layout/FlowLayout'
 import Step1Service from './components/steps/Step1Service'
 import Step2PlanSettings from './components/steps/Step2PlanSettings'
@@ -8,11 +8,13 @@ import Step3Preview from './components/steps/Step3Preview'
 import Button from '../../shared/ui/Button'
 import ServiceLogo from '../../shared/ui/ServiceLogo'
 import TokenAmount from '../../shared/ui/TokenAmount'
+import ScrollHintButton from '../../shared/ui/ScrollHintButton'
 import LivePreviewPanel from './components/LivePreviewPanel'
 import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { useNotificationStore } from '../../shared/stores/useNotificationStore'
 import { getServiceById } from '../../shared/utils/serviceUtils'
 import { useAuthStore } from '../../shared/stores/useAuthStore'
+import { useScrollEdge } from '../../shared/utils/hooks'
 
 const STEP_COMPONENTS = [Step1Service, Step2PlanSettings, Step3Preview]
 const STEP_TITLES = ['選擇服務', '方案與設定', '最後確認']
@@ -102,39 +104,13 @@ export default function CreateGroupPage() {
   const [form, setForm] = useState(INITIAL_FORM)
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
-  const [atBottom, setAtBottom] = useState(false)
-  const [canScroll, setCanScroll] = useState(false)
-  const scrollElRef = useRef(null)
-  const resizeObserverRef = useRef(null)
-  const mutationObserverRef = useRef(null)
-
-  function updateScrollState(el) {
-    if (!el) return
-    const { scrollTop, scrollHeight, clientHeight } = el
-    setAtBottom(scrollTop + clientHeight >= scrollHeight - 20)
-    setCanScroll(scrollHeight > clientHeight + 20)
-  }
-  function handleContentScroll(e) { updateScrollState(e.currentTarget) }
-  function scrollContentToTop() { scrollElRef.current?.scrollTo({ top: 0, behavior: 'smooth' }) }
-  function scrollContentDown()  { scrollElRef.current?.scrollBy({ top: 200, behavior: 'smooth' }) }
-
   // 內容區第一層子元素固定 h-full（跟容器等高), ResizeObserver 盯著它偵測不到內部真正的
-  // 內容溢出，所以改用 MutationObserver 監看整個子樹的異動，每次異動都重新讀取真實的
+  // 內容溢出，所以要求 MutationObserver 監看整個子樹的異動，每次異動都重新讀取真實的
   // scrollHeight/clientHeight 來判斷是否 overflow
-  const scrollRef = useCallback((el) => {
-    scrollElRef.current = el
-    resizeObserverRef.current?.disconnect()
-    mutationObserverRef.current?.disconnect()
-    if (!el) return
-    const check = () => updateScrollState(el)
-    const observer = new ResizeObserver(check)
-    observer.observe(el)
-    resizeObserverRef.current = observer
-    const mutationObserver = new MutationObserver(check)
-    mutationObserver.observe(el, { childList: true, subtree: true })
-    mutationObserverRef.current = mutationObserver
-    updateScrollState(el)
-  }, [])
+  const {
+    scrollRef, elRef: scrollElRef, atBottom, canScroll,
+    handleScroll: handleContentScroll, scrollToTop: scrollContentToTop, scrollDown: scrollContentDown,
+  } = useScrollEdge({ withMutationObserver: true })
 
   function onChange(key, value) {
     setForm(prev => {
@@ -241,34 +217,36 @@ export default function CreateGroupPage() {
   const visibleStepErrors = stepErrors.filter(err =>
     err !== '請選擇一個訂閱服務' && (err !== '請選擇方案' || hasEligiblePlans)
   )
-  const showErrors = visibleStepErrors.length > 0 && step < 3
 
-  const errorBox = showErrors && (
-    <div className="flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2.5 text-xs text-amber-700">
-      <AlertCircle size={13} className="shrink-0" />
-      <span>{visibleStepErrors[0]}</span>
-    </div>
-  )
-  const descBox = desc && (
-    <div className="flex items-start gap-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3">
-      <Info size={14} className="mt-0.5 shrink-0 text-blue-400" />
-      <p className="text-xs leading-relaxed text-blue-700">{desc}</p>
-    </div>
-  )
-  const footerNote = step < 3 && (descBox || errorBox) && (
-    <div className="lg:hidden">
-      {descBox}
-      {errorBox}
-    </div>
-  )
+  const banner = (() => {
+    if (step === 1) {
+      return form.serviceId
+        ? { Icon: Info, text: '選擇你想合購的訂閱服務' }
+        : { Icon: AlertCircle, text: '請選擇一個訂閱服務' }
+    }
+    if (step === 2) {
+      if (visibleStepErrors.length > 0) return { Icon: AlertCircle, text: visibleStepErrors[0] }
+      if (desc) return { Icon: Info, text: desc }
+      return { Icon: Info, text: '選擇方案後，費用將依官方定價自動計算' }
+    }
+    if (step === 3) return { Icon: Info, text: '請確認以下資訊正確無誤，並詳閱服務條款' }
+    return null
+  })()
 
   const CurrentStep = STEP_COMPONENTS[step - 1]
 
   return (
     <FlowLayout
-      progress={(Math.min(step, 3) / 3) * 100}
-      title={step <= 3 ? STEP_TITLES[step - 1] : undefined}
-      footerNote={footerNote || undefined}
+      steps={STEP_TITLES}
+      currentStep={Math.min(step, 3)}
+      title="建立群組"
+      titleIcon={<PlusCircle size={18} className="shrink-0 text-brand" />}
+      headerBanner={banner && (
+        <div className="flex items-center justify-center gap-2 bg-brand-subtle px-6 py-3 text-sm font-medium text-brand">
+          <banner.Icon size={15} />
+          {banner.text}
+        </div>
+      )}
       bottomNav={footer}
       maxWidth="max-w-xl md:max-w-2xl lg:max-w-3xl"
     >
@@ -280,36 +258,28 @@ export default function CreateGroupPage() {
         >
           <div key={step} className="h-full animate-step-slide-up p-0.5">
             {step <= 3 ? (
-              <>
-                <div className={`flex h-full flex-col ${(step === 2 || step === 3) && !canScroll ? 'lg:justify-center' : ''}`}>
-                  {step === 2 && (
-                    <div className="mb-6 flex items-center gap-4 rounded-2xl border border-line bg-white px-6 py-5 shadow-sm">
-                      <ServiceLogo serviceId={form.serviceId} size={56} className="shrink-0 rounded-logo border-line-strong" />
-                      <div className="min-w-0 flex-1">
-                        <h2 className="truncate text-lg font-black text-ink">{service?.fullName ?? '尚未選擇服務'}</h2>
-                        <p className="truncate text-sm text-ink-3">{form.planName || '尚未選擇方案'}</p>
-                      </div>
-                      <TokenAmount
-                        amount={form.billingCycle === 'yearly' ? form.pricePerSeat * 12 : form.pricePerSeat}
-                        cycle={form.billingCycle === 'yearly' ? 'yearly' : 'monthly'}
-                        align="center"
-                        className="shrink-0 text-2xl font-black text-ink"
-                      />
+              <div className={`flex h-full flex-col ${(step === 2 || step === 3) && !canScroll ? 'lg:justify-center' : ''}`}>
+                {step === 2 && (
+                  <div className="mb-6 flex items-center gap-4 rounded-2xl border border-line bg-white px-6 py-5 shadow-sm">
+                    <ServiceLogo serviceId={form.serviceId} size={56} className="shrink-0 rounded-logo border-line-strong" />
+                    <div className="min-w-0 flex-1">
+                      <h2 className="truncate text-lg font-black text-ink">{service?.fullName ?? '尚未選擇服務'}</h2>
+                      <p className="truncate text-sm text-ink-3">{form.planName || '尚未選擇方案'}</p>
                     </div>
-                  )}
-                  {step === 3 ? (
-                    <Step3Preview form={form} agreedToTerms={agreedToTerms} onAgreeChange={setAgreedToTerms} onShowPreview={() => setShowPreview(true)} />
-                  ) : (
-                    <CurrentStep form={form} onChange={onChange} />
-                  )}
-                </div>
-                {step !== 1 && (
-                  <div className="mt-4 hidden space-y-2 lg:block">
-                    {descBox}
-                    {errorBox}
+                    <TokenAmount
+                      amount={form.billingCycle === 'yearly' ? form.pricePerSeat * 12 : form.pricePerSeat}
+                      cycle={form.billingCycle === 'yearly' ? 'yearly' : 'monthly'}
+                      align="center"
+                      className="shrink-0 text-2xl font-black text-ink"
+                    />
                   </div>
                 )}
-              </>
+                {step === 3 ? (
+                  <Step3Preview form={form} agreedToTerms={agreedToTerms} onAgreeChange={setAgreedToTerms} onShowPreview={() => setShowPreview(true)} />
+                ) : (
+                  <CurrentStep form={form} onChange={onChange} />
+                )}
+              </div>
             ) : (
               <div className="flex h-full flex-col items-center justify-center text-center">
                 <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
@@ -330,16 +300,13 @@ export default function CreateGroupPage() {
           </div>
         </div>
 
-        {step <= 3 && canScroll && (
-          <div className="pointer-events-none absolute inset-x-0 bottom-3 hidden justify-end lg:flex">
-            <button
-              onClick={atBottom ? scrollContentToTop : scrollContentDown}
-              className="pointer-events-auto grid h-8 w-8 place-items-center rounded-full border border-line bg-canvas shadow-md text-ink-3 transition-colors hover:text-ink animate-bounce"
-              title={atBottom ? '回到頂部' : '往下捲動'}
-            >
-              {atBottom ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            </button>
-          </div>
+        {step <= 3 && (
+          <ScrollHintButton
+            canScroll={canScroll}
+            atBottom={atBottom}
+            onScrollToTop={scrollContentToTop}
+            onScrollDown={scrollContentDown}
+          />
         )}
       </div>
 
