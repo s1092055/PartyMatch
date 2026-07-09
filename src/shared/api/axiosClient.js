@@ -43,7 +43,9 @@ client.interceptors.response.use(
     // 沒帶 token 的 401：未登入呼叫受保護端點，靜默拒絕
     if (status === 401 && !tokenManager.get()) {
       const message = error.response?.data?.message ?? error.message ?? '發生錯誤，請稍後再試'
-      return Promise.reject(new Error(message))
+      const rejected = new Error(message)
+      rejected.response = error.response
+      return Promise.reject(rejected)
     }
 
     // 帶了 token 卻收到 401 且尚未 retry：嘗試 refresh
@@ -94,7 +96,9 @@ client.interceptors.response.use(
       error.message ??
       '發生錯誤，請稍後再試'
 
-    return Promise.reject(new Error(message))
+    const rejected = new Error(message)
+    rejected.response = error.response
+    return Promise.reject(rejected)
   },
 )
 

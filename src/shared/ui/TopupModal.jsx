@@ -53,7 +53,9 @@ export default function TopupModal({ isOpen, onClose }) {
     setLoading(true)
     try {
       await useAuthStore.getState().topup(selected)
+      toast('儲值成功', 'success')
       setSelected(null)
+      handleClose()
     } catch (err) {
       toast(err?.message ?? '儲值失敗，請稍後再試', 'error')
     } finally {
@@ -66,7 +68,7 @@ export default function TopupModal({ isOpen, onClose }) {
   if (!isOpen) return null
 
   return createPortal(
-    <div className="fixed inset-0 z-[65] flex items-center justify-center p-4 md:p-8">
+    <div className="fixed inset-0 z-[75] flex items-center justify-center p-4 md:p-8">
       <div className="absolute inset-0 bg-black/50 animate-backdrop-in" onClick={handleClose} />
 
       <div className="relative flex w-full max-w-sm flex-col overflow-hidden rounded-2xl bg-canvas shadow-2xl animate-modal-in"

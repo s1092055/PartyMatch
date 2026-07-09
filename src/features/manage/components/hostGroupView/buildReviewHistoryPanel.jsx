@@ -4,7 +4,8 @@ import CustomSelect from '../../../../shared/ui/CustomSelect'
 import ApplicationCard from './ApplicationCard'
 
 export function buildReviewHistoryPanel({ applications, reviewFilter, setReviewFilter, groupFull, errors }) {
-  const reviewedApps = applications.filter(a => a.status !== 'pending')
+  const REVIEWED_STATUSES = new Set(['approved', 'rejected', 'left', 'removed'])
+  const reviewedApps = applications.filter(a => REVIEWED_STATUSES.has(a.status))
   const filteredApps = reviewFilter === 'all'
     ? reviewedApps
     : reviewedApps.filter(a => a.status === reviewFilter)
