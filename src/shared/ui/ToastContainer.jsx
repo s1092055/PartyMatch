@@ -45,7 +45,7 @@ export default function ToastContainer() {
             key={t.id}
             className="pointer-events-auto flex w-max max-w-sm items-center gap-3 rounded-2xl border border-line bg-white px-4 py-3 shadow-lg"
           >
-            <Icon size={18} className={`shrink-0 ${iconClass}`} />
+            {t.icon ?? <Icon size={18} className={`shrink-0 ${iconClass}`} />}
             <span className="shrink-0 text-sm font-semibold text-ink">{t.message}</span>
             {t.action && (
               <button

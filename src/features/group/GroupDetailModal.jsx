@@ -9,6 +9,7 @@ import { useFavoriteStore } from '../../shared/stores/useFavoriteStore'
 import { useAuthStore } from '../../shared/stores/useAuthStore'
 import { finalizeLeaveGroup } from './utils/leaveGroupFlow'
 import { toast } from '../../shared/utils/toast'
+import { TokenBadge } from '../../shared/ui/TokenAmount'
 import CountdownConfirmDialog from '../../shared/ui/CountdownConfirmDialog'
 import GroupModalShell from '../../shared/ui/GroupModalShell'
 import ExploreGroupCard from '../explore/components/ExploreGroupCard'
@@ -131,7 +132,8 @@ export default function GroupDetailModal() {
     } catch (err) {
       const msg = err?.response?.data?.message ?? err?.message ?? '申請失敗，請稍後再試'
       if (err?.response?.data?.code === 'INSUFFICIENT_BALANCE') {
-        toast('代幣不足', 'error', {
+        toast('PM幣不足', 'error', {
+          icon: <TokenBadge />,
           action: { label: '前往儲值', onClick: () => window.dispatchEvent(new CustomEvent('pm:open-topup')) },
         })
       } else {

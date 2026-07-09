@@ -63,7 +63,6 @@ export default function HostGroupView({ group, members, applications, onReportSe
 
   const serviceDef    = getServiceById(group.serviceId)
   const planDef       = serviceDef?.plans.find(p => p.name === group.planName)
-  const appByMemberId = Object.fromEntries(applications.map(a => [(a.applicantId ?? a.userId), a]))
   const pendingApps   = applications.filter(a => a.status === 'pending')
   const groupFull     = group.openSeats <= 0
 
@@ -168,7 +167,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
   const isRecruiting = ['recruiting', 'full'].includes(group.status)
 
   function buildSubPanel() {
-    if (activePanel === 'members') return buildMembersPanel({ group, members, appByMemberId, setActivePanel, onClose, setRemovingMember })
+    if (activePanel === 'members') return buildMembersPanel({ group, members, setActivePanel, onClose, setRemovingMember })
     if (activePanel === 'applications') return buildApplicationsPanel({ pendingApps, groupFull, errors, onApprove, onReject, setActivePanel, setShowReviewHistory })
     if (activePanel === 'billing') return buildBillingPanel({ isActivated, members, expandedBillingMembers, toggleBillingMember })
     return null

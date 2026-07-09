@@ -1,7 +1,7 @@
 import { MessageCircle, Shield, UserX, Users } from 'lucide-react'
 import Avatar from '../../../../shared/ui/Avatar'
 
-export function buildMembersPanel({ group, members, appByMemberId, setActivePanel, onClose, setRemovingMember }) {
+export function buildMembersPanel({ group, members, setActivePanel, onClose, setRemovingMember }) {
   return {
     title: '成員名單',
     icon: <Users size={18} className="text-brand" />,
@@ -23,7 +23,6 @@ export function buildMembersPanel({ group, members, appByMemberId, setActivePane
           </div>
         </div>
         {members.map(m => {
-          const app = appByMemberId[m.userId]
           const removable = ['recruiting', 'full'].includes(group.status)
           return (
             <div key={m.id} className="rounded-xl border border-line p-3">
@@ -56,11 +55,6 @@ export function buildMembersPanel({ group, members, appByMemberId, setActivePane
                   )}
                 </div>
               </div>
-              {app?.message && (
-                <div className="mt-2 pl-9">
-                  <p className="text-xs italic text-ink-3">「{app.message}」</p>
-                </div>
-              )}
             </div>
           )
         })}

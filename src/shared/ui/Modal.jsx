@@ -66,7 +66,7 @@ export default function Modal({
           className={`relative flex w-full flex-col ${resolvedMaxWidth} card overflow-hidden p-0 animate-modal-in`}
           style={height ? { height, maxHeight: 'calc(100vh - 2rem)' } : { maxHeight: 'calc(100vh - 2rem)' }}
         >
-          {(title || icon) && (
+          {showHeader && (title || icon) && (
             <div className="flex items-center border-b border-line-subtle px-3 py-3">
               {hideBack ? (
                 <div className="h-9 w-9 shrink-0" />
