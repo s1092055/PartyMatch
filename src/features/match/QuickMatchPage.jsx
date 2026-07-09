@@ -4,8 +4,7 @@ import { AlertCircle, ChevronLeft, ChevronRight, Info, RotateCcw, Search } from 
 import FlowLayout from '../../shared/layout/FlowLayout'
 import ScrollHintButton from '../../shared/ui/ScrollHintButton'
 import Step1Services from './components/steps/Step1Services'
-import Step2Plans from './components/steps/Step2Plans'
-import Step3Filters from './components/steps/Step3Filters'
+import Step2PlansAndFilters from './components/steps/Step2PlansAndFilters'
 import Step4Results from './components/steps/Step4Results'
 import MatchSummaryPanel from './components/MatchSummaryPanel'
 import Button from '../../shared/ui/Button'
@@ -14,8 +13,7 @@ import { useAuthStore } from '../../shared/stores/useAuthStore'
 import { useScrollEdge } from '../../shared/utils/hooks'
 import { matchGroups } from './utils/matchGroups'
 
-const STEP_TITLES = ['選擇服務', '選擇方案', '篩選條件', '配對結果']
-const FILTERS_STEP = 3 // 對應 STEP_TITLES[2]「篩選條件」
+const STEP_TITLES = ['選擇服務', '方案與條件', '配對結果']
 
 const DEFAULT_CONDITIONS = {
   services:      [],
@@ -74,7 +72,7 @@ export default function QuickMatchPage() {
   }
 
   function handleNext() {
-    if (step < 3) {
+    if (step < 2) {
       setStep(s => s + 1)
       scrollElRef.current?.scrollTo({ top: 0 })
     }
@@ -85,7 +83,7 @@ export default function QuickMatchPage() {
     const candidateGroups = useGroupStore.getState().groups.filter(g => g.hostId !== activeUserId)
     const matched = matchGroups(candidateGroups, conditions)
     setResults(matched)
-    setStep(4)
+    setStep(3)
     scrollElRef.current?.scrollTo({ top: 0 })
   }
 
@@ -97,13 +95,12 @@ export default function QuickMatchPage() {
   }
 
   const canNext = step === 1 ? conditions.services.length > 0 : true
-  const isResultStep = step === 4
+  const isResultStep = step === 3
 
   function getBanner(currentStep) {
-    switch (Math.min(currentStep, 4)) {
+    switch (Math.min(currentStep, 3)) {
       case 1: return { Icon: AlertCircle, text: '請至少選擇一個服務' }
-      case 2: return { Icon: Info, text: '請選擇要查找的方案' }
-      case 3: return { Icon: Info, text: '請選擇其他篩選的條件' }
+      case 2: return { Icon: Info, text: '請選擇要查找的方案，篩選條件皆為選填' }
       default: return results.length > 0
         ? { Icon: Info, text: `找到 ${results.length} 個符合條件的群組，依推薦分數排列` }
         : { Icon: Info, text: '沒有符合條件的群組，試著調整篩選條件' }
@@ -128,7 +125,7 @@ export default function QuickMatchPage() {
         <ChevronLeft size={15} />
         {step === 1 ? '取消' : '上一步'}
       </Button>
-      {step < 3 ? (
+      {step < 2 ? (
         <Button variant="primary" size="md" className="min-w-0 flex-1" disabled={!canNext} onClick={handleNext}>
           下一步
           <ChevronRight size={15} />
@@ -145,7 +142,7 @@ export default function QuickMatchPage() {
   return (
     <FlowLayout
       steps={STEP_TITLES}
-      currentStep={Math.min(step, 4)}
+      currentStep={Math.min(step, 3)}
       title="快速查找"
       titleIcon={<Search size={18} className="shrink-0 text-brand" />}
       headerBanner={
@@ -169,18 +166,19 @@ export default function QuickMatchPage() {
                 <Step4Results results={results} conditions={conditions} />
               </div>
             ) : (
-              <div className={`flex h-full flex-col ${!canScroll ? 'lg:justify-center' : ''}`}>
+              <div className={`flex h-full flex-col ${step === 2 && !canScroll ? 'lg:justify-center' : ''}`}>
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
                   <div key={step} className="min-w-0 flex-1 animate-step-slide-up">
                     {step === 1 && <Step1Services conditions={conditions} onToggle={toggleService} />}
-                    {step === 2 && <Step2Plans conditions={conditions} onChangePlan={handleChangePlan} />}
-                    {step === 3 && <Step3Filters conditions={conditions} onChange={handleChange} />}
+                    {step === 2 && (
+                      <Step2PlansAndFilters conditions={conditions} onChangePlan={handleChangePlan} onChangeFilter={handleChange} />
+                    )}
                   </div>
                   {step !== 1 && (
                     <>
                       <div className="hidden shrink-0 self-stretch lg:block lg:w-px lg:bg-slate-200" />
                       <div className="hidden shrink-0 lg:block lg:w-72">
-                        <MatchSummaryPanel conditions={conditions} filtersChosen={step >= FILTERS_STEP} />
+                        <MatchSummaryPanel conditions={conditions} filtersChosen={step >= 2} />
                       </div>
                     </>
                   )}
