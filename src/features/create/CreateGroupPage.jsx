@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { AlertCircle, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Eye, Info } from 'lucide-react'
+import { AlertCircle, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Info } from 'lucide-react'
 import FlowLayout from '../../shared/layout/FlowLayout'
 import Step1Service from './components/steps/Step1Service'
 import Step2PlanSettings from './components/steps/Step2PlanSettings'
@@ -282,33 +282,23 @@ export default function CreateGroupPage() {
             {step <= 3 ? (
               <>
                 <div className={`flex h-full flex-col ${(step === 2 || step === 3) && !canScroll ? 'lg:justify-center' : ''}`}>
-                  {(step === 2 || step === 3) && (
-                    <div className={`mb-6 flex items-center gap-4 rounded-2xl border border-line bg-white px-6 py-5 shadow-sm ${step === 3 ? 'hidden lg:flex' : ''}`}>
+                  {step === 2 && (
+                    <div className="mb-6 flex items-center gap-4 rounded-2xl border border-line bg-white px-6 py-5 shadow-sm">
                       <ServiceLogo serviceId={form.serviceId} size={56} className="shrink-0 rounded-logo border-line-strong" />
                       <div className="min-w-0 flex-1">
                         <h2 className="truncate text-lg font-black text-ink">{service?.fullName ?? '尚未選擇服務'}</h2>
                         <p className="truncate text-sm text-ink-3">{form.planName || '尚未選擇方案'}</p>
                       </div>
-                      {step === 3 ? (
-                        <button
-                          onClick={() => setShowPreview(true)}
-                          className="flex shrink-0 items-center gap-1.5 rounded-full border border-line px-4 py-2 text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-ink"
-                        >
-                          <Eye size={15} />
-                          查看預覽
-                        </button>
-                      ) : (
-                        <TokenAmount
-                          amount={form.billingCycle === 'yearly' ? form.pricePerSeat * 12 : form.pricePerSeat}
-                          cycle={form.billingCycle === 'yearly' ? 'yearly' : 'monthly'}
-                          align="center"
-                          className="shrink-0 text-2xl font-black text-ink"
-                        />
-                      )}
+                      <TokenAmount
+                        amount={form.billingCycle === 'yearly' ? form.pricePerSeat * 12 : form.pricePerSeat}
+                        cycle={form.billingCycle === 'yearly' ? 'yearly' : 'monthly'}
+                        align="center"
+                        className="shrink-0 text-2xl font-black text-ink"
+                      />
                     </div>
                   )}
                   {step === 3 ? (
-                    <Step3Preview form={form} agreedToTerms={agreedToTerms} onAgreeChange={setAgreedToTerms} />
+                    <Step3Preview form={form} agreedToTerms={agreedToTerms} onAgreeChange={setAgreedToTerms} onShowPreview={() => setShowPreview(true)} />
                   ) : (
                     <CurrentStep form={form} onChange={onChange} />
                   )}
