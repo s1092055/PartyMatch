@@ -1,5 +1,4 @@
-import { useGroupStore } from '../stores/useGroupStore'
-import { useAuthStore } from '../stores/useAuthStore'
+import { getServiceById } from './serviceUtils'
 
 const SEARCH_STORAGE_KEY = 'pm_recent_searches'
 const MAX_RECENT = 8
@@ -27,18 +26,30 @@ export function removeRecentSearch(term) {
   saveRecentSearches(loadRecentSearches().filter(s => s !== term))
 }
 
-export function searchGroups(query) {
-  if (!query.trim()) return []
-  const q = query.trim().toLowerCase()
-  const activeUserId = useAuthStore.getState().user?.id
-  return useGroupStore.getState().groups
-    .filter(g => g.status === 'recruiting' && g.hostId !== activeUserId)
-    .filter(g =>
-      g.serviceName?.toLowerCase().includes(q) ||
-      g.planName?.toLowerCase().includes(q) ||
-      g.hostName?.toLowerCase().includes(q) ||
-      g.groupName?.toLowerCase().includes(q) ||
-      g.tags?.some(t => t.toLowerCase().includes(q))
+// 探索頁與搜尋 modal 共用的篩選/排序邏輯，各自獨立套用、互不影響對方的顯示結果
+export function applyFilters(groups, { keyword, category, service, maxPrice, sortBy }) {
+  let result = groups.filter(g => g.status === 'recruiting' && g.openSeats > 0)
+
+  if (keyword.trim()) {
+    const kw = keyword.trim().toLowerCase()
+    result = result.filter(g =>
+      g.serviceName.toLowerCase().includes(kw) ||
+      g.planName.toLowerCase().includes(kw) ||
+      g.hostName.toLowerCase().includes(kw) ||
+      g.tags.some(t => t.toLowerCase().includes(kw))
     )
-    .slice(0, 12)
+  }
+
+  if (category !== 'all' && service === 'all') result = result.filter(g => getServiceById(g.serviceId)?.category === category)
+  if (service !== 'all') result = result.filter(g => g.serviceId === service)
+  if (maxPrice !== 'any') result = result.filter(g => g.pricePerSeat <= Number(maxPrice))
+
+  switch (sortBy) {
+    case 'rating':    result.sort((a, b) => b.hostRating - a.hostRating); break
+    case 'price_asc': result.sort((a, b) => a.pricePerSeat - b.pricePerSeat); break
+    case 'seats':     result.sort((a, b) => a.openSeats - b.openSeats); break
+    default:          result.sort((a, b) => b.hostRating - a.hostRating)
+  }
+
+  return result
 }

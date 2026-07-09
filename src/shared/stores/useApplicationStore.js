@@ -77,19 +77,11 @@ export const useApplicationStore = create((set, get) => ({
       createdAt:              nowISO(),
       updatedAt:              nowISO(),
     })
+    // 等後端確認成功才寫入 store：先樂觀新增會讓探索頁卡片上的「已申請」badge
+    // 在餘額不足等錯誤發生時閃一下（新增又立刻被回滾移除）
+    const saved = await insertApplication({ groupId, message: message ?? '' })
+    app.id = saved.id
     set(s => ({ applications: [app, ...s.applications] }))
-    try {
-      // 只送後端需要的欄位，並用後端回傳的 DB id 取代本地 tempId
-      const saved = await insertApplication({ groupId, message: message ?? '' })
-      set(s => ({
-        applications: s.applications
-          .map(a => a.id === tempId ? { ...a, id: saved.id, status: 'pending' } : a),
-      }))
-      app.id = saved.id
-    } catch (err) {
-      set(s => ({ applications: s.applications.filter(a => a.id !== tempId) }))
-      throw err
-    }
     const notifStore = useNotificationStore.getState()
     // 通知申請人（本人，即時寫入本地 store + DB）
     notifStore.create({

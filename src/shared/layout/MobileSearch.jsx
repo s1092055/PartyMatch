@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Search, SlidersHorizontal, X } from 'lucide-react'
 import {
   addRecentSearch,
+  applyFilters,
   loadRecentSearches,
   removeRecentSearch,
   saveRecentSearches,
-  searchGroups,
 } from '../utils/searchUtils'
 import { listServiceTypes } from '../utils/serviceUtils'
+import { useGroupStore } from '../stores/useGroupStore'
+import { useAuthStore } from '../stores/useAuthStore'
 import ServiceLogo from '../ui/ServiceLogo'
 import CustomSelect from '../ui/CustomSelect'
 import CategoryPills from '../ui/CategoryPills'
@@ -16,9 +17,6 @@ import { useScrollLock } from '../utils/hooks'
 import { DEFAULT_FILTERS, PRICE_OPTIONS, SORT_OPTIONS } from '../../features/explore/exploreConstants'
 
 export default function MobileSearch() {
-  const navigate = useNavigate()
-  const { pathname } = useLocation()
-  const [searchParams] = useSearchParams()
   const [isOpen, setIsOpen]                 = useState(false)
   const [searchQuery, setSearchQuery]       = useState('')
   const [recentSearches, setRecentSearches] = useState(loadRecentSearches)
@@ -27,7 +25,15 @@ export default function MobileSearch() {
   const inputRef   = useRef(null)
   const pillsRef   = useRef(null)
 
-  const searchResults = useMemo(() => searchGroups(searchQuery), [searchQuery])
+  const groups = useGroupStore(s => s.groups)
+  const activeUserId = useAuthStore(s => s.user?.id)
+
+  // 搜尋結果只在 modal 內部顯示，跟探索頁的群組池、篩選狀態完全獨立
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return []
+    const pool = groups.filter(g => g.hostId !== activeUserId)
+    return applyFilters(pool, { keyword: searchQuery, ...filters }).slice(0, 12)
+  }, [groups, activeUserId, searchQuery, filters])
 
   const serviceOptions = useMemo(() => {
     const all = listServiceTypes()
@@ -44,17 +50,6 @@ export default function MobileSearch() {
 
   useEffect(() => {
     if (isOpen) {
-      if (pathname === '/explore') {
-        // 開啟時需同步 URL 參數並觸發 DOM focus/scroll 副作用，無法單純改用 render 期間衍生狀態
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setSearchQuery(searchParams.get('q') ?? '')
-        setFilters({
-          ...DEFAULT_FILTERS,
-          service:  searchParams.get('service') ?? 'all',
-          maxPrice: searchParams.get('maxPrice') ?? 'any',
-          sortBy:   searchParams.get('sortBy') ?? 'recommended',
-        })
-      }
       if (pillsRef.current) pillsRef.current.scrollLeft = 0
       setTimeout(() => inputRef.current?.focus(), 100)
     } else {
@@ -65,7 +60,6 @@ export default function MobileSearch() {
       }, 0)
       return () => clearTimeout(timer)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen])
 
   useEffect(() => {
@@ -85,16 +79,7 @@ export default function MobileSearch() {
     const t = (term ?? searchQuery).trim()
     if (t) addRecentSearch(t)
     setRecentSearches(loadRecentSearches())
-
-    const params = new URLSearchParams()
-    if (t) params.set('q', t)
-    if (filters.category !== 'all') params.set('category', filters.category)
-    if (filters.service !== 'all') params.set('service', filters.service)
-    if (filters.maxPrice !== 'any') params.set('maxPrice', filters.maxPrice)
-    if (filters.sortBy !== 'recommended') params.set('sortBy', filters.sortBy)
-
-    navigate(`/explore${params.toString() ? '?' + params.toString() : ''}`)
-    setIsOpen(false)
+    setSearchQuery(t)
   }
 
   function handleRemoveRecent(term, e) {

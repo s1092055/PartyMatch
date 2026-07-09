@@ -1,43 +1,16 @@
 import { useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowRight, Compass, PlusCircle, Search, Sparkles, X, Zap } from 'lucide-react'
+import { Compass, Search, X } from 'lucide-react'
 import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { useApplicationStore } from '../../shared/stores/useApplicationStore'
 import { useMemberStore } from '../../shared/stores/useMemberStore'
-import { getServiceById } from '../../shared/utils/serviceUtils'
+import { applyFilters } from '../../shared/utils/searchUtils'
 import { useAuthStore } from '../../shared/stores/useAuthStore'
 import EmptyState from '../../shared/ui/EmptyState'
 import PageHeader from '../../shared/layout/PageHeader'
 import RevealSection from '../../shared/ui/RevealSection'
 import FilterBar from './components/FilterBar'
 import ExploreGroupCard from './components/ExploreGroupCard'
-
-function applyFilters(groups, { keyword, category, service, maxPrice, sortBy }) {
-  let result = groups.filter(g => g.status === 'recruiting' && g.openSeats > 0)
-
-  if (keyword.trim()) {
-    const kw = keyword.trim().toLowerCase()
-    result = result.filter(g =>
-      g.serviceName.toLowerCase().includes(kw) ||
-      g.planName.toLowerCase().includes(kw) ||
-      g.hostName.toLowerCase().includes(kw) ||
-      g.tags.some(t => t.toLowerCase().includes(kw))
-    )
-  }
-
-  if (category !== 'all' && service === 'all') result = result.filter(g => getServiceById(g.serviceId)?.category === category)
-  if (service !== 'all') result = result.filter(g => g.serviceId === service)
-  if (maxPrice !== 'any') result = result.filter(g => g.pricePerSeat <= Number(maxPrice))
-
-  switch (sortBy) {
-    case 'rating':    result.sort((a, b) => b.hostRating - a.hostRating); break
-    case 'price_asc': result.sort((a, b) => a.pricePerSeat - b.pricePerSeat); break
-    case 'seats':     result.sort((a, b) => a.openSeats - b.openSeats); break
-    default:          result.sort((a, b) => b.hostRating - a.hostRating)
-  }
-
-  return result
-}
 
 export default function ExplorePage() {
   const [searchParams] = useSearchParams()
@@ -130,41 +103,6 @@ export default function ExplorePage() {
               <ExploreGroupCard group={group} isApplied={appliedGroupIds.has(group.id)} isMember={memberGroupIds.has(group.id)} />
             </RevealSection>
           ))}
-          <RevealSection delay={Math.min(filtered.length * 60, 300)} className="flex flex-col gap-5">
-            <div
-              onClick={() => navigate('/quick-match')}
-              className="flex flex-1 cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-brand/30 bg-brand-subtle/40 p-5 transition-colors hover:border-brand/60 hover:bg-brand-subtle"
-            >
-              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-brand/10">
-                <Zap size={24} className="text-brand" />
-              </div>
-              <div className="text-center">
-                <p className="text-base font-extrabold text-ink">找不到合適的群組？</p>
-                <p className="mt-1 text-sm text-ink-3">讓系統根據你的條件自動推薦最佳配對</p>
-              </div>
-              <span className="flex items-center gap-1.5 rounded-lg bg-brand px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-brand-hover">
-                <Sparkles size={14} />
-                前往快速配對
-                <ArrowRight size={14} />
-              </span>
-            </div>
-            <div
-              onClick={() => navigate('/create-group')}
-              className="flex flex-1 cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-success/30 bg-success/5 p-5 transition-colors hover:border-success/60 hover:bg-success/10"
-            >
-              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-success/10">
-                <PlusCircle size={24} className="text-success" />
-              </div>
-              <div className="text-center">
-                <p className="text-base font-extrabold text-ink">想自己當團主？</p>
-                <p className="mt-1 text-sm text-ink-3">開一個群組，設好條件，等人申請加入就好</p>
-              </div>
-              <span className="flex items-center gap-1.5 rounded-lg bg-success px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-success/80">
-                <PlusCircle size={14} />
-                開一個群組
-              </span>
-            </div>
-          </RevealSection>
         </div>
       )}
 

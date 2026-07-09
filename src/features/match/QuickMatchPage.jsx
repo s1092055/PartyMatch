@@ -1,8 +1,7 @@
-import { useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, RotateCcw, Zap } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, RotateCcw, Zap } from 'lucide-react'
 import FlowLayout from '../../shared/layout/FlowLayout'
-import SlideTrack, { SlidePanel } from '../../shared/ui/SlideTrack'
 import Step1Services from './components/steps/Step1Services'
 import Step2Plans from './components/steps/Step2Plans'
 import Step3Filters from './components/steps/Step3Filters'
@@ -12,6 +11,8 @@ import Button from '../../shared/ui/Button'
 import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { useAuthStore } from '../../shared/stores/useAuthStore'
 import { matchGroups } from './utils/matchGroups'
+
+const STEP_TITLES = ['選擇服務', '選擇方案', '篩選條件', '配對結果']
 
 const DEFAULT_CONDITIONS = {
   services:      [],
@@ -31,6 +32,36 @@ export default function QuickMatchPage() {
   const [step, setStep] = useState(1)
   const [conditions, setConditions] = useState(DEFAULT_CONDITIONS)
   const [results, setResults] = useState([])
+  const [atBottom, setAtBottom] = useState(false)
+  const [canScroll, setCanScroll] = useState(false)
+  const scrollElRef = useRef(null)
+  const resizeObserverRef = useRef(null)
+  const mutationObserverRef = useRef(null)
+
+  function updateScrollState(el) {
+    if (!el) return
+    const { scrollTop, scrollHeight, clientHeight } = el
+    setAtBottom(scrollTop + clientHeight >= scrollHeight - 20)
+    setCanScroll(scrollHeight > clientHeight + 20)
+  }
+  function handleContentScroll(e) { updateScrollState(e.currentTarget) }
+  function scrollContentToTop() { scrollElRef.current?.scrollTo({ top: 0, behavior: 'smooth' }) }
+  function scrollContentDown()  { scrollElRef.current?.scrollBy({ top: 200, behavior: 'smooth' }) }
+
+  const scrollRef = useCallback((el) => {
+    scrollElRef.current = el
+    resizeObserverRef.current?.disconnect()
+    mutationObserverRef.current?.disconnect()
+    if (!el) return
+    const check = () => updateScrollState(el)
+    const observer = new ResizeObserver(check)
+    observer.observe(el)
+    resizeObserverRef.current = observer
+    const mutationObserver = new MutationObserver(check)
+    mutationObserver.observe(el, { childList: true, subtree: true })
+    mutationObserverRef.current = mutationObserver
+    updateScrollState(el)
+  }, [])
 
   function toggleService(id) {
     setConditions(prev => {
@@ -57,12 +88,19 @@ export default function QuickMatchPage() {
   }
 
   function handleBack() {
-    if (step > 1) setStep(s => s - 1)
-    else leaveFlow()
+    if (step > 1) {
+      setStep(s => s - 1)
+      scrollElRef.current?.scrollTo({ top: 0 })
+    } else {
+      leaveFlow()
+    }
   }
 
   function handleNext() {
-    if (step < 3) setStep(s => s + 1)
+    if (step < 3) {
+      setStep(s => s + 1)
+      scrollElRef.current?.scrollTo({ top: 0 })
+    }
   }
 
   function handleStartMatch() {
@@ -71,12 +109,14 @@ export default function QuickMatchPage() {
     const matched = matchGroups(candidateGroups, conditions)
     setResults(matched)
     setStep(4)
+    scrollElRef.current?.scrollTo({ top: 0 })
   }
 
   function handleReset() {
     setConditions(DEFAULT_CONDITIONS)
     setResults([])
     setStep(1)
+    scrollElRef.current?.scrollTo({ top: 0 })
   }
 
   const canNext = step === 1 ? conditions.services.length > 0 : true
@@ -114,42 +154,48 @@ export default function QuickMatchPage() {
   )
 
   return (
-    <FlowLayout progress={(Math.min(step, 4) / 4) * 100} bottomNav={footer}>
-      <SlideTrack activeIndex={step - 1} count={4}>
-        <SlidePanel count={4}>
-          <div className="flex flex-col gap-4 py-4 lg:flex-row lg:items-start">
-            <div className="min-w-0 flex-1">
-              <Step1Services conditions={conditions} onToggle={toggleService} />
-            </div>
-            <div className="hidden shrink-0 lg:block lg:w-72">
-              <MatchSummaryPanel conditions={conditions} />
-            </div>
+    <FlowLayout
+      progress={(Math.min(step, 4) / 4) * 100}
+      title={STEP_TITLES[step - 1]}
+      bottomNav={footer}
+      maxWidth="max-w-xl md:max-w-2xl lg:max-w-3xl"
+    >
+      <div className="relative h-full">
+        <div
+          ref={scrollRef}
+          onScroll={handleContentScroll}
+          className="h-full overflow-y-auto pt-6 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          <div key={step} className="h-full animate-step-slide-up p-0.5">
+            {isResultStep ? (
+              <Step4Results results={results} conditions={conditions} />
+            ) : (
+              <div className={`flex h-full flex-col gap-4 lg:flex-row lg:items-start ${!canScroll ? 'lg:justify-center' : ''}`}>
+                <div className="min-w-0 flex-1">
+                  {step === 1 && <Step1Services conditions={conditions} onToggle={toggleService} />}
+                  {step === 2 && <Step2Plans conditions={conditions} onChangePlan={handleChangePlan} />}
+                  {step === 3 && <Step3Filters conditions={conditions} onChange={handleChange} />}
+                </div>
+                <div className="hidden shrink-0 lg:block lg:w-72">
+                  <MatchSummaryPanel conditions={conditions} />
+                </div>
+              </div>
+            )}
           </div>
-        </SlidePanel>
-        <SlidePanel count={4}>
-          <div className="flex flex-col gap-4 py-4 lg:flex-row lg:items-start">
-            <div className="min-w-0 flex-1">
-              <Step2Plans conditions={conditions} onChangePlan={handleChangePlan} />
-            </div>
-            <div className="hidden shrink-0 lg:block lg:w-72">
-              <MatchSummaryPanel conditions={conditions} />
-            </div>
+        </div>
+
+        {!isResultStep && canScroll && (
+          <div className="pointer-events-none absolute inset-x-0 bottom-3 hidden justify-end lg:flex">
+            <button
+              onClick={atBottom ? scrollContentToTop : scrollContentDown}
+              className="pointer-events-auto grid h-8 w-8 place-items-center rounded-full border border-line bg-canvas shadow-md text-ink-3 transition-colors hover:text-ink animate-bounce"
+              title={atBottom ? '回到頂部' : '往下捲動'}
+            >
+              {atBottom ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
           </div>
-        </SlidePanel>
-        <SlidePanel count={4}>
-          <div className="flex flex-col gap-4 py-4 lg:flex-row lg:items-start">
-            <div className="min-w-0 flex-1">
-              <Step3Filters conditions={conditions} onChange={handleChange} />
-            </div>
-            <div className="hidden shrink-0 lg:block lg:w-72">
-              <MatchSummaryPanel conditions={conditions} />
-            </div>
-          </div>
-        </SlidePanel>
-        <SlidePanel count={4}>
-          <Step4Results results={results} conditions={conditions} />
-        </SlidePanel>
-      </SlideTrack>
+        )}
+      </div>
     </FlowLayout>
   )
 }

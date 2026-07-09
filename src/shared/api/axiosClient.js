@@ -72,11 +72,15 @@ client.interceptors.response.use(
       }
 
       try {
-        const { accessToken } = await axios.post(
+        const { accessToken, refreshToken: newRefreshToken } = await axios.post(
           `${client.defaults.baseURL}/auth/refresh`,
           { refreshToken },
         ).then(r => r.data)
         tokenManager.set(accessToken)
+        // 後端會 rotate refresh token（每次 refresh 都作廢舊的、發一個新的），
+        // 這裡沒同步更新的話，下一次 access token 過期時舊 refresh token 早就
+        // 在 Redis 裡被覆蓋掉，refresh 會直接 401 把使用者強制登出
+        if (newRefreshToken) localStorage.setItem('pm_refresh_token', newRefreshToken)
         processQueue(null, accessToken)
         original.headers.Authorization = `Bearer ${accessToken}`
         return client(original)
