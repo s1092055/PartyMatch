@@ -28,7 +28,6 @@
 
 | 事件 | 觸發者 | 接收者 |
 |------|--------|--------|
-| `pm:open-search` | AppNav / MobileSearch | `MobileSearch` |
 | `pm:open-group` | 群組卡片 / Redirect | `GroupDetailModal` |
 | `pm:open-notify` | AppNav 通知按鈕 | `FloatingMessages` |
 | `pm:open-messages` | AppNav / 訂閱卡 / 群組操作 | `MessagesModal` |

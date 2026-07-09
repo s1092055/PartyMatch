@@ -16,14 +16,11 @@ export default function AppNav() {
   const { pathname } = useLocation()
   const [myMenuOpen, setMyMenuOpen] = useState(false)
   const myMenuRef = useRef(null)
-  const [createMenuOpen, setCreateMenuOpen] = useState(false)
-  const createMenuRef = useRef(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const mobileMenuRef = useRef(null)
   const [desktopMenuOpen, setDesktopMenuOpen] = useState(false)
 
   useClickOutside(myMenuOpen, [myMenuRef], () => setMyMenuOpen(false))
-  useClickOutside(createMenuOpen, [createMenuRef], () => setCreateMenuOpen(false))
   useClickOutside(mobileMenuOpen, [mobileMenuRef], () => setMobileMenuOpen(false))
 
   // 路由切換時關閉所有選單：於 render 期間比對前一次 pathname 並直接呼叫 setState，
@@ -34,7 +31,6 @@ export default function AppNav() {
     setDesktopMenuOpen(false)
     setMobileMenuOpen(false)
     setMyMenuOpen(false)
-    setCreateMenuOpen(false)
   }
 
   const loggedIn = useAuthStore(s => s.loggedIn)
@@ -69,7 +65,6 @@ export default function AppNav() {
     setDesktopMenuOpen(false)
     setMobileMenuOpen(false)
     setMyMenuOpen(false)
-    setCreateMenuOpen(false)
   }
 
   function openCreate() {
@@ -153,9 +148,6 @@ export default function AppNav() {
         openCreate={openCreate}
         openMessages={openMessages}
         preventLockedAction={preventLockedAction}
-        createMenuOpen={createMenuOpen}
-        setCreateMenuOpen={setCreateMenuOpen}
-        createMenuRef={createMenuRef}
         myMenuOpen={myMenuOpen}
         setMyMenuOpen={setMyMenuOpen}
         myMenuRef={myMenuRef}

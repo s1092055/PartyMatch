@@ -143,7 +143,7 @@ export default function QuickMatchPage() {
     <FlowLayout
       steps={STEP_TITLES}
       currentStep={Math.min(step, 3)}
-      title="快速查找"
+      title="快速搜尋"
       titleIcon={<Search size={18} className="shrink-0 text-brand" />}
       headerBanner={
         <div className="flex items-center justify-center gap-2 bg-brand-subtle px-6 py-3 text-sm font-medium text-brand">

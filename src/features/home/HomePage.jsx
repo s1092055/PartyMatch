@@ -7,7 +7,6 @@ import { useAuthStore } from '../../shared/stores/useAuthStore'
 import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { listServiceTypes } from '../../shared/utils/serviceUtils'
 import AppNav from '../../shared/layout/AppNav'
-import MobileSearch from '../../shared/layout/MobileSearch'
 import ScrollToTop from '../../shared/layout/ScrollToTop'
 import AppFooter from '../../shared/layout/AppFooter'
 import FloatingMessages from '../../shared/layout/FloatingMessages'
@@ -37,7 +36,6 @@ export default function HomePage() {
   return (
     <div className="flex min-h-screen flex-col bg-canvas text-ink md:ml-24">
       <AppNav />
-      <MobileSearch />
       <ScrollToTop />
       <Suspense fallback={null}>
         <MessagesModal />
@@ -71,7 +69,7 @@ export default function HomePage() {
             onClick={() => navigate('/quick-match')}
           >
             <Search size={16} />
-            快速查找
+            快速搜尋
           </Button>
         </div>
       </section>

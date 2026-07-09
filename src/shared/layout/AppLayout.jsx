@@ -2,7 +2,6 @@ import { lazy, Suspense, useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import AppNav from './AppNav'
 import AppFooter from './AppFooter'
-import MobileSearch from './MobileSearch'
 import FloatingMessages from './FloatingMessages'
 import BackToTopButton from './ScrollToTop'
 
@@ -26,7 +25,6 @@ export default function AppLayout() {
         </div>
         <AppFooter />
       </main>
-      <MobileSearch />
       <FloatingMessages />
       <BackToTopButton />
       <Suspense fallback={null}>

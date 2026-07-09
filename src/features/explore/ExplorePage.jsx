@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Compass, Search, X } from 'lucide-react'
+import { Compass } from 'lucide-react'
 import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { useApplicationStore } from '../../shared/stores/useApplicationStore'
 import { useMemberStore } from '../../shared/stores/useMemberStore'
@@ -16,7 +16,6 @@ export default function ExplorePage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const filters = useMemo(() => ({
-    keyword:  searchParams.get('q') ?? '',
     category: searchParams.get('category') ?? 'all',
     service:  searchParams.get('service') ?? 'all',
     maxPrice: searchParams.get('maxPrice') ?? 'any',
@@ -50,7 +49,6 @@ export default function ExplorePage() {
   function handleFilterChange(patch) {
     const next = { ...filters, ...patch }
     const params = new URLSearchParams()
-    if (next.keyword) params.set('q', next.keyword)
     if (next.category !== 'all') params.set('category', next.category)
     if (next.service !== 'all') params.set('service', next.service)
     if (next.maxPrice !== 'any') params.set('maxPrice', next.maxPrice)
@@ -62,33 +60,7 @@ export default function ExplorePage() {
     <div className="px-2 md:px-4 lg:px-16">
       <PageHeader title="探索群組" className="mb-4 text-center" />
 
-      <div className="mx-auto mb-6 max-w-lg">
-        <button
-          onClick={() => window.dispatchEvent(new CustomEvent('pm:open-search'))}
-          className="flex w-full items-center gap-3 rounded-2xl border border-line bg-white px-4 py-3 text-sm text-ink-3 shadow-sm transition-colors hover:border-brand/40 hover:bg-raised"
-        >
-          <Search size={16} className="shrink-0 text-ink-3" />
-          搜尋群組、服務名稱...
-        </button>
-      </div>
-
       <FilterBar filters={filters} onChange={handleFilterChange} />
-
-      {filters.keyword && (
-        <div className="mb-3 flex items-center gap-2">
-          <span className="text-xs font-medium text-ink-3">搜尋：</span>
-          <span className="flex items-center gap-1.5 rounded-full bg-brand-subtle px-3 py-1 text-xs font-bold text-brand">
-            {filters.keyword}
-            <button
-              onClick={() => handleFilterChange({ keyword: '' })}
-              aria-label="清除搜尋關鍵字"
-              className="grid h-3.5 w-3.5 place-items-center rounded-full bg-brand/20 transition-colors hover:bg-brand/40"
-            >
-              <X size={9} strokeWidth={2.5} />
-            </button>
-          </span>
-        </div>
-      )}
 
       {filtered.length === 0 ? (
         <EmptyState

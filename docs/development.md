@@ -145,5 +145,5 @@ zip -r partymatch.zip . \
 | 正式金流串接 | ECPay / 綠界或其他金流 API，取代目前模擬儲值 |
 | WebSocket 取代輪詢 | 訊息中心目前每 5 秒 polling，WebSocket 可降低延遲 |
 | 探索頁更多搜尋功能 | 目前篩選已透過 URL query params 傳遞；未來可考慮加入全文搜尋後端 API |
-| 快速查找結果分頁 | 資料量大時需分頁或虛擬捲動 |
+| 快速搜尋結果分頁 | 資料量大時需分頁或虛擬捲動 |
 | TypeScript 型別覆蓋 | 目前全為 JavaScript |

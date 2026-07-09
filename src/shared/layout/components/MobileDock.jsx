@@ -10,9 +10,6 @@ export default function MobileDock({
   openCreate,
   openMessages,
   preventLockedAction,
-  createMenuOpen,
-  setCreateMenuOpen,
-  createMenuRef,
   myMenuOpen,
   setMyMenuOpen,
   myMenuRef,
@@ -27,53 +24,33 @@ export default function MobileDock({
     >
       <div className="flex h-16 items-stretch">
 
-        {/* 搜尋 */}
+        {/* 快速搜尋 */}
         <button
-          onClick={() => window.dispatchEvent(new Event('pm:open-search'))}
+          onClick={openMatch}
           className="relative flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold text-ink-3 transition-colors active:text-brand"
         >
           <Search size={22} strokeWidth={2.1} />
-          搜尋
+          快速搜尋
         </button>
 
-        {/* 功能 — 配對 + 建立群組 dropdown */}
-        <div ref={createMenuRef} className="relative flex flex-1 flex-col items-center justify-center">
-          {createMenuOpen && (
-            <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 flex flex-row gap-1 rounded-2xl border border-line bg-white p-1.5 shadow-popover">
-              <button
-                onClick={() => { setCreateMenuOpen(false); openMatch() }}
-                className="flex flex-col items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-bold whitespace-nowrap text-ink transition-colors hover:bg-raised"
-              >
-                <Search size={20} strokeWidth={2.1} />
-                快速查找
-              </button>
-              {loggedIn ? (
-                <button
-                  onClick={() => { setCreateMenuOpen(false); openCreate() }}
-                  className="flex flex-col items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-bold whitespace-nowrap text-ink transition-colors hover:bg-raised"
-                >
-                  <PlusCircle size={20} strokeWidth={2.1} />
-                  建立群組
-                </button>
-              ) : (
-                <button
-                  onClick={e => { setCreateMenuOpen(false); preventLockedAction(e, '/create-group') }}
-                  className="flex flex-col items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-bold whitespace-nowrap text-ink-3 opacity-40"
-                >
-                  <PlusCircle size={20} strokeWidth={2.1} />
-                  建立群組
-                </button>
-              )}
-            </div>
-          )}
+        {/* 建立群組 */}
+        {loggedIn ? (
           <button
-            onClick={() => setCreateMenuOpen(v => !v)}
-            className={`flex flex-col items-center gap-1 text-[0.65rem] font-bold transition-colors ${createMenuOpen ? 'text-brand' : 'text-ink-3'}`}
+            onClick={openCreate}
+            className="relative flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold text-ink-3 transition-colors active:text-brand"
           >
             <PlusCircle size={22} strokeWidth={2.1} />
-            功能
+            建立群組
           </button>
-        </div>
+        ) : (
+          <button
+            onClick={e => preventLockedAction(e, '/create-group')}
+            className="flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold text-ink-3 opacity-40"
+          >
+            <PlusCircle size={22} strokeWidth={2.1} />
+            建立群組
+          </button>
+        )}
 
         {/* 探索 — 中央圓形按鈕 */}
         <div className="flex flex-1 flex-col items-center justify-center">

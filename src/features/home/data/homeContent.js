@@ -28,7 +28,7 @@ export const HOME_FEATURES = [
   },
   {
     icon: Search,
-    title: '快速查找',
+    title: '快速搜尋',
     desc: '告訴我們你要什麼，系統自動篩出最適合的群組讓你挑。省去逐一比較的時間，幾秒內找到選項。',
     videoSrc: null,
     badge: '配對',
@@ -111,8 +111,8 @@ export const MEMBER_STEPS = [
   },
   {
     step: 2,
-    title: '瀏覽群組或快速查找',
-    desc: '自己篩選合適的群組，或讓快速查找根據你的預算與條件自動推薦。',
+    title: '瀏覽群組或快速搜尋',
+    desc: '自己篩選合適的群組，或讓快速搜尋根據你的預算與條件自動推薦。',
   },
   {
     step: 3,

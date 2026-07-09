@@ -54,7 +54,7 @@ export default function LoginPage() {
       <div className="mt-12">
         <h1 className="text-4xl font-extrabold leading-tight text-ink md:text-4xl">登入 PartyMatch</h1>
         <p className="mt-5 text-base font-medium leading-relaxed text-ink-3">
-          登入後即可探索共享訂閱群組、快速查找並管理你的訂閱。
+          登入後即可探索共享訂閱群組、快速搜尋並管理你的訂閱。
         </p>
       </div>
 

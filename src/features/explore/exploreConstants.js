@@ -1,5 +1,4 @@
 export const DEFAULT_FILTERS = {
-  keyword:  '',
   category: 'all',
   service:  'all',
   maxPrice: 'any',
