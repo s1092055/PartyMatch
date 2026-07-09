@@ -267,6 +267,7 @@ model Conversation {
   groupId      String?
   group        Group?           @relation(fields: [groupId], references: [id], onDelete: SetNull)
   participants Json             @default("[]")
+  initiatorId  String?
   unreadCounts Json             @default("{}")
   lastReadAt   Json             @default("{}")
   lastMessage  Json?

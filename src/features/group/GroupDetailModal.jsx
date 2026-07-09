@@ -161,11 +161,9 @@ export default function GroupDetailModal() {
     else navigate(`/login?redirectTo=/groups/${group.id}`)
   }
 
-  const hostStars = group.hostRating != null ? Math.round(group.hostRating / 20) : 0
-  const reviews   = (
+  const reviews = (
     <HostReviews
       group={group}
-      hostStars={hostStars}
       headerClassName="text-lg font-black text-brand"
       onDm={activeUserId && !isHost ? openDm : undefined}
     />

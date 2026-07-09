@@ -29,12 +29,12 @@ export default function ApplyModal({
             transformStyle: 'preserve-3d',
             transition: 'transform 0.55s cubic-bezier(0.4, 0, 0.2, 1)',
             transform: applySubmitted ? 'rotateY(180deg)' : 'rotateY(0deg)',
-            position: 'relative',
-            minHeight: '320px',
+            display: 'grid',
+            minWidth: 0,
           }}
         >
           {/* 正面：申請表單 */}
-          <div style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }} className="absolute inset-0">
+          <div style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', gridArea: '1 / 1', minWidth: 0 }}>
             <div className="flex flex-col gap-4 p-5">
               <div className="rounded-xl border border-line bg-raised/50 px-4 py-3">
                 <div className="flex items-center gap-3">
@@ -70,7 +70,7 @@ export default function ApplyModal({
                   onChange={e => setApplyAgreed(e.target.checked)}
                   className="mt-0.5 w-4 h-4 accent-brand cursor-pointer shrink-0"
                 />
-                <span className="text-sm text-ink-2">我已閱讀並同意此群組的所有規則與付款條件</span>
+                <span className="min-w-0 text-sm text-ink-2">我已閱讀並同意此群組的所有規則與付款條件</span>
               </label>
               <div className="flex gap-3 pt-1">
                 <Button variant="ghost" size="md" className="flex-1 border border-line" onClick={onClose}>取消</Button>
@@ -85,8 +85,10 @@ export default function ApplyModal({
               backfaceVisibility: 'hidden',
               WebkitBackfaceVisibility: 'hidden',
               transform: 'rotateY(180deg)',
+              gridArea: '1 / 1',
+              minWidth: 0,
             }}
-            className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-5 py-10 text-center"
+            className="flex flex-col items-center justify-center gap-4 px-5 py-10 text-center"
           >
             <div className="w-16 h-16 rounded-full bg-success-subtle flex items-center justify-center">
               <CheckCircle2 size={30} className="text-success" />

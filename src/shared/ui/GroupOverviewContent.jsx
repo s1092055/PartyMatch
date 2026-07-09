@@ -32,7 +32,7 @@ function ServiceIntro({ service, plan, planChips }) {
         <p className="text-sm leading-relaxed text-ink-2">{service.description}</p>
       )}
       {planChips.length > 0 && (
-        <div className={`grid gap-2 ${planChips.length >= 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+        <div className={`grid gap-2 ${service?.description ? 'mt-4' : ''} ${planChips.length >= 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
           {planChips.map(({ icon: Icon, label, value }) => (
             <div key={label} className="flex flex-col gap-1 rounded-xl border border-line bg-canvas p-3">
               <Icon size={14} className="text-ink-3" />
@@ -68,22 +68,19 @@ function RulesList({ allRules }) {
     <ul className="space-y-3">
       {allRules.map((rule, i) => (
         <li key={i} className="flex items-start gap-2 text-sm text-ink-2">
-          <CheckCircle2 size={14} className="mt-0.5 shrink-0 text-emerald-500" />
+          <span className="text-ink-4 shrink-0">{i + 1}.</span>
           <span>{rule}</span>
         </li>
       ))}
     </ul>
   ) : (
-    <p className="text-sm text-ink-4">此群組尚未設定加入規則</p>
+    <p className="text-sm text-ink-4">此群組尚未設定群組規則</p>
   )
 }
 
 export default function GroupOverviewContent({ group, service, plan, reviewsSection = null, statusBadgeOverride, extraRows = [] }) {
   const planChips = getPlanChips(group, plan)
-  const allRules  = [
-    ...(group.requirements ? [group.requirements] : []),
-    ...(group.rules ?? []),
-  ]
+  const allRules  = group.rules ?? []
   const infoRows = [
     ...getInfoRows(group).map(row =>
       row.badge === group.status && statusBadgeOverride
@@ -97,7 +94,12 @@ export default function GroupOverviewContent({ group, service, plan, reviewsSect
   return (
     <div className="divide-y divide-line-subtle">
       <div className="pb-5 pt-0">
-        <p className="mb-4 text-lg font-black text-brand">群組資訊</p>
+        <p className="mb-4 text-lg font-black text-brand">服務介紹</p>
+        <ServiceIntro service={service} plan={plan} planChips={planChips} />
+      </div>
+
+      <div className="space-y-4 py-5">
+        <p className="text-lg font-black text-brand">群組資訊</p>
         {infoRows.length > 0 && (
           <div className="space-y-2">
             {infoRows.map(({ label, value, badge }) => (
@@ -120,12 +122,7 @@ export default function GroupOverviewContent({ group, service, plan, reviewsSect
       </div>
 
       <div className="space-y-4 py-5">
-        <p className="text-lg font-black text-brand">服務介紹</p>
-        <ServiceIntro service={service} plan={plan} planChips={planChips} />
-      </div>
-
-      <div className="space-y-4 py-5">
-        <p className="text-lg font-black text-brand">加入條件與規則</p>
+        <p className="text-lg font-black text-brand">群組規則</p>
         <RulesList allRules={allRules} />
       </div>
 

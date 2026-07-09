@@ -1,13 +1,14 @@
-import { useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, Eye, Info } from 'lucide-react'
+import { AlertCircle, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Eye, Info } from 'lucide-react'
 import FlowLayout from '../../shared/layout/FlowLayout'
-import SlideTrack, { SlidePanel } from '../../shared/ui/SlideTrack'
-import LivePreviewPanel from './components/LivePreviewPanel'
 import Step1Service from './components/steps/Step1Service'
 import Step2PlanSettings from './components/steps/Step2PlanSettings'
 import Step3Preview from './components/steps/Step3Preview'
 import Button from '../../shared/ui/Button'
+import ServiceLogo from '../../shared/ui/ServiceLogo'
+import TokenAmount from '../../shared/ui/TokenAmount'
+import LivePreviewPanel from './components/LivePreviewPanel'
 import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { useNotificationStore } from '../../shared/stores/useNotificationStore'
 import { getServiceById } from '../../shared/utils/serviceUtils'
@@ -22,8 +23,9 @@ const INITIAL_FORM = {
   pricePerSeat: 0,
   billingCycle: 'monthly',
   totalSeats: 2,
+  minCreditScore: 0,
   requirements: '',
-  rules: [''],
+  rules: ['', '', ''],
 }
 
 function mapFormToGroup(form) {
@@ -43,6 +45,7 @@ function mapFormToGroup(form) {
     usedSeats: 1,
     openSeats: totalSeats - 1,
     joinMode: 'approval',
+    minCreditScore: form.minCreditScore || 0,
     requirements: form.requirements.trim(),
     rules,
     tags,
@@ -97,8 +100,41 @@ export default function CreateGroupPage() {
   }
   const [step, setStep] = useState(1)
   const [form, setForm] = useState(INITIAL_FORM)
-  const [showPreview, setShowPreview] = useState(false)
   const [agreedToTerms, setAgreedToTerms] = useState(false)
+  const [showPreview, setShowPreview] = useState(false)
+  const [atBottom, setAtBottom] = useState(false)
+  const [canScroll, setCanScroll] = useState(false)
+  const scrollElRef = useRef(null)
+  const resizeObserverRef = useRef(null)
+  const mutationObserverRef = useRef(null)
+
+  function updateScrollState(el) {
+    if (!el) return
+    const { scrollTop, scrollHeight, clientHeight } = el
+    setAtBottom(scrollTop + clientHeight >= scrollHeight - 20)
+    setCanScroll(scrollHeight > clientHeight + 20)
+  }
+  function handleContentScroll(e) { updateScrollState(e.currentTarget) }
+  function scrollContentToTop() { scrollElRef.current?.scrollTo({ top: 0, behavior: 'smooth' }) }
+  function scrollContentDown()  { scrollElRef.current?.scrollBy({ top: 200, behavior: 'smooth' }) }
+
+  // 內容區第一層子元素固定 h-full（跟容器等高), ResizeObserver 盯著它偵測不到內部真正的
+  // 內容溢出，所以改用 MutationObserver 監看整個子樹的異動，每次異動都重新讀取真實的
+  // scrollHeight/clientHeight 來判斷是否 overflow
+  const scrollRef = useCallback((el) => {
+    scrollElRef.current = el
+    resizeObserverRef.current?.disconnect()
+    mutationObserverRef.current?.disconnect()
+    if (!el) return
+    const check = () => updateScrollState(el)
+    const observer = new ResizeObserver(check)
+    observer.observe(el)
+    resizeObserverRef.current = observer
+    const mutationObserver = new MutationObserver(check)
+    mutationObserver.observe(el, { childList: true, subtree: true })
+    mutationObserverRef.current = mutationObserver
+    updateScrollState(el)
+  }, [])
 
   function onChange(key, value) {
     setForm(prev => {
@@ -136,13 +172,16 @@ export default function CreateGroupPage() {
   }
 
   function handleNext() {
-    if (canNext() && step < 3) { setStep(s => s + 1); setShowPreview(false) }
+    if (canNext() && step < 3) {
+      setStep(s => s + 1)
+      scrollElRef.current?.scrollTo({ top: 0 })
+    }
   }
 
   function handleBack() {
     if (step <= 1) return
     setStep(s => s - 1)
-    setShowPreview(false)
+    scrollElRef.current?.scrollTo({ top: 0 })
   }
 
   function handleSubmit() {
@@ -166,6 +205,7 @@ export default function CreateGroupPage() {
     }
     window.dispatchEvent(new CustomEvent('pm:group-created', { detail: { groupId: group.id } }))
     setStep(4)
+    scrollElRef.current?.scrollTo({ top: 0 })
   }
 
   const footer = step <= 3 && (
@@ -197,12 +237,16 @@ export default function CreateGroupPage() {
   const desc = step === 2
     ? service?.plans.find(p => p.name === form.planName)?.description
     : null
-  const showErrors = stepErrors.length > 0 && step < 3
+  const hasEligiblePlans = (service?.plans ?? []).some(p => p.maxSeats > 1)
+  const visibleStepErrors = stepErrors.filter(err =>
+    err !== '請選擇一個訂閱服務' && (err !== '請選擇方案' || hasEligiblePlans)
+  )
+  const showErrors = visibleStepErrors.length > 0 && step < 3
 
   const errorBox = showErrors && (
     <div className="flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2.5 text-xs text-amber-700">
       <AlertCircle size={13} className="shrink-0" />
-      <span>{stepErrors[0]}</span>
+      <span>{visibleStepErrors[0]}</span>
     </div>
   )
   const descBox = desc && (
@@ -218,89 +262,103 @@ export default function CreateGroupPage() {
     </div>
   )
 
-  const previewButton = step < 3 && (
-    <button
-      onClick={() => setShowPreview(true)}
-      className="flex items-center gap-1.5 rounded-full border border-line px-3 h-8 text-xs font-bold text-ink-2 transition-colors hover:bg-raised hover:text-ink lg:hidden"
-      aria-label="顯示預覽"
-    >
-      <Eye size={14} />
-      顯示預覽
-    </button>
-  )
+  const CurrentStep = STEP_COMPONENTS[step - 1]
 
   return (
     <FlowLayout
       progress={(Math.min(step, 3) / 3) * 100}
       title={step <= 3 ? STEP_TITLES[step - 1] : undefined}
-      headerAction={previewButton || undefined}
       footerNote={footerNote || undefined}
       bottomNav={footer}
+      maxWidth="max-w-xl md:max-w-2xl lg:max-w-3xl"
     >
-      <SlideTrack activeIndex={step - 1} count={4}>
-        {STEP_COMPONENTS.map((StepN, i) => {
-          const n = i + 1
-          const isActive = n === step
-
-          if (n === 1) {
-            return (
-              <SlidePanel key={n} count={4} className="lg:overflow-hidden">
-                <div className="flex h-full flex-col gap-4 py-4">
-                  <div className="lg:min-h-0 lg:flex-1">
-                    <StepN form={form} onChange={onChange} preview={<LivePreviewPanel form={form} />} />
-                  </div>
-                </div>
-              </SlidePanel>
-            )
-          }
-
-          return (
-            <SlidePanel key={n} count={4} className="lg:overflow-hidden">
-              <div className="flex h-full flex-col gap-4 py-4 lg:flex-row">
-                <div className="min-w-0 flex-1 lg:h-full lg:overflow-y-auto lg:pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                  <StepN form={form} onChange={onChange} agreedToTerms={agreedToTerms} onAgreeChange={setAgreedToTerms} />
-                  {isActive && (
-                    <div className="mt-4 hidden space-y-2 lg:block">
-                      {descBox}
-                      {errorBox}
+      <div className="relative h-full">
+        <div
+          ref={scrollRef}
+          onScroll={handleContentScroll}
+          className="h-full overflow-y-auto pt-6 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          <div key={step} className="h-full animate-step-slide-up p-0.5">
+            {step <= 3 ? (
+              <>
+                <div className={`flex h-full flex-col ${(step === 2 || step === 3) && !canScroll ? 'lg:justify-center' : ''}`}>
+                  {(step === 2 || step === 3) && (
+                    <div className={`mb-6 flex items-center gap-4 rounded-2xl border border-line bg-white px-6 py-5 shadow-sm ${step === 3 ? 'hidden lg:flex' : ''}`}>
+                      <ServiceLogo serviceId={form.serviceId} size={56} className="shrink-0 rounded-logo border-line-strong" />
+                      <div className="min-w-0 flex-1">
+                        <h2 className="truncate text-lg font-black text-ink">{service?.fullName ?? '尚未選擇服務'}</h2>
+                        <p className="truncate text-sm text-ink-3">{form.planName || '尚未選擇方案'}</p>
+                      </div>
+                      {step === 3 ? (
+                        <button
+                          onClick={() => setShowPreview(true)}
+                          className="flex shrink-0 items-center gap-1.5 rounded-full border border-line px-4 py-2 text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-ink"
+                        >
+                          <Eye size={15} />
+                          查看預覽
+                        </button>
+                      ) : (
+                        <TokenAmount
+                          amount={form.billingCycle === 'yearly' ? form.pricePerSeat * 12 : form.pricePerSeat}
+                          cycle={form.billingCycle === 'yearly' ? 'yearly' : 'monthly'}
+                          align="center"
+                          className="shrink-0 text-2xl font-black text-ink"
+                        />
+                      )}
                     </div>
                   )}
+                  {step === 3 ? (
+                    <Step3Preview form={form} agreedToTerms={agreedToTerms} onAgreeChange={setAgreedToTerms} />
+                  ) : (
+                    <CurrentStep form={form} onChange={onChange} />
+                  )}
                 </div>
-                {n < 3 && (
-                  <div className="hidden shrink-0 lg:block lg:w-72 lg:self-start">
-                    <LivePreviewPanel form={form} />
+                {step !== 1 && (
+                  <div className="mt-4 hidden space-y-2 lg:block">
+                    {descBox}
+                    {errorBox}
                   </div>
                 )}
+              </>
+            ) : (
+              <div className="flex h-full flex-col items-center justify-center text-center">
+                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
+                  <CheckCircle2 size={28} className="text-emerald-500" />
+                </div>
+                <h3 className="mb-1 text-lg font-extrabold text-ink">群組已成功上架！</h3>
+                <p className="text-sm leading-relaxed text-ink-3">你的群組現在已開放招募成員</p>
+                <div className="mt-6 flex w-full max-w-xs gap-3">
+                  <Button variant="secondary" size="md" className="flex-1" onClick={() => navigate('/')}>
+                    返回首頁
+                  </Button>
+                  <Button variant="success" size="md" className="flex-1" onClick={() => navigate('/my-groups?view=host')}>
+                    前往群組管理
+                  </Button>
+                </div>
               </div>
-            </SlidePanel>
-          )
-        })}
-
-        <SlidePanel count={4}>
-          <div className="flex flex-col items-center py-16 text-center">
-            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
-              <CheckCircle2 size={28} className="text-emerald-500" />
-            </div>
-            <h3 className="mb-1 text-lg font-extrabold text-ink">群組已成功上架！</h3>
-            <p className="text-sm leading-relaxed text-ink-3">你的群組現在已開放招募成員</p>
-            <div className="mt-6 flex w-full max-w-xs gap-3">
-              <Button variant="secondary" size="md" className="flex-1" onClick={() => navigate('/')}>
-                返回首頁
-              </Button>
-              <Button variant="success" size="md" className="flex-1" onClick={() => navigate('/my-groups?view=host')}>
-                前往群組管理
-              </Button>
-            </div>
+            )}
           </div>
-        </SlidePanel>
-      </SlideTrack>
+        </div>
 
-      {showPreview && step < 3 && (
+        {step <= 3 && canScroll && (
+          <div className="pointer-events-none absolute inset-x-0 bottom-3 hidden justify-end lg:flex">
+            <button
+              onClick={atBottom ? scrollContentToTop : scrollContentDown}
+              className="pointer-events-auto grid h-8 w-8 place-items-center rounded-full border border-line bg-canvas shadow-md text-ink-3 transition-colors hover:text-ink animate-bounce"
+              title={atBottom ? '回到頂部' : '往下捲動'}
+            >
+              {atBottom ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {showPreview && (
         <div
-          className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 lg:hidden"
+          className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 px-4 md:px-8"
           onClick={() => setShowPreview(false)}
         >
-          <div className="mx-6 w-full max-w-xs" onClick={e => e.stopPropagation()}>
+          <div className="mx-auto w-full max-w-xs" onClick={e => e.stopPropagation()}>
             <LivePreviewPanel form={form} />
           </div>
         </div>

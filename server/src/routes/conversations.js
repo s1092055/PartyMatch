@@ -20,11 +20,16 @@ const dmSchema = z.object({
 // GET /conversations — 我的所有對話（含群組服務資訊與 DM 參與者資訊）
 router.get('/', requireAuth, async (req, res, next) => {
   try {
-    const conversations = await prisma.conversation.findMany({
+    const rawConversations = await prisma.conversation.findMany({
       where:   { participants: { array_contains: req.user.id } },
       include: { group: { select: { id: true, planName: true, hostId: true, service: { select: { id: true, name: true } } } } },
       orderBy: { updatedAt: 'desc' },
     })
+
+    // 由非發起人主動開的對話，在對方送出第一則訊息前先不列出（lastMessage 為 null 代表還沒有任何訊息）
+    const conversations = rawConversations.filter(c =>
+      !(c.initiatorId && c.initiatorId !== req.user.id && c.lastMessage == null)
+    )
 
     // 為 DM 對話補上參與者 meta（name / avatarInitial / avatarColor）
     const allParticipantIds = [...new Set(
@@ -91,7 +96,7 @@ router.post('/dm', requireAuth, validate(dmSchema), async (req, res, next) => {
 
     if (!conversation) {
       conversation = await prisma.conversation.create({
-        data: { type: 'dm', participants },
+        data: { type: 'dm', participants, initiatorId: req.user.id },
       })
     }
 

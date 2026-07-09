@@ -581,6 +581,17 @@
   backface-visibility: hidden;
 }
 
+@keyframes stepSlideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-step-slide-up {
+  animation: stepSlideUp 0.35s cubic-bezier(0.25, 0.1, 0.25, 1) both;
+  will-change: opacity, transform;
+  backface-visibility: hidden;
+}
+
 @keyframes modalIn {
   from { opacity: 0; transform: scale(0.96); }
   to   { opacity: 1; transform: scale(1); }

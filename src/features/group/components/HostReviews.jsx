@@ -1,7 +1,7 @@
-import { MessageCircle, Star } from 'lucide-react'
+import { MessageCircle, ShieldCheck, Star } from 'lucide-react'
 import Avatar from '../../../shared/ui/Avatar'
 
-export default function HostReviews({ group, hostStars, headerClassName, onDm }) {
+export default function HostReviews({ group, headerClassName, onDm }) {
   return (
     <div className="space-y-4 py-5">
       <p className={headerClassName}>團主評價</p>
@@ -10,13 +10,10 @@ export default function HostReviews({ group, hostStars, headerClassName, onDm })
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-ink">{group.hostName}（團主）</p>
           <div className="mt-1 flex items-center gap-1.5">
-            <div className="flex gap-0.5">
-              {Array.from({ length: 5 }, (_, i) => (
-                <Star key={i} size={12} className={i < hostStars ? 'fill-amber-400 text-amber-400' : 'text-line'} />
-              ))}
-            </div>
+            <ShieldCheck size={13} className="text-brand" />
+            <span className="text-xs font-bold text-ink-2">信用分數 {group.hostRating ?? '—'}</span>
             {(group.hostReviewCount ?? 0) > 0 && (
-              <span className="text-xs text-ink-4">{group.hostReviewCount} 則評價</span>
+              <span className="text-xs text-ink-4">· {group.hostReviewCount} 則評價</span>
             )}
           </div>
         </div>

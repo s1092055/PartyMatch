@@ -13,7 +13,7 @@ import { useFavoriteStore } from '../../../shared/stores/useFavoriteStore'
 import { useAuthStore } from '../../../shared/stores/useAuthStore'
 
 // Tags that are too generic or junk to show as feature chips
-const JUNK_TAGS = new Set(['立即加入', '審核加入', '需要審核', '需審核', '名額剩 1'])
+const JUNK_TAGS = new Set(['審核加入', '需要審核', '需審核', '名額剩 1'])
 // Tags to skip in the first pass (broad categories), but use as fallback
 const CATEGORY_TAGS = new Set(['影音', '音樂', '雲端', 'AI 工具', 'AI工具', '辦公', '通訊'])
 
@@ -166,12 +166,14 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
         )}
       </div>
 
-      <button
-        onClick={openDetails}
-        className="mt-4 w-full rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
-      >
-        查看詳情
-      </button>
+      {!hideActions && (
+        <button
+          onClick={openDetails}
+          className="mt-4 w-full rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
+        >
+          查看詳情
+        </button>
+      )}
 
     </article>
   )

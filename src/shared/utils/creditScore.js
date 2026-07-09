@@ -4,6 +4,10 @@ export const CREDIT_RULES = {
   GROUP_ACTIVATED:  +5,    // 團主成功啟用群組
 }
 
+export function formatMinCreditScore(score) {
+  return score ? `${score} 分以上` : '不限'
+}
+
 export function getCreditDisplay(score) {
   if (score >= 90) return { label: '優良', color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' }
   if (score >= 70) return { label: '良好', color: 'text-blue-600',    bg: 'bg-blue-50',    border: 'border-blue-200' }

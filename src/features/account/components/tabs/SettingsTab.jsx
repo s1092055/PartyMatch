@@ -20,7 +20,7 @@ function loadPrefs() {
 
 function SettingRow({ label, desc, checked, onChange }) {
   return (
-    <div className="flex items-center gap-4 px-5 py-3.5">
+    <div className="flex items-center gap-4 py-3 border-b border-line-subtle last:border-0">
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium text-ink-2">{label}</p>
         {desc && <p className="mt-0.5 text-xs text-ink-3">{desc}</p>}
@@ -30,16 +30,14 @@ function SettingRow({ label, desc, checked, onChange }) {
   )
 }
 
-function SectionCard({ title, icon: Icon, children }) {
+function SectionGroup({ title, icon: Icon, children }) {
   return (
-    <div className="card overflow-hidden">
-      <div className="border-b border-line-subtle bg-raised px-5 py-3">
-        <div className="flex items-center gap-2">
-          <Icon size={13} className="text-ink-3" />
-          <p className="text-xs font-semibold uppercase tracking-wide text-ink-3">{title}</p>
-        </div>
+    <div>
+      <div className="mb-1 flex items-center gap-2">
+        <Icon size={13} className="text-ink-3" />
+        <p className="text-xs font-semibold uppercase tracking-wide text-ink-3">{title}</p>
       </div>
-      <div className="divide-y divide-line-subtle">{children}</div>
+      {children}
     </div>
   )
 }
@@ -61,8 +59,8 @@ export default function SettingsTab({ hideLogout = false }) {
   }
 
   return (
-    <div className="space-y-4">
-      <SectionCard title="一般偏好" icon={Globe}>
+    <div className="space-y-6">
+      <SectionGroup title="一般偏好" icon={Globe}>
         <SettingRow
           label="深色模式"
           desc="（開發中）切換深色介面"
@@ -75,9 +73,9 @@ export default function SettingsTab({ hideLogout = false }) {
           checked={prefs.showAvatars}
           onChange={() => toggle('showAvatars')}
         />
-      </SectionCard>
+      </SectionGroup>
 
-      <SectionCard title="隱私設定" icon={Shield}>
+      <SectionGroup title="隱私設定" icon={Shield}>
         <SettingRow
           label="接收行銷郵件"
           desc="優惠活動與新功能消息"
@@ -90,25 +88,25 @@ export default function SettingsTab({ hideLogout = false }) {
           checked={prefs.shareActivity}
           onChange={() => toggle('shareActivity')}
         />
-      </SectionCard>
+      </SectionGroup>
 
-      <SectionCard title="帳號操作" icon={LogOut}>
+      <SectionGroup title="帳號操作" icon={LogOut}>
         {!hideLogout && (
-          <div className="px-5 py-3.5">
+          <div className="py-3 border-b border-line-subtle last:border-0">
             <button
               onClick={handleLogout}
-              className="flex w-full items-center gap-3 rounded-xl py-1 text-sm font-semibold text-ink-2 transition-colors hover:text-ink"
+              className="flex w-full items-center gap-3 py-1 text-sm font-semibold text-ink-2 transition-colors hover:text-ink"
             >
               <LogOut size={16} className="shrink-0" />
               登出帳號
             </button>
           </div>
         )}
-        <div className="px-5 py-3.5">
+        <div className="py-3 border-b border-line-subtle last:border-0">
           {!showDeleteConfirm ? (
             <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="flex w-full items-center gap-3 rounded-xl py-1 text-sm font-semibold text-danger transition-colors hover:text-danger/80"
+              className="flex w-full items-center gap-3 py-1 text-sm font-semibold text-danger transition-colors hover:text-danger/80"
             >
               <Trash2 size={16} className="shrink-0" />
               刪除帳號
@@ -133,7 +131,7 @@ export default function SettingsTab({ hideLogout = false }) {
             </div>
           )}
         </div>
-      </SectionCard>
+      </SectionGroup>
     </div>
   )
 }

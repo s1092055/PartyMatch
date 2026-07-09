@@ -141,7 +141,7 @@ export function normalizeGroup(group) {
     hostAvatarColor:   group.hostAvatarColor   ?? host.avatarColor   ?? '#94A3B8',
     hostReviewCount:   group.hostReviewCount   ?? 0,
     // 其他
-    rules:     Array.isArray(group.rules) ? group.rules : (group.rules ? [group.rules] : []),
+    rules:     Array.isArray(group.rules) ? group.rules : (group.rules ? group.rules.split('\n').filter(Boolean) : []),
     tags:      Array.isArray(group.tags)  ? group.tags  : [],
     status:    group.status ?? 'recruiting',
     createdAt,

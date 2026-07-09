@@ -8,6 +8,7 @@ const router = Router()
 
 const updateProfileSchema = z.object({
   name:         z.string().min(1).max(50).optional(),
+  phone:        z.union([z.literal(''), z.string().regex(/^09\d{8}$/)]).optional(),
   avatarColor:  z.string().optional(),
   avatarInitial: z.string().max(2).optional(),
 })
@@ -30,7 +31,7 @@ router.patch('/me', requireAuth, validate(updateProfileSchema), async (req, res,
     const user = await prisma.user.update({
       where:  { id: req.user.id },
       data:   req.body,
-      select: { id: true, email: true, name: true, avatarColor: true, avatarInitial: true, creditScore: true },
+      select: { id: true, email: true, name: true, phone: true, avatarColor: true, avatarInitial: true, creditScore: true },
     })
     res.json(user)
   } catch (err) { next(err) }

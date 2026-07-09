@@ -1,4 +1,5 @@
-import { AlertCircle, Check, Minus, Plus, PlusCircle, X } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { AlertCircle, ChevronLeft, ChevronRight, Minus, Plus, PlusCircle, X } from 'lucide-react'
 import { getServiceById } from '../../../../shared/utils/serviceUtils'
 
 const BILLING_CYCLES = [
@@ -6,16 +7,31 @@ const BILLING_CYCLES = [
   { value: 'yearly',  label: '年繳' },
 ]
 
-function Field({ label, required, children, hint, htmlFor }) {
+const MIN_CREDIT_OPTIONS = [
+  { value: 0,  label: '不限' },
+  { value: 90, label: '90 分以上' },
+  { value: 70, label: '70 分以上' },
+  { value: 50, label: '50 分以上' },
+]
+
+function Field({ label, required, children, hint, htmlFor, className = '' }) {
+  const [showHint, setShowHint] = useState(false)
   return (
-    <div>
-      <label htmlFor={htmlFor} className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-slate-700">
+    <div className={className}>
+      <label htmlFor={htmlFor} className="mb-2 flex items-center gap-1.5 text-base font-medium text-slate-700">
         {label}
         {required && <span className="ml-0.5 text-red-400">*</span>}
         {hint && (
           <span className="group relative inline-flex">
-            <AlertCircle size={14} className="text-slate-400" />
-            <span className="pointer-events-none absolute left-full top-1/2 z-10 ml-1.5 w-max max-w-[16rem] -translate-y-1/2 rounded-lg bg-ink px-2.5 py-1.5 text-xs font-normal leading-relaxed text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+            <button
+              type="button"
+              onClick={() => setShowHint(v => !v)}
+              className="text-slate-400"
+              aria-label="說明"
+            >
+              <AlertCircle size={16} />
+            </button>
+            <span className={`pointer-events-none absolute left-full top-1/2 z-10 ml-1.5 w-max max-w-[16rem] -translate-y-1/2 rounded-lg bg-ink px-2.5 py-1.5 text-sm font-normal leading-relaxed text-white shadow-lg transition-opacity group-hover:opacity-100 ${showHint ? 'opacity-100' : 'opacity-0'}`}>
               {hint}
             </span>
           </span>
@@ -31,6 +47,23 @@ export default function Step2PlanSettings({ form, onChange }) {
   const plan = service?.plans.find(p => p.name === form.planName)
   const maxSeats = plan?.maxSeats ?? 10
   const openSeats = form.totalSeats - 1
+  const groupPlans = service?.plans.filter(p => p.maxSeats > 1) ?? []
+  const activeIndex = Math.max(0, groupPlans.findIndex(p => p.name === form.planName))
+  const currentPlan = groupPlans[activeIndex]
+  const isPlanSelected = currentPlan && form.planName === currentPlan.name
+
+  useEffect(() => {
+    if (!form.planName && groupPlans.length > 0) {
+      onChange('planName', groupPlans[0].name)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.serviceId])
+
+  function selectPlanAt(idx) {
+    if (groupPlans.length === 0) return
+    const clamped = Math.min(Math.max(idx, 0), groupPlans.length - 1)
+    onChange('planName', groupPlans[clamped].name)
+  }
 
   function updateRule(i, val) {
     const next = [...form.rules]
@@ -47,42 +80,65 @@ export default function Step2PlanSettings({ form, onChange }) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-5">
+    <div className="lg:flex lg:items-stretch lg:gap-8">
+      {/* 左：選擇方案、收費週期、開放名額 */}
+      <div className="flex min-w-0 flex-1 flex-col space-y-5">
         <Field label="選擇方案" required hint="選擇方案後，費用將依官方定價自動計算">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            {service?.plans.filter(p => p.maxSeats > 1).map(p => {
-              const active = form.planName === p.name
-              return (
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => selectPlanAt(activeIndex - 1)}
+              disabled={groupPlans.length <= 1 || activeIndex <= 0}
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-30"
+              aria-label="上一個方案"
+            >
+              <ChevronLeft size={16} />
+            </button>
+
+            <div className="min-w-0 flex-1">
+              {currentPlan ? (
                 <button
-                  key={p.name}
-                  onClick={() => onChange('planName', p.name)}
-                  className={`flex items-start justify-between px-4 py-3 rounded-xl border-2 text-sm transition-all ${
-                    active
+                  type="button"
+                  onClick={() => selectPlanAt(activeIndex)}
+                  className={`flex h-16 w-full items-center justify-center rounded-xl border-2 px-4 text-base transition-all ${
+                    isPlanSelected
                       ? 'border-brand bg-brand-subtle text-brand'
-                      : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                      : 'border-slate-200 bg-white text-slate-600'
                   }`}
                 >
-                  <div className="text-left">
-                    <p className="font-medium">{p.name}</p>
-                    <p className={`text-xs mt-0.5 ${active ? 'text-brand' : 'text-slate-400'}`}>
-                      官方月費 NT${p.monthlyPrice} · 最多 {p.maxSeats} 人
+                  <div className="min-w-0 text-center">
+                    <p className="font-medium truncate">{currentPlan.name}</p>
+                    <p className={`text-sm mt-0.5 truncate ${isPlanSelected ? 'text-brand' : 'text-slate-400'}`}>
+                      NT${currentPlan.monthlyPrice} · {currentPlan.maxSeats} 人
                     </p>
                   </div>
-                  {active && <Check size={14} className="text-brand shrink-0 mt-0.5" />}
                 </button>
-              )
-            })}
+              ) : (
+                <div className="flex h-16 w-full items-center justify-center rounded-xl border-2 border-slate-200 bg-white px-4 text-sm text-slate-400">
+                  尚無可選方案
+                </div>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => selectPlanAt(activeIndex + 1)}
+              disabled={groupPlans.length <= 1 || activeIndex >= groupPlans.length - 1}
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-30"
+              aria-label="下一個方案"
+            >
+              <ChevronRight size={16} />
+            </button>
           </div>
         </Field>
 
-        <Field label="計費週期" required hint="選擇月繳或年繳，費用會依方案自動換算">
+        <Field label="收費週期" required hint="選擇月繳或年繳，費用會依方案自動換算">
           <div className="flex gap-2">
             {BILLING_CYCLES.map(c => (
               <button
                 key={c.value}
                 onClick={() => onChange('billingCycle', c.value)}
-                className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium transition-colors ${
+                className={`flex-1 py-2.5 rounded-xl border-2 text-base font-medium transition-colors ${
                   form.billingCycle === c.value
                     ? 'border-brand bg-brand-subtle text-brand'
                     : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
@@ -93,11 +149,9 @@ export default function Step2PlanSettings({ form, onChange }) {
             ))}
           </div>
         </Field>
-      </div>
 
-      <div className="space-y-5 border-t border-line pt-6">
         <Field label="開放名額" required hint={`最多可開放 ${maxSeats - 1} 位成員加入（不含你自己）`}>
-          <div className="flex items-center gap-3 border border-slate-200 rounded-xl p-1 w-fit">
+          <div className="flex w-full items-center justify-between gap-3 border border-slate-200 rounded-xl p-1">
             <button
               onClick={() => onChange('totalSeats', Math.max(2, form.totalSeats - 1))}
               className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-100 transition-colors disabled:opacity-30"
@@ -105,7 +159,7 @@ export default function Step2PlanSettings({ form, onChange }) {
             >
               <Minus size={14} className="text-slate-600" />
             </button>
-            <span className="w-10 text-center text-xl font-bold text-slate-800">
+            <span className="text-center text-2xl font-bold text-slate-800">
               {openSeats}
             </span>
             <button
@@ -118,6 +172,27 @@ export default function Step2PlanSettings({ form, onChange }) {
           </div>
         </Field>
 
+        <Field label="信用分數" hint="設定申請人需達到的最低信用分數門檻，篩掉高風險使用者">
+          <div className="flex gap-2">
+            {MIN_CREDIT_OPTIONS.map(o => (
+              <button
+                key={o.value}
+                onClick={() => onChange('minCreditScore', o.value)}
+                className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium transition-colors ${
+                  (form.minCreditScore ?? 0) === o.value
+                    ? 'border-brand bg-brand-subtle text-brand'
+                    : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                }`}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
+        </Field>
+      </div>
+
+      {/* 右：帳號需求、群組規則 */}
+      <div className="mt-6 flex flex-1 flex-col space-y-5 lg:mt-0">
         <Field label="帳號需求" hint="說明成員是否需要自備帳號，或有其他帳號相關條件（選填）">
           <textarea
             rows={2}
@@ -125,7 +200,7 @@ export default function Step2PlanSettings({ form, onChange }) {
             value={form.requirements}
             onChange={e => onChange('requirements', e.target.value)}
             maxLength={120}
-            className="field w-full resize-none"
+            className="field w-full resize-none text-base"
           />
         </Field>
 
@@ -133,21 +208,21 @@ export default function Step2PlanSettings({ form, onChange }) {
           <div className="space-y-2">
             {form.rules.map((rule, i) => (
               <div key={i} className="flex items-center gap-2">
-                <span className="text-xs text-slate-400 w-4 shrink-0 text-right">{i + 1}.</span>
+                <span className="text-sm text-slate-400 w-4 shrink-0 text-right">{i + 1}.</span>
                 <input
                   type="text"
                   placeholder="例如：每月 15 日前完成付款"
                   value={rule}
                   onChange={e => updateRule(i, e.target.value)}
                   maxLength={80}
-                  className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="field flex-1 text-base"
                 />
                 {form.rules.length > 1 && (
                   <button
                     onClick={() => removeRule(i)}
                     className="text-slate-300 hover:text-red-400 transition-colors"
                   >
-                    <X size={15} />
+                    <X size={17} />
                   </button>
                 )}
               </div>
@@ -155,9 +230,9 @@ export default function Step2PlanSettings({ form, onChange }) {
             {form.rules.length < 5 && (
               <button
                 onClick={addRule}
-                className="ml-6 flex items-center gap-1.5 text-sm text-brand hover:text-brand/80 mt-1"
+                className="ml-6 flex items-center gap-1.5 text-base text-brand hover:text-brand/80 mt-1"
               >
-                <PlusCircle size={14} />
+                <PlusCircle size={16} />
                 新增規則
               </button>
             )}

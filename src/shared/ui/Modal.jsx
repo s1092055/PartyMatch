@@ -16,6 +16,8 @@ export default function Modal({
   sub = false,
   hideClose = false,
   hideBack = false,
+  headerBorder = true,
+  showHeader = true,
   children,
 }) {
   const resolvedMaxWidth = maxWidth ?? (sub ? 'max-w-md' : 'max-w-5xl')
@@ -80,7 +82,7 @@ export default function Modal({
               {headerEnd && <div className="shrink-0">{headerEnd}</div>}
             </div>
           )}
-          {children}
+          <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">{children}</div>
           {footer && <div className="flex shrink-0 gap-3 border-t border-line px-6 py-4">{footer}</div>}
         </div>
       </div>,
@@ -99,10 +101,11 @@ export default function Modal({
           className={`pointer-events-auto flex w-full ${resolvedMaxWidth} flex-col overflow-hidden rounded-2xl bg-canvas shadow-2xl animate-modal-in`}
           style={height ? { height } : undefined}
         >
-          <div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-5">
+          {showHeader && (
+          <div className={`flex shrink-0 items-center justify-between px-6 py-5 ${headerBorder ? 'border-b border-line' : ''}`}>
             <div className="flex items-center gap-2">
               {icon}
-              <h2 className="text-lg font-extrabold text-ink">{title}</h2>
+              {title && <h2 className="text-lg font-extrabold text-ink">{title}</h2>}
             </div>
             <div className="flex items-center gap-1">
               {headerEnd}
@@ -111,7 +114,8 @@ export default function Modal({
               </button>
             </div>
           </div>
-          {children}
+          )}
+          <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">{children}</div>
           {footer && <div className="flex shrink-0 gap-3 border-t border-line px-6 py-4">{footer}</div>}
         </div>
       </div>
