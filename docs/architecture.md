@@ -248,7 +248,7 @@ init: async () => {
 | `src/shared/layout/FlowLayout.jsx` | `CreateGroupPage`、`QuickMatchPage` | 無 sidebar/dock 的全螢幕步驟流程殼：左上角 PartyMatch logo（一般 `<a href="/">`，非 `navigate()`，點擊回首頁會觸發整頁重新載入）、頂部細進度條、置中標題（absolute 定位，不受左右內容寬度不對稱影響）、固定高度 header/footer（`h-16`/`md:h-20`）、內容區 `min-h-0 + overflow-hidden` 搭配子層各自 `overflow-y-auto`，避免頁面本身垂直捲動、底部固定 Prev/Next 導覽列；容器寬度於 `lg:` 以上用 `clamp()` 隨螢幕寬度連續放大（非固定 `max-w`），避免超寬螢幕留白暴增 |
 | `src/shared/utils/hooks.js`（`useScrollEdge`） | `CreateGroupPage`、`QuickMatchPage`、`Step2PlansAndFilters` | 共用捲動邊界偵測 hook：回報 `canScroll`/`atBottom`，並提供 `scrollToTop`/`scrollDown` 控制函式；可選 `withMutationObserver` 監看內容子樹異動。`CreateGroupPage` 僅在第 3 步（確認送出）依 `!canScroll` 切換 `lg:justify-center`，第 2 步（方案與設定）固定頂部對齊——因為該步驟的群組規則列表可動態增減，若隨 `canScroll` 切換置中會在新增規則跨過捲動門檻時造成整體內容跳動 |
 | `src/shared/ui/ScrollHintButton.jsx` | `CreateGroupPage`、`QuickMatchPage`、`Step2PlansAndFilters` | 共用浮動捲動提示按鈕，取代原本三處重複的 chevron 按鈕實作 |
-| `src/shared/layout/AppNav.jsx` | `NAV_SECTIONS`、`authStore`、`notificationStore`、`conversationStore`、`toast` | **桌機版**：左側 sidebar（白底，收合 64px / 展開 224px，hover/focus-within 觸發）；通知與訊息為長型矩形按鈕（附文字標籤）；sidebar 底部使用者按鈕上方顯示 PM 幣餘額列（收合隱藏、展開顯示，含加值按鈕）；頭像按鈕點擊透過 createPortal 開啟置中 Modal（帳號資訊、帳號設定與登出），開啟任一 Modal 時 blur 讓 sidebar 自動收合。**手機版**：頂部 header（Logo + 通知 + 頭像按鈕；未登入時頭像按鈕為純圖示無底色）+ 底部 Dock（快速搜尋、建立群組、探索中央圓形按鈕、我的 dropdown、訊息）；「我的」向上展開橫排 dropdown（我的群組 / 我的收藏）；未登入點擊鎖定項目發 Toast（附「前往登入」按鈕）；Dock 透過 `useHideOnScroll`（`shared/utils/hooks.js`）往下捲動時滑出隱藏、往上捲或接近頁面頂端時顯示，`ScrollToTop` 按鈕位置隨 Dock 顯示狀態連動避免重疊；監聽 `pm:open-topup` 事件開啟 `TopupModal`（供其他元件如 `GroupDetailModal` 在代幣不足時，透過 toast 的 `action` 按鈕觸發儲值） |
+| `src/shared/layout/AppNav.jsx` | `NAV_SECTIONS`、`authStore`、`notificationStore`、`conversationStore`、`toast` | **桌機版**：左側 sidebar（白底，收合 64px / 展開 224px，hover/focus-within 觸發）；通知與訊息為長型矩形按鈕（附文字標籤）；sidebar 底部使用者按鈕上方顯示 PM 幣餘額列（收合隱藏、展開顯示，含加值按鈕）；頭像按鈕點擊直接導向 `/account`（不經中間選單），開啟 PM 儲值 Modal 時 blur 讓 sidebar 自動收合。**手機版**：頂部 header（Logo + 通知 + 頭像按鈕；未登入時頭像按鈕為純圖示無底色）+ 底部 Dock（快速搜尋、建立群組、探索中央圓形按鈕、我的 dropdown、訊息）；「我的」向上展開橫排 dropdown（我的群組 / 我的收藏）；未登入點擊鎖定項目發 Toast（附「前往登入」按鈕）；Dock 透過 `useHideOnScroll`（`shared/utils/hooks.js`）往下捲動時滑出隱藏、往上捲或接近頁面頂端時顯示，`ScrollToTop` 按鈕位置隨 Dock 顯示狀態連動避免重疊；監聽 `pm:open-topup` 事件開啟 `TopupModal`（供其他元件如 `GroupDetailModal` 在代幣不足時，透過 toast 的 `action` 按鈕觸發儲值） |
 | `src/shared/layout/FloatingMessages.jsx` | `notificationStore`、`conversationStore`、`applicationStore` | 監聽 `pm:open-notify` 顯示通知 panel；通知點擊後依類型 dispatch 對應 `pm:open-*` 事件；`new_application` 點擊時先 await `applicationStore.init()` 再開 Modal，確保資料已更新；`member_left`（成員退出）host 端點擊前廣播 `pm:refresh-member-stores` |
 | `src/shared/ui/GroupModalShell.jsx` | `GroupOverviewContent`、`Badge`、`ProgressBar`、`ServiceLogo` | 三個群組詳情 Modal 共用的滑動軌道殼（300% 寬、三層 panel）；`subPanel` 滑入第二層、`subSubPanel` 滑入第三層，支援 `headerRight` slot；管理 scroll lock、Escape 逐層關閉 |
 | `src/features/group/GroupDetailModal.jsx` | `GroupModalShell`、`favoriteStore`、`applicationStore` | 接收 `pm:open-group`；依使用者狀態顯示申請、收藏、付款 CTA；申請加入流程以 `subPanel` 翻書動畫呈現（填寫留言 → 送出成功兩格水平滑動），不再開啟獨立 Modal |
@@ -338,14 +338,14 @@ init: async () => {
 
 ## 導覽設計
 
-- **桌機版**：左側 floating sidebar，收合為 64px icon bar，hover 展開至 224px 顯示文字標籤；sidebar 底部使用者按鈕上方顯示 PM 幣餘額（含加值按鈕），收合時隱藏、展開後顯示；頭像按鈕點擊開啟置中 Modal（帳號資訊、帳號設定、登出）；開啟 PM 儲值或使用者資訊 Modal 時，sidebar 自動收合（blur 移走焦點）。
+- **桌機版**：左側 floating sidebar，收合為 64px icon bar，hover 展開至 224px 顯示文字標籤；sidebar 底部使用者按鈕上方顯示 PM 幣餘額（含加值按鈕），收合時隱藏、展開後顯示；頭像按鈕點擊直接導向 `/account`（不再彈出中間 Modal），登出改為帳號設定頁底部的按鈕；開啟 PM 儲值 Modal 時，sidebar 自動收合（blur 移走焦點）。
 - **手機版**：頂部 header + 底部 Dock；頂部右側以頭像取代漢堡選單，點擊展開 dropdown（頭像+名稱置中、帳號設定與登出左右並排）；未登入時顯示 UserCircle2 icon 點擊導向登入頁。底部 Dock 由左至右：快速搜尋、建立群組、探索（中央圓形主按鈕）、我的（dropdown：我的群組 + 我的收藏）、訊息。
 
 ---
 
 ## 帳號設定
 
-帳號設定頁（`/account`）分頁包含：**個人資料**（基本資訊編輯）、**付款設定**（付款方式管理 + 交易紀錄）、**通知偏好**（開發中）、**安全驗證**（開發中）、**其他設定**（一般偏好、隱私設定、刪除帳號），管理員另有**管理員**分頁。付款方式最多儲存 2 種，存於後端 MySQL（`payment_methods` table）。PM 幣加值與交易紀錄整合於 TopupModal 的雙面板設計——主面板儲值、子面板查看交易紀錄，兩者以滑動動畫切換。桌機版為左右 sidebar 分頁佈局；手機版為 accordion 展開收合，登出按鈕獨立置於 accordion 最底部並做全寬顯示，不再收在「其他設定」分頁內（桌機版登出仍在「其他設定」分頁中）。
+帳號設定頁（`/account`）分頁包含：**個人資料**（基本資訊編輯）、**付款設定**（付款方式管理 + 交易紀錄）、**通知偏好**（開發中）、**安全驗證**（開發中）、**其他設定**（一般偏好、隱私設定、刪除帳號），管理員另有**管理員**分頁。付款方式最多儲存 2 種，存於後端 MySQL（`payment_methods` table）。PM 幣加值與交易紀錄整合於 TopupModal 的雙面板設計——主面板儲值、子面板查看交易紀錄，兩者以滑動動畫切換。桌機版為左右 sidebar 分頁佈局：右側內容區為固定高度（`calc(100vh - 16rem)`）容器，分頁內容過長時僅內部垂直捲動，登出按鈕（`AccountPage.jsx` 的 `LogoutButton`）固定顯示在該容器最底部、靠右對齊、brand 底色白字（不再收在「其他設定」分頁內）；手機版為 accordion 展開收合，登出按鈕同樣獨立置於 accordion 最底部，樣式與桌機版共用。頂部 `ProfileHeaderCard` 將信用分數（`CreditScoreBadge`）與「查看紀錄」按鈕移至卡片右側，點擊開啟信用分數異動紀錄 modal（目前為空狀態佔位，資料層尚未建立，見信用分數系統規劃）。
 
 ---
 

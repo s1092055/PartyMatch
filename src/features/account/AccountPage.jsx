@@ -47,18 +47,30 @@ function ComingSoonPlaceholder({ label }) {
   )
 }
 
-function TabContent({ value, user, onChange, tabs, hideLogout = false }) {
+function TabContent({ value, user, onChange, tabs }) {
   const tab = tabs.find(t => t.value === value)
   if (tab?.comingSoon) return <ComingSoonPlaceholder label={tab.label} />
   if (value === "profile")       return <PersonalInfoTab user={user} onChange={onChange} />
   if (value === "tokens")        return <TokenTab />
-  if (value === "settings")      return <SettingsTab hideLogout={hideLogout} />
+  if (value === "settings")      return <SettingsTab />
   if (value === "admin")         return <AdminTab />
   return null
 }
 
-export default function AccountPage() {
+function LogoutButton({ className = "" }) {
   const navigate = useNavigate();
+  return (
+    <button
+      onClick={() => { useAuthStore.getState().logout(); navigate('/login', { replace: true }) }}
+      className={`ml-auto flex w-fit shrink-0 items-center justify-center gap-2 rounded-2xl bg-brand px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-brand-hover ${className}`}
+    >
+      <LogOut size={16} className="shrink-0" />
+      登出
+    </button>
+  )
+}
+
+export default function AccountPage() {
   const [activeTab, setActiveTab] = useState("profile");
   const [openAccordion, setOpenAccordion] = useState("profile");
   const isAdmin = useAuthStore(s => s.user?.isAdmin ?? false)
@@ -77,11 +89,6 @@ export default function AccountPage() {
   function handleUserChange(key, value) {
     setUser((prev) => ({ ...prev, [key]: value }));
     useAuthStore.getState().updateProfile({ [key]: value }).catch(console.error);
-  }
-
-  function handleLogout() {
-    useAuthStore.getState().logout();
-    navigate('/login', { replace: true });
   }
 
   return (
@@ -118,11 +125,15 @@ export default function AccountPage() {
           </ul>
         </nav>
 
-        {/* 右側內容區 */}
-        <div className="min-w-0 flex-1">
-          <TabReveal key={activeTab}>
-            <TabContent value={activeTab} user={user} onChange={handleUserChange} tabs={TABS} />
-          </TabReveal>
+        {/* 右側內容區：固定高度，內容過長時自行垂直捲動，登出按鈕固定在底部 */}
+        <div className="flex min-w-0 flex-1 flex-col" style={{ height: 'calc(100vh - 16rem)', minHeight: '28rem' }}>
+          <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+            <TabReveal key={activeTab}>
+              <TabContent value={activeTab} user={user} onChange={handleUserChange} tabs={TABS} />
+            </TabReveal>
+          </div>
+
+          <LogoutButton className="mt-4" />
         </div>
       </div>
 
@@ -152,7 +163,7 @@ export default function AccountPage() {
               {isOpen && (
                 <TabReveal key={tab.value}>
                   <div className="border-t border-line px-4 py-4">
-                    <TabContent value={tab.value} user={user} onChange={handleUserChange} tabs={TABS} hideLogout />
+                    <TabContent value={tab.value} user={user} onChange={handleUserChange} tabs={TABS} />
                   </div>
                 </TabReveal>
               )}
@@ -160,13 +171,7 @@ export default function AccountPage() {
           )
         })}
 
-        <button
-          onClick={handleLogout}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl border border-line py-3.5 text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-ink"
-        >
-          <LogOut size={16} className="shrink-0" />
-          登出帳號
-        </button>
+        <LogoutButton />
       </div>
     </div>
   );

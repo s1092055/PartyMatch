@@ -18,7 +18,6 @@ export default function AppNav() {
   const myMenuRef = useRef(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const mobileMenuRef = useRef(null)
-  const [desktopMenuOpen, setDesktopMenuOpen] = useState(false)
 
   useClickOutside(myMenuOpen, [myMenuRef], () => setMyMenuOpen(false))
   useClickOutside(mobileMenuOpen, [mobileMenuRef], () => setMobileMenuOpen(false))
@@ -28,7 +27,6 @@ export default function AppNav() {
   const [prevPathname, setPrevPathname] = useState(pathname)
   if (pathname !== prevPathname) {
     setPrevPathname(pathname)
-    setDesktopMenuOpen(false)
     setMobileMenuOpen(false)
     setMyMenuOpen(false)
   }
@@ -55,14 +53,12 @@ export default function AppNav() {
   if (loggedIn !== prevLoggedIn) {
     setPrevLoggedIn(loggedIn)
     if (!loggedIn) {
-      setDesktopMenuOpen(false)
       setMobileMenuOpen(false)
     }
   }
 
   function closeAll() {
     document.activeElement?.blur()
-    setDesktopMenuOpen(false)
     setMobileMenuOpen(false)
     setMyMenuOpen(false)
   }
@@ -113,8 +109,6 @@ export default function AppNav() {
         unreadNotifs={unreadNotifs}
         unreadMsgs={unreadMsgs}
         tokenBalance={tokenBalance}
-        desktopMenuOpen={desktopMenuOpen}
-        setDesktopMenuOpen={setDesktopMenuOpen}
         setTopupOpen={setTopupOpen}
         closeAll={closeAll}
         openCreate={openCreate}

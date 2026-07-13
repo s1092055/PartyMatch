@@ -1,7 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Globe, LogOut, Shield, Trash2 } from 'lucide-react'
-import { useAuthStore } from '../../../../shared/stores/useAuthStore'
 import { readStorage, writeStorage } from '../../../../shared/utils/storage'
 import Toggle from '../../../../shared/ui/Toggle'
 
@@ -42,8 +40,7 @@ function SectionGroup({ title, icon: Icon, children }) {
   )
 }
 
-export default function SettingsTab({ hideLogout = false }) {
-  const navigate = useNavigate()
+export default function SettingsTab() {
   const [prefs, setPrefs] = useState(loadPrefs)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
@@ -51,11 +48,6 @@ export default function SettingsTab({ hideLogout = false }) {
     const next = { ...prefs, [key]: !prefs[key] }
     setPrefs(next)
     writeStorage(PREFS_KEY, next)
-  }
-
-  function handleLogout() {
-    useAuthStore.getState().logout()
-    navigate('/login', { replace: true })
   }
 
   return (
@@ -91,17 +83,6 @@ export default function SettingsTab({ hideLogout = false }) {
       </SectionGroup>
 
       <SectionGroup title="帳號操作" icon={LogOut}>
-        {!hideLogout && (
-          <div className="py-3 border-b border-line-subtle last:border-0">
-            <button
-              onClick={handleLogout}
-              className="flex w-full items-center gap-3 py-1 text-sm font-semibold text-ink-2 transition-colors hover:text-ink"
-            >
-              <LogOut size={16} className="shrink-0" />
-              登出帳號
-            </button>
-          </div>
-        )}
         <div className="py-3 border-b border-line-subtle last:border-0">
           {!showDeleteConfirm ? (
             <button

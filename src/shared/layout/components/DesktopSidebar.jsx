@@ -1,9 +1,8 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Bell, Lock, LogIn, LogOut, MessageSquare, Settings } from 'lucide-react'
+import { useSearchParams } from 'react-router-dom'
+import { Bell, Lock, LogIn, MessageSquare } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
-import { useAuthStore } from '../../stores/useAuthStore'
 import { NAV_SECTIONS } from '../../constants/nav'
 import { TokenBadge } from '../../ui/TokenAmount'
 import { Badge, LockedHint } from './navShared'
@@ -18,8 +17,6 @@ export default function DesktopSidebar({
   unreadNotifs,
   unreadMsgs,
   tokenBalance,
-  desktopMenuOpen,
-  setDesktopMenuOpen,
   setTopupOpen,
   closeAll,
   openCreate,
@@ -28,7 +25,6 @@ export default function DesktopSidebar({
   openMessages,
   preventLockedAction,
 }) {
-  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [lockedTip, setLockedTip] = useState(null)
 
@@ -157,53 +153,6 @@ export default function DesktopSidebar({
         )}
       </div>
 
-      {/* Desktop avatar modal — portal */}
-      {desktopMenuOpen && loggedIn && createPortal(
-        <>
-          <div
-            className="fixed inset-0 z-[55] cursor-pointer bg-black/50 animate-backdrop-in"
-            onClick={() => setDesktopMenuOpen(false)}
-          />
-          <div className="pointer-events-none fixed inset-0 z-[56] flex items-center justify-center p-4 md:p-8">
-            <div className="pointer-events-auto w-full max-w-xs overflow-hidden rounded-2xl bg-canvas shadow-2xl animate-modal-in">
-              {/* 使用者資訊 */}
-              <div className="flex flex-col items-center gap-3 px-6 pt-8 pb-5">
-                <span
-                  className="relative flex h-16 w-16 items-center justify-center rounded-full text-xl font-black text-white shadow-md"
-                  style={{ background: avatarColor ?? 'linear-gradient(135deg, #cbd5e1, #64748b)' }}
-                >
-                  {avatarInitial}
-                  <span className="absolute bottom-0.5 right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-500" />
-                </span>
-                <p className="text-base font-extrabold text-ink">{userName}</p>
-              </div>
-
-              <div className="border-t border-line-subtle" />
-
-              {/* 帳號設定 + 登出 */}
-              <div className="flex divide-x divide-line-subtle">
-                <a
-                  href="/account"
-                  onClick={() => setDesktopMenuOpen(false)}
-                  className="flex flex-1 items-center justify-center gap-2 py-4 text-sm font-bold text-ink transition-colors hover:bg-raised"
-                >
-                  <Settings size={16} strokeWidth={2} className="shrink-0 text-ink-3" />
-                  帳號設定
-                </a>
-                <button
-                  onClick={() => { setDesktopMenuOpen(false); useAuthStore.getState().logout(); navigate('/login', { replace: true }) }}
-                  className="flex flex-1 items-center justify-center gap-2 py-4 text-sm font-bold text-danger transition-colors hover:bg-danger-subtle"
-                >
-                  <LogOut size={16} strokeWidth={2} className="shrink-0" />
-                  登出
-                </button>
-              </div>
-            </div>
-          </div>
-        </>,
-        document.body
-      )}
-
       {/* Desktop floating sidebar */}
       <aside
         className="group/nav fixed bottom-4 left-4 top-4 z-50 hidden w-16 flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-sm transition-[width] duration-300 ease-out hover:w-56 focus-within:w-56 md:flex"
@@ -242,11 +191,11 @@ export default function DesktopSidebar({
             </div>
           )}
           {loggedIn ? (
-            <button
-              onClick={() => { document.activeElement?.blur(); setDesktopMenuOpen(v => !v) }}
-              aria-label="個人選單"
-              aria-expanded={desktopMenuOpen}
-              className={`flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left transition-all hover:bg-raised ${desktopMenuOpen ? 'bg-raised' : ''}`}
+            <a
+              href="/account"
+              onClick={closeAll}
+              aria-label="帳號設定"
+              className="flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left transition-all hover:bg-raised"
             >
               <span
                 className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-black text-white shadow-md"
@@ -258,7 +207,7 @@ export default function DesktopSidebar({
               <span className="min-w-0 flex-1 opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
                 <span className="block truncate text-sm font-extrabold text-ink">{userName}</span>
               </span>
-            </button>
+            </a>
           ) : (
             <a
               href="/login"
