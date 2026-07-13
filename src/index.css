@@ -48,14 +48,14 @@
   --color-ink:             #081226;
   --color-ink-2:           #36455F;
   --color-ink-3:           #5E6E86;
-  --color-ink-4:           #6B7A94;
+  --color-ink-4:           #64718A;
 
   /* ── Slate scale (mapped to project palette) ── */
   --color-slate-50:        #F7FAFF;
   --color-slate-100:       #EEF3FA;
   --color-slate-200:       #DCE6F5;
   --color-slate-300:       #C7D6EA;
-  --color-slate-400:       #8A9AB3;
+  --color-slate-400:       #667284;
   --color-slate-500:       #5E6E86;
   --color-slate-600:       #40506A;
   --color-slate-700:       #25324A;
@@ -145,18 +145,15 @@
 
   html {
     font-family: var(--font-sans);
-    font-size: 15px;
+    /* 流體字級：375px 視窗 = 15px，1280px 以上 = 17px，中間隨視窗寬度連續縮放；
+       所有 --text-* token 皆為 rem，故全站文字皆隨此根字體大小一起縮放 */
+    font-size: clamp(15px, 14.17px + 0.221vw, 17px);
     overflow-y: scroll;
   }
 
   @media (max-width: 767px) {
-    html { font-size: 15px; }
     /* iOS Safari 對 font-size < 16px 的 input 會強制縮放整頁 */
     input, select, textarea { font-size: 16px; }
-  }
-
-  @media (min-width: 768px) {
-    html { font-size: 17px; }
   }
 
   * { box-sizing: border-box; }

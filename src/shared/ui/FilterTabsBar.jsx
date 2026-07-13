@@ -14,7 +14,7 @@ export default function FilterTabsBar({ tabs, value, onChange, counts = {} }) {
       </div>
 
       {/* 桌機版：左側垂直 tab 選單，樣式比照帳號設定頁 */}
-      <nav className="hidden w-40 shrink-0 self-start md:block">
+      <nav className="hidden w-40 shrink-0 animate-step-slide-up self-start md:block">
         <ul className="flex flex-col gap-1">
           {tabs.map(tab => (
             <li key={tab.key}>
