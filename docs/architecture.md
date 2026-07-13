@@ -194,6 +194,7 @@ src/
 │       ├── groupDisplay.js
 │       ├── hooks.js
 │       ├── modelNormalizers.js
+│       ├── pricingUtils.js
 │       ├── searchUtils.js
 │       ├── serviceUtils.js
 │       ├── storage.js
@@ -300,7 +301,7 @@ init: async () => {
 | `AppNav` | 桌機側欄（含頭像 Modal）、手機 Header（含頭像 dropdown）+ 底部 Dock、通知 / 訊息圓形按鈕、未讀 badge |
 | `Modal` | 通用 Modal 外殼；支援 `sub` prop（子 modal 模式，z-index 提升、左上角返回鍵）；`isOpen` 為 undefined 時為非受控模式 |
 | `GroupModalShell` | 探索、管理、訂閱三處共用的滑動軌道殼；`subPanel`（第二層）+ `subSubPanel`（第三層）prop 實現翻書滑動動畫；支援各層 `headerRight` slot |
-| `FilterTabsBar` | 我的群組（成員 / 團主）頁面的分頁篩選列；pill 全寬均分，inactive 使用 `bg-raised/50` 使 gap 可見；手機以 CustomSelect dropdown 取代；成員端分頁為「全部 / 處理中 / 啟用中 / 即將續訂 / 已結束」（「已結束」取代舊版「申請紀錄」分頁） |
+| `FilterTabsBar` | 我的群組（成員 / 團主）頁面的分頁篩選列；pill 全寬均分，active 為 `bg-brand text-white`、inactive 使用 `bg-raised/50` 使 gap 可見；手機以 CustomSelect dropdown 取代；成員端分頁為「全部 / 處理中 / 啟用中 / 即將續訂 / 已結束」（「已結束」取代舊版「申請紀錄」分頁）；篩選後當前分類無資料時僅顯示提示文字，不提供「清除篩選」等跳回其他分頁的操作 |
 | `ToastContainer` / `toast.js` | 全域提示訊息（含 `aria-live="polite"` 無障礙支援） |
 | `ServiceLogo` | 依 serviceId 顯示本地或服務資料中的 Logo |
 
@@ -350,13 +351,13 @@ init: async () => {
 
 ## 我的群組統計
 
-`/my-groups` 頁面頂部的統計卡會依目前分頁（`?view=member` / `?view=host`）只顯示對應角色的統計：**身為團主**（活躍群組、累計建立、月收 PM）或**身為成員**（活躍訂閱、累計訂閱、月支 PM），切換分頁時同步切換統計內容（不再兩者並排顯示）。統計卡與下方的 tab switcher 在桌機版皆為固定窄寬並置中（`md:w-96` / `md:w-32`），手機版維持全寬。
+`/my-groups` 頁面頂部的統計卡三個項目皆為下方 `FilterTabsBar` 分類數量看不到的資訊（避免與 chip 數字重複），依目前分頁（`?view=member` / `?view=host`）切換內容：**身為成員**「本月訂閱花費 / 平均每組 / 本月省下」（省下金額 = 反查 `serviceCatalog` 方案原價 − 實際分攤後的 `pricePerSeat`，年繳方案換算為月均後比較）；**身為團主**「本月預估收入 / 平均每組 / 服務中成員」（純數量，不套用 PM 幣圖示）。統計卡寬度與下方 `FilterTabsBar`／內容區左右對齊（無額外 `max-width` 限制），手機／桌機皆全寬；tab switcher 則維持桌機版固定窄寬置中（`md:w-32`）。
 
 ---
 
 ## 探索篩選與搜尋
 
-探索頁以 **URL query params 為唯一狀態來源**：`ExplorePage` 直接從 `useSearchParams()` 衍生篩選物件（無獨立 `filters` state；分類 / 價格 / 排序），`handleFilterChange` 呼叫 `navigate(..., { replace: true })` 更新 URL；桌機版分類 pills 左右各有箭頭按鈕可平滑捲動；篩選預設值與選項常數定義於 `src/features/explore/exploreConstants.js`。
+探索頁以 **URL query params 為唯一狀態來源**：`ExplorePage` 直接從 `useSearchParams()` 衍生篩選物件（無獨立 `filters` state；`category`/`service`，`maxPrice`/`sortBy` 保留給 `applyFilters` 當預設值與 URL 深連結相容，但 `FilterBar` 已移除價格上限與排序的 `CustomSelect` UI，僅保留分類 `CategoryPills`），`handleFilterChange` 呼叫 `navigate(..., { replace: true })` 更新 URL；桌機版分類 pills 左右各有箭頭按鈕可平滑捲動。
 
 ---
 

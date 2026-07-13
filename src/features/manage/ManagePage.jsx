@@ -66,8 +66,6 @@ export default function ManagePage({ embedded = false }) {
           <EmptyState
             title="此分類目前沒有群組"
             description="試試切換到其他狀態分類"
-            actionLabel="清除篩選"
-            onAction={() => setStatusFilter('all')}
           />
         ) : (
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">

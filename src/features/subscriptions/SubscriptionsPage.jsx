@@ -211,7 +211,7 @@ export default function SubscriptionsPage({ embedded = false }) {
         {activeTab === 'processing' ? (
           <>
             {pendingApplications.length === 0 && filtered.length === 0 ? (
-              <EmptyState icon={ClipboardList} title="此分類沒有訂閱項目" description="切換到其他分類查看" actionLabel="查看全部" onAction={() => setActiveTab('all')} />
+              <EmptyState icon={ClipboardList} title="此分類沒有訂閱項目" description="切換到其他分類查看" />
             ) : (
               <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
                 {pendingApplications.map((app, i) => {
@@ -243,8 +243,8 @@ export default function SubscriptionsPage({ embedded = false }) {
             icon={ClipboardList}
             title={activeTab === 'all' ? '你還沒有加入任何群組' : '此分類沒有訂閱項目'}
             description={activeTab === 'all' ? '去探索頁面找找適合你的共享群組' : '切換到其他分類查看'}
-            actionLabel={activeTab === 'all' ? '探索群組' : '查看全部'}
-            onAction={activeTab === 'all' ? () => navigate('/explore') : () => setActiveTab('all')}
+            actionLabel={activeTab === 'all' ? '探索群組' : undefined}
+            onAction={activeTab === 'all' ? () => navigate('/explore') : undefined}
           />
         ) : (
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">

@@ -13,6 +13,7 @@ import LivePreviewPanel from './components/LivePreviewPanel'
 import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { useNotificationStore } from '../../shared/stores/useNotificationStore'
 import { getServiceById } from '../../shared/utils/serviceUtils'
+import { getPlanMonthlyEquivalent } from '../../shared/utils/pricingUtils'
 import { useAuthStore } from '../../shared/stores/useAuthStore'
 import { useScrollEdge } from '../../shared/utils/hooks'
 
@@ -87,10 +88,7 @@ function getFirstInvalidStep(form) {
 }
 
 function calcPricePerSeat(plan, seats, billingCycle) {
-  if (billingCycle === 'yearly' && plan.yearlyPrice) {
-    return Math.ceil(plan.yearlyPrice / seats / 12)
-  }
-  return Math.ceil(plan.monthlyPrice / seats)
+  return Math.ceil(getPlanMonthlyEquivalent(plan, billingCycle) / seats)
 }
 
 export default function CreateGroupPage() {
