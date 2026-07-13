@@ -301,7 +301,7 @@ init: async () => {
 | `AppNav` | 桌機側欄（含頭像 Modal）、手機 Header（含頭像 dropdown）+ 底部 Dock、通知 / 訊息圓形按鈕、未讀 badge |
 | `Modal` | 通用 Modal 外殼；支援 `sub` prop（子 modal 模式，z-index 提升、左上角返回鍵）；`isOpen` 為 undefined 時為非受控模式 |
 | `GroupModalShell` | 探索、管理、訂閱三處共用的滑動軌道殼；`subPanel`（第二層）+ `subSubPanel`（第三層）prop 實現翻書滑動動畫；支援各層 `headerRight` slot |
-| `FilterTabsBar` | 我的群組（成員 / 團主）頁面的分頁篩選列；pill 全寬均分，active 為 `bg-brand text-white`、inactive 使用 `bg-raised/50` 使 gap 可見；手機以 CustomSelect dropdown 取代；成員端分頁為「全部 / 處理中 / 啟用中 / 即將續訂 / 已結束」（「已結束」取代舊版「申請紀錄」分頁）；篩選後當前分類無資料時僅顯示提示文字，不提供「清除篩選」等跳回其他分頁的操作 |
+| `FilterTabsBar` | 我的群組（成員 / 團主）頁面的分頁篩選列；手機版為 `CustomSelect` dropdown，桌機版為左側垂直 nav（樣式比照帳號設定頁的左側選單：`bg-brand-subtle text-brand` 表示選中），`ManagePage`／`SubscriptionsPage` 用 `md:flex` 把這個左側 nav 跟右側的群組/訂閱卡片 grid 排成左右兩欄，右側 grid 固定 `md:grid-cols-2`（不再依 `lg:` 加到 3 欄）；成員端分頁為「全部 / 處理中 / 啟用中 / 即將續訂 / 已結束」（「已結束」取代舊版「申請紀錄」分頁）；篩選後當前分類無資料時僅顯示提示文字，不提供「清除篩選」等跳回其他分頁的操作 |
 | `ToastContainer` / `toast.js` | 全域提示訊息（含 `aria-live="polite"` 無障礙支援） |
 | `ServiceLogo` | 依 serviceId 顯示本地或服務資料中的 Logo |
 
@@ -351,7 +351,9 @@ init: async () => {
 
 ## 我的群組統計
 
-`/my-groups` 頁面頂部的統計卡三個項目皆為下方 `FilterTabsBar` 分類數量看不到的資訊（避免與 chip 數字重複），依目前分頁（`?view=member` / `?view=host`）切換內容：**身為成員**「本月訂閱花費 / 平均每組 / 本月省下」（省下金額 = 反查 `serviceCatalog` 方案原價 − 實際分攤後的 `pricePerSeat`，年繳方案換算為月均後比較）；**身為團主**「本月預估收入 / 平均每組 / 服務中成員」（純數量，不套用 PM 幣圖示）。統計卡寬度與下方 `FilterTabsBar`／內容區左右對齊（無額外 `max-width` 限制），手機／桌機皆全寬；tab switcher 則維持桌機版固定窄寬置中（`md:w-32`）。
+`/my-groups` 頁面頂部的統計卡三個項目皆為下方 `FilterTabsBar` 分類數量看不到的資訊（避免與 chip 數字重複），依目前分頁（`?view=member` / `?view=host`）切換內容：**身為成員**「本月訂閱花費 / 平均每組 / 本月省下」（省下金額 = 反查 `serviceCatalog` 方案原價 − 實際分攤後的 `pricePerSeat`，年繳方案換算為月均後比較，邏輯在 `src/shared/utils/pricingUtils.js`）；**身為團主**「本月預估收入 / 平均每組 / 服務中成員」（純數量，不套用 PM 幣圖示）。統計卡寬度與下方 `FilterTabsBar`／內容區左右對齊（無額外 `max-width` 限制），手機／桌機皆全寬；tab switcher 則維持桌機版固定窄寬置中（`md:w-32`）。
+
+**switcher 按鈕**：手機／桌機皆一次只顯示目前身分（單一 `bg-brand` 填色 pill，非左右並排的兩顆按鈕），pill 內部右上角疊一顆圓形 `ArrowLeftRight` icon 按鈕（`bg-white/20`，非跑到 pill 外側的浮動 badge）負責切換 `?view=member`／`?view=host`（`-translate-y-0.5` 微上移＋`active:scale-[0.9]` 回饋，沿用 `DesktopSidebar` 既有的 hover 慣例）。不再帶分類篩選功能（曾經做過 hover 展開分類 dropdown 的版本，因體驗不佳已移除）。手機版 switcher 獨立一列、置中顯示；**桌機版**則與統計卡排成同一列（`md:flex md:items-stretch`）：switcher 為左欄，寬度固定 `md:w-40` 對齊下方 `FilterTabsBar` 左側 nav 的寬度，高度用 `md:h-full` 撐滿以對齊右欄統計卡的高度；統計卡為右欄 `md:flex-1`。分類篩選改採 `FilterTabsBar` 桌機版的左側垂直 nav（見上）。
 
 ---
 

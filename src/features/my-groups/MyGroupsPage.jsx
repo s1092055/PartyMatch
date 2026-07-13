@@ -1,5 +1,5 @@
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Crown, Users } from 'lucide-react'
+import { ArrowLeftRight, Crown, Users } from 'lucide-react'
 import { useAuthStore } from '../../shared/stores/useAuthStore'
 import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { useSubscriptionStore } from '../../shared/stores/useSubscriptionStore'
@@ -70,7 +70,7 @@ function StatsBar({ userId, activeView }) {
   const isHost = activeView === 'host'
 
   return (
-    <div className="card mb-6 flex items-center divide-x divide-line-subtle py-4">
+    <div className="card flex h-full items-center divide-x divide-line-subtle py-4">
       {isHost ? (
         <>
           <AmountStatItem label="本月預估收入" amount={hostMonthly} />
@@ -94,8 +94,15 @@ export default function MyGroupsPage() {
   const activeView = searchParams.get('view') || 'member'
   const userId = useAuthStore(s => s.user?.id)
 
+  const currentTab = TABS.find(tab => tab.key === activeView) ?? TABS[0]
+  const CurrentIcon = currentTab.icon
+
   function switchTab(view) {
     navigate(`/my-groups?view=${view}`, { replace: true })
+  }
+
+  function toggleTab() {
+    switchTab(activeView === 'host' ? 'member' : 'host')
   }
 
   return (
@@ -104,29 +111,28 @@ export default function MyGroupsPage() {
         <h1 className="page-title">我的群組</h1>
       </div>
 
-      {/* Tab switcher */}
-      <div className="mb-6 flex gap-2 px-2 md:justify-center md:px-4 lg:px-16">
-        {TABS.map(tab => {
-          const Icon = tab.icon
-          return (
+      {/* 切換身分（一次只顯示目前身分，內部右上角交換 icon 負責切換）＋ 統計卡：
+          手機版各自一列；桌機版左右並排，左欄寬度對齊下方 tab header（w-40），高度對齊右側統計卡 */}
+      <div className="mb-6 flex flex-col gap-6 px-2 md:flex-row md:items-stretch md:px-4 lg:gap-8 lg:px-16">
+        <div className="flex justify-center md:w-40 md:shrink-0">
+          <div className="relative w-40 md:h-full md:w-full">
+            <div className="flex h-full items-center justify-center gap-1.5 rounded-xl bg-brand py-2.5 text-sm font-bold text-white">
+              <CurrentIcon size={16} strokeWidth={2.1} />
+              {currentTab.label}
+            </div>
             <button
-              key={tab.key}
-              onClick={() => switchTab(tab.key)}
-              className={`flex flex-1 flex-col items-center gap-1 rounded-xl py-2.5 text-sm font-bold transition-all md:flex-none md:w-32 ${
-                activeView === tab.key
-                  ? 'bg-brand text-white'
-                  : 'text-ink-3 hover:bg-raised hover:text-ink'
-              }`}
+              onClick={toggleTab}
+              aria-label="切換身分"
+              className="absolute right-2 top-2 grid h-6 w-6 place-items-center rounded-full bg-white/20 text-white transition-all hover:-translate-y-0.5 hover:bg-white/30 active:scale-[0.9]"
             >
-              <Icon size={16} strokeWidth={2.1} />
-              {tab.label}
+              <ArrowLeftRight size={12} strokeWidth={2.2} />
             </button>
-          )
-        })}
-      </div>
+          </div>
+        </div>
 
-      <div className="px-2 md:px-4 lg:px-16">
-        {userId && <StatsBar userId={userId} activeView={activeView} />}
+        <div className="min-w-0 md:flex-1">
+          {userId && <StatsBar userId={userId} activeView={activeView} />}
+        </div>
       </div>
 
       {/* Content */}

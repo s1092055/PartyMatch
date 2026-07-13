@@ -13,29 +13,32 @@ export default function FilterTabsBar({ tabs, value, onChange, counts = {} }) {
         <CustomSelect value={value} onChange={onChange} options={options} />
       </div>
 
-      {/* Pills — tablet & desktop */}
-      <div className="mb-4 hidden gap-2 py-1 md:flex">
-        {tabs.map(tab => (
-          <button
-            key={tab.key}
-            onClick={() => onChange(tab.key)}
-            className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all ${
-              value === tab.key
-                ? 'bg-brand text-white'
-                : 'bg-raised/50 text-ink-3 hover:bg-raised hover:text-ink'
-            }`}
-          >
-            {tab.label}
-            {counts[tab.key] != null && (
-              <span className={`rounded-full px-1.5 py-0.5 text-xs font-bold ${
-                value === tab.key ? 'bg-white/20 text-white' : 'bg-raised text-ink-4'
-              }`}>
-                {counts[tab.key]}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
+      {/* 桌機版：左側垂直 tab 選單，樣式比照帳號設定頁 */}
+      <nav className="hidden w-40 shrink-0 self-start md:block">
+        <ul className="flex flex-col gap-1">
+          {tabs.map(tab => (
+            <li key={tab.key}>
+              <button
+                onClick={() => onChange(tab.key)}
+                className={`flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-sm font-bold transition-colors ${
+                  value === tab.key
+                    ? 'bg-brand-subtle text-brand'
+                    : 'text-ink-2 hover:bg-raised hover:text-ink'
+                }`}
+              >
+                <span className="text-left">{tab.label}</span>
+                {counts[tab.key] != null && (
+                  <span className={`rounded-full px-1.5 py-0.5 text-xs font-bold ${
+                    value === tab.key ? 'bg-brand/15 text-brand' : 'bg-raised text-ink-4'
+                  }`}>
+                    {counts[tab.key]}
+                  </span>
+                )}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </nav>
     </>
   )
 }

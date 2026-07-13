@@ -47,7 +47,7 @@ export default function ManagePage({ embedded = false }) {
         </div>
       )}
 
-      <div>
+      <div className="md:flex md:gap-6 lg:gap-8">
         <FilterTabsBar
           tabs={STATUS_FILTER_TABS}
           value={statusFilter}
@@ -55,33 +55,35 @@ export default function ManagePage({ embedded = false }) {
           counts={filterCounts}
         />
 
-        {allGroups.length === 0 ? (
-          <EmptyState
-            title="你還沒有建立任何群組"
-            description="建立你的第一個共享群組，開始招募成員一起分攤費用"
-            actionLabel="建立第一個群組"
-            onAction={() => navigate('/create-group')}
-          />
-        ) : displayGroups.length === 0 ? (
-          <EmptyState
-            title="此分類目前沒有群組"
-            description="試試切換到其他狀態分類"
-          />
-        ) : (
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {displayGroups.map((g, i) => (
-              <RevealSection key={g.id} delay={i * 60}>
-                <HostedGroupCard
-                  group={g}
-                  members={membersMap[g.id] ?? []}
-                  pendingAppCount={applicationCounts[g.id] ?? 0}
-                  paymentCount={0}
-                  {...groupHandlersMap[g.id]}
-                />
-              </RevealSection>
-            ))}
-          </div>
-        )}
+        <div className="min-w-0 flex-1">
+          {allGroups.length === 0 ? (
+            <EmptyState
+              title="你還沒有建立任何群組"
+              description="建立你的第一個共享群組，開始招募成員一起分攤費用"
+              actionLabel="建立第一個群組"
+              onAction={() => navigate('/create-group')}
+            />
+          ) : displayGroups.length === 0 ? (
+            <EmptyState
+              title="此分類目前沒有群組"
+              description="試試切換到其他狀態分類"
+            />
+          ) : (
+            <div className="grid gap-3 md:grid-cols-2">
+              {displayGroups.map((g, i) => (
+                <RevealSection key={g.id} delay={i * 60}>
+                  <HostedGroupCard
+                    group={g}
+                    members={membersMap[g.id] ?? []}
+                    pendingAppCount={applicationCounts[g.id] ?? 0}
+                    paymentCount={0}
+                    {...groupHandlersMap[g.id]}
+                  />
+                </RevealSection>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <GroupViewModal

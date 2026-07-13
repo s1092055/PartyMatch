@@ -22,14 +22,7 @@ import Button from '../../shared/ui/Button'
 import RevealSection from '../../shared/ui/RevealSection'
 import { daysUntil, formatRelativeDate } from '../../shared/utils/date'
 
-const FILTER_TABS = [
-  { key: 'all',        label: '全部'     },
-  { key: 'processing', label: '處理中'   },
-  { key: 'active',     label: '啟用中'   },
-  { key: 'upcoming',   label: '即將續訂' },
-  { key: 'ended',      label: '已結束'   },
-]
-
+import { FILTER_TABS } from './utils/subscriptionFilters'
 
 function enrichSubs(rawSubs) {
   return rawSubs.map(s => {
@@ -200,7 +193,7 @@ export default function SubscriptionsPage({ embedded = false }) {
         </div>
       )}
 
-      <div>
+      <div className="md:flex md:gap-6 lg:gap-8">
         <FilterTabsBar
           tabs={FILTER_TABS}
           value={activeTab}
@@ -208,69 +201,71 @@ export default function SubscriptionsPage({ embedded = false }) {
           counts={filterCounts}
         />
 
-        {activeTab === 'processing' ? (
-          <>
-            {pendingApplications.length === 0 && filtered.length === 0 ? (
-              <EmptyState icon={ClipboardList} title="此分類沒有訂閱項目" description="切換到其他分類查看" />
-            ) : (
-              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                {pendingApplications.map((app, i) => {
-                  const group = getGroupById(app.groupId)
-                  if (!group) return null
-                  return (
-                    <RevealSection key={app.id} delay={i * 60}>
-                      <ApplicationCard
-                        app={app}
-                        group={group}
-                        onViewGroup={() => window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: app.groupId } }))}
+        <div className="min-w-0 flex-1">
+          {activeTab === 'processing' ? (
+            <>
+              {pendingApplications.length === 0 && filtered.length === 0 ? (
+                <EmptyState icon={ClipboardList} title="此分類沒有訂閱項目" description="切換到其他分類查看" />
+              ) : (
+                <div className="grid gap-3 md:grid-cols-2">
+                  {pendingApplications.map((app, i) => {
+                    const group = getGroupById(app.groupId)
+                    if (!group) return null
+                    return (
+                      <RevealSection key={app.id} delay={i * 60}>
+                        <ApplicationCard
+                          app={app}
+                          group={group}
+                          onViewGroup={() => window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: app.groupId } }))}
+                        />
+                      </RevealSection>
+                    )
+                  })}
+                  {filtered.map((sub, i) => (
+                    <RevealSection key={sub.id} delay={(pendingApplications.length + i) * 60}>
+                      <SubscriptionCard
+                        sub={sub}
+                        onViewGroup={onViewGroup}
                       />
                     </RevealSection>
-                  )
-                })}
-                {filtered.map((sub, i) => (
-                  <RevealSection key={sub.id} delay={(pendingApplications.length + i) * 60}>
-                    <SubscriptionCard
-                      sub={sub}
-                      onViewGroup={onViewGroup}
+                  ))}
+                </div>
+              )}
+            </>
+          ) : filtered.length === 0 && (activeTab !== 'all' || pendingApplications.length === 0) ? (
+            <EmptyState
+              icon={ClipboardList}
+              title={activeTab === 'all' ? '你還沒有加入任何群組' : '此分類沒有訂閱項目'}
+              description={activeTab === 'all' ? '去探索頁面找找適合你的共享群組' : '切換到其他分類查看'}
+              actionLabel={activeTab === 'all' ? '探索群組' : undefined}
+              onAction={activeTab === 'all' ? () => navigate('/explore') : undefined}
+            />
+          ) : (
+            <div className="grid gap-3 md:grid-cols-2">
+              {activeTab === 'all' && pendingApplications.map((app, i) => {
+                const group = getGroupById(app.groupId)
+                if (!group) return null
+                return (
+                  <RevealSection key={app.id} delay={i * 60}>
+                    <ApplicationCard
+                      app={app}
+                      group={group}
+                      onViewGroup={() => window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: app.groupId } }))}
                     />
                   </RevealSection>
-                ))}
-              </div>
-            )}
-          </>
-        ) : filtered.length === 0 && (activeTab !== 'all' || pendingApplications.length === 0) ? (
-          <EmptyState
-            icon={ClipboardList}
-            title={activeTab === 'all' ? '你還沒有加入任何群組' : '此分類沒有訂閱項目'}
-            description={activeTab === 'all' ? '去探索頁面找找適合你的共享群組' : '切換到其他分類查看'}
-            actionLabel={activeTab === 'all' ? '探索群組' : undefined}
-            onAction={activeTab === 'all' ? () => navigate('/explore') : undefined}
-          />
-        ) : (
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {activeTab === 'all' && pendingApplications.map((app, i) => {
-              const group = getGroupById(app.groupId)
-              if (!group) return null
-              return (
-                <RevealSection key={app.id} delay={i * 60}>
-                  <ApplicationCard
-                    app={app}
-                    group={group}
-                    onViewGroup={() => window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: app.groupId } }))}
+                )
+              })}
+              {filtered.map((sub, i) => (
+                <RevealSection key={sub.id} delay={(activeTab === 'all' ? pendingApplications.length + i : i) * 60}>
+                  <SubscriptionCard
+                    sub={sub}
+                    onViewGroup={sub => setViewGroupId(sub.groupId)}
                   />
                 </RevealSection>
-              )
-            })}
-            {filtered.map((sub, i) => (
-              <RevealSection key={sub.id} delay={(activeTab === 'all' ? pendingApplications.length + i : i) * 60}>
-                <SubscriptionCard
-                  sub={sub}
-                  onViewGroup={sub => setViewGroupId(sub.groupId)}
-                />
-              </RevealSection>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
 <GroupViewModal
