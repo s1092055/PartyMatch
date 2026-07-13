@@ -72,7 +72,7 @@ export default function Modal({
                 <div className="h-9 w-9 shrink-0" />
               ) : (
                 <button onClick={handleClose} className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink active:scale-100 active:opacity-70">
-                  <ChevronLeft size={20} />
+                  <ChevronLeft size={20} strokeWidth={1.5} />
                 </button>
               )}
               <div className="flex min-w-0 flex-1 items-center gap-2 px-1">

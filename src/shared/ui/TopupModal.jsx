@@ -160,7 +160,7 @@ export default function TopupModal({ isOpen, onClose }) {
                 onClick={() => setShowHistory(false)}
                 className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
               >
-                <ChevronLeft size={18} />
+                <ChevronLeft size={18} strokeWidth={1.5} />
               </button>
               <Coins size={15} className="text-ink-3" />
               <span className="flex-1 font-extrabold text-ink">交易紀錄</span>

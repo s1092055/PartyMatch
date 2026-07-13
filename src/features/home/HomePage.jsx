@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight, Compass, Search } from 'lucide-react'
+import { ChevronRight, Compass, Search } from 'lucide-react'
 import Button from '../../shared/ui/Button'
 import logoUrl from '../../assets/Logo.svg'
 import { useAuthStore } from '../../shared/stores/useAuthStore'
@@ -110,7 +110,7 @@ export default function HomePage() {
             className="mt-7 inline-flex items-center gap-2 rounded-xl bg-white px-7 py-3 text-sm font-bold text-brand shadow transition-opacity hover:opacity-90"
           >
             {loggedIn ? '前往探索群組' : '免費建立帳號'}
-            <ArrowRight size={15} />
+            <ChevronRight size={15} strokeWidth={1.5} />
           </button>
         </section>
       </RevealSection>

@@ -93,7 +93,7 @@ export default function Step2PlanSettings({ form, onChange }) {
               className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-30"
               aria-label="上一個方案"
             >
-              <ChevronLeft size={16} />
+              <ChevronLeft size={16} strokeWidth={1.5} />
             </button>
 
             <div className="min-w-0 flex-1">
@@ -128,7 +128,7 @@ export default function Step2PlanSettings({ form, onChange }) {
               className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-30"
               aria-label="下一個方案"
             >
-              <ChevronRight size={16} />
+              <ChevronRight size={16} strokeWidth={1.5} />
             </button>
           </div>
         </Field>

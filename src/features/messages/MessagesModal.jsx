@@ -252,7 +252,7 @@ export default function MessagesModal() {
                 className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
                 aria-label="返回"
               >
-                <ChevronLeft size={18} />
+                <ChevronLeft size={18} strokeWidth={1.5} />
               </button>
               <div className="shrink-0">
                 <ConversationAvatar conversation={selected} size={28} />

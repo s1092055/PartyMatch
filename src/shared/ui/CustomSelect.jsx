@@ -38,6 +38,7 @@ export default function CustomSelect({ label, value, onChange, options }) {
         <span className="flex-1 truncate text-left">{selectedLabel}</span>
         <ChevronDown
           size={15}
+          strokeWidth={1.5}
           className={`shrink-0 text-ink-3 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
         />
       </button>

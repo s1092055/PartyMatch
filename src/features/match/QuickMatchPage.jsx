@@ -111,7 +111,7 @@ export default function QuickMatchPage() {
   const footer = isResultStep ? (
     <>
       <Button variant="secondary" size="md" className="min-w-0 flex-1" onClick={handleBack}>
-        <ChevronLeft size={15} />
+        <ChevronLeft size={15} strokeWidth={1.5} />
         調整條件
       </Button>
       <Button variant="secondary" size="md" className="min-w-0 flex-1" onClick={handleReset}>
@@ -122,13 +122,13 @@ export default function QuickMatchPage() {
   ) : (
     <>
       <Button variant="secondary" size="md" className="min-w-0 flex-1" onClick={handleBack}>
-        <ChevronLeft size={15} />
+        <ChevronLeft size={15} strokeWidth={1.5} />
         {step === 1 ? '取消' : '上一步'}
       </Button>
       {step < 2 ? (
         <Button variant="primary" size="md" className="min-w-0 flex-1" disabled={!canNext} onClick={handleNext}>
           下一步
-          <ChevronRight size={15} />
+          <ChevronRight size={15} strokeWidth={1.5} />
         </Button>
       ) : (
         <Button variant="success" size="md" className="min-w-0 flex-1" onClick={handleStartMatch}>

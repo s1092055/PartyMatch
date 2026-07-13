@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { VideoOff, ArrowRight } from "lucide-react";
+import { VideoOff, ChevronRight } from "lucide-react";
 import RevealSection from "../../../shared/ui/RevealSection";
 import { HOME_FEATURES } from "../data/homeContent";
 
@@ -70,7 +70,7 @@ export default function FeatureCards() {
                     className="mt-6 inline-flex w-fit items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-brand-hover"
                   >
                     {cta}
-                    <ArrowRight size={14} />
+                    <ChevronRight size={14} strokeWidth={1.5} />
                   </button>
                 </div>
               </div>

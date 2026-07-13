@@ -21,7 +21,7 @@ export function buildBillingPanel({ isActivated, members, expandedBillingMembers
                     <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
                     <p className="min-w-0 flex-1 text-sm font-semibold text-ink">{m.userName}</p>
                     <span className="text-xs text-ink-3">{records.length} 筆</span>
-                    {expanded ? <ChevronUp size={14} className="shrink-0 text-ink-3" /> : <ChevronDown size={14} className="shrink-0 text-ink-3" />}
+                    {expanded ? <ChevronUp size={14} strokeWidth={1.5} className="shrink-0 text-ink-3" /> : <ChevronDown size={14} strokeWidth={1.5} className="shrink-0 text-ink-3" />}
                   </button>
                   {expanded && (
                     <div className="border-t border-line-subtle">
@@ -66,7 +66,7 @@ export function buildBillingPanel({ isActivated, members, expandedBillingMembers
                   <button onClick={() => toggleBillingMember(m.id)} className="flex w-full items-center gap-3 p-3 text-left transition-colors hover:bg-raised">
                     <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
                     <p className="min-w-0 flex-1 text-sm font-semibold text-ink">{m.userName}</p>
-                    {expanded ? <ChevronUp size={14} className="shrink-0 text-ink-3" /> : <ChevronDown size={14} className="shrink-0 text-ink-3" />}
+                    {expanded ? <ChevronUp size={14} strokeWidth={1.5} className="shrink-0 text-ink-3" /> : <ChevronDown size={14} strokeWidth={1.5} className="shrink-0 text-ink-3" />}
                   </button>
                   {expanded && (
                     <div className="border-t border-line-subtle px-4 py-3 space-y-3">

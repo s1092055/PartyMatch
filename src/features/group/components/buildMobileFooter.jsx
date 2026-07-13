@@ -109,7 +109,7 @@ export function buildMobileFooter({
               className="flex-1 bg-[#1a1f36] text-white hover:bg-[#252b47]"
               onClick={() => setShowApply(true)}
             >
-              申請加入 <ChevronRight size={16} />
+              申請加入 <ChevronRight size={16} strokeWidth={1.5} />
             </Button>
             <button
               onClick={toggleFav}

@@ -10,7 +10,7 @@ export default function ScrollHintButton({ canScroll, atBottom, onScrollToTop, o
         className="pointer-events-auto grid h-8 w-8 place-items-center rounded-full border border-line bg-canvas shadow-md text-ink-3 transition-colors hover:text-ink animate-bounce"
         title={atBottom ? '回到頂部' : '往下捲動'}
       >
-        {atBottom ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+        {atBottom ? <ChevronUp size={16} strokeWidth={1.5} /> : <ChevronDown size={16} strokeWidth={1.5} />}
       </button>
     </div>
   )

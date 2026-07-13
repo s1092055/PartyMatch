@@ -186,19 +186,19 @@ export default function CreateGroupPage() {
     <>
       {step === 1 ? (
         <Button variant="secondary" size="md" className="min-w-0 flex-1" onClick={leaveFlow}>
-          <ChevronLeft size={15} />
+          <ChevronLeft size={15} strokeWidth={1.5} />
           取消
         </Button>
       ) : (
         <Button variant="secondary" size="md" className="min-w-0 flex-1" onClick={handleBack}>
-          <ChevronLeft size={15} />
+          <ChevronLeft size={15} strokeWidth={1.5} />
           上一步
         </Button>
       )}
       {step < 3 ? (
         <Button variant="primary" size="md" className="min-w-0 flex-1" disabled={!canNext()} onClick={handleNext}>
           下一步
-          <ChevronRight size={15} />
+          <ChevronRight size={15} strokeWidth={1.5} />
         </Button>
       ) : (
         <Button variant="success" size="md" className="min-w-0 flex-1" disabled={!agreedToTerms} onClick={handleSubmit}>

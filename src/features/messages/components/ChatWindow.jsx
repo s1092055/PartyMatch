@@ -119,7 +119,7 @@ export default function ChatWindow({
           aria-label="回到最新訊息"
           className="absolute bottom-4 right-4 z-20 grid h-10 w-10 place-items-center rounded-full border border-line bg-white text-ink-3 shadow-popover transition-colors hover:bg-raised hover:text-ink"
         >
-          <ChevronDown size={18} />
+          <ChevronDown size={18} strokeWidth={1.5} />
         </button>
       )}
       </div>

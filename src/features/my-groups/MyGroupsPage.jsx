@@ -146,7 +146,7 @@ export default function MyGroupsPage() {
               <span key={activeView} className="animate-fade-in-up">{currentTab.label}</span>
             </span>
             <span className="absolute inset-0 flex items-center justify-center gap-1.5 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
-              <ArrowLeftRight size={14} strokeWidth={2.2} />
+              <ArrowLeftRight size={14} strokeWidth={1.5} />
               切換身分
             </span>
           </button>

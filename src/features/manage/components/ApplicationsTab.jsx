@@ -57,7 +57,7 @@ function ApplicationCard({ app, groupFull, error, onApprove, onReject }) {
                 onClick={() => setExpanded(v => !v)}
                 className="flex items-center gap-1 text-xs text-ink-3 hover:text-ink transition-colors"
               >
-                申請留言 {expanded ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+                申請留言 {expanded ? <ChevronUp size={11} strokeWidth={1.5} /> : <ChevronDown size={11} strokeWidth={1.5} />}
               </button>
               {expanded && (
                 <p className="mt-1.5 rounded-xl bg-raised px-3 py-2 text-xs leading-relaxed text-ink-2">

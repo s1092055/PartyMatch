@@ -1,4 +1,4 @@
-import { Eye, EyeOff, ArrowLeft } from 'lucide-react'
+import { Eye, EyeOff, ChevronLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 export default function AuthLayout({ children }) {
@@ -10,7 +10,7 @@ export default function AuthLayout({ children }) {
             to="/"
             className="flex items-center gap-1 text-sm font-bold text-ink-4 transition-colors hover:text-ink-2"
           >
-            <ArrowLeft size={14} />
+            <ChevronLeft size={14} strokeWidth={1.5} />
             返回
           </Link>
           {children}

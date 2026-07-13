@@ -145,6 +145,7 @@ export default function AccountPage() {
                 </span>
                 <ChevronDown
                   size={18}
+                  strokeWidth={1.5}
                   className={`shrink-0 text-ink-3 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
                 />
               </button>

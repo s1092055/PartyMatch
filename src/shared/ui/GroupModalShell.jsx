@@ -148,7 +148,7 @@ export default function GroupModalShell({
                     className="pointer-events-auto grid h-8 w-8 place-items-center rounded-full border border-line bg-canvas shadow-md text-ink-3 transition-colors hover:text-ink animate-bounce"
                     title={atBottom ? '回到頂部' : '往下捲動'}
                   >
-                    {atBottom ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    {atBottom ? <ChevronUp size={16} strokeWidth={1.5} /> : <ChevronDown size={16} strokeWidth={1.5} />}
                   </button>
                 </div>
               </div>
@@ -199,7 +199,7 @@ export default function GroupModalShell({
                   className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
                   aria-label="返回"
                 >
-                  <ChevronLeft size={18} />
+                  <ChevronLeft size={18} strokeWidth={1.5} />
                 </button>
                 {subPanel?.icon && <span className="shrink-0">{subPanel.icon}</span>}
                 <span className="min-w-0 flex-1 font-extrabold text-ink">{subPanel?.title ?? ''}</span>
@@ -233,7 +233,7 @@ export default function GroupModalShell({
                   className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
                   aria-label="返回"
                 >
-                  <ChevronLeft size={18} />
+                  <ChevronLeft size={18} strokeWidth={1.5} />
                 </button>
                 {subSubPanel?.icon && <span className="shrink-0">{subSubPanel.icon}</span>}
                 <span className="min-w-0 flex-1 font-extrabold text-ink">{subSubPanel?.title ?? ''}</span>
