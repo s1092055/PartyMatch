@@ -244,8 +244,8 @@ init: async () => {
 | `src/app/router.jsx` | `AppLayout`、`ProtectedRoute`、`PublicOnlyRoute`、`redirects.jsx`、`CreateGroupPage`、`QuickMatchPage` | 定義公開頁、`AppLayout` 內的受保護頁、Modal 型 redirect route；`/create-group`、`/quick-match` 是獨立於 `AppLayout` 之外、由頂層 `ProtectedRoute` 包裹的全螢幕頁面 |
 | `src/shared/api/axiosClient.js` | 所有 API 模組 | 自動帶 JWT header；401 + 有 token 時跳登入；無 token 的 401 靜默處理 |
 | `src/shared/layout/AppLayout.jsx` | `AppNav`、`AppFooter`、`FloatingMessages`、`MessagesModal`、`GroupDetailModal` | 統一掛載跨頁共用導覽、全域 Modal 與頁尾；主要內容容器於 `lg:` 以上寬度用 `clamp()` 取代固定 `max-w-7xl`，避免超寬螢幕（>1280px）留白暴增 |
-| `src/shared/layout/FlowLayout.jsx` | `CreateGroupPage`、`QuickMatchPage` | 無 sidebar/dock 的全螢幕步驟流程殼：頂部細進度條、置中標題（absolute 定位，不受左右內容寬度不對稱影響）、固定高度 header/footer（`h-16`/`md:h-20`）、內容區 `min-h-0 + overflow-hidden` 搭配子層各自 `overflow-y-auto`，避免頁面本身垂直捲動、底部固定 Prev/Next 導覽列；容器寬度於 `lg:` 以上用 `clamp()` 隨螢幕寬度連續放大（非固定 `max-w`），避免超寬螢幕留白暴增 |
-| `src/shared/utils/hooks.js`（`useScrollEdge`） | `CreateGroupPage`、`QuickMatchPage`、`Step2PlansAndFilters` | 共用捲動邊界偵測 hook：回報 `canScroll`/`atBottom`，並提供 `scrollToTop`/`scrollDown` 控制函式；可選 `withMutationObserver` 監看內容子樹異動 |
+| `src/shared/layout/FlowLayout.jsx` | `CreateGroupPage`、`QuickMatchPage` | 無 sidebar/dock 的全螢幕步驟流程殼：左上角 PartyMatch logo（一般 `<a href="/">`，非 `navigate()`，點擊回首頁會觸發整頁重新載入）、頂部細進度條、置中標題（absolute 定位，不受左右內容寬度不對稱影響）、固定高度 header/footer（`h-16`/`md:h-20`）、內容區 `min-h-0 + overflow-hidden` 搭配子層各自 `overflow-y-auto`，避免頁面本身垂直捲動、底部固定 Prev/Next 導覽列；容器寬度於 `lg:` 以上用 `clamp()` 隨螢幕寬度連續放大（非固定 `max-w`），避免超寬螢幕留白暴增 |
+| `src/shared/utils/hooks.js`（`useScrollEdge`） | `CreateGroupPage`、`QuickMatchPage`、`Step2PlansAndFilters` | 共用捲動邊界偵測 hook：回報 `canScroll`/`atBottom`，並提供 `scrollToTop`/`scrollDown` 控制函式；可選 `withMutationObserver` 監看內容子樹異動。`CreateGroupPage` 僅在第 3 步（確認送出）依 `!canScroll` 切換 `lg:justify-center`，第 2 步（方案與設定）固定頂部對齊——因為該步驟的群組規則列表可動態增減，若隨 `canScroll` 切換置中會在新增規則跨過捲動門檻時造成整體內容跳動 |
 | `src/shared/ui/ScrollHintButton.jsx` | `CreateGroupPage`、`QuickMatchPage`、`Step2PlansAndFilters` | 共用浮動捲動提示按鈕，取代原本三處重複的 chevron 按鈕實作 |
 | `src/shared/layout/AppNav.jsx` | `NAV_SECTIONS`、`authStore`、`notificationStore`、`conversationStore`、`toast` | **桌機版**：左側 sidebar（白底，收合 64px / 展開 224px，hover/focus-within 觸發）；通知與訊息為長型矩形按鈕（附文字標籤）；sidebar 底部使用者按鈕上方顯示 PM 幣餘額列（收合隱藏、展開顯示，含加值按鈕）；頭像按鈕點擊透過 createPortal 開啟置中 Modal（帳號資訊、帳號設定與登出），開啟任一 Modal 時 blur 讓 sidebar 自動收合。**手機版**：頂部 header（Logo + 通知 + 頭像按鈕；未登入時頭像按鈕為純圖示無底色）+ 底部 Dock（快速搜尋、建立群組、探索中央圓形按鈕、我的 dropdown、訊息）；「我的」向上展開橫排 dropdown（我的群組 / 我的收藏）；未登入點擊鎖定項目發 Toast（附「前往登入」按鈕）；Dock 透過 `useHideOnScroll`（`shared/utils/hooks.js`）往下捲動時滑出隱藏、往上捲或接近頁面頂端時顯示，`ScrollToTop` 按鈕位置隨 Dock 顯示狀態連動避免重疊；監聽 `pm:open-topup` 事件開啟 `TopupModal`（供其他元件如 `GroupDetailModal` 在代幣不足時，透過 toast 的 `action` 按鈕觸發儲值） |
 | `src/shared/layout/FloatingMessages.jsx` | `notificationStore`、`conversationStore`、`applicationStore` | 監聽 `pm:open-notify` 顯示通知 panel；通知點擊後依類型 dispatch 對應 `pm:open-*` 事件；`new_application` 點擊時先 await `applicationStore.init()` 再開 Modal，確保資料已更新；`member_left`（成員退出）host 端點擊前廣播 `pm:refresh-member-stores` |
@@ -350,7 +350,7 @@ init: async () => {
 
 ## 我的群組統計
 
-`/my-groups` 頁面頂部顯示雙角色訂閱統計卡：**身為團主**（活躍群組、累計建立、月收 PM）與**身為成員**（活躍訂閱、累計訂閱、月支 PM），讓使用者一眼掌握兩種角色的概況。
+`/my-groups` 頁面頂部的統計卡會依目前分頁（`?view=member` / `?view=host`）只顯示對應角色的統計：**身為團主**（活躍群組、累計建立、月收 PM）或**身為成員**（活躍訂閱、累計訂閱、月支 PM），切換分頁時同步切換統計內容（不再兩者並排顯示）。統計卡與下方的 tab switcher 在桌機版皆為固定窄寬並置中（`md:w-96` / `md:w-32`），手機版維持全寬。
 
 ---
 

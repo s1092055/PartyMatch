@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AlertCircle, ChevronLeft, ChevronRight, Minus, Plus, PlusCircle, X } from 'lucide-react'
 import { getServiceById } from '../../../../shared/utils/serviceUtils'
+import TokenAmount from '../../../../shared/ui/TokenAmount'
 
 const BILLING_CYCLES = [
   { value: 'monthly', label: '月繳' },
@@ -108,8 +109,8 @@ export default function Step2PlanSettings({ form, onChange }) {
                 >
                   <div className="min-w-0 text-center">
                     <p className="font-medium truncate">{currentPlan.name}</p>
-                    <p className={`text-sm mt-0.5 truncate ${isPlanSelected ? 'text-brand' : 'text-slate-400'}`}>
-                      NT${currentPlan.monthlyPrice} · {currentPlan.maxSeats} 人
+                    <p className={`text-sm mt-0.5 flex items-center justify-center gap-1 truncate ${isPlanSelected ? 'text-brand' : 'text-slate-400'}`}>
+                      <TokenAmount amount={currentPlan.monthlyPrice} badgeSize="!h-3.5 !w-3.5 !text-[6px]" unitClassName={isPlanSelected ? 'text-brand' : 'text-slate-400'} /> · {currentPlan.maxSeats} 人
                     </p>
                   </div>
                 </button>
@@ -192,7 +193,7 @@ export default function Step2PlanSettings({ form, onChange }) {
       </div>
 
       {/* 右：帳號需求、群組規則 */}
-      <div className="mt-6 flex flex-1 flex-col space-y-5 lg:mt-0">
+      <div className="mt-6 flex flex-1 flex-col space-y-1 lg:mt-0">
         <Field label="帳號需求" hint="說明成員是否需要自備帳號，或有其他帳號相關條件（選填）">
           <textarea
             rows={2}
@@ -205,7 +206,7 @@ export default function Step2PlanSettings({ form, onChange }) {
         </Field>
 
         <Field label="群組規則" hint="最多 5 條，清楚的規則可降低後續糾紛">
-          <div className="space-y-2">
+          <div className="space-y-1">
             {form.rules.map((rule, i) => (
               <div key={i} className="flex items-center gap-2">
                 <span className="text-sm text-slate-400 w-4 shrink-0 text-right">{i + 1}.</span>
@@ -227,16 +228,16 @@ export default function Step2PlanSettings({ form, onChange }) {
                 )}
               </div>
             ))}
-            {form.rules.length < 5 && (
-              <button
-                onClick={addRule}
-                className="ml-6 flex items-center gap-1.5 text-base text-brand hover:text-brand/80 mt-1"
-              >
-                <PlusCircle size={16} />
-                新增規則
-              </button>
-            )}
           </div>
+          {form.rules.length < 5 && (
+            <button
+              onClick={addRule}
+              className="ml-6 flex items-center gap-1.5 text-base text-brand hover:text-brand/80 mt-1"
+            >
+              <PlusCircle size={16} />
+              新增規則
+            </button>
+          )}
         </Field>
       </div>
     </div>

@@ -20,7 +20,7 @@ function StatItem({ label, value }) {
   )
 }
 
-function StatsBar({ userId }) {
+function StatsBar({ userId, activeView }) {
   const allGroups = useGroupStore(s => s.groups)
   const allSubs   = useSubscriptionStore(s => s.subscriptions)
 
@@ -36,14 +36,8 @@ function StatsBar({ userId }) {
   const memberMonthly    = activeMemberSubs.reduce((sum, s) => sum + (s.pricePerSeat ?? 0), 0)
 
   return (
-    <div className="card mb-6 flex flex-col gap-4 px-6 py-4 md:flex-row md:gap-0 md:divide-x md:divide-line">
-
-      {/* 身為團主 */}
-      <div className="flex flex-1 flex-col gap-3">
-        <div className="flex items-center gap-1.5 text-xs font-semibold text-ink-3">
-          <Crown size={12} className="text-warning" />
-          身為團主
-        </div>
+    <div className="card mb-6 flex flex-col gap-3 px-6 py-4 md:mx-auto md:w-96">
+      {activeView === 'host' ? (
         <div className="flex items-center justify-around">
           <StatItem label="活躍群組" value={activeHostedGroups.length} />
           <div className="h-8 w-px bg-line" />
@@ -51,16 +45,7 @@ function StatsBar({ userId }) {
           <div className="h-8 w-px bg-line" />
           <StatItem label="月收 PM" value={hostMonthly.toLocaleString()} />
         </div>
-      </div>
-
-      <div className="h-px bg-line md:hidden" />
-
-      {/* 身為成員 */}
-      <div className="flex flex-1 flex-col gap-3 md:pl-6">
-        <div className="flex items-center gap-1.5 text-xs font-semibold text-ink-3">
-          <Users size={12} className="text-brand" />
-          身為成員
-        </div>
+      ) : (
         <div className="flex items-center justify-around">
           <StatItem label="活躍訂閱" value={activeMemberSubs.length} />
           <div className="h-8 w-px bg-line" />
@@ -68,8 +53,7 @@ function StatsBar({ userId }) {
           <div className="h-8 w-px bg-line" />
           <StatItem label="月支 PM" value={memberMonthly.toLocaleString()} />
         </div>
-      </div>
-
+      )}
     </div>
   )
 }
@@ -90,19 +74,15 @@ export default function MyGroupsPage() {
         <h1 className="page-title">我的群組</h1>
       </div>
 
-      <div className="px-2 md:px-4 lg:px-16">
-        {userId && <StatsBar userId={userId} />}
-      </div>
-
       {/* Tab switcher */}
-      <div className="mb-6 flex gap-2 px-2 md:px-4 lg:px-16">
+      <div className="mb-6 flex gap-2 px-2 md:justify-center md:px-4 lg:px-16">
         {TABS.map(tab => {
           const Icon = tab.icon
           return (
             <button
               key={tab.key}
               onClick={() => switchTab(tab.key)}
-              className={`flex flex-1 flex-col items-center gap-1 rounded-xl py-2.5 text-sm font-bold transition-all ${
+              className={`flex flex-1 flex-col items-center gap-1 rounded-xl py-2.5 text-sm font-bold transition-all md:flex-none md:w-32 ${
                 activeView === tab.key
                   ? 'bg-brand text-white'
                   : 'text-ink-3 hover:bg-raised hover:text-ink'
@@ -113,6 +93,10 @@ export default function MyGroupsPage() {
             </button>
           )
         })}
+      </div>
+
+      <div className="px-2 md:px-4 lg:px-16">
+        {userId && <StatsBar userId={userId} activeView={activeView} />}
       </div>
 
       {/* Content */}

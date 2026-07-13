@@ -188,7 +188,8 @@ export default function CreateGroupPage() {
     <>
       {step === 1 ? (
         <Button variant="secondary" size="md" className="min-w-0 flex-1" onClick={leaveFlow}>
-          取消建立
+          <ChevronLeft size={15} />
+          取消
         </Button>
       ) : (
         <Button variant="secondary" size="md" className="min-w-0 flex-1" onClick={handleBack}>
@@ -258,7 +259,7 @@ export default function CreateGroupPage() {
         >
           <div key={step} className="h-full animate-step-slide-up p-0.5">
             {step <= 3 ? (
-              <div className={`flex h-full flex-col ${(step === 2 || step === 3) && !canScroll ? 'lg:justify-center' : ''}`}>
+              <div className={`flex h-full flex-col ${step === 3 && !canScroll ? 'lg:justify-center' : ''}`}>
                 {step === 2 && (
                   <div className="mb-6 flex items-center gap-4 rounded-2xl border border-line bg-white px-6 py-5 shadow-sm">
                     <ServiceLogo serviceId={form.serviceId} size={56} className="shrink-0 rounded-logo border-line-strong" />
@@ -270,6 +271,7 @@ export default function CreateGroupPage() {
                       amount={form.billingCycle === 'yearly' ? form.pricePerSeat * 12 : form.pricePerSeat}
                       cycle={form.billingCycle === 'yearly' ? 'yearly' : 'monthly'}
                       align="center"
+                      unitClassName="!text-xl"
                       className="shrink-0 text-2xl font-black text-ink"
                     />
                   </div>

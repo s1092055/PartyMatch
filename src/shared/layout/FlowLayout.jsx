@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import logoUrl from '../../assets/Logo.svg'
 
 // 底部固定導覽列（步驟進度條 + bottomNav 按鈕）疊起來的高度不固定，
 // 內容區的下方留白要跟著這兩者是否存在調整，避免內容被固定列擋住
@@ -15,7 +16,15 @@ export default function FlowLayout({ steps, currentStep, title, titleIcon, heade
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-canvas">
-      <div className="relative flex h-16 shrink-0 items-center justify-end border-b border-line px-4 md:h-20 md:px-8">
+      <div className="relative flex h-16 shrink-0 items-center justify-between border-b border-line px-4 md:h-20 md:px-8">
+        <a
+          href="/"
+          aria-label="回首頁"
+          className="flex shrink-0 items-center"
+        >
+          <img src={logoUrl} alt="PartyMatch" className="h-8 w-8" />
+        </a>
+
         {title && (
           <h1 className="pointer-events-none absolute left-1/2 flex max-w-[60%] -translate-x-1/2 items-center gap-2 truncate text-lg font-extrabold text-ink md:text-xl">
             {titleIcon}
