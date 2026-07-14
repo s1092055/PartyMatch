@@ -10,7 +10,7 @@ const topupSchema = z.object({
   amount: z.number().int().min(1).max(100000),
 })
 
-// GET /tokens — 查詢目前代幣餘額與最近 50 筆交易
+// GET /tokens — 查詢目前PM幣餘額與最近 50 筆交易
 router.get('/', requireAuth, async (req, res, next) => {
   try {
     const [user, transactions] = await Promise.all([
@@ -29,7 +29,7 @@ router.get('/', requireAuth, async (req, res, next) => {
   } catch (err) { next(err) }
 })
 
-// POST /tokens/topup — 模擬儲值（點擊即增加代幣餘額）
+// POST /tokens/topup — 模擬儲值（點擊即增加PM幣餘額）
 router.post('/topup', requireAuth, validate(topupSchema), async (req, res, next) => {
   try {
     const { amount } = req.body

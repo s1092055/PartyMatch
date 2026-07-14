@@ -57,7 +57,7 @@ const SYSTEM_TYPES  = ['system', 'announcement', 'platform']
 
 const TABS = [
   { id: 'all',     label: '全部',   filter: () => true },
-  { id: 'payment', label: '代幣帳務', filter: n => PAYMENT_TYPES.includes(n.type) },
+  { id: 'payment', label: 'PM幣帳務', filter: n => PAYMENT_TYPES.includes(n.type) },
   { id: 'apply',   label: '申請',   filter: n => APPLY_TYPES.includes(n.type) },
   { id: 'system',  label: '系統',   filter: n => SYSTEM_TYPES.includes(n.type) && (!n.userId || n.userId === 'system' || n.isPublic === true) },
 ]

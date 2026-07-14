@@ -89,7 +89,7 @@ export const useAuthStore = create((set, get) => ({
 
   getProfile: () => activeProfile(get().user),
 
-  // ── 代幣 ────────────────────────────────────────────────────────────────────
+  // ── PM幣 ────────────────────────────────────────────────────────────────────
   refreshTokenBalance: async () => {
     try {
       const { tokenBalance } = await fetchTokenBalance()

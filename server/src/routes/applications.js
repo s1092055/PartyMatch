@@ -47,12 +47,12 @@ router.post('/', requireAuth, validate(applySchema), async (req, res, next) => {
     if (group.status !== 'recruiting') return res.status(400).json({ message: '此群組目前不開放申請' })
     if (group.hostId === req.user.id) return res.status(400).json({ message: '團主不能申請自己的群組' })
 
-    // 餘額預檢：確保申請人有足夠代幣支付未來的代管費用
+    // 餘額預檢：確保申請人有足夠PM幣支付未來的代管費用
     const seatCost = group.billingCycle === 'yearly'
       ? Math.round(group.monthlyFee * 12)
       : Math.round(group.monthlyFee)
     if ((applicant?.tokenBalance ?? 0) < seatCost) {
-      return res.status(400).json({ message: `代幣餘額不足，需要 ${seatCost} PM（目前 ${applicant?.tokenBalance ?? 0} PM）`, code: 'INSUFFICIENT_BALANCE', required: seatCost })
+      return res.status(400).json({ message: `PM幣餘額不足，需要 ${seatCost} PM（目前 ${applicant?.tokenBalance ?? 0} PM）`, code: 'INSUFFICIENT_BALANCE', required: seatCost })
     }
 
     const existing = await prisma.application.findFirst({
@@ -126,7 +126,7 @@ router.patch('/:id', requireAuth, validate(reviewSchema), async (req, res, next)
         select: { tokenBalance: true },
       })
       if (!applicant || applicant.tokenBalance < seatCost) {
-        const err = new Error('申請人代幣餘額不足，無法核准')
+        const err = new Error('申請人PM幣餘額不足，無法核准')
         err.statusCode = 400
         throw err
       }
@@ -172,12 +172,12 @@ router.patch('/:id', requireAuth, validate(reviewSchema), async (req, res, next)
         create: { groupId: application.groupId, userId: application.userId },
         update: {},
       })
-      // 代管：扣除申請人代幣
+      // 代管：扣除申請人PM幣
       await tx.user.update({
         where: { id: application.userId },
         data:  { tokenBalance: { decrement: seatCost } },
       })
-      // 寫入代幣交易紀錄
+      // 寫入PM幣交易紀錄
       await tx.tokenTransaction.create({
         data: {
           userId:        application.userId,

@@ -2,7 +2,7 @@
 
 ## 環境需求
 
-- Node.js 18+
+- Node.js 22+（`server/package.json` 的 `engines.node` 要求）
 - MySQL 8+
 - Redis 7+（Mac 用 `brew install redis`）
 
@@ -15,23 +15,22 @@
 ```bash
 # REST API 位址
 VITE_API_BASE_URL=http://localhost:3001/api
-
-# Imgbb 圖片上傳（https://api.imgbb.com）
-VITE_IMGBB_API_KEY=
 ```
+
+圖片上傳（Cloudinary）由後端代理處理（`server/src/routes/upload.js`），前端不需另外設定 API Key。
 
 ### 後端（`server/.env`）
 
 ```bash
 # MySQL 連線字串
-DATABASE_URL="mysql://root:password@localhost:3306/partymatch"
+DATABASE_URL="mysql://root@localhost:3306/partymatch"
 
 # Redis 連線字串
-REDIS_URL="redis://localhost:6379"
+REDIS_URL=redis://localhost:6379
 
 # JWT 簽名金鑰（隨機長字串）
-JWT_ACCESS_SECRET=
-JWT_REFRESH_SECRET=
+JWT_ACCESS_SECRET=your_access_secret_here
+JWT_REFRESH_SECRET=your_refresh_secret_here
 JWT_ACCESS_EXPIRES=15m
 JWT_REFRESH_EXPIRES=7d
 
@@ -39,6 +38,10 @@ JWT_REFRESH_EXPIRES=7d
 CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
+
+# Stripe（已安裝 SDK，尚未串接實際扣款邏輯）
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
 
 # 伺服器 port（預設 3001）
 PORT=3001
@@ -65,10 +68,13 @@ NODE_ENV=development
 
 | 指令 | 用途 |
 |------|------|
-| `npm run dev` | 啟動 Express 開發伺服器（http://localhost:3001） |
-| `npx prisma db push` | 同步 schema 變更到資料庫。本專案未建立 migration 歷史（無 `prisma/migrations` 目錄），一律用 `db push` 同步，不要用 `migrate dev`（會因偵測不到既有 migration 歷史而要求重置資料庫） |
-| `npx prisma studio` | 開啟資料庫視覺化介面（http://localhost:5555） |
+| `npm run dev` | 啟動 Express 開發伺服器（http://localhost:3001，`--watch` 自動重啟） |
+| `npm start` | 直接啟動 Express（無 `--watch`），正式環境用 |
+| `npm run db:push`（等同 `npx prisma db push`） | 同步 schema 變更到資料庫。本專案未建立 migration 歷史（無 `prisma/migrations` 目錄），一律用 `db push` 同步 |
+| `npm run db:migrate`（等同 `npx prisma migrate dev`） | package.json 有此腳本，但**不要使用**——會因偵測不到既有 migration 歷史而要求重置資料庫，一律改用 `db:push` |
+| `npm run db:studio`（等同 `npx prisma studio`） | 開啟資料庫視覺化介面（http://localhost:5555） |
 | `npx prisma generate` | 重新產生 Prisma Client |
+| `npm run db:seed` | 執行 `prisma/seed.js` 建立測試資料 |
 | `npm run db:clear-data` | 清空所有資料（保留 users 與 services），用於重設測試環境 |
 | `npm run db:clear` | 清空所有正式版資料**含 users**（保留 services），執行前需在終端機輸入 `yes` 確認 |
 
@@ -93,7 +99,7 @@ npm install
 # 3. 後端依賴與資料庫初始化
 cd server
 npm install
-npx prisma db push
+npm run db:push
 
 # 4. 開兩個 terminal 分別啟動前後端
 # Terminal 1（根目錄）
@@ -133,7 +139,7 @@ zip -r partymatch.zip . \
 | 項目 | 說明 | 相關檔案 |
 |------|------|----------|
 | 帳戶交易紀錄 | 在帳號中心顯示 `token_transactions` 歷史明細（`GET /tokens` 已回傳最近 50 筆，前端待顯示） | `AccountPage.jsx`、`PersonalInfoTab.jsx` |
-| RenewalModal 完整實作 | 「開始新一期」與「結束服務」為雛形，需完整測試 | `RenewalModal.jsx`、`useGroupStore.js` |
+| RenewalModal 完整實作 | 「開始新一期收款」與「結束服務」為雛形，需完整測試 | `RenewalModal.jsx`、`useGroupStore.js` |
 | GroupHistoryModal 入口補強 | 元件已存在，群組卡片缺少明確入口 | `GroupHistoryModal.jsx`、`HostedGroupCard.jsx` |
 | 即將續訂通知 | 接近 `nextBillingDate` 時未自動提醒 | `useSubscriptionStore.js` |
 | 信用評分完整機制 | 扣 / 加分邏輯尚未串通完整流程 | `useAuthStore.js`、`useMemberStore.js` |
@@ -142,7 +148,7 @@ zip -r partymatch.zip . \
 
 | 項目 | 說明 |
 |------|------|
-| 正式金流串接 | ECPay / 綠界或其他金流 API，取代目前模擬儲值 |
+| 正式金流串接 | 已安裝 Stripe SDK（`server/package.json`）與對應環境變數，尚未串接實際扣款邏輯，取代目前模擬儲值 |
 | WebSocket 取代輪詢 | 訊息中心目前每 5 秒 polling，WebSocket 可降低延遲 |
 | 探索頁更多搜尋功能 | 目前篩選已透過 URL query params 傳遞；未來可考慮加入全文搜尋後端 API |
 | 快速搜尋結果分頁 | 資料量大時需分頁或虛擬捲動 |

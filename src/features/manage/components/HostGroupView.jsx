@@ -150,8 +150,8 @@ export default function HostGroupView({ group, members, applications, onReportSe
     </div>
   )
 
-  const cancellableStatuses = ['recruiting', 'full', 'pending_confirmation', 'pending_activation']
-  const canCancel = cancellableStatuses.includes(group.status)
+  const isRecruiting = ['recruiting', 'full'].includes(group.status)
+  const canCancel = isRecruiting
 
   const cancelCta = canCancel && (
     <div className="flex justify-center py-2">
@@ -163,8 +163,6 @@ export default function HostGroupView({ group, members, applications, onReportSe
       </button>
     </div>
   )
-
-  const isRecruiting = ['recruiting', 'full'].includes(group.status)
 
   function buildSubPanel() {
     if (activePanel === 'members') return buildMembersPanel({ group, members, setActivePanel, onClose, setRemovingMember })

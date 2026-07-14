@@ -117,8 +117,8 @@ router.post('/', requireAuth, validate(createGroupSchema), async (req, res, next
 const ALLOWED_TRANSITIONS = {
   recruiting:           ['full', 'cancelled'],
   full:                 ['recruiting', 'pending_confirmation', 'cancelled'],
-  pending_confirmation: ['pending_activation', 'cancelled'],
-  pending_activation:   ['active', 'cancelled'],
+  pending_confirmation: ['pending_activation'],
+  pending_activation:   ['active'],
   active:               ['confirming', 'ended', 'pending_confirmation'],
   confirming:           ['active', 'disputed', 'cancelled'],
   disputed:             ['confirming', 'active', 'cancelled', 'ended'],
@@ -292,9 +292,9 @@ router.post('/:id/cancel', requireAuth, async (req, res, next) => {
     if (!group) return res.status(404).json({ message: '群組不存在' })
     if (group.hostId !== req.user.id) return res.status(403).json({ message: '僅團主可解散群組' })
 
-    const cancellable = ['recruiting', 'full', 'pending_confirmation', 'pending_activation']
+    const cancellable = ['recruiting', 'full']
     if (!cancellable.includes(group.status)) {
-      return res.status(400).json({ message: `群組狀態為 ${group.status}，無法解散` })
+      return res.status(400).json({ message: `群組已鎖定（狀態為 ${group.status}），無法解散` })
     }
 
     // 計算每位成員的退款金額（席位費用）

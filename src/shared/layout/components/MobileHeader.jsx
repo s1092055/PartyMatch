@@ -82,7 +82,7 @@ export default function MobileHeader({
             <p className="text-sm font-extrabold text-ink">{userName}</p>
           </div>
 
-          {/* PM 幣餘額 */}
+          {/* PM幣餘額 */}
           <div className="mb-4 flex justify-center">
             <div className="inline-flex items-center gap-2 rounded-xl bg-raised px-4 py-2.5">
               <TokenBadge className="shrink-0" />

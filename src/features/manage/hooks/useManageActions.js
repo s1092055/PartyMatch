@@ -305,7 +305,7 @@ async function handleActivate() {
         userId:  m.userId,
         type:    'group_cancelled',
         title:   '群組已解散',
-        message: `「${group.serviceName}」群組已被團主解散，代管費用已退還至你的代幣餘額。`,
+        message: `「${group.serviceName}」群組已被團主解散，代管費用已退還至你的PM幣餘額。`,
         meta:    { groupId: viewGroupId },
       }).catch(console.error)
     })

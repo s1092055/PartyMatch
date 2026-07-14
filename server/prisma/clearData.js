@@ -36,9 +36,9 @@ async function main() {
   console.log('  - token_transactions')
 
   await prisma.user.updateMany({ data: { tokenBalance: 0 } })
-  console.log('  - 所有使用者 PM 幣已歸零')
+  console.log('  - 所有使用者 PM幣已歸零')
 
-  console.log('\n清空完成（users 與 services 已保留，PM 幣已歸零）')
+  console.log('\n清空完成（users 與 services 已保留，PM幣已歸零）')
 }
 
 main()

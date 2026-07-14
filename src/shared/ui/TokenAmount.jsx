@@ -1,4 +1,4 @@
-// PM 代幣金額顯示元件
+// PM幣金額顯示元件
 // 用法：<TokenAmount amount={500} cycle="monthly" /> → PM 500 /月
 //       <TokenAmount amount={6000} cycle="yearly" />  → PM 6000 /年
 //       <TokenAmount amount={500} />                  → PM 500
