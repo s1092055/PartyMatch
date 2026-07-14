@@ -57,16 +57,18 @@ function TabContent({ value, user, onChange, tabs }) {
   return null
 }
 
-function LogoutButton({ className = "" }) {
+function LogoutButton({ className = "", fullWidth = false }) {
   const navigate = useNavigate();
   return (
-    <button
-      onClick={() => { useAuthStore.getState().logout(); navigate('/login', { replace: true }) }}
-      className={`ml-auto flex w-fit shrink-0 items-center justify-center gap-2 rounded-2xl bg-brand px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-brand-hover ${className}`}
-    >
-      <LogOut size={16} className="shrink-0" />
-      登出
-    </button>
+    <div className={`flex ${fullWidth ? '' : 'justify-end'} ${className}`}>
+      <button
+        onClick={() => { useAuthStore.getState().logout(); navigate('/login', { replace: true }) }}
+        className={`inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-brand px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-brand-hover ${fullWidth ? 'w-full' : ''}`}
+      >
+        <LogOut size={16} className="shrink-0" />
+        登出
+      </button>
+    </div>
   )
 }
 
@@ -138,7 +140,8 @@ export default function AccountPage() {
       </div>
 
       {/* 手機版：Accordion */}
-      <div className="md:hidden space-y-2">
+      <div className="md:hidden">
+        <div className="space-y-2">
         {TABS.map(tab => {
           const isOpen = openAccordion === tab.value
           return (
@@ -170,8 +173,9 @@ export default function AccountPage() {
             </div>
           )
         })}
+        </div>
 
-        <LogoutButton />
+        <LogoutButton fullWidth className="mt-6" />
       </div>
     </div>
   );

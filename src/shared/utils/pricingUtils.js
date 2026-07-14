@@ -10,3 +10,8 @@ export function getPlanMonthlyEquivalent(plan, billingCycle) {
 export function getPlanByName(serviceId, planName) {
   return getServiceById(serviceId)?.plans?.find(p => p.name === planName) ?? null
 }
+
+// 方案分攤到每個席位的月費（依收費週期換算後再除以席位數，無條件進位）
+export function calcPricePerSeat(plan, seats, billingCycle) {
+  return Math.ceil(getPlanMonthlyEquivalent(plan, billingCycle) / seats)
+}

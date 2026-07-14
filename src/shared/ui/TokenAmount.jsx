@@ -3,11 +3,15 @@
 //       <TokenAmount amount={6000} cycle="yearly" />  → PM 6000 /年
 //       <TokenAmount amount={500} />                  → PM 500
 
+import pmCoinUrl from '../../assets/PMCoin.svg'
+
 export function TokenBadge({ className = '' }) {
   return (
-    <span className={`inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand text-[9px] font-black leading-none text-white ${className}`}>
-      PM
-    </span>
+    <img
+      src={pmCoinUrl}
+      alt="PM幣"
+      className={`inline-block h-5 w-5 shrink-0 ${className}`}
+    />
   )
 }
 

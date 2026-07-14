@@ -39,6 +39,37 @@ function subscribeScroll(fn) {
   }
 }
 
+// 由觸發滾輪事件的節點往上找，是否已經位在「本來就能自己垂直捲動」的祖先元素內
+// （例如頁面裡獨立的側邊摘要面板）——如果是，交給該元素自己處理，不應該被轉發搶走
+function hasScrollableAncestor(node, stopAt) {
+  let cur = node
+  while (cur && cur !== stopAt && cur !== document.body) {
+    if (cur instanceof HTMLElement) {
+      const style = getComputedStyle(cur)
+      const canScrollY = (style.overflowY === 'auto' || style.overflowY === 'scroll') && cur.scrollHeight > cur.clientHeight
+      if (canScrollY) return true
+    }
+    cur = cur.parentElement
+  }
+  return false
+}
+
+// 共用滾輪轉發：無論幾個元件訂閱，window 上只掛一個真正的 'wheel' listener（ref-count 釋放）
+// Modal 開啟（scroll lock 中）時不轉發，避免滾動背景頁面而非 Modal 本身內容
+const _wheelSubs = new Set()
+function _notifyWheel(e) {
+  if (_lockCount > 0) return
+  _wheelSubs.forEach(fn => fn(e))
+}
+function subscribeWheel(fn) {
+  _wheelSubs.add(fn)
+  if (_wheelSubs.size === 1) window.addEventListener('wheel', _notifyWheel, { passive: true })
+  return () => {
+    _wheelSubs.delete(fn)
+    if (_wheelSubs.size === 0) window.removeEventListener('wheel', _notifyWheel)
+  }
+}
+
 export function useScrollY() {
   const [y, setY] = useState(() => window.scrollY)
   useEffect(() => subscribeScroll(setY), [])
@@ -62,7 +93,9 @@ export function useHideOnScroll() {
 
 // 捲動邊界偵測：回報是否可捲動、是否已到底部，並提供捲到頂/往下捲的控制函式
 // （多個翻頁式流程頁面與步驟卡片共用同一套邏輯，避免各自重複實作 ResizeObserver 監聽）
-export function useScrollEdge({ withMutationObserver = false } = {}) {
+// forwardWheel：讓滑鼠在頁面任何位置（含固定 header／底部導覽列）滾動滾輪時，都轉發捲動量給內容容器，
+// 屬於「整頁式流程」才需要的選配行為，預設關閉，避免非全頁情境的呼叫端被動繼承這個副作用
+export function useScrollEdge({ withMutationObserver = false, forwardWheel = false } = {}) {
   const [atBottom, setAtBottom] = useState(false)
   const [canScroll, setCanScroll] = useState(false)
   const [isScrolling, setIsScrolling] = useState(false)
@@ -101,6 +134,16 @@ export function useScrollEdge({ withMutationObserver = false } = {}) {
   }, [withMutationObserver])
 
   useEffect(() => () => clearTimeout(scrollIdleTimerRef.current), [])
+
+  useEffect(() => {
+    if (!forwardWheel) return
+    return subscribeWheel(e => {
+      const el = elRef.current
+      if (!el || el.contains(e.target) || el.scrollHeight <= el.clientHeight) return
+      if (hasScrollableAncestor(e.target, document.body)) return
+      el.scrollBy({ top: e.deltaY })
+    })
+  }, [forwardWheel])
 
   return { scrollRef, elRef, atBottom, canScroll, isScrolling, handleScroll }
 }

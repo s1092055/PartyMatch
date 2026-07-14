@@ -291,8 +291,6 @@ export default function FloatingMessages() {
               icon={Bell}
               title={loggedIn ? '沒有通知' : '沒有系統公告'}
               description={loggedIn && activeTab === 'all' ? '加入或建立群組後，這裡會顯示申請與群組動態' : loggedIn ? '這個分類目前沒有任何訊息' : '目前沒有需要公告的系統訊息'}
-              actionLabel={loggedIn && activeTab === 'all' ? '探索群組' : undefined}
-              onAction={loggedIn && activeTab === 'all' ? () => { setOpen(false); navigate('/explore') } : undefined}
               className="py-10"
             />
           ) : (

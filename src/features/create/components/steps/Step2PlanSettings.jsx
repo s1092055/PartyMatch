@@ -23,7 +23,7 @@ function Field({ label, required, children, hint, htmlFor, className = '' }) {
         {label}
         {required && <span className="ml-0.5 text-red-400">*</span>}
         {hint && (
-          <span className="group relative inline-flex">
+          <span className="group/hint relative inline-flex">
             <button
               type="button"
               onClick={() => setShowHint(v => !v)}
@@ -32,7 +32,7 @@ function Field({ label, required, children, hint, htmlFor, className = '' }) {
             >
               <AlertCircle size={16} />
             </button>
-            <span className={`pointer-events-none absolute left-full top-1/2 z-10 ml-1.5 w-max max-w-[16rem] -translate-y-1/2 rounded-lg bg-ink px-2.5 py-1.5 text-sm font-normal leading-relaxed text-white shadow-lg transition-opacity group-hover:opacity-100 ${showHint ? 'opacity-100' : 'opacity-0'}`}>
+            <span className={`pointer-events-none absolute left-full top-1/2 z-10 ml-1.5 w-max max-w-[16rem] -translate-y-1/2 rounded-lg bg-ink px-2.5 py-1.5 text-sm font-normal leading-relaxed text-white shadow-lg transition-opacity group-hover/hint:opacity-100 ${showHint ? 'opacity-100' : 'opacity-0'}`}>
               {hint}
             </span>
           </span>
@@ -81,7 +81,7 @@ export default function Step2PlanSettings({ form, onChange }) {
   }
 
   return (
-    <div className="lg:flex lg:items-stretch lg:gap-8">
+    <div className="pb-3 lg:flex lg:items-stretch lg:gap-8">
       {/* 左：選擇方案、收費週期、開放名額 */}
       <div className="flex min-w-0 flex-1 flex-col space-y-5">
         <Field label="選擇方案" required hint="選擇方案後，費用將依官方定價自動計算">
@@ -110,7 +110,7 @@ export default function Step2PlanSettings({ form, onChange }) {
                   <div className="min-w-0 text-center">
                     <p className="font-medium truncate">{currentPlan.name}</p>
                     <p className={`text-sm mt-0.5 flex items-center justify-center gap-1 truncate ${isPlanSelected ? 'text-brand' : 'text-slate-400'}`}>
-                      <TokenAmount amount={currentPlan.monthlyPrice} badgeSize="!h-3.5 !w-3.5 !text-[6px]" unitClassName={isPlanSelected ? 'text-brand' : 'text-slate-400'} /> · {currentPlan.maxSeats} 人
+                      <TokenAmount amount={currentPlan.monthlyPrice} badgeSize="!h-3.5 !w-3.5" unitClassName={isPlanSelected ? 'text-brand' : 'text-slate-400'} /> · {currentPlan.maxSeats} 人
                     </p>
                   </div>
                 </button>

@@ -9,7 +9,7 @@ const LEGAL_LINKS = [
 
 export default function AppFooter() {
   return (
-    <footer className="border-t border-line bg-canvas px-5 pt-10 pb-24 md:pb-10">
+    <footer className="border-t border-line bg-canvas px-5 pt-10 pb-20 md:pb-10">
       <div className="mx-auto max-w-5xl flex flex-col items-center gap-5 md:flex-row md:justify-between">
 
         <div className="flex items-center gap-2.5">

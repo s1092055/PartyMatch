@@ -8,7 +8,7 @@ const FAQS = [
   },
   {
     q: '加入群組後如何完成付款？',
-    a: '申請通過、團主鎖定群組後，你會收到通知。請前往「我的訂閱」填寫你在該服務使用的電子信箱（服務帳號），再依照群組聊天室中團主提供的收款資訊（匯款帳號等）完成付款並上傳截圖。團主確認收款後，訂閱正式啟用。',
+    a: '平台使用內部 PM 幣（1 PM 幣 = 1 台幣）作為交易媒介，儲值後即可使用。申請通過的當下，你的席位費用會自動從 PM 幣餘額轉入平台代管，不需要另外轉帳、匯款或上傳截圖。團主鎖定群組後前往「我的訂閱」填寫服務帳號，等待啟用通知即可。',
   },
   {
     q: '帳號安全嗎？我的個人資料會外洩嗎？',
@@ -24,7 +24,11 @@ const FAQS = [
   },
   {
     q: '群組鎖定後我還需要做什麼？',
-    a: '成員付款並上傳截圖後，你會收到通知。前往「群組管理 → 收款紀錄」逐筆確認收款。全員確認完成後，系統出現「啟用服務」按鈕，點擊後群組正式進入服務中狀態，所有成員會收到啟用通知。',
+    a: '全員的席位費用在核准當下就已經代管完成，鎖定群組後只需等待成員填寫服務帳號。全員填寫完成後，系統會出現「啟用服務」按鈕，點擊後群組進入 48 小時確認期，期間沒有成員申訴的話，代管款項就會自動撥給你。',
+  },
+  {
+    q: '如果成員覺得服務有問題怎麼辦？',
+    a: '服務啟用後的 48 小時確認期內，成員可以在群組聊天室直接反應問題，或是向平台提出正式申訴。一旦提出申訴，該筆代管款項會被凍結，平台客服會在 3 天內裁定：成員勝訴則退款並離開群組，團主勝訴則款項撥給團主，其餘成員不受影響。',
   },
 ]
 
@@ -33,8 +37,9 @@ function FAQItem({ q, a, open, onToggle }) {
     <div className={`rounded-2xl px-5 transition-colors duration-200 ${open ? 'bg-raised' : 'hover:bg-raised'}`}>
       <button
         onClick={onToggle}
-        className="flex w-full items-center justify-between gap-4 py-4 text-center"
+        className="flex w-full items-center gap-4 py-4 text-center"
       >
+        <span className="w-4 shrink-0" />
         <span className="flex-1 text-center font-bold text-ink">{q}</span>
         <ChevronDown
           size={16}

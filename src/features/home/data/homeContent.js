@@ -8,9 +8,11 @@ import {
   Heart,
   LayoutDashboard,
   MessageSquare,
+  PlayCircle,
   PlusCircle,
   Search,
   ShieldAlert,
+  ShieldCheck,
   Star,
   UserCheck,
   UserX,
@@ -47,7 +49,7 @@ export const HOME_FEATURES = [
   {
     icon: LayoutDashboard,
     title: '群組管理',
-    desc: '審核申請、確認付款、管理成員，所有群組操作集中在一頁。啟用、續訂、結束群組一手掌控。',
+    desc: '審核申請、鎖定名額、啟用服務，所有群組操作集中在一頁。款項由平台自動代管撥款，不用自己對帳。',
     videoSrc: null,
     badge: '管理',
     action: { type: 'navigate', path: '/my-groups?view=host' },
@@ -56,7 +58,7 @@ export const HOME_FEATURES = [
   {
     icon: CreditCard,
     title: '我的訂閱',
-    desc: '查看所有加入的訂閱、付款狀態和繳費紀錄，可以直接完成付款或聯絡團主，再也不怕漏繳。',
+    desc: '查看所有加入的訂閱與 PM 幣扣款紀錄，申請通過即自動從餘額代管付款，不用再手動轉帳或上傳截圖。',
     videoSrc: null,
     badge: '訂閱',
     action: { type: 'navigate', path: '/my-groups?view=member' },
@@ -70,7 +72,6 @@ export const HOME_EXTRA_FEATURES = [
     title: '訊息中心',
     desc: '和同群組的成員直接對話，溝通付款細節或任何問題，不需要另外找聯絡方式。',
     videoSrc: null,
-    action: { type: 'event', event: 'pm:open-messages' },
     color: 'text-brand',
     bg: 'bg-brand-subtle',
   },
@@ -79,7 +80,6 @@ export const HOME_EXTRA_FEATURES = [
     title: '通知中心',
     desc: '申請結果、付款提醒、成員動態即時送達，所有重要事項都不會漏掉。',
     videoSrc: null,
-    action: { type: 'event', event: 'pm:open-notify' },
     color: 'text-amber-500',
     bg: 'bg-amber-50',
   },
@@ -88,18 +88,24 @@ export const HOME_EXTRA_FEATURES = [
     title: '我的收藏',
     desc: '看到感興趣的群組先收起來，之後再決定要不要申請加入，隨時可以回來查看。',
     videoSrc: null,
-    action: null,
     color: 'text-danger',
     bg: 'bg-danger-subtle',
   },
   {
     icon: Star,
     title: '信用分數',
-    desc: '每次按時付款都能累積評分。分數愈高，團主愈願意接受你的申請。',
+    desc: '準時完成流程、不隨意退出群組都能累積評分。分數愈高，團主愈願意接受你的申請。',
     videoSrc: null,
-    action: null,
     color: 'text-success',
     bg: 'bg-success/10',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'PM 幣代管保障',
+    desc: '申請通過即用 PM 幣（1:1 對應 TWD）自動代管款項，服務啟用後有 48 小時確認期，有爭議可向平台申訴，代管金額全程凍結，安全又透明。',
+    videoSrc: null,
+    color: 'text-info',
+    bg: 'bg-info-subtle',
   },
 ]
 
@@ -121,18 +127,18 @@ export const MEMBER_STEPS = [
   },
   {
     step: 4,
-    title: '填寫服務帳號',
-    desc: '群組啟用後，填寫你在該服務使用的電子信箱（作為訂閱帳號），這是付款的必要前置步驟。',
+    title: '通過核准，PM 幣自動代管',
+    desc: '團主核准申請的當下，你的席位費用會直接從 PM 幣餘額轉入平台代管，不需要另外轉帳或匯款。',
   },
   {
     step: 5,
-    title: '完成付款並上傳截圖',
-    desc: '依照群組聊天室中團主提供的收款資訊（匯款帳號等）完成付款，並在平台上傳付款截圖。',
+    title: '填寫服務帳號',
+    desc: '團主鎖定群組後，填寫你在該服務使用的訂閱帳號資訊，團主啟用服務後即可開始使用。',
   },
   {
     step: 6,
-    title: '等待確認，開始享用',
-    desc: '團主確認收款後服務正式啟用，你會收到通知。之後在「我的訂閱」可追蹤付款狀態與續訂時間。',
+    title: '確認服務正常，開始享用',
+    desc: '服務啟用後有 48 小時確認期，確認沒問題可提前結束等待、代管款項立即撥給團主；遇到問題也可在期限內向平台申訴，之後在「我的訂閱」可追蹤扣款與續訂時間。',
   },
 ]
 
@@ -150,17 +156,17 @@ export const HOST_STEPS = [
   {
     step: 3,
     title: '名額招滿，鎖定群組',
-    desc: '所有名額核准後，點擊「鎖定群組」並填寫你的收款帳號。系統自動建立群組聊天室，通知所有成員填寫服務帳號與完成付款。',
+    desc: '所有名額核准後，點擊「鎖定群組」。全員的席位費用已在核准時代管完成，系統自動建立群組聊天室，通知所有成員填寫服務帳號。',
   },
   {
     step: 4,
-    title: '逐筆確認收款',
-    desc: '成員付款並上傳截圖後，前往「收款紀錄」逐筆確認。若有問題可回報，通知成員重新補件。',
+    title: '啟用服務',
+    desc: '全員填寫服務帳號後，啟用按鈕自動出現。點擊後群組進入 48 小時確認期，期間成員可確認服務正常或提出問題，之後代管款項會自動撥給你。',
   },
   {
     step: 5,
-    title: '啟用服務',
-    desc: '全員付款確認後，啟用按鈕自動出現。點擊後群組正式啟用，所有成員收到通知。到期後可開始新一期收款或結束群組。',
+    title: '續訂或結束',
+    desc: '每個計費週期結束時，選擇繼續招募下一輪，或結束這個群組。若有成員申訴，平台客服會在 3 天內裁定並凍結該筆代管金額。',
   },
 ]
 
@@ -171,9 +177,9 @@ export const HOST_TASKS = [
     desc: '收到新成員的加入申請後，查看對方的信用分數與資料，決定要核准或拒絕。',
   },
   {
-    icon: CheckCircle2,
-    title: '確認付款',
-    desc: '成員完成付款後，確認你已收到款項，點擊確認即完成這筆紀錄。',
+    icon: PlayCircle,
+    title: '啟用服務',
+    desc: '成員填寫服務帳號後，點擊啟用服務。之後進入 48 小時確認期，沒有爭議代管款項會自動撥給你。',
   },
   {
     icon: UserX,
@@ -208,5 +214,9 @@ export const HOST_NOTICES = [
   {
     icon: FileText,
     text: '群組規則請在建立時寫清楚，避免事後與成員產生糾紛。',
+  },
+  {
+    icon: ShieldCheck,
+    text: '啟用服務後有 48 小時確認期，成員申訴會凍結代管款項並由平台客服在 3 天內裁定。',
   },
 ]

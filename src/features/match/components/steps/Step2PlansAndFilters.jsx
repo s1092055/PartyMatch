@@ -28,7 +28,7 @@ export default function Step2PlansAndFilters({ conditions, onChangePlan, onChang
 
   return (
     <div className="flex gap-3">
-      <nav className="sticky top-0 flex w-20 shrink-0 flex-col gap-1 self-start">
+      <nav className="sticky top-0 hidden w-20 shrink-0 flex-col gap-1 self-start md:flex">
         {ANCHOR_LABELS.map(a => (
           <button
             key={a.key}

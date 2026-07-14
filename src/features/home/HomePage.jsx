@@ -6,6 +6,7 @@ import logoUrl from '../../assets/Logo.svg'
 import { useAuthStore } from '../../shared/stores/useAuthStore'
 import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { listServiceTypes } from '../../shared/utils/serviceUtils'
+import { calcPricePerSeat } from '../../shared/utils/pricingUtils'
 import AppNav from '../../shared/layout/AppNav'
 import ScrollToTop from '../../shared/layout/ScrollToTop'
 import AppFooter from '../../shared/layout/AppFooter'
@@ -19,6 +20,9 @@ import FAQ from './components/FAQ'
 import RevealSection from '../../shared/ui/RevealSection'
 
 const ALL_SERVICES = listServiceTypes()
+const MIN_SEAT_PRICE = Math.min(
+  ...ALL_SERVICES.flatMap(s => (s.plans ?? []).map(p => calcPricePerSeat(p, p.maxSeats || 1, 'monthly')))
+)
 const MessagesModal = lazy(() => import('../messages/MessagesModal'))
 
 export default function HomePage() {
@@ -28,9 +32,9 @@ export default function HomePage() {
   const activeGroupCount = groups.filter(g => g.status === 'recruiting' && g.openSeats > 0).length
 
   const STATS = [
-    { value: '30+',                    label: '支援服務' },
-    { value: String(activeGroupCount), label: '個活躍群組' },
-    { value: 'NT$30',                  label: '最低月費起' },
+    { value: String(ALL_SERVICES.length),   label: '支援服務' },
+    { value: String(activeGroupCount),      label: '個活躍群組' },
+    { value: `NT$${MIN_SEAT_PRICE}`,         label: '最低月費起' },
   ]
 
   return (
@@ -94,20 +98,26 @@ export default function HomePage() {
         </section>
       </RevealSection>
 
-      <div className="mx-auto max-w-5xl flex-1 space-y-24 px-5 py-16">
+      <div className="mx-auto max-w-5xl px-5 pt-16">
         <FeatureCards />
+      </div>
+
+      <div className="py-24">
         <RevealSection><ExtraFeatures /></RevealSection>
+      </div>
+
+      <div className="mx-auto max-w-5xl flex-1 space-y-24 px-5 pb-16">
         <RevealSection><HowItWorks /></RevealSection>
         <RevealSection><HostGuide /></RevealSection>
         <RevealSection><FAQ /></RevealSection>
       </div>
 
       <RevealSection>
-        <section className="border-t border-line bg-brand py-14 text-center text-white">
+        <section className="py-14 text-center text-ink">
           <h2 className="text-2xl font-extrabold">準備好了嗎？</h2>
           <button
             onClick={() => navigate(loggedIn ? '/explore' : '/register')}
-            className="mt-7 inline-flex items-center gap-2 rounded-xl bg-white px-7 py-3 text-sm font-bold text-brand shadow transition-opacity hover:opacity-90"
+            className="mt-7 inline-flex items-center gap-2 rounded-xl bg-brand px-7 py-3 text-sm font-bold text-white shadow transition-opacity hover:opacity-90"
           >
             {loggedIn ? '前往探索群組' : '免費建立帳號'}
             <ChevronRight size={15} strokeWidth={1.5} />

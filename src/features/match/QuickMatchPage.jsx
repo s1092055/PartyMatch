@@ -36,7 +36,7 @@ export default function QuickMatchPage() {
   const {
     scrollRef, elRef: scrollElRef, atBottom, canScroll, isScrolling,
     handleScroll: handleContentScroll,
-  } = useScrollEdge({ withMutationObserver: true })
+  } = useScrollEdge({ withMutationObserver: true, forwardWheel: step !== 2 })
 
   function toggleService(id) {
     setConditions(prev => {

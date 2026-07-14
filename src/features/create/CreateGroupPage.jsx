@@ -13,7 +13,7 @@ import LivePreviewPanel from './components/LivePreviewPanel'
 import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { useNotificationStore } from '../../shared/stores/useNotificationStore'
 import { getServiceById } from '../../shared/utils/serviceUtils'
-import { getPlanMonthlyEquivalent } from '../../shared/utils/pricingUtils'
+import { calcPricePerSeat } from '../../shared/utils/pricingUtils'
 import { useAuthStore } from '../../shared/stores/useAuthStore'
 import { useScrollEdge } from '../../shared/utils/hooks'
 
@@ -87,10 +87,6 @@ function getFirstInvalidStep(form) {
   return [1, 2].find(step => getStepErrors(step, form).length > 0) ?? null
 }
 
-function calcPricePerSeat(plan, seats, billingCycle) {
-  return Math.ceil(getPlanMonthlyEquivalent(plan, billingCycle) / seats)
-}
-
 export default function CreateGroupPage() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -108,7 +104,7 @@ export default function CreateGroupPage() {
   const {
     scrollRef, elRef: scrollElRef, atBottom, canScroll, isScrolling,
     handleScroll: handleContentScroll,
-  } = useScrollEdge({ withMutationObserver: true })
+  } = useScrollEdge({ withMutationObserver: true, forwardWheel: true })
 
   function onChange(key, value) {
     setForm(prev => {
@@ -257,7 +253,7 @@ export default function CreateGroupPage() {
         >
           <div key={step} className="h-full animate-step-slide-up p-0.5">
             {step <= 3 ? (
-              <div className={`flex h-full flex-col ${step === 3 && !canScroll ? 'lg:justify-center' : ''}`}>
+              <div className="flex h-full flex-col">
                 {step === 2 && (
                   <div className="mb-6 flex items-center gap-4 rounded-2xl border border-line bg-white px-6 py-5 shadow-sm">
                     <ServiceLogo serviceId={form.serviceId} size={56} className="shrink-0 rounded-logo border-line-strong" />
@@ -275,7 +271,9 @@ export default function CreateGroupPage() {
                   </div>
                 )}
                 {step === 3 ? (
-                  <Step3Preview form={form} agreedToTerms={agreedToTerms} onAgreeChange={setAgreedToTerms} onShowPreview={() => setShowPreview(true)} />
+                  <div className="lg:m-auto lg:w-full">
+                    <Step3Preview form={form} agreedToTerms={agreedToTerms} onAgreeChange={setAgreedToTerms} onShowPreview={() => setShowPreview(true)} />
+                  </div>
                 ) : (
                   <CurrentStep form={form} onChange={onChange} />
                 )}
