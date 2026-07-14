@@ -8,7 +8,7 @@ import Step3Preview from './components/steps/Step3Preview'
 import Button from '../../shared/ui/Button'
 import ServiceLogo from '../../shared/ui/ServiceLogo'
 import TokenAmount from '../../shared/ui/TokenAmount'
-import ScrollHintButton from '../../shared/ui/ScrollHintButton'
+import ScrollHint from '../../shared/ui/ScrollHint'
 import LivePreviewPanel from './components/LivePreviewPanel'
 import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { useNotificationStore } from '../../shared/stores/useNotificationStore'
@@ -106,8 +106,8 @@ export default function CreateGroupPage() {
   // 內容溢出，所以要求 MutationObserver 監看整個子樹的異動，每次異動都重新讀取真實的
   // scrollHeight/clientHeight 來判斷是否 overflow
   const {
-    scrollRef, elRef: scrollElRef, atBottom, canScroll,
-    handleScroll: handleContentScroll, scrollToTop: scrollContentToTop, scrollDown: scrollContentDown,
+    scrollRef, elRef: scrollElRef, atBottom, canScroll, isScrolling,
+    handleScroll: handleContentScroll,
   } = useScrollEdge({ withMutationObserver: true })
 
   function onChange(key, value) {
@@ -249,7 +249,7 @@ export default function CreateGroupPage() {
       bottomNav={footer}
       maxWidth="max-w-xl md:max-w-2xl lg:max-w-3xl"
     >
-      <div className="relative h-full">
+      <div className="group relative h-full">
         <div
           ref={scrollRef}
           onScroll={handleContentScroll}
@@ -300,14 +300,7 @@ export default function CreateGroupPage() {
           </div>
         </div>
 
-        {step <= 3 && (
-          <ScrollHintButton
-            canScroll={canScroll}
-            atBottom={atBottom}
-            onScrollToTop={scrollContentToTop}
-            onScrollDown={scrollContentDown}
-          />
-        )}
+        {step <= 3 && <ScrollHint canScroll={canScroll} atBottom={atBottom} isScrolling={isScrolling} />}
       </div>
 
       {showPreview && (

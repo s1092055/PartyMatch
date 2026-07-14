@@ -38,7 +38,7 @@ export default function Step2Plans({ conditions, onChangePlan }) {
                   }`}
                 >
                   <p className="text-sm font-bold">{plan.name}</p>
-                  <p className="mt-0.5 text-xs text-slate-400"><TokenAmount amount={plan.monthlyPrice} cycle="monthly" /> · 最多 {plan.maxSeats} 人</p>
+                  <p className="mt-0.5 text-xs text-slate-400"><TokenAmount amount={plan.monthlyPrice} cycle="monthly" badgeSize="!h-3 !w-3 !text-[5px]" /> · 最多 {plan.maxSeats} 人</p>
                 </button>
               ))}
             </div>

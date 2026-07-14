@@ -65,9 +65,11 @@ export function useHideOnScroll() {
 export function useScrollEdge({ withMutationObserver = false } = {}) {
   const [atBottom, setAtBottom] = useState(false)
   const [canScroll, setCanScroll] = useState(false)
+  const [isScrolling, setIsScrolling] = useState(false)
   const elRef = useRef(null)
   const resizeObserverRef = useRef(null)
   const mutationObserverRef = useRef(null)
+  const scrollIdleTimerRef = useRef(null)
 
   function updateScrollState(el) {
     if (!el) return
@@ -75,10 +77,12 @@ export function useScrollEdge({ withMutationObserver = false } = {}) {
     setAtBottom(scrollTop + clientHeight >= scrollHeight - 20)
     setCanScroll(scrollHeight > clientHeight + 20)
   }
-  function handleScroll(e) { updateScrollState(e.currentTarget) }
-  function scrollToTop() { elRef.current?.scrollTo({ top: 0, behavior: 'smooth' }) }
-  function scrollDown()  { elRef.current?.scrollBy({ top: 200, behavior: 'smooth' }) }
-
+  function handleScroll(e) {
+    updateScrollState(e.currentTarget)
+    setIsScrolling(true)
+    clearTimeout(scrollIdleTimerRef.current)
+    scrollIdleTimerRef.current = setTimeout(() => setIsScrolling(false), 200)
+  }
   const scrollRef = useCallback((el) => {
     elRef.current = el
     resizeObserverRef.current?.disconnect()
@@ -96,7 +100,9 @@ export function useScrollEdge({ withMutationObserver = false } = {}) {
     updateScrollState(el)
   }, [withMutationObserver])
 
-  return { scrollRef, elRef, atBottom, canScroll, handleScroll, scrollToTop, scrollDown }
+  useEffect(() => () => clearTimeout(scrollIdleTimerRef.current), [])
+
+  return { scrollRef, elRef, atBottom, canScroll, isScrolling, handleScroll }
 }
 
 export function useClickOutside(enabled, refs, onClose) {

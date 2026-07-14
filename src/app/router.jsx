@@ -44,11 +44,11 @@ const router = createBrowserRouter([
       },
     ],
   },
+  { path: '/quick-match', element: routeElement(() => import('../features/match/QuickMatchPage')) },
   {
     element: <ProtectedRoute />,
     children: [
       { path: '/create-group', element: routeElement(() => import('../features/create/CreateGroupPage')) },
-      { path: '/quick-match',  element: routeElement(() => import('../features/match/QuickMatchPage')) },
     ],
   },
 ])

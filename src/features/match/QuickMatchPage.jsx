@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AlertCircle, ChevronLeft, ChevronRight, Info, RotateCcw, Search } from 'lucide-react'
 import FlowLayout from '../../shared/layout/FlowLayout'
-import ScrollHintButton from '../../shared/ui/ScrollHintButton'
+import ScrollHint from '../../shared/ui/ScrollHint'
 import Step1Services from './components/steps/Step1Services'
 import Step2PlansAndFilters from './components/steps/Step2PlansAndFilters'
 import Step4Results from './components/steps/Step4Results'
@@ -34,8 +34,8 @@ export default function QuickMatchPage() {
   const [conditions, setConditions] = useState(DEFAULT_CONDITIONS)
   const [results, setResults] = useState([])
   const {
-    scrollRef, elRef: scrollElRef, atBottom, canScroll,
-    handleScroll: handleContentScroll, scrollToTop: scrollContentToTop, scrollDown: scrollContentDown,
+    scrollRef, elRef: scrollElRef, atBottom, canScroll, isScrolling,
+    handleScroll: handleContentScroll,
   } = useScrollEdge({ withMutationObserver: true })
 
   function toggleService(id) {
@@ -100,7 +100,7 @@ export default function QuickMatchPage() {
   function getBanner(currentStep) {
     switch (Math.min(currentStep, 3)) {
       case 1: return { Icon: AlertCircle, text: '請至少選擇一個服務' }
-      case 2: return { Icon: Info, text: '請選擇要查找的方案，篩選條件皆為選填' }
+      case 2: return { Icon: Info, text: '請選擇要搜尋的方案與篩選條件' }
       default: return results.length > 0
         ? { Icon: Info, text: `找到 ${results.length} 個符合條件的群組，依推薦分數排列` }
         : { Icon: Info, text: '沒有符合條件的群組，試著調整篩選條件' }
@@ -154,47 +154,45 @@ export default function QuickMatchPage() {
       bottomNav={footer}
       maxWidth="max-w-xl md:max-w-2xl lg:max-w-4xl"
     >
-      <div className="relative h-full">
-        <div
-          ref={scrollRef}
-          onScroll={handleContentScroll}
-          className="h-full overflow-y-auto pt-6 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        >
-          <div className="h-full p-0.5">
-            {isResultStep ? (
-              <div key={step} className="h-full animate-step-slide-up">
-                <Step4Results results={results} conditions={conditions} />
-              </div>
-            ) : (
-              <div className={`flex h-full flex-col ${step === 2 && !canScroll ? 'lg:justify-center' : ''}`}>
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
-                  <div key={step} className="min-w-0 flex-1 animate-step-slide-up">
-                    {step === 1 && <Step1Services conditions={conditions} onToggle={toggleService} />}
-                    {step === 2 && (
-                      <Step2PlansAndFilters conditions={conditions} onChangePlan={handleChangePlan} onChangeFilter={handleChange} />
-                    )}
-                  </div>
-                  {step !== 1 && (
-                    <>
-                      <div className="hidden shrink-0 self-stretch lg:block lg:w-px lg:bg-slate-200" />
-                      <div className="hidden shrink-0 lg:block lg:w-72">
-                        <MatchSummaryPanel conditions={conditions} filtersChosen={step >= 2} />
-                      </div>
-                    </>
+      <div className="h-full">
+        {isResultStep ? (
+          <div
+            ref={scrollRef}
+            onScroll={handleContentScroll}
+            key={step}
+            className="h-full overflow-y-auto p-0.5 pt-6 pb-4 animate-step-slide-up [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            <Step4Results results={results} conditions={conditions} />
+          </div>
+        ) : (
+          <div className={`flex h-full flex-col ${step === 2 && !canScroll ? 'lg:justify-center' : ''}`}>
+            <div className="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row lg:items-stretch">
+              <div className="group relative min-w-0 min-h-0 flex-1">
+                <div
+                  ref={scrollRef}
+                  onScroll={handleContentScroll}
+                  key={step}
+                  className="h-full overflow-y-auto p-0.5 pt-6 pb-4 animate-step-slide-up [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                >
+                  {step === 1 && <Step1Services conditions={conditions} onToggle={toggleService} />}
+                  {step === 2 && (
+                    <Step2PlansAndFilters conditions={conditions} onChangePlan={handleChangePlan} onChangeFilter={handleChange} containerRef={scrollElRef} />
                   )}
                 </div>
+                <ScrollHint canScroll={canScroll} atBottom={atBottom} isScrolling={isScrolling} />
               </div>
-            )}
+              {step !== 1 && (
+                <>
+                  <div className="hidden shrink-0 self-stretch lg:block lg:mt-6 lg:mb-4 lg:w-px lg:bg-slate-200" />
+                  <div className="hidden shrink-0 lg:block lg:min-h-0 lg:w-72">
+                    <div className="h-full pt-6 pb-4">
+                      <MatchSummaryPanel conditions={conditions} filtersChosen={step >= 2} />
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
-        </div>
-
-        {!isResultStep && (
-          <ScrollHintButton
-            canScroll={canScroll}
-            atBottom={atBottom}
-            onScrollToTop={scrollContentToTop}
-            onScrollDown={scrollContentDown}
-          />
         )}
       </div>
     </FlowLayout>
