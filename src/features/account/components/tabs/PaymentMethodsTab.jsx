@@ -142,6 +142,7 @@ export default function PaymentMethodsTab() {
         icon={<CreditCard size={16} className="text-brand" />}
         maxWidth="max-w-sm"
         sub
+        hideBack
         footer={
           <>
             <button onClick={closeModal} className="btn btn-ghost flex-1">取消</button>
