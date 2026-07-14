@@ -1,9 +1,9 @@
 import { memo } from 'react'
-import Button from '../../../shared/ui/Button'
-import Badge from '../../../shared/ui/Badge'
-import ServiceLogo from '../../../shared/ui/ServiceLogo'
-import TokenAmount from '../../../shared/ui/TokenAmount'
-import { daysUntil } from '../../../shared/utils/date'
+import Button from '../../../../shared/ui/Button'
+import Badge from '../../../../shared/ui/Badge'
+import ServiceLogo from '../../../../shared/ui/ServiceLogo'
+import TokenAmount from '../../../../shared/ui/TokenAmount'
+import { daysUntil } from '../../../../shared/utils/date'
 
 const STATUS_BADGE_CLASS = {
   active:               'bg-success-subtle text-success-text',

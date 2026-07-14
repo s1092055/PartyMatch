@@ -137,7 +137,7 @@ export default function FloatingMessages() {
 
     if (notification.type === 'group_created' && notification.meta?.groupId) {
       navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId } })
-      window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: notification.meta.groupId } }))
+      window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: notification.meta.groupId } }))
       return
     }
 
@@ -161,7 +161,7 @@ export default function FloatingMessages() {
         // 團主收到「成員退出群組」通知
         window.dispatchEvent(new CustomEvent('pm:refresh-member-stores'))
         navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId } })
-        window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: notification.meta.groupId } }))
+        window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: notification.meta.groupId } }))
       } else {
         // 成員自己收到「已退出群組」確認通知
         navigate('/my-groups?view=member')
@@ -192,14 +192,14 @@ export default function FloatingMessages() {
     if (notification.type === 'new_application' && notification.meta?.groupId) {
       navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId, statusFilter: 'recruiting', openApplications: true } })
       useApplicationStore.getState().init().finally(() => {
-        window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: notification.meta.groupId, statusFilter: 'recruiting', openApplications: true } }))
+        window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: notification.meta.groupId, statusFilter: 'recruiting', openApplications: true } }))
       })
       return
     }
 
     if (notification.type === 'group_full' && notification.meta?.groupId) {
       navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId } })
-      window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: notification.meta.groupId } }))
+      window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: notification.meta.groupId } }))
       return
     }
 
@@ -207,7 +207,7 @@ export default function FloatingMessages() {
       const grp = getGroupById(notification.meta.groupId)
       if (grp && grp.hostId === userId) {
         navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId } })
-        window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: notification.meta.groupId } }))
+        window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: notification.meta.groupId } }))
       } else {
         navigate('/my-groups?view=member', { state: { openGroupId: notification.meta.groupId } })
       }

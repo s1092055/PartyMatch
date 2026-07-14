@@ -32,12 +32,12 @@
 | `pm:open-notify` | AppNav 通知按鈕 | `FloatingMessages` |
 | `pm:open-messages` | AppNav / 訂閱卡 / 群組操作 | `MessagesModal` |
 | `pm:open-dm` | 聯絡團主 | `MessagesModal` 建立或取得 DM |
-| `pm:open-manage-group` | 通知點擊 / `FloatingMessages` / `ChatWindow` | `ManagePage` 開啟指定群組 Modal（支援 `openActivate`、`openActivateGroup`、`openApplications` 旗標） |
+| `pm:open-host-group` | 通知點擊 / `FloatingMessages` / `ChatWindow` | `HostPage` 開啟指定群組 Modal（支援 `openLockGroup`、`openActivate`、`openApplications`、`openBilling` 旗標） |
 | `pm:notif-changed` | `useNotificationStore` | `AppNav` 更新通知未讀 badge |
 | `pm:convs-changed` | `useConversationStore` | `AppNav` 更新訊息未讀 badge；`MessagesModal` 重新讀取對話列表 |
 | `pm:auth-changed` | `useAuthStore` | `AppNav` 重新讀取使用者狀態 |
-| `pm:members-changed` | `useMemberStore` | `GroupDetailModal`、`ChatWindow`、`ExplorePage`、`ManagePage` 重新讀取成員狀態 |
-| `pm:applications-changed` | `useApplicationStore` | `GroupDetailModal`、`ExplorePage`、`SubscriptionsPage`、`ManagePage` 重新讀取申請狀態 |
+| `pm:members-changed` | `useMemberStore` | `GroupDetailModal`、`ChatWindow`、`ExplorePage`、`HostPage` 重新讀取成員狀態 |
+| `pm:applications-changed` | `useApplicationStore` | `GroupDetailModal`、`ExplorePage`、`MemberPage`、`HostPage` 重新讀取申請狀態 |
 
 ---
 

@@ -1,28 +1,28 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { ClipboardList } from 'lucide-react'
-import { useSubscriptionStore } from '../../shared/stores/useSubscriptionStore'
-import { useMemberStore } from '../../shared/stores/useMemberStore'
-import { useNotificationStore } from '../../shared/stores/useNotificationStore'
-import { useApplicationStore } from '../../shared/stores/useApplicationStore'
-import { useGroupStore } from '../../shared/stores/useGroupStore'
-import { useAuthStore } from '../../shared/stores/useAuthStore'
-import { useConversationStore } from '../../shared/stores/useConversationStore'
-import { sendSystemMessage } from '../../shared/api/messagesApi'
-import { insertNotification } from '../../shared/api/notificationsApi'
+import { useSubscriptionStore } from '../../../shared/stores/useSubscriptionStore'
+import { useMemberStore } from '../../../shared/stores/useMemberStore'
+import { useNotificationStore } from '../../../shared/stores/useNotificationStore'
+import { useApplicationStore } from '../../../shared/stores/useApplicationStore'
+import { useGroupStore } from '../../../shared/stores/useGroupStore'
+import { useAuthStore } from '../../../shared/stores/useAuthStore'
+import { useConversationStore } from '../../../shared/stores/useConversationStore'
+import { sendSystemMessage } from '../../../shared/api/messagesApi'
+import { insertNotification } from '../../../shared/api/notificationsApi'
 import SubscriptionCard from './components/SubscriptionCard'
 
 const getGroupById = (id) => useGroupStore.getState().getById(id)
-import EmptyState from '../../shared/ui/EmptyState'
-import GroupViewModal from '../../shared/ui/GroupViewModal'
-import TokenAmount from '../../shared/ui/TokenAmount'
-import FilterTabsBar from '../../shared/ui/FilterTabsBar'
-import ServiceLogo from '../../shared/ui/ServiceLogo'
-import Button from '../../shared/ui/Button'
-import RevealSection from '../../shared/ui/RevealSection'
-import { daysUntil, formatRelativeDate } from '../../shared/utils/date'
+import EmptyState from '../../../shared/ui/EmptyState'
+import GroupViewModal from '../../../shared/ui/GroupViewModal'
+import TokenAmount from '../../../shared/ui/TokenAmount'
+import FilterTabsBar from '../../../shared/ui/FilterTabsBar'
+import ServiceLogo from '../../../shared/ui/ServiceLogo'
+import Button from '../../../shared/ui/Button'
+import RevealSection from '../../../shared/ui/RevealSection'
+import { daysUntil, formatRelativeDate } from '../../../shared/utils/date'
 
-import { FILTER_TABS } from './utils/subscriptionFilters'
+import { FILTER_TABS } from './utils/memberFilters'
 
 function enrichSubs(rawSubs) {
   return rawSubs.map(s => {
@@ -67,7 +67,7 @@ function filterSubs(subs, tab) {
   }
 }
 
-export default function SubscriptionsPage({ embedded = false }) {
+export default function MemberPage({ embedded = false }) {
   const navigate = useNavigate()
   const location = useLocation()
   const activeUser = useAuthStore(s => s.user)

@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { Check, ChevronDown, ChevronUp, ClipboardList, X } from 'lucide-react'
-import Avatar from '../../../shared/ui/Avatar'
-import CreditScoreBadge from '../../../shared/ui/CreditScoreBadge'
-import ServiceLogo from '../../../shared/ui/ServiceLogo'
-import EmptyState from '../../../shared/ui/EmptyState'
-import { useGroupStore } from '../../../shared/stores/useGroupStore'
-import { formatRelativeDate } from '../../../shared/utils/date'
+import Avatar from '../../../../shared/ui/Avatar'
+import CreditScoreBadge from '../../../../shared/ui/CreditScoreBadge'
+import ServiceLogo from '../../../../shared/ui/ServiceLogo'
+import EmptyState from '../../../../shared/ui/EmptyState'
+import { useGroupStore } from '../../../../shared/stores/useGroupStore'
+import { formatRelativeDate } from '../../../../shared/utils/date'
 
 function resolveServiceId(app) {
   if (app.serviceId) return app.serviceId

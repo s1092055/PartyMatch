@@ -2,15 +2,15 @@ import { useState } from 'react'
 import {
   CheckCircle2, LogOut, MessageCircle, Shield, Users, ClipboardEdit, ThumbsUp, AlertTriangle,
 } from 'lucide-react'
-import Avatar from '../../../shared/ui/Avatar'
-import CountdownConfirmDialog from '../../../shared/ui/CountdownConfirmDialog'
-import GroupModalShell from '../../../shared/ui/GroupModalShell'
-import { getServiceById } from '../../../shared/utils/serviceUtils'
-import { useMemberStore } from '../../../shared/stores/useMemberStore'
-import { useGroupStore } from '../../../shared/stores/useGroupStore'
-import { useSubscriptionStore } from '../../../shared/stores/useSubscriptionStore'
-import { useAuthStore } from '../../../shared/stores/useAuthStore'
-import { toast } from '../../../shared/utils/toast'
+import Avatar from '../../../../shared/ui/Avatar'
+import CountdownConfirmDialog from '../../../../shared/ui/CountdownConfirmDialog'
+import GroupModalShell from '../../../../shared/ui/GroupModalShell'
+import { getServiceById } from '../../../../shared/utils/serviceUtils'
+import { useMemberStore } from '../../../../shared/stores/useMemberStore'
+import { useGroupStore } from '../../../../shared/stores/useGroupStore'
+import { useSubscriptionStore } from '../../../../shared/stores/useSubscriptionStore'
+import { useAuthStore } from '../../../../shared/stores/useAuthStore'
+import { toast } from '../../../../shared/utils/toast'
 
 export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
   const [activePanel, setActivePanel] = useState(null) // 'members' | 'fillInfo' | null

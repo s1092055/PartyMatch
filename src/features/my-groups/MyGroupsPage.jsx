@@ -5,8 +5,8 @@ import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { useSubscriptionStore } from '../../shared/stores/useSubscriptionStore'
 import TokenAmount from '../../shared/ui/TokenAmount'
 import { getPlanByName, getPlanMonthlyEquivalent } from '../../shared/utils/pricingUtils'
-import SubscriptionsPage from '../subscriptions/SubscriptionsPage'
-import ManagePage from '../manage/ManagePage'
+import MemberPage from './member/MemberPage'
+import HostPage from './host/HostPage'
 
 const TABS = [
   { key: 'member', label: '我是成員', icon: Users },
@@ -159,8 +159,8 @@ export default function MyGroupsPage() {
 
       {/* Content */}
       {activeView === 'host'
-        ? <ManagePage embedded />
-        : <SubscriptionsPage embedded />
+        ? <HostPage embedded />
+        : <MemberPage embedded />
       }
     </div>
   )

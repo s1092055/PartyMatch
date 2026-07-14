@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Check, ChevronDown, ChevronUp, X } from 'lucide-react'
-import Avatar from '../../../../shared/ui/Avatar'
-import CreditScoreBadge from '../../../../shared/ui/CreditScoreBadge'
-import { formatRelativeDate } from '../../../../shared/utils/date'
+import Avatar from '../../../../../shared/ui/Avatar'
+import CreditScoreBadge from '../../../../../shared/ui/CreditScoreBadge'
+import { formatRelativeDate } from '../../../../../shared/utils/date'
 
 const APP_STATUS_BADGE = {
   approved: { cls: 'bg-success-subtle text-success-text', label: '已核准' },

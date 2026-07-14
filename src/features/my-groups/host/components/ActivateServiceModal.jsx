@@ -1,9 +1,9 @@
 import { AlertTriangle, CheckCircle2, PlayCircle } from 'lucide-react'
-import Modal from '../../../shared/ui/Modal'
-import Avatar from '../../../shared/ui/Avatar'
-import ServiceLogo from '../../../shared/ui/ServiceLogo'
-import TokenAmount from '../../../shared/ui/TokenAmount'
-import { advanceByCycle, toISODate } from '../../../shared/utils/date'
+import Modal from '../../../../shared/ui/Modal'
+import Avatar from '../../../../shared/ui/Avatar'
+import ServiceLogo from '../../../../shared/ui/ServiceLogo'
+import TokenAmount from '../../../../shared/ui/TokenAmount'
+import { advanceByCycle, toISODate } from '../../../../shared/utils/date'
 
 export default function ActivateServiceModal({
   isOpen,

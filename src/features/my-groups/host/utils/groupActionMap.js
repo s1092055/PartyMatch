@@ -1,4 +1,4 @@
-import { daysUntil } from '../../../shared/utils/date'
+import { daysUntil } from '../../../../shared/utils/date'
 
 export function getGroupDisplayStatus(group) {
   if (group.status === 'active' && group.nextBillingDate) {

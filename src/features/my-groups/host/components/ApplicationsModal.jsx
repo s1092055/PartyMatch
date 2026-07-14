@@ -1,5 +1,5 @@
 import { ClipboardList } from 'lucide-react'
-import Modal from '../../../shared/ui/Modal'
+import Modal from '../../../../shared/ui/Modal'
 import ApplicationsTab from './ApplicationsTab'
 
 export default function ApplicationsModal({ isOpen, onClose, applications, groupName, seatMap, errors, onApprove, onReject }) {

@@ -136,7 +136,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
               onClick={() => {
                 window.dispatchEvent(new CustomEvent('pm:close-messages'))
                 navigate('/my-groups?view=host', { state: { openGroupId: conversationGroupId, openBilling: true } })
-                window.dispatchEvent(new CustomEvent('pm:open-manage-group', { detail: { groupId: conversationGroupId, openBilling: true } }))
+                window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: conversationGroupId, openBilling: true } }))
               }}
               className="w-full rounded-lg bg-success px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:opacity-90"
             >

@@ -1,6 +1,6 @@
 import { AlertTriangle } from 'lucide-react'
-import Modal from '../../../shared/ui/Modal'
-import Avatar from '../../../shared/ui/Avatar'
+import Modal from '../../../../shared/ui/Modal'
+import Avatar from '../../../../shared/ui/Avatar'
 
 export default function ReportServiceIssueModal({ member, onClose, note, setNote, onSubmit }) {
   return (

@@ -1,8 +1,8 @@
 import { memo } from 'react'
-import Badge from '../../../shared/ui/Badge'
-import Button from '../../../shared/ui/Button'
-import ServiceLogo from '../../../shared/ui/ServiceLogo'
-import TokenAmount from '../../../shared/ui/TokenAmount'
+import Badge from '../../../../shared/ui/Badge'
+import Button from '../../../../shared/ui/Button'
+import ServiceLogo from '../../../../shared/ui/ServiceLogo'
+import TokenAmount from '../../../../shared/ui/TokenAmount'
 import { getGroupDisplayStatus } from '../utils/groupActionMap'
 
 const STATUS_BADGE_CLASS = {

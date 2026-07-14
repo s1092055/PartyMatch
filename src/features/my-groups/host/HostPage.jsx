@@ -1,16 +1,16 @@
 import { useNavigate } from 'react-router-dom'
-import { useAuthStore } from '../../shared/stores/useAuthStore'
-import EmptyState from '../../shared/ui/EmptyState'
-import GroupViewModal from '../../shared/ui/GroupViewModal'
-import FilterTabsBar from '../../shared/ui/FilterTabsBar'
-import RevealSection from '../../shared/ui/RevealSection'
+import { useAuthStore } from '../../../shared/stores/useAuthStore'
+import EmptyState from '../../../shared/ui/EmptyState'
+import GroupViewModal from '../../../shared/ui/GroupViewModal'
+import FilterTabsBar from '../../../shared/ui/FilterTabsBar'
+import RevealSection from '../../../shared/ui/RevealSection'
 import HostedGroupCard from './components/HostedGroupCard'
 import GroupHistoryModal from './components/GroupHistoryModal'
 import RenewalModal from './components/RenewalModal'
-import { STATUS_FILTER_TABS } from './utils/manageFilters'
-import { useManageActions } from './hooks/useManageActions'
+import { STATUS_FILTER_TABS } from './utils/hostFilters'
+import { useHostActions } from './hooks/useHostActions'
 
-export default function ManagePage({ embedded = false }) {
+export default function HostPage({ embedded = false }) {
   const navigate = useNavigate()
   const activeUser = useAuthStore(s => s.user)
 
@@ -37,7 +37,7 @@ export default function ManagePage({ embedded = false }) {
     handleApprove,
     handleReportServiceInfoIssue,
     handleReject,
-  } = useManageActions(activeUser)
+  } = useHostActions(activeUser)
 
   return (
     <div className="px-2 md:px-4 lg:px-16">

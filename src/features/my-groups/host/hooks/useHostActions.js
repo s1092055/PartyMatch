@@ -1,17 +1,17 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { useGroupStore } from '../../../shared/stores/useGroupStore'
-import { useAuthStore } from '../../../shared/stores/useAuthStore'
-import { CREDIT_RULES } from '../../../shared/utils/creditScore'
-import { useApplicationStore } from '../../../shared/stores/useApplicationStore'
-import { useMemberStore } from '../../../shared/stores/useMemberStore'
-import { useSubscriptionStore } from '../../../shared/stores/useSubscriptionStore'
-import { useNotificationStore } from '../../../shared/stores/useNotificationStore'
-import { createGroupConversation, removeParticipantFromConversation, sendSystemMessage, sendActionMessage } from '../../../shared/api/messagesApi'
-import { toast } from '../../../shared/utils/toast'
-import { insertNotification } from '../../../shared/api/notificationsApi'
-import { useConversationStore } from '../../../shared/stores/useConversationStore'
-import { STATUS_FILTER_TABS, matchesFilter, calcApprovalSeatPatch } from '../utils/manageFilters'
+import { useGroupStore } from '../../../../shared/stores/useGroupStore'
+import { useAuthStore } from '../../../../shared/stores/useAuthStore'
+import { CREDIT_RULES } from '../../../../shared/utils/creditScore'
+import { useApplicationStore } from '../../../../shared/stores/useApplicationStore'
+import { useMemberStore } from '../../../../shared/stores/useMemberStore'
+import { useSubscriptionStore } from '../../../../shared/stores/useSubscriptionStore'
+import { useNotificationStore } from '../../../../shared/stores/useNotificationStore'
+import { createGroupConversation, removeParticipantFromConversation, sendSystemMessage, sendActionMessage } from '../../../../shared/api/messagesApi'
+import { toast } from '../../../../shared/utils/toast'
+import { insertNotification } from '../../../../shared/api/notificationsApi'
+import { useConversationStore } from '../../../../shared/stores/useConversationStore'
+import { STATUS_FILTER_TABS, matchesFilter, calcApprovalSeatPatch } from '../utils/hostFilters'
 
 // ── store 操作的精簡別名（事件處理器內呼叫，讀取最新 store 狀態）─────────────
 const getGroupById     = (id)      => useGroupStore.getState().getById(id)
@@ -41,7 +41,7 @@ const createNotification         = (data)    => useNotificationStore.getState().
 const addConversationOptimistic  = (conv)    => useConversationStore.getState().addConversationOptimistic(conv)
 const getConvByGroupId           = (gid)     => useConversationStore.getState().getByGroupId(gid)
 
-function loadManageData(activeUser) {
+function loadHostData(activeUser) {
   if (!activeUser) return { hostedGroups: [], applications: [], members: [], seatMap: {} }
   const hostedGroups = getGroupsByHostId(activeUser.id)
   const applications = getApplicationsByHostId(activeUser.id, hostedGroups)
@@ -52,15 +52,15 @@ function loadManageData(activeUser) {
   return { hostedGroups, applications, members, seatMap }
 }
 
-export function useManageActions(activeUser) {
+export function useHostActions(activeUser) {
   const location = useLocation()
 
-  // 訂閱 store 切片，群組/申請/成員更新時觸發 manageData 重新載入
+  // 訂閱 store 切片，群組/申請/成員更新時觸發 hostData 重新載入
   const groupsState        = useGroupStore(s => s.groups)
   const applicationsState  = useApplicationStore(s => s.applications)
   const membersState       = useMemberStore(s => s.members)
 
-  const [manageData, setManageData] = useState(() => loadManageData(activeUser))
+  const [hostData, setHostData] = useState(() => loadHostData(activeUser))
   const [errors, setErrors] = useState({})
   const [statusFilter, setStatusFilter] = useState('all')
 
@@ -72,7 +72,7 @@ export function useManageActions(activeUser) {
   const [historyModalGroupId, setHistoryModalGroupId]     = useState(null)
   const [renewalModalGroupId, setRenewalModalGroupId]     = useState(null)
 
-  function applyOpenManageGroup({ groupId, openGroupId, statusFilter: selectedStatusFilter, openLockGroup, openActivate, openApplications, openBilling }) {
+  function applyOpenHostGroup({ groupId, openGroupId, statusFilter: selectedStatusFilter, openLockGroup, openActivate, openApplications, openBilling }) {
     const gId = groupId ?? openGroupId
     if (!gId) return
     if (selectedStatusFilter) setStatusFilter(selectedStatusFilter)
@@ -83,27 +83,27 @@ export function useManageActions(activeUser) {
     setAutoOpenBilling(!!openBilling)
   }
 
-  // 跨頁面：從 location.state 讀（ManagePage 剛掛載時）
+  // 跨頁面：從 location.state 讀（HostPage 剛掛載時）
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (location.state?.openGroupId) applyOpenManageGroup(location.state)
+    if (location.state?.openGroupId) applyOpenHostGroup(location.state)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 同頁面：custom event（ManagePage 已掛載，event 直接接到）
+  // 同頁面：custom event（HostPage 已掛載，event 直接接到）
   useEffect(() => {
-    function onOpenManageGroup(e) { applyOpenManageGroup(e.detail ?? {}) }
-    window.addEventListener('pm:open-manage-group', onOpenManageGroup)
-    return () => window.removeEventListener('pm:open-manage-group', onOpenManageGroup)
+    function onOpenHostGroup(e) { applyOpenHostGroup(e.detail ?? {}) }
+    window.addEventListener('pm:open-host-group', onOpenHostGroup)
+    return () => window.removeEventListener('pm:open-host-group', onOpenHostGroup)
   }, [])
 
-  // store 切片變動時重新載入 manageData（取代舊的 pm:*-changed 事件）
+  // store 切片變動時重新載入 hostData（取代舊的 pm:*-changed 事件）
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (activeUser) setManageData(loadManageData(activeUser))
+    if (activeUser) setHostData(loadHostData(activeUser))
   }, [activeUser, groupsState, applicationsState, membersState])
 
 
-  const { hostedGroups, applications, members, seatMap } = manageData
+  const { hostedGroups, applications, members, seatMap } = hostData
 
   const allGroups = useMemo(
     () => hostedGroups.map(g => ({ ...g, ...(seatMap[g.id] ?? {}) })),
@@ -145,7 +145,7 @@ export function useManageActions(activeUser) {
   const renewalModalGroup = getModalGroup(renewalModalGroupId)
 
   function refreshGroups() {
-    setManageData(prev => ({ ...prev, hostedGroups: getGroupsByHostId(activeUser.id) }))
+    setHostData(prev => ({ ...prev, hostedGroups: getGroupsByHostId(activeUser.id) }))
   }
 
 async function handleLockGroup() {
@@ -223,7 +223,7 @@ function handleRemoveMember(member) {
     const statusPatch = group?.status === 'full' ? { status: 'recruiting' } : {}
     const seatPatch = newUsed !== undefined ? { usedSeats: newUsed, openSeats: newOpen, ...statusPatch } : statusPatch
     updateGroup(member.groupId, seatPatch)
-    setManageData(prev => ({
+    setHostData(prev => ({
       ...prev,
       members: prev.hostedGroups.flatMap(g => getMembersByGroupId(g.id)),
       ...(newUsed !== undefined && {
@@ -423,7 +423,7 @@ async function handleApprove(appId) {
       })
     }
 
-    setManageData(prev => {
+    setHostData(prev => {
       const updatedHostedGroups = prev.hostedGroups.map(g =>
         g.id === app.groupId && seatPatch ? { ...g, ...seatPatch } : g
       )
@@ -478,7 +478,7 @@ async function handleApprove(appId) {
       meta:    { groupId: app.groupId, applicationId: appId },
     }).catch(console.error)
 
-    setManageData(prev => ({
+    setHostData(prev => ({
       ...prev,
       applications: prev.applications.map(a => a.id === appId ? { ...a, status: 'rejected' } : a),
     }))

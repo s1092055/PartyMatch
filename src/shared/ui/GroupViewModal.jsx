@@ -2,8 +2,8 @@ import { useGroupStore } from '../stores/useGroupStore'
 import { useMemberStore } from '../stores/useMemberStore'
 import { useApplicationStore } from '../stores/useApplicationStore'
 import { useAuthStore } from '../stores/useAuthStore'
-import HostGroupView from '../../features/manage/components/HostGroupView'
-import MemberGroupView from '../../features/subscriptions/components/MemberGroupView'
+import HostGroupView from '../../features/my-groups/host/components/HostGroupView'
+import MemberGroupView from '../../features/my-groups/member/components/MemberGroupView'
 
 export default function GroupViewModal({
   isOpen, onClose, groupId,

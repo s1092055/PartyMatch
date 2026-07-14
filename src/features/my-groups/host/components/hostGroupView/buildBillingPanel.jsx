@@ -1,6 +1,6 @@
 import { Banknote, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react'
-import Avatar from '../../../../shared/ui/Avatar'
-import EmptyState from '../../../../shared/ui/EmptyState'
+import Avatar from '../../../../../shared/ui/Avatar'
+import EmptyState from '../../../../../shared/ui/EmptyState'
 
 export function buildBillingPanel({ isActivated, members, expandedBillingMembers, toggleBillingMember }) {
   return {

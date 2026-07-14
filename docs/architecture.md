@@ -89,24 +89,36 @@ src/
 │   │   ├── PrivacyPage.jsx
 │   │   └── TermsPage.jsx
 │   ├── my-groups/              # 我的群組（成員 + 團主合併頁）
-│   │   └── MyGroupsPage.jsx   # tab wrapper；?view=member / ?view=host 切換子頁面
-│   ├── manage/                 # 團主管理（團主邏輯，內嵌於 my-groups host tab）
-│   │   ├── ManagePage.jsx
-│   │   ├── components/
-│   │   │   ├── ActivateGroupModal.jsx
-│   │   │   ├── ActivateServiceModal.jsx
-│   │   │   ├── ApplicationsModal.jsx
-│   │   │   ├── ApplicationsTab.jsx
-│   │   │   ├── GroupHistoryModal.jsx
-│   │   │   ├── HostGroupView.jsx      # 團主視角群組 Modal
-│   │   │   ├── HostedGroupCard.jsx
-│   │   │   ├── RenewalModal.jsx
-│   │   │   ├── ReportPaymentModal.jsx
-│   │   │   └── ReportServiceIssueModal.jsx
-│   │   ├── data/
-│   │   │   └── paymentIssueTypes.js
-│   │   └── utils/
-│   │       └── groupActionMap.js
+│   │   ├── MyGroupsPage.jsx    # tab wrapper；?view=member / ?view=host 切換子頁面
+│   │   ├── host/                # 團主管理（團主邏輯，內嵌於 my-groups host tab）
+│   │   │   ├── HostPage.jsx
+│   │   │   ├── components/
+│   │   │   │   ├── ActivateServiceModal.jsx
+│   │   │   │   ├── ApplicationsModal.jsx
+│   │   │   │   ├── ApplicationsTab.jsx
+│   │   │   │   ├── GroupHistoryModal.jsx
+│   │   │   │   ├── HostGroupView.jsx      # 團主視角群組 Modal
+│   │   │   │   ├── HostedGroupCard.jsx
+│   │   │   │   ├── RenewalModal.jsx
+│   │   │   │   ├── ReportServiceIssueModal.jsx
+│   │   │   │   └── hostGroupView/         # HostGroupView 拆出的 panel builder
+│   │   │   │       ├── ApplicationCard.jsx
+│   │   │   │       ├── buildApplicationsPanel.jsx
+│   │   │   │       ├── buildBillingPanel.jsx
+│   │   │   │       ├── buildMembersPanel.jsx
+│   │   │   │       └── buildReviewHistoryPanel.jsx
+│   │   │   ├── hooks/
+│   │   │   │   └── useHostActions.js
+│   │   │   └── utils/
+│   │   │       ├── groupActionMap.js
+│   │   │       └── hostFilters.js
+│   │   └── member/              # 成員訂閱（成員邏輯，內嵌於 my-groups member tab）
+│   │       ├── MemberPage.jsx
+│   │       ├── components/
+│   │       │   ├── MemberGroupView.jsx    # 成員視角群組 Modal
+│   │       │   └── SubscriptionCard.jsx
+│   │       └── utils/
+│   │           └── memberFilters.js
 │   ├── match/                  # 快速搜尋（全螢幕步驟流程頁，/quick-match）
 │   │   ├── QuickMatchPage.jsx
 │   │   └── components/
@@ -126,11 +138,6 @@ src/
 │   │       ├── ConversationAvatar.jsx
 │   │       ├── ConversationList.jsx
 │   │       └── ConversationMenu.jsx
-│   └── subscriptions/          # 成員訂閱（成員邏輯，內嵌於 my-groups member tab）
-│       ├── SubscriptionsPage.jsx
-│       └── components/
-│           ├── MemberGroupView.jsx    # 成員視角群組 Modal
-│           └── SubscriptionCard.jsx
 ├── shared/
 │   ├── api/                    # REST API 封裝（axios）
 │   │   ├── axiosClient.js      # axios instance + JWT interceptor
@@ -258,8 +265,8 @@ init: async () => {
 | `src/shared/ui/GroupModalShell.jsx` | `GroupOverviewContent`、`Badge`、`ProgressBar`、`ServiceLogo` | 三個群組詳情 Modal 共用的滑動軌道殼（300% 寬、三層 panel）；`subPanel` 滑入第二層、`subSubPanel` 滑入第三層，支援 `headerRight` slot；管理 scroll lock、Escape 逐層關閉 |
 | `src/features/group/GroupDetailModal.jsx` | `GroupModalShell`、`favoriteStore`、`applicationStore` | 接收 `pm:open-group`；依使用者狀態顯示申請、收藏、付款 CTA；申請加入流程以 `subPanel` 翻書動畫呈現（填寫留言 → 送出成功兩格水平滑動），不再開啟獨立 Modal |
 | `src/shared/ui/GroupViewModal.jsx` | `HostGroupView`、`MemberGroupView` | 薄殼：依 `isHost` 決定渲染 HostGroupView 或 MemberGroupView |
-| `src/features/manage/components/HostGroupView.jsx` | `GroupModalShell`、子 Modal | 團主視角；成員名單（含移除成員）、申請管理（僅待審核）→ 審核紀錄（第三層 panel，含篩選）/ 收款管理（收款階段）、啟用 CTA |
-| `src/features/subscriptions/components/MemberGroupView.jsx` | `GroupModalShell`、`CombinedServicePaymentModal` | 成員視角；填寫帳號 + 上傳憑證合併為單步驟 Modal |
+| `src/features/my-groups/host/components/HostGroupView.jsx` | `GroupModalShell`、子 Modal | 團主視角；成員名單（含移除成員）、申請管理（僅待審核）→ 審核紀錄（第三層 panel，含篩選）/ 收款管理（收款階段）、啟用 CTA |
+| `src/features/my-groups/member/components/MemberGroupView.jsx` | `GroupModalShell`、`CombinedServicePaymentModal` | 成員視角；填寫帳號 + 上傳憑證合併為單步驟 Modal |
 | `src/features/messages/MessagesModal.jsx` | `conversationStore`、`messagesApi`、`ConversationList`、`ChatWindow` | 接收 `pm:open-messages` / `pm:open-dm`；透過 `subscribeToMessages` polling 同步訊息 |
 | `src/shared/stores/*` | `src/shared/api/*`、`src/shared/utils/*` | Stores 保存前端快取並封裝業務流程，api 只做 REST CRUD |
 
@@ -306,7 +313,7 @@ init: async () => {
 | `AppNav` | 桌機側欄（含頭像 Modal）、手機 Header（含頭像 dropdown）+ 底部 Dock、通知 / 訊息圓形按鈕、未讀 badge |
 | `Modal` | 通用 Modal 外殼；支援 `sub` prop（子 modal 模式，z-index 提升、左上角返回鍵）；`isOpen` 為 undefined 時為非受控模式 |
 | `GroupModalShell` | 探索、管理、訂閱三處共用的滑動軌道殼；`subPanel`（第二層）+ `subSubPanel`（第三層）prop 實現翻書滑動動畫；支援各層 `headerRight` slot |
-| `FilterTabsBar` | 我的群組（成員 / 團主）頁面的分頁篩選列；手機版為 `CustomSelect` dropdown，桌機版為左側垂直 nav（樣式比照帳號設定頁的左側選單：`bg-brand-subtle text-brand` 表示選中），`ManagePage`／`SubscriptionsPage` 用 `md:flex` 把這個左側 nav 跟右側的群組/訂閱卡片 grid 排成左右兩欄，右側 grid 固定 `md:grid-cols-2`（不再依 `lg:` 加到 3 欄）；成員端分頁為「全部 / 處理中 / 啟用中 / 即將續訂 / 已結束」（「已結束」取代舊版「申請紀錄」分頁）；篩選後當前分類無資料時僅顯示提示文字，不提供「清除篩選」等跳回其他分頁的操作 |
+| `FilterTabsBar` | 我的群組（成員 / 團主）頁面的分頁篩選列；手機版為 `CustomSelect` dropdown，桌機版為左側垂直 nav（樣式比照帳號設定頁的左側選單：`bg-brand-subtle text-brand` 表示選中），`HostPage`／`MemberPage` 用 `md:flex` 把這個左側 nav 跟右側的群組/訂閱卡片 grid 排成左右兩欄，右側 grid 固定 `md:grid-cols-2`（不再依 `lg:` 加到 3 欄）；成員端分頁為「全部 / 處理中 / 啟用中 / 即將續訂 / 已結束」（「已結束」取代舊版「申請紀錄」分頁）；篩選後當前分類無資料時僅顯示提示文字，不提供「清除篩選」等跳回其他分頁的操作 |
 | `ToastContainer` / `toast.js` | 全域提示訊息（含 `aria-live="polite"` 無障礙支援） |
 | `ServiceLogo` | 依 serviceId 顯示本地或服務資料中的 Logo |
 
@@ -319,8 +326,8 @@ init: async () => {
 | 原始檔案 | 行數變化 | 拆分方式 |
 |---------|---------|---------|
 | `shared/layout/AppNav.jsx` | 624 → 160 | 桌機 sidebar / 手機 header / 手機 dock 各自獨立元件 |
-| `features/manage/ManagePage.jsx` | 619 → 126 | 抽出 `hooks/useManageActions.js` 自訂 hook |
-| `features/manage/components/HostGroupView.jsx` | 625 → 297 | 4 個 panel builder（成員/申請/審核紀錄/收款） |
+| `features/my-groups/host/HostPage.jsx` | 619 → 126 | 抽出 `hooks/useHostActions.js` 自訂 hook |
+| `features/my-groups/host/components/HostGroupView.jsx` | 625 → 297 | 4 個 panel builder（成員/申請/審核紀錄/收款） |
 | `features/messages/components/ChatWindow.jsx` | 546 → 174 | 抽出 `useParticipantNames`/`useMessageScroll` hook + `MessageBubble`/`ChatMembersPanel` 元件 |
 | `features/group/GroupDetailModal.jsx` | 545 → 256 | 抽出 `ApplyModal`/`HostReviews` 元件與 panel builder |
 
@@ -362,7 +369,7 @@ init: async () => {
 
 **switcher 按鈕**：手機版與桌機版是兩套完全不同的 UI（分別各自的 JSX block，`md:hidden` / `hidden md:flex` 切換），不是同一份 markup 用 CSS 調整外觀。**手機版**維持最原始的版本：「我是成員」「我是團主」左右並排兩顆 `flex-1` 全寬按鈕，點哪顆就直接切到那個分頁。**桌機版**則是單一 `bg-brand` 填色 pill（一次只顯示目前身分），pill 本身就是一顆 `<button onClick={toggleTab}>`：預設顯示 icon + 目前身分文字，hover 整個 pill 時改用絕對定位疊一層「切換身分」提示文字＋`ArrowLeftRight` icon（兩層用 `opacity` 淡入淡出交叉，`group-hover:opacity-0` / `group-hover:opacity-100`），點擊（不限游標位置，整個 pill 都可點）直接 toggle 到另一個身分 `?view=member`／`?view=host`。切換時只有預設層裡的文字（`key={activeView}` + `.animate-fade-in-up`，純 opacity 淡入）會重新播放動畫，pill 外框、底色都不跟著移動或重繪，避免整個按鈕跳動。不再帶分類篩選功能（曾經做過 hover 展開分類 dropdown、以及左右滑動切換的版本，因體驗不佳已移除）。桌機版 pill 與統計卡排成同一列（`md:flex md:items-stretch`）：pill 所在的欄寬度固定 `md:w-40` 對齊下方 `FilterTabsBar` 左側 nav 的寬度；**pill 本身刻意不設 `h-full`**，讓 flexbox 預設的 `align-items: stretch` 自然撐開（曾經在 pill 跟外層 wrapper 上明寫 `md:h-full`，結果對一個高度為 auto 的 flex row 而言，明寫的 `height:100%` 反而讓瀏覽器略過 stretch、退回內容自身高度，兩邊高度因此對不齊——移除顯式高度後才真正吃到 stretch 對齊右欄統計卡）；統計卡為右欄 `md:flex-1`。分類篩選改採 `FilterTabsBar` 桌機版的左側垂直 nav（見上）。統計卡內距 `py-7`（原本 `py-4`），讓整列高度更高；統計卡的 `AmountStatItem` 改用 `TokenAmount` 預設的 `align="baseline"`（不再傳 `align="center"`），移除原本 `leading-none` 造成的行高差異，讓金額項目跟純數字的 `CountStatItem`（如「服務中成員」）高度與間距一致。
 
-切換身分時，統計卡內每個項目的文字（`AmountStatItem`/`CountStatItem` 內層包一個 `key={activeView}` + `.animate-step-slide-up` 的 wrapper，divide-x 仍作用在最外層維持分隔線）與下方 `FilterTabsBar` 左側 nav（`<nav>` 直接套用 `.animate-step-slide-up`，靠 `ManagePage`/`SubscriptionsPage` 整頁 remount 觸發，切換分類 tab 不會重播）都會一起播放淡入＋輕微上移的動畫，呼應右上角切換 icon 的操作回饋。
+切換身分時，統計卡內每個項目的文字（`AmountStatItem`/`CountStatItem` 內層包一個 `key={activeView}` + `.animate-step-slide-up` 的 wrapper，divide-x 仍作用在最外層維持分隔線）與下方 `FilterTabsBar` 左側 nav（`<nav>` 直接套用 `.animate-step-slide-up`，靠 `HostPage`/`MemberPage` 整頁 remount 觸發，切換分類 tab 不會重播）都會一起播放淡入＋輕微上移的動畫，呼應右上角切換 icon 的操作回饋。
 
 ---
 
