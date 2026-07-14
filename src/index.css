@@ -175,7 +175,8 @@
   input[type="radio"],
   input[type="range"],
   input[type="file"],
-  label { cursor: pointer; }
+  label:has(input, select, textarea),
+  label[for] { cursor: pointer; }
 
   ::selection {
     background: var(--color-brand-muted);

@@ -40,7 +40,7 @@ export default function MatchSummaryPanel({ conditions, filtersChosen }) {
       </div>
 
       <div className="shrink-0 space-y-4 border-t border-slate-100 pt-4">
-        <Row label="預算上限" value={filtersChosen ? `NT$${maxPrice} 以下` : '尚未選擇'} muted={!filtersChosen} />
+        <Row label="每人申請費用" value={filtersChosen ? `NT$${maxPrice} 以下` : '尚未選擇'} muted={!filtersChosen} />
         <Row label="團主信用分數" value={filtersChosen ? `${minRating} 分以上` : '尚未選擇'} muted={!filtersChosen} />
         <Row label="群組年資" value={filtersChosen ? (GROUP_AGE_LABEL[groupAge] ?? '不限') : '尚未選擇'} muted={!filtersChosen} />
       </div>

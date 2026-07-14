@@ -148,18 +148,29 @@ export function useScrollEdge({ withMutationObserver = false, forwardWheel = fal
   return { scrollRef, elRef, atBottom, canScroll, isScrolling, handleScroll }
 }
 
+// 共用點擊外部偵測：無論幾個元件訂閱，document 上只掛一個真正的 'pointerdown' listener（ref-count 釋放）
+const _pointerDownSubs = new Set()
+function _notifyPointerDown(e) {
+  _pointerDownSubs.forEach(fn => fn(e))
+}
+function subscribePointerDown(fn) {
+  _pointerDownSubs.add(fn)
+  if (_pointerDownSubs.size === 1) document.addEventListener('pointerdown', _notifyPointerDown)
+  return () => {
+    _pointerDownSubs.delete(fn)
+    if (_pointerDownSubs.size === 0) document.removeEventListener('pointerdown', _notifyPointerDown)
+  }
+}
+
 export function useClickOutside(enabled, refs, onClose) {
   const refsRef = useRef(refs)
   const onCloseRef = useRef(onClose)
-
   useEffect(() => { refsRef.current = refs; onCloseRef.current = onClose })
 
   useEffect(() => {
     if (!enabled) return
-    function handlePointerDown(e) {
+    return subscribePointerDown(e => {
       if (refsRef.current.every(ref => !ref.current?.contains(e.target))) onCloseRef.current()
-    }
-    document.addEventListener('pointerdown', handlePointerDown)
-    return () => document.removeEventListener('pointerdown', handlePointerDown)
+    })
   }, [enabled])
 }

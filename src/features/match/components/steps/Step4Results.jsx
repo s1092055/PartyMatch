@@ -21,7 +21,7 @@ export default function Step4Results({ results, conditions }) {
         <Search size={40} className="mb-4 text-ink-4" />
         <p className="mb-1 text-base font-extrabold text-ink">沒有符合條件的群組</p>
         <p className="max-w-xs text-sm text-ink-3">
-          試著調整預算上限、放寬評分要求，或選擇更多服務類型
+          試著調整每人申請費用、放寬團主信用分數要求，或選擇更多服務類型
         </p>
         <button
           onClick={() => navigate('/explore')}

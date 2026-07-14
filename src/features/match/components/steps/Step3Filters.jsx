@@ -8,7 +8,7 @@ export default function Step3Filters({ conditions, onChange }) {
     <div className="space-y-10">
       <div>
         <div className="mb-3 flex items-center justify-between">
-          <label className="text-base font-medium text-slate-700">預算上限</label>
+          <span className="text-base font-medium text-slate-700">每人申請費用</span>
           <span className="text-sm font-bold text-brand"><TokenAmount amount={conditions.maxPrice} /> 以下</span>
         </div>
         <div className="relative pt-1">
@@ -18,7 +18,7 @@ export default function Step3Filters({ conditions, onChange }) {
           <input
             type="range" min={50} max={500} step={10} value={conditions.maxPrice}
             onChange={e => onChange('maxPrice', Number(e.target.value))}
-            className="absolute inset-0 h-1.5 w-full cursor-pointer opacity-0"
+            className="absolute inset-0 h-1.5 w-full opacity-0"
           />
           <div className="mt-1 flex justify-between">
             <span className="text-xs text-ink-4">50</span>
@@ -28,7 +28,7 @@ export default function Step3Filters({ conditions, onChange }) {
       </div>
       <div>
         <div className="mb-3 flex items-center justify-between">
-          <label className="text-base font-medium text-slate-700">信用分數</label>
+          <span className="text-base font-medium text-slate-700">團主信用分數</span>
           <span className="text-sm font-bold text-brand">{conditions.minRating} 分以上</span>
         </div>
         <div className="relative pt-1">
@@ -38,7 +38,7 @@ export default function Step3Filters({ conditions, onChange }) {
           <input
             type="range" min={0} max={100} step={1} value={conditions.minRating}
             onChange={e => onChange('minRating', Number(e.target.value))}
-            className="absolute inset-0 h-1.5 w-full cursor-pointer opacity-0"
+            className="absolute inset-0 h-1.5 w-full opacity-0"
           />
           <div className="mt-1 flex justify-between">
             <span className="text-xs text-ink-4">0</span>
@@ -62,7 +62,7 @@ export default function Step3Filters({ conditions, onChange }) {
         </div>
       </div>
       <div>
-        <label className="mb-3 block text-base font-medium text-slate-700">群組年資</label>
+        <span className="mb-3 block text-base font-medium text-slate-700">群組年資</span>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {[
             { label: '不限',         value: 'any' },

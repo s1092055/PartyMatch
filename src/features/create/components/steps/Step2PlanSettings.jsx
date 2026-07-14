@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AlertCircle, ChevronLeft, ChevronRight, Minus, Plus, PlusCircle, X } from 'lucide-react'
 import { getServiceById } from '../../../../shared/utils/serviceUtils'
+import { useClickOutside } from '../../../../shared/utils/hooks'
 import TokenAmount from '../../../../shared/ui/TokenAmount'
 
 const BILLING_CYCLES = [
@@ -15,15 +16,17 @@ const MIN_CREDIT_OPTIONS = [
   { value: 50, label: '50 分以上' },
 ]
 
-function Field({ label, required, children, hint, htmlFor, className = '' }) {
+function Field({ label, required, children, hint, className = '' }) {
   const [showHint, setShowHint] = useState(false)
+  const hintRef = useRef(null)
+  useClickOutside(showHint, [hintRef], () => setShowHint(false))
   return (
     <div className={className}>
-      <label htmlFor={htmlFor} className="mb-2 flex items-center gap-1.5 text-base font-medium text-slate-700">
+      <span className="mb-2 flex items-center gap-1.5 text-base font-medium text-slate-700">
         {label}
         {required && <span className="ml-0.5 text-red-400">*</span>}
         {hint && (
-          <span className="group/hint relative inline-flex">
+          <span ref={hintRef} className="group/hint relative inline-flex">
             <button
               type="button"
               onClick={() => setShowHint(v => !v)}
@@ -37,7 +40,7 @@ function Field({ label, required, children, hint, htmlFor, className = '' }) {
             </span>
           </span>
         )}
-      </label>
+      </span>
       {children}
     </div>
   )
