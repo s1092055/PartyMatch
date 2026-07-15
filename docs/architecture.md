@@ -173,6 +173,7 @@ src/
 │   │   ├── useGroupStore.js
 │   │   ├── useMemberStore.js
 │   │   ├── useNotificationStore.js
+│   │   ├── useReviewStore.js
 │   │   ├── useServiceStore.js
 │   │   └── useSubscriptionStore.js
 │   ├── ui/                     # 共用 UI 元件
@@ -195,6 +196,7 @@ src/
 │   │   ├── RevealSection.jsx
 │   │   ├── ScrollHint.jsx      # 捲動提示：桌機 hover 淡出、手機捲動中淡出
 │   │   ├── ServiceLogo.jsx
+│   │   ├── StarRating.jsx      # 星等評分：readOnly 純顯示 / 可點擊選星
 │   │   ├── Tabs.jsx
 │   │   ├── ToastContainer.jsx
 │   │   ├── Toggle.jsx
@@ -204,6 +206,7 @@ src/
 │       ├── creditScore.js
 │       ├── date.js
 │       ├── groupDisplay.js
+│       ├── groupStatus.js      # isEffectivelyActive：成員自行確認服務後個人視角視為已啟用
 │       ├── hooks.js
 │       ├── modelNormalizers.js
 │       ├── pricingUtils.js
@@ -246,6 +249,7 @@ init: async () => {
 | `useNotificationStore` | `/notifications` | 個人通知、公開系統公告、未讀數；`startPolling(userId)` 每 10 秒輪詢，偵測到新 `member_removed`/`member_left` 時廣播 `pm:refresh-member-stores`，偵測到新 `new_application` 時廣播 `pm:refresh-application-store` |
 | `useFavoriteStore` | `/favorites` | 收藏群組 |
 | `useConversationStore` | `/conversations`（polling） | 對話列表快取、計算未讀訊息數；每 5 秒輪詢；登出時 `teardown()` |
+| `useReviewStore` | `/reviews` | 依 `hostId` 快取團主評價（`byHostId`），`fetchForHost` 有進行中請求防重複；`submit` 送出後重新拉取該團主評價 |
 
 ---
 

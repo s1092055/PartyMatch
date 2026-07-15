@@ -46,6 +46,7 @@ enum TokenTransactionType {
 enum ConversationType {
   group
   dm
+  system
 }
 
 enum NotificationType {
@@ -95,6 +96,8 @@ model User {
   refreshTokens     RefreshToken[]
   tokenTransactions TokenTransaction[]
   paymentMethods    PaymentMethod[]
+  hostReviews       Review[]             @relation("HostReviews")
+  authoredReviews   Review[]             @relation("AuthoredReviews")
 
   @@map("users")
 }
@@ -149,6 +152,7 @@ model Group {
   monthlyFee      Float
   currency        String      @default("TWD")
   rules           String?
+  tags            Json        @default("[]")
   minCreditScore  Int         @default(0)
   minGroupAge     Int         @default(0)
   billingCycle    String?
@@ -166,6 +170,7 @@ model Group {
   conversations     Conversation[]
   notifications     Notification[]
   tokenTransactions TokenTransaction[]
+  reviews           Review[]
 
   @@map("groups")
 }
@@ -292,4 +297,23 @@ model Message {
   createdAt      DateTime     @default(now())
 
   @@map("messages")
+}
+
+// hostId 是建立當下對 group.hostId 的快照，刻意不透過 group 反查——
+// 目前沒有「轉讓團主」功能，group.hostId 視為不可變；若未來新增轉讓功能，
+// 需要決定歷史評價要保留在原團主身上還是跟著轉移，屆時再處理遷移邏輯
+model Review {
+  id        String   @id @default(cuid())
+  groupId   String
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  hostId    String
+  host      User     @relation("HostReviews", fields: [hostId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation("AuthoredReviews", fields: [authorId], references: [id], onDelete: Cascade)
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+
+  @@unique([groupId, authorId])
+  @@map("reviews")
 }

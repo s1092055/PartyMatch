@@ -1,4 +1,8 @@
-export function toISODate(date = new Date()) {
+// dateLike 可以是 Date、可被 new Date() 解析的字串，或 null/undefined（回傳 fallback）
+export function toISODate(dateLike = new Date(), fallback = '') {
+  if (!dateLike) return fallback
+  const date = dateLike instanceof Date ? dateLike : new Date(dateLike)
+  if (Number.isNaN(date.getTime())) return fallback
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')

@@ -3,7 +3,8 @@ import Button from '../../../../shared/ui/Button'
 import Badge from '../../../../shared/ui/Badge'
 import ServiceLogo from '../../../../shared/ui/ServiceLogo'
 import TokenAmount from '../../../../shared/ui/TokenAmount'
-import { daysUntil } from '../../../../shared/utils/date'
+import { daysUntil, toISODate } from '../../../../shared/utils/date'
+import { isEffectivelyActive } from '../../../../shared/utils/groupStatus'
 
 const STATUS_BADGE_CLASS = {
   active:               'bg-success-subtle text-success-text',
@@ -18,13 +19,17 @@ const STATUS_BADGE_CLASS = {
   ended:                'bg-slate-100 text-slate-400',
 }
 
-function getDisplayStatus(sub) {
-  const groupStatus = sub.groupStatus ?? sub.status
-  if (groupStatus === 'active' && sub.nextBillingDate) {
+function getBadgeStatus(sub) {
+  const status = sub.groupStatus ?? sub.status
+  return isEffectivelyActive(status, sub.confirmedAt) ? 'active' : status
+}
+
+function getDisplayStatus(badgeStatus, sub) {
+  if (badgeStatus === 'active' && sub.nextBillingDate) {
     const days = daysUntil(sub.nextBillingDate)
     if (days !== null && days <= 7) return 'active_renewal'
   }
-  return groupStatus
+  return badgeStatus
 }
 
 function StatCell({ label, children, highlight }) {
@@ -37,19 +42,19 @@ function StatCell({ label, children, highlight }) {
 }
 
 function SubscriptionCard({ sub, onViewGroup }) {
-  const isActive      = sub.status === 'active' || sub.groupStatus === 'active'
-  const groupStatus   = sub.groupStatus ?? sub.status
-  const displayStatus = getDisplayStatus(sub)
+  const badgeStatus   = getBadgeStatus(sub)
+  const displayStatus = getDisplayStatus(badgeStatus, sub)
+  const isActive      = badgeStatus === 'active'
   const memberCount   = sub.usedSeats ?? 0
 
   return (
     <article
-      className="card card-hover group relative flex min-h-full cursor-pointer flex-col overflow-hidden rounded-card border-line bg-surface p-5 shadow-[0_18px_45px_-32px_rgb(20_44_91_/_0.48)] transition-all duration-200"
+      className="card card-lift relative flex min-h-full cursor-pointer flex-col overflow-hidden rounded-card border-line bg-surface p-5"
       onClick={() => onViewGroup?.(sub)}
     >
       <div className="flex justify-center">
         <Badge
-          variant={groupStatus === 'recruiting' ? 'member_joined' : groupStatus}
+          variant={badgeStatus === 'recruiting' ? 'member_joined' : badgeStatus}
           className={STATUS_BADGE_CLASS[displayStatus] ?? ''}
         />
       </div>
@@ -74,7 +79,7 @@ function SubscriptionCard({ sub, onViewGroup }) {
       <div className="grid grid-cols-3 divide-x divide-line-subtle rounded-lg border border-line-subtle">
         {isActive ? (
           <>
-            <StatCell label="下次扣款">{sub.nextBillingDate ?? '—'}</StatCell>
+            <StatCell label="下次扣款">{toISODate(sub.nextBillingDate, '—')}</StatCell>
             <StatCell label="團主">{sub.hostName ?? '—'}</StatCell>
             <StatCell label="加入日期">{sub.joinedAt ?? '—'}</StatCell>
           </>
@@ -99,6 +104,7 @@ function SubscriptionCard({ sub, onViewGroup }) {
 export default memo(SubscriptionCard, (prev, next) =>
   prev.sub.id === next.sub.id &&
   prev.sub.groupStatus === next.sub.groupStatus &&
+  prev.sub.confirmedAt === next.sub.confirmedAt &&
   prev.sub.nextBillingDate === next.sub.nextBillingDate &&
   prev.onViewGroup === next.onViewGroup
 )

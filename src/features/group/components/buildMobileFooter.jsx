@@ -21,20 +21,17 @@ function renderCTA({
   if (isWaitingMembers) return null
   if (needsFillInfo) return (
     <div className="flex justify-center">
-      <div className="relative w-full">
-        <span className={`absolute inset-1 rounded-xl animate-ping opacity-20 ${hasServiceInfoIssue ? 'bg-danger' : 'bg-brand'}`} />
-        <button
-          onClick={() => {
-            handleClose()
-            navigate('/my-groups?view=member', { state: { openGroupId: group.id } })
-          }}
-          className={`relative flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white transition-colors ${
-            hasServiceInfoIssue ? 'bg-danger hover:opacity-90' : 'bg-brand hover:bg-brand-hover'
-          }`}
-        >
-          {hasServiceInfoIssue ? '修正服務帳號' : '填寫服務帳號'}
-        </button>
-      </div>
+      <button
+        onClick={() => {
+          handleClose()
+          navigate('/my-groups?view=member', { state: { openGroupId: group.id } })
+        }}
+        className={`flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white transition-colors ${
+          hasServiceInfoIssue ? 'bg-danger hover:opacity-90' : 'bg-brand hover:bg-brand-hover'
+        }`}
+      >
+        {hasServiceInfoIssue ? '修正服務帳號' : '填寫服務帳號'}
+      </button>
     </div>
   )
   if (isMember) return (

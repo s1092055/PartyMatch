@@ -9,8 +9,16 @@ function fileToBase64(file) {
   })
 }
 
-export async function uploadPaymentProof(_groupId, _userId, file) {
+async function uploadFile(endpoint, file) {
   const data = await fileToBase64(file)
-  const result = await client.post('/upload/payment-proof', { data })
+  const result = await client.post(endpoint, { data })
   return result.url
+}
+
+export async function uploadPaymentProof(_groupId, _userId, file) {
+  return uploadFile('/upload/payment-proof', file)
+}
+
+export async function uploadDisputeEvidence(file) {
+  return uploadFile('/upload/dispute-evidence', file)
 }

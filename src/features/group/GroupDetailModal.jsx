@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CheckCircle2, Heart } from 'lucide-react'
+import { CheckCircle2, ChevronLeft, ChevronRight, Heart } from 'lucide-react'
 import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { getServiceById } from '../../shared/utils/serviceUtils'
 import { useApplicationStore } from '../../shared/stores/useApplicationStore'
@@ -30,6 +30,19 @@ export default function GroupDetailModal() {
   const [withdrawConfirm, setWithdrawConfirm]   = useState(false)
   const [withdrawing, setWithdrawing]           = useState(false)
   const [applying, setApplying]                 = useState(false)
+  const picksScrollRef = useRef(null)
+  const [picksAtStart, setPicksAtStart] = useState(true)
+  const [picksAtEnd, setPicksAtEnd]     = useState(true)
+
+  function scrollPicks(delta) {
+    picksScrollRef.current?.scrollBy({ left: delta, behavior: 'smooth' })
+  }
+
+  function handlePicksScroll(e) {
+    const { scrollLeft, scrollWidth, clientWidth } = e.currentTarget
+    setPicksAtStart(scrollLeft <= 0)
+    setPicksAtEnd(scrollLeft + clientWidth >= scrollWidth - 1)
+  }
 
   const isOpen       = !!groupId
   const activeUser   = useAuthStore(s => s.user)
@@ -66,6 +79,13 @@ export default function GroupDetailModal() {
       ...recruiting.filter(g => g.serviceId !== group.serviceId),
     ]
   }, [group, groups, activeUserId])
+
+  useEffect(() => {
+    const el = picksScrollRef.current
+    if (!el) return
+    setPicksAtStart(true)
+    setPicksAtEnd(el.scrollWidth <= el.clientWidth)
+  }, [picks])
 
   const memberGroupIds  = useMemo(
     () => new Set(members.filter(m => m.userId === activeUserId).map(m => m.groupId)),
@@ -230,12 +250,38 @@ export default function GroupDetailModal() {
       afterColumns={picks.length > 0 && (
         <div className="border-t border-line px-6 pb-4 pt-5">
           <h3 className="mb-4 text-lg font-black text-brand">其他推薦群組</h3>
-          <div className="flex gap-3 overflow-x-auto px-0.5 pb-3 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {picks.map(g => (
-              <div key={g.id} className="w-64 shrink-0">
-                <ExploreGroupCard group={g} isApplied={appliedGroupIds.has(g.id)} isMember={memberGroupIds.has(g.id)} />
-              </div>
-            ))}
+          <div className="relative">
+            {!picksAtStart && (
+              <button
+                type="button"
+                onClick={() => scrollPicks(-280)}
+                aria-label="往左看更多"
+                className="absolute left-0 top-1/2 z-10 hidden h-9 w-9 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-line bg-canvas text-ink-3 shadow-md transition-colors hover:bg-raised hover:text-ink md:grid"
+              >
+                <ChevronLeft size={16} strokeWidth={1.5} />
+              </button>
+            )}
+            <div
+              ref={picksScrollRef}
+              onScroll={handlePicksScroll}
+              className="flex gap-3 overflow-x-auto px-2 pb-4 pt-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              {picks.map(g => (
+                <div key={g.id} className="w-64 shrink-0">
+                  <ExploreGroupCard group={g} isApplied={appliedGroupIds.has(g.id)} isMember={memberGroupIds.has(g.id)} />
+                </div>
+              ))}
+            </div>
+            {!picksAtEnd && (
+              <button
+                type="button"
+                onClick={() => scrollPicks(280)}
+                aria-label="往右看更多"
+                className="absolute right-0 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 translate-x-1/2 place-items-center rounded-full border border-line bg-canvas text-ink-3 shadow-md transition-colors hover:bg-raised hover:text-ink md:grid"
+              >
+                <ChevronRight size={16} strokeWidth={1.5} />
+              </button>
+            )}
           </div>
         </div>
       )}

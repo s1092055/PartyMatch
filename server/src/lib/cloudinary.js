@@ -6,4 +6,14 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 })
 
+// data: 'data:<mime>;base64,...'
+export async function uploadImage(data, { folder, resourceType = 'image', transformation } = {}) {
+  const result = await cloudinary.uploader.upload(data, {
+    folder,
+    resource_type: resourceType,
+    ...(transformation && { transformation }),
+  })
+  return { url: result.secure_url, publicId: result.public_id }
+}
+
 export default cloudinary

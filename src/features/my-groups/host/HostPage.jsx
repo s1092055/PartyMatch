@@ -4,15 +4,18 @@ import EmptyState from '../../../shared/ui/EmptyState'
 import GroupViewModal from '../../../shared/ui/GroupViewModal'
 import FilterTabsBar from '../../../shared/ui/FilterTabsBar'
 import RevealSection from '../../../shared/ui/RevealSection'
+import ScrollHint from '../../../shared/ui/ScrollHint'
 import HostedGroupCard from './components/HostedGroupCard'
 import GroupHistoryModal from './components/GroupHistoryModal'
 import RenewalModal from './components/RenewalModal'
 import { STATUS_FILTER_TABS } from './utils/hostFilters'
 import { useHostActions } from './hooks/useHostActions'
+import { useScrollEdge } from '../../../shared/utils/hooks'
 
 export default function HostPage({ embedded = false }) {
   const navigate = useNavigate()
   const activeUser = useAuthStore(s => s.user)
+  const { scrollRef: listScrollRef, canScroll: listCanScroll, atBottom: listAtBottom, isScrolling: listIsScrolling, handleScroll: handleListScroll } = useScrollEdge()
 
   const {
     errors,
@@ -69,18 +72,27 @@ export default function HostPage({ embedded = false }) {
               description="試試切換到其他狀態分類"
             />
           ) : (
-            <div className="grid gap-3 md:grid-cols-2">
-              {displayGroups.map((g, i) => (
-                <RevealSection key={g.id} delay={i * 60}>
-                  <HostedGroupCard
-                    group={g}
-                    members={membersMap[g.id] ?? []}
-                    pendingAppCount={applicationCounts[g.id] ?? 0}
-                    paymentCount={0}
-                    {...groupHandlersMap[g.id]}
-                  />
-                </RevealSection>
-              ))}
+            <div className="group relative">
+              <div
+                ref={listScrollRef}
+                onScroll={handleListScroll}
+                className="max-h-[calc(100vh-22rem)] overflow-y-auto p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              >
+                <div className="grid gap-3 md:grid-cols-2">
+                  {displayGroups.map((g, i) => (
+                    <RevealSection key={g.id} delay={i * 60}>
+                      <HostedGroupCard
+                        group={g}
+                        members={membersMap[g.id] ?? []}
+                        pendingAppCount={applicationCounts[g.id] ?? 0}
+                        paymentCount={0}
+                        {...groupHandlersMap[g.id]}
+                      />
+                    </RevealSection>
+                  ))}
+                </div>
+              </div>
+              <ScrollHint canScroll={listCanScroll} atBottom={listAtBottom} isScrolling={listIsScrolling} />
             </div>
           )}
         </div>

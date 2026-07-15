@@ -203,7 +203,7 @@ export default function TopupModal({ isOpen, onClose }) {
                             )}
                           </div>
                           {tx.note && <p className="mt-0.5 truncate text-xs text-ink-4">{tx.note}</p>}
-                          <p className="text-xs text-ink-4">{toISODate(new Date(tx.createdAt))}</p>
+                          <p className="text-xs text-ink-4">{toISODate(tx.createdAt)}</p>
                         </div>
                         <p className={`shrink-0 text-sm font-bold tabular-nums ${isNegative ? 'text-danger' : cfg.color}`}>
                           {isNegative ? `−${absAmount.toLocaleString()}` : `+${absAmount.toLocaleString()}`} PM

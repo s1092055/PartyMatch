@@ -51,15 +51,13 @@ function getMeta(type) {
   return NOTIFICATION_META[type] ?? NOTIFICATION_META.default
 }
 
-const PAYMENT_TYPES = ['group_chat_opened', 'group_activated', 'group_cancelled', 'group_ended', 'group_renewal']
 const APPLY_TYPES   = ['joined', 'application_approved', 'application_rejected', 'application_sent', 'new_application', 'application']
 const SYSTEM_TYPES  = ['system', 'announcement', 'platform']
 
 const TABS = [
-  { id: 'all',     label: '全部',   filter: () => true },
-  { id: 'payment', label: 'PM幣帳務', filter: n => PAYMENT_TYPES.includes(n.type) },
-  { id: 'apply',   label: '申請',   filter: n => APPLY_TYPES.includes(n.type) },
-  { id: 'system',  label: '系統',   filter: n => SYSTEM_TYPES.includes(n.type) && (!n.userId || n.userId === 'system' || n.isPublic === true) },
+  { id: 'all',    label: '全部', filter: () => true },
+  { id: 'apply',  label: '申請', filter: n => APPLY_TYPES.includes(n.type) },
+  { id: 'system', label: '系統', filter: n => SYSTEM_TYPES.includes(n.type) && (!n.userId || n.userId === 'system' || n.isPublic === true) },
 ]
 
 export default function FloatingMessages() {

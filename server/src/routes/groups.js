@@ -18,6 +18,7 @@ const createGroupSchema = z.object({
   pricePerSeat:   z.number().min(0).optional(),
   currency:       z.string().default('TWD'),
   rules:          z.union([z.string(), z.array(z.string())]).optional(),
+  tags:           z.array(z.string()).optional(),
   minCreditScore: z.number().int().min(0).default(0),
   minGroupAge:    z.number().int().min(0).default(0),
   billingCycle:   z.enum(['monthly', 'yearly']).optional(),
@@ -27,6 +28,7 @@ const createGroupSchema = z.object({
   monthlyFee:  data.monthlyFee  ?? data.pricePerSeat ?? 0,
   planId:      data.planId      ?? data.planName,
   rules:       Array.isArray(data.rules) ? data.rules.join('\n') : (data.rules ?? ''),
+  tags:        data.tags ?? [],
   billingCycle: data.billingCycle ?? 'monthly',
 }))
 
@@ -104,7 +106,7 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
 router.post('/', requireAuth, validate(createGroupSchema), async (req, res, next) => {
   try {
     // 過濾前端送來的非資料庫欄位，只留 Prisma schema 接受的欄位
-    const allowed = ['serviceId','planId','planName','maxMembers','monthlyFee','currency','rules','minCreditScore','minGroupAge','billingCycle']
+    const allowed = ['serviceId','planId','planName','maxMembers','monthlyFee','currency','rules','tags','minCreditScore','minGroupAge','billingCycle']
     const data = Object.fromEntries(Object.entries(req.body).filter(([k]) => allowed.includes(k)))
     const group = await prisma.group.create({
       data: { ...data, hostId: req.user.id },

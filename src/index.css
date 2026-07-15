@@ -226,6 +226,18 @@
     border-color: var(--color-brand-border);
   }
 
+  /* 群組卡片（探索/我的群組）hover 時整張卡片微幅放大，取代陰影式 hover：
+     transform-gpu + backface-visibility 避免 scale 過場時文字模糊 */
+  .card-lift {
+    box-shadow: none;
+    transition: transform 0.2s ease;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+  }
+  .card-lift:hover {
+    transform: translateZ(0) scale(1.02);
+  }
+
   .card-divider {
     border-top: 1px solid var(--color-line-subtle);
   }

@@ -19,6 +19,16 @@ function byNewest(a, b) {
   return String(b.createdAt ?? '').localeCompare(String(a.createdAt ?? ''))
 }
 
+// 保險去重：依 id 保留第一筆，避免 init/poll 交錯的競態情況讓同一筆通知在陣列中出現兩次
+function dedupeById(list) {
+  const seen = new Set()
+  return list.filter(n => {
+    if (seen.has(n.id)) return false
+    seen.add(n.id)
+    return true
+  })
+}
+
 function getFallbackSystemNotifications() {
   return [
     {
@@ -64,7 +74,7 @@ export const useNotificationStore = create((set, get) => ({
     set({ loading: true, error: null })
     try {
       const notifications = await readAllNotifications()
-      set({ notifications, loading: false })
+      set({ notifications: dedupeById(notifications), loading: false })
     } catch (err) {
       set({ error: err.message, loading: false })
     }
@@ -86,7 +96,7 @@ export const useNotificationStore = create((set, get) => ({
         if (newNotifs.some(n => n.type === 'new_application')) {
           window.dispatchEvent(new CustomEvent('pm:refresh-application-store'))
         }
-        set({ notifications: latest })
+        set({ notifications: dedupeById(latest) })
       } catch { /* silent */ }
     }
 

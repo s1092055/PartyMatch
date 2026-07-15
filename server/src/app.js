@@ -17,6 +17,8 @@ import uploadRoutes        from './routes/upload.js'
 import memberRoutes        from './routes/members.js'
 import tokenRoutes         from './routes/tokens.js'
 import paymentMethodRoutes from './routes/paymentMethods.js'
+import reviewRoutes        from './routes/reviews.js'
+import systemMessageRoutes from './routes/systemMessages.js'
 
 const app = express()
 
@@ -43,6 +45,8 @@ app.use('/api/upload',        uploadRoutes)
 app.use('/api/members',       memberRoutes)
 app.use('/api/tokens',          tokenRoutes)
 app.use('/api/payment-methods', paymentMethodRoutes)
+app.use('/api/reviews',         reviewRoutes)
+app.use('/api/system-messages', systemMessageRoutes)
 
 // ── Health check ───────────────────────────────────────────────────────────────
 app.get('/health', (req, res) => res.json({ status: 'ok', ts: new Date() }))

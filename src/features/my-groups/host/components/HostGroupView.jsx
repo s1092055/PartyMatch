@@ -104,28 +104,25 @@ export default function HostGroupView({ group, members, applications, onReportSe
 
   const lockGroupCta = group.status === 'full' && (
     <div className="flex justify-center py-2">
-      <div className="relative">
-        {!showLockGroupConfirm && <span className="absolute inset-1 rounded-xl bg-success animate-ping opacity-20" />}
-        {showLockGroupConfirm ? (
-          <div className="flex gap-2">
-            <button
-              onClick={() => setShowLockGroupConfirm(false)}
-              className="rounded-xl border border-line px-4 py-2 text-sm font-semibold text-ink-2 transition-colors hover:bg-raised"
-            >取消</button>
-            <button
-              onClick={() => { setShowLockGroupConfirm(false); onLockGroup?.() }}
-              className="rounded-xl bg-success px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-success-text"
-            >確認鎖定</button>
-          </div>
-        ) : (
+      {showLockGroupConfirm ? (
+        <div className="flex gap-2">
           <button
-            onClick={() => setShowLockGroupConfirm(true)}
-            className="relative flex items-center gap-2 rounded-xl bg-success px-6 py-2 text-sm font-bold text-white shadow-md transition-colors hover:bg-success-text"
-          >
-            <Radio size={15} /> 鎖定群組
-          </button>
-        )}
-      </div>
+            onClick={() => setShowLockGroupConfirm(false)}
+            className="rounded-xl border border-line px-4 py-2 text-sm font-semibold text-ink-2 transition-colors hover:bg-raised"
+          >取消</button>
+          <button
+            onClick={() => { setShowLockGroupConfirm(false); onLockGroup?.() }}
+            className="rounded-xl bg-success px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-success-text"
+          >確認鎖定</button>
+        </div>
+      ) : (
+        <button
+          onClick={() => setShowLockGroupConfirm(true)}
+          className="flex items-center gap-2 rounded-xl bg-success px-6 py-2 text-sm font-bold text-white shadow-md transition-colors hover:bg-success-text"
+        >
+          <Radio size={15} /> 鎖定群組
+        </button>
+      )}
     </div>
   )
 
@@ -138,15 +135,12 @@ export default function HostGroupView({ group, members, applications, onReportSe
 
   const activateCta = canActivateNow && (
     <div className="flex justify-center py-2">
-      <div className="relative">
-        {!showActivate && <span className="absolute inset-1 rounded-xl bg-success animate-ping opacity-20" />}
-        <button
-          onClick={openActivate}
-          className="relative flex items-center gap-2 rounded-xl bg-success px-6 py-2 text-sm font-bold text-white shadow-md transition-colors hover:bg-success-text"
-        >
-          <PlayCircle size={15} /> 啟用服務
-        </button>
-      </div>
+      <button
+        onClick={openActivate}
+        className="flex items-center gap-2 rounded-xl bg-success px-6 py-2 text-sm font-bold text-white shadow-md transition-colors hover:bg-success-text"
+      >
+        <PlayCircle size={15} /> 啟用服務
+      </button>
     </div>
   )
 
@@ -190,7 +184,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
       onSubSubPanelBack={() => { setShowReviewHistory(false); setReviewFilter('all') }}
       bottomBar={(() => {
         return (
-          <div className={`grid grid-cols-${isRecruiting ? 2 : 3} gap-1 p-2`}>
+          <div className={`grid gap-1 p-2 ${isRecruiting ? 'grid-cols-2' : 'grid-cols-3'}`}>
             <button
               onClick={() => setActivePanel('members')}
               className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"

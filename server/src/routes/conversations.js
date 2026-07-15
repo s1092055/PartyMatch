@@ -3,6 +3,7 @@ import { z } from 'zod'
 import prisma from '../lib/prisma.js'
 import { requireAuth } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
+import { appendMessage, isSystemConversation } from '../lib/conversationMessages.js'
 
 const router = Router()
 
@@ -132,6 +133,9 @@ router.post('/:id/messages', requireAuth, validate(sendMessageSchema), async (re
   try {
     const conversation = await prisma.conversation.findUnique({ where: { id: req.params.id } })
     if (!conversation) return res.status(404).json({ message: '對話不存在' })
+    if (isSystemConversation(conversation)) {
+      return res.status(403).json({ message: '系統通知無法回覆' })
+    }
     const participants2 = Array.isArray(conversation.participants)
       ? conversation.participants
       : JSON.parse(conversation.participants ?? '[]')
@@ -140,32 +144,8 @@ router.post('/:id/messages', requireAuth, validate(sendMessageSchema), async (re
     }
 
     const { content, type, actionType, payload } = req.body
-    const message = await prisma.message.create({
-      data: {
-        conversationId: req.params.id,
-        senderId: req.user.id,
-        content,
-        type,
-        ...(actionType !== undefined && { actionType }),
-        ...(payload    !== undefined && { payload }),
-      },
-      include: { sender: { select: { id: true, name: true, avatarColor: true, avatarInitial: true } } },
-    })
-
-    // 更新 lastMessage + 未讀數
-    const unreadCounts = { ...(conversation.unreadCounts ?? {}) }
-    for (const uid of participants2) {
-      if (uid !== req.user.id) {
-        unreadCounts[uid] = (unreadCounts[uid] ?? 0) + 1
-      }
-    }
-    await prisma.conversation.update({
-      where: { id: req.params.id },
-      data:  {
-        lastMessage: { content, senderId: req.user.id, createdAt: message.createdAt },
-        unreadCounts,
-        updatedAt: new Date(),
-      },
+    const message = await appendMessage(conversation, {
+      senderId: req.user.id, content, type, actionType, payload, participants: participants2,
     })
 
     res.status(201).json(message)
@@ -178,6 +158,9 @@ router.patch('/:id/participants', requireAuth, async (req, res, next) => {
     const { action, userId } = req.body
     const conversation = await prisma.conversation.findUnique({ where: { id: req.params.id } })
     if (!conversation) return res.status(404).json({ message: '對話不存在' })
+    if (isSystemConversation(conversation)) {
+      return res.status(403).json({ message: '系統聊天室不可變更參與者' })
+    }
 
     const participants = Array.isArray(conversation.participants)
       ? [...conversation.participants]

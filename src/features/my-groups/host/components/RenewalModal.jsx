@@ -9,6 +9,7 @@ export default function RenewalModal({ isOpen, onClose, group, onStartRenewal, o
 
   const days = daysUntil(group.nextBillingDate)
   const isOverdue = days < 0
+  const currentBillingDate = toISODate(group.nextBillingDate)
   const nextCycleDate = toISODate(advanceByCycle(group.nextBillingDate, group.billingCycle))
 
   return (
@@ -39,7 +40,7 @@ export default function RenewalModal({ isOpen, onClose, group, onStartRenewal, o
             <p className={`text-sm font-bold ${isOverdue ? 'text-danger' : 'text-warning-text'}`}>
               {isOverdue ? `帳單日已過 ${Math.abs(days)} 天` : `距帳單日還有 ${days} 天`}
             </p>
-            <p className="text-xs text-ink-3">本期帳單日：{group.nextBillingDate}</p>
+            <p className="text-xs text-ink-3">本期帳單日：{currentBillingDate}</p>
           </div>
         </div>
 
@@ -67,7 +68,7 @@ export default function RenewalModal({ isOpen, onClose, group, onStartRenewal, o
             <p className="font-bold text-danger">結束服務</p>
           </div>
           <p className="mt-1.5 text-xs text-ink-3">
-            群組將進入「已結束」狀態，不再續訂，成員可繼續使用至 {group.nextBillingDate}。
+            群組將進入「已結束」狀態，不再續訂，成員可繼續使用至 {currentBillingDate}。
           </p>
         </button>
 

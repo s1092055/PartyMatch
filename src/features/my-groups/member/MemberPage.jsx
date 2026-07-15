@@ -20,17 +20,25 @@ import FilterTabsBar from '../../../shared/ui/FilterTabsBar'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import Button from '../../../shared/ui/Button'
 import RevealSection from '../../../shared/ui/RevealSection'
+import ScrollHint from '../../../shared/ui/ScrollHint'
 import { daysUntil, formatRelativeDate } from '../../../shared/utils/date'
+import { useScrollEdge } from '../../../shared/utils/hooks'
+import { isEffectivelyActive } from '../../../shared/utils/groupStatus'
 
 import { FILTER_TABS } from './utils/memberFilters'
 
-function enrichSubs(rawSubs) {
+function enrichSubs(rawSubs, userId) {
+  const myMemberByGroupId = new Map(
+    useMemberStore.getState().members.filter(m => m.userId === userId).map(m => [m.groupId, m])
+  )
   return rawSubs.map(s => {
     const group = getGroupById(s.groupId)
-    if (!group) return { ...s, groupStatus: s.groupStatus ?? s.status }
+    const member = myMemberByGroupId.get(s.groupId)
+    if (!group) return { ...s, groupStatus: s.groupStatus ?? s.status, confirmedAt: member?.confirmedAt ?? null }
     return {
       ...s,
       groupStatus:       group.status,
+      confirmedAt:       member?.confirmedAt ?? null,
       serviceName:       s.serviceName  || group.serviceName,
       serviceId:         s.serviceId    || group.serviceId,
       planName:          s.planName     || group.planName,
@@ -46,7 +54,7 @@ function enrichSubs(rawSubs) {
 }
 
 function isActivatedSubscription(sub) {
-  return sub.status === 'active' || sub.groupStatus === 'active'
+  return isEffectivelyActive(sub.groupStatus ?? sub.status, sub.confirmedAt)
 }
 
 function isProcessingSubscription(sub) {
@@ -61,7 +69,7 @@ function filterSubs(subs, tab) {
   switch (tab) {
     case 'processing': return subs.filter(isProcessingSubscription)
     case 'active':     return subs.filter(isActivatedSubscription)
-    case 'upcoming':   return subs.filter(s => { const d = daysUntil(s.nextBillingDate); return isActivatedSubscription(s) && d >= 0 && d <= 7 })
+    case 'upcoming':   return subs.filter(s => { const d = daysUntil(s.nextBillingDate); return isActivatedSubscription(s) && !!s.nextBillingDate && d >= 0 && d <= 7 })
     case 'ended':      return subs.filter(s => ENDED_STATUSES.has(s.groupStatus ?? s.status))
     default:           return subs
   }
@@ -76,14 +84,16 @@ export default function MemberPage({ embedded = false }) {
   const subscriptionsState = useSubscriptionStore(s => s.subscriptions)
   const groupsState        = useGroupStore(s => s.groups)
   const applicationsState  = useApplicationStore(s => s.applications)
+  const { scrollRef: listScrollRef, canScroll: listCanScroll, atBottom: listAtBottom, isScrolling: listIsScrolling, handleScroll: handleListScroll } = useScrollEdge()
   const [activeTab, setActiveTab] = useState(() => location.state?.tab ?? 'all')
+  const membersState = useMemberStore(s => s.members)
   const subs = useMemo(
     () => activeUserId
-      ? enrichSubs(subscriptionsState.filter(s => s.userId === activeUserId))
+      ? enrichSubs(subscriptionsState.filter(s => s.userId === activeUserId), activeUserId)
       : [],
-    // groupsState 為刻意依賴：enrichSubs 讀取群組狀態，群組更新時需重算
+    // groupsState/membersState 為刻意依賴：enrichSubs 讀取群組狀態與成員確認狀態，兩者更新時需重算
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [activeUserId, subscriptionsState, groupsState],
+    [activeUserId, subscriptionsState, groupsState, membersState],
   )
   const [viewGroupId, setViewGroupId] = useState(null)
   const [autoOpenPayment, setAutoOpenPayment] = useState(false)
@@ -201,34 +211,40 @@ export default function MemberPage({ embedded = false }) {
           counts={filterCounts}
         />
 
-        <div className="min-w-0 flex-1">
+        <div className="group relative min-w-0 flex-1">
           {activeTab === 'processing' ? (
             <>
               {pendingApplications.length === 0 && filtered.length === 0 ? (
                 <EmptyState icon={ClipboardList} title="此分類沒有訂閱項目" description="切換到其他分類查看" />
               ) : (
-                <div className="grid gap-3 md:grid-cols-2">
-                  {pendingApplications.map((app, i) => {
-                    const group = getGroupById(app.groupId)
-                    if (!group) return null
-                    return (
-                      <RevealSection key={app.id} delay={i * 60}>
-                        <ApplicationCard
-                          app={app}
-                          group={group}
-                          onViewGroup={() => window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: app.groupId } }))}
+                <div
+                  ref={listScrollRef}
+                  onScroll={handleListScroll}
+                  className="max-h-[calc(100vh-22rem)] overflow-y-auto p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                >
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {pendingApplications.map((app, i) => {
+                      const group = getGroupById(app.groupId)
+                      if (!group) return null
+                      return (
+                        <RevealSection key={app.id} delay={i * 60}>
+                          <ApplicationCard
+                            app={app}
+                            group={group}
+                            onViewGroup={() => window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: app.groupId } }))}
+                          />
+                        </RevealSection>
+                      )
+                    })}
+                    {filtered.map((sub, i) => (
+                      <RevealSection key={sub.id} delay={(pendingApplications.length + i) * 60}>
+                        <SubscriptionCard
+                          sub={sub}
+                          onViewGroup={onViewGroup}
                         />
                       </RevealSection>
-                    )
-                  })}
-                  {filtered.map((sub, i) => (
-                    <RevealSection key={sub.id} delay={(pendingApplications.length + i) * 60}>
-                      <SubscriptionCard
-                        sub={sub}
-                        onViewGroup={onViewGroup}
-                      />
-                    </RevealSection>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               )}
             </>
@@ -241,30 +257,37 @@ export default function MemberPage({ embedded = false }) {
               onAction={activeTab === 'all' ? () => navigate('/explore') : undefined}
             />
           ) : (
-            <div className="grid gap-3 md:grid-cols-2">
-              {activeTab === 'all' && pendingApplications.map((app, i) => {
-                const group = getGroupById(app.groupId)
-                if (!group) return null
-                return (
-                  <RevealSection key={app.id} delay={i * 60}>
-                    <ApplicationCard
-                      app={app}
-                      group={group}
-                      onViewGroup={() => window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: app.groupId } }))}
+            <div
+              ref={listScrollRef}
+              onScroll={handleListScroll}
+              className="max-h-[calc(100vh-22rem)] overflow-y-auto p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <div className="grid gap-3 md:grid-cols-2">
+                {activeTab === 'all' && pendingApplications.map((app, i) => {
+                  const group = getGroupById(app.groupId)
+                  if (!group) return null
+                  return (
+                    <RevealSection key={app.id} delay={i * 60}>
+                      <ApplicationCard
+                        app={app}
+                        group={group}
+                        onViewGroup={() => window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: app.groupId } }))}
+                      />
+                    </RevealSection>
+                  )
+                })}
+                {filtered.map((sub, i) => (
+                  <RevealSection key={sub.id} delay={(activeTab === 'all' ? pendingApplications.length + i : i) * 60}>
+                    <SubscriptionCard
+                      sub={sub}
+                      onViewGroup={sub => setViewGroupId(sub.groupId)}
                     />
                   </RevealSection>
-                )
-              })}
-              {filtered.map((sub, i) => (
-                <RevealSection key={sub.id} delay={(activeTab === 'all' ? pendingApplications.length + i : i) * 60}>
-                  <SubscriptionCard
-                    sub={sub}
-                    onViewGroup={sub => setViewGroupId(sub.groupId)}
-                  />
-                </RevealSection>
-              ))}
+                ))}
+              </div>
             </div>
           )}
+          <ScrollHint canScroll={listCanScroll} atBottom={listAtBottom} isScrolling={listIsScrolling} />
         </div>
       </div>
 

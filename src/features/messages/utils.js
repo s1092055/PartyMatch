@@ -1,3 +1,7 @@
+export function isSystemConversation(conversation) {
+  return conversation?.type === 'system'
+}
+
 export function formatTime(ts) {
   if (!ts) return ''
   const date = ts.toDate ? ts.toDate() : new Date(ts)

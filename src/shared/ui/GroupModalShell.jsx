@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { ChevronDown, ChevronLeft, ChevronUp, X } from 'lucide-react'
+import { ChevronLeft, X } from 'lucide-react'
 import ServiceLogo from './ServiceLogo'
 import GroupOverviewContent from './GroupOverviewContent'
 import ProgressBar from './ProgressBar'
 import TokenAmount from './TokenAmount'
-import { useScrollLock } from '../utils/hooks'
+import ScrollHint from './ScrollHint'
+import { useScrollLock, useScrollEdge } from '../utils/hooks'
 
 export default function GroupModalShell({
   onClose,
@@ -31,18 +32,11 @@ export default function GroupModalShell({
   mobileReviewsSection,
   children,
 }) {
-  const [atBottom, setAtBottom] = useState(false)
-  const scrollBodyRef  = useRef(null)
+  const { scrollRef: scrollBodyRef, elRef: scrollBodyElRef, atBottom, canScroll, isScrolling, handleScroll } = useScrollEdge()
   const subScrollRef   = useRef(null)
   const subSubScrollRef = useRef(null)
 
   function handleClose() { onClose() }
-  function handleScroll(e) {
-    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget
-    setAtBottom(scrollTop + clientHeight >= scrollHeight - 20)
-  }
-  function scrollToTop() { scrollBodyRef.current?.scrollTo({ top: 0, behavior: 'smooth' }) }
-  function scrollDown()  { scrollBodyRef.current?.scrollBy({ top: 200, behavior: 'smooth' }) }
 
   const showPaymentBar    = ['pending_activation', 'pending_confirmation'].includes(group.status) && confirmedCount !== undefined
   const showCenteredBadge = (showPaymentBar || !!pendingBadge) && !centeredCta
@@ -68,8 +62,8 @@ export default function GroupModalShell({
   }, [onClose, subPanel, onSubPanelBack, subSubPanel, onSubSubPanelBack])
 
   useEffect(() => {
-    if (scrollBodyRef.current) scrollBodyRef.current.scrollTop = 0
-  }, [group?.id])
+    if (scrollBodyElRef.current) scrollBodyElRef.current.scrollTop = 0
+  }, [group?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Reset sub-panel scroll when switching panels
   useEffect(() => {
@@ -129,27 +123,23 @@ export default function GroupModalShell({
               )}
 
               {/* Scrollable body */}
-              <div ref={scrollBodyRef} onScroll={handleScroll} className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                <div className="px-6 py-5">
-                  <GroupOverviewContent
-                    group={group}
-                    service={service}
-                    plan={plan}
-                    reviewsSection={mobileReviewsSection}
-                    statusBadgeOverride={statusBadgeOverride}
-                    extraRows={extraInfoRows}
-                  />
-                  {summaryExtraRows}
+              <div className="group relative min-h-0 flex-1">
+                <div ref={scrollBodyRef} onScroll={handleScroll} className="h-full overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  <div className="px-6 py-5">
+                    <GroupOverviewContent
+                      group={group}
+                      service={service}
+                      plan={plan}
+                      reviewsSection={mobileReviewsSection}
+                      statusBadgeOverride={statusBadgeOverride}
+                      extraRows={extraInfoRows}
+                    />
+                    {summaryExtraRows}
+                  </div>
+                  {afterColumns}
                 </div>
-                {afterColumns}
-                <div className="pointer-events-none sticky bottom-3 flex justify-end pr-3">
-                  <button
-                    onClick={atBottom ? scrollToTop : scrollDown}
-                    className="pointer-events-auto grid h-8 w-8 place-items-center rounded-full border border-line bg-canvas shadow-md text-ink-3 transition-colors hover:text-ink animate-bounce"
-                    title={atBottom ? '回到頂部' : '往下捲動'}
-                  >
-                    {atBottom ? <ChevronUp size={16} strokeWidth={1.5} /> : <ChevronDown size={16} strokeWidth={1.5} />}
-                  </button>
+                <div className="pointer-events-none absolute inset-y-0 left-0 right-3">
+                  <ScrollHint canScroll={canScroll} atBottom={atBottom} isScrolling={isScrolling} />
                 </div>
               </div>
 

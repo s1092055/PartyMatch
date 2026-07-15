@@ -78,7 +78,7 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
 
   return (
     <article
-      className="card card-hover group relative flex min-h-full cursor-pointer flex-col overflow-hidden rounded-card border-line bg-surface px-6 py-5 shadow-[0_18px_45px_-32px_rgb(20_44_91_/_0.48)] transition-all duration-200"
+      className="card card-lift relative flex min-h-full cursor-pointer flex-col overflow-hidden rounded-card border-line bg-surface px-6 py-5"
       onClick={openDetails}
     >
       {!hideActions && (

@@ -10,6 +10,7 @@ import { markConversationRead } from '../../../shared/api/messagesApi'
 import { useConversationStore } from '../../../shared/stores/useConversationStore'
 import { useParticipantNames } from '../hooks/useParticipantNames'
 import { useMessageScroll } from '../hooks/useMessageScroll'
+import { isSystemConversation } from '../utils'
 
 const getCurrentUser = () => useAuthStore.getState().user
 
@@ -126,6 +127,10 @@ export default function ChatWindow({
 
       {/* 輸入區 */}
       <div className="shrink-0 border-t border-line bg-white px-6 py-4">
+        {isSystemConversation(selected) ? (
+          <p className="text-center text-xs text-ink-4">此為系統通知，無法回覆</p>
+        ) : (
+        <>
         {sendError && (
           <p className="mb-2 text-xs text-danger">傳送失敗，請稍後再試</p>
         )}
@@ -167,6 +172,8 @@ export default function ChatWindow({
             <Send size={14} />
           </button>
         </div>
+        </>
+        )}
       </div>
 
     </>

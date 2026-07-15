@@ -3,6 +3,8 @@ import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import prisma from '../lib/prisma.js'
 import redis from '../lib/redis.js'
+import { randomAvatarColor } from '../utils/avatarColor.js'
+import { setupSystemConversationForNewUser } from '../lib/systemUser.js'
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/jwt.js'
 import { validate } from '../middleware/validate.js'
 import { requireAuth } from '../middleware/auth.js'
@@ -40,6 +42,9 @@ router.post('/register', validate(registerSchema), async (req, res, next) => {
       },
       select: { id: true, email: true, name: true, phone: true, creditScore: true, tokenBalance: true, isAdmin: true, avatarColor: true, avatarInitial: true },
     })
+
+    // 系統聊天室建立失敗不應阻擋註冊流程
+    setupSystemConversationForNewUser(user.id).catch(err => console.error('[auth] 建立系統聊天室失敗:', err))
 
     const accessToken  = signAccessToken({ id: user.id, email: user.email })
     const refreshToken = signRefreshToken({ id: user.id })
@@ -123,17 +128,5 @@ async function saveRefreshToken(userId, token) {
   await redis.set(`refresh:${userId}`, token, 'EX', 60 * 60 * 24 * 7)
 }
 
-const AVATAR_COLORS = [
-  'linear-gradient(135deg,#667eea,#764ba2)',
-  'linear-gradient(135deg,#f093fb,#f5576c)',
-  'linear-gradient(135deg,#4facfe,#00f2fe)',
-  'linear-gradient(135deg,#43e97b,#38f9d7)',
-  'linear-gradient(135deg,#fa709a,#fee140)',
-  'linear-gradient(135deg,#a18cd1,#fbc2eb)',
-]
-
-function randomAvatarColor() {
-  return AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)]
-}
 
 export default router

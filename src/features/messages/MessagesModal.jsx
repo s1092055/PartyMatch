@@ -21,6 +21,7 @@ import { normalizeConversation, normalizeMessage } from '../../shared/utils/mode
 import ConfirmDialog from '../../shared/ui/ConfirmDialog'
 import ConversationList, { CONV_TABS } from './components/ConversationList'
 import ChatWindow from './components/ChatWindow'
+import { isSystemConversation } from './utils'
 
 // Safari/Firefox 在輸入法選字確認時，compositionend 會在 Enter 的 keydown 之前（或極短時間內）觸發，
 // 導致 isComposingRef 已被設回 false——額外用時間窗與 e.isComposing/keyCode 229 雙重判斷，
@@ -221,6 +222,9 @@ export default function MessagesModal() {
       const otherId = c.participants?.find(p => p !== user?.id)
       const meta = c.participantMeta?.[otherId] ?? {}
       return { ...c, name: meta.name ?? '私訊', avatarInitial: meta.avatarInitial ?? '?', avatarColor: meta.avatarColor ?? '#64748b' }
+    }
+    if (isSystemConversation(c)) {
+      return { ...c, name: 'PartyMatch 系統訊息', avatarInitial: 'P', avatarColor: 'linear-gradient(135deg,#667eea,#764ba2)' }
     }
     return c
   })

@@ -5,6 +5,7 @@ import Badge from '../../../../shared/ui/Badge'
 import ServiceLogo from '../../../../shared/ui/ServiceLogo'
 import EmptyState from '../../../../shared/ui/EmptyState'
 import TokenAmount from '../../../../shared/ui/TokenAmount'
+import { toISODate } from '../../../../shared/utils/date'
 
 const STATUS_TIMELINE = {
   cancelled: [
@@ -128,7 +129,7 @@ export default function GroupHistoryModal({ isOpen, onClose, group, members }) {
                 <span className="flex items-center gap-1.5 text-ink-3">
                   <Calendar size={13} /> 最後服務日
                 </span>
-                <span className="font-semibold text-ink">{group.nextBillingDate}</span>
+                <span className="font-semibold text-ink">{toISODate(group.nextBillingDate)}</span>
               </div>
             )}
             <div className="flex items-center justify-between text-sm">
