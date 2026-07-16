@@ -16,7 +16,6 @@ export default function GroupModalShell({
   summaryExtraRows,
   extraInfoRows = [],
   afterColumns,
-  bottomBar,
   sideBar,
   mobileFooter,
   hideRecruitBar,
@@ -91,7 +90,7 @@ export default function GroupModalShell({
             </button>
           </div>
 
-          <div className="flex min-h-0 flex-1 overflow-hidden">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
             {/* 每次切換分頁都用 key 強制重新掛載，套用跟首頁一致的 slide-up 進場動畫 */}
             <div key={panelKey} className="flex min-w-0 flex-1 flex-col overflow-hidden animate-step-slide-up">
               {activeDetail ? (
@@ -197,15 +196,12 @@ export default function GroupModalShell({
                   {mobileFooter && (
                     <div className="shrink-0 border-t border-line bg-canvas">{mobileFooter}</div>
                   )}
-                  {bottomBar && (
-                    <div className="shrink-0 border-t border-line bg-canvas">{bottomBar}</div>
-                  )}
                 </>
               )}
             </div>
 
             {sideBar && (
-              <div className="flex w-24 shrink-0 flex-col gap-1 overflow-y-auto border-l border-line bg-canvas p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div className="flex shrink-0 flex-row justify-between gap-1 overflow-x-auto border-t border-line bg-canvas p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:w-24 md:flex-col md:justify-start md:overflow-x-hidden md:overflow-y-auto md:border-l md:border-t-0">
                 {sideBar}
               </div>
             )}

@@ -17,13 +17,30 @@ export const useServiceStore = create((set, get) => ({
         const localMap = Object.fromEntries(SERVICES.map(s => [s.id, s]))
         const merged = data.map(apiService => {
           const base = { ...(localMap[apiService.id] ?? {}), ...apiService }
-          // 後端 plan 欄位為 maxMembers/monthlyFee，前端元件統一使用 maxSeats/monthlyPrice
+          // 後端 plan 只有 id/name/maxMembers/monthlyFee/currency，沒有 description/features 等文案欄位；
+          // 本地 catalog 的方案沒有 id 欄位，只能用 name 對應回去補回文案，價格/名額仍以後端為準。
+          // name 比對不保證唯一或一定對得上，用 console.warn 讓比對失敗在開發時可被發現，而不是默默漏字。
           if (Array.isArray(base.plans)) {
-            base.plans = base.plans.map(p => ({
-              ...p,
-              maxSeats:     p.maxSeats     ?? p.maxMembers ?? 0,
-              monthlyPrice: p.monthlyPrice ?? p.monthlyFee ?? 0,
-            }))
+            const localPlans = localMap[apiService.id]?.plans ?? []
+            const localPlanMap = {}
+            for (const p of localPlans) {
+              if (import.meta.env.DEV && localPlanMap[p.name]) {
+                console.warn(`[serviceStore] "${apiService.id}" 有重複的方案名稱「${p.name}」，本地文案比對可能會對到錯的方案`)
+              }
+              localPlanMap[p.name] = p
+            }
+            base.plans = base.plans.map(p => {
+              const localPlan = localPlanMap[p.name]
+              if (import.meta.env.DEV && !localPlan) {
+                console.warn(`[serviceStore] "${apiService.id}" 的方案「${p.name}」在本地 catalog 找不到對應項目，將不會有 description/features 文案`)
+              }
+              return {
+                ...(localPlan ?? {}),
+                ...p,
+                maxSeats:     p.maxSeats     ?? p.maxMembers ?? 0,
+                monthlyPrice: p.monthlyPrice ?? p.monthlyFee ?? 0,
+              }
+            })
           }
           return base
         })

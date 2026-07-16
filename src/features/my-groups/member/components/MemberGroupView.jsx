@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import {
-  CheckCircle2, Paperclip, FileText, LogOut, MessageCircle, Shield, Users, ClipboardEdit, ThumbsUp, AlertTriangle, X,
+  CheckCircle2, Paperclip, FileText, Info, LogOut, MessageCircle, Shield, Users, ClipboardEdit, ThumbsUp, AlertTriangle, X,
 } from 'lucide-react'
 import Avatar from '../../../../shared/ui/Avatar'
 import CountdownConfirmDialog from '../../../../shared/ui/CountdownConfirmDialog'
 import GroupModalShell from '../../../../shared/ui/GroupModalShell'
+import GroupModalSideBarItem from '../../../../shared/ui/GroupModalSideBarItem'
 import ReviewHostModal from './ReviewHostModal'
 import { getServiceById } from '../../../../shared/utils/serviceUtils'
 import { useMemberStore } from '../../../../shared/stores/useMemberStore'
@@ -15,9 +16,6 @@ import { useReviewStore } from '../../../../shared/stores/useReviewStore'
 import { uploadDisputeEvidence } from '../../../../shared/api/storageApi'
 import { toast } from '../../../../shared/utils/toast'
 import { isEffectivelyActive } from '../../../../shared/utils/groupStatus'
-
-// Tailwind 需要在原始碼中看到完整的 class 字面值才會產生對應樣式，動態組合的 `grid-cols-${n}` 不會生效
-const GRID_COLS_CLASS = { 1: 'grid-cols-1', 2: 'grid-cols-2', 3: 'grid-cols-3', 4: 'grid-cols-4' }
 
 const DISPUTE_REASON_OPTIONS = [
   '服務帳號未提供或有誤',
@@ -177,6 +175,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
   function buildSubPanel() {
     if (activePanel === 'dispute') {
       return {
+        // 申訴不像成員名單/填寫帳號在側邊欄有對應按鈕可高亮標示目前位置，保留標題讓使用者知道自己在哪個畫面
         title: '向平台申訴',
         icon: <AlertTriangle size={18} className="text-danger" />,
         content: (
@@ -256,8 +255,6 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
     if (activePanel === 'fillInfo') {
       const existingEmail = myMember?.serviceInfo?.email ?? ''
       return {
-        title: '填寫服務帳號',
-        icon: <ClipboardEdit size={18} className="text-brand" />,
         content: (
           <form onSubmit={handleFillSubmit} className="p-5 space-y-4">
             <p className="text-sm text-ink-3">
@@ -293,8 +290,6 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
 
     if (activePanel === 'members') {
       return {
-        title: '成員名單',
-        icon: <Users size={18} className="text-brand" />,
         content: (
           <div className="p-5 space-y-2">
             <div className="rounded-xl border border-line p-3">
@@ -418,42 +413,36 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
         isDisputed ? 'danger' :
         undefined
       }
-      bottomBar={(() => {
+      sideBar={(() => {
         const showFillBtn = needsFillInfo || hasServiceInfoIssue
-        const btnCount = 1 + (isPaymentRelevant ? 1 : 0) + (showFillBtn ? 1 : 0) + (canLeaveGroup ? 1 : 0)
         return (
-          <div className={`grid gap-1 p-2 ${GRID_COLS_CLASS[btnCount] ?? 'grid-cols-3'}`}>
-            <button
-              onClick={() => setActivePanel('members')}
-              className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
-            >
+          <>
+            <GroupModalSideBarItem active={activePanel === null} onClick={() => setActivePanel(null)}>
+              <Info size={17} /> 群組概覽
+            </GroupModalSideBarItem>
+            <GroupModalSideBarItem active={activePanel === 'members'} onClick={() => setActivePanel('members')}>
               <Users size={17} /> 成員名單
-            </button>
+            </GroupModalSideBarItem>
             {showFillBtn && (
-              <button
+              <GroupModalSideBarItem
+                active={activePanel === 'fillInfo'}
+                tone="brand"
                 onClick={() => { setFillEmail(myMember?.serviceInfo?.email ?? ''); setActivePanel('fillInfo') }}
-                className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-brand transition-colors hover:bg-brand-subtle"
               >
                 <ClipboardEdit size={17} /> 填寫帳號
-              </button>
-            )}
-            {isPaymentRelevant && (
-              <button
-                onClick={openMessages}
-                className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
-              >
-                <MessageCircle size={17} /> 群組訊息
-              </button>
+              </GroupModalSideBarItem>
             )}
             {canLeaveGroup && (
-              <button
-                onClick={() => setLeaveConfirm(true)}
-                className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-danger transition-colors hover:bg-red-50"
-              >
+              <GroupModalSideBarItem tone="danger" onClick={() => setLeaveConfirm(true)}>
                 <LogOut size={17} /> 退出群組
-              </button>
+              </GroupModalSideBarItem>
             )}
-          </div>
+            {isPaymentRelevant && (
+              <GroupModalSideBarItem pinned onClick={openMessages}>
+                <MessageCircle size={17} /> 群組訊息
+              </GroupModalSideBarItem>
+            )}
+          </>
         )
       })()}
       subPanel={activePanel ? buildSubPanel() : null}

@@ -43,7 +43,7 @@ function ServiceIntro({ service, plan, planChips }) {
         </div>
       )}
       {(plan?.description || (plan?.features?.length ?? 0) > 0) && (
-        <div className="border-t border-line-subtle pt-4">
+        <div className="mt-4 border-t border-line-subtle pt-4">
           {plan?.description && (
             <p className="mb-3 text-sm font-medium text-ink-2">{plan.description}</p>
           )}

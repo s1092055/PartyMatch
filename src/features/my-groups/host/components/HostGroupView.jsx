@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Banknote, CheckCircle2, ClipboardList, Info, MessageCircle, PlayCircle, Radio, RefreshCw, Trash2, Users } from 'lucide-react'
 import CountdownConfirmDialog from '../../../../shared/ui/CountdownConfirmDialog'
 import GroupModalShell from '../../../../shared/ui/GroupModalShell'
+import GroupModalSideBarItem from '../../../../shared/ui/GroupModalSideBarItem'
 import { getServiceById } from '../../../../shared/utils/serviceUtils'
 import { useAuthStore } from '../../../../shared/stores/useAuthStore'
 import { useNotificationStore } from '../../../../shared/stores/useNotificationStore'
@@ -176,27 +177,19 @@ export default function HostGroupView({ group, members, applications, onReportSe
 
   function renderSideBar() {
     const showRenewal = group.status === 'active'
-    const itemCls = active => `flex flex-col items-center gap-1 rounded-xl py-2 text-2xs font-semibold transition-colors ${
-      active ? 'bg-brand-subtle text-brand' : 'text-ink-2 hover:bg-raised'
-    }`
     return (
       <>
-        <button
-          onClick={() => goToPanel(null)}
-          className={itemCls(activePanel === null)}
-        >
+        <GroupModalSideBarItem active={activePanel === null} onClick={() => goToPanel(null)}>
           <Info size={17} /> 群組概覽
-        </button>
-        <button
-          onClick={() => goToPanel('members')}
-          className={itemCls(activePanel === 'members')}
-        >
+        </GroupModalSideBarItem>
+        <GroupModalSideBarItem active={activePanel === 'members'} onClick={() => goToPanel('members')}>
           <Users size={17} /> 成員名單
-        </button>
+        </GroupModalSideBarItem>
         {isRecruiting ? (
-          <button
+          <GroupModalSideBarItem
+            active={activePanel === 'applications' && !isReviewHistory}
             onClick={() => goToPanel('applications')}
-            className={`relative ${itemCls(activePanel === 'applications' && !isReviewHistory)}`}
+            className="relative"
           >
             <span className="relative">
               <ClipboardList size={17} />
@@ -207,33 +200,27 @@ export default function HostGroupView({ group, members, applications, onReportSe
               )}
             </span>
             申請管理
-          </button>
+          </GroupModalSideBarItem>
         ) : (
           <>
-            <button
-              onClick={() => goToPanel('billing')}
-              className={itemCls(activePanel === 'billing')}
-            >
+            <GroupModalSideBarItem active={activePanel === 'billing'} onClick={() => goToPanel('billing')}>
               <Banknote size={17} />
               收款管理
-            </button>
+            </GroupModalSideBarItem>
             {showRenewal && (
-              <button
-                onClick={() => onOpenRenewal?.()}
-                className={itemCls(false)}
-              >
+              <GroupModalSideBarItem onClick={() => onOpenRenewal?.()}>
                 <RefreshCw size={17} /> 續訂管理
-              </button>
+              </GroupModalSideBarItem>
             )}
-            <button
+            <GroupModalSideBarItem
+              pinned
               onClick={() => {
                 onClose()
                 window.dispatchEvent(new CustomEvent('pm:open-messages', { detail: { groupId: group.id } }))
               }}
-              className={`mt-auto ${itemCls(false)}`}
             >
               <MessageCircle size={17} /> 群組訊息
-            </button>
+            </GroupModalSideBarItem>
           </>
         )}
       </>
