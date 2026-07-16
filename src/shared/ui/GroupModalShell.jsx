@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { ChevronLeft, X } from 'lucide-react'
 import ServiceLogo from './ServiceLogo'
@@ -17,6 +17,7 @@ export default function GroupModalShell({
   extraInfoRows = [],
   afterColumns,
   bottomBar,
+  sideBar,
   mobileFooter,
   hideRecruitBar,
   confirmedCount,
@@ -29,12 +30,11 @@ export default function GroupModalShell({
   onSubPanelBack = null,
   subSubPanel = null,    // { title, icon, headerRight?, stickyHeader?, content, footer? }
   onSubSubPanelBack = null,
+  panelKey = 'overview', // 目前顯示的分頁識別字串；切換時搭配 key 觸發 slide-up 進場動畫
   mobileReviewsSection,
   children,
 }) {
   const { scrollRef: scrollBodyRef, elRef: scrollBodyElRef, atBottom, canScroll, isScrolling, handleScroll } = useScrollEdge()
-  const subScrollRef   = useRef(null)
-  const subSubScrollRef = useRef(null)
 
   function handleClose() { onClose() }
 
@@ -46,6 +46,8 @@ export default function GroupModalShell({
     : pendingBadgeColor === 'danger'
       ? 'bg-danger-subtle text-danger'
       : 'bg-warning-subtle text-warning-text'
+
+  const activeDetail = subSubPanel ?? subPanel
 
   useScrollLock(true)
 
@@ -65,188 +67,148 @@ export default function GroupModalShell({
     if (scrollBodyElRef.current) scrollBodyElRef.current.scrollTop = 0
   }, [group?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Reset sub-panel scroll when switching panels
-  useEffect(() => {
-    if (subPanel && subScrollRef.current) subScrollRef.current.scrollTop = 0
-  }, [subPanel?.title]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (subSubPanel && subSubScrollRef.current) subSubScrollRef.current.scrollTop = 0
-  }, [subSubPanel?.title]) // eslint-disable-line react-hooks/exhaustive-deps
-
   return createPortal(
     <>
       <div className="fixed inset-0 z-[55] bg-black/50 animate-backdrop-in" onClick={handleClose} />
 
       <div className="pointer-events-none fixed inset-0 z-[56] flex items-center justify-center p-4 md:p-8">
         <div
-          className="pointer-events-auto flex w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-canvas shadow-2xl animate-modal-in"
+          className="pointer-events-auto flex w-full max-w-xl flex-col overflow-hidden rounded-2xl bg-canvas shadow-2xl animate-modal-in"
           style={{ height: 'min(92vh, 720px)' }}
         >
-          {/* Slide track: 300% wide — 3 equal panels; translateX by -33.33% per step */}
-          <div
-            className="flex h-full transition-transform duration-300 ease-in-out"
-            style={{
-              width: '300%',
-              transform: subSubPanel
-                ? 'translateX(-66.67%)'
-                : subPanel
-                  ? 'translateX(-33.33%)'
-                  : 'translateX(0)',
-            }}
-          >
-            {/* ── MAIN PANEL ── */}
-            <div className="flex w-1/3 min-w-0 flex-col overflow-hidden">
-              {/* Header */}
-              <div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-4">
-                <div className="flex items-center gap-2.5">
-                  <ServiceLogo serviceId={group.serviceId} size={26} className="rounded-lg" />
-                  <span className="text-base font-extrabold text-ink">{group.serviceName}</span>
-                </div>
-                <button
-                  onClick={handleClose}
-                  className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
-                  aria-label="關閉"
-                >
-                  <X size={18} />
-                </button>
-              </div>
+          {/* Header — 固定不動，翻書效果只作用在下方內容區 */}
+          <div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-4">
+            <div className="flex items-center gap-2.5">
+              <ServiceLogo serviceId={group.serviceId} size={26} className="rounded-lg" />
+              <span className="text-base font-extrabold text-ink">{group.serviceName}</span>
+            </div>
+            <button
+              onClick={handleClose}
+              className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+              aria-label="關閉"
+            >
+              <X size={18} />
+            </button>
+          </div>
 
-              {(headerBanner || showCenteredBadge) && (
-                <div className="shrink-0">
-                  {headerBanner ?? (
-                    <div className={`flex items-center justify-center px-6 py-3 text-sm font-extrabold ${centeredBadgeCls}`}>
-                      {centeredBadgeLabel}
+          <div className="flex min-h-0 flex-1 overflow-hidden">
+            {/* 每次切換分頁都用 key 強制重新掛載，套用跟首頁一致的 slide-up 進場動畫 */}
+            <div key={panelKey} className="flex min-w-0 flex-1 flex-col overflow-hidden animate-step-slide-up">
+              {activeDetail ? (
+                <>
+                  {/* Detail header（sub / sub-sub 共用） */}
+                  {/* 有 sideBar 時已有明確的分頁切換入口，不需要返回鍵；沒有 sideBar 的呼叫端（如 MemberGroupView）仍需要返回鍵才能離開這個畫面 */}
+                  {(!sideBar || activeDetail.icon || activeDetail.title || activeDetail.headerRight) && (
+                    <div className="flex shrink-0 items-center gap-2 border-b border-line px-4 py-4">
+                      {!sideBar && (
+                        <button
+                          onClick={subSubPanel ? onSubSubPanelBack : onSubPanelBack}
+                          className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+                          aria-label="返回"
+                        >
+                          <ChevronLeft size={18} strokeWidth={1.5} />
+                        </button>
+                      )}
+                      {activeDetail.icon && <span className="shrink-0">{activeDetail.icon}</span>}
+                      <span className="min-w-0 flex-1 font-extrabold text-ink">{activeDetail.title ?? ''}</span>
+                      {activeDetail.headerRight && <div className="shrink-0">{activeDetail.headerRight}</div>}
                     </div>
                   )}
-                </div>
-              )}
 
-              {/* Scrollable body */}
-              <div className="group relative min-h-0 flex-1">
-                <div ref={scrollBodyRef} onScroll={handleScroll} className="h-full overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                  <div className="px-6 py-5">
-                    <GroupOverviewContent
-                      group={group}
-                      service={service}
-                      plan={plan}
-                      reviewsSection={mobileReviewsSection}
-                      statusBadgeOverride={statusBadgeOverride}
-                      extraRows={extraInfoRows}
-                    />
-                    {summaryExtraRows}
+                  {/* Sticky header（optional non-scrollable section） */}
+                  {activeDetail.stickyHeader && (
+                    <div className="shrink-0">{activeDetail.stickyHeader}</div>
+                  )}
+
+                  {/* Scrollable body */}
+                  <div className="flex-1 min-h-0 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    {activeDetail.content}
                   </div>
-                  {afterColumns}
-                </div>
-                <div className="pointer-events-none absolute inset-y-0 left-0 right-3">
-                  <ScrollHint canScroll={canScroll} atBottom={atBottom} isScrolling={isScrolling} />
-                </div>
-              </div>
 
-              {/* Price / CTA bar */}
-              {centeredCta ? (
-                <div className="shrink-0 border-t border-line bg-canvas px-6 py-2">
-                  {centeredCta}
-                </div>
-              ) : !hideRecruitBar ? (
-                <div className="shrink-0 border-t border-line bg-canvas px-6 py-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="mb-0.5 text-xs font-medium text-ink-4">每位價格</p>
-                      <div>
-                        <TokenAmount
-                          amount={group.billingCycle === 'yearly' ? group.pricePerSeat * 12 : group.pricePerSeat}
-                          cycle={group.billingCycle === 'yearly' ? 'yearly' : 'monthly'}
-                          className="text-2xl font-extrabold"
+                  {/* Footer */}
+                  {activeDetail.footer && (
+                    <div className="shrink-0 border-t border-line px-5 py-4">
+                      {activeDetail.footer}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  {(headerBanner || showCenteredBadge) && (
+                    <div className="shrink-0">
+                      {headerBanner ?? (
+                        <div className={`flex items-center justify-center px-6 py-3 text-sm font-extrabold ${centeredBadgeCls}`}>
+                          {centeredBadgeLabel}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Scrollable body */}
+                  <div className="group relative min-h-0 flex-1">
+                    <div ref={scrollBodyRef} onScroll={handleScroll} className="h-full overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                      <div className="px-6 py-5">
+                        <GroupOverviewContent
+                          group={group}
+                          service={service}
+                          plan={plan}
+                          reviewsSection={mobileReviewsSection}
+                          statusBadgeOverride={statusBadgeOverride}
+                          extraRows={extraInfoRows}
                         />
+                        {summaryExtraRows}
+                      </div>
+                      {afterColumns}
+                    </div>
+                    <div className="pointer-events-none absolute inset-y-0 left-0 right-3">
+                      <ScrollHint canScroll={canScroll} atBottom={atBottom} isScrolling={isScrolling} />
+                    </div>
+                  </div>
+
+                  {/* Price / CTA bar */}
+                  {centeredCta ? (
+                    <div className="shrink-0 border-t border-line bg-canvas px-6 py-2">
+                      {centeredCta}
+                    </div>
+                  ) : !hideRecruitBar ? (
+                    <div className="shrink-0 border-t border-line bg-canvas px-6 py-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="mb-0.5 text-xs font-medium text-ink-4">每位價格</p>
+                          <div>
+                            <TokenAmount
+                              amount={group.billingCycle === 'yearly' ? group.pricePerSeat * 12 : group.pricePerSeat}
+                              cycle={group.billingCycle === 'yearly' ? 'yearly' : 'monthly'}
+                              className="text-2xl font-extrabold"
+                            />
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="mb-0.5 text-xs text-ink-4">剩餘名額</p>
+                          <p className="text-lg font-extrabold text-ink">{group.openSeats} / {group.totalSeats} 位</p>
+                        </div>
+                      </div>
+                      <div className="mt-3">
+                        <ProgressBar value={group.usedSeats} max={group.totalSeats} />
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="mb-0.5 text-xs text-ink-4">剩餘名額</p>
-                      <p className="text-lg font-extrabold text-ink">{group.openSeats} / {group.totalSeats} 位</p>
-                    </div>
-                  </div>
-                  <div className="mt-3">
-                    <ProgressBar value={group.usedSeats} max={group.totalSeats} />
-                  </div>
-                </div>
-              ) : null}
+                  ) : null}
 
-              {mobileFooter && (
-                <div className="shrink-0 border-t border-line bg-canvas">{mobileFooter}</div>
-              )}
-              {bottomBar && (
-                <div className="shrink-0 border-t border-line bg-canvas">{bottomBar}</div>
+                  {mobileFooter && (
+                    <div className="shrink-0 border-t border-line bg-canvas">{mobileFooter}</div>
+                  )}
+                  {bottomBar && (
+                    <div className="shrink-0 border-t border-line bg-canvas">{bottomBar}</div>
+                  )}
+                </>
               )}
             </div>
 
-            {/* ── SUB PANEL ── */}
-            <div className="flex w-1/3 min-w-0 flex-col overflow-hidden">
-              {/* Sub header */}
-              <div className="flex shrink-0 items-center gap-2 border-b border-line px-4 py-4">
-                <button
-                  onClick={onSubPanelBack}
-                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
-                  aria-label="返回"
-                >
-                  <ChevronLeft size={18} strokeWidth={1.5} />
-                </button>
-                {subPanel?.icon && <span className="shrink-0">{subPanel.icon}</span>}
-                <span className="min-w-0 flex-1 font-extrabold text-ink">{subPanel?.title ?? ''}</span>
-                {subPanel?.headerRight && <div className="shrink-0">{subPanel.headerRight}</div>}
+            {sideBar && (
+              <div className="flex w-24 shrink-0 flex-col gap-1 overflow-y-auto border-l border-line bg-canvas p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {sideBar}
               </div>
-
-              {/* Sticky sub-header (optional non-scrollable section) */}
-              {subPanel?.stickyHeader && (
-                <div className="shrink-0">{subPanel.stickyHeader}</div>
-              )}
-
-              {/* Scrollable sub-body */}
-              <div ref={subScrollRef} className="flex-1 min-h-0 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                {subPanel?.content}
-              </div>
-
-              {/* Sub footer */}
-              {subPanel?.footer && (
-                <div className="shrink-0 border-t border-line px-5 py-4">
-                  {subPanel.footer}
-                </div>
-              )}
-            </div>
-
-            {/* ── SUB-SUB PANEL ── */}
-            <div className="flex w-1/3 min-w-0 flex-col overflow-hidden">
-              {/* Sub-sub header */}
-              <div className="flex shrink-0 items-center gap-2 border-b border-line px-4 py-4">
-                <button
-                  onClick={onSubSubPanelBack}
-                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
-                  aria-label="返回"
-                >
-                  <ChevronLeft size={18} strokeWidth={1.5} />
-                </button>
-                {subSubPanel?.icon && <span className="shrink-0">{subSubPanel.icon}</span>}
-                <span className="min-w-0 flex-1 font-extrabold text-ink">{subSubPanel?.title ?? ''}</span>
-                {subSubPanel?.headerRight && <div className="shrink-0">{subSubPanel.headerRight}</div>}
-              </div>
-
-              {/* Sticky sub-sub-header (optional) */}
-              {subSubPanel?.stickyHeader && (
-                <div className="shrink-0">{subSubPanel.stickyHeader}</div>
-              )}
-
-              {/* Scrollable sub-sub-body */}
-              <div ref={subSubScrollRef} className="flex-1 min-h-0 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                {subSubPanel?.content}
-              </div>
-
-              {/* Sub-sub footer */}
-              {subSubPanel?.footer && (
-                <div className="shrink-0 border-t border-line px-5 py-4">
-                  {subSubPanel.footer}
-                </div>
-              )}
-            </div>
+            )}
           </div>
 
           {children}

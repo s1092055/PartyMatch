@@ -218,6 +218,7 @@ export default function GroupDetailModal() {
       statusBadgeOverride={isMember && group.status === 'recruiting' ? 'member_joined' : undefined}
       subPanel={showMembers ? buildMembersSubPanel({ group, groupId, members, activeUserId, setShowMembers, openDm }) : null}
       onSubPanelBack={() => { setShowMembers(false); resetApply() }}
+      panelKey={showMembers ? 'members' : 'overview'}
       headerBanner={
         isWaitingMembers ? (
           <div className="flex items-center justify-center gap-2 bg-success-subtle px-6 py-3 text-sm font-medium text-success-text">

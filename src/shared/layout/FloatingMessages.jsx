@@ -37,6 +37,7 @@ const NOTIFICATION_META = {
   group_activated:      { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-groups?view=member' },
   group_cancelled:      { icon: AlertCircle,   iconColor: 'text-danger',     link: '/account' },
   group_renewal:        { icon: CheckCircle2,  iconColor: 'text-brand',      link: '/my-groups?view=member' },
+  upcoming_renewal:     { icon: AlertCircle,   iconColor: 'text-warning-text', link: '/my-groups?view=member', state: { tab: 'active' } },
   service_info_issue:   { icon: AlertCircle,   iconColor: 'text-amber-500',  link: '/my-groups?view=member' },
   group_ended:          { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/explore' },
   member_removed:       { icon: AlertCircle,   iconColor: 'text-danger',     link: '/explore' },
@@ -209,6 +210,22 @@ export default function FloatingMessages() {
       } else {
         navigate('/my-groups?view=member', { state: { openGroupId: notification.meta.groupId } })
       }
+      return
+    }
+
+    if (notification.type === 'group_renewal' && notification.meta?.groupId) {
+      navigate('/my-groups?view=member', { state: { openGroupId: notification.meta.groupId } })
+      return
+    }
+
+    if (notification.type === 'upcoming_renewal' && notification.meta?.groupId) {
+      navigate('/my-groups?view=member', { state: { openGroupId: notification.meta.groupId } })
+      return
+    }
+
+    if (notification.type === 'group_cancelled') {
+      // 群組解散於鎖定前，此時成員尚未有訂閱紀錄可開啟，僅導向列表
+      navigate('/my-groups?view=member')
       return
     }
 

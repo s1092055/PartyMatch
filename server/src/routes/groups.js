@@ -6,6 +6,13 @@ import { validate } from '../middleware/validate.js'
 
 const router = Router()
 
+// 席位費用（yearly = monthlyFee * 12）
+function computeSeatCost(group) {
+  return group.billingCycle === 'yearly'
+    ? Math.round(group.monthlyFee * 12)
+    : Math.round(group.monthlyFee)
+}
+
 const createGroupSchema = z.object({
   serviceId:      z.string().min(1),
   planId:         z.string().optional(),
@@ -300,9 +307,7 @@ router.post('/:id/cancel', requireAuth, async (req, res, next) => {
     }
 
     // 計算每位成員的退款金額（席位費用）
-    const seatCost = group.billingCycle === 'yearly'
-      ? Math.round(group.monthlyFee * 12)
-      : Math.round(group.monthlyFee)
+    const seatCost = computeSeatCost(group)
 
     await prisma.$transaction([
       prisma.group.update({ where: { id: req.params.id }, data: { status: 'cancelled', escrowTokens: 0 } }),
@@ -382,9 +387,7 @@ router.post('/:id/adjudicate', requireAdmin, async (req, res, next) => {
     const disputeMember = group.members.find(m => m.serviceInfoIssueNote)
     if (!disputeMember) return res.status(400).json({ message: '找不到申訴成員' })
 
-    const seatCost = group.billingCycle === 'yearly'
-      ? Math.round(group.monthlyFee * 12)
-      : Math.round(group.monthlyFee)
+    const seatCost = computeSeatCost(group)
 
     if (winner === 'member') {
       // 退款給申訴成員，移出群組，其他人代管不變，群組回 active
@@ -428,37 +431,71 @@ router.post('/:id/adjudicate', requireAdmin, async (req, res, next) => {
   } catch (err) { next(err) }
 })
 
-// POST /groups/:id/renew — active → pending_confirmation，重置成員帳號資訊
+// POST /groups/:id/renew — active → pending_confirmation，向每位成員收取本期代管費用並重置帳號資訊
 router.post('/:id/renew', requireAuth, async (req, res, next) => {
   try {
     const group = await prisma.group.findUnique({
       where: { id: req.params.id },
-      include: { members: true },
+      include: { members: { include: { user: { select: { id: true, tokenBalance: true } } } } },
     })
     if (!group) return res.status(404).json({ message: '群組不存在' })
     if (group.hostId !== req.user.id) return res.status(403).json({ message: '僅團主可操作' })
     if (group.status !== 'active') return res.status(400).json({ message: `群組狀態為 ${group.status}，無法開始新一期（需為 active）` })
 
+    const seatCost = computeSeatCost(group)
+
+    const memberIds = group.members.map(m => m.userId)
+    const insufficient = group.members.filter(m => m.user.tokenBalance < seatCost)
+    if (insufficient.length > 0) {
+      return res.status(400).json({
+        message: `${insufficient.length} 位成員PM幣餘額不足，無法開始新一期收款`,
+        code: 'INSUFFICIENT_BALANCE',
+        memberIds: insufficient.map(m => m.userId),
+      })
+    }
+
     const base = new Date(group.nextBillingDate ?? new Date())
     if (group.billingCycle === 'yearly') base.setFullYear(base.getFullYear() + 1)
     else base.setMonth(base.getMonth() + 1)
 
-    const [updated] = await prisma.$transaction([
-      prisma.group.update({
+    const updated = await prisma.$transaction(async (tx) => {
+      // 向每位成員收取本期代管費用；用 gte 條件式扣款，避免上方檢查後、寫入前餘額被其他請求變動造成扣成負數
+      const charged = await tx.user.updateMany({
+        where: { id: { in: memberIds }, tokenBalance: { gte: seatCost } },
+        data:  { tokenBalance: { decrement: seatCost } },
+      })
+      if (charged.count !== memberIds.length) {
+        const err = new Error('部分成員PM幣餘額於扣款當下不足，請稍後重試')
+        err.statusCode = 409
+        throw err
+      }
+
+      await tx.tokenTransaction.createMany({
+        data: memberIds.map(userId => ({
+          userId,
+          type:           'escrow',
+          amount:         -seatCost,
+          relatedGroupId: req.params.id,
+          note:           `新一期代管 ${seatCost} PM`,
+        })),
+      })
+
+      // 清空所有成員的服務帳號資訊，讓他們重新填寫
+      await tx.member.updateMany({
+        where: { groupId: req.params.id },
+        data:  { serviceInfo: null, serviceInfoIssueNote: null, confirmedAt: null },
+      })
+
+      return tx.group.update({
         where: { id: req.params.id },
-        data:  { status: 'pending_confirmation', nextBillingDate: base },
+        data:  { status: 'pending_confirmation', nextBillingDate: base, escrowTokens: { increment: seatCost * memberIds.length } },
         include: {
           host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, creditScore: true } },
           service: true,
           _count:  { select: { members: true } },
         },
-      }),
-      // 清空所有成員的服務帳號資訊，讓他們重新填寫
-      prisma.member.updateMany({
-        where: { groupId: req.params.id },
-        data:  { serviceInfo: null, serviceInfoIssueNote: null, confirmedAt: null },
-      }),
-    ])
+      })
+    })
 
     res.json(updated)
   } catch (err) { next(err) }

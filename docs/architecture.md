@@ -96,7 +96,6 @@ src/
 │   │   │   │   ├── ActivateServiceModal.jsx
 │   │   │   │   ├── ApplicationsModal.jsx
 │   │   │   │   ├── ApplicationsTab.jsx
-│   │   │   │   ├── GroupHistoryModal.jsx
 │   │   │   │   ├── HostGroupView.jsx      # 團主視角群組 Modal
 │   │   │   │   ├── HostedGroupCard.jsx
 │   │   │   │   ├── RenewalModal.jsx
@@ -317,7 +316,7 @@ init: async () => {
 | `AppNav` | 桌機側欄（含頭像 Modal）、手機 Header（含頭像 dropdown）+ 底部 Dock、通知 / 訊息圓形按鈕、未讀 badge |
 | `Modal` | 通用 Modal 外殼；支援 `sub` prop（子 modal 模式，z-index 提升、左上角返回鍵）；`isOpen` 為 undefined 時為非受控模式 |
 | `GroupModalShell` | 探索、管理、訂閱三處共用的滑動軌道殼；`subPanel`（第二層）+ `subSubPanel`（第三層）prop 實現翻書滑動動畫；支援各層 `headerRight` slot |
-| `FilterTabsBar` | 我的群組（成員 / 團主）頁面的分頁篩選列；手機版為 `CustomSelect` dropdown，桌機版為左側垂直 nav（樣式比照帳號設定頁的左側選單：`bg-brand-subtle text-brand` 表示選中），`HostPage`／`MemberPage` 用 `md:flex` 把這個左側 nav 跟右側的群組/訂閱卡片 grid 排成左右兩欄，右側 grid 固定 `md:grid-cols-2`（不再依 `lg:` 加到 3 欄）；成員端分頁為「全部 / 處理中 / 啟用中 / 即將續訂 / 已結束」（「已結束」取代舊版「申請紀錄」分頁）；篩選後當前分類無資料時僅顯示提示文字，不提供「清除篩選」等跳回其他分頁的操作 |
+| `FilterTabsBar` | 我的群組（成員 / 團主）頁面的分頁篩選列；手機版為 `CustomSelect` dropdown，桌機版為左側垂直 nav（樣式比照帳號設定頁的左側選單：`bg-brand-subtle text-brand` 表示選中），`HostPage`／`MemberPage` 用 `md:flex` 把這個左側 nav 跟右側的群組/訂閱卡片 grid 排成左右兩欄，右側 grid 固定 `md:grid-cols-2`（不再依 `lg:` 加到 3 欄）；成員端分頁為「全部 / 處理中 / 啟用中 / 已結束」（「已結束」取代舊版「申請紀錄」分頁）；篩選後當前分類無資料時僅顯示提示文字，不提供「清除篩選」等跳回其他分頁的操作 |
 | `ToastContainer` / `toast.js` | 全域提示訊息（含 `aria-live="polite"` 無障礙支援） |
 | `ServiceLogo` | 依 serviceId 顯示本地或服務資料中的 Logo |
 

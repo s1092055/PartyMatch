@@ -80,6 +80,10 @@
 └── 逾期未操作 → 後端惰性求值（讀取 group 時若 confirming + deadline 已過，自動撥款給團主）
 ```
 
+### 續訂收款
+
+`active` 群組由團主觸發「開始新一期收款」（`POST /groups/:id/renew`）時，會比照初次入群的代管邏輯，向每位成員的 `tokenBalance` 扣除本期席位費用並計入 `escrowTokens`（若任一成員餘額不足則整批拒絕，回傳 400 `INSUFFICIENT_BALANCE`），同時清空成員的服務帳號資訊、將群組狀態轉回 `pending_confirmation`，走完整的 帳號填寫 → 啟用 → 確認期 流程。
+
 ### 儲值（模擬）
 
 目前為模擬模式：使用者點擊「儲值」按鈕後，平台直接增加PM幣餘額，並記錄 `token_transaction（type: topup）`。已安裝 Stripe SDK，尚未串接實際扣款邏輯，為未來擴充項目。
@@ -104,7 +108,7 @@
 
 後端 Prisma schema 定義的完整通知類型：
 
-`application_sent`、`new_application`、`application_approved`、`application_rejected`、`group_created`、`group_chat_opened`、`group_activated`、`group_full`、`group_ended`、`member_joined`、`member_removed`、`member_left`、`service_info_issue`、`token_topup`、`escrow_released`（成員主動確認或逾期自動撥款後發送）、`dispute_raised`、`system`
+`application_sent`、`new_application`、`application_approved`、`application_rejected`、`group_created`、`group_chat_opened`、`group_activated`、`group_full`、`group_ended`、`group_cancelled`、`group_renewal`、`member_joined`、`member_removed`、`member_left`、`service_info_issue`、`token_topup`、`escrow_released`（成員主動確認或逾期自動撥款後發送）、`dispute_raised`、`upcoming_renewal`（距 `nextBillingDate` 7 天內、於成員讀取自己訂閱列表時惰性補發一次，見 `GET /subscriptions`）、`system`
 
 ---
 

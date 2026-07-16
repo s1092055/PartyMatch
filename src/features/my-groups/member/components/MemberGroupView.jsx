@@ -458,6 +458,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
       })()}
       subPanel={activePanel ? buildSubPanel() : null}
       onSubPanelBack={() => setActivePanel(null)}
+      panelKey={activePanel ?? 'overview'}
     >
     </GroupModalShell>
 

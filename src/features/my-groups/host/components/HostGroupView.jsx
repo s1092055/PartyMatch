@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Banknote, CheckCircle2, ClipboardList, MessageCircle, PlayCircle, Radio, Trash2, Users } from 'lucide-react'
+import { Banknote, CheckCircle2, ClipboardList, Info, MessageCircle, PlayCircle, Radio, RefreshCw, Trash2, Users } from 'lucide-react'
 import CountdownConfirmDialog from '../../../../shared/ui/CountdownConfirmDialog'
 import GroupModalShell from '../../../../shared/ui/GroupModalShell'
 import { getServiceById } from '../../../../shared/utils/serviceUtils'
@@ -14,7 +14,7 @@ import { buildBillingPanel } from './hostGroupView/buildBillingPanel'
 
 // ── 團主視角 ──────────────────────────────────────────────────────────────────
 
-export default function HostGroupView({ group, members, applications, onReportServiceInfoIssue, onRemoveMember, onActivate, onLockGroup, onCancelGroup, onApprove, onReject, errors, onClose, autoOpenLockGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling }) {
+export default function HostGroupView({ group, members, applications, onReportServiceInfoIssue, onRemoveMember, onActivate, onLockGroup, onCancelGroup, onApprove, onReject, errors, onClose, autoOpenLockGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling, onOpenRenewal }) {
   const [showActivate, setShowActivate]                   = useState(false)
   const [removingMember, setRemovingMember]               = useState(null)
   const [activePanel, setActivePanel]                     = useState(null) // 'members' | 'applications' | 'billing' | null
@@ -165,6 +165,81 @@ export default function HostGroupView({ group, members, applications, onReportSe
     return null
   }
 
+  const isReviewHistory = showReviewHistory && activePanel === 'applications'
+
+  // 側邊欄一律視為「換到別的分頁」，一併離開審核紀錄，避免之後再點回申請管理時卡在審核紀錄出不去
+  function goToPanel(panel) {
+    setActivePanel(panel)
+    setShowReviewHistory(false)
+    setReviewFilter('all')
+  }
+
+  function renderSideBar() {
+    const showRenewal = group.status === 'active'
+    const itemCls = active => `flex flex-col items-center gap-1 rounded-xl py-2 text-2xs font-semibold transition-colors ${
+      active ? 'bg-brand-subtle text-brand' : 'text-ink-2 hover:bg-raised'
+    }`
+    return (
+      <>
+        <button
+          onClick={() => goToPanel(null)}
+          className={itemCls(activePanel === null)}
+        >
+          <Info size={17} /> 群組概覽
+        </button>
+        <button
+          onClick={() => goToPanel('members')}
+          className={itemCls(activePanel === 'members')}
+        >
+          <Users size={17} /> 成員名單
+        </button>
+        {isRecruiting ? (
+          <button
+            onClick={() => goToPanel('applications')}
+            className={`relative ${itemCls(activePanel === 'applications' && !isReviewHistory)}`}
+          >
+            <span className="relative">
+              <ClipboardList size={17} />
+              {pendingApps.length > 0 && (
+                <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-warning-text px-0.5 text-[10px] font-bold text-white">
+                  {pendingApps.length}
+                </span>
+              )}
+            </span>
+            申請管理
+          </button>
+        ) : (
+          <>
+            <button
+              onClick={() => goToPanel('billing')}
+              className={itemCls(activePanel === 'billing')}
+            >
+              <Banknote size={17} />
+              收款管理
+            </button>
+            {showRenewal && (
+              <button
+                onClick={() => onOpenRenewal?.()}
+                className={itemCls(false)}
+              >
+                <RefreshCw size={17} /> 續訂管理
+              </button>
+            )}
+            <button
+              onClick={() => {
+                onClose()
+                window.dispatchEvent(new CustomEvent('pm:open-messages', { detail: { groupId: group.id } }))
+              }}
+              className={`mt-auto ${itemCls(false)}`}
+            >
+              <MessageCircle size={17} /> 群組訊息
+            </button>
+          </>
+        )}
+      </>
+    )
+  }
+
   return (
     <>
     <GroupModalShell
@@ -180,55 +255,10 @@ export default function HostGroupView({ group, members, applications, onReportSe
       statusBadgeOverride={group.status === 'pending_confirmation' ? { variant: 'pending_confirmation', label: '收款中' } : undefined}
       subPanel={activePanel ? buildSubPanel() : null}
       onSubPanelBack={() => { setActivePanel(null); setShowReviewHistory(false); setReviewFilter('all') }}
-      subSubPanel={showReviewHistory && activePanel === 'applications' ? buildReviewHistoryPanel({ applications, reviewFilter, setReviewFilter, groupFull, errors }) : null}
+      subSubPanel={isReviewHistory ? buildReviewHistoryPanel({ applications, reviewFilter, setReviewFilter, groupFull, errors }) : null}
       onSubSubPanelBack={() => { setShowReviewHistory(false); setReviewFilter('all') }}
-      bottomBar={(() => {
-        return (
-          <div className={`grid gap-1 p-2 ${isRecruiting ? 'grid-cols-2' : 'grid-cols-3'}`}>
-            <button
-              onClick={() => setActivePanel('members')}
-              className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
-            >
-              <Users size={17} /> 成員名單
-            </button>
-            {isRecruiting ? (
-              <button
-                onClick={() => setActivePanel('applications')}
-                className="relative flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
-              >
-                <span className="relative">
-                  <ClipboardList size={17} />
-                  {pendingApps.length > 0 && (
-                    <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-warning-text px-0.5 text-[10px] font-bold text-white">
-                      {pendingApps.length}
-                    </span>
-                  )}
-                </span>
-                申請管理
-              </button>
-            ) : (
-              <>
-                <button
-                  onClick={() => setActivePanel('billing')}
-                  className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
-                >
-                  <Banknote size={17} />
-                  收款管理
-                </button>
-                <button
-                  onClick={() => {
-                    onClose()
-                    window.dispatchEvent(new CustomEvent('pm:open-messages', { detail: { groupId: group.id } }))
-                  }}
-                  className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
-                >
-                  <MessageCircle size={17} /> 群組訊息
-                </button>
-              </>
-            )}
-          </div>
-        )
-      })()}
+      panelKey={isReviewHistory ? 'reviewHistory' : activePanel ?? 'overview'}
+      sideBar={renderSideBar()}
     >
       <ActivateServiceModal
         isOpen={showActivate}

@@ -69,7 +69,6 @@ export function useHostActions(activeUser) {
   const [autoOpenActivate, setAutoOpenActivate]           = useState(false)
   const [autoOpenApplications, setAutoOpenApplications]   = useState(false)
   const [autoOpenBilling, setAutoOpenBilling]             = useState(false)
-  const [historyModalGroupId, setHistoryModalGroupId]     = useState(null)
   const [renewalModalGroupId, setRenewalModalGroupId]     = useState(null)
 
   function applyOpenHostGroup({ groupId, openGroupId, statusFilter: selectedStatusFilter, openLockGroup, openActivate, openApplications, openBilling }) {
@@ -141,7 +140,6 @@ export function useHostActions(activeUser) {
 
 
   const getModalGroup = id => id ? allGroups.find(g => g.id === id) : null
-  const historyModalGroup = getModalGroup(historyModalGroupId)
   const renewalModalGroup = getModalGroup(renewalModalGroupId)
 
   function refreshGroups() {
@@ -492,8 +490,6 @@ async function handleApprove(appId) {
   const groupHandlersMap = useMemo(
     () => Object.fromEntries(displayGroups.map(g => [g.id, {
       onViewGroup:   () => { refreshGroups(); setViewGroupId(g.id); setAutoOpenLockGroup(false); setAutoOpenActivate(false); setAutoOpenApplications(false); setAutoOpenBilling(false) },
-      onViewHistory: () => setHistoryModalGroupId(g.id),
-      onRenewal:     () => setRenewalModalGroupId(g.id),
     }])),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [displayGroups],
@@ -507,10 +503,9 @@ async function handleApprove(appId) {
     autoOpenActivate, setAutoOpenActivate,
     autoOpenApplications, setAutoOpenApplications,
     autoOpenBilling, setAutoOpenBilling,
-    historyModalGroupId, setHistoryModalGroupId,
     renewalModalGroupId, setRenewalModalGroupId,
     allGroups, displayGroups, filterCounts, membersMap, applicationCounts,
-    historyModalGroup, renewalModalGroup,
+    renewalModalGroup,
     groupHandlersMap,
     refreshGroups,
     handleLockGroup,

@@ -30,6 +30,7 @@ export default function ReviewHostModal({ group, onSubmit, onClose }) {
       title="給團主一個評價"
       maxWidth="max-w-sm"
       sub
+      hideBack
       footer={
         <>
           <button onClick={onClose} className="btn btn-ghost flex-1">先跳過</button>

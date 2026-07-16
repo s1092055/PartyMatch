@@ -2,6 +2,5 @@ export const FILTER_TABS = [
   { key: 'all',        label: '全部'     },
   { key: 'processing', label: '處理中'   },
   { key: 'active',     label: '啟用中'   },
-  { key: 'upcoming',   label: '即將續訂' },
   { key: 'ended',      label: '已結束'   },
 ]

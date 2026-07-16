@@ -4,8 +4,6 @@ import EmptyState from '../../../../../shared/ui/EmptyState'
 
 export function buildBillingPanel({ isActivated, members, expandedBillingMembers, toggleBillingMember }) {
   return {
-    title: '收款管理',
-    icon: <Banknote size={18} className="text-brand" />,
     content: isActivated ? (
       <div className="p-5">
         {members.length === 0 ? (

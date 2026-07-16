@@ -6,7 +6,6 @@ import FilterTabsBar from '../../../shared/ui/FilterTabsBar'
 import RevealSection from '../../../shared/ui/RevealSection'
 import ScrollHint from '../../../shared/ui/ScrollHint'
 import HostedGroupCard from './components/HostedGroupCard'
-import GroupHistoryModal from './components/GroupHistoryModal'
 import RenewalModal from './components/RenewalModal'
 import { STATUS_FILTER_TABS } from './utils/hostFilters'
 import { useHostActions } from './hooks/useHostActions'
@@ -25,10 +24,9 @@ export default function HostPage({ embedded = false }) {
     autoOpenActivate, setAutoOpenActivate,
     autoOpenApplications, setAutoOpenApplications,
     autoOpenBilling, setAutoOpenBilling,
-    setHistoryModalGroupId,
     setRenewalModalGroupId,
     allGroups, displayGroups, filterCounts, membersMap, applicationCounts,
-    historyModalGroup, renewalModalGroup,
+    renewalModalGroup,
     groupHandlersMap,
     refreshGroups,
     handleLockGroup,
@@ -76,7 +74,7 @@ export default function HostPage({ embedded = false }) {
               <div
                 ref={listScrollRef}
                 onScroll={handleListScroll}
-                className="max-h-[calc(100vh-22rem)] overflow-y-auto p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                className="max-h-[calc(100vh-16rem)] overflow-y-auto p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
               >
                 <div className="grid gap-3 md:grid-cols-2">
                   {displayGroups.map((g, i) => (
@@ -115,15 +113,8 @@ export default function HostPage({ embedded = false }) {
         onAutoOpenActivateDone={() => setAutoOpenActivate(false)}
         autoOpenApplications={autoOpenApplications}
         autoOpenBilling={autoOpenBilling}
+        onOpenRenewal={() => setRenewalModalGroupId(viewGroupId)}
       />
-      {historyModalGroup && (
-        <GroupHistoryModal
-          isOpen
-          onClose={() => setHistoryModalGroupId(null)}
-          group={historyModalGroup}
-          members={membersMap[historyModalGroup.id] ?? []}
-        />
-      )}
       {renewalModalGroup && (
         <RenewalModal
           isOpen

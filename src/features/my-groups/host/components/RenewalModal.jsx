@@ -55,7 +55,7 @@ export default function RenewalModal({ isOpen, onClose, group, onStartRenewal, o
             <p className="font-bold text-brand">開始新一期收款</p>
           </div>
           <p className="mt-1.5 text-xs text-ink-3">
-            下期帳單日將設為 {nextCycleDate}，成員收到付款通知後開始繳費。
+            將立即向每位成員收取本期費用並代管，下期帳單日設為 {nextCycleDate}，成員會收到通知並需重新填寫服務帳號資訊。
           </p>
         </button>
 

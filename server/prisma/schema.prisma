@@ -59,6 +59,8 @@ enum NotificationType {
   group_chat_opened
   group_full
   group_ended
+  group_cancelled
+  group_renewal
   member_joined
   member_left
   member_removed
@@ -66,6 +68,7 @@ enum NotificationType {
   token_topup
   escrow_released
   dispute_raised
+  upcoming_renewal
   system
 }
 

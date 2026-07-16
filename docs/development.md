@@ -143,10 +143,7 @@ zip -r partymatch.zip . \
 | 項目 | 說明 | 相關檔案 |
 |------|------|----------|
 | 帳戶交易紀錄 | 在帳號中心顯示 `token_transactions` 歷史明細（`GET /tokens` 已回傳最近 50 筆，前端待顯示） | `AccountPage.jsx`、`PersonalInfoTab.jsx` |
-| RenewalModal 完整實作 | 「開始新一期收款」與「結束服務」為雛形，需完整測試 | `RenewalModal.jsx`、`useGroupStore.js` |
-| GroupHistoryModal 入口補強 | 元件已存在，群組卡片缺少明確入口 | `GroupHistoryModal.jsx`、`HostedGroupCard.jsx` |
-| 即將續訂通知 | 接近 `nextBillingDate` 時未自動提醒 | `useSubscriptionStore.js` |
-| 信用評分完整機制 | 扣 / 加分邏輯尚未串通完整流程 | `useAuthStore.js`、`useMemberStore.js` |
+| 信用評分完整機制 | 目前僅為靜態欄位（各 API 只讀取顯示），扣 / 加分邏輯與異動歷程尚未設計實作 | `useAuthStore.js`、`useMemberStore.js`、`CreditScoreBadge.jsx` |
 
 ### 低優先度
 

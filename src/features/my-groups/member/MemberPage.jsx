@@ -21,7 +21,7 @@ import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import Button from '../../../shared/ui/Button'
 import RevealSection from '../../../shared/ui/RevealSection'
 import ScrollHint from '../../../shared/ui/ScrollHint'
-import { daysUntil, formatRelativeDate } from '../../../shared/utils/date'
+import { formatRelativeDate } from '../../../shared/utils/date'
 import { useScrollEdge } from '../../../shared/utils/hooks'
 import { isEffectivelyActive } from '../../../shared/utils/groupStatus'
 
@@ -69,7 +69,6 @@ function filterSubs(subs, tab) {
   switch (tab) {
     case 'processing': return subs.filter(isProcessingSubscription)
     case 'active':     return subs.filter(isActivatedSubscription)
-    case 'upcoming':   return subs.filter(s => { const d = daysUntil(s.nextBillingDate); return isActivatedSubscription(s) && !!s.nextBillingDate && d >= 0 && d <= 7 })
     case 'ended':      return subs.filter(s => ENDED_STATUSES.has(s.groupStatus ?? s.status))
     default:           return subs
   }
@@ -124,7 +123,6 @@ export default function MemberPage({ embedded = false }) {
     all:        subs.length + pendingApplications.length,
     processing: filterSubs(subs, 'processing').length + pendingApplications.length,
     active:     filterSubs(subs, 'active').length,
-    upcoming:   filterSubs(subs, 'upcoming').length,
     ended:      filterSubs(subs, 'ended').length,
   }), [subs, pendingApplications])
 
@@ -220,7 +218,7 @@ export default function MemberPage({ embedded = false }) {
                 <div
                   ref={listScrollRef}
                   onScroll={handleListScroll}
-                  className="max-h-[calc(100vh-22rem)] overflow-y-auto p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                  className="max-h-[calc(100vh-16rem)] overflow-y-auto p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                 >
                   <div className="grid gap-3 md:grid-cols-2">
                     {pendingApplications.map((app, i) => {
@@ -260,7 +258,7 @@ export default function MemberPage({ embedded = false }) {
             <div
               ref={listScrollRef}
               onScroll={handleListScroll}
-              className="max-h-[calc(100vh-22rem)] overflow-y-auto p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              className="max-h-[calc(100vh-16rem)] overflow-y-auto p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
               <div className="grid gap-3 md:grid-cols-2">
                 {activeTab === 'all' && pendingApplications.map((app, i) => {
