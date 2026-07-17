@@ -23,15 +23,17 @@ export const useServiceStore = create((set, get) => ({
           if (Array.isArray(base.plans)) {
             const localPlans = localMap[apiService.id]?.plans ?? []
             const localPlanMap = {}
+            const normalize = name => (name ?? '').trim()
             for (const p of localPlans) {
-              if (import.meta.env.DEV && localPlanMap[p.name]) {
+              const key = normalize(p.name)
+              if (localPlanMap[key]) {
                 console.warn(`[serviceStore] "${apiService.id}" 有重複的方案名稱「${p.name}」，本地文案比對可能會對到錯的方案`)
               }
-              localPlanMap[p.name] = p
+              localPlanMap[key] = p
             }
             base.plans = base.plans.map(p => {
-              const localPlan = localPlanMap[p.name]
-              if (import.meta.env.DEV && !localPlan) {
+              const localPlan = localPlanMap[normalize(p.name)]
+              if (!localPlan) {
                 console.warn(`[serviceStore] "${apiService.id}" 的方案「${p.name}」在本地 catalog 找不到對應項目，將不會有 description/features 文案`)
               }
               return {

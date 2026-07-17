@@ -60,9 +60,11 @@ src/
 │   │   └── components/
 │   │       ├── LivePreviewPanel.jsx
 │   │       └── steps/
+│   │           ├── Field.jsx
 │   │           ├── Step1Service.jsx
-│   │           ├── Step2PlanSettings.jsx
-│   │           └── Step3Preview.jsx
+│   │           ├── Step2Plan.jsx
+│   │           ├── Step3Settings.jsx
+│   │           └── Step4Preview.jsx
 │   ├── explore/                # 探索群組
 │   │   ├── ExplorePage.jsx
 │   │   └── components/
@@ -155,7 +157,7 @@ src/
 │   ├── constants/              # nav 等常數
 │   │   └── nav.js
 │   ├── data/
-│   │   └── serviceCatalog.js   # 30 種訂閱服務定義（API 失敗時的 fallback）
+│   │   └── serviceCatalog.js   # 28 種訂閱服務定義（API 失敗時的 fallback）；每個方案（plan）只綁定單一收費週期（`billingCycle: 'monthly' | 'yearly'`），同一方案若官方同時提供月繳／年繳，會拆成兩個獨立 plan（`name` 加上「（月繳）」/「（年繳）」後綴避免撞名，各自都是使用者在建立群組 Step2 可直接選取的獨立卡片；`monthlyPrice` 即該週期換算後的月費，不再有 `yearlyPrice`）
 │   ├── layout/                 # 全域版面元件
 │   │   ├── AppFooter.jsx
 │   │   ├── AppLayout.jsx
@@ -260,9 +262,9 @@ init: async () => {
 | `src/app/router.jsx` | `AppLayout`、`ProtectedRoute`、`PublicOnlyRoute`、`redirects.jsx`、`CreateGroupPage`、`QuickMatchPage` | 定義公開頁、`AppLayout` 內的受保護頁、Modal 型 redirect route；`/create-group`、`/quick-match` 是獨立於 `AppLayout` 之外的全螢幕頁面，其中 `/create-group` 由頂層 `ProtectedRoute` 包裹，`/quick-match` 為公開路由（免登入即可使用，僅在申請加入群組時才會被導向登入頁） |
 | `src/shared/api/axiosClient.js` | 所有 API 模組 | 自動帶 JWT header；401 + 有 token 時跳登入；無 token 的 401 靜默處理 |
 | `src/shared/layout/AppLayout.jsx` | `AppNav`、`AppFooter`、`FloatingMessages`、`MessagesModal`、`GroupDetailModal` | 統一掛載跨頁共用導覽、全域 Modal 與頁尾；主要內容容器於 `lg:` 以上寬度用 `clamp()` 取代固定 `max-w-7xl`，避免超寬螢幕（>1280px）留白暴增 |
-| `src/shared/layout/FlowLayout.jsx` | `CreateGroupPage`、`QuickMatchPage` | 無 sidebar/dock 的全螢幕步驟流程殼：左上角 PartyMatch logo（一般 `<a href="/">`，非 `navigate()`，點擊回首頁會觸發整頁重新載入）、頂部細進度條、置中標題（absolute 定位，不受左右內容寬度不對稱影響）、固定高度 header/footer（`h-16`/`md:h-20`）、內容區 `min-h-0 + overflow-hidden` 搭配子層各自 `overflow-y-auto`，避免頁面本身垂直捲動、底部固定 Prev/Next 導覽列；容器寬度於 `lg:` 以上用 `clamp()` 隨螢幕寬度連續放大（非固定 `max-w`），避免超寬螢幕留白暴增 |
-| `src/shared/utils/hooks.js`（`useScrollEdge`） | `CreateGroupPage`、`QuickMatchPage` | 共用捲動邊界偵測 hook：回報 `canScroll`/`atBottom`/`isScrolling`（捲動中旗標，200ms 防抖後恢復 false）；可選 `withMutationObserver` 監看內容子樹異動。`CreateGroupPage` 僅在第 3 步（確認送出）依 `!canScroll` 切換 `lg:justify-center`，第 2 步（方案與設定）固定頂部對齊——因為該步驟的群組規則列表可動態增減，若隨 `canScroll` 切換置中會在新增規則跨過捲動門檻時造成整體內容跳動 |
-| `src/shared/ui/ScrollHint.jsx` | `CreateGroupPage`、`QuickMatchPage` | 共用捲動提示指示器（非按鈕、無點擊功能）：內容可捲動時顯示方向 chevron，捲到底時提示往上；桌機滑鼠進入所在 `group` 容器時淡出，手機以 `isScrolling` 於捲動中淡出、停止捲動後淡入 |
+| `src/shared/layout/FlowLayout.jsx` | `CreateGroupPage`、`QuickMatchPage` | 無 sidebar/dock 的全螢幕步驟流程殼：左上角 PartyMatch logo（一般 `<a href="/">`，非 `navigate()`，點擊回首頁會觸發整頁重新載入）、頂部細進度條、置中標題（absolute 定位，不受左右內容寬度不對稱影響）、固定高度 header/footer（`h-16`/`md:h-20`）、內容區 `min-h-0 + overflow-hidden` 搭配子層各自 `overflow-y-auto`，避免頁面本身垂直捲動、底部固定 Prev/Next 導覽列；容器寬度於 `lg:` 以上用 `clamp()` 隨螢幕寬度連續放大（非固定 `max-w`），避免超寬螢幕留白暴增。底部固定導覽列（步驟進度條 + bottomNav 按鈕）預留給內容區的 `padding-bottom` 目前是手動調校的固定值（`pb-[130px] md:pb-[160px]`），非動態量測，若導覽列實際高度改變（例如步驟文案換行）需一併調整這兩個數字 |
+| `src/shared/utils/hooks.js`（`useScrollEdge`） | `CreateGroupPage`、`QuickMatchPage` | 共用捲動邊界偵測 hook：回報 `canScroll`/`atBottom`/`isScrolling`（捲動中旗標，200ms 防抖後恢復 false）；可選 `withMutationObserver` 監看內容子樹異動、`forwardWheel` 讓滑鼠在頁面任何位置滾動都能捲動內容（會繞過 CSS `overflow: hidden`，用 JS 直接呼叫 `scrollBy`，所以要真正鎖住捲動必須同時關閉這個選項）。`CreateGroupPage` 全步驟固定頂部對齊，不做置中；第 2、3 步（選擇方案、群組設定）在 `lg:` 以上鎖死整頁捲動（`lg:overflow-hidden` + `forwardWheel: step !== 2 && step !== 3`），改由內部各自的子區塊（群組規則列表、方案說明框）用 `overflow-y-auto` 獨立捲動，容器高度以 `ResizeObserver` 量測對齊，避免整頁高度隨內容跳動 |
+| `src/shared/ui/ScrollHint.jsx` | `CreateGroupPage`、`QuickMatchPage` | 共用捲動提示指示器（非按鈕、無點擊功能）：內容可捲動時顯示方向 chevron，捲到底時提示往上；桌機滑鼠進入所在 `group` 容器時淡出，手機以 `isScrolling` 於捲動中淡出、停止捲動後淡入。`CreateGroupPage` 只在第 1、4 步顯示，第 2、3 步整頁捲動已鎖死，顯示會跟內部子區塊的獨立捲動互相干擾 |
 | `src/shared/layout/AppNav.jsx` | `NAV_SECTIONS`、`authStore`、`notificationStore`、`conversationStore`、`toast` | **桌機版**：左側 sidebar（白底，收合 64px / 展開 224px，hover/focus-within 觸發）；通知與訊息為長型矩形按鈕（附文字標籤）；sidebar 底部使用者按鈕上方顯示 PM幣餘額列（收合隱藏、展開顯示，含加值按鈕）；頭像按鈕點擊直接導向 `/account`（不經中間選單），開啟 PM幣儲值 Modal 時 blur 讓 sidebar 自動收合。**手機版**：頂部 header（Logo + 通知 + 頭像按鈕；未登入時頭像按鈕為純圖示無底色）+ 底部 Dock（快速搜尋、建立群組、探索中央圓形按鈕、我的 dropdown、訊息）；「我的」向上展開橫排 dropdown（我的群組 / 我的收藏）；未登入點擊鎖定項目發 Toast（附「前往登入」按鈕）；Dock 透過 `useHideOnScroll`（`shared/utils/hooks.js`）往下捲動時滑出隱藏、往上捲或接近頁面頂端時顯示，`ScrollToTop` 按鈕位置隨 Dock 顯示狀態連動避免重疊；監聽 `pm:open-topup` 事件開啟 `TopupModal`（供其他元件如 `GroupDetailModal` 在PM幣不足時，透過 toast 的 `action` 按鈕觸發儲值） |
 | `src/shared/layout/FloatingMessages.jsx` | `notificationStore`、`conversationStore`、`applicationStore` | 監聽 `pm:open-notify` 顯示通知 panel；通知點擊後依類型 dispatch 對應 `pm:open-*` 事件；`new_application` 點擊時先 await `applicationStore.init()` 再開 Modal，確保資料已更新；`member_left`（成員退出）host 端點擊前廣播 `pm:refresh-member-stores` |
 | `src/shared/ui/GroupModalShell.jsx` | `GroupOverviewContent`、`Badge`、`ProgressBar`、`ServiceLogo` | 三個群組詳情 Modal 共用的滑動軌道殼（300% 寬、三層 panel）；`subPanel` 滑入第二層、`subSubPanel` 滑入第三層，支援 `headerRight` slot；管理 scroll lock、Escape 逐層關閉 |
@@ -304,7 +306,7 @@ init: async () => {
 
 | 路徑 | 頁面 |
 |------|------|
-| `/create-group` | 建立群組（3 步驟：選服務 → 方案與設定 → 確認送出，+ 成功畫面，`key={step}` 重新掛載 + CSS slide-up 動畫） |
+| `/create-group` | 建立群組（4 步驟：選服務 → 選擇方案 → 群組設定 → 確認送出，+ 成功畫面，`key={step}` 重新掛載 + CSS slide-up 動畫） |
 | `/quick-match` | 快速搜尋（3 步驟：選擇服務 → 方案與條件 → 配對結果，`key={step}` 重新掛載 + CSS slide-up 動畫） |
 
 ---
@@ -368,7 +370,7 @@ init: async () => {
 
 ## 我的群組統計
 
-`/my-groups` 頁面頂部的統計卡三個項目皆為下方 `FilterTabsBar` 分類數量看不到的資訊（避免與 chip 數字重複），依目前分頁（`?view=member` / `?view=host`）切換內容：**身為成員**「本月訂閱花費 / 平均每組 / 本月省下」（省下金額 = 反查 `serviceCatalog` 方案原價 − 實際分攤後的 `pricePerSeat`，年繳方案換算為月均後比較，邏輯在 `src/shared/utils/pricingUtils.js`）；**身為團主**「本月預估收入 / 平均每組 / 服務中成員」（純數量，不套用 PM幣圖示）。統計卡寬度與下方 `FilterTabsBar`／內容區左右對齊（無額外 `max-width` 限制），手機／桌機皆全寬。
+`/my-groups` 頁面頂部的統計卡三個項目皆為下方 `FilterTabsBar` 分類數量看不到的資訊（避免與 chip 數字重複），依目前分頁（`?view=member` / `?view=host`）切換內容：**身為成員**「本月訂閱花費 / 平均每組 / 本月省下」（省下金額 = 反查 `serviceCatalog` 方案原價 − 實際分攤後的 `pricePerSeat`，邏輯在 `src/shared/utils/pricingUtils.js`；每個方案本身已綁定單一收費週期，`monthlyPrice` 即為該週期換算後的月費，無需再依週期額外換算）；**身為團主**「本月預估收入 / 平均每組 / 服務中成員」（純數量，不套用 PM幣圖示）。統計卡寬度與下方 `FilterTabsBar`／內容區左右對齊（無額外 `max-width` 限制），手機／桌機皆全寬。
 
 **switcher 按鈕**：手機版與桌機版是兩套完全不同的 UI（分別各自的 JSX block，`md:hidden` / `hidden md:flex` 切換），不是同一份 markup 用 CSS 調整外觀。**手機版**維持最原始的版本：「我是成員」「我是團主」左右並排兩顆 `flex-1` 全寬按鈕，點哪顆就直接切到那個分頁。**桌機版**則是單一 `bg-brand` 填色 pill（一次只顯示目前身分），pill 本身就是一顆 `<button onClick={toggleTab}>`：預設顯示 icon + 目前身分文字，hover 整個 pill 時改用絕對定位疊一層「切換身分」提示文字＋`ArrowLeftRight` icon（兩層用 `opacity` 淡入淡出交叉，`group-hover:opacity-0` / `group-hover:opacity-100`），點擊（不限游標位置，整個 pill 都可點）直接 toggle 到另一個身分 `?view=member`／`?view=host`。切換時只有預設層裡的文字（`key={activeView}` + `.animate-fade-in-up`，純 opacity 淡入）會重新播放動畫，pill 外框、底色都不跟著移動或重繪，避免整個按鈕跳動。不再帶分類篩選功能（曾經做過 hover 展開分類 dropdown、以及左右滑動切換的版本，因體驗不佳已移除）。桌機版 pill 與統計卡排成同一列（`md:flex md:items-stretch`）：pill 所在的欄寬度固定 `md:w-40` 對齊下方 `FilterTabsBar` 左側 nav 的寬度；**pill 本身刻意不設 `h-full`**，讓 flexbox 預設的 `align-items: stretch` 自然撐開（曾經在 pill 跟外層 wrapper 上明寫 `md:h-full`，結果對一個高度為 auto 的 flex row 而言，明寫的 `height:100%` 反而讓瀏覽器略過 stretch、退回內容自身高度，兩邊高度因此對不齊——移除顯式高度後才真正吃到 stretch 對齊右欄統計卡）；統計卡為右欄 `md:flex-1`。分類篩選改採 `FilterTabsBar` 桌機版的左側垂直 nav（見上）。統計卡內距 `py-7`（原本 `py-4`），讓整列高度更高；統計卡的 `AmountStatItem` 改用 `TokenAmount` 預設的 `align="baseline"`（不再傳 `align="center"`），移除原本 `leading-none` 造成的行高差異，讓金額項目跟純數字的 `CountStatItem`（如「服務中成員」）高度與間距一致。
 

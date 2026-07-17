@@ -1,14 +1,6 @@
 import { useEffect } from 'react'
 import logoUrl from '../../assets/Logo.svg'
 
-// 底部固定導覽列（步驟進度條 + bottomNav 按鈕）疊起來的高度不固定，
-// 內容區的下方留白要跟著這兩者是否存在調整，避免內容被固定列擋住
-function getBottomPadding(hasBottomNav, hasStepBanner) {
-  if (!hasBottomNav) return 'pb-8'
-  if (hasStepBanner) return 'pb-36 md:pb-44'
-  return 'pb-24 md:pb-28'
-}
-
 export default function FlowLayout({ steps, currentStep, title, titleIcon, headerAction, headerBanner, bottomNav, children, maxWidth = 'max-w-xl md:max-w-2xl lg:max-w-[clamp(56rem,70vw,76rem)]' }) {
   useEffect(() => { window.scrollTo(0, 0) }, [])
 
@@ -37,8 +29,12 @@ export default function FlowLayout({ steps, currentStep, title, titleIcon, heade
 
       {headerBanner && <div className="shrink-0">{headerBanner}</div>}
 
+      {/* 底部固定導覽列（步驟進度條 + bottomNav 按鈕）疊起來的高度目前用固定值頂開，
+          130/160 是配合現有 steps + bottomNav 疊加後的實際高度手動調校；
+          若未來有頁面只傳 bottomNav 不傳 steps，或步驟文案變多行導致導覽列變高，
+          這兩個值需要一併調整，否則內容可能被蓋住 */}
       <main
-        className={`min-h-0 flex-1 overflow-hidden px-4 md:px-8 ${getBottomPadding(!!bottomNav, !!hasStepBanner)}`}
+        className={`min-h-0 flex-1 overflow-hidden px-4 md:px-8 ${bottomNav ? 'pb-[130px] md:pb-[160px]' : 'pb-8'}`}
       >
         <div className={`mx-auto h-full w-full ${maxWidth}`}>
           {children}

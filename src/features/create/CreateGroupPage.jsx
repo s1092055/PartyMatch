@@ -3,8 +3,9 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, Info, PlusCircle } from 'lucide-react'
 import FlowLayout from '../../shared/layout/FlowLayout'
 import Step1Service from './components/steps/Step1Service'
-import Step2PlanSettings from './components/steps/Step2PlanSettings'
-import Step3Preview from './components/steps/Step3Preview'
+import Step2Plan from './components/steps/Step2Plan'
+import Step3Settings from './components/steps/Step3Settings'
+import Step4Preview from './components/steps/Step4Preview'
 import Button from '../../shared/ui/Button'
 import ServiceLogo from '../../shared/ui/ServiceLogo'
 import TokenAmount from '../../shared/ui/TokenAmount'
@@ -13,12 +14,12 @@ import LivePreviewPanel from './components/LivePreviewPanel'
 import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { useNotificationStore } from '../../shared/stores/useNotificationStore'
 import { getServiceById } from '../../shared/utils/serviceUtils'
-import { calcPricePerSeat } from '../../shared/utils/pricingUtils'
+import { calcPricePerSeat, calcDisplayPrice } from '../../shared/utils/pricingUtils'
 import { useAuthStore } from '../../shared/stores/useAuthStore'
 import { useScrollEdge } from '../../shared/utils/hooks'
 
-const STEP_COMPONENTS = [Step1Service, Step2PlanSettings, Step3Preview]
-const STEP_TITLES = ['選擇服務', '方案與設定', '最後確認']
+const STEP_COMPONENTS = [Step1Service, Step2Plan, Step3Settings, Step4Preview]
+const STEP_TITLES = ['選擇服務', '選擇方案', '群組設定', '最後確認']
 
 const INITIAL_FORM = {
   serviceId: '',
@@ -28,7 +29,7 @@ const INITIAL_FORM = {
   totalSeats: 2,
   minCreditScore: 0,
   requirements: '',
-  rules: ['', '', ''],
+  rules: ['', '', '', '', ''],
 }
 
 function mapFormToGroup(form) {
@@ -64,8 +65,10 @@ function getStepErrors(step, form) {
     case 1:
       if (!form.serviceId) errors.push('請選擇一個訂閱服務')
       break
-    case 2: {
+    case 2:
       if (!form.planName) errors.push('請選擇方案')
+      break
+    case 3: {
       const service = getServiceById(form.serviceId)
       const plan = service?.plans.find(p => p.name === form.planName)
       const maxSeats = plan?.maxSeats ?? 10
@@ -84,7 +87,7 @@ function getStepErrors(step, form) {
 }
 
 function getFirstInvalidStep(form) {
-  return [1, 2].find(step => getStepErrors(step, form).length > 0) ?? null
+  return [1, 2, 3].find(step => getStepErrors(step, form).length > 0) ?? null
 }
 
 export default function CreateGroupPage() {
@@ -98,13 +101,14 @@ export default function CreateGroupPage() {
   const [form, setForm] = useState(INITIAL_FORM)
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
+  const isPlanOrSettingsStep = step === 2 || step === 3
   // 內容區第一層子元素固定 h-full（跟容器等高), ResizeObserver 盯著它偵測不到內部真正的
   // 內容溢出，所以要求 MutationObserver 監看整個子樹的異動，每次異動都重新讀取真實的
   // scrollHeight/clientHeight 來判斷是否 overflow
   const {
     scrollRef, elRef: scrollElRef, atBottom, canScroll, isScrolling,
     handleScroll: handleContentScroll,
-  } = useScrollEdge({ withMutationObserver: true, forwardWheel: true })
+  } = useScrollEdge({ withMutationObserver: true, forwardWheel: !isPlanOrSettingsStep })
 
   function onChange(key, value) {
     setForm(prev => {
@@ -119,18 +123,14 @@ export default function CreateGroupPage() {
         const plan = service?.plans.find(p => p.name === value)
         if (plan) {
           next.totalSeats = plan.maxSeats
-          next.pricePerSeat = calcPricePerSeat(plan, plan.maxSeats, next.billingCycle)
+          next.billingCycle = plan.billingCycle
+          next.pricePerSeat = calcPricePerSeat(plan, plan.maxSeats)
         }
       }
       if (key === 'totalSeats') {
         const service = getServiceById(next.serviceId)
         const plan = service?.plans.find(p => p.name === next.planName)
-        if (plan) next.pricePerSeat = calcPricePerSeat(plan, value, next.billingCycle)
-      }
-      if (key === 'billingCycle') {
-        const service = getServiceById(next.serviceId)
-        const plan = service?.plans.find(p => p.name === next.planName)
-        if (plan) next.pricePerSeat = calcPricePerSeat(plan, next.totalSeats, value)
+        if (plan) next.pricePerSeat = calcPricePerSeat(plan, value)
       }
       return next
     })
@@ -142,7 +142,7 @@ export default function CreateGroupPage() {
   }
 
   function handleNext() {
-    if (canNext() && step < 3) {
+    if (canNext() && step < 4) {
       setStep(s => s + 1)
       scrollElRef.current?.scrollTo({ top: 0 })
     }
@@ -174,11 +174,11 @@ export default function CreateGroupPage() {
       })
     }
     window.dispatchEvent(new CustomEvent('pm:group-created', { detail: { groupId: group.id } }))
-    setStep(4)
+    setStep(5)
     scrollElRef.current?.scrollTo({ top: 0 })
   }
 
-  const footer = step <= 3 && (
+  const footer = step <= 4 && (
     <>
       {step === 1 ? (
         <Button variant="secondary" size="md" className="min-w-0 flex-1" onClick={leaveFlow}>
@@ -191,7 +191,7 @@ export default function CreateGroupPage() {
           上一步
         </Button>
       )}
-      {step < 3 ? (
+      {step < 4 ? (
         <Button variant="primary" size="md" className="min-w-0 flex-1" disabled={!canNext()} onClick={handleNext}>
           下一步
           <ChevronRight size={15} strokeWidth={1.5} />
@@ -205,9 +205,6 @@ export default function CreateGroupPage() {
   )
 
   const service = getServiceById(form.serviceId)
-  const desc = step === 2
-    ? service?.plans.find(p => p.name === form.planName)?.description
-    : null
   const hasEligiblePlans = (service?.plans ?? []).some(p => p.maxSeats > 1)
   const visibleStepErrors = stepErrors.filter(err =>
     err !== '請選擇一個訂閱服務' && (err !== '請選擇方案' || hasEligiblePlans)
@@ -216,15 +213,18 @@ export default function CreateGroupPage() {
   const banner = (() => {
     if (step === 1) {
       return form.serviceId
-        ? { Icon: Info, text: '選擇你想合購的訂閱服務' }
+        ? { Icon: Info, text: '請選擇一項訂閱服務' }
         : { Icon: AlertCircle, text: '請選擇一個訂閱服務' }
     }
     if (step === 2) {
       if (visibleStepErrors.length > 0) return { Icon: AlertCircle, text: visibleStepErrors[0] }
-      if (desc) return { Icon: Info, text: desc }
-      return { Icon: Info, text: '選擇方案後，費用將依官方定價自動計算' }
+      return { Icon: Info, text: '請選擇方案' }
     }
-    if (step === 3) return { Icon: Info, text: '請確認以下資訊正確無誤，並詳閱服務條款' }
+    if (step === 3) {
+      if (visibleStepErrors.length > 0) return { Icon: AlertCircle, text: visibleStepErrors[0] }
+      return { Icon: Info, text: '設定群組資訊' }
+    }
+    if (step === 4) return { Icon: Info, text: '請確認以下資訊正確無誤，並詳閱服務條款' }
     return null
   })()
 
@@ -233,7 +233,7 @@ export default function CreateGroupPage() {
   return (
     <FlowLayout
       steps={STEP_TITLES}
-      currentStep={Math.min(step, 3)}
+      currentStep={Math.min(step, 4)}
       title="建立群組"
       titleIcon={<PlusCircle size={18} className="shrink-0 text-brand" />}
       headerBanner={banner && (
@@ -243,36 +243,46 @@ export default function CreateGroupPage() {
         </div>
       )}
       bottomNav={footer}
-      maxWidth="max-w-xl md:max-w-2xl lg:max-w-3xl"
+      maxWidth="max-w-xl md:max-w-2xl lg:max-w-4xl"
     >
       <div className="group relative h-full">
         <div
           ref={scrollRef}
           onScroll={handleContentScroll}
-          className="h-full overflow-y-auto pt-6 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className={`h-full overflow-y-auto pt-6 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${isPlanOrSettingsStep ? 'lg:overflow-hidden' : step === 4 ? 'overflow-hidden' : ''}`}
         >
           <div key={step} className="h-full animate-step-slide-up p-0.5">
-            {step <= 3 ? (
+            {step <= 4 ? (
               <div className="flex h-full flex-col">
-                {step === 2 && (
-                  <div className="mb-6 flex items-center gap-4 rounded-2xl border border-line bg-white px-6 py-5 shadow-sm">
+                {isPlanOrSettingsStep && (
+                  <div className="mb-6 flex shrink-0 items-center gap-4 rounded-2xl border border-line bg-white px-6 py-5 shadow-sm">
                     <ServiceLogo serviceId={form.serviceId} size={56} className="shrink-0 rounded-logo border-line-strong" />
                     <div className="min-w-0 flex-1">
                       <h2 className="truncate text-lg font-black text-ink">{service?.fullName ?? '尚未選擇服務'}</h2>
                       <p className="truncate text-sm text-ink-3">{form.planName || '尚未選擇方案'}</p>
                     </div>
-                    <TokenAmount
-                      amount={form.billingCycle === 'yearly' ? form.pricePerSeat * 12 : form.pricePerSeat}
-                      cycle={form.billingCycle === 'yearly' ? 'yearly' : 'monthly'}
-                      align="center"
-                      unitClassName="!text-xl"
-                      className="shrink-0 text-2xl font-black text-ink"
-                    />
+                    {form.planName && (
+                      <div className="shrink-0 text-right">
+                        <p className="mb-0.5 text-xs font-medium text-ink-4">每位</p>
+                        <TokenAmount
+                          amount={calcDisplayPrice(form.pricePerSeat, form.billingCycle)}
+                          cycle={form.billingCycle}
+                          align="center"
+                          badgeSize="!h-6 !w-6"
+                          unitClassName="!text-xl"
+                          className="text-2xl font-black text-ink"
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
-                {step === 3 ? (
-                  <div className="lg:m-auto lg:w-full">
-                    <Step3Preview form={form} agreedToTerms={agreedToTerms} onAgreeChange={setAgreedToTerms} onShowPreview={() => setShowPreview(true)} />
+                {step === 4 ? (
+                  <div className="flex min-h-0 w-full flex-1 flex-col">
+                    <Step4Preview form={form} agreedToTerms={agreedToTerms} onAgreeChange={setAgreedToTerms} onShowPreview={() => setShowPreview(true)} />
+                  </div>
+                ) : isPlanOrSettingsStep ? (
+                  <div className="w-full shrink-0">
+                    <CurrentStep form={form} onChange={onChange} />
                   </div>
                 ) : (
                   <CurrentStep form={form} onChange={onChange} />
@@ -298,7 +308,7 @@ export default function CreateGroupPage() {
           </div>
         </div>
 
-        {step <= 3 && <ScrollHint canScroll={canScroll} atBottom={atBottom} isScrolling={isScrolling} />}
+        {(step === 1 || step === 4) && <ScrollHint canScroll={canScroll} atBottom={atBottom} isScrolling={isScrolling} />}
       </div>
 
       {showPreview && (

@@ -4,7 +4,7 @@ import { useAuthStore } from '../../shared/stores/useAuthStore'
 import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { useSubscriptionStore } from '../../shared/stores/useSubscriptionStore'
 import TokenAmount from '../../shared/ui/TokenAmount'
-import { getPlanByName, getPlanMonthlyEquivalent } from '../../shared/utils/pricingUtils'
+import { getPlanByName } from '../../shared/utils/pricingUtils'
 import MemberPage from './member/MemberPage'
 import HostPage from './host/HostPage'
 
@@ -14,9 +14,9 @@ const TABS = [
 ]
 
 // 反查方案原價（未分攤前整組月費），用來估算合購省下多少錢
-function planOriginalMonthly(serviceId, planName, billingCycle) {
+function planOriginalMonthly(serviceId, planName) {
   const plan = getPlanByName(serviceId, planName)
-  return plan ? Math.round(getPlanMonthlyEquivalent(plan, billingCycle)) : null
+  return plan ? plan.monthlyPrice : null
 }
 
 function avg(total, count) {
@@ -61,7 +61,7 @@ function StatsBar({ userId, activeView }) {
   const activeMemberSubs = allSubs.filter(s => s.userId === userId && s.status === 'active')
   const { memberMonthly, memberSavings } = activeMemberSubs.reduce((acc, s) => {
     acc.memberMonthly += s.pricePerSeat ?? 0
-    const original = planOriginalMonthly(s.serviceId, s.planName, s.billingCycle)
+    const original = planOriginalMonthly(s.serviceId, s.planName)
     if (original != null) acc.memberSavings += Math.max(0, original - (s.pricePerSeat ?? 0))
     return acc
   }, { memberMonthly: 0, memberSavings: 0 })

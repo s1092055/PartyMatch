@@ -46,7 +46,7 @@ export default function ActivateServiceModal({
           </div>
           <div className="rounded-xl bg-success-subtle px-3 py-1.5 text-right">
             <p className="text-xs text-success-text">撥款金額</p>
-            <p className="text-base font-extrabold text-success-text"><TokenAmount amount={group.pricePerSeat * members.length} /></p>
+            <p className="text-base font-extrabold text-success-text"><TokenAmount amount={group.escrowTokens} /></p>
           </div>
         </div>
 

@@ -155,7 +155,7 @@ async function main() {
   await notify({ userId: D1.id, groupId: g1.id, type: 'application_sent', title: '申請已送出', message: '已送出加入 Netflix 群組的申請，等待團主審核', meta: { groupId: g1.id }, isRead: true, createdAt: daysAgo(0) })
 
   // ── G2 recruiting：D4 主揪 Notion，1 核准 1 拒絕，U1 收藏 ──────────────
-  const g2 = await createGroup({ hostId: D4.id, service: services.notion, planId: 'notion-business', totalSeats: 3, currentMembers: 1, status: 'recruiting' })
+  const g2 = await createGroup({ hostId: D4.id, service: services.notion, planId: 'notion-business-monthly', totalSeats: 3, currentMembers: 1, status: 'recruiting' })
   await addApplication({ groupId: g2.id, userId: D5.id, status: 'approved' })
   await addMemberAndSubscription({ groupId: g2.id, userId: D5.id, seatCost: g2.monthlyFee })
   const g2Rejected = await addApplication({ groupId: g2.id, userId: D6.id, status: 'rejected', message: '可以加入嗎？' })
@@ -173,7 +173,7 @@ async function main() {
 
   // ── G4 pending_confirmation：U1 主揪 Disney+，已鎖定，成員尚未填帳號 ───
   const g4 = await createGroup({
-    hostId: U1.id, service: services.disney, planId: 'disney-std', totalSeats: 2, currentMembers: 1, status: 'pending_confirmation',
+    hostId: U1.id, service: services.disney, planId: 'disney-std-monthly', totalSeats: 2, currentMembers: 1, status: 'pending_confirmation',
     extra: { nextBillingDate: daysFromNow(27) },
   })
   await addApplication({ groupId: g4.id, userId: D2.id, status: 'approved' })
@@ -182,7 +182,7 @@ async function main() {
 
   // ── G5 pending_activation：U3 主揪 HBO Max，成員已填完帳號，待啟用 ─────
   const g5 = await createGroup({
-    hostId: U3.id, service: services.hbo, planId: 'hbo-std', totalSeats: 3, currentMembers: 2, status: 'pending_activation',
+    hostId: U3.id, service: services.hbo, planId: 'hbo-std-monthly', totalSeats: 3, currentMembers: 2, status: 'pending_activation',
     extra: { nextBillingDate: daysFromNow(25) },
   })
   for (const u of [D3, D5]) {
@@ -196,7 +196,7 @@ async function main() {
 
   // ── G6 confirming：U2 主揪 ChatGPT Team，U1 為成員，48h 確認期中 ──────
   const g6 = await createGroup({
-    hostId: U2.id, service: services.chatgpt, planId: 'chatgpt-team', totalSeats: 2, currentMembers: 1, status: 'confirming',
+    hostId: U2.id, service: services.chatgpt, planId: 'chatgpt-team-monthly', totalSeats: 2, currentMembers: 1, status: 'confirming',
     extra: { nextBillingDate: daysFromNow(20), confirmDeadline: daysFromNow(1.5), escrowTokens: 0 },
   })
   await addApplication({ groupId: g6.id, userId: U1.id, status: 'approved' })
@@ -226,7 +226,7 @@ async function main() {
 
   // ── G8 active：U1 主揪 Google One，3 位成員穩定運作中 ──────────────────
   const g8 = await createGroup({
-    hostId: U1.id, service: services['google-one'], planId: 'google-one-ai-plus', totalSeats: 5, currentMembers: 3, status: 'active',
+    hostId: U1.id, service: services['google-one'], planId: 'google-one-ai-plus-monthly', totalSeats: 5, currentMembers: 3, status: 'active',
     extra: { nextBillingDate: daysFromNow(18) },
   })
   for (const u of [D2, D4, D5]) {
@@ -242,7 +242,7 @@ async function main() {
 
   // ── G9 active：U2 主揪 KKBOX，U1 為成員，另一位成員已退出 ──────────────
   const g9 = await createGroup({
-    hostId: U2.id, service: services.kkbox, planId: 'kkbox-family', totalSeats: 5, currentMembers: 3, status: 'active',
+    hostId: U2.id, service: services.kkbox, planId: 'kkbox-6', totalSeats: 6, currentMembers: 3, status: 'active',
     extra: { nextBillingDate: daysFromNow(9) },
   })
   for (const u of [U1, D3, D1]) {
@@ -262,7 +262,7 @@ async function main() {
   await prisma.group.update({ where: { id: g9.id }, data: { escrowTokens: 0 } }) // 已進入 active，代管款項早已撥給團主
 
   // ── G10 cancelled：U3 主揪 Discord，鎖定前解散、全額退款 ───────────────
-  const g10 = await createGroup({ hostId: U3.id, service: services.discord, planId: 'discord-family', totalSeats: 5, currentMembers: 0, status: 'cancelled' })
+  const g10 = await createGroup({ hostId: U3.id, service: services.discord, planId: 'discord-family-monthly', totalSeats: 5, currentMembers: 0, status: 'cancelled' })
   for (const u of [D4, D5]) {
     await addApplication({ groupId: g10.id, userId: u.id, status: 'approved', createdAt: daysAgo(10) })
     await prisma.user.update({ where: { id: u.id }, data: { tokenBalance: { decrement: g10.monthlyFee } } })
@@ -288,11 +288,11 @@ async function main() {
   await prisma.group.update({ where: { id: g11.id }, data: { escrowTokens: 0 } }) // 已結束，代管款項早已撥給團主
 
   // ── G12 recruiting：D6 主揪 Canva，設信用分數門檻，測試篩選 ────────────
-  await createGroup({ hostId: D6.id, service: services.canva, planId: 'canva-team', totalSeats: 5, currentMembers: 0, status: 'recruiting', extra: { minCreditScore: 70 } })
+  await createGroup({ hostId: D6.id, service: services.canva, planId: 'canva-team-monthly', totalSeats: 5, currentMembers: 0, status: 'recruiting', extra: { minCreditScore: 70 } })
 
   // ── G13 confirming：D4 主揪 Cursor，U1 與 D5 皆未確認（測試「確認後尚有人未確認」的評價提示分支）
   const g13 = await createGroup({
-    hostId: D4.id, service: services.cursor, planId: 'cursor-business', totalSeats: 3, currentMembers: 2, status: 'confirming',
+    hostId: D4.id, service: services.cursor, planId: 'cursor-business-monthly', totalSeats: 3, currentMembers: 2, status: 'confirming',
     extra: { nextBillingDate: daysFromNow(28), confirmDeadline: daysFromNow(1), escrowTokens: 0 },
   })
   for (const u of [U1, D5]) {

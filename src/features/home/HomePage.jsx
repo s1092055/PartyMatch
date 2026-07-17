@@ -21,7 +21,7 @@ import RevealSection from '../../shared/ui/RevealSection'
 
 const ALL_SERVICES = listServiceTypes()
 const MIN_SEAT_PRICE = Math.min(
-  ...ALL_SERVICES.flatMap(s => (s.plans ?? []).map(p => calcPricePerSeat(p, p.maxSeats || 1, 'monthly')))
+  ...ALL_SERVICES.flatMap(s => (s.plans ?? []).map(p => calcPricePerSeat(p, p.maxSeats || 1)))
 )
 const MessagesModal = lazy(() => import('../messages/MessagesModal'))
 

@@ -1,6 +1,7 @@
 import { Banknote, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react'
 import Avatar from '../../../../../shared/ui/Avatar'
 import EmptyState from '../../../../../shared/ui/EmptyState'
+import TokenAmount from '../../../../../shared/ui/TokenAmount'
 
 export function buildBillingPanel({ isActivated, members, expandedBillingMembers, toggleBillingMember }) {
   return {
@@ -33,7 +34,7 @@ export function buildBillingPanel({ isActivated, members, expandedBillingMembers
                               <p className="text-sm font-semibold text-ink">已收款金額</p>
                               <p className="text-xs text-ink-3">{rec.paidAt?.slice(0, 10)}</p>
                             </div>
-                            <span className="shrink-0 text-sm font-bold text-success">NT${rec.amount}</span>
+                            <span className="shrink-0 text-sm font-bold text-success"><TokenAmount amount={rec.amount} /></span>
                           </div>
                           {rec.proofUrl && (
                             <a href={rec.proofUrl} target="_blank" rel="noopener noreferrer">
@@ -78,7 +79,7 @@ export function buildBillingPanel({ isActivated, members, expandedBillingMembers
                               <p className="text-sm font-semibold text-ink">已收款金額</p>
                               <p className="text-xs text-ink-3">{rec.paidAt?.slice(0, 10)}</p>
                             </div>
-                            <span className="shrink-0 text-sm font-bold text-success">NT${rec.amount}</span>
+                            <span className="shrink-0 text-sm font-bold text-success"><TokenAmount amount={rec.amount} /></span>
                           </div>
                           {rec.proofUrl && (
                             <a href={rec.proofUrl} target="_blank" rel="noopener noreferrer">

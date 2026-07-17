@@ -13,7 +13,7 @@ export function matchesFilter(group, filterKey) {
   if (filterKey === 'all')        return true
   if (filterKey === 'recruiting') return group.status === 'recruiting'
   if (filterKey === 'pending')    return PENDING_STATUSES.has(group.status)
-  if (filterKey === 'active')     return ['active', 'confirming', 'disputed'].includes(group.status)
+  if (filterKey === 'active')     return ['active', 'confirming', 'disputed', 'paused'].includes(group.status)
   if (filterKey === 'cancelled')  return CANCELLED_STATUSES.has(group.status)
   return true
 }
