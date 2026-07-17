@@ -1,0 +1,26 @@
+import prisma from '../../src/lib/prisma.js'
+import redis from '../../src/lib/redis.js'
+
+const TABLES = [
+  'disputes', 'platform_reports', 'token_transactions', 'credit_score_logs', 'notifications', 'favorites',
+  'messages', 'conversations', 'reviews', 'credential_comments',
+  'subscriptions', 'members', 'applications', 'groups', 'services',
+  'users', 'admin_users',
+];
+
+export async function resetDb() {
+  await prisma.$transaction(async (tx) => {
+    try {
+      await tx.$executeRawUnsafe('SET FOREIGN_KEY_CHECKS = 0')
+      for (const table of TABLES) {
+        await tx.$executeRawUnsafe(`TRUNCATE TABLE \`${table}\``)
+      }
+    } finally {
+      await tx.$executeRawUnsafe('SET FOREIGN_KEY_CHECKS = 1')
+    }
+  })
+
+  const keys = await redis.keys('groups:list:*').catch(() => [])
+  keys.push('services:list')
+  await redis.del(...keys).catch(() => {})
+}
