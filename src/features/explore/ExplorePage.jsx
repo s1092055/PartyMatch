@@ -1,5 +1,4 @@
-import { useMemo } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useMemo, useState } from 'react'
 import { Compass } from 'lucide-react'
 import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { useApplicationStore } from '../../shared/stores/useApplicationStore'
@@ -12,16 +11,10 @@ import RevealSection from '../../shared/ui/primitives/RevealSection'
 import FilterBar from './components/FilterBar'
 import ExploreGroupCard from './components/ExploreGroupCard'
 
+const DEFAULT_FILTERS = { category: 'all', service: 'all', maxPrice: 'any', sortBy: 'recommended', q: '' }
+
 export default function ExplorePage() {
-  const [searchParams] = useSearchParams()
-  const navigate = useNavigate()
-  const filters = useMemo(() => ({
-    category: searchParams.get('category') ?? 'all',
-    service:  searchParams.get('service') ?? 'all',
-    maxPrice: searchParams.get('maxPrice') ?? 'any',
-    sortBy:   searchParams.get('sortBy') ?? 'recommended',
-    q:        searchParams.get('q') ?? '',
-  }), [searchParams])
+  const [filters, setFilters] = useState(DEFAULT_FILTERS)
   const activeUserId = useAuthStore(s => s.user?.id)
   const groups = useGroupStore(s => s.groups)
   const applications = useApplicationStore(s => s.applications)
@@ -48,14 +41,7 @@ export default function ExplorePage() {
   const filtered = useMemo(() => applyFilters(allGroups, filters), [allGroups, filters])
 
   function handleFilterChange(patch) {
-    const next = { ...filters, ...patch }
-    const params = new URLSearchParams()
-    if (next.category !== 'all') params.set('category', next.category)
-    if (next.service !== 'all') params.set('service', next.service)
-    if (next.maxPrice !== 'any') params.set('maxPrice', next.maxPrice)
-    if (next.sortBy !== 'recommended') params.set('sortBy', next.sortBy)
-    if (next.q.trim()) params.set('q', next.q.trim())
-    navigate(`/explore${params.toString() ? '?' + params.toString() : ''}`, { replace: true })
+    setFilters(prev => ({ ...prev, ...patch, q: patch.q !== undefined ? patch.q.trim() : prev.q }))
   }
 
   return (

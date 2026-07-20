@@ -1,5 +1,5 @@
 import { Compass, Heart, LayoutGrid, MessageSquare, PlusCircle, Search } from 'lucide-react'
-import { Badge } from './navShared'
+import { Badge, LockBadge } from './navShared'
 import { useHideOnScroll } from '../../utils/hooks'
 
 export default function MobileDock({
@@ -121,10 +121,11 @@ export default function MobileDock({
         ) : (
           <button
             onClick={e => preventLockedAction(e)}
-            className="flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold text-ink-3 opacity-40"
+            className="relative flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold text-ink-3 opacity-40"
           >
             <MessageSquare size={22} strokeWidth={2.1} />
             訊息
+            <LockBadge className="right-4 top-1.5 bg-white text-ink-4" />
           </button>
         )}
 

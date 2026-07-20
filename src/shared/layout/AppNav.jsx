@@ -6,6 +6,7 @@ import { useAuthStore } from '../stores/useAuthStore'
 import { useNotificationStore } from '../stores/useNotificationStore'
 import { useConversationStore } from '../stores/useConversationStore'
 import TopupModal from '../ui/TopupModal'
+import CreditScoreModal from '../ui/CreditScoreModal'
 import { LOCKED_MESSAGE } from './components/navConstants'
 import DesktopSidebar from './components/DesktopSidebar'
 import MobileHeader from './components/MobileHeader'
@@ -39,6 +40,7 @@ export default function AppNav() {
 
   const tokenBalance = useAuthStore(s => s.user?.tokenBalance ?? 0)
   const [topupOpen, setTopupOpen] = useState(false)
+  const [creditScoreOpen, setCreditScoreOpen] = useState(false)
 
   useEffect(() => {
     function openTopup() { setTopupOpen(true) }
@@ -109,7 +111,9 @@ export default function AppNav() {
         unreadNotifs={unreadNotifs}
         unreadMsgs={unreadMsgs}
         tokenBalance={tokenBalance}
+        creditScore={currentUser?.creditScore}
         setTopupOpen={setTopupOpen}
+        setCreditScoreOpen={setCreditScoreOpen}
         closeAll={closeAll}
         openCreate={openCreate}
         openMatch={openMatch}
@@ -125,14 +129,17 @@ export default function AppNav() {
         avatarColor={avatarColor}
         unreadNotifs={unreadNotifs}
         tokenBalance={tokenBalance}
+        creditScore={currentUser?.creditScore}
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
         mobileMenuRef={mobileMenuRef}
         setTopupOpen={setTopupOpen}
+        setCreditScoreOpen={setCreditScoreOpen}
         openNotify={openNotify}
       />
 
       <TopupModal isOpen={topupOpen} onClose={() => setTopupOpen(false)} />
+      <CreditScoreModal isOpen={creditScoreOpen} onClose={() => setCreditScoreOpen(false)} />
 
       <MobileDock
         pathname={pathname}

@@ -1,26 +1,24 @@
 import { useEffect, useRef, useState } from 'react'
 import { Check, ChevronDown } from 'lucide-react'
+import { useClickOutside } from '../../utils/hooks'
 
 export default function CustomSelect({ label, value, onChange, options }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
-  const selectedLabel = options.find(o => (o.value ?? o.id) === value)?.label ?? ''
+  const selectedOption = options.find(o => (o.value ?? o.id) === value)
+  const selectedLabel = selectedOption?.label ?? ''
+  const selectedIcon = selectedOption?.icon ?? null
+
+  useClickOutside(open, [ref], () => setOpen(false))
 
   useEffect(() => {
     if (!open) return
-    function handleOutside(e) {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
-    }
     function handleEsc(e) {
       if (e.key === 'Escape') setOpen(false)
     }
-    document.addEventListener('mousedown', handleOutside)
     document.addEventListener('keydown', handleEsc)
-    return () => {
-      document.removeEventListener('mousedown', handleOutside)
-      document.removeEventListener('keydown', handleEsc)
-    }
+    return () => document.removeEventListener('keydown', handleEsc)
   }, [open])
 
   return (
@@ -35,7 +33,10 @@ export default function CustomSelect({ label, value, onChange, options }) {
           open ? 'border-brand shadow-focus-ring' : ''
         }`}
       >
-        <span className="flex-1 truncate text-left">{selectedLabel}</span>
+        <span className="flex flex-1 items-center gap-2 truncate text-left">
+          {selectedIcon}
+          <span className="truncate">{selectedLabel}</span>
+        </span>
         <ChevronDown
           size={15}
           strokeWidth={1.5}
@@ -63,7 +64,10 @@ export default function CustomSelect({ label, value, onChange, options }) {
                     : 'font-medium text-ink hover:bg-raised'
                 }`}
               >
-                <span className="flex-1 text-left">{o.label ?? o.name}</span>
+                <span className="flex flex-1 items-center gap-2 text-left">
+                  {o.icon}
+                  <span className="truncate">{o.label ?? o.name}</span>
+                </span>
                 {isSelected && <Check size={14} className="shrink-0" />}
               </li>
             )

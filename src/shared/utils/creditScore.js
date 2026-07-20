@@ -1,3 +1,5 @@
+export const DEFAULT_CREDIT_SCORE = 80
+
 export const CREDIT_RULES = {
   PAYMENT_CONFIRMED: +2,   // 付款被團主確認
   MEMBER_REMOVED:   -10,   // 被移除出群組

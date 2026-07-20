@@ -1,3 +1,4 @@
+import { Lock } from 'lucide-react'
 import { LOCKED_MESSAGE } from './navConstants'
 
 export function Badge({ count }) {
@@ -7,6 +8,10 @@ export function Badge({ count }) {
       {count > 99 ? '99+' : count}
     </span>
   )
+}
+
+export function LockBadge({ className = '' }) {
+  return <Lock size={11} strokeWidth={2.3} className={`absolute rounded-full ${className}`} />
 }
 
 export function LockedHint({ className = '' }) {

@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Bell, Lock, LogIn, MessageSquare } from 'lucide-react'
+import { Bell, Lock, LogIn, MessageSquare, ShieldCheck } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
 import { NAV_SECTIONS } from '../../constants/nav'
 import { TokenBadge } from '../../ui/TokenAmount'
-import { Badge, LockedHint } from './navShared'
+import { DEFAULT_CREDIT_SCORE } from '../../utils/creditScore'
+import { Badge, LockBadge, LockedHint } from './navShared'
 import { LOCKED_MESSAGE, getNavItemKey, isProtectedNavItem } from './navConstants'
 
 export default function DesktopSidebar({
@@ -16,7 +17,9 @@ export default function DesktopSidebar({
   unreadNotifs,
   unreadMsgs,
   tokenBalance,
+  creditScore,
   setTopupOpen,
+  setCreditScoreOpen,
   closeAll,
   openCreate,
   openMatch,
@@ -48,7 +51,7 @@ export default function DesktopSidebar({
         >
           <span className="relative grid h-9 w-9 shrink-0 place-items-center">
             <Icon size={22} strokeWidth={2.1} />
-            <Lock size={11} strokeWidth={2.3} className="absolute right-0 top-0 rounded-full bg-canvas text-ink-4" />
+            <LockBadge className="right-0 top-0 bg-canvas text-ink-4" />
           </span>
           <span className="whitespace-nowrap font-bold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
             {item.label}
@@ -107,8 +110,8 @@ export default function DesktopSidebar({
         document.body
       )}
 
-      {/* Desktop 通知按鈕 — fixed top-right */}
-      <div className="fixed top-6 z-50 hidden md:block lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
+      {/* Desktop 通知按鈕 + PM幣顯示 — fixed top-right，PM幣寬度貼齊通知按鈕 */}
+      <div className="fixed top-6 z-50 hidden flex-col items-stretch gap-2 md:flex lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
         <button
           onClick={openNotify}
           className="relative flex h-10 items-center gap-2 rounded-xl border border-line bg-white px-4 text-sm font-bold text-ink-2 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand hover:text-white active:scale-[0.96]"
@@ -118,6 +121,19 @@ export default function DesktopSidebar({
           通知
           <Badge count={unreadNotifs} />
         </button>
+
+        {loggedIn && (
+          <button
+            onClick={() => setTopupOpen(true)}
+            aria-label="PM幣儲值"
+            className="flex h-10 items-center gap-2 rounded-xl border border-line bg-white px-3 text-left text-ink shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand hover:text-white active:scale-[0.96]"
+          >
+            <TokenBadge className="shrink-0" />
+            <span className="min-w-0 flex-1 truncate text-xs font-bold leading-none">
+              {tokenBalance.toLocaleString()}
+            </span>
+          </button>
+        )}
       </div>
 
       {/* Desktop 訊息按鈕 — fixed bottom-right，對齊 sidebar 頭像 */}
@@ -142,6 +158,7 @@ export default function DesktopSidebar({
           >
             <MessageSquare size={16} strokeWidth={2} />
             訊息
+            <LockBadge className="right-1 top-1 bg-white text-ink-4" />
             <LockedHint className="right-full top-1/2 mr-2 -translate-y-1/2" />
           </button>
         )}
@@ -149,7 +166,7 @@ export default function DesktopSidebar({
 
       {/* Desktop floating sidebar */}
       <aside
-        className="group/nav fixed bottom-4 left-4 top-4 z-50 hidden w-16 flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-sm transition-[width] duration-300 ease-out hover:w-56 focus-within:w-56 md:flex"
+        className="group/nav fixed bottom-4 left-4 top-4 z-50 hidden w-16 flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-sm transition-[width] duration-300 ease-out hover:w-64 focus-within:w-64 md:flex"
       >
         <a
           href="/"
@@ -170,38 +187,35 @@ export default function DesktopSidebar({
         </nav>
 
         <div className="px-2 pb-4">
-          {loggedIn && (
-            <div className="mb-2 flex h-10 w-full items-center gap-2 overflow-hidden rounded-xl bg-brand-subtle px-3 opacity-0 transition-all duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
-              <TokenBadge className="shrink-0" />
-              <span className="min-w-0 flex-1 truncate text-xs font-bold text-ink">
-                {tokenBalance.toLocaleString()} PM
-              </span>
-              <button
-                onClick={() => { document.activeElement?.blur(); setTopupOpen(true) }}
-                className="shrink-0 rounded-full bg-brand px-2.5 py-0.5 text-[11px] font-bold text-white transition-colors hover:bg-brand-hover"
+          {loggedIn ? (
+            <div className="relative flex h-14 items-center">
+              <a
+                href="/account"
+                onClick={closeAll}
+                aria-label="帳號設定"
+                className="flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left transition-all hover:bg-raised"
               >
-                加值
+                <span
+                  className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-black text-white shadow-md"
+                  style={{ background: avatarColor ?? 'linear-gradient(135deg, #cbd5e1, #64748b)' }}
+                >
+                  {avatarInitial}
+                  <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
+                </span>
+                <span className="min-w-0 flex-1 opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
+                  <span className="block truncate text-sm font-extrabold text-ink">{userName}</span>
+                </span>
+              </a>
+              <button
+                type="button"
+                onClick={e => { e.preventDefault(); e.stopPropagation(); setCreditScoreOpen(true) }}
+                aria-label="信用分數"
+                className="absolute right-1 flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-line bg-white px-2.5 text-ink-2 opacity-0 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand hover:text-white active:scale-[0.96] group-hover/nav:opacity-100 group-focus-within/nav:opacity-100"
+              >
+                <ShieldCheck size={16} strokeWidth={1.5} />
+                <span className="text-xs font-bold">{creditScore ?? DEFAULT_CREDIT_SCORE}</span>
               </button>
             </div>
-          )}
-          {loggedIn ? (
-            <a
-              href="/account"
-              onClick={closeAll}
-              aria-label="帳號設定"
-              className="flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left transition-all hover:bg-raised"
-            >
-              <span
-                className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-black text-white shadow-md"
-                style={{ background: avatarColor ?? 'linear-gradient(135deg, #cbd5e1, #64748b)' }}
-              >
-                {avatarInitial}
-                <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
-              </span>
-              <span className="min-w-0 flex-1 opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
-                <span className="block truncate text-sm font-extrabold text-ink">{userName}</span>
-              </span>
-            </a>
           ) : (
             <a
               href="/login"

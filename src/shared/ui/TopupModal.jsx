@@ -118,7 +118,7 @@ export default function TopupModal({ isOpen, onClose }) {
                         }`}
                       >
                         <div className="flex items-center justify-center gap-1">
-                          <TokenBadge className={selected === amt ? 'ring-2 ring-white/60' : ''} />
+                          <TokenBadge />
                           {amt.toLocaleString()}
                         </div>
                       </button>

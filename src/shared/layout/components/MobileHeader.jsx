@@ -1,8 +1,9 @@
 import { useNavigate } from 'react-router-dom'
-import { Bell, LogOut, Settings, UserCircle2 } from 'lucide-react'
+import { Bell, LogOut, Settings, ShieldCheck, UserCircle2 } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
 import { useAuthStore } from '../../stores/useAuthStore'
 import { TokenBadge } from '../../ui/TokenAmount'
+import CreditScoreBadge from '../../ui/CreditScoreBadge'
 import { Badge } from './navShared'
 
 export default function MobileHeader({
@@ -12,10 +13,12 @@ export default function MobileHeader({
   avatarColor,
   unreadNotifs,
   tokenBalance,
+  creditScore,
   mobileMenuOpen,
   setMobileMenuOpen,
   mobileMenuRef,
   setTopupOpen,
+  setCreditScoreOpen,
   openNotify,
 }) {
   const navigate = useNavigate()
@@ -94,6 +97,18 @@ export default function MobileHeader({
                 加值
               </button>
             </div>
+          </div>
+
+          {/* 信用分數 */}
+          <div className="mb-4 flex justify-center">
+            <button
+              onClick={() => { setMobileMenuOpen(false); setCreditScoreOpen(true) }}
+              className="inline-flex items-center gap-2 rounded-xl bg-raised px-4 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-line-subtle active:opacity-80"
+            >
+              <ShieldCheck size={16} strokeWidth={1.5} className="shrink-0 text-ink-3" />
+              信用分數
+              <CreditScoreBadge score={creditScore} />
+            </button>
           </div>
 
           <div className="border-t border-line-subtle" />
