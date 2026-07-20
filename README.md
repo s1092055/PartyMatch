@@ -58,7 +58,7 @@ PartyMatch 的設計目標是：在一個平台上完整處理**媒合 → 申�
 7. 團主確認資訊齊全後啟用服務
 8. 雙方透過平台管理續訂、付款狀態與溝通
 
-完整的狀態機、PM幣代管流程與各角色詳細流程圖請見 [使用者流程文件](docs/user-flows.md)。
+完整的狀態機、PM幣代管流程與各角色詳細流程圖請見 [使用者流程文件](docs/flows/user-flows.md)。
 
 ---
 
@@ -97,7 +97,7 @@ PartyMatch 的設計目標是：在一個平台上完整處理**媒合 → 申�
 - **事件驅動跨元件通訊**：全域 Modal 透過 `window.dispatchEvent` 觸發，避免 props 層層傳遞、解決同頁面路由 state 不可靠的問題
 - **獨立步驟流程頁**：建立群組、快速搜尋為多步驟全螢幕頁面（非 Modal），脫離主要導覽（sidebar / Dock）避免視覺干擾；兩者皆以 `key={step}` 重新掛載搭配 CSS slide-up 動畫切換步驟，共用頁首左上角的 PartyMatch logo（一般 `<a>` 超連結，點擊回首頁並觸發整頁重新載入）；短內容步驟（如建立群組最後確認）以 `margin: auto` 置中，內容一旦超出可視高度會自動退回頂部對齊並保持可捲動，避免 `justify-content: center` 搭配捲動容器時常見的「溢出內容捲不到」問題；`useScrollEdge` 提供 `forwardWheel` 選配，讓滑鼠在頁面任何位置（含固定 header/底部導覽列）滾動都能捲動內容，依頁面或步驟個別開關（例如快速搜尋的「方案與條件」步驟因為有獨立側邊摘要面板而關閉）
 - **對話延遲曝光**：DM 由某一方主動開啟聯絡後，對話只會出現在發起人自己的訊息列表；對方要等到發起人真的送出第一則訊息才會在自己的列表中看到這個對話（後端以 `initiatorId` + `lastMessage` 判斷，非以輪詢時機控制）
-- **大型元件重構**：將 5 個 600 行以上的大型元件拆分為 orchestrator + 子元件 / hook 的結構，提升可維護性（細節見 [架構文件](docs/architecture.md)）
+- **大型元件重構**：將 5 個 600 行以上的大型元件拆分為 orchestrator + 子元件 / hook 的結構，提升可維護性（細節見 [架構文件](docs/architecture/architecture.md)）
 - **RWD**：支援桌機、平板與手機版面，桌機為 sidebar 導覽，手機為底部 Dock 導覽
 
 ---
@@ -144,10 +144,12 @@ npm run dev              # http://localhost:3001
 
 | 文件 | 內容 |
 |------|------|
-| [架構與資料層](docs/architecture.md) | 資料夾結構、Store 設計、主要檔案連動、元件拆分、認證機制、導覽設計等前端技術細節 |
-| [操作流程](docs/user-flows.md) | 申請、付款、啟用等完整流程圖與群組狀態機 |
-| [資料庫 Schema](docs/database-schema.md) | MySQL Table 設計、事件驅動清單、PM幣異動規則 |
+| [架構與資料層](docs/architecture/architecture.md) | 資料夾結構、Store 設計、主要檔案連動、元件拆分、認證機制、導覽設計等前端技術細節 |
+| [操作流程](docs/flows/user-flows.md) | 申請、付款、啟用等完整流程圖與群組狀態機 |
+| [資料庫 Schema](docs/architecture/database-schema.md) | MySQL Table 設計、事件驅動清單、PM幣異動規則 |
 | [開發指南](docs/development.md) | 環境變數、指令、首次啟動流程、待完成項目 |
+
+完整文件索引（產品地圖、單一流程拆解、手動測試、作品集整理）見 [docs/README.md](docs/README.md)。
 
 ---
 

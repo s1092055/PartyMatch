@@ -1,0 +1,191 @@
+# 核心主線測試案例
+
+涵蓋：建立群組 → 申請加入 → 團主審核 → PM幣扣款 → 額滿鎖定 → 填服務資訊 → 團主啟用 → 成員確認。對應程式碼：`server/src/routes/{groups,applications,members}.js`、`server/src/utils/membership.js`、`server/src/utils/pricing.js`。
+
+測試帳號見 [`test-accounts.md`](./test-accounts.md)。建議用一組全新建立的群組（而非 seed 資料）跑完整主線，因為 seed 群組多半已卡在流程中間某個狀態。
+
+---
+
+### TC-001：團主建立群組成功
+
+**前置條件**：以 demo4（張雅婷）登入，PM幣餘額 3000。
+
+**步驟**：
+1. 前往 `/create-group`
+2. Step1 選擇服務（例如 Netflix）
+3. Step2 選擇方案並選定收費週期（月繳）
+4. Step3 設定名額（例如 2 人）、規則、信用分數門檻（可留 0）
+5. Step4 確認資訊後送出
+
+**預期結果**：
+- 後端 `POST /groups` 成功，回傳 `status: 'recruiting'`、`currentMembers: 0`
+- `maxMembers` 等於 Step3 設定的名額（2）
+- 群組出現在探索頁招募中列表（`GET /groups?status=recruiting`）
+- 團主（demo4）本人可在「我的群組」團主視角看到此群組
+
+---
+
+### TC-002：一般成員申請加入（餘額充足）
+
+**前置條件**：延續 TC-001 建立的群組（席位費用假設為 X PM，可從群組詳情頁確認）；以 demo5（李冠宇，餘額 1000）登入，確認 1000 ≥ X。
+
+**步驟**：
+1. 探索頁找到該群組，開啟群組詳情
+2. 點擊申請加入，進入 `subPanel` 翻書畫面
+3. 填寫申請留言（選填）並勾選同意規則與付款條件
+4. 送出申請
+
+**預期結果**：
+- `POST /applications` 回傳 201，`status: 'pending'`
+- **此階段僅為餘額檢查，不預扣**：demo5 的 `tokenBalance` 不變
+- 團主（demo4）收到 `new_application` 通知
+- demo5 收到 `application_sent` 通知
+- demo5 無法對同一群組再送出第二筆進行中申請（`POST /applications` 應回傳 409「你已有一筆進行中的申請」，依 `activeKey` unique index 保護）
+
+---
+
+### TC-003：PM幣餘額不足時申請被擋下（異常路徑）
+
+**前置條件**：以 demo6（黃詩涵，餘額 200）登入；找一個席位費用高於 200 PM 的群組（例如 seed 資料中的 G3 Spotify family、G8 Google One 等，或自建一個高單價群組）。
+
+**步驟**：
+1. 開啟該群組詳情
+2. 點擊申請加入
+
+**預期結果**：
+- 前端／後端 `POST /applications` 回傳 400，`code: 'INSUFFICIENT_BALANCE'`，訊息包含所需金額與目前餘額（`server/src/routes/applications.js` 第 52-56 行）
+- UI 應提示前往儲值（依 `docs/flows/user-flows.md` 1-A 流程，`E -->|餘額不足| E1[提示前往儲值]`）
+- 不會建立任何 application 記錄
+
+---
+
+### TC-004：團主審核核准（PM幣代管扣款）
+
+**前置條件**：延續 TC-002，demo4 為團主，demo5 有 1 筆 `pending` 申請，席位費用 X PM。
+
+**步驟**：
+1. demo4 登入，開啟「我的群組」團主視角 → 該群組 → 申請管理
+2. 找到 demo5 的申請，點擊「核准」
+
+**預期結果**（`applications.js` PATCH `/:id`，`admitMemberIntoGroup`）：
+- 申請狀態條件式更新為 `approved`（僅 `pending` 才能轉換，防止重複核准）
+- 建立 `member` 與 `subscription` 記錄（`status: 'pending'`）
+- demo5 的 `tokenBalance` 減少 X PM
+- 群組 `escrowTokens` 增加 X PM
+- 群組 `currentMembers` +1
+- 寫入一筆 `tokenTransaction`（`type: 'escrow'`，`amount: -X`）
+- 若核准後 `currentMembers >= maxMembers`，群組狀態自動推進為 `full`；否則維持 `recruiting`
+- demo5 收到 `application_approved` 通知
+
+---
+
+### TC-005：最後一位核准後群組自動推進為 full
+
+**前置條件**：延續 TC-004 情境，群組名額為 2，目前 `currentMembers: 1`；另一位成員（demo3）也已送出 `pending` 申請。
+
+**步驟**：
+1. demo4 核准 demo3 的申請
+
+**預期結果**：
+- `currentMembers` 變為 2（等於 `maxMembers`）
+- 群組狀態自動由 `recruiting` 變為 `full`（`admitMemberIntoGroup` 最後一段邏輯）
+- 群組詳情頁團主視角出現「招募完成，請點擊鎖定群組」banner 與「鎖定群組」CTA（`HostGroupView.jsx` 的 `lockGroupBanner`/`lockGroupCta`，僅在 `status === 'full'` 顯示）
+- `recruiting` 狀態時可用的「申請管理」分頁改為顯示「收款管理」分頁（`isRecruiting` 判斷已為 false）
+
+---
+
+### TC-006：名額已滿時無法再申請（異常路徑）
+
+**前置條件**：延續 TC-005，群組狀態已為 `full`。
+
+**步驟**：
+1. 用另一個帳號（例如 demo1）嘗試對此群組送出申請
+
+**預期結果**：
+- `POST /applications` 回傳 400「此群組目前不開放申請」（`group.status !== 'recruiting'` 檢查，`applications.js` 第 49 行）
+- 探索頁一般只顯示 `status=recruiting` 的群組，`full` 狀態群組理論上不會出現在預設探索列表中（除非直接帶群組連結）
+
+---
+
+### TC-007：團主鎖定群組（full → pending_confirmation）
+
+**前置條件**：延續 TC-005，群組狀態為 `full`。
+
+**步驟**：
+1. demo4 在群組詳情點擊「鎖定群組」並在確認對話框點「確認鎖定」
+
+**預期結果**（`POST /groups/:id/lock`）：
+- 群組狀態變為 `pending_confirmation`
+- 所有成員的 `subscription.nextBillingDate` 被設定為「今天起算一個計費週期」（月繳 +1 個月，年繳 +1 年）
+- 系統自動建立群組聊天室（`POST /conversations/group`，成員 = 團主 + 所有 member）
+- 所有成員收到「群組聊天室已開啟」通知，並可開始填寫服務帳號資訊
+- 成員名單自此鎖死：`DELETE /members/:id` 應回傳 400「群組啟用後無法變更成員名單」（僅 `recruiting`/`full` 可變動名單）
+
+---
+
+### TC-008：成員填寫服務帳號資訊
+
+**前置條件**：延續 TC-007，群組 `pending_confirmation`，成員 demo5、demo3 皆尚未填寫。
+
+**步驟**：
+1. demo5 在「我的群組」成員視角開啟該群組，填寫服務帳號資訊（例如 email）並送出
+
+**預期結果**（`PATCH /members/:id`，`serviceInfo` 更新）：
+- demo5 的 `member.serviceInfo` 被寫入
+- 因為 demo3 尚未填寫，`allFilled` 為 false，群組狀態維持 `pending_confirmation`
+
+**後續步驟**：
+2. demo3 也完成填寫
+
+**預期結果**：
+- 全員 `serviceInfo` 皆非 null，群組狀態自動推進為 `pending_activation`（`members.js` 第 104-116 行）
+- 團主收到「全員已完成填寫」通知，看到「啟用服務」CTA
+
+---
+
+### TC-009：團主啟用服務（confirming 開始 48h 確認期）
+
+**前置條件**：延續 TC-008，群組狀態為 `pending_activation`。
+
+**步驟**：
+1. demo4 點擊「啟用服務」，在 `ActivateServiceModal` 勾選所有成員確認後最終確認
+
+**預期結果**（`POST /groups/:id/activate`）：
+- 群組狀態變為 `confirming`
+- `confirmDeadline` 設為目前時間 +48 小時
+- 所有成員收到 `group_activated` 通知
+- 成員視角出現「確認服務」CTA（`canConfirm = group.status === 'confirming' && !myMember.confirmedAt`）
+
+---
+
+### TC-010：成員主動確認服務正常（立即撥款）
+
+**前置條件**：延續 TC-009，群組僅 1 位成員尚未確認（其餘已確認，或群組僅 1 位成員）。
+
+**步驟**：
+1. demo5 點擊「確認服務」→ 確認對話框點「確認服務正常」
+
+**預期結果**（`POST /groups/:id/confirm`）：
+- demo5 的 `member.confirmedAt` 被寫入目前時間
+- 若確認後全員皆已確認（或已過 `confirmDeadline`）：群組狀態變為 `active`，`confirmDeadline` 清空，`escrowTokens` 全數撥入團主 `tokenBalance`，寫入一筆 `type: 'release'` 的 `tokenTransaction`，所有 `subscription.status` 更新為 `active`
+- 若尚有其他成員未確認：回傳 `{ group: null, released: false }`，群組狀態維持 `confirming`
+
+---
+
+### TC-011：確認期逾期未操作，自動撥款（惰性求值）
+
+**前置條件**：群組處於 `confirming`，`confirmDeadline` 已過期（可用 Prisma Studio 手動把某群組的 `confirmDeadline` 改為過去時間來加速測試，無需真的等 48 小時）。
+
+**步驟**：
+1. 任一使用者觸發 `GET /groups/:id`（例如重新整理群組詳情頁）
+
+**預期結果**（`groups.js` GET `/:id` 第 94-107 行，惰性撥款）：
+- 偵測到 `confirming` 且 `confirmDeadline <= now`，自動在 transaction 內把群組狀態改為 `active`，`escrowTokens` 撥給團主並歸零，所有 `subscription` 改為 `active`
+- 回傳的群組物件已是更新後的 `active` 狀態（不需額外重新整理）
+- 此邏輯以 `status` 重查保持冪等，多次觸發不會重複撥款
+
+---
+
+## 補充：年繳計費路徑
+
+seed 資料中的 G1（Netflix，`billingCycle: 'yearly'`）可用來驗證 `computeSeatCost`：年繳群組的席位費用 = `monthlyFee * 12`（四捨五入），而非月繳的 `monthlyFee`。核准申請、退款、續訂等所有涉及金額計算的動作都應套用此公式（`server/src/utils/pricing.js`）。

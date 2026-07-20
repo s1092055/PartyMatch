@@ -359,7 +359,7 @@ init: async () => {
 
 `recruiting` / `full` 狀態下，成員可自行退出、團主可移除成員：後端刪除 member 記錄、將 application 標為 `left` / `removed`、subscription 一併刪除，名額釋出（`full` 退回 `recruiting`）；被移除或自行退出的申請狀態允許再次申請同一群組。進入 `pending_confirmation` 後成員名單不可再變動，前後端均設有狀態守衛。
 
-完整的群組狀態機（`recruiting → full → pending_confirmation → pending_activation → confirming → {active | disputed} → active`，以及 `cancelled`/`ended` 分支）與各狀態的觸發條件、路由 handler，見 [使用者流程文件](user-flows.md) 與 `server/prisma/schema.prisma` 的 `GroupStatus` enum，此處不重複列出。
+完整的群組狀態機（`recruiting → full → pending_confirmation → pending_activation → confirming → {active | disputed} → active`，以及 `cancelled`/`ended` 分支）與各狀態的觸發條件、路由 handler，見 [使用者流程文件](../flows/user-flows.md) 與 `server/prisma/schema.prisma` 的 `GroupStatus` enum，此處不重複列出。
 
 ---
 
@@ -396,7 +396,7 @@ init: async () => {
 
 ## 跨元件通訊
 
-全域 Modal 透過 `window.dispatchEvent` 以 `pm:open-*` 事件驅動，避免 React props 層層傳遞，也解決 `location.state` 在同頁面不可靠的問題。成員異動事件（退出、被移除）透過 `pm:refresh-member-stores` 事件通知 App.jsx 同步所有相關 Store。完整事件清單見 [資料庫 Schema 文件](database-schema.md#事件驅動清單)。
+全域 Modal 透過 `window.dispatchEvent` 以 `pm:open-*` 事件驅動，避免 React props 層層傳遞，也解決 `location.state` 在同頁面不可靠的問題。成員異動事件（退出、被移除）透過 `pm:refresh-member-stores` 事件通知 App.jsx 同步所有相關 Store。完整事件清單見 [資料庫 Schema 文件](./database-schema.md#事件驅動清單)。
 
 ---
 
