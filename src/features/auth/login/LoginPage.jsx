@@ -35,20 +35,6 @@ export default function LoginPage() {
     navigate(safeRedirect(searchParams.get('redirectTo')), { replace: true })
   }
 
-  async function handleGoogleLogin() {
-    if (loading) return
-    setLoading(true)
-    setError('')
-    const result = await useAuthStore.getState().loginGoogle()
-    setLoading(false)
-    if (!result.ok) {
-      setError(result.error)
-      return
-    }
-    toast('登入成功！歡迎回來')
-    navigate(safeRedirect(searchParams.get('redirectTo')), { replace: true })
-  }
-
   return (
     <AuthLayout>
       <div className="mt-12">
@@ -98,12 +84,12 @@ export default function LoginPage() {
         type="button"
         variant="ghost"
         size="lg"
-        className="h-[3.5rem] w-full border border-line bg-surface text-base text-ink hover:bg-raised"
-        loading={loading}
-        onClick={handleGoogleLogin}
+        disabled
+        className="h-[3.5rem] w-full cursor-not-allowed border border-line bg-surface text-base text-ink-3"
       >
         <GoogleMark />
         以 Google 繼續
+        <span className="rounded-full bg-raised px-2 py-0.5 text-2xs font-bold text-ink-3">即將推出</span>
       </Button>
 
       <p className="mt-8 text-center text-base font-medium text-ink-3">

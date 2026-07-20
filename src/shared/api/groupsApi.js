@@ -47,3 +47,7 @@ export async function renewGroupApi(id) {
 export async function deleteGroup(id) {
   return client.delete(`/groups/${id}`)
 }
+
+export async function fetchGroupTransactions(id) {
+  return client.get(`/groups/${id}/transactions`)
+}

@@ -9,7 +9,7 @@ export default function MatchConditionBar({ conditions, showEdit = true }) {
 
   return (
     <div className="card px-5 py-4 flex flex-wrap items-center gap-4 mb-6">
-      <span className="text-xs font-bold text-slate-400 mr-1">配對條件</span>
+      <span className="text-xs font-bold text-ink-4 mr-1">配對條件</span>
 
       <div className="flex items-center gap-1.5">
         {services.map(id => {
@@ -18,7 +18,7 @@ export default function MatchConditionBar({ conditions, showEdit = true }) {
           return (
             <span
               key={id}
-              className="flex items-center gap-2 rounded-full border border-line bg-white px-2 py-1 text-xs font-bold text-ink"
+              className="flex items-center gap-2 rounded-full border border-line bg-surface px-2 py-1 text-xs font-bold text-ink"
             >
               <ServiceLogo serviceId={id} size={22} />
               {s.name}

@@ -6,12 +6,11 @@
 
 | Table | 說明 |
 |-------|------|
-| `users` | 使用者帳號、密碼 hash、手機號碼（`phone`，註冊必填）、Google ID、信用分數、`tokenBalance`（平台PM幣餘額，1:1 對應 TWD） |
-| `refresh_tokens` | JWT refresh token，支援多裝置登入 |
+| `users` | 使用者帳號、密碼 hash、手機號碼（`phone`，註冊必填）、Google ID、信用分數、`tokenBalance`（平台PM幣餘額，1:1 對應 TWD）、`deactivatedAt`（非 null 代表帳號已軟刪除停用，登入/refresh 一律拒絕，保留資料供日後申請恢復） |
 | `payment_methods` | 使用者付款方式（`brand`、卡片末四碼、有效期限、是否為預設） |
 | `services` | 30 種訂閱服務清單與方案（JSON 欄位） |
 | `groups` | 群組主資料（狀態、名額、方案、`billingCycle`、`escrowTokens`（代管中PM幣總額）、`confirmDeadline`（`confirming` 狀態的確認截止時間，啟用時間 + 48h）、`disputeDeadline`（`disputed` 狀態的裁定截止時間，申訴提出時間 + 3 天）） |
-| `applications` | 申請紀錄（`pending` / `approved` / `rejected` / `removed` / `left` / `withdrawn`）；`withdrawn` 為申請人在審核前自行取消；被拒絕、移除、退出或自行取消後可重新申請（建立新記錄，保留歷史） |
+| `applications` | 申請紀錄（`pending` / `approved` / `rejected` / `removed` / `left` / `withdrawn`）；`withdrawn` 為申請人在審核前自行取消；被拒絕、移除、退出或自行取消後可重新申請（建立新記錄，保留歷史）；`activeKey` 只在 `pending`/`approved`（進行中）時為 `'active'`，其餘狀態為 `null`，搭配 `@@unique([groupId, userId, activeKey])`（MySQL unique index 允許多個 null 並存）模擬「同一使用者對同一群組最多一筆進行中申請」的 partial unique index，避免併發送出申請造成重複 pending 申請 |
 | `members` | 群組成員（`serviceInfo` 訂閱帳號資訊、`serviceInfoIssueNote`、`disputeEvidenceUrl`（僅申訴階段使用，成員提供的爭議佐證截圖）） |
 | `subscriptions` | 成員訂閱（帳號資訊、訂閱狀態、下次扣款日、`lastPaidAt`） |
 | `token_transactions` | PM幣交易審計日誌（`userId`、`type`、`amount`、`relatedGroupId`、`note`）；類型包含 `topup`（儲值）、`escrow`（凍結至代管）、`release`（撥款給團主）、`refund`（退還給成員） |

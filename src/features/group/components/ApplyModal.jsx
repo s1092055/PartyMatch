@@ -3,6 +3,7 @@ import Modal from '../../../shared/ui/Modal'
 import Button from '../../../shared/ui/Button'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import TokenAmount from '../../../shared/ui/TokenAmount'
+import { calcDisplayPrice, calcDisplayCycle } from '../../../shared/utils/pricingUtils'
 
 export default function ApplyModal({
   group,
@@ -44,8 +45,8 @@ export default function ApplyModal({
               </div>
               <p className="shrink-0 text-base font-extrabold text-brand">
                 <TokenAmount
-                  amount={group.billingCycle === 'yearly' ? group.pricePerSeat * 12 : group.pricePerSeat}
-                  cycle={group.billingCycle === 'yearly' ? 'yearly' : 'monthly'}
+                  amount={calcDisplayPrice(group.pricePerSeat, group.billingCycle)}
+                  cycle={calcDisplayCycle(group.billingCycle)}
                 />
               </p>
             </div>

@@ -45,7 +45,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
                 {groupMembers.map(m => (
                   <div key={m.id} className="flex items-center gap-2">
                     <span
-                      className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-[10px] font-black text-white"
+                      className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-2xs font-black text-white"
                       style={{ background: m.userAvatarColor }}
                     >
                       {m.userAvatarInitial}

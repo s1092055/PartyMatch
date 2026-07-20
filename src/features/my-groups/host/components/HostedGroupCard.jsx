@@ -3,20 +3,8 @@ import Badge from '../../../../shared/ui/Badge'
 import Button from '../../../../shared/ui/Button'
 import ServiceLogo from '../../../../shared/ui/ServiceLogo'
 import TokenAmount from '../../../../shared/ui/TokenAmount'
-import { getGroupDisplayStatus } from '../utils/groupActionMap'
-
-const STATUS_BADGE_CLASS = {
-  active:               'bg-success-subtle text-success-text',
-  active_renewal:       'bg-success-subtle text-success-text',
-  recruiting:           'bg-success-subtle text-success-text',
-  pending_confirmation: 'bg-warning-subtle text-warning-text',
-  pending_activation:   'bg-warning-subtle text-warning-text',
-  full:                 'bg-slate-100 text-slate-500',
-  confirming:           'bg-info-subtle text-info-text',
-  disputed:             'bg-danger-subtle text-danger-text',
-  cancelled:            'bg-danger-subtle text-danger-text',
-  ended:                'bg-slate-100 text-slate-400',
-}
+import { getRenewalAwareStatus } from '../../../../shared/utils/groupStatusDisplay'
+import { calcDisplayPrice, calcDisplayCycle } from '../../../../shared/utils/pricingUtils'
 
 function getCollectionState({ group, paidCount, paymentTarget }) {
   if (['cancelled', 'ended'].includes(group.status)) return '已結束'
@@ -58,7 +46,7 @@ function HostedGroupCard({
   paymentCount,
   onViewGroup,
 }) {
-  const displayStatus = getGroupDisplayStatus(group)
+  const displayStatus = getRenewalAwareStatus(group.status, group.nextBillingDate)
 
   const collectionState = getCollectionState({ group, hasMarkedPaid: false, paidCount: 0, paymentTarget: members.length })
 
@@ -79,7 +67,7 @@ function HostedGroupCard({
       onClick={onViewGroup}
     >
       <div className="flex justify-center">
-        <Badge variant={group.status} label={group.status === 'pending_confirmation' ? '收款中' : undefined} className={STATUS_BADGE_CLASS[displayStatus] ?? ''} />
+        <Badge variant={displayStatus} label={group.status === 'pending_confirmation' ? '收款中' : undefined} />
       </div>
 
       <div className="mt-4 flex justify-center">
@@ -91,8 +79,8 @@ function HostedGroupCard({
         <p className="mt-1 text-sm font-semibold text-ink-3">{group.planName}</p>
         <p className="mt-1 text-base font-extrabold text-ink">
           <TokenAmount
-            amount={group.billingCycle === 'yearly' ? group.pricePerSeat * 12 : group.pricePerSeat}
-            cycle={group.billingCycle === 'yearly' ? 'yearly' : 'monthly'}
+            amount={calcDisplayPrice(group.pricePerSeat, group.billingCycle)}
+            cycle={calcDisplayCycle(group.billingCycle)}
           />
         </p>
       </div>

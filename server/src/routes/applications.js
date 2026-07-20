@@ -3,6 +3,8 @@ import { z } from 'zod'
 import prisma from '../lib/prisma.js'
 import { requireAuth } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
+import { computeSeatCost } from '../utils/pricing.js'
+import { admitMemberIntoGroup } from '../utils/membership.js'
 
 const router = Router()
 
@@ -48,9 +50,7 @@ router.post('/', requireAuth, validate(applySchema), async (req, res, next) => {
     if (group.hostId === req.user.id) return res.status(400).json({ message: '團主不能申請自己的群組' })
 
     // 餘額預檢：確保申請人有足夠PM幣支付未來的代管費用
-    const seatCost = group.billingCycle === 'yearly'
-      ? Math.round(group.monthlyFee * 12)
-      : Math.round(group.monthlyFee)
+    const seatCost = computeSeatCost(group)
     if ((applicant?.tokenBalance ?? 0) < seatCost) {
       return res.status(400).json({ message: `PM幣餘額不足，需要 ${seatCost} PM（目前 ${applicant?.tokenBalance ?? 0} PM）`, code: 'INSUFFICIENT_BALANCE', required: seatCost })
     }
@@ -59,21 +59,21 @@ router.post('/', requireAuth, validate(applySchema), async (req, res, next) => {
       where:   { groupId, userId: req.user.id },
       orderBy: { createdAt: 'desc' },
     })
-    if (existing) {
-      // 已被拒絕、移除或自行退出 → 允許重新申請（建立新記錄，保留歷史）
-      if (existing.status === 'rejected' || existing.status === 'removed' || existing.status === 'left' || existing.status === 'withdrawn') {
-        const application = await prisma.application.create({
-          data: { groupId, userId: req.user.id, message },
-        })
-        return res.status(201).json(application)
-      }
+    if (existing && !['rejected', 'removed', 'left', 'withdrawn'].includes(existing.status)) {
       return res.status(409).json({ message: '你已有一筆進行中的申請' })
     }
 
-    const application = await prisma.application.create({
-      data: { groupId, userId: req.user.id, message },
-    })
-    res.status(201).json(application)
+    try {
+      // activeKey 搭配 (groupId, userId, activeKey) 的 unique index，即使兩個併發請求都通過上面的
+      // findFirst 檢查，第二筆 create 仍會在資料庫層被擋下，不會造成重複的進行中申請
+      const application = await prisma.application.create({
+        data: { groupId, userId: req.user.id, message, activeKey: 'active' },
+      })
+      res.status(201).json(application)
+    } catch (err) {
+      if (err.code === 'P2002') return res.status(409).json({ message: '你已有一筆進行中的申請' })
+      throw err
+    }
   } catch (err) { next(err) }
 })
 
@@ -87,7 +87,7 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
 
     const updated = await prisma.application.update({
       where: { id: req.params.id },
-      data:  { status: 'withdrawn' },
+      data:  { status: 'withdrawn', activeKey: null },
     })
     res.json(updated)
   } catch (err) { next(err) }
@@ -106,28 +106,27 @@ router.patch('/:id', requireAuth, validate(reviewSchema), async (req, res, next)
     const { status } = req.body
 
     if (status !== 'approved') {
+      // rejected/removed 都代表這筆申請不再進行中，釋放 activeKey 讓使用者可以重新申請
       const updated = await prisma.application.update({
         where: { id: req.params.id },
-        data:  { status },
+        data:  { status, activeKey: null },
       })
       return res.json(updated)
     }
 
-    // 計算席位費用（yearly = monthlyFee * 12）
-    const seatCost = application.group.billingCycle === 'yearly'
-      ? Math.round(application.group.monthlyFee * 12)
-      : Math.round(application.group.monthlyFee)
+    const seatCost = computeSeatCost(application.group)
 
     // 餘額檢查、名額檢查、審核狀態變更、成員/訂閱建立、代管扣款全部包在同一個 transaction，
     // 避免餘額不足時 application 已變 approved 但後續建立失敗的資料不一致
     const updated = await prisma.$transaction(async (tx) => {
-      const applicant = await tx.user.findUnique({
-        where:  { id: application.userId },
-        select: { tokenBalance: true },
+      // 條件式更新：僅在仍為 pending 時才能核准，避免重複點擊/併發請求造成同一筆申請被重複扣款、重複入群
+      const claimed = await tx.application.updateMany({
+        where: { id: req.params.id, status: 'pending' },
+        data:  { status: 'approved' },
       })
-      if (!applicant || applicant.tokenBalance < seatCost) {
-        const err = new Error('申請人PM幣餘額不足，無法核准')
-        err.statusCode = 400
+      if (claimed.count === 0) {
+        const err = new Error('此申請已被處理，請重新整理頁面')
+        err.statusCode = 409
         throw err
       }
 
@@ -141,66 +140,15 @@ router.patch('/:id', requireAuth, validate(reviewSchema), async (req, res, next)
         throw err
       }
 
-      // 條件式更新：status/currentMembers 在寫入當下重新核對，避免併發核准導致超額或核准到已非招募中的群組
-      const capacity = await tx.group.updateMany({
-        where: {
-          id:             application.groupId,
-          status:         'recruiting',
-          currentMembers: { lt: group.maxMembers },
-        },
-        data: { currentMembers: { increment: 1 }, escrowTokens: { increment: seatCost } },
-      })
-      if (capacity.count === 0) {
-        const err = new Error('群組名額已滿或已結束招募，無法核准')
-        err.statusCode = 409
-        throw err
-      }
-
-      const app = await tx.application.update({
-        where: { id: req.params.id },
-        data:  { status: 'approved' },
+      await admitMemberIntoGroup(tx, {
+        groupId:    application.groupId,
+        userId:     application.userId,
+        seatCost,
+        maxMembers: group.maxMembers,
+        note:       `加入群組代管 ${seatCost} PM`,
       })
 
-      // 建立成員與訂閱記錄
-      await tx.member.upsert({
-        where:  { groupId_userId: { groupId: application.groupId, userId: application.userId } },
-        create: { groupId: application.groupId, userId: application.userId },
-        update: {},
-      })
-      await tx.subscription.upsert({
-        where:  { groupId_userId: { groupId: application.groupId, userId: application.userId } },
-        create: { groupId: application.groupId, userId: application.userId },
-        update: {},
-      })
-      // 代管：扣除申請人PM幣
-      await tx.user.update({
-        where: { id: application.userId },
-        data:  { tokenBalance: { decrement: seatCost } },
-      })
-      // 寫入PM幣交易紀錄
-      await tx.tokenTransaction.create({
-        data: {
-          userId:        application.userId,
-          type:          'escrow',
-          amount:        -seatCost,
-          relatedGroupId: application.groupId,
-          note:          `加入群組代管 ${seatCost} PM`,
-        },
-      })
-
-      // 核准後自動檢查是否額滿，若滿則推進到 full
-      const updatedGroup = await tx.group.findUnique({
-        where:  { id: application.groupId },
-        select: { currentMembers: true, maxMembers: true },
-      })
-      if (updatedGroup.currentMembers >= updatedGroup.maxMembers) {
-        await tx.group.update({
-          where: { id: application.groupId },
-          data:  { status: 'full' },
-        })
-      }
-
-      return app
+      return tx.application.findUnique({ where: { id: req.params.id } })
     })
 
     res.json(updated)

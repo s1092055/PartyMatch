@@ -9,16 +9,16 @@ export default function MatchSummaryPanel({ conditions, filtersChosen }) {
   const isEmpty = services.length === 0
 
   return (
-    <div className="flex h-full flex-col gap-5 rounded-xl bg-white p-5">
+    <div className="flex h-full flex-col gap-5 rounded-xl bg-surface p-5">
       <div className="flex shrink-0 items-center gap-2">
-        <Sliders size={15} className="text-slate-400" />
-        <span className="text-sm font-semibold text-slate-700">你的選擇內容</span>
+        <Sliders size={15} className="text-ink-4" />
+        <span className="text-sm font-semibold text-ink-2">你的選擇內容</span>
       </div>
 
       <div className="min-h-0 flex-1">
-        <p className="mb-2 text-xs text-slate-400">選擇的服務</p>
+        <p className="mb-2 text-xs text-ink-4">選擇的服務</p>
         {isEmpty ? (
-          <p className="text-sm italic text-slate-300">尚未選擇</p>
+          <p className="text-sm italic text-ink-4">尚未選擇</p>
         ) : (
           <div className="h-[calc(100%-1.25rem)] space-y-2 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {services.map(id => {
@@ -39,7 +39,7 @@ export default function MatchSummaryPanel({ conditions, filtersChosen }) {
         )}
       </div>
 
-      <div className="shrink-0 space-y-4 border-t border-slate-100 pt-4">
+      <div className="shrink-0 space-y-4 border-t border-line-subtle pt-4">
         <Row label="每人申請費用" value={filtersChosen ? `NT$${maxPrice} 以下` : '尚未選擇'} muted={!filtersChosen} />
         <Row label="團主信用分數" value={filtersChosen ? `${minRating} 分以上` : '尚未選擇'} muted={!filtersChosen} />
         <Row label="群組年資" value={filtersChosen ? (GROUP_AGE_LABEL[groupAge] ?? '不限') : '尚未選擇'} muted={!filtersChosen} />
@@ -51,8 +51,8 @@ export default function MatchSummaryPanel({ conditions, filtersChosen }) {
 function Row({ label, value, muted }) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-xs text-slate-400">{label}</span>
-      <span className={muted ? 'text-xs italic text-slate-300' : 'text-xs font-semibold text-slate-700'}>{value}</span>
+      <span className="text-xs text-ink-4">{label}</span>
+      <span className={muted ? 'text-xs italic text-ink-4' : 'text-xs font-semibold text-ink-2'}>{value}</span>
     </div>
   )
 }

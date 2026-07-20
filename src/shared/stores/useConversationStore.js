@@ -33,6 +33,17 @@ function maybeNotifyGroupChats(convs, currentUser) {
   })
 }
 
+// init()/refresh() 共用的訂閱回呼：更新 _prevConvIds 並檢查是否有新開的群組聊天室要補通知
+function subscribeAndSync(set, userId) {
+  if (_unsub) { _unsub(); _unsub = null }
+  _unsub = subscribeToConversations(userId, convs => {
+    const currentUser = useAuthStore.getState().getProfile()
+    maybeNotifyGroupChats(convs, currentUser)
+    _prevConvIds = new Set(convs.map(c => c.id))
+    set({ conversations: convs })
+  })
+}
+
 export const useConversationStore = create((set, get) => ({
   conversations: [],
 
@@ -41,12 +52,7 @@ export const useConversationStore = create((set, get) => ({
     if (!userId) return
     get().teardown()
     _prevConvIds = null
-    _unsub = subscribeToConversations(userId, convs => {
-      const currentUser = useAuthStore.getState().getProfile()
-      maybeNotifyGroupChats(convs, currentUser)
-      _prevConvIds = new Set(convs.map(c => c.id))
-      set({ conversations: convs })
-    })
+    subscribeAndSync(set, userId)
   },
 
   teardown: () => {
@@ -55,13 +61,11 @@ export const useConversationStore = create((set, get) => ({
     set({ conversations: [] })
   },
 
-  // 重新建立監聽，不清空現有資料（避免閃爍）
+  // 重新建立監聽，不清空現有資料（避免閃爍）；跟 init() 共用同一套同步邏輯，
+  // 差別只在不重置 _prevConvIds，否則下次 init() 會拿到過期的 _prevConvIds，漏發或重複發通知
   refresh: (userId) => {
     if (!userId) return
-    if (_unsub) { _unsub(); _unsub = null }
-    _unsub = subscribeToConversations(userId, convs => {
-      set({ conversations: convs })
-    })
+    subscribeAndSync(set, userId)
   },
 
   // ── 選取器 ──────────────────────────────────────────────────────────────────

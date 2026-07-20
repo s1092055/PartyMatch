@@ -1,13 +1,10 @@
 import { create } from 'zustand'
 import {
   readAllMembers,
-  insertMember,
   patchMember,
   deleteMemberRecord,
 } from '../api/membersApi'
 import { normalizeMember } from '../utils/modelNormalizers'
-import { todayISO } from '../utils/date'
-import { createId } from '../utils/storage'
 
 export const useMemberStore = create((set, get) => ({
   members: [],
@@ -38,30 +35,6 @@ export const useMemberStore = create((set, get) => ({
 
   getByUserAndGroup: (userId, groupId) =>
     get().members.find(m => m.userId === userId && m.groupId === groupId) ?? null,
-
-  // ── 加入 ────────────────────────────────────────────────────────────────────
-  create: ({ groupId, groupName, userId, userName, userAvatarInitial, userAvatarColor, skipApiCall = false }) => {
-    const member = {
-      id:               createId('mem'),
-      groupId,
-      groupName,
-      userId,
-      userName,
-      userAvatarInitial,
-      userAvatarColor,
-      role:             'member',
-      joinedAt:         todayISO(),
-    }
-    set(s => ({ members: [...s.members, member] }))
-    if (!skipApiCall) {
-      insertMember(member).then(saved => {
-        if (saved?.id && saved.id !== member.id) {
-          set(s => ({ members: s.members.map(m => m.id === member.id ? { ...m, id: saved.id } : m) }))
-        }
-      }).catch(console.error)
-    }
-    return member
-  },
 
   // ── 更新成員（付款狀態、服務帳號、付款憑證等）────────────────────────────────
   update: (memberId, patch) => {

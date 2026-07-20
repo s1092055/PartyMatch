@@ -3,15 +3,9 @@ import { z } from 'zod'
 import prisma from '../lib/prisma.js'
 import { requireAuth, optionalAuth, requireAdmin } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
+import { computeSeatCost } from '../utils/pricing.js'
 
 const router = Router()
-
-// 席位費用（yearly = monthlyFee * 12）
-function computeSeatCost(group) {
-  return group.billingCycle === 'yearly'
-    ? Math.round(group.monthlyFee * 12)
-    : Math.round(group.monthlyFee)
-}
 
 const createGroupSchema = z.object({
   serviceId:      z.string().min(1),
@@ -45,6 +39,11 @@ const updateGroupSchema = z.object({
   nextBillingDate: z.string().optional(),
 })
 
+const disputeSchema = z.object({
+  reason:      z.string().trim().min(1).max(500),
+  evidenceUrl: z.string().url().optional(),
+})
+
 // GET /groups — 探索群組（公開）
 router.get('/', optionalAuth, async (req, res, next) => {
   try {
@@ -55,10 +54,12 @@ router.get('/', optionalAuth, async (req, res, next) => {
         // status=all 時不過濾狀態，讓已登入用戶的群組 store 能取得所有群組
         ...(status !== 'all' && { status }),
         ...(serviceId && { serviceId }),
+        // MySQL 預設 collation（utf8mb4_unicode_ci／general_ci）本身就不分大小寫，
+        // mode: 'insensitive' 是 PostgreSQL/MongoDB 專屬選項，MySQL 上會直接丟出驗證錯誤
         ...(q && {
           OR: [
-            { service: { name: { contains: q, mode: 'insensitive' } } },
-            { planName:  { contains: q, mode: 'insensitive' } },
+            { service: { name: { contains: q } } },
+            { planName:  { contains: q } },
           ],
         }),
         ...(category && { service: { category } }),
@@ -250,10 +251,9 @@ router.post('/:id/confirm', requireAuth, async (req, res, next) => {
 })
 
 // POST /groups/:id/dispute — 成員申訴（confirming → disputed）
-router.post('/:id/dispute', requireAuth, async (req, res, next) => {
+router.post('/:id/dispute', requireAuth, validate(disputeSchema), async (req, res, next) => {
   try {
     const { reason, evidenceUrl } = req.body
-    if (!reason?.trim()) return res.status(400).json({ message: '請填寫申訴原因' })
 
     const group = await prisma.group.findUnique({
       where: { id: req.params.id },
@@ -501,12 +501,31 @@ router.post('/:id/renew', requireAuth, async (req, res, next) => {
   } catch (err) { next(err) }
 })
 
-// DELETE /groups/:id
+// GET /groups/:id/transactions — 團主查看該群組所有成員的PM幣代管/撥款/退款紀錄（收款管理面板）
+router.get('/:id/transactions', requireAuth, async (req, res, next) => {
+  try {
+    const group = await prisma.group.findUnique({ where: { id: req.params.id }, select: { hostId: true } })
+    if (!group) return res.status(404).json({ message: '群組不存在' })
+    if (group.hostId !== req.user.id) return res.status(403).json({ message: '僅團主可查看' })
+
+    const transactions = await prisma.tokenTransaction.findMany({
+      where:   { relatedGroupId: req.params.id },
+      orderBy: { createdAt: 'desc' },
+      include: { user: { select: { id: true, name: true, avatarInitial: true, avatarColor: true } } },
+    })
+    res.json(transactions)
+  } catch (err) { next(err) }
+})
+
+// DELETE /groups/:id — 僅能刪除尚無成員加入的招募中群組，已有成員／已鎖定請走 /cancel（含退款）
 router.delete('/:id', requireAuth, async (req, res, next) => {
   try {
     const group = await prisma.group.findUnique({ where: { id: req.params.id } })
     if (!group) return res.status(404).json({ message: '群組不存在' })
     if (group.hostId !== req.user.id) return res.status(403).json({ message: '僅團主可操作' })
+    if (group.status !== 'recruiting' || group.currentMembers > 0) {
+      return res.status(400).json({ message: '群組已有成員加入或已鎖定，請改用解散群組功能' })
+    }
 
     await prisma.group.delete({ where: { id: req.params.id } })
     res.status(204).end()

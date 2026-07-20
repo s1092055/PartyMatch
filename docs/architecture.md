@@ -37,14 +37,13 @@ src/
 │   ├── account/                # 帳號中心
 │   │   ├── AccountPage.jsx
 │   │   └── components/
-│   │       ├── AccountSidebar.jsx
 │   │       ├── ProfileHeaderCard.jsx
 │   │       └── tabs/
-│   │           ├── NotificationTab.jsx
+│   │           ├── AdminTab.jsx
 │   │           ├── PaymentMethodsTab.jsx
 │   │           ├── PersonalInfoTab.jsx
-│   │           ├── SecurityTab.jsx
-│   │           └── SettingsTab.jsx
+│   │           ├── SettingsTab.jsx
+│   │           └── TokenTab.jsx
 │   ├── auth/                   # 登入、註冊、忘記密碼
 │   │   ├── components/
 │   │   │   ├── AuthIllustration.jsx
@@ -252,6 +251,10 @@ init: async () => {
 | `useConversationStore` | `/conversations`（polling） | 對話列表快取、計算未讀訊息數；每 5 秒輪詢；登出時 `teardown()` |
 | `useReviewStore` | `/reviews` | 依 `hostId` 快取團主評價（`byHostId`），`fetchForHost` 有進行中請求防重複；`submit` 送出後重新拉取該團主評價 |
 
+`useNotificationStore`、`messagesApi`（`subscribeToConversations`/`subscribeToMessages`）三處輪詢共用 `src/shared/utils/poller.js` 的 `startPolling(pollOnce, intervalMs)`：立即執行一次 + 每隔 intervalMs 執行一次，並把 `isActive()` 傳給 callback，讓輪詢邏輯在 await 之後自行判斷這次結果是否還該寫回（`stop()` 可能在 await 期間已被呼叫，例如登出）。
+
+登出（`useAuthStore.logout`）會呼叫 `clearPrivateStores()` 清空 applications/subscriptions/members/favorites 並 teardown conversation/notification 輪詢；`useGroupStore` 因為登入時是用 `init({ all: true })` 讀取所有狀態的群組，登出不能只是清空，而是要重新 `init({ all: false })` 換回訪客可見的招募中群組（同分頁下一位訪客會立刻用到，不能等 App 重新掛載）。
+
 ---
 
 ## 主要檔案連動
@@ -344,6 +347,7 @@ init: async () => {
 - accessToken 存於 `localStorage`，每次 request 自動帶入 `Authorization: Bearer` header
 - 收到 401 且有 token 時自動導向 `/login`（session 過期）
 - 未登入呼叫受保護端點的 401 靜默處理（不跳轉、不報錯）
+- refreshToken 於後端 Redis 以 `refresh:{userId}:{sessionId}` 為 key 儲存（`sessionId` 為登入/註冊時產生的隨機值，內含於 accessToken/refreshToken payload），讓同一帳號可以同時在多台裝置登入，登出/refresh 只影響當下這個 session，不會互踢；改版前簽發、payload 沒有 `sessionId` 的舊 token 仍相容查詢 `refresh:{userId}`，refresh 一次後會自動升級成新機制
 
 ---
 
@@ -364,7 +368,7 @@ init: async () => {
 
 ## 帳號設定
 
-帳號設定頁（`/account`）分頁包含：**個人資料**（基本資訊編輯）、**付款設定**（付款方式管理 + 交易紀錄）、**通知偏好**（開發中）、**安全驗證**（開發中）、**其他設定**（一般偏好、隱私設定、刪除帳號），管理員另有**管理員**分頁。付款方式最多儲存 2 種，存於後端 MySQL（`payment_methods` table）。PM幣加值與交易紀錄整合於 TopupModal 的雙面板設計——主面板儲值、子面板查看交易紀錄，兩者以滑動動畫切換。桌機版為左右 sidebar 分頁佈局：右側內容區為固定高度（`calc(100vh - 16rem)`）容器，分頁內容過長時僅內部垂直捲動，登出按鈕（`AccountPage.jsx` 的 `LogoutButton`）固定顯示在該容器最底部、靠右對齊、brand 底色白字（不再收在「其他設定」分頁內）；手機版為 accordion 展開收合，登出按鈕同樣獨立置於 accordion 最底部，樣式與桌機版共用。頂部 `ProfileHeaderCard` 將信用分數（`CreditScoreBadge`）與「查看紀錄」按鈕移至卡片右側，點擊開啟信用分數異動紀錄 modal（目前為空狀態佔位，資料層尚未建立，見信用分數系統規劃）。
+帳號設定頁（`/account`）分頁包含：**個人資料**（基本資訊編輯）、**付款設定**（付款方式管理 + 交易紀錄）、**通知偏好**（開發中）、**安全驗證**（開發中）、**其他設定**（一般偏好、隱私設定、刪除帳號），管理員另有**管理員**分頁。「其他設定」的刪除帳號為實際可用的軟刪除流程：`SettingsTab.jsx` 要求輸入密碼確認後呼叫 `useAuthStore.deactivateAccount(password)` → `POST /users/me/deactivate`，後端以 bcrypt 驗證密碼後將帳號標記停用並呼叫 `deleteAllUserSessions` 清除該使用者在 Redis 中所有裝置的 refresh token session（見下方「認證機制」），前端隨即登出並導回首頁；帳號資料本身保留，如需恢復須聯絡客服人工處理。付款方式最多儲存 2 種，存於後端 MySQL（`payment_methods` table）。PM幣加值與交易紀錄整合於 TopupModal 的雙面板設計——主面板儲值、子面板查看交易紀錄，兩者以滑動動畫切換。桌機版為左右 sidebar 分頁佈局：右側內容區為固定高度（`calc(100vh - 16rem)`）容器，分頁內容過長時僅內部垂直捲動，登出按鈕（`AccountPage.jsx` 的 `LogoutButton`）固定顯示在該容器最底部、靠右對齊、brand 底色白字（不再收在「其他設定」分頁內）；手機版為 accordion 展開收合，登出按鈕同樣獨立置於 accordion 最底部，樣式與桌機版共用。頂部 `ProfileHeaderCard` 將信用分數（`CreditScoreBadge`）與「查看紀錄」按鈕移至卡片右側，點擊開啟信用分數異動紀錄 modal（目前為空狀態佔位，資料層尚未建立，見信用分數系統規劃）。
 
 ---
 
@@ -376,11 +380,13 @@ init: async () => {
 
 切換身分時，統計卡內每個項目的文字（`AmountStatItem`/`CountStatItem` 內層包一個 `key={activeView}` + `.animate-step-slide-up` 的 wrapper，divide-x 仍作用在最外層維持分隔線）與下方 `FilterTabsBar` 左側 nav（`<nav>` 直接套用 `.animate-step-slide-up`，靠 `HostPage`/`MemberPage` 整頁 remount 觸發，切換分類 tab 不會重播）都會一起播放淡入＋輕微上移的動畫，呼應右上角切換 icon 的操作回饋。
 
+`FilterTabsBar` 已無「已結束」分類 tab——已結束／已取消（`ended`/`cancelled`）的群組改從所有分類（含「全部」）中排除，只能透過側邊欄底部的「群組紀錄」按鈕開啟 `GroupHistoryModal` 查看，避免跟一般篩選分類混在一起。桌機版 nav 不再設 `self-start`，讓 flex 預設的 `align-items: stretch` 撐滿到跟右側內容欄等高，「群組紀錄」按鈕再用 `mt-auto` 固定在該欄位最底部；手機版因改用 `CustomSelect` 下拉選單、沒有可撐高的欄位，「群組紀錄」改成下拉選單右側的 icon 按鈕。`HostPage`/`MemberPage` 各自的 `utils/hostFilters.js`/`utils/memberFilters.js` 提供 `isHistoryGroup`/`isHistorySubscription` 判斷式供兩處共用。
+
 ---
 
 ## 探索篩選與搜尋
 
-探索頁以 **URL query params 為唯一狀態來源**：`ExplorePage` 直接從 `useSearchParams()` 衍生篩選物件（無獨立 `filters` state；`category`/`service`，`maxPrice`/`sortBy` 保留給 `applyFilters` 當預設值與 URL 深連結相容，但 `FilterBar` 已移除價格上限與排序的 `CustomSelect` UI，僅保留分類 `CategoryPills`），`handleFilterChange` 呼叫 `navigate(..., { replace: true })` 更新 URL；桌機版分類 pills 左右各有箭頭按鈕可平滑捲動。
+探索頁以 **URL query params 為唯一狀態來源**：`ExplorePage` 直接從 `useSearchParams()` 衍生篩選物件（無獨立 `filters` state；`category`/`service`/`maxPrice`/`sortBy`/`q` 皆對應同名 query param，`handleFilterChange` 合併 patch 後用 `URLSearchParams` 重建、只有非預設值才寫入，並用 `navigate(..., { replace: true })` 更新 URL，不留歷史紀錄）。`FilterBar` 由上而下依序為：分類 `CategoryPills`（桌機版左右各有箭頭按鈕可平滑捲動）、關鍵字搜尋輸入框（比對服務名稱與方案名稱，`src/shared/utils/searchUtils.js` 的 `applyFilters` 內處理）、以及服務／價格上限／排序三個 `CustomSelect` 下拉。關鍵字輸入用本地 `keyword` state + 300ms debounce 才呼叫 `onChange`，避免每個按鍵都觸發一次 URL replace；送出時 URL 端會 `trim()`，元件內用 `keyword.trim() !== filters.q` 判斷是否為外部真正變化（例如瀏覽器上一頁/下一頁），避免把自己剛送出的 echo 誤判為外部變化而覆寫掉使用者正在輸入、含尾隨空白的內容。
 
 ---
 
@@ -394,7 +400,7 @@ init: async () => {
 
 ### 完整端對端資料流
 
-申請 → 審核 → 成員建立 → 訂閱建立 → 付款確認 → 啟用服務，每一步由 Store 封裝業務邏輯，API 層只做 REST CRUD，兩層職責清楚分離。審核通過時後端自動核算名額並推進群組至 `full` 狀態；被拒絕的申請可重新提出（`rejected → pending`），無需刪除重建。核准流程（餘額檢查、名額與招募狀態條件式更新、申請狀態變更、成員/訂閱建立、PM幣代管扣款）整包在單一 Prisma `$transaction` 內執行；名額檢查採條件式 `updateMany`（`status: 'recruiting'` + `currentMembers < maxMembers`）而非先讀後寫，避免併發核准導致超額或核准到已非招募中的群組；餘額不足或名額已滿時全部回滾，避免申請卡在 `approved` 但成員/代管資料未建立的不一致狀態。`subscriptions` API 一律以登入者身分為授權範圍：`GET` 只回傳本人訂閱或本人主持群組內的訂閱、`DELETE` 僅限訂閱本人或該群組團主可操作；已移除原本可被任意使用者呼叫、繞過申請審核流程建立訂閱的 `POST /subscriptions`（訂閱一律由 `applications.js` 核准流程以 transaction 建立）。`members` API 的 `GET ?groupId=` 現會先驗證請求人是否為該群組成員或團主，非相關人員回傳 403。`notifications` API 的 `POST` 不再信任前端傳入的 `isPublic`（一律視為 false），且通知其他使用者時須驗證請求人與目標使用者皆與 `meta.groupId` 指定的群組有關聯（成員／團主／曾送出申請），避免任意使用者對其他人偽造通知。
+申請 → 審核 → 成員建立 → 訂閱建立 → 付款確認 → 啟用服務，每一步由 Store 封裝業務邏輯，API 層只做 REST CRUD，兩層職責清楚分離。審核通過時後端自動核算名額並推進群組至 `full` 狀態；被拒絕的申請可重新提出（`rejected → pending`），無需刪除重建。核准流程（餘額檢查、名額與招募狀態條件式更新、申請狀態變更、成員/訂閱建立、PM幣代管扣款）整包在單一 Prisma `$transaction` 內執行；申請狀態變更本身也採條件式 `updateMany`（僅 `status: 'pending'` 才能轉為 `approved`）而非先讀後寫，避免同一筆申請被雙擊或併發請求重複核准、重複扣款；名額檢查同樣採條件式 `updateMany`（`status: 'recruiting'` + `currentMembers < maxMembers`），避免併發核准導致超額或核准到已非招募中的群組；餘額不足或名額已滿時全部回滾，避免申請卡在 `approved` 但成員/代管資料未建立的不一致狀態。`subscriptions` API 一律以登入者身分為授權範圍：`GET` 只回傳本人訂閱或本人主持群組內的訂閱、`DELETE` 僅限訂閱本人或該群組團主可操作；已移除原本可被任意使用者呼叫、繞過申請審核流程建立訂閱的 `POST /subscriptions`（訂閱一律由 `applications.js` 核准流程以 transaction 建立）。`members` API 的 `GET ?groupId=` 現會先驗證請求人是否為該群組成員或團主，非相關人員回傳 403。`notifications` API 的 `POST` 不再信任前端傳入的 `isPublic`（一律視為 false），且通知其他使用者時須驗證請求人與目標使用者皆與 `meta.groupId` 指定的群組有關聯（成員／團主／曾送出申請），避免任意使用者對其他人偽造通知。
 
 ### 兩階段 App 啟動
 

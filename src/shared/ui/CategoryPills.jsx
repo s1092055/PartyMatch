@@ -42,7 +42,7 @@ export default function CategoryPills({ active, onChange, variant = 'pills', sho
                   <cat.Icon size={28} className="hidden md:block" strokeWidth={1.75} />
                 </>
               )}
-              <span className="text-[10px] md:text-sm">{cat.label}</span>
+              <span className="text-2xs md:text-sm">{cat.label}</span>
             </button>
           )
         })}

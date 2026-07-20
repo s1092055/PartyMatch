@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useSearchParams } from 'react-router-dom'
 import { Bell, Lock, LogIn, MessageSquare } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
 import { NAV_SECTIONS } from '../../constants/nav'
@@ -25,7 +24,6 @@ export default function DesktopSidebar({
   openMessages,
   preventLockedAction,
 }) {
-  const [searchParams] = useSearchParams()
   const [lockedTip, setLockedTip] = useState(null)
 
   function isGuestLocked(item) {
@@ -74,15 +72,11 @@ export default function DesktopSidebar({
       )
     }
 
-    const isActive = pathname === item.to && (
-      !item.view ||
-      searchParams.get('view') === item.view ||
-      (!searchParams.get('view') && item.view === 'member')
-    )
+    const isActive = pathname === item.to
     return (
       <a
-        key={item.view ? `${item.to}?view=${item.view}` : item.to}
-        href={item.view ? `${item.to}?view=${item.view}` : item.to}
+        key={item.to}
+        href={item.to}
         onClick={closeAll}
         className={`flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-[0.95rem] transition-all hover:-translate-y-0.5 active:scale-[0.96] ${
           isActive

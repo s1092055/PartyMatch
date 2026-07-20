@@ -25,13 +25,13 @@ export default function HostGuide() {
       </div>
 
       {/* 注意事項 */}
-      <div className="mt-8 rounded-2xl border border-amber-200 bg-amber-50 p-5">
-        <p className="mb-3 text-sm font-extrabold text-amber-700">注意事項</p>
+      <div className="mt-8 rounded-2xl border border-warning/30 bg-warning-subtle p-5">
+        <p className="mb-3 text-sm font-extrabold text-warning-text">注意事項</p>
         <ul className="space-y-2.5">
           {HOST_NOTICES.map(({ icon: Icon, text }) => (
             <li key={text} className="flex items-start gap-2.5">
-              <Icon size={14} className="mt-0.5 shrink-0 text-amber-500" />
-              <span className="text-sm leading-relaxed text-amber-800">{text}</span>
+              <Icon size={14} className="mt-0.5 shrink-0 text-warning" />
+              <span className="text-sm leading-relaxed text-warning-text">{text}</span>
             </li>
           ))}
         </ul>

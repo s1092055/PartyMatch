@@ -212,11 +212,10 @@ export default function CreateGroupPage() {
 
   const banner = (() => {
     if (step === 1) {
-      return form.serviceId
-        ? { Icon: Info, text: '請選擇一項訂閱服務' }
-        : { Icon: AlertCircle, text: '請選擇一個訂閱服務' }
+      return { Icon: form.serviceId ? Info : AlertCircle, text: '請選擇一個訂閱服務' }
     }
     if (step === 2) {
+      if (!hasEligiblePlans) return { Icon: AlertCircle, text: '此服務無合購方案，請返回上一步選擇其他服務' }
       if (visibleStepErrors.length > 0) return { Icon: AlertCircle, text: visibleStepErrors[0] }
       return { Icon: Info, text: '請選擇方案' }
     }
@@ -249,7 +248,7 @@ export default function CreateGroupPage() {
         <div
           ref={scrollRef}
           onScroll={handleContentScroll}
-          className={`h-full overflow-y-auto pt-6 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${isPlanOrSettingsStep ? 'lg:overflow-hidden' : step === 4 ? 'overflow-hidden' : ''}`}
+          className={`h-full overflow-y-auto pt-6 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${isPlanOrSettingsStep ? 'short-lg:overflow-hidden' : step === 4 ? 'overflow-hidden' : ''}`}
         >
           <div key={step} className="h-full animate-step-slide-up p-0.5">
             {step <= 4 ? (

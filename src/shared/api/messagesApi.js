@@ -1,5 +1,6 @@
 import client, { tokenManager } from './axiosClient'
 import { normalizeConversation, normalizeMessage } from '../utils/modelNormalizers'
+import { startPolling } from '../utils/poller'
 
 export const MESSAGES_PAGE_SIZE = 50
 const POLL_INTERVAL_MS = 5000
@@ -67,50 +68,29 @@ export async function removeParticipantFromConversation(conversationId, userId) 
 
 // 以輪詢取代即時監聽，每 POLL_INTERVAL_MS 毫秒向 REST API 拉取一次
 export function subscribeToConversations(_userId, onUpdate) {
-  let active = true
-
-  async function poll() {
-    if (!active || !tokenManager.get()) return
+  return startPolling(async (isActive) => {
+    if (!tokenManager.get()) return
     try {
       const convs = await fetchConversations()
-      if (active) onUpdate(convs.map(normalizeConversation))
+      if (isActive()) onUpdate(convs.map(normalizeConversation))
     } catch { /* ignore */ }
-  }
-
-  poll()
-  const timer = setInterval(poll, POLL_INTERVAL_MS)
-
-  return () => {
-    active = false
-    clearInterval(timer)
-  }
+  }, POLL_INTERVAL_MS)
 }
 
 export function subscribeToMessages(conversationId, onUpdate, onError) {
-  let active = true
   let lastCount = 0
 
-  async function poll() {
-    if (!active || !tokenManager.get()) return
+  return startPolling(async (isActive) => {
+    if (!tokenManager.get()) return
     try {
       const messages = await fetchMessages(conversationId)
-      if (active) {
-        if (messages.length !== lastCount) {
-          lastCount = messages.length
-          onUpdate(messages)
-        }
+      if (isActive() && messages.length !== lastCount) {
+        lastCount = messages.length
+        onUpdate(messages)
       }
     } catch (err) {
       console.error('[messagesApi] poll error:', err)
       onError?.()
     }
-  }
-
-  poll()
-  const timer = setInterval(poll, POLL_INTERVAL_MS)
-
-  return () => {
-    active = false
-    clearInterval(timer)
-  }
+  }, POLL_INTERVAL_MS)
 }

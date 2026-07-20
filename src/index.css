@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* 建立群組 Step2/Step3 的左右兩欄版面只在「桌機寬度 + 螢幕不高」時才切成並排，
+   螢幕夠高（例如大螢幕外接顯示器）時改回跟手機/平板一樣的垂直排列，避免固定高度的
+   兩欄容器在高螢幕下方留下大片空白 */
+@custom-variant short-lg (@media (min-width: 1280px) and (max-height: 899px));
+
 @theme {
   /* ── Breakpoints（三段式：手機 / 平板 md: 768px / 桌機 lg: 1280px）── */
   --breakpoint-sm: 768px;
@@ -135,6 +140,12 @@
 
   --shadow-floating:
     0 16px 40px -24px rgb(20 44 91 / 0.45);
+
+  --shadow-success:
+    0 10px 18px -12px rgb(16 178 108 / 0.75);
+
+  --shadow-focus-ring:
+    0 0 0 3px rgb(8 102 242 / 0.14);
 }
 
 /* ── Base ── */
@@ -321,7 +332,7 @@
   .btn-success {
     background-color: var(--color-success);
     color: #fff;
-    box-shadow: 0 10px 18px -12px rgb(16 178 108 / 0.75);
+    box-shadow: var(--shadow-success);
   }
   .btn-success:hover { background-color: var(--color-success-text); }
 
@@ -352,7 +363,7 @@
   .field::placeholder { color: var(--color-ink-4); }
   .field:focus {
     border-color: var(--color-brand);
-    box-shadow: 0 0 0 3px rgb(8 102 242 / 0.14);
+    box-shadow: var(--shadow-focus-ring);
     outline: none;
   }
   .field:disabled {

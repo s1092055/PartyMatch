@@ -167,6 +167,14 @@ router.patch('/:id/participants', requireAuth, async (req, res, next) => {
       : JSON.parse(conversation.participants ?? '[]')
 
     if (action === 'add') {
+      // 只有已在對話中的人，或該群組對話的團主，可以把人加進來，避免任意使用者把自己塞進不相關的對話
+      const isParticipant = participants.includes(req.user.id)
+      const isGroupHost = conversation.type === 'group' && conversation.groupId
+        ? (await prisma.group.findUnique({ where: { id: conversation.groupId }, select: { hostId: true } }))?.hostId === req.user.id
+        : false
+      if (!isParticipant && !isGroupHost) {
+        return res.status(403).json({ message: '無權限加入此對話' })
+      }
       const targetId = userId ?? req.user.id
       if (!participants.includes(targetId)) participants.push(targetId)
     } else if (action === 'leave') {

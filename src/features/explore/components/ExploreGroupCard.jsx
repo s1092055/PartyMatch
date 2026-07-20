@@ -9,6 +9,7 @@ import Badge from '../../../shared/ui/Badge'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import TokenAmount from '../../../shared/ui/TokenAmount'
 import ProgressBar from '../../../shared/ui/ProgressBar'
+import { calcDisplayPrice, calcDisplayCycle } from '../../../shared/utils/pricingUtils'
 import { useFavoriteStore } from '../../../shared/stores/useFavoriteStore'
 import { useAuthStore } from '../../../shared/stores/useAuthStore'
 
@@ -139,8 +140,8 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
 
       <p className="my-4 flex justify-center text-2xl font-black leading-none text-ink">
         <TokenAmount
-          amount={group.billingCycle === 'yearly' ? group.pricePerSeat * 12 : group.pricePerSeat}
-          cycle={group.billingCycle === 'yearly' ? 'yearly' : 'monthly'}
+          amount={calcDisplayPrice(group.pricePerSeat, group.billingCycle)}
+          cycle={calcDisplayCycle(group.billingCycle)}
         />
       </p>
 
@@ -183,6 +184,11 @@ export default memo(ExploreGroupCard, (prev, next) =>
   prev.group.id === next.group.id &&
   prev.group.status === next.group.status &&
   prev.group.openSeats === next.group.openSeats &&
+  prev.group.usedSeats === next.group.usedSeats &&
+  prev.group.totalSeats === next.group.totalSeats &&
+  prev.group.pricePerSeat === next.group.pricePerSeat &&
+  prev.group.planName === next.group.planName &&
+  prev.group.tags?.join(',') === next.group.tags?.join(',') &&
   prev.isApplied === next.isApplied &&
   prev.isMember === next.isMember &&
   prev.hideActions === next.hideActions &&

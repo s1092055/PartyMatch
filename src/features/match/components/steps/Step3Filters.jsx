@@ -8,7 +8,7 @@ export default function Step3Filters({ conditions, onChange }) {
     <div className="space-y-10">
       <div>
         <div className="mb-3 flex items-center justify-between">
-          <span className="text-base font-medium text-slate-700">每人申請費用</span>
+          <span className="text-base font-medium text-ink-2">每人申請費用</span>
           <span className="text-sm font-bold text-brand"><TokenAmount amount={conditions.maxPrice} /> 以下</span>
         </div>
         <div className="relative pt-1">
@@ -28,7 +28,7 @@ export default function Step3Filters({ conditions, onChange }) {
       </div>
       <div>
         <div className="mb-3 flex items-center justify-between">
-          <span className="text-base font-medium text-slate-700">團主信用分數</span>
+          <span className="text-base font-medium text-ink-2">團主信用分數</span>
           <span className="text-sm font-bold text-brand">{conditions.minRating} 分以上</span>
         </div>
         <div className="relative pt-1">
@@ -53,7 +53,7 @@ export default function Step3Filters({ conditions, onChange }) {
               className={`flex-1 rounded-xl border-2 py-2.5 text-sm font-medium transition-colors ${
                 conditions.minRating === r
                   ? 'border-brand bg-brand-subtle text-brand'
-                  : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                  : 'border-line bg-surface text-ink-2 hover:border-line-strong'
               }`}
             >
               {r}+
@@ -62,7 +62,7 @@ export default function Step3Filters({ conditions, onChange }) {
         </div>
       </div>
       <div>
-        <span className="mb-3 block text-base font-medium text-slate-700">群組年資</span>
+        <span className="mb-3 block text-base font-medium text-ink-2">群組年資</span>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {[
             { label: '不限',         value: 'any' },
@@ -76,7 +76,7 @@ export default function Step3Filters({ conditions, onChange }) {
               className={`rounded-xl border-2 px-3 py-2.5 text-sm font-medium transition-colors ${
                 conditions.groupAge === opt.value
                   ? 'border-brand bg-brand-subtle text-brand'
-                  : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                  : 'border-line bg-surface text-ink-2 hover:border-line-strong'
               }`}
             >
               {opt.label}

@@ -13,6 +13,11 @@ export function todayISO() {
   return toISODate(new Date())
 }
 
+// 依 createdAt 由新到舊排序（缺值視為最舊），供各 store 的清單排序共用
+export function byNewest(a, b) {
+  return String(b.createdAt ?? '').localeCompare(String(a.createdAt ?? ''))
+}
+
 export function nowISO() {
   return new Date().toISOString()
 }

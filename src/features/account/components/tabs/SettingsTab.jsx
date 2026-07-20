@@ -1,6 +1,9 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Globe, LogOut, Shield, Trash2 } from 'lucide-react'
 import { readStorage, writeStorage } from '../../../../shared/utils/storage'
+import { useAuthStore } from '../../../../shared/stores/useAuthStore'
+import { toast } from '../../../../shared/utils/toast'
 import Toggle from '../../../../shared/ui/Toggle'
 
 const PREFS_KEY = 'pm_app_prefs'
@@ -41,13 +44,37 @@ function SectionGroup({ title, icon: Icon, children }) {
 }
 
 export default function SettingsTab() {
+  const navigate = useNavigate()
   const [prefs, setPrefs] = useState(loadPrefs)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [password, setPassword] = useState('')
+  const [deleteError, setDeleteError] = useState('')
+  const [deleting, setDeleting] = useState(false)
 
   function toggle(key) {
     const next = { ...prefs, [key]: !prefs[key] }
     setPrefs(next)
     writeStorage(PREFS_KEY, next)
+  }
+
+  function resetDeleteFlow() {
+    setShowDeleteConfirm(false)
+    setPassword('')
+    setDeleteError('')
+  }
+
+  async function handleConfirmDelete() {
+    if (!password.trim() || deleting) return
+    setDeleting(true)
+    setDeleteError('')
+    const result = await useAuthStore.getState().deactivateAccount(password)
+    setDeleting(false)
+    if (!result.ok) {
+      setDeleteError(result.error ?? '停用失敗，請稍後再試')
+      return
+    }
+    toast('帳號已停用，如需恢復請聯絡客服')
+    navigate('/', { replace: true })
   }
 
   return (
@@ -95,18 +122,30 @@ export default function SettingsTab() {
           ) : (
             <div className="rounded-xl border border-danger/30 bg-danger-subtle p-4">
               <p className="mb-1 text-sm font-bold text-danger">確定要刪除帳號？</p>
-              <p className="mb-4 text-xs text-ink-3">此操作無法復原，所有資料將永久刪除。</p>
+              <p className="mb-4 text-xs text-ink-3">帳號將被停用，無法再登入；資料會保留，如需恢復請聯絡客服。請輸入密碼確認。</p>
+              <input
+                type="password"
+                autoComplete="current-password"
+                placeholder="請輸入密碼"
+                value={password}
+                onChange={e => { setPassword(e.target.value); setDeleteError('') }}
+                className="field mb-2 w-full text-sm"
+              />
+              {deleteError && <p className="mb-2 text-xs font-semibold text-danger">{deleteError}</p>}
               <div className="flex gap-2">
                 <button
-                  onClick={() => setShowDeleteConfirm(false)}
-                  className="flex-1 rounded-lg border border-line py-2 text-xs font-bold text-ink-2 transition-colors hover:bg-raised"
+                  onClick={resetDeleteFlow}
+                  disabled={deleting}
+                  className="flex-1 rounded-lg border border-line py-2 text-xs font-bold text-ink-2 transition-colors hover:bg-raised disabled:opacity-50"
                 >
                   取消
                 </button>
                 <button
-                  className="flex-1 rounded-lg bg-danger py-2 text-xs font-bold text-white transition-colors hover:bg-danger/90"
+                  onClick={handleConfirmDelete}
+                  disabled={!password.trim() || deleting}
+                  className="flex-1 rounded-lg bg-danger py-2 text-xs font-bold text-white transition-colors hover:bg-danger/90 disabled:opacity-50"
                 >
-                  確認刪除
+                  {deleting ? '處理中…' : '確認刪除'}
                 </button>
               </div>
             </div>

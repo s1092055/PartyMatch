@@ -42,6 +42,7 @@ async function clearPrivateStores() {
     { useFavoriteStore },
     { useConversationStore },
     { useNotificationStore },
+    { useGroupStore },
   ] = await Promise.all([
     import('./useApplicationStore'),
     import('./useSubscriptionStore'),
@@ -49,6 +50,7 @@ async function clearPrivateStores() {
     import('./useFavoriteStore'),
     import('./useConversationStore'),
     import('./useNotificationStore'),
+    import('./useGroupStore'),
   ])
   useConversationStore.getState().teardown()
   useNotificationStore.getState?.().teardown?.()
@@ -56,6 +58,10 @@ async function clearPrivateStores() {
   useSubscriptionStore.getState   && useSubscriptionStore.setState({ subscriptions: [] })
   useMemberStore.getState         && useMemberStore.setState({ members: [] })
   useFavoriteStore.getState       && useFavoriteStore.setState({ favorites: [] })
+  // 登入時 init({ all: true }) 會帶入所有群組（含非招募中的權限資料），登出不會重新整理頁面，
+  // 必須重新 init({ all: false }) 換回訪客可見的招募中群組，避免同分頁下一位訪客／使用者
+  // 在 App 重新掛載前，看到前一位使用者的完整群組列表（含他人非公開的群組狀態）
+  useGroupStore.getState && useGroupStore.getState().init({ all: false }).catch(console.error)
 }
 
 function activeProfile(user) {
@@ -117,10 +123,6 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-  loginGoogle: async () => {
-    return { ok: false, error: 'Google 登入尚未支援，請使用 Email 登入' }
-  },
-
   // ── 註冊 ────────────────────────────────────────────────────────────────────
   register: async ({ name, email, password, phone }) => {
     try {
@@ -148,6 +150,20 @@ export const useAuthStore = create((set, get) => ({
   // ── 忘記密碼（尚未實作後端寄信功能）────────────────────────────────────────
   resetPassword: async (_email) => {
     return { ok: false, error: '重設密碼功能尚未開放，請聯絡客服' }
+  },
+
+  // ── 停用帳號（軟刪除，需再次輸入密碼確認）──────────────────────────────────
+  deactivateAccount: async (password) => {
+    try {
+      await client.post('/users/me/deactivate', { password })
+      tokenManager.remove()
+      localStorage.removeItem('pm_refresh_token')
+      set({ user: null, loggedIn: false })
+      clearPrivateStores().catch(console.error)
+      return { ok: true }
+    } catch (err) {
+      return { ok: false, error: err.message }
+    }
   },
 
   // ── 更新個人資料 ────────────────────────────────────────────────────────────

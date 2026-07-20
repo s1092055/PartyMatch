@@ -148,8 +148,8 @@ async function main() {
     if (!services[id]) throw new Error(`找不到服務 ${id}，請先執行 npm run db:seed`)
   }
 
-  // ── G1 recruiting：U1 主揪 Netflix，1 筆待審申請 ──────────────────────
-  const g1 = await createGroup({ hostId: U1.id, service: services.netflix, planId: 'netflix-std', totalSeats: 2, currentMembers: 0, status: 'recruiting' })
+  // ── G1 recruiting：U1 主揪 Netflix，年繳方案，1 筆待審申請（涵蓋年繳的手動測試路徑）──
+  const g1 = await createGroup({ hostId: U1.id, service: services.netflix, planId: 'netflix-std', totalSeats: 2, currentMembers: 0, status: 'recruiting', extra: { billingCycle: 'yearly' } })
   await addApplication({ groupId: g1.id, userId: D1.id, status: 'pending', message: '想加入！平常都用 Netflix 追劇，穩定準時繳費 🙏' })
   await notify({ userId: U1.id, groupId: g1.id, type: 'new_application', title: '收到新的加入申請', message: '王小明 申請加入你的 Netflix 群組', meta: { groupId: g1.id }, isRead: false, createdAt: daysAgo(0) })
   await notify({ userId: D1.id, groupId: g1.id, type: 'application_sent', title: '申請已送出', message: '已送出加入 Netflix 群組的申請，等待團主審核', meta: { groupId: g1.id }, isRead: true, createdAt: daysAgo(0) })
@@ -209,7 +209,7 @@ async function main() {
 
   // ── G7 disputed：U3 主揪 ExpressVPN，一位成員申訴中 ────────────────────
   const g7 = await createGroup({
-    hostId: U3.id, service: services.expressvpn, planId: 'expressvpn-monthly', totalSeats: 5, currentMembers: 3, status: 'disputed',
+    hostId: U3.id, service: services.expressvpn, planId: 'expressvpn-monthly', totalSeats: 4, currentMembers: 3, status: 'disputed',
     extra: { nextBillingDate: daysFromNow(15), disputeDeadline: daysFromNow(2), escrowTokens: 0 },
   })
   for (const u of [D1, D2, D6]) {

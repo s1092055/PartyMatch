@@ -11,8 +11,6 @@ import { useConversationStore } from '../../../shared/stores/useConversationStor
 import { sendSystemMessage } from '../../../shared/api/messagesApi'
 import { insertNotification } from '../../../shared/api/notificationsApi'
 import SubscriptionCard from './components/SubscriptionCard'
-
-const getGroupById = (id) => useGroupStore.getState().getById(id)
 import EmptyState from '../../../shared/ui/EmptyState'
 import GroupViewModal from '../../../shared/ui/GroupViewModal'
 import TokenAmount from '../../../shared/ui/TokenAmount'
@@ -24,8 +22,12 @@ import ScrollHint from '../../../shared/ui/ScrollHint'
 import { formatRelativeDate } from '../../../shared/utils/date'
 import { useScrollEdge } from '../../../shared/utils/hooks'
 import { isEffectivelyActive } from '../../../shared/utils/groupStatus'
-
+import { calcDisplayPrice, calcDisplayCycle } from '../../../shared/utils/pricingUtils'
 import { FILTER_TABS } from './utils/memberFilters'
+import { isHistorySubscription } from '../../../shared/utils/groupStatusDisplay'
+import GroupHistoryModal from '../../../shared/ui/GroupHistoryModal'
+
+const getGroupById = (id) => useGroupStore.getState().getById(id)
 
 function enrichSubs(rawSubs, userId) {
   const myMemberByGroupId = new Map(
@@ -59,18 +61,14 @@ function isActivatedSubscription(sub) {
 
 function isProcessingSubscription(sub) {
   if (isActivatedSubscription(sub)) return false
-  const groupStatus = sub.groupStatus ?? sub.status
-  return !['cancelled', 'ended'].includes(groupStatus)
+  return !isHistorySubscription(sub)
 }
-
-const ENDED_STATUSES = new Set(['paused', 'cancelled', 'ended'])
 
 function filterSubs(subs, tab) {
   switch (tab) {
     case 'processing': return subs.filter(isProcessingSubscription)
     case 'active':     return subs.filter(isActivatedSubscription)
-    case 'ended':      return subs.filter(s => ENDED_STATUSES.has(s.groupStatus ?? s.status))
-    default:           return subs
+    default:           return subs.filter(s => !isHistorySubscription(s))
   }
 }
 
@@ -96,6 +94,7 @@ export default function MemberPage({ embedded = false }) {
   )
   const [viewGroupId, setViewGroupId] = useState(null)
   const [autoOpenPayment, setAutoOpenPayment] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -119,11 +118,12 @@ export default function MemberPage({ embedded = false }) {
     [activeUserId, applicationsState],
   )
 
+  const historySubs = useMemo(() => subs.filter(isHistorySubscription), [subs])
+
   const filterCounts = useMemo(() => ({
-    all:        subs.length + pendingApplications.length,
+    all:        filterSubs(subs, 'all').length + pendingApplications.length,
     processing: filterSubs(subs, 'processing').length + pendingApplications.length,
     active:     filterSubs(subs, 'active').length,
-    ended:      filterSubs(subs, 'ended').length,
   }), [subs, pendingApplications])
 
   function handleLeaveGroup() {
@@ -207,6 +207,8 @@ export default function MemberPage({ embedded = false }) {
           value={activeTab}
           onChange={setActiveTab}
           counts={filterCounts}
+          onOpenHistory={() => setHistoryOpen(true)}
+          historyCount={historySubs.length}
         />
 
         <div className="group relative min-w-0 flex-1">
@@ -297,6 +299,21 @@ export default function MemberPage({ embedded = false }) {
         onLeaveGroup={handleLeaveGroup}
       />
 
+      <GroupHistoryModal
+        isOpen={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        items={historySubs}
+        emptyDescription="已結束或已取消的訂閱會顯示在這裡"
+        renderItem={(sub, i) => (
+          <RevealSection key={sub.id} delay={i * 60}>
+            <SubscriptionCard
+              sub={sub}
+              onViewGroup={sub => { setHistoryOpen(false); setViewGroupId(sub.groupId) }}
+            />
+          </RevealSection>
+        )}
+      />
+
     </div>
   )
 }
@@ -323,8 +340,8 @@ function ApplicationCard({ app, group, onViewGroup }) {
         {group.pricePerSeat != null && (
           <p className="mt-1 text-base font-extrabold text-ink">
             <TokenAmount
-              amount={group.billingCycle === 'yearly' ? group.pricePerSeat * 12 : group.pricePerSeat}
-              cycle={group.billingCycle === 'yearly' ? 'yearly' : 'monthly'}
+              amount={calcDisplayPrice(group.pricePerSeat, group.billingCycle)}
+              cycle={calcDisplayCycle(group.billingCycle)}
             />
           </p>
         )}

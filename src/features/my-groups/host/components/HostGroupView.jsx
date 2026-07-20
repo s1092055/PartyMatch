@@ -6,6 +6,7 @@ import GroupModalSideBarItem from '../../../../shared/ui/GroupModalSideBarItem'
 import { getServiceById } from '../../../../shared/utils/serviceUtils'
 import { useAuthStore } from '../../../../shared/stores/useAuthStore'
 import { useNotificationStore } from '../../../../shared/stores/useNotificationStore'
+import { fetchGroupTransactions } from '../../../../shared/api/groupsApi'
 import ActivateServiceModal from './ActivateServiceModal'
 import ReportServiceIssueModal from './ReportServiceIssueModal'
 import { buildMembersPanel } from './hostGroupView/buildMembersPanel'
@@ -24,6 +25,20 @@ export default function HostGroupView({ group, members, applications, onReportSe
   const [showLockGroupConfirm, setShowLockGroupConfirm] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm]         = useState(false)
   const [expandedBillingMembers, setExpandedBillingMembers] = useState(new Set())
+  const [transactions, setTransactions]                     = useState([])
+  const [transactionsLoading, setTransactionsLoading]       = useState(false)
+
+  useEffect(() => {
+    if (activePanel !== 'billing') return
+    let active = true
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setTransactionsLoading(true)
+    fetchGroupTransactions(group.id)
+      .then(data => { if (active) setTransactions(data) })
+      .catch(() => { if (active) setTransactions([]) })
+      .finally(() => { if (active) setTransactionsLoading(false) })
+    return () => { active = false }
+  }, [activePanel, group.id])
 
   function toggleBillingMember(memberId) {
     setExpandedBillingMembers(prev => {
@@ -68,7 +83,6 @@ export default function HostGroupView({ group, members, applications, onReportSe
   const groupFull     = group.openSeats <= 0
 
   const canActivateNow  = group.status === 'pending_activation'
-  const isActivated     = ['active', 'cancelled', 'ended'].includes(group.status)
 
   const [finalConfirmed, setFinalConfirmed]         = useState(false)
   const [memberChecks, setMemberChecks]             = useState({})
@@ -162,7 +176,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
   function buildSubPanel() {
     if (activePanel === 'members') return buildMembersPanel({ group, members, setActivePanel, onClose, setRemovingMember })
     if (activePanel === 'applications') return buildApplicationsPanel({ pendingApps, groupFull, errors, onApprove, onReject, setActivePanel, setShowReviewHistory })
-    if (activePanel === 'billing') return buildBillingPanel({ isActivated, members, expandedBillingMembers, toggleBillingMember })
+    if (activePanel === 'billing') return buildBillingPanel({ members, transactions, transactionsLoading, expandedBillingMembers, toggleBillingMember })
     return null
   }
 
@@ -194,7 +208,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
             <span className="relative">
               <ClipboardList size={17} />
               {pendingApps.length > 0 && (
-                <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-warning-text px-0.5 text-[10px] font-bold text-white">
+                <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-warning-text px-0.5 text-2xs font-bold text-white">
                   {pendingApps.length}
                 </span>
               )}

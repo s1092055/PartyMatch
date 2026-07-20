@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { Minus, Plus, PlusCircle, X } from 'lucide-react'
 import { getServiceById } from '../../../../shared/utils/serviceUtils'
+import { useMediaQuery, SHORT_LG_QUERY } from '../../../../shared/utils/hooks'
 import Field from './Field'
 
 const MIN_CREDIT_OPTIONS = [
@@ -16,17 +17,18 @@ export default function Step3Settings({ form, onChange }) {
   const maxSeats = plan?.maxSeats ?? 10
   const openSeats = form.totalSeats - 1
 
-  // 帳號需求 textarea 的底部要對齊右欄群組規則最後一項的底部，
-  // 兩欄內容天生不等高，只能量測實際位置後直接設定 textarea 高度
+  // 帳號需求 textarea 的底部要對齊右欄群組規則最後一項的底部，兩欄並排只在 short-lg 生效
+  // （見 index.css），兩欄內容天生不等高，只能量測實際位置後直接設定 textarea 高度
   const textareaRef = useRef(null)
   const lastRuleRef = useRef(null)
   const [textareaHeight, setTextareaHeight] = useState(null)
+  const isShortLgUp = useMediaQuery(SHORT_LG_QUERY)
 
   useLayoutEffect(() => {
     function sync() {
       const textarea = textareaRef.current
       const lastRule = lastRuleRef.current
-      if (!textarea || !lastRule || window.innerWidth < 1024) {
+      if (!textarea || !lastRule || !isShortLgUp) {
         setTextareaHeight(prev => (prev === null ? prev : null))
         return
       }
@@ -37,7 +39,7 @@ export default function Step3Settings({ form, onChange }) {
     sync()
     window.addEventListener('resize', sync)
     return () => window.removeEventListener('resize', sync)
-  }, [form.rules.length])
+  }, [form.rules.length, isShortLgUp])
 
   function updateRule(i, val) {
     const next = [...form.rules]
@@ -54,7 +56,7 @@ export default function Step3Settings({ form, onChange }) {
   }
 
   return (
-    <div className="pb-3 lg:flex lg:h-96 lg:items-stretch lg:gap-8">
+    <div className="pb-3 short-lg:flex short-lg:h-96 short-lg:items-stretch short-lg:gap-8">
       {/* 左：剩餘名額、信用分數、帳號需求 */}
       <div className="flex min-h-0 min-w-0 flex-1 flex-col space-y-5 overflow-y-auto pb-1 pl-1 pr-1">
         <Field label="剩餘名額" required hint={`最多可開放 ${maxSeats - 1} 位成員加入（不含你自己）`}>
@@ -112,7 +114,7 @@ export default function Step3Settings({ form, onChange }) {
       </div>
 
       {/* 右：群組規則 */}
-      <div className="mt-6 flex flex-1 flex-col space-y-1 lg:mt-0">
+      <div className="mt-6 flex flex-1 flex-col space-y-1 short-lg:mt-0">
         <Field label="群組規則" hint="最多 5 條，清楚的規則可降低後續糾紛">
           <div className="space-y-1">
             {form.rules.map((rule, i) => (

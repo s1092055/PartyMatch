@@ -3,8 +3,15 @@ import { z } from 'zod'
 import prisma from '../lib/prisma.js'
 import { requireAuth } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
+import { computeSeatCost } from '../utils/pricing.js'
+import { admitMemberIntoGroup } from '../utils/membership.js'
 
 const router = Router()
+
+const addMemberSchema = z.object({
+  groupId: z.string().min(1),
+  userId:  z.string().min(1),
+})
 
 const patchMemberSchema = z.object({
   subscriptionAccount:  z.string().optional(),
@@ -49,16 +56,29 @@ router.get('/', requireAuth, async (req, res, next) => {
 })
 
 // POST /members — 僅團主可手動加入成員（一般由申請核准流程自動建立）
-router.post('/', requireAuth, async (req, res, next) => {
+// 名額與代管扣款邏輯與 applications.js 的核准流程共用 admitMemberIntoGroup，避免繞過名額上限與 escrow 帳務
+router.post('/', requireAuth, validate(addMemberSchema), async (req, res, next) => {
   try {
     const { groupId, userId } = req.body
-    const group = await prisma.group.findUnique({ where: { id: groupId } })
+    const [group, targetUser] = await Promise.all([
+      prisma.group.findUnique({ where: { id: groupId } }),
+      prisma.user.findUnique({ where: { id: userId }, select: { id: true } }),
+    ])
     if (!group) return res.status(404).json({ message: '群組不存在' })
     if (group.hostId !== req.user.id) return res.status(403).json({ message: '僅團主可操作' })
+    if (group.status !== 'recruiting') return res.status(400).json({ message: '群組非招募中，無法手動加入成員' })
+    if (!targetUser) return res.status(404).json({ message: '使用者不存在' })
 
-    const member = await prisma.member.create({
-      data: { groupId, userId },
-    })
+    const seatCost = computeSeatCost(group)
+
+    const member = await prisma.$transaction(tx => admitMemberIntoGroup(tx, {
+      groupId,
+      userId,
+      seatCost,
+      maxMembers: group.maxMembers,
+      note:       `團主手動加入群組，代管 ${seatCost} PM`,
+    }))
+
     res.status(201).json(member)
   } catch (err) { next(err) }
 })
@@ -118,9 +138,7 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
     }
 
     // 計算退款金額（從 escrow 退還給成員）
-    const seatCost = existing.group.billingCycle === 'yearly'
-      ? Math.round(existing.group.monthlyFee * 12)
-      : Math.round(existing.group.monthlyFee)
+    const seatCost = computeSeatCost(existing.group)
     const refundAmount = Math.min(seatCost, existing.group.escrowTokens)
 
     const newCount = await prisma.$transaction(async (tx) => {
@@ -148,18 +166,18 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
           note:          isHost ? '被團主移除，代管退款' : '自行退出，代管退款',
         },
       })
-      // 成員自行退出：把 application 標為 left，讓成員可重新申請
+      // 成員自行退出：把 application 標為 left，並釋放 activeKey 讓成員可重新申請
       if (isSelf && !isHost) {
         await tx.application.updateMany({
           where: { groupId: existing.groupId, userId: existing.userId, status: 'approved' },
-          data:  { status: 'left' },
+          data:  { status: 'left', activeKey: null },
         })
       }
-      // 被移除：把 application 標為 removed
+      // 被移除：把 application 標為 removed，並釋放 activeKey 讓使用者可重新申請
       if (isHost && !isSelf) {
         await tx.application.updateMany({
           where: { groupId: existing.groupId, userId: existing.userId, status: 'approved' },
-          data:  { status: 'removed' },
+          data:  { status: 'removed', activeKey: null },
         })
       }
       return updated.currentMembers

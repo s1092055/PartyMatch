@@ -3,33 +3,14 @@ import Button from '../../../../shared/ui/Button'
 import Badge from '../../../../shared/ui/Badge'
 import ServiceLogo from '../../../../shared/ui/ServiceLogo'
 import TokenAmount from '../../../../shared/ui/TokenAmount'
-import { daysUntil, toISODate } from '../../../../shared/utils/date'
+import { toISODate } from '../../../../shared/utils/date'
 import { isEffectivelyActive } from '../../../../shared/utils/groupStatus'
-
-const STATUS_BADGE_CLASS = {
-  active:               'bg-success-subtle text-success-text',
-  active_renewal:       'bg-success-subtle text-success-text',
-  recruiting:           'bg-success-subtle text-success-text',
-  pending_confirmation: 'bg-warning-subtle text-warning-text',
-  pending_activation:   'bg-warning-subtle text-warning-text',
-  full:                 'bg-slate-100 text-slate-500',
-  confirming:           'bg-info-subtle text-info-text',
-  disputed:             'bg-danger-subtle text-danger-text',
-  cancelled:            'bg-danger-subtle text-danger-text',
-  ended:                'bg-slate-100 text-slate-400',
-}
+import { getRenewalAwareStatus } from '../../../../shared/utils/groupStatusDisplay'
+import { calcDisplayPrice, calcDisplayCycle } from '../../../../shared/utils/pricingUtils'
 
 function getBadgeStatus(sub) {
   const status = sub.groupStatus ?? sub.status
   return isEffectivelyActive(status, sub.confirmedAt) ? 'active' : status
-}
-
-function getDisplayStatus(badgeStatus, sub) {
-  if (badgeStatus === 'active' && sub.nextBillingDate) {
-    const days = daysUntil(sub.nextBillingDate)
-    if (days !== null && days <= 7) return 'active_renewal'
-  }
-  return badgeStatus
 }
 
 function StatCell({ label, children, highlight }) {
@@ -43,7 +24,7 @@ function StatCell({ label, children, highlight }) {
 
 function SubscriptionCard({ sub, onViewGroup }) {
   const badgeStatus   = getBadgeStatus(sub)
-  const displayStatus = getDisplayStatus(badgeStatus, sub)
+  const displayStatus = getRenewalAwareStatus(badgeStatus, sub.nextBillingDate)
   const isActive      = badgeStatus === 'active'
   const memberCount   = sub.usedSeats ?? 0
 
@@ -53,10 +34,7 @@ function SubscriptionCard({ sub, onViewGroup }) {
       onClick={() => onViewGroup?.(sub)}
     >
       <div className="flex justify-center">
-        <Badge
-          variant={badgeStatus === 'recruiting' ? 'member_joined' : badgeStatus}
-          className={STATUS_BADGE_CLASS[displayStatus] ?? ''}
-        />
+        <Badge variant={displayStatus === 'recruiting' ? 'member_joined' : displayStatus} />
       </div>
 
       <div className="mt-4 flex justify-center">
@@ -68,8 +46,8 @@ function SubscriptionCard({ sub, onViewGroup }) {
         <p className="mt-1 text-sm font-semibold text-ink-3">{sub.planName}</p>
         <p className="mt-1 text-base font-extrabold text-ink">
           <TokenAmount
-            amount={sub.billingCycle === 'yearly' ? sub.pricePerSeat * 12 : sub.pricePerSeat}
-            cycle={sub.billingCycle === 'yearly' ? 'yearly' : 'monthly'}
+            amount={calcDisplayPrice(sub.pricePerSeat, sub.billingCycle)}
+            cycle={calcDisplayCycle(sub.billingCycle)}
           />
         </p>
       </div>

@@ -5,19 +5,16 @@ import {
   patchNotification,
   markAllNotificationsRead,
 } from '../api/notificationsApi'
-import { nowISO, todayISO } from '../utils/date'
+import { nowISO, todayISO, byNewest } from '../utils/date'
 import { createId } from '../utils/storage'
+import { startPolling } from '../utils/poller'
 
 const POLL_INTERVAL_MS = 10000
 
-let _notifTimer = null
+let _stopPolling = null
 let _notifUserId = null
 
 const SYSTEM_NOTIFICATION_TYPES = new Set(['system', 'announcement', 'platform'])
-
-function byNewest(a, b) {
-  return String(b.createdAt ?? '').localeCompare(String(a.createdAt ?? ''))
-}
 
 // 保險去重：依 id 保留第一筆，避免 init/poll 交錯的競態情況讓同一筆通知在陣列中出現兩次
 function dedupeById(list) {
@@ -81,13 +78,17 @@ export const useNotificationStore = create((set, get) => ({
   },
 
   startPolling: (userId) => {
-    if (_notifTimer) clearInterval(_notifTimer)
+    if (_stopPolling) _stopPolling()
     _notifUserId = userId
 
-    async function poll() {
+    _stopPolling = startPolling(async (isActive) => {
       if (!_notifUserId) return
+      const polledForUserId = _notifUserId
       try {
         const latest = await readAllNotifications()
+        // teardown() 可能在這次 await 期間執行（例如使用者登出），此時不可再寫回 store，
+        // 否則已登出的資料會在下一位使用者的畫面短暫重新出現
+        if (!isActive() || _notifUserId !== polledForUserId) return
         const currentIds = new Set(useNotificationStore.getState().notifications.map(n => n.id))
         const newNotifs = latest.filter(n => n.userId === _notifUserId && !currentIds.has(n.id))
         if (newNotifs.some(n => n.type === 'member_removed' || n.type === 'member_left')) {
@@ -98,13 +99,11 @@ export const useNotificationStore = create((set, get) => ({
         }
         set({ notifications: dedupeById(latest) })
       } catch { /* silent */ }
-    }
-
-    _notifTimer = setInterval(poll, POLL_INTERVAL_MS)
+    }, POLL_INTERVAL_MS)
   },
 
   teardown: () => {
-    if (_notifTimer) { clearInterval(_notifTimer); _notifTimer = null }
+    if (_stopPolling) { _stopPolling(); _stopPolling = null }
     _notifUserId = null
     set({ notifications: [] })
   },
@@ -149,6 +148,8 @@ export const useNotificationStore = create((set, get) => ({
       }
     } catch (err) {
       console.error('[notificationStore] create failed:', err)
+      // 後端寫入失敗時移除本地暫存通知，避免留下一筆 markRead 永遠無法同步的 tempId 幽靈通知
+      set(s => ({ notifications: s.notifications.filter(n => n.id !== tempId) }))
     }
     return notif
   },

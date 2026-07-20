@@ -32,7 +32,7 @@ export default function CustomSelect({ label, value, onChange, options }) {
         type="button"
         onClick={() => setOpen(v => !v)}
         className={`field flex h-11 w-full items-center justify-between gap-2 px-3 text-sm font-bold text-ink transition-colors hover:border-line-strong ${
-          open ? 'border-brand shadow-[0_0_0_3px_rgb(8_102_242_/_0.14)]' : ''
+          open ? 'border-brand shadow-focus-ring' : ''
         }`}
       >
         <span className="flex-1 truncate text-left">{selectedLabel}</span>

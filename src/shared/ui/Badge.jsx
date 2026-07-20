@@ -24,8 +24,12 @@ const VARIANTS = {
     dot: null,
   },
   pending_confirmation: {
-    cls: 'bg-orange-50 text-orange-600',
-    dot: 'bg-orange-400',
+    cls: 'bg-warning-subtle text-warning-text',
+    dot: 'bg-warning',
+  },
+  active_renewal: {
+    cls: 'bg-success-subtle text-success-text',
+    dot: 'bg-success',
   },
   confirming: {
     cls: 'bg-info-subtle text-info-text',
@@ -86,6 +90,7 @@ const LABELS = {
   verified:           '已驗證',
   upcoming:           '即將續訂',
   member_joined:      '申請通過',
+  active_renewal:     '即將續訂',
 }
 
 export default function Badge({ variant = 'default', label, className = '' }) {

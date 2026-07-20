@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../../shared/stores/useAuthStore'
 import EmptyState from '../../../shared/ui/EmptyState'
 import GroupViewModal from '../../../shared/ui/GroupViewModal'
+import GroupHistoryModal from '../../../shared/ui/GroupHistoryModal'
 import FilterTabsBar from '../../../shared/ui/FilterTabsBar'
 import RevealSection from '../../../shared/ui/RevealSection'
 import ScrollHint from '../../../shared/ui/ScrollHint'
@@ -15,6 +17,7 @@ export default function HostPage({ embedded = false }) {
   const navigate = useNavigate()
   const activeUser = useAuthStore(s => s.user)
   const { scrollRef: listScrollRef, canScroll: listCanScroll, atBottom: listAtBottom, isScrolling: listIsScrolling, handleScroll: handleListScroll } = useScrollEdge()
+  const [historyOpen, setHistoryOpen] = useState(false)
 
   const {
     errors,
@@ -25,7 +28,7 @@ export default function HostPage({ embedded = false }) {
     autoOpenApplications, setAutoOpenApplications,
     autoOpenBilling, setAutoOpenBilling,
     setRenewalModalGroupId,
-    allGroups, displayGroups, filterCounts, membersMap, applicationCounts,
+    allGroups, displayGroups, historyGroups, filterCounts, membersMap, applicationCounts,
     renewalModalGroup,
     groupHandlersMap,
     refreshGroups,
@@ -54,6 +57,8 @@ export default function HostPage({ embedded = false }) {
           value={statusFilter}
           onChange={setStatusFilter}
           counts={filterCounts}
+          onOpenHistory={() => setHistoryOpen(true)}
+          historyCount={historyGroups.length}
         />
 
         <div className="min-w-0 flex-1">
@@ -124,6 +129,24 @@ export default function HostPage({ embedded = false }) {
           onEndGroup={handleEndGroup}
         />
       )}
+
+      <GroupHistoryModal
+        isOpen={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        items={historyGroups}
+        emptyDescription="已解散或已結束的群組會顯示在這裡"
+        renderItem={(g, i) => (
+          <RevealSection key={g.id} delay={i * 60}>
+            <HostedGroupCard
+              group={g}
+              members={membersMap[g.id] ?? []}
+              pendingAppCount={applicationCounts[g.id] ?? 0}
+              paymentCount={0}
+              onViewGroup={() => { setHistoryOpen(false); refreshGroups(); setViewGroupId(g.id) }}
+            />
+          </RevealSection>
+        )}
+      />
     </div>
   )
 }

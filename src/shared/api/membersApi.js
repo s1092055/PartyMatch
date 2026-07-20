@@ -4,10 +4,6 @@ export async function readAllMembers(params = {}) {
   return client.get('/members', { params })
 }
 
-export async function insertMember(data) {
-  return client.post('/members', data)
-}
-
 export async function patchMember(id, patch) {
   return client.patch(`/members/${id}`, patch)
 }

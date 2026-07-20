@@ -4,6 +4,7 @@ import kkboxIcon from '../../assets/KKBOX-icon.png'
 const getServices = () => useServiceStore.getState().services
 const _getById = (id) => useServiceStore.getState().getById(id)
 import masterclassIcon from '../../assets/masterclass-icon.png'
+import fridayIcon from '../../assets/friDay-icon.png'
 
 const ICONIFY_API_BASE = 'https://api.iconify.design'
 
@@ -11,6 +12,7 @@ const ICONIFY_API_BASE = 'https://api.iconify.design'
 const LOCAL_ICON_ASSETS = {
   'kkbox':       kkboxIcon,
   'masterclass': masterclassIcon,
+  'friday-video': fridayIcon,
 }
 
 export function listServiceTypes() {

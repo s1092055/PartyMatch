@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { getServiceById } from '../../../../shared/utils/serviceUtils'
+import { useMediaQuery, SHORT_LG_QUERY } from '../../../../shared/utils/hooks'
 import TokenAmount from '../../../../shared/ui/TokenAmount'
 import Field from './Field'
 
@@ -21,17 +22,11 @@ export default function Step2Plan({ form, onChange }) {
 
   // 右側「方案說明」高度要跟左側（服務說明＋選擇方案，含切換按鈕）切齊，
   // 用 ResizeObserver 量測左側實際高度，超出的部分讓右側框內部自己捲動；
-  // 左右並排只在 lg 以上生效，手機版維持自然高度，不套用量到的值
+  // 左右並排只在 short-lg（桌機寬度 + 螢幕不高，見 index.css）時生效，
+  // 手機/平板或螢幕夠高時都維持自然高度，不套用量到的值
   const leftColRef = useRef(null)
   const [leftColHeight, setLeftColHeight] = useState(null)
-  const [isLgUp, setIsLgUp] = useState(() => window.matchMedia('(min-width: 1024px)').matches)
-
-  useEffect(() => {
-    const mql = window.matchMedia('(min-width: 1024px)')
-    const onChange = e => setIsLgUp(e.matches)
-    mql.addEventListener('change', onChange)
-    return () => mql.removeEventListener('change', onChange)
-  }, [])
+  const isShortLgUp = useMediaQuery(SHORT_LG_QUERY)
 
   useEffect(() => {
     const el = leftColRef.current
@@ -48,7 +43,7 @@ export default function Step2Plan({ form, onChange }) {
   }
 
   return (
-    <div className="pb-1 lg:flex lg:items-start lg:gap-8">
+    <div className="pb-1 short-lg:flex short-lg:items-start short-lg:gap-8">
       {/* 左：服務說明、選擇方案 */}
       <div ref={leftColRef} className="flex min-w-0 flex-1 flex-col space-y-5">
         <div>
@@ -109,8 +104,8 @@ export default function Step2Plan({ form, onChange }) {
 
       {/* 右：方案說明 */}
       <div
-        className="mt-5 flex min-w-0 flex-1 flex-col lg:mt-0"
-        style={isLgUp && leftColHeight ? { height: leftColHeight } : undefined}
+        className="mt-5 flex min-w-0 flex-1 flex-col short-lg:mt-0"
+        style={isShortLgUp && leftColHeight ? { height: leftColHeight } : undefined}
       >
         <p className="mb-2 flex items-center gap-1.5 text-base font-medium text-slate-700">方案說明</p>
         <div className="min-h-0 flex-1 overflow-y-auto rounded-xl bg-canvas p-3.5">

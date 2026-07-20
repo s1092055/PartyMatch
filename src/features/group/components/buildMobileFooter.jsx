@@ -102,8 +102,9 @@ export function buildMobileFooter({
         <>
           <div className="flex items-center gap-2">
             <Button
+              variant="ink"
               size="lg"
-              className="flex-1 bg-[#1a1f36] text-white hover:bg-[#252b47]"
+              className="flex-1"
               onClick={() => setShowApply(true)}
             >
               申請加入 <ChevronRight size={16} strokeWidth={1.5} />

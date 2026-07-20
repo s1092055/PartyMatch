@@ -13,7 +13,7 @@ export default function Step2Plans({ conditions, onChangePlan }) {
           <div key={serviceId}>
             <div className="mb-3 flex items-center gap-2">
               <ServiceLogo serviceId={serviceId} size={24} className="rounded-lg" />
-              <p className="text-base font-medium text-slate-700">{service.name}</p>
+              <p className="text-base font-medium text-ink-2">{service.name}</p>
             </div>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               <button
@@ -21,11 +21,11 @@ export default function Step2Plans({ conditions, onChangePlan }) {
                 className={`rounded-xl border-2 px-4 py-2.5 text-left transition-colors ${
                   selected === 'any'
                     ? 'border-brand bg-brand-subtle text-brand'
-                    : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                    : 'border-line bg-surface text-ink-2 hover:border-line-strong'
                 }`}
               >
                 <p className="text-sm font-bold">不限方案</p>
-                <p className="mt-0.5 text-xs text-slate-400">接受所有方案</p>
+                <p className="mt-0.5 text-xs text-ink-4">接受所有方案</p>
               </button>
               {service.plans.map(plan => (
                 <button
@@ -34,11 +34,11 @@ export default function Step2Plans({ conditions, onChangePlan }) {
                   className={`rounded-xl border-2 px-4 py-2.5 text-left transition-colors ${
                     selected === plan.name
                       ? 'border-brand bg-brand-subtle text-brand'
-                      : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                      : 'border-line bg-surface text-ink-2 hover:border-line-strong'
                   }`}
                 >
                   <p className="text-sm font-bold">{plan.name}</p>
-                  <p className="mt-0.5 text-xs text-slate-400"><TokenAmount amount={plan.monthlyPrice} cycle="monthly" badgeSize="!h-3 !w-3" /> · 最多 {plan.maxSeats} 人</p>
+                  <p className="mt-0.5 text-xs text-ink-4"><TokenAmount amount={plan.monthlyPrice} cycle="monthly" badgeSize="!h-3 !w-3" /> · 最多 {plan.maxSeats} 人</p>
                 </button>
               ))}
             </div>

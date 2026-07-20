@@ -1,12 +1,19 @@
 import { getServiceById } from './serviceUtils'
 
 // 探索頁的篩選/排序邏輯
-export function applyFilters(groups, { category, service, maxPrice, sortBy }) {
+export function applyFilters(groups, { category, service, maxPrice, sortBy, q }) {
   let result = groups.filter(g => g.status === 'recruiting' && g.openSeats > 0)
 
   if (category !== 'all' && service === 'all') result = result.filter(g => getServiceById(g.serviceId)?.category === category)
   if (service !== 'all') result = result.filter(g => g.serviceId === service)
   if (maxPrice !== 'any') result = result.filter(g => g.pricePerSeat <= Number(maxPrice))
+  if (q?.trim()) {
+    const keyword = q.trim().toLowerCase()
+    result = result.filter(g => {
+      const serviceName = getServiceById(g.serviceId)?.name ?? g.serviceName ?? ''
+      return serviceName.toLowerCase().includes(keyword) || (g.planName ?? '').toLowerCase().includes(keyword)
+    })
+  }
 
   switch (sortBy) {
     case 'rating':    result.sort((a, b) => b.hostRating - a.hostRating); break

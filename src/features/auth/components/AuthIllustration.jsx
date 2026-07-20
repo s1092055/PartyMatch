@@ -21,10 +21,10 @@ const FEATURES = [
 
 export default function AuthIllustration({ title = '更聰明的訂閱方式' }) {
   return (
-    <aside className="relative hidden min-h-[43rem] overflow-hidden rounded-3xl border border-slate-200 bg-slate-50 p-12 shadow-sm lg:block">
+    <aside className="relative hidden min-h-[43rem] overflow-hidden rounded-3xl border border-line bg-raised p-12 shadow-sm lg:block">
       <div className="relative z-10">
-        <h2 className="text-3xl font-extrabold leading-tight text-slate-950">{title}</h2>
-        <p className="mt-5 text-base font-medium leading-relaxed text-slate-500">
+        <h2 className="text-3xl font-extrabold leading-tight text-ink">{title}</h2>
+        <p className="mt-5 text-base font-medium leading-relaxed text-ink-3">
           與對的人一起分享訂閱，享受更多優質服務。
         </p>
 
@@ -35,8 +35,8 @@ export default function AuthIllustration({ title = '更聰明的訂閱方式' })
                 <Icon size={27} strokeWidth={2.4} />
               </div>
               <div>
-                <p className="text-lg font-extrabold text-slate-950">{featureTitle}</p>
-                <p className="mt-1 text-sm font-medium leading-relaxed text-slate-500">{desc}</p>
+                <p className="text-lg font-extrabold text-ink">{featureTitle}</p>
+                <p className="mt-1 text-sm font-medium leading-relaxed text-ink-3">{desc}</p>
               </div>
             </div>
           ))}
@@ -45,9 +45,9 @@ export default function AuthIllustration({ title = '更聰明的訂閱方式' })
 
       <div className="absolute bottom-0 left-0 right-0 h-[22rem] bg-[linear-gradient(150deg,transparent_20%,rgba(37,99,235,0.08)_20%,rgba(37,99,235,0.08)_62%,transparent_62%)]" />
 
-      <div className="absolute bottom-20 right-12 w-48 rounded-[2rem] border-[10px] border-white bg-white p-5 shadow-xl shadow-slate-200/70">
-        <div className="mx-auto h-1.5 w-12 rounded-full bg-slate-200" />
-        <p className="pt-7 text-sm font-extrabold text-slate-950">我的訂閱</p>
+      <div className="absolute bottom-20 right-12 w-48 rounded-[2rem] border-[10px] border-white bg-white p-5 shadow-xl shadow-line/70">
+        <div className="mx-auto h-1.5 w-12 rounded-full bg-line" />
+        <p className="pt-7 text-sm font-extrabold text-ink">我的訂閱</p>
         <div className="mt-4 space-y-3">
           <MiniSubscription serviceId="spotify" title="Spotify 家庭方案" price="NT$150 / 月" />
           <MiniSubscription serviceId="disney" title="Disney+ 標準方案" price="NT$93 / 月" />
@@ -55,12 +55,12 @@ export default function AuthIllustration({ title = '更聰明的訂閱方式' })
         </div>
       </div>
 
-      <div className="absolute bottom-16 left-16 w-[19rem] rounded-2xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/70">
+      <div className="absolute bottom-16 left-16 w-[19rem] rounded-2xl border border-line bg-white p-6 shadow-xl shadow-line/70">
         <div className="flex items-center gap-4">
           <ServiceLogo serviceId="netflix" size={58} />
           <div>
-            <p className="text-base font-extrabold text-slate-950">Netflix 高級方案</p>
-            <p className="mt-1 text-xs font-semibold text-slate-500">每月 NT$390</p>
+            <p className="text-base font-extrabold text-ink">Netflix 高級方案</p>
+            <p className="mt-1 text-xs font-semibold text-ink-3">每月 NT$390</p>
           </div>
         </div>
 
@@ -89,11 +89,11 @@ export default function AuthIllustration({ title = '更聰明的訂閱方式' })
 
 function MiniSubscription({ serviceId, title, price }) {
   return (
-    <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
+    <div className="flex items-center gap-2 rounded-xl border border-line bg-white p-2 shadow-sm">
       <ServiceLogo serviceId={serviceId} size={32} />
       <div className="min-w-0">
-        <p className="truncate text-2xs font-extrabold text-slate-950">{title}</p>
-        <p className="text-xs font-bold text-slate-400">{price}</p>
+        <p className="truncate text-2xs font-extrabold text-ink">{title}</p>
+        <p className="text-xs font-bold text-ink-4">{price}</p>
       </div>
     </div>
   )

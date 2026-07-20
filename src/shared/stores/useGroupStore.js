@@ -13,7 +13,7 @@ import {
 } from '../api/groupsApi'
 import { normalizeGroup } from '../utils/modelNormalizers'
 import { createId } from '../utils/storage'
-import { todayISO } from '../utils/date'
+import { todayISO, byNewest } from '../utils/date'
 
 export const useGroupStore = create((set, get) => ({
   groups:  [],
@@ -36,7 +36,7 @@ export const useGroupStore = create((set, get) => ({
   getById:      (id)     => get().groups.find(g => g.id === id) ?? null,
   getByHostId:  (hostId) => get().groups
     .filter(g => g.hostId === hostId)
-    .sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? '')),
+    .sort(byNewest),
   getRecruiting: ()      => get().groups.filter(g => g.status === 'recruiting'),
 
   // ── 建立群組 ────────────────────────────────────────────────────────────────
@@ -69,7 +69,11 @@ export const useGroupStore = create((set, get) => ({
         const normalized = normalizeGroup({ ...saved })
         set(s => ({ groups: s.groups.map(g => g.id === group.id ? normalized : g) }))
       }
-    }).catch(err => console.error('[groupStore] create failed:', err))
+    }).catch(err => {
+      console.error('[groupStore] create failed:', err)
+      // 後端建立失敗時移除樂觀新增的本地群組，避免留下一筆伺服器端不存在的假群組
+      set(s => ({ groups: s.groups.filter(g => g.id !== group.id), error: err.message }))
+    })
     return group
   },
 
@@ -152,10 +156,18 @@ export const useGroupStore = create((set, get) => ({
   // ── 裁定申訴（管理員）──────────────────────────────────────────────────────
   adjudicateGroup: async (id, payload) => {
     const res = await adjudicateGroupApi(id, payload)
-    // 讓呼叫端觸發完整 refresh，確保成員與訂閱狀態同步
-    set(s => ({
-      groups: s.groups.map(g => g.id === id ? { ...g, status: 'active', disputeDeadline: null } : g),
-    }))
+    // 裁定會連動變更成員名單／代管餘額／訂閱狀態（見 server/src/routes/groups.js 的 winner 分支），
+    // 不能只靠本地假設把 status 設回 active；直接重新 init 換回真實狀態，
+    // 避免依賴呼叫端（管理後台）記得手動刷新
+    const [{ useMemberStore }, { useSubscriptionStore }] = await Promise.all([
+      import('./useMemberStore'),
+      import('./useSubscriptionStore'),
+    ])
+    await Promise.all([
+      get().init({ all: true }),
+      useMemberStore.getState().init(),
+      useSubscriptionStore.getState().init(),
+    ])
     return res
   },
 

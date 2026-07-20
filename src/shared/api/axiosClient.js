@@ -65,10 +65,15 @@ client.interceptors.response.use(
       const refreshToken = localStorage.getItem('pm_refresh_token')
 
       if (!refreshToken) {
+        const err = new Error('登入已過期，請重新登入')
+        // 這裡也要 processQueue + 重置 _isRefreshing，否則其他在 refresh 期間排隊等待的
+        // 請求會永遠卡住（它們的 Promise 沒人 resolve/reject）
+        processQueue(err)
+        _isRefreshing = false
         tokenManager.remove()
         localStorage.removeItem('pm_refresh_token')
         window.location.replace('/login')
-        return Promise.reject(new Error('登入已過期，請重新登入'))
+        return Promise.reject(err)
       }
 
       try {

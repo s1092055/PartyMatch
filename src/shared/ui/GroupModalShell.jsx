@@ -7,6 +7,7 @@ import ProgressBar from './ProgressBar'
 import TokenAmount from './TokenAmount'
 import ScrollHint from './ScrollHint'
 import { useScrollLock, useScrollEdge } from '../utils/hooks'
+import { calcDisplayPrice, calcDisplayCycle } from '../utils/pricingUtils'
 
 export default function GroupModalShell({
   onClose,
@@ -43,7 +44,7 @@ export default function GroupModalShell({
   const centeredBadgeCls   = pendingBadgeColor === 'success'
     ? 'bg-success-subtle text-success-text'
     : pendingBadgeColor === 'danger'
-      ? 'bg-danger-subtle text-danger'
+      ? 'bg-danger-subtle text-danger-text'
       : 'bg-warning-subtle text-warning-text'
 
   const activeDetail = subSubPanel ?? subPanel
@@ -176,8 +177,8 @@ export default function GroupModalShell({
                           <p className="mb-0.5 text-xs font-medium text-ink-4">每位價格</p>
                           <div>
                             <TokenAmount
-                              amount={group.billingCycle === 'yearly' ? group.pricePerSeat * 12 : group.pricePerSeat}
-                              cycle={group.billingCycle === 'yearly' ? 'yearly' : 'monthly'}
+                              amount={calcDisplayPrice(group.pricePerSeat, group.billingCycle)}
+                              cycle={calcDisplayCycle(group.billingCycle)}
                               className="text-2xl font-extrabold"
                             />
                           </div>

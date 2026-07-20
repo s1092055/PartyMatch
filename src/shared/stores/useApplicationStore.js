@@ -8,13 +8,9 @@ import {
 import { insertNotification } from '../api/notificationsApi'
 
 import { normalizeApplication } from '../utils/modelNormalizers'
-import { nowISO } from '../utils/date'
+import { nowISO, byNewest } from '../utils/date'
 import { createId } from '../utils/storage'
 import { useNotificationStore } from './useNotificationStore'
-
-function byNewest(a, b) {
-  return String(b.createdAt ?? '').localeCompare(String(a.createdAt ?? ''))
-}
 
 export const useApplicationStore = create((set, get) => ({
   applications: [],

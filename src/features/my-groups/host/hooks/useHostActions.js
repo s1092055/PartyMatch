@@ -11,6 +11,7 @@ import { createGroupConversation, removeParticipantFromConversation, sendSystemM
 import { toast } from '../../../../shared/utils/toast'
 import { insertNotification } from '../../../../shared/api/notificationsApi'
 import { useConversationStore } from '../../../../shared/stores/useConversationStore'
+import { isHistoryGroup } from '../../../../shared/utils/groupStatusDisplay'
 import { STATUS_FILTER_TABS, matchesFilter, calcApprovalSeatPatch } from '../utils/hostFilters'
 
 // ── store 操作的精簡別名（事件處理器內呼叫，讀取最新 store 狀態）─────────────
@@ -112,6 +113,11 @@ export function useHostActions(activeUser) {
   const displayGroups = useMemo(
     () => allGroups.filter(g => matchesFilter(g, statusFilter)),
     [allGroups, statusFilter],
+  )
+
+  const historyGroups = useMemo(
+    () => allGroups.filter(isHistoryGroup),
+    [allGroups],
   )
 
   const filterCounts = useMemo(() => {
@@ -462,11 +468,18 @@ async function handleApprove(appId) {
     refreshGroups()
   }
 
-  function handleReject(appId) {
+  async function handleReject(appId) {
     const app = applications.find(a => a.id === appId)
     if (!app || app.status !== 'pending') return
 
-    updateApplicationStatus(appId, 'rejected').catch(console.error)
+    try {
+      await updateApplicationStatus(appId, 'rejected')
+    } catch (err) {
+      console.error('[handleReject] failed:', err)
+      setErrors(prev => ({ ...prev, [appId]: '拒絕失敗，請重試' }))
+      return
+    }
+
     // 申請人通知：只寫 DB，申請人刷新後才看到
     insertNotification({
       userId:  app.applicantId ?? app.userId,
@@ -504,7 +517,7 @@ async function handleApprove(appId) {
     autoOpenApplications, setAutoOpenApplications,
     autoOpenBilling, setAutoOpenBilling,
     renewalModalGroupId, setRenewalModalGroupId,
-    allGroups, displayGroups, filterCounts, membersMap, applicationCounts,
+    allGroups, displayGroups, historyGroups, filterCounts, membersMap, applicationCounts,
     renewalModalGroup,
     groupHandlersMap,
     refreshGroups,

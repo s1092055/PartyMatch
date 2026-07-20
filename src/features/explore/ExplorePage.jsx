@@ -20,6 +20,7 @@ export default function ExplorePage() {
     service:  searchParams.get('service') ?? 'all',
     maxPrice: searchParams.get('maxPrice') ?? 'any',
     sortBy:   searchParams.get('sortBy') ?? 'recommended',
+    q:        searchParams.get('q') ?? '',
   }), [searchParams])
   const activeUserId = useAuthStore(s => s.user?.id)
   const groups = useGroupStore(s => s.groups)
@@ -53,6 +54,7 @@ export default function ExplorePage() {
     if (next.service !== 'all') params.set('service', next.service)
     if (next.maxPrice !== 'any') params.set('maxPrice', next.maxPrice)
     if (next.sortBy !== 'recommended') params.set('sortBy', next.sortBy)
+    if (next.q.trim()) params.set('q', next.q.trim())
     navigate(`/explore${params.toString() ? '?' + params.toString() : ''}`, { replace: true })
   }
 

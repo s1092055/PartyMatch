@@ -1,22 +1,29 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Mail } from 'lucide-react'
-import AuthLayout, { AuthInput } from '../components/AuthLayout'
+import AuthLayout, { AuthInput, AuthError } from '../components/AuthLayout'
 import Button from '../../../shared/ui/Button'
 import { useAuthStore } from '../../../shared/stores/useAuthStore'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e) {
     e.preventDefault()
     if (!email.trim() || loading) return
     setLoading(true)
-    await useAuthStore.getState().resetPassword(email)
+    const result = await useAuthStore.getState().resetPassword(email)
     setLoading(false)
-    setSubmitted(true)
+    if (result.ok) {
+      setSubmitted(true)
+      setError('')
+    } else {
+      setError(result.error ?? '寄送失敗，請稍後再試')
+      setSubmitted(false)
+    }
   }
 
   return (
@@ -35,7 +42,7 @@ export default function ForgotPasswordPage() {
           type="email"
           placeholder="請輸入電子郵件"
           value={email}
-          onChange={value => { setEmail(value); setSubmitted(false) }}
+          onChange={value => { setEmail(value); setSubmitted(false); setError('') }}
         />
 
         {submitted && (
@@ -43,6 +50,8 @@ export default function ForgotPasswordPage() {
             如果此信箱已註冊，我們會寄出重設密碼連結。
           </div>
         )}
+
+        {error && <AuthError message={error} />}
 
         <Button type="submit" size="lg" className="h-[3.75rem] w-full text-lg" disabled={!email.trim()} loading={loading}>
           送出重設連結

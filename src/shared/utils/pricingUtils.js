@@ -14,3 +14,8 @@ export function calcPricePerSeat(plan, seats) {
 export function calcDisplayPrice(pricePerSeat, billingCycle) {
   return billingCycle === 'yearly' ? pricePerSeat * 12 : pricePerSeat
 }
+
+// 正規化週期供 <TokenAmount cycle> 使用（非 yearly 一律視為 monthly）
+export function calcDisplayCycle(billingCycle) {
+  return billingCycle === 'yearly' ? 'yearly' : 'monthly'
+}
