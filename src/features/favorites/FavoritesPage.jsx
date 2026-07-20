@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Heart } from 'lucide-react'
-import EmptyState from '../../shared/ui/EmptyState'
+import EmptyState from '../../shared/ui/primitives/EmptyState'
 import { useAuthStore } from '../../shared/stores/useAuthStore'
 import PageHeader from '../../shared/layout/PageHeader'
 import { useFavoriteStore } from '../../shared/stores/useFavoriteStore'
@@ -9,7 +9,7 @@ import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { useMemberStore } from '../../shared/stores/useMemberStore'
 import { getServiceById } from '../../shared/utils/serviceUtils'
 import ExploreGroupCard from '../explore/components/ExploreGroupCard'
-import CategoryPills from '../../shared/ui/CategoryPills'
+import CategoryPills from '../../shared/ui/primitives/CategoryPills'
 
 export default function FavoritesPage() {
   const navigate = useNavigate()

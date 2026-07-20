@@ -1,6 +1,6 @@
 import { ArrowDownCircle, ArrowUpCircle, Banknote, ChevronDown, ChevronUp, RotateCcw } from 'lucide-react'
-import Avatar from '../../../../../shared/ui/Avatar'
-import EmptyState from '../../../../../shared/ui/EmptyState'
+import Avatar from '../../../../../shared/ui/primitives/Avatar'
+import EmptyState from '../../../../../shared/ui/primitives/EmptyState'
 import TokenAmount from '../../../../../shared/ui/TokenAmount'
 
 const TX_META = {

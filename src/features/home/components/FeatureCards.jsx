@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { VideoOff, ChevronRight } from "lucide-react";
-import RevealSection from "../../../shared/ui/RevealSection";
+import RevealSection from "../../../shared/ui/primitives/RevealSection";
 import { HOME_FEATURES } from "../data/homeContent";
 
 function FeatureMedia({ icon: Icon, videoSrc }) {

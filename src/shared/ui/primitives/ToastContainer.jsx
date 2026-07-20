@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { AlertCircle, CheckCircle2, Info, X } from 'lucide-react'
-import { subscribeToast } from '../utils/toast'
+import { subscribeToast } from '../../utils/toast'
 
 const TOAST_DURATION = 4000
 

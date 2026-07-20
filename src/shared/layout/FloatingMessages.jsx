@@ -9,7 +9,7 @@ import { useNotificationStore } from '../stores/useNotificationStore'
 import { useSubscriptionStore } from '../stores/useSubscriptionStore'
 import { formatRelativeDate } from '../utils/date'
 import { useScrollLock } from '../utils/hooks'
-import EmptyState from '../ui/EmptyState'
+import EmptyState from '../ui/primitives/EmptyState'
 
 const getGroupById = (id) => useGroupStore.getState().getById(id)
 const getCurrentUser = () => useAuthStore.getState().user

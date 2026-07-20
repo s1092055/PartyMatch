@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Mail } from 'lucide-react'
 import AuthLayout, { AuthInput, AuthError } from '../components/AuthLayout'
-import Button from '../../../shared/ui/Button'
+import Button from '../../../shared/ui/primitives/Button'
 import { useAuthStore } from '../../../shared/stores/useAuthStore'
 
 export default function ForgotPasswordPage() {

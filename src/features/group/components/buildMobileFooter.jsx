@@ -1,5 +1,5 @@
 import { ChevronRight, CheckCircle2, Heart, LogIn, LogOut, ShieldCheck, Users } from 'lucide-react'
-import Button from '../../../shared/ui/Button'
+import Button from '../../../shared/ui/primitives/Button'
 
 function renderCTA({
   group, activeUserId, navigate, handleClose,

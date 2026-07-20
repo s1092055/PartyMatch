@@ -1,6 +1,6 @@
 import { memo } from 'react'
-import Button from '../../../../shared/ui/Button'
-import Badge from '../../../../shared/ui/Badge'
+import Button from '../../../../shared/ui/primitives/Button'
+import Badge from '../../../../shared/ui/primitives/Badge'
 import ServiceLogo from '../../../../shared/ui/ServiceLogo'
 import TokenAmount from '../../../../shared/ui/TokenAmount'
 import { toISODate } from '../../../../shared/utils/date'

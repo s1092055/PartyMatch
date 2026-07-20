@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronRight, Compass, Search } from 'lucide-react'
-import Button from '../../shared/ui/Button'
+import Button from '../../shared/ui/primitives/Button'
 import logoUrl from '../../assets/Logo.svg'
 import { useAuthStore } from '../../shared/stores/useAuthStore'
 import { useGroupStore } from '../../shared/stores/useGroupStore'
@@ -17,7 +17,7 @@ import ExtraFeatures from './components/ExtraFeatures'
 import HowItWorks from './components/HowItWorks'
 import HostGuide from './components/HostGuide'
 import FAQ from './components/FAQ'
-import RevealSection from '../../shared/ui/RevealSection'
+import RevealSection from '../../shared/ui/primitives/RevealSection'
 
 const ALL_SERVICES = listServiceTypes()
 const MIN_SEAT_PRICE = Math.min(

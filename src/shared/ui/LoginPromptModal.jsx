@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { LogIn, Lock } from 'lucide-react'
-import Button from './Button'
+import Button from './primitives/Button'
 import { useScrollLock } from '../utils/hooks'
 
 export default function LoginPromptModal({ onClose }) {

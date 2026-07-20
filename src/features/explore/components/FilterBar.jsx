@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Search } from 'lucide-react'
-import CategoryPills from '../../../shared/ui/CategoryPills'
-import CustomSelect from '../../../shared/ui/CustomSelect'
+import CategoryPills from '../../../shared/ui/primitives/CategoryPills'
+import CustomSelect from '../../../shared/ui/primitives/CustomSelect'
 import { listServiceTypes } from '../../../shared/utils/serviceUtils'
 
 const PRICE_OPTIONS = [

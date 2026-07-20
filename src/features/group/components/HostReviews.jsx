@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { MessageCircle, Star } from 'lucide-react'
-import Avatar from '../../../shared/ui/Avatar'
-import StarRating from '../../../shared/ui/StarRating'
+import Avatar from '../../../shared/ui/primitives/Avatar'
+import StarRating from '../../../shared/ui/primitives/StarRating'
 import { useReviewStore } from '../../../shared/stores/useReviewStore'
 import { toISODate } from '../../../shared/utils/date'
 

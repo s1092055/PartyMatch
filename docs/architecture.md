@@ -176,30 +176,34 @@ src/
 │   │   ├── useReviewStore.js
 │   │   ├── useServiceStore.js
 │   │   └── useSubscriptionStore.js
-│   ├── ui/                     # 共用 UI 元件
-│   │   ├── Avatar.jsx
-│   │   ├── Badge.jsx
-│   │   ├── Button.jsx
-│   │   ├── CategoryPills.jsx
-│   │   ├── ConfirmDialog.jsx
-│   │   ├── CountdownConfirmDialog.jsx
+│   ├── ui/                     # 共用 UI 元件：泛用 primitive 與群組 modal 家族各自收進子資料夾，
+│   │   │                       # 其餘跨頁面共用、但綁定特定業務概念的元件留在最外層
+│   │   ├── primitives/         # 不帶業務邏輯的通用元件
+│   │   │   ├── Avatar.jsx
+│   │   │   ├── Badge.jsx
+│   │   │   ├── Button.jsx
+│   │   │   ├── CategoryPills.jsx
+│   │   │   ├── ConfirmDialog.jsx
+│   │   │   ├── CountdownConfirmDialog.jsx
+│   │   │   ├── CustomSelect.jsx
+│   │   │   ├── EmptyState.jsx
+│   │   │   ├── Modal.jsx
+│   │   │   ├── ProgressBar.jsx
+│   │   │   ├── RevealSection.jsx
+│   │   │   ├── ScrollHint.jsx  # 捲動提示：桌機 hover 淡出、手機捲動中淡出
+│   │   │   ├── StarRating.jsx  # 星等評分：readOnly 純顯示 / 可點擊選星
+│   │   │   ├── ToastContainer.jsx
+│   │   │   └── Toggle.jsx
+│   │   ├── group/               # 群組詳情 Modal 家族（HostGroupView/MemberGroupView 共用）
+│   │   │   ├── GroupHistoryModal.jsx
+│   │   │   ├── GroupModalShell.jsx
+│   │   │   ├── GroupModalSideBarItem.jsx
+│   │   │   ├── GroupOverviewContent.jsx
+│   │   │   └── GroupViewModal.jsx
 │   │   ├── CreditScoreBadge.jsx
-│   │   ├── CustomSelect.jsx
-│   │   ├── EmptyState.jsx
 │   │   ├── FilterTabsBar.jsx
-│   │   ├── GroupModalShell.jsx
-│   │   ├── GroupOverviewContent.jsx
-│   │   ├── GroupViewModal.jsx
 │   │   ├── LoginPromptModal.jsx
-│   │   ├── Modal.jsx
-│   │   ├── ProgressBar.jsx
-│   │   ├── RevealSection.jsx
-│   │   ├── ScrollHint.jsx      # 捲動提示：桌機 hover 淡出、手機捲動中淡出
 │   │   ├── ServiceLogo.jsx
-│   │   ├── StarRating.jsx      # 星等評分：readOnly 純顯示 / 可點擊選星
-│   │   ├── Tabs.jsx
-│   │   ├── ToastContainer.jsx
-│   │   ├── Toggle.jsx
 │   │   ├── TokenAmount.jsx     # PM幣金額顯示（TokenBadge + TokenAmount）
 │   │   └── TopupModal.jsx      # PM幣儲值 + 交易紀錄雙面板
 │   └── utils/                  # 工具函式
@@ -267,12 +271,12 @@ init: async () => {
 | `src/shared/layout/AppLayout.jsx` | `AppNav`、`AppFooter`、`FloatingMessages`、`MessagesModal`、`GroupDetailModal` | 統一掛載跨頁共用導覽、全域 Modal 與頁尾；主要內容容器於 `lg:` 以上寬度用 `clamp()` 取代固定 `max-w-7xl`，避免超寬螢幕（>1280px）留白暴增 |
 | `src/shared/layout/FlowLayout.jsx` | `CreateGroupPage`、`QuickMatchPage` | 無 sidebar/dock 的全螢幕步驟流程殼：左上角 PartyMatch logo（一般 `<a href="/">`，非 `navigate()`，點擊回首頁會觸發整頁重新載入）、頂部細進度條、置中標題（absolute 定位，不受左右內容寬度不對稱影響）、固定高度 header/footer（`h-16`/`md:h-20`）、內容區 `min-h-0 + overflow-hidden` 搭配子層各自 `overflow-y-auto`，避免頁面本身垂直捲動、底部固定 Prev/Next 導覽列；容器寬度於 `lg:` 以上用 `clamp()` 隨螢幕寬度連續放大（非固定 `max-w`），避免超寬螢幕留白暴增。底部固定導覽列（步驟進度條 + bottomNav 按鈕）預留給內容區的 `padding-bottom` 目前是手動調校的固定值（`pb-[130px] md:pb-[160px]`），非動態量測，若導覽列實際高度改變（例如步驟文案換行）需一併調整這兩個數字 |
 | `src/shared/utils/hooks.js`（`useScrollEdge`） | `CreateGroupPage`、`QuickMatchPage` | 共用捲動邊界偵測 hook：回報 `canScroll`/`atBottom`/`isScrolling`（捲動中旗標，200ms 防抖後恢復 false）；可選 `withMutationObserver` 監看內容子樹異動、`forwardWheel` 讓滑鼠在頁面任何位置滾動都能捲動內容（會繞過 CSS `overflow: hidden`，用 JS 直接呼叫 `scrollBy`，所以要真正鎖住捲動必須同時關閉這個選項）。`CreateGroupPage` 全步驟固定頂部對齊，不做置中；第 2、3 步（選擇方案、群組設定）在 `lg:` 以上鎖死整頁捲動（`lg:overflow-hidden` + `forwardWheel: step !== 2 && step !== 3`），改由內部各自的子區塊（群組規則列表、方案說明框）用 `overflow-y-auto` 獨立捲動，容器高度以 `ResizeObserver` 量測對齊，避免整頁高度隨內容跳動 |
-| `src/shared/ui/ScrollHint.jsx` | `CreateGroupPage`、`QuickMatchPage` | 共用捲動提示指示器（非按鈕、無點擊功能）：內容可捲動時顯示方向 chevron，捲到底時提示往上；桌機滑鼠進入所在 `group` 容器時淡出，手機以 `isScrolling` 於捲動中淡出、停止捲動後淡入。`CreateGroupPage` 只在第 1、4 步顯示，第 2、3 步整頁捲動已鎖死，顯示會跟內部子區塊的獨立捲動互相干擾 |
+| `src/shared/ui/primitives/ScrollHint.jsx` | `CreateGroupPage`、`QuickMatchPage` | 共用捲動提示指示器（非按鈕、無點擊功能）：內容可捲動時顯示方向 chevron，捲到底時提示往上；桌機滑鼠進入所在 `group` 容器時淡出，手機以 `isScrolling` 於捲動中淡出、停止捲動後淡入。`CreateGroupPage` 只在第 1、4 步顯示，第 2、3 步整頁捲動已鎖死，顯示會跟內部子區塊的獨立捲動互相干擾 |
 | `src/shared/layout/AppNav.jsx` | `NAV_SECTIONS`、`authStore`、`notificationStore`、`conversationStore`、`toast` | **桌機版**：左側 sidebar（白底，收合 64px / 展開 224px，hover/focus-within 觸發）；通知與訊息為長型矩形按鈕（附文字標籤）；sidebar 底部使用者按鈕上方顯示 PM幣餘額列（收合隱藏、展開顯示，含加值按鈕）；頭像按鈕點擊直接導向 `/account`（不經中間選單），開啟 PM幣儲值 Modal 時 blur 讓 sidebar 自動收合。**手機版**：頂部 header（Logo + 通知 + 頭像按鈕；未登入時頭像按鈕為純圖示無底色）+ 底部 Dock（快速搜尋、建立群組、探索中央圓形按鈕、我的 dropdown、訊息）；「我的」向上展開橫排 dropdown（我的群組 / 我的收藏）；未登入點擊鎖定項目發 Toast（附「前往登入」按鈕）；Dock 透過 `useHideOnScroll`（`shared/utils/hooks.js`）往下捲動時滑出隱藏、往上捲或接近頁面頂端時顯示，`ScrollToTop` 按鈕位置隨 Dock 顯示狀態連動避免重疊；監聽 `pm:open-topup` 事件開啟 `TopupModal`（供其他元件如 `GroupDetailModal` 在PM幣不足時，透過 toast 的 `action` 按鈕觸發儲值） |
 | `src/shared/layout/FloatingMessages.jsx` | `notificationStore`、`conversationStore`、`applicationStore` | 監聽 `pm:open-notify` 顯示通知 panel；通知點擊後依類型 dispatch 對應 `pm:open-*` 事件；`new_application` 點擊時先 await `applicationStore.init()` 再開 Modal，確保資料已更新；`member_left`（成員退出）host 端點擊前廣播 `pm:refresh-member-stores` |
-| `src/shared/ui/GroupModalShell.jsx` | `GroupOverviewContent`、`Badge`、`ProgressBar`、`ServiceLogo` | 三個群組詳情 Modal 共用的滑動軌道殼（300% 寬、三層 panel）；`subPanel` 滑入第二層、`subSubPanel` 滑入第三層，支援 `headerRight` slot；管理 scroll lock、Escape 逐層關閉 |
+| `src/shared/ui/group/GroupModalShell.jsx` | `GroupOverviewContent`、`Badge`、`ProgressBar`、`ServiceLogo` | 三個群組詳情 Modal 共用的滑動軌道殼（300% 寬、三層 panel）；`subPanel` 滑入第二層、`subSubPanel` 滑入第三層，支援 `headerRight` slot；管理 scroll lock、Escape 逐層關閉 |
 | `src/features/group/GroupDetailModal.jsx` | `GroupModalShell`、`favoriteStore`、`applicationStore` | 接收 `pm:open-group`；依使用者狀態顯示申請、收藏、付款 CTA；申請加入流程以 `subPanel` 翻書動畫呈現（填寫留言 → 送出成功兩格水平滑動），不再開啟獨立 Modal |
-| `src/shared/ui/GroupViewModal.jsx` | `HostGroupView`、`MemberGroupView` | 薄殼：依 `isHost` 決定渲染 HostGroupView 或 MemberGroupView |
+| `src/shared/ui/group/GroupViewModal.jsx` | `HostGroupView`、`MemberGroupView` | 薄殼：依 `isHost` 決定渲染 HostGroupView 或 MemberGroupView |
 | `src/features/my-groups/host/components/HostGroupView.jsx` | `GroupModalShell`、子 Modal | 團主視角；成員名單（含移除成員）、申請管理（僅待審核）→ 審核紀錄（第三層 panel，含篩選）/ 收款管理（收款階段）、啟用 CTA |
 | `src/features/my-groups/member/components/MemberGroupView.jsx` | `GroupModalShell`、`CombinedServicePaymentModal` | 成員視角；填寫帳號 + 上傳憑證合併為單步驟 Modal |
 | `src/features/messages/MessagesModal.jsx` | `conversationStore`、`messagesApi`、`ConversationList`、`ChatWindow` | 接收 `pm:open-messages` / `pm:open-dm`；透過 `subscribeToMessages` polling 同步訊息 |

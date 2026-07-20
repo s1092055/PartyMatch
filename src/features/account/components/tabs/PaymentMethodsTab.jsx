@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { CreditCard, Plus, Trash2 } from 'lucide-react'
-import Modal from '../../../../shared/ui/Modal'
+import Modal from '../../../../shared/ui/primitives/Modal'
 import {
   createPaymentMethod,
   deletePaymentMethod,

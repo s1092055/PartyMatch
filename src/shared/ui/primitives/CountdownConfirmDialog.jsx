@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useScrollLock } from '../utils/hooks'
+import { useScrollLock } from '../../utils/hooks'
 
 export default function CountdownConfirmDialog({
   title,

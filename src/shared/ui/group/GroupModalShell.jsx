@@ -1,13 +1,13 @@
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { ChevronLeft, X } from 'lucide-react'
-import ServiceLogo from './ServiceLogo'
+import ServiceLogo from '../ServiceLogo'
 import GroupOverviewContent from './GroupOverviewContent'
-import ProgressBar from './ProgressBar'
-import TokenAmount from './TokenAmount'
-import ScrollHint from './ScrollHint'
-import { useScrollLock, useScrollEdge } from '../utils/hooks'
-import { calcDisplayPrice, calcDisplayCycle } from '../utils/pricingUtils'
+import ProgressBar from '../primitives/ProgressBar'
+import TokenAmount from '../TokenAmount'
+import ScrollHint from '../primitives/ScrollHint'
+import { useScrollLock, useScrollEdge } from '../../utils/hooks'
+import { calcDisplayPrice, calcDisplayCycle } from '../../utils/pricingUtils'
 
 export default function GroupModalShell({
   onClose,

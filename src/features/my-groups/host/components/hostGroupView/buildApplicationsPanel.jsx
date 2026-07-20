@@ -1,5 +1,5 @@
 import { ClipboardList, History } from 'lucide-react'
-import EmptyState from '../../../../../shared/ui/EmptyState'
+import EmptyState from '../../../../../shared/ui/primitives/EmptyState'
 import ApplicationCard from './ApplicationCard'
 
 export function buildApplicationsPanel({ pendingApps, groupFull, errors, onApprove, onReject, setActivePanel, setShowReviewHistory }) {

@@ -4,7 +4,7 @@ import { Globe, LogOut, Shield, Trash2 } from 'lucide-react'
 import { readStorage, writeStorage } from '../../../../shared/utils/storage'
 import { useAuthStore } from '../../../../shared/stores/useAuthStore'
 import { toast } from '../../../../shared/utils/toast'
-import Toggle from '../../../../shared/ui/Toggle'
+import Toggle from '../../../../shared/ui/primitives/Toggle'
 
 const PREFS_KEY = 'pm_app_prefs'
 const DEFAULT_PREFS = {

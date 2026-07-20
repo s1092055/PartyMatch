@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight, VideoOff } from 'lucide-react'
-import Modal from '../../../shared/ui/Modal'
+import Modal from '../../../shared/ui/primitives/Modal'
 import { HOME_EXTRA_FEATURES } from '../data/homeContent'
 
 const TOTAL = HOME_EXTRA_FEATURES.length

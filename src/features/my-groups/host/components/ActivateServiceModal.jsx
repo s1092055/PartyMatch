@@ -1,6 +1,6 @@
 import { AlertTriangle, CheckCircle2, PlayCircle } from 'lucide-react'
-import Modal from '../../../../shared/ui/Modal'
-import Avatar from '../../../../shared/ui/Avatar'
+import Modal from '../../../../shared/ui/primitives/Modal'
+import Avatar from '../../../../shared/ui/primitives/Avatar'
 import ServiceLogo from '../../../../shared/ui/ServiceLogo'
 import TokenAmount from '../../../../shared/ui/TokenAmount'
 import { advanceByCycle, toISODate } from '../../../../shared/utils/date'

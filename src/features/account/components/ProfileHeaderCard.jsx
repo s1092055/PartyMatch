@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { CheckCircle2, Clock, History } from 'lucide-react'
-import Avatar from '../../../shared/ui/Avatar'
+import Avatar from '../../../shared/ui/primitives/Avatar'
 import CreditScoreBadge from '../../../shared/ui/CreditScoreBadge'
-import Modal from '../../../shared/ui/Modal'
+import Modal from '../../../shared/ui/primitives/Modal'
 
 export default function ProfileHeaderCard({ user }) {
   const [historyOpen, setHistoryOpen] = useState(false)

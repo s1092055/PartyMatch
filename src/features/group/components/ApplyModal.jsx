@@ -1,6 +1,6 @@
 import { CheckCircle2 } from 'lucide-react'
-import Modal from '../../../shared/ui/Modal'
-import Button from '../../../shared/ui/Button'
+import Modal from '../../../shared/ui/primitives/Modal'
+import Button from '../../../shared/ui/primitives/Button'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import TokenAmount from '../../../shared/ui/TokenAmount'
 import { calcDisplayPrice, calcDisplayCycle } from '../../../shared/utils/pricingUtils'

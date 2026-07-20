@@ -1,6 +1,6 @@
 import { CheckCircle2, Clock, Info, User, Users, Calendar } from 'lucide-react'
-import { getPlanChips, getInfoRows } from '../utils/groupDisplay'
-import Badge from './Badge'
+import { getPlanChips, getInfoRows } from '../../utils/groupDisplay'
+import Badge from '../primitives/Badge'
 
 const TAG_CONFIG = {
   '審核制':    { Icon: Clock,        cls: 'bg-amber-50  border border-amber-200 text-amber-700'   },

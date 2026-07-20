@@ -1,6 +1,6 @@
 import { History } from 'lucide-react'
-import EmptyState from '../../../../../shared/ui/EmptyState'
-import CustomSelect from '../../../../../shared/ui/CustomSelect'
+import EmptyState from '../../../../../shared/ui/primitives/EmptyState'
+import CustomSelect from '../../../../../shared/ui/primitives/CustomSelect'
 import ApplicationCard from './ApplicationCard'
 
 export function buildReviewHistoryPanel({ applications, reviewFilter, setReviewFilter, groupFull, errors }) {

@@ -1,5 +1,5 @@
 import { Archive } from 'lucide-react'
-import CustomSelect from './CustomSelect'
+import CustomSelect from './primitives/CustomSelect'
 
 function HistoryButton({ onOpenHistory, historyCount, className = '' }) {
   return (

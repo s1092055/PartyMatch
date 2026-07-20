@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import Modal from '../../../../shared/ui/Modal'
-import Avatar from '../../../../shared/ui/Avatar'
-import StarRating from '../../../../shared/ui/StarRating'
+import Modal from '../../../../shared/ui/primitives/Modal'
+import Avatar from '../../../../shared/ui/primitives/Avatar'
+import StarRating from '../../../../shared/ui/primitives/StarRating'
 import { toast } from '../../../../shared/utils/toast'
 
 export default function ReviewHostModal({ group, onSubmit, onClose }) {

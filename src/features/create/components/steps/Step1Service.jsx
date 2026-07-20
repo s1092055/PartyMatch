@@ -2,8 +2,8 @@ import { useState } from "react";
 import { AlertCircle } from "lucide-react";
 import { listServiceTypes } from "../../../../shared/utils/serviceUtils";
 import ServiceLogo from "../../../../shared/ui/ServiceLogo";
-import CategoryPills from "../../../../shared/ui/CategoryPills";
-import Modal from "../../../../shared/ui/Modal";
+import CategoryPills from "../../../../shared/ui/primitives/CategoryPills";
+import Modal from "../../../../shared/ui/primitives/Modal";
 
 const ALL_SERVICES = listServiceTypes();
 

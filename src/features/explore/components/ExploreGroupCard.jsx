@@ -5,10 +5,10 @@ import {
   Monitor,
   Users,
 } from 'lucide-react'
-import Badge from '../../../shared/ui/Badge'
+import Badge from '../../../shared/ui/primitives/Badge'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import TokenAmount from '../../../shared/ui/TokenAmount'
-import ProgressBar from '../../../shared/ui/ProgressBar'
+import ProgressBar from '../../../shared/ui/primitives/ProgressBar'
 import { calcDisplayPrice, calcDisplayCycle } from '../../../shared/utils/pricingUtils'
 import { useFavoriteStore } from '../../../shared/stores/useFavoriteStore'
 import { useAuthStore } from '../../../shared/stores/useAuthStore'

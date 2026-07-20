@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom'
-import { useScrollLock } from '../utils/hooks'
+import { useScrollLock } from '../../utils/hooks'
 
 export default function ConfirmDialog({ title, message, confirmLabel, danger = false, icon, children, onConfirm, onCancel }) {
   useScrollLock(true)

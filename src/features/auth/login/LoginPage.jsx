@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Lock, Mail } from 'lucide-react'
 import AuthLayout, { AuthInput, AuthDivider, AuthError, GoogleMark, PasswordToggle } from '../components/AuthLayout'
-import Button from '../../../shared/ui/Button'
+import Button from '../../../shared/ui/primitives/Button'
 import { useAuthStore } from '../../../shared/stores/useAuthStore'
 import { toast } from '../../../shared/utils/toast'
 

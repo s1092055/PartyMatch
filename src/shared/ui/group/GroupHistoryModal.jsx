@@ -1,6 +1,6 @@
 import { Archive } from 'lucide-react'
-import Modal from './Modal'
-import EmptyState from './EmptyState'
+import Modal from '../primitives/Modal'
+import EmptyState from '../primitives/EmptyState'
 
 export default function GroupHistoryModal({ isOpen, onClose, items, renderItem, emptyDescription }) {
   return (

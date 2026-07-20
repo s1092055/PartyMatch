@@ -1,5 +1,5 @@
 import { MessageCircle, Shield, Users } from 'lucide-react'
-import Avatar from '../../../shared/ui/Avatar'
+import Avatar from '../../../shared/ui/primitives/Avatar'
 
 export function buildMembersSubPanel({ group, groupId, members, activeUserId, setShowMembers, openDm }) {
   return {

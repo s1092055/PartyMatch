@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Check, ChevronDown, ChevronUp, X } from 'lucide-react'
-import Avatar from '../../../../../shared/ui/Avatar'
+import Avatar from '../../../../../shared/ui/primitives/Avatar'
 import CreditScoreBadge from '../../../../../shared/ui/CreditScoreBadge'
 import { formatRelativeDate } from '../../../../../shared/utils/date'
 
