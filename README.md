@@ -10,40 +10,13 @@ PartyMatch 是一個共享訂閱媒合平台，讓使用者可以探索 Netflix�
 
 ## 解決的問題
 
-現實中共享訂閱的媒合大多發生在 Facebook、PTT 或 Discord，存在幾個明顯問題：
-
-- 找合適的人很耗時，也難以確認對方信用
-- 付款紀錄散落各處，容易有糾紛
-- 沒有統一的審核機制，詐騙風險高
-- 團主需要手動確認每一筆付款，成員也不清楚自己的付款與續訂狀態
-
-PartyMatch 的設計目標是：在一個平台上完整處理**媒合 → 申請 → 審核 → 付款代管與確認 → 啟用服務**的全流程，同時讓團主與成員各有清楚的角色界面。
-
----
+現實中共享訂閱的媒合大多發生在 Facebook、PTT 或 Discord，靠私訊、表單跟人工記帳——找人耗時、難確認信用，付款紀錄散落各處容易有糾紛，沒有審核機制詐騙風險高，團主要手動追每一筆付款。PartyMatch 把**媒合 → 申請 → 審核 → 付款代管與確認 → 啟用服務**整條路徑收斂到同一個平台，團主與成員各有清楚的角色介面。
 
 ## 核心功能
 
-### 一般使用者
+一般使用者可以探索/快速搜尋群組、申請加入審核制群組、在「我的群組」雙視角管理訂閱與續訂、用聊天室溝通、管理 PM 幣與付款方式、申訴與評價團主。團主則可以建立群組、審核申請、管理成員名單與收款、鎖定群組並啟用服務、開始續訂或結束群組。
 
-- 探索共享訂閱群組（分類篩選、關鍵字搜尋、依價格上限與排序方式篩選）
-- 快速搜尋：輸入服務、方案、預算，系統推薦最符合的群組，免登入即可使用
-- 申請加入審核制群組，即時收到審核結果通知
-- 「我的群組」統一頁面：切換「我是成員」/「我是團主」視角，查看訂閱狀態、填寫服務帳號資訊、追蹤付款與續訂
-- 收藏感興趣的群組
-- 使用聊天室與團主或其他成員溝通（群組聊天室 + 私人 DM + 系統通知聊天室，見 `src/features/messages/`）
-- 管理個人資料、付款方式與PM幣餘額；帳號設定可輸入密碼確認停用帳號（軟刪除，登出當下所有裝置的登入狀態，資料保留供日後恢復）
-- 服務確認期間若有問題可向平台申訴，並上傳附件佐證
-- 確認服務後可為團主留下評價，查看團主過往的整體評價紀錄
-
-### 團主
-
-- 建立共享訂閱群組（4 步驟表單：選服務 → 選擇方案 → 群組設定 → 確認送出；選擇方案時直接一併選定收費週期），可設定最低信用分數門檻篩選申請者
-- 審核加入申請，查看申請者信用分數與留言
-- 於「我的群組」（團主視角）管理成員名單（招募期間可移除成員，進入收款階段後名單鎖定）
-- 查看收款管理面板、回報成員服務帳號問題
-- 「我的群組」側邊欄底部提供「群組紀錄」入口，開啟 Modal 查看已結束／已取消的群組（成員視角亦同）
-- 鎖定群組、啟用服務
-- 開始新一期續訂，或結束群組
+完整功能清單見 [產品總覽](docs/product/product-overview.md)、[功能地圖](docs/product/feature-map.md)。
 
 ---
 
@@ -89,16 +62,13 @@ PartyMatch 的設計目標是：在一個平台上完整處理**媒合 → 申�
 
 ## 專案亮點
 
-- **雙角色設計**：同一使用者可同時是某群組的團主、也是另一群組的成員，`GroupViewModal` 依身分動態渲染對應視角
-- **完整端對端資料流**：申請 → 審核 → 成員建立 → 訂閱建立 → 付款確認 → 啟用服務，Store 封裝業務邏輯、API 層只做 REST CRUD，職責分離清楚
-- **交易安全性**：核准申請的餘額檢查、名額更新、成員/訂閱建立、PM幣扣款整包在單一 Prisma transaction 內執行，並以條件式 `updateMany` 防止併發核准導致超額
-- **權限收斂**：訂閱、成員、通知等 API 皆以登入者身分收斂查詢範圍與寫入權限，避免越權存取或偽造資料
-- **兩階段 App 啟動**：未登入僅載入公開資料，登入後才初始化私人 Store 並啟動通知輪詢，登出即清除
-- **事件驅動跨元件通訊**：全域 Modal 透過 `window.dispatchEvent` 觸發，避免 props 層層傳遞、解決同頁面路由 state 不可靠的問題
-- **獨立步驟流程頁**：建立群組、快速搜尋為多步驟全螢幕頁面（非 Modal），脫離主要導覽（sidebar / Dock）避免視覺干擾；兩者皆以 `key={step}` 重新掛載搭配 CSS slide-up 動畫切換步驟，共用頁首左上角的 PartyMatch logo（一般 `<a>` 超連結，點擊回首頁並觸發整頁重新載入）；短內容步驟（如建立群組最後確認）以 `margin: auto` 置中，內容一旦超出可視高度會自動退回頂部對齊並保持可捲動，避免 `justify-content: center` 搭配捲動容器時常見的「溢出內容捲不到」問題；`useScrollEdge` 提供 `forwardWheel` 選配，讓滑鼠在頁面任何位置（含固定 header/底部導覽列）滾動都能捲動內容，依頁面或步驟個別開關（例如快速搜尋的「方案與條件」步驟因為有獨立側邊摘要面板而關閉）
-- **對話延遲曝光**：DM 由某一方主動開啟聯絡後，對話只會出現在發起人自己的訊息列表；對方要等到發起人真的送出第一則訊息才會在自己的列表中看到這個對話（後端以 `initiatorId` + `lastMessage` 判斷，非以輪詢時機控制）
-- **大型元件重構**：將 5 個 600 行以上的大型元件拆分為 orchestrator + 子元件 / hook 的結構，提升可維護性（細節見 [架構文件](docs/architecture/architecture.md)）
+- **雙角色設計**：同一使用者可同時是某群組的團主、也是另一群組的成員，視角動態切換
+- **交易安全性**：核准申請的餘額檢查、名額更新、成員/訂閱建立、PM幣扣款整包在單一 Prisma transaction 內執行，並以條件式 `updateMany` 防止併發核准超額
+- **事件驅動跨元件通訊**：全域 Modal 透過 `window.dispatchEvent` 觸發，避免 props 層層傳遞
+- **多裝置登入 session**：refreshToken 存 Redis 並以 sessionId 區分裝置，登出/refresh 互不影響
 - **RWD**：支援桌機、平板與手機版面，桌機為 sidebar 導覽，手機為底部 Dock 導覽
+
+完整技術亮點（含每項的取捨原因與可追問細節）見 [專案亮點](docs/portfolio/project-highlights.md)。
 
 ---
 
@@ -140,28 +110,66 @@ npm run dev              # http://localhost:3001
 
 ## 技術文件
 
-更完整的技術設計與開發文件請參考：
+`docs/` 底下依用途分類，完整索引如下：
 
-| 文件 | 內容 |
-|------|------|
-| [架構與資料層](docs/architecture/architecture.md) | 資料夾結構、Store 設計、主要檔案連動、元件拆分、認證機制、導覽設計等前端技術細節 |
-| [操作流程](docs/flows/user-flows.md) | 申請、付款、啟用等完整流程圖與群組狀態機 |
-| [資料庫 Schema](docs/architecture/database-schema.md) | MySQL Table 設計、事件驅動清單、PM幣異動規則 |
-| [開發指南](docs/development.md) | 環境變數、指令、首次啟動流程、待完成項目 |
+### Product
 
-完整文件索引（產品地圖、單一流程拆解、手動測試、作品集整理）見 [docs/README.md](docs/README.md)。
+- [產品總覽](docs/product/product-overview.md)
+- [頁面地圖](docs/product/page-map.md)
+- [功能地圖](docs/product/feature-map.md)
+- [服務定價查核紀錄](docs/product/service-pricing-audit.md)
+
+### Flows
+
+- [使用者流程總覽](docs/flows/user-flows.md)
+- [群組狀態機](docs/flows/group-state-machine.md)
+- [探索群組流程](docs/flows/explore-flow.md)
+- [快速搜尋流程](docs/flows/quick-match-flow.md)
+- [建立群組流程](docs/flows/create-group-flow.md)
+- [申請加入流程](docs/flows/apply-join-flow.md)
+- [團主審核流程](docs/flows/approval-flow.md)
+- [PM幣代管與付款流程](docs/flows/payment-token-flow.md)
+- [我的群組（成員視角）流程](docs/flows/my-groups-member-flow.md)
+- [我的群組（團主視角）流程](docs/flows/my-groups-host-flow.md)
+- [續訂流程](docs/flows/renewal-flow.md)
+- [申訴流程](docs/flows/dispute-flow.md)
+- [訊息流程](docs/flows/messages-flow.md)
+- [通知流程](docs/flows/notification-flow.md)
+
+### Architecture
+
+- [架構總覽](docs/architecture/architecture.md)
+- [前端架構](docs/architecture/frontend-architecture.md)
+- [後端架構](docs/architecture/backend-architecture.md)
+- [資料庫 Schema](docs/architecture/database-schema.md)
+- [API 總覽](docs/architecture/api-overview.md)
+- [認證機制](docs/architecture/auth-flow.md)
+- [命名慣例](docs/architecture/naming-conventions.md)
+- [開發指南](docs/development.md)
+
+### Testing
+
+- [手動測試計畫](docs/testing/manual-test-plan.md)
+- [測試帳號](docs/testing/test-accounts.md)
+- [核心流程測試案例](docs/testing/core-flow-test-cases.md)
+- [成員流程測試案例](docs/testing/member-flow-test-cases.md)
+- [團主流程測試案例](docs/testing/host-flow-test-cases.md)
+- [訊息與通知測試案例](docs/testing/messaging-notification-test-cases.md)
+- [RWD 測試案例](docs/testing/rwd-test-cases.md)
+- [Bug 紀錄](docs/testing/bug-log.md)
+
+### Portfolio
+
+- [面試講稿筆記](docs/portfolio/interview-notes.md)
+- [專案亮點](docs/portfolio/project-highlights.md)
+- [AI 協作說明](docs/portfolio/ai-collaboration-note.md)
+- [未來規劃](docs/portfolio/future-roadmap.md)
 
 ---
 
 ## 開發狀態與未來規劃
 
-- [ ] 正式金流串接（已安裝 Stripe SDK，尚未串接實際扣款邏輯）
-- [ ] 信用評分完整機制（扣 / 加分邏輯）
-- [ ] 逾期付款排程通知
-- [ ] WebSocket 取代輪詢（訊息即時性提升）
-- [ ] TypeScript 型別覆蓋
-
-更詳細的待完成項目（依優先度分類）見 [開發指南](docs/development.md#待完成項目)。
+目前優先把內部功能（互評系統、信用分數動態調整、帳號恢復流程等）做完善，正式上線所需的外部串接（金流、寄信）排在之後。完整規劃見 [未來規劃](docs/portfolio/future-roadmap.md)。
 
 ---
 
