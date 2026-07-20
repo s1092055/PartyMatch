@@ -50,7 +50,7 @@ src/
 | `group/` | 群組詳情 Modal 家族專用元件，被 `HostGroupView`／`MemberGroupView`／`GroupDetailModal` 三處共用 | `GroupModalShell.jsx`（三層滑動軌道殼）、`GroupViewModal.jsx`（依 `isHost` 分流的薄殼）、`GroupOverviewContent.jsx`、`GroupHistoryModal.jsx`、`GroupModalSideBarItem.jsx` |
 | 最外層（無子資料夾） | 跨頁面共用、但綁定特定業務概念（PM幣、信用分數、服務 Logo…）的元件，不適合歸類為 primitive，也未形成像 `group/` 一樣的元件家族 | `TokenAmount.jsx`、`TopupModal.jsx`、`CreditScoreBadge.jsx`、`ServiceLogo.jsx`、`FilterTabsBar.jsx`、`LoginPromptModal.jsx` |
 
-此分類是近期重構的結果：`group/` 資料夾把原本散落的群組 Modal 共用元件集中，`primitives/` 則收斂所有不帶業務邏輯的通用元件，避免最外層堆積過多元件。新增共用元件時依此準則放置：完全通用 → `primitives/`；群組 Modal 家族專用 → `group/`；其餘跨頁面共用的業務元件 → 最外層。
+`group/` 集中群組 Modal 家族共用的元件，`primitives/` 收斂所有不帶業務邏輯的通用元件，避免最外層堆積過多元件。新增共用元件時依此準則放置：完全通用 → `primitives/`；群組 Modal 家族專用 → `group/`；其餘跨頁面共用的業務元件 → 最外層。
 
 ---
 

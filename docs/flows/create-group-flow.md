@@ -29,11 +29,11 @@
 - `Service`（讀取，決定方案選項與定價）
 
 ## 使用技術
-- 表單狀態集中在 `CreateGroupPage` 的單一 `form` state 物件（`INITIAL_FORM`），子步驟元件都是受控元件，透過 `onChange(key, value)` 回寫
-- 樂觀更新：送出時先在前端組出完整 `Group` 物件並立即塞入 `useGroupStore`（`set(s => ({ groups: [...s.groups, group] }))`），非同步呼叫 `insertGroup(group)` 打 `POST /groups`；成功則用後端回傳的真實 `id` 覆蓋本地暫時物件，失敗則從 store 中移除該筆並記錄 `error`（見 `useGroupStore.create`）
-- 逐步驗證：`getStepErrors(step, form)` 針對目前步驟計算錯誤訊息陣列，`getFirstInvalidStep(form)` 在送出前重新掃過步驟 1–3，若有任何步驟不合法就把 `step` 導回第一個出錯的步驟（避免使用者繞過中間步驟的瀏覽器返回等情境送出不合法資料）
-- 步驟切換時用 `key={step}` 搭配 `animate-step-slide-up` class 做進場動畫；`ScrollHint`／`useScrollEdge` 處理內容過長時的捲動提示
-- 後端 `createGroupSchema`（`zod`）用 `.transform()` 同時接受前端命名（`totalSeats`/`pricePerSeat`）與資料庫命名（`maxMembers`/`monthlyFee`），並在 `data.rules` 為陣列時 join 成字串儲存
+- 表單狀態集中在 `CreateGroupPage` 的單一 `form` state（`INITIAL_FORM`），子步驟都是受控元件，透過 `onChange(key, value)` 回寫
+- 樂觀更新：送出時先組好完整 `Group` 物件塞進 `useGroupStore`，非同步打 `POST /groups`；成功用後端回傳的真實 `id` 覆蓋暫時物件，失敗就從 store 移除並記錄 `error`（見 `useGroupStore.create`）
+- 逐步驗證：`getStepErrors(step, form)` 算目前步驟的錯誤訊息；送出前 `getFirstInvalidStep(form)` 重新掃過步驟 1–3，有錯就把 `step` 導回第一個出錯的步驟，防止瀏覽器返回之類的操作繞過驗證直接送出
+- 步驟切換用 `key={step}` 搭配 `animate-step-slide-up` 做進場動畫；`ScrollHint`／`useScrollEdge` 處理內容過長時的捲動提示
+- 後端 `createGroupSchema`（zod）用 `.transform()` 同時吃前端命名（`totalSeats`/`pricePerSeat`）跟資料庫命名（`maxMembers`/`monthlyFee`），`data.rules` 是陣列時 join 成字串存
 
 ## 流程步驟
 1. **步驟一（選擇服務）**：`Step1Service` 依分類（`CategoryPills`）列出 `listServiceTypes()`，點擊卡片呼叫 `onChange('serviceId', id)`；切換服務時連動重置 `planName`、`pricePerSeat`、`totalSeats`
@@ -52,9 +52,9 @@
 ## 驗證重點
 - 前端逐步驗證（`getStepErrors`）：
   - 步驟一：`serviceId` 必填
-  - 步驟二：`planName` 必填；若該服務沒有任何 `maxSeats > 1` 的方案（`hasEligiblePlans` 為 false），banner 會提示「此服務無合購方案，請返回上一步選擇其他服務」，但 UI 上不會擋下一步——需靠使用者自行返回
-  - 步驟三：`totalSeats` 必須是介於 2 到方案 `maxSeats` 之間的整數，否則報「開放名額需介於 1 至 N 位」；`rules`（去除空白後）不得超過 5 條，且每條不得超過 80 字
-- 送出前用 `getFirstInvalidStep` 重新掃過步驟 1–3，把使用者導回第一個仍有錯誤的步驟，防止透過瀏覽器前進/後退等方式繞過步驟驗證直接送出
-- 「確認建立」按鈕在 `agreedToTerms` 為 false 時停用（`disabled={!agreedToTerms}`），未勾選服務條款無法送出
-- 後端 `createGroupSchema`（zod）：`maxMembers`/`totalSeats` 限制 `int().min(2).max(10)`；`minCreditScore`、`minGroupAge` 為非負整數；`billingCycle` 僅接受 `'monthly'|'yearly'`；未過驗證直接回 400，不會寫入資料庫
-- 建立失敗（例如網路錯誤或後端驗證失敗）時，前端的樂觀新增會被回滾：`useGroupStore.create` 的 `.catch()` 會把該筆本地群組從 `groups` 陣列中移除，避免畫面上出現一筆伺服器端不存在的假群組
+  - 步驟二：`planName` 必填；該服務沒有任何 `maxSeats > 1` 方案時 banner 提示「此服務無合購方案，請返回上一步選擇其他服務」，但不會硬擋下一步，靠使用者自己返回
+  - 步驟三：`totalSeats` 需是 2 到方案 `maxSeats` 間的整數，否則報「開放名額需介於 1 至 N 位」；`rules` 去空白後不得超過 5 條，每條不超過 80 字
+- 送出前 `getFirstInvalidStep` 重新掃過步驟 1–3，導回第一個仍有錯的步驟，防止繞過瀏覽器前進/後退送出不合法資料
+- 「確認建立」在 `agreedToTerms` 為 false 時停用，沒勾服務條款無法送出
+- 後端 `createGroupSchema`（zod）：`maxMembers`/`totalSeats` 限制 `int().min(2).max(10)`；`minCreditScore`、`minGroupAge` 非負整數；`billingCycle` 只吃 `'monthly'|'yearly'`；驗證沒過直接 400，不寫入資料庫
+- 建立失敗時樂觀新增會被回滾：`useGroupStore.create` 的 `.catch()` 把該筆從 `groups` 移除，避免畫面上留一筆伺服器端根本不存在的假群組

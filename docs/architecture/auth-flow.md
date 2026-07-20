@@ -41,7 +41,7 @@ Key 格式：**`refresh:{userId}:{sessionId}`**，value 為 refreshToken 字串�
 4. **Rotate**：沿用同一個 `sessionId`（代表同一台裝置的續期），簽發新的 accessToken + refreshToken，覆寫 Redis 中該 key 的值
 5. 回傳 `{ accessToken, refreshToken }`（新的一組）
 
-**舊版相容**：改版前簽發的 token payload 沒有 `sessionId`，這批 token 對應的 Redis key 是沒有 session 後綴的 `refresh:{userId}`。`/auth/refresh` 判斷 payload 是否缺少 `sessionId`（`isLegacyToken`），若是則沿用舊 key 查詢，refresh 成功後順便補上一個新的 `sessionId` 並清掉舊格式的 key，達成無感升級，不必強制所有使用者重新登入。
+**舊格式相容**：沒有 `sessionId` 的 token，對應的 Redis key 是沒有 session 後綴的 `refresh:{userId}`。`/auth/refresh` 判斷 payload 是否缺少 `sessionId`（`isLegacyToken`），若是則沿用舊 key 查詢，refresh 成功後順便補上一個新的 `sessionId` 並清掉舊格式的 key，使用者不會被強制登出重新登入。
 
 ### 停用帳號時的全裝置登出
 

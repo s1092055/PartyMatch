@@ -24,10 +24,10 @@
 - `Member`（用來判斷「已加入」badge）
 
 ## 使用技術
-- 篩選條件全部存在 URL query string（`useSearchParams`），不放 React state，重新整理或分享連結時條件會保留
-- 關鍵字輸入用本地 state + 300ms debounce（`FilterBar` 內 `useEffect` + `setTimeout`），避免每個按鍵都觸發一次 URL `replace`
-- 篩選/排序邏輯全部在前端記憶體中對 `useGroupStore` 已快取的群組陣列做 `Array.filter`/`Array.sort`（`applyFilters`），沒有另外呼叫搜尋 API
-- `useMemo` 快取 `allGroups`（排除自己開的團）、`filtered`（套用篩選後的結果）與已申請／已加入的 `Set`，避免每次 render 都重新掃描整個列表
+- 篩選條件全部存在 URL query string（`useSearchParams`），不放 React state，重新整理或分享連結條件都會保留
+- 關鍵字輸入用本地 state + 300ms debounce（`FilterBar` 的 `useEffect` + `setTimeout`），避免每個按鍵都觸發一次 URL `replace`
+- 篩選/排序全在前端對 `useGroupStore` 已快取的群組陣列做 `Array.filter`/`Array.sort`（`applyFilters`），不會另外打搜尋 API
+- `useMemo` 快取 `allGroups`（排除自己開的團）、`filtered`、已申請／已加入的 `Set`，避免每次 render 都重掃整個列表
 
 ## 流程步驟
 1. `App.jsx` 於公開資料初始化階段呼叫 `useGroupStore.init({ status: 'recruiting' })`（未登入）或 `{ status: 'all' }`（已登入），取得群組快取，`ExplorePage` 之後都是純前端運算，不再打 API
@@ -45,6 +45,6 @@
 7. 點擊卡片會觸發開啟 `GroupDetailModal`（透過 `pm:open-group` custom event，非路由跳轉），後續申請流程見 `apply-join-flow.md`
 
 ## 驗證重點
-- 探索頁本身無寫入操作，沒有表單驗證；篩選邏輯是純前端運算，過濾條件寫死在 `applyFilters`（`src/shared/utils/searchUtils.js`）裡，沒有防呆例外處理（例如 `maxPrice` 傳入非數字字串時 `Number(maxPrice)` 會是 `NaN`，比較結果恆為 `false`，group 會被濾掉）
-- 只顯示 `status === 'recruiting'` 且 `openSeats > 0` 的群組；已額滿或非招募中的群組不會出現在探索頁（即使 store 內因為已登入而快取了所有狀態的群組）
-- 關鍵字比對只用 `String.includes`，非模糊比對／非後端全文索引；後端 `GET /groups` 的 `q` 篩選（`contains`）只在初次載入 store 時用得到，探索頁互動時完全不會重新打 API
+- 探索頁本身沒有寫入操作，也沒有表單驗證；篩選邏輯純前端運算，寫死在 `applyFilters`（`src/shared/utils/searchUtils.js`），沒特別防呆（例如 `maxPrice` 傳非數字字串時 `Number(maxPrice)` 是 `NaN`，比較恆 `false`，group 會被濾掉）
+- 只顯示 `status === 'recruiting'` 且 `openSeats > 0` 的群組，額滿或非招募中的不會出現（即使已登入時 store 快取了所有狀態的群組）
+- 關鍵字比對只用 `String.includes`，不是模糊比對也不是全文檢索；後端 `GET /groups` 的 `q`（`contains`）只在初次載入 store 時用得到，探索頁互動不會重新打 API

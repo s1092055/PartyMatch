@@ -36,9 +36,9 @@
 - `TokenTransaction`：`type` 為 `topup`／`escrow`／`release`／`refund`，`amount` 正負號代表增減，`relatedGroupId` 可為 null（如儲值）
 
 ## 使用技術
-- Prisma `$transaction`：核准申請、成員退出/移除、解散群組、裁定申訴、續訂收款皆把「餘額檢查 → 扣款/退款 → 建立 `TokenTransaction`」包在同一交易內，確保原子性
-- 條件式 `updateMany`（樂觀鎖）：核准申請時 `application.updateMany({ where: { status: 'pending' } })`、名額檢查 `group.updateMany({ where: { status: 'recruiting', currentMembers: { lt: maxMembers } } })`、續訂扣款 `user.updateMany({ where: { tokenBalance: { gte: seatCost } } })`，避免併發請求重複扣款或超額
-- 惰性求值（lazy evaluation）：`GET /groups/:id` 若群組處於 `confirming` 且 `confirmDeadline` 已過期，在讀取當下才觸發自動撥款並回寫，不依賴排程任務
+- Prisma `$transaction`：核准申請、成員退出/移除、解散群組、裁定申訴、續訂收款都把「餘額檢查 → 扣款/退款 → 建立 `TokenTransaction`」包在同一交易內，保原子性
+- 條件式 `updateMany`（樂觀鎖）：核准申請 `application.updateMany({ where: { status: 'pending' } })`、名額檢查 `group.updateMany({ where: { status: 'recruiting', currentMembers: { lt: maxMembers } } })`、續訂扣款 `user.updateMany({ where: { tokenBalance: { gte: seatCost } } })`，避免併發請求重複扣款或超額
+- 惰性求值：`GET /groups/:id` 若群組處於 `confirming` 且 `confirmDeadline` 已過期，讀取當下才觸發自動撥款並回寫，不依賴排程任務
 - 前端 toast 的 `action` 按鈕搭配 `window.dispatchEvent(new CustomEvent('pm:open-topup'))` 跨元件觸發儲值 Modal
 
 ## 流程步驟
@@ -54,10 +54,10 @@
 10. **續訂收款**：團主於 `RenewalModal` 選「開始新一期收款」→ `POST /groups/:id/renew`（僅 `active` 可操作）→ 先以 `updateMany({ tokenBalance: { gte: seatCost } })` 條件式扣款全體成員，任何一人餘額不足則整批失敗並回傳 400 + `INSUFFICIENT_BALANCE` + `memberIds`；成功則批次寫入 `TokenTransaction { type: 'escrow' }`、清空所有成員 `serviceInfo`、群組 `status → pending_confirmation`
 
 ## 驗證重點
-- 申請核准的 transaction 對 `Application.status` 採條件式 `updateMany`（僅 `status: 'pending'` 才轉為 `approved`），而非先讀後寫，避免同一筆申請被雙擊或併發請求重複核准、重複扣款（`server/src/routes/applications.js:123`）
-- `admitMemberIntoGroup` 對名額同樣採條件式 `updateMany`（`status: 'recruiting'` 且 `currentMembers < maxMembers`），併發核准時只有一筆會成功，另一筆回 409（`server/src/utils/membership.js:13`）
-- 餘額不足時申請核准直接在 transaction 內 throw，觸發 Prisma 自動回滾，不會出現「申請已核准但成員/代管未建立」的不一致狀態
-- 續訂扣款用 `updateMany({ where: { tokenBalance: { gte: seatCost } } })` 而非「先查餘額、後扣款」兩步，避免上方檢查後、寫入前餘額被其他請求變動而扣成負數；`charged.count !== memberIds.length` 時整批回滾並回傳 409（`server/src/routes/groups.js:463`）
+- 申請核准的 transaction 對 `Application.status` 用條件式 `updateMany`（只有 `status: 'pending'` 才轉 `approved`），不是先讀後寫，避免同一筆申請被雙擊或併發重複核准、重複扣款（`server/src/routes/applications.js:123`）
+- `admitMemberIntoGroup` 對名額也用條件式 `updateMany`（`status: 'recruiting'` 且 `currentMembers < maxMembers`），併發核准時只有一筆成功，另一筆 409（`server/src/utils/membership.js:13`）
+- 餘額不足時申請核准直接在 transaction 內 throw，觸發自動回滾，不會出現「已核准但成員/代管沒建立」的不一致狀態
+- 續訂扣款用 `updateMany({ where: { tokenBalance: { gte: seatCost } } })`，不是「先查餘額、後扣款」兩步，避免檢查後、寫入前餘額被其他請求變動扣成負數；`charged.count !== memberIds.length` 就整批回滾回 409（`server/src/routes/groups.js:463`）
 - 成員退款金額用 `Math.min(seatCost, group.escrowTokens)`，避免 `escrowTokens` 因先前已有退款而不足時扣成負數（`server/src/routes/members.js:142`）
-- `confirm`/惰性撥款皆在 transaction 內先重新查詢 `status`，確認仍為 `confirming` 才動作，避免同一群組被重複撥款（`server/src/routes/groups.js:97`）
+- `confirm`/惰性撥款都在 transaction 內先重新查一次 `status`，確認仍為 `confirming` 才動作，避免同一群組被重複撥款（`server/src/routes/groups.js:97`）
 - `GET /groups/:id/transactions` 僅團主本人可查看（`hostId !== req.user.id` 回 403）

@@ -36,11 +36,11 @@
 - `TokenTransaction`：收款管理面板依 `relatedGroupId` 查詢
 
 ## 使用技術
-- 自訂 hook 抽出頁面邏輯：`useHostActions` 把 619 行的原始 `HostPage` 拆成純 UI + hook，訂閱 `useGroupStore`/`useApplicationStore`/`useMemberStore` 三個 store 切片，任一變動時透過 `useEffect` 重新計算 `hostData`
-- `pm:open-host-group` window event：通知點擊、`location.state` 兩種路徑都會呼叫同一個 `applyOpenHostGroup`，統一設定 `viewGroupId`／`autoOpenLockGroup`／`autoOpenActivate`／`autoOpenApplications`／`autoOpenBilling`
+- 自訂 hook 抽出頁面邏輯：`useHostActions` 把 `HostPage` 拆成純 UI + hook，訂閱 `useGroupStore`/`useApplicationStore`/`useMemberStore` 三個 store 切片，任一變動就透過 `useEffect` 重算 `hostData`
+- `pm:open-host-group` window event：通知點擊、`location.state` 兩種路徑都呼叫同一個 `applyOpenHostGroup`，統一設定 `viewGroupId`／`autoOpenLockGroup`／`autoOpenActivate`／`autoOpenApplications`／`autoOpenBilling`
 - `GroupModalShell` 三層滑動 Panel：申請管理（第二層）→ 審核紀錄（第三層，`subSubPanel`）
-- 樂觀更新 + 背景同步：核准/拒絕申請、移除成員時先更新本地 `hostData`／`seatMap`，再背景呼叫對應 API 與 `insertNotification`
-- `CountdownConfirmDialog`：鎖定群組、解散群組、移除成員皆需倒數確認
+- 樂觀更新 + 背景同步：核准/拒絕申請、移除成員時先更新本地 `hostData`／`seatMap`，再背景呼叫對應 API 跟 `insertNotification`
+- `CountdownConfirmDialog`：鎖定群組、解散群組、移除成員都要倒數確認
 
 ## 流程步驟
 1. **建立群組後查看**：`HostPage` 依 `FilterTabsBar` 分頁與 `matchesFilter` 過濾 `allGroups`；統計卡顯示本月預估收入、平均每組、服務中成員數
@@ -55,10 +55,10 @@
 10. **平台裁定申訴**：申訴群組不在團主自己的操作範圍內，改由平台管理員在 `AdminTab` 選擇 `disputed` 狀態群組並送出裁定（見申訴流程文件）
 
 ## 驗證重點
-- 所有團主專屬 route（`lock`/`activate`/`cancel`/`renew`/`PATCH /groups/:id`/`GET /:id/transactions`）皆檢查 `group.hostId !== req.user.id` 回 403
-- `POST /groups/:id/lock` 僅允許 `status === 'full'`；`POST /groups/:id/activate` 僅允許 `status === 'pending_activation'`；`POST /groups/:id/cancel` 僅允許 `recruiting`/`full`；`POST /groups/:id/renew` 僅允許 `status === 'active'` —— 皆在 route 層以明確狀態檢查擋下不合法轉換，另有 `groups.js` 頂部的 `ALLOWED_TRANSITIONS` 表格供一般 `PATCH /groups/:id` 使用
-- `PATCH /applications/:id` 審核時用條件式 `updateMany({ where: { status: 'pending' } })` 而非先讀後寫，避免同一筆申請被重複核准、重複扣款（`server/src/routes/applications.js:123`）
-- `POST /members`（團主手動加入成員）僅允許 `group.status === 'recruiting'`，且與申請核准流程共用 `admitMemberIntoGroup`，不會繞過名額上限與代管帳務（`server/src/routes/members.js:69`）
-- `DELETE /members/:id` 僅允許在 `recruiting`/`full` 狀態操作，鎖定後（`pending_confirmation` 起）無法再變動成員名單，回 400
+- 所有團主專屬 route（`lock`/`activate`/`cancel`/`renew`/`PATCH /groups/:id`/`GET /:id/transactions`）都檢查 `group.hostId !== req.user.id` 回 403
+- `POST /groups/:id/lock` 僅允許 `status === 'full'`；`activate` 僅允許 `pending_activation`；`cancel` 僅允許 `recruiting`/`full`；`renew` 僅允許 `active`——都在 route 層用明確狀態檢查擋下不合法轉換，另有 `groups.js` 頂部 `ALLOWED_TRANSITIONS` 表供一般 `PATCH /groups/:id` 用
+- `PATCH /applications/:id` 審核用條件式 `updateMany({ where: { status: 'pending' } })` 而非先讀後寫，避免同一筆申請被重複核准、重複扣款（`server/src/routes/applications.js:123`）
+- `POST /members`（團主手動加人）僅允許 `group.status === 'recruiting'`，且跟申請核准共用 `admitMemberIntoGroup`，不會繞過名額上限跟代管帳務（`server/src/routes/members.js:69`）
+- `DELETE /members/:id` 僅允許 `recruiting`/`full` 狀態操作，鎖定後（`pending_confirmation` 起）成員名單不可再變動，回 400
 - `GET /groups/:id/transactions` 僅團主本人可查看，非團主回 403
-- `notifications` 的 `POST` 端點（`insertNotification`）在通知非自己的使用者時，後端會驗證請求人與目標使用者皆與 `meta.groupId` 所指群組有關聯（成員／團主／曾送出申請），避免任意使用者偽造通知（`server/src/routes/notifications.js:50`）
+- `insertNotification` 通知非自己的使用者時，後端會驗證請求人跟目標使用者都跟 `meta.groupId` 指的群組有關聯（成員／團主／曾送申請），避免任意使用者偽造通知（`server/src/routes/notifications.js:50`）

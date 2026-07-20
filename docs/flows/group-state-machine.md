@@ -58,7 +58,7 @@ const ALLOWED_TRANSITIONS = {
 
 ## 惰性求值（lazy evaluation）撥款
 
-`GET /groups/:id` 在回傳單一群組資料前，會檢查該群組是否 `status === 'confirming'` 且 `confirmDeadline` 已過期；若是，於 `$transaction` 內以 callback 形式重查一次 `status`，只有仍為 `confirming` 時才執行撥款與狀態轉換（`fresh?.status !== 'confirming'` 則直接跳過），這是為了在多個請求同時讀取同一個過期群組時維持冪等，避免重複撥款。這代表 `confirming → active` 的轉換不一定是由使用者主動觸發，也可能是任何一次「查看群組詳情」的 GET 請求順帶觸發。
+`GET /groups/:id` 回傳資料前會檢查群組是否 `status === 'confirming'` 且 `confirmDeadline` 已過期；若是，在 `$transaction` 內重查一次 `status`，仍為 `confirming` 才執行撥款與狀態轉換，否則直接跳過——這是為了讓多個請求同時讀到同一個過期群組時不會重複撥款。所以 `confirming → active` 不一定是使用者主動觸發的，也可能是任何一次「查看群組詳情」順帶觸發。
 
 ## PM 幣代管流程對照
 

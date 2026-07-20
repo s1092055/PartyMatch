@@ -29,10 +29,10 @@
 - `Review`：確認服務完成後可對團主留下評價
 
 ## 使用技術
-- Zustand store 樂觀更新：`useMemberStore.fillServiceInfo` 先寫入本地 state，`PATCH` 失敗則回滾至送出前的值（而非清空）
+- Zustand store 樂觀更新：`useMemberStore.fillServiceInfo` 先寫本地 state，`PATCH` 失敗就回滾到送出前的值（不是清空）
 - `GroupModalShell` 三層滑動 Panel：`overview → subPanel`（填寫帳號 / 申訴 / 成員名單），`activePanel` 控制當前顯示層
-- `CountdownConfirmDialog`：確認服務、退出群組皆需倒數數秒才可按下確認鍵，避免誤觸不可逆操作
-- `uploadDisputeEvidence`（`src/shared/api/storageApi.js`）：申訴附件上傳至 Imgbb，取得 URL 後隨 `POST /groups/:id/dispute` 一併送出
+- `CountdownConfirmDialog`：確認服務、退出群組都要倒數幾秒才能按確認鍵，避免誤觸不可逆操作
+- `uploadDisputeEvidence`（`src/shared/api/storageApi.js`）：申訴附件上傳到 Imgbb，拿到 URL 後隨 `POST /groups/:id/dispute` 一併送出
 - `window.dispatchEvent('pm:open-messages'/'pm:open-dm')`：從群組概覽或成員名單直接開啟群組聊天室或私訊團主
 
 ## 流程步驟
@@ -46,9 +46,9 @@
 8. **成員名單／聯絡團主**：`activePanel === 'members'` 顯示團主與其他成員，點擊個別成員的訊息 icon 觸發 `pm:open-dm` 開啟私訊
 
 ## 驗證重點
-- `PATCH /members/:id` 僅本人（`isOwner`）或該群組團主（`isHost`）可操作，否則回 403（`server/src/routes/members.js:95`）
+- `PATCH /members/:id` 僅本人（`isOwner`）或該群組團主（`isHost`）可操作，否則 403（`server/src/routes/members.js:95`）
 - `DELETE /members/:id`（退出）僅允許 `recruiting`/`full` 狀態，`pending_confirmation` 之後成員名單不可再變動，回 400（`server/src/routes/members.js:136`）
-- `POST /groups/:id/confirm`／`/dispute` 皆檢查請求人是否為該群組成員（`group.members.find(m => m.userId === req.user.id)`），非成員回 403；群組狀態非 `confirming` 回 400
-- 確認服務時後端在同一個 `$transaction` 內同時更新群組狀態、撥款、清空 `escrowTokens`、寫入 `TokenTransaction`、將全員 `Subscription.status` 設為 `active`，避免部分寫入失敗導致狀態不一致
-- 前端 `fillServiceInfo` 若 `PATCH` 失敗會將本地 `serviceInfo` 回滾至送出前的值，而非清空，避免使用者原本已填的資料無故消失
-- `MemberGroupView` 的 `isEffectivelyActive(group.status, myMember?.confirmedAt)` 讓「我已確認、但其他人還沒確認」時的個人視角提前顯示為已啟用狀態
+- `POST /groups/:id/confirm`／`/dispute` 都檢查請求人是不是該群組成員，非成員 403；群組狀態非 `confirming` 回 400
+- 確認服務時後端在同一個 `$transaction` 內同時更新群組狀態、撥款、清空 `escrowTokens`、寫 `TokenTransaction`、把全員 `Subscription.status` 設 `active`，避免部分寫入失敗導致狀態不一致
+- 前端 `fillServiceInfo` 的 `PATCH` 失敗時把本地 `serviceInfo` 回滾到送出前的值，不是清空，避免使用者原本填好的資料無故消失
+- `MemberGroupView` 的 `isEffectivelyActive(group.status, myMember?.confirmedAt)` 讓「我已確認、其他人還沒確認」時的個人視角提前顯示為已啟用

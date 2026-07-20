@@ -21,8 +21,8 @@
 
 ## 使用技術
 - Polling：`useNotificationStore` 每 10 秒輪詢（`POLL_INTERVAL_MS = 10000`），共用 `src/shared/utils/poller.js` 的 `startPolling`
-- 事件驅動導向：點擊通知後不是單純 `navigate()`，而是 `navigate(...)` + `window.dispatchEvent(new CustomEvent('pm:open-xxx', { detail }))` 雙重觸發——因為同一頁面內 `location.state` 重複給同一個 groupId 不會觸發變化，改用 window event 確保 Modal 一定會被觸發開啟
-- 去重保險：`dedupeById` 依 `id` 過濾，避免 init 與 poll 交錯的競態情況讓同一筆通知在陣列中出現兩次
+- 事件驅動導向：點擊通知不是單純 `navigate()`，而是 `navigate(...)` + `window.dispatchEvent(new CustomEvent('pm:open-xxx', { detail }))` 雙重觸發——同一頁面內 `location.state` 重複給同一個 groupId 不會觸發變化，改用 window event 才能保證 Modal 一定會開
+- 去重保險：`dedupeById` 依 `id` 過濾，避免 init 跟 poll 交錯時同一筆通知在陣列裡出現兩次
 
 ## 流程步驟
 1. 後端各業務 route（申請核准、成員移除、群組額滿等）在觸發事件時呼叫 `POST /notifications` 建立通知，帶上 `type` 與 `meta.groupId`
@@ -34,6 +34,6 @@
 5. 「全部標為已讀」呼叫 `PATCH /notifications/read-all`
 
 ## 驗證重點
-- `POST /notifications` 不信任前端傳入的 `isPublic`（一律視為 false），避免任何使用者能偽造公開公告
-- 通知其他使用者時，後端需驗證請求人與目標使用者皆與 `meta.groupId` 指定的群組有關聯（成員／團主／曾送出申請），避免任意使用者對其他人偽造通知
-- `member_removed`／`member_left` 點擊後會先廣播 `pm:refresh-member-stores` 再導向，確保 Store 資料同步更新後畫面才切換，避免顯示過期的成員名單
+- `POST /notifications` 不信任前端傳的 `isPublic`（一律視為 false），避免任何使用者偽造公開公告
+- 通知其他使用者時，後端要驗證請求人跟目標使用者都跟 `meta.groupId` 指定的群組有關聯（成員／團主／曾送申請），避免任意使用者對別人偽造通知
+- `member_removed`／`member_left` 點擊後先廣播 `pm:refresh-member-stores` 再導向，確保 store 資料同步更新後畫面才切換，避免顯示過期的成員名單

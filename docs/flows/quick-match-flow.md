@@ -26,11 +26,11 @@
 - `Member`（用來判斷結果卡片是否已是該群組成員）
 
 ## 使用技術
-- 三步驟但 UI 上是 2 個可捲動內容頁 + 1 個結果頁：`step` state 為 1/2/3，`STEP_TITLES = ['選擇服務', '方案與條件', '配對結果']`，`Step2PlansAndFilters` 把「選擇方案」與「篩選條件」合併在同一個可捲動容器內，用左側 sticky 導覽 + `smoothScrollTo` 錨點捲動模擬子步驟切換
-- 條件狀態 `conditions`（`services`、`selectedPlans`、`maxPrice`、`minRating`、`groupAge`）與結果 `results` 都是 `QuickMatchPage` 內的 React state，離開頁面即消失，不寫入任何 store 或 `sessionStorage`
-- 步驟切換時用 `key={step}` 重新掛載內容區塊並套用 `animate-step-slide-up` class 做進場動畫
-- 配對分數是一次性計算（`matchGroups` 內 `calcScore`），非後端排序，也非持久化欄位
-- 免登入可用：`handleStartMatch` 讀取 `useAuthStore.getState().user?.id`，若未登入則 `activeUserId` 為 `undefined`，篩選群組時仍正常執行（只是不會排除任何人的群組）
+- 三步驟但 UI 上是 2 個可捲動內容頁 + 1 個結果頁：`step` state 為 1/2/3，`STEP_TITLES = ['選擇服務', '方案與條件', '配對結果']`，`Step2PlansAndFilters` 把「選擇方案」跟「篩選條件」合併在同一個可捲動容器內，用左側 sticky 導覽 + `smoothScrollTo` 錨點捲動模擬子步驟切換
+- 條件狀態 `conditions`（`services`、`selectedPlans`、`maxPrice`、`minRating`、`groupAge`）跟結果 `results` 都是 `QuickMatchPage` 裡的 React state，離開頁面就消失，不寫入 store 或 `sessionStorage`
+- 步驟切換用 `key={step}` 重新掛載內容區塊並套用 `animate-step-slide-up` 做進場動畫
+- 配對分數一次性計算（`matchGroups` 的 `calcScore`），不是後端排序，也不是持久化欄位
+- 免登入可用：`handleStartMatch` 讀 `useAuthStore.getState().user?.id`，未登入時 `activeUserId` 是 `undefined`，篩選照常跑，只是不排除任何人的群組
 
 ## 流程步驟
 1. 進入頁面時 `conditions` 初始化為 `DEFAULT_CONDITIONS`（`services: []`、`selectedPlans: {}`、`maxPrice: 100`、`minRating: 70`、`groupAge: 'any'`），`step = 1`
@@ -46,7 +46,7 @@
 8. 「調整條件」返回步驟二；「重新查找」把 `conditions` 重設回 `DEFAULT_CONDITIONS`、清空 `results`、`step` 設回 1
 
 ## 驗證重點
-- 前端表單層面唯一的硬性檢查：步驟一至少選擇一個服務（`canNext = step === 1 ? conditions.services.length > 0 : true`），步驟二沒有必填限制，可以直接用預設篩選值查找
-- 配對結果只會回傳 `status === 'recruiting'` 且 `openSeats > 0` 的群組，已額滿或非招募中的群組不會出現在結果中
-- 沒有配對到結果時（`results.length === 0`）顯示空狀態並引導「探索所有群組」，不會顯示錯誤訊息
-- 全部運算基於前端已快取的 `groups`（可能是初次載入時的快照），快速搜尋不會重新打 API 取得最新群組列表，配對結果可能與資料庫當下最新狀態有些微落差
+- 前端表單唯一的硬性檢查：步驟一至少選一個服務（`canNext = step === 1 ? conditions.services.length > 0 : true`），步驟二沒有必填限制，可以直接用預設篩選值查找
+- 配對結果只回傳 `status === 'recruiting'` 且 `openSeats > 0` 的群組，額滿或非招募中的不會出現
+- 沒配對到結果時（`results.length === 0`）顯示空狀態並引導「探索所有群組」，不顯示錯誤訊息
+- 全部運算基於前端已快取的 `groups`（可能是初次載入的快照），快速搜尋不會重新打 API 拿最新群組列表，配對結果可能跟資料庫當下狀態有些微落差

@@ -25,9 +25,9 @@
 - `TokenTransaction`：續訂收款批次寫入多筆 `type: 'escrow'`
 
 ## 使用技術
-- Prisma `$transaction`（callback 形式）：後端在單一交易內完成「條件式扣款全體成員 → 批次建立交易紀錄 → 清空成員帳號資訊 → 更新群組狀態與下次帳單日」
-- 條件式 `updateMany`（`tokenBalance: { gte: seatCost }`）：避免扣款當下餘額被其他請求變動而扣成負數
-- 前端 `advanceByCycle`／`daysUntil` 純函式計算下一期帳單日與逾期天數，供 Modal 顯示用，實際帳單日仍以後端回傳為準
+- Prisma `$transaction`（callback 形式）：後端在單一交易內完成「條件式扣款全體成員 → 批次建交易紀錄 → 清空成員帳號資訊 → 更新群組狀態與下次帳單日」
+- 條件式 `updateMany`（`tokenBalance: { gte: seatCost }`）：避免扣款當下餘額被其他請求變動扣成負數
+- 前端 `advanceByCycle`／`daysUntil` 純函式算下一期帳單日跟逾期天數，只供 Modal 顯示，實際帳單日還是以後端回傳為準
 
 ## 流程步驟
 1. 群組進入 `active` 狀態後，`HostGroupView` 側邊欄顯示「續訂管理」，點擊呼叫 `onOpenRenewal()` → `HostPage`／`useHostActions` 設定 `renewalModalGroupId`，開啟 `RenewalModal`
@@ -45,6 +45,6 @@
 
 ## 驗證重點
 - `POST /groups/:id/renew` 僅團主本人可操作（`group.hostId !== req.user.id` 回 403），且僅允許 `status === 'active'`（其餘狀態回 400，訊息附目前實際狀態）
-- 續訂扣款預檢與正式扣款是兩個獨立步驟：預檢用讀取到的 `tokenBalance` 快照判斷並回傳「哪些成員」餘額不足；正式扣款仍用資料庫層的條件式 `updateMany` 二次核對，兩者皆失敗時不會產生半套扣款
-- `notifyUpcomingRenewals` 用 `meta?.groupId` + `meta?.nextBillingDate` 是否相符來判斷「這期是否已發過提醒」，避免同一期帳單重複通知；若團主開新一期（`nextBillingDate` 改變）則會針對新的帳單日重新發送
-- `PATCH /groups/:id`（`endGroup` 底層使用的通用更新）仍受 `ALLOWED_TRANSITIONS` 限制，`active` 只能轉換到 `confirming`/`ended`/`pending_confirmation`，避免前端誤傳非法狀態值
+- 續訂扣款預檢跟正式扣款是兩個獨立步驟：預檢用讀到的 `tokenBalance` 快照判斷並回傳哪些成員餘額不足；正式扣款仍用資料庫層條件式 `updateMany` 二次核對，兩邊都失敗才不會產生半套扣款
+- `notifyUpcomingRenewals` 用 `meta?.groupId` + `meta?.nextBillingDate` 是否相符判斷這期是否已發過提醒，避免同一期帳單重複通知；團主開新一期（`nextBillingDate` 變了）就會針對新帳單日重新發送
+- `PATCH /groups/:id`（`endGroup` 底層用的通用更新）仍受 `ALLOWED_TRANSITIONS` 限制，`active` 只能轉到 `confirming`/`ended`/`pending_confirmation`，避免前端誤傳非法狀態值

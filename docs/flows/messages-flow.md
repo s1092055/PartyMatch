@@ -32,8 +32,8 @@
 
 ## 使用技術
 - Polling（非 WebSocket）：`useConversationStore` 每 5 秒輪詢對話列表；`subscribeToMessages`（`messagesApi.js`）輪詢單一對話的訊息
-- 三處輪詢（`useNotificationStore`、`subscribeToConversations`、`subscribeToMessages`）共用 `src/shared/utils/poller.js` 的 `startPolling(pollOnce, intervalMs)`：立即執行一次 + 每隔 intervalMs 執行一次，並把 `isActive()` 傳給 callback，讓輪詢邏輯在 await 之後自行判斷這次結果是否還該寫回（避免 `stop()` 在 await 期間已被呼叫，例如登出，卻仍寫入過期資料）
-- DM 延遲曝光機制：由後端判斷而非前端輪詢時機
+- 三處輪詢（`useNotificationStore`、`subscribeToConversations`、`subscribeToMessages`）共用 `src/shared/utils/poller.js` 的 `startPolling(pollOnce, intervalMs)`：立即跑一次 + 每隔 intervalMs 跑一次，並把 `isActive()` 傳給 callback，讓輪詢邏輯在 await 之後自己判斷這次結果還該不該寫回（避免登出後 `stop()` 已呼叫，await 才跑完卻寫入過期資料）
+- DM 延遲曝光靠後端判斷，不依賴前端輪詢時機
 
 ## 流程步驟
 
@@ -54,6 +54,6 @@
 2. 唯讀，成員無法回覆，由平台系統帳號發送公告或客服訊息，`Message` 可能帶 `actionType`/`payload` 渲染成可互動的操作型訊息
 
 ## 驗證重點
-- 所有訊息相關 route 都先解析 `conversation.participants`（JSON 欄位，需相容陣列或字串兩種儲存格式）並確認 `req.user.id` 在其中，非參與者一律拒絕
-- DM 建立時對 `participants` 排序後查詢，確保同一對使用者不會重複建立多個 DM 對話
-- 已讀狀態（`markConversationRead`／`PATCH /:id/read`）與未讀數計算（`unreadCounts`）需要與訊息送出保持同步，避免未讀數與實際訊息數量脫節
+- 所有訊息相關 route 都先解析 `conversation.participants`（JSON 欄位，要相容陣列或字串兩種儲存格式）確認 `req.user.id` 在裡面，非參與者一律拒絕
+- DM 建立時對 `participants` 排序後查詢，確保同一對使用者不會重複建出多個 DM 對話
+- 已讀狀態（`markConversationRead`／`PATCH /:id/read`）跟未讀數（`unreadCounts`）要跟訊息送出保持同步，避免未讀數跟實際訊息數量對不上

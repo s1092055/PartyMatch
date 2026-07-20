@@ -80,7 +80,7 @@ accessToken + refreshToken 雙 token 設計，refreshToken 存於 Redis（key �
 
 - `refresh:{userId}:{sessionId}` → refreshToken 字串，TTL 7 天（`60 * 60 * 24 * 7` 秒），對應 `JWT_REFRESH_EXPIRES`
 - 帳號停用（`POST /users/me/deactivate`）時呼叫 `deleteAllUserSessions(userId)`（`auth.js` 匯出），用 `SCAN`（而非 `KEYS`，避免阻塞整個 Redis）掃出該使用者所有 session key 一次刪除，讓所有裝置立即登出
-- 相容改版前沒有 `sessionId` 後綴的舊版 key（`refresh:{userId}`），refresh 一次後自動升級成新格式並清除舊 key
+- 相容沒有 `sessionId` 後綴的舊格式 key（`refresh:{userId}`），refresh 一次後自動升級成新格式並清除舊 key
 
 目前 Redis 沒有用於一般資料快取（例如群組/服務清單查詢快取），純粹作為 session store。
 
@@ -106,6 +106,6 @@ accessToken + refreshToken 雙 token 設計，refreshToken 存於 Redis（key �
 - **不信任前端傳入的敏感欄位**：`notifications.js` 的 `POST /` 不採信前端傳入的 `isPublic`（一律視為 `false`），且發通知給他人時需驗證請求人與目標使用者皆與 `meta.groupId` 指定的群組有關聯（成員／團主／曾送出申請）
 - **管理員限定操作**：`requireAdmin` 用於 `groups.js` 的 `/adjudicate`（申訴裁定）與 `systemMessages.js` 全部端點（廣播公告、發送私訊）
 
-已移除的反例：原本存在、可被任意使用者直接呼叫繞過申請審核流程建立訂閱的 `POST /subscriptions` 已移除，訂閱一律透過 `applications.js` 核准流程以 transaction 建立。
+沒有開放 `POST /subscriptions`：訂閱一律透過 `applications.js` 的核准流程以 transaction 建立，避免使用者繞過審核直接建立。
 
 完整 API 端點清單見 [API 總覽](./api-overview.md)。

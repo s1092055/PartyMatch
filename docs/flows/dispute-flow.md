@@ -24,10 +24,10 @@
 - `TokenTransaction`：裁定結果依 `winner` 寫入 `refund`（成員獲勝）或 `release`（團主獲勝）
 
 ## 使用技術
-- Prisma `$transaction`（陣列形式）：送出申訴與裁定皆把群組狀態變更與 `Member` 欄位更新（或代管金額異動）包在同一交易
-- 前端多選 checkbox + 自由文字合併：`DISPUTE_REASON_OPTIONS` 固定選項可複選，與補充說明用 `\n` 串接後整包寫入單一 `reason` 字串欄位（後端 `serviceInfoIssueNote` 沒有結構化多欄位）
-- 附件上傳與表單送出分離：`handleEvidenceSelect` 先呼叫 `uploadDisputeEvidence` 取得 URL 並存在 state，送出申訴時才一併帶入 `POST /groups/:id/dispute`
-- `NotificationType` enum 定義了 `dispute_raised`／`escrow_released` 兩個類型，但目前程式碼中沒有任何地方建立這兩種通知——裁定結果不會主動通知申訴成員或團主，僅管理員自己在 `AdminTab` 看到 toast
+- Prisma `$transaction`（陣列形式）：送出申訴與裁定都把群組狀態變更跟 `Member` 欄位更新（或代管金額異動）包在同一交易
+- 前端把多選 checkbox 跟自由文字合併：`DISPUTE_REASON_OPTIONS` 可複選，跟補充說明用 `\n` 串接寫進單一 `reason` 字串欄位（`serviceInfoIssueNote` 沒有拆結構化多欄位）
+- 附件上傳跟表單送出分開：`handleEvidenceSelect` 先呼叫 `uploadDisputeEvidence` 拿 URL 存在 state，送出申訴時才一併帶進 `POST /groups/:id/dispute`
+- `NotificationType` 定義了 `dispute_raised`／`escrow_released` 兩個類型，但目前沒有任何地方真的建立這兩種通知——裁定結果不會主動通知申訴成員或團主，管理員自己在 `AdminTab` 看 toast 而已
 
 ## 流程步驟
 1. 群組進入 `confirming`（服務已啟用，48 小時確認期）後，成員在 `MemberGroupView` 看到「確認服務」與「回報問題」兩個按鈕（`canConfirm`）
@@ -44,8 +44,8 @@
 12. 前端 `adjudicateGroup` 收到結果後不直接套用回傳值，而是重新 `init({ all: true })` 群組 store 並重新 `init()` member/subscription store，確保裁定連動的多筆資料變更（成員名單、代管餘額、訂閱狀態）都取得資料庫最新真實狀態
 
 ## 驗證重點
-- `POST /groups/:id/dispute` 檢查群組必須處於 `confirming`（否則 400）、請求人必須是該群組 `Member`（否則 403）
-- `POST /groups/:id/adjudicate` 用 `requireAdmin` 中介層保護，僅管理員帳號可呼叫；並檢查群組必須處於 `disputed`（否則 400）、`winner` 必須為 `member`/`host` 其一、`reason` 不可為空
-- 裁定成員獲勝時，僅該申訴成員被移出群組並退款，其餘成員的 `Member`/`Subscription`/代管餘額完全不受影響——裁定的影響範圍精準限定在單一成員，不會波及整個群組
-- 裁定操作沒有樂觀本地更新，前端刻意選擇「裁定完成後整包重新 `init`」而非手動拼湊本地 state，理由是裁定牽動多張表且分支邏輯複雜，直接信任資料庫回傳可避免前端邏輯與後端 transaction 邏輯不同步
-- 目前後端與前端都沒有為裁定結果建立任何 `Notification` 記錄（`dispute_raised`/`escrow_released` 這兩個 enum 值定義了但未被使用），申訴成員與團主需自行重新整理頁面才會看到群組狀態已變回 `active`
+- `POST /groups/:id/dispute` 要求群組處於 `confirming`（否則 400）、請求人是該群組 `Member`（否則 403）
+- `POST /groups/:id/adjudicate` 用 `requireAdmin` 保護，只有管理員能呼叫；群組必須 `disputed`、`winner` 只能是 `member`/`host`、`reason` 不可空
+- 裁定成員獲勝時只有申訴成員被移出並退款，其餘成員的 `Member`/`Subscription`/代管餘額完全不受影響，裁定範圍精準限定在單一成員
+- 裁定沒有樂觀本地更新，前端裁定完成後整包重新 `init`，因為牽動多張表且分支多，直接信任資料庫回傳比較不容易跟後端 transaction 邏輯兜不起來
+- 裁定結果目前沒有建立任何 `Notification`（`dispute_raised`/`escrow_released` 定義了但沒用到），申訴成員與團主要自己重新整理頁面才會看到狀態變回 `active`
