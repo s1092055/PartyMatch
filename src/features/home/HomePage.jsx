@@ -4,9 +4,7 @@ import { ChevronRight, Compass, Search } from 'lucide-react'
 import Button from '../../shared/ui/primitives/Button'
 import logoUrl from '../../assets/Logo.svg'
 import { useAuthStore } from '../../shared/stores/useAuthStore'
-import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { listServiceTypes } from '../../shared/utils/serviceUtils'
-import { calcPricePerSeat } from '../../shared/utils/pricingUtils'
 import AppNav from '../../shared/layout/AppNav'
 import ScrollToTop from '../../shared/layout/ScrollToTop'
 import AppFooter from '../../shared/layout/AppFooter'
@@ -20,22 +18,11 @@ import FAQ from './components/FAQ'
 import RevealSection from '../../shared/ui/primitives/RevealSection'
 
 const ALL_SERVICES = listServiceTypes()
-const MIN_SEAT_PRICE = Math.min(
-  ...ALL_SERVICES.flatMap(s => (s.plans ?? []).map(p => calcPricePerSeat(p, p.maxSeats || 1)))
-)
 const MessagesModal = lazy(() => import('../messages/MessagesModal'))
 
 export default function HomePage() {
   const navigate = useNavigate()
   const loggedIn = useAuthStore(s => s.loggedIn)
-  const groups = useGroupStore(s => s.groups)
-  const activeGroupCount = groups.filter(g => g.status === 'recruiting' && g.openSeats > 0).length
-
-  const STATS = [
-    { value: String(ALL_SERVICES.length),   label: '支援服務' },
-    { value: String(activeGroupCount),      label: '個活躍群組' },
-    { value: `NT$${MIN_SEAT_PRICE}`,         label: '最低月費起' },
-  ]
 
   return (
     <div className="flex min-h-screen flex-col bg-canvas text-ink md:ml-24">
@@ -54,15 +41,7 @@ export default function HomePage() {
         <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-ink-3">
           共享訂閱群組媒合平台——找團、申請、付款、溝通，全都在同一個地方完成。
         </p>
-        <div className="mx-auto mt-12 flex items-center justify-center gap-8 md:gap-14">
-          {STATS.map(({ value, label }) => (
-            <div key={label} className="flex flex-col items-center gap-0.5">
-              <span className="text-2xl font-extrabold text-ink md:text-3xl">{value}</span>
-              <span className="text-xs text-ink-3">{label}</span>
-            </div>
-          ))}
-        </div>
-        <div className="mx-auto mt-10 flex flex-wrap items-center justify-center gap-3">
+        <div className="mx-auto mt-12 flex flex-wrap items-center justify-center gap-3">
           <Button size="lg" className="px-8" onClick={() => navigate('/explore')}>
             <Compass size={16} />
             探索群組
