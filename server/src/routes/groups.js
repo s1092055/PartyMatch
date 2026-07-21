@@ -347,11 +347,15 @@ router.post('/:id/lock', requireAuth, async (req, res, next) => {
     if (group.billingCycle === 'yearly') nextBillingDate.setFullYear(nextBillingDate.getFullYear() + 1)
     else nextBillingDate.setMonth(nextBillingDate.getMonth() + 1)
 
+    // 填寫服務帳號資訊的期限：鎖定時間 + 24h（僅供前端顯示倒數，逾期不會自動處理）
+    const serviceInfoDeadline = new Date()
+    serviceInfoDeadline.setHours(serviceInfoDeadline.getHours() + 24)
+
     // 更新群組狀態 + 所有成員訂閱的 nextBillingDate
     const [updated] = await prisma.$transaction([
       prisma.group.update({
         where: { id: req.params.id },
-        data: { status: 'pending_confirmation' },
+        data: { status: 'pending_confirmation', serviceInfoDeadline },
         include: {
           host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, creditScore: true } },
           service: true,
@@ -458,6 +462,10 @@ router.post('/:id/renew', requireAuth, async (req, res, next) => {
     if (group.billingCycle === 'yearly') base.setFullYear(base.getFullYear() + 1)
     else base.setMonth(base.getMonth() + 1)
 
+    // 續訂後回到跟第一次鎖定群組相同的填寫帳號資訊階段，比照設定 24h 倒數
+    const serviceInfoDeadline = new Date()
+    serviceInfoDeadline.setHours(serviceInfoDeadline.getHours() + 24)
+
     const updated = await prisma.$transaction(async (tx) => {
       // 向每位成員收取本期代管費用；用 gte 條件式扣款，避免上方檢查後、寫入前餘額被其他請求變動造成扣成負數
       const charged = await tx.user.updateMany({
@@ -488,7 +496,7 @@ router.post('/:id/renew', requireAuth, async (req, res, next) => {
 
       return tx.group.update({
         where: { id: req.params.id },
-        data:  { status: 'pending_confirmation', nextBillingDate: base, escrowTokens: { increment: seatCost * memberIds.length } },
+        data:  { status: 'pending_confirmation', nextBillingDate: base, serviceInfoDeadline, escrowTokens: { increment: seatCost * memberIds.length } },
         include: {
           host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, creditScore: true } },
           service: true,

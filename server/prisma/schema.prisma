@@ -151,6 +151,8 @@ model Group {
   billingCycle    String?
   nextBillingDate DateTime?
   escrowTokens    Int         @default(0)
+  // 鎖定群組時設定為鎖定時間 + 24h，pending_confirmation 階段的填寫帳號資訊截止時間，僅供前端顯示倒數，逾期不會有任何自動處理
+  serviceInfoDeadline DateTime?
   confirmDeadline DateTime?
   disputeDeadline DateTime?
   createdAt       DateTime    @default(now())

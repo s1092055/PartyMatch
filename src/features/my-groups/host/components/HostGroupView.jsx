@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Banknote, CheckCircle2, ClipboardList, Info, MessageCircle, PlayCircle, Radio, RefreshCw, Trash2, Users } from 'lucide-react'
+import { Banknote, CheckCircle2, ClipboardList, Clock, Info, MessageCircle, PlayCircle, Radio, RefreshCw, Trash2, Users } from 'lucide-react'
 import CountdownConfirmDialog from '../../../../shared/ui/primitives/CountdownConfirmDialog'
+import CountdownText from '../../../../shared/ui/primitives/CountdownText'
 import GroupModalShell from '../../../../shared/ui/group/GroupModalShell'
 import GroupModalSideBarItem from '../../../../shared/ui/group/GroupModalSideBarItem'
 import { getServiceById } from '../../../../shared/utils/serviceUtils'
@@ -141,6 +142,26 @@ export default function HostGroupView({ group, members, applications, onReportSe
     </div>
   )
 
+  const pendingConfirmationBanner = group.status === 'pending_confirmation' && (
+    <div className="flex items-center justify-center gap-2 bg-info-subtle px-6 py-3 text-sm font-extrabold text-info-text">
+      <Clock size={15} strokeWidth={1.5} />
+      等待成員填寫服務帳號資訊
+      {group.serviceInfoDeadline && (
+        <>，剩餘 <CountdownText deadline={group.serviceInfoDeadline} /></>
+      )}
+    </div>
+  )
+
+  const confirmingBanner = group.status === 'confirming' && (
+    <div className="flex items-center justify-center gap-2 bg-info-subtle px-6 py-3 text-sm font-extrabold text-info-text">
+      <Clock size={15} strokeWidth={1.5} />
+      確認期進行中
+      {group.confirmDeadline && (
+        <>，剩餘 <CountdownText deadline={group.confirmDeadline} /></>
+      )}
+    </div>
+  )
+
   const activateBanner = canActivateNow && (
     <div className="flex items-center justify-center gap-2 bg-success-subtle px-6 py-3 text-sm font-extrabold text-success-text">
       <CheckCircle2 size={15} />
@@ -249,7 +270,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
       service={serviceDef}
       plan={planDef}
       hideRecruitBar={group.status !== 'recruiting'}
-      headerBanner={lockGroupBanner || activateBanner || undefined}
+      headerBanner={lockGroupBanner || activateBanner || pendingConfirmationBanner || confirmingBanner || undefined}
       centeredCta={lockGroupCta || activateCta || undefined}
       extraInfoRows={[]}
       pendingBadge={group.status === 'pending_confirmation' ? '收款中' : undefined}

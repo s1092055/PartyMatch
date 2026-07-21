@@ -38,7 +38,9 @@ flowchart TD
 |------|------|
 | `src/features/my-groups/host/HostPage.jsx` | 頁面總入口 |
 | `src/features/my-groups/host/hooks/useHostActions.js` | 所有團主操作的事件處理（鎖定、啟用、移除成員、審核、續訂、解散等） |
-| `src/features/my-groups/host/components/HostGroupView.jsx` | 團主視角群組詳情 Modal |
+| `src/features/my-groups/host/components/HostGroupView.jsx` | 團主視角群組詳情 Modal，含 `pending_confirmation`/`confirming` 倒數橫幅 |
+| `src/shared/ui/primitives/CountdownText.jsx` | 顯示距 deadline 剩餘時間的小元件，逾期顯示 `expiredText` |
+| `src/shared/utils/hooks.js` | `useCountdown`，每秒重算剩餘時間，純顯示用不觸發任何副作用 |
 | `src/features/my-groups/host/components/HostedGroupCard.jsx` | 群組卡片 |
 | `src/features/my-groups/host/components/ActivateServiceModal.jsx` | 啟用服務前逐一確認成員帳號的 Modal |
 | `src/features/my-groups/host/components/ReportServiceIssueModal.jsx` | 回報成員帳號問題 |
@@ -93,12 +95,14 @@ flowchart TD
 - 前端同步更新本地名額，通知被移除的成員；如果聊天室已經存在，會發一則系統訊息並把該成員移出聊天室
 
 **4. 鎖定群組（`full → pending_confirmation`）**
-- 先建立群組聊天室（把團主跟所有成員加進去），再呼叫鎖定 API，後端會同時設定所有成員的下次扣款日
+- 先建立群組聊天室（把團主跟所有成員加進去），再呼叫鎖定 API，後端會同時設定所有成員的下次扣款日，以及 `serviceInfoDeadline`（鎖定時間 + 24h，僅供前端顯示倒數，逾期不會有任何自動處理）
 - 聊天室發出「請填寫服務帳號」的提示訊息，並通知團主自己與所有成員聊天室已開啟
+- 群組詳情頁（團主與成員兩側）在 `pending_confirmation` 期間都會顯示「等待成員填寫服務帳號資訊，剩餘 HH:MM:SS」的倒數橫幅（`CountdownText`，每秒更新）
 
 **5. 啟用服務（`pending_activation → confirming`）**
 - `ActivateServiceModal` 要求逐一勾選確認每位成員的帳號資訊都沒問題，才能按下最終確認
 - 確認後群組進入 48 小時確認期，聊天室發系統訊息，並通知團主與所有成員服務已啟用
+- 群組詳情頁（團主與成員兩側）在 `confirming` 期間都會顯示「確認期進行中，剩餘 HH:MM:SS」的倒數橫幅，讀 `group.confirmDeadline`
 
 **6. 回報成員帳號問題**
 - 填寫問題說明後送出，會把說明寫進該成員的記錄，聊天室發系統訊息請該成員重新提交，並通知該成員

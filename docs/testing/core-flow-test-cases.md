@@ -151,6 +151,8 @@
 - 所有成員的 `subscription.nextBillingDate` 被設定為「今天起算一個計費週期」（月繳 +1 個月，年繳 +1 年）
 - 系統自動建立群組聊天室（`POST /conversations/group`，成員 = 團主 + 所有 member）
 - 所有成員收到「群組聊天室已開啟」通知，並可開始填寫服務帳號資訊
+- 群組 `serviceInfoDeadline` 被設定為「鎖定時間 + 24h」
+- 團主與成員兩側的群組詳情頁都會出現倒數橫幅（剩餘時間每秒更新，格式 `HH:MM:SS`），24h 過後橫幅顯示「已逾期」，但不會有任何自動處理
 - 成員名單自此鎖死：`DELETE /members/:id` 應回傳 400「群組啟用後無法變更成員名單」（僅 `recruiting`/`full` 可變動名單）
 
 ---
@@ -187,6 +189,7 @@
 - `confirmDeadline` 設為目前時間 +48 小時
 - 所有成員收到 `group_activated` 通知
 - 成員視角出現「確認服務」CTA（`canConfirm = group.status === 'confirming' && !myMember.confirmedAt`）
+- 團主與成員兩側的群組詳情頁都會出現「確認期進行中，剩餘 HH:MM:SS」倒數橫幅，讀 `group.confirmDeadline`
 
 ---
 

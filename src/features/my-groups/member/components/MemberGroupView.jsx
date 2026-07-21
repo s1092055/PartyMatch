@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import {
-  CheckCircle2, Paperclip, FileText, Info, LogOut, MessageCircle, Shield, Users, ClipboardEdit, ThumbsUp, AlertTriangle, X,
+  CheckCircle2, Clock, Paperclip, FileText, Info, LogOut, MessageCircle, Shield, Users, ClipboardEdit, ThumbsUp, AlertTriangle, X,
 } from 'lucide-react'
 import Avatar from '../../../../shared/ui/primitives/Avatar'
 import CountdownConfirmDialog from '../../../../shared/ui/primitives/CountdownConfirmDialog'
+import CountdownText from '../../../../shared/ui/primitives/CountdownText'
 import GroupModalShell from '../../../../shared/ui/group/GroupModalShell'
 import GroupModalSideBarItem from '../../../../shared/ui/group/GroupModalSideBarItem'
 import ReviewHostModal from './ReviewHostModal'
@@ -377,12 +378,20 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
             服務帳號有問題，需要修正
           </div>
         ) : needsFillInfo ? (
-          <div className="flex items-center justify-center bg-brand-subtle px-6 py-3 text-sm font-extrabold text-brand">
+          <div className="flex items-center justify-center gap-2 bg-brand-subtle px-6 py-3 text-sm font-extrabold text-brand">
+            <Clock size={15} strokeWidth={1.5} />
             請填寫服務帳號以完成加入流程
+            {group.serviceInfoDeadline && (
+              <>，剩餘 <CountdownText deadline={group.serviceInfoDeadline} /></>
+            )}
           </div>
         ) : canConfirm ? (
-          <div className="flex items-center justify-center bg-info-subtle px-6 py-3 text-sm font-extrabold text-info-text">
-            服務已啟用，請在 48 小時內確認是否正常
+          <div className="flex items-center justify-center gap-2 bg-info-subtle px-6 py-3 text-sm font-extrabold text-info-text">
+            <Clock size={15} strokeWidth={1.5} />
+            服務已啟用，請確認是否正常
+            {group.confirmDeadline && (
+              <>，剩餘 <CountdownText deadline={group.confirmDeadline} /></>
+            )}
           </div>
         ) : isDisputed ? (
           <div className="flex items-center justify-center bg-danger-subtle px-6 py-3 text-sm font-extrabold text-danger-text">

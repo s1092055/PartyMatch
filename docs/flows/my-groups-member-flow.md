@@ -57,7 +57,7 @@ flowchart TD
 |-------|------|
 | `Member` | `serviceInfo`（JSON，帳號資訊）、`serviceInfoIssueNote`、`disputeEvidenceUrl`、`confirmedAt` |
 | `Subscription` | `status`（`pending`/`active`/`ended`）、`nextBillingDate` |
-| `Group` | `status`、`confirmDeadline`、`disputeDeadline`、`escrowTokens` |
+| `Group` | `status`、`serviceInfoDeadline`、`confirmDeadline`、`disputeDeadline`、`escrowTokens` |
 | `Review` | 確認服務完成後可對團主留下的評價 |
 
 ## 使用技術
@@ -74,13 +74,14 @@ flowchart TD
 
 **2. 填寫服務帳號（`pending_confirmation`）**
 - 還沒填寫帳號資訊時，`MemberGroupView` 會顯示「填寫帳號」按鈕，點開表單輸入 email 後送出
+- 頁面頂部會顯示「請填寫服務帳號以完成加入流程，剩餘 HH:MM:SS」倒數橫幅（讀 `group.serviceInfoDeadline`，鎖定時間 + 24h，每秒更新；逾期只顯示「已逾期」，不會有任何自動處理）
 - 後端會檢查群組內是否全員都已經填寫，如果是，就自動把群組狀態推進到「等待團主啟用」
 
 **3. 帳號問題修正**
 - 如果團主回報帳號有問題，`MemberGroupView` 會顯示警示訊息，並允許重新填寫
 
 **4. 確認服務（`confirming`）**
-- 服務啟用後的確認期內，會顯示「確認服務」跟「回報問題」兩個按鈕
+- 服務啟用後的確認期內，會顯示「確認服務」跟「回報問題」兩個按鈕，頂部橫幅顯示「服務已啟用，請確認是否正常，剩餘 HH:MM:SS」倒數（讀 `group.confirmDeadline`）
 - 點「確認服務」需要倒數確認；送出後如果全員都已確認，後端會立即撥款給團主，前端提示「款項已撥付」；如果還有人沒確認，就只標記自己已確認，並提示還在等其他人
 
 **5. 確認後邀請評價**

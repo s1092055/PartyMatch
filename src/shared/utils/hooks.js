@@ -179,6 +179,32 @@ function subscribePointerDown(fn) {
   }
 }
 
+// 倒數計時：回傳距離 deadline 的剩餘時間（格式化字串）跟是否已逾期，每秒重新計算一次
+// 逾期不會觸發任何副作用，純粹給 UI 顯示用
+export function useCountdown(deadline) {
+  const [now, setNow] = useState(() => Date.now())
+
+  useEffect(() => {
+    if (!deadline) return
+    const timer = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(timer)
+  }, [deadline])
+
+  if (!deadline) return { label: null, expired: false }
+
+  const remainingMs = new Date(deadline).getTime() - now
+  if (remainingMs <= 0) return { label: null, expired: true }
+
+  const totalSeconds = Math.floor(remainingMs / 1000)
+  const hours   = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+  const pad = n => String(n).padStart(2, '0')
+  const label = hours > 0 ? `${pad(hours)}:${pad(minutes)}:${pad(seconds)}` : `${pad(minutes)}:${pad(seconds)}`
+
+  return { label, expired: false }
+}
+
 export function useClickOutside(enabled, refs, onClose) {
   const refsRef = useRef(refs)
   const onCloseRef = useRef(onClose)
