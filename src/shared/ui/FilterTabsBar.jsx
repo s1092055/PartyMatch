@@ -34,8 +34,10 @@ export default function FilterTabsBar({ tabs, value, onChange, counts = {}, onOp
         )}
       </div>
 
-      {/* 桌機版：左側垂直 tab 選單，樣式比照帳號設定頁；群組紀錄固定在側邊欄底部 */}
-      <nav className="hidden w-40 shrink-0 animate-step-slide-up md:flex md:flex-col">
+      {/* 桌機版：左側垂直 tab 選單，樣式比照帳號設定頁；群組紀錄固定在側邊欄底部。
+          給 nav 固定高度（跟右側內容區的 max-h 用同一個 calc 值）而不是靠 flex 拉伸撐高，
+          避免內容區高度隨分類項目多寡變化時，「群組紀錄」的垂直位置跟著飄動 */}
+      <nav className="hidden w-40 shrink-0 animate-step-slide-up md:flex md:h-[calc(100vh-16rem)] md:min-h-[28rem] md:flex-col">
         <ul className="flex flex-col gap-1">
           {tabs.map(tab => (
             <li key={tab.key}>

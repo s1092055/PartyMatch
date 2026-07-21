@@ -74,7 +74,7 @@ flowchart TD
 ## 流程步驟
 
 **1. 查看訂閱列表**
-- `MemberPage` 依分頁（全部／處理中／啟用中／已結束）過濾出屬於自己的訂閱資料
+- `MemberPage` 依分頁（全部／審核中／招募中／待鎖定／填寫資訊中／待啟用／確認期中／申訴中／服務中／已結束）過濾出屬於自己的訂閱資料，每個分頁對應單一狀態，不會像舊版把好幾種狀態混在同一個「處理中」分頁裡（見 `memberFilters.js` 的 `FILTER_TABS`）
 
 **2. 填寫服務帳號（`pending_confirmation`）**
 - 還沒填寫帳號資訊時，`MemberGroupView` 會顯示「填寫帳號」按鈕，點開表單依該服務的 `sharingMethod` 動態顯示對應欄位（一般是 email；KKBOX 多一個地址欄位；friDay影音是邀請碼；無官方邀請機制的服務則是一個確認勾選框），送出後寫入 `Member.serviceInfo`（詳見 [各服務填寫帳號資訊需求調查](../product/service-info-requirements.md)）

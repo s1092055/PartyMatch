@@ -21,9 +21,8 @@ import RevealSection from '../../../shared/ui/primitives/RevealSection'
 import ScrollHint from '../../../shared/ui/primitives/ScrollHint'
 import { formatRelativeDate } from '../../../shared/utils/date'
 import { useScrollEdge } from '../../../shared/utils/hooks'
-import { isEffectivelyActive } from '../../../shared/utils/groupStatus'
 import { calcDisplayPrice, calcDisplayCycle } from '../../../shared/utils/pricingUtils'
-import { FILTER_TABS } from './utils/memberFilters'
+import { FILTER_TABS, subscriptionBucket } from './utils/memberFilters'
 import { isHistorySubscription } from '../../../shared/utils/groupStatusDisplay'
 import GroupHistoryModal from '../../../shared/ui/group/GroupHistoryModal'
 
@@ -55,21 +54,11 @@ function enrichSubs(rawSubs, userId) {
   })
 }
 
-function isActivatedSubscription(sub) {
-  return isEffectivelyActive(sub.groupStatus ?? sub.status, sub.confirmedAt)
-}
-
-function isProcessingSubscription(sub) {
-  if (isActivatedSubscription(sub)) return false
-  return !isHistorySubscription(sub)
-}
-
 function filterSubs(subs, tab) {
-  switch (tab) {
-    case 'processing': return subs.filter(isProcessingSubscription)
-    case 'active':     return subs.filter(isActivatedSubscription)
-    default:           return subs.filter(s => !isHistorySubscription(s))
-  }
+  const nonHistory = subs.filter(s => !isHistorySubscription(s))
+  if (tab === 'all') return nonHistory
+  if (tab === 'applying') return [] // 這個分類只顯示尚未核准的申請，不是 Subscription
+  return nonHistory.filter(s => subscriptionBucket(s) === tab)
 }
 
 export default function MemberPage({ embedded = false }) {
@@ -120,11 +109,14 @@ export default function MemberPage({ embedded = false }) {
 
   const historySubs = useMemo(() => subs.filter(isHistorySubscription), [subs])
 
-  const filterCounts = useMemo(() => ({
-    all:        filterSubs(subs, 'all').length + pendingApplications.length,
-    processing: filterSubs(subs, 'processing').length + pendingApplications.length,
-    active:     filterSubs(subs, 'active').length,
-  }), [subs, pendingApplications])
+  const filterCounts = useMemo(() => Object.fromEntries(
+    FILTER_TABS.map(({ key }) => [
+      key,
+      key === 'applying'
+        ? pendingApplications.length
+        : filterSubs(subs, key).length + (key === 'all' ? pendingApplications.length : 0),
+    ])
+  ), [subs, pendingApplications])
 
   function handleLeaveGroup() {
     if (!viewGroupId || !activeUser) return
@@ -212,81 +204,55 @@ export default function MemberPage({ embedded = false }) {
         />
 
         <div className="group relative min-w-0 flex-1">
-          {activeTab === 'processing' ? (
-            <>
-              {pendingApplications.length === 0 && filtered.length === 0 ? (
-                <EmptyState icon={ClipboardList} title="此分類沒有訂閱項目" description="切換到其他分類查看" />
-              ) : (
-                <div
-                  ref={listScrollRef}
-                  onScroll={handleListScroll}
-                  className="max-h-[calc(100vh-16rem)] overflow-y-auto p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-                >
-                  <div className="grid gap-3 md:grid-cols-2">
-                    {pendingApplications.map((app, i) => {
-                      const group = getGroupById(app.groupId)
-                      if (!group) return null
-                      return (
-                        <RevealSection key={app.id} delay={i * 60}>
-                          <ApplicationCard
-                            app={app}
-                            group={group}
-                            onViewGroup={() => window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: app.groupId } }))}
-                          />
-                        </RevealSection>
-                      )
-                    })}
-                    {filtered.map((sub, i) => (
-                      <RevealSection key={sub.id} delay={(pendingApplications.length + i) * 60}>
-                        <SubscriptionCard
-                          sub={sub}
-                          onViewGroup={onViewGroup}
+          {(() => {
+            const showApplications = activeTab === 'all' || activeTab === 'applying'
+            const visibleApplications = showApplications ? pendingApplications : []
+            const isEmpty = visibleApplications.length === 0 && filtered.length === 0
+
+            if (isEmpty) {
+              return (
+                <EmptyState
+                  icon={ClipboardList}
+                  title={activeTab === 'all' ? '你還沒有加入任何群組' : '此分類目前沒有項目'}
+                  description={activeTab === 'all' ? '去探索頁面找找適合你的共享群組' : '切換到其他分類查看'}
+                  actionLabel={activeTab === 'all' ? '探索群組' : undefined}
+                  onAction={activeTab === 'all' ? () => navigate('/explore') : undefined}
+                />
+              )
+            }
+
+            return (
+              <div
+                ref={listScrollRef}
+                onScroll={handleListScroll}
+                className="max-h-[calc(100vh-16rem)] overflow-y-auto p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              >
+                <div className="grid gap-3 md:grid-cols-2">
+                  {visibleApplications.map((app, i) => {
+                    const group = getGroupById(app.groupId)
+                    if (!group) return null
+                    return (
+                      <RevealSection key={app.id} delay={i * 60}>
+                        <ApplicationCard
+                          app={app}
+                          group={group}
+                          onViewGroup={() => window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: app.groupId } }))}
                         />
                       </RevealSection>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </>
-          ) : filtered.length === 0 && (activeTab !== 'all' || pendingApplications.length === 0) ? (
-            <EmptyState
-              icon={ClipboardList}
-              title={activeTab === 'all' ? '你還沒有加入任何群組' : '此分類沒有訂閱項目'}
-              description={activeTab === 'all' ? '去探索頁面找找適合你的共享群組' : '切換到其他分類查看'}
-              actionLabel={activeTab === 'all' ? '探索群組' : undefined}
-              onAction={activeTab === 'all' ? () => navigate('/explore') : undefined}
-            />
-          ) : (
-            <div
-              ref={listScrollRef}
-              onScroll={handleListScroll}
-              className="max-h-[calc(100vh-16rem)] overflow-y-auto p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-            >
-              <div className="grid gap-3 md:grid-cols-2">
-                {activeTab === 'all' && pendingApplications.map((app, i) => {
-                  const group = getGroupById(app.groupId)
-                  if (!group) return null
-                  return (
-                    <RevealSection key={app.id} delay={i * 60}>
-                      <ApplicationCard
-                        app={app}
-                        group={group}
-                        onViewGroup={() => window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: app.groupId } }))}
+                    )
+                  })}
+                  {filtered.map((sub, i) => (
+                    <RevealSection key={sub.id} delay={(visibleApplications.length + i) * 60}>
+                      <SubscriptionCard
+                        sub={sub}
+                        onViewGroup={onViewGroup}
                       />
                     </RevealSection>
-                  )
-                })}
-                {filtered.map((sub, i) => (
-                  <RevealSection key={sub.id} delay={(activeTab === 'all' ? pendingApplications.length + i : i) * 60}>
-                    <SubscriptionCard
-                      sub={sub}
-                      onViewGroup={sub => setViewGroupId(sub.groupId)}
-                    />
-                  </RevealSection>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )
+          })()}
           <ScrollHint canScroll={listCanScroll} atBottom={listAtBottom} isScrolling={listIsScrolling} />
         </div>
       </div>

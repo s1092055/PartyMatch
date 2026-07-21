@@ -42,12 +42,13 @@
 
 **步驟**：
 1. 登入後前往 `/my-groups?view=member`
-2. 依序點擊「全部 / 處理中 / 啟用中 / 已結束」分頁
+2. 依序點擊「全部 / 審核中 / 招募中 / 待鎖定 / 填寫資訊中 / 待啟用 / 確認期中 / 申訴中 / 服務中」分頁
 
 **預期結果**：
-- 「處理中」應包含尚未進入 `active` 的訂閱（`pending_confirmation`/`pending_activation`/`confirming`/`disputed` 等）
-- 「啟用中」應包含 `active` 狀態的訂閱
-- 「已結束」／已取消的群組（`ended`/`cancelled`）**不會出現在任何分頁分類中**，只能透過側邊欄底部的「群組紀錄」按鈕開啟 `GroupHistoryModal` 查看
+- 每個分頁對應單一狀態（`FILTER_TABS`，`src/features/my-groups/member/utils/memberFilters.js`），不再像舊版把 `full`/`pending_confirmation`/`pending_activation`/`confirming`/`disputed` 全部混在同一個「處理中」分頁裡
+- 「審核中」只顯示尚未核准的申請本身（還沒有 `Subscription` 記錄），其餘分頁顯示對應狀態的訂閱
+- 「服務中」除了 `active` 狀態，也包含自己已經確認過服務、但群組仍在 `confirming` 等其他成員確認的訂閱（`subscriptionBucket`／`isEffectivelyActive` 判斷）
+- 「已結束」／已取消的群組（`ended`/`cancelled`）**不會出現在任何分頁分類中**，只能透過側邊欄底部的「群組紀錄」按鈕開啟 `GroupHistoryModal` 查看；桌機版側邊欄現在有固定高度，「群組紀錄」按鈕位置不會隨分頁項目多寡而上下浮動
 - 頂部統計卡「本月訂閱花費 / 平均每組 / 本月省下」隨切換分頁正確顯示（僅限成員視角，不含彩色左邊框標記狀態，一律用 badge/chip/icon）
 
 ---

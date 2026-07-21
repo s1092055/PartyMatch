@@ -27,9 +27,9 @@ function getMergedNotifications(userId) {
 
 const NOTIFICATION_META = {
   joined:               { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-groups?view=member' },
-  application_approved: { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-groups?view=member', state: { tab: 'processing' } },
+  application_approved: { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-groups?view=member', state: { tab: 'all' } },
   application_rejected: { icon: AlertCircle,   iconColor: 'text-danger',     link: '/explore' },
-  application_sent:     { icon: CheckCircle2,  iconColor: 'text-brand',      link: '/my-groups?view=member', state: { tab: 'processing' } },
+  application_sent:     { icon: CheckCircle2,  iconColor: 'text-brand',      link: '/my-groups?view=member', state: { tab: 'applying' } },
   group_created:        { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-groups?view=host' },
   new_application:      { icon: UserPlus,      iconColor: 'text-brand',      link: '/my-groups?view=host' },
   group_full:           { icon: UserPlus,      iconColor: 'text-brand',      link: '/my-groups?view=host' },
@@ -149,7 +149,7 @@ export default function FloatingMessages() {
         navigate('/my-groups?view=member', { state: { openGroupId: gId } })
       } else {
         // 申請仍待審核，以探索視角開啟（與 ApplicationCard 一致）
-        navigate('/my-groups?view=member', { state: { tab: 'processing' } })
+        navigate('/my-groups?view=member', { state: { tab: 'applying' } })
         window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: gId } }))
       }
       return
