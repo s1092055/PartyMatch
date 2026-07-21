@@ -48,16 +48,26 @@ export default function Step2Plan({ form, onChange }) {
             高度隨內容自然增減、不再內部捲動）一樣高；左欄方案卡用 flex-1 吃滿撐高後多出來
             的空間，捲動箭頭自然被推到欄位最底部，不用另外用 mt-auto 對齊 */}
         <div className="md:flex md:gap-6">
-          {/* 左：單張方案卡（flex-1 撐滿高度）+ 底部切換箭頭；
-              上下都加跟右側方案內容一樣的 p-3.5 內距，讓卡片邊框頂部對齊方案內容
-              第一行文字、捲動箭頭底部對齊方案內容最後一行文字，而不是直接對齊到
-              整個欄位的最頂端/最底端；卡片本身用 flex-1 讓高度隨內距調整自動跟著變化 */}
-          <div className="flex min-w-0 flex-1 flex-col gap-3 py-3.5">
+          {/* 左：切換箭頭在左右兩側、方案卡在中間；上下加跟右側方案內容一樣的 p-3.5
+              內距，讓卡片邊框頂部對齊方案內容第一行文字、底部對齊最後一行文字，而不是
+              直接對齊到整個欄位的最頂端/最底端；卡片用 self-stretch 撐滿這一列的高度，
+              箭頭維持固定大小、垂直置中 */}
+          <div className="flex min-w-0 flex-1 items-center gap-2 py-3.5">
+            <button
+              type="button"
+              onClick={() => selectPlanAt(activeIndex - 1)}
+              disabled={groupPlans.length <= 1 || activeIndex <= 0}
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-30"
+              aria-label="上一個方案"
+            >
+              <ChevronLeft size={16} strokeWidth={1.5} />
+            </button>
+
             {currentPlan ? (
               <button
                 type="button"
                 onClick={() => selectPlanAt(activeIndex)}
-                className={`flex min-h-40 flex-1 items-center justify-center rounded-xl border-2 px-4 text-base transition-all ${
+                className={`flex min-h-40 flex-1 items-center justify-center self-stretch rounded-xl border-2 px-4 text-base transition-all ${
                   isPlanSelected ? 'border-brand/40 text-brand' : 'border-slate-200 text-slate-600'
                 }`}
               >
@@ -69,31 +79,20 @@ export default function Step2Plan({ form, onChange }) {
                 </div>
               </button>
             ) : (
-              <div className="flex min-h-40 flex-1 items-center justify-center rounded-xl border-2 border-slate-200 px-4 text-sm text-slate-400">
+              <div className="flex min-h-40 flex-1 items-center justify-center self-stretch rounded-xl border-2 border-slate-200 px-4 text-sm text-slate-400">
                 尚無可選方案
               </div>
             )}
 
-            <div className="flex items-center justify-center gap-2">
-              <button
-                type="button"
-                onClick={() => selectPlanAt(activeIndex - 1)}
-                disabled={groupPlans.length <= 1 || activeIndex <= 0}
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-30"
-                aria-label="上一個方案"
-              >
-                <ChevronLeft size={16} strokeWidth={1.5} />
-              </button>
-              <button
-                type="button"
-                onClick={() => selectPlanAt(activeIndex + 1)}
-                disabled={groupPlans.length <= 1 || activeIndex >= groupPlans.length - 1}
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-30"
-                aria-label="下一個方案"
-              >
-                <ChevronRight size={16} strokeWidth={1.5} />
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => selectPlanAt(activeIndex + 1)}
+              disabled={groupPlans.length <= 1 || activeIndex >= groupPlans.length - 1}
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-30"
+              aria-label="下一個方案"
+            >
+              <ChevronRight size={16} strokeWidth={1.5} />
+            </button>
           </div>
 
           {/* 右：方案說明，全部內容直接顯示，不內部捲動 */}
