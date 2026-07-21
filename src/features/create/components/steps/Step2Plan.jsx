@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { CheckCircle2, ChevronLeft, ChevronRight, Info, Layers, Package } from 'lucide-react'
 import { getServiceById } from '../../../../shared/utils/serviceUtils'
 import { getSharingMethodConfig } from '../../../../shared/utils/serviceInfoFields'
-import { useMediaQuery, SHORT_LG_QUERY } from '../../../../shared/utils/hooks'
+import { useMediaQuery, MD_QUERY } from '../../../../shared/utils/hooks'
 import TokenAmount from '../../../../shared/ui/TokenAmount'
 import Field from './Field'
 
@@ -53,10 +53,10 @@ export default function Step2Plan({ form, onChange }) {
 
   // 右側「方案說明」高度要跟左側（方案卡列 + 捲動箭頭）切齊，
   // 用 ResizeObserver 量測左側實際高度，超出的部分讓右側框內部自己捲動；
-  // 左右並排只在 short-lg（桌機寬度 + 螢幕不高，見 index.css）時生效
+  // 左右並排只在 md 以上（桌機/平板寬度）生效，手機維持由上而下堆疊
   const leftColRef = useRef(null)
   const [leftColHeight, setLeftColHeight] = useState(null)
-  const isShortLgUp = useMediaQuery(SHORT_LG_QUERY)
+  const isMdUp = useMediaQuery(MD_QUERY)
 
   useEffect(() => {
     const el = leftColRef.current
@@ -81,7 +81,7 @@ export default function Step2Plan({ form, onChange }) {
       </Field>
 
       <Field label="選擇方案" icon={Layers}>
-        <div className="short-lg:flex short-lg:items-start short-lg:gap-6">
+        <div className="md:flex md:items-start md:gap-6">
           {/* 左：方案卡列 + 捲動箭頭 */}
           <div ref={leftColRef} className="flex min-w-0 flex-1 flex-col gap-2">
             {groupPlans.length > 0 ? (
@@ -144,8 +144,8 @@ export default function Step2Plan({ form, onChange }) {
 
           {/* 右：方案說明 */}
           <div
-            className="mt-4 min-h-0 flex-1 overflow-y-auto rounded-xl bg-canvas p-3.5 short-lg:mt-0"
-            style={isShortLgUp && leftColHeight ? { height: leftColHeight } : undefined}
+            className="mt-4 min-h-0 flex-1 overflow-y-auto rounded-xl bg-canvas p-3.5 md:mt-0"
+            style={isMdUp && leftColHeight ? { height: leftColHeight } : undefined}
           >
             {(selectedPlan?.features?.length ?? 0) > 0 ? (
               <ul className="space-y-1.5">
