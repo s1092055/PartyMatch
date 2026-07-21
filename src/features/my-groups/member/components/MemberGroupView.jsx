@@ -10,6 +10,7 @@ import GroupModalShell from '../../../../shared/ui/group/GroupModalShell'
 import GroupModalSideBarItem from '../../../../shared/ui/group/GroupModalSideBarItem'
 import ReviewHostModal from './ReviewHostModal'
 import { getServiceById } from '../../../../shared/utils/serviceUtils'
+import { getSharingMethodConfig, hasFilledServiceInfo, getServiceInfoSummary } from '../../../../shared/utils/serviceInfoFields'
 import { useMemberStore } from '../../../../shared/stores/useMemberStore'
 import { useGroupStore } from '../../../../shared/stores/useGroupStore'
 import { useSubscriptionStore } from '../../../../shared/stores/useSubscriptionStore'
@@ -35,7 +36,7 @@ function isImageUrl(url) {
 export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
   const [activePanel, setActivePanel] = useState(null) // 'members' | 'serviceContent' | 'fillInfo' | 'dispute' | null
   const [leaveConfirm, setLeaveConfirm] = useState(false)
-  const [fillEmail, setFillEmail] = useState('')
+  const [fillValues, setFillValues] = useState({})
   const [fillLoading, setFillLoading] = useState(false)
   const [confirmLoading, setConfirmLoading] = useState(false)
   const [confirmDialog, setConfirmDialog] = useState(false)
@@ -63,8 +64,9 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
   const planDef           = serviceDef?.plans.find(p => p.name === group.planName)
   const isPaymentRelevant = !['recruiting', 'full'].includes(group.status)
 
+  const sharingMethodConfig = getSharingMethodConfig(serviceDef?.sharingMethod)
   const hasServiceInfoIssue = !!myMember?.serviceInfoIssueNote
-  const hasServiceInfo      = !!myMember?.serviceInfo?.email && !hasServiceInfoIssue
+  const hasServiceInfo      = hasFilledServiceInfo(myMember?.serviceInfo, serviceDef?.sharingMethod) && !hasServiceInfoIssue
   const needsFillInfo       = !!sub && isPaymentRelevant && !hasServiceInfo && group.status === 'pending_confirmation'
   const canLeaveGroup       = ['recruiting', 'full'].includes(group.status) && !!myMember
   const canConfirm          = group.status === 'confirming' && !!myMember && !myMember.confirmedAt
@@ -137,12 +139,19 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
     }
   }
 
+  const fillValid = myMember && sharingMethodConfig.fields.every(({ key, type }) =>
+    type === 'checkbox' ? fillValues[key] === true : !!fillValues[key]?.trim()
+  )
+
   async function handleFillSubmit(e) {
     e.preventDefault()
-    if (!fillEmail.trim() || !myMember) return
+    if (!fillValid) return
     setFillLoading(true)
     try {
-      await fillServiceInfo(myMember.id, group.id, { email: fillEmail.trim() })
+      const serviceInfo = Object.fromEntries(
+        sharingMethodConfig.fields.map(({ key, type }) => [key, type === 'checkbox' ? true : fillValues[key].trim()])
+      )
+      await fillServiceInfo(myMember.id, group.id, serviceInfo)
       setActivePanel(null)
       toast('帳號資訊已送出', 'success')
     } catch (err) {
@@ -255,32 +264,51 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
     }
 
     if (activePanel === 'fillInfo') {
-      const existingEmail = myMember?.serviceInfo?.email ?? ''
+      const existingSummary = getServiceInfoSummary(myMember?.serviceInfo, serviceDef?.sharingMethod)
       return {
         content: (
           <form onSubmit={handleFillSubmit} className="p-5 space-y-4">
             <p className="text-sm text-ink-3">
-              請填寫你用於 <span className="font-semibold text-ink">{group.serviceName}</span> 的帳號電子信箱，團主將使用此資訊幫你設定訂閱。
+              請填寫你用於 <span className="font-semibold text-ink">{group.serviceName}</span> 的服務資訊，團主將使用此資訊幫你設定訂閱。
             </p>
-            {existingEmail && (
-              <div className="rounded-lg bg-success-subtle px-3 py-2 text-sm text-success-text flex items-center gap-2">
-                <CheckCircle2 size={14} /> 目前已填：{existingEmail}
+            {sharingMethodConfig.notice && (
+              <div className="rounded-lg bg-warning-subtle px-3 py-2 text-xs leading-relaxed text-warning-text">
+                {sharingMethodConfig.notice}
               </div>
             )}
-            <div>
-              <label className="block text-xs text-ink-3 mb-1.5">帳號電子信箱</label>
-              <input
-                type="email"
-                value={fillEmail}
-                onChange={e => setFillEmail(e.target.value)}
-                placeholder="example@gmail.com"
-                required
-                className="w-full rounded-xl border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
-              />
-            </div>
+            {existingSummary && (
+              <div className="rounded-lg bg-success-subtle px-3 py-2 text-sm text-success-text flex items-center gap-2">
+                <CheckCircle2 size={14} className="shrink-0" /> 目前已填：{existingSummary}
+              </div>
+            )}
+            {sharingMethodConfig.fields.map(({ key, label, type, placeholder }) => (
+              type === 'checkbox' ? (
+                <label key={key} className="flex cursor-pointer items-start gap-2.5 text-sm text-ink-2">
+                  <input
+                    type="checkbox"
+                    checked={!!fillValues[key]}
+                    onChange={e => setFillValues(prev => ({ ...prev, [key]: e.target.checked }))}
+                    className="mt-0.5 h-4 w-4 shrink-0 accent-brand"
+                  />
+                  {label}
+                </label>
+              ) : (
+                <div key={key}>
+                  <label className="block text-xs text-ink-3 mb-1.5">{label}</label>
+                  <input
+                    type={type}
+                    value={fillValues[key] ?? ''}
+                    onChange={e => setFillValues(prev => ({ ...prev, [key]: e.target.value }))}
+                    placeholder={placeholder}
+                    required
+                    className="w-full rounded-xl border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+                  />
+                </div>
+              )
+            ))}
             <button
               type="submit"
-              disabled={!fillEmail.trim() || fillLoading}
+              disabled={!fillValid || fillLoading}
               className="w-full rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-dark disabled:opacity-40 disabled:pointer-events-none"
             >
               {fillLoading ? '送出中…' : '送出帳號資訊'}
@@ -445,7 +473,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
               <GroupModalSideBarItem
                 active={activePanel === 'fillInfo'}
                 tone="brand"
-                onClick={() => { setFillEmail(myMember?.serviceInfo?.email ?? ''); setActivePanel('fillInfo') }}
+                onClick={() => { setFillValues(myMember?.serviceInfo ?? {}); setActivePanel('fillInfo') }}
               >
                 <ClipboardEdit size={17} /> 填寫帳號
               </GroupModalSideBarItem>

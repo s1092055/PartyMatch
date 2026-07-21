@@ -165,7 +165,7 @@ async function handleLockGroup() {
       await lockGroup(viewGroupId)
 
       await sendActionMessage(convId, {
-        text: `請填寫你在 ${group.serviceName} 使用的服務帳號（電子信箱），以便團主幫你設定訂閱。`,
+        text: `請填寫你在 ${group.serviceName} 的服務帳號資訊，以便團主幫你設定訂閱。`,
         actionType: 'fill_service_info',
         payload: { serviceName: group.serviceName, serviceId: group.serviceId },
       })
@@ -454,7 +454,7 @@ async function handleApprove(appId) {
     if (convId) sendActionMessage(convId, {
       actionType: 'request_service_resubmit',
       text: note,
-      payload: { targetUserId: member.userId },
+      payload: { targetUserId: member.userId, serviceId: group?.serviceId },
     }).catch(console.error)
 
     insertNotification({

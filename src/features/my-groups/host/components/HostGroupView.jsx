@@ -308,6 +308,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
 
     <ReportServiceIssueModal
       member={serviceIssueMember}
+      sharingMethod={serviceDef?.sharingMethod}
       onClose={() => { setServiceIssueMember(null); setServiceIssueNote('') }}
       note={serviceIssueNote}
       setNote={setServiceIssueNote}

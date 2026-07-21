@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { CheckCircle2, ChevronLeft, ChevronRight, Heart } from 'lucide-react'
 import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { getServiceById } from '../../shared/utils/serviceUtils'
+import { hasFilledServiceInfo } from '../../shared/utils/serviceInfoFields'
 import { useApplicationStore } from '../../shared/stores/useApplicationStore'
 import { useMemberStore } from '../../shared/stores/useMemberStore'
 import { useFavoriteStore } from '../../shared/stores/useFavoriteStore'
@@ -71,6 +72,10 @@ export default function GroupDetailModal() {
   const service = group ? getServiceById(group.serviceId) : null
   const plan    = service?.plans.find(p => p.name === group?.planName)
 
+  const memberRecord        = group && activeUserId ? (members.find(m => m.userId === activeUserId && m.groupId === group.id) ?? null) : null
+  const hasServiceInfoIssue = !!memberRecord?.serviceInfoIssueNote
+  const hasServiceInfo      = hasFilledServiceInfo(memberRecord?.serviceInfo, service?.sharingMethod) && !hasServiceInfoIssue
+
   const picks = useMemo(() => {
     if (!group) return []
     const recruiting = groups.filter(g => g.status === 'recruiting' && g.openSeats > 0 && g.id !== group.id && g.hostId !== activeUserId)
@@ -102,10 +107,7 @@ export default function GroupDetailModal() {
 
   const isHost           = group.hostId === activeUserId
   const isMember         = activeUserId ? members.some(m => m.userId === activeUserId && m.groupId === group.id) : false
-  const memberRecord     = activeUserId ? (members.find(m => m.userId === activeUserId && m.groupId === group.id) ?? null) : null
   const isPaymentPhase      = ['pending_confirmation', 'pending_activation', 'active'].includes(group.status)
-  const hasServiceInfoIssue = !!memberRecord?.serviceInfoIssueNote
-  const hasServiceInfo      = !!memberRecord?.serviceInfo?.email && !hasServiceInfoIssue
   const needsFillInfo       = isMember && isPaymentPhase && !hasServiceInfo
   const isWaitingMembers = isMember && ['recruiting', 'full'].includes(group.status)
   const isFull           = (group.openSeats ?? 0) <= 0

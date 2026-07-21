@@ -1,8 +1,9 @@
 import { AlertTriangle } from 'lucide-react'
 import Modal from '../../../../shared/ui/primitives/Modal'
 import Avatar from '../../../../shared/ui/primitives/Avatar'
+import { getServiceInfoSummary } from '../../../../shared/utils/serviceInfoFields'
 
-export default function ReportServiceIssueModal({ member, onClose, note, setNote, onSubmit }) {
+export default function ReportServiceIssueModal({ member, sharingMethod, onClose, note, setNote, onSubmit }) {
   return (
     <Modal
       isOpen={!!member}
@@ -27,7 +28,7 @@ export default function ReportServiceIssueModal({ member, onClose, note, setNote
             <Avatar initial={member.userAvatarInitial} color={member.userAvatarColor} size="sm" />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-ink">{member.userName}</p>
-              <p className="text-xs text-ink-3">{member.serviceInfo?.email ?? '—'}</p>
+              <p className="text-xs text-ink-3">{getServiceInfoSummary(member.serviceInfo, sharingMethod) ?? '—'}</p>
             </div>
           </div>
           <div>

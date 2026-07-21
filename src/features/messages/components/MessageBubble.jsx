@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router-dom'
 import { CheckCircle2 } from 'lucide-react'
 import { useMemberStore } from '../../../shared/stores/useMemberStore'
+import { getServiceById } from '../../../shared/utils/serviceUtils'
+import { hasFilledServiceInfo, getServiceInfoSummary } from '../../../shared/utils/serviceInfoFields'
 import { formatTime } from '../utils'
 
 const getMemberByUserAndGroup = (uid, gid) => useMemberStore.getState().getByUserAndGroup(uid, gid)
@@ -35,6 +37,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
     if (msg.visibleTo && !msg.visibleTo.includes(userId)) return null
     if (msg.actionType === 'fill_service_info') {
       const isHost = userId === hostId
+      const sharingMethod = getServiceById(msg.payload?.serviceId)?.sharingMethod
       if (isHost) {
         // 團主看到所有成員的填寫結果
         return (
@@ -52,13 +55,13 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-semibold text-ink">{m.userName}</p>
-                      {m.serviceInfo?.email ? (
-                        <p className="text-xs text-ink-3">{m.serviceInfo.email}</p>
+                      {hasFilledServiceInfo(m.serviceInfo, sharingMethod) ? (
+                        <p className="text-xs text-ink-3">{getServiceInfoSummary(m.serviceInfo, sharingMethod)}</p>
                       ) : (
                         <p className="text-xs text-ink-4">尚未填寫</p>
                       )}
                     </div>
-                    {m.serviceInfo?.email && <CheckCircle2 size={13} className="shrink-0 text-success" />}
+                    {hasFilledServiceInfo(m.serviceInfo, sharingMethod) && <CheckCircle2 size={13} className="shrink-0 text-success" />}
                   </div>
                 ))}
               </div>
@@ -68,7 +71,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
       }
       // 成員只看到自己的填寫狀態
       const myMember = getMemberByUserAndGroup(userId, conversationGroupId)
-      const alreadyFilled = !!myMember?.serviceInfo?.email && !myMember?.serviceInfoIssueNote
+      const alreadyFilled = hasFilledServiceInfo(myMember?.serviceInfo, sharingMethod) && !myMember?.serviceInfoIssueNote
       return (
         <div key={msg.id} className="flex justify-center">
           <div className="w-64 rounded-2xl border border-line bg-white px-4 py-3 text-center shadow-sm">
@@ -102,7 +105,8 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
 
     if (msg.actionType === 'request_service_resubmit') {
       const svcMember = getMemberByUserAndGroup(userId, conversationGroupId)
-      const alreadyFixed = !!svcMember?.serviceInfo?.email && !svcMember?.serviceInfoIssueNote
+      const resubmitSharingMethod = getServiceById(msg.payload?.serviceId)?.sharingMethod
+      const alreadyFixed = hasFilledServiceInfo(svcMember?.serviceInfo, resubmitSharingMethod) && !svcMember?.serviceInfoIssueNote
       return (
         <div key={msg.id} className="flex justify-center">
           <div className="w-64 rounded-2xl border border-warning/30 bg-warning-subtle px-4 py-3 text-center shadow-sm">

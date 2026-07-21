@@ -4,6 +4,8 @@ import Avatar from '../../../../shared/ui/primitives/Avatar'
 import ServiceLogo from '../../../../shared/ui/ServiceLogo'
 import TokenAmount from '../../../../shared/ui/TokenAmount'
 import { advanceByCycle, toISODate } from '../../../../shared/utils/date'
+import { getServiceById } from '../../../../shared/utils/serviceUtils'
+import { hasFilledServiceInfo, getServiceInfoSummary } from '../../../../shared/utils/serviceInfoFields'
 
 export default function ActivateServiceModal({
   isOpen,
@@ -19,6 +21,7 @@ export default function ActivateServiceModal({
   onOpenServiceIssue,
 }) {
   const nextDate = isOpen ? toISODate(advanceByCycle(new Date(), group.billingCycle)) : ''
+  const sharingMethod = getServiceById(group.serviceId)?.sharingMethod
 
   return (
     <Modal
@@ -92,15 +95,15 @@ export default function ActivateServiceModal({
                     <p className="text-sm font-semibold text-ink">{m.userName}</p>
                     {m.serviceInfoIssueNote ? (
                       <p className="text-xs text-warning-text">帳號問題已回報，等待修正</p>
-                    ) : m.serviceInfo?.email ? (
-                      <p className="text-xs text-ink-3">{m.serviceInfo.email}</p>
+                    ) : hasFilledServiceInfo(m.serviceInfo, sharingMethod) ? (
+                      <p className="text-xs text-ink-3">{getServiceInfoSummary(m.serviceInfo, sharingMethod)}</p>
                     ) : (
                       <p className="text-xs text-ink-4">尚未填寫帳號</p>
                     )}
                   </div>
                   {memberChecks[m.id] && <CheckCircle2 size={16} className="shrink-0 text-success" />}
                 </label>
-                {m.serviceInfo?.email && !memberChecks[m.id] && (
+                {hasFilledServiceInfo(m.serviceInfo, sharingMethod) && !memberChecks[m.id] && (
                   <div className="mt-2 flex justify-end">
                     <button
                       onClick={() => onOpenServiceIssue(m)}

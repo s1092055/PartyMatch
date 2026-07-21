@@ -1,6 +1,7 @@
 export const SERVICES = [
   {
     id: 'spotify',
+    sharingMethod: 'email_invite',
     name: 'Spotify',
     fullName: 'Spotify Premium',
     description: '全球最大音樂串流平台，超過 1 億首歌曲與 Podcast，支援離線收聽與無廣告播放。',
@@ -52,6 +53,7 @@ export const SERVICES = [
   },
   {
     id: 'youtube',
+    sharingMethod: 'google_family',
     name: 'YouTube',
     fullName: 'YouTube Premium',
     description: '無廣告觀看所有 YouTube 影片，含 YouTube Music 音樂串流，支援背景播放與離線下載。',
@@ -86,6 +88,7 @@ export const SERVICES = [
   },
   {
     id: 'netflix',
+    sharingMethod: 'shared_credentials',
     name: 'Netflix',
     fullName: 'Netflix',
     description: '全球最大影音串流平台，擁有海量電影、影集、紀錄片與 Netflix 自製獨家內容。',
@@ -134,6 +137,7 @@ export const SERVICES = [
   },
   {
     id: 'disney',
+    sharingMethod: 'shared_credentials',
     name: 'Disney+',
     fullName: 'Disney+',
     description: 'Disney、Marvel、Star Wars、Pixar 及 National Geographic 等頂級影音內容平台。',
@@ -213,6 +217,7 @@ export const SERVICES = [
   },
   {
     id: 'google-one',
+    sharingMethod: 'google_family',
     name: 'Google One',
     fullName: 'Google One',
     description: 'Google 雲端儲存擴充方案，可與最多 5 位家庭成員共享空間，AI Plus 與 AI Pro 方案附含 Gemini AI 進階功能。',
@@ -359,6 +364,7 @@ export const SERVICES = [
   },
   {
     id: 'chatgpt',
+    sharingMethod: 'email_invite',
     name: 'ChatGPT',
     fullName: 'ChatGPT Business',
     description: 'OpenAI 開發的 AI 對話助理，Business 方案（原 Team 方案更名）提供共享工作區、進階分析、圖像生成與外掛功能。',
@@ -409,6 +415,7 @@ export const SERVICES = [
   },
   {
     id: 'apple-tv',
+    sharingMethod: 'apple_family',
     name: 'Apple TV+',
     fullName: 'Apple TV+',
     description: 'Apple 自製原創影集與電影，以高品質製作著稱，含得獎作品如《熊家餐廳》、《芙蘿拉與孫兒》。',
@@ -457,6 +464,7 @@ export const SERVICES = [
   },
   {
     id: 'hbo',
+    sharingMethod: 'shared_credentials',
     name: 'HBO Max',
     fullName: 'HBO Max',
     description: 'HBO 精品影集、Warner Bros. 院線電影與 Max 自製內容，涵蓋《冰與火之歌》、《蝙蝠俠》等 IP。',
@@ -537,6 +545,7 @@ export const SERVICES = [
   },
   {
     id: 'discord',
+    sharingMethod: 'shared_credentials',
     name: 'Discord',
     fullName: 'Discord Nitro',
     description: 'Discord 進階訂閱，解鎖更高畫質串流、大型檔案上傳、自訂表情符號及個人檔案徽章等功能。',
@@ -585,6 +594,7 @@ export const SERVICES = [
   },
   {
     id: 'friday-video',
+    sharingMethod: 'invite_code',
     name: 'friDay影音',
     fullName: 'friDay影音',
     description: '遠傳電信旗下影音串流平台，主打台劇、日韓劇與電影，官方支援帳號綁定共用同一組訂閱。',
@@ -615,6 +625,7 @@ export const SERVICES = [
   },
   {
     id: 'crunchyroll',
+    sharingMethod: 'shared_credentials',
     name: 'Crunchyroll',
     fullName: 'Crunchyroll',
     description: '全球最大動漫串流平台，提供正版授權動畫與漫畫，新番同步日本播出。',
@@ -664,6 +675,7 @@ export const SERVICES = [
   },
   {
     id: 'apple-music',
+    sharingMethod: 'apple_family',
     name: 'Apple Music',
     fullName: 'Apple Music',
     description: 'Apple 音樂串流平台，超過 1 億首歌曲，支援空間音訊、無損音質及 iTunes 個人曲庫整合。',
@@ -713,6 +725,7 @@ export const SERVICES = [
   },
   {
     id: 'kkbox',
+    sharingMethod: 'email_invite_with_address',
     name: 'KKBOX',
     fullName: 'KKBOX',
     description: '台灣本土最大音樂串流平台，擁有豐富的華語、台語及日韓音樂，支援離線收聽。',
@@ -760,6 +773,7 @@ export const SERVICES = [
   },
   {
     id: 'claude',
+    sharingMethod: 'shared_credentials',
     name: 'Claude',
     fullName: 'Claude Pro',
     description: 'Anthropic 開發的 AI 助理，擅長長文本分析、文件理解、程式碼撰寫與複雜推理任務。',
@@ -793,6 +807,7 @@ export const SERVICES = [
   },
   {
     id: 'midjourney',
+    sharingMethod: 'shared_credentials',
     name: 'Midjourney',
     fullName: 'Midjourney',
     description: 'AI 圖像生成工具，以高品質藝術風格著稱，廣泛應用於設計、插畫及創意創作領域。',
@@ -876,6 +891,7 @@ export const SERVICES = [
   },
   {
     id: 'cursor',
+    sharingMethod: 'email_invite',
     name: 'Cursor',
     fullName: 'Cursor Teams',
     description: 'AI 輔助程式碼編輯器，整合 GPT-4 與 Claude，支援程式碼自動補全、重構建議與對話式開發（原 Business 方案更名為 Teams）。',
@@ -925,6 +941,7 @@ export const SERVICES = [
   },
   {
     id: 'microsoft-365',
+    sharingMethod: 'email_invite',
     name: 'Microsoft 365',
     fullName: 'Microsoft 365',
     description: 'Word、Excel、PowerPoint 等 Office 全套應用程式雲端版，含 1TB OneDrive 雲端儲存。',
@@ -974,6 +991,7 @@ export const SERVICES = [
   },
   {
     id: 'adobe-cc',
+    sharingMethod: 'shared_credentials',
     name: 'Adobe CC',
     fullName: 'Adobe Creative Cloud',
     description: '業界標準創意軟體套組，涵蓋 Photoshop、Illustrator、Premiere Pro 等超過 20 款應用程式。',
@@ -1022,6 +1040,7 @@ export const SERVICES = [
   },
   {
     id: 'canva',
+    sharingMethod: 'email_invite',
     name: 'Canva Pro',
     fullName: 'Canva Pro',
     description: '線上視覺設計工具，提供海量模板、品牌套件與 AI 設計功能，適合行銷、社群媒體設計與簡報製作。',
@@ -1072,6 +1091,7 @@ export const SERVICES = [
   },
   {
     id: 'notion',
+    sharingMethod: 'email_invite',
     name: 'Notion',
     fullName: 'Notion Plus',
     description: '全能型筆記與知識管理工具，整合文件、資料庫、任務管理與 Wiki，適合個人與團隊協作。',
@@ -1122,6 +1142,7 @@ export const SERVICES = [
   },
   {
     id: 'icloud',
+    sharingMethod: 'apple_family',
     name: 'iCloud+',
     fullName: 'iCloud+',
     description: 'Apple 雲端儲存方案，自動備份 iPhone 照片與資料，含隱藏電子郵件與 iCloud Private Relay 隱私功能。',
@@ -1169,6 +1190,7 @@ export const SERVICES = [
   },
   {
     id: 'dropbox',
+    sharingMethod: 'email_invite',
     name: 'Dropbox',
     fullName: 'Dropbox Plus',
     description: '雲端儲存與檔案同步服務，支援跨裝置即時同步，含版本歷史記錄與遠端裝置清除功能。',
@@ -1202,6 +1224,7 @@ export const SERVICES = [
   },
   {
     id: 'duolingo',
+    sharingMethod: 'email_invite',
     name: 'Duolingo',
     fullName: 'Duolingo Super',
     description: '全球最受歡迎語言學習 App，以遊戲化設計輔助學習，Super 方案移除廣告並解鎖進階功能。',
@@ -1235,6 +1258,7 @@ export const SERVICES = [
   },
   {
     id: 'masterclass',
+    sharingMethod: 'email_invite',
     name: 'MasterClass',
     fullName: 'MasterClass',
     description: '頂級名師線上課程平台，由 Gordon Ramsay、Serena Williams、Martin Scorsese 等各領域大師親授。',
@@ -1283,6 +1307,7 @@ export const SERVICES = [
   },
   {
     id: 'nintendo-online',
+    sharingMethod: 'email_invite',
     name: 'Nintendo',
     fullName: 'Nintendo Switch Online',
     description: 'Nintendo Switch 線上服務，提供連線對戰、雲端存檔及經典 NES/SNES 遊戲庫。家庭方案最多 8 人共享。',
@@ -1365,6 +1390,7 @@ export const SERVICES = [
   },
   {
     id: 'nordvpn',
+    sharingMethod: 'shared_credentials',
     name: 'NordVPN',
     fullName: 'NordVPN',
     description: '高安全性 VPN 服務，採用軍事級加密，在全球 60 個國家設有 5000+ 伺服器，最多 6 台裝置同時連線。',
@@ -1429,6 +1455,7 @@ export const SERVICES = [
   },
   {
     id: 'expressvpn',
+    sharingMethod: 'shared_credentials',
     name: 'ExpressVPN',
     fullName: 'ExpressVPN',
     description: '高速穩定的 VPN 服務，以解鎖地區限制內容著稱，支援 5 台裝置同時連線，提供 24/7 客服。',
@@ -1479,6 +1506,7 @@ export const SERVICES = [
   },
   {
     id: 'apple-one',
+    sharingMethod: 'apple_family',
     name: 'Apple One',
     fullName: 'Apple One',
     description: 'Apple 訂閱服務套組，涵蓋 Apple Music、Apple TV+、Apple Arcade 及 iCloud+ 儲存空間，比分開更划算。',
