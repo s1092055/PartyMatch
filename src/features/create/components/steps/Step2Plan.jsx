@@ -54,8 +54,8 @@ export default function Step2Plan({ form, onChange }) {
               <button
                 type="button"
                 onClick={() => selectPlanAt(activeIndex)}
-                className={`flex min-h-40 flex-1 items-center justify-center rounded-xl px-4 text-base transition-all ${
-                  isPlanSelected ? 'text-brand' : 'text-slate-600'
+                className={`flex min-h-40 flex-1 items-center justify-center rounded-xl border-2 px-4 text-base transition-all ${
+                  isPlanSelected ? 'border-brand/40 text-brand' : 'border-slate-200 text-slate-600'
                 }`}
               >
                 <div className="min-w-0 text-center">
@@ -66,7 +66,7 @@ export default function Step2Plan({ form, onChange }) {
                 </div>
               </button>
             ) : (
-              <div className="flex min-h-40 flex-1 items-center justify-center rounded-xl px-4 text-sm text-slate-400">
+              <div className="flex min-h-40 flex-1 items-center justify-center rounded-xl border-2 border-slate-200 px-4 text-sm text-slate-400">
                 尚無可選方案
               </div>
             )}

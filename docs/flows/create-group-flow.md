@@ -74,7 +74,7 @@ flowchart TD
 - 第一次進到這個服務會自動選第一個方案
 - 選定方案後同步設定 `totalSeats = plan.maxSeats`、`billingCycle = plan.billingCycle`、`pricePerSeat = calcPricePerSeat(plan, plan.maxSeats)`
 - 版面由上而下單欄排列（桌機/平板/手機皆同）：「服務說明」→「填寫服務資訊注意事項」（依服務 `sharingMethod` 讀 `serviceInfoFields.js` 的 `notice` 文案，提醒團主這個服務加入時成員要填什麼、有沒有 Apple/Google 家庭群組異動頻率限制、KKBOX 地址驗證、friDay 邀請碼方向相反等眉角，沒有特別注意事項的服務顯示預設文字）→「選擇方案」
-- 「選擇方案」內部（`md` 以上，桌機/平板寬度，跟高度無關）左右並排：左邊是單張方案卡（一次只顯示目前選中的方案，點左右箭頭切換上一個/下一個方案，箭頭固定在欄位底部）＋方案卡＋箭頭，右邊是方案內容（不再另外顯示「方案說明」標題）；右欄內容全部直接顯示、不再內部捲動，左右兩欄改用 flex row 預設的 `items-stretch` 自動等高（不用 `ResizeObserver` 量測），左欄的方案卡用 `flex-1` 吃滿撐高後多出來的高度，切換箭頭因此自然被推到欄位最底部對齊；方案卡移除邊框跟背景色，只靠文字顏色（選中為 `text-brand`，未選中為 `text-slate-600`）區分選中狀態，內容維持垂直置中；手機（`md` 以下）則自然由上而下堆疊。因為步驟二已經沒有內部捲動區，`CreateGroupPage.jsx` 的外層 `short-lg:overflow-hidden`／`forwardWheel: false` 這兩個「內部有自己捲動區」的特殊處理現在只保留給步驟三（群組設定），步驟二一律用外層 `overflow-y-auto` 捲動整頁
+- 「選擇方案」內部（`md` 以上，桌機/平板寬度，跟高度無關）左右並排：左邊是單張方案卡（一次只顯示目前選中的方案，點左右箭頭切換上一個/下一個方案，箭頭固定在欄位底部）＋方案卡＋箭頭，右邊是方案內容（不再另外顯示「方案說明」標題）；右欄內容全部直接顯示、不再內部捲動，左右兩欄改用 flex row 預設的 `items-stretch` 自動等高（不用 `ResizeObserver` 量測），左欄的方案卡用 `flex-1` 吃滿撐高後多出來的高度，切換箭頭因此自然被推到欄位最底部對齊；方案卡保留邊框（選中為淡化過的 `border-brand/40`，未選中為 `border-slate-200`，避免選中顏色太深）但不加背景色，內容維持垂直置中；手機（`md` 以下）則自然由上而下堆疊。因為步驟二已經沒有內部捲動區，`CreateGroupPage.jsx` 的外層 `short-lg:overflow-hidden`／`forwardWheel: false` 這兩個「內部有自己捲動區」的特殊處理現在只保留給步驟三（群組設定），步驟二一律用外層 `overflow-y-auto` 捲動整頁
 - `Field` 元件的 hint 說明泡泡改成往「下方」展開（原本是靠右垂直置中），避免最上面那個欄位（例如「剩餘名額」）的說明泡泡往上展開時被自己所在的 `overflow-y-auto` 捲動容器裁切、看起來像被上方服務資訊卡蓋住
 
 **3. 群組設定**
