@@ -63,10 +63,10 @@ function getStepErrors(step, form) {
 
   switch (step) {
     case 1:
-      if (!form.serviceId) errors.push('請選擇一個訂閱服務')
+      if (!form.serviceId) errors.push('請選擇一項訂閱服務')
       break
     case 2:
-      if (!form.planName) errors.push('請選擇方案')
+      if (!form.planName) errors.push('請選擇一項訂閱方案')
       break
     case 3: {
       const service = getServiceById(form.serviceId)
@@ -210,21 +210,21 @@ export default function CreateGroupPage() {
   const service = getServiceById(form.serviceId)
   const hasEligiblePlans = (service?.plans ?? []).some(p => p.maxSeats > 1)
   const visibleStepErrors = stepErrors.filter(err =>
-    err !== '請選擇一個訂閱服務' && (err !== '請選擇方案' || hasEligiblePlans)
+    err !== '請選擇一項訂閱服務' && (err !== '請選擇一項訂閱方案' || hasEligiblePlans)
   )
 
   const banner = (() => {
     if (step === 1) {
-      return { Icon: form.serviceId ? Info : AlertCircle, text: '請選擇一個訂閱服務' }
+      return { Icon: form.serviceId ? Info : AlertCircle, text: '請選擇一項訂閱服務' }
     }
     if (step === 2) {
       if (!hasEligiblePlans) return { Icon: AlertCircle, text: '此服務無合購方案，請返回上一步選擇其他服務' }
       if (visibleStepErrors.length > 0) return { Icon: AlertCircle, text: visibleStepErrors[0] }
-      return { Icon: Info, text: '請選擇方案' }
+      return { Icon: Info, text: '請選擇一項訂閱方案' }
     }
     if (step === 3) {
       if (visibleStepErrors.length > 0) return { Icon: AlertCircle, text: visibleStepErrors[0] }
-      return { Icon: Info, text: '設定群組資訊' }
+      return { Icon: Info, text: '請設定群組資訊' }
     }
     if (step === 4) return { Icon: Info, text: '請確認以下資訊正確無誤，並詳閱服務條款' }
     return null
