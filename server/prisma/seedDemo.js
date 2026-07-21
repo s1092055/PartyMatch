@@ -33,11 +33,13 @@ function perSeat(plan, seats, cycle = 'monthly') {
 
 async function upsertDemoUser({ email, name, phone, creditScore, tokenBalance, avatarIndex }) {
   const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 12)
+  // 信用分數上限 100、下限 0，避免種子資料手誤寫出界外值
+  const clampedCreditScore = Math.max(0, Math.min(100, creditScore))
   return prisma.user.upsert({
     where: { email },
-    update: { creditScore, tokenBalance },
+    update: { creditScore: clampedCreditScore, tokenBalance },
     create: {
-      email, passwordHash, name, phone, creditScore, tokenBalance,
+      email, passwordHash, name, phone, creditScore: clampedCreditScore, tokenBalance,
       avatarInitial: name[0], avatarColor: avatarColor(avatarIndex),
     },
   })
