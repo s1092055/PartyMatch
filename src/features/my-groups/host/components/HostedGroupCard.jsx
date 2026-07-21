@@ -101,8 +101,8 @@ function HostedGroupCard({
             {pendingAppCount} 件
           </StatCell>
         ) : (
-          <StatCell label="下次扣款">
-            {toISODate(group.nextBillingDate, '—')}
+          <StatCell label="收款狀態" highlight={collectionHighlight}>
+            {collectionState}
           </StatCell>
         )}
         <StatCell label="成員人數">
@@ -112,9 +112,13 @@ function HostedGroupCard({
           <StatCell label="建立日期">
             {group.createdAt ?? '—'}
           </StatCell>
-        ) : (
+        ) : isActivated ? (
           <StatCell label="收款狀態" highlight={collectionHighlight}>
             {collectionState}
+          </StatCell>
+        ) : (
+          <StatCell label="下次扣款">
+            {toISODate(group.nextBillingDate, '—')}
           </StatCell>
         )}
       </div>
