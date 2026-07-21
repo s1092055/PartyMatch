@@ -182,18 +182,6 @@ export default function HostGroupView({ group, members, applications, onReportSe
   )
 
   const isRecruiting = ['recruiting', 'full'].includes(group.status)
-  const canCancel = isRecruiting
-
-  const cancelCta = canCancel && (
-    <div className="flex justify-center py-2">
-      <button
-        onClick={() => setShowCancelConfirm(true)}
-        className="flex items-center gap-2 rounded-xl border border-danger px-5 py-1.5 text-sm font-semibold text-danger transition-colors hover:bg-danger-subtle"
-      >
-        <Trash2 size={14} /> 解散群組
-      </button>
-    </div>
-  )
 
   function buildSubPanel() {
     if (activePanel === 'members') return buildMembersPanel({ group, members, setActivePanel, onClose, setRemovingMember })
@@ -226,21 +214,26 @@ export default function HostGroupView({ group, members, applications, onReportSe
           <Users size={17} /> 成員名單
         </GroupModalSideBarItem>
         {isRecruiting ? (
-          <GroupModalSideBarItem
-            active={activePanel === 'applications' && !isReviewHistory}
-            onClick={() => goToPanel('applications')}
-            className="relative"
-          >
-            <span className="relative">
-              <ClipboardList size={17} />
-              {pendingApps.length > 0 && (
-                <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-warning-text px-0.5 text-2xs font-bold text-white">
-                  {pendingApps.length}
-                </span>
-              )}
-            </span>
-            申請管理
-          </GroupModalSideBarItem>
+          <>
+            <GroupModalSideBarItem
+              active={activePanel === 'applications' && !isReviewHistory}
+              onClick={() => goToPanel('applications')}
+              className="relative"
+            >
+              <span className="relative">
+                <ClipboardList size={17} />
+                {pendingApps.length > 0 && (
+                  <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-warning-text px-0.5 text-2xs font-bold text-white">
+                    {pendingApps.length}
+                  </span>
+                )}
+              </span>
+              申請管理
+            </GroupModalSideBarItem>
+            <GroupModalSideBarItem pinned tone="danger" onClick={() => setShowCancelConfirm(true)}>
+              <Trash2 size={17} /> 解散群組
+            </GroupModalSideBarItem>
+          </>
         ) : (
           <>
             <GroupModalSideBarItem active={activePanel === 'billing'} onClick={() => goToPanel('billing')}>
@@ -301,9 +294,6 @@ export default function HostGroupView({ group, members, applications, onReportSe
         allMembersChecked={allMembersChecked}
         onOpenServiceIssue={m => { setServiceIssueMember(m); setServiceIssueNote(m.serviceInfoIssueNote ?? '') }}
       />
-
-      {cancelCta}
-
     </GroupModalShell>
 
     <ReportServiceIssueModal

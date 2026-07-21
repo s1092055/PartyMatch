@@ -76,10 +76,10 @@ const VARIANTS = {
 const LABELS = {
   recruiting:         '招募中',
   pending_activation: '待啟用',
-  active:             '啟用中',
+  active:             '服務中',
   cancelled:          '已取消',
   full:               '已滿員',
-  pending_confirmation: '待填帳號',
+  pending_confirmation: '填寫資訊中',
   confirming:           '確認期中',
   disputed:             '申訴中',
   ended:              '已結束',

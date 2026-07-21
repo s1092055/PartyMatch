@@ -4,13 +4,14 @@ import Button from '../../../../shared/ui/primitives/Button'
 import ServiceLogo from '../../../../shared/ui/ServiceLogo'
 import TokenAmount from '../../../../shared/ui/TokenAmount'
 import { getRenewalAwareStatus } from '../../../../shared/utils/groupStatusDisplay'
+import { toISODate } from '../../../../shared/utils/date'
 import { calcDisplayPrice, calcDisplayCycle } from '../../../../shared/utils/pricingUtils'
 
 function getCollectionState({ group, paidCount, paymentTarget }) {
   if (['cancelled', 'ended'].includes(group.status)) return '已結束'
   if (group.status === 'recruiting') return '招募中'
   if (group.status === 'full') return '等待啟用'
-  if (group.status === 'pending_confirmation') return '待填帳號'
+  if (group.status === 'pending_confirmation') return '填寫資訊中'
   if (group.status === 'pending_activation') return '待啟用服務'
   if (group.status === 'confirming') return '確認期中'
   if (group.status === 'disputed') return '申訴中'
@@ -92,12 +93,16 @@ function HostedGroupCard({
           <StatCell label="收款紀錄">
             {paymentCount} 件
           </StatCell>
-        ) : (
+        ) : group.status === 'recruiting' ? (
           <StatCell
             label="待處理申請"
             highlight={pendingAppCount > 0 ? 'text-brand' : undefined}
           >
             {pendingAppCount} 件
+          </StatCell>
+        ) : (
+          <StatCell label="下次扣款">
+            {toISODate(group.nextBillingDate, '—')}
           </StatCell>
         )}
         <StatCell label="成員人數">
