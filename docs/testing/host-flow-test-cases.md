@@ -68,7 +68,7 @@
 
 ### TC-205：移除成員（招募期間）
 
-**前置條件**：demo2 主揪 G2（Notion，`recruiting`），demo5 已是核准成員。
+**前置條件**：demo4 主揪 G2（Notion，`recruiting`），demo5 已是核准成員。
 
 **步驟**：
 1. 開啟群組詳情 → 成員名單 → 點擊 demo5 旁的移除圖示
@@ -204,3 +204,22 @@
 **預期結果**：
 - 僅 `recruiting` 且 `currentMembers === 0` 的群組可被硬刪除（`groups.js` 第 526-528 行）
 - 已有成員加入或已鎖定的群組呼叫應回傳 400，提示改用解散群組功能
+
+---
+
+### TC-215：平台管理員裁定申訴
+
+**前置條件**：以 `demo-admin@partymatch.test` 登入（seed 資料唯一 `isAdmin: true` 的帳號）；G7（ExpressVPN）處於 `disputed`，demo6 是申訴成員。
+
+**步驟**：
+1. 前往帳號中心「管理員」分頁（`AccountPage` → `AdminTab`，一般帳號應看不到這個分頁）
+2. 若 `disputeDeadline` 已過期，G7 應排在清單最前面並標示「已逾期」
+3. 選擇 G7，裁定結果選「成員獲勝」，填寫裁定說明後送出
+
+**預期結果**（`POST /groups/:id/adjudicate`，`requireAdmin` 保護）：
+- 非 `isAdmin` 帳號呼叫應回傳 403
+- 群組狀態改為 `active`，`disputeDeadline` 清空
+- demo6 的 `tokenBalance` 加回其席位費用，`escrowTokens` 對應扣除，寫入 `type: 'refund'` 的 `tokenTransaction`
+- demo6 的 `Member` 記錄被刪除、`Subscription` 設為 `cancelled`，其餘成員的代管與訂閱不受影響
+- 前端整包重新 `init` 群組/成員/訂閱 store，不依賴樂觀更新
+- 逾期案件本身不會自動裁定，只有管理員實際送出裁定才會處理代管金額（見 [申訴流程](../flows/dispute-flow.md)）

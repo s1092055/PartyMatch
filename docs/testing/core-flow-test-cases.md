@@ -27,7 +27,7 @@
 
 ### TC-002：一般成員申請加入（餘額充足，代管扣款）
 
-**前置條件**：延續 TC-001 建立的群組（席位費用假設為 X PM，可從群組詳情頁確認）；以 demo5（李冠宇，餘額 1000）登入，確認 1000 ≥ X。
+**前置條件**：延續 TC-001 建立的群組（席位費用假設為 X PM，可從群組詳情頁確認）；以 demo5（李冠宇，餘額 4000）登入，確認 4000 ≥ X。
 
 **步驟**：
 1. 探索頁找到該群組，開啟群組詳情
@@ -174,6 +174,20 @@
 **預期結果**：
 - 全員 `serviceInfo` 皆非 null，群組狀態自動推進為 `pending_activation`（`members.js` 第 104-116 行）
 - 團主收到「全員已完成填寫」通知，看到「啟用服務」CTA
+
+---
+
+### TC-008b：填寫服務帳號資訊表單依 sharingMethod 動態顯示欄位
+
+**前置條件**：seed 資料已包含 3 個涵蓋不同 `sharingMethod` 的 `pending_confirmation` 群組（見 [`test-accounts.md`](./test-accounts.md)）：G14（Apple Music，`apple_family`）、G15（Google One，`google_family`）、G16（friDay影音，`invite_code`）。另可用 G4（Disney+，`shared_credentials`）、G9（KKBOX，`email_invite_with_address`）對照一般 `email_invite` 服務（例如 G1 Netflix）。
+
+**步驟與預期結果**（`src/shared/utils/serviceInfoFields.js`）：
+1. demo2 開啟 G14（Apple Music），點「填寫帳號」→ 表單只有一個「Apple ID」欄位（type=email），上方顯示家庭共享提醒文案（一年僅能異動一次成員、會共用購買紀錄）
+2. demo3 開啟 G15（Google One）→ 表單只有一個「Google 帳戶 Email」欄位，提醒文案為 Google 家庭群組版本
+3. demo5 開啟 G16（friDay影音）→ 表單只有一個「邀請碼」欄位（非 email），提醒文案說明要先在 friDay App 內產生邀請碼、綁定方向與其他服務相反
+4. 開啟 G9（KKBOX，已全員填完）的團主收款/成員名單畫面 → 顯示的摘要應同時包含 email 與地址兩個值（`getServiceInfoSummary` 用全形空格分隔多欄位）
+5. 開啟 G4（Disney+）→ 表單只有一個確認勾選框「我已透過群組聊天室取得帳號密碼」，勾選後才能送出，提醒文案說明官方無多人邀請機制的風險
+6. 上述任一表單填寫送出後，`hasFilledServiceInfo` 判斷應正確依該服務的欄位組合認定「已填寫」，不會因為欄位不是 `email` 而誤判成尚未填寫（可在聊天室的 `fill_service_info` 訊息卡片、`ActivateServiceModal` 成員清單同步確認顯示狀態一致）
 
 ---
 

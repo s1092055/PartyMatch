@@ -47,9 +47,6 @@ STRIPE_WEBHOOK_SECRET=
 PORT=3001
 CLIENT_ORIGIN=http://localhost:5173
 NODE_ENV=development
-
-# （選填）執行 db:seed-demo 時，指定要一併灌入 demo 資料的既有真實帳號（逗號分隔的 email）
-DEMO_REAL_USER_EMAILS=
 ```
 
 不要把 `.env` 檔案 commit 到 Git。
@@ -78,7 +75,7 @@ DEMO_REAL_USER_EMAILS=
 | `npm run db:studio`（等同 `npx prisma studio`） | 開啟資料庫視覺化介面（http://localhost:5555） |
 | `npx prisma generate` | 重新產生 Prisma Client |
 | `npm run db:seed` | 執行 `prisma/seed.js` 建立測試資料 |
-| `npm run db:seed-demo` | 執行 `prisma/seedDemo.js`，建立涵蓋所有群組/申請狀態的完整 demo 資料（需先設定 `DEMO_REAL_USER_EMAILS`），不會刪除既有資料 |
+| `npm run db:seed-demo` | 執行 `prisma/seedDemo.js`，建立 10 個自給自足的 demo 帳號（含 1 個管理員）與涵蓋所有群組/申請狀態的完整 demo 資料，需在乾淨的資料庫上執行（先 `npm run db:clear`），見 [測試帳號](testing/test-accounts.md) |
 | `npm run db:clear-data` | 清空所有資料（保留 users 與 services），用於重設測試環境 |
 | `npm run db:clear` | 清空所有正式版資料**含 users**（保留 services），執行前需在終端機輸入 `yes` 確認 |
 
