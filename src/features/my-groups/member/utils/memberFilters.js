@@ -1,4 +1,4 @@
-import { isEffectivelyActive } from '../../../shared/utils/groupStatus'
+import { isEffectivelyActive } from '../../../../shared/utils/groupStatus'
 
 // 「處理中」原本一次塞了 full/pending_confirmation/pending_activation/confirming/disputed
 // 五種完全不同的階段，太籠統分不清自己現在該做什麼；拆成跟群組實際狀態一一對應的分類。
