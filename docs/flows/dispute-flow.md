@@ -24,7 +24,7 @@ sequenceDiagram
     A->>FE: 選擇群組、裁定結果（member/host 獲勝）+ 說明
     FE->>BE: POST /groups/:id/adjudicate
     alt winner = member
-        BE->>BE: $transaction：退款給申訴成員\n刪除該 Member，Subscription → cancelled\n群組 status → active
+        BE->>BE: $transaction：退款給申訴成員\n刪除該 Member，Subscription → ended\n群組 status → active
     else winner = host
         BE->>BE: $transaction：escrowTokens 全額撥款給團主\n全員 Subscription → active\n群組 status → active
     end
@@ -89,7 +89,7 @@ sequenceDiagram
 - 管理員在 `AdminTab` 看到所有 `status === 'disputed'` 的群組，選擇群組、裁定結果（團主獲勝／成員獲勝）與裁定說明後送出 → `POST /groups/:id/adjudicate`
 - **`disputeDeadline`（申訴 +3 天）逾期後不會自動裁定**：任何一方獲勝都可能對另一方不公平，所以無論多久沒處理，代管金額都維持凍結、必須由管理員手動裁定；`AdminTab` 只是把逾期案件排到清單最前面並加上「已逾期」提示，方便管理員優先處理，本身不觸發任何金流異動
 - 後端先找出「有 `serviceInfoIssueNote` 的成員」當作申訴人，找不到就回 400
-- **成員獲勝**：`$transaction` 內群組 `status → active`、`disputeDeadline → null`，把該成員的席位費用從 `escrowTokens` 扣掉並退款給他、寫入 `TokenTransaction { type: 'refund' }`，接著刪掉這個 `Member` 記錄、把他的 `Subscription` 設成 `cancelled`（其餘成員的代管跟訂閱完全不受影響）
+- **成員獲勝**：`$transaction` 內群組 `status → active`、`disputeDeadline → null`，把該成員的席位費用從 `escrowTokens` 扣掉並退款給他、寫入 `TokenTransaction { type: 'refund' }`，接著刪掉這個 `Member` 記錄、把他的 `Subscription` 設成 `ended`（`SubscriptionStatus` enum 只有 `pending`/`active`/`ended` 三種值，沒有 `cancelled`；其餘成員的代管跟訂閱完全不受影響）
 - **團主獲勝**：`$transaction` 內群組 `status → active`、`disputeDeadline → null`、`escrowTokens` 全額撥給團主並歸零、全體成員 `Subscription` 設成 `active`
 
 **5. 裁定結果同步**

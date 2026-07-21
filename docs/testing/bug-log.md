@@ -24,6 +24,19 @@
 
 依發現時間排序，最新在上。下面前 7 筆是跑 `/code-review` 靜態審查時找到（非手動測試流程觸發），標註來源以區別於未來手動測試時記錄的項目；之後手動測試找到的新 bug 補在這幾筆之上即可。
 
+### BUG-008：申訴裁定「成員獲勝」一定會 500，從未真正成功執行過
+- **功能**：[申訴流程](../flows/dispute-flow.md)，`POST /groups/:id/adjudicate`
+- **嚴重度**：P0（核心交易流程功能完全無法使用）
+- **測試帳號**：`demo-admin@partymatch.test`（見 test-accounts.md）
+- **操作步驟**：
+  1. 群組處於 `disputed` 狀態，有一位成員已申訴
+  2. 管理員在 `AdminTab` 選擇該群組，裁定結果選「成員獲勝」，填寫說明後送出
+- **預期結果**：申訴成員退款並移出群組，群組狀態回到 `active`
+- **實際結果**：API 回傳 500，整個交易回滾，裁定完全沒有生效
+- **推測原因**：`server/src/routes/groups.js` 的 `winner === 'member'` 分支裡，`prisma.subscription.updateMany` 把該成員的 `Subscription.status` 設成 `'cancelled'`，但 `SubscriptionStatus` enum（`schema.prisma`）只定義了 `pending`/`active`/`ended` 三種值，沒有 `cancelled`，Prisma 執行時直接拋出驗證錯誤。這條路徑先前只有靜態程式碼審查看過，從未真的被任何測試（手動或自動）呼叫過一次，才會一直沒被發現
+- **如何發現**：把 `server/prisma/seedDemo.js` 從直接寫資料庫改成透過真實 REST API 驅動每個情境後，第一次真正呼叫這支端點就立刻重現
+- **修正狀態**：已修（本次連同 seed 腳本重寫一起提交）——`Subscription.status` 改設為 `'ended'`
+
 ### BUG-007：搜尋框 debounce echo 吃掉使用者輸入的尾隨空白
 - **功能**：[探索群組流程](../flows/explore-flow.md)
 - **嚴重度**：P2

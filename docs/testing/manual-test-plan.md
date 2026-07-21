@@ -23,9 +23,11 @@
 
 ```bash
 cd server
-npm run db:seed        # 服務目錄（若尚未執行過）
+npm run dev             # 確保伺服器正在跑（另開一個終端機視窗）——seedDemo.js 會打真實 API，不是單純寫資料庫
+npm run db:seed         # 服務目錄（若尚未執行過）
 npm run db:clear        # 清空所有使用者與業務資料（含 users），保留 services；會要求輸入 yes 確認
-npm run db:seed-demo    # 建立 10 個 demo 帳號（含 1 個管理員）、16 個群組、申請、通知、對話
+                         # 清空後建議重啟一次伺服器（避免系統帳號 ID 記憶體快取失效，見 test-accounts.md）
+npm run db:seed-demo    # 建立 10 個 demo 帳號（含 1 個管理員）、22 個群組、申請、通知、對話
 ```
 
 ---

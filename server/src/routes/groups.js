@@ -410,7 +410,7 @@ router.post('/:id/adjudicate', requireAdmin, async (req, res, next) => {
         prisma.member.delete({ where: { id: disputeMember.id } }),
         prisma.subscription.updateMany({
           where: { groupId: group.id, userId: disputeMember.userId },
-          data:  { status: 'cancelled' },
+          data:  { status: 'ended' },
         }),
       ])
     } else {
