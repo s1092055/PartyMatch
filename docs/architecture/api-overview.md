@@ -138,4 +138,4 @@
 
 ---
 
-各端點的權限收斂邏輯（如何限定查詢範圍到登入者本人）見 [後端架構文件](./backend-architecture.md#權限控管慣例)；認證 token 機制見 [認證機制](./auth-flow.md)。
+各端點的權限收斂邏輯（如何限定查詢範圍到登入者本人）見 [後端架構文件](./backend-architecture.md#權限控管慣例)；認證 token 機制見 [認證機制](./authentication.md)。

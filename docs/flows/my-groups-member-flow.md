@@ -1,7 +1,7 @@
 # 我的群組（成員視角）
 
 ## 使用者目標
-成員在申請通過後追蹤自己的訂閱進度：填寫服務帳號、確認服務是否正常啟用、有問題時申訴，或在鎖定前退出群組。
+成員在申請通過後追蹤自己的訂閱進度：填寫服務帳號、確認服務是否正常啟用、有問題時申訴，或在群組鎖定前退出。
 
 ## 流程圖
 
@@ -24,51 +24,83 @@ flowchart TD
 ```
 
 ## 入口
-`/my-groups?view=member`（`MyGroupsPage` → `MemberPage`）；也可透過通知點擊（`pm:open-group`／`navigate('/my-groups?view=member', { state: { openGroupId } })`）或 `TopupModal` 交易紀錄列點擊（`pm:open-group`）間接開啟特定群組的 `MemberGroupView`
+- `/my-groups?view=member`（`MyGroupsPage` → `MemberPage`）
+- 也可以透過通知點擊，或 `TopupModal` 交易紀錄列點擊，間接開啟特定群組的 `MemberGroupView`
 
-## 前端檔案
-- `src/features/my-groups/member/MemberPage.jsx`：頁面 orchestrator，串接 `FilterTabsBar` 分頁與訂閱卡片 grid
-- `src/features/my-groups/member/components/SubscriptionCard.jsx`：單一訂閱卡片
-- `src/features/my-groups/member/components/MemberGroupView.jsx`：成員視角群組詳情 Modal（填寫帳號、確認服務、申訴、退出、審視成員名單）
-- `src/features/my-groups/member/components/ReviewHostModal.jsx`：確認服務完成後的團主評價彈窗
-- `src/features/my-groups/member/utils/memberFilters.js`：分頁篩選邏輯、`isHistorySubscription`
-- `src/shared/ui/group/GroupViewModal.jsx`：依 `isHost` 決定渲染 `HostGroupView` 或 `MemberGroupView` 的薄殼
-- `src/shared/ui/group/GroupModalShell.jsx`：三層滑動 Panel 共用殼
-- `src/shared/utils/groupStatus.js`：`isEffectivelyActive`（成員自行確認服務後個人視角視為已啟用）
+## 相關檔案
 
-## 後端檔案
-- `server/src/routes/members.js`：`GET /members`、`PATCH /members/:id`（填寫 `serviceInfo`）、`DELETE /members/:id`（退出）
-- `server/src/routes/groups.js`：`POST /groups/:id/confirm`（確認服務）、`POST /groups/:id/dispute`（申訴）
-- `server/src/routes/subscriptions.js`：`GET /subscriptions`（含 `notifyUpcomingRenewals` 副作用）
-- `server/src/utils/pricing.js`：`computeSeatCost`
+**前端**
 
-## 資料表 / Model
-- `Member`：`serviceInfo`（JSON，帳號資訊）、`serviceInfoIssueNote`、`disputeEvidenceUrl`、`confirmedAt`
-- `Subscription`：`status`（`pending`/`active`/`ended`）、`nextBillingDate`
-- `Group`：`status`、`confirmDeadline`、`disputeDeadline`、`escrowTokens`
-- `Review`：確認服務完成後可對團主留下評價
+| 路徑 | 說明 |
+|------|------|
+| `src/features/my-groups/member/MemberPage.jsx` | 頁面總入口，串接分頁與訂閱卡片 grid |
+| `src/features/my-groups/member/components/SubscriptionCard.jsx` | 單一訂閱卡片 |
+| `src/features/my-groups/member/components/MemberGroupView.jsx` | 成員視角群組詳情 Modal：填寫帳號、確認服務、申訴、退出、查看成員名單 |
+| `src/features/my-groups/member/components/ReviewHostModal.jsx` | 確認服務完成後的團主評價彈窗 |
+| `src/features/my-groups/member/utils/memberFilters.js` | 分頁篩選邏輯 |
+| `src/shared/ui/group/GroupViewModal.jsx` | 依身分決定渲染團主或成員視角的薄殼 |
+| `src/shared/ui/group/GroupModalShell.jsx` | 三層滑動 Panel 共用殼 |
+| `src/shared/utils/groupStatus.js` | `isEffectivelyActive`，成員自行確認服務後個人視角提前視為已啟用 |
+
+**後端**
+
+| 路徑 | 說明 |
+|------|------|
+| `server/src/routes/members.js` | `GET /members`、`PATCH /members/:id`（填寫帳號資訊）、`DELETE /members/:id`（退出） |
+| `server/src/routes/groups.js` | `POST /groups/:id/confirm`（確認服務）、`POST /groups/:id/dispute`（申訴） |
+| `server/src/routes/subscriptions.js` | `GET /subscriptions`，附帶即將續訂提醒的副作用 |
+| `server/src/utils/pricing.js` | `computeSeatCost` |
+
+**資料表 / Model**
+
+| Model | 用途 |
+|-------|------|
+| `Member` | `serviceInfo`（JSON，帳號資訊）、`serviceInfoIssueNote`、`disputeEvidenceUrl`、`confirmedAt` |
+| `Subscription` | `status`（`pending`/`active`/`ended`）、`nextBillingDate` |
+| `Group` | `status`、`confirmDeadline`、`disputeDeadline`、`escrowTokens` |
+| `Review` | 確認服務完成後可對團主留下的評價 |
 
 ## 使用技術
-- Zustand store 樂觀更新：`useMemberStore.fillServiceInfo` 先寫本地 state，`PATCH` 失敗就回滾到送出前的值（不是清空）
-- `GroupModalShell` 三層滑動 Panel：`overview → subPanel`（填寫帳號 / 申訴 / 成員名單），`activePanel` 控制當前顯示層
-- `CountdownConfirmDialog`：確認服務、退出群組都要倒數幾秒才能按確認鍵，避免誤觸不可逆操作
-- `uploadDisputeEvidence`（`src/shared/api/storageApi.js`）：申訴附件上傳到 Imgbb，拿到 URL 後隨 `POST /groups/:id/dispute` 一併送出
-- `window.dispatchEvent('pm:open-messages'/'pm:open-dm')`：從群組概覽或成員名單直接開啟群組聊天室或私訊團主
+- **樂觀更新，失敗會回滾**：填寫服務帳號時先寫本地 state，如果 `PATCH` 失敗就把資料復原成送出前的樣子（不是清空），避免使用者辛苦填好的內容無故消失
+- **三層滑動 Panel**：從總覽切到填寫帳號／申訴／成員名單這類子面板，都是同一套滑動元件
+- **不可逆操作要倒數確認**：確認服務、退出群組都要透過 `CountdownConfirmDialog` 倒數幾秒才能真的送出，避免手滑誤觸
+- 申訴附件會先上傳到圖床拿到 URL，再隨申訴表單一起送出
+- 從群組概覽或成員名單可以直接觸發開啟群組聊天室或私訊團主
 
 ## 流程步驟
-1. **查看訂閱列表**：`MemberPage` 依 `FilterTabsBar` 分頁（全部／處理中／啟用中／已結束）過濾 `useSubscriptionStore`/`useMemberStore` 中屬於自己的資料，`isHistorySubscription` 判斷是否為已結束/已取消而排除出一般分頁
-2. **填寫服務帳號**（`pending_confirmation`）：`MemberGroupView` 依 `needsFillInfo`（`!hasServiceInfo && group.status === 'pending_confirmation'`）顯示「填寫帳號」側邊按鈕 → 開啟 `subPanel` 表單，輸入 email → `fillServiceInfo(myMember.id, group.id, { email })` → `PATCH /members/:id { serviceInfo }`；後端檢查群組內是否全員已填寫，若是則自動將 `Group.status` 從 `pending_confirmation` 推進至 `pending_activation`，回傳中帶 `_groupAdvanced`，前端據此呼叫 `useGroupStore.setGroupStatus` 本地同步
-3. **帳號問題修正**：若團主回報問題（`serviceInfoIssueNote` 非空），`MemberGroupView` 顯示警示 banner 並允許重新填寫（`showFillBtn = needsFillInfo || hasServiceInfoIssue`）
-4. **確認服務**（`confirming`）：`canConfirm = group.status === 'confirming' && !myMember.confirmedAt` 時顯示「確認服務」/「回報問題」按鈕 → 點擊「確認服務」彈出 `CountdownConfirmDialog` → 確認後 `useGroupStore.confirmService(group.id)` → `POST /groups/:id/confirm`；若後端判斷全員已確認則立即撥款並回傳 `released: true`，前端 toast「款項已撥付」並重新 `init` 訂閱 store；否則僅本地 `markConfirmed(myMember.id)` 並提示「等待其他成員確認中」
-5. **確認後邀請評價**：確認服務送出後一律開啟 `ReviewHostModal`（`reviewPrompt`），若已撥款（`res.released`）評價視窗關閉時一併關閉群組 Modal
-6. **申訴**（`confirming` 期間）：點擊「回報問題」→ 進入 `subPanel` 申訴表單（可複選申訴原因、選填說明與附件）→ 附件經 `uploadDisputeEvidence` 上傳取得 URL → 送出 `disputeGroup(group.id, { reason, evidenceUrl })` → `POST /groups/:id/dispute`，成功後群組進入 `disputed`，關閉 Modal 並提示「客服將在 3 天內裁定」
-7. **退出群組**（`recruiting`/`full`）：`canLeaveGroup` 判斷是否可退出 → 點擊後 `CountdownConfirmDialog` 確認 → `onLeaveGroup` 呼叫 `finalizeLeaveGroup(groupId, user)`（`src/features/group/utils/leaveGroupFlow.js`）：送出系統訊息並退出聊天室、移除本地 `Member`/`Subscription`、將 `Application` 標為 `left`、群組名額本地回補，並建立 `member_left` 通知給團主
-8. **成員名單／聯絡團主**：`activePanel === 'members'` 顯示團主與其他成員，點擊個別成員的訊息 icon 觸發 `pm:open-dm` 開啟私訊
+
+**1. 查看訂閱列表**
+- `MemberPage` 依分頁（全部／處理中／啟用中／已結束）過濾出屬於自己的訂閱資料
+
+**2. 填寫服務帳號（`pending_confirmation`）**
+- 還沒填寫帳號資訊時，`MemberGroupView` 會顯示「填寫帳號」按鈕，點開表單輸入 email 後送出
+- 後端會檢查群組內是否全員都已經填寫，如果是，就自動把群組狀態推進到「等待團主啟用」
+
+**3. 帳號問題修正**
+- 如果團主回報帳號有問題，`MemberGroupView` 會顯示警示訊息，並允許重新填寫
+
+**4. 確認服務（`confirming`）**
+- 服務啟用後的確認期內，會顯示「確認服務」跟「回報問題」兩個按鈕
+- 點「確認服務」需要倒數確認；送出後如果全員都已確認，後端會立即撥款給團主，前端提示「款項已撥付」；如果還有人沒確認，就只標記自己已確認，並提示還在等其他人
+
+**5. 確認後邀請評價**
+- 確認服務送出後一定會跳出團主評價視窗；如果剛好撥款完成，評價視窗關閉時會一併關閉整個群組 Modal
+
+**6. 申訴（`confirming` 期間）**
+- 點「回報問題」進入申訴表單，可以複選申訴原因、填說明、上傳附件
+- 送出後群組進入等待平台裁定的狀態，關閉 Modal 並提示「客服將在 3 天內裁定」
+
+**7. 退出群組（`recruiting`/`full`）**
+- 符合條件時可以退出，需要倒數確認
+- 退出時會發送系統訊息並退出聊天室、移除自己的成員與訂閱資料、把對應申請標為已離開、釋出名額，並通知團主
+
+**8. 成員名單／聯絡團主**
+- 可以查看團主與其他成員名單，點擊個別成員的訊息圖示能直接開啟私訊
 
 ## 驗證重點
-- `PATCH /members/:id` 僅本人（`isOwner`）或該群組團主（`isHost`）可操作，否則 403（`server/src/routes/members.js:95`）
-- `DELETE /members/:id`（退出）僅允許 `recruiting`/`full` 狀態，`pending_confirmation` 之後成員名單不可再變動，回 400（`server/src/routes/members.js:136`）
-- `POST /groups/:id/confirm`／`/dispute` 都檢查請求人是不是該群組成員，非成員 403；群組狀態非 `confirming` 回 400
-- 確認服務時後端在同一個 `$transaction` 內同時更新群組狀態、撥款、清空 `escrowTokens`、寫 `TokenTransaction`、把全員 `Subscription.status` 設 `active`，避免部分寫入失敗導致狀態不一致
-- 前端 `fillServiceInfo` 的 `PATCH` 失敗時把本地 `serviceInfo` 回滾到送出前的值，不是清空，避免使用者原本填好的資料無故消失
-- `MemberGroupView` 的 `isEffectivelyActive(group.status, myMember?.confirmedAt)` 讓「我已確認、其他人還沒確認」時的個人視角提前顯示為已啟用
+- 填寫帳號資訊只有本人或該群組團主可以操作，其他人一律 403
+- 退出群組只允許在 `recruiting`/`full` 狀態操作，一旦鎖定（進入 `pending_confirmation` 之後）成員名單就不能再變動，會回 400
+- 確認服務／申訴都會檢查請求人確實是該群組成員，非成員回 403；群組狀態不是確認期一律回 400
+- 確認服務時，後端會在同一個交易內同時更新群組狀態、撥款、清空代管金額、寫入交易紀錄、把全員訂閱設成啟用中，避免只寫一半造成資料不一致
+- 填寫帳號失敗時前端會把資料復原成送出前的樣子，不是清空，避免使用者原本填好的資料無故消失
+- 只要自己已經確認服務，即使其他成員還沒確認，個人視角也會提前顯示為已啟用

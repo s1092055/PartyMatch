@@ -1,7 +1,7 @@
 # 申訴流程
 
 ## 使用者目標
-成員在確認期（`confirming`）內若發現服務未正常啟用或有其他問題，可向平台正式申訴，凍結代管款項並等待客服裁定，而不必單方面信任團主的說法。
+成員在確認期（`confirming`）內如果發現服務沒有正常啟用，或有其他問題，可以向平台正式申訴，凍結代管款項並等平台裁定，不用單方面相信團主說的話。
 
 ## 流程圖
 
@@ -33,48 +33,70 @@ sequenceDiagram
 ```
 
 ## 入口
-`MemberGroupView` 確認期畫面的「回報問題」按鈕（`canConfirm` 為真時，與「確認服務」按鈕並列）→ 開啟申訴表單 `subPanel`；裁定端入口為帳號中心「管理員」分頁（`AdminTab`，僅 `isAdmin` 使用者可見）
+- `MemberGroupView` 確認期畫面的「回報問題」按鈕（`canConfirm` 為真時，跟「確認服務」按鈕並排）→ 開啟申訴表單 `subPanel`
+- 裁定端在帳號中心的「管理員」分頁（`AdminTab`），只有 `isAdmin` 使用者看得到
 
-## 前端檔案
-- `src/features/my-groups/member/components/MemberGroupView.jsx`：申訴表單（`activePanel === 'dispute'`）、`handleDisputeSubmit`、`handleEvidenceSelect`
-- `src/shared/api/storageApi.js`：`uploadDisputeEvidence`（附件上傳）
-- `src/shared/stores/useGroupStore.js`：`disputeGroup`、`adjudicateGroup`
-- `src/shared/api/groupsApi.js`：`disputeGroupApi`、`adjudicateGroupApi`
-- `src/features/account/components/tabs/AdminTab.jsx`：申訴裁定表單（選擇群組、裁定結果、裁定說明）
+## 相關檔案
 
-## 後端檔案
-- `server/src/routes/groups.js`：`POST /groups/:id/dispute`（成員送出申訴）、`POST /groups/:id/adjudicate`（管理員裁定，`requireAdmin` 保護）
-- `server/src/middleware/auth.js`：`requireAdmin`
-- `server/src/utils/pricing.js`：`computeSeatCost`
+**前端**
 
-## 資料表 / Model
-- `Group`：`status`（`confirming → disputed → active`）、`disputeDeadline`（申訴提出時間 + 3 天）、`escrowTokens`
-- `Member`：`serviceInfoIssueNote`（申訴原因與補充說明合併存放）、`disputeEvidenceUrl`（選填附件 URL）
-- `TokenTransaction`：裁定結果依 `winner` 寫入 `refund`（成員獲勝）或 `release`（團主獲勝）
+| 路徑 | 說明 |
+|------|------|
+| `src/features/my-groups/member/components/MemberGroupView.jsx` | 申訴表單（`activePanel === 'dispute'`）、`handleDisputeSubmit`、`handleEvidenceSelect` |
+| `src/shared/api/storageApi.js` | `uploadDisputeEvidence`，附件上傳 |
+| `src/shared/stores/useGroupStore.js` | `disputeGroup`、`adjudicateGroup` |
+| `src/shared/api/groupsApi.js` | `disputeGroupApi`、`adjudicateGroupApi` |
+| `src/features/account/components/tabs/AdminTab.jsx` | 申訴裁定表單：選擇群組、裁定結果、裁定說明 |
+
+**後端**
+
+| 路徑 | 說明 |
+|------|------|
+| `server/src/routes/groups.js` | `POST /groups/:id/dispute`（成員送出申訴）、`POST /groups/:id/adjudicate`（管理員裁定，`requireAdmin` 保護） |
+| `server/src/middleware/auth.js` | `requireAdmin` |
+| `server/src/utils/pricing.js` | `computeSeatCost` |
+
+**資料表 / Model**
+
+| Model | 用途 |
+|-------|------|
+| `Group` | `status`（`confirming → disputed → active`）、`disputeDeadline`（申訴提出時間 + 3 天）、`escrowTokens` |
+| `Member` | `serviceInfoIssueNote`（申訴原因與補充說明合併存放）、`disputeEvidenceUrl`（選填附件 URL） |
+| `TokenTransaction` | 裁定結果依 `winner` 寫入 `refund`（成員獲勝）或 `release`（團主獲勝） |
 
 ## 使用技術
-- Prisma `$transaction`（陣列形式）：送出申訴與裁定都把群組狀態變更跟 `Member` 欄位更新（或代管金額異動）包在同一交易
-- 前端把多選 checkbox 跟自由文字合併：`DISPUTE_REASON_OPTIONS` 可複選，跟補充說明用 `\n` 串接寫進單一 `reason` 字串欄位（`serviceInfoIssueNote` 沒有拆結構化多欄位）
-- 附件上傳跟表單送出分開：`handleEvidenceSelect` 先呼叫 `uploadDisputeEvidence` 拿 URL 存在 state，送出申訴時才一併帶進 `POST /groups/:id/dispute`
-- `NotificationType` 定義了 `dispute_raised`／`escrow_released` 兩個類型，但目前沒有任何地方真的建立這兩種通知——裁定結果不會主動通知申訴成員或團主，管理員自己在 `AdminTab` 看 toast 而已
+- **Prisma `$transaction`（陣列形式）**：不管是送出申訴還是裁定，都把群組狀態變更跟 `Member` 欄位更新（或代管金額異動）包在同一個交易裡
+- **多選項跟自由文字合併存放**：`DISPUTE_REASON_OPTIONS` 可以複選，跟補充說明用換行串接後寫進單一 `reason` 字串欄位——`serviceInfoIssueNote` 本身沒有拆成好幾個結構化欄位
+- **附件上傳跟表單送出是分開兩步**：`handleEvidenceSelect` 先呼叫 `uploadDisputeEvidence` 拿到 URL 存在 state，等真的送出申訴時才一起帶進 `POST /groups/:id/dispute`
+- `NotificationType` 雖然定義了 `dispute_raised`／`escrow_released` 這兩種類型，但目前程式碼裡沒有任何地方真的拿來建立通知——裁定結果不會主動通知申訴成員或團主，管理員只在 `AdminTab` 自己看 toast
 
 ## 流程步驟
-1. 群組進入 `confirming`（服務已啟用，48 小時確認期）後，成員在 `MemberGroupView` 看到「確認服務」與「回報問題」兩個按鈕（`canConfirm`）
-2. 點擊「回報問題」→ `setActivePanel('dispute')`，重置 `disputeReasons`/`disputeDetail`/`evidenceUrl`/`evidenceName`
-3. 使用者從 6 個固定選項中複選申訴原因（服務帳號未提供或有誤／服務尚未啟用／服務品質與描述不符／團主已讀不回無法聯繫／帳號被團主收回或更改密碼／其他），可選填補充說明文字
-4. 選填上傳附件（截圖佐證）：`handleEvidenceSelect` 呼叫 `uploadDisputeEvidence(file)` 上傳並取得 URL，上傳中禁用送出按鈕（`evidenceUploading`）
-5. 送出申訴：`handleDisputeSubmit` 組合 `reason = [複選原因.join('、'), 補充說明].filter(Boolean).join('\n')` → `disputeGroup(group.id, { reason, evidenceUrl })` → `POST /groups/:id/dispute`
-6. 後端驗證請求人為該群組成員且群組確實處於 `confirming`，通過後於同一 `$transaction` 內：群組 `status → disputed`、`disputeDeadline = now + 3 天`；該成員的 `Member` 記錄寫入 `serviceInfoIssueNote`（申訴原因）與 `disputeEvidenceUrl`（若有上傳）
-7. 前端收到成功回應後關閉表單、toast「申訴已送出，客服將在 3 天內裁定」、關閉整個群組 Modal；此時代管金額（`escrowTokens`）在資料庫層仍原封不動，僅群組狀態鎖在 `disputed`，等同凍結（`confirm`/`activate` 等其餘 route 皆要求特定前置狀態，`disputed` 狀態下無法再被觸發）
-8. 管理員於 `AdminTab` 看到所有 `status === 'disputed'` 的群組，選擇群組、裁定結果（「團主獲勝（撥款）」或「成員獲勝（退款）」）與裁定說明後送出 → `adjudicateGroup(groupId, { winner, reason })` → `POST /groups/:id/adjudicate`
-9. 後端先找出「有 `serviceInfoIssueNote` 的成員」作為申訴人（`group.members.find(m => m.serviceInfoIssueNote)`），若找不到回 400
-10. `winner === 'member'`：`$transaction` 內群組 `status → active`、`disputeDeadline → null`、`escrowTokens` 遞減該成員的 `seatCost`；該成員 `tokenBalance` 遞增同額退款、寫入 `TokenTransaction { type: 'refund' }`；刪除該 `Member` 記錄、其 `Subscription.status → cancelled`（其餘成員的代管與訂閱不受影響）
-11. `winner === 'host'`：`$transaction` 內群組 `status → active`、`disputeDeadline → null`、`escrowTokens → 0`；團主 `tokenBalance` 遞增全額 `escrowTokens`、寫入 `TokenTransaction { type: 'release' }`；全體成員 `Subscription.status → active`
-12. 前端 `adjudicateGroup` 收到結果後不直接套用回傳值，而是重新 `init({ all: true })` 群組 store 並重新 `init()` member/subscription store，確保裁定連動的多筆資料變更（成員名單、代管餘額、訂閱狀態）都取得資料庫最新真實狀態
+
+**1. 進入確認期，看到申訴入口**
+- 群組進入 `confirming`（服務已啟用，48 小時確認期）後，成員在 `MemberGroupView` 會看到「確認服務」跟「回報問題」兩個按鈕
+
+**2. 填寫申訴表單**
+- 點擊「回報問題」開啟申訴表單，可以從 6 個固定選項複選申訴原因（服務帳號未提供或有誤／服務尚未啟用／服務品質與描述不符／團主已讀不回無法聯繫／帳號被團主收回或更改密碼／其他），也能填補充說明
+- 選填上傳附件截圖佐證：`handleEvidenceSelect` 呼叫 `uploadDisputeEvidence(file)` 上傳並拿到 URL，上傳中會先禁用送出按鈕
+
+**3. 送出申訴**
+- `handleDisputeSubmit` 把複選原因跟補充說明合併成單一 `reason` 字串，呼叫 `disputeGroup(group.id, { reason, evidenceUrl })` → `POST /groups/:id/dispute`
+- 後端驗證請求人確實是該群組成員、且群組正處於 `confirming`，通過後在同一 `$transaction` 內：群組 `status → disputed`、`disputeDeadline = now + 3 天`，並把申訴原因與附件寫進該成員的 `Member` 記錄
+- 前端收到成功回應後關閉表單、彈出「申訴已送出，客服將在 3 天內裁定」，並關閉整個群組 Modal
+- 此時代管金額（`escrowTokens`）在資料庫層還原封不動，只是群組狀態鎖在 `disputed`，等於凍結——其他 route（`confirm`/`activate` 等）都要求特定的前置狀態，`disputed` 狀態下沒辦法再被觸發
+
+**4. 平台裁定**
+- 管理員在 `AdminTab` 看到所有 `status === 'disputed'` 的群組，選擇群組、裁定結果（團主獲勝／成員獲勝）與裁定說明後送出 → `POST /groups/:id/adjudicate`
+- 後端先找出「有 `serviceInfoIssueNote` 的成員」當作申訴人，找不到就回 400
+- **成員獲勝**：`$transaction` 內群組 `status → active`、`disputeDeadline → null`，把該成員的席位費用從 `escrowTokens` 扣掉並退款給他、寫入 `TokenTransaction { type: 'refund' }`，接著刪掉這個 `Member` 記錄、把他的 `Subscription` 設成 `cancelled`（其餘成員的代管跟訂閱完全不受影響）
+- **團主獲勝**：`$transaction` 內群組 `status → active`、`disputeDeadline → null`、`escrowTokens` 全額撥給團主並歸零、全體成員 `Subscription` 設成 `active`
+
+**5. 裁定結果同步**
+- 前端拿到 `adjudicateGroup` 的結果後不直接套用回傳值，而是整包重新 `init({ all: true })` 群組 store，並重新 `init()` 成員/訂閱 store，確保裁定牽動的多張表（成員名單、代管餘額、訂閱狀態）都拿到資料庫最新的真實狀態
 
 ## 驗證重點
-- `POST /groups/:id/dispute` 要求群組處於 `confirming`（否則 400）、請求人是該群組 `Member`（否則 403）
-- `POST /groups/:id/adjudicate` 用 `requireAdmin` 保護，只有管理員能呼叫；群組必須 `disputed`、`winner` 只能是 `member`/`host`、`reason` 不可空
-- 裁定成員獲勝時只有申訴成員被移出並退款，其餘成員的 `Member`/`Subscription`/代管餘額完全不受影響，裁定範圍精準限定在單一成員
-- 裁定沒有樂觀本地更新，前端裁定完成後整包重新 `init`，因為牽動多張表且分支多，直接信任資料庫回傳比較不容易跟後端 transaction 邏輯兜不起來
-- 裁定結果目前沒有建立任何 `Notification`（`dispute_raised`/`escrow_released` 定義了但沒用到），申訴成員與團主要自己重新整理頁面才會看到狀態變回 `active`
+- `POST /groups/:id/dispute` 要求群組是 `confirming`（否則 400）、請求人是該群組的 `Member`（否則 403）
+- `POST /groups/:id/adjudicate` 用 `requireAdmin` 保護，只有管理員能呼叫；群組必須是 `disputed`、`winner` 只能填 `member`/`host`、`reason` 不能是空的
+- 裁定成員獲勝時，只有申訴的那位成員會被移出並退款，其餘成員的代管、訂閱完全不受影響，裁定範圍精準限定在單一成員身上
+- 裁定沒有做樂觀更新：因為牽動多張表、分支也多，前端裁定完成後選擇整包重新 `init`，直接信任資料庫回傳的結果，比自己去兜前端邏輯更不容易出錯
+- 裁定結果目前不會建立任何通知，申訴成員跟團主得自己重新整理頁面，才會看到群組狀態變回 `active`

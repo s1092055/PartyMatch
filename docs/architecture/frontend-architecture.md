@@ -106,7 +106,7 @@ update: async (id, patch) => { ... }    // PATCH /api/xxx/:id
 - Request interceptor 自動帶入 `Authorization: Bearer <token>`
 - Response interceptor：成功時只回傳 `res.data`；401 且無 token 時靜默拒絕（未登入呼叫受保護端點的預期行為）；401 且有 token 且尚未 retry 時，嘗試以 `pm_refresh_token` 呼叫 `/auth/refresh` 換發新 token 後重放原請求（多個請求同時 401 時以 `_isRefreshing`/`_refreshQueue` 排隊，避免重複 refresh）；refresh 失敗則清除 token 並 `window.location.replace('/login')`
 
-詳細 token 生命週期見 [認證機制文件](./auth-flow.md)。
+詳細 token 生命週期見 [認證機制文件](./authentication.md)。
 
 ---
 
@@ -125,12 +125,60 @@ update: async (id, patch) => { ... }    // PATCH /api/xxx/:id
 路由定義於 `src/app/router.jsx`，分三大類：
 
 ### 1. 公開路由（無需登入）
-`/`（首頁）、`/explore`、`/groups/:groupId`（重導至探索頁並開啟 Modal）、`/disclaimer`、`/terms`、`/privacy`，以及以 `PublicOnlyRoute` 包裹、已登入會被導回 `/` 的 `/login`、`/register`、`/forgot-password`。
 
-### 2. 需登入路由（`AppLayout` 子路由）
-`/my-groups`、`/my-subscriptions`（redirect）、`/manage-groups`（redirect）、`/favorites`、`/account`，皆巢狀於 `AppLayout`（含 sidebar/dock）內，並由 `ProtectedRoute` 包裹。`ProtectedRoute` 未登入時不直接導頁，而是疊一層「需要登入才能繼續」的確認 Modal（`src/app/ProtectedRoute.jsx`），使用者可選擇取消（留在原頁但視為未通過）或前往 `/login?redirectTo=...`。
-
-### 3. 獨立於 `AppLayout` 之外的全螢幕步驟流程頁
-`/create-group`（建立群組，由頂層 `ProtectedRoute` 包裹）與 `/quick-match`（快速搜尋，公開路由，僅在配對結果頁點擊申請加入群組時才會被導向登入頁）。這兩者共用 `shared/layout/FlowLayout.jsx` 作為版面殼（無 sidebar/dock，翻書式步驟切換），而非 `AppLayout`。
+| 路徑 | 頁面 |
+|------|------|
+| `/` | 首頁 |
+| `/explore` | 探索群組 |
+| `/groups/:groupId` | 重導至探索頁並開啟群組詳情 Modal |
+| `/login`、`/register`、`/forgot-password` | 登入／註冊／忘記密碼，由 `PublicOnlyRoute` 包裹 |
+| `/disclaimer`、`/terms`、`/privacy` | 法務頁 |
 
 `PublicOnlyRoute`（`src/app/PublicOnlyRoute.jsx`）邏輯簡單：已登入直接 `<Navigate to="/" replace />`，否則渲染子路由。
+
+### 2. 需登入路由（`AppLayout` 子路由，含 sidebar/dock）
+
+| 路徑 | 頁面 |
+|------|------|
+| `/my-groups` | 我的群組（`?view=member` 成員訂閱、`?view=host` 團主管理） |
+| `/my-subscriptions`、`/manage-groups` | 分別 redirect 到 `/my-groups?view=member`、`?view=host` |
+| `/favorites` | 我的收藏 |
+| `/account` | 帳號中心 |
+
+皆巢狀於 `AppLayout` 內，並由 `ProtectedRoute` 包裹。`ProtectedRoute`（`src/app/ProtectedRoute.jsx`）未登入時不直接導頁，而是疊一層「需要登入才能繼續」的確認 Modal，使用者可選擇取消（留在原頁但視為未通過）或前往 `/login?redirectTo=...`。
+
+### 3. 獨立於 `AppLayout` 之外的全螢幕步驟流程頁
+
+| 路徑 | 頁面 |
+|------|------|
+| `/create-group` | 建立群組（4 步驟，由頂層 `ProtectedRoute` 包裹） |
+| `/quick-match` | 快速搜尋（3 步驟，公開路由，僅在配對結果頁點擊申請加入群組時才會被導向登入頁） |
+
+這兩者共用 `shared/layout/FlowLayout.jsx` 作為版面殼（無 sidebar/dock，翻書式步驟切換），而非 `AppLayout`。
+
+---
+
+## 導覽列設計（`AppNav`）
+
+`shared/layout/AppNav.jsx` 依裝置寬度切換成兩套完全不同的 UI（拆成獨立元件，不是同一份 markup 用 CSS 調整外觀）：
+
+- **桌機版**（`DesktopSidebar.jsx`）：左側浮動 sidebar，預設收合為 icon bar，hover/focus-within 展開顯示文字標籤；右上角固定通知按鈕與 PM幣餘額顯示；sidebar 底部是使用者頭像按鈕（點擊直接導向 `/account`），信用分數以按鈕形式疊在頭像右側。
+- **手機版**：頂部 `MobileHeader.jsx`（Logo + 通知 + 頭像／登入按鈕，點頭像展開 dropdown）+ 底部 `MobileDock.jsx`（快速搜尋、建立群組、探索置中圓形按鈕、我的 dropdown、訊息），往下捲動時 Dock 會滑出隱藏、往上捲或接近頁面頂端時顯示。
+
+未登入時，需要登入才能用的項目會顯示鎖頭圖示，點擊觸發 `preventLockedAction`（提示前往登入，不直接導頁）。
+
+---
+
+## 大型元件的拆分方式
+
+幾個核心 orchestrator 元件（管 state/effects/handler）把 UI 拆給子元件或 panel builder，子元件多以明確參數傳入取代閉包依賴：
+
+| Orchestrator | 拆分方式 |
+|---------|---------|
+| `shared/layout/AppNav.jsx` | 桌機 sidebar / 手機 header / 手機 dock 各自獨立元件 |
+| `features/my-groups/host/HostPage.jsx` | 抽出 `hooks/useHostActions.js` 自訂 hook |
+| `features/my-groups/host/components/HostGroupView.jsx` | 4 個 panel builder（成員/申請/審核紀錄/收款） |
+| `features/messages/components/ChatWindow.jsx` | 抽出 `useParticipantNames`/`useMessageScroll` hook + `MessageBubble`/`ChatMembersPanel` 元件 |
+| `features/group/GroupDetailModal.jsx` | 抽出 `ApplyModal`/`HostReviews` 元件與 panel builder |
+
+判斷該不該拆不是看行數，是看有沒有清楚的職責邊界；拆完要避免 props drilling，狀態留在 orchestrator，子元件盡量做成 presentational。更完整的討論見 [專案亮點](../portfolio/project-highlights.md)。

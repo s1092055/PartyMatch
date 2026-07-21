@@ -22,44 +22,67 @@ flowchart TD
 - 導覽列／首頁進入 `/explore`（`ExplorePage`）
 - 快速搜尋結果頁（`Step4Results`）的「探索所有群組」按鈕也會導向 `/explore`
 
-## 前端檔案
-- `src/features/explore/ExplorePage.jsx`
-- `src/features/explore/components/FilterBar.jsx`
-- `src/features/explore/components/ExploreGroupCard.jsx`
-- `src/shared/utils/searchUtils.js`（`applyFilters`）
-- `src/shared/utils/serviceUtils.js`（`listServiceTypes`、`getServiceById`）
-- `src/shared/stores/useGroupStore.js`、`useApplicationStore.js`、`useMemberStore.js`（讀取用）
+## 相關檔案
 
-## 後端檔案
-- `server/src/routes/groups.js`（`GET /groups`，App 啟動時由 `useGroupStore.init()` 呼叫一次，探索頁本身不另外打 API）
+**前端**
 
-## 資料表 / Model
-- `Group`（含 `service` 關聯）
-- `Application`（用來判斷「已申請」badge）
-- `Member`（用來判斷「已加入」badge）
+| 路徑 | 說明 |
+|------|------|
+| `src/features/explore/ExplorePage.jsx` | 頁面入口 |
+| `src/features/explore/components/FilterBar.jsx` | 篩選列 |
+| `src/features/explore/components/ExploreGroupCard.jsx` | 群組卡片 |
+| `src/shared/utils/searchUtils.js` | `applyFilters` |
+| `src/shared/utils/serviceUtils.js` | `listServiceTypes`、`getServiceById` |
+| `src/shared/stores/useGroupStore.js`、`useApplicationStore.js`、`useMemberStore.js` | 純讀取用 |
+
+**後端**
+
+| 路徑 | 說明 |
+|------|------|
+| `server/src/routes/groups.js` | `GET /groups`，App 啟動時由 `useGroupStore.init()` 呼叫一次，探索頁本身不會再另外打 API |
+
+**資料表 / Model**
+
+| Model | 用途 |
+|-------|------|
+| `Group` | 含 `service` 關聯 |
+| `Application` | 用來判斷「已申請」badge |
+| `Member` | 用來判斷「已加入」badge |
 
 ## 使用技術
-- 篩選條件存在 `ExplorePage` 的本地 `useState`（`DEFAULT_FILTERS`），不寫入 URL 也不放 store，重新整理頁面條件一律重置為預設值
-- 關鍵字輸入用本地 state + 300ms debounce（`FilterBar` 的 `useEffect` + `setTimeout`），避免每個按鍵都觸發一次上層更新
-- 篩選/排序全在前端對 `useGroupStore` 已快取的群組陣列做 `Array.filter`/`Array.sort`（`applyFilters`），不會另外打搜尋 API
-- `useMemo` 快取 `allGroups`（排除自己開的團）、`filtered`、已申請／已加入的 `Set`，避免每次 render 都重掃整個列表
+- **篩選條件不進 URL、也不放 store**：全部存在 `ExplorePage` 的本地 `useState`（`DEFAULT_FILTERS`），重新整理頁面就會回到預設值
+- **關鍵字輸入用本地 state + 300ms debounce**：`FilterBar` 內用 `useEffect` + `setTimeout`，避免每敲一個字就觸發一次上層更新
+- **篩選/排序全部是前端純運算**：對 `useGroupStore` 已經快取好的群組陣列做 `Array.filter`/`Array.sort`（`applyFilters`），不會另外打搜尋 API
+- 用 `useMemo` 快取 `allGroups`（排除自己開的團）、`filtered`，以及已申請／已加入的 `Set`，避免每次 render 都重新掃一次整個列表
 
 ## 流程步驟
-1. `App.jsx` 於公開資料初始化階段呼叫 `useGroupStore.init({ status: 'recruiting' })`（未登入）或 `{ status: 'all' }`（已登入），取得群組快取，`ExplorePage` 之後都是純前端運算，不再打 API
-2. 進入 `/explore` 時 `filters` 初始化為 `DEFAULT_FILTERS`（`category`/`service`/`maxPrice`/`sortBy`/`q` 分別為 `all`/`all`/`any`/`recommended`/`''`）
-3. `allGroups = groups.filter(g => g.hostId !== activeUserId)`：排除自己身為團主的群組
-4. 使用者操作 `FilterBar`（分類 pill、服務下拉、價格下拉、排序下拉、關鍵字輸入）時呼叫 `onChange(patch)` → `ExplorePage.handleFilterChange`，合併進目前 `filters` 的本地 state（不觸發路由變化）
-5. `filtered = applyFilters(allGroups, filters)`（`useMemo`）依序套用：
-   - 基礎條件：`status === 'recruiting' && openSeats > 0`
-   - 分類：`category !== 'all' && service === 'all'` 時比對 `getServiceById(serviceId).category`
-   - 服務：`service !== 'all'` 時精確比對 `serviceId`
-   - 價格：`maxPrice !== 'any'` 時 `pricePerSeat <= Number(maxPrice)`
-   - 關鍵字：`q` trim 後轉小寫，比對服務名稱或方案名稱是否包含關鍵字（`includes`，非全文檢索）
-   - 排序：`rating`（依 `hostRating` 降冪）、`price_asc`（`pricePerSeat` 升冪）、`seats`（`openSeats` 升冪）、預設 `recommended` 同 `rating`
-6. 計算 `appliedGroupIds`（該使用者 `status === 'pending'` 的申請對應群組）與 `memberGroupIds`（已是成員的群組），傳入 `ExploreGroupCard` 決定卡片上顯示「已申請」／「已加入」badge
-7. 點擊卡片會觸發開啟 `GroupDetailModal`（透過 `pm:open-group` custom event，非路由跳轉），後續申請流程見 `apply-join-flow.md`
+
+**1. 初次載入群組快取**
+- `App.jsx` 在公開資料初始化階段就會呼叫 `useGroupStore.init(...)`（未登入拿 `recruiting`，登入後拿 `all`）
+- 之後 `ExplorePage` 都是對這份快取做純前端運算，不會再打 API
+
+**2. 進入探索頁**
+- `filters` 初始化為 `DEFAULT_FILTERS`（分類/服務/價格上限/排序/關鍵字分別是不限/不限/不限/推薦排序/空字串）
+- `allGroups` 會先排除自己身為團主開的群組
+
+**3. 操作篩選列**
+- 使用者調整分類 pill、服務下拉、價格下拉、排序下拉或輸入關鍵字時，都會呼叫 `onChange(patch)` 合併進本地的 `filters` state（不會觸發路由變化）
+
+**4. 套用篩選**
+- `applyFilters(allGroups, filters)` 依序套用：
+  - 基礎條件：狀態要是 `recruiting` 而且還有名額
+  - 分類／服務：分別比對 `getServiceById(serviceId).category` 或精確比對 `serviceId`
+  - 價格：`pricePerSeat` 要小於等於設定的上限
+  - 關鍵字：trim 後轉小寫，用 `includes` 比對服務或方案名稱是否包含（不是模糊比對，也不是全文檢索）
+  - 排序：依團主評分、每人價格由低到高、或剩餘名額由少到多排序，預設是推薦排序
+
+**5. 標記狀態**
+- 算出使用者自己「申請中」與「已加入」的群組 id 集合，傳給卡片元件決定要不要顯示對應標籤
+
+**6. 點擊卡片**
+- 觸發 `pm:open-group` custom event 開啟 `GroupDetailModal`（不是路由跳轉），後續申請流程見 `apply-join-flow.md`
 
 ## 驗證重點
-- 探索頁本身沒有寫入操作，也沒有表單驗證；篩選邏輯純前端運算，寫死在 `applyFilters`（`src/shared/utils/searchUtils.js`），沒特別防呆（例如 `maxPrice` 傳非數字字串時 `Number(maxPrice)` 是 `NaN`，比較恆 `false`，group 會被濾掉）
-- 只顯示 `status === 'recruiting'` 且 `openSeats > 0` 的群組，額滿或非招募中的不會出現（即使已登入時 store 快取了所有狀態的群組）
-- 關鍵字比對只用 `String.includes`，不是模糊比對也不是全文檢索；後端 `GET /groups` 的 `q`（`contains`）只在初次載入 store 時用得到，探索頁互動不會重新打 API
+- 探索頁本身沒有寫入操作，也沒有表單驗證；篩選邏輯就是前端純運算，寫死在 `applyFilters`，沒有特別防呆——像是價格欄位傳進非數字字串時，比較結果恆為 false，那個群組就會直接被濾掉
+- 只顯示狀態是 `recruiting` 而且還有名額的群組，額滿或非招募中的都不會出現，即使已登入時 store 其實快取了所有狀態的群組
+- 關鍵字比對只用簡單的字串包含判斷，不是模糊比對也不是全文檢索；後端 `GET /groups` 的關鍵字搜尋只在初次載入快取時用得到，探索頁互動不會重新打 API

@@ -70,7 +70,7 @@ Schema 定義於 `server/prisma/schema.prisma`，`datasource` 為 MySQL 8，所�
 
 ## JWT 認證機制（概述）
 
-accessToken + refreshToken 雙 token 設計，refreshToken 存於 Redis（key 格式 `refresh:{userId}:{sessionId}`），支援同一帳號多裝置各自維護獨立 session。詳細流程（登入/註冊/refresh/登出、`sessionId` 設計、前端 `axiosClient` 的自動 retry）見 [認證機制](./auth-flow.md)。
+accessToken + refreshToken 雙 token 設計，refreshToken 存於 Redis（key 格式 `refresh:{userId}:{sessionId}`），支援同一帳號多裝置各自維護獨立 session。詳細流程（登入/註冊/refresh/登出、`sessionId` 設計、前端 `axiosClient` 的自動 retry）見 [認證機制](./authentication.md)。
 
 ---
 
