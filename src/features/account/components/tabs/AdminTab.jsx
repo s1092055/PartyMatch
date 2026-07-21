@@ -1,7 +1,11 @@
 import { useState } from 'react'
-import { ShieldAlert } from 'lucide-react'
+import { ShieldAlert, Clock } from 'lucide-react'
 import { useGroupStore } from '../../../../shared/stores/useGroupStore'
 import { toast } from '../../../../shared/utils/toast'
+
+function isOverdue(group) {
+  return !!group.disputeDeadline && new Date(group.disputeDeadline) <= new Date()
+}
 
 export default function AdminTab() {
   const [groupId, setGroupId]   = useState('')
@@ -11,7 +15,11 @@ export default function AdminTab() {
 
   const adjudicateGroup = useGroupStore(s => s.adjudicateGroup)
   const allGroups = useGroupStore(s => s.groups)
-  const groups = allGroups.filter(g => g.status === 'disputed')
+  // 已逾期（超過 disputeDeadline 仍未裁定）排在最前面，提醒優先處理
+  const groups = allGroups
+    .filter(g => g.status === 'disputed')
+    .sort((a, b) => Number(isOverdue(b)) - Number(isOverdue(a)))
+  const overdueCount = groups.filter(isOverdue).length
 
   async function handleAdjudicate(e) {
     e.preventDefault()
@@ -41,6 +49,13 @@ export default function AdminTab() {
           <p className="text-sm text-ink-4 py-4 text-center">目前沒有待裁定的申訴群組</p>
         ) : (
           <form onSubmit={handleAdjudicate} className="space-y-3">
+            {overdueCount > 0 && (
+              <div className="flex items-center gap-2 rounded-lg bg-danger/10 px-3 py-2 text-xs font-semibold text-danger">
+                <Clock size={14} strokeWidth={1.5} />
+                <span>{overdueCount} 筆申訴已超過 3 天裁定期限，代管金額仍凍結中，請優先處理</span>
+              </div>
+            )}
+
             <div>
               <label className="text-xs font-semibold text-ink-3 mb-1 block">選擇申訴群組</label>
               <select
@@ -52,7 +67,7 @@ export default function AdminTab() {
                 <option value="">-- 選擇群組 --</option>
                 {groups.map(g => (
                   <option key={g.id} value={g.id}>
-                    {g.serviceName} / {g.planName} ({g.id.slice(-6)})
+                    {isOverdue(g) ? '⚠ 已逾期／' : ''}{g.serviceName} / {g.planName} ({g.id.slice(-6)})
                   </option>
                 ))}
               </select>
