@@ -91,6 +91,7 @@ npm run dev              # http://localhost:3001
 - [頁面地圖](docs/product/page-map.md) — 每個網址對應到哪個畫面
 - [功能地圖](docs/product/feature-map.md) — 目前做了哪些功能的完整清單
 - [服務定價查核紀錄](docs/product/service-pricing-audit.md) — 平台內 28 種訂閱服務的價格怎麼查到的、哪些還沒驗證過
+- [各服務填寫帳號資訊需求調查](docs/product/service-info-requirements.md) — 28 種服務真實的共享機制分類（Apple/Google 家庭群組、email 邀請、邀請碼、共用帳密），現有表單只收 email 的落差在哪
 
 ### Flows — 各個功能實際怎麼運作
 
