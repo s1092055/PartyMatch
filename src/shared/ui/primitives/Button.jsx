@@ -1,11 +1,11 @@
 const BASE = 'inline-flex items-center justify-center gap-2 font-bold rounded-inner cursor-pointer transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed'
 
 const VARIANTS = {
-  primary:   'bg-brand text-white hover:bg-brand-hover focus:ring-brand shadow-button hover:shadow-card-hover',
+  primary:   'bg-brand text-white hover:bg-brand-hover focus:ring-brand',
   secondary: 'border border-brand-border bg-surface text-brand hover:bg-brand-subtle focus:ring-brand',
   ghost:     'text-ink-2 hover:bg-raised focus:ring-line',
   danger:    'bg-danger text-white hover:bg-danger-text focus:ring-danger',
-  success:   'bg-success text-white hover:bg-success-text focus:ring-success shadow-success',
+  success:   'bg-success text-white hover:bg-success-text focus:ring-success',
   ink:       'bg-ink text-white hover:bg-ink-2 focus:ring-ink',
 }
 
