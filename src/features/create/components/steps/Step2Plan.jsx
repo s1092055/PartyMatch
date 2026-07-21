@@ -48,8 +48,10 @@ export default function Step2Plan({ form, onChange }) {
             高度隨內容自然增減、不再內部捲動）一樣高；左欄方案卡用 flex-1 吃滿撐高後多出來
             的空間，捲動箭頭自然被推到欄位最底部，不用另外用 mt-auto 對齊 */}
         <div className="md:flex md:gap-6">
-          {/* 左：單張方案卡（flex-1 撐滿高度）+ 底部切換箭頭 */}
-          <div className="flex min-w-0 flex-1 flex-col gap-3">
+          {/* 左：單張方案卡（flex-1 撐滿高度）+ 底部切換箭頭；
+              頂部加 pt-3.5 跟右側方案內容的 p-3.5 內距對齊，讓卡片邊框頂部
+              對齊到方案內容第一行文字的高度，而不是直接對齊到整個欄位最頂端 */}
+          <div className="flex min-w-0 flex-1 flex-col gap-3 pt-3.5">
             {currentPlan ? (
               <button
                 type="button"
