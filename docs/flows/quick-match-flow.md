@@ -1,7 +1,7 @@
 # 快速搜尋（Quick Match）
 
 ## 使用者目標
-不用先瀏覽整個探索頁，透過「選擇服務 → 設定方案與篩選條件 → 查看配對結果」三個步驟，快速找到符合條件、依推薦分數排序的群組，不用登入也能用。
+不用先瀏覽整個探索頁，透過「選擇服務 → 設定方案與篩選條件 → 查看搜尋結果」三個步驟，快速找到符合條件、依推薦分數排序的群組，不用登入也能用。
 
 ## 流程圖
 
@@ -12,7 +12,7 @@ flowchart TD
     C --> D[過濾 useGroupStore 快取群組\n排除自己開的團]
     D --> E[matchGroups：狀態/服務/方案/價格/評分/年齡]
     E --> F[calcScore 計算推薦分數並降冪排序]
-    F --> G[步驟三：配對結果\n前 3 名金/銀/銅徽章]
+    F --> G[步驟三：搜尋結果\n前 3 名金/銀/銅徽章]
     G -->|調整條件| B
     G -->|重新查找| A
     G -->|點擊卡片申請| H[開啟 GroupDetailModal\n未登入則導向登入頁]
@@ -20,7 +20,7 @@ flowchart TD
 
 ## 入口
 - 首頁／導覽列的「快速搜尋」入口，會導向 `/quick-match`
-- `/quick-match` 是獨立於 `AppLayout` 之外的全螢幕步驟流程頁面（沒有 sidebar/dock），不用登入就能使用；只有在配對結果點擊「申請加入」時才會被導向登入頁
+- `/quick-match` 是獨立於 `AppLayout` 之外的全螢幕步驟流程頁面（沒有 sidebar/dock），不用登入就能使用；只有在搜尋結果點擊「申請加入」時才會被導向登入頁
 
 ## 相關檔案
 
@@ -34,9 +34,10 @@ flowchart TD
 | `src/features/match/components/steps/Step2PlansAndFilters.jsx` | 步驟二外殼，內含方案與篩選兩個錨點區塊 |
 | `src/features/match/components/steps/Step2Plans.jsx` | 步驟二：選擇方案 |
 | `src/features/match/components/steps/Step3Filters.jsx` | 步驟二：篩選條件（每人費用上限、團主評分下限、群組年齡） |
-| `src/features/match/components/steps/Step4Results.jsx` | 步驟三：配對結果列表，前 3 名加金/銀/銅名次徽章 |
+| `src/features/match/components/steps/Step4Results.jsx` | 步驟三：搜尋結果列表，前 3 名加金/銀/銅名次徽章 |
 | `src/features/match/components/MatchConditionBar.jsx`、`MatchSummaryPanel.jsx` | 條件摘要顯示 |
 | `src/features/explore/components/ExploreGroupCard.jsx` | 結果列表沿用探索頁的群組卡片 |
+| `src/features/group/GroupDetailModal.jsx` | 群組詳情 Modal；`GroupDetailModal` 平常只在 `AppLayout` 裡掛載一次，`/quick-match` 在 `AppLayout` 之外，`QuickMatchPage.jsx` 額外自己掛了一份（`lazy` + `Suspense`），否則卡片點擊時 `pm:open-group` 事件沒有監聽者、Modal 開不起來 |
 
 **後端**
 
@@ -72,15 +73,17 @@ flowchart TD
 - 配對邏輯依序過濾：狀態要是招募中而且還有名額、服務要符合已選清單（若有指定）、方案要符合已選（若非不限）、每人單價要在上限內、團主評分要達到下限、群組年齡要落在設定區間內
 - 通過篩選的群組各自計算推薦分數：團主評分越高分數越高、剩餘名額越多加分、離下次扣款日越久加分、單價明顯低於使用者設定上限也加分；依分數由高到低排序
 
-**4. 查看配對結果**
+**4. 查看搜尋結果**
 - 顯示唯讀的條件摘要與結果網格，前 3 名加上金/銀/銅名次徽章
 - 每張卡片沿用探索頁的卡片樣式，點擊會開啟群組詳情（後續申請流程見 `apply-join-flow.md`），未登入時點申請會先導向登入頁
+- 名次徽章是透過 `ExploreGroupCard` 的 `rank` prop 畫在卡片內部（`<article>` 自己的 `relative` 定位範圍內），不是外層包一層 `absolute` 疊上去——這樣卡片 hover 放大（`card-lift`）時徽章才會跟著卡片一起縮放移動，不會維持原地不動看起來像脫落
+- 卡片容器的 `overflow-y-auto` 捲動區用 `p-2` 而不是 `p-0.5`，讓最左/最右欄的卡片 hover 放大時有足夠留白，不會被容器邊緣裁掉
 
 **5. 調整或重新查找**
 - 「調整條件」回到步驟二；「重新查找」把所有條件跟結果重設，回到步驟一
 
 ## 驗證重點
 - 前端唯一的硬性檢查是步驟一至少要選一個服務，步驟二沒有必填限制，可以直接用預設的篩選值查找
-- 配對結果只會回傳狀態是招募中而且還有名額的群組，額滿或非招募中的都不會出現
+- 搜尋結果只會回傳狀態是招募中而且還有名額的群組，額滿或非招募中的都不會出現
 - 沒有配對到結果時會顯示空狀態並引導去探索頁，不會顯示錯誤訊息
-- 整個運算都是基於前端已經快取的群組資料（可能是頁面載入當下的快照），快速搜尋不會重新打 API 拿最新群組列表，配對結果可能跟資料庫當下的實際狀態有些微落差
+- 整個運算都是基於前端已經快取的群組資料（可能是頁面載入當下的快照），快速搜尋不會重新打 API 拿最新群組列表，搜尋結果可能跟資料庫當下的實際狀態有些微落差

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AlertCircle, ChevronLeft, ChevronRight, Info, RotateCcw, Search } from 'lucide-react'
 import FlowLayout from '../../shared/layout/FlowLayout'
@@ -13,7 +13,11 @@ import { useAuthStore } from '../../shared/stores/useAuthStore'
 import { useScrollEdge } from '../../shared/utils/hooks'
 import { matchGroups } from './utils/matchGroups'
 
-const STEP_TITLES = ['選擇服務', '方案與條件', '配對結果']
+// /quick-match 是獨立於 AppLayout 之外的全螢幕流程頁面，GroupDetailModal 平常只在
+// AppLayout 裡掛載一次；這裡要自己掛一份，搜尋結果卡片點擊才能正常開啟群組詳情
+const GroupDetailModal = lazy(() => import('../group/GroupDetailModal'))
+
+const STEP_TITLES = ['選擇服務', '方案與條件', '搜尋結果']
 
 const DEFAULT_CONDITIONS = {
   services:      [],
@@ -140,6 +144,7 @@ export default function QuickMatchPage() {
   )
 
   return (
+    <>
     <FlowLayout
       steps={STEP_TITLES}
       currentStep={Math.min(step, 3)}
@@ -160,7 +165,7 @@ export default function QuickMatchPage() {
             ref={scrollRef}
             onScroll={handleContentScroll}
             key={step}
-            className="h-full overflow-y-auto p-0.5 pt-6 pb-4 animate-step-slide-up [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="h-full overflow-y-auto p-2 pt-6 pb-4 animate-step-slide-up [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             <Step4Results results={results} conditions={conditions} />
           </div>
@@ -196,5 +201,9 @@ export default function QuickMatchPage() {
         )}
       </div>
     </FlowLayout>
+    <Suspense fallback={null}>
+      <GroupDetailModal />
+    </Suspense>
+    </>
   )
 }

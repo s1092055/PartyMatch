@@ -152,7 +152,7 @@ update: async (id, patch) => { ... }    // PATCH /api/xxx/:id
 | 路徑 | 頁面 |
 |------|------|
 | `/create-group` | 建立群組（4 步驟，由頂層 `ProtectedRoute` 包裹） |
-| `/quick-match` | 快速搜尋（3 步驟，公開路由，僅在配對結果頁點擊申請加入群組時才會被導向登入頁） |
+| `/quick-match` | 快速搜尋（3 步驟，公開路由，僅在搜尋結果頁點擊申請加入群組時才會被導向登入頁） |
 
 這兩者共用 `shared/layout/FlowLayout.jsx` 作為版面殼（無 sidebar/dock，翻書式步驟切換），而非 `AppLayout`。
 

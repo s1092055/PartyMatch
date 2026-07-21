@@ -56,7 +56,13 @@ function buildFeatureChips(group) {
   }))
 }
 
-function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = false, isApplied = false, isMember = false }) {
+const RANK_BADGE_STYLES = [
+  'bg-amber-400 text-white',
+  'bg-slate-300 text-slate-700',
+  'bg-orange-300 text-white',
+]
+
+function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = false, isApplied = false, isMember = false, rank }) {
   const navigate = useNavigate()
   const activeUser = useAuthStore(s => s.user)
   const isFav = useFavoriteStore(s => activeUser ? s.isFavorited(activeUser.id, group.id) : false)
@@ -82,6 +88,12 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
       className="card card-lift relative flex min-h-full cursor-pointer flex-col overflow-hidden rounded-card border-line bg-surface px-6 py-5"
       onClick={openDetails}
     >
+      {rank != null && (
+        <span className={`absolute left-4 top-4 z-10 flex h-6 w-6 items-center justify-center rounded-full text-xs font-extrabold shadow-sm ${RANK_BADGE_STYLES[rank - 1] ?? RANK_BADGE_STYLES[2]}`}>
+          {rank}
+        </span>
+      )}
+
       {!hideActions && (
         <button
           onClick={handleFav}
@@ -192,6 +204,7 @@ export default memo(ExploreGroupCard, (prev, next) =>
   prev.isApplied === next.isApplied &&
   prev.isMember === next.isMember &&
   prev.hideActions === next.hideActions &&
+  prev.rank === next.rank &&
   prev.onFavChange === next.onFavChange &&
   prev.onBeforeNavigate === next.onBeforeNavigate
 )

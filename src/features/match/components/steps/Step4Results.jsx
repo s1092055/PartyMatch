@@ -39,18 +39,12 @@ export default function Step4Results({ results, conditions }) {
       <MatchConditionBar conditions={conditions} showEdit={false} />
       <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {results.map((group, i) => (
-          <div key={group.id} className="relative">
-            {i < 3 && (
-              <span className={`absolute left-3 top-3 z-10 flex h-6 w-6 items-center justify-center rounded-full text-xs font-extrabold shadow-sm ${
-                i === 0 ? 'bg-amber-400 text-white' :
-                i === 1 ? 'bg-slate-300 text-slate-700' :
-                          'bg-orange-300 text-white'
-              }`}>
-                {i + 1}
-              </span>
-            )}
-            <ExploreGroupCard group={group} isMember={memberGroupIds.has(group.id)} />
-          </div>
+          <ExploreGroupCard
+            key={group.id}
+            group={group}
+            isMember={memberGroupIds.has(group.id)}
+            rank={i < 3 ? i + 1 : undefined}
+          />
         ))}
       </div>
     </div>
