@@ -12,6 +12,7 @@ import { sendSystemMessage } from '../../../shared/api/messagesApi'
 import { insertNotification } from '../../../shared/api/notificationsApi'
 import SubscriptionCard from './components/SubscriptionCard'
 import EmptyState from '../../../shared/ui/primitives/EmptyState'
+import Badge from '../../../shared/ui/primitives/Badge'
 import GroupViewModal from '../../../shared/ui/group/GroupViewModal'
 import TokenAmount from '../../../shared/ui/TokenAmount'
 import FilterTabsBar from '../../../shared/ui/FilterTabsBar'
@@ -287,13 +288,11 @@ export default function MemberPage({ embedded = false }) {
 function ApplicationCard({ app, group, onViewGroup }) {
   return (
     <article
-      className="card card-hover group relative flex min-h-full cursor-pointer flex-col overflow-hidden rounded-card border-line bg-surface p-5 shadow-[0_18px_45px_-32px_rgb(20_44_91_/_0.48)]"
+      className="card card-lift relative flex min-h-full cursor-pointer flex-col overflow-hidden rounded-card border-line bg-surface p-5"
       onClick={onViewGroup}
     >
       <div className="flex justify-center">
-        <span className="rounded-full bg-warning-subtle px-3.5 py-1 text-sm font-extrabold text-warning-text">
-          已申請
-        </span>
+        <Badge variant="pending" label="已申請" />
       </div>
 
       <div className="mt-4 flex justify-center">
