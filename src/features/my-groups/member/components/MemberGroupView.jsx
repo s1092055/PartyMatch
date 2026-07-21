@@ -479,7 +479,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
               </GroupModalSideBarItem>
             )}
             {canLeaveGroup && (
-              <GroupModalSideBarItem tone="danger" onClick={() => setLeaveConfirm(true)}>
+              <GroupModalSideBarItem pinned tone="danger" onClick={() => setLeaveConfirm(true)}>
                 <LogOut size={17} /> 退出群組
               </GroupModalSideBarItem>
             )}
