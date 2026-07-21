@@ -73,7 +73,8 @@ flowchart TD
 - `Step2Plan` 只列出 `plan.maxSeats > 1`（可以合購）的方案
 - 第一次進到這個服務會自動選第一個方案
 - 選定方案後同步設定 `totalSeats = plan.maxSeats`、`billingCycle = plan.billingCycle`、`pricePerSeat = calcPricePerSeat(plan, plan.maxSeats)`
-- 版面左欄是「服務說明」＋「填寫服務資訊注意事項」（依服務 `sharingMethod` 讀 `serviceInfoFields.js` 的 `notice` 文案，提醒團主這個服務加入時成員要填什麼、有沒有 Apple/Google 家庭群組異動頻率限制、KKBOX 地址驗證、friDay 邀請碼方向相反等眉角，沒有特別注意事項的服務顯示預設文字）；右欄是「選擇方案」卡片＋方案內容（不再另外顯示「方案說明」標題，內容直接接在選擇方案下方）
+- 版面由上而下單欄排列（桌機/平板/手機皆同）：「服務說明」→「填寫服務資訊注意事項」（依服務 `sharingMethod` 讀 `serviceInfoFields.js` 的 `notice` 文案，提醒團主這個服務加入時成員要填什麼、有沒有 Apple/Google 家庭群組異動頻率限制、KKBOX 地址驗證、friDay 邀請碼方向相反等眉角，沒有特別注意事項的服務顯示預設文字）→「選擇方案」→方案內容（不再另外顯示「方案說明」標題，內容直接接在選擇方案下方）
+- 「選擇方案」的所有方案卡片由左到右排成一列（不再是一次只顯示一張＋切換箭頭），超出可視寬度時才會顯示左右捲動箭頭，沒有 overflow 就不顯示
 
 **3. 群組設定**
 - 「剩餘名額」（`totalSeats - 1`，不含團主自己）：用加減按鈕調整 `totalSeats`，範圍是 `[2, maxSeats]`；每次變動都會重算每人單價（人數越多分攤越便宜）
