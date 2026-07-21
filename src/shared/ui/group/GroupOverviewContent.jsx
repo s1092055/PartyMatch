@@ -93,23 +93,7 @@ export default function GroupOverviewContent({ group, service, plan, reviewsSect
 
   return (
     <div className="divide-y divide-line-subtle">
-      {hideServiceIntro ? (
-        (group.planName || service?.description) && (
-          <div className="pb-5 pt-0">
-            {group.planName && <p className="text-sm font-bold text-ink">{group.planName}</p>}
-            {service?.description && (
-              <p className="mt-1 line-clamp-2 text-sm text-ink-3">{service.description}</p>
-            )}
-          </div>
-        )
-      ) : (
-        <div className="pb-5 pt-0">
-          <p className="mb-4 text-lg font-black text-brand">服務介紹</p>
-          <ServiceIntro service={service} plan={plan} planChips={planChips} />
-        </div>
-      )}
-
-      <div className="space-y-4 py-5">
+      <div className="space-y-4 pb-5 pt-0">
         <p className="text-lg font-black text-brand">群組資訊</p>
         {infoRows.length > 0 && (
           <div className="space-y-2">
@@ -136,6 +120,22 @@ export default function GroupOverviewContent({ group, service, plan, reviewsSect
         <p className="text-lg font-black text-brand">群組規則</p>
         <RulesList allRules={allRules} />
       </div>
+
+      {hideServiceIntro ? (
+        (group.planName || service?.description) && (
+          <div className="py-5">
+            {group.planName && <p className="text-sm font-bold text-ink">{group.planName}</p>}
+            {service?.description && (
+              <p className="mt-1 line-clamp-2 text-sm text-ink-3">{service.description}</p>
+            )}
+          </div>
+        )
+      ) : (
+        <div className="py-5">
+          <p className="mb-4 text-lg font-black text-brand">服務說明</p>
+          <ServiceIntro service={service} plan={plan} planChips={planChips} />
+        </div>
+      )}
 
       {reviewsSection && <div className="py-5">{reviewsSection}</div>}
     </div>
