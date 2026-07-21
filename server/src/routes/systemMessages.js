@@ -23,11 +23,12 @@ router.post('/broadcast', requireAdmin, validate(broadcastSchema), async (req, r
     const senderId = await getSystemUserId()
 
     const users = await prisma.user.findMany({ where: { id: { not: senderId } }, select: { id: true } })
-    let sent = 0
-    for (const user of users) {
-      await sendSystemMessageToUser(user.id, content)
-      sent += 1
-    }
+    // 用 allSettled 平行發送：單一使用者寫入失敗（例如個別聊天室資料異常）不應讓整個廣播中斷、
+    // 導致其他使用者都收不到公告
+    const results = await Promise.allSettled(users.map(user => sendSystemMessageToUser(user.id, content)))
+    const sent = results.filter(r => r.status === 'fulfilled').length
+    const failed = results.length - sent
+    if (failed > 0) console.error(`[system-messages] 廣播部分失敗：${failed}/${results.length}`)
 
     res.status(201).json({ sent })
   } catch (err) { next(err) }

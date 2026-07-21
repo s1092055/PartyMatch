@@ -14,7 +14,6 @@ const addMemberSchema = z.object({
 })
 
 const patchMemberSchema = z.object({
-  subscriptionAccount:  z.string().optional(),
   serviceInfo:          z.any().optional(),
   serviceInfoIssueNote: z.string().nullable().optional(),
 })

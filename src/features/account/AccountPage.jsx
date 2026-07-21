@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bell, ChevronDown, Clock, Coins, Lock, LogOut, Settings, Shield, User } from "lucide-react";
 import { useAuthStore } from "../../shared/stores/useAuthStore";
+import { toast } from "../../shared/utils/toast";
 import ProfileHeaderCard from "./components/ProfileHeaderCard";
 import PersonalInfoTab from "./components/tabs/PersonalInfoTab";
 import TokenTab from "./components/tabs/TokenTab";
@@ -89,8 +90,15 @@ export default function AccountPage() {
   const TABS = isAdmin ? [...BASE_TABS, { value: "admin", label: "管理員", icon: Shield }] : BASE_TABS
 
   function handleUserChange(key, value) {
+    const previousValue = user[key];
     setUser((prev) => ({ ...prev, [key]: value }));
-    useAuthStore.getState().updateProfile({ [key]: value }).catch(console.error);
+    // updateProfile 失敗時回傳 { ok: false }（不會 throw），先前用 .catch 接永遠接不到，
+    // 導致儲存失敗被完全吞掉、畫面仍顯示未儲存成功的樂觀值——改為檢查 result.ok 並復原
+    useAuthStore.getState().updateProfile({ [key]: value }).then((result) => {
+      if (result.ok) return;
+      setUser((prev) => ({ ...prev, [key]: previousValue }));
+      toast(result.error ?? "儲存失敗，請稍後再試", "error");
+    });
   }
 
   return (

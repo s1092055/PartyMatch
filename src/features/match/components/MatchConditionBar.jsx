@@ -30,7 +30,7 @@ export default function MatchConditionBar({ conditions, showEdit = true }) {
       <Divider />
       <Chip label={`NT$${maxPrice} 以下`} />
       <Divider />
-      <Chip label={`評分 ${minRating.toFixed(1)}+`} />
+      <Chip label={`信用分數 ${minRating}+`} />
 
       {showEdit && (
         <button

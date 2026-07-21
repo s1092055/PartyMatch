@@ -63,7 +63,7 @@ npm run db:push          # 建立資料表
 npm run dev              # http://localhost:3001
 ```
 
-複製 `server/.env.example` 並填入設定值（DATABASE_URL、JWT_SECRET 等）。
+複製 `server/.env.example` 並填入設定值（DATABASE_URL、JWT_ACCESS_SECRET 等）。
 
 更完整的環境變數說明與常用指令請見 [開發指南](docs/development.md)。
 
@@ -71,11 +71,7 @@ npm run dev              # http://localhost:3001
 
 ## 技術文件
 
-`docs/` 底下的文件不少，如果不知道從何看起，可以照下面的順序：
-
-### 這些文件怎麼看
-
-建議照順序閱讀：
+### 建議閱讀順序
 
 1. **先懂產品在做什麼** → [產品總覽](docs/product/product-overview.md)，用來解釋這個平台在解決什麼問題、有哪些使用者角色
 2. **再懂整體是怎麼組出來的** → [架構總覽](docs/architecture/architecture.md)，說明前端、後端、資料庫怎麼疊起來，以及為什麼選這些技術

@@ -53,15 +53,15 @@ async function clearPrivateStores() {
     import('./useGroupStore'),
   ])
   useConversationStore.getState().teardown()
-  useNotificationStore.getState?.().teardown?.()
-  useApplicationStore.getState    && useApplicationStore.setState({ applications: [] })
-  useSubscriptionStore.getState   && useSubscriptionStore.setState({ subscriptions: [] })
-  useMemberStore.getState         && useMemberStore.setState({ members: [] })
-  useFavoriteStore.getState       && useFavoriteStore.setState({ favorites: [] })
+  useNotificationStore.getState().teardown()
+  useApplicationStore.setState({ applications: [] })
+  useSubscriptionStore.setState({ subscriptions: [] })
+  useMemberStore.setState({ members: [] })
+  useFavoriteStore.setState({ favorites: [] })
   // 登入時 init({ all: true }) 會帶入所有群組（含非招募中的權限資料），登出不會重新整理頁面，
   // 必須重新 init({ all: false }) 換回訪客可見的招募中群組，避免同分頁下一位訪客／使用者
   // 在 App 重新掛載前，看到前一位使用者的完整群組列表（含他人非公開的群組狀態）
-  useGroupStore.getState && useGroupStore.getState().init({ all: false }).catch(console.error)
+  useGroupStore.getState().init({ all: false }).catch(console.error)
 }
 
 function activeProfile(user) {

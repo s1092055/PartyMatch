@@ -102,6 +102,7 @@ flowchart TD
 - 入口固定在側邊欄右下角（跟「群組訊息」共用同一個位置）
 - 符合條件時可以退出，需要倒數確認
 - 退出時會發送系統訊息並退出聊天室、移除自己的成員與訂閱資料、把對應申請標為已離開、釋出名額，並通知團主
+- 退出邏輯統一寫在 `src/features/group/utils/leaveGroupFlow.js` 的 `finalizeLeaveGroup`，`GroupDetailModal` 跟 `MyGroupsPage`／`MemberPage` 兩個入口都呼叫同一份，避免各自維護一份重複邏輯、行為不一致（曾經修過其中一份漏呼叫 `leaveConversation` 導致退出後仍留在聊天室的 bug，見 [Bug 紀錄](../testing/bug-log.md) BUG-011）
 
 **8. 成員名單／聯絡團主**
 - 可以查看團主與其他成員名單，點擊個別成員的訊息圖示能直接開啟私訊

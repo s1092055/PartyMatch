@@ -7,9 +7,8 @@ import { validate } from '../middleware/validate.js'
 const router = Router()
 
 const updateSubscriptionSchema = z.object({
-  subscriptionAccount: z.string().optional(),
-  status:              z.enum(['pending', 'active', 'ended']).optional(),
-  nextBillingDate:     z.string().optional(),
+  status:          z.enum(['pending', 'active', 'ended']).optional(),
+  nextBillingDate: z.string().optional(),
 })
 
 // 距下次扣款日 7 天內時，為成員發送一次「即將續訂」提醒（以 meta.nextBillingDate 避免同一期重複發送）

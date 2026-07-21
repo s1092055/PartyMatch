@@ -4,10 +4,6 @@ export async function readAllGroups(params = {}) {
   return client.get('/groups', { params })
 }
 
-export async function readGroupById(id) {
-  return client.get(`/groups/${id}`)
-}
-
 export async function insertGroup(data) {
   return client.post('/groups', data)
 }
@@ -42,10 +38,6 @@ export async function adjudicateGroupApi(id, { winner, reason }) {
 
 export async function renewGroupApi(id) {
   return client.post(`/groups/${id}/renew`)
-}
-
-export async function deleteGroup(id) {
-  return client.delete(`/groups/${id}`)
 }
 
 export async function fetchGroupTransactions(id) {

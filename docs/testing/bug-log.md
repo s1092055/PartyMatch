@@ -24,6 +24,46 @@
 
 依發現時間排序，最新在上。下面前 7 筆是跑 `/code-review` 靜態審查時找到（非手動測試流程觸發），標註來源以區別於未來手動測試時記錄的項目；之後手動測試找到的新 bug 補在這幾筆之上即可。
 
+### BUG-012：帳號設定儲存失敗會被完全吞掉，畫面仍顯示樂觀值
+- **功能**：[帳號設定](../flows/user-flows.md)，`AccountPage.jsx` 的 `handleUserChange`
+- **嚴重度**：P1（使用者以為改成功了，實際上沒存到）
+- **來源**：code review（非手動測試觸發）
+- **重現方式**：`useAuthStore.updateProfile()` 呼叫後端失敗時（例如網路問題、驗證錯誤），觀察畫面顯示的欄位值
+- **預期結果**：儲存失敗要復原成修改前的值，並提示使用者儲存失敗
+- **實際結果**：`updateProfile()` 失敗時是回傳 `{ ok: false, error }`、不是 `throw`，但呼叫端寫的是 `.catch(console.error)`，永遠接不到這個分支；畫面上的樂觀值不會復原、也沒有任何提示，使用者會誤以為已經存檔成功
+- **推測原因**：呼叫端誤把「回傳失敗物件」的 API 當成「失敗會 reject 的 Promise」處理
+- **修正狀態**：已修（本次 code review 一併提交）——改成檢查 `result.ok`，失敗時復原欄位值並跳 toast 提示
+
+### BUG-011：透過「我的群組」退出群組不會離開群組聊天室
+- **功能**：[我的群組（成員視角）流程](../flows/my-groups-member-flow.md)
+- **嚴重度**：P1（資料不一致：已退出的成員仍留在聊天室裡）
+- **來源**：code review（非手動測試觸發）
+- **重現方式**：成員在 `MyGroupsPage` 的 `MemberPage`（而非 `GroupDetailModal`）點擊退出群組
+- **預期結果**：退出群組後應該跟透過 `GroupDetailModal` 退出時一樣，一併呼叫 `leaveConversation` 離開聊天室
+- **實際結果**：`MemberPage.jsx` 的 `handleLeaveGroup` 是另外重寫的一份退出邏輯（沒有呼叫 `finalizeLeaveGroup`），漏了 `leaveConversation(convId)`，導致已退出的成員永遠留在該群組聊天室的參與者名單裡
+- **推測原因**：兩個入口（`GroupDetailModal` 與 `MemberPage`）的退出流程各自維護一份重複邏輯，新增 `leaveConversation` 時只改了其中一處
+- **修正狀態**：已修（本次 code review 一併提交）——`MemberPage.jsx` 改成呼叫共用的 `finalizeLeaveGroup`，統一兩個入口的行為
+
+### BUG-010：系統公告廣播其中一位使用者失敗會讓整批廣播中斷
+- **功能**：系統公告，`POST /system-messages/broadcast`
+- **嚴重度**：P1（管理員發公告時，只要中間一位使用者寫入失敗，後面所有使用者都收不到）
+- **來源**：code review（非手動測試觸發）
+- **重現方式**：`for...await` 逐一發送給每位使用者，其中一位使用者發送時拋出例外
+- **預期結果**：單一使用者失敗不應該影響其他使用者收到公告
+- **實際結果**：`for...await` 迴圈中一旦某位使用者拋出例外就直接中斷整個迴圈，尚未處理到的使用者完全收不到公告，且整支 API 回 500（掩蓋了實際上大部分使用者可能已經發送成功的事實）
+- **推測原因**：把「平行、互不影響」的批次工作寫成了循序迴圈
+- **修正狀態**：已修（本次 code review 一併提交）——改用 `Promise.allSettled` 平行發送，個別失敗只記 log，不影響其他使用者
+
+### BUG-009：退出群組通知團主誤用個人本地通知的 store 方法
+- **功能**：[退出群組流程](../flows/my-groups-member-flow.md)，`leaveGroupFlow.js`
+- **嚴重度**：P2
+- **來源**：code review（非手動測試觸發）
+- **重現方式**：檢視 `finalizeLeaveGroup` 通知團主的那段程式碼
+- **預期結果**：通知「別人」（團主）應該呼叫寫入後端 DB 的 `insertNotification` API，只有通知「自己」才該用 `useNotificationStore.getState().create(...)`（本地樂觀通知）
+- **實際結果**：原本寫成 `useNotificationStore.getState().create({ userId: group.hostId, ... })`，把要通知團主的通知寫進了目前操作者（退出的成員）自己的本地通知 store，團主端完全不會看到這則通知（因為是別人的本地 state），且污染了退出者自己的通知清單
+- **推測原因**：跟通知自己（本地）的寫法搞混，沒注意到這裡的收件者其實是別人
+- **修正狀態**：已修（本次 code review 一併提交）——改用 `insertNotification(...).catch(console.error)`，跟其他跨使用者通知的寫法一致
+
 ### BUG-008：申訴裁定「成員獲勝」一定會 500，從未真正成功執行過
 - **功能**：[申訴流程](../flows/dispute-flow.md)，`POST /groups/:id/adjudicate`
 - **嚴重度**：P0（核心交易流程功能完全無法使用）

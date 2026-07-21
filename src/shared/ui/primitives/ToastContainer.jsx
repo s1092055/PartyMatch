@@ -14,11 +14,11 @@ const CONFIG = {
 export default function ToastContainer() {
   const [toasts, setToasts] = useState([])
 
-  useEffect(() => {
-    function remove(id) {
-      setToasts(prev => prev.filter(t => t.id !== id))
-    }
+  function remove(id) {
+    setToasts(prev => prev.filter(t => t.id !== id))
+  }
 
+  useEffect(() => {
     return subscribeToast(item => {
       setToasts(prev => [...prev, item])
       if (!item.persistent) {
@@ -26,10 +26,6 @@ export default function ToastContainer() {
       }
     })
   }, [])
-
-  function remove(id) {
-    setToasts(prev => prev.filter(t => t.id !== id))
-  }
 
   return createPortal(
     <div

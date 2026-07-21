@@ -3,13 +3,10 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { ClipboardList } from 'lucide-react'
 import { useSubscriptionStore } from '../../../shared/stores/useSubscriptionStore'
 import { useMemberStore } from '../../../shared/stores/useMemberStore'
-import { useNotificationStore } from '../../../shared/stores/useNotificationStore'
 import { useApplicationStore } from '../../../shared/stores/useApplicationStore'
 import { useGroupStore } from '../../../shared/stores/useGroupStore'
 import { useAuthStore } from '../../../shared/stores/useAuthStore'
-import { useConversationStore } from '../../../shared/stores/useConversationStore'
-import { sendSystemMessage } from '../../../shared/api/messagesApi'
-import { insertNotification } from '../../../shared/api/notificationsApi'
+import { finalizeLeaveGroup } from '../../group/utils/leaveGroupFlow'
 import SubscriptionCard from './components/SubscriptionCard'
 import EmptyState from '../../../shared/ui/primitives/EmptyState'
 import Badge from '../../../shared/ui/primitives/Badge'
@@ -121,59 +118,14 @@ export default function MemberPage({ embedded = false }) {
 
   function handleLeaveGroup() {
     if (!viewGroupId || !activeUser) return
-    const group  = getGroupById(viewGroupId)
     const member = useMemberStore.getState().getByUserAndGroup(activeUser.id, viewGroupId)
-    if (!member || !group) return
+    if (!member) return
 
-    useMemberStore.getState().remove(member.id)
-
-    // 樂觀把 application 標為 left（後端 DELETE /members 已在 transaction 更新 DB）
-    const appToRemove = useApplicationStore.getState().applications.find(
-      a => a.groupId === viewGroupId && (a.applicantId ?? a.userId) === activeUser.id && a.status === 'approved'
-    )
-    if (appToRemove) {
-      useApplicationStore.setState(s => ({
-        applications: s.applications.map(a => a.id === appToRemove.id ? { ...a, status: 'left' } : a),
-      }))
-    }
-
-    // 樂觀更新 group local state（後端 DELETE /members 同步更新 currentMembers 與 status）
-    const newUsed = Math.max(0, group.usedSeats - 1)
-    const newOpen = group.openSeats + 1
-    const statusPatch = group.status === 'full' ? { status: 'recruiting' } : {}
-    useGroupStore.setState(s => ({
-      groups: s.groups.map(g => g.id === viewGroupId
-        ? { ...g, usedSeats: newUsed, openSeats: newOpen, ...statusPatch }
-        : g
-      ),
-    }))
-
-    const sub = useSubscriptionStore.getState().getByUserId(activeUser.id).find(s => s.groupId === viewGroupId)
-    if (sub) useSubscriptionStore.getState().remove(sub.id)
-
-    useNotificationStore.getState().create({
-      userId:  activeUser.id,
-      type:    'member_left',
-      title:   '已退出群組',
-      message: `你已成功退出「${group.serviceName}」群組，名額已釋出。`,
-    })
-
-    if (group.hostId) {
-      insertNotification({
-        userId:  group.hostId,
-        type:    'member_left',
-        title:   '成員退出群組',
-        message: `${activeUser.displayName ?? activeUser.name ?? '成員'} 已退出「${group.serviceName}」群組，目前剩餘 ${newOpen} 個名額。`,
-        meta:    { groupId: viewGroupId },
-      }).catch(console.error)
-    }
-
-    // 若群組聊天室已存在，寫系統訊息讓團主透過 polling 5 秒內看到
-    const convId = useConversationStore.getState().getByGroupId(viewGroupId)?.id
-    if (convId) {
-      const memberName = activeUser.displayName ?? activeUser.name ?? '成員'
-      sendSystemMessage(convId, `${memberName} 已退出群組`).catch(console.error)
-    }
+    // 與 GroupDetailModal 共用同一套退出流程（含移出聊天室參與者），避免兩處邏輯各自維護、行為不一致
+    finalizeLeaveGroup(
+      viewGroupId,
+      { id: activeUser.id, name: activeUser.displayName ?? activeUser.name ?? '成員' },
+    ).catch(console.error)
 
     setViewGroupId(null)
     setAutoOpenPayment(false)

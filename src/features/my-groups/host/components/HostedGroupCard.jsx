@@ -49,13 +49,11 @@ function HostedGroupCard({
 }) {
   const displayStatus = getRenewalAwareStatus(group.status, group.nextBillingDate)
 
-  const collectionState = getCollectionState({ group, hasMarkedPaid: false, paidCount: 0, paymentTarget: members.length })
+  const collectionState = getCollectionState({ group, paidCount: 0, paymentTarget: members.length })
 
   const collectionHighlight = {
     '正常':   'text-success-text',
     '招募中': 'text-success-text',
-    '收款中': 'text-brand',
-    '已收款': 'text-success-text',
     '已結束': 'text-ink-3',
     '等待啟用': 'text-ink-3',
   }[collectionState] ?? 'text-warning-text'

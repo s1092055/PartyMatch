@@ -1,10 +1,10 @@
 import { useGroupStore } from '../../../shared/stores/useGroupStore'
 import { useMemberStore } from '../../../shared/stores/useMemberStore'
 import { useSubscriptionStore } from '../../../shared/stores/useSubscriptionStore'
-import { useNotificationStore } from '../../../shared/stores/useNotificationStore'
 import { useApplicationStore } from '../../../shared/stores/useApplicationStore'
 import { useConversationStore } from '../../../shared/stores/useConversationStore'
 import { leaveConversation, sendSystemMessage } from '../../../shared/api/messagesApi'
+import { insertNotification } from '../../../shared/api/notificationsApi'
 
 export async function finalizeLeaveGroup(groupId, user) {
   const convId = useConversationStore.getState().getByGroupId(groupId)?.id ?? null
@@ -43,12 +43,13 @@ export async function finalizeLeaveGroup(groupId, user) {
         status: g.status === 'full' ? 'recruiting' : g.status,
       } : g),
     }))
-    useNotificationStore.getState().create({
+    // 通知團主（非目前操作者本人，只寫 DB，團主刷新後才看到，避免污染目前使用者的本地通知清單）
+    insertNotification({
       userId:  group.hostId,
       type:    'member_left',
       title:   '成員退出群組',
       message: `${user.name} 已退出「${group.groupName ?? group.serviceName}」群組。`,
       meta:    { groupId },
-    })
+    }).catch(console.error)
   }
 }
