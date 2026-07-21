@@ -2,13 +2,14 @@ import { useRef, useState } from 'react'
 import { AlertCircle } from 'lucide-react'
 import { useClickOutside } from '../../../../shared/utils/hooks'
 
-export default function Field({ label, required, children, hint, className = '' }) {
+export default function Field({ label, icon: Icon, required, children, hint, className = '' }) {
   const [showHint, setShowHint] = useState(false)
   const hintRef = useRef(null)
   useClickOutside(showHint, [hintRef], () => setShowHint(false))
   return (
     <div className={className}>
       <span className="mb-2 flex items-center gap-1.5 text-base font-medium text-slate-700">
+        {Icon && <Icon size={15} className="shrink-0 text-slate-400" strokeWidth={1.5} />}
         {label}
         {required && <span className="ml-0.5 text-red-400">*</span>}
         {hint && (

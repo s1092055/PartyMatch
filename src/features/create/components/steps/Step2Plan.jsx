@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { CheckCircle2, ChevronLeft, ChevronRight, Info } from 'lucide-react'
+import { CheckCircle2, ChevronLeft, ChevronRight, Info, Layers, Package } from 'lucide-react'
 import { getServiceById } from '../../../../shared/utils/serviceUtils'
 import { getSharingMethodConfig } from '../../../../shared/utils/serviceInfoFields'
 import { useMediaQuery, SHORT_LG_QUERY } from '../../../../shared/utils/hooks'
@@ -50,22 +50,17 @@ export default function Step2Plan({ form, onChange }) {
     <div className="pb-1 short-lg:flex short-lg:items-start short-lg:gap-8">
       {/* 左：服務說明、填寫服務資訊注意事項 */}
       <div ref={leftColRef} className="flex min-w-0 flex-1 flex-col space-y-5">
-        <div>
-          <p className="mb-2 flex items-center gap-1.5 text-base font-medium text-slate-700">服務說明</p>
+        <Field label="服務說明" icon={Package}>
           <div className="rounded-xl bg-canvas p-3.5">
             <p className="text-sm leading-relaxed text-ink-2">{service?.description ?? '尚未選擇服務'}</p>
           </div>
-        </div>
+        </Field>
 
-        <div>
-          <p className="mb-2 flex items-center gap-1.5 text-base font-medium text-slate-700">
-            <Info size={16} strokeWidth={1.5} className="text-brand" />
-            填寫服務資訊注意事項
-          </p>
+        <Field label="填寫服務資訊注意事項" icon={Info}>
           <div className="rounded-xl bg-canvas p-3.5">
             <p className="text-sm leading-relaxed text-ink-2">{serviceInfoNotice}</p>
           </div>
-        </div>
+        </Field>
       </div>
 
       {/* 右：選擇方案、方案說明（內容直接接在選擇方案下方） */}
@@ -73,7 +68,7 @@ export default function Step2Plan({ form, onChange }) {
         className="mt-5 flex min-w-0 flex-1 flex-col short-lg:mt-0"
         style={isShortLgUp && leftColHeight ? { height: leftColHeight } : undefined}
       >
-        <Field label="選擇方案">
+        <Field label="選擇方案" icon={Layers}>
           <div className="flex items-center gap-2">
             <button
               type="button"

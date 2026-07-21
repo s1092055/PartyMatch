@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState } from 'react'
-import { Minus, Plus, PlusCircle, X } from 'lucide-react'
+import { FileText, ListChecks, Minus, Plus, PlusCircle, ShieldCheck, Users, X } from 'lucide-react'
 import { getServiceById } from '../../../../shared/utils/serviceUtils'
 import { useMediaQuery, SHORT_LG_QUERY } from '../../../../shared/utils/hooks'
 import Field from './Field'
@@ -59,7 +59,7 @@ export default function Step3Settings({ form, onChange }) {
     <div className="pb-3 short-lg:flex short-lg:h-96 short-lg:items-stretch short-lg:gap-8">
       {/* 左：剩餘名額、信用分數、帳號需求 */}
       <div className="flex min-h-0 min-w-0 flex-1 flex-col space-y-5 overflow-y-auto pb-1 pl-1 pr-1">
-        <Field label="剩餘名額" required hint={`最多可開放 ${maxSeats - 1} 位成員加入（不含你自己）`}>
+        <Field label="剩餘名額" icon={Users} required hint={`最多可開放 ${maxSeats - 1} 位成員加入（不含你自己）`}>
           <div className="flex w-full items-center justify-between gap-3 border border-slate-200 rounded-xl p-1">
             <button
               onClick={() => onChange('totalSeats', Math.max(2, form.totalSeats - 1))}
@@ -81,7 +81,7 @@ export default function Step3Settings({ form, onChange }) {
           </div>
         </Field>
 
-        <Field label="信用分數" hint="設定申請人需達到的最低信用分數門檻，篩掉高風險使用者">
+        <Field label="信用分數" icon={ShieldCheck} hint="設定申請人需達到的最低信用分數門檻，篩掉高風險使用者">
           <div className="flex gap-2">
             {MIN_CREDIT_OPTIONS.map(o => (
               <button
@@ -99,7 +99,7 @@ export default function Step3Settings({ form, onChange }) {
           </div>
         </Field>
 
-        <Field label="帳號需求" hint="說明成員是否需要自備帳號，或有其他帳號相關條件（選填）">
+        <Field label="帳號需求" icon={FileText} hint="說明成員是否需要自備帳號，或有其他帳號相關條件（選填）">
           <textarea
             ref={textareaRef}
             rows={1}
@@ -115,7 +115,7 @@ export default function Step3Settings({ form, onChange }) {
 
       {/* 右：群組規則 */}
       <div className="mt-6 flex flex-1 flex-col space-y-1 short-lg:mt-0">
-        <Field label="群組規則" hint="最多 5 條，清楚的規則可降低後續糾紛">
+        <Field label="群組規則" icon={ListChecks} hint="最多 5 條，清楚的規則可降低後續糾紛">
           <div className="space-y-1">
             {form.rules.map((rule, i) => (
               <div key={i} className="flex items-center gap-2">
