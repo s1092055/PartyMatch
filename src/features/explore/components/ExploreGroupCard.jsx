@@ -5,7 +5,6 @@ import {
   Monitor,
   Users,
 } from 'lucide-react'
-import Badge from '../../../shared/ui/primitives/Badge'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import TokenAmount from '../../../shared/ui/TokenAmount'
 import ProgressBar from '../../../shared/ui/primitives/ProgressBar'
@@ -108,24 +107,21 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
         </button>
       )}
 
-      <div className="flex justify-center">
-        {isMember ? (
-          <span className="rounded-full bg-success-subtle px-3.5 py-1 text-sm font-extrabold text-success-text">
-            申請通過
-          </span>
-        ) : isApplied ? (
-          <span className="rounded-full bg-warning-subtle px-3.5 py-1 text-sm font-extrabold text-warning-text">
-            已申請
-          </span>
-        ) : (
-          <Badge
-            variant="recruiting"
-            className="bg-success-subtle px-3.5 py-1 text-sm font-extrabold text-success-text"
-          />
-        )}
-      </div>
+      {(isMember || isApplied) && (
+        <div className="flex justify-center">
+          {isMember ? (
+            <span className="rounded-full bg-success-subtle px-3.5 py-1 text-sm font-extrabold text-success-text">
+              申請通過
+            </span>
+          ) : (
+            <span className="rounded-full bg-warning-subtle px-3.5 py-1 text-sm font-extrabold text-warning-text">
+              已申請
+            </span>
+          )}
+        </div>
+      )}
 
-      <div className="mt-4 flex justify-center">
+      <div className={`${isMember || isApplied ? 'mt-4' : ''} flex justify-center`}>
         <ServiceLogo
           serviceId={group.serviceId}
           size={80}
@@ -135,7 +131,13 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
 
       <div className="mt-3 text-center">
         <h2 className="text-xl font-black leading-tight text-ink">{group.serviceName}</h2>
-        <p className="mt-1 text-base font-semibold text-ink-3">{group.planName}</p>
+        <p className="mt-1 text-sm font-semibold text-ink-3">{group.planName}</p>
+        <p className="mt-1 text-base font-extrabold text-ink">
+          <TokenAmount
+            amount={calcDisplayPrice(group.pricePerSeat, group.billingCycle)}
+            cycle={calcDisplayCycle(group.billingCycle)}
+          />
+        </p>
       </div>
 
       <div className="mt-3 flex h-7 justify-center gap-1.5 overflow-hidden">
@@ -150,14 +152,7 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
         ))}
       </div>
 
-      <p className="my-4 flex justify-center text-2xl font-black leading-none text-ink">
-        <TokenAmount
-          amount={calcDisplayPrice(group.pricePerSeat, group.billingCycle)}
-          cycle={calcDisplayCycle(group.billingCycle)}
-        />
-      </p>
-
-      <div className="mb-4 border-t border-line-subtle" />
+      <div className="my-4 border-t border-line-subtle" />
 
       <div className="px-2">
         {group.totalSeats == null ? (

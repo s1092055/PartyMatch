@@ -197,7 +197,7 @@ async function main() {
   const g4 = await createGroup(H1, { serviceId: 'disney', planId: 'disney-std-monthly', maxMembers: 2 })
   await applyAndApprove(H1, g4.id, D2, 'Disney+')
   await applyAndApprove(H1, g4.id, D3, 'Disney+')
-  const g4ConvId = await lockGroup(H1, g4.id, [D2, D3], 'Disney+', 'disney')
+  await lockGroup(H1, g4.id, [D2, D3], 'Disney+', 'disney')
   console.log('G4 pending_confirmation（Disney+，剛鎖定，成員尚未填寫）')
 
   // ── G5 pending_activation：demo9 主揪 HBO Max，全員已填完待啟用 ─────────

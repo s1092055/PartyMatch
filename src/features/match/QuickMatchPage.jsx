@@ -13,9 +13,11 @@ import { useAuthStore } from '../../shared/stores/useAuthStore'
 import { useScrollEdge } from '../../shared/utils/hooks'
 import { matchGroups } from './utils/matchGroups'
 
-// /quick-match 是獨立於 AppLayout 之外的全螢幕流程頁面，GroupDetailModal 平常只在
-// AppLayout 裡掛載一次；這裡要自己掛一份，搜尋結果卡片點擊才能正常開啟群組詳情
+// /quick-match 是獨立於 AppLayout 之外的全螢幕流程頁面，GroupDetailModal 跟 MessagesModal
+// 平常只在 AppLayout 裡掛載一次；這裡要自己掛一份，搜尋結果卡片點擊才能正常開啟群組詳情、
+// 團主評價的「聯絡團主」（dispatch pm:open-dm）也才有 MessagesModal 監聽並開啟私訊
 const GroupDetailModal = lazy(() => import('../group/GroupDetailModal'))
+const MessagesModal = lazy(() => import('../messages/MessagesModal'))
 
 const STEP_TITLES = ['選擇服務', '方案與條件', '搜尋結果']
 
@@ -202,6 +204,7 @@ export default function QuickMatchPage() {
       </div>
     </FlowLayout>
     <Suspense fallback={null}>
+      <MessagesModal />
       <GroupDetailModal />
     </Suspense>
     </>

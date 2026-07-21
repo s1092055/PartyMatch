@@ -1,12 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
-import { CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react'
+import { CheckCircle2, ChevronLeft, ChevronRight, Info } from 'lucide-react'
 import { getServiceById } from '../../../../shared/utils/serviceUtils'
+import { getSharingMethodConfig } from '../../../../shared/utils/serviceInfoFields'
 import { useMediaQuery, SHORT_LG_QUERY } from '../../../../shared/utils/hooks'
 import TokenAmount from '../../../../shared/ui/TokenAmount'
 import Field from './Field'
 
+const DEFAULT_NOTICE = '此服務用 Email 邀請即可加入，各自使用獨立帳號，沒有其他特別注意事項。'
+
 export default function Step2Plan({ form, onChange }) {
   const service = getServiceById(form.serviceId)
+  const serviceInfoNotice = getSharingMethodConfig(service?.sharingMethod).notice ?? DEFAULT_NOTICE
   // 每個方案（含拆分出來的月繳／年繳版本）都是獨立可選的一張卡片，切換方案的同時就決定了收費週期
   const groupPlans = service?.plans.filter(p => p.maxSeats > 1) ?? []
   const activeIndex = Math.max(0, groupPlans.findIndex(p => p.name === form.planName))
@@ -44,7 +48,7 @@ export default function Step2Plan({ form, onChange }) {
 
   return (
     <div className="pb-1 short-lg:flex short-lg:items-start short-lg:gap-8">
-      {/* 左：服務說明、選擇方案 */}
+      {/* 左：服務說明、填寫服務資訊注意事項 */}
       <div ref={leftColRef} className="flex min-w-0 flex-1 flex-col space-y-5">
         <div>
           <p className="mb-2 flex items-center gap-1.5 text-base font-medium text-slate-700">服務說明</p>
@@ -53,13 +57,39 @@ export default function Step2Plan({ form, onChange }) {
           </div>
         </div>
 
+        <div>
+          <p className="mb-2 flex items-center gap-1.5 text-base font-medium text-slate-700">
+            <Info size={16} strokeWidth={1.5} className="text-brand" />
+            填寫服務資訊注意事項
+          </p>
+          <div className="rounded-xl bg-canvas p-3.5">
+            <p className="text-sm leading-relaxed text-ink-2">{serviceInfoNotice}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* 右：選擇方案、方案說明（內容直接接在選擇方案下方） */}
+      <div
+        className="mt-5 flex min-w-0 flex-1 flex-col short-lg:mt-0"
+        style={isShortLgUp && leftColHeight ? { height: leftColHeight } : undefined}
+      >
         <Field label="選擇方案">
-          <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => selectPlanAt(activeIndex - 1)}
+              disabled={groupPlans.length <= 1 || activeIndex <= 0}
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-30"
+              aria-label="上一個方案"
+            >
+              <ChevronLeft size={16} strokeWidth={1.5} />
+            </button>
+
             {currentPlan ? (
               <button
                 type="button"
                 onClick={() => selectPlanAt(activeIndex)}
-                className={`flex h-16 w-full items-center justify-center rounded-xl border-2 px-4 text-base transition-all ${
+                className={`flex h-16 min-w-0 flex-1 items-center justify-center rounded-xl border-2 px-4 text-base transition-all ${
                   isPlanSelected
                     ? 'border-brand bg-brand-subtle text-brand'
                     : 'border-slate-200 bg-white text-slate-600'
@@ -73,42 +103,24 @@ export default function Step2Plan({ form, onChange }) {
                 </div>
               </button>
             ) : (
-              <div className="flex h-16 w-full items-center justify-center rounded-xl border-2 border-slate-200 bg-white px-4 text-sm text-slate-400">
+              <div className="flex h-16 min-w-0 flex-1 items-center justify-center rounded-xl border-2 border-slate-200 bg-white px-4 text-sm text-slate-400">
                 尚無可選方案
               </div>
             )}
 
-            <div className="flex items-center justify-center gap-2">
-              <button
-                type="button"
-                onClick={() => selectPlanAt(activeIndex - 1)}
-                disabled={groupPlans.length <= 1 || activeIndex <= 0}
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-30"
-                aria-label="上一個方案"
-              >
-                <ChevronLeft size={16} strokeWidth={1.5} />
-              </button>
-              <button
-                type="button"
-                onClick={() => selectPlanAt(activeIndex + 1)}
-                disabled={groupPlans.length <= 1 || activeIndex >= groupPlans.length - 1}
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-30"
-                aria-label="下一個方案"
-              >
-                <ChevronRight size={16} strokeWidth={1.5} />
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => selectPlanAt(activeIndex + 1)}
+              disabled={groupPlans.length <= 1 || activeIndex >= groupPlans.length - 1}
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-30"
+              aria-label="下一個方案"
+            >
+              <ChevronRight size={16} strokeWidth={1.5} />
+            </button>
           </div>
         </Field>
-      </div>
 
-      {/* 右：方案說明 */}
-      <div
-        className="mt-5 flex min-w-0 flex-1 flex-col short-lg:mt-0"
-        style={isShortLgUp && leftColHeight ? { height: leftColHeight } : undefined}
-      >
-        <p className="mb-2 flex items-center gap-1.5 text-base font-medium text-slate-700">方案說明</p>
-        <div className="min-h-0 flex-1 overflow-y-auto rounded-xl bg-canvas p-3.5">
+        <div className="mt-5 min-h-0 flex-1 overflow-y-auto rounded-xl bg-canvas p-3.5">
           {(currentPlan?.features?.length ?? 0) > 0 ? (
             <ul className="space-y-1.5">
               {currentPlan.features.map((feat, i) => (

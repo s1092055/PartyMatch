@@ -51,7 +51,7 @@ flowchart TD
 | `src/features/my-groups/host/components/hostGroupView/ApplicationCard.jsx` | 單筆申請卡片，核准／拒絕 |
 | `src/features/my-groups/host/components/hostGroupView/buildReviewHistoryPanel.jsx` | 審核紀錄第三層面板，含篩選 |
 | `src/features/my-groups/host/components/hostGroupView/buildBillingPanel.jsx` | 收款管理面板（見 PM幣代管流程文件） |
-| `src/features/my-groups/host/utils/hostFilters.js` | `STATUS_FILTER_TABS`、`matchesFilter`、`calcApprovalSeatPatch` |
+| `src/features/my-groups/host/utils/hostFilters.js` | `STATUS_FILTER_TABS`（跟 `GroupStatus` 一一對應：招募中/待鎖定/填寫資訊中/待啟用/確認期中/申訴中/服務中，不再像舊版把好幾種狀態塞進同一個「處理中」/「啟用中」分頁）、`matchesFilter`、`calcApprovalSeatPatch` |
 | `src/features/account/components/tabs/AdminTab.jsx` | 管理員裁定申訴，跨群組，非團主本人操作 |
 
 **後端**
@@ -81,6 +81,8 @@ flowchart TD
 - **群組概覽跟服務內容分頁共用同一份服務介紹內容**：`ServiceIntro`（`GroupOverviewContent.jsx` 匯出）被 `ServiceContentPanel.jsx` 直接複用；`GroupModalShell` 傳入 `hideServiceIntro` 時，概覽只留方案名稱＋服務簡介一句話（避免團主資訊填得少時版面空白），完整內容仍要點進服務內容分頁才看得到；探索頁 `GroupDetailModal`（沒有側邊欄分頁）不受影響，維持原本在概覽顯示完整服務介紹
 - **樂觀更新 + 背景同步**：核准/拒絕申請、移除成員時會先更新本地資料，畫面立刻反應，再到背景呼叫對應 API 跟建立通知
 - 鎖定群組、解散群組、移除成員這幾個不可逆的操作，都要透過 `CountdownConfirmDialog` 倒數確認才能執行
+- **側邊欄 pinned 項目**：招募中（`recruiting`/`full`）時側邊欄底部固定顯示「解散群組」，鎖定後改成固定顯示「群組訊息」——兩者是互斥的狀態分支，不會同時出現，因此可以共用側邊欄右下角同一個位置
+- **`HostedGroupCard` 依狀態切換統計格內容**：第一格招募中顯示「待處理申請」，已啟用（`active`/`cancelled`/`ended`）顯示「收款紀錄」，其餘鎖定後尚未啟用的狀態顯示「收款狀態」（因為此時「待處理申請」永遠會是 0）；第三格招募中顯示「建立日期」，已啟用顯示「收款狀態」，其餘鎖定後尚未啟用的狀態顯示「下次扣款」
 
 ## 流程步驟
 
@@ -114,6 +116,7 @@ flowchart TD
 - 面板掛載時會查詢該群組的所有交易紀錄（僅團主本人可查），依成員分組展開顯示代管、退款、撥款明細，並在頂部彙總已經撥給團主的總額
 
 **8. 解散群組（僅 `recruiting`/`full`，見 PM幣代管流程文件）**
+- 入口固定在側邊欄右下角（跟鎖定後的「群組訊息」共用同一個位置）
 - 解散後所有代管金額會退回給各成員，並通知所有成員
 
 **9. 續訂／結束服務**

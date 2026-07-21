@@ -38,6 +38,7 @@ flowchart TD
 | `src/features/match/components/MatchConditionBar.jsx`、`MatchSummaryPanel.jsx` | 條件摘要顯示 |
 | `src/features/explore/components/ExploreGroupCard.jsx` | 結果列表沿用探索頁的群組卡片 |
 | `src/features/group/GroupDetailModal.jsx` | 群組詳情 Modal；`GroupDetailModal` 平常只在 `AppLayout` 裡掛載一次，`/quick-match` 在 `AppLayout` 之外，`QuickMatchPage.jsx` 額外自己掛了一份（`lazy` + `Suspense`），否則卡片點擊時 `pm:open-group` 事件沒有監聽者、Modal 開不起來 |
+| `src/features/messages/MessagesModal.jsx` | 私訊 Modal；同樣只在 `AppLayout` 掛載，`QuickMatchPage.jsx` 也額外自己掛了一份，否則群組詳情內團主評價區的「聯絡團主」（dispatch `pm:open-dm`）在 `/quick-match` 會沒有監聽者、私訊開不起來 |
 
 **後端**
 
