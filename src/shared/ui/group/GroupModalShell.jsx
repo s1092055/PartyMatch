@@ -95,6 +95,17 @@ export default function GroupModalShell({
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
             {/* 每次切換分頁都用 key 強制重新掛載，套用跟首頁一致的 slide-up 進場動畫 */}
             <div key={panelKey} className="flex min-w-0 flex-1 flex-col overflow-hidden animate-step-slide-up">
+              {/* Banner 不分頁籤，群組概覽跟其他分頁（服務內容、成員名單等）都要看得到目前的倒數/狀態提醒 */}
+              {(headerBanner || showCenteredBadge) && (
+                <div className="shrink-0">
+                  {headerBanner ?? (
+                    <div className={`flex items-center justify-center px-6 py-3 text-sm font-extrabold ${centeredBadgeCls}`}>
+                      {centeredBadgeLabel}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {activeDetail ? (
                 <>
                   {/* Detail header（sub / sub-sub 共用） */}
@@ -135,16 +146,6 @@ export default function GroupModalShell({
                 </>
               ) : (
                 <>
-                  {(headerBanner || showCenteredBadge) && (
-                    <div className="shrink-0">
-                      {headerBanner ?? (
-                        <div className={`flex items-center justify-center px-6 py-3 text-sm font-extrabold ${centeredBadgeCls}`}>
-                          {centeredBadgeLabel}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
                   {/* Scrollable body */}
                   <div className="group relative min-h-0 flex-1">
                     <div ref={scrollBodyRef} onScroll={handleScroll} className="h-full overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">

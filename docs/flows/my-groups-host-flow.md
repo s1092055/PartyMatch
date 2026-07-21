@@ -77,6 +77,7 @@ flowchart TD
 - **自訂 hook 抽出頁面邏輯**：`useHostActions` 把 `HostPage` 拆成純 UI 加一個 hook，訂閱 `useGroupStore`/`useApplicationStore`/`useMemberStore` 三個 store，只要有任何一個變動就重算 `hostData`
 - **`pm:open-host-group` window event**：不管是點通知還是帶著 `location.state` 進來，都會走同一個處理函式，統一設定要開哪個群組、要不要自動展開鎖定/啟用/申請管理/收款面板
 - **`GroupModalShell` 三層滑動 Panel**：申請管理是第二層，審核紀錄是第三層
+- **`headerBanner`（倒數/狀態提醒橫幅）不綁定分頁**：渲染在 `activeDetail` 判斷之外，切到服務內容／成員名單／收款管理等分頁時倒數橫幅仍會顯示，不會只留在群組概覽
 - **群組概覽跟服務內容分頁共用同一份服務介紹內容**：`ServiceIntro`（`GroupOverviewContent.jsx` 匯出）被 `ServiceContentPanel.jsx` 直接複用；`GroupModalShell` 傳入 `hideServiceIntro` 時，概覽只留方案名稱＋服務簡介一句話（避免團主資訊填得少時版面空白），完整內容仍要點進服務內容分頁才看得到；探索頁 `GroupDetailModal`（沒有側邊欄分頁）不受影響，維持原本在概覽顯示完整服務介紹
 - **樂觀更新 + 背景同步**：核准/拒絕申請、移除成員時會先更新本地資料，畫面立刻反應，再到背景呼叫對應 API 跟建立通知
 - 鎖定群組、解散群組、移除成員這幾個不可逆的操作，都要透過 `CountdownConfirmDialog` 倒數確認才能執行
