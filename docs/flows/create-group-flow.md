@@ -74,7 +74,7 @@ flowchart TD
 - 第一次進到這個服務會自動選第一個方案
 - 選定方案後同步設定 `totalSeats = plan.maxSeats`、`billingCycle = plan.billingCycle`、`pricePerSeat = calcPricePerSeat(plan, plan.maxSeats)`
 - 版面由上而下單欄排列（桌機/平板/手機皆同）：「服務說明」→「填寫服務資訊注意事項」（依服務 `sharingMethod` 讀 `serviceInfoFields.js` 的 `notice` 文案，提醒團主這個服務加入時成員要填什麼、有沒有 Apple/Google 家庭群組異動頻率限制、KKBOX 地址驗證、friDay 邀請碼方向相反等眉角，沒有特別注意事項的服務顯示預設文字）→「選擇方案」
-- 「選擇方案」內部（`md` 以上，桌機/平板寬度，跟高度無關）左右並排：左邊是方案卡列＋下方的左右捲動箭頭（只有超出可視寬度才顯示，沒有 overflow 就不顯示；卡片改成由左到右全部排出來，不再是一次只顯示一張），右邊是方案內容（不再另外顯示「方案說明」標題），左右兩欄用 `ResizeObserver` 讓右欄高度跟左欄（方案卡列＋箭頭）切齊；手機（`md` 以下）則自然由上而下堆疊
+- 「選擇方案」內部（`md` 以上，桌機/平板寬度，跟高度無關）左右並排：左邊是方案卡列＋下方的左右捲動箭頭（只有超出可視寬度才顯示，沒有 overflow 就不顯示；卡片改成由左到右全部排出來，不再是一次只顯示一張），右邊是方案內容（不再另外顯示「方案說明」標題）；右欄內容全部直接顯示、不再內部捲動，左右兩欄改用 flex row 預設的 `items-stretch` 自動等高（不用 `ResizeObserver` 量測），左欄內容在拉高後的欄位中垂直置中；手機（`md` 以下）則自然由上而下堆疊。因為步驟二已經沒有內部捲動區，`CreateGroupPage.jsx` 的外層 `short-lg:overflow-hidden`／`forwardWheel: false` 這兩個「內部有自己捲動區」的特殊處理現在只保留給步驟三（群組設定），步驟二一律用外層 `overflow-y-auto` 捲動整頁
 - `Field` 元件的 hint 說明泡泡改成往「下方」展開（原本是靠右垂直置中），避免最上面那個欄位（例如「剩餘名額」）的說明泡泡往上展開時被自己所在的 `overflow-y-auto` 捲動容器裁切、看起來像被上方服務資訊卡蓋住
 
 **3. 群組設定**

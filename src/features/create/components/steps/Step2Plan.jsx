@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import { CheckCircle2, ChevronLeft, ChevronRight, Info, Layers, Package } from 'lucide-react'
 import { getServiceById } from '../../../../shared/utils/serviceUtils'
 import { getSharingMethodConfig } from '../../../../shared/utils/serviceInfoFields'
-import { useMediaQuery, MD_QUERY } from '../../../../shared/utils/hooks'
 import TokenAmount from '../../../../shared/ui/TokenAmount'
 import Field from './Field'
 
@@ -51,21 +50,6 @@ export default function Step2Plan({ form, onChange }) {
     rowRef.current?.scrollBy({ left: dir * 176, behavior: 'smooth' })
   }
 
-  // 右側「方案說明」高度要跟左側（方案卡列 + 捲動箭頭）切齊，
-  // 用 ResizeObserver 量測左側實際高度，超出的部分讓右側框內部自己捲動；
-  // 左右並排只在 md 以上（桌機/平板寬度）生效，手機維持由上而下堆疊
-  const leftColRef = useRef(null)
-  const [leftColHeight, setLeftColHeight] = useState(null)
-  const isMdUp = useMediaQuery(MD_QUERY)
-
-  useEffect(() => {
-    const el = leftColRef.current
-    if (!el) return
-    const observer = new ResizeObserver(([entry]) => setLeftColHeight(entry.contentRect.height))
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [])
-
   return (
     <div className="space-y-5 pb-1">
       <Field label="服務說明" icon={Package}>
@@ -81,9 +65,11 @@ export default function Step2Plan({ form, onChange }) {
       </Field>
 
       <Field label="選擇方案" icon={Layers}>
-        <div className="md:flex md:items-start md:gap-6">
-          {/* 左：方案卡列 + 捲動箭頭 */}
-          <div ref={leftColRef} className="flex min-w-0 flex-1 flex-col gap-2">
+        {/* 左右兩欄用 items-stretch（flex row 預設行為）讓左欄自動撐到跟右欄（方案內容，
+            高度隨內容自然增減、不再內部捲動）一樣高，不需要另外量測高度 */}
+        <div className="md:flex md:gap-6">
+          {/* 左：方案卡列 + 捲動箭頭，內容置中撐滿整欄高度 */}
+          <div className="flex min-w-0 flex-1 flex-col justify-center gap-2">
             {groupPlans.length > 0 ? (
               <div
                 ref={rowRef}
@@ -142,11 +128,8 @@ export default function Step2Plan({ form, onChange }) {
             )}
           </div>
 
-          {/* 右：方案說明 */}
-          <div
-            className="mt-4 min-h-0 flex-1 overflow-y-auto rounded-xl bg-canvas p-3.5 md:mt-0"
-            style={isMdUp && leftColHeight ? { height: leftColHeight } : undefined}
-          >
+          {/* 右：方案說明，全部內容直接顯示，不內部捲動 */}
+          <div className="mt-4 min-w-0 flex-1 rounded-xl bg-canvas p-3.5 md:mt-0">
             {(selectedPlan?.features?.length ?? 0) > 0 ? (
               <ul className="space-y-1.5">
                 {selectedPlan.features.map((feat, i) => (

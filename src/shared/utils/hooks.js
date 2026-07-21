@@ -4,10 +4,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 // 螢幕夠高時改回跟手機/平板一樣的垂直排列，避免固定高度的兩欄容器在高螢幕下方留下大片空白
 export const SHORT_LG_QUERY = '(min-width: 1280px) and (max-height: 899px)'
 
-// 一般「桌機/平板寬度」左右兩欄版面（跟 Tailwind md: 斷點對齊），高度不夠也沒關係，
-// 用來搭配 ResizeObserver 動態量測其中一欄高度、讓另一欄跟著切齊的版面（見 Step2Plan.jsx）
-export const MD_QUERY = '(min-width: 768px)'
-
 export function useMediaQuery(query) {
   const [matches, setMatches] = useState(() => window.matchMedia(query).matches)
 
