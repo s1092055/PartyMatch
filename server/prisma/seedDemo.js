@@ -130,10 +130,10 @@ async function main() {
   await topup(U3.id, 3000, '儲值 3000 PM')
   console.log('已更新既有 3 個帳號的PM幣餘額')
 
-  const D1 = await upsertDemoUser({ email: 'demo1@partymatch.test', name: '王小明', phone: '0911000001', creditScore: 105, tokenBalance: 2000, avatarIndex: 0 })
+  const D1 = await upsertDemoUser({ email: 'demo1@partymatch.test', name: '王小明', phone: '0911000001', creditScore: 100, tokenBalance: 2000, avatarIndex: 0 })
   const D2 = await upsertDemoUser({ email: 'demo2@partymatch.test', name: '林小美', phone: '0911000002', creditScore: 88,  tokenBalance: 1500, avatarIndex: 1 })
   const D3 = await upsertDemoUser({ email: 'demo3@partymatch.test', name: '陳大文', phone: '0911000003', creditScore: 72,  tokenBalance: 500,  avatarIndex: 2 })
-  const D4 = await upsertDemoUser({ email: 'demo4@partymatch.test', name: '張雅婷', phone: '0911000004', creditScore: 120, tokenBalance: 3000, avatarIndex: 3 })
+  const D4 = await upsertDemoUser({ email: 'demo4@partymatch.test', name: '張雅婷', phone: '0911000004', creditScore: 100, tokenBalance: 3000, avatarIndex: 3 })
   const D5 = await upsertDemoUser({ email: 'demo5@partymatch.test', name: '李冠宇', phone: '0911000005', creditScore: 95,  tokenBalance: 1000, avatarIndex: 4 })
   const D6 = await upsertDemoUser({ email: 'demo6@partymatch.test', name: '黃詩涵', phone: '0911000006', creditScore: 60,  tokenBalance: 200,  avatarIndex: 5 })
   for (const [u, amt] of [[D1, 2000], [D2, 1500], [D3, 500], [D4, 3000], [D5, 1000], [D6, 200]]) {

@@ -20,10 +20,10 @@ npm run db:seed-demo
 
 | Email | 姓名 | 信用分數 | PM幣餘額 | 適合測試情境 |
 |-------|------|----------|----------|--------------|
-| demo1@partymatch.test | 王小明 | 105 | 2000 | 一般正常流程；信用分數略高於預設值 100 |
+| demo1@partymatch.test | 王小明 | 100 | 2000 | 一般正常流程；信用分數為滿分預設值 100 |
 | demo2@partymatch.test | 林小美 | 88 | 1500 | 信用分數中等偏低，可測「信用分數門檻篩選」情境（低於 G12 Canva 群組的 `minCreditScore: 70` 門檻仍可通過，用來對照 demo6） |
 | demo3@partymatch.test | 陳大文 | 72 | 500 | 信用分數接近門檻邊界（G12 門檻 70，剛好可通過）；PM幣餘額偏低，可測試餘額不足情境（申請高單價群組時） |
-| demo4@partymatch.test | 張雅婷 | 120 | 3000 | 信用分數最高、PM幣餘額充足；同時也是 G2（Notion）、G13（Cursor）的團主，可測團主視角 |
+| demo4@partymatch.test | 張雅婷 | 100 | 3000 | 信用分數滿分、PM幣餘額充足；同時也是 G2（Notion）、G13（Cursor）的團主，可測團主視角 |
 | demo5@partymatch.test | 李冠宇 | 95 | 1000 | 一般中等帳號，用於補足多人群組成員 |
 | demo6@partymatch.test | 黃詩涵 | 60 | 200 | **信用分數最低、PM幣餘額最少**——可測「信用分數低於群組門檻被擋下申請」（G12 Canva 門檻 70，此帳號 60 分不符）、「PM幣餘額不足無法申請」（餘額僅 200 PM）；同時也是 G7（ExpressVPN）申訴中的成員 |
 
