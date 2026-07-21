@@ -1,5 +1,24 @@
 # 群組狀態機
 
+## 流程圖
+
+```mermaid
+stateDiagram-v2
+  [*] --> recruiting : 團主建立群組
+  recruiting --> full : 名額額滿（最後申請核准）
+  full --> recruiting : 成員退出/被移除，釋出名額
+  full --> pending_confirmation : 團主鎖定群組
+  pending_confirmation --> pending_activation : 全員填寫帳號資訊完成
+  pending_activation --> confirming : 團主啟用服務（48h 確認期開始）
+  confirming --> active : 成員主動確認 / 逾期未操作（自動撥款）
+  confirming --> disputed : 成員向平台正式申訴
+  disputed --> active : 平台客服裁定後（撥款或退款）
+  active --> pending_confirmation : 團主開始新一期收款
+  active --> ended : 團主結束服務
+  recruiting --> cancelled : 團主解散群組
+  full --> cancelled : 團主解散群組
+```
+
 ## 狀態定義
 
 `GroupStatus` enum 定義於 `server/prisma/schema.prisma`：

@@ -3,6 +3,26 @@
 ## 使用者目標
 使用者希望跟團主或群組成員溝通——可能是群組聊天室的多人討論、私人 DM，或查看平台系統通知的訊息式呈現。
 
+## 流程圖
+
+```mermaid
+flowchart TD
+    A[開啟 MessagesModal] --> B{對話類型}
+    B -->|群組聊天室| C[團主鎖定群組時\nPOST /conversations/group 建立\nparticipants = 團主 + 全體成員]
+    B -->|私人 DM| D[點擊「聯絡團主/成員」\nPOST /conversations/dm]
+    B -->|系統通知| E[註冊時自動建立\ntype: system，唯讀]
+
+    D --> F{查詢 lastMessage}
+    F -->|發起人自己| G[看得到對話（即使未送出訊息）]
+    F -->|對方 & lastMessage 為 null| H[延遲曝光：GET /conversations 過濾掉\n直到發起人送出第一則訊息]
+
+    C --> I[ChatWindow 每 5 秒輪詢新訊息]
+    G --> I
+    E --> I
+    I --> J[送出訊息 POST /conversations/:id/messages\n後端驗證 participants 內才允許寫入]
+    J --> K[unreadCounts 回寫，未讀數更新]
+```
+
 ## 入口
 - 全域 `MessagesModal`：由 `window.dispatchEvent(new CustomEvent('pm:open-messages'))` 觸發開啟，在 `AppLayout` 統一監聽
 - `AppNav`（桌機 sidebar / 手機 header）的訊息按鈕

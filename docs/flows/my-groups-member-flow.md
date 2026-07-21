@@ -3,6 +3,26 @@
 ## 使用者目標
 成員在申請通過後追蹤自己的訂閱進度：填寫服務帳號、確認服務是否正常啟用、有問題時申訴，或在鎖定前退出群組。
 
+## 流程圖
+
+```mermaid
+flowchart TD
+    A[recruiting/full：已核准] -->|可退出| B[退出群組：代管費用退還]
+    A -->|等待鎖定| C[pending_confirmation：填寫服務帳號]
+    C -->|團主回報問題| C
+    C -->|全員填完| D[pending_activation：等待團主啟用]
+    D --> E[confirming：48h 確認期]
+    E -->|主動確認服務| F[即時撥款\n開啟 ReviewHostModal 評價團主]
+    E -->|逾期未操作| F
+    E -->|回報問題| G[申訴表單：原因 + 附件]
+    G --> H[disputed：等待平台裁定 3 天內]
+    H -->|成員獲勝| I[退款，離開群組]
+    H -->|團主獲勝| F
+    F --> J[active：訂閱啟用中]
+    J -->|團主開始續訂| C
+    J -->|團主結束服務| K[ended]
+```
+
 ## 入口
 `/my-groups?view=member`（`MyGroupsPage` → `MemberPage`）；也可透過通知點擊（`pm:open-group`／`navigate('/my-groups?view=member', { state: { openGroupId } })`）或 `TopupModal` 交易紀錄列點擊（`pm:open-group`）間接開啟特定群組的 `MemberGroupView`
 

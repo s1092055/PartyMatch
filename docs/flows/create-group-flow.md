@@ -3,6 +3,23 @@
 ## 使用者目標
 以團主身分，透過 4 步驟表單（選擇服務 → 選擇方案 → 群組設定 → 最後確認）建立一個開放招募的合購群組。
 
+## 流程圖
+
+```mermaid
+flowchart TD
+    A[步驟一：選擇服務] --> B[步驟二：選擇方案\n自動帶入 totalSeats / billingCycle / pricePerSeat]
+    B --> C[步驟三：群組設定\n剩餘名額 / 信用分數門檻 / 帳號需求 / 群組規則]
+    C --> D[步驟四：最後確認\n唯讀摘要 + 勾選同意條款]
+    D --> E{點擊「確認建立」}
+    E --> F[getFirstInvalidStep 重新驗證步驟 1-3]
+    F -->|有誤| C
+    F -->|通過| G[樂觀新增本地 Group\nPOST /groups]
+    G --> H{後端 zod 驗證}
+    H -->|失敗| I[400，樂觀物件從 store 移除]
+    H -->|成功| J[prisma.group.create\n回傳真實 id 覆蓋暫時物件]
+    J --> K[建立 group_created 通知\n進入成功頁]
+```
+
 ## 入口
 - 首頁／導覽列的「建立群組」按鈕，導向 `/create-group`
 - `/create-group` 是獨立於 `AppLayout` 之外的全螢幕步驟流程頁面，由頂層 `ProtectedRoute` 包裹，需先登入才能進入

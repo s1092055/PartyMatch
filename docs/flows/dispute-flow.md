@@ -3,6 +3,35 @@
 ## 使用者目標
 成員在確認期（`confirming`）內若發現服務未正常啟用或有其他問題，可向平台正式申訴，凍結代管款項並等待客服裁定，而不必單方面信任團主的說法。
 
+## 流程圖
+
+```mermaid
+sequenceDiagram
+    participant M as 成員
+    participant FE as 前端
+    participant BE as 後端
+    participant A as 管理員
+
+    Note over M: 群組處於 confirming（48h 確認期）
+    M->>FE: 點擊「回報問題」，複選原因 + 選填附件/說明
+    FE->>BE: POST /groups/:id/dispute
+    BE->>BE: 驗證請求人為該群組成員 + 狀態為 confirming
+    BE->>BE: $transaction：群組 status → disputed\ndisputeDeadline = now + 3 天\n寫入 serviceInfoIssueNote / disputeEvidenceUrl
+    BE-->>FE: 200
+    FE-->>M: 「客服將在 3 天內裁定」
+
+    Note over A: 3 天內於 AdminTab 裁定
+    A->>FE: 選擇群組、裁定結果（member/host 獲勝）+ 說明
+    FE->>BE: POST /groups/:id/adjudicate
+    alt winner = member
+        BE->>BE: $transaction：退款給申訴成員\n刪除該 Member，Subscription → cancelled\n群組 status → active
+    else winner = host
+        BE->>BE: $transaction：escrowTokens 全額撥款給團主\n全員 Subscription → active\n群組 status → active
+    end
+    BE-->>FE: 200
+    FE->>FE: 整包重新 init 群組/成員/訂閱 store
+```
+
 ## 入口
 `MemberGroupView` 確認期畫面的「回報問題」按鈕（`canConfirm` 為真時，與「確認服務」按鈕並列）→ 開啟申訴表單 `subPanel`；裁定端入口為帳號中心「管理員」分頁（`AdminTab`，僅 `isAdmin` 使用者可見）
 

@@ -3,6 +3,35 @@
 ## 使用者目標
 使用者以「PM幣」作為平台內唯一的計價與支付單位：儲值取得 PM幣、申請加入群組時把席位費用交付平台代管、服務確認無誤後撥款給團主；若中途退出、群組解散或申訴成立則退款。
 
+## 流程圖
+
+```mermaid
+flowchart LR
+    A[儲值 TopupModal] -->|topup| B(("tokenBalance"))
+    B -->|申請核准 escrow| C(("group.escrowTokens"))
+    C -->|確認期結束 release| D(("host.tokenBalance"))
+    C -->|退出/被移除 refund| B
+    C -->|團主解散 refund| B
+    C -->|申訴：成員獲勝 refund| B
+    C -->|申訴：團主獲勝 release| D
+    B -->|續訂收款 escrow| C
+```
+
+```mermaid
+sequenceDiagram
+    participant M as 成員
+    participant BE as 後端
+    participant DB as DB（$transaction + 條件式 updateMany）
+
+    M->>BE: 申請加入（POST /applications）
+    BE->>DB: 檢查 tokenBalance ≥ seatCost（僅預檢，不預扣）
+    M->>BE: 團主核准（PATCH /applications/:id）
+    BE->>DB: updateMany 鎖定名額 + 扣款 + escrow++\n建立 Member/Subscription + TokenTransaction(escrow)
+    Note over M,DB: 之後任一事件觸發撥款/退款，皆在同一 transaction 內完成
+    M->>BE: 確認服務 / 逾期自動 / 申訴裁定
+    BE->>DB: escrowTokens → tokenBalance（release 或 refund）\n寫入對應 TokenTransaction
+```
+
 ## 入口
 - 儲值：桌機側欄／手機導覽列的「加值」按鈕、`TopupModal` 內的儲值面板；任何顯示「PM幣不足」toast 時的「前往儲值」動作按鈕（透過 `pm:open-topup` 事件開啟）
 - 代管扣款：`GroupDetailModal` 申請加入群組（`ApplyModal` 送出申請）

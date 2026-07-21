@@ -3,6 +3,21 @@
 ## 使用者目標
 團主在群組服務期滿（`active` 狀態）後，決定是要開始下一期收款讓群組繼續運作，還是結束服務讓群組收尾。
 
+## 流程圖
+
+```mermaid
+flowchart TD
+    A[群組 active，顯示續訂管理入口] --> B[RenewalModal：顯示帳單日倒數]
+    B --> C{團主選擇}
+    C -->|開始新一期收款| D[POST /groups/:id/renew]
+    D --> E{全員餘額 ≥ seatCost}
+    E -->|否| F[400 INSUFFICIENT_BALANCE + memberIds]
+    E -->|是| G[$transaction：條件式扣款全體成員\n清空 serviceInfo，寫入 TokenTransaction(escrow)]
+    G --> H[群組 → pending_confirmation\nnextBillingDate 往後推一期]
+    H --> I[回到填寫帳號資訊流程]
+    C -->|結束服務| J[PATCH /groups/:id → ended]
+```
+
 ## 入口
 `HostGroupView` 側邊欄「續訂管理」按鈕（僅 `group.status === 'active'` 時顯示）→ 開啟 `RenewalModal`；亦可透過 `upcoming_renewal`／`group_renewal` 通知點擊 `navigate('/my-groups?view=member', { state: { openGroupId } })` 讓成員端提前得知即將扣款（成員本身無法操作續訂，僅團主可發起）
 

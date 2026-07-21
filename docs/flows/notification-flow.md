@@ -3,6 +3,29 @@
 ## 使用者目標
 使用者希望即時知道跟自己有關的動態（申請結果、群組狀態變化、成員異動等），並能一鍵點擊直接跳到對應的畫面，不用自己在各頁面裡找。
 
+## 流程圖
+
+```mermaid
+sequenceDiagram
+    participant BE as 後端業務 route
+    participant DB as Notification 表
+    participant FE as 前端（每 10 秒輪詢）
+    participant U as 使用者
+
+    BE->>DB: 業務事件觸發時 POST /notifications\n（附 type + meta.groupId）
+    loop 每 10 秒
+        FE->>DB: GET /notifications（optionalAuth）
+        DB-->>FE: 個人通知 + 公開公告
+    end
+    FE->>FE: dedupeById 去重，計算未讀數
+
+    U->>FE: 點擊某則通知
+    FE->>DB: PATCH /notifications/:id/read
+    FE->>FE: navigate(route) + dispatchEvent('pm:open-xxx')
+    Note over FE: 雙重觸發：同頁面 location.state 不會變化\n改用 window event 確保 Modal 一定開啟
+    FE-->>U: 導向對應頁面並開啟對應 Modal
+```
+
 ## 入口
 - `AppNav` 的通知按鈕（`window.dispatchEvent(new CustomEvent('pm:open-notify'))`）
 - `FloatingMessages`（全域監聽 `pm:open-notify`，渲染通知面板）

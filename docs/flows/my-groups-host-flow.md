@@ -3,6 +3,29 @@
 ## 使用者目標
 團主管理自己建立的群組：審核申請、鎖定群組開始收款、啟用服務、查看收款明細、回報成員帳號問題，以及在服務期間結束後續訂或結束群組。
 
+## 流程圖
+
+```mermaid
+flowchart TD
+    A[recruiting：審核申請] -->|核准| B[名額 -1，代管扣款]
+    A -->|拒絕| A
+    B --> C{名額額滿}
+    C -->|是| D[full：可移除成員釋出名額]
+    C -->|否| A
+    D -->|移除| A
+    D -->|點擊鎖定群組| E[pending_confirmation\n建立聊天室 + 設定 nextBillingDate]
+    E --> F[等待全員填寫帳號資訊]
+    F -->|全員完成| G[pending_activation：可啟用服務]
+    G -->|ActivateServiceModal 逐一確認| H[confirming：48h 確認期]
+    H -->|全員確認/逾期| I[active：查看收款明細]
+    H -->|成員申訴| J[disputed：等待平台裁定]
+    J --> I
+    I -->|開始新一期| E
+    I -->|結束服務| K[ended]
+    A -->|解散群組| L[cancelled：全額退款]
+    D -->|解散群組| L
+```
+
 ## 入口
 `/my-groups?view=host`（`MyGroupsPage` → `HostPage`）；也可透過通知點擊（`new_application`/`group_full`/`group_activated`/`member_left` 等）以 `navigate` + `pm:open-host-group` 事件直接開啟指定群組並自動展開對應面板
 

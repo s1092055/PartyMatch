@@ -3,6 +3,41 @@
 ## 使用者目標
 在群組詳情頁對一個 `recruiting` 狀態的群組送出加入申請，等待團主審核。
 
+## 流程圖
+
+```mermaid
+sequenceDiagram
+    participant U as 使用者
+    participant FE as 前端
+    participant BE as 後端
+    participant DB as 資料庫
+
+    U->>FE: 開啟群組詳情，點擊「申請加入」
+    FE->>FE: canApply 檢查（非團主/非成員/無進行中申請/未額滿/已登入）
+    U->>FE: 填寫申請留言，勾選同意條款
+    FE->>BE: POST /applications
+    BE->>DB: 查群組狀態 + 申請人 tokenBalance
+    alt 群組非 recruiting 或為自己的群組
+        BE-->>FE: 400
+    else 餘額 < 席位費用
+        BE-->>FE: 400 INSUFFICIENT_BALANCE
+        FE-->>U: toast「前往儲值」
+    else 已有進行中申請
+        BE-->>FE: 409
+    else 通過檢查
+        BE->>DB: 建立 Application（activeKey: 'active'）
+        BE-->>FE: 201
+        FE->>DB: 寫入通知（申請人 + 團主）
+        FE-->>U: 顯示「申請已送出」
+    end
+
+    Note over U,BE: 審核前可隨時撤回
+    U->>FE: 點擊「取消申請」
+    FE->>BE: DELETE /applications/:id
+    BE->>DB: status → withdrawn，清空 activeKey
+    BE-->>FE: 200（可重新申請同一群組）
+```
+
 ## 入口
 - `GroupDetailModal`（透過 `pm:open-group` custom event 開啟，於探索頁 `ExploreGroupCard`、快速搜尋結果、收藏頁等處點擊群組卡片觸發）內的「申請加入」按鈕（`buildMobileFooter.jsx` 手機版底部欄或桌機版對應按鈕）開啟 `ApplyModal` 子彈窗
 

@@ -3,6 +3,21 @@
 ## 使用者目標
 瀏覽目前開放招募的群組，透過分類、服務、價格上限、關鍵字搜尋與排序，找到符合需求的合購群組。
 
+## 流程圖
+
+```mermaid
+flowchart TD
+    A[App 啟動時 useGroupStore.init 快取全部群組] --> B[進入 /explore\nfilters 預設值（local state）]
+    B --> C[使用者操作 FilterBar\n分類 / 服務 / 價格 / 排序 / 關鍵字]
+    C --> D[allGroups 排除自己開的團]
+    D --> E[applyFilters 純前端運算]
+    E --> F[狀態: recruiting 且 openSeats > 0]
+    F --> G[依分類/服務/價格/關鍵字過濾]
+    G --> H[依 sortBy 排序]
+    H --> I[標記 已申請 / 已加入 badge]
+    I --> J[點擊卡片 → pm:open-group\n開啟 GroupDetailModal]
+```
+
 ## 入口
 - 導覽列／首頁進入 `/explore`（`ExplorePage`）
 - 快速搜尋結果頁（`Step4Results`）的「探索所有群組」按鈕也會導向 `/explore`
@@ -24,16 +39,16 @@
 - `Member`（用來判斷「已加入」badge）
 
 ## 使用技術
-- 篩選條件全部存在 URL query string（`useSearchParams`），不放 React state，重新整理或分享連結條件都會保留
-- 關鍵字輸入用本地 state + 300ms debounce（`FilterBar` 的 `useEffect` + `setTimeout`），避免每個按鍵都觸發一次 URL `replace`
+- 篩選條件存在 `ExplorePage` 的本地 `useState`（`DEFAULT_FILTERS`），不寫入 URL 也不放 store，重新整理頁面條件一律重置為預設值
+- 關鍵字輸入用本地 state + 300ms debounce（`FilterBar` 的 `useEffect` + `setTimeout`），避免每個按鍵都觸發一次上層更新
 - 篩選/排序全在前端對 `useGroupStore` 已快取的群組陣列做 `Array.filter`/`Array.sort`（`applyFilters`），不會另外打搜尋 API
 - `useMemo` 快取 `allGroups`（排除自己開的團）、`filtered`、已申請／已加入的 `Set`，避免每次 render 都重掃整個列表
 
 ## 流程步驟
 1. `App.jsx` 於公開資料初始化階段呼叫 `useGroupStore.init({ status: 'recruiting' })`（未登入）或 `{ status: 'all' }`（已登入），取得群組快取，`ExplorePage` 之後都是純前端運算，不再打 API
-2. 進入 `/explore` 時從 `useSearchParams` 讀出 `category`、`service`、`maxPrice`、`sortBy`、`q`，缺省時分別為 `all`/`all`/`any`/`recommended`/`''`
+2. 進入 `/explore` 時 `filters` 初始化為 `DEFAULT_FILTERS`（`category`/`service`/`maxPrice`/`sortBy`/`q` 分別為 `all`/`all`/`any`/`recommended`/`''`）
 3. `allGroups = groups.filter(g => g.hostId !== activeUserId)`：排除自己身為團主的群組
-4. 使用者操作 `FilterBar`（分類 pill、服務下拉、價格下拉、排序下拉、關鍵字輸入）時呼叫 `onChange(patch)` → `ExplorePage.handleFilterChange`，合併目前 filters 後把非預設值寫回 `URLSearchParams`，並以 `navigate(..., { replace: true })` 更新網址（不新增瀏覽紀錄）
+4. 使用者操作 `FilterBar`（分類 pill、服務下拉、價格下拉、排序下拉、關鍵字輸入）時呼叫 `onChange(patch)` → `ExplorePage.handleFilterChange`，合併進目前 `filters` 的本地 state（不觸發路由變化）
 5. `filtered = applyFilters(allGroups, filters)`（`useMemo`）依序套用：
    - 基礎條件：`status === 'recruiting' && openSeats > 0`
    - 分類：`category !== 'all' && service === 'all'` 時比對 `getServiceById(serviceId).category`

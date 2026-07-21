@@ -3,6 +3,44 @@
 ## 使用者目標
 團主檢視收到的加入申請，核准或拒絕；核准時系統要自動扣款、建立成員與訂閱、更新名額，且必須在高併發下保證不會超額或重複扣款。
 
+## 流程圖
+
+```mermaid
+sequenceDiagram
+    participant H as 團主
+    participant FE as 前端
+    participant BE as 後端
+    participant DB as 資料庫（$transaction）
+
+    H->>FE: 點擊「核准」/「拒絕」
+    FE->>BE: PATCH /applications/:id { status }
+
+    alt 拒絕
+        BE->>DB: status → rejected，清空 activeKey
+        BE-->>FE: 200
+    else 核准
+        BE->>DB: updateMany WHERE status='pending' → approved
+        alt count === 0（已被處理）
+            DB-->>BE: count 0
+            BE-->>FE: 409 已被處理，請重新整理
+        else count === 1
+            BE->>DB: 二次檢查申請人 tokenBalance ≥ 席位費用
+            BE->>DB: updateMany WHERE status='recruiting' AND currentMembers < maxMembers
+            alt 名額已滿
+                DB-->>BE: count 0
+                BE-->>FE: 409 名額已滿
+            else 名額成功鎖定
+                BE->>DB: 建立 Member + Subscription（upsert）
+                BE->>DB: 扣款 tokenBalance，寫入 TokenTransaction(escrow)
+                BE->>DB: currentMembers 達上限 → 群組 status → full
+                BE-->>FE: 200
+                FE->>DB: 重新 init member/subscription store
+                FE-->>H: 通知申請人「已通過」（額滿則另通知團主）
+            end
+        end
+    end
+```
+
 ## 入口
 - `/my-groups?view=host`（`HostPage`）→ 開啟某個群組的 `HostGroupView` → 「申請管理」分頁（`buildApplicationsPanel`），列出所有 `pending` 申請
 - 也可透過通知中心點擊「收到新的加入申請」通知，經 `pm:open-host-group` custom event（`{ openApplications: true }`）直接導向該群組的申請管理分頁
