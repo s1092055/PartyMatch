@@ -93,7 +93,16 @@ export default function GroupOverviewContent({ group, service, plan, reviewsSect
 
   return (
     <div className="divide-y divide-line-subtle">
-      {!hideServiceIntro && (
+      {hideServiceIntro ? (
+        (group.planName || service?.description) && (
+          <div className="pb-5 pt-0">
+            {group.planName && <p className="text-sm font-bold text-ink">{group.planName}</p>}
+            {service?.description && (
+              <p className="mt-1 line-clamp-2 text-sm text-ink-3">{service.description}</p>
+            )}
+          </div>
+        )
+      ) : (
         <div className="pb-5 pt-0">
           <p className="mb-4 text-lg font-black text-brand">服務介紹</p>
           <ServiceIntro service={service} plan={plan} planChips={planChips} />

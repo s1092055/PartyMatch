@@ -39,7 +39,7 @@ flowchart TD
 | `src/features/my-groups/member/components/ReviewHostModal.jsx` | 確認服務完成後的團主評價彈窗 |
 | `src/features/my-groups/member/utils/memberFilters.js` | 分頁篩選邏輯 |
 | `src/shared/ui/group/GroupViewModal.jsx` | 依身分決定渲染團主或成員視角的薄殼 |
-| `src/shared/ui/group/GroupModalShell.jsx` | 三層滑動 Panel 共用殼；`hideServiceIntro` 為 true 時群組概覽不顯示服務介紹 |
+| `src/shared/ui/group/GroupModalShell.jsx` | 三層滑動 Panel 共用殼；`hideServiceIntro` 為 true 時群組概覽改顯示精簡版（方案名稱＋一句話簡介），完整服務介紹留在服務內容分頁 |
 | `src/shared/ui/group/ServiceContentPanel.jsx` | 「服務內容」分頁內容（服務介紹＋方案內容），從群組概覽搬出獨立成頁 |
 | `src/shared/utils/groupStatus.js` | `isEffectivelyActive`，成員自行確認服務後個人視角提前視為已啟用 |
 
@@ -64,7 +64,7 @@ flowchart TD
 ## 使用技術
 - **樂觀更新，失敗會回滾**：填寫服務帳號時先寫本地 state，如果 `PATCH` 失敗就把資料復原成送出前的樣子（不是清空），避免使用者辛苦填好的內容無故消失
 - **三層滑動 Panel**：從總覽切到填寫帳號／申訴／成員名單／服務內容這類子面板，都是同一套滑動元件
-- **群組概覽跟服務內容分頁共用同一份服務介紹內容**：`ServiceIntro`（`GroupOverviewContent.jsx` 匯出）被 `ServiceContentPanel.jsx` 直接複用，避免同一段 UI 兩處維護；`GroupModalShell` 收到 `hideServiceIntro` 才會把服務介紹從概覽拿掉，讓探索頁 `GroupDetailModal`（未走側邊欄分頁）維持原本在概覽顯示服務介紹的行為不受影響
+- **群組概覽跟服務內容分頁共用同一份服務介紹內容**：`ServiceIntro`（`GroupOverviewContent.jsx` 匯出）被 `ServiceContentPanel.jsx` 直接複用，避免同一段 UI 兩處維護；`GroupModalShell` 收到 `hideServiceIntro` 時，概覽只留方案名稱＋服務簡介一句話（避免團主資訊填得少時版面空白），完整內容仍要點進服務內容分頁才看得到；探索頁 `GroupDetailModal`（未走側邊欄分頁）不受影響，維持原本在概覽顯示完整服務介紹
 - **不可逆操作要倒數確認**：確認服務、退出群組都要透過 `CountdownConfirmDialog` 倒數幾秒才能真的送出，避免手滑誤觸
 - 申訴附件會先上傳到圖床拿到 URL，再隨申訴表單一起送出
 - 從群組概覽或成員名單可以直接觸發開啟群組聊天室或私訊團主
