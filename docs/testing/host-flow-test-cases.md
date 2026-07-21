@@ -45,7 +45,7 @@
 
 **預期結果**（`PATCH /applications/:id`，`status: 'rejected'`）：
 - 申請狀態變為 `rejected`，`activeKey` 清空
-- 不涉及任何PM幣異動（拒絕不扣款，因為核准前只做餘額檢查未預扣）
+- 代管退款：申請人 `tokenBalance` 加回席位費用，群組 `escrowTokens` 減少同額，寫入一筆 `tokenTransaction`（`type: 'refund'`）——因為代管扣款已在申請當下完成，見 [`core-flow-test-cases.md`](./core-flow-test-cases.md) TC-004b
 - 申請人收到 `application_rejected` 通知
 - 申請人可對同一群組重新申請（`applications.js` 白名單包含 `rejected`）
 - 拒絕後的申請紀錄可在「申請管理」的「審核紀錄」第三層 panel 中查看（含篩選）

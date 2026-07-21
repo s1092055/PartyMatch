@@ -127,6 +127,9 @@ export default function GroupDetailModal() {
     try {
       await useApplicationStore.getState().withdraw(app.id)
       setWithdrawConfirm(false)
+    } catch (err) {
+      const msg = err?.response?.data?.message ?? err?.message ?? '撤回申請失敗，請稍後再試'
+      toast(msg, 'error')
     } finally {
       setWithdrawing(false)
     }

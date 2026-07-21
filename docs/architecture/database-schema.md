@@ -10,7 +10,7 @@
 | `payment_methods` | 使用者付款方式（`brand`、卡片末四碼、有效期限、是否為預設） |
 | `services` | 30 種訂閱服務清單與方案（JSON 欄位） |
 | `groups` | 群組主資料（狀態、名額、方案、`billingCycle`、`escrowTokens`（代管中PM幣總額）、`confirmDeadline`（`confirming` 狀態的確認截止時間，啟用時間 + 48h）、`disputeDeadline`（`disputed` 狀態的裁定截止時間，申訴提出時間 + 3 天）） |
-| `applications` | 申請紀錄（`pending` / `approved` / `rejected` / `removed` / `left` / `withdrawn`）；`withdrawn` 為申請人在審核前自行取消；被拒絕、移除、退出或自行取消後可重新申請（建立新記錄，保留歷史）；`activeKey` 只在 `pending`/`approved`（進行中）時為 `'active'`，其餘狀態為 `null`，搭配 `@@unique([groupId, userId, activeKey])`（MySQL unique index 允許多個 null 並存）模擬「同一使用者對同一群組最多一筆進行中申請」的 partial unique index，避免併發送出申請造成重複 pending 申請 |
+| `applications` | 申請紀錄（`pending` / `approved` / `rejected` / `removed` / `left` / `withdrawn`）；`withdrawn` 為申請人在審核前自行取消；被拒絕、移除、退出或自行取消後可重新申請（建立新記錄，保留歷史）；`escrowAmount` 記錄送出申請當下實際代管扣款的金額，撤回/拒絕退款要用這個值而非即時價格重算，避免群組價格事後變動導致退款金額對不上；`activeKey` 只在 `pending`/`approved`（進行中）時為 `'active'`，其餘狀態為 `null`，搭配 `@@unique([groupId, userId, activeKey])`（MySQL unique index 允許多個 null 並存）模擬「同一使用者對同一群組最多一筆進行中申請」的 partial unique index，避免併發送出申請造成重複 pending 申請 |
 | `members` | 群組成員（`serviceInfo` 訂閱帳號資訊、`serviceInfoIssueNote`、`disputeEvidenceUrl`（僅申訴階段使用，成員提供的爭議佐證截圖）） |
 | `subscriptions` | 成員訂閱（帳號資訊、訂閱狀態、下次扣款日、`lastPaidAt`） |
 | `token_transactions` | PM幣交易審計日誌（`userId`、`type`、`amount`、`relatedGroupId`、`note`）；類型包含 `topup`（儲值）、`escrow`（凍結至代管）、`release`（撥款給團主）、`refund`（退還給成員） |
@@ -47,7 +47,7 @@
 |------|------|----------|
 | `recruiting` | 招募中 | 審核申請、查看成員 |
 | `full` | 名額已滿，等待團主鎖定群組 | 點「鎖定群組」（同時設定所有成員訂閱的下次扣款日） |
-| `pending_confirmation` | 帳號資訊填寫階段：成員填寫訂閱帳號資訊；**付款已在核准時代管完成，扣款日已在鎖定時設定，本階段無任何付款操作** | 全員填寫完成後自動推進 |
+| `pending_confirmation` | 帳號資訊填寫階段：成員填寫訂閱帳號資訊；**付款已在申請當下代管完成，扣款日已在鎖定時設定，本階段無任何付款操作** | 全員填寫完成後自動推進 |
 | `pending_activation` | 帳號資訊齊全，等待團主啟用服務 | 啟用服務 |
 | `confirming` | 服務啟用後最長 2 天（48 小時）確認期倒數；成員主動確認則倒數立即結束並撥款；成員向平台申訴則進入 `disputed`；倒數結束未操作則自動撥款。**注意**：`group.status` 是全體共用的真實狀態，只有全員都確認（或倒數結束自動撥款）才會轉為 `active`；但已自行確認的成員在自己的畫面（群組卡片、群組詳情）會顯示為「啟用中」，這是前端依 `member.confirmedAt` 計算的個人化顯示，不代表群組真實狀態已改變 | 成員主動確認（即時結束）/ 向平台申訴 / 後端惰性自動撥款 |
 | `disputed` | 有成員向平台正式申訴；`disputeDeadline` 設為申訴提出時間 + 3 天；代管金額凍結，由平台客服在期限內裁定並附說明；裁定只影響申訴的那位成員，其餘成員不受影響；**成員獲勝** → 退款給該成員並離開群組、群組回 `active`；**團主獲勝** → 代管撥款給團主、群組回 `active` | 平台客服裁定後手動推進 |
@@ -64,9 +64,11 @@
 ### 交易流程
 
 ```
-申請階段：系統檢查 user.tokenBalance 是否 ≥ 席位費用（不扣款）
+申請階段：user.tokenBalance -= 席位費用；group.escrowTokens += 費用；寫入 token_transaction（type: escrow）
      ↓
-團主核准：user.tokenBalance -= 費用；group.escrowTokens += 費用；寫入 token_transaction（type: escrow）
+團主核准：僅建立 member/subscription、名額 +1，代管金額已在申請時扣款，這裡不再重複扣款
+     ↓
+團主拒絕 / 申請人撤回：group.escrowTokens -= 費用；user.tokenBalance += 費用；寫入 token_transaction（type: refund）
      ↓
 團主鎖定群組：設定各成員訂閱的 nextBillingDate
      ↓

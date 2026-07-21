@@ -10,6 +10,7 @@ import { insertNotification } from '../api/notificationsApi'
 import { normalizeApplication } from '../utils/modelNormalizers'
 import { nowISO, byNewest } from '../utils/date'
 import { createId } from '../utils/storage'
+import { useAuthStore } from './useAuthStore'
 import { useNotificationStore } from './useNotificationStore'
 
 export const useApplicationStore = create((set, get) => ({
@@ -78,6 +79,8 @@ export const useApplicationStore = create((set, get) => ({
     const saved = await insertApplication({ groupId, message: message ?? '' })
     app.id = saved.id
     set(s => ({ applications: [app, ...s.applications] }))
+    // 申請當下就會代管扣款，重新拉一次餘額讓畫面上的PM幣顯示同步
+    useAuthStore.getState().refreshTokenBalance()
     const notifStore = useNotificationStore.getState()
     // 通知申請人（本人，即時寫入本地 store + DB）
     notifStore.create({
@@ -124,6 +127,8 @@ export const useApplicationStore = create((set, get) => ({
     }))
     try {
       await deleteApplication(id)
+      // 撤回會退還申請當下代管的金額，重新拉一次餘額讓畫面上的PM幣顯示同步
+      useAuthStore.getState().refreshTokenBalance()
     } catch (err) {
       await get().init()
       throw err

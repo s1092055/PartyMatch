@@ -62,7 +62,7 @@ const ALLOWED_TRANSITIONS = {
 | 狀態 | 說明 | 觸發者 / 端點 | 前置條件 |
 |------|------|----------------|----------|
 | `recruiting` | 招募中，開放申請 | `POST /groups`（建立時預設值） | — |
-| `recruiting → full` | 名額額滿 | `admitMemberIntoGroup()`（`server/src/utils/membership.js`），由 `PATCH /applications/:id`（核准申請）或 `POST /members`（團主直接加人）呼叫 | 加入後重新查詢 `currentMembers >= maxMembers` 才自動推進；用條件式 `updateMany({ where: { status: 'recruiting', currentMembers: { lt: maxMembers } } })` 防止併發加入超額 |
+| `recruiting → full` | 名額額滿 | `server/src/utils/membership.js` 的 `finalizeApprovedApplication()`（由 `PATCH /applications/:id` 核准申請呼叫）或 `admitMemberIntoGroup()`（由 `POST /members` 團主直接加人呼叫） | 加入後重新查詢 `currentMembers >= maxMembers` 才自動推進；用條件式 `updateMany({ where: { status: 'recruiting', currentMembers: { lt: maxMembers } } })` 防止併發加入超額 |
 | `full → recruiting` | 成員退出或被移除，釋出名額 | 團主移除成員（`src/features/my-groups/host/hooks/useHostActions.js` 的 `handleRemoveMember`）或成員主動退出（`src/features/group/utils/leaveGroupFlow.js`），前端樂觀 `updateGroup(groupId, { status: 'recruiting' })`，同時退款 | 僅當群組目前狀態為 `full` 時才把狀態改回 `recruiting`（見 `useHostActions.js` 內 `group?.status === 'full' ? { status: 'recruiting' } : {}`） |
 | `full → pending_confirmation` | 團主鎖定群組 | `POST /groups/:id/lock` | 僅團主可操作；群組狀態須為 `full`，否則 400；成功後以 transaction 同步設定所有成員 `Subscription.nextBillingDate` |
 | `pending_confirmation → pending_activation` | 全員填寫服務帳號資訊完成 | 前端偵測全員 `member.serviceInfo` 皆已填寫後，呼叫 `PATCH /groups/:id`（`status: 'pending_activation'`），受 `ALLOWED_TRANSITIONS` 表允許 | — |
@@ -83,7 +83,9 @@ const ALLOWED_TRANSITIONS = {
 
 | 時機 | PM幣異動 | `TokenTransaction.type` |
 |------|----------|--------------------------|
-| 申請核准（`admitMemberIntoGroup`） | 申請人 `tokenBalance` -= 席位費用；`group.escrowTokens` += 費用 | `escrow` |
+| 送出申請（`POST /applications`） | 申請人 `tokenBalance` -= 席位費用；`group.escrowTokens` += 費用 | `escrow` |
+| 團主拒絕 / 申請人撤回 | `group.escrowTokens` -= 費用；申請人 `tokenBalance` += 費用 | `refund` |
+| 申請核准（`finalizeApprovedApplication`） | 僅建立成員/訂閱、更新名額，代管金額已在申請時扣過，不再異動 | — |
 | 確認期結束（`/confirm` 或惰性撥款） | `group.escrowTokens` → 團主 `tokenBalance` | `release` |
 | 成員退出 / 被移除 | `group.escrowTokens` → 該成員 `tokenBalance` | `refund` |
 | 團主解散群組（`/cancel`） | 所有成員 `group.escrowTokens` → 各自 `tokenBalance` | `refund` |

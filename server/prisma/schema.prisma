@@ -177,6 +177,11 @@ model Application {
   user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   status    ApplicationStatus @default(pending)
   message   String?
+  // 送出申請當下實際代管扣款的金額（見 applications.js 的 POST /）。撤回／拒絕退款時要用這個值，
+  // 不能用 computeSeatCost(group) 重新計算——群組的 monthlyFee/billingCycle 之後可能被團主改掉，
+  // 用即時價格算退款會跟當初真正扣的錢對不上。舊資料或非經 API 建立的 seed 資料可能沒有這個值，
+  // 退款時要 fallback 回 computeSeatCost(group)。
+  escrowAmount Int?
   // 只有 pending/approved（進行中）時為 'active'，其餘狀態為 null。
   // MySQL 的 unique index 允許多個 null 並存，藉此模擬「同一使用者對同一群組最多一筆進行中申請」
   // 的 partial unique index，避免併發送出申請時 race condition 造成重複的 pending 申請。

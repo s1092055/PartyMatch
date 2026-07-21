@@ -1,6 +1,6 @@
 # 核心主線測試案例
 
-涵蓋：建立群組 → 申請加入 → 團主審核 → PM幣扣款 → 額滿鎖定 → 填服務資訊 → 團主啟用 → 成員確認。對應程式碼：`server/src/routes/{groups,applications,members}.js`、`server/src/utils/membership.js`、`server/src/utils/pricing.js`。
+涵蓋：建立群組 → 申請加入（代管扣款） → 團主審核 → 額滿鎖定 → 填服務資訊 → 團主啟用 → 成員確認。對應程式碼：`server/src/routes/{groups,applications,members}.js`、`server/src/utils/membership.js`、`server/src/utils/pricing.js`。
 
 測試帳號見 [`test-accounts.md`](./test-accounts.md)。建議用一組全新建立的群組（而非 seed 資料）跑完整主線，因為 seed 群組多半已卡在流程中間某個狀態。
 
@@ -25,7 +25,7 @@
 
 ---
 
-### TC-002：一般成員申請加入（餘額充足）
+### TC-002：一般成員申請加入（餘額充足，代管扣款）
 
 **前置條件**：延續 TC-001 建立的群組（席位費用假設為 X PM，可從群組詳情頁確認）；以 demo5（李冠宇，餘額 1000）登入，確認 1000 ≥ X。
 
@@ -37,10 +37,28 @@
 
 **預期結果**：
 - `POST /applications` 回傳 201，`status: 'pending'`
-- **此階段僅為餘額檢查，不預扣**：demo5 的 `tokenBalance` 不變
+- **代管扣款發生在這一步，不是等團主核准**：demo5 的 `tokenBalance` 立即減少 X PM
+- 群組 `escrowTokens` 增加 X PM
+- 寫入一筆 `tokenTransaction`（`type: 'escrow'`，`amount: -X`）
 - 團主（demo4）收到 `new_application` 通知
 - demo5 收到 `application_sent` 通知
 - demo5 無法對同一群組再送出第二筆進行中申請（`POST /applications` 應回傳 409「你已有一筆進行中的申請」，依 `activeKey` unique index 保護）
+
+---
+
+### TC-002b：申請人撤回申請（退款）
+
+**前置條件**：延續 TC-002，demo5 有 1 筆 `pending` 申請，`tokenBalance` 已扣除 X PM。
+
+**步驟**：
+1. demo5 在群組詳情頁點擊「取消申請」
+
+**預期結果**（`DELETE /applications/:id`）：
+- 申請狀態變為 `withdrawn`，`activeKey` 清空
+- demo5 的 `tokenBalance` 加回 X PM，回到扣款前的餘額
+- 群組 `escrowTokens` 減少 X PM
+- 寫入一筆 `tokenTransaction`（`type: 'refund'`）
+- demo5 可對同一群組重新申請
 
 ---
 
@@ -54,28 +72,42 @@
 
 **預期結果**：
 - 前端／後端 `POST /applications` 回傳 400，`code: 'INSUFFICIENT_BALANCE'`，訊息包含所需金額與目前餘額（`server/src/routes/applications.js` 第 52-56 行）
-- UI 應提示前往儲值（依 `docs/flows/user-flows.md` 1-A 流程，`E -->|餘額不足| E1[提示前往儲值]`）
+- UI 應提示前往儲值（依 `docs/flows/apply-join-flow.md` 流程圖，餘額不足時 `toast「前往儲值」`）
 - 不會建立任何 application 記錄
 
 ---
 
-### TC-004：團主審核核准（PM幣代管扣款）
+### TC-004：團主審核核准（不再重複扣款）
 
-**前置條件**：延續 TC-002，demo4 為團主，demo5 有 1 筆 `pending` 申請，席位費用 X PM。
+**前置條件**：延續 TC-002，demo4 為團主，demo5 有 1 筆 `pending` 申請（已在申請時扣款 X PM 進代管），席位費用 X PM。
 
 **步驟**：
 1. demo4 登入，開啟「我的群組」團主視角 → 該群組 → 申請管理
 2. 找到 demo5 的申請，點擊「核准」
 
-**預期結果**（`applications.js` PATCH `/:id`，`admitMemberIntoGroup`）：
+**預期結果**（`applications.js` PATCH `/:id`，呼叫 `finalizeApprovedApplication`）：
 - 申請狀態條件式更新為 `approved`（僅 `pending` 才能轉換，防止重複核准）
 - 建立 `member` 與 `subscription` 記錄（`status: 'pending'`）
-- demo5 的 `tokenBalance` 減少 X PM
-- 群組 `escrowTokens` 增加 X PM
 - 群組 `currentMembers` +1
-- 寫入一筆 `tokenTransaction`（`type: 'escrow'`，`amount: -X`）
+- **demo5 的 `tokenBalance` 與群組 `escrowTokens` 都不再變動**（代管扣款已在 TC-002 申請時完成），也不會多寫一筆 `tokenTransaction`
 - 若核准後 `currentMembers >= maxMembers`，群組狀態自動推進為 `full`；否則維持 `recruiting`
 - demo5 收到 `application_approved` 通知
+
+---
+
+### TC-004b：團主審核拒絕（代管退款）
+
+**前置條件**：另建一筆 `pending` 申請（例如 demo3 對同一群組或另一群組送出申請），已在申請時扣款 Y PM 進代管。
+
+**步驟**：
+1. demo4 開啟申請管理，找到該筆申請，點擊「拒絕」
+
+**預期結果**（`applications.js` PATCH `/:id`，非 approved 分支）：
+- 申請狀態條件式更新為 `rejected`（僅 `pending` 才處理，避免重複退款）
+- 申請人的 `tokenBalance` 加回 Y PM
+- 群組 `escrowTokens` 減少 Y PM
+- 寫入一筆 `tokenTransaction`（`type: 'refund'`）
+- 申請人收到 `application_rejected` 通知，並可重新申請同一群組
 
 ---
 
@@ -88,7 +120,7 @@
 
 **預期結果**：
 - `currentMembers` 變為 2（等於 `maxMembers`）
-- 群組狀態自動由 `recruiting` 變為 `full`（`admitMemberIntoGroup` 最後一段邏輯）
+- 群組狀態自動由 `recruiting` 變為 `full`（`finalizeApprovedApplication` 最後一段邏輯）
 - 群組詳情頁團主視角出現「招募完成，請點擊鎖定群組」banner 與「鎖定群組」CTA（`HostGroupView.jsx` 的 `lockGroupBanner`/`lockGroupCta`，僅在 `status === 'full'` 顯示）
 - `recruiting` 狀態時可用的「申請管理」分頁改為顯示「收款管理」分頁（`isRecruiting` 判斷已為 false）
 

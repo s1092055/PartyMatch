@@ -4,7 +4,7 @@
 
 ## 1. 交易安全性：Prisma transaction + 條件式 updateMany
 
-核准申請時，餘額檢查、名額更新、成員/訂閱建立、PM幣扣款全部包在同一個 Prisma `$transaction` 裡。名額檢查跟申請狀態變更都用條件式 `updateMany`（例如要 `status: 'recruiting'` 且 `currentMembers < maxMembers` 才准寫入，要 `status: 'pending'` 才能轉成 `approved`），不是先讀一次再寫。
+代管扣款發生在使用者「送出申請」的當下（不是等團主核准才扣），餘額檢查、扣款、寫入交易紀錄一樣包在 Prisma `$transaction` 裡；核准時只需要建立成員/訂閱、更新名額，不用再扣一次錢。名額檢查跟申請狀態變更都用條件式 `updateMany`（例如要 `status: 'recruiting'` 且 `currentMembers < maxMembers` 才准寫入，要 `status: 'pending'` 才能轉成 `approved`/`rejected`），不是先讀一次再寫。
 
 原因很直接：先讀後寫在併發下會出包——兩個人搶最後一個名額、或同一筆申請被雙擊兩次，都可能超額或重複扣款。條件式 `updateMany` 把檢查跟寫入合成一個原子操作，靠資料庫本身的原子性擋掉這個問題。
 

@@ -59,7 +59,7 @@ flowchart TD
 | `server/src/routes/applications.js` | `PATCH /:id`（核准／拒絕） |
 | `server/src/routes/members.js` | `POST /`（團主手動加人）、`PATCH /:id`（回報帳號問題）、`DELETE /:id`（移除成員） |
 | `server/src/routes/conversations.js` | `POST /group`（鎖定群組時建立聊天室） |
-| `server/src/utils/membership.js` | `admitMemberIntoGroup` |
+| `server/src/utils/membership.js` | `finalizeApprovedApplication`（核准申請）、`admitMemberIntoGroup`（團主手動加人）、`refundEscrow`（移除成員退款） |
 
 **資料表 / Model**
 

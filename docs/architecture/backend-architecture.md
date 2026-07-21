@@ -60,9 +60,12 @@ Schema 定義於 `server/prisma/schema.prisma`，`datasource` 為 MySQL 8，所�
 
 涉及「多個資料表需一起成功或一起失敗」的業務流程一律包在 `prisma.$transaction(async (tx) => { ... })` 內：
 
-- **`applications.js` 的 `PATCH /:id`（核准申請）**：條件式 `updateMany`（僅 `status: 'pending'` 才能轉 `approved`，避免併發重複核准）→ 檢查群組名額 → 呼叫共用的 `admitMemberIntoGroup(tx, ...)`（`server/src/utils/membership.js`，內含建立 member/subscription、PM幣代管扣款、名額與招募狀態更新）；任一步驟失敗整包回滾，避免「申請已標記 approved 但成員/代管資料未建立」的不一致狀態。
-- **`members.js` 的 `POST /`（團主手動加入成員）**：同樣呼叫 `admitMemberIntoGroup(tx, ...)`，與申請核准流程共用同一套名額與代管邏輯，避免繞過上限。
-- **`members.js` 的 `DELETE /:id`（移除成員／成員退出）**：刪除 member → 群組人數遞減與 `escrowTokens` 退款 → 使用者 PM幣退款 → 寫入 `TokenTransaction` → 對應 `Application` 狀態改為 `left`/`removed`，全部在同一 transaction 內完成。
+- **`applications.js` 的 `POST /`（送出申請）**：代管扣款發生在這裡，不是等團主核准——條件式 `updateMany` 扣款（`tokenBalance: { gte: seatCost }`）→ 建立 `Application`（含 `escrowAmount: seatCost`，記錄實際扣了多少錢）→ `group.escrowTokens` 增加 → 寫入 `TokenTransaction`；任一步驟失敗整包回滾。
+- **`applications.js` 的 `PATCH /:id`（核准申請）**：條件式 `updateMany`（僅 `status: 'pending'` 才能轉 `approved`，避免併發重複核准）→ 檢查群組名額 → 呼叫 `finalizeApprovedApplication(tx, ...)`（`server/src/utils/membership.js`，只做名額與招募狀態更新、建立 member/subscription，因為代管扣款已在申請時完成，這裡完全不碰 `tokenBalance`/`escrowTokens`）。拒絕分支則先用條件式 `updateMany`（僅 `status: 'pending'` 才算數）決定要不要呼叫 `refundEscrow` 退款，但狀態轉換（`status`/`activeKey`）不論退款與否都會無條件寫入——早期版本曾經把狀態寫入也綁進這個條件式，導致跟團主移除已核准成員（該申請當下狀態是 `approved` 不是 `pending`）撞在一起時，狀態被誤判成不用處理而卡住，已修正為狀態轉換與退款是兩個各自獨立判斷的步驟。
+- **`applications.js` 的 `DELETE /:id`（撤回申請）**：跟拒絕分支相同的退款邏輯，僅本人可對自己 `pending` 的申請操作。
+- **`members.js` 的 `POST /`（團主手動加入成員）**：呼叫 `admitMemberIntoGroup(tx, ...)`（走完整扣款邏輯，因為這個路徑沒有經過「申請」步驟），與申請核准流程共用同一套名額邏輯，避免繞過上限。
+- **`members.js` 的 `DELETE /:id`（移除成員／成員退出）**：刪除 member → 群組人數遞減 → 呼叫 `refundEscrow` 退款給使用者 → 對應 `Application` 狀態改為 `left`/`removed`，全部在同一 transaction 內完成。
+- 上述三處退款（拒絕、撤回、成員移除/退出）都共用 `server/src/utils/membership.js` 的 `refundEscrow(tx, { userId, groupId, amount, note })`，退款金額一律由呼叫端算好（取當初 `escrowAmount` 與目前 `escrowTokens` 的 `Math.min`）再傳進去，避免三處各自重寫一次「加回餘額、扣代管、寫交易紀錄」且退款上限的夾法不一致。
 
 非跨表寫入或不需要原子性的查詢（如各資源的 `GET`）則直接呼叫 `prisma.<model>.findMany`/`findUnique`，不包 transaction。
 

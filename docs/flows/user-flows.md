@@ -1,242 +1,67 @@
-# 操作流程
+# 使用者流程總覽
 
-## 群組狀態機
+這篇是整個平台操作流程的入口，先看這篇抓整體輪廓，想知道某一步的細節再點連結到對應的個別流程文件（裡面有更詳細的 Mermaid 圖、相關檔案、驗證重點）。
+
+## 整體流程
+
+1. **找群組**：透過探索頁篩選，或用免登入的快速搜尋配對 → 詳見 [探索群組流程](./explore-flow.md)、[快速搜尋流程](./quick-match-flow.md)
+2. **送出申請**：對招募中的群組送出加入申請，系統立即從申請人餘額扣款、轉入該群組的代管餘額 → 詳見 [申請加入流程](./apply-join-flow.md)
+3. **團主審核**：核准就建立成員資格；拒絕則把代管的席位費用退還給申請人，申請人可重新提出 → 詳見 [團主審核流程](./approval-flow.md)
+4. **鎖定群組**：名額額滿後，團主鎖定群組、建立聊天室，成員開始填寫訂閱帳號資訊 → 詳見 [我的群組（團主視角）流程](./my-groups-host-flow.md)
+5. **啟用服務**：帳號資訊齊全後團主啟用服務，進入 48 小時確認期；成員可主動確認、透過聊天室反應問題，或正式申訴 → 詳見 [我的群組（成員視角）流程](./my-groups-member-flow.md)、[申訴流程](./dispute-flow.md)
+6. **撥款**：全員確認（或確認期逾期）後，代管金額撥款給團主，訂閱進入啟用中 → 詳見 [PM幣代管與付款流程](./payment-token-flow.md)
+7. **續訂或結束**：服務期滿後，團主決定開始下一期收款或結束群組 → 詳見 [續訂流程](./renewal-flow.md)
+
+貫穿整個流程的還有兩塊共用機制：[訊息流程](./messages-flow.md)（群組聊天室、私訊、系統通知）與 [通知流程](./notification-flow.md)（站內通知與點擊導向）。
+
+## 群組狀態機（簡圖）
+
+一個群組從建立到結束，狀態只會照下面的圖走，不會跳步驟：
 
 ```mermaid
 stateDiagram-v2
   [*] --> recruiting : 團主建立群組
   recruiting --> full : 名額額滿（最後申請核准）
+  full --> recruiting : 成員退出/被移除，釋出名額
   full --> pending_confirmation : 團主鎖定群組
   pending_confirmation --> pending_activation : 全員填寫帳號資訊完成
   pending_activation --> confirming : 團主啟用服務（48h 確認期開始）
   confirming --> active : 成員主動確認 / 逾期未操作（自動撥款）
   confirming --> disputed : 成員向平台正式申訴
-  disputed --> active : 平台客服裁定後（撥款或退款）→ 群組回 active
+  disputed --> active : 平台客服裁定後（撥款或退款）
   active --> pending_confirmation : 團主開始新一期收款
   active --> ended : 團主結束服務
-  recruiting --> cancelled : 團主解散群組（尚未鎖定群組前）
-  full --> cancelled : 團主解散群組（尚未鎖定群組前）
+  recruiting --> cancelled : 團主解散群組
+  full --> cancelled : 團主解散群組
 ```
 
-| 狀態 | 說明 | 推進條件 |
-|------|------|----------|
-| `recruiting` | 公開招募中，接受申請 | 最後一個申請被核准且名額額滿 → 系統自動推進至 `full` |
-| `full` | 名額額滿，等待團主鎖定群組；成員仍可退出或被移除（釋出名額，退回 `recruiting`） | 團主點「鎖定群組」 |
-| `pending_confirmation` | 成員填寫訂閱帳號資訊；**付款已在核准時代管完成，本階段無付款操作**；成員名單不可再變動 | 全員填寫完成後自動推進 |
-| `pending_activation` | 帳號資訊齊全，等待團主啟用服務；成員名單不可再變動 | 團主點「啟用服務」 |
-| `confirming` | 服務啟用後最長 48 小時確認期；成員可主動確認、向團主反應或向平台申訴；逾期未操作則自動撥款 | 成員主動確認（即時結束）或逾期未操作（惰性求值）|
-| `disputed` | 成員向平台正式申訴；代管金額凍結，客服 3 天內裁定；裁定只影響申訴的那位成員 | 平台客服手動推進 |
-| `active` | 服務運作中；成員名單不可再變動 | 團主開始新一期收款或結束服務 |
-| `cancelled` | 團主在鎖定群組前解散群組；所有代管金額退還成員PM幣餘額 | — |
-| `ended` | 服務到期後團主結束服務 | — |
+每個狀態實際的推進條件、觸發端點、前置檢查，見 [群組狀態機](./group-state-machine.md) 的完整版。
 
----
+## 依角色查看細節流程
 
-## 成員端
+### 成員端
 
-### 1-A 探索與申請加入
+| 流程 | 說明 |
+|------|------|
+| [探索群組流程](./explore-flow.md) | 分類、服務、價格、關鍵字篩選找群組 |
+| [快速搜尋流程](./quick-match-flow.md) | 免登入的三步驟配對，依推薦分數排序 |
+| [申請加入流程](./apply-join-flow.md) | 送出申請、等待審核、審核前可撤回 |
+| [我的群組（成員視角）流程](./my-groups-member-flow.md) | 填寫帳號、確認服務、退出群組 |
+| [申訴流程](./dispute-flow.md) | 服務有問題時向平台正式申訴 |
 
-```mermaid
-flowchart TD
-  A[瀏覽探索頁 / 快速搜尋結果] --> B[打開群組詳情]
-  B --> C{是否申請}
-  C -->|否| A
-  C -->|是| D{是否已登入}
-  D -->|否| D1[前往登入或註冊]
-  D -->|是| E{系統檢查PM幣餘額 ≥ 席位費用}
-  E -->|餘額不足| E1[提示前往儲值]
-  E -->|餘額充足| F[在 subPanel 填寫申請留言並勾選同意]
-  F --> G[送出申請]
-  G --> H[等待團主審核]
-  H -->|主動取消| H0[在群組詳情點「取消申請」並確認\n申請狀態設為 withdrawn\n可重新申請同一群組]
-  H -->|被拒絕| H1[收到通知，可重新申請（建立新記錄）]
-  H -->|被核准| I[收到通知\nPM幣餘額扣除席位費用進入代管\n付款至此完成，後續不需任何付款操作]
-```
+### 團主端
 
-### 1-B 等待啟用期間（`recruiting` → `full` → `pending_confirmation`）
+| 流程 | 說明 |
+|------|------|
+| [建立群組流程](./create-group-flow.md) | 4 步驟表單建立招募中的群組 |
+| [團主審核流程](./approval-flow.md) | 核准或拒絕申請，核准會自動扣款、建成員 |
+| [我的群組（團主視角）流程](./my-groups-host-flow.md) | 鎖定群組、啟用服務、收款管理、解散群組 |
+| [續訂流程](./renewal-flow.md) | 服務期滿後開始下一期收款或結束服務 |
 
-```mermaid
-flowchart TD
-  A[申請核准，群組狀態 recruiting] --> B{是否退出群組}
-  B -->|退出| C[點擊「退出群組」並確認]
-  C --> D[代管費用退還至PM幣餘額\nmember + subscription 刪除\napplication 標為 left\n名額釋出，通知團主]
-  D --> E[可重新申請同一群組]
-  B -->|繼續等待| F{群組名額是否額滿}
-  F -->|尚未額滿| B
-  F -->|額滿，群組進入 full| G{是否退出群組}
-  G -->|退出| C
-  G -->|繼續等待| H[等待團主鎖定群組]
-  H --> I[團主鎖定後，收到群組聊天室已開啟通知]
-  I --> J[群組進入 pending_confirmation，可開始填寫帳號資訊]
-```
+### 共用機制
 
-### 1-C 填寫訂閱帳號資訊（`pending_confirmation`）
-
-```mermaid
-flowchart TD
-  A[在我的群組開啟群組] --> B[填寫訂閱帳號資訊（email 等）]
-  B --> C{全員是否都已填寫}
-  C -->|尚未全員| B
-  C -->|完成| D[系統自動推進至 pending_activation\n等待團主啟用服務]
-```
-
-### 1-D 確認期（`confirming`）
-
-```mermaid
-flowchart TD
-  A[收到服務已啟用通知，48h 確認期開始] --> B{48h 內操作}
-  B -->|主動確認服務正常| C[確認期立即結束\n代管金額即時撥款給團主\n收到確認完成通知]
-  B -->|向團主反應問題| D[透過群組聊天室溝通\n狀態維持 confirming，倒數繼續]
-  B -->|向平台正式申訴| E[進入爭議申訴流程 → 見 1-E]
-  B -->|逾期未操作| F[代管金額自動撥款給團主\n收到確認期已結束通知]
-  C --> G[訂閱移至啟用中]
-  F --> G
-```
-
-### 1-E 爭議申訴（`disputed`）
-
-```mermaid
-flowchart TD
-  A[在確認期內點擊「申訴」，開啟向平台申訴表單] --> B[填寫申訴原因並上傳截圖佐證，點擊送出申訴]
-  B --> C[群組進入 disputed，代管金額凍結\ndisputeDeadline = 申訴提出時間 + 3 天]
-  C --> D[等待平台客服在 3 天內裁定]
-  D -->|成員獲勝| E[PM幣退還至成員餘額\n成員離開群組\n群組回 active（其餘成員不受影響）]
-  D -->|團主獲勝| F[代管金額撥款給團主\n群組回 active]
-  E --> G[收到裁定結果通知（附說明）]
-  F --> G
-```
-
----
-
-## 團主端
-
-### 2-A 建立群組
-
-```mermaid
-flowchart TD
-  A[點擊建立群組] --> B[選擇服務與方案]
-  B --> C[設定名額、規則、加入條件]
-  C --> D[確認建立 → 群組狀態 recruiting]
-```
-
-### 2-B 審核申請（`recruiting`）
-
-```mermaid
-flowchart TD
-  A[收到新申請通知] --> B[查看申請者資料]
-  B --> C{核准或拒絕}
-  C -->|拒絕| D[通知申請者；申請者可重新申請]
-  C -->|核准| E[系統自動扣除申請者PM幣進入代管\n建立 member + subscription，名額 -1]
-  E --> F{需要移除已核准成員}
-  F -->|是（recruiting / full 期間）| G[在成員名單點擊移除圖示並在確認對話框點「移除」]
-  G --> H[代管費用退還成員\nmember + subscription 刪除\napplication 標為 removed\n名額釋出，通知被移除成員]
-  F -->|否| I{名額是否額滿}
-  I -->|否| A
-  I -->|是| J[系統自動推進至 full]
-```
-
-### 2-C 鎖定群組（`full` → `pending_confirmation`）
-
-```mermaid
-flowchart TD
-  A[GroupViewModal 出現鎖定群組按鈕] --> B[點擊鎖定群組]
-  B --> C[系統設定各成員訂閱的下次扣款日\n建立群組聊天室\n推進至 pending_confirmation\n通知所有成員填寫帳號資訊]
-  C --> D[等待全員填寫訂閱帳號資訊]
-  D --> E[全員完成 → 系統自動推進至 pending_activation\n啟用服務按鈕出現]
-```
-
-### 2-D 啟用服務（`pending_activation` → `confirming`）
-
-```mermaid
-flowchart TD
-  A[點擊啟用服務] --> C[群組進入 confirming\nconfirmDeadline = 啟用時間 + 48h\n通知所有成員服務已啟用]
-  C --> D{48h 確認期結果}
-  D -->|無申訴（主動確認或逾期）| E[代管金額撥款至團主PM幣餘額\n群組回 active]
-  D -->|有成員向平台申訴| F[群組進入 disputed，等待客服裁定]
-  F -->|客服裁定：團主獲勝| E
-  F -->|客服裁定：成員獲勝| G[退款給該成員，成員離開\n群組回 active（其餘成員不受影響）]
-```
-
-### 2-E 解散群組（尚未鎖定群組前）
-
-```mermaid
-flowchart TD
-  A[群組狀態為 recruiting / full] --> B[點擊解散群組並確認]
-  B --> C[所有代管金額退還各成員PM幣餘額\n群組狀態 cancelled\n通知所有成員]
-```
-
-群組一旦被團主鎖定（進入 `pending_confirmation` 之後），即無法再解散。
-
-### 2-F 到期後（`active`）
-
-```mermaid
-flowchart TD
-  A[服務到期] --> B{選擇}
-  B -->|開始新一期收款| C[群組回到 pending_confirmation\n通知成員重新填寫帳號資訊]
-  B -->|結束服務| D[群組狀態 ended]
-```
-
----
-
-## 平台端：爭議裁定
-
-```mermaid
-flowchart TD
-  A[收到成員申訴\ndisputeDeadline = 申訴提出時間 + 3 天] --> B[審查申訴內容與佐證截圖]
-  B --> C[在 disputeDeadline 前作出裁定並附上說明]
-  C -->|成員獲勝（服務未正常啟用）| D[退款給申訴成員\n成員離開群組\n群組回 active]
-  C -->|團主獲勝（服務已正常啟用）| E[代管金額撥款給團主\n群組回 active]
-  D --> F[通知雙方裁定結果]
-  E --> F
-```
-
----
-
-## PM幣與帳戶管理
-
-```mermaid
-flowchart TD
-  A[點擊導覽列「加值」] --> B[開啟「PM幣儲值」視窗]
-  B --> C[選擇儲值金額]
-  C --> D[點擊「儲值 X PM」→ 餘額增加\n寫入 token_transaction: topup]
-  D --> E[顯示最新餘額]
-```
-
-| 時機 | PM幣異動 | 類型 |
-|------|----------|------|
-| 儲值 | `user.tokenBalance` += 金額 | `topup` |
-| 申請核准 | `user.tokenBalance` -= 席位費用；`group.escrowTokens` += 費用 | `escrow` |
-| 確認期結束（無爭議） | `group.escrowTokens` → `host.tokenBalance` | `release` |
-| 成員退出 / 被移除 | `group.escrowTokens` → `user.tokenBalance`（退還） | `refund` |
-| 團主解散群組（`cancelled`） | 所有成員 `group.escrowTokens` → 各 `user.tokenBalance`（退還） | `refund` |
-| 爭議申訴：成員獲勝 | `group.escrowTokens` → `user.tokenBalance`（退還） | `refund` |
-| 爭議申訴：團主獲勝 | `group.escrowTokens` → `host.tokenBalance` | `release` |
-
-- 申請時只做餘額**檢查**，不預扣；核准後才扣除並進入代管。
-- 所有PM幣異動均記錄至 `token_transactions`，提供完整審計軌跡。
-- 現階段儲值為模擬模式（點擊即儲值），已安裝 Stripe SDK，尚未串接實際扣款邏輯。
-
----
-
-## 訊息與通知
-
-```mermaid
-flowchart TD
-  A{使用者狀態} -->|訪客| B[通知中心只顯示系統公告]
-  A -->|會員| C[通知中心顯示個人通知與未讀數]
-  C --> D[全部、PM幣帳務、申請、系統四個分頁]
-  A -->|會員| E[「訊息」可開啟]
-  A -->|訪客| F[「訊息」鎖定並提示「請先登入會員」]
-  E --> G{對話類型}
-  G -->|群組| H[團主鎖定群組時建立 conversation]
-  G -->|私訊| I[聯絡團主時建立或取得 DM]
-  H --> J[成員收到群組聊天室已開啟通知]
-  I --> K[REST polling 每 5 秒同步 messages]
-  H --> K
-  K --> L[未讀數回寫 unreadCounts]
-```
-
-1. 訪客可打開通知中心，但只看到系統公告；個人通知需登入。
-2. 通知依類型分為全部、PM幣帳務、申請、系統四頁；點擊通知列即標記已讀，亦可點「全部已讀」一次清除。
-3. 群組聊天室在團主點「鎖定群組」後建立；成員收到通知。
-4. 訊息透過 REST API polling（每 5 秒）同步；成員加入或退出時寫入系統訊息。
+| 流程 | 說明 |
+|------|------|
+| [PM幣代管與付款流程](./payment-token-flow.md) | 儲值、代管、撥款、退款怎麼串起來 |
+| [訊息流程](./messages-flow.md) | 群組聊天室、私訊、系統通知聊天室 |
+| [通知流程](./notification-flow.md) | 站內通知怎麼發送、點擊後怎麼導向 |

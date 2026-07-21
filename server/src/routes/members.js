@@ -4,7 +4,7 @@ import prisma from '../lib/prisma.js'
 import { requireAuth } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
 import { computeSeatCost } from '../utils/pricing.js'
-import { admitMemberIntoGroup } from '../utils/membership.js'
+import { admitMemberIntoGroup, refundEscrow } from '../utils/membership.js'
 
 const router = Router()
 
@@ -56,7 +56,8 @@ router.get('/', requireAuth, async (req, res, next) => {
 })
 
 // POST /members — 僅團主可手動加入成員（一般由申請核准流程自動建立）
-// 名額與代管扣款邏輯與 applications.js 的核准流程共用 admitMemberIntoGroup，避免繞過名額上限與 escrow 帳務
+// 這裡沒有經過「申請」步驟，代管扣款要在這裡第一次做，走完整的 admitMemberIntoGroup（名額檢查 + 扣款），
+// 避免繞過名額上限與 escrow 帳務
 router.post('/', requireAuth, validate(addMemberSchema), async (req, res, next) => {
   try {
     const { groupId, userId } = req.body
@@ -147,24 +148,15 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
         where: { id: existing.groupId },
         data:  {
           currentMembers: { decrement: 1 },
-          escrowTokens:   { decrement: refundAmount },
           ...(existing.group.status === 'full' ? { status: 'recruiting' } : {}),
         },
         select: { currentMembers: true },
       })
-      // 退款給成員
-      await tx.user.update({
-        where: { id: existing.userId },
-        data:  { tokenBalance: { increment: refundAmount } },
-      })
-      await tx.tokenTransaction.create({
-        data: {
-          userId:        existing.userId,
-          type:          'refund',
-          amount:        refundAmount,
-          relatedGroupId: existing.groupId,
-          note:          isHost ? '被團主移除，代管退款' : '自行退出，代管退款',
-        },
+      await refundEscrow(tx, {
+        userId:  existing.userId,
+        groupId: existing.groupId,
+        amount:  refundAmount,
+        note:    isHost ? '被團主移除，代管退款' : '自行退出，代管退款',
       })
       // 成員自行退出：把 application 標為 left，並釋放 activeKey 讓成員可重新申請
       if (isSelf && !isHost) {

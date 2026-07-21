@@ -1,6 +1,5 @@
-// 把使用者加入群組共用的交易邏輯：申請核准（applications.js）與團主手動加入成員（members.js）
-// 都要做一樣的事——餘額檢查、併發安全的名額檢查、建立成員/訂閱、代管扣款、額滿自動推進 full。
-// 抽成同一個函式，避免兩處各自實作、未來規則變動時只改到其中一處。
+// 團主手動加入成員（members.js 的 POST /）：沒有經過「申請」這一步，名額檢查、代管扣款、
+// 建立成員/訂閱、額滿自動推進 full 要一次做完，跟申請核准共用同一套名額邏輯，避免繞過上限。
 export async function admitMemberIntoGroup(tx, { groupId, userId, seatCost, maxMembers, note }) {
   const applicant = await tx.user.findUnique({ where: { id: userId }, select: { tokenBalance: true } })
   if (!applicant || applicant.tokenBalance < seatCost) {
@@ -39,11 +38,58 @@ export async function admitMemberIntoGroup(tx, { groupId, userId, seatCost, maxM
     }),
   ])
 
+  await advanceToFullIfNeeded(tx, groupId)
+  return member
+}
+
+// 申請核准（applications.js 的 PATCH /:id）：代管扣款已經在使用者送出申請的當下完成過了，
+// 這裡只需要核對名額、建立成員/訂閱、額滿自動推進 full，不會再扣一次款。
+export async function finalizeApprovedApplication(tx, { groupId, userId, maxMembers }) {
+  const capacity = await tx.group.updateMany({
+    where: { id: groupId, status: 'recruiting', currentMembers: { lt: maxMembers } },
+    data:  { currentMembers: { increment: 1 } },
+  })
+  if (capacity.count === 0) {
+    const err = new Error('群組名額已滿或已結束招募，無法加入')
+    err.statusCode = 409
+    throw err
+  }
+
+  const [member] = await Promise.all([
+    tx.member.upsert({
+      where:  { groupId_userId: { groupId, userId } },
+      create: { groupId, userId },
+      update: {},
+    }),
+    tx.subscription.upsert({
+      where:  { groupId_userId: { groupId, userId } },
+      create: { groupId, userId },
+      update: {},
+    }),
+  ])
+
+  await advanceToFullIfNeeded(tx, groupId)
+  return member
+}
+
+async function advanceToFullIfNeeded(tx, groupId) {
   // 加入後自動檢查是否額滿，若滿則推進到 full
   const updatedGroup = await tx.group.findUnique({ where: { id: groupId }, select: { currentMembers: true, maxMembers: true } })
   if (updatedGroup.currentMembers >= updatedGroup.maxMembers) {
     await tx.group.update({ where: { id: groupId }, data: { status: 'full' } })
   }
+}
 
-  return member
+// 退還代管金額共用邏輯：申請被拒絕、申請人撤回、成員被移除或自行退出時都要走這裡，
+// 避免三處各自重寫一次「退款、扣代管、寫交易紀錄」。amount 由呼叫端先算好（用
+// Math.min(實際扣過的金額, 目前 escrowTokens) 夾住），這裡不重新計算金額。
+export async function refundEscrow(tx, { userId, groupId, amount, note }) {
+  if (amount <= 0) return
+  await Promise.all([
+    tx.user.update({ where: { id: userId }, data: { tokenBalance: { increment: amount } } }),
+    tx.group.update({ where: { id: groupId }, data: { escrowTokens: { decrement: amount } } }),
+    tx.tokenTransaction.create({
+      data: { userId, type: 'refund', amount, relatedGroupId: groupId, note },
+    }),
+  ])
 }
