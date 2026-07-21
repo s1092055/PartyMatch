@@ -93,9 +93,9 @@ export default function GroupModalShell({
           </div>
 
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
-            {/* 每次切換分頁都用 key 強制重新掛載，套用跟首頁一致的 slide-up 進場動畫 */}
-            <div key={panelKey} className="flex min-w-0 flex-1 flex-col overflow-hidden animate-step-slide-up">
-              {/* Banner 不分頁籤，群組概覽跟其他分頁（服務內容、成員名單等）都要看得到目前的倒數/狀態提醒 */}
+            <div className="flex min-w-0 min-h-0 flex-1 flex-col overflow-hidden">
+              {/* Banner 不分頁籤，群組概覽跟其他分頁（服務內容、成員名單等）都要看得到目前的倒數/狀態提醒；
+                  放在 key={panelKey} 的區塊外面，切換分頁時才不會跟著重新播放 slide-up 進場動畫 */}
               {(headerBanner || showCenteredBadge) && (
                 <div className="shrink-0">
                   {headerBanner ?? (
@@ -106,102 +106,105 @@ export default function GroupModalShell({
                 </div>
               )}
 
-              {activeDetail ? (
-                <>
-                  {/* Detail header（sub / sub-sub 共用） */}
-                  {/* 有 sideBar 時已有明確的分頁切換入口，不需要返回鍵；沒有 sideBar 的呼叫端（如 MemberGroupView）仍需要返回鍵才能離開這個畫面 */}
-                  {(!sideBar || activeDetail.icon || activeDetail.title || activeDetail.headerRight) && (
-                    <div className="flex shrink-0 items-center gap-2 border-b border-line px-4 py-4">
-                      {!sideBar && (
-                        <button
-                          onClick={subSubPanel ? onSubSubPanelBack : onSubPanelBack}
-                          className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
-                          aria-label="返回"
-                        >
-                          <ChevronLeft size={18} strokeWidth={1.5} />
-                        </button>
-                      )}
-                      {activeDetail.icon && <span className="shrink-0">{activeDetail.icon}</span>}
-                      <span className="min-w-0 flex-1 font-extrabold text-ink">{activeDetail.title ?? ''}</span>
-                      {activeDetail.headerRight && <div className="shrink-0">{activeDetail.headerRight}</div>}
-                    </div>
-                  )}
-
-                  {/* Sticky header（optional non-scrollable section） */}
-                  {activeDetail.stickyHeader && (
-                    <div className="shrink-0">{activeDetail.stickyHeader}</div>
-                  )}
-
-                  {/* Scrollable body */}
-                  <div className="flex-1 min-h-0 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                    {activeDetail.content}
-                  </div>
-
-                  {/* Footer */}
-                  {activeDetail.footer && (
-                    <div className="shrink-0 border-t border-line px-5 py-4">
-                      {activeDetail.footer}
-                    </div>
-                  )}
-                </>
-              ) : (
-                <>
-                  {/* Scrollable body */}
-                  <div className="group relative min-h-0 flex-1">
-                    <div ref={scrollBodyRef} onScroll={handleScroll} className="h-full overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                      <div className="px-6 py-5">
-                        <GroupOverviewContent
-                          group={group}
-                          service={service}
-                          plan={plan}
-                          reviewsSection={mobileReviewsSection}
-                          statusBadgeOverride={statusBadgeOverride}
-                          extraRows={extraInfoRows}
-                          hideServiceIntro={hideServiceIntro}
-                        />
-                        {summaryExtraRows}
+              {/* 每次切換分頁都用 key 強制重新掛載，套用跟首頁一致的 slide-up 進場動畫 */}
+              <div key={panelKey} className="flex min-h-0 flex-1 flex-col overflow-hidden animate-step-slide-up">
+                {activeDetail ? (
+                  <>
+                    {/* Detail header（sub / sub-sub 共用） */}
+                    {/* 有 sideBar 時已有明確的分頁切換入口，不需要返回鍵；沒有 sideBar 的呼叫端（如 MemberGroupView）仍需要返回鍵才能離開這個畫面 */}
+                    {(!sideBar || activeDetail.icon || activeDetail.title || activeDetail.headerRight) && (
+                      <div className="flex shrink-0 items-center gap-2 border-b border-line px-4 py-4">
+                        {!sideBar && (
+                          <button
+                            onClick={subSubPanel ? onSubSubPanelBack : onSubPanelBack}
+                            className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+                            aria-label="返回"
+                          >
+                            <ChevronLeft size={18} strokeWidth={1.5} />
+                          </button>
+                        )}
+                        {activeDetail.icon && <span className="shrink-0">{activeDetail.icon}</span>}
+                        <span className="min-w-0 flex-1 font-extrabold text-ink">{activeDetail.title ?? ''}</span>
+                        {activeDetail.headerRight && <div className="shrink-0">{activeDetail.headerRight}</div>}
                       </div>
-                      {afterColumns}
-                    </div>
-                    <div className="pointer-events-none absolute inset-y-0 left-0 right-3">
-                      <ScrollHint canScroll={canScroll} atBottom={atBottom} isScrolling={isScrolling} />
-                    </div>
-                  </div>
+                    )}
 
-                  {/* Price / CTA bar */}
-                  {centeredCta ? (
-                    <div className="shrink-0 border-t border-line bg-canvas px-6 py-2">
-                      {centeredCta}
+                    {/* Sticky header（optional non-scrollable section） */}
+                    {activeDetail.stickyHeader && (
+                      <div className="shrink-0">{activeDetail.stickyHeader}</div>
+                    )}
+
+                    {/* Scrollable body */}
+                    <div className="flex-1 min-h-0 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                      {activeDetail.content}
                     </div>
-                  ) : !hideRecruitBar ? (
-                    <div className="shrink-0 border-t border-line bg-canvas px-6 py-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="mb-0.5 text-xs font-medium text-ink-4">每位價格</p>
+
+                    {/* Footer */}
+                    {activeDetail.footer && (
+                      <div className="shrink-0 border-t border-line px-5 py-4">
+                        {activeDetail.footer}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {/* Scrollable body */}
+                    <div className="group relative min-h-0 flex-1">
+                      <div ref={scrollBodyRef} onScroll={handleScroll} className="h-full overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                        <div className="px-6 py-5">
+                          <GroupOverviewContent
+                            group={group}
+                            service={service}
+                            plan={plan}
+                            reviewsSection={mobileReviewsSection}
+                            statusBadgeOverride={statusBadgeOverride}
+                            extraRows={extraInfoRows}
+                            hideServiceIntro={hideServiceIntro}
+                          />
+                          {summaryExtraRows}
+                        </div>
+                        {afterColumns}
+                      </div>
+                      <div className="pointer-events-none absolute inset-y-0 left-0 right-3">
+                        <ScrollHint canScroll={canScroll} atBottom={atBottom} isScrolling={isScrolling} />
+                      </div>
+                    </div>
+
+                    {/* Price / CTA bar */}
+                    {centeredCta ? (
+                      <div className="shrink-0 border-t border-line bg-canvas px-6 py-2">
+                        {centeredCta}
+                      </div>
+                    ) : !hideRecruitBar ? (
+                      <div className="shrink-0 border-t border-line bg-canvas px-6 py-4">
+                        <div className="flex items-center justify-between">
                           <div>
-                            <TokenAmount
-                              amount={calcDisplayPrice(group.pricePerSeat, group.billingCycle)}
-                              cycle={calcDisplayCycle(group.billingCycle)}
-                              className="text-2xl font-extrabold"
-                            />
+                            <p className="mb-0.5 text-xs font-medium text-ink-4">每位價格</p>
+                            <div>
+                              <TokenAmount
+                                amount={calcDisplayPrice(group.pricePerSeat, group.billingCycle)}
+                                cycle={calcDisplayCycle(group.billingCycle)}
+                                className="text-2xl font-extrabold"
+                              />
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="mb-0.5 text-xs text-ink-4">剩餘名額</p>
+                            <p className="text-lg font-extrabold text-ink">{group.openSeats} / {group.totalSeats} 位</p>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="mb-0.5 text-xs text-ink-4">剩餘名額</p>
-                          <p className="text-lg font-extrabold text-ink">{group.openSeats} / {group.totalSeats} 位</p>
+                        <div className="mt-3">
+                          <ProgressBar value={group.usedSeats} max={group.totalSeats} />
                         </div>
                       </div>
-                      <div className="mt-3">
-                        <ProgressBar value={group.usedSeats} max={group.totalSeats} />
-                      </div>
-                    </div>
-                  ) : null}
+                    ) : null}
 
-                  {mobileFooter && (
-                    <div className="shrink-0 border-t border-line bg-canvas">{mobileFooter}</div>
-                  )}
-                </>
-              )}
+                    {mobileFooter && (
+                      <div className="shrink-0 border-t border-line bg-canvas">{mobileFooter}</div>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
 
             {sideBar && (
