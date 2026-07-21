@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import {
-  CheckCircle2, Clock, Paperclip, FileText, Info, LogOut, MessageCircle, Shield, Users, ClipboardEdit, ThumbsUp, AlertTriangle, X,
+  CheckCircle2, Clock, Paperclip, FileText, Info, LogOut, MessageCircle, Package, Shield, Users, ClipboardEdit, ThumbsUp, AlertTriangle, X,
 } from 'lucide-react'
 import Avatar from '../../../../shared/ui/primitives/Avatar'
 import CountdownConfirmDialog from '../../../../shared/ui/primitives/CountdownConfirmDialog'
 import CountdownText from '../../../../shared/ui/primitives/CountdownText'
+import ServiceContentPanel from '../../../../shared/ui/group/ServiceContentPanel'
 import GroupModalShell from '../../../../shared/ui/group/GroupModalShell'
 import GroupModalSideBarItem from '../../../../shared/ui/group/GroupModalSideBarItem'
 import ReviewHostModal from './ReviewHostModal'
@@ -32,7 +33,7 @@ function isImageUrl(url) {
 }
 
 export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
-  const [activePanel, setActivePanel] = useState(null) // 'members' | 'fillInfo' | null
+  const [activePanel, setActivePanel] = useState(null) // 'members' | 'serviceContent' | 'fillInfo' | 'dispute' | null
   const [leaveConfirm, setLeaveConfirm] = useState(false)
   const [fillEmail, setFillEmail] = useState('')
   const [fillLoading, setFillLoading] = useState(false)
@@ -289,6 +290,10 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
       }
     }
 
+    if (activePanel === 'serviceContent') {
+      return { content: <ServiceContentPanel group={group} service={serviceDef} plan={planDef} /> }
+    }
+
     if (activePanel === 'members') {
       return {
         content: (
@@ -371,6 +376,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
       group={group}
       service={serviceDef}
       plan={planDef}
+      hideServiceIntro
       hideRecruitBar
       headerBanner={
         hasServiceInfoIssue ? (
@@ -428,6 +434,9 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
           <>
             <GroupModalSideBarItem active={activePanel === null} onClick={() => setActivePanel(null)}>
               <Info size={17} /> 群組概覽
+            </GroupModalSideBarItem>
+            <GroupModalSideBarItem active={activePanel === 'serviceContent'} onClick={() => setActivePanel('serviceContent')}>
+              <Package size={17} /> 服務內容
             </GroupModalSideBarItem>
             <GroupModalSideBarItem active={activePanel === 'members'} onClick={() => setActivePanel('members')}>
               <Users size={17} /> 成員名單

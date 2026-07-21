@@ -41,6 +41,7 @@ flowchart TD
 | `src/features/my-groups/host/components/HostGroupView.jsx` | 團主視角群組詳情 Modal，含 `pending_confirmation`/`confirming` 倒數橫幅 |
 | `src/shared/ui/primitives/CountdownText.jsx` | 顯示距 deadline 剩餘時間的小元件，逾期顯示 `expiredText` |
 | `src/shared/utils/hooks.js` | `useCountdown`，每秒重算剩餘時間，純顯示用不觸發任何副作用 |
+| `src/shared/ui/group/ServiceContentPanel.jsx` | 「服務內容」分頁：服務介紹＋方案內容，從群組概覽搬出獨立成頁，團主／成員視角共用 |
 | `src/features/my-groups/host/components/HostedGroupCard.jsx` | 群組卡片 |
 | `src/features/my-groups/host/components/ActivateServiceModal.jsx` | 啟用服務前逐一確認成員帳號的 Modal |
 | `src/features/my-groups/host/components/ReportServiceIssueModal.jsx` | 回報成員帳號問題 |
@@ -76,6 +77,7 @@ flowchart TD
 - **自訂 hook 抽出頁面邏輯**：`useHostActions` 把 `HostPage` 拆成純 UI 加一個 hook，訂閱 `useGroupStore`/`useApplicationStore`/`useMemberStore` 三個 store，只要有任何一個變動就重算 `hostData`
 - **`pm:open-host-group` window event**：不管是點通知還是帶著 `location.state` 進來，都會走同一個處理函式，統一設定要開哪個群組、要不要自動展開鎖定/啟用/申請管理/收款面板
 - **`GroupModalShell` 三層滑動 Panel**：申請管理是第二層，審核紀錄是第三層
+- **群組概覽跟服務內容分頁共用同一份服務介紹內容**：`ServiceIntro`（`GroupOverviewContent.jsx` 匯出）被 `ServiceContentPanel.jsx` 直接複用；`GroupModalShell` 傳入 `hideServiceIntro` 才會把服務介紹從概覽拿掉，讓探索頁 `GroupDetailModal`（沒有側邊欄分頁）維持原本在概覽顯示服務介紹的行為
 - **樂觀更新 + 背景同步**：核准/拒絕申請、移除成員時會先更新本地資料，畫面立刻反應，再到背景呼叫對應 API 跟建立通知
 - 鎖定群組、解散群組、移除成員這幾個不可逆的操作，都要透過 `CountdownConfirmDialog` 倒數確認才能執行
 

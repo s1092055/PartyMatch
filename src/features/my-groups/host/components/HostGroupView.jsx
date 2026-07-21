@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Banknote, CheckCircle2, ClipboardList, Clock, Info, MessageCircle, PlayCircle, Radio, RefreshCw, Trash2, Users } from 'lucide-react'
+import { Banknote, CheckCircle2, ClipboardList, Clock, Info, MessageCircle, Package, PlayCircle, Radio, RefreshCw, Trash2, Users } from 'lucide-react'
 import CountdownConfirmDialog from '../../../../shared/ui/primitives/CountdownConfirmDialog'
 import CountdownText from '../../../../shared/ui/primitives/CountdownText'
 import GroupModalShell from '../../../../shared/ui/group/GroupModalShell'
 import GroupModalSideBarItem from '../../../../shared/ui/group/GroupModalSideBarItem'
+import ServiceContentPanel from '../../../../shared/ui/group/ServiceContentPanel'
 import { getServiceById } from '../../../../shared/utils/serviceUtils'
 import { useAuthStore } from '../../../../shared/stores/useAuthStore'
 import { useNotificationStore } from '../../../../shared/stores/useNotificationStore'
@@ -20,7 +21,7 @@ import { buildBillingPanel } from './hostGroupView/buildBillingPanel'
 export default function HostGroupView({ group, members, applications, onReportServiceInfoIssue, onRemoveMember, onActivate, onLockGroup, onCancelGroup, onApprove, onReject, errors, onClose, autoOpenLockGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling, onOpenRenewal }) {
   const [showActivate, setShowActivate]                   = useState(false)
   const [removingMember, setRemovingMember]               = useState(null)
-  const [activePanel, setActivePanel]                     = useState(null) // 'members' | 'applications' | 'billing' | null
+  const [activePanel, setActivePanel]                     = useState(null) // 'members' | 'serviceContent' | 'applications' | 'billing' | null
   const [showReviewHistory, setShowReviewHistory]         = useState(false)
   const [reviewFilter, setReviewFilter]                   = useState('all')
   const [showLockGroupConfirm, setShowLockGroupConfirm] = useState(false)
@@ -196,6 +197,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
 
   function buildSubPanel() {
     if (activePanel === 'members') return buildMembersPanel({ group, members, setActivePanel, onClose, setRemovingMember })
+    if (activePanel === 'serviceContent') return { content: <ServiceContentPanel group={group} service={serviceDef} plan={planDef} /> }
     if (activePanel === 'applications') return buildApplicationsPanel({ pendingApps, groupFull, errors, onApprove, onReject, setActivePanel, setShowReviewHistory })
     if (activePanel === 'billing') return buildBillingPanel({ members, transactions, transactionsLoading, expandedBillingMembers, toggleBillingMember })
     return null
@@ -216,6 +218,9 @@ export default function HostGroupView({ group, members, applications, onReportSe
       <>
         <GroupModalSideBarItem active={activePanel === null} onClick={() => goToPanel(null)}>
           <Info size={17} /> 群組概覽
+        </GroupModalSideBarItem>
+        <GroupModalSideBarItem active={activePanel === 'serviceContent'} onClick={() => goToPanel('serviceContent')}>
+          <Package size={17} /> 服務內容
         </GroupModalSideBarItem>
         <GroupModalSideBarItem active={activePanel === 'members'} onClick={() => goToPanel('members')}>
           <Users size={17} /> 成員名單
@@ -269,6 +274,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
       group={group}
       service={serviceDef}
       plan={planDef}
+      hideServiceIntro
       hideRecruitBar={group.status !== 'recruiting'}
       headerBanner={lockGroupBanner || activateBanner || pendingConfirmationBanner || confirmingBanner || undefined}
       centeredCta={lockGroupCta || activateCta || undefined}

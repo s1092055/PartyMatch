@@ -25,7 +25,7 @@ export function TagChip({ label, size = 'md' }) {
   )
 }
 
-function ServiceIntro({ service, plan, planChips }) {
+export function ServiceIntro({ service, plan, planChips }) {
   return (
     <>
       {service?.description && (
@@ -78,7 +78,7 @@ function RulesList({ allRules }) {
   )
 }
 
-export default function GroupOverviewContent({ group, service, plan, reviewsSection = null, statusBadgeOverride, extraRows = [] }) {
+export default function GroupOverviewContent({ group, service, plan, reviewsSection = null, statusBadgeOverride, extraRows = [], hideServiceIntro = false }) {
   const planChips = getPlanChips(group, plan)
   const allRules  = group.rules ?? []
   const infoRows = [
@@ -93,10 +93,12 @@ export default function GroupOverviewContent({ group, service, plan, reviewsSect
 
   return (
     <div className="divide-y divide-line-subtle">
-      <div className="pb-5 pt-0">
-        <p className="mb-4 text-lg font-black text-brand">服務介紹</p>
-        <ServiceIntro service={service} plan={plan} planChips={planChips} />
-      </div>
+      {!hideServiceIntro && (
+        <div className="pb-5 pt-0">
+          <p className="mb-4 text-lg font-black text-brand">服務介紹</p>
+          <ServiceIntro service={service} plan={plan} planChips={planChips} />
+        </div>
+      )}
 
       <div className="space-y-4 py-5">
         <p className="text-lg font-black text-brand">群組資訊</p>

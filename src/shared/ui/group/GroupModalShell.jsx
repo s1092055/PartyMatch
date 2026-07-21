@@ -32,6 +32,7 @@ export default function GroupModalShell({
   onSubSubPanelBack = null,
   panelKey = 'overview', // 目前顯示的分頁識別字串；切換時搭配 key 觸發 slide-up 進場動畫
   mobileReviewsSection,
+  hideServiceIntro = false, // true 時群組概覽不顯示服務介紹（呼叫端另外用 sideBar 的「服務內容」分頁顯示）
   children,
 }) {
   const { scrollRef: scrollBodyRef, elRef: scrollBodyElRef, atBottom, canScroll, isScrolling, handleScroll } = useScrollEdge()
@@ -155,6 +156,7 @@ export default function GroupModalShell({
                           reviewsSection={mobileReviewsSection}
                           statusBadgeOverride={statusBadgeOverride}
                           extraRows={extraInfoRows}
+                          hideServiceIntro={hideServiceIntro}
                         />
                         {summaryExtraRows}
                       </div>
