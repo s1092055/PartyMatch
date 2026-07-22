@@ -95,3 +95,20 @@ flowchart TD
 - 所有跟訊息有關的 route 都會先解析 `participants`（要相容陣列或字串兩種儲存格式），確認發送者確實在裡面，不是參與者一律拒絕
 - 建立 DM 時會先把兩個使用者的 id 排序再查詢，確保同一對使用者不會重複建出好幾個 DM 對話
 - 已讀狀態跟未讀數要跟訊息送出保持同步，避免未讀數跟實際訊息數量對不上
+
+## 系統／操作訊息總覽（發在群組聊天室，不是 Notification）
+
+| 觸發時機 | 訊息內容 |
+|---|---|
+| 團主鎖定群組 | 建立群組聊天室，發一則 `action` 訊息（`actionType: 'fill_service_info'`）請成員填寫服務帳號 |
+| 團主啟用服務 | 系統訊息「XXX 服務已啟用！請在 48 小時內確認服務是否正常運作。」 |
+| 團主回報帳號問題 | 系統訊息「XXX，服務帳號需要修正」＋一則 `action` 訊息（`actionType: 'request_service_resubmit'`） |
+| 團主開始新一期續訂 | 系統訊息「新一期已開始，請重新填寫訂閱帳號資訊。」 |
+| 團主結束群組 | 系統訊息「團主已結束「XXX」群組」 |
+| 團主移除成員 | 系統訊息「XXX 已被移出群組」，並把該成員移出 `participants` |
+| 成員自行退出群組（`finalizeLeaveGroup`） | 系統訊息「XXX 已退出群組」，並把自己移出 `participants` |
+| 管理員後台廣播（`POST /system-messages/broadcast`） | 對全平台每個人的系統聊天室各發一則相同訊息，`Promise.allSettled` 平行送出，個別失敗不中斷整批 |
+| 管理員後台單發（`POST /system-messages/direct`） | 對單一使用者的系統聊天室發一則訊息 |
+
+### 已知落差
+- **成員「確認服務」、「送出申訴」這兩個動作目前不會觸發任何系統訊息或通知**：團主端不會在聊天室或通知中心看到「有人確認了」「有人申訴了」的任何提示，只有前端當下給操作者本人的 toast，跟 [通知流程](notification-flow.md) 的 `dispute_raised`／`escrow_released` 落差是同一個根因（confirm/dispute 後端路由沒有建立任何副作用訊息）
