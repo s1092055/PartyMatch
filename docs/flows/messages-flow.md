@@ -27,6 +27,8 @@ flowchart TD
 - 全域 `MessagesModal`：由 `dispatchEvent(new CustomEvent('pm:open-messages'))` 觸發開啟，統一在 `AppLayout` 監聽
 - `AppNav`（桌機 sidebar / 手機 header）的訊息按鈕
 - `FloatingMessages`：點擊通知後也可能連帶開啟對應對話
+- `pm:open-dm` custom event：點擊「聯絡團主/成員」時觸發，開啟指定對象的私訊對話
+- `/quick-match`（`QuickMatchPage.jsx`）獨立於 `AppLayout` 之外，額外自己掛了一份 `MessagesModal`（`lazy` + `Suspense`），否則群組詳情內團主評價區的「聯絡團主」在這個頁面會沒有 `pm:open-dm` 監聽者，私訊開不起來
 
 ## 相關檔案
 

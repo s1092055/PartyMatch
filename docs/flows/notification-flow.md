@@ -7,12 +7,12 @@
 
 ```mermaid
 sequenceDiagram
-    participant BE as 後端業務 route
+    participant FE1 as 前端（動作發起方）
     participant DB as Notification 表
     participant FE as 前端（每 10 秒輪詢）
     participant U as 使用者
 
-    BE->>DB: 業務事件觸發時 POST /notifications\n（附 type + meta.groupId）
+    FE1->>DB: 業務動作成功後呼叫 insertNotification\nPOST /notifications（附 type + meta.groupId）
     loop 每 10 秒
         FE->>DB: GET /notifications（optionalAuth）
         DB-->>FE: 個人通知 + 公開公告
@@ -39,13 +39,15 @@ sequenceDiagram
 | `src/shared/layout/FloatingMessages.jsx` | 通知面板 UI + 點擊後的導向邏輯 |
 | `src/shared/layout/AppNav.jsx` | 觸發開啟通知面板 |
 | `src/shared/stores/useNotificationStore.js` | 通知 store |
-| `src/shared/api/notificationsApi.js` | 通知 API 封裝 |
+| `src/shared/api/notificationsApi.js` | 通知 API 封裝（`insertNotification` 是各業務流程寫入通知的共用函式） |
+| `src/features/my-groups/host/hooks/useHostActions.js`、`src/features/group/utils/leaveGroupFlow.js`、`src/shared/stores/useApplicationStore.js` | 各業務動作成功後呼叫 `insertNotification` 通知對方的實際發起處 |
 
 **後端**
 
 | 路徑 | 說明 |
 |------|------|
-| `server/src/routes/notifications.js` | 通知相關 route |
+| `server/src/routes/notifications.js` | `GET /notifications`（個人通知＋公開公告）、`POST /notifications`（建立通知，會驗證發起人與目標使用者是否都跟該群組有關聯）、已讀相關 route |
+| `server/src/routes/subscriptions.js` | `notifyUpcomingRenewals`，距下次扣款日 7 天內由後端主動建立提醒通知，是少數不經前端 `insertNotification` 的例外 |
 
 **資料表 / Model**
 
@@ -61,7 +63,8 @@ sequenceDiagram
 ## 流程步驟
 
 **1. 通知建立**
-- 後端各業務 route（申請核准、成員移除、群組額滿等）在對應事件發生時，會建立一筆通知，帶上類型與關聯的群組 id
+- `POST /notifications` 是通用端點，實際上大多數通知（申請核准、成員移除、群組額滿等）是前端動作成功之後，由發起動作的那一端呼叫 `insertNotification(...)` 寫入，不是後端業務 route 自動建立；例外是 `server/src/routes/subscriptions.js` 的 `notifyUpcomingRenewals`（距下次扣款日 7 天內的提醒）這種沒有對應前端互動時機的通知，才由後端在讀取訂閱資料時順便建立
+- 通知自己（例如申請已送出）會同時寫本地 store（即時顯示）跟呼叫 API；通知別人（例如通知團主）只呼叫 API 寫 DB，不會即時出現在對方畫面，要等對方輪詢或重新整理才看得到
 
 **2. 前端取得通知**
 - 未登入的使用者也能看到公開的系統公告，登入後則會額外看到自己的個人通知

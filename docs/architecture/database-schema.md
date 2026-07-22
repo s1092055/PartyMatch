@@ -8,7 +8,7 @@
 |-------|------|
 | `users` | 使用者帳號、密碼 hash、手機號碼（`phone`，註冊必填）、Google ID、`creditScore`（信用分數，預設／滿分 100，目前僅為靜態欄位，尚未有動態調整或上限保護機制，新增寫入時需自行確保不超過 100）、`tokenBalance`（平台PM幣餘額，1:1 對應 TWD）、`deactivatedAt`（非 null 代表帳號已軟刪除停用，登入/refresh 一律拒絕，保留資料供日後申請恢復） |
 | `payment_methods` | 使用者付款方式（`brand`、卡片末四碼、有效期限、是否為預設） |
-| `services` | 30 種訂閱服務清單與方案（JSON 欄位） |
+| `services` | 28 種訂閱服務清單與方案（JSON 欄位） |
 | `groups` | 群組主資料（狀態、名額、方案、`billingCycle`、`escrowTokens`（代管中PM幣總額）、`serviceInfoDeadline`（`pending_confirmation` 狀態的填寫帳號資訊截止時間，鎖定時間 + 24h，僅供前端顯示倒數）、`confirmDeadline`（`confirming` 狀態的確認截止時間，啟用時間 + 48h）、`disputeDeadline`（`disputed` 狀態的裁定截止時間，申訴提出時間 + 3 天）） |
 | `applications` | 申請紀錄（`pending` / `approved` / `rejected` / `removed` / `left` / `withdrawn`）；`withdrawn` 為申請人在審核前自行取消；被拒絕、移除、退出或自行取消後可重新申請（建立新記錄，保留歷史）；`escrowAmount` 記錄送出申請當下實際代管扣款的金額，撤回/拒絕退款要用這個值而非即時價格重算，避免群組價格事後變動導致退款金額對不上；`activeKey` 只在 `pending`/`approved`（進行中）時為 `'active'`，其餘狀態為 `null`，搭配 `@@unique([groupId, userId, activeKey])`（MySQL unique index 允許多個 null 並存）模擬「同一使用者對同一群組最多一筆進行中申請」的 partial unique index，避免併發送出申請造成重複 pending 申請 |
 | `members` | 群組成員（`serviceInfo` 訂閱帳號資訊、`serviceInfoIssueNote`、`disputeEvidenceUrl`（僅申訴階段使用，成員提供的爭議佐證截圖）） |
@@ -99,9 +99,7 @@
 |------|------|
 | `pending` | 帳號資訊尚未填寫完成（`pending_confirmation` 階段） |
 | `active` | 訂閱已啟用，服務運作中 |
-| `ended` | 訂閱已結束（群組 ended / cancelled / paused） |
-
-`src/shared/utils/subscriptionStatus.js` 依訂閱狀態與群組狀態計算實際顯示文字。
+| `ended` | 訂閱已結束（群組 ended / cancelled） |
 
 ---
 

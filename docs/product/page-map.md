@@ -29,9 +29,9 @@
 
 | 觸發方式 | 元件 | 掛載位置 | 用途 |
 |----------|------|----------|------|
-| 造訪 `/groups/:groupId`，或點群組卡片、通知等處 dispatch `pm:open-group` | `src/features/group/GroupDetailModal.jsx` | `AppLayout` | 顯示指定群組的公開詳情（服務資訊、方案、成員狀況），可在其中開啟 `ApplyModal` 送出加入申請；讓群組詳情有可分享的網址 |
+| 造訪 `/groups/:groupId`，或點群組卡片、通知等處 dispatch `pm:open-group` | `src/features/group/GroupDetailModal.jsx` | `AppLayout`；`/quick-match` 因脫離 `AppLayout`，由 `QuickMatchPage.jsx` 自行額外掛載一份（lazy） | 顯示指定群組的公開詳情（服務資訊、方案、成員狀況），可在其中開啟 `ApplyModal` 送出加入申請；讓群組詳情有可分享的網址 |
 | 「我的群組」頁點自己相關的群組卡片，或 dispatch `pm:open-host-group` | `src/shared/ui/group/GroupViewModal.jsx`（依身分渲染 `HostGroupView` 或 `MemberGroupView`） | `HostPage.jsx` / `MemberPage.jsx`（`/my-groups` 內） | 團主或成員視角下管理／查看單一群組的完整細節（成員名單、收款面板、服務帳號、續訂、申訴等） |
 | 「我的群組」側邊欄「群組紀錄」入口 | `src/shared/ui/group/GroupHistoryModal.jsx` | `HostPage.jsx` / `MemberPage.jsx` | 查看已結束／已取消的群組歷史紀錄 |
-| 點擊訊息圖示，或 dispatch `pm:open-messages` / `pm:open-dm` | `src/features/messages/MessagesModal.jsx` | `HomePage.jsx`、`AppLayout` | 訊息中心：群組聊天室、私人 DM、系統通知聊天室，切換對話列表與聊天視窗 |
+| 點擊訊息圖示，或 dispatch `pm:open-messages` / `pm:open-dm` | `src/features/messages/MessagesModal.jsx` | `HomePage.jsx`、`AppLayout`；`/quick-match` 同樣由 `QuickMatchPage.jsx` 自行額外掛載一份（lazy），讓搜尋結果頁的「聯絡團主」按鈕能正常開啟私訊 | 訊息中心：群組聊天室、私人 DM、系統通知聊天室，切換對話列表與聊天視窗 |
 | 點擊儲值／PM 幣不足時的「前往儲值」，或 dispatch `pm:open-topup` | `src/shared/ui/TopupModal.jsx` | `AppNav.jsx`（全站可觸發） | PM 幣儲值與交易紀錄查詢 |
 | 點擊鈴鐺圖示，或 dispatch `pm:open-notify` | `src/shared/layout/FloatingMessages.jsx` 內的通知面板（`createPortal`） | 全站（`AppNav` 掛載處） | 個人通知與系統公告列表，點擊項目會依通知類型導向對應頁面並帶出對應 Modal |
