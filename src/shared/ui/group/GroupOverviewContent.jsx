@@ -1,5 +1,5 @@
 import { CheckCircle2, Clock, Info, User, Users, Calendar } from 'lucide-react'
-import { getPlanChips, getInfoRows } from '../../utils/groupDisplay'
+import { getInfoRows } from '../../utils/groupDisplay'
 import Badge from '../primitives/Badge'
 
 const TAG_CONFIG = {
@@ -25,25 +25,15 @@ export function TagChip({ label, size = 'md' }) {
   )
 }
 
-export function ServiceIntro({ service, plan, planChips }) {
+export function ServiceIntro({ service, plan }) {
   return (
     <>
       {service?.description && (
         <p className="text-sm leading-relaxed text-ink-2">{service.description}</p>
       )}
-      {planChips.length > 0 && (
-        <div className={`grid gap-2 ${service?.description ? 'mt-4' : ''} ${planChips.length >= 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
-          {planChips.map(({ icon: Icon, label, value }) => (
-            <div key={label} className="flex flex-col gap-1 rounded-xl border border-line bg-canvas p-3">
-              <Icon size={14} className="text-ink-3" />
-              <span className="text-xs text-ink-4">{label}</span>
-              <span className="text-xs font-bold leading-snug text-ink">{value}</span>
-            </div>
-          ))}
-        </div>
-      )}
       {(plan?.description || (plan?.features?.length ?? 0) > 0) && (
-        <div className="mt-4 border-t border-line-subtle pt-4">
+        <div className={`${service?.description ? 'mt-4 border-t border-line-subtle pt-4' : ''}`}>
+          <p className="mb-4 text-lg font-black text-brand">方案說明</p>
           {plan?.description && (
             <p className="mb-3 text-sm font-medium text-ink-2">{plan.description}</p>
           )}
@@ -78,8 +68,7 @@ function RulesList({ allRules }) {
   )
 }
 
-export default function GroupOverviewContent({ group, service, plan, reviewsSection = null, statusBadgeOverride, extraRows = [], hideServiceIntro = false }) {
-  const planChips = getPlanChips(group, plan)
+export default function GroupOverviewContent({ group, service, plan, reviewsSection = null, statusBadgeOverride, extraRows = [] }) {
   const allRules  = group.rules ?? []
   const infoRows = [
     ...getInfoRows(group).map(row =>
@@ -121,21 +110,10 @@ export default function GroupOverviewContent({ group, service, plan, reviewsSect
         <RulesList allRules={allRules} />
       </div>
 
-      {hideServiceIntro ? (
-        (group.planName || service?.description) && (
-          <div className="py-5">
-            {group.planName && <p className="text-sm font-bold text-ink">{group.planName}</p>}
-            {service?.description && (
-              <p className="mt-1 line-clamp-2 text-sm text-ink-3">{service.description}</p>
-            )}
-          </div>
-        )
-      ) : (
-        <div className="py-5">
-          <p className="mb-4 text-lg font-black text-brand">服務說明</p>
-          <ServiceIntro service={service} plan={plan} planChips={planChips} />
-        </div>
-      )}
+      <div className="py-5">
+        <p className="mb-4 text-lg font-black text-brand">服務說明</p>
+        <ServiceIntro service={service} plan={plan} />
+      </div>
 
       {reviewsSection && <div className="py-5">{reviewsSection}</div>}
     </div>

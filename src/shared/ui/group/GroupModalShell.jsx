@@ -32,7 +32,6 @@ export default function GroupModalShell({
   onSubSubPanelBack = null,
   panelKey = 'overview', // 目前顯示的分頁識別字串；切換時搭配 key 觸發 slide-up 進場動畫
   mobileReviewsSection,
-  hideServiceIntro = false, // true 時群組概覽不顯示服務介紹（呼叫端另外用 sideBar 的「服務內容」分頁顯示）
   children,
 }) {
   const { scrollRef: scrollBodyRef, elRef: scrollBodyElRef, atBottom, canScroll, isScrolling, handleScroll } = useScrollEdge()
@@ -49,6 +48,9 @@ export default function GroupModalShell({
       : 'bg-warning-subtle text-warning-text'
 
   const activeDetail = subSubPanel ?? subPanel
+  // 有 sideBar 時已有明確的分頁切換入口，subPanel 不需要返回鍵；但 subSubPanel（例如審核紀錄）是從
+  // subPanel 內部圖示鑽進去的，側邊欄沒有對應入口可以退出，一律要顯示返回鍵
+  const showBackButton = !sideBar || !!subSubPanel
 
   useScrollLock(true)
 
@@ -79,9 +81,14 @@ export default function GroupModalShell({
         >
           {/* Header — 固定不動，翻書效果只作用在下方內容區 */}
           <div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-4">
-            <div className="flex items-center gap-2.5">
-              <ServiceLogo serviceId={group.serviceId} size={26} className="rounded-lg" />
-              <span className="text-base font-extrabold text-ink">{group.serviceName}</span>
+            <div className="flex min-w-0 items-center gap-2.5">
+              <ServiceLogo serviceId={group.serviceId} size={26} className="shrink-0 rounded-lg" />
+              <span className="min-w-0 truncate text-base font-extrabold text-ink">
+                {group.serviceName}
+                {group.planName && (
+                  <span className="font-medium text-ink-3"> | {group.planName}</span>
+                )}
+              </span>
             </div>
             <button
               onClick={handleClose}
@@ -110,11 +117,11 @@ export default function GroupModalShell({
               <div key={panelKey} className="flex min-h-0 flex-1 flex-col overflow-hidden animate-step-slide-up">
                 {activeDetail ? (
                   <>
-                    {/* Detail header（sub / sub-sub 共用） */}
-                    {/* 有 sideBar 時已有明確的分頁切換入口，不需要返回鍵；沒有 sideBar 的呼叫端（如 MemberGroupView）仍需要返回鍵才能離開這個畫面 */}
-                    {(!sideBar || activeDetail.icon || activeDetail.title || activeDetail.headerRight) && (
-                      <div className="flex shrink-0 items-center gap-2 border-b border-line px-4 py-4">
-                        {!sideBar && (
+                    {/* Detail header（sub / sub-sub 共用）；有 sideBar 時固定保留一個返回鍵大小的佔位，
+                        不管有沒有顯示按鈕，讓 icon/title 起始位置在各分頁之間切換時保持一致，不會忽有忽無地跳動 */}
+                    {(showBackButton || activeDetail.icon || activeDetail.title || activeDetail.headerRight) && (
+                      <div className={`flex shrink-0 items-center gap-2 px-4 py-4 ${activeDetail.headerBorder === false ? '' : 'border-b border-line'}`}>
+                        {showBackButton ? (
                           <button
                             onClick={subSubPanel ? onSubSubPanelBack : onSubPanelBack}
                             className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
@@ -122,6 +129,8 @@ export default function GroupModalShell({
                           >
                             <ChevronLeft size={18} strokeWidth={1.5} />
                           </button>
+                        ) : (
+                          <div className="h-8 w-8 shrink-0" />
                         )}
                         {activeDetail.icon && <span className="shrink-0">{activeDetail.icon}</span>}
                         <span className="min-w-0 flex-1 font-extrabold text-ink">{activeDetail.title ?? ''}</span>
@@ -159,13 +168,12 @@ export default function GroupModalShell({
                             reviewsSection={mobileReviewsSection}
                             statusBadgeOverride={statusBadgeOverride}
                             extraRows={extraInfoRows}
-                            hideServiceIntro={hideServiceIntro}
                           />
                           {summaryExtraRows}
                         </div>
                         {afterColumns}
                       </div>
-                      <div className="pointer-events-none absolute inset-y-0 left-0 right-3">
+                      <div className="pointer-events-none absolute inset-0">
                         <ScrollHint canScroll={canScroll} atBottom={atBottom} isScrolling={isScrolling} />
                       </div>
                     </div>
@@ -208,7 +216,7 @@ export default function GroupModalShell({
             </div>
 
             {sideBar && (
-              <div className="flex shrink-0 flex-row justify-between gap-1 overflow-x-auto border-t border-line bg-canvas p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:w-24 md:flex-col md:justify-start md:overflow-x-hidden md:overflow-y-auto md:border-l md:border-t-0">
+              <div className="flex shrink-0 flex-row justify-between gap-1 overflow-x-auto border-t border-line bg-canvas p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:order-first md:w-24 md:flex-col md:justify-start md:overflow-x-hidden md:overflow-y-auto md:border-r md:border-t-0">
                 {sideBar}
               </div>
             )}

@@ -193,6 +193,7 @@ export default function GroupDetailModal() {
       group={group}
       headerClassName="text-lg font-black text-brand"
       onDm={activeUserId && !isHost ? openDm : undefined}
+      scrollable
     />
   )
 

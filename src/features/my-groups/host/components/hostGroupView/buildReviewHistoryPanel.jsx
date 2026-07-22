@@ -10,8 +10,7 @@ export function buildReviewHistoryPanel({ applications, reviewFilter, setReviewF
     ? reviewedApps
     : reviewedApps.filter(a => a.status === reviewFilter)
   return {
-    title: '審核紀錄',
-    icon: <History size={18} className="text-brand" />,
+    headerBorder: false,
     stickyHeader: reviewedApps.length > 0 ? (
       <div className="border-b border-line-subtle px-5 py-3">
         <CustomSelect

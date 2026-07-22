@@ -40,8 +40,8 @@ flowchart TD
 | `src/features/my-groups/member/components/ReviewHostModal.jsx` | 確認服務完成後的團主評價彈窗 |
 | `src/features/my-groups/member/utils/memberFilters.js` | 分頁篩選邏輯 |
 | `src/shared/ui/group/GroupViewModal.jsx` | 依身分決定渲染團主或成員視角的薄殼 |
-| `src/shared/ui/group/GroupModalShell.jsx` | 三層滑動 Panel 共用殼；`hideServiceIntro` 為 true 時群組概覽改顯示精簡版（方案名稱＋一句話簡介），完整服務介紹留在服務內容分頁 |
-| `src/shared/ui/group/ServiceContentPanel.jsx` | 「服務內容」分頁內容（服務介紹＋方案內容），從群組概覽搬出獨立成頁 |
+| `src/shared/ui/group/GroupModalShell.jsx` | 三層滑動 Panel 共用殼；桌機版側邊欄在左側（`md:order-first`），手機版仍堆疊在下方；Header 顯示「服務名稱 \| 方案名稱」 |
+| `src/shared/ui/group/GroupOverviewContent.jsx` | 群組概覽內容，含服務說明／方案說明（原本獨立的「服務內容」分頁已整併回這裡） |
 | `src/shared/utils/groupStatus.js` | `isEffectivelyActive`，成員自行確認服務後個人視角提前視為已啟用 |
 
 **後端**
@@ -64,9 +64,10 @@ flowchart TD
 
 ## 使用技術
 - **樂觀更新，失敗會回滾**：填寫服務帳號時先寫本地 state，如果 `PATCH` 失敗就把資料復原成送出前的樣子（不是清空），避免使用者辛苦填好的內容無故消失
-- **三層滑動 Panel**：從總覽切到填寫帳號／申訴／成員名單／服務內容這類子面板，都是同一套滑動元件
-- **`headerBanner`（倒數/狀態提醒橫幅）不綁定分頁**：渲染在 `activeDetail` 判斷之外，切到服務內容／成員名單等分頁時倒數橫幅仍會顯示，不會只留在群組概覽
-- **群組概覽跟服務內容分頁共用同一份服務介紹內容**：`ServiceIntro`（`GroupOverviewContent.jsx` 匯出）被 `ServiceContentPanel.jsx` 直接複用，避免同一段 UI 兩處維護；`GroupModalShell` 收到 `hideServiceIntro` 時，概覽只留方案名稱＋服務簡介一句話（避免團主資訊填得少時版面空白），完整內容仍要點進服務內容分頁才看得到；探索頁 `GroupDetailModal`（未走側邊欄分頁）不受影響，維持原本在概覽顯示完整服務介紹
+- **三層滑動 Panel**：從總覽切到填寫帳號／申訴／成員名單這類子面板，都是同一套滑動元件
+- **`headerBanner`（倒數/狀態提醒橫幅）不綁定分頁**：渲染在 `activeDetail` 判斷之外，切到成員名單等分頁時倒數橫幅仍會顯示，不會只留在群組概覽
+- **「服務內容」分頁已整併回群組概覽**：獨立分頁已移除，服務說明／方案說明直接顯示在群組概覽畫面，跟探索頁 `GroupDetailModal` 的呈現方式統一；服務說明拆成「服務說明」「方案說明」兩個並列的大標題區塊，字級一樣大
+- **「填寫帳號」改成群組概覽底部的動態按鈕**：不再是側邊欄項目，改成跟「確認服務」「回報問題」一樣，需要填寫帳號（`needsFillInfo`）或帳號被回報有問題（`hasServiceInfoIssue`）時才會出現在 `GroupModalShell` 的 `centeredCta`
 - **不可逆操作要倒數確認**：確認服務、退出群組都要透過 `CountdownConfirmDialog` 倒數幾秒才能真的送出，避免手滑誤觸
 - **側邊欄 pinned 項目**：符合退出條件（`recruiting`/`full`）時側邊欄底部固定顯示「退出群組」，跟「群組訊息」共用側邊欄右下角同一個位置
 - **`SubscriptionCard` 已啟用（`active`）狀態統計格**：由左到右為團主／成員人數／下次扣款，不顯示加入日期
@@ -80,7 +81,7 @@ flowchart TD
 - `MemberPage` 依分頁（全部／審核中／招募中／待鎖定／填寫資訊中／待啟用／確認期中／申訴中／服務中／已結束）過濾出屬於自己的訂閱資料，每個分頁對應單一狀態，不會像舊版把好幾種狀態混在同一個「處理中」分頁裡（見 `memberFilters.js` 的 `FILTER_TABS`）
 
 **2. 填寫服務帳號（`pending_confirmation`）**
-- 還沒填寫帳號資訊時，`MemberGroupView` 會顯示「填寫帳號」按鈕，點開表單依該服務的 `sharingMethod` 動態顯示對應欄位（一般是 email；KKBOX 多一個地址欄位；friDay影音是邀請碼；無官方邀請機制的服務則是一個確認勾選框），送出後寫入 `Member.serviceInfo`（詳見 [各服務填寫帳號資訊需求調查](../product/service-info-requirements.md)）
+- 還沒填寫帳號資訊時，`MemberGroupView` 會在群組概覽底部顯示「填寫帳號」動態按鈕（跟「確認服務」「回報問題」同一個位置，不是側邊欄項目），點開表單依該服務的 `sharingMethod` 動態顯示對應欄位（一般是 email；KKBOX 多一個地址欄位；friDay影音是邀請碼；無官方邀請機制的服務則是一個確認勾選框），送出後寫入 `Member.serviceInfo`（詳見 [各服務填寫帳號資訊需求調查](../product/service-info-requirements.md)）
 - 頁面頂部會顯示「請填寫服務帳號以完成加入流程，剩餘 HH:MM:SS」倒數橫幅（讀 `group.serviceInfoDeadline`，鎖定時間 + 24h，每秒更新；逾期只顯示「已逾期」，不會有任何自動處理）
 - 後端會檢查群組內是否全員都已經填寫，如果是，就自動把群組狀態推進到「等待團主啟用」
 
@@ -105,7 +106,7 @@ flowchart TD
 - 退出邏輯統一寫在 `src/features/group/utils/leaveGroupFlow.js` 的 `finalizeLeaveGroup`，`GroupDetailModal` 跟 `MyGroupsPage`／`MemberPage` 兩個入口都呼叫同一份，避免各自維護一份重複邏輯、行為不一致（曾經修過其中一份漏呼叫 `leaveConversation` 導致退出後仍留在聊天室的 bug，見 [Bug 紀錄](../testing/bug-log.md) BUG-011）
 
 **8. 成員名單／聯絡團主**
-- 可以查看團主與其他成員名單，點擊個別成員的訊息圖示能直接開啟私訊
+- 可以查看團主與其他成員名單，團主標示為一個只有文字「團主」的圓角標籤（不再有盾牌圖示）；點擊個別成員的訊息圖示能直接開啟私訊
 
 ## 驗證重點
 - 填寫帳號資訊只有本人或該群組團主可以操作，其他人一律 403

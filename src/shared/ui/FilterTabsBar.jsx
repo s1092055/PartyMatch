@@ -1,24 +1,24 @@
-import { Archive } from 'lucide-react'
+import { Archive, Star } from 'lucide-react'
 import CustomSelect from './primitives/CustomSelect'
 
-function HistoryButton({ onOpenHistory, historyCount, className = '' }) {
+function SidebarIconButton({ icon: Icon, label, badgeCount, onClick, className = '' }) {
   return (
     <button
-      onClick={onOpenHistory}
-      aria-label="群組紀錄"
+      onClick={onClick}
+      aria-label={label}
       className={`relative grid shrink-0 place-items-center rounded-xl border border-line-subtle text-ink-3 transition-colors hover:bg-raised hover:text-ink ${className}`}
     >
-      <Archive size={17} strokeWidth={1.5} />
-      {historyCount > 0 && (
+      <Icon size={17} strokeWidth={1.5} />
+      {badgeCount > 0 && (
         <span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-ink-4 px-1 text-2xs font-bold text-white">
-          {historyCount}
+          {badgeCount}
         </span>
       )}
     </button>
   )
 }
 
-export default function FilterTabsBar({ tabs, value, onChange, counts = {}, onOpenHistory, historyCount = 0 }) {
+export default function FilterTabsBar({ tabs, value, onChange, counts = {}, onOpenHistory, historyCount = 0, onOpenReviews }) {
   const options = tabs.map(tab => ({
     value: tab.key,
     label: counts[tab.key] != null ? `${tab.label} (${counts[tab.key]})` : tab.label,
@@ -26,17 +26,20 @@ export default function FilterTabsBar({ tabs, value, onChange, counts = {}, onOp
 
   return (
     <>
-      {/* Dropdown — mobile，群組紀錄以 icon 按鈕放在右側 */}
+      {/* Dropdown — mobile，我的評價／群組紀錄以 icon 按鈕放在右側 */}
       <div className="mb-4 flex items-center gap-2 md:hidden">
         <CustomSelect value={value} onChange={onChange} options={options} />
+        {onOpenReviews && (
+          <SidebarIconButton icon={Star} label="我的評價" onClick={onOpenReviews} className="h-11 w-11" />
+        )}
         {onOpenHistory && (
-          <HistoryButton onOpenHistory={onOpenHistory} historyCount={historyCount} className="h-11 w-11" />
+          <SidebarIconButton icon={Archive} label="群組紀錄" badgeCount={historyCount} onClick={onOpenHistory} className="h-11 w-11" />
         )}
       </div>
 
-      {/* 桌機版：左側垂直 tab 選單，樣式比照帳號設定頁；群組紀錄固定在側邊欄底部。
+      {/* 桌機版：左側垂直 tab 選單，樣式比照帳號設定頁；我的評價／群組紀錄固定在側邊欄底部。
           給 nav 固定高度（跟右側內容區的 max-h 用同一個 calc 值）而不是靠 flex 拉伸撐高，
-          避免內容區高度隨分類項目多寡變化時，「群組紀錄」的垂直位置跟著飄動 */}
+          避免內容區高度隨分類項目多寡變化時，底部這兩顆按鈕的垂直位置跟著飄動 */}
       <nav className="hidden w-40 shrink-0 animate-step-slide-up md:flex md:h-[calc(100vh-16rem)] md:min-h-[28rem] md:flex-col">
         <ul className="flex flex-col gap-1">
           {tabs.map(tab => (
@@ -62,21 +65,34 @@ export default function FilterTabsBar({ tabs, value, onChange, counts = {}, onOp
           ))}
         </ul>
 
-        {onOpenHistory && (
-          <button
-            onClick={onOpenHistory}
-            className="mt-auto flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-ink-3 transition-colors hover:bg-raised hover:text-ink"
-          >
-            <span className="flex items-center gap-2">
-              <Archive size={16} strokeWidth={1.5} />
-              群組紀錄
-            </span>
-            {historyCount > 0 && (
-              <span className="rounded-full bg-raised px-1.5 py-0.5 text-xs font-bold text-ink-4">
-                {historyCount}
-              </span>
+        {(onOpenReviews || onOpenHistory) && (
+          <div className="mt-auto flex flex-col gap-1">
+            {onOpenReviews && (
+              <button
+                onClick={onOpenReviews}
+                className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+              >
+                <Star size={16} strokeWidth={1.5} />
+                我的評價
+              </button>
             )}
-          </button>
+            {onOpenHistory && (
+              <button
+                onClick={onOpenHistory}
+                className="flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+              >
+                <span className="flex items-center gap-2">
+                  <Archive size={16} strokeWidth={1.5} />
+                  群組紀錄
+                </span>
+                {historyCount > 0 && (
+                  <span className="rounded-full bg-raised px-1.5 py-0.5 text-xs font-bold text-ink-4">
+                    {historyCount}
+                  </span>
+                )}
+              </button>
+            )}
+          </div>
         )}
       </nav>
     </>

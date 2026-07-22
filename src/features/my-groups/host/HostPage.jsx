@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../../shared/stores/useAuthStore'
 import EmptyState from '../../../shared/ui/primitives/EmptyState'
@@ -9,6 +9,7 @@ import RevealSection from '../../../shared/ui/primitives/RevealSection'
 import ScrollHint from '../../../shared/ui/primitives/ScrollHint'
 import HostedGroupCard from './components/HostedGroupCard'
 import RenewalModal from './components/RenewalModal'
+import HostReviewsModal from './components/HostReviewsModal'
 import { STATUS_FILTER_TABS } from './utils/hostFilters'
 import { useHostActions } from './hooks/useHostActions'
 import { useScrollEdge } from '../../../shared/utils/hooks'
@@ -18,6 +19,9 @@ export default function HostPage({ embedded = false }) {
   const activeUser = useAuthStore(s => s.user)
   const { scrollRef: listScrollRef, canScroll: listCanScroll, atBottom: listAtBottom, isScrolling: listIsScrolling, handleScroll: handleListScroll } = useScrollEdge()
   const [historyOpen, setHistoryOpen] = useState(false)
+  const [reviewsOpen, setReviewsOpen] = useState(false)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const hostProfile = useMemo(() => useAuthStore.getState().getProfile(), [activeUser])
 
   const {
     errors,
@@ -59,6 +63,7 @@ export default function HostPage({ embedded = false }) {
           counts={filterCounts}
           onOpenHistory={() => setHistoryOpen(true)}
           historyCount={historyGroups.length}
+          onOpenReviews={() => setReviewsOpen(true)}
         />
 
         <div className="min-w-0 flex-1">
@@ -146,6 +151,12 @@ export default function HostPage({ embedded = false }) {
             />
           </RevealSection>
         )}
+      />
+
+      <HostReviewsModal
+        isOpen={reviewsOpen}
+        onClose={() => setReviewsOpen(false)}
+        host={hostProfile}
       />
     </div>
   )

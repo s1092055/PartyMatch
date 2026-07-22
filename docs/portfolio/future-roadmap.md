@@ -34,6 +34,7 @@
 - **`billingCycle` 可在任何群組狀態被 PATCH，跟已代管金額脫鉤**：`PATCH /groups/:id` 目前沒有限制 `billingCycle` 只能在 `recruiting` 階段修改；`Application` 有 `escrowAmount` 快照避免這類問題，但 `Member` 沒有對應的每人代管金額快照，理論上鎖定後若改了計費週期，退款/續訂金額會跟實際代管金額對不上。目前前端沒有任何地方會送出這個欄位，是潛在風險而非已發生的問題
 - **群組結束/取消後，對應 `Subscription` 沒有一併同步狀態**：`POST /groups/:id/cancel` 與一般 `PATCH /groups/:id { status: 'ended' }` 都只更新 `Group.status`，沒有把該群組所有成員的 `Subscription.status` 一併改成 `ended`，殘留 `pending`/`active` 的訂閱資料掛在已結束的群組下；目前前端都是用 `groupStatus` 判斷所以不影響顯示，但直接查 `Subscription.status` 的地方會拿到過期資料
 - **`useGroupStore.create()` 樂觀插入與伺服器回覆之間有競態窗口**：建立群組後、伺服器回應尚未回來前，如果這段時間又呼叫了 `update(id, patch)`，伺服器回應落地時會直接整筆覆蓋掉、蓋掉中間那次更新的樂觀 patch，窗口很窄但邏輯上是個真實的競態問題
+- **團主評價超過 50 則時，單一群組的「成員評價」分頁統計可能不準**：`GET /reviews/host/:hostId` 只回傳最新 50 筆（`server/src/routes/reviews.js`），`HostReviews.jsx` 的 `groupId` 篩選是在這份已經被截斷的清單上做前端 filter，不是後端直接查詢該群組的評價；團主評價量夠大、且較舊的評價集中在某個群組時，該群組分頁可能顯示評價數/平均分偏低，跟團主整體評價（後端用 `aggregate` 算、不受 50 筆限制）對不上。要根治需要新增一個 `GET /reviews/group/:groupId` 端點，目前尚未實作
 
 ## 排序原則
 

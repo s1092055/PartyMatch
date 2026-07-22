@@ -38,11 +38,12 @@ flowchart TD
 |------|------|
 | `src/features/my-groups/host/HostPage.jsx` | 頁面總入口 |
 | `src/features/my-groups/host/hooks/useHostActions.js` | 所有團主操作的事件處理（鎖定、啟用、移除成員、審核、續訂、解散等） |
-| `src/features/my-groups/host/components/HostGroupView.jsx` | 團主視角群組詳情 Modal，含 `pending_confirmation`/`confirming` 倒數橫幅 |
+| `src/features/my-groups/host/components/HostGroupView.jsx` | 團主視角群組詳情 Modal，含 `pending_confirmation`/`confirming` 倒數橫幅；側邊欄「成員評價」分頁只顯示這個群組的評價 |
+| `src/features/my-groups/host/components/HostReviewsModal.jsx` | 獨立的「我的評價」Modal，彙總團主名下**所有**群組的評價，從「我的群組」頁側邊欄底部進入，跟群組詳情裡只看單一群組的「成員評價」分頁分開 |
 | `src/shared/ui/primitives/CountdownText.jsx` | 顯示距 deadline 剩餘時間的小元件，逾期顯示 `expiredText` |
 | `src/shared/utils/hooks.js` | `useCountdown`，每秒重算剩餘時間，純顯示用不觸發任何副作用 |
-| `src/shared/ui/group/ServiceContentPanel.jsx` | 「服務內容」分頁：服務介紹＋方案內容，從群組概覽搬出獨立成頁，團主／成員視角共用 |
 | `src/features/my-groups/host/components/HostedGroupCard.jsx` | 群組卡片 |
+| `src/shared/ui/FilterTabsBar.jsx` | 「我的群組」頁側邊欄，「我的評價」按鈕固定在「群組紀錄」按鈕上方，點開 `HostReviewsModal` |
 | `src/features/my-groups/host/components/ActivateServiceModal.jsx` | 啟用服務前逐一確認成員帳號的 Modal |
 | `src/features/my-groups/host/components/ReportServiceIssueModal.jsx` | 回報成員帳號問題 |
 | `src/features/my-groups/host/components/RenewalModal.jsx` | 續訂管理（見續訂流程文件） |
@@ -76,9 +77,10 @@ flowchart TD
 ## 使用技術
 - **自訂 hook 抽出頁面邏輯**：`useHostActions` 把 `HostPage` 拆成純 UI 加一個 hook，訂閱 `useGroupStore`/`useApplicationStore`/`useMemberStore` 三個 store，只要有任何一個變動就重算 `hostData`
 - **`pm:open-host-group` window event**：不管是點通知還是帶著 `location.state` 進來，都會走同一個處理函式，統一設定要開哪個群組、要不要自動展開鎖定/啟用/申請管理/收款面板
-- **`GroupModalShell` 三層滑動 Panel**：申請管理是第二層，審核紀錄是第三層
-- **`headerBanner`（倒數/狀態提醒橫幅）不綁定分頁**：渲染在 `activeDetail` 判斷之外，切到服務內容／成員名單／收款管理等分頁時倒數橫幅仍會顯示，不會只留在群組概覽
-- **群組概覽跟服務內容分頁共用同一份服務介紹內容**：`ServiceIntro`（`GroupOverviewContent.jsx` 匯出）被 `ServiceContentPanel.jsx` 直接複用；`GroupModalShell` 傳入 `hideServiceIntro` 時，概覽只留方案名稱＋服務簡介一句話（避免團主資訊填得少時版面空白），完整內容仍要點進服務內容分頁才看得到；探索頁 `GroupDetailModal`（沒有側邊欄分頁）不受影響，維持原本在概覽顯示完整服務介紹
+- **`GroupModalShell` 三層滑動 Panel**：申請管理是第二層，審核紀錄是第三層；桌機版側邊欄在左側（`md:order-first`），手機版仍堆疊在下方
+- **`headerBanner`（倒數/狀態提醒橫幅）不綁定分頁**：渲染在 `activeDetail` 判斷之外，切到成員名單／收款管理等分頁時倒數橫幅仍會顯示，不會只留在群組概覽
+- **「服務內容」分頁已整併回群組概覽**：獨立分頁已移除，服務說明／方案說明直接顯示在群組概覽畫面（`GroupOverviewContent.jsx` 的 `ServiceIntro`），跟探索頁 `GroupDetailModal` 的呈現方式統一；服務說明拆成「服務說明」「方案說明」兩個並列的大標題區塊，字級一樣大，原本服務說明區塊的方案／共享方式／主要功能三個 chip 卡片已移除
+- **群組詳情 Modal Header 顯示「服務名稱 | 方案名稱」**：原本只顯示服務名稱
 - **樂觀更新 + 背景同步**：核准/拒絕申請、移除成員時會先更新本地資料，畫面立刻反應，再到背景呼叫對應 API 跟建立通知
 - 鎖定群組、解散群組、移除成員這幾個不可逆的操作，都要透過 `CountdownConfirmDialog` 倒數確認才能執行
 - **側邊欄 pinned 項目**：招募中（`recruiting`/`full`）時側邊欄底部固定顯示「解散群組」，鎖定後改成固定顯示「群組訊息」——兩者是互斥的狀態分支，不會同時出現，因此可以共用側邊欄右下角同一個位置
@@ -90,7 +92,7 @@ flowchart TD
 - `HostPage` 依分頁跟篩選條件顯示 `allGroups`，統計卡上會顯示本月預估收入、平均每組收入、服務中的成員數
 
 **2. 審核申請（`recruiting`）**
-- 側邊欄「申請管理」列出待審核清單
+- 側邊欄「申請管理」列出待審核清單；面板右下角有一個固定貼在角落的圓形圖示按鈕可以點進「審核紀錄」（內容捲動時仍維持在角落），「申請管理」「審核紀錄」兩個分頁的標題列都不顯示文字，只在需要時顯示返回鍵
 - 點「核准」：先檢查名額是否足夠，通過就打 `PATCH /applications/:id { status: 'approved' }`（後端在同一個 transaction 內完成餘額檢查、代管扣款、建立成員與訂閱）；前端等後端完成後重新拉一次真實資料，並更新本地名額，剛好額滿的話還會額外通知團主自己
 - 點「拒絕」：打 `PATCH /applications/:id { status: 'rejected' }`，並通知申請人
 
@@ -125,6 +127,10 @@ flowchart TD
 **10. 平台裁定申訴**
 - 申訴不在團主自己的操作範圍內，是由平台管理員在 `AdminTab` 選擇處於 `disputed` 狀態的群組並送出裁定，見申訴流程文件
 
+**11. 查看評價**
+- 群組詳情側邊欄的「成員評價」分頁只顯示這個群組的評價（平均分數/則數只算這個群組）
+- 「我的群組」頁側邊欄「我的評價」按鈕（在「群組紀錄」按鈕上方）點開獨立的 `HostReviewsModal`，彙總團主名下**所有**群組的評價
+
 ## 驗證重點
 - 所有團主專屬的 route（鎖定/啟用/解散/續訂/查交易紀錄）都會檢查請求人確實是該群組的團主，不是就回 403
 - 鎖定只允許在 `full` 狀態操作、啟用只允許 `pending_activation`、解散只允許 `recruiting`/`full`、續訂只允許 `active`——都在 route 層明確檢查狀態，擋下不合法的轉換
@@ -133,3 +139,5 @@ flowchart TD
 - 移除成員只允許在 `recruiting`/`full` 狀態操作，一旦鎖定（進入 `pending_confirmation` 之後）成員名單就不能再變動
 - 查交易紀錄只有團主本人可以看，非團主一律 403
 - 通知非自己的使用者時，後端會驗證請求人跟目標使用者都跟該群組有關聯（成員／團主／曾送申請），避免任意使用者偽造通知
+- **解散群組退款 bug 修正**：`POST /groups/:id/cancel` 原本用外層讀到的舊成員名單退款，可能跟同時發生的成員退出/移除撞在一起造成重複退款；已修正成在同一個 transaction 裡重新查詢當下真正的成員名單（`tx.member.findMany`）再退款
+- **群組額滿判斷 bug 修正**：`server/src/utils/membership.js` 判斷是否額滿時原本少算團主佔的 1 個名額，導致「剩餘名額 0」但群組狀態仍停留在招募中；已修正為 `currentMembers < maxMembers - 1` 才允許入群、`currentMembers + 1 >= maxMembers` 才推進為 `full`（`currentMembers` 不含團主，`+1` 補回團主的名額）

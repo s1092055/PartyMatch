@@ -10,6 +10,7 @@ import Button from '../../shared/ui/primitives/Button'
 import ServiceLogo from '../../shared/ui/ServiceLogo'
 import TokenAmount from '../../shared/ui/TokenAmount'
 import ScrollHint from '../../shared/ui/primitives/ScrollHint'
+import Modal from '../../shared/ui/primitives/Modal'
 import LivePreviewPanel from './components/LivePreviewPanel'
 import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { useNotificationStore } from '../../shared/stores/useNotificationStore'
@@ -101,6 +102,7 @@ export default function CreateGroupPage() {
   const [form, setForm] = useState(INITIAL_FORM)
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
   const isPlanOrSettingsStep = step === 2 || step === 3
   // 步驟三（群組設定）左右兩欄各自有自己的 overflow-y-auto 捲動區，所以外層容器在
   // short-lg（桌機寬度+螢幕不高）時要停用外層捲動，改讓內層各自捲動；步驟二（選擇方案）
@@ -177,11 +179,10 @@ export default function CreateGroupPage() {
       })
     }
     window.dispatchEvent(new CustomEvent('pm:group-created', { detail: { groupId: group.id } }))
-    setStep(5)
-    scrollElRef.current?.scrollTo({ top: 0 })
+    setShowSuccessModal(true)
   }
 
-  const footer = step <= 4 && (
+  const footer = (
     <>
       {step === 1 ? (
         <Button variant="secondary" size="md" className="min-w-0 flex-1" onClick={leaveFlow}>
@@ -233,28 +234,28 @@ export default function CreateGroupPage() {
   const CurrentStep = STEP_COMPONENTS[step - 1]
 
   return (
-    <FlowLayout
-      steps={STEP_TITLES}
-      currentStep={Math.min(step, 4)}
-      title="建立群組"
-      titleIcon={<PlusCircle size={18} className="shrink-0 text-brand" />}
-      headerBanner={banner && (
-        <div className="flex items-center justify-center gap-2 bg-brand-subtle px-6 py-3 text-sm font-medium text-brand">
-          <banner.Icon size={15} />
-          {banner.text}
-        </div>
-      )}
-      bottomNav={footer}
-      maxWidth="max-w-xl md:max-w-2xl lg:max-w-4xl"
-    >
-      <div className="group relative h-full">
-        <div
-          ref={scrollRef}
-          onScroll={handleContentScroll}
-          className={`h-full overflow-y-auto pt-6 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${step === 3 ? 'short-lg:overflow-hidden' : step === 4 ? 'overflow-hidden' : ''}`}
-        >
-          <div key={step} className="h-full animate-step-slide-up p-0.5">
-            {step <= 4 ? (
+    <>
+      <FlowLayout
+        steps={STEP_TITLES}
+        currentStep={step}
+        title="建立群組"
+        titleIcon={<PlusCircle size={18} className="shrink-0 text-brand" />}
+        headerBanner={banner && (
+          <div className="flex items-center justify-center gap-2 bg-brand-subtle px-6 py-3 text-sm font-medium text-brand">
+            <banner.Icon size={15} />
+            {banner.text}
+          </div>
+        )}
+        bottomNav={footer}
+        maxWidth="max-w-xl md:max-w-2xl lg:max-w-4xl"
+      >
+        <div className="group relative h-full">
+          <div
+            ref={scrollRef}
+            onScroll={handleContentScroll}
+            className={`h-full overflow-y-auto pt-6 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${step === 3 ? 'short-lg:overflow-hidden' : step === 4 ? 'overflow-hidden' : ''}`}
+          >
+            <div key={step} className="h-full animate-step-slide-up p-0.5">
               <div className="flex h-full flex-col">
                 {isPlanOrSettingsStep && (
                   <div className="mb-6 flex shrink-0 items-center gap-4 rounded-2xl border border-line bg-white px-6 py-5 shadow-sm">
@@ -290,39 +291,41 @@ export default function CreateGroupPage() {
                   <CurrentStep form={form} onChange={onChange} />
                 )}
               </div>
-            ) : (
-              <div className="flex h-full flex-col items-center justify-center text-center">
-                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
-                  <CheckCircle2 size={28} className="text-emerald-500" />
-                </div>
-                <h3 className="mb-1 text-lg font-extrabold text-ink">群組已成功上架！</h3>
-                <p className="text-sm leading-relaxed text-ink-3">你的群組現在已開放招募成員</p>
-                <div className="mt-6 flex w-full max-w-xs gap-3">
-                  <Button variant="secondary" size="md" className="flex-1" onClick={() => navigate('/')}>
-                    返回首頁
-                  </Button>
-                  <Button variant="success" size="md" className="flex-1" onClick={() => navigate('/my-groups?view=host')}>
-                    前往群組管理
-                  </Button>
-                </div>
-              </div>
-            )}
+            </div>
           </div>
+
+          {(step === 1 || step === 4) && <ScrollHint canScroll={canScroll} atBottom={atBottom} isScrolling={isScrolling} />}
         </div>
 
-        {(step === 1 || step === 4) && <ScrollHint canScroll={canScroll} atBottom={atBottom} isScrolling={isScrolling} />}
-      </div>
+        {showPreview && (
+          <div
+            className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 px-4 md:px-8"
+            onClick={() => setShowPreview(false)}
+          >
+            <div className="mx-auto w-full max-w-xs" onClick={e => e.stopPropagation()}>
+              <LivePreviewPanel form={form} />
+            </div>
+          </div>
+        )}
+      </FlowLayout>
 
-      {showPreview && (
-        <div
-          className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 px-4 md:px-8"
-          onClick={() => setShowPreview(false)}
-        >
-          <div className="mx-auto w-full max-w-xs" onClick={e => e.stopPropagation()}>
-            <LivePreviewPanel form={form} />
+      <Modal isOpen={showSuccessModal} showHeader={false} maxWidth="max-w-sm">
+        <div className="flex flex-col items-center px-6 py-8 text-center">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
+            <CheckCircle2 size={28} className="text-emerald-500" />
+          </div>
+          <h3 className="mb-1 text-lg font-extrabold text-ink">群組已成功上架！</h3>
+          <p className="text-sm leading-relaxed text-ink-3">你的群組現在已開放招募成員</p>
+          <div className="mt-6 flex w-full gap-3">
+            <Button variant="secondary" size="md" className="flex-1" onClick={() => navigate('/')}>
+              返回首頁
+            </Button>
+            <Button variant="success" size="md" className="flex-1" onClick={() => navigate('/my-groups?view=host')}>
+              前往我的群組
+            </Button>
           </div>
         </div>
-      )}
-    </FlowLayout>
+      </Modal>
+    </>
   )
 }

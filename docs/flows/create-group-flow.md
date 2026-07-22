@@ -8,7 +8,7 @@
 ```mermaid
 flowchart TD
     A[步驟一：選擇服務] --> B[步驟二：選擇方案\n自動帶入 totalSeats / billingCycle / pricePerSeat]
-    B --> C[步驟三：群組設定\n剩餘名額 / 信用分數門檻 / 帳號需求 / 群組規則]
+    B --> C[步驟三：群組設定\n開放名額 / 信用分數門檻 / 帳號需求 / 群組規則]
     C --> D[步驟四：最後確認\n唯讀摘要 + 勾選同意條款]
     D --> E{點擊「確認建立」}
     E --> F[getFirstInvalidStep 重新驗證步驟 1-3]
@@ -17,7 +17,7 @@ flowchart TD
     G --> H{後端 zod 驗證}
     H -->|失敗| I[400，樂觀物件從 store 移除]
     H -->|成功| J[prisma.group.create\n回傳真實 id 覆蓋暫時物件]
-    J --> K[建立 group_created 通知\n進入成功頁]
+    J --> K[建立 group_created 通知\n彈出成功 Modal（疊在原表單頁上，不切換頁面）]
 ```
 
 ## 入口
@@ -33,9 +33,9 @@ flowchart TD
 | `src/features/create/CreateGroupPage.jsx` | 步驟容器、表單 state、送出邏輯 |
 | `src/features/create/components/steps/Step1Service.jsx` | 步驟一：選擇服務 |
 | `src/features/create/components/steps/Step2Plan.jsx` | 步驟二：選擇方案，月繳/年繳拆成獨立卡片 |
-| `src/features/create/components/steps/Step3Settings.jsx` | 步驟三：剩餘名額、最低信用分數門檻、帳號需求、群組規則 |
+| `src/features/create/components/steps/Step3Settings.jsx` | 步驟三：開放名額、最低信用分數門檻、帳號需求、群組規則 |
 | `src/features/create/components/steps/Step4Preview.jsx` | 步驟四：最後確認頁，含服務條款勾選 |
-| `src/features/create/components/steps/Field.jsx` | 表單欄位外殼元件 |
+| `src/features/create/components/steps/Field.jsx` | 表單欄位外殼元件，支援 `hint` 說明泡泡與 `endAdornment`（標籤列最右側可掛額外內容） |
 | `src/features/create/components/LivePreviewPanel.jsx` | 桌機常駐 / 手機彈窗的即時預覽卡片，沿用探索頁卡片樣式 |
 | `src/features/create/utils/previewGroupId.js` | 預覽用的暫時群組 id |
 | `src/shared/stores/useGroupStore.js` | `create` action |
@@ -75,16 +75,16 @@ flowchart TD
 - 選定方案後同步設定 `totalSeats = plan.maxSeats`、`billingCycle = plan.billingCycle`、`pricePerSeat = calcPricePerSeat(plan, plan.maxSeats)`
 - 版面由上而下單欄排列（桌機/平板/手機皆同）：「服務說明」→「填寫服務資訊注意事項」（依服務 `sharingMethod` 讀 `serviceInfoFields.js` 的 `notice` 文案，提醒團主這個服務加入時成員要填什麼、有沒有 Apple/Google 家庭群組異動頻率限制、KKBOX 地址驗證、friDay 邀請碼方向相反等眉角，沒有特別注意事項的服務顯示預設文字）→「選擇方案」
 - 「選擇方案」內部（`md` 以上，桌機/平板寬度，跟高度無關）左右並排：左邊是切換箭頭在左右兩側、方案卡在中間（一次只顯示目前選中的方案，點左右箭頭切換上一個/下一個方案），右邊是方案內容（不再另外顯示「方案說明」標題）；右欄內容全部直接顯示、不再內部捲動，左右兩欄改用 flex row 預設的 `items-stretch` 自動等高（不用 `ResizeObserver` 量測），左欄上下加跟右側方案內容一樣的 `p-3.5` 內距（`py-3.5`），方案卡用 `self-stretch` 撐滿這一列扣掉內距後的高度，讓卡片邊框頂部對齊方案內容第一行文字、底部對齊最後一行文字（而不是直接對齊到整個欄位的最頂端/最底端），左右箭頭則維持固定大小、垂直置中；方案卡保留邊框（選中為淡化過的 `border-brand/40`，未選中為 `border-slate-200`，避免選中顏色太深）但不加背景色，內容維持垂直置中；手機（`md` 以下）則自然由上而下堆疊。因為步驟二已經沒有內部捲動區，`CreateGroupPage.jsx` 的外層 `short-lg:overflow-hidden`／`forwardWheel: false` 這兩個「內部有自己捲動區」的特殊處理現在只保留給步驟三（群組設定），步驟二一律用外層 `overflow-y-auto` 捲動整頁
-- `Field` 元件的 hint 說明泡泡改成往「下方」展開（原本是靠右垂直置中），避免最上面那個欄位（例如「剩餘名額」）的說明泡泡往上展開時被自己所在的 `overflow-y-auto` 捲動容器裁切、看起來像被上方服務資訊卡蓋住
+- `Field` 元件的 hint 說明泡泡改成往「下方」展開（原本是靠右垂直置中），避免最上面那個欄位（例如「開放名額」）的說明泡泡往上展開時被自己所在的 `overflow-y-auto` 捲動容器裁切、看起來像被上方服務資訊卡蓋住
 
 **3. 群組設定**
-- 「剩餘名額」（`totalSeats - 1`，不含團主自己）：用加減按鈕調整 `totalSeats`，範圍是 `[2, maxSeats]`；每次變動都會重算每人單價（人數越多分攤越便宜）
+- 「開放名額」（`totalSeats - 1`，不含團主自己）：用加減按鈕調整 `totalSeats`，範圍是 `[2, maxSeats]`；每次變動都會重算每人單價（人數越多分攤越便宜）；標籤列右側用 `Field` 的 `endAdornment` 顯示「最多 {maxSeats} 人共享」（來自上一步選定方案的 `plan.maxSeats`），提醒團主整個方案（含團主自己）總共能有幾人
 - 「信用分數門檻」：`minCreditScore` 四選一（不限/90/70/50 分以上）
 - 「帳號需求」：選填文字說明，上限 120 字
 - 「群組規則」：最多 5 條，每條上限 80 字
 
 **4. 最後確認**
-- `Step4Preview` 顯示團主、服務/方案、每位價格、剩餘名額、信用分數、建立日期、帳號需求、群組規則的唯讀摘要
+- `Step4Preview` 顯示團主、服務/方案、每位價格、開放名額、信用分數、建立日期、帳號需求、群組規則的唯讀摘要
 - 要勾選「已閱讀並同意服務條款與隱私政策」才能按下「確認建立」
 - 手機版另外提供「查看預覽」按鈕，開啟 `LivePreviewPanel` 彈窗
 
@@ -100,7 +100,7 @@ flowchart TD
 
 **7. 建立成功後**
 - 寫入一筆 `group_created` 通知給團主自己，並 `dispatchEvent('pm:group-created')`
-- 頁面切到成功畫面，提供「返回首頁」與「前往群組管理」兩個出口
+- 流程只有 4 步驟，不會另外切到成功頁：改用 `Modal`（`showHeader={false}`）疊在原本的步驟四表單頁上，顯示「群組已成功上架！」，並提供「返回首頁」與「前往我的群組」兩個按鈕
 
 ## 驗證重點
 - 前端逐步驗證（`getStepErrors`）：

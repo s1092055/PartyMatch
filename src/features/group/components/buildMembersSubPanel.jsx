@@ -1,4 +1,4 @@
-import { MessageCircle, Shield, Users } from 'lucide-react'
+import { MessageCircle, Users } from 'lucide-react'
 import Avatar from '../../../shared/ui/primitives/Avatar'
 
 export function buildMembersSubPanel({ group, groupId, members, activeUserId, setShowMembers, openDm }) {
@@ -13,8 +13,8 @@ export function buildMembersSubPanel({ group, groupId, members, activeUserId, se
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <p className="text-sm font-semibold text-ink">{group.hostName}</p>
-                <span className="flex shrink-0 items-center gap-1 rounded-full bg-brand-subtle px-2.5 py-0.5 text-xs font-semibold text-brand">
-                  <Shield size={11} /> 團主
+                <span className="shrink-0 rounded-full bg-brand-subtle px-2.5 py-0.5 text-xs font-semibold text-brand">
+                  團主
                 </span>
               </div>
               <p className="text-xs text-ink-3">{group.createdAt} 建立</p>

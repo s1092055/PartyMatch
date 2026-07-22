@@ -1,11 +1,10 @@
 import { useState } from 'react'
 import {
-  CheckCircle2, Clock, Paperclip, FileText, Info, LogOut, MessageCircle, Package, Shield, Users, ClipboardEdit, ThumbsUp, AlertTriangle, X,
+  CheckCircle2, Clock, Paperclip, FileText, Info, LogOut, MessageCircle, Users, ClipboardEdit, ThumbsUp, AlertTriangle, X,
 } from 'lucide-react'
 import Avatar from '../../../../shared/ui/primitives/Avatar'
 import CountdownConfirmDialog from '../../../../shared/ui/primitives/CountdownConfirmDialog'
 import CountdownText from '../../../../shared/ui/primitives/CountdownText'
-import ServiceContentPanel from '../../../../shared/ui/group/ServiceContentPanel'
 import GroupModalShell from '../../../../shared/ui/group/GroupModalShell'
 import GroupModalSideBarItem from '../../../../shared/ui/group/GroupModalSideBarItem'
 import ReviewHostModal from './ReviewHostModal'
@@ -34,7 +33,7 @@ function isImageUrl(url) {
 }
 
 export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
-  const [activePanel, setActivePanel] = useState(null) // 'members' | 'serviceContent' | 'fillInfo' | 'dispute' | null
+  const [activePanel, setActivePanel] = useState(null) // 'members' | 'fillInfo' | 'dispute' | null
   const [leaveConfirm, setLeaveConfirm] = useState(false)
   const [fillValues, setFillValues] = useState({})
   const [fillLoading, setFillLoading] = useState(false)
@@ -325,10 +324,6 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
       }
     }
 
-    if (activePanel === 'serviceContent') {
-      return { content: <ServiceContentPanel group={group} service={serviceDef} plan={planDef} /> }
-    }
-
     if (activePanel === 'members') {
       return {
         content: (
@@ -339,8 +334,8 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-semibold text-ink">{group.hostName}</p>
-                    <span className="flex shrink-0 items-center gap-1 rounded-full bg-brand-subtle px-2.5 py-0.5 text-xs font-semibold text-brand">
-                      <Shield size={11} /> 團主
+                    <span className="shrink-0 rounded-full bg-brand-subtle px-2.5 py-0.5 text-xs font-semibold text-brand">
+                      團主
                     </span>
                   </div>
                   <p className="text-xs text-ink-3">{group.createdAt} 建立</p>
@@ -411,7 +406,6 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
       group={group}
       service={serviceDef}
       plan={planDef}
-      hideServiceIntro
       hideRecruitBar
       headerBanner={
         hasServiceInfoIssue ? (
@@ -468,9 +462,6 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
           <>
             <GroupModalSideBarItem active={activePanel === null} onClick={() => setActivePanel(null)}>
               <Info size={17} /> 群組概覽
-            </GroupModalSideBarItem>
-            <GroupModalSideBarItem active={activePanel === 'serviceContent'} onClick={() => setActivePanel('serviceContent')}>
-              <Package size={17} /> 服務內容
             </GroupModalSideBarItem>
             <GroupModalSideBarItem active={activePanel === 'members'} onClick={() => setActivePanel('members')}>
               <Users size={17} /> 成員名單

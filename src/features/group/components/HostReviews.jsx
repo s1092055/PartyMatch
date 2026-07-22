@@ -1,11 +1,11 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { MessageCircle, Star } from 'lucide-react'
 import Avatar from '../../../shared/ui/primitives/Avatar'
 import StarRating from '../../../shared/ui/primitives/StarRating'
 import { useReviewStore } from '../../../shared/stores/useReviewStore'
 import { toISODate } from '../../../shared/utils/date'
 
-export default function HostReviews({ group, headerClassName, onDm }) {
+export default function HostReviews({ group, headerClassName, onDm, groupId, title = '團主評價', scrollable = false }) {
   const hostId = group.hostId
   const data = useReviewStore(s => s.byHostId[hostId])
   const fetchForHost = useReviewStore(s => s.fetchForHost)
@@ -14,17 +14,30 @@ export default function HostReviews({ group, headerClassName, onDm }) {
     if (hostId) fetchForHost(hostId)
   }, [hostId, fetchForHost])
 
-  const average = data?.average ?? null
-  const count = data?.count ?? 0
-  const reviews = data?.reviews ?? []
+  // groupId 有帶入時（例如群組詳情裡的「成員評價」分頁）只顯示這個群組的評價，
+  // 平均分數／則數也改成只算這個群組的，不是團主全部群組的整體評價；沒有 groupId
+  // 時直接沿用 store 算好的 average/count，不用重新掃一次跟 store 一樣的全部評價
+  const reviews = useMemo(() => {
+    const all = data?.reviews ?? []
+    return groupId ? all.filter(r => r.groupId === groupId) : all
+  }, [data?.reviews, groupId])
+  const average = groupId
+    ? (reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : null)
+    : (data?.average ?? null)
+  const count = groupId ? reviews.length : (data?.count ?? 0)
 
   return (
     <div className="space-y-4 py-5">
-      <p className={headerClassName}>團主評價</p>
+      <p className={headerClassName}>{title}</p>
       <div className="flex items-center gap-3 border-b border-line-subtle pb-4">
         <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="md" />
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-ink">{group.hostName}（團主）</p>
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-semibold text-ink">{group.hostName}</p>
+            <span className="shrink-0 rounded-full bg-brand-subtle px-2.5 py-0.5 text-xs font-semibold text-brand">
+              團主
+            </span>
+          </div>
           <div className="mt-1 flex items-center gap-1.5">
             {average != null ? (
               <>
@@ -52,21 +65,23 @@ export default function HostReviews({ group, headerClassName, onDm }) {
       ) : reviews.length === 0 ? (
         <p className="py-4 text-center text-sm text-ink-4">尚無評價</p>
       ) : (
-        reviews.map(review => (
-          <div key={review.id} className="flex gap-3">
-            <Avatar initial={review.author?.avatarInitial} color={review.author?.avatarColor} size="sm" />
-            <div className="min-w-0 flex-1">
-              <div className="mb-1 flex items-center justify-between">
-                <span className="text-sm font-semibold text-ink">{review.author?.name ?? '匿名成員'}</span>
-                <span className="text-xs text-ink-4">{toISODate(review.createdAt)}</span>
+        <div className={`space-y-4 ${scrollable ? 'max-h-[15rem] overflow-y-auto pr-1' : ''}`}>
+          {reviews.map(review => (
+            <div key={review.id} className="flex gap-3">
+              <Avatar initial={review.author?.avatarInitial} color={review.author?.avatarColor} size="sm" />
+              <div className="min-w-0 flex-1">
+                <div className="mb-1 flex items-center justify-between">
+                  <span className="text-sm font-semibold text-ink">{review.author?.name ?? '匿名成員'}</span>
+                  <span className="text-xs text-ink-4">{toISODate(review.createdAt)}</span>
+                </div>
+                <div className="mb-1">
+                  <StarRating value={review.rating} readOnly />
+                </div>
+                {review.comment && <p className="text-sm leading-relaxed text-ink-3">{review.comment}</p>}
               </div>
-              <div className="mb-1">
-                <StarRating value={review.rating} readOnly />
-              </div>
-              {review.comment && <p className="text-sm leading-relaxed text-ink-3">{review.comment}</p>}
             </div>
-          </div>
-        ))
+          ))}
+        </div>
       )}
     </div>
   )

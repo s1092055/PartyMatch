@@ -57,9 +57,15 @@ export default function Step3Settings({ form, onChange }) {
 
   return (
     <div className="pb-3 short-lg:flex short-lg:h-96 short-lg:items-stretch short-lg:gap-8">
-      {/* 左：剩餘名額、信用分數、帳號需求 */}
+      {/* 左：開放名額、信用分數、帳號需求 */}
       <div className="flex min-h-0 min-w-0 flex-1 flex-col space-y-5 overflow-y-auto pb-1 pl-1 pr-1">
-        <Field label="剩餘名額" icon={Users} required hint={`最多可開放 ${maxSeats - 1} 位成員加入（不含你自己）`}>
+        <Field
+          label="開放名額"
+          icon={Users}
+          required
+          hint={`最多可開放 ${maxSeats - 1} 位成員加入（不含你自己）`}
+          endAdornment={<span className="text-sm font-normal text-slate-400">最多 {maxSeats} 人共享</span>}
+        >
           <div className="flex w-full items-center justify-between gap-3 border border-slate-200 rounded-xl p-1">
             <button
               onClick={() => onChange('totalSeats', Math.max(2, form.totalSeats - 1))}

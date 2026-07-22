@@ -337,10 +337,7 @@ router.post('/:id/dispute', requireAuth, validate(disputeSchema), async (req, re
 // POST /groups/:id/cancel — 解散群組（啟用前），退還所有代管給成員
 router.post('/:id/cancel', requireAuth, async (req, res, next) => {
   try {
-    const group = await prisma.group.findUnique({
-      where:   { id: req.params.id },
-      include: { members: { include: { user: { select: { id: true } } } } },
-    })
+    const group = await prisma.group.findUnique({ where: { id: req.params.id } })
     if (!group) return res.status(404).json({ message: '群組不存在' })
     if (group.hostId !== req.user.id) return res.status(403).json({ message: '僅團主可解散群組' })
 
@@ -352,23 +349,38 @@ router.post('/:id/cancel', requireAuth, async (req, res, next) => {
     // 計算每位成員的退款金額（席位費用）
     const seatCost = computeSeatCost(group)
 
-    await prisma.$transaction([
-      prisma.group.update({ where: { id: req.params.id }, data: { status: 'cancelled', escrowTokens: 0 } }),
-      ...group.members.map(m =>
-        prisma.user.update({ where: { id: m.userId }, data: { tokenBalance: { increment: seatCost } } })
-      ),
-      ...group.members.map(m =>
-        prisma.tokenTransaction.create({
-          data: {
+    await prisma.$transaction(async (tx) => {
+      // 條件式更新：確保狀態沒有在讀取跟寫入之間被其他請求（例如同時退出/被移除）變動過
+      const updated = await tx.group.updateMany({
+        where: { id: req.params.id, status: { in: cancellable } },
+        data:  { status: 'cancelled', escrowTokens: 0 },
+      })
+      if (updated.count === 0) {
+        const err = new Error('群組狀態已變動，請重新整理頁面')
+        err.statusCode = 409
+        throw err
+      }
+
+      // 在同一個 transaction 裡重新查詢當下真正還在群組內的成員，不用外層讀到的舊名單，
+      // 避免跟同時發生的退出/移除撞在一起造成重複退款
+      const currentMembers = await tx.member.findMany({ where: { groupId: req.params.id } })
+      if (currentMembers.length > 0) {
+        // 每人退款金額相同，一次 updateMany/createMany 取代逐筆 await，跟其他退款端點手法一致
+        await tx.user.updateMany({
+          where: { id: { in: currentMembers.map(m => m.userId) } },
+          data:  { tokenBalance: { increment: seatCost } },
+        })
+        await tx.tokenTransaction.createMany({
+          data: currentMembers.map(m => ({
             userId:        m.userId,
             type:          'refund',
             amount:        seatCost,
             relatedGroupId: req.params.id,
             note:          '群組解散，代管退款',
-          },
+          })),
         })
-      ),
-    ])
+      }
+    })
 
     res.json({ status: 'cancelled' })
   } catch (err) { next(err) }
