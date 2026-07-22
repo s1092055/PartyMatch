@@ -65,7 +65,7 @@ export function AuthDivider() {
 export function AuthError({ message }) {
   if (!message) return null
   return (
-    <div role="alert" className="rounded-[var(--radius-inner)] border border-danger-subtle bg-danger-subtle px-4 py-3 text-sm font-semibold text-danger-text">
+    <div role="alert" className="rounded-inner border border-danger-subtle bg-danger-subtle px-4 py-3 text-sm font-semibold text-danger-text">
       {message}
     </div>
   )

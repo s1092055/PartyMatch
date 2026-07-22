@@ -33,7 +33,7 @@ export default function RenewalModal({ isOpen, onClose, group, onStartRenewal, o
         </div>
 
 <div className={`mb-5 flex items-center gap-2 rounded-2xl border px-4 py-3 ${
-          isOverdue ? 'border-danger/30 bg-red-50/60' : 'border-warning/30 bg-amber-50/60'
+          isOverdue ? 'border-danger/30 bg-danger-subtle/60' : 'border-warning/30 bg-amber-50/60'
         }`}>
           <Calendar size={15} className={isOverdue ? 'shrink-0 text-danger' : 'shrink-0 text-warning-text'} />
           <div>
@@ -61,7 +61,7 @@ export default function RenewalModal({ isOpen, onClose, group, onStartRenewal, o
 
         <button
           onClick={onEndGroup}
-          className="w-full rounded-2xl border-2 border-line p-4 text-left transition-colors hover:border-danger/40 hover:bg-red-50/50"
+          className="w-full rounded-2xl border-2 border-line p-4 text-left transition-colors hover:border-danger/40 hover:bg-danger-subtle/50"
         >
           <div className="flex items-center gap-2">
             <XCircle size={16} className="shrink-0 text-danger" />

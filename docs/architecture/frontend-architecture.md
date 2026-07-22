@@ -56,6 +56,14 @@ src/
 
 ## Store 層（`shared/stores/`）
 
+### 為什麼選 Zustand 不是 Redux 或純 Context
+
+這個專案的 store 本質上是「伺服器資料的記憶體快取」（群組、申請、通知…都是後端資料的本地副本），不是複雜的前端純 UI 狀態機，所以評估點不是「哪個框架功能最完整」，而是「哪個框架跟這種用途最貼合」：
+
+- **對比 Redux**：Redux 的 action/reducer/dispatch 三層樣板碼，是為了讓「狀態怎麼變化」可追蹤、可時間旅行除錯而設計的，這在牽涉複雜使用者互動狀態機（例如編輯器的 undo/redo）時很有價值；但這裡的 store 大多是「呼叫 API → 把回應塞進 state」，額外的樣板碼換不到對應的除錯價值。Zustand 的 `set()` 直接改 state，一個 store 檔案就能看完「有哪些欄位、怎麼變化」，不用在 action type、reducer、selector 三個地方來回找
+- **對比純 Context**：Context 適合作用範圍明確、變化不頻繁的狀態（主題、語系），但這裡的 store 資料是**跨頁面共享、且頻繁被多個不相關元件同時讀取**（例如 `groupStore` 同時被探索頁、我的群組頁、通知點擊導向都要用到）。Context 沒有內建的訂閱粒度控制，任何一個值變化，所有 consume 這個 Context 的元件都會重新渲染；Zustand 的 `useXxxStore(s => s.field)` 讓元件只訂閱自己真正用到的欄位，其他欄位變化不會觸發這個元件重新渲染，不需要額外包 `useMemo`/`useCallback` 或拆多層 Context 來緩解效能問題
+- **跟 TanStack Query 的分工**：專案裡也裝了 `@tanstack/react-query`，但目前只用來建立 `QueryClient`，實際資料讀取仍主要走 Zustand store 而非 `useQuery`——這是歷史遺留而非刻意分工，代表如果之後要幫個別頁面補上「背景重新驗證、快取失效」這類更細緻的伺服器狀態管理，`useQuery` 是現成可以逐步遷入的路徑，不需要整套換掉 Zustand
+
 9 個 Zustand store，全部透過 `shared/api/` 呼叫後端 REST API，採「記憶體快取」模式：
 
 ```javascript

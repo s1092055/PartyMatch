@@ -57,7 +57,7 @@ export default function Step2Plan({ form, onChange }) {
               type="button"
               onClick={() => selectPlanAt(activeIndex - 1)}
               disabled={groupPlans.length <= 1 || activeIndex <= 0}
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-30"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-30"
               aria-label="上一個方案"
             >
               <ChevronLeft size={16} strokeWidth={1.5} />
@@ -72,9 +72,12 @@ export default function Step2Plan({ form, onChange }) {
                 }`}
               >
                 <div className="min-w-0 text-center">
-                  <p className="text-lg font-medium truncate">{currentPlan.name}</p>
-                  <p className={`text-base mt-1 flex items-center justify-center gap-1 truncate ${isPlanSelected ? 'text-brand' : 'text-slate-400'}`}>
-                    <TokenAmount amount={currentPlan.monthlyPrice} badgeSize="!h-4 !w-4" unitClassName={isPlanSelected ? 'text-brand' : 'text-slate-400'} /> · {currentPlan.maxSeats} 人
+                  <p className="text-xl font-semibold truncate">{currentPlan.name}</p>
+                  <p className={`mt-2 flex items-center justify-center gap-1 truncate text-sm ${isPlanSelected ? 'text-brand' : 'text-slate-400'}`}>
+                    <TokenAmount amount={currentPlan.monthlyPrice} cycle="monthly" badgeSize="!h-4 !w-4" unitClassName={isPlanSelected ? 'text-brand' : 'text-slate-400'} /> 方案總價
+                  </p>
+                  <p className={`mt-1 truncate text-sm ${isPlanSelected ? 'text-brand' : 'text-slate-400'}`}>
+                    最多 {currentPlan.maxSeats} 人共享
                   </p>
                 </div>
               </button>

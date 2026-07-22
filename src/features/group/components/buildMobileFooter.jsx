@@ -79,7 +79,7 @@ export function buildMobileFooter({
           </button>
           <button
             onClick={() => setLeaveConfirm(true)}
-            className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-danger transition-colors hover:bg-red-50"
+            className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-danger transition-colors hover:bg-danger-subtle"
           >
             <LogOut size={17} /> 退出群組
           </button>

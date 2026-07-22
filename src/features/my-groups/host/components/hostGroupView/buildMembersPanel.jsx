@@ -46,7 +46,7 @@ export function buildMembersPanel({ group, members, setActivePanel, onClose, set
                   {removable && (
                     <button
                       onClick={() => setRemovingMember(m)}
-                      className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-red-500"
+                      className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-danger"
                     >
                       <UserX size={20} />
                     </button>

@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { Pencil } from 'lucide-react'
 import { getServiceById } from '../../../shared/utils/serviceUtils'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
+import TokenAmount from '../../../shared/ui/TokenAmount'
 
 export default function MatchConditionBar({ conditions, showEdit = true }) {
   const navigate = useNavigate()
@@ -28,7 +29,7 @@ export default function MatchConditionBar({ conditions, showEdit = true }) {
       </div>
 
       <Divider />
-      <Chip label={`NT$${maxPrice} 以下`} />
+      <Chip label={<><TokenAmount amount={maxPrice} badgeSize="!h-3.5 !w-3.5" /> 以下</>} />
       <Divider />
       <Chip label={`信用分數 ${minRating}+`} />
 

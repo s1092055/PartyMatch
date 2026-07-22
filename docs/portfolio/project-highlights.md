@@ -42,7 +42,17 @@ refreshToken 不放 MySQL，改存 Redis，key 是 `refresh:{userId}:{sessionId}
 
 判斷該不該拆不是看行數，是看有沒有清楚的職責邊界——像「桌機 sidebar」跟「手機 dock」根本是兩套完全不同的 UI，拆開後各自才看得懂。拆完要避免 props drilling，狀態留在 orchestrator，子元件盡量做成 presentational，真的要跨元件共用的邏輯才抽成 hook。
 
-## 6. shared/ui 依用途分類
+## 6. 為什麼用 Polling 不是 WebSocket
+
+訊息中心（5 秒）、通知（10 秒）都是前端定時打 REST API，不是 WebSocket 即時推送。
+
+這不是「還沒做」，是評估過現階段成本效益後的選擇：WebSocket 要多維護一條持久連線的生命週期（心跳、斷線偵測、重連），身分驗證要另外設計一套（不能直接沿用 `axiosClient` 的 token/refresh 機制），而且一旦後端未來水平擴展成多實例，兩個使用者的連線可能落在不同機器上，得再加一層 pub/sub（例如用現有的 Redis 做 `PUBLISH`/`SUBSCRIBE`）才能互通訊息。polling 完全沒有這些問題——每次都是一個獨立、無狀態的 HTTP request，跟其他 REST 呼叫共用同一套驗證跟錯誤處理，天生就跟現有架構相容。
+
+延遲也是關鍵考量：這是群組合購媒合的聊天室，不是股票報價或多人協作編輯，5-10 秒的延遲對使用體驗影響很小，用複雜度換這點延遲不划算。真的該考慮換成 WebSocket 的時機點是：使用者規模大到 polling 請求量本身變成後端負擔（每個在線使用者固定頻率打 API，人數一多會線性堆疊出大量無效請求），或情境變成真的需要低延遲（例如客服即時對話）——這兩個條件目前都還沒發生。
+
+三處輪詢（訊息列表、單一對話訊息、通知）共用同一個 `poller.js` 的 `startPolling(pollOnce, intervalMs)` helper，內部把 `isActive()` 傳給 callback，讓輪詢邏輯自己判斷「這次拿到的結果現在還要不要寫回畫面」——避免使用者中途登出，前一次還沒回來的請求把過期資料寫進已經清空的畫面。
+
+## 7. shared/ui 依用途分類
 
 `shared/ui/` 分成 `primitives/`（不帶業務邏輯的通用元件，Button、Modal、Badge 這類）、`group/`（群組詳情 Modal 家族，團主跟成員視角共用）、其餘留在最外層（會用到業務概念但不專屬某個 Modal 家族的，例如 ServiceLogo、TokenAmount）。
 

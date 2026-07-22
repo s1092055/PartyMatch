@@ -309,7 +309,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
             <button
               type="submit"
               disabled={!fillValid || fillLoading}
-              className="w-full rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-dark disabled:opacity-40 disabled:pointer-events-none"
+              className="w-full rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover disabled:opacity-40 disabled:pointer-events-none"
             >
               {fillLoading ? '送出中…' : '送出帳號資訊'}
             </button>

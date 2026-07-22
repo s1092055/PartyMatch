@@ -35,10 +35,10 @@ export const SERVICES = [
       {
         name: 'Duo',
         billingCycle: 'monthly',
-        description: '2 人共享，適合情侶或室友，各自保有獨立收聽紀錄。',
+        description: '最多 2 人共享，適合情侶或室友，各自保有獨立收聽紀錄。',
         monthlyPrice: 228,
         maxSeats: 2,
-        tags: ['音樂', '2人共享', '無廣告', '離線下載'],
+        tags: ['音樂', '最多2人共享', '無廣告', '離線下載'],
         features: [
           '2 個獨立帳號，適合同住伴侶',
           '無廣告音樂串流，無限跳曲',
@@ -612,7 +612,7 @@ export const SERVICES = [
         description: '可綁定 1 位親友，2 組帳號同時使用同一組訂閱，各自保有獨立觀看紀錄。',
         monthlyPrice: 199,
         maxSeats: 2,
-        tags: ['影音', '2人共享', '台劇', '日韓劇'],
+        tags: ['影音', '最多2人共享', '台劇', '日韓劇'],
         features: [
           '可綁定 1 位親友帳號，2 組帳號同時使用',
           '各自保有獨立觀看紀錄與推薦',
@@ -788,10 +788,10 @@ export const SERVICES = [
       {
         name: 'Pro',
         billingCycle: 'monthly',
-        description: '2 人共享，享有 Claude 3.5 Sonnet 高優先使用權，含擴充上下文視窗功能。',
+        description: '最多 2 人共享，享有 Claude 3.5 Sonnet 高優先使用權，含擴充上下文視窗功能。',
         monthlyPrice: 649,
         maxSeats: 2,
-        tags: ['AI工具', '2人共享', '長文本', '程式碼'],
+        tags: ['AI工具', '最多2人共享', '長文本', '程式碼'],
         features: [
           '比免費方案多 5 倍以上的使用額度',
           '存取所有 Claude 模型，包含最新 Claude Opus',
@@ -822,10 +822,10 @@ export const SERVICES = [
       {
         name: 'Standard（月繳）',
         billingCycle: 'monthly',
-        description: '3 人共享，每月 15 小時快速生成時數，無限放鬆模式生成。',
+        description: '最多 3 人共享，每月 15 小時快速生成時數，無限放鬆模式生成。',
         monthlyPrice: 975,
         maxSeats: 3,
-        tags: ['AI工具', 'AI繪圖', '3人共享', '商業授權'],
+        tags: ['AI工具', 'AI繪圖', '最多3人共享', '商業授權'],
         features: [
           '每月 15 小時快速 GPU 運算時間',
           '無限 Relax 模式生成（不消耗快速時間，速度較慢）',
@@ -839,10 +839,10 @@ export const SERVICES = [
       {
         name: 'Standard（年繳）',
         billingCycle: 'yearly',
-        description: '3 人共享，每月 15 小時快速生成時數，無限放鬆模式生成。',
+        description: '最多 3 人共享，每月 15 小時快速生成時數，無限放鬆模式生成。',
         monthlyPrice: 780,
         maxSeats: 3,
-        tags: ['AI工具', 'AI繪圖', '3人共享', '商業授權'],
+        tags: ['AI工具', 'AI繪圖', '最多3人共享', '商業授權'],
         features: [
           '每月 15 小時快速 GPU 運算時間',
           '無限 Relax 模式生成（不消耗快速時間，速度較慢）',
@@ -856,7 +856,7 @@ export const SERVICES = [
       {
         name: 'Pro（月繳）',
         billingCycle: 'monthly',
-        description: '4 人共享，每月 30 小時快速生成時數，支援隱私模式保護作品。',
+        description: '最多 4 人共享，每月 30 小時快速生成時數，支援隱私模式保護作品。',
         monthlyPrice: 1950,
         maxSeats: 4,
         tags: ['AI工具', 'AI繪圖', '隱私模式', '商業授權'],
@@ -873,7 +873,7 @@ export const SERVICES = [
       {
         name: 'Pro（年繳）',
         billingCycle: 'yearly',
-        description: '4 人共享，每月 30 小時快速生成時數，支援隱私模式保護作品。',
+        description: '最多 4 人共享，每月 30 小時快速生成時數，支援隱私模式保護作品。',
         monthlyPrice: 1560,
         maxSeats: 4,
         tags: ['AI工具', 'AI繪圖', '隱私模式', '商業授權'],
@@ -906,7 +906,7 @@ export const SERVICES = [
       {
         name: 'Teams（月繳）',
         billingCycle: 'monthly',
-        description: '4 人共享，含集中管理、強制隱私模式與 SAML SSO 企業功能。',
+        description: '最多 4 人共享，含集中管理、強制隱私模式與 SAML SSO 企業功能。',
         monthlyPrice: 5120,
         maxSeats: 4,
         tags: ['AI工具', 'AI編程', '企業功能', '隱私保護'],
@@ -923,7 +923,7 @@ export const SERVICES = [
       {
         name: 'Teams（年繳）',
         billingCycle: 'yearly',
-        description: '4 人共享，含集中管理、強制隱私模式與 SAML SSO 企業功能。',
+        description: '最多 4 人共享，含集中管理、強制隱私模式與 SAML SSO 企業功能。',
         monthlyPrice: 4096,
         maxSeats: 4,
         tags: ['AI工具', 'AI編程', '企業功能', '隱私保護'],
@@ -1274,10 +1274,10 @@ export const SERVICES = [
       {
         name: '家庭方案（2人）',
         billingCycle: 'yearly',
-        description: '2 人共享，無限觀看所有 MasterClass 課程，支援多裝置離線下載。官方僅提供年繳。',
+        description: '最多 2 人共享，無限觀看所有 MasterClass 課程，支援多裝置離線下載。官方僅提供年繳。',
         monthlyPrice: 480,
         maxSeats: 2,
-        tags: ['學習', '2人共享', '離線下載', '名師課程'],
+        tags: ['學習', '最多2人共享', '離線下載', '名師課程'],
         features: [
           '2 人各自獨立帳號，同時在 2 台裝置串流',
           '完整存取所有 MasterClass 課程（200+ 門，涵蓋各領域）',

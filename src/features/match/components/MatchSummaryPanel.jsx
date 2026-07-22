@@ -1,6 +1,7 @@
 import { Sliders } from 'lucide-react'
 import { getServiceById } from '../../../shared/utils/serviceUtils'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
+import TokenAmount from '../../../shared/ui/TokenAmount'
 
 const GROUP_AGE_LABEL = { any: '不限', new: '三個月內', established: '三個月至一年', veteran: '一年以上' }
 
@@ -40,7 +41,7 @@ export default function MatchSummaryPanel({ conditions, filtersChosen }) {
       </div>
 
       <div className="shrink-0 space-y-4 border-t border-line-subtle pt-4">
-        <Row label="每人申請費用" value={filtersChosen ? `NT$${maxPrice} 以下` : '尚未選擇'} muted={!filtersChosen} />
+        <Row label="每人申請費用" value={filtersChosen ? <><TokenAmount amount={maxPrice} badgeSize="!h-3.5 !w-3.5" /> 以下</> : '尚未選擇'} muted={!filtersChosen} />
         <Row label="團主信用分數" value={filtersChosen ? `${minRating} 分以上` : '尚未選擇'} muted={!filtersChosen} />
         <Row label="群組年資" value={filtersChosen ? (GROUP_AGE_LABEL[groupAge] ?? '不限') : '尚未選擇'} muted={!filtersChosen} />
       </div>

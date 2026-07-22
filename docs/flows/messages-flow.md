@@ -64,7 +64,12 @@ flowchart TD
 | `Message` | 一般訊息 `type: 'text'`；系統訊息另有 `actionType`/`payload`，供前端渲染成可操作的訊息 |
 
 ## 使用技術
-- **用 Polling 而不是 WebSocket**：`useConversationStore` 每 5 秒輪詢對話列表，`subscribeToMessages` 輪詢單一對話的訊息
+- **用 Polling 而不是 WebSocket**：`useConversationStore` 每 5 秒輪詢對話列表，`subscribeToMessages` 輪詢單一對話的訊息。原因不是「不知道 WebSocket」，而是實際權衡過現階段的成本效益：
+  - **基礎設施成本**：WebSocket 需要維護一條持久連線，後端要處理連線生命週期（心跳、斷線偵測）；一旦未來多開一台後端實例做水平擴展，同一個對話的兩端可能連到不同實例，訊息要能互通就得再加一層 pub/sub broker（例如用已經在跑的 Redis 做 `PUBLISH`/`SUBSCRIBE`）。polling 完全不需要這些，每次都是一次獨立、無狀態的 HTTP request，天然跟現有的水平擴展模型相容
+  - **複用既有機制**：polling 沿用跟其他 REST API 一樣的 `axiosClient`（自動帶 token、401 自動 refresh），WebSocket 連線的身分驗證、token 過期後怎麼重新握手，是另一套要單獨設計的邏輯
+  - **前端複雜度**：WebSocket 要處理斷線重連（背景分頁、電腦休眠喚醒後連線斷了要偵測並重建）、多分頁同時開著同一個對話時誰負責維護連線、訊息到達順序跟去重；polling 因為每次都是完整重新拉一次列表，這些問題天然不存在
+  - **延遲是否重要**：這是群組合購媒合聊天室，不是股票報價或多人協作編輯，5-10 秒的延遲對使用情境影響很小，換取上面這些複雜度不划算
+  - **什麼時候該換**：使用者規模大到 polling 的請求量本身變成後端負擔（每個在線使用者每 5 秒一次 request，人數一多會線性增加無效請求）、或使用情境變成需要低延遲的即時互動（例如客服即時對話），才是重新評估 WebSocket 的時機點；目前規模下這個交換點還沒到
 - **三處輪詢共用同一套機制**：通知、對話列表、訊息內容都靠 `poller.js` 的 `startPolling(pollOnce, intervalMs)`——先立刻跑一次，之後每隔一段時間再跑；並把 `isActive()` 傳給 callback，讓輪詢邏輯在等待回應的過程中自己判斷這次結果還要不要寫回，避免使用者登出後，前一次還沒跑完的請求回來把過期資料寫進畫面
 - DM 的延遲曝光完全靠後端判斷，不依賴前端輪詢的時機點
 

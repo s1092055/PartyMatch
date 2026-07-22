@@ -28,11 +28,11 @@ function EditableField({ label, value, onSave, type = 'text', placeholder }) {
       <div className="flex items-center gap-1 shrink-0 pt-5">
         {editing ? (
           <>
-            <button onClick={save} aria-label="儲存" className="w-7 h-7 rounded-[var(--radius-inner)] bg-brand hover:bg-brand-hover flex items-center justify-center text-white transition-colors"><Check size={13} strokeWidth={3} /></button>
-            <button onClick={cancel} aria-label="取消編輯" className="w-7 h-7 rounded-[var(--radius-inner)] border border-line hover:bg-raised flex items-center justify-center text-ink-3 transition-colors"><X size={13} /></button>
+            <button onClick={save} aria-label="儲存" className="w-7 h-7 rounded-inner bg-brand hover:bg-brand-hover flex items-center justify-center text-white transition-colors"><Check size={13} strokeWidth={3} /></button>
+            <button onClick={cancel} aria-label="取消編輯" className="w-7 h-7 rounded-inner border border-line hover:bg-raised flex items-center justify-center text-ink-3 transition-colors"><X size={13} /></button>
           </>
         ) : (
-          <button onClick={() => setEditing(true)} aria-label={`編輯${label}`} className="w-7 h-7 rounded-[var(--radius-inner)] border border-line hover:bg-raised flex items-center justify-center text-ink-3 transition-colors">
+          <button onClick={() => setEditing(true)} aria-label={`編輯${label}`} className="w-7 h-7 rounded-inner border border-line hover:bg-raised flex items-center justify-center text-ink-3 transition-colors">
             <Pencil size={12} />
           </button>
         )}
