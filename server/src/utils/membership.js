@@ -9,8 +9,9 @@ export async function admitMemberIntoGroup(tx, { groupId, userId, seatCost, maxM
   }
 
   // 條件式更新：status/currentMembers 在寫入當下重新核對，避免併發加入導致超額或加入到已非招募中的群組
+  // currentMembers 只計非團主成員，maxMembers 是含團主的總名額，所以名額上限要扣掉團主佔的 1 個
   const capacity = await tx.group.updateMany({
-    where: { id: groupId, status: 'recruiting', currentMembers: { lt: maxMembers } },
+    where: { id: groupId, status: 'recruiting', currentMembers: { lt: maxMembers - 1 } },
     data:  { currentMembers: { increment: 1 }, escrowTokens: { increment: seatCost } },
   })
   if (capacity.count === 0) {
@@ -45,8 +46,9 @@ export async function admitMemberIntoGroup(tx, { groupId, userId, seatCost, maxM
 // 申請核准（applications.js 的 PATCH /:id）：代管扣款已經在使用者送出申請的當下完成過了，
 // 這裡只需要核對名額、建立成員/訂閱、額滿自動推進 full，不會再扣一次款。
 export async function finalizeApprovedApplication(tx, { groupId, userId, maxMembers }) {
+  // 同上：maxMembers 含團主，名額上限要扣掉團主佔的 1 個
   const capacity = await tx.group.updateMany({
-    where: { id: groupId, status: 'recruiting', currentMembers: { lt: maxMembers } },
+    where: { id: groupId, status: 'recruiting', currentMembers: { lt: maxMembers - 1 } },
     data:  { currentMembers: { increment: 1 } },
   })
   if (capacity.count === 0) {
@@ -73,9 +75,10 @@ export async function finalizeApprovedApplication(tx, { groupId, userId, maxMemb
 }
 
 async function advanceToFullIfNeeded(tx, groupId) {
-  // 加入後自動檢查是否額滿，若滿則推進到 full
+  // 加入後自動檢查是否額滿，若滿則推進到 full；currentMembers 只計非團主成員，
+  // +1 是團主自己佔的名額，跟前端 normalizeGroup() 的 usedSeats = memberCount + 1 對齊
   const updatedGroup = await tx.group.findUnique({ where: { id: groupId }, select: { currentMembers: true, maxMembers: true } })
-  if (updatedGroup.currentMembers >= updatedGroup.maxMembers) {
+  if (updatedGroup.currentMembers + 1 >= updatedGroup.maxMembers) {
     await tx.group.update({ where: { id: groupId }, data: { status: 'full' } })
   }
 }

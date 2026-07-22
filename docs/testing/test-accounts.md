@@ -72,26 +72,26 @@ npm run db:seed-demo    # 建立 10 個 demo 帳號（含 1 個管理員）、22
 |------|------|------|------|------|
 | G1 | Netflix（年繳） | demo7 | `recruiting` | 1 筆待審申請（demo1），可測審核流程；年繳計費路徑 |
 | G2 | Notion | demo4 | `recruiting` | 1 位已核准成員（demo5）+ 1 筆已拒絕申請（demo3），demo7 已收藏 |
-| G3 | Spotify（6 人方案） | demo8 | `full` | 6/6 位已核准（滿）+ 1 筆已撤回申請（demo6） |
-| G4 | Disney+ | demo7 | `pending_confirmation` | 已鎖定，成員（demo2、demo3）尚未填帳號資訊（`sharingMethod: shared_credentials`） |
-| G5 | HBO Max（3 人方案） | demo9 | `pending_activation` | 3 位成員（demo3、demo5、demo4）已全部填完帳號（確認勾選），待團主啟用 |
-| G6 | ChatGPT Team | demo8 | `confirming` | demo7、demo1 為成員，尚無人確認 |
-| G7 | ExpressVPN | demo9 | `disputed` | demo6 申訴中（含佐證圖片），等待管理員裁定 |
-| G8 | Google One（AI Plus） | demo7 | `active` | 3 位成員（demo2、demo4、demo5）確認撥款完成，已有 2 則對團主的評價 |
-| G9 | KKBOX（3 人方案） | demo8 | `active` | 示範「招募期間自行退出、釋出名額後由他人遞補」：demo5 曾滿員後退出，demo1 遞補後才鎖定啟用；最終成員為 demo7、demo3、demo1 |
+| G3 | Spotify（6 人方案） | demo8 | `full` | 5 位成員（demo1～demo4、demo9）＋團主共 6 人滿員 + 1 筆已撤回申請（demo6） |
+| G4 | Disney+ | demo7 | `pending_confirmation` | 已鎖定，成員（demo2）尚未填帳號資訊（`sharingMethod: shared_credentials`）；2 人方案，1 位成員＋團主即滿員 |
+| G5 | HBO Max（3 人方案） | demo9 | `pending_activation` | 2 位成員（demo3、demo5）＋團主共 3 人已全部填完帳號（確認勾選），待團主啟用 |
+| G6 | ChatGPT Team | demo8 | `confirming` | demo7 為成員，尚無人確認；2 人方案，1 位成員＋團主即滿員 |
+| G7 | ExpressVPN | demo9 | `disputed` | demo6 申訴中（含佐證圖片），等待管理員裁定；2 人方案，demo6 一人＋團主即滿員 |
+| G8 | Google One（AI Plus） | demo7 | `active` | 2 位成員（demo2、demo4）＋團主共 3 人確認撥款完成，已有 2 則對團主的評價 |
+| G9 | KKBOX（3 人方案） | demo8 | `active` | 示範「招募期間自行退出、釋出名額後由他人遞補」：demo5 曾滿員後退出，demo1 遞補後才鎖定啟用；最終成員為 demo7、demo1（＋團主共 3 人） |
 | G10a | Discord | demo9 | `cancelled` | 招募中（未滿員）就解散，demo4 全額退款 |
-| G10b | Crunchyroll | demo8 | `cancelled` | 滿員後才解散，demo5、demo6 全額退款 |
-| G11 | Duolingo | demo8 | `ended` | 完整跑完一輪（demo1、demo3 確認撥款）後團主主動結束服務 |
+| G10b | Crunchyroll | demo8 | `cancelled` | 滿員後才解散（demo5、demo6 兩位成員＋團主共 3 人），demo5、demo6 全額退款 |
+| G11 | Duolingo | demo8 | `ended` | 完整跑完一輪（demo1、demo3 確認撥款，2 位成員＋團主共 3 人）後團主主動結束服務，demo1、demo3 各留下一則對團主的評價 |
 | G_removed | MasterClass（2人方案，年繳） | demo7 | `recruiting` | demo2 招募期間被團主移除，示範信用分數扣分（100 → 85）與退款；群組本身回到 0 人的 `recruiting` |
 | G12 | Canva | demo6 | `recruiting` | 設 `minCreditScore: 70` 門檻，尚無人申請。注意：目前後端申請邏輯（`server/src/routes/applications.js`）**並未實作信用分數門檻檢查**，`minCreditScore` 目前只用於前端顯示/篩選 |
-| G13 | Cursor | demo4 | `confirming` | demo7 已確認、demo5 尚未確認，測試「確認後尚有人未確認、個人視角提前顯示已啟用」的分支 |
-| G14 | Apple Music（家庭方案 6 人） | demo9 | `pending_confirmation` | `sharingMethod: apple_family`；6 位成員（demo1～demo5、demo7）全新鎖定尚未填寫，測試 Apple 家庭共享提醒文案 |
-| G15 | Google One（100GB） | demo7 | `pending_confirmation` | `sharingMethod: google_family`；demo3、demo6 尚未填寫 Google 帳戶 |
-| G16 | friDay影音 | demo8 | `pending_confirmation` | `sharingMethod: invite_code`；demo5、demo2 尚未填寫邀請碼，測試反向綁定流程說明文案 |
+| G13 | Cursor | demo4 | `confirming` | demo7 已確認、demo5 尚未確認（2 位成員＋團主共 3 人），測試「確認後尚有人未確認、個人視角提前顯示已啟用」的分支 |
+| G14 | Apple Music（家庭方案 6 人） | demo9 | `pending_confirmation` | `sharingMethod: apple_family`；5 位成員（demo1～demo4、demo7）＋團主共 6 人全新鎖定尚未填寫，測試 Apple 家庭共享提醒文案 |
+| G15 | Google One（100GB） | demo7 | `pending_confirmation` | `sharingMethod: google_family`；demo3 尚未填寫 Google 帳戶；2 人方案，demo3 一人＋團主即滿員 |
+| G16 | friDay影音 | demo8 | `pending_confirmation` | `sharingMethod: invite_code`；demo5 尚未填寫邀請碼，測試反向綁定流程說明文案；2 人方案，demo5 一人＋團主即滿員 |
 | G17 | iCloud+ | demo9 | `recruiting` | 示範團主手動加入成員（`POST /members`，略過申請流程）：demo4 已被加入，仍有 1 個空位開放一般申請 |
-| G18 | Microsoft 365（家庭 6 人） | demo8 | `pending_confirmation` | 已完整跑完第 1 期（6 位成員全部確認撥款後 `active`），團主接著呼叫續訂（`/renew`），現在是第 2 期的 `pending_confirmation`，帳號資訊已清空重新等待填寫 |
-| G19 | Dropbox（Family 6 人） | demo9 | `active` | 6 位成員啟用後 demo2 申訴，管理員裁定「**成員獲勝**」：demo2 已退款並移出群組，剩餘 5 位成員不受影響 |
-| G20 | NordVPN | demo7 | `active` | demo5 申訴，管理員裁定「**團主獲勝**」：代管全額撥款給團主，demo5 仍留在群組內 |
+| G18 | Microsoft 365（家庭 6 人） | demo8 | `pending_confirmation` | 已完整跑完第 1 期（5 位成員＋團主共 6 人全部確認撥款後 `active`），團主接著呼叫續訂（`/renew`），現在是第 2 期的 `pending_confirmation`，帳號資訊已清空重新等待填寫 |
+| G19 | Dropbox（Family 6 人） | demo9 | `active` | 5 位成員＋團主共 6 人啟用後 demo2 申訴，管理員裁定「**成員獲勝**」：demo2 已退款並移出群組，剩餘成員不受影響；demo1、demo4 各留下一則對團主的評價 |
+| G20 | NordVPN | demo7 | `active` | demo5 申訴，管理員裁定「**團主獲勝**」：代管全額撥款給團主，demo5 仍留在群組內；demo3、demo5 各留下一則對團主的評價 |
 
 另外還建立了：系統公告 1 則（透過管理員帳號的 `POST /system-messages/broadcast` 真實廣播 API）；demo7 → demo8 的 DM 私訊（一來一往 2 則訊息）；demo7 的 2 張信用卡付款方式、demo1 的 1 張；每個已鎖定群組都有對應的群組聊天室（含開場白訊息）；申請/核准/拒絕/額滿/開聊天室/啟用/撥款/申訴/退出/移除/解散/結束/續訂等關鍵動作都有建立對應的通知（`Notification`），可直接用來測試通知中心。
 

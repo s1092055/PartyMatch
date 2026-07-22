@@ -161,25 +161,32 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
     }
   }
 
+  const fillInfoCta = (needsFillInfo || hasServiceInfoIssue) && (
+    <div className="py-2">
+      <button
+        onClick={() => { setFillValues(myMember?.serviceInfo ?? {}); setActivePanel('fillInfo') }}
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-6 py-2 text-sm font-bold text-white shadow-md transition-colors hover:bg-brand-hover"
+      >
+        <ClipboardEdit size={15} /> 填寫帳號
+      </button>
+    </div>
+  )
+
   const confirmCta = canConfirm && (
-    <div className="grid grid-cols-2 gap-1 p-2">
-      <div className="flex justify-center">
-        <button
-          onClick={() => setConfirmDialog(true)}
-          disabled={confirmLoading}
-          className="flex items-center gap-2 rounded-xl bg-success px-6 py-2 text-sm font-bold text-white shadow-md transition-colors hover:bg-success-text disabled:opacity-60"
-        >
-          <ThumbsUp size={15} /> 確認服務
-        </button>
-      </div>
-      <div className="flex justify-center">
-        <button
-          onClick={() => { setDisputeReasons([]); setDisputeDetail(''); setEvidenceUrl(''); setEvidenceName(''); setActivePanel('dispute') }}
-          className="flex items-center gap-2 rounded-xl border border-danger px-5 py-1.5 text-sm font-semibold text-danger transition-colors hover:bg-danger-subtle"
-        >
-          <AlertTriangle size={14} /> 回報問題
-        </button>
-      </div>
+    <div className="grid grid-cols-2 gap-2 p-2">
+      <button
+        onClick={() => setConfirmDialog(true)}
+        disabled={confirmLoading}
+        className="flex items-center justify-center gap-2 rounded-xl bg-success px-6 py-2 text-sm font-bold text-white shadow-md transition-colors hover:bg-success-text disabled:opacity-60"
+      >
+        <ThumbsUp size={15} /> 確認服務
+      </button>
+      <button
+        onClick={() => { setDisputeReasons([]); setDisputeDetail(''); setEvidenceUrl(''); setEvidenceName(''); setActivePanel('dispute') }}
+        className="flex items-center justify-center gap-2 rounded-xl border border-danger px-5 py-1.5 text-sm font-semibold text-danger transition-colors hover:bg-danger-subtle"
+      >
+        <AlertTriangle size={14} /> 回報問題
+      </button>
     </div>
   )
 
@@ -434,7 +441,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
         ) : undefined
       }
       extraInfoRows={[]}
-      centeredCta={confirmCta || undefined}
+      centeredCta={fillInfoCta || confirmCta || undefined}
       statusBadgeOverride={
         alreadyConfirmed ? { variant: 'active' } :
         group.status === 'recruiting' && !!sub ? 'member_joined' :
@@ -457,7 +464,6 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
         undefined
       }
       sideBar={(() => {
-        const showFillBtn = needsFillInfo || hasServiceInfoIssue
         return (
           <>
             <GroupModalSideBarItem active={activePanel === null} onClick={() => setActivePanel(null)}>
@@ -469,15 +475,6 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
             <GroupModalSideBarItem active={activePanel === 'members'} onClick={() => setActivePanel('members')}>
               <Users size={17} /> 成員名單
             </GroupModalSideBarItem>
-            {showFillBtn && (
-              <GroupModalSideBarItem
-                active={activePanel === 'fillInfo'}
-                tone="brand"
-                onClick={() => { setFillValues(myMember?.serviceInfo ?? {}); setActivePanel('fillInfo') }}
-              >
-                <ClipboardEdit size={17} /> 填寫帳號
-              </GroupModalSideBarItem>
-            )}
             {canLeaveGroup && (
               <GroupModalSideBarItem pinned tone="danger" onClick={() => setLeaveConfirm(true)}>
                 <LogOut size={17} /> 退出群組

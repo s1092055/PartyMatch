@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Banknote, CheckCircle2, ClipboardList, Clock, Info, MessageCircle, Package, PlayCircle, Radio, RefreshCw, Trash2, Users } from 'lucide-react'
+import { Banknote, CheckCircle2, ClipboardList, Clock, Info, MessageCircle, Package, PlayCircle, Radio, RefreshCw, Star, Trash2, Users } from 'lucide-react'
 import CountdownConfirmDialog from '../../../../shared/ui/primitives/CountdownConfirmDialog'
 import CountdownText from '../../../../shared/ui/primitives/CountdownText'
 import GroupModalShell from '../../../../shared/ui/group/GroupModalShell'
 import GroupModalSideBarItem from '../../../../shared/ui/group/GroupModalSideBarItem'
 import ServiceContentPanel from '../../../../shared/ui/group/ServiceContentPanel'
+import HostReviews from '../../../group/components/HostReviews'
 import { getServiceById } from '../../../../shared/utils/serviceUtils'
 import { useAuthStore } from '../../../../shared/stores/useAuthStore'
 import { useNotificationStore } from '../../../../shared/stores/useNotificationStore'
@@ -120,9 +121,9 @@ export default function HostGroupView({ group, members, applications, onReportSe
   )
 
   const lockGroupCta = group.status === 'full' && (
-    <div className="flex justify-center py-2">
+    <div className="py-2">
       {showLockGroupConfirm ? (
-        <div className="flex gap-2">
+        <div className="grid grid-cols-2 gap-2">
           <button
             onClick={() => setShowLockGroupConfirm(false)}
             className="rounded-xl border border-line px-4 py-2 text-sm font-semibold text-ink-2 transition-colors hover:bg-raised"
@@ -135,7 +136,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
       ) : (
         <button
           onClick={() => setShowLockGroupConfirm(true)}
-          className="flex items-center gap-2 rounded-xl bg-success px-6 py-2 text-sm font-bold text-white shadow-md transition-colors hover:bg-success-text"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-success px-6 py-2 text-sm font-bold text-white shadow-md transition-colors hover:bg-success-text"
         >
           <Radio size={15} /> 鎖定群組
         </button>
@@ -171,10 +172,10 @@ export default function HostGroupView({ group, members, applications, onReportSe
   )
 
   const activateCta = canActivateNow && (
-    <div className="flex justify-center py-2">
+    <div className="py-2">
       <button
         onClick={openActivate}
-        className="flex items-center gap-2 rounded-xl bg-success px-6 py-2 text-sm font-bold text-white shadow-md transition-colors hover:bg-success-text"
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-success px-6 py-2 text-sm font-bold text-white shadow-md transition-colors hover:bg-success-text"
       >
         <PlayCircle size={15} /> 啟用服務
       </button>
@@ -188,6 +189,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
     if (activePanel === 'serviceContent') return { content: <ServiceContentPanel group={group} service={serviceDef} plan={planDef} /> }
     if (activePanel === 'applications') return buildApplicationsPanel({ pendingApps, groupFull, errors, onApprove, onReject, setActivePanel, setShowReviewHistory })
     if (activePanel === 'billing') return buildBillingPanel({ members, transactions, transactionsLoading, expandedBillingMembers, toggleBillingMember })
+    if (activePanel === 'reviews') return { content: <div className="px-5"><HostReviews group={group} headerClassName="text-lg font-black text-brand" /></div> }
     return null
   }
 
@@ -212,6 +214,9 @@ export default function HostGroupView({ group, members, applications, onReportSe
         </GroupModalSideBarItem>
         <GroupModalSideBarItem active={activePanel === 'members'} onClick={() => goToPanel('members')}>
           <Users size={17} /> 成員名單
+        </GroupModalSideBarItem>
+        <GroupModalSideBarItem active={activePanel === 'reviews'} onClick={() => goToPanel('reviews')}>
+          <Star size={17} /> 我的評價
         </GroupModalSideBarItem>
         {isRecruiting ? (
           <>
