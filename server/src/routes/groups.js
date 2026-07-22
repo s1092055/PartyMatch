@@ -4,6 +4,14 @@ import prisma from '../lib/prisma.js'
 import { requireAuth, optionalAuth, requireAdmin } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
 import { computeSeatCost } from '../utils/pricing.js'
+import { appendMessage } from '../lib/conversationMessages.js'
+
+// 找出群組聊天室並附加一則系統訊息；建立時機早於群組鎖定的情境（例如群組還沒鎖定）不會有聊天室，此時靜默略過
+async function notifyGroupConversation(groupId, senderId, content) {
+  const conversation = await prisma.conversation.findFirst({ where: { groupId, type: 'group' } })
+  if (!conversation) return
+  await appendMessage(conversation, { senderId, content, type: 'system' })
+}
 
 const router = Router()
 
@@ -188,7 +196,11 @@ router.post('/:id/confirm', requireAuth, async (req, res, next) => {
   try {
     const group = await prisma.group.findUnique({
       where: { id: req.params.id },
-      include: { members: true, host: { select: { id: true } } },
+      include: {
+        members: { include: { user: { select: { id: true, name: true } } } },
+        host:    { select: { id: true } },
+        service: { select: { name: true } },
+      },
     })
     if (!group) return res.status(404).json({ message: '群組不存在' })
     if (group.status !== 'confirming') return res.status(400).json({ message: `群組狀態為 ${group.status}，不在確認期` })
@@ -197,12 +209,16 @@ router.post('/:id/confirm', requireAuth, async (req, res, next) => {
     if (!member) return res.status(403).json({ message: '你不是此群組成員' })
 
     const now = new Date()
+    const groupLabel = group.planName ?? group.service?.name ?? ''
 
     // 標記此成員已確認
     await prisma.member.update({
       where: { id: member.id },
       data:  { confirmedAt: now },
     })
+
+    // 團主目前完全不會被通知有成員確認服務，先寫一則系統訊息讓團主至少能在聊天室看到進度
+    notifyGroupConversation(req.params.id, member.userId, `${member.user.name} 已確認服務正常。`).catch(console.error)
 
     // 確認全員是否都已確認（含剛才更新的成員）
     const updatedMembers = await prisma.member.findMany({ where: { groupId: req.params.id } })
@@ -243,6 +259,18 @@ router.post('/:id/confirm', requireAuth, async (req, res, next) => {
           data:  { status: 'active' },
         }),
       ])
+
+      prisma.notification.create({
+        data: {
+          userId:  group.host.id,
+          type:    'escrow_released',
+          title:   '代管款項已撥款',
+          message: `「${groupLabel}」群組確認期結束，代管款項已撥入你的PM幣餘額。`,
+          meta:    { groupId: req.params.id },
+        },
+      }).catch(console.error)
+      notifyGroupConversation(req.params.id, member.userId, `確認期結束，代管款項已撥款給團主。`).catch(console.error)
+
       return res.json({ group: { ...updated, escrowTokens: 0 }, released: true })
     }
 
@@ -257,7 +285,10 @@ router.post('/:id/dispute', requireAuth, validate(disputeSchema), async (req, re
 
     const group = await prisma.group.findUnique({
       where: { id: req.params.id },
-      include: { members: true },
+      include: {
+        members: { include: { user: { select: { id: true, name: true } } } },
+        service: { select: { name: true } },
+      },
     })
     if (!group) return res.status(404).json({ message: '群組不存在' })
     if (group.status !== 'confirming') return res.status(400).json({ message: `群組狀態為 ${group.status}，不在確認期` })
@@ -267,6 +298,7 @@ router.post('/:id/dispute', requireAuth, validate(disputeSchema), async (req, re
 
     const disputeDeadline = new Date()
     disputeDeadline.setDate(disputeDeadline.getDate() + 3)
+    const groupLabel = group.planName ?? group.service?.name ?? ''
 
     const [updated] = await prisma.$transaction([
       prisma.group.update({
@@ -286,6 +318,17 @@ router.post('/:id/dispute', requireAuth, validate(disputeSchema), async (req, re
         },
       }),
     ])
+
+    prisma.notification.create({
+      data: {
+        userId:  group.hostId,
+        type:    'dispute_raised',
+        title:   '收到成員申訴',
+        message: `${member.user.name} 針對「${groupLabel}」服務提出申訴，平台客服將於 3 天內裁定。`,
+        meta:    { groupId: req.params.id },
+      },
+    }).catch(console.error)
+    notifyGroupConversation(req.params.id, member.userId, `${member.user.name} 對服務問題提出申訴，等待客服裁定。`).catch(console.error)
 
     res.json(updated)
   } catch (err) { next(err) }

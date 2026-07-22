@@ -103,12 +103,13 @@ sequenceDiagram
 | 「成員退出群組」／「{userName} 已退出「{groupLabel}」群組。」 | `member_left` | 成員自行退出群組（`finalizeLeaveGroup`） | 團主（僅寫DB） | 團主→該群組；成員自己不會收到這則 |
 | 「服務帳號需要修正」／「團主在「{groupName}」發現服務帳號問題，請前往修正。」 | `service_info_issue` | 團主回報帳號問題 | 該成員（僅寫DB） | 我的群組（成員）該群組 |
 | 「即將續訂」／「「{serviceName}」將於 今天／{days} 天後扣款，請確認PM幣餘額充足。」 | `upcoming_renewal` | 呼叫 `GET /subscriptions` 時後端檢查：`active` 訂閱且距下次扣款 ≤7 天，依 `nextBillingDate` 去重、同一期只發一次 | 該訂閱使用者 | 我的群組（成員）「服務中」分頁 |
-| （demo 展示文案）「收到成員申訴」／「{name} 針對 {service} 服務提出申訴，平台客服將於 3 天內裁定」 | `dispute_raised` | **目前只有 demo 種子資料會建立**，真正的 `POST /groups/:id/dispute` 後端路由沒有建立過任何通知 | 無（demo 帳號才看得到範例） | 未定義，會 fallback 到預設連結 |
-| （demo 展示文案）「代管款項已撥款」／「{groupLabel} 群組確認期結束，代管款項已撥入你的PM幣餘額」 | `escrow_released` | **同上，只有 demo 種子資料建立**，`POST /groups/:id/confirm` 撥款成功後端路由沒有建立任何通知 | 無（demo 帳號才看得到範例） | 未定義，fallback 預設連結 |
+| 「收到成員申訴」／「{memberName} 針對「{groupLabel}」服務提出申訴，平台客服將於 3 天內裁定。」 | `dispute_raised` | 成員送出申訴（`POST /groups/:id/dispute`） | 團主（僅寫DB） | 我的群組（團主）該群組 |
+| 「代管款項已撥款」／「「{groupLabel}」群組確認期結束，代管款項已撥入你的PM幣餘額。」 | `escrow_released` | 全員確認服務（或確認期逾期）觸發撥款（`POST /groups/:id/confirm`） | 團主（僅寫DB） | 我的群組（團主）該群組 |
 | 無 | `token_topup` | 無——定義了但沒有任何程式碼建立這個類型 | — | — |
 | 無固定文案 | `system` | 保留給公開系統公告（`isPublic: true`），但 `POST /notifications` 明確禁止一般使用者建立 `isPublic:true`，目前**沒有任何後端流程會真的建立**這種通知——公告目前只走「系統聊天室」訊息廣播（見 [訊息流程](messages-flow.md)），不是走通知中心 | — | 探索頁 |
 
 ### 已知落差
-- **確認服務、送出申訴這兩個動作，團主端目前完全收不到任何通知**：`dispute_raised`／`escrow_released` 只存在於 demo 種子資料的展示效果，真正的 `confirm`／`dispute` 後端路由都沒有建立通知，只有前端當下的 toast 提示
 - `token_topup` 是定義了但完全沒接的死 enum 值
 - 公開系統公告的 Notification（`isPublic: true`）從未被建立過，實務上公告都是走 `system-messages` 聊天室廣播
+
+> 原本「確認服務／送出申訴不會通知團主」的落差已修復：`POST /groups/:id/confirm`／`POST /groups/:id/dispute` 現在會分別建立 `escrow_released`／`dispute_raised` 通知給團主，並在群組聊天室留一則系統訊息（見 [訊息流程](messages-flow.md)）。

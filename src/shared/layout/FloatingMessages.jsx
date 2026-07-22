@@ -42,6 +42,8 @@ const NOTIFICATION_META = {
   group_ended:          { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/explore' },
   member_removed:       { icon: AlertCircle,   iconColor: 'text-danger',     link: '/explore' },
   member_left:          { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/my-groups?view=host' },
+  escrow_released:      { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-groups?view=host' },
+  dispute_raised:       { icon: AlertCircle,   iconColor: 'text-danger',     link: '/my-groups?view=host' },
   system:               { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/explore' },
   announcement:         { icon: AlertCircle,   iconColor: 'text-brand',      link: '/explore' },
   platform:             { icon: AlertCircle,   iconColor: 'text-brand',      link: '/explore' },
@@ -197,6 +199,12 @@ export default function FloatingMessages() {
     }
 
     if (notification.type === 'group_full' && notification.meta?.groupId) {
+      navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId } })
+      window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: notification.meta.groupId } }))
+      return
+    }
+
+    if ((notification.type === 'escrow_released' || notification.type === 'dispute_raised') && notification.meta?.groupId) {
       navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId } })
       window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: notification.meta.groupId } }))
       return

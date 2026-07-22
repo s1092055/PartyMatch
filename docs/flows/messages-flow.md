@@ -107,8 +107,9 @@ flowchart TD
 | 團主結束群組 | 系統訊息「團主已結束「XXX」群組」 |
 | 團主移除成員 | 系統訊息「XXX 已被移出群組」，並把該成員移出 `participants` |
 | 成員自行退出群組（`finalizeLeaveGroup`） | 系統訊息「XXX 已退出群組」，並把自己移出 `participants` |
+| 成員確認服務（`POST /groups/:id/confirm`） | 系統訊息「XXX 已確認服務正常。」；若剛好觸發撥款，再加發一則「確認期結束，代管款項已撥款給團主。」 |
+| 成員送出申訴（`POST /groups/:id/dispute`） | 系統訊息「XXX 對服務問題提出申訴，等待客服裁定。」 |
 | 管理員後台廣播（`POST /system-messages/broadcast`） | 對全平台每個人的系統聊天室各發一則相同訊息，`Promise.allSettled` 平行送出，個別失敗不中斷整批 |
 | 管理員後台單發（`POST /system-messages/direct`） | 對單一使用者的系統聊天室發一則訊息 |
 
-### 已知落差
-- **成員「確認服務」、「送出申訴」這兩個動作目前不會觸發任何系統訊息或通知**：團主端不會在聊天室或通知中心看到「有人確認了」「有人申訴了」的任何提示，只有前端當下給操作者本人的 toast，跟 [通知流程](notification-flow.md) 的 `dispute_raised`／`escrow_released` 落差是同一個根因（confirm/dispute 後端路由沒有建立任何副作用訊息）
+`groups.js` 的 `notifyGroupConversation()` 是共用小工具，用群組 id 反查其群組聊天室（`Conversation.type: 'group'`）後呼叫 `appendMessage()` 附加一則系統訊息；找不到聊天室（例如群組還沒鎖定過）就靜默略過，不影響主流程。
