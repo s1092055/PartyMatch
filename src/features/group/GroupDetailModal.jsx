@@ -9,6 +9,7 @@ import { useMemberStore } from '../../shared/stores/useMemberStore'
 import { useFavoriteStore } from '../../shared/stores/useFavoriteStore'
 import { useAuthStore } from '../../shared/stores/useAuthStore'
 import { finalizeLeaveGroup } from './utils/leaveGroupFlow'
+import { calcDisplayPrice } from '../../shared/utils/pricingUtils'
 import { toast } from '../../shared/utils/toast'
 import { TokenBadge } from '../../shared/ui/TokenAmount'
 import CountdownConfirmDialog from '../../shared/ui/primitives/CountdownConfirmDialog'
@@ -122,6 +123,20 @@ export default function GroupDetailModal() {
   const canApply = !isHost && !isMember && !hasActiveApp && !isFull && !!activeUserId
 
   function handleClose() { setGroupId(null); setShowMembers(false); setLeaveConfirm(false); setWithdrawConfirm(false); resetApply() }
+
+  // 點「申請加入」當下就先比對餘額，不足就直接引導儲值，不用等填完留言表單送出才被後端擋下來
+  function handleApplyClick() {
+    const price = calcDisplayPrice(group.pricePerSeat, group.billingCycle)
+    const balance = activeUser?.tokenBalance ?? 0
+    if (price > balance) {
+      toast('PM幣不足', 'error', {
+        icon: <TokenBadge />,
+        action: { label: '前往儲值', onClick: () => window.dispatchEvent(new CustomEvent('pm:open-topup')) },
+      })
+      return
+    }
+    setShowApply(true)
+  }
 
   async function handleWithdraw() {
     if (withdrawing || !app) return
@@ -252,7 +267,7 @@ export default function GroupDetailModal() {
         isHost, isWaitingMembers, needsFillInfo, hasServiceInfoIssue,
         isMember, isPendingApp, isFull, canApply, isFav,
         withdrawConfirm, setWithdrawConfirm, withdrawing, handleWithdraw,
-        setShowMembers, setLeaveConfirm, setShowApply, toggleFav,
+        setShowMembers, setLeaveConfirm, onApplyClick: handleApplyClick, toggleFav,
       })}
       afterColumns={picks.length > 0 && (
         <div className="border-t border-line px-6 pb-4 pt-5">

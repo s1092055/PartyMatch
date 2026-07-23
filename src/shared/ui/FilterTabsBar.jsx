@@ -1,24 +1,8 @@
-import { Archive, Star } from 'lucide-react'
 import CustomSelect from './primitives/CustomSelect'
 
-function SidebarIconButton({ icon: Icon, label, badgeCount, onClick, className = '' }) {
-  return (
-    <button
-      onClick={onClick}
-      aria-label={label}
-      className={`relative grid shrink-0 place-items-center rounded-xl border border-line-subtle text-ink-3 transition-colors hover:bg-raised hover:text-ink ${className}`}
-    >
-      <Icon size={17} strokeWidth={1.5} />
-      {badgeCount > 0 && (
-        <span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-ink-4 px-1 text-2xs font-bold text-white">
-          {badgeCount}
-        </span>
-      )}
-    </button>
-  )
-}
-
-export default function FilterTabsBar({ tabs, value, onChange, counts = {}, onOpenHistory, historyCount = 0, onOpenReviews }) {
+// 狀態篩選一律用橫向 tabs，手機/桌機同一套邏輯（不再用下拉選單）——
+// 「群組紀錄」按鈕改放在 MyGroupsPage 最上方的身分切換列，這裡不再處理
+export default function FilterTabsBar({ tabs, value, onChange, counts = {} }) {
   const options = tabs.map(tab => ({
     value: tab.key,
     label: counts[tab.key] != null ? `${tab.label} (${counts[tab.key]})` : tab.label,
@@ -26,75 +10,46 @@ export default function FilterTabsBar({ tabs, value, onChange, counts = {}, onOp
 
   return (
     <>
-      {/* Dropdown — mobile，我的評價／群組紀錄以 icon 按鈕放在右側 */}
+      {/* 手機版：分類數量已精簡到 4~5 個，但橫向 tabs 在窄螢幕仍容易擠壓文字，改用下拉選單 */}
       <div className="mb-4 flex items-center gap-2 md:hidden">
         <CustomSelect value={value} onChange={onChange} options={options} />
-        {onOpenReviews && (
-          <SidebarIconButton icon={Star} label="我的評價" onClick={onOpenReviews} className="h-11 w-11" />
-        )}
-        {onOpenHistory && (
-          <SidebarIconButton icon={Archive} label="群組紀錄" badgeCount={historyCount} onClick={onOpenHistory} className="h-11 w-11" />
-        )}
       </div>
 
-      {/* 桌機版：左側垂直 tab 選單，樣式比照帳號設定頁；我的評價／群組紀錄固定在側邊欄底部。
-          給 nav 固定高度（跟右側內容區的 max-h 用同一個 calc 值）而不是靠 flex 拉伸撐高，
-          避免內容區高度隨分類項目多寡變化時，底部這兩顆按鈕的垂直位置跟著飄動 */}
-      <nav className="hidden w-40 shrink-0 animate-step-slide-up md:flex md:h-[calc(100vh-16rem)] md:min-h-[28rem] md:flex-col">
-        <ul className="flex flex-col gap-1">
-          {tabs.map(tab => (
-            <li key={tab.key}>
+      {/* 桌機版：橫向 underline tabs，等寬平均分布；當前分類固定底線，其他分類 hover 才滑入動畫 */}
+      <div className="mb-4 hidden items-center gap-2 md:flex">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          {tabs.map(tab => {
+            const active = value === tab.key
+            return (
               <button
+                key={tab.key}
                 onClick={() => onChange(tab.key)}
-                className={`flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-sm font-bold transition-colors ${
-                  value === tab.key
-                    ? 'bg-brand-subtle text-brand'
-                    : 'text-ink-2 hover:bg-raised hover:text-ink'
+                className={`group relative -mb-px flex flex-1 items-center justify-center gap-1.5 px-3.5 py-2.5 text-sm font-bold transition-colors ${
+                  active ? 'text-brand' : 'text-ink-3 hover:text-ink'
                 }`}
               >
-                <span className="text-left">{tab.label}</span>
+                {tab.label}
                 {counts[tab.key] != null && (
                   <span className={`rounded-full px-1.5 py-0.5 text-xs font-bold ${
-                    value === tab.key ? 'bg-brand/15 text-brand' : 'bg-raised text-ink-4'
+                    active ? 'bg-brand-subtle text-brand' : 'bg-raised text-ink-4'
                   }`}>
                     {counts[tab.key]}
                   </span>
                 )}
+                {/* 底線：當前分類固定顯示（切走時直接消失，不做退場動畫）；
+                    其他分類只有 hover 進入時才有滑入動畫，滑出/切換不animate */}
+                <span
+                  className={`absolute inset-x-0 -bottom-px h-0.5 origin-left bg-brand ${
+                    active
+                      ? 'scale-x-100'
+                      : 'scale-x-0 group-hover:scale-x-100 group-hover:transition-transform group-hover:duration-200'
+                  }`}
+                />
               </button>
-            </li>
-          ))}
-        </ul>
-
-        {(onOpenReviews || onOpenHistory) && (
-          <div className="mt-auto flex flex-col gap-1">
-            {onOpenReviews && (
-              <button
-                onClick={onOpenReviews}
-                className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-ink-3 transition-colors hover:bg-raised hover:text-ink"
-              >
-                <Star size={16} strokeWidth={1.5} />
-                我的評價
-              </button>
-            )}
-            {onOpenHistory && (
-              <button
-                onClick={onOpenHistory}
-                className="flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-ink-3 transition-colors hover:bg-raised hover:text-ink"
-              >
-                <span className="flex items-center gap-2">
-                  <Archive size={16} strokeWidth={1.5} />
-                  群組紀錄
-                </span>
-                {historyCount > 0 && (
-                  <span className="rounded-full bg-raised px-1.5 py-0.5 text-xs font-bold text-ink-4">
-                    {historyCount}
-                  </span>
-                )}
-              </button>
-            )}
-          </div>
-        )}
-      </nav>
+            )
+          })}
+        </div>
+      </div>
     </>
   )
 }

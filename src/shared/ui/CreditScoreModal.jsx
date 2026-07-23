@@ -26,8 +26,8 @@ export default function CreditScoreModal({ isOpen, onClose }) {
     <div className="fixed inset-0 z-[75] flex items-center justify-center p-4 md:p-8">
       <div className="absolute inset-0 bg-black/50 animate-backdrop-in" onClick={handleClose} />
 
-      <div className="relative flex w-full max-w-sm flex-col overflow-hidden rounded-2xl bg-canvas shadow-2xl animate-modal-in"
-           style={{ height: 'min(92vh, 560px)' }}>
+      <div className="relative flex w-full max-w-md flex-col overflow-hidden rounded-2xl bg-canvas shadow-2xl animate-modal-in"
+           style={{ height: 'min(80vh, 640px)' }}>
 
         {/* Slide track — 200% wide, two equal panels */}
         <div
@@ -37,19 +37,19 @@ export default function CreditScoreModal({ isOpen, onClose }) {
 
           {/* ── Panel 1: 信用分數 ── */}
           <div className="flex w-1/2 min-w-0 flex-col">
-            {/* Header */}
-            <div className="flex shrink-0 items-center justify-between border-b border-line px-5 py-4">
+            {/* Header：跟其他 modal（如「我的評價」）統一版型——icon＋標題在左，X 關閉在右 */}
+            <div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-5">
               <div className="flex items-center gap-2">
-                <ShieldCheck size={16} strokeWidth={1.5} className="text-ink-3" />
-                <h2 className="text-base font-extrabold text-ink">信用分數</h2>
+                <ShieldCheck size={16} strokeWidth={1.5} className="text-brand" />
+                <h2 className="text-lg font-extrabold text-ink">信用分數</h2>
               </div>
-              <button onClick={handleClose} className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink">
+              <button onClick={handleClose} className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink">
                 <X size={18} />
               </button>
             </div>
 
             {/* Body */}
-            <div className="flex-1 overflow-y-auto px-5 py-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex-1 overflow-y-auto px-5 py-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <div className="flex flex-col gap-5">
                 <div className="flex justify-center py-2">
                   <CreditScoreBadge score={creditScore} size="lg" />
@@ -94,7 +94,7 @@ export default function CreditScoreModal({ isOpen, onClose }) {
               >
                 <ChevronLeft size={18} strokeWidth={1.5} />
               </button>
-              <ShieldCheck size={15} strokeWidth={1.5} className="text-ink-3" />
+              <ShieldCheck size={16} strokeWidth={1.5} className="text-brand" />
               <span className="flex-1 font-extrabold text-ink">信用分數紀錄</span>
             </div>
 

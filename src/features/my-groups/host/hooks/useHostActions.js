@@ -63,7 +63,7 @@ export function useHostActions(activeUser) {
 
   const [hostData, setHostData] = useState(() => loadHostData(activeUser))
   const [errors, setErrors] = useState({})
-  const [statusFilter, setStatusFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState('recruiting')
 
   const [viewGroupId, setViewGroupId]                     = useState(null)
   const [autoOpenLockGroup, setAutoOpenLockGroup] = useState(false)
@@ -75,7 +75,16 @@ export function useHostActions(activeUser) {
   function applyOpenHostGroup({ groupId, openGroupId, statusFilter: selectedStatusFilter, openLockGroup, openActivate, openApplications, openBilling }) {
     const gId = groupId ?? openGroupId
     if (!gId) return
-    if (selectedStatusFilter) setStatusFilter(selectedStatusFilter)
+    if (selectedStatusFilter) {
+      setStatusFilter(selectedStatusFilter)
+    } else {
+      // 沒有明確指定篩選分類時（例如從通知深連結開啟），依群組目前狀態自動切到對應分類，
+      // 不然關閉 modal 後背景列表可能因為篩選條件對不上而讓這個群組憑空消失；直接讀 store
+      // 目前值（而不是閉包捕捉的 allGroups），避免掛載時的 effect 用到過期資料
+      const targetGroup = getGroupById(gId)
+      const matchedTab = targetGroup && STATUS_FILTER_TABS.find(tab => matchesFilter(targetGroup, tab.key))
+      if (matchedTab) setStatusFilter(matchedTab.key)
+    }
     setViewGroupId(gId)
     setAutoOpenLockGroup(!!openLockGroup)
     setAutoOpenActivate(!!openActivate)

@@ -22,7 +22,7 @@ flowchart TD
     J --> I
     I -->|開始新一期| E
     I -->|結束服務| K[ended]
-    A -->|解散群組| L[cancelled：全額退款]
+    A -->|解散群組| L[cancelled，顯示為「已解散」：全額退款]
     D -->|解散群組| L
 ```
 
@@ -38,12 +38,12 @@ flowchart TD
 |------|------|
 | `src/features/my-groups/host/HostPage.jsx` | 頁面總入口 |
 | `src/features/my-groups/host/hooks/useHostActions.js` | 所有團主操作的事件處理（鎖定、啟用、移除成員、審核、續訂、解散等） |
-| `src/features/my-groups/host/components/HostGroupView.jsx` | 團主視角群組詳情 Modal，含 `pending_confirmation`/`confirming` 倒數橫幅；側邊欄「成員評價」分頁只顯示這個群組的評價 |
-| `src/features/my-groups/host/components/HostReviewsModal.jsx` | 獨立的「我的評價」Modal，彙總團主名下**所有**群組的評價，從「我的群組」頁側邊欄底部進入，跟群組詳情裡只看單一群組的「成員評價」分頁分開 |
+| `src/features/my-groups/host/components/HostGroupView.jsx` | 團主視角群組詳情 Modal，含 `pending_confirmation`/`confirming` 倒數橫幅；側邊欄「成員評價」分頁只顯示這個群組的評價，且只在群組曾經啟用過（`active`/`paused`/`ended`）才會出現；`cancelled`（已解散）狀態不顯示「成員評價」「收款管理」「群組訊息」「續訂管理」，因為這些階段根本沒發生過 |
+| `src/features/my-groups/host/components/HostReviewsModal.jsx` | 獨立的「我的評價」Modal，彙總團主名下**所有**群組的評價，入口從「我的群組」頁側邊欄移到帳號中心（`AccountPage.jsx` 的 Hero 區塊），跟群組詳情裡只看單一群組的「成員評價」分頁分開 |
 | `src/shared/ui/primitives/CountdownText.jsx` | 顯示距 deadline 剩餘時間的小元件，逾期顯示 `expiredText` |
 | `src/shared/utils/hooks.js` | `useCountdown`，每秒重算剩餘時間，純顯示用不觸發任何副作用 |
 | `src/features/my-groups/host/components/HostedGroupCard.jsx` | 群組卡片 |
-| `src/shared/ui/FilterTabsBar.jsx` | 「我的群組」頁側邊欄，「我的評價」按鈕固定在「群組紀錄」按鈕上方，點開 `HostReviewsModal` |
+| `src/shared/ui/FilterTabsBar.jsx` | 狀態篩選列，手機版是下拉選單、桌機版是橫向 underline tabs（不再是側邊欄）；「群組紀錄」按鈕已移到 `MyGroupsPage.jsx` 最上方的身分切換列，`FilterTabsBar` 本身不再處理任何額外按鈕 |
 | `src/features/my-groups/host/components/ActivateServiceModal.jsx` | 啟用服務前逐一確認成員帳號的 Modal |
 | `src/features/my-groups/host/components/ReportServiceIssueModal.jsx` | 回報成員帳號問題 |
 | `src/features/my-groups/host/components/RenewalModal.jsx` | 續訂管理（見續訂流程文件） |
@@ -52,7 +52,7 @@ flowchart TD
 | `src/features/my-groups/host/components/hostGroupView/ApplicationCard.jsx` | 單筆申請卡片，核准／拒絕 |
 | `src/features/my-groups/host/components/hostGroupView/buildReviewHistoryPanel.jsx` | 審核紀錄第三層面板，含篩選 |
 | `src/features/my-groups/host/components/hostGroupView/buildBillingPanel.jsx` | 收款管理面板（見 PM幣代管流程文件） |
-| `src/features/my-groups/host/utils/hostFilters.js` | `STATUS_FILTER_TABS`（跟 `GroupStatus` 一一對應：招募中/待鎖定/填寫資訊中/待啟用/確認期中/申訴中/服務中，不再像舊版把好幾種狀態塞進同一個「處理中」/「啟用中」分頁）、`matchesFilter`、`calcApprovalSeatPatch` |
+| `src/features/my-groups/host/utils/hostFilters.js` | `STATUS_FILTER_TABS`（招募中/處理中/服務中三個大分類；待鎖定/填寫資訊中/待啟用/確認期中/申訴中五種細分狀態都併入「處理中」——`PROCESSING_STATUSES` 定義在 `src/shared/utils/groupStatus.js`，跟 member 端共用；已移除「全部」分頁，細分階段交給卡片本身的狀態 badge 顯示）、`matchesFilter`、`calcApprovalSeatPatch` |
 | `src/features/account/components/tabs/AdminTab.jsx` | 管理員裁定申訴，跨群組，非團主本人操作 |
 
 **後端**
@@ -83,8 +83,10 @@ flowchart TD
 - **群組詳情 Modal Header 顯示「服務名稱 | 方案名稱」**：原本只顯示服務名稱
 - **樂觀更新 + 背景同步**：核准/拒絕申請、移除成員時會先更新本地資料，畫面立刻反應，再到背景呼叫對應 API 跟建立通知
 - 鎖定群組、解散群組、移除成員這幾個不可逆的操作，都要透過 `CountdownConfirmDialog` 倒數確認才能執行
-- **側邊欄 pinned 項目**：招募中（`recruiting`/`full`）時側邊欄底部固定顯示「解散群組」，鎖定後改成固定顯示「群組訊息」——兩者是互斥的狀態分支，不會同時出現，因此可以共用側邊欄右下角同一個位置
+- **側邊欄 pinned 項目**：招募中（`recruiting`/`full`）時側邊欄底部固定顯示「解散群組」，鎖定後（且非 `cancelled`）改成固定顯示「群組訊息」——兩者是互斥的狀態分支，不會同時出現，因此可以共用側邊欄右下角同一個位置；`cancelled`（已解散）狀態兩者都不顯示
 - **`HostedGroupCard` 依狀態切換統計格內容**：第一格招募中顯示「待處理申請」，已啟用（`active`/`cancelled`/`ended`）顯示「收款紀錄」，其餘鎖定後尚未啟用的狀態顯示「收款狀態」（因為此時「待處理申請」永遠會是 0）；第三格招募中顯示「建立日期」，已啟用顯示「收款狀態」，其餘鎖定後尚未啟用的狀態顯示「下次扣款」
+- **群組卡片列表用 `auto-fill`/`minmax` 而非 viewport 斷點排欄數**：`grid-cols-[repeat(auto-fill,minmax(20rem,1fr))]`，依容器實際可用寬度（扣掉側邊欄與 padding 後）決定一列能排幾張卡片，不會像用 `sm:`/`lg:` 斷點時，卡片被螢幕寬度硬擠出比實際可用空間更多的欄數，導致統計格內的日期文字被迫換行
+- **`statusFilter` 深連結自動對應分類**：`useHostActions.js` 的 `applyOpenHostGroup` 在沒有明確指定 `statusFilter` 時（例如從通知點擊開啟），會依目標群組目前的狀態自動找出對應的 `STATUS_FILTER_TABS` 分類並切過去，避免使用者關閉 modal 後，背景列表因為預設篩選分類（`recruiting`）對不上群組實際狀態而讓群組憑空消失
 
 ## 流程步驟
 
@@ -92,7 +94,7 @@ flowchart TD
 - `HostPage` 依分頁跟篩選條件顯示 `allGroups`，統計卡上會顯示本月預估收入、平均每組收入、服務中的成員數
 
 **2. 審核申請（`recruiting`）**
-- 側邊欄「申請管理」列出待審核清單；面板右下角有一個固定貼在角落的圓形圖示按鈕可以點進「審核紀錄」（內容捲動時仍維持在角落），「申請管理」「審核紀錄」兩個分頁的標題列都不顯示文字，只在需要時顯示返回鍵
+- 側邊欄「申請管理」列出待審核清單；面板右下角有一個固定貼在角落、附文字的「審核紀錄」按鈕（內容捲動時仍維持在角落，樣式跟最上方的「群組紀錄」按鈕統一）；「申請管理」「審核紀錄」兩個分頁的標題列都不顯示文字，「審核紀錄」完全空狀態時返回鍵改成浮動在左上角（`subSubPanel.floatingBack`），不佔用整列高度，讓空狀態置中位置跟「申請管理」對齊；一旦有篩選下拉（`stickyHeader`）就改回整列標頭
 - 點「核准」：先檢查名額是否足夠，通過就打 `PATCH /applications/:id { status: 'approved' }`（後端在同一個 transaction 內完成餘額檢查、代管扣款、建立成員與訂閱）；前端等後端完成後重新拉一次真實資料，並更新本地名額，剛好額滿的話還會額外通知團主自己
 - 點「拒絕」：打 `PATCH /applications/:id { status: 'rejected' }`，並通知申請人
 
@@ -128,8 +130,8 @@ flowchart TD
 - 申訴不在團主自己的操作範圍內，是由平台管理員在 `AdminTab` 選擇處於 `disputed` 狀態的群組並送出裁定，見申訴流程文件
 
 **11. 查看評價**
-- 群組詳情側邊欄的「成員評價」分頁只顯示這個群組的評價（平均分數/則數只算這個群組）
-- 「我的群組」頁側邊欄「我的評價」按鈕（在「群組紀錄」按鈕上方）點開獨立的 `HostReviewsModal`，彙總團主名下**所有**群組的評價
+- 群組詳情側邊欄的「成員評價」分頁只顯示這個群組的評價（平均分數/則數只算這個群組），且只在群組曾經啟用過才會出現這個分頁
+- 帳號中心（`/account`）Hero 區塊的「我的評價」按鈕點開獨立的 `HostReviewsModal`，彙總團主名下**所有**群組的評價；沒有評價時顯示「尚無評價」
 
 ## 驗證重點
 - 所有團主專屬的 route（鎖定/啟用/解散/續訂/查交易紀錄）都會檢查請求人確實是該群組的團主，不是就回 403

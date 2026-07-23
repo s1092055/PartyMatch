@@ -1,10 +1,9 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Bell, Lock, LogIn, MessageSquare, ShieldCheck } from 'lucide-react'
+import { Bell, Lock, LogIn, MessageSquare } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
 import { NAV_SECTIONS } from '../../constants/nav'
 import { TokenBadge } from '../../ui/TokenAmount'
-import { DEFAULT_CREDIT_SCORE } from '../../utils/creditScore'
 import { Badge, LockBadge, LockedHint } from './navShared'
 import { LOCKED_MESSAGE, getNavItemKey, isProtectedNavItem } from './navConstants'
 
@@ -17,9 +16,7 @@ export default function DesktopSidebar({
   unreadNotifs,
   unreadMsgs,
   tokenBalance,
-  creditScore,
   setTopupOpen,
-  setCreditScoreOpen,
   closeAll,
   openCreate,
   openMatch,
@@ -64,7 +61,7 @@ export default function DesktopSidebar({
       const onClick = item.type === 'create' ? openCreate : openMatch
       return (
         <button key={item.type} onClick={onClick} aria-label={item.label}
-          className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand hover:text-white active:scale-[0.96]">
+          className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand active:scale-[0.96]">
           <span className="grid h-9 w-9 shrink-0 place-items-center">
             <item.icon size={22} strokeWidth={2.1} />
           </span>
@@ -83,8 +80,8 @@ export default function DesktopSidebar({
         onClick={closeAll}
         className={`flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-[0.95rem] transition-all hover:-translate-y-0.5 active:scale-[0.96] ${
           isActive
-            ? 'bg-brand-subtle font-extrabold text-brand'
-            : 'font-bold text-ink-2 hover:bg-brand hover:text-white'
+            ? 'bg-brand font-extrabold text-white'
+            : 'font-bold text-ink-2 hover:bg-brand-subtle hover:text-brand'
         }`}
       >
         <span className="grid h-9 w-9 shrink-0 place-items-center">
@@ -188,34 +185,23 @@ export default function DesktopSidebar({
 
         <div className="px-2 pb-4">
           {loggedIn ? (
-            <div className="relative flex h-14 items-center">
-              <a
-                href="/account"
-                onClick={closeAll}
-                aria-label="帳號設定"
-                className="flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left transition-all hover:bg-raised"
+            <a
+              href="/account"
+              onClick={closeAll}
+              aria-label="我的帳號"
+              className="flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left transition-all hover:bg-raised"
+            >
+              <span
+                className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-black text-white shadow-md"
+                style={{ background: avatarColor ?? 'linear-gradient(135deg, #cbd5e1, #64748b)' }}
               >
-                <span
-                  className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-black text-white shadow-md"
-                  style={{ background: avatarColor ?? 'linear-gradient(135deg, #cbd5e1, #64748b)' }}
-                >
-                  {avatarInitial}
-                  <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
-                </span>
-                <span className="min-w-0 flex-1 opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
-                  <span className="block truncate text-sm font-extrabold text-ink">{userName}</span>
-                </span>
-              </a>
-              <button
-                type="button"
-                onClick={e => { e.preventDefault(); e.stopPropagation(); setCreditScoreOpen(true) }}
-                aria-label="信用分數"
-                className="absolute right-1 flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-line bg-white px-2.5 text-ink-2 opacity-0 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand hover:text-white active:scale-[0.96] group-hover/nav:opacity-100 group-focus-within/nav:opacity-100"
-              >
-                <ShieldCheck size={16} strokeWidth={1.5} />
-                <span className="text-xs font-bold">{creditScore ?? DEFAULT_CREDIT_SCORE}</span>
-              </button>
-            </div>
+                {avatarInitial}
+                <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
+              </span>
+              <span className="min-w-0 flex-1 opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
+                <span className="block truncate text-sm font-extrabold text-ink">{userName}</span>
+              </span>
+            </a>
           ) : (
             <a
               href="/login"

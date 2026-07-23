@@ -182,12 +182,15 @@ export default function HostGroupView({ group, members, applications, onReportSe
   )
 
   const isRecruiting = ['recruiting', 'full'].includes(group.status)
+  const isCancelled = group.status === 'cancelled'
+  // 成員評價要群組真的啟用過才會有資料，招募/處理中階段成員根本還沒用服務、不可能有評價
+  const hasBeenActive = ['active', 'paused', 'ended'].includes(group.status)
 
   function buildSubPanel() {
     if (activePanel === 'members') return buildMembersPanel({ group, members, setActivePanel, onClose, setRemovingMember })
     if (activePanel === 'applications') return buildApplicationsPanel({ pendingApps, groupFull, errors, onApprove, onReject, setActivePanel, setShowReviewHistory })
     if (activePanel === 'billing') return buildBillingPanel({ members, transactions, transactionsLoading, expandedBillingMembers, toggleBillingMember })
-    if (activePanel === 'reviews') return { content: <div className="px-5"><HostReviews group={group} groupId={group.id} title="成員評價" headerClassName="text-lg font-black text-brand" /></div> }
+    if (activePanel === 'reviews') return { content: <div className="flex min-h-full flex-col"><HostReviews group={group} groupId={group.id} title="" headerClassName="text-lg font-black text-brand" centerEmpty /></div> }
     return null
   }
 
@@ -210,9 +213,11 @@ export default function HostGroupView({ group, members, applications, onReportSe
         <GroupModalSideBarItem active={activePanel === 'members'} onClick={() => goToPanel('members')}>
           <Users size={17} /> 成員名單
         </GroupModalSideBarItem>
-        <GroupModalSideBarItem active={activePanel === 'reviews'} onClick={() => goToPanel('reviews')}>
-          <Star size={17} /> 成員評價
-        </GroupModalSideBarItem>
+        {hasBeenActive && (
+          <GroupModalSideBarItem active={activePanel === 'reviews'} onClick={() => goToPanel('reviews')}>
+            <Star size={17} /> 成員評價
+          </GroupModalSideBarItem>
+        )}
         {isRecruiting ? (
           <>
             <GroupModalSideBarItem
@@ -234,7 +239,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
               <Trash2 size={17} /> 解散群組
             </GroupModalSideBarItem>
           </>
-        ) : (
+        ) : !isCancelled && (
           <>
             <GroupModalSideBarItem active={activePanel === 'billing'} onClick={() => goToPanel('billing')}>
               <Banknote size={17} />

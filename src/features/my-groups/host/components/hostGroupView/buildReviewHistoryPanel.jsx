@@ -1,6 +1,7 @@
 import { History } from 'lucide-react'
 import EmptyState from '../../../../../shared/ui/primitives/EmptyState'
 import CustomSelect from '../../../../../shared/ui/primitives/CustomSelect'
+import { CENTERED_PANEL_BODY_CLASS } from '../../../../../shared/ui/group/panelLayout'
 import ApplicationCard from './ApplicationCard'
 
 export function buildReviewHistoryPanel({ applications, reviewFilter, setReviewFilter, groupFull, errors }) {
@@ -11,6 +12,9 @@ export function buildReviewHistoryPanel({ applications, reviewFilter, setReviewF
     : reviewedApps.filter(a => a.status === reviewFilter)
   return {
     headerBorder: false,
+    // 完全空狀態沒有 stickyHeader 篩選下拉，返回鍵可以浮動在左上角、不佔用整列標頭高度，
+    // 讓空狀態置中位置跟同層的申請管理一致；一旦有篩選下拉就改回整列標頭，避免浮動按鈕疊上去
+    floatingBack: reviewedApps.length === 0,
     stickyHeader: reviewedApps.length > 0 ? (
       <div className="border-b border-line-subtle px-5 py-3">
         <CustomSelect
@@ -27,11 +31,15 @@ export function buildReviewHistoryPanel({ applications, reviewFilter, setReviewF
       </div>
     ) : null,
     content: (
-      <div className="px-5 pb-5 pt-3">
+      <div className={`flex min-h-full flex-col ${CENTERED_PANEL_BODY_CLASS}`}>
         {reviewedApps.length === 0 ? (
-          <EmptyState icon={History} title="尚無審核紀錄" description="核准或拒絕申請後會顯示在這裡。" />
+          <div className="flex flex-1 items-center justify-center">
+            <EmptyState icon={History} title="尚無審核紀錄" description="核准或拒絕申請後會顯示在這裡。" />
+          </div>
         ) : filteredApps.length === 0 ? (
-          <EmptyState icon={History} title="沒有符合的紀錄" />
+          <div className="flex flex-1 items-center justify-center">
+            <EmptyState icon={History} title="沒有符合的紀錄" />
+          </div>
         ) : (
           <div className="space-y-3">
             {filteredApps.map(app => (

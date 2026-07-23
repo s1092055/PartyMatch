@@ -28,7 +28,7 @@ export default function GroupModalShell({
   statusBadgeOverride,
   subPanel = null,       // { title, icon, headerRight?, stickyHeader?, content, footer? }
   onSubPanelBack = null,
-  subSubPanel = null,    // { title, icon, headerRight?, stickyHeader?, content, footer? }
+  subSubPanel = null,    // { title, icon, headerRight?, stickyHeader?, content, footer?, floatingBack? }
   onSubSubPanelBack = null,
   panelKey = 'overview', // 目前顯示的分頁識別字串；切換時搭配 key 觸發 slide-up 進場動畫
   mobileReviewsSection,
@@ -51,6 +51,11 @@ export default function GroupModalShell({
   // 有 sideBar 時已有明確的分頁切換入口，subPanel 不需要返回鍵；但 subSubPanel（例如審核紀錄）是從
   // subPanel 內部圖示鑽進去的，側邊欄沒有對應入口可以退出，一律要顯示返回鍵
   const showBackButton = !sideBar || !!subSubPanel
+  // 返回鍵改成浮動在內容左上角、不佔用整列標頭高度，由呼叫端透過 subSubPanel.floatingBack
+  // 明確宣告（而不是從「沒有 icon/title/stickyHeader」反推），目前只有審核紀錄的完全空狀態會用到——
+  // 不然空狀態置中的位置會比同層的 subPanel（例如申請管理）明顯偏低
+  const floatingBackButton = !!subSubPanel?.floatingBack
+  const showHeaderRow = (showBackButton && !floatingBackButton) || activeDetail?.icon || activeDetail?.title || activeDetail?.headerRight
 
   useScrollLock(true)
 
@@ -114,14 +119,24 @@ export default function GroupModalShell({
               )}
 
               {/* 每次切換分頁都用 key 強制重新掛載，套用跟首頁一致的 slide-up 進場動畫 */}
-              <div key={panelKey} className="flex min-h-0 flex-1 flex-col overflow-hidden animate-step-slide-up">
+              <div key={panelKey} className="relative flex min-h-0 flex-1 flex-col overflow-hidden animate-step-slide-up">
                 {activeDetail ? (
                   <>
+                    {floatingBackButton && (
+                      <button
+                        onClick={subSubPanel ? onSubSubPanelBack : onSubPanelBack}
+                        className="absolute left-3 top-3 z-10 grid h-8 w-8 shrink-0 place-items-center rounded-full border border-line bg-canvas text-ink-3 transition-colors hover:border-brand hover:text-brand"
+                        aria-label="返回"
+                      >
+                        <ChevronLeft size={18} strokeWidth={1.5} />
+                      </button>
+                    )}
+
                     {/* Detail header（sub / sub-sub 共用）；有 sideBar 時固定保留一個返回鍵大小的佔位，
                         不管有沒有顯示按鈕，讓 icon/title 起始位置在各分頁之間切換時保持一致，不會忽有忽無地跳動 */}
-                    {(showBackButton || activeDetail.icon || activeDetail.title || activeDetail.headerRight) && (
+                    {showHeaderRow && (
                       <div className={`flex shrink-0 items-center gap-2 px-4 py-4 ${activeDetail.headerBorder === false ? '' : 'border-b border-line'}`}>
-                        {showBackButton ? (
+                        {showBackButton && !floatingBackButton ? (
                           <button
                             onClick={subSubPanel ? onSubSubPanelBack : onSubPanelBack}
                             className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"

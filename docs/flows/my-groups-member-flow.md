@@ -38,7 +38,7 @@ flowchart TD
 | `src/features/my-groups/member/components/MemberGroupView.jsx` | 成員視角群組詳情 Modal：填寫帳號、確認服務、申訴、退出、查看成員名單 |
 | `src/shared/utils/serviceInfoFields.js` | `SHARING_METHOD_CONFIG`（各共享機制的欄位設定與提醒文案）、`hasFilledServiceInfo`、`getServiceInfoSummary` |
 | `src/features/my-groups/member/components/ReviewHostModal.jsx` | 確認服務完成後的團主評價彈窗 |
-| `src/features/my-groups/member/utils/memberFilters.js` | 分頁篩選邏輯 |
+| `src/features/my-groups/member/utils/memberFilters.js` | 分頁篩選邏輯：`FILTER_TABS`（審核中/招募中/處理中/服務中四個大分類；已移除「全部」，待鎖定/填寫資訊中/待啟用/確認期中/申訴中五種細分狀態併入「處理中」，`PROCESSING_STATUSES` 定義在 `src/shared/utils/groupStatus.js`，跟 host 端共用） |
 | `src/shared/ui/group/GroupViewModal.jsx` | 依身分決定渲染團主或成員視角的薄殼 |
 | `src/shared/ui/group/GroupModalShell.jsx` | 三層滑動 Panel 共用殼；桌機版側邊欄在左側（`md:order-first`），手機版仍堆疊在下方；Header 顯示「服務名稱 \| 方案名稱」 |
 | `src/shared/ui/group/GroupOverviewContent.jsx` | 群組概覽內容，含服務說明／方案說明（原本獨立的「服務內容」分頁已整併回這裡） |
@@ -78,7 +78,7 @@ flowchart TD
 ## 流程步驟
 
 **1. 查看訂閱列表**
-- `MemberPage` 依分頁（全部／審核中／招募中／待鎖定／填寫資訊中／待啟用／確認期中／申訴中／服務中／已結束）過濾出屬於自己的訂閱資料，每個分頁對應單一狀態，不會像舊版把好幾種狀態混在同一個「處理中」分頁裡（見 `memberFilters.js` 的 `FILTER_TABS`）
+- `MemberPage` 依分頁（審核中／招募中／處理中／服務中）過濾出屬於自己的訂閱資料；待鎖定／填寫資訊中／待啟用／確認期中／申訴中都併在「處理中」，細分階段交給卡片本身的狀態 badge 顯示（見 `memberFilters.js` 的 `FILTER_TABS`）；已結束／已取消的訂閱不在這幾個分頁裡，要點最上方的「群組紀錄」按鈕查看
 
 **2. 填寫服務帳號（`pending_confirmation`）**
 - 還沒填寫帳號資訊時，`MemberGroupView` 會在群組概覽底部顯示「填寫帳號」動態按鈕（跟「確認服務」「回報問題」同一個位置，不是側邊欄項目），點開表單依該服務的 `sharingMethod` 動態顯示對應欄位（一般是 email；KKBOX 多一個地址欄位；friDay影音是邀請碼；無官方邀請機制的服務則是一個確認勾選框），送出後寫入 `Member.serviceInfo`（詳見 [各服務填寫帳號資訊需求調查](../product/service-info-requirements.md)）

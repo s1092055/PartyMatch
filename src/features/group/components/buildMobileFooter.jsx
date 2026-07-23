@@ -65,7 +65,7 @@ export function buildMobileFooter({
   isHost, isWaitingMembers, needsFillInfo, hasServiceInfoIssue,
   isMember, isPendingApp, isFull, canApply, isFav,
   withdrawConfirm, setWithdrawConfirm, withdrawing, handleWithdraw,
-  setShowMembers, setLeaveConfirm, setShowApply, toggleFav,
+  setShowMembers, setLeaveConfirm, onApplyClick, toggleFav,
 }) {
   return (
     <div className="px-6 py-3">
@@ -105,7 +105,7 @@ export function buildMobileFooter({
               variant="ink"
               size="lg"
               className="flex-1"
-              onClick={() => setShowApply(true)}
+              onClick={onApplyClick}
             >
               申請加入 <ChevronRight size={16} strokeWidth={1.5} />
             </Button>

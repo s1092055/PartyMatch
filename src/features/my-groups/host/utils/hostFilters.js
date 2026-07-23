@@ -1,21 +1,16 @@
-import { isHistoryGroup } from '../../../../shared/utils/groupStatusDisplay'
+import { PROCESSING_STATUSES } from '../../../../shared/utils/groupStatus'
 
-// 「處理中」原本一次塞 full/pending_confirmation/pending_activation 三種完全不同階段，
-// 「啟用中」也塞了 active/confirming/disputed，太籠統分不清群組實際卡在哪個環節；
-// 拆成跟 GroupStatus 一一對應的分類，一眼就能看出這個群組現在需要做什麼
+// 曾經拆成跟 GroupStatus 一一對應的細分類（待鎖定／填寫資訊中／待啟用／確認期中／申訴中各自一個
+// chip），但頂部一次塞 8 個 chip 反而讓篩選列很雜亂；這些細分階段其實卡片本身的狀態 badge
+// 已經會顯示，篩選列只留大分類，細節交給卡片呈現就好
 export const STATUS_FILTER_TABS = [
-  { key: 'all',                  label: '全部'     },
-  { key: 'recruiting',           label: '招募中'   },
-  { key: 'full',                 label: '待鎖定'   },
-  { key: 'pending_confirmation', label: '填寫資訊中' },
-  { key: 'pending_activation',   label: '待啟用'   },
-  { key: 'confirming',           label: '確認期中' },
-  { key: 'disputed',             label: '申訴中'   },
-  { key: 'active',               label: '服務中'   },
+  { key: 'recruiting', label: '招募中' },
+  { key: 'processing', label: '處理中' },
+  { key: 'active',     label: '服務中' },
 ]
 
 export function matchesFilter(group, filterKey) {
-  if (filterKey === 'all') return !isHistoryGroup(group)
+  if (filterKey === 'processing') return PROCESSING_STATUSES.has(group.status)
   return group.status === filterKey
 }
 

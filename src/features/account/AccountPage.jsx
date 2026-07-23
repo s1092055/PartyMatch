@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Bell, ChevronDown, Clock, Coins, Lock, LogOut, Settings, Shield, User } from "lucide-react";
 import { useAuthStore } from "../../shared/stores/useAuthStore";
 import { toast } from "../../shared/utils/toast";
+import CreditScoreModal from "../../shared/ui/CreditScoreModal";
+import HostReviewsModal from "../my-groups/host/components/HostReviewsModal";
 import ProfileHeaderCard from "./components/ProfileHeaderCard";
 import PersonalInfoTab from "./components/tabs/PersonalInfoTab";
 import TokenTab from "./components/tabs/TokenTab";
@@ -75,7 +77,9 @@ function LogoutButton({ className = "", fullWidth = false }) {
 
 export default function AccountPage() {
   const [activeTab, setActiveTab] = useState("profile");
-  const [openAccordion, setOpenAccordion] = useState("profile");
+  const [openAccordion, setOpenAccordion] = useState(null);
+  const [creditScoreOpen, setCreditScoreOpen] = useState(false);
+  const [reviewsOpen, setReviewsOpen] = useState(false);
   const isAdmin = useAuthStore(s => s.user?.isAdmin ?? false)
   const [user, setUser] = useState(() => {
     const profile = useAuthStore.getState().getProfile();
@@ -103,7 +107,14 @@ export default function AccountPage() {
 
   return (
     <div className="px-2 md:mx-auto md:max-w-2xl md:px-4 lg:max-w-3xl">
-      <ProfileHeaderCard user={user} />
+      <ProfileHeaderCard
+        user={user}
+        onOpenCreditScore={() => setCreditScoreOpen(true)}
+        onOpenReviews={() => setReviewsOpen(true)}
+      />
+
+      <CreditScoreModal isOpen={creditScoreOpen} onClose={() => setCreditScoreOpen(false)} />
+      <HostReviewsModal isOpen={reviewsOpen} onClose={() => setReviewsOpen(false)} host={user} />
 
       {/* 桌面版：左右 sidebar 佈局 */}
       <div className="hidden md:flex md:gap-6 lg:gap-8">

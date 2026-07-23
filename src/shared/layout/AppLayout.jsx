@@ -19,7 +19,7 @@ export default function AppLayout() {
     <div className="min-h-screen bg-canvas">
       <RouteScrollReset />
       <AppNav />
-      <main className="flex flex-col pt-14 md:ml-24 md:pt-0">
+      <main className="flex flex-col pt-14 md:ml-24 md:mr-24 md:pt-0">
         <div className="mx-auto min-h-[calc(100dvh-3.5rem)] w-full max-w-7xl px-4 pt-12 pb-28 md:min-h-dvh md:py-12 md:px-6 lg:max-w-[clamp(80rem,100vw,100rem)] lg:px-10">
           <Outlet />
         </div>

@@ -19,7 +19,7 @@ export default function GroupHistoryModal({ isOpen, onClose, items, renderItem, 
             description={emptyDescription}
           />
         ) : (
-          <div className="grid gap-3 md:grid-cols-2">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-3">
             {items.map(renderItem)}
           </div>
         )}

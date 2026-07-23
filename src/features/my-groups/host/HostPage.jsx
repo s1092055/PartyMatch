@@ -1,4 +1,3 @@
-import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../../shared/stores/useAuthStore'
 import EmptyState from '../../../shared/ui/primitives/EmptyState'
@@ -9,19 +8,15 @@ import RevealSection from '../../../shared/ui/primitives/RevealSection'
 import ScrollHint from '../../../shared/ui/primitives/ScrollHint'
 import HostedGroupCard from './components/HostedGroupCard'
 import RenewalModal from './components/RenewalModal'
-import HostReviewsModal from './components/HostReviewsModal'
 import { STATUS_FILTER_TABS } from './utils/hostFilters'
 import { useHostActions } from './hooks/useHostActions'
 import { useScrollEdge } from '../../../shared/utils/hooks'
 
-export default function HostPage({ embedded = false }) {
+// 只被 MyGroupsPage 掛載，「群組紀錄」開關固定由它控制
+export default function HostPage({ embedded = false, historyOpen, onCloseHistory: closeHistory }) {
   const navigate = useNavigate()
   const activeUser = useAuthStore(s => s.user)
   const { scrollRef: listScrollRef, canScroll: listCanScroll, atBottom: listAtBottom, isScrolling: listIsScrolling, handleScroll: handleListScroll } = useScrollEdge()
-  const [historyOpen, setHistoryOpen] = useState(false)
-  const [reviewsOpen, setReviewsOpen] = useState(false)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const hostProfile = useMemo(() => useAuthStore.getState().getProfile(), [activeUser])
 
   const {
     errors,
@@ -55,55 +50,50 @@ export default function HostPage({ embedded = false }) {
         </div>
       )}
 
-      <div className="md:flex md:gap-6 lg:gap-8">
-        <FilterTabsBar
-          tabs={STATUS_FILTER_TABS}
-          value={statusFilter}
-          onChange={setStatusFilter}
-          counts={filterCounts}
-          onOpenHistory={() => setHistoryOpen(true)}
-          historyCount={historyGroups.length}
-          onOpenReviews={() => setReviewsOpen(true)}
-        />
+      <FilterTabsBar
+        tabs={STATUS_FILTER_TABS}
+        value={statusFilter}
+        onChange={setStatusFilter}
+        counts={filterCounts}
+      />
 
-        <div className="min-w-0 flex-1">
-          {allGroups.length === 0 ? (
-            <EmptyState
-              title="你還沒有建立任何群組"
-              description="建立你的第一個共享群組，開始招募成員一起分攤費用"
-              actionLabel="建立第一個群組"
-              onAction={() => navigate('/create-group')}
-            />
-          ) : displayGroups.length === 0 ? (
-            <EmptyState
-              title="此分類目前沒有群組"
-              description="試試切換到其他狀態分類"
-            />
-          ) : (
-            <div className="group relative">
-              <div
-                ref={listScrollRef}
-                onScroll={handleListScroll}
-                className="max-h-[calc(100vh-16rem)] overflow-y-auto p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-              >
-                <div className="grid gap-3 md:grid-cols-2">
-                  {displayGroups.map((g, i) => (
-                    <RevealSection key={g.id} delay={i * 60}>
-                      <HostedGroupCard
-                        group={g}
-                        members={membersMap[g.id] ?? []}
-                        pendingAppCount={applicationCounts[g.id] ?? 0}
-                        paymentCount={0}
-                        {...groupHandlersMap[g.id]}
-                      />
-                    </RevealSection>
-                  ))}
-                </div>
+      <div className="min-w-0">
+        {allGroups.length === 0 ? (
+          <EmptyState
+            title="你還沒有建立任何群組"
+            description="建立你的第一個共享群組，開始招募成員一起分攤費用"
+            actionLabel="建立第一個群組"
+            onAction={() => navigate('/create-group')}
+          />
+        ) : displayGroups.length === 0 ? (
+          <EmptyState
+            title="此分類目前沒有群組"
+            description="試試切換到其他狀態分類"
+          />
+        ) : (
+          <div className="group relative">
+            <div
+              ref={listScrollRef}
+              onScroll={handleListScroll}
+              className="max-h-[calc(100vh-16rem)] overflow-y-auto p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <div className="grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-3">
+                {displayGroups.map((g, i) => (
+                  <RevealSection key={g.id} delay={i * 60}>
+                    <HostedGroupCard
+                      group={g}
+                      members={membersMap[g.id] ?? []}
+                      pendingAppCount={applicationCounts[g.id] ?? 0}
+                      paymentCount={0}
+                      {...groupHandlersMap[g.id]}
+                    />
+                  </RevealSection>
+                ))}
               </div>
-              <ScrollHint canScroll={listCanScroll} atBottom={listAtBottom} isScrolling={listIsScrolling} />
             </div>
-          )}
-        </div>
+            <ScrollHint canScroll={listCanScroll} atBottom={listAtBottom} isScrolling={listIsScrolling} />
+          </div>
+        )}
       </div>
 
       <GroupViewModal
@@ -137,7 +127,7 @@ export default function HostPage({ embedded = false }) {
 
       <GroupHistoryModal
         isOpen={historyOpen}
-        onClose={() => setHistoryOpen(false)}
+        onClose={closeHistory}
         items={historyGroups}
         emptyDescription="已解散或已結束的群組會顯示在這裡"
         renderItem={(g, i) => (
@@ -147,16 +137,10 @@ export default function HostPage({ embedded = false }) {
               members={membersMap[g.id] ?? []}
               pendingAppCount={applicationCounts[g.id] ?? 0}
               paymentCount={0}
-              onViewGroup={() => { setHistoryOpen(false); refreshGroups(); setViewGroupId(g.id) }}
+              onViewGroup={() => { closeHistory(); refreshGroups(); setViewGroupId(g.id) }}
             />
           </RevealSection>
         )}
-      />
-
-      <HostReviewsModal
-        isOpen={reviewsOpen}
-        onClose={() => setReviewsOpen(false)}
-        host={hostProfile}
       />
     </div>
   )

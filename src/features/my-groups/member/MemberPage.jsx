@@ -54,12 +54,11 @@ function enrichSubs(rawSubs, userId) {
 
 function filterSubs(subs, tab) {
   const nonHistory = subs.filter(s => !isHistorySubscription(s))
-  if (tab === 'all') return nonHistory
-  if (tab === 'applying') return [] // 這個分類只顯示尚未核准的申請，不是 Subscription
   return nonHistory.filter(s => subscriptionBucket(s) === tab)
 }
 
-export default function MemberPage({ embedded = false }) {
+// 只被 MyGroupsPage 掛載，「群組紀錄」開關固定由它控制
+export default function MemberPage({ embedded = false, historyOpen, onCloseHistory: closeHistory }) {
   const navigate = useNavigate()
   const location = useLocation()
   const activeUser = useAuthStore(s => s.user)
@@ -69,7 +68,7 @@ export default function MemberPage({ embedded = false }) {
   const groupsState        = useGroupStore(s => s.groups)
   const applicationsState  = useApplicationStore(s => s.applications)
   const { scrollRef: listScrollRef, canScroll: listCanScroll, atBottom: listAtBottom, isScrolling: listIsScrolling, handleScroll: handleListScroll } = useScrollEdge()
-  const [activeTab, setActiveTab] = useState(() => location.state?.tab ?? 'all')
+  const [activeTab, setActiveTab] = useState(() => location.state?.tab ?? 'recruiting')
   const membersState = useMemberStore(s => s.members)
   const subs = useMemo(
     () => activeUserId
@@ -81,7 +80,6 @@ export default function MemberPage({ embedded = false }) {
   )
   const [viewGroupId, setViewGroupId] = useState(null)
   const [autoOpenPayment, setAutoOpenPayment] = useState(false)
-  const [historyOpen, setHistoryOpen] = useState(false)
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -110,9 +108,7 @@ export default function MemberPage({ embedded = false }) {
   const filterCounts = useMemo(() => Object.fromEntries(
     FILTER_TABS.map(({ key }) => [
       key,
-      key === 'applying'
-        ? pendingApplications.length
-        : filterSubs(subs, key).length + (key === 'all' ? pendingApplications.length : 0),
+      filterSubs(subs, key).length + (key === 'processing' ? pendingApplications.length : 0),
     ])
   ), [subs, pendingApplications])
 
@@ -146,71 +142,69 @@ export default function MemberPage({ embedded = false }) {
         </div>
       )}
 
-      <div className="md:flex md:gap-6 lg:gap-8">
-        <FilterTabsBar
-          tabs={FILTER_TABS}
-          value={activeTab}
-          onChange={setActiveTab}
-          counts={filterCounts}
-          onOpenHistory={() => setHistoryOpen(true)}
-          historyCount={historySubs.length}
-        />
+      <FilterTabsBar
+        tabs={FILTER_TABS}
+        value={activeTab}
+        onChange={setActiveTab}
+        counts={filterCounts}
+      />
 
-        <div className="group relative min-w-0 flex-1">
-          {(() => {
-            const showApplications = activeTab === 'all' || activeTab === 'applying'
-            const visibleApplications = showApplications ? pendingApplications : []
-            const isEmpty = visibleApplications.length === 0 && filtered.length === 0
+      <div className="group relative min-w-0">
+        {(() => {
+          const showApplications = activeTab === 'processing'
+          const visibleApplications = showApplications ? pendingApplications : []
+          const isEmpty = visibleApplications.length === 0 && filtered.length === 0
+          // 沒有「全部」分類了，用「不分分類、使用者整體是否一個群組都沒有」判斷要不要顯示探索 CTA
+          const hasNoGroupsAtAll = subs.filter(s => !isHistorySubscription(s)).length === 0 && pendingApplications.length === 0
 
-            if (isEmpty) {
-              return (
-                <EmptyState
-                  icon={ClipboardList}
-                  title={activeTab === 'all' ? '你還沒有加入任何群組' : '此分類目前沒有項目'}
-                  description={activeTab === 'all' ? '去探索頁面找找適合你的共享群組' : '切換到其他分類查看'}
-                  actionLabel={activeTab === 'all' ? '探索群組' : undefined}
-                  onAction={activeTab === 'all' ? () => navigate('/explore') : undefined}
-                />
-              )
-            }
-
+          if (isEmpty) {
             return (
-              <div
-                ref={listScrollRef}
-                onScroll={handleListScroll}
-                className="max-h-[calc(100vh-16rem)] overflow-y-auto p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-              >
-                <div className="grid gap-3 md:grid-cols-2">
-                  {visibleApplications.map((app, i) => {
-                    const group = getGroupById(app.groupId)
-                    if (!group) return null
-                    return (
-                      <RevealSection key={app.id} delay={i * 60}>
-                        <ApplicationCard
-                          app={app}
-                          group={group}
-                          onViewGroup={() => window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: app.groupId } }))}
-                        />
-                      </RevealSection>
-                    )
-                  })}
-                  {filtered.map((sub, i) => (
-                    <RevealSection key={sub.id} delay={(visibleApplications.length + i) * 60}>
-                      <SubscriptionCard
-                        sub={sub}
-                        onViewGroup={onViewGroup}
+              <EmptyState
+                icon={ClipboardList}
+                title={hasNoGroupsAtAll ? '你還沒有加入任何群組' : '此分類目前沒有項目'}
+                description={hasNoGroupsAtAll ? '去探索頁面找找適合你的共享群組' : '切換到其他分類查看'}
+                actionLabel={hasNoGroupsAtAll ? '探索群組' : undefined}
+                onAction={hasNoGroupsAtAll ? () => navigate('/explore') : undefined}
+              />
+            )
+          }
+
+          return (
+            <div
+              ref={listScrollRef}
+              onScroll={handleListScroll}
+              className="max-h-[calc(100vh-16rem)] overflow-y-auto p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <div className="grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-3">
+                {visibleApplications.map((app, i) => {
+                  const group = getGroupById(app.groupId)
+                  if (!group) return null
+                  return (
+                    <RevealSection key={app.id} delay={i * 60}>
+                      <ApplicationCard
+                        app={app}
+                        group={group}
+                        onViewGroup={() => window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: app.groupId } }))}
                       />
                     </RevealSection>
-                  ))}
-                </div>
+                  )
+                })}
+                {filtered.map((sub, i) => (
+                  <RevealSection key={sub.id} delay={(visibleApplications.length + i) * 60}>
+                    <SubscriptionCard
+                      sub={sub}
+                      onViewGroup={onViewGroup}
+                    />
+                  </RevealSection>
+                ))}
               </div>
-            )
-          })()}
-          <ScrollHint canScroll={listCanScroll} atBottom={listAtBottom} isScrolling={listIsScrolling} />
-        </div>
+            </div>
+          )
+        })()}
+        <ScrollHint canScroll={listCanScroll} atBottom={listAtBottom} isScrolling={listIsScrolling} />
       </div>
 
-<GroupViewModal
+      <GroupViewModal
         isOpen={!!viewGroupId}
         onClose={() => { setViewGroupId(null); setAutoOpenPayment(false) }}
         groupId={viewGroupId}
@@ -220,14 +214,14 @@ export default function MemberPage({ embedded = false }) {
 
       <GroupHistoryModal
         isOpen={historyOpen}
-        onClose={() => setHistoryOpen(false)}
+        onClose={closeHistory}
         items={historySubs}
         emptyDescription="已結束或已取消的訂閱會顯示在這裡"
         renderItem={(sub, i) => (
           <RevealSection key={sub.id} delay={i * 60}>
             <SubscriptionCard
               sub={sub}
-              onViewGroup={sub => { setHistoryOpen(false); setViewGroupId(sub.groupId) }}
+              onViewGroup={sub => { closeHistory(); setViewGroupId(sub.groupId) }}
             />
           </RevealSection>
         )}

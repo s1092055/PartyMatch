@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowLeftRight, Crown, Users } from 'lucide-react'
+import { Archive, ArrowLeftRight, Crown, Layers, PiggyBank, Users, Wallet } from 'lucide-react'
 import { useAuthStore } from '../../shared/stores/useAuthStore'
 import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { useSubscriptionStore } from '../../shared/stores/useSubscriptionStore'
@@ -27,20 +28,25 @@ function seatMemberCount(group) {
   return Math.max(0, (group.usedSeats ?? 1) - 1)
 }
 
-function AmountStatItem({ label, amount, activeView }) {
-  return (
-    <div key={activeView} className="flex flex-1 animate-step-slide-up flex-col items-center gap-0.5 px-2">
-      <TokenAmount amount={amount} className="text-lg font-black text-ink" unitClassName="!text-xs" />
-      <span className="text-xs text-ink-3">{label}</span>
-    </div>
-  )
+const STAT_TONE_CLASSES = {
+  success: 'bg-success-subtle text-success-text',
+  brand:   'bg-brand-subtle text-brand',
+  info:    'bg-info-subtle text-info-text',
 }
 
-function CountStatItem({ label, value, activeView }) {
+// 儀表板風格的獨立數字卡（icon + 標籤 + 數字），取代原本擠在同一張卡裡用分隔線隔開的排法
+function StatTile({ icon: Icon, label, amount, value, tone, activeView }) {
   return (
-    <div key={activeView} className="flex flex-1 animate-step-slide-up flex-col items-center gap-0.5 px-2">
-      <span className="text-lg font-black text-ink tabular-nums">{value}</span>
-      <span className="text-xs text-ink-3">{label}</span>
+    <div key={activeView} className="card flex animate-step-slide-up items-center gap-3 rounded-xl p-4 shadow-none">
+      <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${STAT_TONE_CLASSES[tone]}`}>
+        <Icon size={18} strokeWidth={1.5} />
+      </div>
+      <div className="min-w-0">
+        <p className="truncate text-xs font-semibold text-ink-3">{label}</p>
+        {amount != null
+          ? <TokenAmount amount={amount} className="text-lg font-black text-ink" unitClassName="!text-xs" />
+          : <span className="text-lg font-black text-ink tabular-nums">{value}</span>}
+      </div>
     </div>
   )
 }
@@ -70,18 +76,18 @@ function StatsBar({ userId, activeView }) {
   const isHost = activeView === 'host'
 
   return (
-    <div className="card flex h-full items-center divide-x divide-line-subtle rounded-xl py-7 shadow-none">
+    <div className="grid h-full grid-cols-1 gap-3 sm:grid-cols-3">
       {isHost ? (
         <>
-          <AmountStatItem label="本月預估收入" amount={hostMonthly} activeView={activeView} />
-          <AmountStatItem label="平均每組"     amount={hostAvgPerGroup} activeView={activeView} />
-          <CountStatItem  label="服務中成員"   value={hostMemberCount} activeView={activeView} />
+          <StatTile icon={Wallet}     label="本月預估收入" amount={hostMonthly}    tone="success" activeView={activeView} />
+          <StatTile icon={Layers}     label="平均每組"     amount={hostAvgPerGroup} tone="brand"   activeView={activeView} />
+          <StatTile icon={Users}      label="服務中成員"   value={hostMemberCount}  tone="info"    activeView={activeView} />
         </>
       ) : (
         <>
-          <AmountStatItem label="本月訂閱花費" amount={memberMonthly} activeView={activeView} />
-          <AmountStatItem label="平均每組"     amount={memberAvgPerSub} activeView={activeView} />
-          <AmountStatItem label="本月省下"     amount={memberSavings} activeView={activeView} />
+          <StatTile icon={Wallet}     label="本月訂閱花費" amount={memberMonthly}   tone="brand"   activeView={activeView} />
+          <StatTile icon={Layers}     label="平均每組"     amount={memberAvgPerSub} tone="info"    activeView={activeView} />
+          <StatTile icon={PiggyBank}  label="本月省下"     amount={memberSavings}   tone="success" activeView={activeView} />
         </>
       )}
     </div>
@@ -96,8 +102,10 @@ export default function MyGroupsPage() {
 
   const currentTab = TABS.find(tab => tab.key === activeView) ?? TABS[0]
   const CurrentIcon = currentTab.icon
+  const [historyOpen, setHistoryOpen] = useState(false)
 
   function switchTab(view) {
+    setHistoryOpen(false) // 兩個身分共用同一顆群組紀錄 modal，切換身分時要先關掉，不然另一邊會帶著開啟狀態掛載
     navigate(`/my-groups?view=${view}`, { replace: true })
   }
 
@@ -107,60 +115,41 @@ export default function MyGroupsPage() {
 
   return (
     <div>
-      <div className="mb-6 text-center">
-        <h1 className="page-title">我的群組</h1>
-      </div>
-
-      {/* 手機版：左右兩顆全寬 switcher 按鈕（點擊直接切換） */}
-      <div className="mb-6 flex gap-4 px-2 md:hidden">
-        {TABS.map(tab => {
-          const Icon = tab.icon
-          return (
-            <button
-              key={tab.key}
-              onClick={() => switchTab(tab.key)}
-              className={`flex flex-1 flex-col items-center gap-1 rounded-xl py-2.5 text-sm font-bold transition-all hover:-translate-y-0.5 active:scale-[0.96] ${
-                activeView === tab.key
-                  ? 'bg-brand text-white'
-                  : 'text-ink-3 hover:bg-raised hover:text-ink'
-              }`}
-            >
-              <Icon size={16} strokeWidth={2.1} />
-              {tab.label}
-            </button>
-          )
-        })}
-      </div>
-
-      {/* 桌機版：切換身分（hover 整個區域改顯示「切換身分」提示，點擊 toggle 到另一個身分）＋ 統計卡左右並排，
-          左欄寬度對齊下方 tab header（w-40），高度對齊右側統計卡 */}
-      <div className="mb-6 flex flex-col gap-6 px-2 md:flex-row md:items-stretch md:px-4 lg:gap-8 lg:px-16">
-        <div className="hidden md:flex md:w-40 md:shrink-0 md:justify-center">
+      {/* 身分切換：標題緊接著一顆「切換身份」icon 按鈕，「群組紀錄」icon 按鈕放在最右側，
+          兩顆按鈕不管手機/電腦版都只用 icon 呈現 */}
+      <div className="mb-4 flex items-center justify-between px-2 md:px-4 lg:px-16">
+        <div className="flex items-center gap-2">
+          <h2 className="flex items-center gap-2 text-xl font-black text-ink">
+            <CurrentIcon size={20} strokeWidth={1.5} className="text-brand" />
+            {currentTab.label}
+          </h2>
           <button
             onClick={toggleTab}
-            aria-label="切換身分"
-            className="group relative flex w-40 flex-col items-center justify-center gap-1.5 rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
+            aria-label="切換身份"
+            className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-line text-ink-3 transition-colors hover:bg-raised hover:text-ink"
           >
-            <span className="flex items-center gap-1.5 transition-opacity duration-150 group-hover:opacity-0">
-              <CurrentIcon size={16} strokeWidth={2.1} />
-              <span key={activeView} className="animate-fade-in-up">{currentTab.label}</span>
-            </span>
-            <span className="absolute inset-0 flex items-center justify-center gap-1.5 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
-              <ArrowLeftRight size={14} strokeWidth={1.5} />
-              切換身分
-            </span>
+            <ArrowLeftRight size={13} strokeWidth={1.5} />
           </button>
         </div>
+        <button
+          onClick={() => setHistoryOpen(true)}
+          aria-label="群組紀錄"
+          className="flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-line px-3 text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-ink"
+        >
+          <Archive size={14} strokeWidth={1.5} />
+          群組紀錄
+        </button>
+      </div>
 
-        <div className="min-w-0 md:flex-1">
-          {userId && <StatsBar userId={userId} activeView={activeView} />}
-        </div>
+      {/* 統計卡 */}
+      <div className="mb-6 px-2 md:px-4 lg:px-16">
+        {userId && <StatsBar userId={userId} activeView={activeView} />}
       </div>
 
       {/* Content */}
       {activeView === 'host'
-        ? <HostPage embedded />
-        : <MemberPage embedded />
+        ? <HostPage embedded historyOpen={historyOpen} onCloseHistory={() => setHistoryOpen(false)} />
+        : <MemberPage embedded historyOpen={historyOpen} onCloseHistory={() => setHistoryOpen(false)} />
       }
     </div>
   )

@@ -2,10 +2,12 @@ import { useEffect, useMemo } from 'react'
 import { MessageCircle, Star } from 'lucide-react'
 import Avatar from '../../../shared/ui/primitives/Avatar'
 import StarRating from '../../../shared/ui/primitives/StarRating'
+import EmptyState from '../../../shared/ui/primitives/EmptyState'
+import { CENTERED_PANEL_BODY_CLASS } from '../../../shared/ui/group/panelLayout'
 import { useReviewStore } from '../../../shared/stores/useReviewStore'
 import { toISODate } from '../../../shared/utils/date'
 
-export default function HostReviews({ group, headerClassName, onDm, groupId, title = '團主評價', scrollable = false }) {
+export default function HostReviews({ group, headerClassName, onDm, groupId, title = '團主評價', scrollable = false, centerEmpty = false }) {
   const hostId = group.hostId
   const data = useReviewStore(s => s.byHostId[hostId])
   const fetchForHost = useReviewStore(s => s.fetchForHost)
@@ -26,44 +28,54 @@ export default function HostReviews({ group, headerClassName, onDm, groupId, tit
     : (data?.average ?? null)
   const count = groupId ? reviews.length : (data?.count ?? 0)
 
+  const emptyOrLoading = data?.loading
+    ? <p className="py-4 text-center text-sm text-ink-4">載入中…</p>
+    : reviews.length === 0
+      ? <EmptyState icon={Star} title="尚無評價" description="成員完成服務後留下的評價會顯示在這裡。" className="py-4" />
+      : null
+
+  // centerEmpty 且尚無評價時，頭像列跟 EmptyState 標題重複講「尚無評價」，且頭像列會把
+  // 下方置中的空狀態往下推、跟申請管理／審核紀錄的置中位置對不齊，乾脆整列先隱藏
+  const showHeader = !(centerEmpty && emptyOrLoading)
+
   return (
-    <div className="space-y-4 py-5">
-      <p className={headerClassName}>{title}</p>
-      <div className="flex items-center gap-3 border-b border-line-subtle pb-4">
-        <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="md" />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <p className="text-sm font-semibold text-ink">{group.hostName}</p>
-            <span className="shrink-0 rounded-full bg-brand-subtle px-2.5 py-0.5 text-xs font-semibold text-brand">
-              團主
-            </span>
+    <div className={centerEmpty ? `flex min-h-0 flex-1 flex-col space-y-4 ${CENTERED_PANEL_BODY_CLASS}` : 'space-y-4 py-5'}>
+      {title && <p className={headerClassName}>{title}</p>}
+      {showHeader && (
+        <div className="flex items-center gap-3 border-b border-line-subtle pb-4">
+          <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="md" />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-semibold text-ink">{group.hostName}</p>
+              <span className="shrink-0 rounded-full bg-brand-subtle px-2.5 py-0.5 text-xs font-semibold text-brand">
+                團主
+              </span>
+            </div>
+            <div className="mt-1 flex items-center gap-1.5">
+              {average != null ? (
+                <>
+                  <Star size={13} strokeWidth={1.5} className="fill-warning text-warning" />
+                  <span className="text-xs font-bold text-ink-2">{average.toFixed(1)} 分</span>
+                  <span className="text-xs text-ink-4">· {count} 則評價</span>
+                </>
+              ) : (
+                <span className="text-xs text-ink-4">尚無評價</span>
+              )}
+            </div>
           </div>
-          <div className="mt-1 flex items-center gap-1.5">
-            {average != null ? (
-              <>
-                <Star size={13} className="fill-warning text-warning" />
-                <span className="text-xs font-bold text-ink-2">{average.toFixed(1)} 分</span>
-                <span className="text-xs text-ink-4">· {count} 則評價</span>
-              </>
-            ) : (
-              <span className="text-xs text-ink-4">尚無評價</span>
-            )}
-          </div>
+          {onDm && (
+            <button
+              onClick={onDm}
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-line text-ink-3 transition-colors hover:border-brand hover:text-brand"
+              aria-label="聯絡團主"
+            >
+              <MessageCircle size={16} strokeWidth={1.5} />
+            </button>
+          )}
         </div>
-        {onDm && (
-          <button
-            onClick={onDm}
-            className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-line text-ink-3 transition-colors hover:border-brand hover:text-brand"
-            aria-label="聯絡團主"
-          >
-            <MessageCircle size={16} />
-          </button>
-        )}
-      </div>
-      {data?.loading ? (
-        <p className="py-4 text-center text-sm text-ink-4">載入中…</p>
-      ) : reviews.length === 0 ? (
-        <p className="py-4 text-center text-sm text-ink-4">尚無評價</p>
+      )}
+      {emptyOrLoading ? (
+        centerEmpty ? <div className="flex flex-1 items-center justify-center">{emptyOrLoading}</div> : emptyOrLoading
       ) : (
         <div className={`space-y-4 ${scrollable ? 'max-h-[15rem] overflow-y-auto pr-1' : ''}`}>
           {reviews.map(review => (

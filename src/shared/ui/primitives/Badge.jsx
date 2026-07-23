@@ -77,7 +77,7 @@ const LABELS = {
   recruiting:         '招募中',
   pending_activation: '待啟用',
   active:             '服務中',
-  cancelled:          '已取消',
+  cancelled:          '已解散',
   full:               '已滿員',
   pending_confirmation: '填寫資訊中',
   confirming:           '確認期中',
