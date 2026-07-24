@@ -9,11 +9,25 @@ import { useNotificationStore } from '../stores/useNotificationStore'
 import { useSubscriptionStore } from '../stores/useSubscriptionStore'
 import { formatRelativeDate } from '../utils/date'
 import { useScrollLock } from '../utils/hooks'
+import { toast } from '../utils/toast'
 import EmptyState from '../ui/primitives/EmptyState'
 
 const getGroupById = (id) => useGroupStore.getState().getById(id)
 const getCurrentUser = () => useAuthStore.getState().user
 const getSubscriptionByUserAndGroup = (uid, gid) => useSubscriptionStore.getState().getByUserAndGroup(uid, gid)
+
+// 通知指向的群組可能在通知建立之後就額滿／不再招募中（例如被別人申請填滿），這種情況下
+// 開啟一個「已經不能申請」的群組詳情 Modal 沒有意義，改成跳 toast 說明並留在探索頁瀏覽其他群組。
+// 先重新拉一次群組資料，避免用本地過期的 recruiting 快取誤判。
+async function openGroupOrRedirect(groupId) {
+  await useGroupStore.getState().init({ all: true })
+  const grp = getGroupById(groupId)
+  if (!grp || grp.status !== 'recruiting') {
+    toast('此群組已額滿或不再招募', 'info')
+    return
+  }
+  window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId } }))
+}
 
 function getMergedNotifications(userId) {
   const notifStore = useNotificationStore.getState()
@@ -32,6 +46,7 @@ const NOTIFICATION_META = {
   application_sent:     { icon: CheckCircle2,  iconColor: 'text-brand',      link: '/my-groups?view=member', state: { tab: 'processing' } },
   group_created:        { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-groups?view=host' },
   new_application:      { icon: UserPlus,      iconColor: 'text-brand',      link: '/my-groups?view=host' },
+  application_withdrawn: { icon: AlertCircle,  iconColor: 'text-ink-3',      link: '/my-groups?view=host' },
   group_full:           { icon: UserPlus,      iconColor: 'text-brand',      link: '/my-groups?view=host' },
   group_chat_opened:    { icon: MessageSquare, iconColor: 'text-brand',      link: null },
   group_activated:      { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-groups?view=member' },
@@ -54,7 +69,7 @@ function getMeta(type) {
   return NOTIFICATION_META[type] ?? NOTIFICATION_META.default
 }
 
-const APPLY_TYPES   = ['joined', 'application_approved', 'application_rejected', 'application_sent', 'new_application', 'application']
+const APPLY_TYPES   = ['joined', 'application_approved', 'application_rejected', 'application_sent', 'new_application', 'application_withdrawn', 'application']
 const SYSTEM_TYPES  = ['system', 'announcement', 'platform']
 
 const TABS = [
@@ -157,6 +172,17 @@ export default function FloatingMessages() {
       return
     }
 
+    if (notification.type === 'application_rejected') {
+      const gId = notification.meta?.groupId
+      // 申請人本地 applicationStore 的申請紀錄還停在 pending，要重新拉一次才會變成
+      // rejected，讓群組卡片的「已申請」標記立即消失、恢復成可重新申請的狀態
+      navigate('/explore')
+      useApplicationStore.getState().init().finally(() => {
+        if (gId) openGroupOrRedirect(gId)
+      })
+      return
+    }
+
     if (notification.type === 'member_left') {
       if (notification.meta?.groupId) {
         // 團主收到「成員退出群組」通知
@@ -173,7 +199,7 @@ export default function FloatingMessages() {
     if (notification.type === 'member_removed' && notification.meta?.groupId) {
       window.dispatchEvent(new CustomEvent('pm:refresh-member-stores'))
       navigate('/explore')
-      window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: notification.meta.groupId } }))
+      openGroupOrRedirect(notification.meta.groupId)
       return
     }
 
@@ -185,12 +211,20 @@ export default function FloatingMessages() {
         navigate('/my-groups?view=member', { state: { openGroupId: gId } })
       } else {
         navigate('/explore')
-        window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: gId } }))
+        openGroupOrRedirect(gId)
       }
       return
     }
 
     if (notification.type === 'new_application' && notification.meta?.groupId) {
+      navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId, statusFilter: 'recruiting', openApplications: true } })
+      useApplicationStore.getState().init().finally(() => {
+        window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: notification.meta.groupId, statusFilter: 'recruiting', openApplications: true } }))
+      })
+      return
+    }
+
+    if (notification.type === 'application_withdrawn' && notification.meta?.groupId) {
       navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId, statusFilter: 'recruiting', openApplications: true } })
       useApplicationStore.getState().init().finally(() => {
         window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: notification.meta.groupId, statusFilter: 'recruiting', openApplications: true } }))

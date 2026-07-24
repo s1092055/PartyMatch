@@ -84,20 +84,6 @@ export function buildMobileFooter({
             <LogOut size={17} /> 退出群組
           </button>
         </div>
-      ) : isPendingApp ? (
-        withdrawConfirm ? (
-          <div className="flex gap-2">
-            <Button variant="ghost" size="lg" className="flex-1 border border-line" onClick={() => setWithdrawConfirm(false)}>返回</Button>
-            <Button variant="danger" size="lg" className="flex-1" disabled={withdrawing} onClick={handleWithdraw}>
-              {withdrawing ? '處理中…' : '確認取消'}
-            </Button>
-          </div>
-        ) : (
-          <Button variant="ghost" size="lg" className="w-full border border-line text-ink-3 hover:border-danger hover:text-danger"
-            onClick={() => setWithdrawConfirm(true)}>
-            取消申請
-          </Button>
-        )
       ) : canApply ? (
         <>
           <div className="flex items-center gap-2">

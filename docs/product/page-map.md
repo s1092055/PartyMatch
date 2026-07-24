@@ -18,7 +18,7 @@
 | `/my-groups` | `src/features/my-groups/MyGroupsPage.jsx` | 是（`ProtectedRoute`） | 「我的群組」，以 `?view=member`／`?view=host` 切換成員／團主視角，內嵌 `MemberPage`／`HostPage`，含本月花費／收入等統計卡 |
 | `/my-subscriptions` | 無頁面元件（`SubscriptionsRedirect`） | 是 | 導向 `/my-groups?view=member` 的相容路由 |
 | `/manage-groups` | 無頁面元件（`ManageRedirect`） | 是 | 導向 `/my-groups?view=host` 的相容路由 |
-| `/favorites` | `src/features/favorites/FavoritesPage.jsx` | 是 | 已收藏群組列表，可依分類篩選 |
+| `/favorites` | `src/features/favorites/FavoritesPage.jsx` | 是 | 已收藏群組列表，只顯示還在招募中且有名額的群組（跟探索頁同一套過濾條件），額滿/已解散/已結束的收藏群組不會顯示 |
 | `/account` | `src/features/account/AccountPage.jsx` | 是 | 帳號中心：個人資料、付款方式、PM 幣、帳號設定（含停用帳號），`isAdmin` 使用者多一個管理員分頁 |
 | `/quick-match` | `src/features/match/QuickMatchPage.jsx` | 否（獨立全螢幕步驟頁，脫離 `AppLayout`；申請加入群組時才需登入） | 多步驟配對流程：輸入服務／預算條件 → 篩選方案 → 查看推薦結果 |
 | `/create-group` | `src/features/create/CreateGroupPage.jsx` | 是（頂層 `ProtectedRoute`，獨立全螢幕步驟頁，脫離 `AppLayout`） | 4 步驟建立群組表單：選服務 → 選方案（含收費週期）→ 群組設定 → 確認送出（桌機有即時預覽） |

@@ -4,7 +4,7 @@ export function isSystemConversation(conversation) {
   return conversation.type === 'system'
 }
 
-function parseParticipants(conversation) {
+export function parseParticipants(conversation) {
   return Array.isArray(conversation.participants)
     ? conversation.participants
     : JSON.parse(conversation.participants ?? '[]')

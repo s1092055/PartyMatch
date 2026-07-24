@@ -64,9 +64,9 @@ export function normalizeApplication(app) {
   const applicantId   = app.applicantId   ?? app.userId   ?? user.id   ?? ''
   const applicantName = app.applicantName ?? app.userName ?? user.name ?? '申請者'
 
-  const createdAt = app.createdAt
-    ? String(app.createdAt).slice(0, 10)
-    : ''
+  // 完整保留時間戳記（不截斷成純日期）：申請時間需要顯示實際時、分，
+  // 截斷成日期會讓 new Date('YYYY-MM-DD') 解析成 UTC 午夜，畫面上永遠顯示同一個時間
+  const createdAt = app.createdAt ? String(app.createdAt) : ''
 
   return {
     ...app,

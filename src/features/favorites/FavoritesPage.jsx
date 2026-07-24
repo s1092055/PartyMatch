@@ -22,7 +22,9 @@ export default function FavoritesPage() {
     return favorites
       .filter(f => f.userId === activeUser.id)
       .map(f => byId.get(f.groupId))
-      .filter(Boolean)
+      // 跟探索頁（searchUtils.js 的 applyFilters）用同一條件：只顯示還進得去的招募中群組，
+      // 不然收藏清單會留著額滿/已解散/已結束等點進去也不能申請的群組
+      .filter(g => g && g.status === 'recruiting' && g.openSeats > 0)
   }, [activeUser, favorites, allGroups])
 
   const memberGroupIds = useMemo(

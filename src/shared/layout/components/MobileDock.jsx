@@ -24,7 +24,6 @@ export default function MobileDock({
     >
       <div className="flex h-16 items-stretch">
 
-        {/* 快速搜尋 */}
         <button
           onClick={openMatch}
           className="relative flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold text-ink-3 transition-colors active:text-brand"
@@ -33,7 +32,6 @@ export default function MobileDock({
           快速搜尋
         </button>
 
-        {/* 建立群組 */}
         {loggedIn ? (
           <button
             onClick={openCreate}
@@ -106,7 +104,6 @@ export default function MobileDock({
           )}
         </div>
 
-        {/* 訊息 */}
         {loggedIn ? (
           <button
             onClick={openMessages}

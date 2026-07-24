@@ -18,3 +18,10 @@ export function subscribeToast(fn) {
   _queue.splice(0).forEach(fn)
   return () => { if (_listener === fn) _listener = null }
 }
+
+// 給 store 內樂觀更新失敗（fire-and-forget 的背景 API 呼叫）用：記錄錯誤並跳 Toast 告知使用者，
+// 避免畫面狀態已經改變、但操作其實沒有真的同步到後端，使用者卻毫無所覺。
+export function notifyError(err, fallback = '操作失敗，請稍後再試') {
+  console.error(err)
+  toast(err?.message ?? fallback, 'error')
+}

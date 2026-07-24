@@ -14,6 +14,7 @@ import {
 import { normalizeGroup } from '../utils/modelNormalizers'
 import { createId } from '../utils/storage'
 import { todayISO, byNewest } from '../utils/date'
+import { notifyError } from '../utils/toast'
 
 export const useGroupStore = create((set, get) => ({
   groups:  [],
@@ -70,15 +71,16 @@ export const useGroupStore = create((set, get) => ({
         set(s => ({ groups: s.groups.map(g => g.id === group.id ? normalized : g) }))
       }
     }).catch(err => {
-      console.error('[groupStore] create failed:', err)
       // 後端建立失敗時移除樂觀新增的本地群組，避免留下一筆伺服器端不存在的假群組
       set(s => ({ groups: s.groups.filter(g => g.id !== group.id), error: err.message }))
+      notifyError(err, '群組建立失敗，請稍後再試')
     })
     return group
   },
 
   // ── 更新群組（樂觀更新本地 state，同步 PATCH 至後端）────────────────────────
   update: (id, patch) => {
+    const prior = get().groups.find(g => g.id === id) ?? null
     let updated = null
     set(s => ({
       groups: s.groups.map(g => {
@@ -87,7 +89,11 @@ export const useGroupStore = create((set, get) => ({
         return updated
       }),
     }))
-    patchGroup(id, patch).catch(err => console.error('[groupStore] update failed:', err))
+    patchGroup(id, patch).catch(err => {
+      // 回滾至先前值，避免畫面顯示的群組狀態跟後端真實狀態不一致
+      if (prior) set(s => ({ groups: s.groups.map(g => g.id === id ? prior : g) }))
+      notifyError(err, '群組更新失敗，請稍後再試')
+    })
     return updated
   },
 

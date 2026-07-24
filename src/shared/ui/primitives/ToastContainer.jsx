@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { AlertCircle, CheckCircle2, Info, X } from 'lucide-react'
+import { AlertCircle, AlertTriangle, CheckCircle2, Info, X } from 'lucide-react'
 import { subscribeToast } from '../../utils/toast'
 
 const TOAST_DURATION = 4000
 
 const CONFIG = {
-  success: { icon: CheckCircle2, iconClass: 'text-success' },
-  error:   { icon: AlertCircle,  iconClass: 'text-danger' },
-  info:    { icon: Info,         iconClass: 'text-brand' },
+  success: { icon: CheckCircle2,  iconClass: 'text-success' },
+  error:   { icon: AlertCircle,   iconClass: 'text-danger' },
+  warning: { icon: AlertTriangle, iconClass: 'text-warning' },
+  info:    { icon: Info,          iconClass: 'text-brand' },
 }
 
 export default function ToastContainer() {
@@ -32,7 +33,7 @@ export default function ToastContainer() {
       role="status"
       aria-live="polite"
       aria-atomic="true"
-      className="pointer-events-none fixed left-1/2 top-16 z-[100] flex -translate-x-1/2 flex-col items-center gap-2 md:top-6"
+      className="pointer-events-none fixed left-1/2 top-20 z-[100] flex -translate-x-1/2 flex-col items-center gap-2 md:top-6"
     >
       {toasts.map(t => {
         const { icon: Icon, iconClass } = CONFIG[t.type] ?? CONFIG.info
@@ -42,7 +43,7 @@ export default function ToastContainer() {
             className="pointer-events-auto flex w-max max-w-sm items-center gap-3 rounded-2xl border border-line bg-white px-4 py-3 shadow-lg"
           >
             {t.icon ?? <Icon size={18} className={`shrink-0 ${iconClass}`} />}
-            <span className="shrink-0 text-sm font-semibold text-ink">{t.message}</span>
+            <span className="min-w-0 text-sm font-semibold text-ink">{t.message}</span>
             {t.action && (
               <button
                 onClick={() => { t.action.onClick(); remove(t.id) }}

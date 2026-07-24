@@ -20,9 +20,8 @@ export function GroupRedirect() {
     navigate('/explore', { replace: true })
     // Delay dispatch until after navigation re-render so GroupDetailModal's
     // event listener is guaranteed to be mounted before the event fires.
-    const id = groupId
     setTimeout(() => {
-      window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: id } }))
+      window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId } }))
     }, 0)
   }, [navigate, groupId])
   return null

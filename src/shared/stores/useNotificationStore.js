@@ -8,6 +8,7 @@ import {
 import { nowISO, todayISO, byNewest } from '../utils/date'
 import { createId } from '../utils/storage'
 import { startPolling } from '../utils/poller'
+import { notifyError } from '../utils/toast'
 
 const POLL_INTERVAL_MS = 10000
 
@@ -94,7 +95,7 @@ export const useNotificationStore = create((set, get) => ({
         if (newNotifs.some(n => n.type === 'member_removed' || n.type === 'member_left')) {
           window.dispatchEvent(new CustomEvent('pm:refresh-member-stores'))
         }
-        if (newNotifs.some(n => n.type === 'new_application')) {
+        if (newNotifs.some(n => n.type === 'new_application' || n.type === 'application_withdrawn')) {
           window.dispatchEvent(new CustomEvent('pm:refresh-application-store'))
         }
         set({ notifications: dedupeById(latest) })
@@ -156,17 +157,27 @@ export const useNotificationStore = create((set, get) => ({
 
   // ── 標記單則已讀 ────────────────────────────────────────────────────────────
   markRead: (id) => {
+    const prior = get().notifications.find(n => n.id === id) ?? null
     set(s => ({
       notifications: s.notifications.map(n => n.id === id ? { ...n, isRead: true } : n),
     }))
-    patchNotification(id).catch(console.error)
+    patchNotification(id).catch(err => {
+      if (prior) set(s => ({ notifications: s.notifications.map(n => n.id === id ? prior : n) }))
+      notifyError(err, '標記已讀失敗，請稍後再試')
+    })
   },
 
   // ── 全部標記已讀 ────────────────────────────────────────────────────────────
   markAllRead: (userId) => {
+    const priors = get().notifications.filter(n => n.userId === userId)
     set(s => ({
       notifications: s.notifications.map(n => n.userId === userId ? { ...n, isRead: true } : n),
     }))
-    markAllNotificationsRead().catch(console.error)
+    markAllNotificationsRead().catch(err => {
+      set(s => ({
+        notifications: s.notifications.map(n => priors.find(p => p.id === n.id) ?? n),
+      }))
+      notifyError(err, '全部標記已讀失敗，請稍後再試')
+    })
   },
 }))

@@ -6,11 +6,9 @@ import MessageBubble from './MessageBubble'
 import { useMemberStore } from '../../../shared/stores/useMemberStore'
 import { useGroupStore } from '../../../shared/stores/useGroupStore'
 import { useAuthStore } from '../../../shared/stores/useAuthStore'
-import { markConversationRead } from '../../../shared/api/messagesApi'
-import { useConversationStore } from '../../../shared/stores/useConversationStore'
 import { useParticipantNames } from '../hooks/useParticipantNames'
 import { useMessageScroll } from '../hooks/useMessageScroll'
-import { isSystemConversation } from '../utils'
+import { isSystemConversation, markConversationReadLocal } from '../utils'
 
 const getCurrentUser = () => useAuthStore.getState().user
 
@@ -142,16 +140,7 @@ export default function ChatWindow({
             onChange={e => onInputChange(e.target.value)}
             onFocus={() => {
               const user = getCurrentUser()
-              if (user && selectedId && (selected?.unreadCounts?.[user.id] ?? 0) > 0) {
-                markConversationRead(selectedId).catch(console.error)
-                useConversationStore.setState(s => ({
-                  conversations: s.conversations.map(c =>
-                    c.id === selectedId
-                      ? { ...c, unreadCounts: { ...c.unreadCounts, [user.id]: 0 } }
-                      : c
-                  ),
-                }))
-              }
+              if (user) markConversationReadLocal(selectedId, user.id)
             }}
             onCompositionStart={() => { isComposingRef.current = true }}
             onCompositionEnd={() => {

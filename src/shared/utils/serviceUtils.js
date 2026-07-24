@@ -1,10 +1,10 @@
 import { useServiceStore } from '../stores/useServiceStore'
 import kkboxIcon from '../../assets/KKBOX-icon.png'
+import masterclassIcon from '../../assets/masterclass-icon.png'
+import fridayIcon from '../../assets/friDay-icon.png'
 
 const getServices = () => useServiceStore.getState().services
 const _getById = (id) => useServiceStore.getState().getById(id)
-import masterclassIcon from '../../assets/masterclass-icon.png'
-import fridayIcon from '../../assets/friDay-icon.png'
 
 const ICONIFY_API_BASE = 'https://api.iconify.design'
 

@@ -84,14 +84,15 @@ sequenceDiagram
 
 ## 通知類型總覽
 
-`NotificationType` enum（`schema.prisma`）共 18 種，實際觸發點與收件人如下：
+`NotificationType` enum（`schema.prisma`）共 19 種，實際觸發點與收件人如下：
 
 | UI 標題／訊息內容（`{}` 為代入變數） | 類型 | 觸發時機 | 收件人（即時／僅寫DB） | 點擊導向 |
 |---|---|---|---|---|
 | 「申請已送出」／「你的加入申請已送達「{groupName}」團主，等待審核。」 | `application_sent` | 送出加入申請當下 | 申請人自己（即時） | 我的群組（成員）「已申請」分頁 |
 | 「收到新的加入申請」／「{applicantName} 申請加入「{groupName}」群組。」 | `new_application` | 同上 | 團主（僅寫DB） | 我的群組（團主）該群組，自動開申請列表 |
-| 「申請已通過」／「恭喜！你加入「{groupName}」群組的申請已通過，請前往我的訂閱查看。」 | `application_approved` | 團主核准申請 | 申請人（僅寫DB） | 已有訂閱→成員視角群組頁；否則→探索頁開該群組 |
-| 「申請未通過」／「很遺憾，你加入「{groupName}」群組的申請未通過，你可以繼續探索其他群組。」 | `application_rejected` | 團主拒絕申請 | 申請人（僅寫DB） | 探索頁 |
+| 「申請已通過」／「恭喜！你加入「{groupName}」群組的申請已通過，請前往我的訂閱查看。」 | `application_approved` | 團主核准申請 | 申請人（僅寫DB） | 已有訂閱→成員視角群組頁；否則→探索頁開該群組（開啟前見下方「額滿保護」） |
+| 「申請未通過」／「很遺憾，你加入「{groupName}」群組的申請未通過，你可以繼續探索其他群組。」 | `application_rejected` | 團主拒絕申請 | 申請人（僅寫DB） | 探索頁，並重新拉取申請人自己的 `applicationStore`（本地紀錄還停在 `pending`，不重拉的話「已申請」標記不會消失），開啟該群組 Modal 前見下方「額滿保護」 |
+| 「申請人已取消申請」／「{applicantName} 已取消加入「{groupName}」群組的申請。」 | `application_withdrawn` | 申請人自行撤回 `pending` 申請 | 團主（僅寫DB） | 我的群組（團主）該群組，自動開申請列表；輪詢偵測到這則通知會直接觸發 `pm:refresh-application-store`，不需要點擊就會刷新，避免團主對著已撤回的申請按核准/拒絕 |
 | 「群組已成功建立」／「「{serviceName}」群組已上架，開始招募成員中！」 | `group_created` | 建立群組成功當下 | 團主自己（即時） | 我的群組（團主）該群組 |
 | 「群組名額已滿」／「「{groupName}」群組名額已滿，可以點擊鎖定群組了。」 | `group_full` | 核准申請後名額剛好滿 | 團主自己（即時） | 我的群組（團主）該群組 |
 | 團主：「群組聊天室已開啟」／「「{serviceName}」群組已鎖定，聊天室已建立，點擊查看。」；成員：同標題／「「{serviceName}」群組聊天室已建立，請進入填寫服務帳號並完成付款。」 | `group_chat_opened` | 團主鎖定群組（建立聊天室） | 團主自己（即時）＋全體成員（僅寫DB） | 直接開啟該群組聊天室 |
@@ -99,7 +100,7 @@ sequenceDiagram
 | 「新一期已開始」／「「{serviceName}」群組開始新一期，請前往填寫最新服務帳號資訊。」 | `group_renewal` | 團主開始新一期續訂 | 全體成員（僅寫DB） | 我的群組（成員）該群組 |
 | 「群組已結束」／「「{groupLabel}」群組已由團主結束，合購服務將不再續訂。」 | `group_ended` | 團主結束群組 | 全體成員（僅寫DB） | 探索頁 |
 | 「群組已解散」／「「{serviceName}」群組已被團主解散，代管費用已退還至你的PM幣餘額。」 | `group_cancelled` | 團主解散群組（鎖定前） | 全體成員（僅寫DB） | 我的群組（成員）列表 |
-| 「已被移出群組」／「團主已將你移出「{groupLabel}」群組。」 | `member_removed` | 團主移除成員 | 被移除的成員（僅寫DB） | 探索頁 |
+| 「已被移出群組」／「團主已將你移出「{groupLabel}」群組。」 | `member_removed` | 團主移除成員 | 被移除的成員（僅寫DB） | 探索頁，開啟該群組 Modal 前見下方「額滿保護」 |
 | 「成員退出群組」／「{userName} 已退出「{groupLabel}」群組。」 | `member_left` | 成員自行退出群組（`finalizeLeaveGroup`） | 團主（僅寫DB） | 團主→該群組；成員自己不會收到這則 |
 | 「服務帳號需要修正」／「團主在「{groupName}」發現服務帳號問題，請前往修正。」 | `service_info_issue` | 團主回報帳號問題 | 該成員（僅寫DB） | 我的群組（成員）該群組 |
 | 「即將續訂」／「「{serviceName}」將於 今天／{days} 天後扣款，請確認PM幣餘額充足。」 | `upcoming_renewal` | 呼叫 `GET /subscriptions` 時後端檢查：`active` 訂閱且距下次扣款 ≤7 天，依 `nextBillingDate` 去重、同一期只發一次 | 該訂閱使用者 | 我的群組（成員）「服務中」分頁 |
@@ -107,6 +108,9 @@ sequenceDiagram
 | 「代管款項已撥款」／「「{groupLabel}」群組確認期結束，代管款項已撥入你的PM幣餘額。」 | `escrow_released` | 全員確認服務（或確認期逾期）觸發撥款（`POST /groups/:id/confirm`） | 團主（僅寫DB） | 我的群組（團主）該群組 |
 | 無 | `token_topup` | 無——定義了但沒有任何程式碼建立這個類型 | — | — |
 | 無固定文案 | `system` | 保留給公開系統公告（`isPublic: true`），但 `POST /notifications` 明確禁止一般使用者建立 `isPublic:true`，目前**沒有任何後端流程會真的建立**這種通知——公告目前只走「系統聊天室」訊息廣播（見 [訊息流程](messages-flow.md)），不是走通知中心 | — | 探索頁 |
+
+### 額滿保護
+`application_rejected`／`member_removed`／`application_approved`（尚無訂閱分支）這三種通知點擊後會開啟探索頁的群組詳情 Modal，讓使用者「重新申請」或「瀏覽」該群組。但通知建立之後、使用者實際點擊之前，這個群組可能已經被別人申請填滿（`recruiting` → `full` 或更後面的狀態）。`FloatingMessages.jsx` 的 `openGroupOrRedirect(groupId)` 會在開啟 Modal 前重新拉一次群組資料並檢查 `status === 'recruiting'`，不符合就跳一個 `info` Toast 說明並留在探索頁，不會再打開一個「按下申請也沒用」的過期群組 Modal。
 
 ### 已知落差
 - `token_topup` 是定義了但完全沒接的死 enum 值

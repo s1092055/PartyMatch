@@ -34,14 +34,12 @@ const SERVICES = [
 
 async function main() {
   console.log('開始寫入服務資料...')
-  let count = 0
   for (const service of SERVICES) {
     await prisma.service.upsert({
       where:  { id: service.id },
       update: { name: service.name, category: service.category, plans: service.plans },
       create: { id: service.id, name: service.name, category: service.category, plans: service.plans },
     })
-    count++
   }
 
   // 清掉不在上面清單裡的舊服務（例如從目錄移除的服務），避免殘留資料跟前端目錄脫節
@@ -49,7 +47,7 @@ async function main() {
     where: { id: { notIn: SERVICES.map(s => s.id) } },
   })
 
-  console.log(`完成，共寫入 ${count} 筆服務資料${removed > 0 ? `，移除 ${removed} 筆已下架服務` : ''}`)
+  console.log(`完成，共寫入 ${SERVICES.length} 筆服務資料${removed > 0 ? `，移除 ${removed} 筆已下架服務` : ''}`)
 }
 
 main()

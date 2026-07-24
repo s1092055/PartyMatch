@@ -75,6 +75,14 @@ function extractTime(dateLike) {
   return `${h}:${m}`
 }
 
+// 實際日期＋時間（例：2026-07-20 14:32），供審核紀錄等需要看到確切送出時間的地方使用
+export function formatDateTime(dateLike) {
+  const date = toISODate(dateLike)
+  const time = extractTime(dateLike)
+  if (!date) return ''
+  return time ? `${date} ${time}` : date
+}
+
 export function formatRelativeDate(dateLike, baseDate = new Date()) {
   const days = daysUntil(dateLike, baseDate)
   const time = extractTime(dateLike)

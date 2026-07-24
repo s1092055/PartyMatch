@@ -15,6 +15,9 @@ export default function Step2Plan({ form, onChange }) {
   const activeIndex = Math.max(0, groupPlans.findIndex(p => p.name === form.planName))
   const currentPlan = groupPlans[activeIndex]
   const isPlanSelected = currentPlan && form.planName === currentPlan.name
+  // 計費週期改用卡片上方的 badge 顯示，方案名稱不用再重複顯示「（月繳）／（年繳）」字樣，
+  // 卡片標題也因此變短，在窄螢幕下比較不會被擠壓截斷
+  const planDisplayName = currentPlan?.name.replace(/（(?:月|年)繳）\s*$/, '').trim()
 
   useEffect(() => {
     if (!form.planName && groupPlans.length > 0) {
@@ -67,14 +70,17 @@ export default function Step2Plan({ form, onChange }) {
               <button
                 type="button"
                 onClick={() => selectPlanAt(activeIndex)}
-                className={`flex min-h-40 flex-1 items-center justify-center self-stretch rounded-xl border-2 px-4 text-base transition-all ${
+                className={`flex min-h-40 min-w-0 flex-1 items-center justify-center self-stretch rounded-xl border-2 px-4 text-base transition-all ${
                   isPlanSelected ? 'border-brand/40 text-brand' : 'border-slate-200 text-slate-600'
                 }`}
               >
                 <div className="min-w-0 text-center">
-                  <p className="text-xl font-semibold truncate">{currentPlan.name}</p>
+                  <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-bold ${isPlanSelected ? 'bg-brand text-white' : 'bg-slate-100 text-slate-500'}`}>
+                    {currentPlan.billingCycle === 'yearly' ? '年繳' : '月繳'}
+                  </span>
+                  <p className="mt-2 text-xl font-semibold truncate">{planDisplayName}</p>
                   <p className={`mt-2 flex items-center justify-center gap-1 truncate text-sm ${isPlanSelected ? 'text-brand' : 'text-slate-400'}`}>
-                    <TokenAmount amount={currentPlan.monthlyPrice} cycle="monthly" badgeSize="!h-4 !w-4" unitClassName={isPlanSelected ? 'text-brand' : 'text-slate-400'} /> 方案總價
+                    方案總價： <TokenAmount amount={currentPlan.monthlyPrice} cycle="monthly" badgeSize="!h-4 !w-4" unitClassName={isPlanSelected ? 'text-brand' : 'text-slate-400'} />
                   </p>
                   <p className={`mt-1 truncate text-sm ${isPlanSelected ? 'text-brand' : 'text-slate-400'}`}>
                     最多 {currentPlan.maxSeats} 人共享

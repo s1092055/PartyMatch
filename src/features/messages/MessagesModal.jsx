@@ -14,14 +14,13 @@ import {
   fetchConversations,
   subscribeToMessages,
   sendMessage,
-  markConversationRead,
   getOrCreateDmConversation,
 } from '../../shared/api/messagesApi'
 import { normalizeConversation, normalizeMessage } from '../../shared/utils/modelNormalizers'
 import ConfirmDialog from '../../shared/ui/primitives/ConfirmDialog'
 import ConversationList, { CONV_TABS } from './components/ConversationList'
 import ChatWindow from './components/ChatWindow'
-import { isSystemConversation } from './utils'
+import { isSystemConversation, markConversationReadLocal } from './utils'
 
 // Safari/Firefox 在輸入法選字確認時，compositionend 會在 Enter 的 keydown 之前（或極短時間內）觸發，
 // 導致 isComposingRef 已被設回 false——額外用時間窗與 e.isComposing/keyCode 229 雙重判斷，
@@ -126,16 +125,7 @@ export default function MessagesModal() {
     const user = getCurrentUser()
     if (user) {
       const conv = useConversationStore.getState().getById(selectedId)
-      if ((conv?.unreadCounts?.[user.id] ?? 0) > 0) {
-        markConversationRead(selectedId).catch(console.error)
-        useConversationStore.setState(s => ({
-          conversations: s.conversations.map(c =>
-            c.id === selectedId
-              ? { ...c, unreadCounts: { ...c.unreadCounts, [user.id]: 0 } }
-              : c
-          ),
-        }))
-      }
+      markConversationReadLocal(selectedId, user.id)
       if (conv?.type === 'group' && conv.groupId) {
         const notifStore = useNotificationStore.getState()
         notifStore.getByUserId(user.id)

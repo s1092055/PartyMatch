@@ -24,6 +24,96 @@
 
 依發現時間排序，最新在上。每筆都有標註「來源」（`/code-review` 靜態審查、使用者回報、或手動測試），之後新發現的 bug 補在最上面即可。
 
+### BUG-023：我的收藏清單沒有依群組狀態過濾，額滿/已解散/已結束的群組會一直留著
+- **功能**：[使用者流程總覽](../flows/user-flows.md)，`FavoritesPage.jsx`
+- **嚴重度**：P2（顯示問題，容易誤導使用者以為還能申請）
+- **來源**：使用者回報「收藏那邊列表裡面顯示的群組卡資訊怪怪的，為什麼已解散的群組還存在裡面」
+- **重現方式**：收藏一個群組，之後該群組額滿、被團主解散或自然結束
+- **預期結果**：收藏清單應該只列出還進得去的招募中群組，跟探索頁（`searchUtils.js` 的 `applyFilters`）看到的範圍一致
+- **實際結果**：`FavoritesPage.jsx` 只用 `favorites` 記錄反查群組資料，完全沒有依 `status`/`openSeats` 過濾；`ExploreGroupCard` 本身也不顯示狀態徽章，額滿/已解散/已結束的群組看起來就跟正常招募中的群組一樣，點進去才會發現不能申請
+- **推測原因**：收藏頁是後來才加的功能，沒有比照探索頁套用同一套「只顯示進得去的群組」過濾條件
+- **修正狀態**：已修——套用跟探索頁完全相同的過濾條件 `status === 'recruiting' && openSeats > 0`。曾考慮過「額滿保留、只濾掉已解散/已結束」的折衷方案（額滿群組理論上有機會因為成員退出/被移除而釋出名額、退回招募中，見 BUG-020），但使用者確認探索頁本來就是刻意不顯示額滿群組（避免瀏覽時看到一堆進不去的群組），收藏頁跟著同一套邏輯比較一致，最終採用完全比照探索頁的做法
+
+### BUG-022：`App.jsx` 資料載入失敗的彙總 Toast 在開發模式下會跳兩次
+- **功能**：App 啟動流程，`App.jsx` 的 `bootApp()`（見 BUG-019 新增的彙總 Toast 邏輯）
+- **嚴重度**：P2（只在開發模式出現，不影響正式環境）
+- **來源**：使用者回報「部分資料載入失敗，請重新整理頁面的 Toast 會發送兩次」
+- **重現方式**：開發模式（`npm run dev`）下，任一個 store 的 `init()` 失敗
+- **預期結果**：失敗時只跳一次彙總 Toast
+- **實際結果**：Toast 跳了兩次
+- **推測原因**：`main.jsx` 有包 `<StrictMode>`，React 19 在開發模式會刻意把 mount 的 effect 多跑一次（測試 cleanup 邏輯是否正確）；`bootApp()` 所在的 `useEffect` 沒有回傳 cleanup function，也沒有任何防重入機制，兩次 effect 呼叫會各自完整跑一輪 `bootApp()`、各自判斷失敗並各跳一次 Toast。正式環境不會用 StrictMode 的開發模式行為，所以不會重現
+- **修正狀態**：已修——加一個 `bootedRef`（`useRef(false)`），effect 一開始檢查並在真正執行前設為 `true`，擋掉 StrictMode 的第二次呼叫
+
+### BUG-021：建立群組「選擇方案」卡片，方案名稱過長時會撐開卡片、蓋到旁邊的切換箭頭與說明欄
+- **功能**：[建立群組流程](../flows/create-group-flow.md)，`Step2Plan.jsx`
+- **嚴重度**：P2（顯示問題，不影響資料正確性，但畫面明顯跑版）
+- **來源**：使用者手動測試回報「選擇 Nintendo Switch Online 時，螢幕寬度 768px～1280px 之間方案卡的部分會被遮住」
+- **重現方式**：建立群組選擇方案名稱較長的服務（例如 Nintendo「家庭方案（無擴充包）（月繳）」、Google One「AI Plus（400GB）（月繳）」），把瀏覽器/容器寬度縮到 `md`～`lg` 之間的中段寬度
+- **預期結果**：方案名稱過長時應該截斷成「...」，不影響旁邊的切換箭頭跟方案說明欄版面
+- **實際結果**：方案卡片（`<button>`）是 flex row 裡的 `flex-1` 項目但沒有 `min-w-0`；CSS flex 項目預設 `min-width: auto`，代表它不會縮小到比內容本身還窄，所以容器變窄時卡片會被內容撐開，`truncate` 完全失效（不會出現「...」），文字直接溢出卡片邊框，蓋到右側切換箭頭跟方案說明欄
+- **推測原因**：只顧到卡片內部 `<div className="min-w-0 text-center">` 有補 `min-w-0`，忘了外層的卡片本身（也是需要收縮的 flex 項目）也要補上，才能讓 `truncate` 沿著整條鏈路正確生效
+- **修正狀態**：已修——卡片 `<button>` 補上 `min-w-0`；另外把計費週期（月繳／年繳）拆成卡片上方的獨立 badge，方案名稱不用再重複帶「（月繳）」字樣，名稱變短也降低了需要截斷的機率。已用全站最長的方案名稱（Google One「AI Plus（400GB）（月繳）」，18 字）在 600px／672px 容器寬度下驗證過，截斷正常、無溢出
+
+### BUG-020：通知指向的群組已額滿/不再招募中時，點通知會打開一個「已經不能申請」的過期群組 Modal
+- **功能**：[通知流程](../flows/notification-flow.md)，`FloatingMessages.jsx`
+- **嚴重度**：P2（不會出錯，但使用者體驗上會誤導——以為還能申請）
+- **來源**：使用者提前提出「群組額滿後，點通知中心的通知應該要提示額滿並導回探索頁，而不是繼續打開該群組」
+- **重現方式**：收到 `application_rejected`／`member_removed`／`application_approved`（尚無訂閱）這類會開啟群組詳情 Modal 的通知，在通知建立之後、點擊之前，該群組已經被別人申請填滿（`recruiting` → `full` 或更後面的狀態）
+- **預期結果**：點擊通知應該告知使用者這個群組已經不能申請了，導向探索頁繼續看其他群組，而不是打開一個「按下申請也沒用」的群組 Modal
+- **實際結果**：原本這三種通知類型點擊後一律 `navigate('/explore')` + 直接 `dispatchEvent('pm:open-group')`，完全不檢查群組目前狀態，Modal 一樣會照常打開，只是「申請加入」按鈕因為 `canApply` 判斷而被隱藏/停用，使用者得自己點進去才看得出來為什麼不能申請
+- **推測原因**：這三個入口設計時只考慮了「群組還在招募中」的情境，沒有處理通知建立後群組狀態才轉變的競態
+- **修正狀態**：已修——新增 `openGroupOrRedirect(groupId)`：重新拉一次群組資料後檢查 `status === 'recruiting'`，不符合就跳 `info` Toast 說明並留在探索頁，符合才真的打開 Modal；三個入口（`application_rejected`、`member_removed`、`application_approved` 尚無訂閱分支）改呼叫這個共用函式
+
+### BUG-019：`NotificationType` enum 沒有 `application_withdrawn`，撤回申請的通知寫入直接 500
+- **功能**：[通知流程](../flows/notification-flow.md)，[PM幣代管與付款流程](../flows/payment-token-flow.md)（申請撤回通知團主）
+- **嚴重度**：P1（新功能上線當下就完全無法運作，且前端沒有任何提示）
+- **來源**：使用者回報「取消申請時 Console 跳出 500」
+- **重現方式**：申請人撤回一筆 `pending` 申請，觸發 `insertNotification({ type: 'application_withdrawn', ... })`
+- **預期結果**：通知寫入成功，團主收到「申請人已取消申請」
+- **實際結果**：`prisma.notification.create()` 丟出 `Invalid value for argument 'type'. Expected NotificationType.`，因為 `schema.prisma` 的 `NotificationType` enum 只定義到既有的 18 種，沒有新加的 `application_withdrawn`；由於呼叫端是 `.catch(console.error)`，畫面上完全沒有任何提示（申請人自己撤回成功，但團主永遠收不到通知）
+- **推測原因**：新增通知類型時只改了前端呼叫處，忘了同步在 `schema.prisma` 加上對應的 enum 值並跑 `db push`
+- **修正狀態**：已修——`schema.prisma` 的 `NotificationType` 補上 `application_withdrawn`，執行 `npx prisma db push` 同步到資料庫；順手把 `CLAUDE.md` 裡寫錯的 `npx prisma migrate dev` 改成專案實際在用的 `npx prisma db push`（本專案沒有 migrations 目錄，`migrate dev` 執行下去會要求整個資料庫 reset）
+
+### BUG-018：申請人撤回申請，團主端完全沒有任何通知或畫面更新
+- **功能**：[通知流程](../flows/notification-flow.md)，`useApplicationStore.withdraw`
+- **嚴重度**：P1（團主可能對著一筆早就撤回的申請按核准/拒絕，造成操作上的 bug）
+- **來源**：使用者回報「使用者取消申請時，團主端也要收到通知」
+- **重現方式**：申請人在 `GroupDetailModal` 撤回一筆 `pending` 申請
+- **預期結果**：團主收到通知，且團主端的 applications store 應該同步更新，不該繼續把這筆申請當成 `pending` 顯示在待審核列表
+- **實際結果**：`withdraw()` 只更新申請人自己的本地 state 跟呼叫後端 API，完全沒有通知團主的邏輯；團主端要等自己重新整理頁面才會發現這筆申請已經失效
+- **推測原因**：實作核准/拒絕流程時都有補通知，唯獨「申請人自行撤回」這個入口漏了
+- **修正狀態**：已修——`withdraw()` 成功後呼叫 `insertNotification` 通知團主（`application_withdrawn`）；`useNotificationStore` 的輪詢偵測到這個類型會直接觸發 `pm:refresh-application-store`，不需要團主點擊通知就會自動刷新（另見 BUG-019，enum 沒對齊導致這個修正一開始沒有真的生效）
+
+### BUG-017：申請時間被截斷成純日期，審核紀錄畫面永遠顯示同一個固定時間
+- **功能**：團主審核紀錄，`normalizeApplication`（`src/shared/utils/modelNormalizers.js`）
+- **嚴重度**：P2（顯示問題，不影響資料正確性，但會讓使用者誤以為系統有 bug）
+- **來源**：使用者回報「審核紀錄裡面顯示的申請時間都固定顯示『今天 8:00』」
+- **重現方式**：核准或拒絕一筆申請，到審核紀錄查看該筆的申請時間
+- **預期結果**：顯示這筆申請實際送出的日期與時間
+- **實際結果**：畫面上所有紀錄的時間都固定顯示同一個時間點
+- **推測原因**：`normalizeApplication` 把後端回傳的完整 ISO 時間戳記用 `.slice(0, 10)` 截斷成純日期字串（例如 `2026-07-24`）；`formatRelativeDate`/畫面上再用 `new Date('2026-07-24')` 解析時，JS 會當成 UTC 午夜，換算成台灣時區（UTC+8）就固定變成早上 8:00，跟這筆申請實際送出的時間完全無關
+- **修正狀態**：已修——`normalizeApplication` 不再截斷 `createdAt`，完整保留時間戳記；新增 `formatDateTime()`（`src/shared/utils/date.js`）顯示實際日期＋時間，審核紀錄（已審核的申請）改用這個函式，待審核列表維持原本的相對時間（「3小時前」）；順手把團主收款管理面板（`buildBillingPanel.jsx`）同樣只顯示日期的交易時間也改成顯示實際時間
+
+### BUG-016：申請未通過的通知點擊後，申請人本地資料沒有刷新，群組卡片卡在「已申請」狀態
+- **功能**：[通知流程](../flows/notification-flow.md)，`FloatingMessages.jsx`
+- **嚴重度**：P1（申請人以為卡住了，其實只是本地畫面沒更新，實際上可以重新申請）
+- **來源**：使用者回報「申請未通過時點擊通知，原本申請的群組應該要能重新申請，目前還卡在申請中的狀態」
+- **重現方式**：團主拒絕一筆申請，申請人點擊「申請未通過」的通知
+- **預期結果**：探索頁該群組的「已申請」標記消失、恢復成可重新申請的狀態
+- **實際結果**：`FloatingMessages.jsx` 的 `handleClick` 對 `application_rejected` 沒有專屬處理，只會落到預設分支單純 `navigate('/explore')`；申請人本地 `useApplicationStore` 的那筆申請紀錄還停在 `pending`（團主端的拒絕動作只更新了團主自己的 store 跟資料庫），`ExplorePage` 用 `status === 'pending'` 判斷是否顯示「已申請」，因此畫面一直卡住
+- **推測原因**：`new_application` 等其他通知類型點擊時都有重新拉取對應 store，唯獨 `application_rejected` 沒有，可能是設計時漏了「拒絕」也需要讓申請人這端重新同步狀態
+- **修正狀態**：已修——`application_rejected` 補上點擊處理：`navigate('/explore')` 的同時呼叫 `useApplicationStore.getState().init()` 重新拉取最新申請狀態；同步修正 `checkMissedNotifications`（離線補通知）建立 `application_rejected` 時漏帶 `meta.groupId` 的問題
+
+### BUG-015：多處樂觀更新失敗時完全沒有回滾也沒有任何提示
+- **功能**：收藏、成員/訂閱更新、群組建立與更新、通知已讀，見 [使用者流程總覽](../flows/user-flows.md)
+- **嚴重度**：P1（畫面狀態跟後端真實資料不一致，使用者卻毫無所覺）
+- **來源**：使用者提問「網頁發生錯誤或操作失敗時會跳 Toast 通知嗎」，追查後發現大範圍缺口
+- **重現方式**：檢視 `useFavoriteStore.toggle`、`useMemberStore.update`/`remove`、`useSubscriptionStore.update`/`activateGroupSubscriptions`/`remove`、`useGroupStore.create`/`update`、`useNotificationStore.markRead`/`markAllRead` 這些樂觀更新的 store action，背景 API 呼叫失敗時的處理方式
+- **預期結果**：背景同步失敗時，畫面應該回滾成失敗前的值，並提示使用者操作沒有真的成功
+- **實際結果**：這些 action 全部是 `.catch(console.error)`，失敗時畫面保持樂觀更新後的值（例如收藏愛心圖示、付款狀態、群組狀態）跟後端實際資料不同步，使用者完全不會發現，只有重新整理頁面才會看到「打回原形」，容易誤以為是系統 bug
+- **推測原因**：這些 action 大多是「fire-and-forget」（呼叫端沒有 `await`，store 內部也沒接住失敗分支），實作當下只處理了成功路徑
+- **修正狀態**：已修——新增共用的 `notifyError()`（`src/shared/utils/toast.js`），上述 action 的 `.catch` 一律改成記住異動前的值、失敗時回滾＋跳 `error` Toast；另外 `App.jsx` 開頭載入資料（各 store 的 `init()`）任一項失敗時，也會補一個需手動關閉的彙總 Toast，避免使用者以為「本來就沒資料」。同時新增 Toast 的 `warning` 類型（`AlertTriangle`／`text-warning`），供之後需要跟 `error`／`success` 區分的警示訊息使用
+
 ### BUG-014：解散群組的退款邏輯用讀取時的舊成員名單，跟同時發生的退出/移除撞在一起會重複退款
 - **功能**：[我的群組（團主視角）流程](../flows/my-groups-host-flow.md)，`POST /groups/:id/cancel`
 - **嚴重度**：P1（金流正確性：極窄的競態窗口下會多退一次款）

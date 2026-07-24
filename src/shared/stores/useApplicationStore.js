@@ -122,6 +122,7 @@ export const useApplicationStore = create((set, get) => ({
 
   // ── 撤回申請（申請人自行取消 pending 申請）────────────────────────────────
   withdraw: async (id) => {
+    const app = get().applications.find(a => a.id === id)
     set(s => ({
       applications: s.applications.map(a => a.id === id ? { ...a, status: 'withdrawn' } : a),
     }))
@@ -129,6 +130,17 @@ export const useApplicationStore = create((set, get) => ({
       await deleteApplication(id)
       // 撤回會退還申請當下代管的金額，重新拉一次餘額讓畫面上的PM幣顯示同步
       useAuthStore.getState().refreshTokenBalance()
+      // 通知團主：申請人已取消申請。團主端的 applications store 在這之前完全不知道
+      // 這筆申請已經失效，不通知的話團主可能還會去核准/拒絕一筆早就撤回的申請
+      if (app?.hostId) {
+        insertNotification({
+          userId:  app.hostId,
+          type:    'application_withdrawn',
+          title:   '申請人已取消申請',
+          message: `${app.applicantName ?? '申請人'} 已取消加入「${app.groupName ?? app.serviceName}」群組的申請。`,
+          meta:    { groupId: app.groupId, applicationId: id },
+        }).catch(console.error)
+      }
     } catch (err) {
       await get().init()
       throw err
@@ -164,7 +176,7 @@ export const useApplicationStore = create((set, get) => ({
             type:    'application_rejected',
             title:   '申請未通過',
             message: `很抱歉，你申請加入的「${app.groupName ?? app.serviceName}」群組申請未通過。`,
-            meta:    { applicationId: app.id },
+            meta:    { applicationId: app.id, groupId: app.groupId },
           })
         }
       }

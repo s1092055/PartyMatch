@@ -3,7 +3,7 @@ import { z } from 'zod'
 import prisma from '../lib/prisma.js'
 import { requireAuth } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
-import { appendMessage, isSystemConversation } from '../lib/conversationMessages.js'
+import { appendMessage, isSystemConversation, parseParticipants } from '../lib/conversationMessages.js'
 
 const router = Router()
 
@@ -33,12 +33,7 @@ router.get('/', requireAuth, async (req, res, next) => {
     )
 
     // 為 DM 對話補上參與者 meta（name / avatarInitial / avatarColor）
-    const allParticipantIds = [...new Set(
-      conversations.flatMap(c => {
-        const ids = Array.isArray(c.participants) ? c.participants : JSON.parse(c.participants ?? '[]')
-        return ids
-      })
-    )]
+    const allParticipantIds = [...new Set(conversations.flatMap(parseParticipants))]
     const users = allParticipantIds.length
       ? await prisma.user.findMany({
           where:  { id: { in: allParticipantIds } },
@@ -48,8 +43,7 @@ router.get('/', requireAuth, async (req, res, next) => {
     const userMap = Object.fromEntries(users.map(u => [u.id, u]))
 
     const enriched = conversations.map(c => {
-      const ids = Array.isArray(c.participants) ? c.participants : JSON.parse(c.participants ?? '[]')
-      const participantMeta = Object.fromEntries(ids.map(id => [id, userMap[id] ?? {}]))
+      const participantMeta = Object.fromEntries(parseParticipants(c).map(id => [id, userMap[id] ?? {}]))
       return { ...c, participantMeta }
     })
 
@@ -70,13 +64,11 @@ router.post('/group', requireAuth, async (req, res, next) => {
     if (!group) return res.status(404).json({ message: '群組不存在' })
     if (group.hostId !== req.user.id) return res.status(403).json({ message: '僅團主可建立聊天室' })
 
-    // 若已存在則直接回傳
     const existing = await prisma.conversation.findFirst({
       where: { type: 'group', groupId },
     })
     if (existing) return res.json(existing)
 
-    // 聊天室成員 = 團主 + 所有 member
     const participantIds = [...new Set([group.hostId, ...group.members.map(m => m.userId)])]
     const conversation = await prisma.conversation.create({
       data: { type: 'group', groupId, participants: participantIds },
@@ -110,9 +102,7 @@ router.get('/:id/messages', requireAuth, async (req, res, next) => {
   try {
     const conversation = await prisma.conversation.findUnique({ where: { id: req.params.id } })
     if (!conversation) return res.status(404).json({ message: '對話不存在' })
-    const participants = Array.isArray(conversation.participants)
-      ? conversation.participants
-      : JSON.parse(conversation.participants ?? '[]')
+    const participants = parseParticipants(conversation)
     if (!participants.includes(req.user.id)) {
       return res.status(403).json({ message: '無讀取權限' })
     }
@@ -136,16 +126,14 @@ router.post('/:id/messages', requireAuth, validate(sendMessageSchema), async (re
     if (isSystemConversation(conversation)) {
       return res.status(403).json({ message: '系統通知無法回覆' })
     }
-    const participants2 = Array.isArray(conversation.participants)
-      ? conversation.participants
-      : JSON.parse(conversation.participants ?? '[]')
-    if (!participants2.includes(req.user.id)) {
+    const participants = parseParticipants(conversation)
+    if (!participants.includes(req.user.id)) {
       return res.status(403).json({ message: '無發送權限' })
     }
 
     const { content, type, actionType, payload } = req.body
     const message = await appendMessage(conversation, {
-      senderId: req.user.id, content, type, actionType, payload, participants: participants2,
+      senderId: req.user.id, content, type, actionType, payload, participants,
     })
 
     res.status(201).json(message)
@@ -162,9 +150,7 @@ router.patch('/:id/participants', requireAuth, async (req, res, next) => {
       return res.status(403).json({ message: '系統聊天室不可變更參與者' })
     }
 
-    const participants = Array.isArray(conversation.participants)
-      ? [...conversation.participants]
-      : JSON.parse(conversation.participants ?? '[]')
+    const participants = [...parseParticipants(conversation)]
 
     if (action === 'add') {
       // 只有已在對話中的人，或該群組對話的團主，可以把人加進來，避免任意使用者把自己塞進不相關的對話

@@ -2,6 +2,7 @@ import { ArrowDownCircle, ArrowUpCircle, Banknote, ChevronDown, ChevronUp, Rotat
 import Avatar from '../../../../../shared/ui/primitives/Avatar'
 import EmptyState from '../../../../../shared/ui/primitives/EmptyState'
 import TokenAmount from '../../../../../shared/ui/TokenAmount'
+import { formatDateTime } from '../../../../../shared/utils/date'
 
 const TX_META = {
   escrow: { label: '代管入帳', Icon: ArrowDownCircle, cls: 'text-info' },
@@ -16,7 +17,7 @@ function renderTransactionRow(tx) {
       <meta.Icon size={14} className={`shrink-0 ${meta.cls}`} />
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold text-ink">{meta.label}</p>
-        <p className="text-xs text-ink-3">{tx.createdAt?.slice(0, 10)}{tx.note ? ` · ${tx.note}` : ''}</p>
+        <p className="text-xs text-ink-3">{formatDateTime(tx.createdAt)}{tx.note ? ` · ${tx.note}` : ''}</p>
       </div>
       <span className={`shrink-0 text-sm font-bold ${meta.cls}`}>
         <TokenAmount amount={Math.abs(tx.amount)} />

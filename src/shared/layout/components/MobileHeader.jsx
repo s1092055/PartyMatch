@@ -30,16 +30,14 @@ export default function MobileHeader({
           </span>
         </a>
         <div className="flex items-center gap-1">
-          {/* 通知按鈕 */}
           <button
             onClick={openNotify}
-            className="relative grid h-10 w-10 place-items-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink"
+            className="relative grid h-11 w-11 place-items-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink"
             aria-label="通知"
           >
-            <Bell size={20} strokeWidth={2} />
+            <Bell size={24} strokeWidth={2} />
             <Badge count={unreadNotifs} />
           </button>
-          {/* 頭像按鈕 / 登入按鈕 */}
           {loggedIn ? (
             <button
               onClick={() => setMobileMenuOpen(v => !v)}
@@ -59,18 +57,16 @@ export default function MobileHeader({
             <a
               href="/login"
               aria-label="前往登入"
-              className="relative ml-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink-3 transition-colors hover:bg-brand-subtle hover:text-brand"
+              className="relative ml-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink"
             >
-              <UserCircle2 size={22} strokeWidth={1.8} />
+              <UserCircle2 size={28} strokeWidth={2} />
             </a>
           )}
         </div>
       </header>
 
-      {/* Avatar dropdown */}
       {mobileMenuOpen && loggedIn && (
         <div className="absolute right-0 top-full mt-2 w-64 overflow-hidden rounded-2xl border border-line bg-white shadow-2xl">
-          {/* 使用者資訊 */}
           <div className="flex flex-col items-center gap-3 px-6 pt-6 pb-4">
             <span
               className="relative flex h-14 w-14 items-center justify-center rounded-full text-lg font-black text-white shadow-md"
@@ -82,7 +78,6 @@ export default function MobileHeader({
             <p className="text-sm font-extrabold text-ink">{userName}</p>
           </div>
 
-          {/* PM幣餘額 */}
           <div className="mb-4 flex justify-center">
             <div className="inline-flex items-center gap-2 rounded-xl bg-raised px-4 py-2.5">
               <TokenBadge className="shrink-0" />
@@ -98,7 +93,6 @@ export default function MobileHeader({
 
           <div className="border-t border-line-subtle" />
 
-          {/* 我的帳號 + 登出 */}
           <div className="flex divide-x divide-line-subtle">
             <a
               href="/account"

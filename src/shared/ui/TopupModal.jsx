@@ -19,11 +19,14 @@ function getTxConfig(type) {
 }
 
 const TOPUP_OPTIONS = [100, 300, 500, 1000, 3000, 5000]
+const MIN_AMOUNT = 1
+const MAX_AMOUNT = 100000
 
 export default function TopupModal({ isOpen, onClose }) {
   const tokenBalance = useAuthStore(s => s.user?.tokenBalance ?? 0)
   const [loading, setLoading]       = useState(false)
   const [selected, setSelected]     = useState(null)
+  const [customAmount, setCustomAmount] = useState('')
   const [showHistory, setShowHistory] = useState(false)
   const [transactions, setTransactions] = useState([])
   const [txLoading, setTxLoading]   = useState(false)
@@ -34,7 +37,25 @@ export default function TopupModal({ isOpen, onClose }) {
   const [prevIsOpen, setPrevIsOpen] = useState(isOpen)
   if (isOpen !== prevIsOpen) {
     setPrevIsOpen(isOpen)
-    if (!isOpen) { setSelected(null); setShowHistory(false) }
+    if (!isOpen) { setSelected(null); setCustomAmount(''); setShowHistory(false) }
+  }
+
+  const customAmountNum = customAmount === '' ? null : Number(customAmount)
+  const customAmountValid = customAmountNum !== null
+    && Number.isInteger(customAmountNum)
+    && customAmountNum >= MIN_AMOUNT
+    && customAmountNum <= MAX_AMOUNT
+  const activeAmount = selected ?? (customAmountValid ? customAmountNum : null)
+
+  function selectPreset(amt) {
+    setSelected(amt)
+    setCustomAmount('')
+  }
+
+  function handleCustomAmountChange(raw) {
+    const digitsOnly = raw.replace(/[^0-9]/g, '')
+    setCustomAmount(digitsOnly)
+    setSelected(null)
   }
 
   useEffect(() => {
@@ -49,12 +70,13 @@ export default function TopupModal({ isOpen, onClose }) {
   }, [isOpen, tokenBalance])
 
   async function handleTopup() {
-    if (!selected || loading) return
+    if (!activeAmount || loading) return
     setLoading(true)
     try {
-      await useAuthStore.getState().topup(selected)
+      await useAuthStore.getState().topup(activeAmount)
       toast('儲值成功', 'success')
       setSelected(null)
+      setCustomAmount('')
       handleClose()
     } catch (err) {
       toast(err?.message ?? '儲值失敗，請稍後再試', 'error')
@@ -110,7 +132,7 @@ export default function TopupModal({ isOpen, onClose }) {
                     {TOPUP_OPTIONS.map(amt => (
                       <button
                         key={amt}
-                        onClick={() => setSelected(amt)}
+                        onClick={() => selectPreset(amt)}
                         className={`rounded-xl border py-3 text-sm font-bold transition-colors ${
                           selected === amt
                             ? 'border-brand bg-brand text-white'
@@ -126,6 +148,32 @@ export default function TopupModal({ isOpen, onClose }) {
                   </div>
                 </div>
 
+                <div>
+                  <p className="mb-2.5 text-xs font-medium text-ink-3">或自行輸入金額</p>
+                  <div className={`flex items-center gap-2 rounded-xl border px-4 py-3 transition-colors ${
+                    customAmount && !customAmountValid
+                      ? 'border-danger'
+                      : customAmountValid
+                        ? 'border-brand'
+                        : 'border-line'
+                  }`}>
+                    <TokenBadge className="shrink-0" />
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={customAmount}
+                      onChange={e => handleCustomAmountChange(e.target.value)}
+                      placeholder={`輸入金額（${MIN_AMOUNT}–${MAX_AMOUNT.toLocaleString()}）`}
+                      className="min-w-0 flex-1 bg-transparent text-sm font-bold text-ink outline-none placeholder:font-normal placeholder:text-ink-4"
+                    />
+                  </div>
+                  {customAmount && !customAmountValid && (
+                    <p className="mt-1.5 text-xs text-danger">
+                      請輸入 {MIN_AMOUNT}–{MAX_AMOUNT.toLocaleString()} 之間的整數
+                    </p>
+                  )}
+                </div>
+
                 <p className="text-center text-xs text-ink-4">1 PM = 1 TWD（模擬儲值，非真實扣款）</p>
               </div>
             </div>
@@ -135,11 +183,11 @@ export default function TopupModal({ isOpen, onClose }) {
               <div className="flex gap-3">
                 <button onClick={handleClose} className="btn btn-ghost flex-1">取消</button>
                 <button
-                  disabled={!selected || loading}
+                  disabled={!activeAmount || loading}
                   onClick={handleTopup}
                   className="btn btn-primary flex-1"
                 >
-                  {loading ? '處理中…' : selected ? `儲值 ${selected.toLocaleString()} PM` : '請選擇金額'}
+                  {loading ? '處理中…' : activeAmount ? `儲值 ${activeAmount.toLocaleString()} PM` : '請選擇金額'}
                 </button>
               </div>
               <button

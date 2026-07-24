@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Check, ChevronDown, ChevronUp, X } from 'lucide-react'
 import Avatar from '../../../../../shared/ui/primitives/Avatar'
 import CreditScoreBadge from '../../../../../shared/ui/CreditScoreBadge'
-import { formatRelativeDate } from '../../../../../shared/utils/date'
+import { formatDateTime, formatRelativeDate } from '../../../../../shared/utils/date'
 
 const APP_STATUS_BADGE = {
   approved: { cls: 'bg-success-subtle text-success-text', label: '已核准' },
@@ -30,7 +30,9 @@ export default function ApplicationCard({ app, groupFull, error, onApprove, onRe
                 <p className="text-sm font-semibold text-ink">{name}</p>
                 <CreditScoreBadge score={app.applicantCreditScore ?? 80} />
               </div>
-              <p className="mt-0.5 text-2xs text-ink-4">{formatRelativeDate(app.createdAt)}</p>
+              <p className="mt-0.5 text-2xs text-ink-4">
+                {isPending ? formatRelativeDate(app.createdAt) : formatDateTime(app.createdAt)}
+              </p>
             </div>
             {!isPending && badge && (
               <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${badge.cls}`}>

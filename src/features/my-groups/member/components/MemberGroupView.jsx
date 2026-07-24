@@ -457,28 +457,26 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
         isDisputed ? 'danger' :
         undefined
       }
-      sideBar={(() => {
-        return (
-          <>
-            <GroupModalSideBarItem active={activePanel === null} onClick={() => setActivePanel(null)}>
-              <Info size={17} /> 群組概覽
+      sideBar={
+        <>
+          <GroupModalSideBarItem active={activePanel === null} onClick={() => setActivePanel(null)}>
+            <Info size={17} /> 群組概覽
+          </GroupModalSideBarItem>
+          <GroupModalSideBarItem active={activePanel === 'members'} onClick={() => setActivePanel('members')}>
+            <Users size={17} /> 成員名單
+          </GroupModalSideBarItem>
+          {canLeaveGroup && (
+            <GroupModalSideBarItem pinned tone="danger" onClick={() => setLeaveConfirm(true)}>
+              <LogOut size={17} /> 退出群組
             </GroupModalSideBarItem>
-            <GroupModalSideBarItem active={activePanel === 'members'} onClick={() => setActivePanel('members')}>
-              <Users size={17} /> 成員名單
+          )}
+          {isPaymentRelevant && (
+            <GroupModalSideBarItem pinned onClick={openMessages}>
+              <MessageCircle size={17} /> 群組訊息
             </GroupModalSideBarItem>
-            {canLeaveGroup && (
-              <GroupModalSideBarItem pinned tone="danger" onClick={() => setLeaveConfirm(true)}>
-                <LogOut size={17} /> 退出群組
-              </GroupModalSideBarItem>
-            )}
-            {isPaymentRelevant && (
-              <GroupModalSideBarItem pinned onClick={openMessages}>
-                <MessageCircle size={17} /> 群組訊息
-              </GroupModalSideBarItem>
-            )}
-          </>
-        )
-      })()}
+          )}
+        </>
+      }
       subPanel={activePanel ? buildSubPanel() : null}
       onSubPanelBack={() => setActivePanel(null)}
       panelKey={activePanel ?? 'overview'}

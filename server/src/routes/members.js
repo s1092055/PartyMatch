@@ -30,16 +30,10 @@ router.get('/', requireAuth, async (req, res, next) => {
       if (!isMember && !isHost) return res.status(403).json({ message: '無權限查看此群組成員' })
       where = { groupId }
     } else {
-      // 先找出用戶加入的所有 groupId，再一次撈這些群組的全部成員
-      const myMemberships = await prisma.member.findMany({
-        where:  { userId: req.user.id },
-        select: { groupId: true },
-      })
-      const myGroupIds = myMemberships.map(m => m.groupId)
       where = {
         OR: [
-          { groupId: { in: myGroupIds } },       // 我所在群組的所有成員
-          { group: { hostId: req.user.id } },    // 我主持的群組的成員
+          { group: { members: { some: { userId: req.user.id } } } }, // 我所在群組的所有成員
+          { group: { hostId: req.user.id } },                        // 我主持的群組的成員
         ],
       }
     }
@@ -137,7 +131,6 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
       return res.status(400).json({ message: '群組啟用後無法變更成員名單' })
     }
 
-    // 計算退款金額（從 escrow 退還給成員）
     const seatCost = computeSeatCost(existing.group)
     const refundAmount = Math.min(seatCost, existing.group.escrowTokens)
 
@@ -157,20 +150,12 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
         amount:  refundAmount,
         note:    isHost ? '被團主移除，代管退款' : '自行退出，代管退款',
       })
-      // 成員自行退出：把 application 標為 left，並釋放 activeKey 讓成員可重新申請
-      if (isSelf && !isHost) {
-        await tx.application.updateMany({
-          where: { groupId: existing.groupId, userId: existing.userId, status: 'approved' },
-          data:  { status: 'left', activeKey: null },
-        })
-      }
-      // 被移除：把 application 標為 removed，並釋放 activeKey 讓使用者可重新申請
-      if (isHost && !isSelf) {
-        await tx.application.updateMany({
-          where: { groupId: existing.groupId, userId: existing.userId, status: 'approved' },
-          data:  { status: 'removed', activeKey: null },
-        })
-      }
+      // 退出（left）或被移除（removed）後釋放 activeKey，讓使用者可重新申請同一群組。
+      // 成員的 userId 不會等於團主，isHost / isSelf 必為互斥，用 isHost 就能區分兩種情境
+      await tx.application.updateMany({
+        where: { groupId: existing.groupId, userId: existing.userId, status: 'approved' },
+        data:  { status: isHost ? 'removed' : 'left', activeKey: null },
+      })
       return updated.currentMembers
     })
 

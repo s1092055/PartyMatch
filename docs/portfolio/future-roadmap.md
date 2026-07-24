@@ -30,7 +30,6 @@
 - **TypeScript 型別覆蓋**：目前是純 JS，補上型別可以提升重構安全性
 - **自動化測試**：目前主要靠手動測試（見 [手動測試計畫](../testing/manual-test-plan.md)），未來可以補上關鍵流程的整合測試（例如核准申請的併發安全性、狀態機轉換）
 - **逾期付款排程通知**：目前沒有自動偵測逾期並通知的排程機制
-- **Store 樂觀更新失敗沒有統一的回滾機制**：`useMemberStore`/`useSubscriptionStore`/`useGroupStore`/`useFavoriteStore` 等處的 `.update`/`.remove`/`.toggle` 都是先樂觀改本地 state，再背景打 API、`.catch(console.error)`；如果 API 失敗，本地狀態會悄悄跟後端不一致，沒有回滾也沒有提示使用者，值得之後補一個共用的樂觀更新+回滾 helper
 - **`billingCycle` 可在任何群組狀態被 PATCH，跟已代管金額脫鉤**：`PATCH /groups/:id` 目前沒有限制 `billingCycle` 只能在 `recruiting` 階段修改；`Application` 有 `escrowAmount` 快照避免這類問題，但 `Member` 沒有對應的每人代管金額快照，理論上鎖定後若改了計費週期，退款/續訂金額會跟實際代管金額對不上。目前前端沒有任何地方會送出這個欄位，是潛在風險而非已發生的問題
 - **群組結束/取消後，對應 `Subscription` 沒有一併同步狀態**：`POST /groups/:id/cancel` 與一般 `PATCH /groups/:id { status: 'ended' }` 都只更新 `Group.status`，沒有把該群組所有成員的 `Subscription.status` 一併改成 `ended`，殘留 `pending`/`active` 的訂閱資料掛在已結束的群組下；目前前端都是用 `groupStatus` 判斷所以不影響顯示，但直接查 `Subscription.status` 的地方會拿到過期資料
 - **`useGroupStore.create()` 樂觀插入與伺服器回覆之間有競態窗口**：建立群組後、伺服器回應尚未回來前，如果這段時間又呼叫了 `update(id, patch)`，伺服器回應落地時會直接整筆覆蓋掉、蓋掉中間那次更新的樂觀 patch，窗口很窄但邏輯上是個真實的競態問題

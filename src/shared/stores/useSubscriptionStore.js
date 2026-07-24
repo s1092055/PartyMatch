@@ -5,6 +5,7 @@ import {
   deleteSubscriptionRecord,
 } from '../api/subscriptionsApi'
 import { normalizeSubscription } from '../utils/modelNormalizers'
+import { notifyError } from '../utils/toast'
 
 export const useSubscriptionStore = create((set, get) => ({
   subscriptions: [],
@@ -29,6 +30,7 @@ export const useSubscriptionStore = create((set, get) => ({
 
   // ── 更新 ────────────────────────────────────────────────────────────────────
   update: (id, patch) => {
+    const prior = get().subscriptions.find(sub => sub.id === id) ?? null
     let updated = null
     set(s => ({
       subscriptions: s.subscriptions.map(sub => {
@@ -37,25 +39,38 @@ export const useSubscriptionStore = create((set, get) => ({
         return updated
       }),
     }))
-    patchSubscription(id, patch).catch(console.error)
+    patchSubscription(id, patch).catch(err => {
+      if (prior) set(s => ({ subscriptions: s.subscriptions.map(sub => sub.id === id ? prior : sub) }))
+      notifyError(err, '訂閱更新失敗，請稍後再試')
+    })
     return updated
   },
 
   // ── 啟用群組所有訂閱 ────────────────────────────────────────────────────────
   activateGroupSubscriptions: (groupId, nextBillingDate) => {
     const patch = { status: 'active', nextBillingDate }
-    const targets = get().subscriptions.filter(s => s.groupId === groupId)
+    const priors = get().subscriptions.filter(s => s.groupId === groupId)
     set(s => ({
       subscriptions: s.subscriptions.map(sub =>
         sub.groupId === groupId ? normalizeSubscription({ ...sub, ...patch }) : sub
       ),
     }))
-    targets.forEach(s => patchSubscription(s.id, patch).catch(console.error))
+    Promise.all(priors.map(s => patchSubscription(s.id, patch))).catch(err => {
+      // 任一筆同步失敗就整批回滾，避免同一群組內訂閱狀態各自不一致
+      set(s => ({
+        subscriptions: s.subscriptions.map(sub => priors.find(p => p.id === sub.id) ?? sub),
+      }))
+      notifyError(err, '訂閱啟用失敗，請稍後再試')
+    })
   },
 
   // ── 移除 ────────────────────────────────────────────────────────────────────
   remove: (id) => {
+    const prior = get().subscriptions.find(sub => sub.id === id) ?? null
     set(s => ({ subscriptions: s.subscriptions.filter(sub => sub.id !== id) }))
-    deleteSubscriptionRecord(id).catch(console.error)
+    deleteSubscriptionRecord(id).catch(err => {
+      if (prior) set(s => ({ subscriptions: [...s.subscriptions, prior] }))
+      notifyError(err, '刪除訂閱失敗，請稍後再試')
+    })
   },
 }))

@@ -1,11 +1,13 @@
+const TONE_CLASSES = {
+  danger: 'text-danger hover:bg-danger-subtle',
+  brand:  'text-brand hover:bg-brand-subtle',
+  default: 'text-ink-2 hover:bg-raised',
+}
+
 export default function GroupModalSideBarItem({ active, tone, pinned = false, onClick, className = '', children }) {
   const toneCls = active
     ? 'bg-brand-subtle text-brand'
-    : tone === 'danger'
-      ? 'text-danger hover:bg-danger-subtle'
-      : tone === 'brand'
-        ? 'text-brand hover:bg-brand-subtle'
-        : 'text-ink-2 hover:bg-raised'
+    : TONE_CLASSES[tone] ?? TONE_CLASSES.default
 
   return (
     <button

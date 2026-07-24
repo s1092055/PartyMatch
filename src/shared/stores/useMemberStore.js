@@ -5,6 +5,7 @@ import {
   deleteMemberRecord,
 } from '../api/membersApi'
 import { normalizeMember } from '../utils/modelNormalizers'
+import { notifyError } from '../utils/toast'
 
 export const useMemberStore = create((set, get) => ({
   members: [],
@@ -38,10 +39,15 @@ export const useMemberStore = create((set, get) => ({
 
   // ── 更新成員（付款狀態、服務帳號、付款憑證等）────────────────────────────────
   update: (memberId, patch) => {
+    const prior = get().members.find(m => m.id === memberId) ?? null
     set(s => ({
       members: s.members.map(m => m.id === memberId ? { ...m, ...patch } : m),
     }))
-    return patchMember(memberId, patch).catch(console.error)
+    return patchMember(memberId, patch).catch(err => {
+      // 回滾至先前值，避免付款狀態／服務帳號等畫面顯示跟後端不同步
+      if (prior) set(s => ({ members: s.members.map(m => m.id === memberId ? prior : m) }))
+      notifyError(err, '更新失敗，請稍後再試')
+    })
   },
 
   // ── 填寫服務帳號（pending_confirmation 階段）──────────────────────────────────
@@ -84,8 +90,12 @@ export const useMemberStore = create((set, get) => ({
 
   // ── 移除 ────────────────────────────────────────────────────────────────────
   remove: (memberId) => {
+    const prior = get().members.find(m => m.id === memberId) ?? null
     set(s => ({ members: s.members.filter(m => m.id !== memberId) }))
-    deleteMemberRecord(memberId).catch(console.error)
+    deleteMemberRecord(memberId).catch(err => {
+      if (prior) set(s => ({ members: [...s.members, prior] }))
+      notifyError(err, '移除成員失敗，請稍後再試')
+    })
   },
 
 }))

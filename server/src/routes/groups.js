@@ -211,7 +211,6 @@ router.post('/:id/confirm', requireAuth, async (req, res, next) => {
     const now = new Date()
     const groupLabel = group.planName ?? group.service?.name ?? ''
 
-    // 標記此成員已確認
     await prisma.member.update({
       where: { id: member.id },
       data:  { confirmedAt: now },
@@ -346,7 +345,6 @@ router.post('/:id/cancel', requireAuth, async (req, res, next) => {
       return res.status(400).json({ message: `群組已鎖定（狀態為 ${group.status}），無法解散` })
     }
 
-    // 計算每位成員的退款金額（席位費用）
     const seatCost = computeSeatCost(group)
 
     await prisma.$transaction(async (tx) => {
@@ -406,7 +404,6 @@ router.post('/:id/lock', requireAuth, async (req, res, next) => {
     const serviceInfoDeadline = new Date()
     serviceInfoDeadline.setHours(serviceInfoDeadline.getHours() + 24)
 
-    // 更新群組狀態 + 所有成員訂閱的 nextBillingDate
     const [updated] = await prisma.$transaction([
       prisma.group.update({
         where: { id: req.params.id },

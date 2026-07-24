@@ -107,7 +107,7 @@
 
 後端 Prisma schema 定義的完整通知類型：
 
-`application_sent`、`new_application`、`application_approved`、`application_rejected`、`group_created`、`group_chat_opened`、`group_activated`、`group_full`、`group_ended`、`group_cancelled`、`group_renewal`、`member_joined`、`member_removed`、`member_left`、`service_info_issue`、`token_topup`、`escrow_released`（成員主動確認或逾期自動撥款後發送）、`dispute_raised`、`upcoming_renewal`（距 `nextBillingDate` 7 天內、於成員讀取自己訂閱列表時惰性補發一次，見 `GET /subscriptions`）、`system`
+`application_sent`、`new_application`、`application_approved`、`application_rejected`、`application_withdrawn`、`group_created`、`group_chat_opened`、`group_activated`、`group_full`、`group_ended`、`group_cancelled`、`group_renewal`、`member_joined`、`member_removed`、`member_left`、`service_info_issue`、`token_topup`、`escrow_released`（成員主動確認或逾期自動撥款後發送）、`dispute_raised`、`upcoming_renewal`（距 `nextBillingDate` 7 天內、於成員讀取自己訂閱列表時惰性補發一次，見 `GET /subscriptions`）、`system`
 
 ---
 

@@ -148,8 +148,10 @@ export default function GroupModalShell({
                           <div className="h-8 w-8 shrink-0" />
                         )}
                         {activeDetail.icon && <span className="shrink-0">{activeDetail.icon}</span>}
-                        <span className="min-w-0 flex-1 font-extrabold text-ink">{activeDetail.title ?? ''}</span>
-                        {activeDetail.headerRight && <div className="shrink-0">{activeDetail.headerRight}</div>}
+                        {(activeDetail.icon || activeDetail.title) && (
+                          <span className="min-w-0 flex-1 font-extrabold text-ink">{activeDetail.title ?? ''}</span>
+                        )}
+                        {activeDetail.headerRight && <div className="min-w-0 flex-1">{activeDetail.headerRight}</div>}
                       </div>
                     )}
 
