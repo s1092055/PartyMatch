@@ -121,10 +121,10 @@ npm run dev              # http://localhost:3001
 
 - [手動測試計畫](docs/testing/manual-test-plan.md)
 - [測試帳號](docs/testing/test-accounts.md)
-- [核心流程測試案例](docs/testing/core-flow-test-cases.md)
+- [核心流程測試案例](docs/testing/core-flow-test-cases.md) — 含 App 啟動失敗彙總 Toast、樂觀更新失敗回滾（`notifyError`）
 - [成員流程測試案例](docs/testing/member-flow-test-cases.md)
 - [團主流程測試案例](docs/testing/host-flow-test-cases.md)
-- [訊息與通知測試案例](docs/testing/messaging-notification-test-cases.md)
+- [訊息與通知測試案例](docs/testing/messaging-notification-test-cases.md) — 含撤回申請通知團主、通知額滿保護（`openGroupOrRedirect`）
 - [RWD 測試案例](docs/testing/rwd-test-cases.md)
 - [Bug 紀錄](docs/testing/bug-log.md)
 

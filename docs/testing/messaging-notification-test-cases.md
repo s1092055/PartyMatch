@@ -135,3 +135,31 @@
 **預期結果**：
 - 後端改用 `Promise.allSettled` 平行發送給所有使用者，單一使用者寫入失敗不應中斷整批廣播
 - 舊版 bug：曾用 `for...await` 逐一序列發送，其中一人失敗會讓後面所有使用者都收不到
+
+---
+
+### TC-210：申請人撤回申請，團主收到通知並自動刷新申請列表
+
+**前置條件**：某群組有一筆 `pending` 申請，團主與申請人各自登入不同瀏覽器/分頁，團主端「申請管理」分頁開著
+**步驟**：
+1. 申請人撤回該筆 `pending` 申請（見 TC-102）
+2. 團主端等待通知輪詢（不用手動整理頁面），觀察通知面板與「申請管理」分頁列表
+
+**預期結果**：
+- 團主應收到一筆 `application_withdrawn` 通知（「申請人已取消申請」）
+- 團主端 `applicationStore` 輪詢偵測到變化後自動刷新，「申請管理」列表中該筆申請自動從待審核移除，不需手動重新整理頁面
+- 舊版 bug（BUG-019）：`NotificationType` enum 沒有 `application_withdrawn`，寫入通知會 500 且被 `.catch(console.error)` 吞掉，團主完全收不到通知，需確認 `schema.prisma` 已補上此 enum 值
+
+---
+
+### TC-211：通知指向的群組已額滿/不再招募中時，點通知不應打開過期 Modal
+
+**前置條件**：某使用者持有一筆會開啟群組詳情 Modal 的通知（`application_rejected` / `member_removed` / `application_approved` 尚無訂閱），通知建立之後、點擊之前，該群組已被其他人申請填滿（`recruiting` → `full` 或更後面狀態）
+**步驟**：
+1. 使用者點擊該筆通知
+
+**預期結果**：
+- 前端呼叫 `openGroupOrRedirect(groupId)`，重新拉取一次群組最新狀態，偵測到 `status !== 'recruiting'`
+- 應跳出 `info` Toast 告知群組已額滿/不再招募中，並停留在探索頁，**不會**打開該群組的詳情 Modal
+- 若群組狀態退回 `recruiting`（例如有人退出釋出名額），點擊應正常打開群組詳情 Modal
+- 舊版 bug（BUG-020）：三個入口一律 `navigate('/explore')` + 直接 `dispatchEvent('pm:open-group')`，完全不檢查群組目前狀態，使用者得自己點進去才發現「申請加入」按鈕被隱藏/停用
