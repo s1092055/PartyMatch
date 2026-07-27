@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Banknote, CheckCircle2, ClipboardList, Clock, Info, Lock, MessageCircle, PlayCircle, RefreshCw, Star, Trash2, Users } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { Banknote, CheckCircle2, ClipboardList, Clock, FileText, Info, Lock, MessageCircle, PlayCircle, RefreshCw, Star, Trash2, Users } from 'lucide-react'
 import CountdownConfirmDialog from '../../../../shared/ui/primitives/CountdownConfirmDialog'
 import CountdownText from '../../../../shared/ui/primitives/CountdownText'
 import GroupModalShell from '../../../../shared/ui/group/GroupModalShell'
@@ -7,6 +7,8 @@ import GroupModalSideBarItem from '../../../../shared/ui/group/GroupModalSideBar
 import HostReviews from '../../../group/components/HostReviews'
 import { getServiceById } from '../../../../shared/utils/serviceUtils'
 import { useAuthStore } from '../../../../shared/stores/useAuthStore'
+import { useApplicationStore } from '../../../../shared/stores/useApplicationStore'
+import { useMemberStore } from '../../../../shared/stores/useMemberStore'
 import { useNotificationStore } from '../../../../shared/stores/useNotificationStore'
 import { fetchGroupTransactions } from '../../../../shared/api/groupsApi'
 import ActivateServiceModal from './ActivateServiceModal'
@@ -15,10 +17,11 @@ import { buildMembersPanel } from './hostGroupView/buildMembersPanel'
 import { buildApplicationsPanel } from './hostGroupView/buildApplicationsPanel'
 import { buildReviewHistoryPanel } from './hostGroupView/buildReviewHistoryPanel'
 import { buildBillingPanel } from './hostGroupView/buildBillingPanel'
+import { buildMemberInfoPanel } from './hostGroupView/buildMemberInfoPanel'
 
 // ── 團主視角 ──────────────────────────────────────────────────────────────────
 
-export default function HostGroupView({ group, members, applications, onReportServiceInfoIssue, onRemoveMember, onActivate, onLockGroup, onCancelGroup, onApprove, onReject, errors, onClose, autoOpenLockGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling, onOpenRenewal }) {
+export default function HostGroupView({ group, members, applications, onReportServiceInfoIssue, onRemoveMember, onActivate, onLockGroup, onCancelGroup, onApprove, onReject, errors, onClose, autoOpenLockGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling, autoOpenMemberInfo, onOpenRenewal }) {
   const [showActivate, setShowActivate]                   = useState(false)
   const [removingMember, setRemovingMember]               = useState(null)
   const [activePanel, setActivePanel]                     = useState(null) // 'members' | 'applications' | 'billing' | 'reviews' | null
@@ -27,6 +30,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
   const [showCancelConfirm, setShowCancelConfirm]         = useState(false)
   const [transactions, setTransactions]                     = useState([])
   const [transactionsLoading, setTransactionsLoading]       = useState(false)
+  const [lockCredentials, setLockCredentials]               = useState('')
 
   useEffect(() => {
     if (activePanel !== 'billing') return
@@ -51,14 +55,32 @@ export default function HostGroupView({ group, members, applications, onReportSe
   }, [autoOpenApplications])
 
   useEffect(() => {
-    if (activePanel !== 'applications') return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (autoOpenMemberInfo) setActivePanel('memberInfo')
+  }, [autoOpenMemberInfo])
+
+  // 側邊欄分頁自帶未讀 badge 的兩個分頁（申請管理／成員資料）共用同一套「開啟時標記已讀」邏輯，
+  // 差別只在通知類型跟 group.id 篩選條件，抽成小函式避免同一段邏輯抄第二次
+  function markGroupNotifsRead(type) {
     const user = useAuthStore.getState().getProfile()
     if (!user) return
     const notifStore = useNotificationStore.getState()
     notifStore.getByUserId(user.id)
-      .filter(n => n.type === 'new_application' && n.meta?.groupId === group.id && !n.isRead)
+      .filter(n => n.type === type && n.meta?.groupId === group.id && !n.isRead)
       .forEach(n => notifStore.markRead(n.id))
-  }, [activePanel, group.id])
+  }
+
+  useEffect(() => {
+    if (activePanel !== 'applications') return
+    markGroupNotifsRead('new_application')
+  }, [activePanel, group.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (activePanel !== 'memberInfo') return
+    // 每次打開「成員資料」都重新拉一次，避免看到的是成員填寫當下、輪詢還沒同步到的舊快取
+    useMemberStore.getState().init()
+    markGroupNotifsRead('service_info_filled')
+  }, [activePanel, group.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -73,6 +95,17 @@ export default function HostGroupView({ group, members, applications, onReportSe
   const planDef       = serviceDef?.plans.find(p => p.name === group.planName)
   const pendingApps   = applications.filter(a => a.status === 'pending')
   const groupFull     = group.openSeats <= 0
+
+  // 成員資料分頁的數字 badge：跟「申請管理」同一套樣式，顯示有幾筆未讀的 service_info_filled 通知
+  // （成員填寫服務帳號、團主還沒點開看過）
+  const currentUserId = useAuthStore(s => s.user?.id)
+  const notifications = useNotificationStore(s => s.notifications)
+  const unseenMemberInfoCount = useMemo(
+    () => notifications.filter(
+      n => n.type === 'service_info_filled' && n.userId === currentUserId && n.meta?.groupId === group.id && !n.isRead
+    ).length,
+    [notifications, currentUserId, group.id]
+  )
 
   const canActivateNow  = group.status === 'pending_activation'
 
@@ -109,18 +142,34 @@ export default function HostGroupView({ group, members, applications, onReportSe
     </div>
   )
 
+  // 無官方多人邀請機制的服務，鎖定群組當下順便讓團主提供帳號密碼，成員填寫帳號時就能直接看到，
+  // 不用回頭翻聊天室訊息
+  const needsCredentialsOnLock = serviceDef?.sharingMethod === 'shared_credentials'
+
   const lockGroupCta = group.status === 'full' && (
     <div className="py-2">
       {showLockGroupConfirm ? (
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            onClick={() => setShowLockGroupConfirm(false)}
-            className="rounded-xl border border-line px-4 py-2 text-sm font-semibold text-ink-2 transition-colors hover:bg-raised"
-          >取消</button>
-          <button
-            onClick={() => { setShowLockGroupConfirm(false); onLockGroup?.() }}
-            className="rounded-xl bg-success px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-success-text"
-          >確認鎖定</button>
+        <div className="space-y-2">
+          {needsCredentialsOnLock && (
+            <textarea
+              value={lockCredentials}
+              onChange={e => setLockCredentials(e.target.value)}
+              placeholder="請輸入要提供給成員的帳號密碼（例如：帳號 xxx / 密碼 xxx），成員填寫服務帳號時會看到這則內容"
+              rows={3}
+              className="w-full rounded-xl border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand resize-none"
+            />
+          )}
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => { setShowLockGroupConfirm(false); setLockCredentials('') }}
+              className="rounded-xl border border-line px-4 py-2 text-sm font-semibold text-ink-2 transition-colors hover:bg-raised"
+            >取消</button>
+            <button
+              onClick={() => { setShowLockGroupConfirm(false); onLockGroup?.(needsCredentialsOnLock ? lockCredentials.trim() : undefined); setLockCredentials('') }}
+              disabled={needsCredentialsOnLock && !lockCredentials.trim()}
+              className="rounded-xl bg-success px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-success-text disabled:pointer-events-none disabled:opacity-40"
+            >確認鎖定</button>
+          </div>
         </div>
       ) : (
         <button
@@ -154,9 +203,9 @@ export default function HostGroupView({ group, members, applications, onReportSe
   )
 
   const activateBanner = canActivateNow && (
-    <div className="flex items-center justify-center gap-2 bg-success-subtle px-6 py-3 text-sm font-extrabold text-success-text">
+    <div className="flex items-center justify-center gap-2 bg-warning-subtle px-6 py-3 text-sm font-extrabold text-warning-text">
       <CheckCircle2 size={15} />
-      所有付款已確認，可以啟用服務了
+      所有成員已完成填寫服務帳號，可以啟用服務了
     </div>
   )
 
@@ -176,10 +225,24 @@ export default function HostGroupView({ group, members, applications, onReportSe
   // 成員評價要群組真的啟用過才會有資料，招募/處理中階段成員根本還沒用服務、不可能有評價
   const hasBeenActive = ['active', 'paused', 'ended'].includes(group.status)
 
+  // 審核紀錄要看得到成員最新的退出/移除狀態，點開當下重新拉一次申請資料，避免顯示舊快取
+  function openReviewHistory() {
+    setShowReviewHistory(true)
+    useApplicationStore.getState().init()
+  }
+
   function buildSubPanel() {
     if (activePanel === 'members') return buildMembersPanel({ group, members, setActivePanel, onClose, setRemovingMember })
-    if (activePanel === 'applications') return buildApplicationsPanel({ pendingApps, groupFull, errors, onApprove, onReject, setActivePanel, setShowReviewHistory })
+    if (activePanel === 'applications') return buildApplicationsPanel({ pendingApps, groupFull, errors, onApprove, onReject, setActivePanel, setShowReviewHistory: openReviewHistory })
     if (activePanel === 'billing') return buildBillingPanel({ group, members, transactions, transactionsLoading })
+    if (activePanel === 'memberInfo') {
+      return buildMemberInfoPanel({
+        members,
+        sharingMethod: serviceDef?.sharingMethod,
+        sharedCredentials: group.sharedCredentials,
+        onOpenServiceIssue: m => { setServiceIssueMember(m); setServiceIssueNote(m.serviceInfoIssueNote ?? '') },
+      })
+    }
     if (activePanel === 'reviews') return { content: <div className="flex min-h-full flex-col"><HostReviews group={group} groupId={group.id} title="" headerClassName="text-lg font-black text-brand" centerEmpty /></div> }
     return null
   }
@@ -213,10 +276,23 @@ export default function HostGroupView({ group, members, applications, onReportSe
             收款管理
           </GroupModalSideBarItem>
         )}
+        {!isRecruiting && !isCancelled && (
+          <GroupModalSideBarItem active={activePanel === 'memberInfo'} onClick={() => goToPanel('memberInfo')} className="relative">
+            <span className="relative">
+              <FileText size={17} />
+              {unseenMemberInfoCount > 0 && (
+                <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-warning-text px-0.5 text-2xs font-bold text-white">
+                  {unseenMemberInfoCount}
+                </span>
+              )}
+            </span>
+            成員資料
+          </GroupModalSideBarItem>
+        )}
         {isRecruiting ? (
           <>
             <GroupModalSideBarItem
-              active={activePanel === 'applications' && !isReviewHistory}
+              active={activePanel === 'applications'}
               onClick={() => goToPanel('applications')}
               className="relative"
             >
@@ -267,8 +343,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
       headerBanner={lockGroupBanner || activateBanner || pendingConfirmationBanner || confirmingBanner || undefined}
       centeredCta={lockGroupCta || activateCta || undefined}
       extraInfoRows={[]}
-      pendingBadge={group.status === 'pending_confirmation' ? '收款中' : undefined}
-      statusBadgeOverride={group.status === 'pending_confirmation' ? { variant: 'pending_confirmation', label: '收款中' } : undefined}
+      pendingBadge={group.status === 'pending_confirmation' ? '成員填寫中' : undefined}
       subPanel={activePanel ? buildSubPanel() : null}
       onSubPanelBack={() => { setActivePanel(null); setShowReviewHistory(false) }}
       subSubPanel={isReviewHistory ? buildReviewHistoryPanel({ applications, groupFull, errors }) : null}

@@ -85,7 +85,7 @@ sequenceDiagram
 
 **1. 判斷是否可申請**
 - `GroupDetailModal` 計算 `app = getByUserAndGroup(activeUserId, group.id)`，推導出：
-  - `hasActiveApp`：排除 `rejected`/`removed`/`left`/`withdrawn`，以及「已核准但已不是成員」的邊界情況
+  - `hasActiveApp`：排除 `rejected`/`removed`/`left`/`withdrawn`，以及「已接受但已不是成員」的邊界情況
   - `isPendingApp`：申請是否仍在審核中
 - `canApply = !isHost && !isMember && !hasActiveApp && !isFull && !!activeUserId`，全部成立才顯示「申請加入」入口
 - 未登入時 `buildMobileFooter` 改顯示導向 `/login?redirectTo=/groups/:id` 的按鈕
@@ -116,9 +116,9 @@ sequenceDiagram
 - 成功後前端呼叫 `refreshTokenBalance()` 同步餘額顯示
 
 ## 驗證重點
-- 代管扣款發生在申請當下，不是等團主核准：友善預檢用讀到的餘額快照給明確錯誤訊息，正式扣款仍在 transaction 內用條件式 `updateMany` 二次核對，兩邊都失敗才不會產生扣了一半的狀態
+- 代管扣款發生在申請當下，不是等團主接受：友善預檢用讀到的餘額快照給明確錯誤訊息，正式扣款仍在 transaction 內用條件式 `updateMany` 二次核對，兩邊都失敗才不會產生扣了一半的狀態
 - 團主不能申請自己的群組（`group.hostId === req.user.id` → 400）
 - 群組必須是 `recruiting` 才能申請，`full`／已鎖定一律 400
 - 重複申請防護雙層：應用層先 `findFirst` 查最新一筆申請擋掉一般情況，資料庫層再靠 `(groupId, userId, activeKey)` unique index 擋併發（第二筆 `P2002` 回 409，且整個 transaction 一起回滾，不會留下已扣款但沒建立申請的資料）
-- 撤回只能撤自己、且仍為 `pending` 的申請；已核准/已拒絕/已離開的無法撤回，撤回時的退款用條件式 `updateMany` 限定僅 `pending` 才處理，避免跟團主幾乎同時審核造成重複退款
+- 撤回只能撤自己、且仍為 `pending` 的申請；已接受/已拒絕/已離開的無法撤回，撤回時的退款用條件式 `updateMany` 限定僅 `pending` 才處理，避免跟團主幾乎同時審核造成重複退款
 - 撤回後 `activeKey` 清空為 `null`，可對同一群組重新申請（重新申請會是全新一筆代管扣款）

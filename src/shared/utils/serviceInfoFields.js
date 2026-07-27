@@ -34,9 +34,9 @@ export const SHARING_METHOD_CONFIG = {
   },
   shared_credentials: {
     fields: [
-      { key: 'acknowledged', label: '我已透過群組聊天室取得帳號密碼', type: 'checkbox' },
+      { key: 'acknowledged', label: '我已取得帳號密碼並確認可以登入', type: 'checkbox' },
     ],
-    notice: '此服務官方沒有多人邀請功能，僅能由團主透過群組聊天室直接提供帳號密碼共用。請與團主在聊天室內確認登入資訊後，勾選下方確認框。',
+    notice: '此服務官方沒有多人邀請功能，帳號密碼由團主在鎖定群組時統一提供，見下方「團主提供的帳號資訊」；確認可以登入後再勾選下方確認框。',
   },
 }
 
@@ -57,15 +57,19 @@ export function hasFilledServiceInfo(serviceInfo, sharingMethod) {
   })
 }
 
+// 該 sharingMethod 裡「有文字內容」的欄位（排除 checkbox），給摘要／明細顯示共用
+export function getTextFields(sharingMethod) {
+  return getSharingMethodConfig(sharingMethod).fields.filter(({ type }) => type !== 'checkbox')
+}
+
 // 給聊天室訊息卡片、團主審核清單等處顯示用的單行摘要
 export function getServiceInfoSummary(serviceInfo, sharingMethod) {
   if (!serviceInfo) return null
-  const { fields } = getSharingMethodConfig(sharingMethod)
-  const parts = fields
-    .filter(({ type }) => type !== 'checkbox')
+  const parts = getTextFields(sharingMethod)
     .map(({ key, label }) => serviceInfo[key] ? `${label}：${serviceInfo[key]}` : null)
     .filter(Boolean)
   if (parts.length > 0) return parts.join('　')
   // 只有 checkbox 欄位（例如 shared_credentials）沒有文字可顯示時，回報已確認
+  const { fields } = getSharingMethodConfig(sharingMethod)
   return fields.some(({ key, type }) => type === 'checkbox' && serviceInfo[key]) ? '已確認取得帳號資訊' : null
 }

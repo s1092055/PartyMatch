@@ -1,5 +1,5 @@
 // 團主手動加入成員（members.js 的 POST /）：沒有經過「申請」這一步，名額檢查、代管扣款、
-// 建立成員/訂閱、額滿自動推進 full 要一次做完，跟申請核准共用同一套名額邏輯，避免繞過上限。
+// 建立成員/訂閱、額滿自動推進 full 要一次做完，跟申請接受共用同一套名額邏輯，避免繞過上限。
 export async function admitMemberIntoGroup(tx, { groupId, userId, seatCost, maxMembers, note }) {
   const applicant = await tx.user.findUnique({ where: { id: userId }, select: { tokenBalance: true } })
   if (!applicant || applicant.tokenBalance < seatCost) {
@@ -43,7 +43,7 @@ export async function admitMemberIntoGroup(tx, { groupId, userId, seatCost, maxM
   return member
 }
 
-// 申請核准（applications.js 的 PATCH /:id）：代管扣款已經在使用者送出申請的當下完成過了，
+// 申請接受（applications.js 的 PATCH /:id）：代管扣款已經在使用者送出申請的當下完成過了，
 // 這裡只需要核對名額、建立成員/訂閱、額滿自動推進 full，不會再扣一次款。
 export async function finalizeApprovedApplication(tx, { groupId, userId, maxMembers }) {
   // 同上：maxMembers 含團主，名額上限要扣掉團主佔的 1 個

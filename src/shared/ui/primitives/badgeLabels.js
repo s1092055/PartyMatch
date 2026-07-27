@@ -4,7 +4,7 @@ export const BADGE_LABELS = {
   active:             '服務中',
   cancelled:          '已解散',
   full:               '已滿員',
-  pending_confirmation: '填寫資訊中',
+  pending_confirmation: '成員填寫中',
   confirming:           '確認期中',
   disputed:             '申訴中',
   ended:              '已結束',

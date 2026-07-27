@@ -1,6 +1,6 @@
 # 團主視角測試案例
 
-涵蓋：建立群組、審核申請（核准/拒絕）、移除成員、鎖定群組、啟用服務、續訂、結束群組、收款管理面板。對應程式碼：`src/features/my-groups/host/components/HostGroupView.jsx`、`server/src/routes/{groups,applications,members}.js`。
+涵蓋：建立群組、審核申請（接受/拒絕）、移除成員、鎖定群組、啟用服務、續訂、結束群組、收款管理面板。對應程式碼：`src/features/my-groups/host/components/HostGroupView.jsx`、`server/src/routes/{groups,applications,members}.js`。
 
 測試帳號見 [`test-accounts.md`](./test-accounts.md)。
 
@@ -23,16 +23,16 @@
 
 ---
 
-### TC-202：審核申請 — 核准
+### TC-202：審核申請 — 接受
 
 **前置條件**：demo4 為某群組團主，有 1 筆 `pending` 申請（例如 seed 資料 G2 Notion 若尚有待審申請，或用 TC-201 建立的新群組先請他人送出申請）。
 
 **步驟**：
 1. 開啟群組詳情（團主視角），側邊欄「申請管理」（僅 `recruiting`/`full` 狀態顯示此分頁）
 2. 查看申請者的信用分數與留言
-3. 點擊「核准」
+3. 點擊「接受」
 
-**預期結果**：見 [`core-flow-test-cases.md`](./core-flow-test-cases.md) TC-004（同一段後端邏輯）。UI 上核准後該筆申請從待審清單移除，側邊欄「申請管理」badge 數字（`pendingApps.length`）減少。
+**預期結果**：見 [`core-flow-test-cases.md`](./core-flow-test-cases.md) TC-004（同一段後端邏輯）。UI 上接受後該筆申請從待審清單移除，側邊欄「申請管理」badge 數字（`pendingApps.length`）減少。
 
 ---
 
@@ -48,16 +48,16 @@
 - 代管退款：申請人 `tokenBalance` 加回席位費用，群組 `escrowTokens` 減少同額，寫入一筆 `tokenTransaction`（`type: 'refund'`）——因為代管扣款已在申請當下完成，見 [`core-flow-test-cases.md`](./core-flow-test-cases.md) TC-004b
 - 申請人收到 `application_rejected` 通知
 - 申請人可對同一群組重新申請（`applications.js` 白名單包含 `rejected`）
-- 拒絕後的申請紀錄可在「申請管理」的「審核紀錄」第三層 panel 中查看（已核准/已拒絕/已退出/已移除全部混在同一份清單，不分類篩選）
+- 拒絕後的申請紀錄可在「申請管理」的「審核紀錄」第三層 panel 中查看（只列已接受/已拒絕，已退出/已移除不算審核結果，不會出現在這裡）
 
 ---
 
-### TC-204：重複核准同一筆申請被擋下（併發安全，異常路徑）
+### TC-204：重複接受同一筆申請被擋下（併發安全，異常路徑）
 
 **前置條件**：一筆 `pending` 申請。
 
 **步驟**：
-1. 快速連續點擊「核准」兩次（或用 API 工具同時發送兩個 `PATCH .../approved` 請求）
+1. 快速連續點擊「接受」兩次（或用 API 工具同時發送兩個 `PATCH .../approved` 請求）
 
 **預期結果**（`applications.js` 第 122-131 行）：
 - 條件式 `updateMany`（`where: { status: 'pending' }`）確保只有第一個請求成功
@@ -68,7 +68,7 @@
 
 ### TC-205：移除成員（招募期間）
 
-**前置條件**：demo4 主揪 G2（Notion，`recruiting`），demo5 已是核准成員。
+**前置條件**：demo4 主揪 G2（Notion，`recruiting`），demo5 已是接受成員。
 
 **步驟**：
 1. 開啟群組詳情 → 群組名單 → 點擊 demo5 旁的移除圖示
@@ -111,7 +111,7 @@
 **前置條件**：群組狀態 `pending_activation`（例如 seed G5 HBO Max）。
 
 **步驟**：
-1. 開啟群組詳情，出現「所有付款已確認，可以啟用服務了」banner
+1. 開啟群組詳情，出現「所有成員已完成填寫服務帳號，可以啟用服務了」banner（代管費用早在申請被接受當下就已扣款完成，這個階段不是在等付款，文案已修正避免誤導）
 2. 點擊「啟用服務」，在 `ActivateServiceModal` 逐一勾選確認每位成員的服務帳號資訊，最後勾選最終確認
 3. 送出
 
@@ -191,7 +191,7 @@
 - 僅團主本人可查看（403 若非本人）
 - 面板不會列出完整交易歷史，只依每位成員最新一筆 `escrow` 交易顯示「目前」代管狀態（撤回重新申請等留下的舊代管/退款紀錄不在這裡處理）
 - 頂部彙總卡：`group.escrowTokens > 0` 時顯示「目前費用由平台代管中，尚未撥款」；已撥款給團主的 `release` 型交易加總 > 0 時顯示「已撥款給你的代管總額」
-- 每一列附上成員頭像、姓名、最新一筆代管入帳時間與金額（`Math.abs`，交易在 DB 裡存負值），沒有代管紀錄的成員顯示「尚無代管紀錄」
+- 每一列附上成員頭像、姓名、最新一筆代管金額（`Math.abs`，交易在 DB 裡存負值），沒有代管紀錄的成員顯示「尚無代管紀錄」；顯示的「代管入帳」時間是 `Member.joinedAt`（團主按下「接受」的那一刻），不是 `TokenTransaction.createdAt`（實際扣款發生在申請送出當下，比接受時間早）
 
 ---
 

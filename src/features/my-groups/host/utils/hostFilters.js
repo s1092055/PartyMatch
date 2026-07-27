@@ -1,6 +1,6 @@
 import { PROCESSING_STATUSES } from '../../../../shared/utils/groupStatus'
 
-// 曾經拆成跟 GroupStatus 一一對應的細分類（待鎖定／填寫資訊中／待啟用／確認期中／申訴中各自一個
+// 曾經拆成跟 GroupStatus 一一對應的細分類（待鎖定／成員填寫中／待啟用／確認期中／申訴中各自一個
 // chip），但頂部一次塞 8 個 chip 反而讓篩選列很雜亂；這些細分階段其實卡片本身的狀態 badge
 // 已經會顯示，篩選列只留大分類，細節交給卡片呈現就好
 export const STATUS_FILTER_TABS = [

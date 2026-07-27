@@ -99,12 +99,20 @@ export default function MessagesModal() {
       if (!isAuthenticated()) { setShowLoginPrompt(true); return }
       const user = getCurrentUser()
       if (!user) return
-      const { hostId } = e.detail ?? {}
+      const { hostId, hostName, hostAvatarInitial, hostAvatarColor } = e.detail ?? {}
       if (!hostId) return
       setIsOpen(true)
       try {
         const conv = await getOrCreateDmConversation(hostId)
-        useConversationStore.getState().addConversationOptimistic(normalizeConversation(conv))
+        const normalized = normalizeConversation(conv)
+        // POST /conversations/dm 回傳的物件沒有 participantMeta（那是 GET /conversations 才會補上的欄位），
+        // 這筆對話在還沒送出訊息前又不會出現在 GET /conversations 的清單裡（延遲曝光），
+        // 樂觀加入時要用開啟 DM 當下事件帶的對方名稱/頭像自己補上，不然清單會顯示成「私訊」+ 灰色問號頭像
+        normalized.participantMeta = {
+          ...normalized.participantMeta,
+          [hostId]: { name: hostName, avatarInitial: hostAvatarInitial, avatarColor: hostAvatarColor },
+        }
+        useConversationStore.getState().addConversationOptimistic(normalized)
         useConversationStore.getState().refresh(user.id)
         setSelectedId(conv.id)
       } catch (err) {

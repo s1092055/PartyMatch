@@ -24,12 +24,89 @@
 
 依發現時間排序，最新在上。每筆都有標註「來源」（`/code-review` 靜態審查、使用者回報、或手動測試），之後新發現的 bug 補在最上面即可。
 
+### BUG-033：團主端群組卡上方 Badge 顯示「收款中」，下方群組狀態卻顯示「填寫資訊中」
+
+- **功能**：`HostedGroupCard.jsx`、`HostGroupView.jsx`，`pending_confirmation` 狀態的顯示文案
+- **嚴重度**：P2（純文案不一致，容易讓人以為兩個地方講的是不同的事）
+- **來源**：使用者回報「團主端的群組卡的部分上面的資訊有點混亂，上方badge顯示收款中結果底下的群組狀態則是填寫資訊中」
+- **重現方式**：任一群組鎖定後進入 `pending_confirmation`，查看「我的群組」團主視角的群組卡
+- **預期結果**：卡片上方 Badge 跟下方「群組狀態」欄位講的應該是同一件事，文字要一致
+- **實際結果**：`HostedGroupCard.jsx`／`HostGroupView.jsx` 特地用 `label`/`statusBadgeOverride` 把上方 Badge 的文字覆蓋成「收款中」，但 `Badge` 自己的預設字典（`badgeLabels.js`）跟 `getCollectionState` 對 `pending_confirmation` 給的文字其實是「填寫資訊中」，兩邊各自寫死了不同文案
+- **推測原因**：`pending_confirmation` 這個階段代管費用其實已經在申請被接受當下扣完了（見 PM幣代管流程文件），不是團主現在才要收款，「收款中」是沿用舊邏輯（曾經代管扣款設計在核准之後才發生）殘留下來、沒有跟著改的文案
+- **修正狀態**：已修——統一改成「成員填寫中」（更準確描述這個階段實際在等待的事：成員填寫服務帳號資訊），`badgeLabels.js` 的 `pending_confirmation` 字典值、`HostedGroupCard.jsx` 的 `getCollectionState`、`HostGroupView.jsx` 的 `pendingBadge` 全部同步；`HostGroupView.jsx` 的 `statusBadgeOverride` 因為跟 Badge 預設字典的文字已經一致，直接移除不再需要的覆蓋
+
+### BUG-032：鎖定群組後，成員會收到兩則「群組聊天室已開啟」通知
+
+- **功能**：[通知流程](../flows/notification-flow.md)，`useHostActions.js` 的 `handleLockGroup`、`useConversationStore.js`
+- **嚴重度**：P2（不影響資料正確性，但通知中心會看到兩則內容幾乎一樣的通知，像是重複發送）
+- **來源**：使用者回報「現在群組聊天室開啟的通知會發送兩則，幫我則一保留就好」
+- **重現方式**：團主鎖定一個額滿的群組，成員端查看通知中心
+- **預期結果**：成員只應該收到一則跟「聊天室開啟／填寫服務帳號」相關的通知
+- **實際結果**：收到兩則 `group_chat_opened`——一則是 `useHostActions.js` 的 `handleLockGroup` 直接對每位成員 `insertNotification` 寫進資料庫的；另一則是 `useConversationStore.js` 的 `maybeNotifyGroupChats`，輪詢偵測到「自己不是團主、對話是新出現的群組聊天室」時，在前端額外 `notifStore.create` 出來的
+- **推測原因**：`maybeNotifyGroupChats` 當初設計時有做防重複的檢查（比對 `existingGroupChatIds`），但這個檢查依賴 `useNotificationStore` 要先載入到後端已建立的那一則通知，跟 `useConversationStore` 的輪詢/初始化順序如果沒有嚴格同步就會有競態，檢查失效
+- **修正狀態**：已修——移除 `useConversationStore.js` 的 `maybeNotifyGroupChats` 整套前端補通知機制（連同已經不需要的 `_prevConvIds`、`useNotificationStore`/`useAuthStore` import），只保留 `useHostActions.js` 這條後端寫入、權威且不會重複的通知路徑；順便把成員收到的那則內容改成專門的「請填寫服務帳號資訊」提醒（新增 `NotificationType.fill_service_info`），跟團主自己收到的「群組聊天室已開啟」在語意上分開，不再是幾乎一樣的兩則文字
+
+### BUG-031：剛建立的私訊聊天室，清單顯示「私訊」+ 灰色問號頭像，不是對方的真實名稱/頭像
+
+- **功能**：[訊息流程](../flows/messages-flow.md) 私人 DM，`MessagesModal.jsx` 的 `pm:open-dm` 事件處理
+- **嚴重度**：P2（不影響功能，但看起來像是聯絡錯人或系統故障）
+- **來源**：使用者回報「不是顯示私訊啦！還是要顯示該使用者的名稱和頭像」（緊接著 BUG-029 DM 延遲曝光的修正之後發現）
+- **重現方式**：點擊某人（團主或成員）的「聯絡」按鈕，開啟跟對方的 DM
+- **預期結果**：訊息中心清單/聊天視窗標題應該顯示對方的真實姓名與頭像
+- **實際結果**：清單顯示成固定文字「私訊」，頭像是灰色問號
+- **推測原因**：`MessagesModal.jsx` 組出顯示用的 `name`/`avatarInitial`/`avatarColor` 時，是從 `conversation.participantMeta` 讀的，但 `participantMeta` 只有 `GET /conversations` 的回應才會補上；剛建立的 DM 是用 `POST /conversations/dm` 的回應樂觀塞進本地 store（`addConversationOptimistic`），這個回應完全沒有 `participantMeta`，加上 BUG-029 修完之後這筆空 DM 也不會出現在下一次 `GET /conversations` 的清單裡把它補上，`meta.name ?? '私訊'` 就一路 fallback 到寫死的預設值
+- **修正狀態**：已修——`pm:open-dm` 事件本來就有帶對方的 `hostName`/`hostAvatarInitial`/`hostAvatarColor`（各個「聯絡」按鈕發送事件時就帶了），`onOpenDm` 樂觀塞入 store 前，先用這些欄位手動補上 `participantMeta`，不用等 `GET /conversations` 才有
+
+### BUG-030：點擊「申請已通過」通知開啟群組詳情，「退出群組」按鈕不會馬上顯示
+
+- **功能**：[通知流程](../flows/notification-flow.md)，`FloatingMessages.jsx` 的 `application_approved` 通知點擊
+- **嚴重度**：P2（不影響資料正確性，重新整理頁面或稍等輪詢後按鈕就會出現，但體驗上像是功能故障）
+- **來源**：使用者回報「成員端收到申請通過的通知時，點擊該通知開啟群組詳情 modal 的時候，會沒有馬上顯示退出群組的按鈕」
+- **重現方式**：申請人的申請被團主接受後，申請人這端還沒有其他操作觸發過 `useMemberStore` 重新拉取（例如剛好在接受當下就開著通知面板），點擊 `application_approved` 通知
+- **預期結果**：群組詳情 Modal 打開時應該就能看到「退出群組」按鈕（`recruiting`/`full` 狀態下已是成員即可退出）
+- **實際結果**：`MemberGroupView.jsx` 的 `canLeaveGroup` 依賴 `myMember`（從 `useMemberStore` 記憶體快取找自己），但點擊通知時只重新拉了 `useSubscriptionStore`（BUG-024 的修法）沒有一併重新拉 `useMemberStore`；後端剛核准當下才建立的 `Member` 記錄還沒同步到前端快取，`myMember` 是 `null`，`canLeaveGroup` 判定為 `false`，按鈕就不會顯示，要等下一次輪詢或其他操作觸發 `useMemberStore.init()` 才會補上
+- **推測原因**：跟 BUG-024 是同一種「核准當下才建立的資料，本地 store 還沒同步」的模式，只是這次漏掉的是 `useMemberStore` 而不是 `useSubscriptionStore`
+- **修正狀態**：已修——點擊前改成 `Promise.all([useSubscriptionStore.getState().init(), useMemberStore.getState().init()])` 兩個 store 一起重新拉取，再判斷要導向哪裡，不需要使用者手動整理頁面
+
+### BUG-029：DM 延遲曝光只擋住對方，發起人自己還是會看到沒送出訊息的空聊天室
+
+- **功能**：[訊息流程](../flows/messages-flow.md) 私人 DM 延遲曝光機制，`server/src/routes/conversations.js` 的 `GET /`
+- **嚴重度**：P2（不影響資料正確性，但訊息中心會累積一堆使用者自己點過「聯絡」卻沒打字的空聊天室）
+- **來源**：使用者回報「A 使用者點擊聯絡按鈕要聯絡 B，但是他反悔沒有要傳遞訊息，之後就關閉訊息 Modal，下次再開啟訊息 Modal 就不應該看到這個未傳送訊息的空聊天室」
+- **重現方式**：A 對 B 點擊「聯絡」開啟 DM，不送出任何訊息就關閉訊息 Modal，A 自己重新打開訊息中心
+- **預期結果**：A 自己的訊息列表也不該看到這個空聊天室（跟 B 那邊看不到是一樣的道理）
+- **實際結果**：原本的過濾條件是 `!(c.initiatorId && c.initiatorId !== req.user.id && c.lastMessage == null)`，只有在「目前查詢的使用者不是發起人」時才會被濾掉，發起人自己永遠看得到這筆對話，即使裡面一則訊息都沒有
+- **推測原因**：當初設計「延遲曝光」時只想到要擋住對方（避免對方在自己都還沒想好要說什麼之前就看到聊天室被建立），沒有考慮到發起人自己也不該看到自己反悔沒發送的空聊天室
+- **修正狀態**：已修——過濾條件簡化成 `c.type !== 'dm' || c.lastMessage != null`，不再區分發起人是誰，只要是 DM 類型且還沒有任何訊息，雙方都看不到；`initiatorId` 欄位保留（建立時仍寫入），但不再參與過濾判斷
+
+### BUG-028：成員自行退出群組時，代管費用其實已退款，但前端餘額顯示沒更新
+
+- **功能**：[PM幣代管流程](../flows/payment-token-flow.md)，`leaveGroupFlow.js`
+- **嚴重度**：P1（後端 `refundEscrow` 其實已經正確退款，但當事人沒感覺到餘額變化，看起來就像沒退款）
+- **來源**：使用者回報「成員端自行退出的時候也要退還費用」
+- **重現方式**：成員自行退出一個已接受加入的群組，退出後不重新整理頁面，直接看帳號中心或儲值 Modal 的 PM幣餘額
+- **預期結果**：退出流程完成後，畫面上的 PM幣餘額應該立即反映退款後的最新值
+- **實際結果**：後端 `DELETE /members/:id` 本來就會對自行退出跟被團主移除兩種情況都呼叫 `refundEscrow`（`server/src/routes/members.js`），退款正確；但前端 `finalizeLeaveGroup`（`src/features/group/utils/leaveGroupFlow.js`）只呼叫了 `useMemberStore.remove()` 移除本地成員資料，完全沒有呼叫 `refreshTokenBalance()`，畫面上的餘額停留在退出前的舊值
+- **推測原因**：跟 BUG-027 是同一種「錢動了但前端沒同步拉新值」的模式，只是這次是使用者「自己主動退出」，連通知輪詢那條路徑都摸不到（自己退出不會收到 `member_removed` 通知），必須在退出流程本身直接呼叫
+- **修正狀態**：已修——`finalizeLeaveGroup` 在 `useMemberStore.remove()` 之後直接呼叫 `useAuthStore.getState().refreshTokenBalance()`
+
+### BUG-027：成員被移除／申請被拒後，代管費用其實已退款，但前端餘額顯示沒更新
+
+- **功能**：[PM幣代管流程](../flows/payment-token-flow.md)，`FloatingMessages.jsx` 通知點擊、`useNotificationStore.js` 輪詢
+- **嚴重度**：P1（後端 `refundEscrow` 其實已經正確退款，但當事人沒感覺到餘額變化，看起來就像沒退款，容易誤以為程式有 bug 或去客訴）
+- **來源**：使用者回報「成員端被團主移除的時候，也要進行退款啊！現在被團主踢除之後，成員端的申請費沒有退還」
+- **重現方式**：團主移除一位已接受成員（或拒絕一筆申請、解散招募中的群組、申訴裁定退款/撥款），被影響的那一方**不重新整理頁面、也不主動點開通知**，直接看帳號中心或儲值 Modal 的 PM幣餘額
+- **預期結果**：退款/撥款發生後，當事人畫面上的 PM幣餘額應該自動反映最新值
+- **實際結果**：後端 `refundEscrow`／撥款邏輯都正確執行（`server/src/utils/membership.js`、`server/src/routes/groups.js`），資料庫餘額是對的；但前端 `useAuthStore` 的 `user.tokenBalance` 只在使用者「自己主動觸發」的操作後才會呼叫 `refreshTokenBalance()`（例如自己送出申請、自己撤回申請），像「被團主移除」「申請被拒」「群組解散退款」「申訴裁定」這幾種**別人的操作造成自己餘額變動**的情境，前端完全沒有任何地方呼叫 `refreshTokenBalance()`，畫面上的餘額停留在舊值，直到下次登入或恰好呼叫到 `/tokens` 才會更新
+- **推測原因**：`refreshTokenBalance()` 這個函式本身沒問題，只是新增退款/撥款相關通知時，沒有同步在對應的通知處理路徑加上呼叫——跟 BUG-025（撥款發生但沒發通知）是同一種「錢動了但沒讓當事人知道」的模式，只是這次是「有發通知，但通知沒有連動刷新餘額」
+- **修正狀態**：已修——`FloatingMessages.jsx` 點擊 `member_removed`／`application_rejected`／`escrow_released`／`dispute_resolved`／`group_cancelled` 這五種通知時都會呼叫 `refreshTokenBalance()`；`useNotificationStore.js` 輪詢偵測到這幾種通知時也會主動呼叫一次，不需要等使用者點開通知才更新（跟 `pm:refresh-member-stores`／`pm:refresh-application-store` 的即時刷新是同一套精神）；同時把 `member_removed`／`application_rejected` 的通知文案補上「代管費用已退還至你的PM幣餘額」，讓使用者從文字上就能確認退款已發生，不用自己去對帳
+
 ### BUG-026：審核紀錄清單裡的所有卡片都被套上 `opacity-60` 模糊效果
 
 - **功能**：`ApplicationCard.jsx`，團主端「審核紀錄」第三層面板（`buildReviewHistoryPanel.jsx`）
 - **嚴重度**：P2（純視覺問題，不影響功能，但整份清單看起來像是全部處於停用/淡出狀態，容易誤導）
 - **來源**：使用者回報「為什麼要把審核紀錄裡面的內容變成有點模糊的效果」
-- **重現方式**：進入任一群組的「申請管理」→「審核紀錄」，清單裡任何一筆已核准/已拒絕/已退出/已移除的申請卡片都是半透明的
+- **重現方式**：進入任一群組的「申請管理」→「審核紀錄」，清單裡任何一筆已接受/已拒絕/已退出/已移除的申請卡片都是半透明的
 - **預期結果**：審核紀錄的卡片應該正常不透明顯示
 - **實際結果**：`ApplicationCard.jsx` 有一段「非 `pending` 狀態就套用 `opacity-60`」的條件樣式；但這個元件在「申請管理」清單只會收到 `pending` 的申請（一定不觸發），在「審核紀錄」清單只會收到已審核完的申請（狀態一定不是 `pending`，一定觸發），實際上等於審核紀錄裡的卡片必然全部變半透明，這段條件式從一開始的設計意圖裡就沒有真的按「pending vs 非 pending」的原意運作過
 - **修正狀態**：已修——直接移除 `opacity-60` 的條件判斷，兩份清單的卡片都改成正常顯示
@@ -48,11 +125,11 @@
 ### BUG-024：點擊「申請已通過」通知用過期的本地訂閱快取判斷，誤導向探索頁而非會員視角
 
 - **功能**：[通知流程](../flows/notification-flow.md)，`FloatingMessages.jsx` 的 `application_approved`／`application_sent` 通知點擊
-- **嚴重度**：P1（核准後點通知體驗上像是「還在申請中」，需要手動整理頁面才會正確導向）
+- **嚴重度**：P1（接受後點通知體驗上像是「還在申請中」，需要手動整理頁面才會正確導向）
 - **來源**：使用者回報「點擊申請已通過的通知應該要把群組往前推進，為什麼還顯示申請中」
-- **重現方式**：申請人的申請被團主核准後，申請人這端還沒有其他操作觸發過 `subscriptionStore` 重新拉取（例如剛好在核准當下就開著通知面板），點擊 `application_approved` 通知
+- **重現方式**：申請人的申請被團主接受後，申請人這端還沒有其他操作觸發過 `subscriptionStore` 重新拉取（例如剛好在接受當下就開著通知面板），點擊 `application_approved` 通知
 - **預期結果**：應判斷出使用者已有對應訂閱，導向 `/my-groups?view=member` 並開啟該群組（會員視角）
-- **實際結果**：`hasSub` 直接讀本地 `useSubscriptionStore` 記憶體快取（該筆訂閱是核准當下才由後端建立，前端 store 還沒輪詢到），判斷成尚無訂閱，改成 `navigate('/explore')` + `openGroupOrRedirect`，看起來像是還在等審核
+- **實際結果**：`hasSub` 直接讀本地 `useSubscriptionStore` 記憶體快取（該筆訂閱是接受當下才由後端建立，前端 store 還沒輪詢到），判斷成尚無訂閱，改成 `navigate('/explore')` + `openGroupOrRedirect`，看起來像是還在等審核
 - **推測原因**：新增 `openGroupOrRedirect` 的額滿保護邏輯（BUG-020）時，只處理了群組狀態過期的問題，沒有一併處理 `hasSub` 判斷用的訂閱快取也可能過期
 - **修正狀態**：已修——兩處點擊前先 `await useSubscriptionStore.getState().init()` 重新拉取最新訂閱清單，再判斷 `hasSub`，不需要使用者手動整理頁面
 
@@ -108,19 +185,19 @@
 
 ### BUG-018：申請人撤回申請，團主端完全沒有任何通知或畫面更新
 - **功能**：[通知流程](../flows/notification-flow.md)，`useApplicationStore.withdraw`
-- **嚴重度**：P1（團主可能對著一筆早就撤回的申請按核准/拒絕，造成操作上的 bug）
+- **嚴重度**：P1（團主可能對著一筆早就撤回的申請按接受/拒絕，造成操作上的 bug）
 - **來源**：使用者回報「使用者取消申請時，團主端也要收到通知」
 - **重現方式**：申請人在 `GroupDetailModal` 撤回一筆 `pending` 申請
 - **預期結果**：團主收到通知，且團主端的 applications store 應該同步更新，不該繼續把這筆申請當成 `pending` 顯示在待審核列表
 - **實際結果**：`withdraw()` 只更新申請人自己的本地 state 跟呼叫後端 API，完全沒有通知團主的邏輯；團主端要等自己重新整理頁面才會發現這筆申請已經失效
-- **推測原因**：實作核准/拒絕流程時都有補通知，唯獨「申請人自行撤回」這個入口漏了
+- **推測原因**：實作接受/拒絕流程時都有補通知，唯獨「申請人自行撤回」這個入口漏了
 - **修正狀態**：已修——`withdraw()` 成功後呼叫 `insertNotification` 通知團主（`application_withdrawn`）；`useNotificationStore` 的輪詢偵測到這個類型會直接觸發 `pm:refresh-application-store`，不需要團主點擊通知就會自動刷新（另見 BUG-019，enum 沒對齊導致這個修正一開始沒有真的生效）
 
 ### BUG-017：申請時間被截斷成純日期，審核紀錄畫面永遠顯示同一個固定時間
 - **功能**：團主審核紀錄，`normalizeApplication`（`src/shared/utils/modelNormalizers.js`）
 - **嚴重度**：P2（顯示問題，不影響資料正確性，但會讓使用者誤以為系統有 bug）
 - **來源**：使用者回報「審核紀錄裡面顯示的申請時間都固定顯示『今天 8:00』」
-- **重現方式**：核准或拒絕一筆申請，到審核紀錄查看該筆的申請時間
+- **重現方式**：接受或拒絕一筆申請，到審核紀錄查看該筆的申請時間
 - **預期結果**：顯示這筆申請實際送出的日期與時間
 - **實際結果**：畫面上所有紀錄的時間都固定顯示同一個時間點
 - **推測原因**：`normalizeApplication` 把後端回傳的完整 ISO 時間戳記用 `.slice(0, 10)` 截斷成純日期字串（例如 `2026-07-24`）；`formatRelativeDate`/畫面上再用 `new Date('2026-07-24')` 解析時，JS 會當成 UTC 午夜，換算成台灣時區（UTC+8）就固定變成早上 8:00，跟這筆申請實際送出的時間完全無關
@@ -153,15 +230,15 @@
 - **重現方式**：`findUnique` 讀出群組成員名單後、`$transaction` 真正執行前，剛好有成員自行退出或被移除（該操作會刪除自己的 `Member` 列並拿到一次退款）
 - **預期結果**：解散群組只對「當下真正還在群組內」的成員退款，不會重複退款給已經離開的成員
 - **實際結果**：舊寫法是在 transaction 外先讀一次 `group.members`，再拿這份可能過時的名單去組退款操作；若該名單裡有人在讀取後、transaction 執行前已經離開並拿到個人退款，transaction 仍會再退一次
-- **推測原因**：沒有比照專案裡其他有併發疑慮的地方（例如申請核准的名額檢查）採用「條件式重新查詢，在 transaction 內以當下狀態為準」的寫法
+- **推測原因**：沒有比照專案裡其他有併發疑慮的地方（例如申請接受的名額檢查）採用「條件式重新查詢，在 transaction 內以當下狀態為準」的寫法
 - **修正狀態**：已修——`/cancel` 改成 interactive transaction：先用條件式 `updateMany`（status 仍在 `recruiting`/`full` 才准許）確保狀態沒被同時變動過，再於同一個 transaction 內重新查詢當下真正的成員名單，用 `updateMany`/`createMany` 批次退款；已寫腳本驗證退款金額剛好退一次
 
 ### BUG-013：群組額滿判斷少算團主佔的 1 個名額，狀態永遠比實際剩餘名額晚一步變成 `full`
 - **功能**：建立群組／申請審核，`server/src/utils/membership.js`
 - **嚴重度**：P0（核心狀態機：影響所有群組的滿員判斷與後續鎖定流程）
 - **來源**：使用者回報「明明群組剩餘名額已經是 0 了，狀態還是招募中」
-- **重現方式**：建立一個 N 人方案的群組，核准 N-1 位非團主成員（前端算出的剩餘名額已經是 0）
-- **預期結果**：核准最後一位成員後（連同團主剛好滿 N 人），群組狀態應該推進成 `full`
+- **重現方式**：建立一個 N 人方案的群組，接受 N-1 位非團主成員（前端算出的剩餘名額已經是 0）
+- **預期結果**：接受最後一位成員後（連同團主剛好滿 N 人），群組狀態應該推進成 `full`
 - **實際結果**：`admitMemberIntoGroup`／`finalizeApprovedApplication`／`advanceToFullIfNeeded` 都是拿只計算非團主成員的 `currentMembers` 直接跟含團主的 `maxMembers` 比較，導致每個群組都要多塞 1 位「不該存在」的成員才會被判定滿員，跟前端「剩餘名額 = 總名額 − (成員數 + 團主)」的算法對不起來
 - **推測原因**：後端名額判斷邏輯沒有把團主本身佔用的 1 個名額算進去
 - **修正狀態**：已修——三處比較都改成扣掉團主佔的 1 個名額；連帶調整 `seedDemo.js` 裡原本依照舊（有 bug）邏輯湊出來的群組成員數，改成正確人數
@@ -263,18 +340,18 @@
 - **功能**：[我的群組（團主視角）流程](../flows/my-groups-host-flow.md)
 - **嚴重度**：P0
 - **來源**：code review（非手動測試觸發；此路由目前前端未串接，僅可透過直接呼叫 API 觸發）
-- **重現方式**：群組已有 1 名成員申請並被核准加入（該成員的 PM幣已扣款進代管），此時對該群組呼叫 `DELETE /groups/:id`
+- **重現方式**：群組已有 1 名成員申請並被接受加入（該成員的 PM幣已扣款進代管），此時對該群組呼叫 `DELETE /groups/:id`
 - **預期結果**：僅能刪除「尚無成員加入」的招募中群組，已有成員應拒絕並提示改用解散群組（`/cancel`，含退款）
 - **實際結果**：判斷式寫成 `currentMembers > 1`，代表恰有 1 位成員時仍會判定為「可刪除」，直接執行硬刪除；`Application`/`Member`/`Subscription` 會被級聯刪除，但不會走 `/cancel` 的退款邏輯，該成員已扣除的 PM幣代管款項永久消失
 - **推測原因**：`currentMembers` 語意上不含團主本人（0 代表尚無其他成員加入），註解寫對了但條件式的門檻值寫錯
 - **修正狀態**：已修（`7d80c08`）——改為 `currentMembers > 0`
 
-### BUG-002：核准申請缺少狀態鎖，併發/雙擊可能導致重複扣款、重複入群
+### BUG-002：接受申請缺少狀態鎖，併發/雙擊可能導致重複扣款、重複入群
 - **功能**：[團主審核流程](../flows/approval-flow.md)
 - **嚴重度**：P0
 - **來源**：code review（非手動測試觸發）
-- **重現方式**：對同一筆 `pending` 申請，幾乎同時送出兩個 `PATCH /applications/:id`（核准）請求（例如團主手滑雙擊、或網路延遲下重試）
-- **預期結果**：只有一個請求成功核准，另一個應被拒絕（例如回 409）
+- **重現方式**：對同一筆 `pending` 申請，幾乎同時送出兩個 `PATCH /applications/:id`（接受）請求（例如團主手滑雙擊、或網路延遲下重試）
+- **預期結果**：只有一個請求成功接受，另一個應被拒絕（例如回 409）
 - **實際結果**：兩個請求各自查到申請仍是 `pending`，各自通過 `admitMemberIntoGroup` 內的名額/餘額檢查（只要群組還有 ≥2 名額），導致該申請人被重複扣款、`currentMembers` 被重複遞增、產生兩筆重複的 `TokenTransaction`
 - **推測原因**：名額檢查已經用條件式 `updateMany` 做了併發防護，但「申請狀態本身要不要允許被處理」這個判斷還停留在先讀後寫
 - **修正狀態**：已修（`7d80c08`）——在同一個 transaction 內，先用條件式 `updateMany`（`status: 'pending'` 才能轉 `approved`）鎖定申請狀態，寫入 0 筆就代表已被處理過，直接回 409

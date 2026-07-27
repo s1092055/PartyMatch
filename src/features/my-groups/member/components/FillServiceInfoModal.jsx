@@ -1,0 +1,95 @@
+import { CheckCircle2, ClipboardEdit } from 'lucide-react'
+import Modal from '../../../../shared/ui/primitives/Modal'
+import { getServiceInfoSummary } from '../../../../shared/utils/serviceInfoFields'
+
+// 填寫服務帳號改成堆疊在群組詳情 Modal 上方的 sub-modal（跟團主端 ActivateServiceModal 同一套模式），
+// 而不是側邊欄那種切換內容的 subPanel——關閉時只會回到底下的群組詳情，不會像 subPanel 一樣
+// 需要另外按返回鍵才能回到概覽畫面
+export default function FillServiceInfoModal({
+  isOpen,
+  onClose,
+  group,
+  serviceInfo,
+  sharingMethod,
+  sharingMethodConfig,
+  fillValues,
+  setFillValues,
+  fillValid,
+  fillLoading,
+  onSubmit,
+}) {
+  const existingSummary = getServiceInfoSummary(serviceInfo, sharingMethod)
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="填寫服務帳號"
+      icon={<ClipboardEdit size={18} className="text-brand" />}
+      maxWidth="max-w-lg"
+      sub
+    >
+      <form onSubmit={onSubmit} className="p-5 space-y-4">
+        <p className="text-sm text-ink-3">
+          請填寫你用於 <span className="font-semibold text-ink">{group.serviceName}</span> 的服務資訊，團主將使用此資訊幫你設定訂閱。
+        </p>
+        {sharingMethodConfig.notice && (
+          <div className="rounded-lg bg-warning-subtle px-3 py-2 text-xs leading-relaxed text-warning-text">
+            {sharingMethodConfig.notice}
+          </div>
+        )}
+        {sharingMethod === 'shared_credentials' && (
+          <div>
+            <label className="block text-xs text-ink-3 mb-1.5">團主提供的帳號資訊</label>
+            {group.sharedCredentials ? (
+              <p className="whitespace-pre-wrap rounded-xl border border-line bg-raised px-3 py-2.5 text-sm text-ink-2">
+                {group.sharedCredentials}
+              </p>
+            ) : (
+              <p className="rounded-xl border border-dashed border-line px-3 py-2.5 text-sm text-ink-4">
+                團主尚未提供帳號資訊，請先在群組聊天室詢問團主
+              </p>
+            )}
+          </div>
+        )}
+        {existingSummary && (
+          <div className="rounded-lg bg-success-subtle px-3 py-2 text-sm text-success-text flex items-center gap-2">
+            <CheckCircle2 size={14} className="shrink-0" /> 目前已填：{existingSummary}
+          </div>
+        )}
+        {sharingMethodConfig.fields.map(({ key, label, type, placeholder }) => (
+          type === 'checkbox' ? (
+            <label key={key} className="flex cursor-pointer items-start gap-2.5 text-sm text-ink-2">
+              <input
+                type="checkbox"
+                checked={!!fillValues[key]}
+                onChange={e => setFillValues(prev => ({ ...prev, [key]: e.target.checked }))}
+                className="mt-0.5 h-4 w-4 shrink-0 accent-brand"
+              />
+              {label}
+            </label>
+          ) : (
+            <div key={key}>
+              <label className="block text-xs text-ink-3 mb-1.5">{label}</label>
+              <input
+                type={type}
+                value={fillValues[key] ?? ''}
+                onChange={e => setFillValues(prev => ({ ...prev, [key]: e.target.value }))}
+                placeholder={placeholder}
+                required
+                className="w-full rounded-xl border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+              />
+            </div>
+          )
+        ))}
+        <button
+          type="submit"
+          disabled={!fillValid || fillLoading}
+          className="w-full rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover disabled:opacity-40 disabled:pointer-events-none"
+        >
+          {fillLoading ? '送出中…' : '送出帳號資訊'}
+        </button>
+      </form>
+    </Modal>
+  )
+}

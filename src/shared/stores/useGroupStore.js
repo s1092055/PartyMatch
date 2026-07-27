@@ -106,8 +106,8 @@ export const useGroupStore = create((set, get) => ({
   },
 
   // ── 鎖定群組（full → pending_confirmation），後端同步設定 nextBillingDate ──────
-  lockGroup: async (id) => {
-    const updated = await lockGroupApi(id)
+  lockGroup: async (id, sharedCredentials) => {
+    const updated = await lockGroupApi(id, sharedCredentials)
     set(s => ({
       groups: s.groups.map(g => g.id === id ? normalizeGroup({ ...g, ...updated }) : g),
     }))

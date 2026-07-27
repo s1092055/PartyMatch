@@ -27,10 +27,11 @@ router.get('/', requireAuth, async (req, res, next) => {
       orderBy: { updatedAt: 'desc' },
     })
 
-    // 由非發起人主動開的對話，在對方送出第一則訊息前先不列出（lastMessage 為 null 代表還沒有任何訊息）
-    const conversations = rawConversations.filter(c =>
-      !(c.initiatorId && c.initiatorId !== req.user.id && c.lastMessage == null)
-    )
+    // DM 在雙方都還沒送出過任何訊息前，不列給任何一方看到（lastMessage 為 null 代表還沒有任何訊息）：
+    // 發起人自己按了「聯絡」但反悔沒打字就關掉，下次打開訊息中心不該再看到這個空聊天室；
+    // 對方也要等發起人真的送出第一則訊息才會看到聊天室出現。群組聊天室不受影響（鎖定群組建立聊天室
+    // 當下就會發一則系統訊息，不會有「已建立但沒有任何訊息」的空窗期）
+    const conversations = rawConversations.filter(c => c.type !== 'dm' || c.lastMessage != null)
 
     // 為 DM 對話補上參與者 meta（name / avatarInitial / avatarColor）
     const allParticipantIds = [...new Set(conversations.flatMap(parseParticipants))]

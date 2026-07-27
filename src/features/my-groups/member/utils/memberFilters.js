@@ -1,7 +1,7 @@
 import { isEffectivelyActive, PROCESSING_STATUSES } from '../../../../shared/utils/groupStatus'
 
-// 曾經拆成跟群組實際狀態一一對應的細分類（待鎖定／填寫資訊中／待啟用／確認期中／申訴中，
-// 連還沒核准的「審核中」申請也自己一個 chip），但頂部一次塞太多 chip 反而顯得雜亂；這些細分
+// 曾經拆成跟群組實際狀態一一對應的細分類（待鎖定／成員填寫中／待啟用／確認期中／申訴中，
+// 連還沒接受的「審核中」申請也自己一個 chip），但頂部一次塞太多 chip 反而顯得雜亂；這些細分
 // 階段其實卡片本身的狀態 badge 已經會顯示，篩選列只留大分類，細節交給卡片呈現就好。
 // 「審核中」的申請（還沒有 Subscription 記錄）併入「處理中」一起顯示
 export const FILTER_TABS = [

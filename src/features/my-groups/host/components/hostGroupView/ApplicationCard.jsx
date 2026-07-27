@@ -5,7 +5,7 @@ import CreditScoreBadge from '../../../../../shared/ui/CreditScoreBadge'
 import { formatDateTime, formatRelativeDate } from '../../../../../shared/utils/date'
 
 const APP_STATUS_BADGE = {
-  approved: { cls: 'bg-success-subtle text-success-text', label: '已核准' },
+  approved: { cls: 'bg-success-subtle text-success-text', label: '已接受' },
   left:     { cls: 'bg-slate-100 text-slate-500',         label: '已退出' },
   removed:  { cls: 'bg-danger-subtle text-danger-text',   label: '已移除' },
   rejected: { cls: 'bg-danger-subtle text-danger-text',   label: '已拒絕' },
@@ -61,7 +61,7 @@ export default function ApplicationCard({ app, groupFull, error, onApprove, onRe
                 disabled={groupFull}
                 className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-success py-2 text-xs font-semibold text-white transition-colors hover:bg-success-text disabled:pointer-events-none disabled:opacity-40"
               >
-                {groupFull ? '已額滿' : <><Check size={12} strokeWidth={3} /> 核准</>}
+                {groupFull ? '已額滿' : <><Check size={12} strokeWidth={3} /> 接受</>}
               </button>
               <button
                 onClick={() => onReject(app.id)}

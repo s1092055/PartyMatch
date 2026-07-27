@@ -48,7 +48,7 @@ router.get('/', requireAuth, async (req, res, next) => {
   } catch (err) { next(err) }
 })
 
-// POST /members — 僅團主可手動加入成員（一般由申請核准流程自動建立）
+// POST /members — 僅團主可手動加入成員（一般由申請接受流程自動建立）
 // 這裡沒有經過「申請」步驟，代管扣款要在這裡第一次做，走完整的 admitMemberIntoGroup（名額檢查 + 扣款），
 // 避免繞過名額上限與 escrow 帳務
 router.post('/', requireAuth, validate(addMemberSchema), async (req, res, next) => {

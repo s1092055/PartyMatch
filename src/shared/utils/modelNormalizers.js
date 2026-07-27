@@ -42,6 +42,9 @@ export function normalizeConversation(conv) {
 export function normalizeMember(m) {
   const user = m.user ?? {}
   const userName = m.userName ?? user.name ?? '成員'
+  // joinedAt 只留日期，給成員名單「XX 加入」這種只需要日期的顯示用；joinedAtTime 保留完整時間，
+  // 給收款/付款管理的「代管入帳」時間用（團主按下接受的當下，精確到時分）
+  const joinedAtTime = m.joinedAt ?? ''
   const joinedAt = m.joinedAt ? String(m.joinedAt).slice(0, 10) : ''
 
   return {
@@ -51,6 +54,7 @@ export function normalizeMember(m) {
     userAvatarColor:   m.userAvatarColor   ?? user.avatarColor   ?? '#94A3B8',
     userId:            m.userId            ?? user.id            ?? '',
     joinedAt,
+    joinedAtTime,
   }
 }
 

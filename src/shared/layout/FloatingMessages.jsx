@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
-import { AlertCircle, Bell, CheckCircle2, MessageSquare, UserPlus, X } from 'lucide-react'
+import { AlertCircle, Bell, CheckCircle2, ClipboardEdit, MessageSquare, UserPlus, X } from 'lucide-react'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useApplicationStore } from '../stores/useApplicationStore'
 import { useGroupStore } from '../stores/useGroupStore'
@@ -50,6 +50,8 @@ const NOTIFICATION_META = {
   application_withdrawn: { icon: AlertCircle,  iconColor: 'text-ink-3',      link: '/my-groups?view=host' },
   group_full:           { icon: UserPlus,      iconColor: 'text-brand',      link: '/my-groups?view=host' },
   group_chat_opened:    { icon: MessageSquare, iconColor: 'text-brand',      link: null },
+  fill_service_info:    { icon: ClipboardEdit, iconColor: 'text-warning-text', link: '/my-groups?view=member' },
+  service_info_filled:  { icon: ClipboardEdit, iconColor: 'text-success',    link: '/my-groups?view=host' },
   group_activated:      { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-groups?view=member' },
   group_cancelled:      { icon: AlertCircle,   iconColor: 'text-danger',     link: '/account' },
   group_renewal:        { icon: CheckCircle2,  iconColor: 'text-brand',      link: '/my-groups?view=member' },
@@ -153,6 +155,13 @@ export default function FloatingMessages() {
       return
     }
 
+    if (notification.type === 'fill_service_info' && notification.meta?.groupId) {
+      // 直接開該群組的成員視角詳情，畫面上會依 needsFillInfo 自動顯示「請填寫服務帳號」橫幅與按鈕，
+      // 不需要額外導向特定子面板
+      navigate('/my-groups?view=member', { state: { openGroupId: notification.meta.groupId } })
+      return
+    }
+
     if (notification.type === 'group_created' && notification.meta?.groupId) {
       navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId } })
       window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: notification.meta.groupId } }))
@@ -162,7 +171,7 @@ export default function FloatingMessages() {
     if (notification.type === 'application_sent' && notification.meta?.groupId) {
       const gId = notification.meta.groupId
       const user = getCurrentUser()
-      // 同 application_approved：本地 subscriptionStore 快取可能還沒反映最新核准結果，先重新拉一次再判斷
+      // 同 application_approved：本地 subscriptionStore 快取可能還沒反映最新接受結果，先重新拉一次再判斷
       useSubscriptionStore.getState().init().finally(() => {
         const hasSub = user ? !!getSubscriptionByUserAndGroup(user.id, gId) : false
         if (hasSub) {
@@ -182,6 +191,7 @@ export default function FloatingMessages() {
       // 申請人本地 applicationStore 的申請紀錄還停在 pending，要重新拉一次才會變成
       // rejected，讓群組卡片的「已申請」標記立即消失、恢復成可重新申請的狀態
       navigate('/explore')
+      useAuthStore.getState().refreshTokenBalance().catch(console.error) // 代管費用已退款，重新拉最新餘額
       useApplicationStore.getState().init().finally(() => {
         if (gId) openGroupOrRedirect(gId)
       })
@@ -203,6 +213,7 @@ export default function FloatingMessages() {
 
     if (notification.type === 'member_removed' && notification.meta?.groupId) {
       window.dispatchEvent(new CustomEvent('pm:refresh-member-stores'))
+      useAuthStore.getState().refreshTokenBalance().catch(console.error) // 代管費用已退款，重新拉最新餘額
       navigate('/explore')
       openGroupOrRedirect(notification.meta.groupId)
       return
@@ -211,9 +222,10 @@ export default function FloatingMessages() {
     if (notification.type === 'application_approved' && notification.meta?.groupId) {
       const gId = notification.meta.groupId
       const user = getCurrentUser()
-      // 本地 subscriptionStore 可能還停在核准前的快照（尚未輪詢到新建立的訂閱），
-      // 用過期快取判斷會誤判成「尚無訂閱」導致導向探索頁而非會員視角，須先重新拉一次
-      useSubscriptionStore.getState().init().finally(() => {
+      // 本地 subscriptionStore／memberStore 可能還停在接受前的快照（尚未輪詢到新建立的訂閱/成員資料），
+      // 用過期快取判斷會誤判成「尚無訂閱」導致導向探索頁而非會員視角；memberStore 沒同步刷新的話，
+      // 群組詳情 Modal 打開當下 myMember 會是 null，「退出群組」按鈕也會因此不會馬上顯示，須先重新拉一次
+      Promise.all([useSubscriptionStore.getState().init(), useMemberStore.getState().init()]).finally(() => {
         const hasSub = user ? !!getSubscriptionByUserAndGroup(user.id, gId) : false
         if (hasSub) {
           navigate('/my-groups?view=member', { state: { openGroupId: gId } })
@@ -233,6 +245,15 @@ export default function FloatingMessages() {
       return
     }
 
+    if (notification.type === 'service_info_filled' && notification.meta?.groupId) {
+      navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId, openMemberInfo: true } })
+      // 先重新拉一次成員資料，避免打開「成員資料」分頁時看到的還是填寫當下的舊快取
+      useMemberStore.getState().init().finally(() => {
+        window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: notification.meta.groupId, openMemberInfo: true } }))
+      })
+      return
+    }
+
     if (notification.type === 'application_withdrawn' && notification.meta?.groupId) {
       navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId, statusFilter: 'recruiting', openApplications: true } })
       useApplicationStore.getState().init().finally(() => {
@@ -248,6 +269,9 @@ export default function FloatingMessages() {
     }
 
     if ((notification.type === 'escrow_released' || notification.type === 'dispute_raised') && notification.meta?.groupId) {
+      if (notification.type === 'escrow_released') {
+        useAuthStore.getState().refreshTokenBalance().catch(console.error) // 代管款項已撥款，重新拉最新餘額
+      }
       navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId } })
       window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: notification.meta.groupId } }))
       return
@@ -255,6 +279,7 @@ export default function FloatingMessages() {
 
     if (notification.type === 'dispute_resolved' && notification.meta?.groupId) {
       const gId = notification.meta.groupId
+      useAuthStore.getState().refreshTokenBalance().catch(console.error) // 裁定結果不管撥款或退款，都影響餘額
       const grp = getGroupById(gId)
       if (grp && grp.hostId === userId) {
         navigate('/my-groups?view=host', { state: { openGroupId: gId } })
@@ -292,6 +317,7 @@ export default function FloatingMessages() {
 
     if (notification.type === 'group_cancelled') {
       // 群組解散於鎖定前，此時成員尚未有訂閱紀錄可開啟，僅導向列表
+      useAuthStore.getState().refreshTokenBalance().catch(console.error) // 代管費用已退款，重新拉最新餘額
       navigate('/my-groups?view=member')
       return
     }

@@ -8,9 +8,10 @@ import CountdownText from '../../../../shared/ui/primitives/CountdownText'
 import GroupModalShell from '../../../../shared/ui/group/GroupModalShell'
 import GroupModalSideBarItem from '../../../../shared/ui/group/GroupModalSideBarItem'
 import ReviewHostModal from './ReviewHostModal'
+import FillServiceInfoModal from './FillServiceInfoModal'
 import { buildPaymentsPanel } from './memberGroupView/buildPaymentsPanel'
 import { getServiceById } from '../../../../shared/utils/serviceUtils'
-import { getSharingMethodConfig, hasFilledServiceInfo, getServiceInfoSummary } from '../../../../shared/utils/serviceInfoFields'
+import { getSharingMethodConfig, hasFilledServiceInfo } from '../../../../shared/utils/serviceInfoFields'
 import { useMemberStore } from '../../../../shared/stores/useMemberStore'
 import { useGroupStore } from '../../../../shared/stores/useGroupStore'
 import { useSubscriptionStore } from '../../../../shared/stores/useSubscriptionStore'
@@ -35,8 +36,9 @@ function isImageUrl(url) {
 }
 
 export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
-  const [activePanel, setActivePanel] = useState(null) // 'members' | 'payments' | 'fillInfo' | 'dispute' | null
+  const [activePanel, setActivePanel] = useState(null) // 'members' | 'payments' | 'dispute' | null
   const [leaveConfirm, setLeaveConfirm] = useState(false)
+  const [showFillInfo, setShowFillInfo] = useState(false)
   const [fillValues, setFillValues] = useState({})
   const [fillLoading, setFillLoading] = useState(false)
   const [confirmLoading, setConfirmLoading] = useState(false)
@@ -85,6 +87,8 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
   const hasServiceInfoIssue = !!myMember?.serviceInfoIssueNote
   const hasServiceInfo      = hasFilledServiceInfo(myMember?.serviceInfo, serviceDef?.sharingMethod) && !hasServiceInfoIssue
   const needsFillInfo       = !!sub && isPaymentRelevant && !hasServiceInfo && group.status === 'pending_confirmation'
+  // 已經填完但其他成員還沒填完時，畫面不能什麼都不顯示，不然會讓人誤以為自己還沒填寫
+  const waitingForOthers    = !!sub && hasServiceInfo && group.status === 'pending_confirmation'
   const canLeaveGroup       = ['recruiting', 'full'].includes(group.status) && !!myMember
   const canConfirm          = group.status === 'confirming' && !!myMember && !myMember.confirmedAt
   const alreadyConfirmed    = group.status === 'confirming' && isEffectivelyActive(group.status, myMember?.confirmedAt)
@@ -169,7 +173,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
         sharingMethodConfig.fields.map(({ key, type }) => [key, type === 'checkbox' ? true : fillValues[key].trim()])
       )
       await fillServiceInfo(myMember.id, group.id, serviceInfo)
-      setActivePanel(null)
+      setShowFillInfo(false)
       toast('帳號資訊已送出', 'success')
     } catch (err) {
       toast(err?.message ?? '送出失敗，請稍後再試', 'error')
@@ -181,7 +185,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
   const fillInfoCta = (needsFillInfo || hasServiceInfoIssue) && (
     <div className="py-2">
       <button
-        onClick={() => { setFillValues(myMember?.serviceInfo ?? {}); setActivePanel('fillInfo') }}
+        onClick={() => { setFillValues(myMember?.serviceInfo ?? {}); setShowFillInfo(true) }}
         className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-6 py-2 text-sm font-bold text-white shadow-md transition-colors hover:bg-brand-hover"
       >
         <ClipboardEdit size={15} /> 填寫帳號
@@ -287,61 +291,6 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
       }
     }
 
-    if (activePanel === 'fillInfo') {
-      const existingSummary = getServiceInfoSummary(myMember?.serviceInfo, serviceDef?.sharingMethod)
-      return {
-        content: (
-          <form onSubmit={handleFillSubmit} className="p-5 space-y-4">
-            <p className="text-sm text-ink-3">
-              請填寫你用於 <span className="font-semibold text-ink">{group.serviceName}</span> 的服務資訊，團主將使用此資訊幫你設定訂閱。
-            </p>
-            {sharingMethodConfig.notice && (
-              <div className="rounded-lg bg-warning-subtle px-3 py-2 text-xs leading-relaxed text-warning-text">
-                {sharingMethodConfig.notice}
-              </div>
-            )}
-            {existingSummary && (
-              <div className="rounded-lg bg-success-subtle px-3 py-2 text-sm text-success-text flex items-center gap-2">
-                <CheckCircle2 size={14} className="shrink-0" /> 目前已填：{existingSummary}
-              </div>
-            )}
-            {sharingMethodConfig.fields.map(({ key, label, type, placeholder }) => (
-              type === 'checkbox' ? (
-                <label key={key} className="flex cursor-pointer items-start gap-2.5 text-sm text-ink-2">
-                  <input
-                    type="checkbox"
-                    checked={!!fillValues[key]}
-                    onChange={e => setFillValues(prev => ({ ...prev, [key]: e.target.checked }))}
-                    className="mt-0.5 h-4 w-4 shrink-0 accent-brand"
-                  />
-                  {label}
-                </label>
-              ) : (
-                <div key={key}>
-                  <label className="block text-xs text-ink-3 mb-1.5">{label}</label>
-                  <input
-                    type={type}
-                    value={fillValues[key] ?? ''}
-                    onChange={e => setFillValues(prev => ({ ...prev, [key]: e.target.value }))}
-                    placeholder={placeholder}
-                    required
-                    className="w-full rounded-xl border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
-                  />
-                </div>
-              )
-            ))}
-            <button
-              type="submit"
-              disabled={!fillValid || fillLoading}
-              className="w-full rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover disabled:opacity-40 disabled:pointer-events-none"
-            >
-              {fillLoading ? '送出中…' : '送出帳號資訊'}
-            </button>
-          </form>
-        ),
-      }
-    }
-
     if (activePanel === 'members') {
       return {
         content: (
@@ -414,13 +363,16 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
       }
     }
 
-    if (activePanel === 'payments') return buildPaymentsPanel({ group, transactions, transactionsLoading })
+    if (activePanel === 'payments') return buildPaymentsPanel({ group, member: myMember, transactions, transactionsLoading })
 
     return null
   }
 
   return (
     <>
+    {/* 填寫服務帳號 sub-modal 開啟時，完全隱藏底下的群組詳情 modal，不是疊加半透明遮罩；
+        關閉 sub-modal 才重新顯示群組詳情，狀態（activePanel 等）都留在這個元件裡，不會重置 */}
+    {!showFillInfo && (
     <GroupModalShell
       onClose={onClose}
       group={group}
@@ -440,6 +392,11 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
               <>，剩餘 <CountdownText deadline={group.serviceInfoDeadline} /></>
             )}
           </div>
+        ) : waitingForOthers ? (
+          <div className="flex items-center justify-center gap-2 bg-success-subtle px-6 py-3 text-sm font-extrabold text-success-text">
+            <CheckCircle2 size={15} strokeWidth={1.5} />
+            已填寫服務帳號，等待其他成員完成填寫
+          </div>
         ) : canConfirm ? (
           <div className="flex items-center justify-center gap-2 bg-info-subtle px-6 py-3 text-sm font-extrabold text-info-text">
             <Clock size={15} strokeWidth={1.5} />
@@ -458,12 +415,14 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
       centeredCta={fillInfoCta || confirmCta || undefined}
       statusBadgeOverride={
         alreadyConfirmed ? { variant: 'active' } :
+        waitingForOthers ? { variant: 'active', label: '已填寫完成' } :
         group.status === 'recruiting' && !!sub ? 'member_joined' :
         undefined
       }
       pendingBadge={
         hasServiceInfoIssue ? '服務帳號需要修正' :
         needsFillInfo       ? '請填寫服務帳號以完成加入流程' :
+        waitingForOthers    ? '已填寫完成' :
         canConfirm          ? '確認期進行中，請確認服務' :
         isDisputed          ? '申訴進行中' :
         group.status === 'full' && !!sub ? '招募完成，等待團主鎖定群組' :
@@ -473,6 +432,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
       pendingBadgeColor={
         (['recruiting', 'full'].includes(group.status) && !!sub) ? 'success' :
         hasServiceInfoIssue ? 'danger' :
+        waitingForOthers ? 'success' :
         canConfirm ? 'brand' :
         isDisputed ? 'danger' :
         undefined
@@ -507,6 +467,21 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
       panelKey={activePanel ?? 'overview'}
     >
     </GroupModalShell>
+    )}
+
+    <FillServiceInfoModal
+      isOpen={showFillInfo}
+      onClose={() => setShowFillInfo(false)}
+      group={group}
+      serviceInfo={myMember?.serviceInfo}
+      sharingMethod={serviceDef?.sharingMethod}
+      sharingMethodConfig={sharingMethodConfig}
+      fillValues={fillValues}
+      setFillValues={setFillValues}
+      fillValid={fillValid}
+      fillLoading={fillLoading}
+      onSubmit={handleFillSubmit}
+    />
 
     {confirmDialog && (
       <CountdownConfirmDialog

@@ -28,7 +28,7 @@
 
 - **WebSocket 取代輪詢**：目前訊息、通知都是 polling（訊息 5 秒、通知 10 秒），改成 WebSocket 可以降低延遲與請求量
 - **TypeScript 型別覆蓋**：目前是純 JS，補上型別可以提升重構安全性
-- **自動化測試**：目前主要靠手動測試（見 [手動測試計畫](../testing/manual-test-plan.md)），未來可以補上關鍵流程的整合測試（例如核准申請的併發安全性、狀態機轉換）
+- **自動化測試**：目前主要靠手動測試（見 [手動測試計畫](../testing/manual-test-plan.md)），未來可以補上關鍵流程的整合測試（例如接受申請的併發安全性、狀態機轉換）
 - **逾期付款排程通知**：目前沒有自動偵測逾期並通知的排程機制
 - **`billingCycle` 可在任何群組狀態被 PATCH，跟已代管金額脫鉤**：`PATCH /groups/:id` 目前沒有限制 `billingCycle` 只能在 `recruiting` 階段修改；`Application` 有 `escrowAmount` 快照避免這類問題，但 `Member` 沒有對應的每人代管金額快照，理論上鎖定後若改了計費週期，退款/續訂金額會跟實際代管金額對不上。目前前端沒有任何地方會送出這個欄位，是潛在風險而非已發生的問題
 - **群組結束/取消後，對應 `Subscription` 沒有一併同步狀態**：`POST /groups/:id/cancel` 與一般 `PATCH /groups/:id { status: 'ended' }` 都只更新 `Group.status`，沒有把該群組所有成員的 `Subscription.status` 一併改成 `ended`，殘留 `pending`/`active` 的訂閱資料掛在已結束的群組下；目前前端都是用 `groupStatus` 判斷所以不影響顯示，但直接查 `Subscription.status` 的地方會拿到過期資料

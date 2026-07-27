@@ -63,7 +63,7 @@ sequenceDiagram
 ## 流程步驟
 
 **1. 通知建立**
-- `POST /notifications` 是通用端點，實際上大多數通知（申請核准、成員移除、群組額滿等）是前端動作成功之後，由發起動作的那一端呼叫 `insertNotification(...)` 寫入，不是後端業務 route 自動建立；例外是 `server/src/routes/subscriptions.js` 的 `notifyUpcomingRenewals`（距下次扣款日 7 天內的提醒）這種沒有對應前端互動時機的通知，才由後端在讀取訂閱資料時順便建立
+- `POST /notifications` 是通用端點，實際上大多數通知（申請接受、成員移除、群組額滿等）是前端動作成功之後，由發起動作的那一端呼叫 `insertNotification(...)` 寫入，不是後端業務 route 自動建立；例外是 `server/src/routes/subscriptions.js` 的 `notifyUpcomingRenewals`（距下次扣款日 7 天內的提醒）這種沒有對應前端互動時機的通知，才由後端在讀取訂閱資料時順便建立
 - 通知自己（例如申請已送出）會同時寫本地 store（即時顯示）跟呼叫 API；通知別人（例如通知團主）只呼叫 API 寫 DB，不會即時出現在對方畫面，要等對方輪詢或重新整理才看得到
 
 **2. 前端取得通知**
@@ -84,18 +84,20 @@ sequenceDiagram
 
 ## 通知類型總覽
 
-`NotificationType` enum（`schema.prisma`）共 19 種，實際觸發點與收件人如下：
+`NotificationType` enum（`schema.prisma`）共 21 種，實際觸發點與收件人如下：
 
 | UI 標題／訊息內容（`{}` 為代入變數） | 類型 | 觸發時機 | 收件人（即時／僅寫DB） | 點擊導向 |
 |---|---|---|---|---|
 | 「申請已送出」／「你的加入申請已送達「{groupName}」團主，等待審核。」 | `application_sent` | 送出加入申請當下 | 申請人自己（即時） | 我的群組（成員）「已申請」分頁 |
 | 「收到新的加入申請」／「{applicantName} 申請加入「{groupName}」群組。」 | `new_application` | 同上 | 團主（僅寫DB） | 我的群組（團主）該群組，自動開申請列表 |
-| 「申請已通過」／「恭喜！你加入「{groupName}」群組的申請已通過，請前往我的訂閱查看。」 | `application_approved` | 團主核准申請 | 申請人（僅寫DB） | 已有訂閱→成員視角群組頁；否則→探索頁開該群組（開啟前見下方「額滿保護」） |
+| 「申請已通過」／「恭喜！你加入「{groupName}」群組的申請已通過，請前往我的訂閱查看。」 | `application_approved` | 團主接受申請 | 申請人（僅寫DB） | 已有訂閱→成員視角群組頁；否則→探索頁開該群組（開啟前見下方「額滿保護」） |
 | 「申請未通過」／「很遺憾，你加入「{groupName}」群組的申請未通過，你可以繼續探索其他群組。」 | `application_rejected` | 團主拒絕申請 | 申請人（僅寫DB） | 探索頁，並重新拉取申請人自己的 `applicationStore`（本地紀錄還停在 `pending`，不重拉的話「已申請」標記不會消失），開啟該群組 Modal 前見下方「額滿保護」 |
-| 「申請人已取消申請」／「{applicantName} 已取消加入「{groupName}」群組的申請。」 | `application_withdrawn` | 申請人自行撤回 `pending` 申請 | 團主（僅寫DB） | 我的群組（團主）該群組，自動開申請列表；輪詢偵測到這則通知會直接觸發 `pm:refresh-application-store`，不需要點擊就會刷新，避免團主對著已撤回的申請按核准/拒絕 |
+| 「申請人已取消申請」／「{applicantName} 已取消加入「{groupName}」群組的申請。」 | `application_withdrawn` | 申請人自行撤回 `pending` 申請 | 團主（僅寫DB） | 我的群組（團主）該群組，自動開申請列表；輪詢偵測到這則通知會直接觸發 `pm:refresh-application-store`，不需要點擊就會刷新，避免團主對著已撤回的申請按接受/拒絕 |
 | 「群組已成功建立」／「「{serviceName}」群組已上架，開始招募成員中！」 | `group_created` | 建立群組成功當下 | 團主自己（即時） | 我的群組（團主）該群組 |
-| 「群組名額已滿」／「「{groupName}」群組名額已滿，可以點擊鎖定群組了。」 | `group_full` | 核准申請後名額剛好滿 | 團主自己（即時） | 我的群組（團主）該群組 |
-| 團主：「群組聊天室已開啟」／「「{serviceName}」群組已鎖定，聊天室已建立，點擊查看。」；成員：同標題／「「{serviceName}」群組聊天室已建立，請進入填寫服務帳號並完成付款。」 | `group_chat_opened` | 團主鎖定群組（建立聊天室） | 團主自己（即時）＋全體成員（僅寫DB） | 直接開啟該群組聊天室 |
+| 「群組名額已滿」／「「{groupName}」群組名額已滿，可以點擊鎖定群組了。」 | `group_full` | 接受申請後名額剛好滿 | 團主自己（即時） | 我的群組（團主）該群組 |
+| 「群組聊天室已開啟」／「「{serviceName}」群組已鎖定，聊天室已建立，點擊查看。」 | `group_chat_opened` | 團主鎖定群組（建立聊天室） | 團主自己（即時） | 直接開啟該群組聊天室 |
+| 「請填寫服務帳號資訊」／「「{serviceName}」群組已鎖定，請進入填寫服務帳號並完成付款。」 | `fill_service_info` | 團主鎖定群組（建立聊天室） | 全體成員（僅寫DB） | 我的群組（成員）該群組，畫面會依 `needsFillInfo` 自動顯示填寫橫幅與按鈕。跟團主收到的 `group_chat_opened` 是同一個觸發時機分成兩種通知：團主單純被告知聊天室開了，成員則是直接被提醒要做的事，避免兩則內容幾乎一樣的通知混在一起像是重複發送 |
+| 「成員已填寫服務帳號」／「{userName} 已填寫「{serviceName}」群組的服務帳號資訊。」 | `service_info_filled` | 成員送出 `PATCH /members/:id`（`serviceInfo` 有值） | 團主（僅寫DB，由成員端 `useMemberStore.fillServiceInfo` 直接呼叫 `insertNotification`，不是後端主動發送） | 我的群組（團主）該群組，自動開「成員資料」分頁（`openMemberInfo`），點擊前先重新拉一次 `useMemberStore`，避免看到填寫當下的舊快取；側邊欄「成員資料」分頁的未讀數字 badge（樣式跟「申請管理」一致）也是靠這則通知的已讀狀態計算 |
 | 團主：「服務已啟用，確認期開始」／「「{serviceName}」群組服務已啟用，成員有 48 小時確認期。」；成員：「服務已啟用，請確認」／「「{serviceName}」服務已啟用！請在 48 小時內確認服務是否正常，否則將自動完成。」 | `group_activated` | 團主啟用服務 | 團主自己（即時）＋全體成員（僅寫DB） | 團主→自己群組頁；成員→成員視角群組頁 |
 | 「新一期已開始」／「「{serviceName}」群組開始新一期，請前往填寫最新服務帳號資訊。」 | `group_renewal` | 團主開始新一期續訂 | 全體成員（僅寫DB） | 我的群組（成員）該群組 |
 | 「群組已結束」／「「{groupLabel}」群組已由團主結束，合購服務將不再續訂。」 | `group_ended` | 團主結束群組 | 全體成員（僅寫DB） | 探索頁 |

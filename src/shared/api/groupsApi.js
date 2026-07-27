@@ -18,8 +18,8 @@ export async function patchGroup(id, patch) {
   return client.patch(`/groups/${id}`, patch)
 }
 
-export async function lockGroupApi(id) {
-  return client.post(`/groups/${id}/lock`)
+export async function lockGroupApi(id, sharedCredentials) {
+  return client.post(`/groups/${id}/lock`, sharedCredentials ? { sharedCredentials } : undefined)
 }
 
 export async function activateGroupApi(id) {

@@ -6,6 +6,11 @@ import {
 } from '../api/membersApi'
 import { normalizeMember } from '../utils/modelNormalizers'
 import { notifyError } from '../utils/toast'
+import { insertNotification } from '../api/notificationsApi'
+// useGroupStore/useAuthStore 對 useMemberStore 的依賴一律是動態 import（見 useGroupStore.js／useAuthStore.js），
+// 所以這邊可以放心靜態 import，不會形成真正的循環依賴
+import { useGroupStore } from './useGroupStore'
+import { useAuthStore } from './useAuthStore'
 
 export const useMemberStore = create((set, get) => ({
   members: [],
@@ -60,8 +65,20 @@ export const useMemberStore = create((set, get) => ({
       const res = await patchMember(memberId, { serviceInfo })
       if (res?._groupAdvanced) {
         // 全員填完，後端已自動推進群組狀態
-        const { useGroupStore } = await import('./useGroupStore')
         useGroupStore.getState().setGroupStatus(groupId, res._groupAdvanced)
+      }
+      // 通知團主：成員填寫了服務帳號資訊，「成員資料」分頁靠這則通知顯示未讀紅點；
+      // 只寫 DB（不是 notifStore.create()），避免這則「別人的」通知混進目前操作者（成員本人）的本地通知清單
+      const group = useGroupStore.getState().getById(groupId)
+      if (group) {
+        const currentUser = useAuthStore.getState().user
+        insertNotification({
+          userId:  group.hostId,
+          type:    'service_info_filled',
+          title:   '成員已填寫服務帳號',
+          message: `${currentUser?.name ?? '成員'} 已填寫「${group.serviceName ?? group.groupName}」群組的服務帳號資訊。`,
+          meta:    { groupId, memberId },
+        }).catch(console.error)
       }
     } catch (err) {
       // 回滾至先前值，而非清空

@@ -27,12 +27,15 @@ export function buildMembersSubPanel({ group, groupId, members, activeUserId, se
             </button>
           </div>
         </div>
-        {members.filter(m => m.groupId === groupId && m.userId !== activeUserId).map(m => (
+        {members.filter(m => m.groupId === groupId).map(m => (
           <div key={m.id} className="rounded-xl border border-line p-3">
             <div className="flex items-center gap-3">
               <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-ink">{m.userName}</p>
+                <p className="text-sm font-semibold text-ink">
+                  {m.userName}
+                  {m.userId === activeUserId && <span className="ml-1.5 text-xs font-normal text-brand">（你）</span>}
+                </p>
                 <p className="text-xs text-ink-3">{m.joinedAt} 加入</p>
               </div>
             </div>

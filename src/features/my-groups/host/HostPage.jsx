@@ -26,6 +26,7 @@ export default function HostPage({ embedded = false, historyOpen, onCloseHistory
     autoOpenActivate, setAutoOpenActivate,
     autoOpenApplications, setAutoOpenApplications,
     autoOpenBilling, setAutoOpenBilling,
+    autoOpenMemberInfo, setAutoOpenMemberInfo,
     setRenewalModalGroupId,
     allGroups, displayGroups, historyGroups, filterCounts, membersMap, applicationCounts,
     renewalModalGroup,
@@ -98,7 +99,7 @@ export default function HostPage({ embedded = false, historyOpen, onCloseHistory
 
       <GroupViewModal
         isOpen={!!viewGroupId}
-        onClose={() => { setViewGroupId(null); setAutoOpenLockGroup(false); setAutoOpenActivate(false); setAutoOpenApplications(false); setAutoOpenBilling(false); refreshGroups() }}
+        onClose={() => { setViewGroupId(null); setAutoOpenLockGroup(false); setAutoOpenActivate(false); setAutoOpenApplications(false); setAutoOpenBilling(false); setAutoOpenMemberInfo(false); refreshGroups() }}
         groupId={viewGroupId}
         onReportServiceInfoIssue={handleReportServiceInfoIssue}
         onActivate={handleActivate}
@@ -113,6 +114,7 @@ export default function HostPage({ embedded = false, historyOpen, onCloseHistory
         onAutoOpenActivateDone={() => setAutoOpenActivate(false)}
         autoOpenApplications={autoOpenApplications}
         autoOpenBilling={autoOpenBilling}
+        autoOpenMemberInfo={autoOpenMemberInfo}
         onOpenRenewal={() => setRenewalModalGroupId(viewGroupId)}
       />
       {renewalModalGroup && (

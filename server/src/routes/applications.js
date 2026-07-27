@@ -37,7 +37,7 @@ router.get('/', requireAuth, async (req, res, next) => {
   } catch (err) { next(err) }
 })
 
-// POST /applications — 送出申請；代管扣款在這裡就會發生，不等團主核准
+// POST /applications — 送出申請；代管扣款在這裡就會發生，不等團主接受
 router.post('/', requireAuth, validate(applySchema), async (req, res, next) => {
   try {
     const { groupId, message } = req.body
@@ -180,7 +180,7 @@ router.patch('/:id', requireAuth, validate(reviewSchema), async (req, res, next)
     // 名額檢查、審核狀態變更、成員/訂閱建立全部包在同一個 transaction；代管扣款已在申請時完成，
     // 這裡改呼叫 finalizeApprovedApplication，不會再扣一次款
     const updated = await prisma.$transaction(async (tx) => {
-      // 條件式更新：僅在仍為 pending 時才能核准，避免重複點擊/併發請求造成同一筆申請被重複核准、重複入群
+      // 條件式更新：僅在仍為 pending 時才能接受，避免重複點擊/併發請求造成同一筆申請被重複接受、重複入群
       const claimed = await tx.application.updateMany({
         where: { id: req.params.id, status: 'pending' },
         data:  { status: 'approved' },

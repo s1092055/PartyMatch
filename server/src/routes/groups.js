@@ -420,10 +420,16 @@ router.post('/:id/lock', requireAuth, async (req, res, next) => {
     const serviceInfoDeadline = new Date()
     serviceInfoDeadline.setHours(serviceInfoDeadline.getHours() + 24)
 
+    // 無官方多人邀請機制的服務（sharingMethod: shared_credentials），團主鎖定當下順便提供帳密，
+    // 後端不知道 sharingMethod 分類（只存在前端 catalog），單純是有傳就存、沒傳就維持 null
+    const sharedCredentials = typeof req.body?.sharedCredentials === 'string' && req.body.sharedCredentials.trim()
+      ? req.body.sharedCredentials.trim()
+      : undefined
+
     const [updated] = await prisma.$transaction([
       prisma.group.update({
         where: { id: req.params.id },
-        data: { status: 'pending_confirmation', serviceInfoDeadline },
+        data: { status: 'pending_confirmation', serviceInfoDeadline, ...(sharedCredentials !== undefined && { sharedCredentials }) },
         include: {
           host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, creditScore: true } },
           service: true,

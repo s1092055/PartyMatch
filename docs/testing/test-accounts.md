@@ -4,7 +4,7 @@
 
 ## 這支 seed 腳本跟一般 seed 腳本的差異
 
-`seedDemo.js` **不直接寫資料庫**，而是完全透過真實的 REST API（跟前端呼叫的端點一模一樣：註冊、儲值、申請、核准、鎖定、填寫帳號、啟用、確認、申訴、裁定……）依序驅動每個場景，確保 demo 資料的狀態、代管金額、餘額等數字都是「正式版程式碼真的跑過一次」得到的結果，而不是手動塞值模擬出來的。這也是為什麼這支腳本執行時**後端伺服器必須正在跑**（不像單純寫資料庫的 seed 腳本可以獨立執行）。
+`seedDemo.js` **不直接寫資料庫**，而是完全透過真實的 REST API（跟前端呼叫的端點一模一樣：註冊、儲值、申請、接受、鎖定、填寫帳號、啟用、確認、申訴、裁定……）依序驅動每個場景，確保 demo 資料的狀態、代管金額、餘額等數字都是「正式版程式碼真的跑過一次」得到的結果，而不是手動塞值模擬出來的。這也是為什麼這支腳本執行時**後端伺服器必須正在跑**（不像單純寫資料庫的 seed 腳本可以獨立執行）。
 
 這個設計實際上抓到一個先前從未被發現的真實 bug：`POST /groups/:id/adjudicate` 的「成員獲勝」分支原本會把 `Subscription.status` 設成不存在的 `'cancelled'` 值，導致這個功能自從寫出來就一直是 500 錯誤、從未真正成功執行過，直到這次改用真實 API 跑一遍才第一次真正呼叫到它並發現問題（已修正，見 [`bug-log.md`](./bug-log.md) 的 BUG-008）。
 
@@ -71,7 +71,7 @@ npm run db:seed-demo    # 建立 10 個 demo 帳號（含 1 個管理員）、22
 | 群組 | 服務 | 團主 | 狀態 | 用途 |
 |------|------|------|------|------|
 | G1 | Netflix（年繳） | demo7 | `recruiting` | 1 筆待審申請（demo1），可測審核流程；年繳計費路徑 |
-| G2 | Notion | demo4 | `recruiting` | 1 位已核准成員（demo5）+ 1 筆已拒絕申請（demo3），demo7 已收藏 |
+| G2 | Notion | demo4 | `recruiting` | 1 位已接受成員（demo5）+ 1 筆已拒絕申請（demo3），demo7 已收藏 |
 | G3 | Spotify（6 人方案） | demo8 | `full` | 5 位成員（demo1～demo4、demo9）＋團主共 6 人滿員 + 1 筆已撤回申請（demo6） |
 | G4 | Disney+ | demo7 | `pending_confirmation` | 已鎖定，成員（demo2）尚未填帳號資訊（`sharingMethod: shared_credentials`）；2 人方案，1 位成員＋團主即滿員 |
 | G5 | HBO Max（3 人方案） | demo9 | `pending_activation` | 2 位成員（demo3、demo5）＋團主共 3 人已全部填完帳號（確認勾選），待團主啟用 |
@@ -93,7 +93,7 @@ npm run db:seed-demo    # 建立 10 個 demo 帳號（含 1 個管理員）、22
 | G19 | Dropbox（Family 6 人） | demo9 | `active` | 5 位成員＋團主共 6 人啟用後 demo2 申訴，管理員裁定「**成員獲勝**」：demo2 已退款並移出群組，剩餘成員不受影響；demo1、demo4 各留下一則對團主的評價 |
 | G20 | NordVPN | demo7 | `active` | demo5 申訴，管理員裁定「**團主獲勝**」：代管全額撥款給團主，demo5 仍留在群組內；demo3、demo5 各留下一則對團主的評價 |
 
-另外還建立了：系統公告 1 則（透過管理員帳號的 `POST /system-messages/broadcast` 真實廣播 API）；demo7 → demo8 的 DM 私訊（一來一往 2 則訊息）；demo7 的 2 張信用卡付款方式、demo1 的 1 張；每個已鎖定群組都有對應的群組聊天室（含開場白訊息）；申請/核准/拒絕/額滿/開聊天室/啟用/撥款/申訴/退出/移除/解散/結束/續訂等關鍵動作都有建立對應的通知（`Notification`），可直接用來測試通知中心。
+另外還建立了：系統公告 1 則（透過管理員帳號的 `POST /system-messages/broadcast` 真實廣播 API）；demo7 → demo8 的 DM 私訊（一來一往 2 則訊息）；demo7 的 2 張信用卡付款方式、demo1 的 1 張；每個已鎖定群組都有對應的群組聊天室（含開場白訊息）；申請/接受/拒絕/額滿/開聊天室/啟用/撥款/申訴/退出/移除/解散/結束/續訂等關鍵動作都有建立對應的通知（`Notification`），可直接用來測試通知中心。
 
 各服務對應的 `sharingMethod` 完整分類與欄位設計見 [各服務填寫帳號資訊需求調查](../product/service-info-requirements.md)。
 

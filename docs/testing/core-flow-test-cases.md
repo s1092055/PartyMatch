@@ -37,7 +37,7 @@
 
 **預期結果**：
 - `POST /applications` 回傳 201，`status: 'pending'`
-- **代管扣款發生在這一步，不是等團主核准**：demo5 的 `tokenBalance` 立即減少 X PM
+- **代管扣款發生在這一步，不是等團主接受**：demo5 的 `tokenBalance` 立即減少 X PM
 - 群組 `escrowTokens` 增加 X PM
 - 寫入一筆 `tokenTransaction`（`type: 'escrow'`，`amount: -X`）
 - 團主（demo4）收到 `new_application` 通知
@@ -77,20 +77,20 @@
 
 ---
 
-### TC-004：團主審核核准（不再重複扣款）
+### TC-004：團主審核接受（不再重複扣款）
 
 **前置條件**：延續 TC-002，demo4 為團主，demo5 有 1 筆 `pending` 申請（已在申請時扣款 X PM 進代管），席位費用 X PM。
 
 **步驟**：
 1. demo4 登入，開啟「我的群組」團主視角 → 該群組 → 申請管理
-2. 找到 demo5 的申請，點擊「核准」
+2. 找到 demo5 的申請，點擊「接受」
 
 **預期結果**（`applications.js` PATCH `/:id`，呼叫 `finalizeApprovedApplication`）：
-- 申請狀態條件式更新為 `approved`（僅 `pending` 才能轉換，防止重複核准）
+- 申請狀態條件式更新為 `approved`（僅 `pending` 才能轉換，防止重複接受）
 - 建立 `member` 與 `subscription` 記錄（`status: 'pending'`）
 - 群組 `currentMembers` +1
 - **demo5 的 `tokenBalance` 與群組 `escrowTokens` 都不再變動**（代管扣款已在 TC-002 申請時完成），也不會多寫一筆 `tokenTransaction`
-- 若核准後 `currentMembers >= maxMembers`，群組狀態自動推進為 `full`；否則維持 `recruiting`
+- 若接受後 `currentMembers >= maxMembers`，群組狀態自動推進為 `full`；否則維持 `recruiting`
 - demo5 收到 `application_approved` 通知
 
 ---
@@ -111,12 +111,12 @@
 
 ---
 
-### TC-005：最後一位核准後群組自動推進為 full
+### TC-005：最後一位接受後群組自動推進為 full
 
 **前置條件**：延續 TC-004 情境，群組名額為 2，目前 `currentMembers: 1`；另一位成員（demo3）也已送出 `pending` 申請。
 
 **步驟**：
-1. demo4 核准 demo3 的申請
+1. demo4 接受 demo3 的申請
 
 **預期結果**：
 - `currentMembers` 變為 2（等於 `maxMembers`）
@@ -150,7 +150,7 @@
 - 群組狀態變為 `pending_confirmation`
 - 所有成員的 `subscription.nextBillingDate` 被設定為「今天起算一個計費週期」（月繳 +1 個月，年繳 +1 年）
 - 系統自動建立群組聊天室（`POST /conversations/group`，成員 = 團主 + 所有 member）
-- 所有成員收到「群組聊天室已開啟」通知，並可開始填寫服務帳號資訊
+- 所有成員收到「請填寫服務帳號資訊」通知（`fill_service_info`，不是團主自己收到的「群組聊天室已開啟」`group_chat_opened`——同一時機分成兩種通知內容），並可開始填寫服務帳號資訊
 - 群組 `serviceInfoDeadline` 被設定為「鎖定時間 + 24h」
 - 團主與成員兩側的群組詳情頁都會出現倒數橫幅（剩餘時間每秒更新，格式 `HH:MM:SS`），24h 過後橫幅顯示「已逾期」，但不會有任何自動處理
 - 成員名單自此鎖死：`DELETE /members/:id` 應回傳 400「群組啟用後無法變更成員名單」（僅 `recruiting`/`full` 可變動名單）
@@ -173,7 +173,7 @@
 
 **預期結果**：
 - 全員 `serviceInfo` 皆非 null，群組狀態自動推進為 `pending_activation`（`members.js` 第 104-116 行）
-- 團主收到「全員已完成填寫」通知，看到「啟用服務」CTA
+- 團主每次收到成員填寫的都是同一種 `service_info_filled` 通知（見通知流程文件），沒有另外區分「最後一位填完」的專屬通知；群組詳情頁看到「所有成員已完成填寫服務帳號，可以啟用服務了」banner 與「啟用服務」CTA，是靠群組狀態變成 `pending_activation` 直接判斷，不是靠通知內容判斷
 
 ---
 
@@ -187,7 +187,7 @@
 3. demo5 開啟 G16（friDay影音）→ 表單只有一個「邀請碼」欄位（非 email），提醒文案說明要先在 friDay App 內產生邀請碼、綁定方向與其他服務相反
 4. 開啟 G9（KKBOX，已全員填完）的團主收款/群組名單畫面 → 顯示的摘要應同時包含 email 與地址兩個值（`getServiceInfoSummary` 用全形空格分隔多欄位）
 5. 開啟 G4（Disney+）→ 表單只有一個確認勾選框「我已透過群組聊天室取得帳號密碼」，勾選後才能送出，提醒文案說明官方無多人邀請機制的風險
-6. 上述任一表單填寫送出後，`hasFilledServiceInfo` 判斷應正確依該服務的欄位組合認定「已填寫」，不會因為欄位不是 `email` 而誤判成尚未填寫（可在聊天室的 `fill_service_info` 訊息卡片、`ActivateServiceModal` 成員清單同步確認顯示狀態一致）
+6. 上述任一表單填寫送出後，`hasFilledServiceInfo` 判斷應正確依該服務的欄位組合認定「已填寫」，不會因為欄位不是 `email` 而誤判成尚未填寫（可在 `ActivateServiceModal` 成員清單同步確認顯示狀態一致）
 
 ---
 
@@ -237,7 +237,7 @@
 
 ## 補充：年繳計費路徑
 
-seed 資料中的 G1（Netflix，`billingCycle: 'yearly'`）可用來驗證 `computeSeatCost`：年繳群組的席位費用 = `monthlyFee * 12`（四捨五入），而非月繳的 `monthlyFee`。核准申請、退款、續訂等所有涉及金額計算的動作都應套用此公式（`server/src/utils/pricing.js`）。
+seed 資料中的 G1（Netflix，`billingCycle: 'yearly'`）可用來驗證 `computeSeatCost`：年繳群組的席位費用 = `monthlyFee * 12`（四捨五入），而非月繳的 `monthlyFee`。接受申請、退款、續訂等所有涉及金額計算的動作都應套用此公式（`server/src/utils/pricing.js`）。
 
 ---
 

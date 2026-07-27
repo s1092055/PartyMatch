@@ -58,6 +58,8 @@ enum NotificationType {
   group_created
   group_activated
   group_chat_opened
+  fill_service_info
+  service_info_filled
   group_full
   group_ended
   group_cancelled
@@ -153,6 +155,9 @@ model Group {
   billingCycle    String?
   nextBillingDate DateTime?
   escrowTokens    Int         @default(0)
+  // 無官方多人邀請機制的服務（sharingMethod: shared_credentials，只存在前端 serviceCatalog，後端不知道這個分類）
+  // 鎖定群組時由團主一次性提供帳號密碼，存在這裡讓所有成員都能在「填寫帳號」畫面直接看到，不用回頭翻聊天室訊息
+  sharedCredentials String?
   // 鎖定群組時設定為鎖定時間 + 24h，pending_confirmation 階段的填寫帳號資訊截止時間，僅供前端顯示倒數，逾期不會有任何自動處理
   serviceInfoDeadline DateTime?
   confirmDeadline DateTime?

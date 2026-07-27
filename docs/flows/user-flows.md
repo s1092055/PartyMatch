@@ -6,7 +6,7 @@
 
 1. **找群組**：透過探索頁篩選，或用免登入的快速搜尋配對 → 詳見 [探索群組流程](./explore-flow.md)、[快速搜尋流程](./quick-match-flow.md)
 2. **送出申請**：對招募中的群組送出加入申請，系統立即從申請人餘額扣款、轉入該群組的代管餘額 → 詳見 [申請加入流程](./apply-join-flow.md)
-3. **團主審核**：核准就建立成員資格；拒絕則把代管的席位費用退還給申請人，申請人可重新提出 → 詳見 [團主審核流程](./approval-flow.md)
+3. **團主審核**：接受就建立成員資格；拒絕則把代管的席位費用退還給申請人，申請人可重新提出 → 詳見 [團主審核流程](./approval-flow.md)
 4. **鎖定群組**：名額額滿後，團主鎖定群組、建立聊天室，成員開始填寫訂閱帳號資訊 → 詳見 [我的群組（團主視角）流程](./my-groups-host-flow.md)
 5. **啟用服務**：帳號資訊齊全後團主啟用服務，進入 48 小時確認期；成員可主動確認、透過聊天室反應問題，或正式申訴 → 詳見 [我的群組（成員視角）流程](./my-groups-member-flow.md)、[申訴流程](./dispute-flow.md)
 6. **撥款**：全員確認（或確認期逾期）後，代管金額撥款給團主，訂閱進入啟用中 → 詳見 [PM幣代管與付款流程](./payment-token-flow.md)
@@ -21,7 +21,7 @@
 ```mermaid
 stateDiagram-v2
   [*] --> recruiting : 團主建立群組
-  recruiting --> full : 名額額滿（最後申請核准）
+  recruiting --> full : 名額額滿（最後申請接受）
   full --> recruiting : 成員退出/被移除，釋出名額
   full --> pending_confirmation : 團主鎖定群組
   pending_confirmation --> pending_activation : 全員填寫帳號資訊完成
@@ -54,7 +54,7 @@ stateDiagram-v2
 | 流程 | 說明 |
 |------|------|
 | [建立群組流程](./create-group-flow.md) | 4 步驟表單建立招募中的群組 |
-| [團主審核流程](./approval-flow.md) | 核准或拒絕申請，核准會自動扣款、建成員 |
+| [團主審核流程](./approval-flow.md) | 接受或拒絕申請，接受會自動扣款、建成員 |
 | [我的群組（團主視角）流程](./my-groups-host-flow.md) | 鎖定群組、啟用服務、收款管理、解散群組 |
 | [續訂流程](./renewal-flow.md) | 服務期滿後開始下一期收款或結束服務 |
 

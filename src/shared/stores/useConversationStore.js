@@ -1,71 +1,42 @@
 import { create } from 'zustand'
 import { subscribeToConversations } from '../api/messagesApi'
-import { useAuthStore } from './useAuthStore'
-import { useNotificationStore } from './useNotificationStore'
 
 let _unsub = null
-let _prevConvIds = null
 
-function maybeNotifyGroupChats(convs, currentUser) {
-  if (!currentUser) return
-  const notifStore = useNotificationStore.getState()
-  const existingGroupChatIds = new Set(
-    notifStore.getByUserId(currentUser.id)
-      .filter(n => n.type === 'group_chat_opened')
-      .map(n => n.meta?.groupId)
-      .filter(Boolean)
-  )
-  convs.forEach(conv => {
-    if (conv.type === 'group' && conv.groupId && conv.hostId && conv.hostId !== currentUser.id) {
-      const isNew = _prevConvIds === null
-        ? !existingGroupChatIds.has(conv.groupId)
-        : !_prevConvIds.has(conv.id)
-      if (isNew) {
-        notifStore.create({
-          userId:  currentUser.id,
-          type:    'group_chat_opened',
-          title:   '群組聊天室已開啟',
-          message: `「${conv.name ?? conv.groupName}」群組聊天室已建立，點擊前往查看。`,
-          meta:    { groupId: conv.groupId },
-        })
-      }
-    }
-  })
-}
-
-// init()/refresh() 共用的訂閱回呼：更新 _prevConvIds 並檢查是否有新開的群組聊天室要補通知
-function subscribeAndSync(set, userId) {
+// init()/refresh() 共用的訂閱回呼
+function subscribeAndSync(set, get, userId) {
   if (_unsub) { _unsub(); _unsub = null }
   _unsub = subscribeToConversations(userId, convs => {
-    const currentUser = useAuthStore.getState().getProfile()
-    maybeNotifyGroupChats(convs, currentUser)
-    _prevConvIds = new Set(convs.map(c => c.id))
-    set({ conversations: convs })
+    // 後端 GET /conversations 會把還沒有任何訊息的 DM 濾掉（延遲曝光），但使用者剛點「聯絡」
+    // 樂觀建立的那筆空 DM 還在畫面上等他打字，不能被這次輪詢結果直接蓋掉，否則聊天視窗會
+    // 突然找不到這筆對話；保留本地既有、還沒送出過訊息的 DM，直到它真的有訊息才會被輪詢結果取代
+    const fetchedIds = new Set(convs.map(c => c.id))
+    const stillPendingDms = get().conversations.filter(
+      c => c.type === 'dm' && !c.lastMessage && !fetchedIds.has(c.id)
+    )
+    set({ conversations: [...convs, ...stillPendingDms] })
   })
 }
 
 export const useConversationStore = create((set, get) => ({
   conversations: [],
 
-  // ── 初始化（啟動 polling + 冷啟動補通知）────────────────────────────────────
+  // ── 初始化（啟動 polling）───────────────────────────────────────────────────
   init: (userId) => {
     if (!userId) return
     get().teardown()
-    _prevConvIds = null
-    subscribeAndSync(set, userId)
+    subscribeAndSync(set, get, userId)
   },
 
   teardown: () => {
     if (_unsub) { _unsub(); _unsub = null }
-    _prevConvIds = null
     set({ conversations: [] })
   },
 
-  // 重新建立監聽，不清空現有資料（避免閃爍）；跟 init() 共用同一套同步邏輯，
-  // 差別只在不重置 _prevConvIds，否則下次 init() 會拿到過期的 _prevConvIds，漏發或重複發通知
+  // 重新建立監聽，不清空現有資料（避免閃爍）
   refresh: (userId) => {
     if (!userId) return
-    subscribeAndSync(set, userId)
+    subscribeAndSync(set, get, userId)
   },
 
   // ── 選取器 ──────────────────────────────────────────────────────────────────

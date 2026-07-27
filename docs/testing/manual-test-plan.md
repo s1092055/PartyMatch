@@ -39,7 +39,7 @@ npm run db:seed-demo    # 建立 10 個 demo 帳號（含 1 個管理員）、22
 3. **快速搜尋**（`/quick-match`）：免登入使用、選服務/方案/條件、搜尋結果
 4. **建立群組**（`/create-group`）：4 步驟表單（選服務 → 選方案 → 群組設定 → 確認送出）
 5. **申請加入群組**：送出即代管扣款、留言、同意條款、撤回申請（退款）
-6. **團主審核申請**：核准（建群、額滿推進，不再重複扣款）、拒絕（退款，可重新申請）
+6. **團主審核申請**：接受（建群、額滿推進，不再重複扣款）、拒絕（退款，可重新申請）
 7. **群組狀態機**：`recruiting → full → pending_confirmation → pending_activation → confirming → {active|disputed} → active`，以及 `cancelled` / `ended` 分支（見 [`../flows/user-flows.md`](../flows/user-flows.md)）
 8. **成員名單管理**：招募期間退出/移除、鎖定後名單鎖死
 9. **填寫服務帳號資訊**：表單依服務的 `sharingMethod` 動態顯示欄位（email／Apple 或 Google 家庭共享／KKBOX 地址驗證／friDay 邀請碼／無官方機制的確認勾選框，見 [`../product/service-info-requirements.md`](../product/service-info-requirements.md)），成員填寫、全員完成後自動推進
@@ -61,7 +61,7 @@ npm run db:seed-demo    # 建立 10 個 demo 帳號（含 1 個管理員）、22
 
 ### P0（核心交易流程，必測）
 
-- 建立群組 → 申請加入（代管扣款）→ 審核核准 → 名額額滿 → 鎖定群組 → 填寫服務帳號資訊 → 全員完成自動推進 → 團主啟用服務 → 確認期確認/逾期自動撥款
+- 建立群組 → 申請加入（代管扣款）→ 審核接受 → 名額額滿 → 鎖定群組 → 填寫服務帳號資訊 → 全員完成自動推進 → 團主啟用服務 → 確認期確認/逾期自動撥款
 - 申請時PM幣餘額不足的擋下邏輯
 - 名額已滿時無法申請
 - 團主審核拒絕、成員撤回申請

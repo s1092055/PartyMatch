@@ -51,7 +51,7 @@ async function notify(actingUser, targetUserId, type, title, message, meta) {
   return api('POST', '/notifications', actingUser.token, { userId: targetUserId, type, title, message, meta })
 }
 
-// 送出申請並由團主核准，回傳該筆 application id；同時比照前端在申請/核准成功後
+// 送出申請並由團主接受，回傳該筆 application id；同時比照前端在申請/接受成功後
 // 建立通知的行為，補上 new_application/application_sent/application_approved
 async function applyAndApprove(hostUser, groupId, applicant, serviceName, message) {
   const app = await api('POST', '/applications', applicant.token, { groupId, message })
@@ -59,7 +59,7 @@ async function applyAndApprove(hostUser, groupId, applicant, serviceName, messag
   await notify(applicant, hostUser.id, 'new_application', '收到新的加入申請', `${applicant.name} 申請加入你的 ${serviceName} 群組`, meta)
   await notify(applicant, applicant.id, 'application_sent', '申請已送出', `已送出加入 ${serviceName} 群組的申請，等待團主審核`, meta)
   await api('PATCH', `/applications/${app.id}`, hostUser.token, { status: 'approved' })
-  await notify(hostUser, applicant.id, 'application_approved', '申請已核准', `你已通過 ${serviceName} 群組審核，請前往填寫服務帳號資訊`, meta)
+  await notify(hostUser, applicant.id, 'application_approved', '申請已接受', `你已通過 ${serviceName} 群組審核，請前往填寫服務帳號資訊`, meta)
   return app.id
 }
 
@@ -72,21 +72,16 @@ async function getMemberId(hostUser, groupId, userId) {
   return members.find(m => m.userId === userId)?.id
 }
 
-// 團主鎖定群組前，比照前端 useHostActions.js 的順序先建立聊天室，鎖定後通知所有成員，
-// 並比照 handleLockGroup 送出「請填寫服務帳號」的操作卡片（type:'action'，不是團主自己打字）
-async function lockGroup(hostUser, groupId, members = [], serviceName, serviceId) {
+// 團主鎖定群組前，比照前端 useHostActions.js 的順序先建立聊天室，鎖定後通知所有成員；
+// 填寫服務帳號改成群組詳情頁的 sub-modal 進行，不再需要另外送一則聊天室操作卡片
+async function lockGroup(hostUser, groupId, members = [], serviceName) {
   const conv = await api('POST', '/conversations/group', hostUser.token, { groupId })
   await api('POST', `/groups/${groupId}/lock`, hostUser.token)
   const meta = { groupId }
   await notify(hostUser, hostUser.id, 'group_chat_opened', '群組聊天室已開啟', '群組已鎖定，聊天室已建立，點擊查看。', meta)
   for (const m of members) {
-    await notify(hostUser, m.id, 'group_chat_opened', '群組聊天室已開啟', '群組聊天室已建立，請進入填寫服務帳號並完成付款。', meta)
+    await notify(hostUser, m.id, 'fill_service_info', '請填寫服務帳號資訊', `「${serviceName}」群組已鎖定，請進入填寫服務帳號並完成付款。`, meta)
   }
-  await sendActionMessage(hostUser, conv.id, {
-    content: `請填寫你在 ${serviceName} 的服務帳號資訊，以便團主幫你設定訂閱。`,
-    actionType: 'fill_service_info',
-    payload: { serviceName, serviceId },
-  })
   return conv.id
 }
 
@@ -108,11 +103,6 @@ async function sendMessage(user, convId, content) {
 // 聊天室裡會用「置中灰字、無頭像」呈現，不是團主自己打字發送的一般訊息
 async function sendSystemMessage(user, convId, content) {
   return api('POST', `/conversations/${convId}/messages`, user.token, { content, type: 'system' })
-}
-
-// 比照前端 sendActionMessage：帶操作卡片的訊息（例如鎖定群組後提示填寫服務帳號）
-async function sendActionMessage(user, convId, { content, actionType, payload }) {
-  return api('POST', `/conversations/${convId}/messages`, user.token, { content, type: 'action', actionType, payload })
 }
 
 // ── 服務目錄查詢（GET /services 是公開唯讀端點，不需要另外用 Prisma 查） ──
@@ -175,28 +165,28 @@ async function main() {
   await api('POST', '/applications', D1.token, { groupId: g1.id, message: '想加入！平常都用 Netflix 追劇，穩定準時繳費 🙏' })
   console.log('G1 recruiting（Netflix，年繳，1 筆待審申請）')
 
-  // ── G2 recruiting：demo4 主揪 Notion，1 位核准成員 + 1 筆拒絕 ──────────
+  // ── G2 recruiting：demo4 主揪 Notion，1 位接受成員 + 1 筆拒絕 ──────────
   const g2 = await createGroup(D4, { serviceId: 'notion', planId: 'notion-business-monthly', maxMembers: 3 })
   await applyAndApprove(D4, g2.id, D5, 'Notion')
   const g2App3 = await api('POST', '/applications', D3.token, { groupId: g2.id, message: '可以加入嗎？' })
   await api('PATCH', `/applications/${g2App3.id}`, D4.token, { status: 'rejected' })
   await notify(D4, D3.id, 'application_rejected', '申請未通過', '很抱歉，你申請加入的 Notion 群組審核未通過', { groupId: g2.id })
   await api('POST', `/favorites/${g2.id}`, H1.token)
-  console.log('G2 recruiting（Notion，1 位核准 + 1 位拒絕，demo7 已收藏）')
+  console.log('G2 recruiting（Notion，1 位接受 + 1 位拒絕，demo7 已收藏）')
 
   // ── G3 full：demo8 主揪 Spotify（6 人方案），滿員 + 1 筆撤回 ────────────
   const g3 = await createGroup(H2, { serviceId: 'spotify', planId: 'spotify-family', maxMembers: 6 })
-  for (const u of [D1, D2, D3, D4]) await applyAndApprove(H2, g3.id, u, 'Spotify') // 先核准 4/5，group 仍是 recruiting
+  for (const u of [D1, D2, D3, D4]) await applyAndApprove(H2, g3.id, u, 'Spotify') // 先接受 4/5，group 仍是 recruiting
   const g3AppWithdraw = await api('POST', '/applications', D6.token, { groupId: g3.id, message: '手滑申請到了，抱歉' })
   await api('DELETE', `/applications/${g3AppWithdraw.id}`, D6.token) // 撤回，此時仍在 recruiting 才能撤回
-  await applyAndApprove(H2, g3.id, H3, 'Spotify') // 核准第 5 位（+ 團主本人共 6 人），正式額滿 → full
+  await applyAndApprove(H2, g3.id, H3, 'Spotify') // 接受第 5 位（+ 團主本人共 6 人），正式額滿 → full
   await notify(H2, H2.id, 'group_full', '群組名額已滿', 'Spotify 群組名額已滿，記得鎖定群組並通知成員填寫帳號資訊', { groupId: g3.id })
   console.log('G3 full（Spotify，5 位成員＋團主共 6 人滿員 + 1 筆撤回）')
 
   // ── G4 pending_confirmation：demo7 主揪 Disney+，剛鎖定尚未填寫（shared_credentials）──
   const g4 = await createGroup(H1, { serviceId: 'disney', planId: 'disney-std-monthly', maxMembers: 2 })
   await applyAndApprove(H1, g4.id, D2, 'Disney+')
-  await lockGroup(H1, g4.id, [D2], 'Disney+', 'disney')
+  await lockGroup(H1, g4.id, [D2], 'Disney+')
   console.log('G4 pending_confirmation（Disney+，剛鎖定，成員尚未填寫）')
 
   // ── G5 pending_activation：demo9 主揪 HBO Max，全員已填完待啟用 ─────────
@@ -206,7 +196,7 @@ async function main() {
     await applyAndApprove(H3, g5.id, u, 'HBO Max')
     g5Members.push(u)
   }
-  const g5ConvId = await lockGroup(H3, g5.id, g5Members, 'HBO Max', 'hbo')
+  const g5ConvId = await lockGroup(H3, g5.id, g5Members, 'HBO Max')
   for (const u of g5Members) {
     const memberId = await getMemberId(H3, g5.id, u.id)
     await fillInfo(u, memberId, { acknowledged: true })
@@ -217,7 +207,7 @@ async function main() {
   // ── G6 confirming：demo8 主揪 ChatGPT Team，48h 確認期中，尚無人確認 ────
   const g6 = await createGroup(H2, { serviceId: 'chatgpt', planId: 'chatgpt-team-monthly', maxMembers: 2 })
   await applyAndApprove(H2, g6.id, H1, 'ChatGPT Team')
-  const g6ConvId = await lockGroup(H2, g6.id, [H1], 'ChatGPT Team', 'chatgpt')
+  const g6ConvId = await lockGroup(H2, g6.id, [H1], 'ChatGPT Team')
   const g6MemberId = await getMemberId(H2, g6.id, H1.id)
   await fillInfo(H1, g6MemberId, { email: H1.email })
   await activateGroup(H2, g6.id, [H1], g6ConvId, 'ChatGPT Team')
@@ -226,7 +216,7 @@ async function main() {
   // ── G7 disputed：demo9 主揪 ExpressVPN，demo6 申訴中，尚未裁定 ──────────
   const g7 = await createGroup(H3, { serviceId: 'expressvpn', planId: 'expressvpn-monthly', maxMembers: 2 })
   await applyAndApprove(H3, g7.id, D6, 'ExpressVPN')
-  const g7ConvId = await lockGroup(H3, g7.id, [D6], 'ExpressVPN', 'expressvpn')
+  const g7ConvId = await lockGroup(H3, g7.id, [D6], 'ExpressVPN')
   const g7MemberId = await getMemberId(H3, g7.id, D6.id)
   await fillInfo(D6, g7MemberId, { acknowledged: true })
   await activateGroup(H3, g7.id, [D6], g7ConvId, 'ExpressVPN')
@@ -241,7 +231,7 @@ async function main() {
   const g8 = await createGroup(H1, { serviceId: 'google-one', planId: 'google-one-ai-plus-monthly', maxMembers: 3 })
   const g8Members = [D2, D4]
   for (const u of g8Members) await applyAndApprove(H1, g8.id, u, 'Google One')
-  const g8ConvId = await lockGroup(H1, g8.id, g8Members, 'Google One', 'google-one')
+  const g8ConvId = await lockGroup(H1, g8.id, g8Members, 'Google One')
   for (const u of g8Members) {
     const memberId = await getMemberId(H1, g8.id, u.id)
     await fillInfo(u, memberId, { googleEmail: u.email })
@@ -261,7 +251,7 @@ async function main() {
   await api('DELETE', `/members/${g9LeaveMemberId}`, D5.token) // demo5 自行退出，full → recruiting，退回代管費用
   await notify(D5, H2.id, 'member_left', '成員已退出群組', '李冠宇 已退出 KKBOX 群組', { groupId: g9.id })
   await applyAndApprove(H2, g9.id, D1, 'KKBOX') // 名額釋出後由 demo1 補滿
-  const g9ConvId = await lockGroup(H2, g9.id, [H1, D1], 'KKBOX', 'kkbox')
+  const g9ConvId = await lockGroup(H2, g9.id, [H1, D1], 'KKBOX')
   for (const u of [H1, D1]) {
     const memberId = await getMemberId(H2, g9.id, u.id)
     await fillInfo(u, memberId, { email: u.email, address: '台北市信義區松仁路 100 號' })
@@ -291,7 +281,7 @@ async function main() {
   const g11 = await createGroup(H2, { serviceId: 'duolingo', planId: 'duolingo-family', maxMembers: 3 })
   await applyAndApprove(H2, g11.id, D1, 'Duolingo')
   await applyAndApprove(H2, g11.id, D3, 'Duolingo')
-  const g11ConvId = await lockGroup(H2, g11.id, [D1, D3], 'Duolingo', 'duolingo')
+  const g11ConvId = await lockGroup(H2, g11.id, [D1, D3], 'Duolingo')
   for (const u of [D1, D3]) {
     const memberId = await getMemberId(H2, g11.id, u.id)
     await fillInfo(u, memberId, { email: u.email })
@@ -323,7 +313,7 @@ async function main() {
   const g13 = await createGroup(D4, { serviceId: 'cursor', planId: 'cursor-business-monthly', maxMembers: 3 })
   await applyAndApprove(D4, g13.id, H1, 'Cursor')
   await applyAndApprove(D4, g13.id, D5, 'Cursor')
-  const g13ConvId = await lockGroup(D4, g13.id, [H1, D5], 'Cursor', 'cursor')
+  const g13ConvId = await lockGroup(D4, g13.id, [H1, D5], 'Cursor')
   for (const u of [H1, D5]) {
     const memberId = await getMemberId(D4, g13.id, u.id)
     await fillInfo(u, memberId, { email: u.email })
@@ -335,19 +325,19 @@ async function main() {
   // ── G14 pending_confirmation：demo9 主揪 Apple Music（家庭方案 6 人），全新鎖定尚未填寫（apple_family）──
   const g14 = await createGroup(H3, { serviceId: 'apple-music', planId: 'apple-music-family-monthly', maxMembers: 6 })
   for (const u of [D1, D2, D3, D4, H1]) await applyAndApprove(H3, g14.id, u, 'Apple Music')
-  await lockGroup(H3, g14.id, [D1, D2, D3, D4, H1], 'Apple Music', 'apple-music')
+  await lockGroup(H3, g14.id, [D1, D2, D3, D4, H1], 'Apple Music')
   console.log('G14 pending_confirmation（Apple Music，apple_family，全新鎖定尚未填寫）')
 
   // ── G15 pending_confirmation：demo7 主揪 Google One（100GB），全新鎖定尚未填寫（google_family）──
   const g15 = await createGroup(H1, { serviceId: 'google-one', planId: 'google-one-100-monthly', maxMembers: 2 })
   await applyAndApprove(H1, g15.id, D3, 'Google One')
-  await lockGroup(H1, g15.id, [D3], 'Google One', 'google-one')
+  await lockGroup(H1, g15.id, [D3], 'Google One')
   console.log('G15 pending_confirmation（Google One，google_family，全新鎖定尚未填寫）')
 
   // ── G16 pending_confirmation：demo8 主揪 friDay影音，全新鎖定尚未填寫（invite_code）──
   const g16 = await createGroup(H2, { serviceId: 'friday-video', planId: 'friday-video-plan', maxMembers: 2 })
   await applyAndApprove(H2, g16.id, D5, 'friDay影音')
-  await lockGroup(H2, g16.id, [D5], 'friDay影音', 'friday-video')
+  await lockGroup(H2, g16.id, [D5], 'friDay影音')
   console.log('G16 pending_confirmation（friDay影音，invite_code，全新鎖定尚未填寫）')
 
   // ── G17 recruiting：demo9 主揪 iCloud+，示範團主手動加入成員（略過申請流程）──
@@ -359,7 +349,7 @@ async function main() {
   const g18 = await createGroup(H2, { serviceId: 'microsoft-365', planId: 'microsoft-365-family-monthly', maxMembers: 6 })
   const g18Members = [D1, D2, D3, D4, H3]
   for (const u of g18Members) await applyAndApprove(H2, g18.id, u, 'Microsoft 365')
-  const g18ConvId = await lockGroup(H2, g18.id, g18Members, 'Microsoft 365', 'microsoft-365')
+  const g18ConvId = await lockGroup(H2, g18.id, g18Members, 'Microsoft 365')
   for (const u of g18Members) {
     const memberId = await getMemberId(H2, g18.id, u.id)
     await fillInfo(u, memberId, { email: u.email })
@@ -374,7 +364,7 @@ async function main() {
   const g19 = await createGroup(H3, { serviceId: 'dropbox', planId: 'dropbox-family', maxMembers: 6 })
   const g19Members = [D1, D2, D3, D4, H2]
   for (const u of g19Members) await applyAndApprove(H3, g19.id, u, 'Dropbox')
-  const g19ConvId = await lockGroup(H3, g19.id, g19Members, 'Dropbox', 'dropbox')
+  const g19ConvId = await lockGroup(H3, g19.id, g19Members, 'Dropbox')
   for (const u of g19Members) {
     const memberId = await getMemberId(H3, g19.id, u.id)
     await fillInfo(u, memberId, { email: u.email })
@@ -391,7 +381,7 @@ async function main() {
   const g20 = await createGroup(H1, { serviceId: 'nordvpn', planId: 'nordvpn-basic', maxMembers: 3 })
   await applyAndApprove(H1, g20.id, D3, 'NordVPN')
   await applyAndApprove(H1, g20.id, D5, 'NordVPN')
-  const g20ConvId = await lockGroup(H1, g20.id, [D3, D5], 'NordVPN', 'nordvpn')
+  const g20ConvId = await lockGroup(H1, g20.id, [D3, D5], 'NordVPN')
   for (const u of [D3, D5]) {
     const memberId = await getMemberId(H1, g20.id, u.id)
     await fillInfo(u, memberId, { acknowledged: true })

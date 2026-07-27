@@ -7,7 +7,7 @@
 
 ```mermaid
 flowchart TD
-    A[recruiting/full：已核准] -->|可退出| B[退出群組：代管費用退還]
+    A[recruiting/full：已接受] -->|可退出| B[退出群組：代管費用退還]
     A -->|等待鎖定| C[pending_confirmation：填寫服務帳號]
     C -->|團主回報問題| C
     C -->|全員填完| D[pending_activation：等待團主啟用]
@@ -35,11 +35,12 @@ flowchart TD
 |------|------|
 | `src/features/my-groups/member/MemberPage.jsx` | 頁面總入口，串接分頁與訂閱卡片 grid |
 | `src/features/my-groups/member/components/SubscriptionCard.jsx` | 單一訂閱卡片 |
-| `src/features/my-groups/member/components/MemberGroupView.jsx` | 成員視角群組詳情 Modal：填寫帳號、確認服務、申訴、退出、查看群組名單、付款管理 |
+| `src/features/my-groups/member/components/MemberGroupView.jsx` | 成員視角群組詳情 Modal：確認服務、申訴、退出、查看群組名單、付款管理 |
+| `src/features/my-groups/member/components/FillServiceInfoModal.jsx` | 填寫服務帳號的獨立 sub-modal，開啟時底下的群組詳情 Modal 完全隱藏，關閉才恢復顯示 |
 | `src/features/my-groups/member/components/memberGroupView/buildPaymentsPanel.jsx` | 付款管理面板，顯示自己這期最新一筆代管紀錄（見 PM幣代管流程文件） |
 | `src/shared/utils/serviceInfoFields.js` | `SHARING_METHOD_CONFIG`（各共享機制的欄位設定與提醒文案）、`hasFilledServiceInfo`、`getServiceInfoSummary` |
 | `src/features/my-groups/member/components/ReviewHostModal.jsx` | 確認服務完成後的團主評價彈窗 |
-| `src/features/my-groups/member/utils/memberFilters.js` | 分頁篩選邏輯：`FILTER_TABS`（審核中/招募中/處理中/服務中四個大分類；已移除「全部」，待鎖定/填寫資訊中/待啟用/確認期中/申訴中五種細分狀態併入「處理中」，`PROCESSING_STATUSES` 定義在 `src/shared/utils/groupStatus.js`，跟 host 端共用） |
+| `src/features/my-groups/member/utils/memberFilters.js` | 分頁篩選邏輯：`FILTER_TABS`（審核中/招募中/處理中/服務中四個大分類；已移除「全部」，待鎖定/成員填寫中/待啟用/確認期中/申訴中五種細分狀態併入「處理中」，`PROCESSING_STATUSES` 定義在 `src/shared/utils/groupStatus.js`，跟 host 端共用） |
 | `src/shared/ui/group/GroupViewModal.jsx` | 依身分決定渲染團主或成員視角的薄殼 |
 | `src/shared/ui/group/GroupModalShell.jsx` | 三層滑動 Panel 共用殼；桌機版側邊欄在左側（`md:order-first`），手機版仍堆疊在下方；Header 顯示「服務名稱 \| 方案名稱」 |
 | `src/shared/ui/group/GroupOverviewContent.jsx` | 群組概覽內容，含服務說明／方案說明（原本獨立的「服務內容」分頁已整併回這裡） |
@@ -65,7 +66,7 @@ flowchart TD
 
 ## 使用技術
 - **樂觀更新，失敗會回滾**：填寫服務帳號時先寫本地 state，如果 `PATCH` 失敗就把資料復原成送出前的樣子（不是清空），避免使用者辛苦填好的內容無故消失
-- **三層滑動 Panel**：從總覽切到填寫帳號／申訴／群組名單這類子面板，都是同一套滑動元件
+- **三層滑動 Panel**：從總覽切到申訴／群組名單這類子面板，都是同一套滑動元件；「填寫帳號」不在這套機制裡，見下方獨立說明
 - **`headerBanner`（倒數/狀態提醒橫幅）不綁定分頁**：渲染在 `activeDetail` 判斷之外，切到群組名單等分頁時倒數橫幅仍會顯示，不會只留在群組概覽
 - **「付款管理」面板只顯示最新一筆代管紀錄**：邏輯跟團主端「收款管理」對齊，只看自己這期最新一筆 `escrow` 交易；未撥款時文案「本期費用已交由平台代管，尚未撥款至團主帳戶」，`group.status` 進入 `active`/`paused`/`ended` 後視為已撥款，文案改「本期費用已撥款給團主」；退款等歷史紀錄不在這裡處理
 - **「服務內容」分頁已整併回群組概覽**：獨立分頁已移除，服務說明／方案說明直接顯示在群組概覽畫面，跟探索頁 `GroupDetailModal` 的呈現方式統一；服務說明拆成「服務說明」「方案說明」兩個並列的大標題區塊，字級一樣大
@@ -81,10 +82,10 @@ flowchart TD
 ## 流程步驟
 
 **1. 查看訂閱列表**
-- `MemberPage` 依分頁（審核中／招募中／處理中／服務中）過濾出屬於自己的訂閱資料；待鎖定／填寫資訊中／待啟用／確認期中／申訴中都併在「處理中」，細分階段交給卡片本身的狀態 badge 顯示（見 `memberFilters.js` 的 `FILTER_TABS`）；已結束／已取消的訂閱不在這幾個分頁裡，要點最上方的「群組紀錄」按鈕查看
+- `MemberPage` 依分頁（審核中／招募中／處理中／服務中）過濾出屬於自己的訂閱資料；待鎖定／成員填寫中／待啟用／確認期中／申訴中都併在「處理中」，細分階段交給卡片本身的狀態 badge 顯示（見 `memberFilters.js` 的 `FILTER_TABS`）；已結束／已取消的訂閱不在這幾個分頁裡，要點最上方的「群組紀錄」按鈕查看
 
 **2. 填寫服務帳號（`pending_confirmation`）**
-- 還沒填寫帳號資訊時，`MemberGroupView` 會在群組概覽底部顯示「填寫帳號」動態按鈕（跟「確認服務」「回報問題」同一個位置，不是側邊欄項目），點開表單依該服務的 `sharingMethod` 動態顯示對應欄位（一般是 email；KKBOX 多一個地址欄位；friDay影音是邀請碼；無官方邀請機制的服務則是一個確認勾選框），送出後寫入 `Member.serviceInfo`（詳見 [各服務填寫帳號資訊需求調查](../product/service-info-requirements.md)）
+- 還沒填寫帳號資訊時，`MemberGroupView` 會在群組概覽底部顯示「填寫帳號」動態按鈕（跟「確認服務」「回報問題」同一個位置，不是側邊欄項目），點擊後開啟 `FillServiceInfoModal`——一個堆疊在群組詳情 Modal 上方的獨立 sub-modal，開啟時底下的群組詳情 Modal 會完全隱藏（不是半透明疊加），關閉 sub-modal 才會重新顯示群組詳情；表單依該服務的 `sharingMethod` 動態顯示對應欄位（一般是 email；KKBOX 多一個地址欄位；friDay影音是邀請碼；無官方邀請機制的服務則是一個確認勾選框），送出後寫入 `Member.serviceInfo`（詳見 [各服務填寫帳號資訊需求調查](../product/service-info-requirements.md)）
 - 頁面頂部會顯示「請填寫服務帳號以完成加入流程，剩餘 HH:MM:SS」倒數橫幅（讀 `group.serviceInfoDeadline`，鎖定時間 + 24h，每秒更新；逾期只顯示「已逾期」，不會有任何自動處理）
 - 後端會檢查群組內是否全員都已經填寫，如果是，就自動把群組狀態推進到「等待團主啟用」
 

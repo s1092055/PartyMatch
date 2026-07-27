@@ -5,6 +5,7 @@ import {
   patchNotification,
   markAllNotificationsRead,
 } from '../api/notificationsApi'
+import { useAuthStore } from './useAuthStore'
 import { nowISO, todayISO, byNewest } from '../utils/date'
 import { createId } from '../utils/storage'
 import { startPolling } from '../utils/poller'
@@ -94,6 +95,12 @@ export const useNotificationStore = create((set, get) => ({
         const newNotifs = latest.filter(n => n.userId === _notifUserId && !currentIds.has(n.id))
         if (newNotifs.some(n => n.type === 'member_removed' || n.type === 'member_left')) {
           window.dispatchEvent(new CustomEvent('pm:refresh-member-stores'))
+        }
+        // 這幾種通知都代表 PM幣餘額剛被後端改動過（退款或撥款），不用等使用者點擊通知才更新，
+        // 避免在點開通知之前，帳號中心/儲值 Modal 顯示的餘額是過期的舊值
+        const BALANCE_AFFECTING_TYPES = new Set(['member_removed', 'application_rejected', 'escrow_released', 'dispute_resolved', 'group_cancelled'])
+        if (newNotifs.some(n => BALANCE_AFFECTING_TYPES.has(n.type))) {
+          useAuthStore.getState().refreshTokenBalance().catch(console.error)
         }
         if (newNotifs.some(n => n.type === 'new_application' || n.type === 'application_withdrawn')) {
           window.dispatchEvent(new CustomEvent('pm:refresh-application-store'))

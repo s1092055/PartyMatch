@@ -3,6 +3,7 @@ import { useMemberStore } from '../../../shared/stores/useMemberStore'
 import { useSubscriptionStore } from '../../../shared/stores/useSubscriptionStore'
 import { useApplicationStore } from '../../../shared/stores/useApplicationStore'
 import { useConversationStore } from '../../../shared/stores/useConversationStore'
+import { useAuthStore } from '../../../shared/stores/useAuthStore'
 import { leaveConversation, sendSystemMessage } from '../../../shared/api/messagesApi'
 import { insertNotification } from '../../../shared/api/notificationsApi'
 
@@ -19,6 +20,8 @@ export async function finalizeLeaveGroup(groupId, user) {
   const group = groupId ? useGroupStore.getState().getById(groupId) : null
   const member = groupId ? useMemberStore.getState().getByUserAndGroup(user.id, groupId) : null
   if (member) useMemberStore.getState().remove(member.id)
+  // 退出會退還加入時代管的金額，重新拉一次餘額讓畫面上的PM幣顯示同步
+  if (member) useAuthStore.getState().refreshTokenBalance().catch(console.error)
 
   // 樂觀把 application 標為 left，讓成員可重新申請
   const appToRemove = useApplicationStore.getState().applications.find(

@@ -7,6 +7,8 @@ import { toISODate } from '../../../../shared/utils/date'
 import { isEffectivelyActive } from '../../../../shared/utils/groupStatus'
 import { getRenewalAwareStatus } from '../../../../shared/utils/groupStatusDisplay'
 import { calcDisplayPrice, calcDisplayCycle } from '../../../../shared/utils/pricingUtils'
+import { getServiceById } from '../../../../shared/utils/serviceUtils'
+import { hasFilledServiceInfo } from '../../../../shared/utils/serviceInfoFields'
 
 function getBadgeStatus(sub) {
   const status = sub.groupStatus ?? sub.status
@@ -28,6 +30,12 @@ function SubscriptionCard({ sub, onViewGroup }) {
   const isActive      = badgeStatus === 'active'
   const memberCount   = sub.usedSeats ?? 0
 
+  // 已填完服務帳號、還在等其他成員的話，卡片不能顯示跟「還沒填」一樣的「成員填寫中」，
+  // 不然會讓人誤以為自己還沒填寫；改成綠色「已填寫完成」，跟群組詳情 Modal 的判斷邏輯一致
+  const sharingMethod   = getServiceById(sub.serviceId)?.sharingMethod
+  const waitingForOthers = badgeStatus === 'pending_confirmation' &&
+    hasFilledServiceInfo(sub.serviceInfo, sharingMethod) && !sub.serviceInfoIssueNote
+
   return (
     <article
       className="card card-lift relative flex min-h-full cursor-pointer flex-col overflow-hidden rounded-card border-line bg-surface p-5"
@@ -35,8 +43,8 @@ function SubscriptionCard({ sub, onViewGroup }) {
     >
       <div className="flex justify-center">
         <Badge
-          variant={displayStatus === 'recruiting' ? 'member_joined' : displayStatus}
-          label={displayStatus === 'full' ? '等待鎖定' : undefined}
+          variant={waitingForOthers ? 'active' : displayStatus === 'recruiting' ? 'member_joined' : displayStatus}
+          label={waitingForOthers ? '已填寫完成' : displayStatus === 'full' ? '等待鎖定' : undefined}
         />
       </div>
 
@@ -81,5 +89,7 @@ export default memo(SubscriptionCard, (prev, next) =>
   prev.sub.groupStatus === next.sub.groupStatus &&
   prev.sub.confirmedAt === next.sub.confirmedAt &&
   prev.sub.nextBillingDate === next.sub.nextBillingDate &&
+  prev.sub.serviceInfo === next.sub.serviceInfo &&
+  prev.sub.serviceInfoIssueNote === next.sub.serviceInfoIssueNote &&
   prev.onViewGroup === next.onViewGroup
 )

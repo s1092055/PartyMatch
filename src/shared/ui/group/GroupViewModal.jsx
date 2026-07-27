@@ -10,7 +10,7 @@ export default function GroupViewModal({
   isOpen, onClose, groupId,
   onReportServiceInfoIssue, onActivate, onLockGroup, onCancelGroup, onRemoveMember,
   onLeaveGroup, onApprove, onReject, errors,
-  autoOpenLockGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling,
+  autoOpenLockGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling, autoOpenMemberInfo,
   onOpenRenewal,
 }) {
   // 訂閱 store 切片，群組/成員/申請更新時自動重新渲染
@@ -51,6 +51,7 @@ export default function GroupViewModal({
       onAutoOpenActivateDone={onAutoOpenActivateDone}
       autoOpenApplications={autoOpenApplications}
       autoOpenBilling={autoOpenBilling}
+      autoOpenMemberInfo={autoOpenMemberInfo}
       onOpenRenewal={onOpenRenewal}
     />
   )

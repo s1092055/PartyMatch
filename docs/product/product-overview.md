@@ -63,7 +63,7 @@ PartyMatch 把媒合、審核、代管撥款、服務帳號確認做成平台內
 - **快速搜尋**：免登入輸入服務、方案、預算，系統推薦符合條件的群組（`src/features/match/`）
 - **建立群組**：4 步驟表單（選服務 → 選方案 → 群組設定 → 確認送出），含桌機即時預覽（`src/features/create/`）
 - **申請加入**：送出申請、查看審核狀態（`server/src/routes/applications.js`）
-- **團主審核**：核准／拒絕申請，代管扣款在申請當下已完成，核准只處理名額、拒絕則退款（`src/features/my-groups/host/`）
+- **團主審核**：接受／拒絕申請，代管扣款在申請當下已完成，接受只處理名額、拒絕則退款（`src/features/my-groups/host/`）
 - **我的群組（雙視角）**：同一頁面依「我是成員」/「我是團主」切換視角，查看訂閱、群組管理、群組紀錄（`src/features/my-groups/`）
 - **PM 幣代管與撥款**：送出申請即扣款進入群組代管餘額，拒絕或撤回退款，啟用服務時撥款給團主（`server/src/routes/tokens.js`、`server/src/routes/applications.js`、`server/src/routes/groups.js`）
 - **續訂**：團主可手動開始新一期續訂週期（`groups.js` 的 `/renew`）

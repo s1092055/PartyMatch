@@ -33,11 +33,21 @@ function enrichSubs(rawSubs, userId) {
   return rawSubs.map(s => {
     const group = getGroupById(s.groupId)
     const member = myMemberByGroupId.get(s.groupId)
-    if (!group) return { ...s, groupStatus: s.groupStatus ?? s.status, confirmedAt: member?.confirmedAt ?? null }
+    if (!group) {
+      return {
+        ...s,
+        groupStatus:          s.groupStatus ?? s.status,
+        confirmedAt:          member?.confirmedAt ?? null,
+        serviceInfo:          member?.serviceInfo ?? null,
+        serviceInfoIssueNote: member?.serviceInfoIssueNote ?? null,
+      }
+    }
     return {
       ...s,
       groupStatus:       group.status,
       confirmedAt:       member?.confirmedAt ?? null,
+      serviceInfo:          member?.serviceInfo ?? null,
+      serviceInfoIssueNote: member?.serviceInfoIssueNote ?? null,
       serviceName:       s.serviceName  || group.serviceName,
       serviceId:         s.serviceId    || group.serviceId,
       planName:          s.planName     || group.planName,

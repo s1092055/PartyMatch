@@ -1,7 +1,7 @@
 # 團主審核申請
 
 ## 使用者目標
-團主檢視收到的加入申請，決定核准或拒絕。代管扣款在申請當下就已經完成，核准只需要建立成員與名額，拒絕則要把代管的金額退還申請人；高併發下也不能超賣名額或重複處理同一筆申請。
+團主檢視收到的加入申請，決定接受或拒絕。代管扣款在申請當下就已經完成，接受只需要建立成員與名額，拒絕則要把代管的金額退還申請人；高併發下也不能超賣名額或重複處理同一筆申請。
 
 ## 流程圖
 
@@ -12,7 +12,7 @@ sequenceDiagram
     participant BE as 後端
     participant DB as 資料庫（$transaction）
 
-    H->>FE: 點擊「核准」/「拒絕」
+    H->>FE: 點擊「接受」/「拒絕」
     FE->>BE: PATCH /applications/:id { status }
 
     alt 拒絕
@@ -25,7 +25,7 @@ sequenceDiagram
             BE->>DB: 寫入 TokenTransaction(refund)
             BE-->>FE: 200
         end
-    else 核准
+    else 接受
         BE->>DB: updateMany WHERE status='pending' → approved
         alt count === 0（已被處理）
             DB-->>BE: count 0
@@ -60,7 +60,7 @@ sequenceDiagram
 | `src/features/my-groups/host/HostPage.jsx` | 頁面入口 |
 | `src/features/my-groups/host/components/HostGroupView.jsx` | 團主視角群組詳情 |
 | `src/features/my-groups/host/components/hostGroupView/buildApplicationsPanel.jsx` | 申請管理面板 |
-| `src/features/my-groups/host/components/hostGroupView/ApplicationCard.jsx` | 單筆申請卡片：核准/拒絕按鈕、審核中/已核准/已拒絕/已移除/已退出狀態 badge |
+| `src/features/my-groups/host/components/hostGroupView/ApplicationCard.jsx` | 單筆申請卡片：接受/拒絕按鈕、審核中/已接受/已拒絕/已移除/已退出狀態 badge |
 | `src/features/my-groups/host/hooks/useHostActions.js` | `handleApprove`、`handleReject` |
 | `src/features/my-groups/host/utils/hostFilters.js` | `calcApprovalSeatPatch`，前端本地名額計算 |
 | `src/shared/stores/useApplicationStore.js` | `updateStatus` |
@@ -71,7 +71,7 @@ sequenceDiagram
 | 路徑 | 說明 |
 |------|------|
 | `server/src/routes/applications.js` | `PATCH /applications/:id` |
-| `server/src/utils/membership.js` | `finalizeApprovedApplication`（核准用）、`refundEscrow`（拒絕退款用） |
+| `server/src/utils/membership.js` | `finalizeApprovedApplication`（接受用）、`refundEscrow`（拒絕退款用） |
 | `server/src/utils/pricing.js` | `computeSeatCost`，僅在申請沒有 `escrowAmount`（例如舊資料）時作為 fallback |
 
 **資料表 / Model**
@@ -80,20 +80,20 @@ sequenceDiagram
 |-------|------|
 | `Application` | 狀態變更：`pending → approved/rejected`；`escrowAmount` 記錄申請當下實際代管的金額 |
 | `Group` | 更新 `currentMembers`、`status`；拒絕時退回 `escrowTokens` |
-| `Member` | 核准時 `upsert` 建立 |
-| `Subscription` | 核准時 `upsert` 建立，狀態預設 `pending` |
+| `Member` | 接受時 `upsert` 建立 |
+| `Subscription` | 接受時 `upsert` 建立，狀態預設 `pending` |
 | `User` | 拒絕時退還申請人 `tokenBalance` |
 | `TokenTransaction` | 拒絕時寫入 `type: 'refund'` 紀錄 |
 
 ## 使用技術
-- **代管扣款不在這裡發生**：申請當下（見 `apply-join-flow.md`）就已經扣款代管，核准這一步只需要建立成員、更新名額，改呼叫 `finalizeApprovedApplication`（跟團主手動加人共用的 `admitMemberIntoGroup` 是兩個不同函式，各自只做自己那份工作，不用 flag 切換行為）
-- **用 Prisma interactive transaction 包住整個核准流程**：查名額上限、呼叫 `finalizeApprovedApplication`（名額檢查、建立 member/subscription、額滿轉 full）全部包在同一個 `$transaction` 裡，任何一步出錯就整個回滾，不會發生「申請標成 approved，但成員卻沒建出來」這種半套狀態
+- **代管扣款不在這裡發生**：申請當下（見 `apply-join-flow.md`）就已經扣款代管，接受這一步只需要建立成員、更新名額，改呼叫 `finalizeApprovedApplication`（跟團主手動加人共用的 `admitMemberIntoGroup` 是兩個不同函式，各自只做自己那份工作，不用 flag 切換行為）
+- **用 Prisma interactive transaction 包住整個接受流程**：查名額上限、呼叫 `finalizeApprovedApplication`（名額檢查、建立 member/subscription、額滿轉 full）全部包在同一個 `$transaction` 裡，任何一步出錯就整個回滾，不會發生「申請標成 approved，但成員卻沒建出來」這種半套狀態
 - **用條件式 `updateMany` 當樂觀鎖**：`tx.application.updateMany({ where: { id, status: 'pending' }, data: { status: 'approved' } })`，靠 `WHERE status = 'pending'` 確保只有第一個請求能把 `count` 變成 1；重複點擊或多開分頁送出的第二個請求會拿到 `count === 0`，直接回 409 中止
-- **拒絕分支：狀態一定寫入，退款才看情況**：拒絕（或團主移除已核准成員時前端連帶送出的 `status: 'removed'`）都會先嘗試條件式 `updateMany`（僅 `status: 'pending'` 才算數）；搶到了才退款，沒搶到（代表這筆申請已經不是 `pending`，例如成員被移除、`DELETE /members/:id` 已經處理過自己的退款）就退化成一次無條件的狀態寫入，只是不會再退一次款——狀態轉換跟退款是兩件事，不能共用同一個判斷式，不然申請狀態會卡住出不去（見下方「驗證重點」）
+- **拒絕分支：狀態一定寫入，退款才看情況**：拒絕（或團主移除已接受成員時前端連帶送出的 `status: 'removed'`）都會先嘗試條件式 `updateMany`（僅 `status: 'pending'` 才算數）；搶到了才退款，沒搶到（代表這筆申請已經不是 `pending`，例如成員被移除、`DELETE /members/:id` 已經處理過自己的退款）就退化成一次無條件的狀態寫入，只是不會再退一次款——狀態轉換跟退款是兩件事，不能共用同一個判斷式，不然申請狀態會卡住出不去（見下方「驗證重點」）
 - **退款用當初實際扣的金額，不是即時價格**：`Application.escrowAmount` 記錄申請當下真正扣了多少 PM 幣，拒絕/撤回退款都讀這個值，並跟目前 `group.escrowTokens` 取 `Math.min` 夾住，避免團主事後改價格、或代管餘額因故不足時退款金額對不上或被扣成負數
 - **退款邏輯抽成共用函式**：`refundEscrow(tx, { userId, groupId, amount, note })` 讓這裡（拒絕）、撤回申請（`DELETE /applications/:id`）、成員移除/退出（`members.js`）三處共用，不用各自重寫一次「加回餘額、扣代管、寫交易紀錄」
-- **名額防超賣也是靠條件式 `updateMany`**：`count === 0` 就代表寫入的那一瞬間名額其實已經滿了，直接 409 擋下，避免兩筆申請同時核准、超過 `maxMembers`
-- 前端 `handleApprove` 送出前會先做一次本地名額快照檢查，這只是給使用者的即時回饋，真正的防線還是後端的 transaction；核准成功後會重新拉一次真實資料，確保 store 裡拿到的是 transaction 建出來的真實 `Member`/`Subscription` id
+- **名額防超賣也是靠條件式 `updateMany`**：`count === 0` 就代表寫入的那一瞬間名額其實已經滿了，直接 409 擋下，避免兩筆申請同時接受、超過 `maxMembers`
+- 前端 `handleApprove` 送出前會先做一次本地名額快照檢查，這只是給使用者的即時回饋，真正的防線還是後端的 transaction；接受成功後會重新拉一次真實資料，確保 store 裡拿到的是 transaction 建出來的真實 `Member`/`Subscription` id
 
 ## 流程步驟
 
@@ -101,15 +101,15 @@ sequenceDiagram
 - 團主在「申請管理」分頁看到 `pendingApps`（`app.status === 'pending'`）
 - `ApplicationCard` 顯示申請人姓名、信用分數 badge、相對時間，以及可展開的申請留言
 
-**2. 點擊核准**
-- `ApplicationCard` 呼叫 `onApprove(app.id)`，`buildApplicationsPanel` 先執行核准，成功後把面板收合
+**2. 點擊接受**
+- `ApplicationCard` 呼叫 `onApprove(app.id)`，`buildApplicationsPanel` 先執行接受，成功後把面板收合
 - `useHostActions.handleApprove(appId)` 依序做本地檢查：
   - 確認申請仍是 `pending`、對應群組還存在
-  - `alreadyMember`：是否已經是成員（避免重複核准造成的邊界情況）
-  - `seats.openSeats <= 0`：已經額滿就顯示「此群組已額滿，無法核准」，不會呼叫 API
+  - `alreadyMember`：是否已經是成員（避免重複接受造成的邊界情況）
+  - `seats.openSeats <= 0`：已經額滿就顯示「此群組已額滿，無法接受」，不會呼叫 API
 - 通過檢查後，先樂觀把本地那筆申請改成 `approved`（順便把團主自己「收到新申請」的通知標成已讀），再打 `PATCH /applications/:id { status: 'approved' }`
 
-**3. 後端核准邏輯**
+**3. 後端接受邏輯**
 - 先確認 `application.group.hostId === req.user.id`（只有團主本人能審核），否則回 403
 - 進入 `$transaction`：
   1. 條件式 `updateMany` 搶佔申請，`count === 0` 就丟出 409（此申請已被處理，請重新整理頁面）
@@ -120,10 +120,10 @@ sequenceDiagram
 **4. `finalizeApprovedApplication` 內部做的事**
 - 不做任何餘額檢查或扣款，因為申請當下已經確認過餘額並扣款完成
 - 用條件式 `updateMany` 檢查並鎖定名額，失敗就丟出 409
-- 平行執行：`Member.upsert`、`Subscription.upsert`（用 `upsert` 是因為「團主直接加人」跟「申請核准」概念上是同一件事，就算使用者已經有殘留記錄也不會報錯）
+- 平行執行：`Member.upsert`、`Subscription.upsert`（用 `upsert` 是因為「團主直接加人」跟「申請接受」概念上是同一件事，就算使用者已經有殘留記錄也不會報錯）
 - 重新查一次群組的 `currentMembers`/`maxMembers`，剛好達到上限就把群組狀態推進為 `full`
 
-**5. 核准成功後**
+**5. 接受成功後**
 - 前端重新拉取真實的成員/訂閱資料
 - 用 `calcApprovalSeatPatch(seats, alreadyMember)` 算出本地 `usedSeats`/`openSeats`（剛好額滿會附帶 `status: 'full'`）並樂觀更新群組
 - 只寫 DB 通知申請人「申請已通過」；如果剛好額滿，還會即時通知團主自己「群組名額已滿，可以點擊鎖定群組了」
@@ -135,9 +135,9 @@ sequenceDiagram
 
 ## 驗證重點
 - 權限：`PATCH /applications/:id` 要求 `application.group.hostId === req.user.id`，非團主一律回 403
-- 重複核准防護：條件式 `updateMany({ where: { status: 'pending' } })` 是唯一防線，重複點擊或網路重試送出兩個一樣的 PATCH，後到的那個拿 `count === 0` 整批回滾，不會建成員
-- 名額超賣防護：`finalizeApprovedApplication` 的條件式 `updateMany` 確保兩筆申請幾乎同時核准時只有一筆能把 `currentMembers` 加 1，另一筆回 409，不會超過 `maxMembers`
-- 核准不再重複扣款：代管扣款只在申請當下發生一次，核准時 `finalizeApprovedApplication` 完全不碰 `tokenBalance`/`escrowTokens`
-- **拒絕/移除時狀態一定要寫入，即使不用退款**：早期版本曾經把狀態寫入也包進退款的條件式 `updateMany` 裡，導致團主移除已核准成員時（該申請當下狀態是 `approved` 不是 `pending`），退款判斷正確跳過，但狀態轉換也被一起跳過，申請永遠卡在 `approved`、`activeKey` 也永遠不會清空，使用者從此無法重新申請同一群組。修正後狀態轉換一定會執行，只有退款金額的寫入受條件式保護
+- 重複接受防護：條件式 `updateMany({ where: { status: 'pending' } })` 是唯一防線，重複點擊或網路重試送出兩個一樣的 PATCH，後到的那個拿 `count === 0` 整批回滾，不會建成員
+- 名額超賣防護：`finalizeApprovedApplication` 的條件式 `updateMany` 確保兩筆申請幾乎同時接受時只有一筆能把 `currentMembers` 加 1，另一筆回 409，不會超過 `maxMembers`
+- 接受不再重複扣款：代管扣款只在申請當下發生一次，接受時 `finalizeApprovedApplication` 完全不碰 `tokenBalance`/`escrowTokens`
+- **拒絕/移除時狀態一定要寫入，即使不用退款**：早期版本曾經把狀態寫入也包進退款的條件式 `updateMany` 裡，導致團主移除已接受成員時（該申請當下狀態是 `approved` 不是 `pending`），退款判斷正確跳過，但狀態轉換也被一起跳過，申請永遠卡在 `approved`、`activeKey` 也永遠不會清空，使用者從此無法重新申請同一群組。修正後狀態轉換一定會執行，只有退款金額的寫入受條件式保護
 - 拒絕退款用 `escrowAmount` 而非即時 `computeSeatCost`，避免團主事後修改群組價格/計費週期時，退款金額跟當初真正扣的錢對不上
-- 核准、建 `Member`/`Subscription`、額滿轉 `full` 全部包在同一個 transaction，任何一步失敗就整批回滾，不會出現「核准了但沒建成員」的中間狀態
+- 接受、建 `Member`/`Subscription`、額滿轉 `full` 全部包在同一個 transaction，任何一步失敗就整批回滾，不會出現「接受了但沒建成員」的中間狀態

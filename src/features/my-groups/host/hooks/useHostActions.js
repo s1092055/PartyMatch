@@ -18,7 +18,7 @@ import { STATUS_FILTER_TABS, matchesFilter, calcApprovalSeatPatch } from '../uti
 const getGroupById     = (id)      => useGroupStore.getState().getById(id)
 const getGroupsByHostId = (hostId) => useGroupStore.getState().getByHostId(hostId)
 const updateGroup      = (id, p)   => useGroupStore.getState().update(id, p)
-const lockGroup           = (id)   => useGroupStore.getState().lockGroup(id)
+const lockGroup           = (id, sharedCredentials) => useGroupStore.getState().lockGroup(id, sharedCredentials)
 const activateService     = (id)   => useGroupStore.getState().activateService(id)
 const startRenewalCycle = (id)     => useGroupStore.getState().startRenewalCycle(id)
 const endGroup         = (id)      => useGroupStore.getState().endGroup(id)
@@ -70,9 +70,10 @@ export function useHostActions(activeUser) {
   const [autoOpenActivate, setAutoOpenActivate]           = useState(false)
   const [autoOpenApplications, setAutoOpenApplications]   = useState(false)
   const [autoOpenBilling, setAutoOpenBilling]             = useState(false)
+  const [autoOpenMemberInfo, setAutoOpenMemberInfo]       = useState(false)
   const [renewalModalGroupId, setRenewalModalGroupId]     = useState(null)
 
-  function applyOpenHostGroup({ groupId, openGroupId, statusFilter: selectedStatusFilter, openLockGroup, openActivate, openApplications, openBilling }) {
+  function applyOpenHostGroup({ groupId, openGroupId, statusFilter: selectedStatusFilter, openLockGroup, openActivate, openApplications, openBilling, openMemberInfo }) {
     const gId = groupId ?? openGroupId
     if (!gId) return
     if (selectedStatusFilter) {
@@ -90,6 +91,7 @@ export function useHostActions(activeUser) {
     setAutoOpenActivate(!!openActivate)
     setAutoOpenApplications(!!openApplications)
     setAutoOpenBilling(!!openBilling)
+    setAutoOpenMemberInfo(!!openMemberInfo)
   }
 
   // 跨頁面：從 location.state 讀（HostPage 剛掛載時）
@@ -161,7 +163,7 @@ export function useHostActions(activeUser) {
     setHostData(prev => ({ ...prev, hostedGroups: getGroupsByHostId(activeUser.id) }))
   }
 
-async function handleLockGroup() {
+async function handleLockGroup(sharedCredentials) {
     if (!viewGroupId) return
     const group = getGroupById(viewGroupId)
     if (!group) return
@@ -171,13 +173,8 @@ async function handleLockGroup() {
       // 先建立聊天室（後端 POST /conversations/group 已包含所有成員），再鎖定群組狀態
       const conv = await createGroupConversation({ groupId: viewGroupId })
       const convId = conv.id
-      await lockGroup(viewGroupId)
+      await lockGroup(viewGroupId, sharedCredentials)
 
-      await sendActionMessage(convId, {
-        text: `請填寫你在 ${group.serviceName} 的服務帳號資訊，以便團主幫你設定訂閱。`,
-        actionType: 'fill_service_info',
-        payload: { serviceName: group.serviceName, serviceId: group.serviceId },
-      })
       // 通知團主自己
       createNotification({
         userId:  group.hostId,
@@ -186,13 +183,15 @@ async function handleLockGroup() {
         message: `「${group.serviceName}」群組已鎖定，聊天室已建立，點擊查看。`,
         meta:    { groupId: viewGroupId },
       })
-      // 通知所有成員（只寫 DB，成員刷新後看到）
+      // 通知所有成員（只寫 DB，成員刷新後看到）：不是單純告知「聊天室開了」，而是直接提醒
+      // 要做的事——填寫服務帳號資訊，跟團主自己收到的「聊天室已開啟」在語意上分開，避免兩則
+      // 內容幾乎一樣的通知混在一起看起來像是重複發送
       groupMembers.forEach(m => {
         insertNotification({
           userId:  m.userId,
-          type:    'group_chat_opened',
-          title:   '群組聊天室已開啟',
-          message: `「${group.serviceName}」群組聊天室已建立，請進入填寫服務帳號並完成付款。`,
+          type:    'fill_service_info',
+          title:   '請填寫服務帳號資訊',
+          message: `「${group.serviceName}」群組已鎖定，請進入填寫服務帳號並完成付款。`,
           meta:    { groupId: viewGroupId },
         }).catch(console.error)
       })
@@ -249,7 +248,7 @@ function handleRemoveMember(member) {
       userId:  member.userId,
       type:    'member_removed',
       title:   '已被移出群組',
-      message: `團主已將你移出「${groupLabel}」群組。`,
+      message: `團主已將你移出「${groupLabel}」群組，代管費用已退還至你的PM幣餘額。`,
       meta:    { groupId: member.groupId },
     }).catch(console.error)
     const convId = getConvByGroupId(member.groupId)?.id
@@ -385,7 +384,7 @@ async function handleApprove(appId) {
 
     const group = getGroupById(app.groupId) ?? allGroups.find(g => g.id === app.groupId)
     if (!group) {
-      setErrors(prev => ({ ...prev, [appId]: '找不到群組資料，無法核准' }))
+      setErrors(prev => ({ ...prev, [appId]: '找不到群組資料，無法接受' }))
       return
     }
 
@@ -393,7 +392,7 @@ async function handleApprove(appId) {
     const alreadyMember = isUserGroupMember(applicantId, app.groupId)
     const seats = seatMap[app.groupId] ?? { usedSeats: group.usedSeats, openSeats: group.openSeats }
     if (!alreadyMember && (!seats || seats.openSeats <= 0)) {
-      setErrors(prev => ({ ...prev, [appId]: '此群組已額滿，無法核准' }))
+      setErrors(prev => ({ ...prev, [appId]: '此群組已額滿，無法接受' }))
       return
     }
 
@@ -402,7 +401,7 @@ async function handleApprove(appId) {
       await updateApplicationStatus(appId, 'approved')
     } catch (err) {
       console.error('[handleApprove] failed:', err)
-      setErrors(prev => ({ ...prev, [appId]: '核准失敗，請重試' }))
+      setErrors(prev => ({ ...prev, [appId]: '接受失敗，請重試' }))
       await useApplicationStore.getState().init()
       return
     }
@@ -494,7 +493,7 @@ async function handleApprove(appId) {
       userId:  app.applicantId ?? app.userId,
       type:    'application_rejected',
       title:   '申請未通過',
-      message: `很遺憾，你加入「${app.groupName ?? app.serviceName}」群組的申請未通過，你可以繼續探索其他群組。`,
+      message: `很遺憾，你加入「${app.groupName ?? app.serviceName}」群組的申請未通過，代管費用已退還至你的PM幣餘額，你可以繼續探索其他群組。`,
       meta:    { groupId: app.groupId, applicationId: appId },
     }).catch(console.error)
 
@@ -525,6 +524,7 @@ async function handleApprove(appId) {
     autoOpenActivate, setAutoOpenActivate,
     autoOpenApplications, setAutoOpenApplications,
     autoOpenBilling, setAutoOpenBilling,
+    autoOpenMemberInfo, setAutoOpenMemberInfo,
     renewalModalGroupId, setRenewalModalGroupId,
     allGroups, displayGroups, historyGroups, filterCounts, membersMap, applicationCounts,
     renewalModalGroup,
