@@ -1,9 +1,13 @@
 import { X } from 'lucide-react'
 import { userProfileCache } from '../hooks/useParticipantNames'
 
-export default function ChatMembersPanel({ selected, memberMap, userId, getParticipantName, onClose }) {
+export default function ChatMembersPanel({ open, selected, memberMap, userId, getParticipantName, onClose }) {
   return (
-    <div className="absolute bottom-0 right-0 top-0 z-10 flex w-60 flex-col border-l border-line bg-white shadow-lg">
+    <div
+      className={`absolute bottom-0 right-0 top-0 z-10 flex w-60 flex-col border-l border-line bg-white shadow-lg transition-transform duration-300 ease-out ${
+        open ? 'translate-x-0' : 'pointer-events-none translate-x-full'
+      }`}
+    >
       <div className="flex h-14 shrink-0 items-center justify-between border-b border-line px-4">
         <span className="text-sm font-extrabold text-ink">群組成員</span>
         <button

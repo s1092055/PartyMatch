@@ -311,8 +311,9 @@ router.post('/:id/dispute', requireAuth, validate(disputeSchema), async (req, re
     const member = group.members.find(m => m.userId === req.user.id)
     if (!member) return res.status(403).json({ message: '你不是此群組成員' })
 
+    // 跟確認期（confirmDeadline）用同一套 48 小時的節奏，避免使用者對兩個時限有不同期待
     const disputeDeadline = new Date()
-    disputeDeadline.setDate(disputeDeadline.getDate() + 3)
+    disputeDeadline.setHours(disputeDeadline.getHours() + 48)
     const groupLabel = group.planName ?? group.service?.name ?? ''
 
     const [updated] = await prisma.$transaction([
@@ -338,12 +339,12 @@ router.post('/:id/dispute', requireAuth, validate(disputeSchema), async (req, re
       data: {
         userId:  group.hostId,
         type:    'dispute_raised',
-        title:   '收到成員申訴',
-        message: `${member.user.name} 針對「${groupLabel}」服務提出申訴，平台客服將於 3 天內裁定。`,
+        title:   '收到成員問題回報',
+        message: `${member.user.name} 針對「${groupLabel}」服務回報問題，將於 48 小時內處理完成。`,
         meta:    { groupId: req.params.id },
       },
     }).catch(console.error)
-    notifyGroupConversation(req.params.id, member.userId, `${member.user.name} 對服務問題提出申訴，等待客服裁定。`).catch(console.error)
+    notifyGroupConversation(req.params.id, member.userId, `${member.user.name} 回報了服務問題，等待處理。`).catch(console.error)
 
     res.json(updated)
   } catch (err) { next(err) }
@@ -480,7 +481,7 @@ router.post('/:id/adjudicate', requireAdmin, async (req, res, next) => {
           data:  { tokenBalance: { increment: seatCost } },
         }),
         prisma.tokenTransaction.create({
-          data: { userId: disputeMember.userId, type: 'refund', amount: seatCost, relatedGroupId: group.id, note: `申訴裁定：${reason.trim()}` },
+          data: { userId: disputeMember.userId, type: 'refund', amount: seatCost, relatedGroupId: group.id, note: `問題處理結果：${reason.trim()}` },
         }),
         prisma.member.delete({ where: { id: disputeMember.id } }),
         prisma.subscription.updateMany({
@@ -492,15 +493,15 @@ router.post('/:id/adjudicate', requireAdmin, async (req, res, next) => {
       notify({
         userId:  disputeMember.userId,
         type:    'dispute_resolved',
-        title:   '申訴裁定結果',
-        message: `你對「${groupLabel}」的申訴已受理，本期費用已退還至你的PM幣餘額。`,
+        title:   '問題處理結果',
+        message: `你對「${groupLabel}」回報的問題已確認，本期費用已退還至你的PM幣餘額。`,
         meta:    { groupId: group.id },
       })
       notify({
         userId:  group.hostId,
         type:    'dispute_resolved',
-        title:   '申訴裁定結果',
-        message: `「${groupLabel}」的申訴裁定退款給成員，該成員本期費用已退還並移出群組。`,
+        title:   '問題處理結果',
+        message: `「${groupLabel}」的問題處理結果為退款給成員，該成員本期費用已退還並移出群組。`,
         meta:    { groupId: group.id },
       })
     } else {
@@ -515,7 +516,7 @@ router.post('/:id/adjudicate', requireAdmin, async (req, res, next) => {
           data:  { tokenBalance: { increment: group.escrowTokens } },
         }),
         prisma.tokenTransaction.create({
-          data: { userId: group.hostId, type: 'release', amount: group.escrowTokens, relatedGroupId: group.id, note: `申訴裁定：${reason.trim()}` },
+          data: { userId: group.hostId, type: 'release', amount: group.escrowTokens, relatedGroupId: group.id, note: `問題處理結果：${reason.trim()}` },
         }),
         prisma.subscription.updateMany({ where: { groupId: group.id }, data: { status: 'active' } }),
       ])
@@ -524,14 +525,14 @@ router.post('/:id/adjudicate', requireAdmin, async (req, res, next) => {
         userId:  group.hostId,
         type:    'escrow_released',
         title:   '代管款項已撥款',
-        message: `申訴裁定結果：「${groupLabel}」代管款項已撥入你的PM幣餘額。`,
+        message: `問題處理結果：「${groupLabel}」代管款項已撥入你的PM幣餘額。`,
         meta:    { groupId: group.id },
       })
       notify({
         userId:  disputeMember.userId,
         type:    'dispute_resolved',
-        title:   '申訴裁定結果',
-        message: `你對「${groupLabel}」的申訴未受理，本期費用已撥款給團主。`,
+        title:   '問題處理結果',
+        message: `你對「${groupLabel}」回報的問題經確認後，本期費用已撥款給團主。`,
         meta:    { groupId: group.id },
       })
     }

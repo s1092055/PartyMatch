@@ -6,11 +6,14 @@ import GroupModalShell from '../../../../shared/ui/group/GroupModalShell'
 import GroupModalSideBarItem from '../../../../shared/ui/group/GroupModalSideBarItem'
 import HostReviews from '../../../group/components/HostReviews'
 import { getServiceById } from '../../../../shared/utils/serviceUtils'
+import { canReportServiceIssue } from '../../../../shared/utils/groupStatus'
 import { useAuthStore } from '../../../../shared/stores/useAuthStore'
 import { useApplicationStore } from '../../../../shared/stores/useApplicationStore'
 import { useMemberStore } from '../../../../shared/stores/useMemberStore'
 import { useNotificationStore } from '../../../../shared/stores/useNotificationStore'
 import { fetchGroupTransactions } from '../../../../shared/api/groupsApi'
+import { uploadServiceIssueEvidence } from '../../../../shared/api/storageApi'
+import { useEvidenceUpload } from '../../../../shared/utils/hooks'
 import ActivateServiceModal from './ActivateServiceModal'
 import ReportServiceIssueModal from './ReportServiceIssueModal'
 import { buildMembersPanel } from './hostGroupView/buildMembersPanel'
@@ -113,19 +116,22 @@ export default function HostGroupView({ group, members, applications, onReportSe
   const [memberChecks, setMemberChecks]             = useState({})
   const [serviceIssueMember, setServiceIssueMember] = useState(null)
   const [serviceIssueNote, setServiceIssueNote]     = useState('')
+  const serviceIssueEvidence = useEvidenceUpload(uploadServiceIssueEvidence)
 
-  const allMembersChecked = members.length > 0 && members.every(m => memberChecks[m.id])
+  // 勾選狀態現在會跨越「關閉啟用服務→去成員資料回報問題→重新打開」保留，
+  // 光看 memberChecks 會漏掉「勾選之後才回報的問題」，一定要一起檢查 serviceInfoIssueNote
+  // 才能擋下帶著未解決問題的成員被算進「全員已確認」
+  const allMembersChecked = members.length > 0 && members.every(m => memberChecks[m.id] && !m.serviceInfoIssueNote)
 
   function openActivate() {
-    setFinalConfirmed(false)
-    setMemberChecks({})
     setShowActivate(true)
   }
 
+  // 不重置 memberChecks/finalConfirmed：關閉這個 sub-modal 唯一的理由是先去「成員資料」
+  // 分頁回報帳號問題（啟用服務 modal 開著的時候，底下的群組詳情完全隱藏，見下方render），
+  // 回報完再重新打開應該接續剛才已經勾選的進度，不用整輪重新勾一次
   function closeActivate() {
     setShowActivate(false)
-    setFinalConfirmed(false)
-    setMemberChecks({})
   }
 
   function handleActivateConfirm() {
@@ -156,7 +162,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
               onChange={e => setLockCredentials(e.target.value)}
               placeholder="請輸入要提供給成員的帳號密碼（例如：帳號 xxx / 密碼 xxx），成員填寫服務帳號時會看到這則內容"
               rows={3}
-              className="w-full rounded-xl border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand resize-none"
+              className="w-full rounded-xl border border-line px-3 py-2 text-sm outline-none resize-none"
             />
           )}
           <div className="grid grid-cols-2 gap-2">
@@ -240,6 +246,9 @@ export default function HostGroupView({ group, members, applications, onReportSe
         members,
         sharingMethod: serviceDef?.sharingMethod,
         sharedCredentials: group.sharedCredentials,
+        // 服務啟用後成員已經確認帳號能正常使用，「帳號資訊有誤」這個理由就不成立了，
+        // 回報帳號問題只開放在啟用服務之前（還在填寫/等待啟用階段）
+        canReportServiceIssue: canReportServiceIssue(group.status),
         onOpenServiceIssue: m => { setServiceIssueMember(m); setServiceIssueNote(m.serviceInfoIssueNote ?? '') },
       })
     }
@@ -334,6 +343,9 @@ export default function HostGroupView({ group, members, applications, onReportSe
 
   return (
     <>
+    {/* 啟用服務／回報帳號問題這兩個 sub-modal 開啟時，完全隱藏底下的群組詳情 modal，不是疊加半透明遮罩；
+        關閉 sub-modal 才重新顯示群組詳情，跟成員端「填寫服務帳號」sub-modal 同一套模式 */}
+    {!showActivate && !serviceIssueMember && (
     <GroupModalShell
       onClose={onClose}
       group={group}
@@ -350,33 +362,43 @@ export default function HostGroupView({ group, members, applications, onReportSe
       onSubSubPanelBack={() => setShowReviewHistory(false)}
       panelKey={isReviewHistory ? 'reviewHistory' : activePanel ?? 'overview'}
       sideBar={renderSideBar()}
-    >
-      <ActivateServiceModal
-        isOpen={showActivate}
-        onClose={closeActivate}
-        onConfirm={handleActivateConfirm}
-        group={group}
-        members={members}
-        memberChecks={memberChecks}
-        setMemberChecks={setMemberChecks}
-        finalConfirmed={finalConfirmed}
-        setFinalConfirmed={setFinalConfirmed}
-        allMembersChecked={allMembersChecked}
-        onOpenServiceIssue={m => { setServiceIssueMember(m); setServiceIssueNote(m.serviceInfoIssueNote ?? '') }}
-      />
-    </GroupModalShell>
+    />
+    )}
+
+    <ActivateServiceModal
+      isOpen={showActivate}
+      onClose={closeActivate}
+      onConfirm={handleActivateConfirm}
+      group={group}
+      members={members}
+      memberChecks={memberChecks}
+      setMemberChecks={setMemberChecks}
+      finalConfirmed={finalConfirmed}
+      setFinalConfirmed={setFinalConfirmed}
+      allMembersChecked={allMembersChecked}
+    />
 
     <ReportServiceIssueModal
       member={serviceIssueMember}
       sharingMethod={serviceDef?.sharingMethod}
-      onClose={() => { setServiceIssueMember(null); setServiceIssueNote('') }}
-      note={serviceIssueNote}
-      setNote={setServiceIssueNote}
-      onSubmit={() => {
-        if (!serviceIssueNote.trim() || !serviceIssueMember) return
-        onReportServiceInfoIssue?.(serviceIssueMember, serviceIssueNote.trim())
+      onClose={() => {
         setServiceIssueMember(null)
         setServiceIssueNote('')
+        serviceIssueEvidence.reset()
+      }}
+      note={serviceIssueNote}
+      setNote={setServiceIssueNote}
+      evidenceUrl={serviceIssueEvidence.url}
+      evidenceName={serviceIssueEvidence.name}
+      evidenceUploading={serviceIssueEvidence.uploading}
+      onEvidenceSelect={serviceIssueEvidence.onSelect}
+      onRemoveEvidence={serviceIssueEvidence.onRemove}
+      onSubmit={() => {
+        if (!serviceIssueNote.trim() || !serviceIssueMember) return
+        onReportServiceInfoIssue?.(serviceIssueMember, serviceIssueNote.trim(), serviceIssueEvidence.url || undefined)
+        setServiceIssueMember(null)
+        setServiceIssueNote('')
+        serviceIssueEvidence.reset()
       }}
     />
 

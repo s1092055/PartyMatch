@@ -14,8 +14,9 @@ const addMemberSchema = z.object({
 })
 
 const patchMemberSchema = z.object({
-  serviceInfo:          z.any().optional(),
-  serviceInfoIssueNote: z.string().nullable().optional(),
+  serviceInfo:                 z.any().optional(),
+  serviceInfoIssueNote:        z.string().nullable().optional(),
+  serviceInfoIssueEvidenceUrl: z.string().nullable().optional(),
 })
 
 // GET /members — 回傳與目前用戶相關的成員（所在群組所有成員 + 所主持群組的成員）

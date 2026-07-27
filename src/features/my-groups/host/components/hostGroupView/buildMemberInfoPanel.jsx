@@ -1,4 +1,4 @@
-import { AlertTriangle, FileText } from 'lucide-react'
+import { AlertTriangle, FileText, Paperclip } from 'lucide-react'
 import Avatar from '../../../../../shared/ui/primitives/Avatar'
 import EmptyState from '../../../../../shared/ui/primitives/EmptyState'
 import { CENTERED_PANEL_BODY_CLASS } from '../../../../../shared/ui/group/panelLayout'
@@ -6,7 +6,9 @@ import { getTextFields, hasFilledServiceInfo } from '../../../../../shared/utils
 
 // 團主查看成員填寫的服務帳號資訊；跟 ActivateServiceModal 裡的成員清單同一套判斷邏輯，
 // 差別是這裡不限「待啟用」階段才看得到，鎖定群組後任何時候都可以來確認填寫進度。
-// 內容直接把每個欄位拆開列出（不是壓縮成一行摘要），團主要核對帳號資訊時看得更清楚
+// 內容直接把每個欄位拆開列出（不是壓縮成一行摘要），團主要核對帳號資訊時看得更清楚。
+// 「帳號問題」回報按鈕則限縮在 canReportServiceIssue（啟用服務之前）才顯示——
+// 一旦服務啟用，成員已經確認帳號能正常使用，「帳號資訊有誤」這個理由就不成立了
 function renderFilledInfoDetail(serviceInfo, sharingMethod) {
   const textFields = getTextFields(sharingMethod)
 
@@ -27,7 +29,7 @@ function renderFilledInfoDetail(serviceInfo, sharingMethod) {
   )
 }
 
-export function buildMemberInfoPanel({ members, sharingMethod, sharedCredentials, onOpenServiceIssue }) {
+export function buildMemberInfoPanel({ members, sharingMethod, sharedCredentials, canReportServiceIssue, onOpenServiceIssue }) {
   return {
     content: (
       <div className={`flex min-h-full flex-col ${CENTERED_PANEL_BODY_CLASS}`}>
@@ -52,11 +54,19 @@ export function buildMemberInfoPanel({ members, sharingMethod, sharedCredentials
               return (
                 <div
                   key={m.id}
-                  className={`rounded-xl border p-3 ${
+                  className={`relative rounded-xl border p-3 ${
                     m.serviceInfoIssueNote ? 'border-warning/40 bg-warning-subtle' : 'border-line'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
+                  {canReportServiceIssue && filled && !m.serviceInfoIssueNote && (
+                    <button
+                      onClick={() => onOpenServiceIssue(m)}
+                      className="absolute right-3 top-3 flex items-center gap-1 rounded-lg border border-warning/60 px-2.5 py-1 text-xs font-semibold text-warning-text transition-colors hover:bg-warning-subtle"
+                    >
+                      <AlertTriangle size={11} /> 帳號問題
+                    </button>
+                  )}
+                  <div className={`flex items-center gap-3 ${canReportServiceIssue ? 'pr-24' : ''}`}>
                     <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold text-ink">{m.userName}</p>
@@ -72,14 +82,19 @@ export function buildMemberInfoPanel({ members, sharingMethod, sharedCredentials
                       {renderFilledInfoDetail(m.serviceInfo, sharingMethod)}
                     </div>
                   )}
-                  {filled && !m.serviceInfoIssueNote && (
-                    <div className="mt-2 flex justify-end">
-                      <button
-                        onClick={() => onOpenServiceIssue(m)}
-                        className="flex items-center gap-1 rounded-lg border border-warning/60 px-2.5 py-1 text-xs font-semibold text-warning-text transition-colors hover:bg-warning-subtle"
-                      >
-                        <AlertTriangle size={11} /> 帳號問題
-                      </button>
+                  {m.serviceInfoIssueNote && (
+                    <div className="mt-2 space-y-1.5 rounded-lg bg-raised px-3 py-2">
+                      <p className="text-xs text-ink-2">{m.serviceInfoIssueNote}</p>
+                      {m.serviceInfoIssueEvidenceUrl && (
+                        <a
+                          href={m.serviceInfoIssueEvidenceUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center gap-1 text-xs font-medium text-brand hover:underline"
+                        >
+                          <Paperclip size={11} /> 查看附件
+                        </a>
+                      )}
                     </div>
                   )}
                 </div>

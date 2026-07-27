@@ -20,6 +20,7 @@ export default function ApplyModal({
       onClose={onClose}
       title={applySubmitted ? undefined : '申請加入群組'}
       sub
+      instantEntry
       showHeader={!applySubmitted}
       maxWidth="max-w-md"
     >
@@ -60,7 +61,7 @@ export default function ApplyModal({
               onChange={e => setApplyMessage(e.target.value)}
               rows={3}
               placeholder="可以介紹自己或說明申請原因…"
-              className="field w-full resize-none px-3 py-2.5 text-sm placeholder:text-ink-4"
+              className="field w-full resize-none px-3 py-2.5 text-sm placeholder:text-ink-4 focus:border-line focus:shadow-none"
             />
           </div>
           <label className="flex items-start gap-2.5 cursor-pointer select-none">

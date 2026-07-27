@@ -24,6 +24,17 @@
 
 依發現時間排序，最新在上。每筆都有標註「來源」（`/code-review` 靜態審查、使用者回報、或手動測試），之後新發現的 bug 補在最上面即可。
 
+### BUG-034：啟用服務時，勾選過的成員之後才被回報帳號問題，仍會被算進「全員已確認」
+
+- **功能**：`ActivateServiceModal.jsx`、`HostGroupView.jsx` 的 `allMembersChecked`
+- **嚴重度**：P0（可能導致團主在成員帳號問題未解決的情況下按下確認啟用，觸發代管撥款）
+- **來源**：`/code-review` 靜態審查
+- **重現方式**：團主開啟「啟用服務」，先把成員 A 的核取方塊打勾 → 關閉 modal 前往「成員資料」分頁，對成員 A 回報帳號問題（`serviceInfoIssueNote` 被設定）→ 重新打開「啟用服務」
+- **預期結果**：成員 A 有未解決的帳號問題時，「全員已確認」不該成立，「確認啟用」應該被擋下
+- **實際結果**：`allMembersChecked` 只檢查 `memberChecks[m.id]`，沒有一併確認 `!m.serviceInfoIssueNote`；`memberChecks` 在關閉/重開「啟用服務」之間不會被重置（見上一輪修正，避免中途去回報問題就整輪重勾），導致成員 A 即使有未解決問題，`memberChecks[A.id]` 仍是 `true`，被算進「全員已確認」，團主可以正常按下「確認啟用」觸發撥款
+- **推測原因**：`memberChecks` 是團主自己勾選的「我已經在外部平台確認過」，`serviceInfoIssueNote` 是回報流程各自獨立的狀態，兩者原本疊在同一個 modal 內、透過視覺優先序（`memberChecks[m.id] ? success : issueNote ? warning : ...`）勉強不會同時發生；拆成兩個分頁後，两者不再同時可見，`allMembersChecked` 卻沒有跟著把 `serviceInfoIssueNote` 也納入判斷條件
+- **修正狀態**：已修——`allMembersChecked` 改成 `memberChecks[m.id] && !m.serviceInfoIssueNote`；`ActivateServiceModal.jsx` 的卡片邊框顏色、右上角綠色勾勾、頂部「X / Y 已確認」計數，三處優先序都改成先看 `serviceInfoIssueNote`，即使先前已勾選，只要有未解決的帳號問題就會顯示警告狀態，不會被誤判成已確認
+
 ### BUG-033：團主端群組卡上方 Badge 顯示「收款中」，下方群組狀態卻顯示「填寫資訊中」
 
 - **功能**：`HostedGroupCard.jsx`、`HostGroupView.jsx`，`pending_confirmation` 狀態的顯示文案

@@ -55,14 +55,19 @@ export const useMemberStore = create((set, get) => ({
     })
   },
 
-  // ── 填寫服務帳號（pending_confirmation 階段）──────────────────────────────────
+  // ── 填寫服務帳號（pending_confirmation 階段，或團主回報帳號問題後的重新填寫）──────
   fillServiceInfo: async (memberId, groupId, serviceInfo) => {
-    const prior = get().members.find(m => m.id === memberId)?.serviceInfo ?? null
+    const prior = get().members.find(m => m.id === memberId) ?? null
+    // 重新送出服務帳號資訊等於「我已經修正了」，一定要順便清掉團主回報的帳號問題，
+    // 不然 serviceInfoIssueNote 永遠不會消失——之前沒清的話，這個成員會卡在「有未解決問題」，
+    // 團主端 allMembersChecked 永遠算不過，群組永遠無法啟用服務
     set(s => ({
-      members: s.members.map(m => m.id === memberId ? { ...m, serviceInfo } : m),
+      members: s.members.map(m => m.id === memberId
+        ? { ...m, serviceInfo, serviceInfoIssueNote: null, serviceInfoIssueEvidenceUrl: null }
+        : m),
     }))
     try {
-      const res = await patchMember(memberId, { serviceInfo })
+      const res = await patchMember(memberId, { serviceInfo, serviceInfoIssueNote: null, serviceInfoIssueEvidenceUrl: null })
       if (res?._groupAdvanced) {
         // 全員填完，後端已自動推進群組狀態
         useGroupStore.getState().setGroupStatus(groupId, res._groupAdvanced)
@@ -83,7 +88,9 @@ export const useMemberStore = create((set, get) => ({
     } catch (err) {
       // 回滾至先前值，而非清空
       set(s => ({
-        members: s.members.map(m => m.id === memberId ? { ...m, serviceInfo: prior } : m),
+        members: s.members.map(m => m.id === memberId
+          ? (prior ? { ...m, ...prior } : m)
+          : m),
       }))
       throw err
     }

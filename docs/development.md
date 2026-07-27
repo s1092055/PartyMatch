@@ -17,7 +17,7 @@
 VITE_API_BASE_URL=http://localhost:3001/api
 ```
 
-圖片上傳（Cloudinary）由後端代理處理（`server/src/routes/upload.js`），前端不需另外設定 API Key。
+圖片上傳經後端代理至 Cloudflare R2（`server/src/routes/upload.js`），前端不需另外設定任何 API Key。
 
 ### 後端（`server/.env`）
 
@@ -34,10 +34,12 @@ JWT_REFRESH_SECRET=your_refresh_secret_here
 JWT_ACCESS_EXPIRES=15m
 JWT_REFRESH_EXPIRES=7d
 
-# Cloudinary 圖片上傳
-CLOUDINARY_CLOUD_NAME=
-CLOUDINARY_API_KEY=
-CLOUDINARY_API_SECRET=
+# Cloudflare R2 圖片上傳
+R2_ACCOUNT_ID=
+R2_ACCESS_KEY_ID=
+R2_SECRET_ACCESS_KEY=
+R2_BUCKET_NAME=
+R2_PUBLIC_URL=
 
 # Stripe（已安裝 SDK，尚未串接實際扣款邏輯）
 STRIPE_SECRET_KEY=
@@ -122,6 +124,27 @@ zip -r partymatch.zip . \
   --exclude "*/.DS_Store" \
   --exclude "*/.env"
 ```
+
+---
+
+## 部署（免費方案組合）
+
+後端是傳統 Express + Redis 長駐連線 + polling 架構（不是 serverless 設計），所以選擇能跑「持續存在的 Node process」的平台，而不是 Vercel 這類 serverless function 平台。
+
+| 用途 | 服務 | 備註 |
+|------|------|------|
+| 前端（Vite SPA） | Cloudflare Pages 或 Vercel | 純靜態建置，`npm run build` 產出 `dist/`；根目錄已附 `public/_redirects`（Cloudflare Pages 用）與 `vercel.json`（Vercel 用）處理 SPA 路由 fallback |
+| 後端（Express） | Render 免費 Web Service | 根目錄 `render.yaml` 已設定好 Blueprint（`rootDir: server`、`buildCommand`、`startCommand`、`healthCheckPath: /health`），Render 上選 New → Blueprint 指向這個 repo 即可帶入設定。閒置 15 分鐘會休眠，下次請求約需 1 分鐘喚醒 |
+| MySQL | TiDB Cloud Serverless（Starter） | PlanetScale 免費方案已下架，TiDB 是目前 MySQL 相容且免費額度足夠的選擇；連線字串通常需要加 `?sslaccept=strict` |
+| Redis | Upstash Redis | 連線字串用 `rediss://`（TLS），`ioredis` 會自動偵測並啟用 TLS，程式碼不用改 |
+| 檔案上傳 | Cloudflare R2 | 已串接完成（`server/src/lib/r2Storage.js`） |
+
+### 部署步驟
+
+1. **後端環境變數**：`render.yaml` 裡標記 `sync: false` 的變數（`DATABASE_URL`、`REDIS_URL`、`CLIENT_ORIGIN`、`R2_*`）需要在 Render 後台手動填入；`JWT_ACCESS_SECRET`／`JWT_REFRESH_SECRET` 會自動產生隨機值
+2. **`CLIENT_ORIGIN`** 要填前端實際部署後的網址（例如 `https://partymatch.pages.dev`），否則 CORS 會擋掉前端的 API 請求
+3. **首次建表**：本機執行 `DATABASE_URL=<TiDB 連線字串> npx prisma db push`（在 `server/` 目錄），把 schema 同步到正式資料庫——不要把 `db push` 放進 Render 的 build command 裡自動跑，避免每次部署都意外異動 schema
+4. **前端環境變數**：`VITE_API_BASE_URL` 設成 Render 後端網址加 `/api`（例如 `https://partymatch-api.onrender.com/api`）
 
 ---
 

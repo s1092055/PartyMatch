@@ -63,7 +63,7 @@ export default function ReviewHostModal({ group, onSubmit, onClose }) {
           placeholder="想跟其他人分享這次共享的體驗嗎？（選填）"
           rows={3}
           maxLength={500}
-          className="field w-full resize-none text-sm"
+          className="field w-full resize-none text-sm focus:border-line focus:shadow-none"
         />
       </div>
     </Modal>

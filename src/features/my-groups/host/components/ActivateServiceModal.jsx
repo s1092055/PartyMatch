@@ -1,8 +1,9 @@
-import { AlertTriangle, CheckCircle2, PlayCircle } from 'lucide-react'
+import { CheckCircle2, PlayCircle } from 'lucide-react'
 import Modal from '../../../../shared/ui/primitives/Modal'
 import Avatar from '../../../../shared/ui/primitives/Avatar'
 import ServiceLogo from '../../../../shared/ui/ServiceLogo'
 import TokenAmount from '../../../../shared/ui/TokenAmount'
+import GroupOverviewContent from '../../../../shared/ui/group/GroupOverviewContent'
 import { advanceByCycle, toISODate } from '../../../../shared/utils/date'
 import { getServiceById } from '../../../../shared/utils/serviceUtils'
 import { hasFilledServiceInfo, getServiceInfoSummary } from '../../../../shared/utils/serviceInfoFields'
@@ -18,10 +19,11 @@ export default function ActivateServiceModal({
   finalConfirmed,
   setFinalConfirmed,
   allMembersChecked,
-  onOpenServiceIssue,
 }) {
   const nextDate = isOpen ? toISODate(advanceByCycle(new Date(), group.billingCycle)) : ''
-  const sharingMethod = getServiceById(group.serviceId)?.sharingMethod
+  const service  = getServiceById(group.serviceId)
+  const plan     = service?.plans.find(p => p.name === group.planName)
+  const sharingMethod = service?.sharingMethod
 
   return (
     <Modal
@@ -30,7 +32,9 @@ export default function ActivateServiceModal({
       title="啟用服務"
       icon={<PlayCircle size={18} className="text-success" />}
       maxWidth="max-w-lg"
+      height="36rem"
       sub
+      instantEntry
       footer={
         <button
           onClick={onConfirm}
@@ -53,6 +57,11 @@ export default function ActivateServiceModal({
           </div>
         </div>
 
+        {/* 群組資訊／群組規則／服務說明／方案說明 */}
+        <div className="px-5 pt-5">
+          <GroupOverviewContent group={group} service={service} plan={plan} />
+        </div>
+
         {/* 下次扣款日 */}
         <div className="mx-5 mt-5 flex items-center justify-between rounded-xl border border-line bg-raised px-4 py-3">
           <div>
@@ -67,7 +76,7 @@ export default function ActivateServiceModal({
           <div className="mb-2 flex items-center justify-between">
             <p className="text-xs font-semibold text-ink-2">確認成員已加入外部服務</p>
             <p className="text-xs text-ink-3">
-              {Object.values(memberChecks).filter(Boolean).length} / {members.length} 已確認
+              {members.filter(m => memberChecks[m.id] && !m.serviceInfoIssueNote).length} / {members.length} 已確認
             </p>
           </div>
           <p className="mb-3 text-xs text-ink-3">請在外部訂閱平台（{group.serviceName}）確認每位成員的帳號已完成設定，再逐一打勾。</p>
@@ -78,8 +87,8 @@ export default function ActivateServiceModal({
               <div
                 key={m.id}
                 className={`rounded-xl border p-3 transition-colors ${
-                  memberChecks[m.id] ? 'border-success/40 bg-success-subtle' :
                   m.serviceInfoIssueNote ? 'border-warning/40 bg-warning-subtle' :
+                  memberChecks[m.id] ? 'border-success/40 bg-success-subtle' :
                   'border-line'
                 }`}
               >
@@ -101,18 +110,8 @@ export default function ActivateServiceModal({
                       <p className="text-xs text-ink-4">尚未填寫帳號</p>
                     )}
                   </div>
-                  {memberChecks[m.id] && <CheckCircle2 size={16} className="shrink-0 text-success" />}
+                  {memberChecks[m.id] && !m.serviceInfoIssueNote && <CheckCircle2 size={16} className="shrink-0 text-success" />}
                 </label>
-                {hasFilledServiceInfo(m.serviceInfo, sharingMethod) && !memberChecks[m.id] && (
-                  <div className="mt-2 flex justify-end">
-                    <button
-                      onClick={() => onOpenServiceIssue(m)}
-                      className="flex items-center gap-1 rounded-lg border border-warning/60 px-2.5 py-1 text-xs font-semibold text-warning-text transition-colors hover:bg-warning-subtle"
-                    >
-                      <AlertTriangle size={11} /> 帳號問題
-                    </button>
-                  </div>
-                )}
               </div>
             ))}
           </div>

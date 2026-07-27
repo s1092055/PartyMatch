@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ChevronLeft, MessageSquare } from 'lucide-react'
 import ConversationAvatar from './components/ConversationAvatar'
-import ConversationMenu from './components/ConversationMenu'
+import ConversationHeaderActions from './components/ConversationHeaderActions'
 import Modal from '../../shared/ui/primitives/Modal'
 import LoginPromptModal from '../../shared/ui/LoginPromptModal'
 import { useAuthStore } from '../../shared/stores/useAuthStore'
@@ -264,7 +264,7 @@ export default function MessagesModal() {
         }
         title={isMobile && selectedId && selected ? selected.name : '訊息'}
         headerEnd={isMobile && selectedId && selected
-          ? <ConversationMenu
+          ? <ConversationHeaderActions
               key={selectedId}
               selected={selected}
               onMembersToggle={() => setShowMembers(v => !v)}

@@ -1,6 +1,6 @@
 import { ChevronDown, Send, SquarePen } from 'lucide-react'
 import ConversationAvatar from './ConversationAvatar'
-import ConversationMenu from './ConversationMenu'
+import ConversationHeaderActions from './ConversationHeaderActions'
 import ChatMembersPanel from './ChatMembersPanel'
 import MessageBubble from './MessageBubble'
 import { useMemberStore } from '../../../shared/stores/useMemberStore'
@@ -64,16 +64,18 @@ export default function ChatWindow({
       <div className="hidden md:flex shrink-0 items-center gap-3 border-b border-line px-5 py-3">
         <ConversationAvatar conversation={selected} size={32} />
         <span className="flex-1 truncate font-extrabold text-ink">{selected.name}</span>
-        <ConversationMenu
+        <ConversationHeaderActions
           key={selectedId}
           selected={selected}
           onMembersToggle={() => onMembersToggle(v => !v)}
         />
       </div>
 
-      {/* 成員面板 */}
-      {showMembers && selected.type === 'group' && (
+      {/* 成員面板：跟通知中心同一套「本來就掛載、用 translate-x 滑入/滑出」的動畫模式，
+          不是掛載/卸載才看得到，不然沒有進場動畫可以播 */}
+      {selected.type === 'group' && (
         <ChatMembersPanel
+          open={showMembers}
           selected={selected}
           memberMap={memberMap}
           userId={userId}

@@ -1,6 +1,7 @@
 import { CheckCircle2, Clock, Info, User, Users, Calendar } from 'lucide-react'
 import { getInfoRows } from '../../utils/groupDisplay'
 import Badge from '../primitives/Badge'
+import TokenAmount from '../TokenAmount'
 
 const TAG_CONFIG = {
   '審核制':    { Icon: Clock,        cls: 'bg-amber-50  border border-amber-200 text-amber-700'   },
@@ -86,14 +87,16 @@ export default function GroupOverviewContent({ group, service, plan, reviewsSect
         <p className="text-lg font-black text-brand">群組資訊</p>
         {infoRows.length > 0 && (
           <div className="space-y-2">
-            {infoRows.map(({ label, value, badge }) => (
+            {infoRows.map(({ label, value, badge, priceInfo }) => (
               <div key={label} className="flex items-center gap-3 text-sm">
                 <span className="w-16 shrink-0 text-ink-4">{label}</span>
                 <span className="text-ink-2">{badge ? (
                   typeof badge === 'object'
                     ? <Badge variant={badge.variant} label={badge.label} />
                     : <Badge variant={badge} />
-                ) : value}</span>
+                ) : priceInfo ? (
+                  <TokenAmount amount={priceInfo.amount} cycle={priceInfo.cycle} />
+                ) : priceInfo === null ? '—' : value}</span>
               </div>
             ))}
           </div>

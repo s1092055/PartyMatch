@@ -28,7 +28,7 @@ PartyMatch 是一個共享訂閱媒合平台，讓使用者可以探索或建立
 | 資料庫 | MySQL + Prisma ORM |
 | 快取 | Redis |
 | 認證 | JWT（accessToken + refreshToken） |
-| 圖片上傳 | Cloudinary（後端代理上傳，前端不需另外設定 API Key） |
+| 圖片上傳 | Cloudflare R2（後端代理上傳，前端不需另外設定 API Key） |
 | Architecture | Feature-based、Store + API 雙層分離、事件驅動跨元件通訊 |
 
 ---

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { toast } from './toast'
 
 // 建立群組 Step2/Step3 左右兩欄版面只在「桌機寬度（對齊 index.css 的 lg: 1280px）+ 螢幕不高」時才並排，
 // 螢幕夠高時改回跟手機/平板一樣的垂直排列，避免固定高度的兩欄容器在高螢幕下方留下大片空白
@@ -203,6 +204,37 @@ export function useCountdown(deadline) {
   const label = hours > 0 ? `${pad(hours)}:${pad(minutes)}:${pad(seconds)}` : `${pad(minutes)}:${pad(seconds)}`
 
   return { label, expired: false }
+}
+
+// 附件上傳共用邏輯：申訴附件、團主回報帳號問題的附件都是同一套「選檔→上傳→存 url/name→
+// 失敗跳 toast→清空重選」流程，差別只在呼叫哪支 upload API（uploadFn）
+export function useEvidenceUpload(uploadFn) {
+  const [url, setUrl]             = useState('')
+  const [name, setName]           = useState('')
+  const [uploading, setUploading] = useState(false)
+
+  async function onSelect(e) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    setUploading(true)
+    try {
+      const uploadedUrl = await uploadFn(file)
+      setUrl(uploadedUrl)
+      setName(file.name)
+    } catch (err) {
+      toast(err?.message ?? '附件上傳失敗，請稍後再試', 'error')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  function reset() {
+    setUrl('')
+    setName('')
+  }
+
+  return { url, name, uploading, onSelect, onRemove: reset, reset }
 }
 
 export function useClickOutside(enabled, refs, onClose) {

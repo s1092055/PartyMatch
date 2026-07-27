@@ -1,5 +1,6 @@
 import { memo } from 'react'
 import Badge from '../../../../shared/ui/primitives/Badge'
+import { getStatusTextColor } from '../../../../shared/ui/primitives/badgeLabels'
 import Button from '../../../../shared/ui/primitives/Button'
 import ServiceLogo from '../../../../shared/ui/ServiceLogo'
 import TokenAmount from '../../../../shared/ui/TokenAmount'
@@ -17,7 +18,7 @@ function getCollectionState({ group, paidCount, paymentTarget }) {
   if (group.status === 'pending_confirmation') return '成員填寫中'
   if (group.status === 'pending_activation') return '待啟用服務'
   if (group.status === 'confirming') return '確認期中'
-  if (group.status === 'disputed') return '申訴中'
+  if (group.status === 'disputed') return '問題處理中'
   if (paymentTarget > 0 && paidCount < paymentTarget && group.status === 'active') return '追蹤中'
   return '正常'
 }
@@ -54,12 +55,19 @@ function HostedGroupCard({
 
   const collectionState = getCollectionState({ group, paidCount: 0, paymentTarget: members.length })
 
-  const collectionHighlight = {
-    '正常':   'text-success-text',
-    '招募中': 'text-success-text',
-    '已結束': 'text-ink-3',
-    '已滿員': 'text-ink-3',
-  }[collectionState] ?? 'text-warning-text'
+  // 確認期中／問題處理中直接對應 group.status（confirming／disputed），顏色向 Badge.jsx 拿，
+  // 避免兩邊各自維護一份對照表而配色跑掉；其餘幾種是 getCollectionState 自己組出來的細分狀態，
+  // 沒有對應的單一 group.status，維持手動指定顏色
+  const collectionHighlight = group.status === 'confirming'
+    ? getStatusTextColor('confirming')
+    : group.status === 'disputed'
+      ? getStatusTextColor('disputed')
+      : {
+          '正常':   'text-success-text',
+          '招募中': 'text-success-text',
+          '已結束': 'text-ink-3',
+          '已滿員': 'text-ink-3',
+        }[collectionState] ?? 'text-warning-text'
 
   const isActivated    = ['active', 'cancelled', 'ended'].includes(group.status)
 

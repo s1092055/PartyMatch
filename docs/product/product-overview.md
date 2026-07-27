@@ -73,7 +73,7 @@ PartyMatch 把媒合、審核、代管撥款、服務帳號確認做成平台內
 - **收藏**：收藏／取消收藏群組（`server/src/routes/favorites.js`）
 - **帳號設定**：個人資料、付款方式管理、PM 幣餘額與交易紀錄、帳號停用（軟刪除）（`src/features/account/`）
 - **團主評價**：服務確認後成員可評分並留言，可查看團主歷史評價（`server/src/routes/reviews.js`）
-- **圖片上傳**：付款憑證、申訴證據附件上傳，經後端代理至 Cloudinary（`server/src/routes/upload.js`）
+- **圖片上傳**：付款憑證、問題回報附件上傳，經後端代理至 Cloudflare R2（`server/src/routes/upload.js`）
 - **認證**：Email/密碼註冊登入、JWT（accessToken + refreshToken）、忘記密碼（`server/src/routes/auth.js`）
 
 ## 不支援的功能

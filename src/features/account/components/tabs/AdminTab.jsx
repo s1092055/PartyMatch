@@ -99,7 +99,7 @@ export default function AdminTab() {
                 onChange={e => setReason(e.target.value)}
                 rows={3}
                 placeholder="請填寫裁定原因及說明..."
-                className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink resize-none focus:outline-none focus:ring-2 focus:ring-brand"
+                className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink resize-none outline-none"
                 required
               />
             </div>

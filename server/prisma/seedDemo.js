@@ -223,7 +223,7 @@ async function main() {
   await api('POST', `/groups/${g7.id}/dispute`, D6.token, {
     reason: '帳號一直登入不進去，密碼好像被改過了', evidenceUrl: 'https://picsum.photos/seed/dispute1/600/400',
   })
-  await notify(D6, H3.id, 'dispute_raised', '收到成員申訴', '黃詩涵 針對 ExpressVPN 服務提出申訴，平台客服將於 3 天內裁定', { groupId: g7.id })
+  await notify(D6, H3.id, 'dispute_raised', '收到成員問題回報', '黃詩涵 針對 ExpressVPN 服務提出回報問題，將於 48 小時內處理完成', { groupId: g7.id })
   await sendMessage(D6, g7ConvId, '帳號登入不進去，我已經向平台申訴了')
   console.log('G7 disputed（ExpressVPN，demo6 申訴中，等待管理員裁定）')
 
@@ -371,7 +371,7 @@ async function main() {
   }
   await activateGroup(H3, g19.id, g19Members, g19ConvId, 'Dropbox')
   await api('POST', `/groups/${g19.id}/dispute`, D2.token, { reason: '帳號被收回，登入不進去' })
-  await notify(D2, H3.id, 'dispute_raised', '收到成員申訴', '林小美 針對 Dropbox 服務提出申訴，平台客服將於 3 天內裁定', { groupId: g19.id })
+  await notify(D2, H3.id, 'dispute_raised', '收到成員問題回報', '林小美 針對 Dropbox 服務提出回報問題，將於 48 小時內處理完成', { groupId: g19.id })
   await api('POST', `/groups/${g19.id}/adjudicate`, ADMIN.token, { winner: 'member', reason: '經查證團主確實未提供正確帳號，退款給申訴成員' })
   await api('POST', '/reviews', D1.token, { groupId: g19.id, rating: 3, comment: '中間有點小狀況，但申訴後平台有妥善處理。' })
   await api('POST', '/reviews', D4.token, { groupId: g19.id, rating: 5, comment: '我這邊都沒遇到問題，運作正常。' })
@@ -388,7 +388,7 @@ async function main() {
   }
   await activateGroup(H1, g20.id, [D3, D5], g20ConvId, 'NordVPN')
   await api('POST', `/groups/${g20.id}/dispute`, D5.token, { reason: '覺得速度跟描述不符' })
-  await notify(D5, H1.id, 'dispute_raised', '收到成員申訴', '李冠宇 針對 NordVPN 服務提出申訴，平台客服將於 3 天內裁定', { groupId: g20.id })
+  await notify(D5, H1.id, 'dispute_raised', '收到成員問題回報', '李冠宇 針對 NordVPN 服務提出回報問題，將於 48 小時內處理完成', { groupId: g20.id })
   await api('POST', `/groups/${g20.id}/adjudicate`, ADMIN.token, { winner: 'host', reason: '經查證服務正常，維持原訂閱' })
   await api('POST', '/reviews', D3.token, { groupId: g20.id, rating: 4, comment: '服務穩定，速度也不錯。' })
   await api('POST', '/reviews', D5.token, { groupId: g20.id, rating: 5, comment: '申訴後團主還是很有耐心解釋，後續也沒問題了。' })

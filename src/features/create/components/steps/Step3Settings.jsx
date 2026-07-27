@@ -114,7 +114,7 @@ export default function Step3Settings({ form, onChange }) {
             onChange={e => onChange('requirements', e.target.value)}
             maxLength={120}
             style={textareaHeight ? { height: textareaHeight } : undefined}
-            className="field w-full resize-none text-base"
+            className="field w-full resize-none text-base focus:border-line focus:shadow-none"
           />
         </Field>
       </div>

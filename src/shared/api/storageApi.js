@@ -22,3 +22,7 @@ export async function uploadPaymentProof(_groupId, _userId, file) {
 export async function uploadDisputeEvidence(file) {
   return uploadFile('/upload/dispute-evidence', file)
 }
+
+export async function uploadServiceIssueEvidence(file) {
+  return uploadFile('/upload/service-issue-evidence', file)
+}

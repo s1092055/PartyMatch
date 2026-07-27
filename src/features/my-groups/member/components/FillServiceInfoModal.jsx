@@ -28,6 +28,7 @@ export default function FillServiceInfoModal({
       icon={<ClipboardEdit size={18} className="text-brand" />}
       maxWidth="max-w-lg"
       sub
+      instantEntry
     >
       <form onSubmit={onSubmit} className="p-5 space-y-4">
         <p className="text-sm text-ink-3">

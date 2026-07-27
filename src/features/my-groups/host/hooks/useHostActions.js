@@ -452,8 +452,8 @@ async function handleApprove(appId) {
     removeError(appId)
   }
 
-  function handleReportServiceInfoIssue(member, note) {
-    updateMember(member.id, { serviceInfoIssueNote: note })
+  function handleReportServiceInfoIssue(member, note, evidenceUrl) {
+    updateMember(member.id, { serviceInfoIssueNote: note, serviceInfoIssueEvidenceUrl: evidenceUrl ?? null })
 
     const group = getGroupById(member.groupId)
     const convId = getConvByGroupId(member.groupId)?.id

@@ -38,55 +38,41 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
     if (msg.actionType === 'fill_service_info') {
       const isHost = userId === hostId
       const sharingMethod = getServiceById(msg.payload?.serviceId)?.sharingMethod
-      if (isHost) {
-        // 團主看到所有成員的填寫結果
-        return (
-          <div key={msg.id} className="flex justify-center">
-            <div className="w-72 rounded-2xl border border-line bg-white p-4 shadow-sm">
-              <p className="mb-2 text-xs font-semibold text-ink-2">成員服務帳號（僅你可見）</p>
-              <div className="space-y-2">
-                {groupMembers.map(m => (
-                  <div key={m.id} className="flex items-center gap-2">
-                    <span
-                      className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-2xs font-black text-white"
-                      style={{ background: m.userAvatarColor }}
-                    >
-                      {m.userAvatarInitial}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-semibold text-ink">{m.userName}</p>
-                      {hasFilledServiceInfo(m.serviceInfo, sharingMethod) ? (
-                        <p className="text-xs text-ink-3">{getServiceInfoSummary(m.serviceInfo, sharingMethod)}</p>
-                      ) : (
-                        <p className="text-xs text-ink-4">尚未填寫</p>
-                      )}
-                    </div>
-                    {hasFilledServiceInfo(m.serviceInfo, sharingMethod) && <CheckCircle2 size={13} className="shrink-0 text-success" />}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )
-      }
-      // 成員只看到自己的填寫狀態
+      // 純粹顯示大家目前的填寫狀態，不是敏感資料，群組裡每個人都看得到同一份，不用分團主/成員兩種版本
       const myMember = getMemberByUserAndGroup(userId, conversationGroupId)
-      const alreadyFilled = hasFilledServiceInfo(myMember?.serviceInfo, sharingMethod) && !myMember?.serviceInfoIssueNote
+      const iAlreadyFilled = isHost || (hasFilledServiceInfo(myMember?.serviceInfo, sharingMethod) && !myMember?.serviceInfoIssueNote)
       return (
         <div key={msg.id} className="flex justify-center">
-          <div className="w-64 rounded-2xl border border-line bg-white px-4 py-3 text-center shadow-sm">
-            <p className="mb-2 text-xs text-ink-3">{msg.text}</p>
-            {alreadyFilled ? (
-              <p className="flex items-center justify-center gap-1 text-xs font-semibold text-success-text">
-                <CheckCircle2 size={13} /> 已填寫完成
-              </p>
-            ) : (
+          <div className="w-72 rounded-2xl border border-line bg-white p-4 shadow-sm">
+            <p className="mb-2 text-xs font-semibold text-ink-2">服務帳號填寫進度</p>
+            <div className="space-y-2">
+              {groupMembers.map(m => (
+                <div key={m.id} className="flex items-center gap-2">
+                  <span
+                    className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-2xs font-black text-white"
+                    style={{ background: m.userAvatarColor }}
+                  >
+                    {m.userAvatarInitial}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold text-ink">{m.userName}</p>
+                    {hasFilledServiceInfo(m.serviceInfo, sharingMethod) ? (
+                      <p className="text-xs text-ink-3">{getServiceInfoSummary(m.serviceInfo, sharingMethod)}</p>
+                    ) : (
+                      <p className="text-xs text-ink-4">尚未填寫</p>
+                    )}
+                  </div>
+                  {hasFilledServiceInfo(m.serviceInfo, sharingMethod) && <CheckCircle2 size={13} className="shrink-0 text-success" />}
+                </div>
+              ))}
+            </div>
+            {!iAlreadyFilled && (
               <button
                 onClick={() => {
                   window.dispatchEvent(new CustomEvent('pm:close-messages'))
                   navigate('/my-groups?view=member', { state: { openGroupId: conversationGroupId } })
                 }}
-                className="rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-brand-hover"
+                className="mt-3 w-full rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-brand-hover"
               >
                 填寫服務帳號
               </button>
