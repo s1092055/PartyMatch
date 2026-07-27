@@ -129,22 +129,23 @@ zip -r partymatch.zip . \
 
 ## 部署（免費方案組合）
 
-後端是傳統 Express + Redis 長駐連線 + polling 架構（不是 serverless 設計），所以選擇能跑「持續存在的 Node process」的平台，而不是 Vercel 這類 serverless function 平台。
+後端是傳統 Express + Redis 長駐連線 + polling 架構（不是 serverless 設計），所以選擇能跑「持續存在的 Node process」的平台，而不是 serverless function 平台。
 
 | 用途 | 服務 | 備註 |
 |------|------|------|
-| 前端（Vite SPA） | Cloudflare Pages 或 Vercel | 純靜態建置，`npm run build` 產出 `dist/`；根目錄已附 `public/_redirects`（Cloudflare Pages 用）與 `vercel.json`（Vercel 用）處理 SPA 路由 fallback |
+| 前端（Vite SPA） | Cloudflare Workers（靜態資源） | `npm run build` 產出 `dist/`；根目錄 `wrangler.jsonc` 設定 `assets.directory: "./dist"` 與 `not_found_handling: "single-page-application"` 處理 React Router 的 SPA fallback。在 Cloudflare Dashboard 選 Workers & Pages → Create application → 連接這個 repo，Build command 填 `npm run build`，Deploy command 保持預設 `npx wrangler deploy` |
 | 後端（Express） | Render 免費 Web Service | 根目錄 `render.yaml` 已設定好 Blueprint（`rootDir: server`、`buildCommand`、`startCommand`、`healthCheckPath: /health`），Render 上選 New → Blueprint 指向這個 repo 即可帶入設定。閒置 15 分鐘會休眠，下次請求約需 1 分鐘喚醒 |
-| MySQL | TiDB Cloud Serverless（Starter） | PlanetScale 免費方案已下架，TiDB 是目前 MySQL 相容且免費額度足夠的選擇；連線字串通常需要加 `?sslaccept=strict` |
-| Redis | Upstash Redis | 連線字串用 `rediss://`（TLS），`ioredis` 會自動偵測並啟用 TLS，程式碼不用改 |
-| 檔案上傳 | Cloudflare R2 | 已串接完成（`server/src/lib/r2Storage.js`） |
+| MySQL | TiDB Cloud Serverless（Starter） | PlanetScale 免費方案已下架，TiDB 是目前 MySQL 相容且免費額度足夠的選擇；連線字串需要加 `?sslaccept=strict` |
+| Redis | Upstash Redis | 連線字串用 `rediss://`（TLS），`ioredis` 會自動偵測並啟用 TLS，程式碼不用改；Upstash 頁面預設顯示的是 REST API 連線資訊，要切到 **TCP** 分頁才是 `ioredis` 需要的格式 |
+| 檔案上傳 | Cloudflare R2 | 已串接完成（`server/src/lib/r2Storage.js`），bucket 需另外在 Settings 裡開啟 **Public Development URL** 才能讓上傳的檔案被公開讀取 |
 
 ### 部署步驟
 
 1. **後端環境變數**：`render.yaml` 裡標記 `sync: false` 的變數（`DATABASE_URL`、`REDIS_URL`、`CLIENT_ORIGIN`、`R2_*`）需要在 Render 後台手動填入；`JWT_ACCESS_SECRET`／`JWT_REFRESH_SECRET` 會自動產生隨機值
-2. **`CLIENT_ORIGIN`** 要填前端實際部署後的網址（例如 `https://partymatch.pages.dev`），否則 CORS 會擋掉前端的 API 請求
+2. **`CLIENT_ORIGIN`** 要填前端實際部署後的網址（例如 `https://partymatch.<your-subdomain>.workers.dev`），否則 CORS 會擋掉前端的 API 請求；可以先填一個佔位值讓後端部署不卡住，前端網址確定後再回來改
 3. **首次建表**：本機執行 `DATABASE_URL=<TiDB 連線字串> npx prisma db push`（在 `server/` 目錄），把 schema 同步到正式資料庫——不要把 `db push` 放進 Render 的 build command 裡自動跑，避免每次部署都意外異動 schema
-4. **前端環境變數**：`VITE_API_BASE_URL` 設成 Render 後端網址加 `/api`（例如 `https://partymatch-api.onrender.com/api`）
+4. **灌入初始資料**：`db push` 只會建表，不會有任何資料；接著在 `server/` 目錄執行 `DATABASE_URL=<TiDB 連線字串> node prisma/seed.js`（服務目錄）與 `SEED_API_BASE=<後端網址>/api DATABASE_URL=<TiDB 連線字串> node prisma/seedDemo.js`（demo 帳號/群組，透過真實 API 呼叫，`SEED_API_BASE` 要指到已部署的後端網址）
+5. **前端環境變數**：`VITE_API_BASE_URL` 設成 Render 後端網址加 `/api`（例如 `https://partymatch-api.onrender.com/api`），這是建置期環境變數，要在 Cloudflare 的「Build」設定裡填，不是執行期環境變數
 
 ---
 

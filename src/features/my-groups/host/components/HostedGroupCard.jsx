@@ -55,19 +55,16 @@ function HostedGroupCard({
 
   const collectionState = getCollectionState({ group, paidCount: 0, paymentTarget: members.length })
 
-  // 確認期中／問題處理中直接對應 group.status（confirming／disputed），顏色向 Badge.jsx 拿，
-  // 避免兩邊各自維護一份對照表而配色跑掉；其餘幾種是 getCollectionState 自己組出來的細分狀態，
-  // 沒有對應的單一 group.status，維持手動指定顏色
-  const collectionHighlight = group.status === 'confirming'
-    ? getStatusTextColor('confirming')
-    : group.status === 'disputed'
-      ? getStatusTextColor('disputed')
-      : {
-          '正常':   'text-success-text',
-          '招募中': 'text-success-text',
-          '已結束': 'text-ink-3',
-          '已滿員': 'text-ink-3',
-        }[collectionState] ?? 'text-warning-text'
+  // 確認期中／問題處理中的顏色向 Badge.jsx 拿，避免兩邊各自維護一份對照表而配色跑掉；
+  // 其餘幾種是 getCollectionState 自己組出來的細分狀態，沒有對應的單一 group.status，維持手動指定顏色
+  const collectionHighlight = {
+    '正常':      'text-success-text',
+    '招募中':    'text-success-text',
+    '已結束':    'text-ink-3',
+    '已滿員':    'text-ink-3',
+    '確認期中':  getStatusTextColor('confirming'),
+    '問題處理中': getStatusTextColor('disputed'),
+  }[collectionState] ?? 'text-warning-text'
 
   const isActivated    = ['active', 'cancelled', 'ended'].includes(group.status)
 
