@@ -20,7 +20,7 @@ export default function ApplicationCard({ app, groupFull, error, onApprove, onRe
   const badge = APP_STATUS_BADGE[app.status]
 
   return (
-    <div className={`rounded-2xl border border-line bg-surface p-4 transition-opacity ${isPending ? '' : 'opacity-60'}`}>
+    <div className="rounded-2xl border border-line bg-surface p-4">
       <div className="flex items-start gap-3">
         <Avatar initial={initial} color={color} size="md" />
         <div className="min-w-0 flex-1">

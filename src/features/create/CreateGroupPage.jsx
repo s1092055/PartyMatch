@@ -178,7 +178,6 @@ export default function CreateGroupPage() {
         meta:    { groupId: group.id },
       })
     }
-    window.dispatchEvent(new CustomEvent('pm:group-created', { detail: { groupId: group.id } }))
     setShowSuccessModal(true)
   }
 

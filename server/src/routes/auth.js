@@ -5,7 +5,7 @@ import { z } from 'zod'
 import prisma from '../lib/prisma.js'
 import redis from '../lib/redis.js'
 import { randomAvatarColor } from '../utils/avatarColor.js'
-import { setupSystemConversationForNewUser } from '../lib/systemUser.js'
+import { ensureSystemConversation } from '../lib/systemUser.js'
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/jwt.js'
 import { validate } from '../middleware/validate.js'
 import { requireAuth } from '../middleware/auth.js'
@@ -45,7 +45,7 @@ router.post('/register', validate(registerSchema), async (req, res, next) => {
     })
 
     // 系統聊天室建立失敗不應阻擋註冊流程
-    setupSystemConversationForNewUser(user.id).catch(err => console.error('[auth] 建立系統聊天室失敗:', err))
+    ensureSystemConversation(user.id).catch(err => console.error('[auth] 建立系統聊天室失敗:', err))
 
     // sessionId 讓同一帳號能在多裝置分別維護各自的 refresh token，不會互相覆蓋踢出
     const sessionId    = randomUUID()
@@ -72,6 +72,9 @@ router.post('/login', validate(loginSchema), async (req, res, next) => {
     if (user.deactivatedAt) {
       return res.status(403).json({ message: '此帳號已停用，如需恢復請聯絡客服', code: 'ACCOUNT_DEACTIVATED' })
     }
+
+    // 系統聊天室若因故被清空（例如測試環境清過資料），登入時補回來，不必重新註冊帳號
+    ensureSystemConversation(user.id).catch(err => console.error('[auth] 確保系統聊天室失敗:', err))
 
     // sessionId 讓同一帳號能在多裝置分別維護各自的 refresh token，不會互相覆蓋踢出
     const sessionId    = randomUUID()

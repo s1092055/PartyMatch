@@ -35,7 +35,8 @@ flowchart TD
 |------|------|
 | `src/features/my-groups/member/MemberPage.jsx` | 頁面總入口，串接分頁與訂閱卡片 grid |
 | `src/features/my-groups/member/components/SubscriptionCard.jsx` | 單一訂閱卡片 |
-| `src/features/my-groups/member/components/MemberGroupView.jsx` | 成員視角群組詳情 Modal：填寫帳號、確認服務、申訴、退出、查看成員名單 |
+| `src/features/my-groups/member/components/MemberGroupView.jsx` | 成員視角群組詳情 Modal：填寫帳號、確認服務、申訴、退出、查看群組名單、付款管理 |
+| `src/features/my-groups/member/components/memberGroupView/buildPaymentsPanel.jsx` | 付款管理面板，顯示自己這期最新一筆代管紀錄（見 PM幣代管流程文件） |
 | `src/shared/utils/serviceInfoFields.js` | `SHARING_METHOD_CONFIG`（各共享機制的欄位設定與提醒文案）、`hasFilledServiceInfo`、`getServiceInfoSummary` |
 | `src/features/my-groups/member/components/ReviewHostModal.jsx` | 確認服務完成後的團主評價彈窗 |
 | `src/features/my-groups/member/utils/memberFilters.js` | 分頁篩選邏輯：`FILTER_TABS`（審核中/招募中/處理中/服務中四個大分類；已移除「全部」，待鎖定/填寫資訊中/待啟用/確認期中/申訴中五種細分狀態併入「處理中」，`PROCESSING_STATUSES` 定義在 `src/shared/utils/groupStatus.js`，跟 host 端共用） |
@@ -64,8 +65,9 @@ flowchart TD
 
 ## 使用技術
 - **樂觀更新，失敗會回滾**：填寫服務帳號時先寫本地 state，如果 `PATCH` 失敗就把資料復原成送出前的樣子（不是清空），避免使用者辛苦填好的內容無故消失
-- **三層滑動 Panel**：從總覽切到填寫帳號／申訴／成員名單這類子面板，都是同一套滑動元件
-- **`headerBanner`（倒數/狀態提醒橫幅）不綁定分頁**：渲染在 `activeDetail` 判斷之外，切到成員名單等分頁時倒數橫幅仍會顯示，不會只留在群組概覽
+- **三層滑動 Panel**：從總覽切到填寫帳號／申訴／群組名單這類子面板，都是同一套滑動元件
+- **`headerBanner`（倒數/狀態提醒橫幅）不綁定分頁**：渲染在 `activeDetail` 判斷之外，切到群組名單等分頁時倒數橫幅仍會顯示，不會只留在群組概覽
+- **「付款管理」面板只顯示最新一筆代管紀錄**：邏輯跟團主端「收款管理」對齊，只看自己這期最新一筆 `escrow` 交易；未撥款時文案「本期費用已交由平台代管，尚未撥款至團主帳戶」，`group.status` 進入 `active`/`paused`/`ended` 後視為已撥款，文案改「本期費用已撥款給團主」；退款等歷史紀錄不在這裡處理
 - **「服務內容」分頁已整併回群組概覽**：獨立分頁已移除，服務說明／方案說明直接顯示在群組概覽畫面，跟探索頁 `GroupDetailModal` 的呈現方式統一；服務說明拆成「服務說明」「方案說明」兩個並列的大標題區塊，字級一樣大
 - **「填寫帳號」改成群組概覽底部的動態按鈕**：不再是側邊欄項目，改成跟「確認服務」「回報問題」一樣，需要填寫帳號（`needsFillInfo`）或帳號被回報有問題（`hasServiceInfoIssue`）時才會出現在 `GroupModalShell` 的 `centeredCta`
 - **不可逆操作要倒數確認**：確認服務、退出群組都要透過 `CountdownConfirmDialog` 倒數幾秒才能真的送出，避免手滑誤觸
@@ -73,7 +75,8 @@ flowchart TD
 - **`SubscriptionCard` 已啟用（`active`）狀態統計格**：由左到右為團主／成員人數／下次扣款，不顯示加入日期
 - **`ApplicationCard`（已申請分頁的卡片）跟其他訂閱卡片視覺一致**：套用同樣的 `card-lift` hover 放大效果，狀態標籤改用共用 `Badge` 元件（不再手刻不同高度的 badge）
 - 申訴附件會先上傳到圖床拿到 URL，再隨申訴表單一起送出
-- 從群組概覽或成員名單可以直接觸發開啟群組聊天室或私訊團主
+- 從群組概覽或群組名單可以直接觸發開啟群組聊天室或私訊團主
+- **`SubscriptionCard` 頂部 `Badge` 額滿時同步比照團主端**：`displayStatus === 'full'` 時用 `label` 覆蓋成「等待鎖定」，跟 `HostedGroupCard` 的處理方式一致（成員卡片沒有對應的「群組狀態」StatCell，只有團主/成員人數/下次扣款或加入日期三格，所以不需要額外調整 StatCell）
 
 ## 流程步驟
 
@@ -105,8 +108,11 @@ flowchart TD
 - 退出時會發送系統訊息並退出聊天室、移除自己的成員與訂閱資料、把對應申請標為已離開、釋出名額，並通知團主
 - 退出邏輯統一寫在 `src/features/group/utils/leaveGroupFlow.js` 的 `finalizeLeaveGroup`，`GroupDetailModal` 跟 `MyGroupsPage`／`MemberPage` 兩個入口都呼叫同一份，避免各自維護一份重複邏輯、行為不一致（曾經修過其中一份漏呼叫 `leaveConversation` 導致退出後仍留在聊天室的 bug，見 [Bug 紀錄](../testing/bug-log.md) BUG-011）
 
-**8. 成員名單／聯絡團主**
-- 可以查看團主與其他成員名單，團主標示為一個只有文字「團主」的圓角標籤（不再有盾牌圖示）；點擊個別成員的訊息圖示能直接開啟私訊
+**8. 群組名單／聯絡團主**
+- 可以查看團主與其他成員名單（分頁命名為「群組名單」，因為裡面包含團主，不只是成員），團主標示為一個只有文字「團主」的圓角標籤（不再有盾牌圖示）；點擊個別成員的訊息圖示能直接開啟私訊
+
+**9. 付款管理**
+- 側邊欄「付款管理」分頁顯示自己這期最新一筆代管紀錄與目前狀態（尚未撥款／已撥款給團主），資料來源跟團主端收款管理一樣是 `GET /tokens`，前端依 `relatedGroup.id` 篩選出屬於這個群組的交易
 
 ## 驗證重點
 - 填寫帳號資訊只有本人或該群組團主可以操作，其他人一律 403

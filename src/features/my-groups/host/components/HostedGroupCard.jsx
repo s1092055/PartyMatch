@@ -7,10 +7,13 @@ import { getRenewalAwareStatus } from '../../../../shared/utils/groupStatusDispl
 import { toISODate } from '../../../../shared/utils/date'
 import { calcDisplayPrice, calcDisplayCycle } from '../../../../shared/utils/pricingUtils'
 
+// 這裡的文字刻意跟 Badge.jsx 的 LABELS 分開維護：StatCell 用的是稍微更完整的描述用語
+// （例如「待啟用服務」而非 Badge 的「待啟用」），且這裡多了 Badge 沒有的「追蹤中」「正常」兩種細分狀態，
+// 不是單純複製 Badge 的狀態字典，改動任一邊文字前請先確認另一邊的用語脈絡
 function getCollectionState({ group, paidCount, paymentTarget }) {
   if (['cancelled', 'ended'].includes(group.status)) return '已結束'
   if (group.status === 'recruiting') return '招募中'
-  if (group.status === 'full') return '等待啟用'
+  if (group.status === 'full') return '已滿員'
   if (group.status === 'pending_confirmation') return '填寫資訊中'
   if (group.status === 'pending_activation') return '待啟用服務'
   if (group.status === 'confirming') return '確認期中'
@@ -55,7 +58,7 @@ function HostedGroupCard({
     '正常':   'text-success-text',
     '招募中': 'text-success-text',
     '已結束': 'text-ink-3',
-    '等待啟用': 'text-ink-3',
+    '已滿員': 'text-ink-3',
   }[collectionState] ?? 'text-warning-text'
 
   const isActivated    = ['active', 'cancelled', 'ended'].includes(group.status)
@@ -66,7 +69,14 @@ function HostedGroupCard({
       onClick={onViewGroup}
     >
       <div className="flex justify-center">
-        <Badge variant={displayStatus} label={group.status === 'pending_confirmation' ? '收款中' : undefined} />
+        <Badge
+          variant={displayStatus}
+          label={
+            group.status === 'pending_confirmation' ? '收款中' :
+            group.status === 'full' ? '等待鎖定' :
+            undefined
+          }
+        />
       </div>
 
       <div className="mt-4 flex justify-center">
@@ -99,7 +109,7 @@ function HostedGroupCard({
             {pendingAppCount} 件
           </StatCell>
         ) : (
-          <StatCell label="收款狀態" highlight={collectionHighlight}>
+          <StatCell label="群組狀態" highlight={collectionHighlight}>
             {collectionState}
           </StatCell>
         )}
@@ -111,7 +121,7 @@ function HostedGroupCard({
             {group.createdAt ?? '—'}
           </StatCell>
         ) : isActivated ? (
-          <StatCell label="收款狀態" highlight={collectionHighlight}>
+          <StatCell label="群組狀態" highlight={collectionHighlight}>
             {collectionState}
           </StatCell>
         ) : (

@@ -5,6 +5,7 @@ import { AlertCircle, Bell, CheckCircle2, MessageSquare, UserPlus, X } from 'luc
 import { useAuthStore } from '../stores/useAuthStore'
 import { useApplicationStore } from '../stores/useApplicationStore'
 import { useGroupStore } from '../stores/useGroupStore'
+import { useMemberStore } from '../stores/useMemberStore'
 import { useNotificationStore } from '../stores/useNotificationStore'
 import { useSubscriptionStore } from '../stores/useSubscriptionStore'
 import { formatRelativeDate } from '../utils/date'
@@ -59,6 +60,7 @@ const NOTIFICATION_META = {
   member_left:          { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/my-groups?view=host' },
   escrow_released:      { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-groups?view=host' },
   dispute_raised:       { icon: AlertCircle,   iconColor: 'text-danger',     link: '/my-groups?view=host' },
+  dispute_resolved:     { icon: CheckCircle2,  iconColor: 'text-info',       link: '/my-groups?view=member' },
   system:               { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/explore' },
   announcement:         { icon: AlertCircle,   iconColor: 'text-brand',      link: '/explore' },
   platform:             { icon: AlertCircle,   iconColor: 'text-brand',      link: '/explore' },
@@ -160,15 +162,18 @@ export default function FloatingMessages() {
     if (notification.type === 'application_sent' && notification.meta?.groupId) {
       const gId = notification.meta.groupId
       const user = getCurrentUser()
-      const hasSub = user ? !!getSubscriptionByUserAndGroup(user.id, gId) : false
-      if (hasSub) {
-        // 申請已通過，以成員視角開啟
-        navigate('/my-groups?view=member', { state: { openGroupId: gId } })
-      } else {
-        // 申請仍待審核，以探索視角開啟（與 ApplicationCard 一致）
-        navigate('/my-groups?view=member', { state: { tab: 'processing' } })
-        window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: gId } }))
-      }
+      // 同 application_approved：本地 subscriptionStore 快取可能還沒反映最新核准結果，先重新拉一次再判斷
+      useSubscriptionStore.getState().init().finally(() => {
+        const hasSub = user ? !!getSubscriptionByUserAndGroup(user.id, gId) : false
+        if (hasSub) {
+          // 申請已通過，以成員視角開啟
+          navigate('/my-groups?view=member', { state: { openGroupId: gId } })
+        } else {
+          // 申請仍待審核，以探索視角開啟（與 ApplicationCard 一致）
+          navigate('/my-groups?view=member', { state: { tab: 'processing' } })
+          window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: gId } }))
+        }
+      })
       return
     }
 
@@ -206,13 +211,17 @@ export default function FloatingMessages() {
     if (notification.type === 'application_approved' && notification.meta?.groupId) {
       const gId = notification.meta.groupId
       const user = getCurrentUser()
-      const hasSub = user ? !!getSubscriptionByUserAndGroup(user.id, gId) : false
-      if (hasSub) {
-        navigate('/my-groups?view=member', { state: { openGroupId: gId } })
-      } else {
-        navigate('/explore')
-        openGroupOrRedirect(gId)
-      }
+      // 本地 subscriptionStore 可能還停在核准前的快照（尚未輪詢到新建立的訂閱），
+      // 用過期快取判斷會誤判成「尚無訂閱」導致導向探索頁而非會員視角，須先重新拉一次
+      useSubscriptionStore.getState().init().finally(() => {
+        const hasSub = user ? !!getSubscriptionByUserAndGroup(user.id, gId) : false
+        if (hasSub) {
+          navigate('/my-groups?view=member', { state: { openGroupId: gId } })
+        } else {
+          navigate('/explore')
+          openGroupOrRedirect(gId)
+        }
+      })
       return
     }
 
@@ -241,6 +250,22 @@ export default function FloatingMessages() {
     if ((notification.type === 'escrow_released' || notification.type === 'dispute_raised') && notification.meta?.groupId) {
       navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId } })
       window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: notification.meta.groupId } }))
+      return
+    }
+
+    if (notification.type === 'dispute_resolved' && notification.meta?.groupId) {
+      const gId = notification.meta.groupId
+      const grp = getGroupById(gId)
+      if (grp && grp.hostId === userId) {
+        navigate('/my-groups?view=host', { state: { openGroupId: gId } })
+        window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: gId } }))
+      } else if (useMemberStore.getState().getByUserAndGroup(userId, gId)) {
+        // 申訴不成立，成員仍在群組內
+        navigate('/my-groups?view=member', { state: { openGroupId: gId } })
+      } else {
+        // 申訴成立，申訴成員已被移出群組，沒有群組可開啟
+        navigate('/explore')
+      }
       return
     }
 

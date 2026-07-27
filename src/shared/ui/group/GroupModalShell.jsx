@@ -125,7 +125,7 @@ export default function GroupModalShell({
                     {floatingBackButton && (
                       <button
                         onClick={subSubPanel ? onSubSubPanelBack : onSubPanelBack}
-                        className="absolute left-3 top-3 z-10 grid h-8 w-8 shrink-0 place-items-center rounded-full border border-line bg-canvas text-ink-3 transition-colors hover:border-brand hover:text-brand"
+                        className="absolute left-3 top-3 z-10 grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
                         aria-label="返回"
                       >
                         <ChevronLeft size={18} strokeWidth={1.5} />
@@ -195,12 +195,9 @@ export default function GroupModalShell({
                       </div>
                     </div>
 
-                    {/* Price / CTA bar */}
-                    {centeredCta ? (
-                      <div className="shrink-0 border-t border-line bg-canvas px-6 py-2">
-                        {centeredCta}
-                      </div>
-                    ) : !hideRecruitBar ? (
+                    {/* Price / CTA bar；centeredCta 移到下面、key={panelKey} 區塊外面統一處理，
+                        這樣切到其他分頁（成員名單、申請管理等）時也看得到，不會只有概覽才有 */}
+                    {!centeredCta && !hideRecruitBar ? (
                       <div className="shrink-0 border-t border-line bg-canvas px-6 py-4">
                         <div className="flex items-center justify-between">
                           <div>
@@ -230,6 +227,14 @@ export default function GroupModalShell({
                   </>
                 )}
               </div>
+
+              {/* centeredCta（例如鎖定群組、啟用服務、填寫帳號、確認服務）放在 key={panelKey} 外面，
+                  所有分頁都會持續顯示，不會切到成員名單/申請管理等分頁就消失 */}
+              {centeredCta && (
+                <div className="shrink-0 border-t border-line bg-canvas px-6 py-2">
+                  {centeredCta}
+                </div>
+              )}
             </div>
 
             {sideBar && (

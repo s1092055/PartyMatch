@@ -75,7 +75,7 @@ export function buildMobileFooter({
             onClick={() => setShowMembers(true)}
             className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
           >
-            <Users size={17} /> 成員名單
+            <Users size={17} /> 群組名單
           </button>
           <button
             onClick={() => setLeaveConfirm(true)}

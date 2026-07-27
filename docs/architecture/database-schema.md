@@ -31,13 +31,12 @@
 | `pm:open-group` | 群組卡片 / Redirect | `GroupDetailModal` |
 | `pm:open-notify` | AppNav 通知按鈕 | `FloatingMessages` |
 | `pm:open-messages` | AppNav / 訂閱卡 / 群組操作 | `MessagesModal` |
+| `pm:close-messages` | `MessageBubble` 內的操作型訊息按鈕（例如點「填寫服務帳號」導頁前） | `MessagesModal` 關閉自己 |
 | `pm:open-dm` | 聯絡團主 | `MessagesModal` 建立或取得 DM |
 | `pm:open-host-group` | 通知點擊 / `FloatingMessages` / `ChatWindow` | `HostPage` 開啟指定群組 Modal（支援 `openLockGroup`、`openActivate`、`openApplications`、`openBilling` 旗標） |
-| `pm:notif-changed` | `useNotificationStore` | `AppNav` 更新通知未讀 badge |
-| `pm:convs-changed` | `useConversationStore` | `AppNav` 更新訊息未讀 badge；`MessagesModal` 重新讀取對話列表 |
-| `pm:auth-changed` | `useAuthStore` | `AppNav` 重新讀取使用者狀態 |
-| `pm:members-changed` | `useMemberStore` | `GroupDetailModal`、`ChatWindow`、`ExplorePage`、`HostPage` 重新讀取成員狀態 |
-| `pm:applications-changed` | `useApplicationStore` | `GroupDetailModal`、`ExplorePage`、`MemberPage`、`HostPage` 重新讀取申請狀態 |
+| `pm:open-topup` | `GroupDetailModal`「PM幣不足」Toast 的「前往儲值」按鈕 | `AppNav` 開啟儲值 Modal |
+| `pm:refresh-member-stores` | `useNotificationStore` 輪詢偵測到 `member_left`/`member_removed`；`FloatingMessages` 點擊同類通知 | `App.jsx` 重新 `init()` 成員與訂閱 store |
+| `pm:refresh-application-store` | `useNotificationStore` 輪詢偵測到 `new_application`/`application_withdrawn` | `App.jsx` 重新 `init()` 申請 store |
 
 ---
 
@@ -107,7 +106,7 @@
 
 後端 Prisma schema 定義的完整通知類型：
 
-`application_sent`、`new_application`、`application_approved`、`application_rejected`、`application_withdrawn`、`group_created`、`group_chat_opened`、`group_activated`、`group_full`、`group_ended`、`group_cancelled`、`group_renewal`、`member_joined`、`member_removed`、`member_left`、`service_info_issue`、`token_topup`、`escrow_released`（成員主動確認或逾期自動撥款後發送）、`dispute_raised`、`upcoming_renewal`（距 `nextBillingDate` 7 天內、於成員讀取自己訂閱列表時惰性補發一次，見 `GET /subscriptions`）、`system`
+`application_sent`、`new_application`、`application_approved`、`application_rejected`、`application_withdrawn`、`group_created`、`group_chat_opened`、`group_activated`、`group_full`、`group_ended`、`group_cancelled`、`group_renewal`、`member_joined`、`member_removed`、`member_left`、`service_info_issue`、`token_topup`、`escrow_released`（成員主動確認、確認期逾期惰性撥款、或申訴裁定團主獲勝時發送）、`dispute_raised`、`dispute_resolved`（申訴裁定結果，通知申訴成員與團主雙方）、`upcoming_renewal`（距 `nextBillingDate` 7 天內、於成員讀取自己訂閱列表時惰性補發一次，見 `GET /subscriptions`）、`system`
 
 ---
 

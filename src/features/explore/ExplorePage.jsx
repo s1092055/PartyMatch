@@ -38,7 +38,10 @@ export default function ExplorePage() {
     return { appliedGroupIds: applied, memberGroupIds: memberIds }
   }, [activeUserId, applications, members])
 
-  const filtered = useMemo(() => applyFilters(allGroups, filters), [allGroups, filters])
+  const filtered = useMemo(
+    () => applyFilters(allGroups, filters, memberGroupIds),
+    [allGroups, filters, memberGroupIds],
+  )
 
   function handleFilterChange(patch) {
     setFilters(prev => ({ ...prev, ...patch, q: patch.q !== undefined ? patch.q.trim() : prev.q }))
@@ -57,7 +60,9 @@ export default function ExplorePage() {
           description="試著調整篩選條件"
         />
       ) : (
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+        // key={filters.category} 讓切換分類時整批卡片重新掛載，重播 slide-up 進場動畫，
+        // 而不是只有新出現的卡片才有動畫（同一個 group.id 在篩選前後都存在的卡片預設會被 React 直接重用）
+        <div key={filters.category} className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
           {filtered.map((group, i) => (
             <RevealSection key={group.id} delay={Math.min(i * 60, 300)}>
               <ExploreGroupCard group={group} isApplied={appliedGroupIds.has(group.id)} isMember={memberGroupIds.has(group.id)} />

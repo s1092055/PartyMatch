@@ -19,27 +19,27 @@ PartyMatch 的斷點是三段式（`src/index.css` `@theme`）：手機（< 768p
 
 ---
 
-### TC-302：我的群組頁面雙欄佈局（≥768px）與手機單欄
+### TC-302：我的群組頁面版面
 
 **步驟**：在 `/my-groups?view=host` 與 `?view=member` 分別測手機與 `md:` 以上寬度
 
 **預期結果**：
-- `md:` 以上：`FilterTabsBar` 為左側垂直 nav，跟右側群組/訂閱卡片 grid 排成左右兩欄（`md:flex`），右側 grid 固定 2 欄（`md:grid-cols-2`，不因螢幕更寬而變 3 欄）
-- 桌機版 `FilterTabsBar` nav 固定高度（`md:h-[calc(100vh-16rem)]`，跟右側內容區同一個 calc 值），不是靠 flex 拉伸撐高；切換分類篩選、項目數量變動時，底部「群組紀錄」按鈕（`mt-auto`）的垂直位置應保持穩定，不會跟著分類項目多寡上下飄動
-- 手機：`FilterTabsBar` 改為 `CustomSelect` 下拉選單；「群組紀錄」入口從側邊欄按鈕改成下拉選單右側的 icon 按鈕
-- 桌機版身分切換 pill 與統計卡排成同一列（`md:flex md:items-stretch`），pill 欄寬固定 `md:w-40`；手機版身分切換為左右並排兩顆 `flex-1` 全寬按鈕，不是 pill
+- `FilterTabsBar` 手機/桌機都是同一套橫向 underline tabs（3 個分類寬度放得下，不再用 `CustomSelect` 下拉選單，也不是左側垂直 nav），置於群組/訂閱卡片列表正上方，單欄版面（不分左右兩欄）
+- 下方卡片 grid 用 `auto-fill`/`minmax`（`grid-cols-[repeat(auto-fill,minmax(20rem,1fr))]`）依容器實際可用寬度決定一列排幾張，不是用 `md:grid-cols-2` 這種固定欄數斷點
+- 頁面最上方標題列：標題文字置左，「群組紀錄」「切換身份」兩顆按鈕並排置右（群組紀錄在切換身份左邊），手機/桌機同一種排法，沒有 fixed 定位；「切換身份」按鈕底色為主色、文字白色，「群組紀錄」是外框樣式
+- 點擊「群組紀錄」開啟 `GroupHistoryModal`（團主/成員共用同一顆按鈕與同一個 modal），切換身份時若群組紀錄 modal 開著應自動關閉，避免帶著開啟狀態掛載到另一個身分
 
 ---
 
 ### TC-303：群組詳情 Modal 側邊欄 RWD
 
-**步驟**：開啟任一群組詳情 Modal（`GroupModalShell`），分別在手機與桌機寬度操作分頁切換（團主視角：群組概覽／服務內容／成員名單／申請管理或收款管理；成員視角：群組概覽／服務內容／成員名單／填寫帳號）
+**步驟**：開啟任一群組詳情 Modal（`GroupModalShell`），分別在手機與桌機寬度操作分頁切換（團主視角：群組概覽／服務內容／群組名單／申請管理或收款管理；成員視角：群組概覽／服務內容／群組名單／填寫帳號）
 
 **預期結果**：
 - 桌機：側邊分頁導覽（`md:w-24 md:flex-col`）與內容區並排顯示；「群組訊息」「退出群組」「解散群組」這類跟一般分頁切換互斥的項目，用 `pinned` 樣式（`md:mt-auto`）固定在側邊欄桌機版的最底部，不會跟其他分頁按鈕混在一起
 - 手機：側邊欄改成橫向排列在內容區下方（`flex-row overflow-x-auto`），不應該側邊欄跟內容區同時佔滿畫面寬度導致擠壓變形
 - Modal 內三層 panel 滑動軌道（`subPanel`/`subSubPanel`）在手機寬度下滑動切換動畫應正常，不應有橫向溢出
-- 頂部倒數/狀態提醒 banner（`headerBanner`）是掛在 `panelKey` 區塊外面，切換分頁（例如概覽切到服務內容、成員名單）時 banner 應維持原地不動、不重新播放 slide-up 進場動畫；只有下方分頁內容本身有 slide-up 效果，且 banner 在所有分頁都要能看到，不只在群組概覽才顯示
+- 頂部倒數/狀態提醒 banner（`headerBanner`）是掛在 `panelKey` 區塊外面，切換分頁（例如概覽切到服務內容、群組名單）時 banner 應維持原地不動、不重新播放 slide-up 進場動畫；只有下方分頁內容本身有 slide-up 效果，且 banner 在所有分頁都要能看到，不只在群組概覽才顯示
 
 ---
 
@@ -56,14 +56,14 @@ PartyMatch 的斷點是三段式（`src/index.css` `@theme`）：手機（< 768p
 
 ### TC-305：探索頁 FilterBar 版面
 
-**步驟**：開啟 `/explore`，分別測手機與桌機寬度，並展開/收合篩選面板
+**步驟**：開啟 `/explore`，分別測手機與桌機寬度
 
 **預期結果**：
 - 分類 `CategoryPills`（`variant="grid"`）桌機版排成固定欄數的 grid（`md:grid-cols-10`），手機版改為單行可橫向滑動（不需要箭頭按鈕，靠手勢滑動）
-- 關鍵字搜尋框與篩選（`SlidersHorizontal`）按鈕同一列；篩選按鈕預設收合，點擊才展開服務/價格/排序三個 `CustomSelect` 下拉，收合狀態下若目前有非預設篩選值（服務、金額、排序其中之一不是預設）應在按鈕右上角顯示提示圓點
-- 展開後的三個下拉在小螢幕下應改為直向堆疊（`flex-col sm:flex-row`），不應在手機寬度下被擠壓變形或超出螢幕
-- 點擊篩選面板外部（`useClickOutside`）應自動收合面板
+- 搜尋框與服務/價格/排序三個 `CustomSelect` 一律同時顯示，沒有展開/收合的互動，也沒有動畫效果：桌機版同一列（`md:flex-row`，搜尋框 `md:flex-[3]` 最寬，服務下拉 `md:flex-[2]` 其次，價格/排序平分剩餘寬度）；手機版搜尋框獨立一列（`w-full`），下面三個篩選再各自平分寬度排成一列
 - 價格選項選「自訂金額」時應切換成一個帶 PM 幣圖示的數字輸入框，直接輸入自訂金額上限（按 Enter 或失焦送出），輸入非正數或非數字時應保留在編輯狀態讓使用者修正，不會靜默捨棄
+- `CustomSelect` 下拉展開時應緊貼在觸發按鈕正下方（無縫隙，圓角用 `rounded-b-control` 對齊按鈕本身的 `rounded-control`），不會有多餘的藍色 focus 光暈或點擊縮放效果；選項清單過長時內部捲動，捲軸本身要隱藏（`scrollbar-none`）
+- 上方分類 pill 切換時，底下群組卡片 grid 應整個重新掛載並重播 slide-up 進場動畫（`key={filters.category}`）
 
 ---
 

@@ -100,7 +100,7 @@ flowchart TD
 - 回傳 201 與建好的群組（含 `service`、`host` 關聯）
 
 **7. 建立成功後**
-- 寫入一筆 `group_created` 通知給團主自己，並 `dispatchEvent('pm:group-created')`
+- 寫入一筆 `group_created` 通知給團主自己
 - 流程只有 4 步驟，不會另外切到成功頁：改用 `Modal`（`showHeader={false}`）疊在原本的步驟四表單頁上，顯示「群組已成功上架！」，並提供「返回首頁」與「前往我的群組」兩個按鈕
 
 ## 驗證重點

@@ -90,12 +90,6 @@ export default function MemberPage({ embedded = false, historyOpen, onCloseHisto
     }
   }, [location.key]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
-    function onSetTab(e) { if (e.detail?.tab) setActiveTab(e.detail.tab) }
-    window.addEventListener('pm:set-sub-tab', onSetTab)
-    return () => window.removeEventListener('pm:set-sub-tab', onSetTab)
-  }, [])
-
   const pendingApplications = useMemo(
     () => activeUserId
       ? applicationsState.filter(a => (a.applicantId ?? a.userId) === activeUserId && a.status === 'pending')

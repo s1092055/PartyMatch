@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useGroupStore } from '../../stores/useGroupStore'
 import { useMemberStore } from '../../stores/useMemberStore'
 import { useApplicationStore } from '../../stores/useApplicationStore'
@@ -17,6 +18,14 @@ export default function GroupViewModal({
   const allMembers   = useMemberStore(s => s.members)
   const applicationsState = useApplicationStore(s => s.applications)
   const currentUser  = useAuthStore(s => s.user)
+
+  // 確認期（confirming）可能已經逾期但還沒有人觸發過後端的惰性自動撥款檢查，
+  // 開啟詳情時補打一次，讓「逾期自動撥款」這個安全網真的有機會被觸發
+  useEffect(() => {
+    if (!isOpen || !groupId) return
+    if (useGroupStore.getState().getById(groupId)?.status !== 'confirming') return
+    useGroupStore.getState().refreshGroup(groupId).catch(console.error)
+  }, [isOpen, groupId])
 
   if (!isOpen || !groupId) return null
   const group = groups.find(g => g.id === groupId) ?? null

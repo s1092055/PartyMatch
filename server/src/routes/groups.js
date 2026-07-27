@@ -13,6 +13,11 @@ async function notifyGroupConversation(groupId, senderId, content) {
   await appendMessage(conversation, { senderId, content, type: 'system' })
 }
 
+// 建立單則通知，fire-and-forget（不阻塞主要回應，失敗只記 log）
+function notify({ userId, type, title, message, meta }) {
+  prisma.notification.create({ data: { userId, type, title, message, meta } }).catch(console.error)
+}
+
 const router = Router()
 
 const createGroupSchema = z.object({
@@ -101,16 +106,27 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
 
     // 惰性自動撥款：confirming 且 confirmDeadline 已到期（callback 式 transaction 以 status 重查保持冪等）
     if (group.status === 'confirming' && group.confirmDeadline && new Date(group.confirmDeadline) <= new Date()) {
-      await prisma.$transaction(async (tx) => {
+      const released = await prisma.$transaction(async (tx) => {
         const fresh = await tx.group.findUnique({ where: { id: group.id }, select: { status: true, escrowTokens: true } })
-        if (fresh?.status !== 'confirming') return // 已被其他請求處理，跳過
+        if (fresh?.status !== 'confirming') return false // 已被其他請求處理，跳過
         await tx.group.update({ where: { id: group.id }, data: { status: 'active', confirmDeadline: null, escrowTokens: 0 } })
         await tx.user.update({ where: { id: group.hostId }, data: { tokenBalance: { increment: fresh.escrowTokens } } })
         await tx.tokenTransaction.create({
           data: { userId: group.hostId, type: 'release', amount: fresh.escrowTokens, relatedGroupId: group.id, note: '確認期逾期，自動撥款' },
         })
         await tx.subscription.updateMany({ where: { groupId: group.id }, data: { status: 'active' } })
+        return true
       })
+      if (released) {
+        const groupLabel = group.planName ?? group.service?.name ?? ''
+        notify({
+          userId:  group.hostId,
+          type:    'escrow_released',
+          title:   '代管款項已撥款',
+          message: `「${groupLabel}」確認期已逾期，代管款項已自動撥入你的PM幣餘額。`,
+          meta:    { groupId: group.id },
+        })
+      }
       return res.json({ ...group, status: 'active', confirmDeadline: null, escrowTokens: 0 })
     }
 
@@ -434,7 +450,7 @@ router.post('/:id/adjudicate', requireAdmin, async (req, res, next) => {
 
     const group = await prisma.group.findUnique({
       where:   { id: req.params.id },
-      include: { members: { include: { user: { select: { id: true } } } } },
+      include: { members: { include: { user: { select: { id: true } } } }, service: { select: { name: true } } },
     })
     if (!group) return res.status(404).json({ message: '群組不存在' })
     if (group.status !== 'disputed') return res.status(400).json({ message: `群組狀態為 ${group.status}，不在申訴期` })
@@ -444,6 +460,7 @@ router.post('/:id/adjudicate', requireAdmin, async (req, res, next) => {
     if (!disputeMember) return res.status(400).json({ message: '找不到申訴成員' })
 
     const seatCost = computeSeatCost(group)
+    const groupLabel = group.planName ?? group.service?.name ?? ''
 
     if (winner === 'member') {
       // 退款給申訴成員，移出群組，其他人代管不變，群組回 active
@@ -465,6 +482,21 @@ router.post('/:id/adjudicate', requireAdmin, async (req, res, next) => {
           data:  { status: 'ended' },
         }),
       ])
+
+      notify({
+        userId:  disputeMember.userId,
+        type:    'dispute_resolved',
+        title:   '申訴裁定結果',
+        message: `你對「${groupLabel}」的申訴已受理，本期費用已退還至你的PM幣餘額。`,
+        meta:    { groupId: group.id },
+      })
+      notify({
+        userId:  group.hostId,
+        type:    'dispute_resolved',
+        title:   '申訴裁定結果',
+        message: `「${groupLabel}」的申訴裁定退款給成員，該成員本期費用已退還並移出群組。`,
+        meta:    { groupId: group.id },
+      })
     } else {
       // 撥款給團主，群組回 active，全員訂閱啟用
       await prisma.$transaction([
@@ -481,6 +513,21 @@ router.post('/:id/adjudicate', requireAdmin, async (req, res, next) => {
         }),
         prisma.subscription.updateMany({ where: { groupId: group.id }, data: { status: 'active' } }),
       ])
+
+      notify({
+        userId:  group.hostId,
+        type:    'escrow_released',
+        title:   '代管款項已撥款',
+        message: `申訴裁定結果：「${groupLabel}」代管款項已撥入你的PM幣餘額。`,
+        meta:    { groupId: group.id },
+      })
+      notify({
+        userId:  disputeMember.userId,
+        type:    'dispute_resolved',
+        title:   '申訴裁定結果',
+        message: `你對「${groupLabel}」的申訴未受理，本期費用已撥款給團主。`,
+        meta:    { groupId: group.id },
+      })
     }
 
     res.json({ winner, disputeMemberId: disputeMember.userId })

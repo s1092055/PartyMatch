@@ -11,7 +11,7 @@ flowchart TD
     B --> C[使用者操作 FilterBar\n分類 / 服務 / 價格 / 排序 / 關鍵字]
     C --> D[allGroups 排除自己開的團]
     D --> E[applyFilters 純前端運算]
-    E --> F[狀態: recruiting 且 openSeats > 0]
+    E --> F[狀態: recruiting 且 openSeats > 0\n或 full 且自己是該群組成員]
     F --> G[依分類/服務/價格/關鍵字過濾]
     G --> H[依 sortBy 排序]
     H --> I[標記 已申請 / 已加入 badge]
@@ -54,6 +54,8 @@ flowchart TD
 - **關鍵字輸入用本地 state + 300ms debounce**：`FilterBar` 內用 `useEffect` + `setTimeout`，避免每敲一個字就觸發一次上層更新
 - **篩選/排序全部是前端純運算**：對 `useGroupStore` 已經快取好的群組陣列做 `Array.filter`/`Array.sort`（`applyFilters`），不會另外打搜尋 API
 - 用 `useMemo` 快取 `allGroups`（排除自己開的團）、`filtered`，以及已申請／已加入的 `Set`，避免每次 render 都重新掃一次整個列表
+- **`FilterBar` 沒有展開/收合互動**：搜尋框跟服務/價格/排序三個 `CustomSelect` 一律同時顯示，沒有動畫；桌機版同一列（搜尋框最寬），手機版搜尋框獨立一列、三個篩選在下面平分寬度排成一列
+- **分類切換時重播卡片進場動畫**：結果 grid 外層包 `key={filters.category}`，切換分類 pill 時強制整個 grid 重新掛載，讓卡片重新播放 slide-up 動畫
 
 ## 流程步驟
 
@@ -69,15 +71,16 @@ flowchart TD
 - 使用者調整分類 pill、服務下拉、價格下拉、排序下拉或輸入關鍵字時，都會呼叫 `onChange(patch)` 合併進本地的 `filters` state（不會觸發路由變化）
 
 **4. 套用篩選**
-- `applyFilters(allGroups, filters)` 依序套用：
-  - 基礎條件：狀態要是 `recruiting` 而且還有名額
+- `applyFilters(allGroups, filters, memberGroupIds)` 依序套用：
+  - 基礎條件：狀態是 `recruiting` 而且還有名額，**或**狀態是 `full` 但使用者自己是該群組成員（`memberGroupIds` 傳入自己已加入的群組 id 集合）——讓已加入的成員在群組額滿後仍能在探索頁看到自己的群組卡片，額滿群組對非成員（含團主本人）維持不可見
   - 分類／服務：分別比對 `getServiceById(serviceId).category` 或精確比對 `serviceId`
   - 價格：`pricePerSeat` 要小於等於設定的上限
   - 關鍵字：trim 後轉小寫，用 `includes` 比對服務或方案名稱是否包含（不是模糊比對，也不是全文檢索）
   - 排序：依團主評分、每人價格由低到高、或剩餘名額由少到多排序，預設是推薦排序
 
 **5. 標記狀態**
-- 算出使用者自己「申請中」與「已加入」的群組 id 集合，傳給卡片元件決定要不要顯示對應標籤；沒有申請中/已加入的一般卡片不再額外顯示「招募中」標籤（探索頁本來就只會列出招募中的群組，標籤是多餘資訊），金額文字大小也改成跟「我的群組」卡片一致（`text-base font-extrabold`，原本明顯偏大）
+- 算出使用者自己「申請中」與「已加入」的群組 id 集合，傳給卡片元件決定要不要顯示對應標籤（`ExploreGroupCard` 用 `Badge` primitive，固定保留一列高度給這個 badge，不管有沒有顯示都佔同樣空間，讓同一排卡片高度整齊）；沒有申請中/已加入的一般卡片不再額外顯示「招募中」標籤（探索頁本來就只會列出招募中或自己已加入的群組，標籤是多餘資訊），金額文字大小也改成跟「我的群組」卡片一致（`text-base font-extrabold`，原本明顯偏大）
+- 額滿群組的「剩餘名額」直接顯示文字「已滿員」取代 `0 / 3` 這種數字寫法，字級不變（其餘正常招募中的群組仍顯示「剩餘名額 / 總名額」數字加進度條）
 
 **6. 點擊卡片**
 - 觸發 `pm:open-group` custom event 開啟 `GroupDetailModal`（不是路由跳轉），後續申請流程見 `apply-join-flow.md`

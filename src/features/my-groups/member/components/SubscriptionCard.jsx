@@ -34,7 +34,10 @@ function SubscriptionCard({ sub, onViewGroup }) {
       onClick={() => onViewGroup?.(sub)}
     >
       <div className="flex justify-center">
-        <Badge variant={displayStatus === 'recruiting' ? 'member_joined' : displayStatus} />
+        <Badge
+          variant={displayStatus === 'recruiting' ? 'member_joined' : displayStatus}
+          label={displayStatus === 'full' ? '等待鎖定' : undefined}
+        />
       </div>
 
       <div className="mt-4 flex justify-center">

@@ -3,7 +3,7 @@ import Avatar from '../../../shared/ui/primitives/Avatar'
 
 export function buildMembersSubPanel({ group, groupId, members, activeUserId, setShowMembers, openDm }) {
   return {
-    title: `成員名單（${members.filter(m => m.groupId === groupId && m.userId !== group.hostId).length + 1} 人）`,
+    title: `群組名單（${members.filter(m => m.groupId === groupId && m.userId !== group.hostId).length + 1} 人）`,
     icon: <Users size={18} className="text-brand" />,
     content: (
       <div className="p-5 space-y-2">

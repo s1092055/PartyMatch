@@ -163,3 +163,35 @@
 - 應跳出 `info` Toast 告知群組已額滿/不再招募中，並停留在探索頁，**不會**打開該群組的詳情 Modal
 - 若群組狀態退回 `recruiting`（例如有人退出釋出名額），點擊應正常打開群組詳情 Modal
 - 舊版 bug（BUG-020）：三個入口一律 `navigate('/explore')` + 直接 `dispatchEvent('pm:open-group')`，完全不檢查群組目前狀態，使用者得自己點進去才發現「申請加入」按鈕被隱藏/停用
+
+---
+
+### TC-212：點擊「申請已通過」通知不需手動整理頁面即可正確導向會員視角
+
+**前置條件**：申請人的申請剛被團主核准（後端已建立對應 `Subscription`），申請人此前沒有任何操作觸發過本地 `subscriptionStore` 重新拉取（例如核准當下就開著通知面板）
+**步驟**：
+1. 申請人在**不重新整理頁面**的情況下，點擊 `application_approved`（或 `application_sent` 已核准分支）通知
+
+**預期結果**：
+- 點擊當下應先重新拉取一次 `subscriptionStore`（`init()`），再判斷是否已有對應訂閱
+- 判斷出已有訂閱後，導向 `/my-groups?view=member` 並開啟該群組（會員視角），**不會**誤判成尚無訂閱而導向探索頁
+- 舊版 bug（BUG-024）：`hasSub` 直接讀本地記憶體快取，該筆訂閱是核准當下才建立、前端還沒輪詢到，誤判成尚無訂閱，導向探索頁看起來像「還在申請中」，需使用者手動整理頁面才會更新
+
+---
+
+### TC-213：確認期逾期自動撥款、申訴裁定撥款/退款都會發通知
+
+**前置條件**：
+- 情境 A：群組處於 `confirming`，`confirmDeadline` 已用 Prisma Studio 改為過去時間
+- 情境 B：群組處於 `disputed`，管理員帳號（`demo-admin@partymatch.test`）準備裁定
+
+**步驟**：
+1. 情境 A：任一使用者觸發 `GET /groups/:id`（例如重新整理群組詳情頁），讓惰性撥款邏輯執行
+2. 情境 B-1：管理員裁定 `winner: 'host'`
+3. 情境 B-2（另一個測試群組）：管理員裁定 `winner: 'member'`
+
+**預期結果**：
+- 情境 A：團主應收到一筆 `escrow_released` 通知（代管款項已撥款），點擊導向 `/my-groups?view=host` 並開啟該群組
+- 情境 B-1：團主收到 `escrow_released`（撥款）；申訴成員收到 `dispute_resolved`（申訴未受理），點擊後因為此成員仍在群組內，導向 `/my-groups?view=member` 並開啟該群組
+- 情境 B-2：申訴成員收到 `dispute_resolved`（申訴已受理，退款），點擊後因為此成員已被移出群組（`prisma.member.delete`），導向 `/explore`；團主也收到 `dispute_resolved`（裁定退款給成員），點擊導向 `/my-groups?view=host`
+- 舊版 bug（BUG-025）：這三條路徑都完全沒有發通知，撥款/退款當事人只能自己重新整理頁面才會發現PM幣餘額變動；只有「全員手動確認服務、剛好全部確認齊」（`POST /:id/confirm`）那條路徑原本就有發 `escrow_released`

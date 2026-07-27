@@ -68,7 +68,7 @@ sequenceDiagram
 - **Prisma `$transaction`（陣列形式）**：不管是送出申訴還是裁定，都把群組狀態變更跟 `Member` 欄位更新（或代管金額異動）包在同一個交易裡
 - **多選項跟自由文字合併存放**：`DISPUTE_REASON_OPTIONS` 可以複選，跟補充說明用換行串接後寫進單一 `reason` 字串欄位——`serviceInfoIssueNote` 本身沒有拆成好幾個結構化欄位
 - **附件上傳跟表單送出是分開兩步**：`handleEvidenceSelect` 先呼叫 `uploadDisputeEvidence` 拿到 URL 存在 state，等真的送出申訴時才一起帶進 `POST /groups/:id/dispute`
-- `NotificationType` 雖然定義了 `dispute_raised`／`escrow_released` 這兩種類型，但目前程式碼裡沒有任何地方真的拿來建立通知——裁定結果不會主動通知申訴成員或團主，管理員只在 `AdminTab` 自己看 toast
+- 裁定結果會建立通知（見 [Bug 紀錄](../testing/bug-log.md) BUG-025）：`winner: 'member'` 通知申訴成員（`dispute_resolved`，退款）與團主（`dispute_resolved`，裁定結果）；`winner: 'host'` 通知團主（`escrow_released`，撥款）與申訴成員（`dispute_resolved`，裁定結果）；`FloatingMessages.jsx` 點擊 `dispute_resolved` 時會判斷該成員是否仍在群組內，決定導向會員視角或探索頁
 
 ## 流程步驟
 
@@ -100,4 +100,4 @@ sequenceDiagram
 - `POST /groups/:id/adjudicate` 用 `requireAdmin` 保護，只有管理員能呼叫；群組必須是 `disputed`、`winner` 只能填 `member`/`host`、`reason` 不能是空的
 - 裁定成員獲勝時，只有申訴的那位成員會被移出並退款，其餘成員的代管、訂閱完全不受影響，裁定範圍精準限定在單一成員身上
 - 裁定沒有做樂觀更新：因為牽動多張表、分支也多，前端裁定完成後選擇整包重新 `init`，直接信任資料庫回傳的結果，比自己去兜前端邏輯更不容易出錯
-- 裁定結果目前不會建立任何通知，申訴成員跟團主得自己重新整理頁面，才會看到群組狀態變回 `active`
+- 裁定結果會建立通知給申訴成員跟團主雙方，不需要自己重新整理頁面才會發現群組狀態變回 `active`

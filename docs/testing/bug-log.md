@@ -24,6 +24,38 @@
 
 依發現時間排序，最新在上。每筆都有標註「來源」（`/code-review` 靜態審查、使用者回報、或手動測試），之後新發現的 bug 補在最上面即可。
 
+### BUG-026：審核紀錄清單裡的所有卡片都被套上 `opacity-60` 模糊效果
+
+- **功能**：`ApplicationCard.jsx`，團主端「審核紀錄」第三層面板（`buildReviewHistoryPanel.jsx`）
+- **嚴重度**：P2（純視覺問題，不影響功能，但整份清單看起來像是全部處於停用/淡出狀態，容易誤導）
+- **來源**：使用者回報「為什麼要把審核紀錄裡面的內容變成有點模糊的效果」
+- **重現方式**：進入任一群組的「申請管理」→「審核紀錄」，清單裡任何一筆已核准/已拒絕/已退出/已移除的申請卡片都是半透明的
+- **預期結果**：審核紀錄的卡片應該正常不透明顯示
+- **實際結果**：`ApplicationCard.jsx` 有一段「非 `pending` 狀態就套用 `opacity-60`」的條件樣式；但這個元件在「申請管理」清單只會收到 `pending` 的申請（一定不觸發），在「審核紀錄」清單只會收到已審核完的申請（狀態一定不是 `pending`，一定觸發），實際上等於審核紀錄裡的卡片必然全部變半透明，這段條件式從一開始的設計意圖裡就沒有真的按「pending vs 非 pending」的原意運作過
+- **修正狀態**：已修——直接移除 `opacity-60` 的條件判斷，兩份清單的卡片都改成正常顯示
+
+### BUG-025：確認期逾期自動撥款、申訴裁定撥款/退款，都沒有發通知
+
+- **功能**：[通知流程](../flows/notification-flow.md)，`server/src/routes/groups.js` 的 `GET /:id`（惰性撥款）與 `POST /:id/adjudicate`（申訴裁定）
+- **嚴重度**：P1（撥款/退款已經真的發生，但當事人完全不知道，需要自己重新整理頁面才會發現餘額變動）
+- **來源**：使用者測試階段發現通知中心完全沒看到任何費用交易相關通知，追查後發現是實作缺口
+- **重現方式**：（1）群組進入 `confirming` 後放著不管，讓 `confirmDeadline` 逾期，任何人打一次 `GET /groups/:id` 觸發惰性撥款；（2）成員申訴後，管理員呼叫 `POST /groups/:id/adjudicate` 裁定 `winner: 'host'` 或 `winner: 'member'`
+- **預期結果**：撥款/退款發生時，受影響的人（團主、申訴成員）都應該收到通知
+- **實際結果**：撥款給團主的路徑裡，只有「全員手動點確認服務正常、剛好全部確認齊」這條路徑（`POST /:id/confirm`）有寫 `escrow_released` 通知；惰性自動撥款（`GET /:id`）跟申訴裁定的兩個分支（`POST /:id/adjudicate`）完全沒有寫通知，撥款/退款當事人只能靠自己重新整理頁面才會發現PM幣餘額變動
+- **推測原因**：`escrow_released` 通知是跟著 `/confirm` 路由一起加的，後來其他兩條「錢也會動」的路徑（逾期惰性撥款、申訴裁定）沒有同步補上
+- **修正狀態**：已修——惰性撥款補上跟 `/confirm` 一致的 `escrow_released` 通知給團主；`/adjudicate` 新增 `NotificationType.dispute_resolved`（`schema.prisma`，已 `db push`），兩個裁定分支都補通知：`winner: 'member'` 通知申訴成員（退款）與團主（裁定結果），`winner: 'host'` 通知團主（`escrow_released`，撥款）與申訴成員（裁定結果）；前端 `FloatingMessages.jsx` 新增 `dispute_resolved` 的顯示與點擊導向（依當下是否仍是該群組成員，決定導向會員視角或探索頁）
+
+### BUG-024：點擊「申請已通過」通知用過期的本地訂閱快取判斷，誤導向探索頁而非會員視角
+
+- **功能**：[通知流程](../flows/notification-flow.md)，`FloatingMessages.jsx` 的 `application_approved`／`application_sent` 通知點擊
+- **嚴重度**：P1（核准後點通知體驗上像是「還在申請中」，需要手動整理頁面才會正確導向）
+- **來源**：使用者回報「點擊申請已通過的通知應該要把群組往前推進，為什麼還顯示申請中」
+- **重現方式**：申請人的申請被團主核准後，申請人這端還沒有其他操作觸發過 `subscriptionStore` 重新拉取（例如剛好在核准當下就開著通知面板），點擊 `application_approved` 通知
+- **預期結果**：應判斷出使用者已有對應訂閱，導向 `/my-groups?view=member` 並開啟該群組（會員視角）
+- **實際結果**：`hasSub` 直接讀本地 `useSubscriptionStore` 記憶體快取（該筆訂閱是核准當下才由後端建立，前端 store 還沒輪詢到），判斷成尚無訂閱，改成 `navigate('/explore')` + `openGroupOrRedirect`，看起來像是還在等審核
+- **推測原因**：新增 `openGroupOrRedirect` 的額滿保護邏輯（BUG-020）時，只處理了群組狀態過期的問題，沒有一併處理 `hasSub` 判斷用的訂閱快取也可能過期
+- **修正狀態**：已修——兩處點擊前先 `await useSubscriptionStore.getState().init()` 重新拉取最新訂閱清單，再判斷 `hasSub`，不需要使用者手動整理頁面
+
 ### BUG-023：我的收藏清單沒有依群組狀態過濾，額滿/已解散/已結束的群組會一直留著
 - **功能**：[使用者流程總覽](../flows/user-flows.md)，`FavoritesPage.jsx`
 - **嚴重度**：P2（顯示問題，容易誤導使用者以為還能申請）

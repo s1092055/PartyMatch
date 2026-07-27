@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import {
   readAllGroups,
   insertGroup,
+  fetchGroupById,
   patchGroup,
   lockGroupApi,
   activateGroupApi,
@@ -31,6 +32,13 @@ export const useGroupStore = create((set, get) => ({
     } catch (err) {
       set({ error: err.message, loading: false })
     }
+  },
+
+  // 重新查詢單一群組（觸發後端確認期逾期自動撥款的惰性檢查），開啟群組詳情時呼叫
+  refreshGroup: async (id) => {
+    const updated = await fetchGroupById(id)
+    set(s => ({ groups: s.groups.map(g => g.id === id ? normalizeGroup({ ...g, ...updated }) : g) }))
+    return updated
   },
 
   // ── 選取器 ──────────────────────────────────────────────────────────────────

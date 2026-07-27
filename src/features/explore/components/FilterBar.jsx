@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { Search, SlidersHorizontal } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { Search } from 'lucide-react'
 import CategoryPills from '../../../shared/ui/primitives/CategoryPills'
 import CustomSelect from '../../../shared/ui/primitives/CustomSelect'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import { TokenBadge } from '../../../shared/ui/TokenAmount'
 import { listServiceTypes } from '../../../shared/utils/serviceUtils'
-import { useClickOutside } from '../../../shared/utils/hooks'
 
 const PRICE_PRESETS = ['any', '100', '200', '300', '500']
 
@@ -60,12 +59,6 @@ export default function FilterBar({ filters, onChange }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [keyword])
 
-  const [filtersOpen, setFiltersOpen] = useState(false)
-  const filterBarRef = useRef(null)
-  const hasActiveFilters = filters.service !== 'all' || filters.maxPrice !== 'any' || filters.sortBy !== 'recommended'
-
-  useClickOutside(filtersOpen, [filterBarRef], () => setFiltersOpen(false))
-
   const serviceOptions = useMemo(() => buildServiceOptions(filters.category), [filters.category])
 
   const isCustomPrice = filters.maxPrice !== 'any' && !PRICE_PRESETS.includes(filters.maxPrice)
@@ -108,70 +101,55 @@ export default function FilterBar({ filters, onChange }) {
         onChange={val => onChange({ category: val === filters.category ? 'all' : val, service: 'all' })}
       />
 
-      <div ref={filterBarRef}>
-        <div className="field relative flex h-11 items-center">
-          <div className="flex flex-1 items-center justify-center gap-2">
+      <div className="flex flex-col gap-2 md:flex-row md:items-center">
+        <div className="field flex h-11 min-w-0 items-center md:flex-[3]">
+          <div className="flex flex-1 items-center gap-2">
             <Search size={16} strokeWidth={1.5} className="pointer-events-none shrink-0 text-ink-4" />
             <input
               type="text"
               placeholder="搜尋服務或方案名稱"
               value={keyword}
               onChange={e => setKeyword(e.target.value)}
-              className="max-w-full min-w-0 [field-sizing:content] bg-transparent text-left text-sm outline-none placeholder:text-ink-4"
+              className="min-w-0 flex-1 bg-transparent text-left text-sm outline-none placeholder:text-ink-4"
             />
           </div>
-          <button
-            type="button"
-            onClick={() => setFiltersOpen(v => !v)}
-            aria-label="篩選"
-            aria-expanded={filtersOpen}
-            className={`absolute right-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors ${
-              filtersOpen ? 'bg-brand-subtle text-brand' : 'text-ink-4 hover:bg-raised hover:text-ink'
-            }`}
-          >
-            <SlidersHorizontal size={16} strokeWidth={1.5} />
-            {hasActiveFilters && (
-              <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-brand" />
-            )}
-          </button>
         </div>
 
-        {filtersOpen && (
-          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-            <CustomSelect
-              value={filters.service}
-              onChange={val => onChange({ service: val, category: 'all' })}
-              options={serviceOptions}
-            />
-            {customEditing ? (
-              <div className="relative min-w-0 flex-1">
-                <TokenBadge className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
-                <input
-                  type="number"
-                  min="1"
-                  autoFocus
-                  placeholder="輸入 PM 幣金額上限"
-                  value={customPriceInput}
-                  onChange={e => setCustomPriceInput(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') submitCustomPrice() }}
-                  onBlur={submitCustomPrice}
-                  className="field h-11 w-full pl-9 pr-3 text-sm font-bold"
-                />
-              </div>
-            ) : (
-              <CustomSelect
-                value={isCustomPrice ? 'custom' : filters.maxPrice}
-                onChange={handlePriceChange}
-                options={priceOptions}
+        <div className="flex items-center gap-2 md:contents">
+          <CustomSelect
+            value={filters.service}
+            onChange={val => onChange({ service: val, category: 'all' })}
+            options={serviceOptions}
+            className="md:flex-[2]"
+          />
+          {customEditing ? (
+            <div className="relative min-w-0 flex-1">
+              <TokenBadge className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+              <input
+                type="number"
+                min="1"
+                autoFocus
+                placeholder="輸入 PM 幣金額上限"
+                value={customPriceInput}
+                onChange={e => setCustomPriceInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') submitCustomPrice() }}
+                onBlur={submitCustomPrice}
+                className="field h-11 w-full pl-9 pr-3 text-sm font-bold"
               />
-            )}
+            </div>
+          ) : (
             <CustomSelect
-              value={filters.sortBy}
-              onChange={val => onChange({ sortBy: val })}
-              options={SORT_OPTIONS}
+              value={isCustomPrice ? 'custom' : filters.maxPrice}
+              onChange={handlePriceChange}
+              options={priceOptions}
             />
-          </div>
-        )}
+          )}
+          <CustomSelect
+            value={filters.sortBy}
+            onChange={val => onChange({ sortBy: val })}
+            options={SORT_OPTIONS}
+          />
+        </div>
       </div>
     </div>
   )

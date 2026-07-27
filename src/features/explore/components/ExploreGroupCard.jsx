@@ -7,6 +7,8 @@ import {
 } from 'lucide-react'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import TokenAmount from '../../../shared/ui/TokenAmount'
+import Badge from '../../../shared/ui/primitives/Badge'
+import { BADGE_LABELS } from '../../../shared/ui/primitives/badgeLabels'
 import ProgressBar from '../../../shared/ui/primitives/ProgressBar'
 import { calcDisplayPrice, calcDisplayCycle } from '../../../shared/utils/pricingUtils'
 import { useFavoriteStore } from '../../../shared/stores/useFavoriteStore'
@@ -107,21 +109,15 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
         </button>
       )}
 
-      {(isMember || isApplied) && (
-        <div className="flex justify-center">
-          {isMember ? (
-            <span className="rounded-full bg-success-subtle px-3.5 py-1 text-sm font-extrabold text-success-text">
-              申請通過
-            </span>
-          ) : (
-            <span className="rounded-full bg-warning-subtle px-3.5 py-1 text-sm font-extrabold text-warning-text">
-              已申請
-            </span>
-          )}
-        </div>
-      )}
+      {/* 固定保留一列高度給申請狀態 badge，不管有沒有顯示都佔同樣空間，
+          這樣同一排卡片高度才會整齊，不會因為某幾張有 badge 就比其他張高 */}
+      <div className="flex h-6 items-center justify-center">
+        {(isMember || isApplied) && (
+          <Badge variant={isMember ? 'member_joined' : 'pending'} label={isMember ? undefined : '已申請'} />
+        )}
+      </div>
 
-      <div className={`${isMember || isApplied ? 'mt-4' : ''} flex justify-center`}>
+      <div className="mt-2 flex justify-center">
         <ServiceLogo
           serviceId={group.serviceId}
           size={80}
@@ -165,8 +161,14 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
             <div className="flex items-baseline justify-between">
               <p className="text-xs font-bold text-ink-3">剩餘名額</p>
               <p className="text-sm font-black text-ink">
-                <span className={isLastSeat ? 'text-warning-text' : 'text-success'}>{group.openSeats}</span>
-                <span className="text-ink-4"> / {group.totalSeats}</span>
+                {group.openSeats <= 0 ? (
+                  <span className="text-ink-3">{BADGE_LABELS.full}</span>
+                ) : (
+                  <>
+                    <span className={isLastSeat ? 'text-warning-text' : 'text-success'}>{group.openSeats}</span>
+                    <span className="text-ink-4"> / {group.totalSeats}</span>
+                  </>
+                )}
               </p>
             </div>
             <ProgressBar value={group.usedSeats} max={group.totalSeats} label="名額使用率" className="mt-1.5" />

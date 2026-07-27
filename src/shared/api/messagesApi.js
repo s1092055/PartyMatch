@@ -54,10 +54,6 @@ export async function createGroupConversation({ groupId }) {
   return client.post('/conversations/group', { groupId })
 }
 
-export async function addParticipantToConversation(conversationId, userId) {
-  return client.patch(`/conversations/${conversationId}/participants`, { userId, action: 'add' })
-}
-
 export async function leaveConversation(conversationId) {
   return client.patch(`/conversations/${conversationId}/participants`, { action: 'leave' })
 }

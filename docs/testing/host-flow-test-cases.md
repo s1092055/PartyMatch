@@ -48,7 +48,7 @@
 - 代管退款：申請人 `tokenBalance` 加回席位費用，群組 `escrowTokens` 減少同額，寫入一筆 `tokenTransaction`（`type: 'refund'`）——因為代管扣款已在申請當下完成，見 [`core-flow-test-cases.md`](./core-flow-test-cases.md) TC-004b
 - 申請人收到 `application_rejected` 通知
 - 申請人可對同一群組重新申請（`applications.js` 白名單包含 `rejected`）
-- 拒絕後的申請紀錄可在「申請管理」的「審核紀錄」第三層 panel 中查看（含篩選）
+- 拒絕後的申請紀錄可在「申請管理」的「審核紀錄」第三層 panel 中查看（已核准/已拒絕/已退出/已移除全部混在同一份清單，不分類篩選）
 
 ---
 
@@ -71,7 +71,7 @@
 **前置條件**：demo4 主揪 G2（Notion，`recruiting`），demo5 已是核准成員。
 
 **步驟**：
-1. 開啟群組詳情 → 成員名單 → 點擊 demo5 旁的移除圖示
+1. 開啟群組詳情 → 群組名單 → 點擊 demo5 旁的移除圖示
 2. 確認對話框需倒數 5 秒才可點擊「移除」（`CountdownConfirmDialog`）
 
 **預期結果**（`DELETE /members/:id`，`isHost`）：
@@ -88,7 +88,7 @@
 **前置條件**：demo7 主揪 G8（Google One，`active`）。
 
 **步驟**：
-1. 開啟成員名單，檢查移除按鈕是否仍可操作
+1. 開啟群組名單，檢查移除按鈕是否仍可操作
 
 **預期結果**：
 - `pending_confirmation` 之後成員名單鎖死，UI 不應顯示移除入口，或呼叫 API 應回傳 400「群組啟用後無法變更成員名單」
@@ -182,15 +182,16 @@
 
 ### TC-213：收款管理面板
 
-**前置條件**：demo7 主揪的任一非招募中群組（例如 G8 Google One）。
+**前置條件**：demo7 主揪的任一群組（不限招募中或鎖定後，「收款管理」分頁只在 `cancelled` 已解散時不顯示）。
 
 **步驟**：
 1. 側邊欄點擊「收款管理」
 
 **預期結果**（`GET /groups/:id/transactions`）：
 - 僅團主本人可查看（403 若非本人）
-- 列出該群組所有 `tokenTransaction`（依 `relatedGroupId` 過濾），按時間降冪排序
-- 每筆交易附上成員頭像、姓名，可展開查看單一成員的完整交易明細（`expandedBillingMembers` 展開/收合）
+- 面板不會列出完整交易歷史，只依每位成員最新一筆 `escrow` 交易顯示「目前」代管狀態（撤回重新申請等留下的舊代管/退款紀錄不在這裡處理）
+- 頂部彙總卡：`group.escrowTokens > 0` 時顯示「目前費用由平台代管中，尚未撥款」；已撥款給團主的 `release` 型交易加總 > 0 時顯示「已撥款給你的代管總額」
+- 每一列附上成員頭像、姓名、最新一筆代管入帳時間與金額（`Math.abs`，交易在 DB 裡存負值），沒有代管紀錄的成員顯示「尚無代管紀錄」
 
 ---
 

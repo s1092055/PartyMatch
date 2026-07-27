@@ -69,6 +69,7 @@ enum NotificationType {
   token_topup
   escrow_released
   dispute_raised
+  dispute_resolved
   upcoming_renewal
   system
 }

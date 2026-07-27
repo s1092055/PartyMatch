@@ -105,7 +105,12 @@ sequenceDiagram
 | 「服務帳號需要修正」／「團主在「{groupName}」發現服務帳號問題，請前往修正。」 | `service_info_issue` | 團主回報帳號問題 | 該成員（僅寫DB） | 我的群組（成員）該群組 |
 | 「即將續訂」／「「{serviceName}」將於 今天／{days} 天後扣款，請確認PM幣餘額充足。」 | `upcoming_renewal` | 呼叫 `GET /subscriptions` 時後端檢查：`active` 訂閱且距下次扣款 ≤7 天，依 `nextBillingDate` 去重、同一期只發一次 | 該訂閱使用者 | 我的群組（成員）「服務中」分頁 |
 | 「收到成員申訴」／「{memberName} 針對「{groupLabel}」服務提出申訴，平台客服將於 3 天內裁定。」 | `dispute_raised` | 成員送出申訴（`POST /groups/:id/dispute`） | 團主（僅寫DB） | 我的群組（團主）該群組 |
-| 「代管款項已撥款」／「「{groupLabel}」群組確認期結束，代管款項已撥入你的PM幣餘額。」 | `escrow_released` | 全員確認服務（或確認期逾期）觸發撥款（`POST /groups/:id/confirm`） | 團主（僅寫DB） | 我的群組（團主）該群組 |
+| 「代管款項已撥款」／「「{groupLabel}」群組確認期結束，代管款項已撥入你的PM幣餘額。」 | `escrow_released` | 全員確認服務觸發撥款（`POST /groups/:id/confirm`） | 團主（僅寫DB） | 我的群組（團主）該群組 |
+| 「代管款項已撥款」／「「{groupLabel}」確認期已逾期，代管款項已自動撥入你的PM幣餘額。」 | `escrow_released` | 確認期逾期，`GET /groups/:id` 惰性撥款（任何人打開群組詳情觸發） | 團主（僅寫DB） | 我的群組（團主）該群組 |
+| 「代管款項已撥款」／「申訴裁定結果：「{groupLabel}」代管款項已撥入你的PM幣餘額。」 | `escrow_released` | 管理員裁定申訴 `winner: 'host'`（`POST /groups/:id/adjudicate`） | 團主（僅寫DB） | 我的群組（團主）該群組 |
+| 「申訴裁定結果」／「你對「{groupLabel}」的申訴已受理，本期費用已退還至你的PM幣餘額。」 | `dispute_resolved` | 管理員裁定申訴 `winner: 'member'` | 申訴成員（僅寫DB） | 探索頁（此時已被移出群組） |
+| 「申訴裁定結果」／「「{groupLabel}」的申訴裁定退款給成員，該成員本期費用已退還並移出群組。」 | `dispute_resolved` | 管理員裁定申訴 `winner: 'member'` | 團主（僅寫DB） | 我的群組（團主）該群組 |
+| 「申訴裁定結果」／「你對「{groupLabel}」的申訴未受理，本期費用已撥款給團主。」 | `dispute_resolved` | 管理員裁定申訴 `winner: 'host'` | 申訴成員（僅寫DB） | 我的群組（成員）該群組（此時仍在群組內） |
 | 無 | `token_topup` | 無——定義了但沒有任何程式碼建立這個類型 | — | — |
 | 無固定文案 | `system` | 保留給公開系統公告（`isPublic: true`），但 `POST /notifications` 明確禁止一般使用者建立 `isPublic:true`，目前**沒有任何後端流程會真的建立**這種通知——公告目前只走「系統聊天室」訊息廣播（見 [訊息流程](messages-flow.md)），不是走通知中心 | — | 探索頁 |
 
@@ -117,3 +122,5 @@ sequenceDiagram
 - 公開系統公告的 Notification（`isPublic: true`）從未被建立過，實務上公告都是走 `system-messages` 聊天室廣播
 
 > 原本「確認服務／送出申訴不會通知團主」的落差已修復：`POST /groups/:id/confirm`／`POST /groups/:id/dispute` 現在會分別建立 `escrow_released`／`dispute_raised` 通知給團主，並在群組聊天室留一則系統訊息（見 [訊息流程](messages-flow.md)）。
+>
+> 另一個落差（見 [Bug 紀錄](../testing/bug-log.md) BUG-025）也已修復：確認期逾期的惰性自動撥款（`GET /groups/:id`）跟申訴裁定（`POST /groups/:id/adjudicate`）原本完全沒有發通知，撥款/退款當事人只能自己重新整理頁面才會發現PM幣餘額變動。現在惰性撥款會補發 `escrow_released` 給團主；裁定新增 `dispute_resolved` 這個 `NotificationType`，兩個裁定分支（`winner: 'member'`／`winner: 'host'`）都會通知申訴成員與團主雙方。前端 `FloatingMessages.jsx` 點擊 `dispute_resolved` 時，會先查該成員是否仍在群組內，決定導向會員視角（仍是成員）或探索頁（已被移出群組）。

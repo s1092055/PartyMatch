@@ -40,7 +40,7 @@ sequenceDiagram
 - **儲值**：桌機側欄／手機導覽列的「加值」按鈕、`TopupModal` 內的儲值面板；任何顯示「PM幣不足」toast 時的「前往儲值」按鈕
 - **代管扣款**：`GroupDetailModal` 送出申請加入群組（扣款發生在這裡，不是核准時）
 - **撥款／退款**：團主在 `HostGroupView` 審核申請、解散群組、移除成員、開始續訂；成員在 `MemberGroupView` 確認服務、撤回申請或申訴；管理員在 `AdminTab` 裁定申訴
-- **交易紀錄查詢**：`TopupModal` 的交易紀錄子面板（個人）、`HostGroupView` 收款管理面板（該群組全體成員）
+- **交易紀錄查詢**：`TopupModal` 的交易紀錄子面板（個人）；`HostGroupView` 收款管理面板（該群組全體成員，只顯示每人最新一筆代管紀錄）；`MemberGroupView` 付款管理面板（自己這期最新一筆代管紀錄）
 
 ## 相關檔案
 
@@ -54,9 +54,10 @@ sequenceDiagram
 | `src/shared/api/tokensApi.js` | `fetchTokenBalance`、`topupTokens` |
 | `src/shared/stores/useAuthStore.js` | `topup(amount)`，呼叫 API 後更新餘額 |
 | `src/features/group/GroupDetailModal.jsx` | 申請加入時處理餘額不足的錯誤 |
-| `src/features/my-groups/host/components/hostGroupView/buildBillingPanel.jsx` | 團主收款管理面板，依成員分組顯示交易明細 |
+| `src/features/my-groups/host/components/hostGroupView/buildBillingPanel.jsx` | 團主收款管理面板，只顯示每位成員最新一筆代管紀錄，並在頂部彙總目前代管中／已撥款總額 |
 | `src/shared/api/groupsApi.js` | `fetchGroupTransactions` |
 | `src/features/my-groups/member/components/MemberGroupView.jsx` | 確認服務（撥款）、申訴（凍結代管） |
+| `src/features/my-groups/member/components/memberGroupView/buildPaymentsPanel.jsx` | 成員端付款管理面板，邏輯跟團主端收款管理對齊，只顯示自己這期最新一筆代管紀錄 |
 | `src/features/my-groups/host/hooks/useHostActions.js` | 解散群組、移除成員、開始續訂等會牽動代管的操作 |
 | `src/features/account/components/tabs/AdminTab.jsx` | 申訴裁定表單 |
 

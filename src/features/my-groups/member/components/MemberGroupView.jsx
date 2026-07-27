@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
-  CheckCircle2, Clock, Paperclip, FileText, Info, LogOut, MessageCircle, Users, ClipboardEdit, ThumbsUp, AlertTriangle, X,
+  Banknote, CheckCircle2, Clock, Paperclip, FileText, Info, LogOut, MessageCircle, Users, ClipboardEdit, ThumbsUp, AlertTriangle, X,
 } from 'lucide-react'
 import Avatar from '../../../../shared/ui/primitives/Avatar'
 import CountdownConfirmDialog from '../../../../shared/ui/primitives/CountdownConfirmDialog'
@@ -8,6 +8,7 @@ import CountdownText from '../../../../shared/ui/primitives/CountdownText'
 import GroupModalShell from '../../../../shared/ui/group/GroupModalShell'
 import GroupModalSideBarItem from '../../../../shared/ui/group/GroupModalSideBarItem'
 import ReviewHostModal from './ReviewHostModal'
+import { buildPaymentsPanel } from './memberGroupView/buildPaymentsPanel'
 import { getServiceById } from '../../../../shared/utils/serviceUtils'
 import { getSharingMethodConfig, hasFilledServiceInfo, getServiceInfoSummary } from '../../../../shared/utils/serviceInfoFields'
 import { useMemberStore } from '../../../../shared/stores/useMemberStore'
@@ -16,6 +17,7 @@ import { useSubscriptionStore } from '../../../../shared/stores/useSubscriptionS
 import { useAuthStore } from '../../../../shared/stores/useAuthStore'
 import { useReviewStore } from '../../../../shared/stores/useReviewStore'
 import { uploadDisputeEvidence } from '../../../../shared/api/storageApi'
+import { fetchGroupTokenTransactions } from '../../../../shared/api/tokensApi'
 import { toast } from '../../../../shared/utils/toast'
 import { isEffectivelyActive } from '../../../../shared/utils/groupStatus'
 
@@ -33,7 +35,7 @@ function isImageUrl(url) {
 }
 
 export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
-  const [activePanel, setActivePanel] = useState(null) // 'members' | 'fillInfo' | 'dispute' | null
+  const [activePanel, setActivePanel] = useState(null) // 'members' | 'payments' | 'fillInfo' | 'dispute' | null
   const [leaveConfirm, setLeaveConfirm] = useState(false)
   const [fillValues, setFillValues] = useState({})
   const [fillLoading, setFillLoading] = useState(false)
@@ -46,6 +48,22 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
   const [evidenceName, setEvidenceName] = useState('')
   const [evidenceUploading, setEvidenceUploading] = useState(false)
   const [reviewPrompt, setReviewPrompt] = useState(null) // null | { closeOnDone: boolean }
+  const [transactions, setTransactions] = useState([])
+  const [transactionsLoading, setTransactionsLoading] = useState(false)
+
+  useEffect(() => {
+    if (activePanel !== 'payments') return
+    let active = true
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setTransactionsLoading(true)
+    fetchGroupTokenTransactions(group.id)
+      .then(({ transactions: groupTransactions }) => {
+        if (active) setTransactions(groupTransactions)
+      })
+      .catch(() => { if (active) setTransactions([]) })
+      .finally(() => { if (active) setTransactionsLoading(false) })
+    return () => { active = false }
+  }, [activePanel, group.id])
 
   const currentUser = useAuthStore(s => s.user)
   const allMembers  = useMemberStore(s => s.members)
@@ -192,7 +210,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
   function buildSubPanel() {
     if (activePanel === 'dispute') {
       return {
-        // 申訴不像成員名單/填寫帳號在側邊欄有對應按鈕可高亮標示目前位置，保留標題讓使用者知道自己在哪個畫面
+        // 申訴不像群組名單/填寫帳號在側邊欄有對應按鈕可高亮標示目前位置，保留標題讓使用者知道自己在哪個畫面
         title: '向平台申訴',
         icon: <AlertTriangle size={18} className="text-danger" />,
         content: (
@@ -396,6 +414,8 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
       }
     }
 
+    if (activePanel === 'payments') return buildPaymentsPanel({ group, transactions, transactionsLoading })
+
     return null
   }
 
@@ -463,8 +483,13 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
             <Info size={17} /> 群組概覽
           </GroupModalSideBarItem>
           <GroupModalSideBarItem active={activePanel === 'members'} onClick={() => setActivePanel('members')}>
-            <Users size={17} /> 成員名單
+            <Users size={17} /> 群組名單
           </GroupModalSideBarItem>
+          {!!sub && (
+            <GroupModalSideBarItem active={activePanel === 'payments'} onClick={() => setActivePanel('payments')}>
+              <Banknote size={17} /> 付款管理
+            </GroupModalSideBarItem>
+          )}
           {canLeaveGroup && (
             <GroupModalSideBarItem pinned tone="danger" onClick={() => setLeaveConfirm(true)}>
               <LogOut size={17} /> 退出群組

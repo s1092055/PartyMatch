@@ -52,10 +52,18 @@ export async function sendSystemMessageToUser(userId, content) {
 
 const WELCOME_MESSAGE = '歡迎加入 PartyMatch！這裡是系統通知聊天室，平台公告與客服回覆都會顯示在這裡。'
 
-// 新帳號註冊時呼叫：建立系統聊天室並附上一則歡迎訊息（使用者剛建立，聊天室不可能已存在，直接 create 省去多餘查詢）
-export async function setupSystemConversationForNewUser(userId) {
+// 確保使用者的系統聊天室存在，不存在就建立並附上歡迎訊息——新註冊使用者一定會走到「建立」這條路；
+// 既有使用者的聊天室若因故被清空（例如測試環境用 clear-data 腳本清過 Conversation/Message，但保留了 User），
+// 下次登入呼叫這裡也會自動補回來，不需要重新註冊帳號
+export async function ensureSystemConversation(userId) {
+  const existing = await prisma.conversation.findFirst({
+    where: { type: 'system', participants: { array_contains: userId } },
+  })
+  if (existing) return existing
+
   const conversation = await prisma.conversation.create({
     data: { type: 'system', participants: [userId] },
   })
   await deliverSystemMessage(conversation, WELCOME_MESSAGE)
+  return conversation
 }

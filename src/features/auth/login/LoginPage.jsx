@@ -31,7 +31,7 @@ export default function LoginPage() {
       setError(result.error)
       return
     }
-    toast('登入成功！歡迎回來')
+    toast(`登入成功，歡迎${result.user.name ? ` ${result.user.name}` : ''}`)
     navigate(safeRedirect(searchParams.get('redirectTo')), { replace: true })
   }
 

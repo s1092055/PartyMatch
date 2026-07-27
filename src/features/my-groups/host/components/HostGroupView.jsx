@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Banknote, CheckCircle2, ClipboardList, Clock, Info, MessageCircle, PlayCircle, Radio, RefreshCw, Star, Trash2, Users } from 'lucide-react'
+import { Banknote, CheckCircle2, ClipboardList, Clock, Info, Lock, MessageCircle, PlayCircle, RefreshCw, Star, Trash2, Users } from 'lucide-react'
 import CountdownConfirmDialog from '../../../../shared/ui/primitives/CountdownConfirmDialog'
 import CountdownText from '../../../../shared/ui/primitives/CountdownText'
 import GroupModalShell from '../../../../shared/ui/group/GroupModalShell'
@@ -23,10 +23,8 @@ export default function HostGroupView({ group, members, applications, onReportSe
   const [removingMember, setRemovingMember]               = useState(null)
   const [activePanel, setActivePanel]                     = useState(null) // 'members' | 'applications' | 'billing' | 'reviews' | null
   const [showReviewHistory, setShowReviewHistory]         = useState(false)
-  const [reviewFilter, setReviewFilter]                   = useState('all')
   const [showLockGroupConfirm, setShowLockGroupConfirm] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm]         = useState(false)
-  const [expandedBillingMembers, setExpandedBillingMembers] = useState(new Set())
   const [transactions, setTransactions]                     = useState([])
   const [transactionsLoading, setTransactionsLoading]       = useState(false)
 
@@ -41,14 +39,6 @@ export default function HostGroupView({ group, members, applications, onReportSe
       .finally(() => { if (active) setTransactionsLoading(false) })
     return () => { active = false }
   }, [activePanel, group.id])
-
-  function toggleBillingMember(memberId) {
-    setExpandedBillingMembers(prev => {
-      const next = new Set(prev)
-      next.has(memberId) ? next.delete(memberId) : next.add(memberId)
-      return next
-    })
-  }
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -137,7 +127,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
           onClick={() => setShowLockGroupConfirm(true)}
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-success px-6 py-2 text-sm font-bold text-white shadow-md transition-colors hover:bg-success-text"
         >
-          <Radio size={15} /> 鎖定群組
+          <Lock size={15} strokeWidth={1.5} /> 鎖定群組
         </button>
       )}
     </div>
@@ -189,7 +179,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
   function buildSubPanel() {
     if (activePanel === 'members') return buildMembersPanel({ group, members, setActivePanel, onClose, setRemovingMember })
     if (activePanel === 'applications') return buildApplicationsPanel({ pendingApps, groupFull, errors, onApprove, onReject, setActivePanel, setShowReviewHistory })
-    if (activePanel === 'billing') return buildBillingPanel({ members, transactions, transactionsLoading, expandedBillingMembers, toggleBillingMember })
+    if (activePanel === 'billing') return buildBillingPanel({ group, members, transactions, transactionsLoading })
     if (activePanel === 'reviews') return { content: <div className="flex min-h-full flex-col"><HostReviews group={group} groupId={group.id} title="" headerClassName="text-lg font-black text-brand" centerEmpty /></div> }
     return null
   }
@@ -200,7 +190,6 @@ export default function HostGroupView({ group, members, applications, onReportSe
   function goToPanel(panel) {
     setActivePanel(panel)
     setShowReviewHistory(false)
-    setReviewFilter('all')
   }
 
   function renderSideBar() {
@@ -211,11 +200,17 @@ export default function HostGroupView({ group, members, applications, onReportSe
           <Info size={17} /> 群組概覽
         </GroupModalSideBarItem>
         <GroupModalSideBarItem active={activePanel === 'members'} onClick={() => goToPanel('members')}>
-          <Users size={17} /> 成員名單
+          <Users size={17} /> 群組名單
         </GroupModalSideBarItem>
         {hasBeenActive && (
           <GroupModalSideBarItem active={activePanel === 'reviews'} onClick={() => goToPanel('reviews')}>
             <Star size={17} /> 成員評價
+          </GroupModalSideBarItem>
+        )}
+        {!isCancelled && (
+          <GroupModalSideBarItem active={activePanel === 'billing'} onClick={() => goToPanel('billing')}>
+            <Banknote size={17} />
+            收款管理
           </GroupModalSideBarItem>
         )}
         {isRecruiting ? (
@@ -241,10 +236,6 @@ export default function HostGroupView({ group, members, applications, onReportSe
           </>
         ) : !isCancelled && (
           <>
-            <GroupModalSideBarItem active={activePanel === 'billing'} onClick={() => goToPanel('billing')}>
-              <Banknote size={17} />
-              收款管理
-            </GroupModalSideBarItem>
             {showRenewal && (
               <GroupModalSideBarItem onClick={() => onOpenRenewal?.()}>
                 <RefreshCw size={17} /> 續訂管理
@@ -279,9 +270,9 @@ export default function HostGroupView({ group, members, applications, onReportSe
       pendingBadge={group.status === 'pending_confirmation' ? '收款中' : undefined}
       statusBadgeOverride={group.status === 'pending_confirmation' ? { variant: 'pending_confirmation', label: '收款中' } : undefined}
       subPanel={activePanel ? buildSubPanel() : null}
-      onSubPanelBack={() => { setActivePanel(null); setShowReviewHistory(false); setReviewFilter('all') }}
-      subSubPanel={isReviewHistory ? buildReviewHistoryPanel({ applications, reviewFilter, setReviewFilter, groupFull, errors }) : null}
-      onSubSubPanelBack={() => { setShowReviewHistory(false); setReviewFilter('all') }}
+      onSubPanelBack={() => { setActivePanel(null); setShowReviewHistory(false) }}
+      subSubPanel={isReviewHistory ? buildReviewHistoryPanel({ applications, groupFull, errors }) : null}
+      onSubSubPanelBack={() => setShowReviewHistory(false)}
       panelKey={isReviewHistory ? 'reviewHistory' : activePanel ?? 'overview'}
       sideBar={renderSideBar()}
     >

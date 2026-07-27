@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Check, ChevronDown } from 'lucide-react'
 import { useClickOutside } from '../../utils/hooks'
 
-export default function CustomSelect({ label, value, onChange, options }) {
+export default function CustomSelect({ label, value, onChange, options, className = '' }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
@@ -22,15 +22,15 @@ export default function CustomSelect({ label, value, onChange, options }) {
   }, [open])
 
   return (
-    <div ref={ref} className="relative min-w-0 flex-1">
+    <div ref={ref} className={`relative min-w-0 flex-1 ${className}`}>
       {label && (
         <span className="mb-1 block text-2xs font-medium text-ink-3 text-center md:text-left">{label}</span>
       )}
       <button
         type="button"
         onClick={() => setOpen(v => !v)}
-        className={`field flex h-11 w-full items-center justify-between gap-2 px-3 text-sm font-bold text-ink transition-colors hover:border-line-strong ${
-          open ? 'border-brand shadow-focus-ring' : ''
+        className={`field relative z-10 flex h-11 w-full items-center justify-between gap-2 px-3 text-sm font-bold text-ink transition-colors focus:border-line focus:shadow-none active:scale-100 ${
+          open ? 'rounded-b-none' : ''
         }`}
       >
         <span className="flex flex-1 items-center gap-2 truncate text-left">
@@ -47,7 +47,7 @@ export default function CustomSelect({ label, value, onChange, options }) {
       {open && (
         <ul
           role="listbox"
-          className="absolute left-0 z-50 mt-1.5 w-full overflow-y-auto rounded-xl border border-line bg-surface py-1 shadow-lg max-h-60"
+          className="absolute left-0 top-full z-50 w-max min-w-full max-w-[min(20rem,90vw)] overflow-y-auto scrollbar-none rounded-b-control border border-t-0 border-line bg-surface py-1 shadow-lg max-h-60"
         >
           {options.map(o => {
             const val = o.value ?? o.id

@@ -185,7 +185,7 @@
 1. demo2 開啟 G14（Apple Music），點「填寫帳號」→ 表單只有一個「Apple ID」欄位（type=email），上方顯示家庭共享提醒文案（一年僅能異動一次成員、會共用購買紀錄）
 2. demo3 開啟 G15（Google One）→ 表單只有一個「Google 帳戶 Email」欄位，提醒文案為 Google 家庭群組版本
 3. demo5 開啟 G16（friDay影音）→ 表單只有一個「邀請碼」欄位（非 email），提醒文案說明要先在 friDay App 內產生邀請碼、綁定方向與其他服務相反
-4. 開啟 G9（KKBOX，已全員填完）的團主收款/成員名單畫面 → 顯示的摘要應同時包含 email 與地址兩個值（`getServiceInfoSummary` 用全形空格分隔多欄位）
+4. 開啟 G9（KKBOX，已全員填完）的團主收款/群組名單畫面 → 顯示的摘要應同時包含 email 與地址兩個值（`getServiceInfoSummary` 用全形空格分隔多欄位）
 5. 開啟 G4（Disney+）→ 表單只有一個確認勾選框「我已透過群組聊天室取得帳號密碼」，勾選後才能送出，提醒文案說明官方無多人邀請機制的風險
 6. 上述任一表單填寫送出後，`hasFilledServiceInfo` 判斷應正確依該服務的欄位組合認定「已填寫」，不會因為欄位不是 `email` 而誤判成尚未填寫（可在聊天室的 `fill_service_info` 訊息卡片、`ActivateServiceModal` 成員清單同步確認顯示狀態一致）
 

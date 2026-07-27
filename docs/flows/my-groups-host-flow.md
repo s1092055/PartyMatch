@@ -38,19 +38,19 @@ flowchart TD
 |------|------|
 | `src/features/my-groups/host/HostPage.jsx` | 頁面總入口 |
 | `src/features/my-groups/host/hooks/useHostActions.js` | 所有團主操作的事件處理（鎖定、啟用、移除成員、審核、續訂、解散等） |
-| `src/features/my-groups/host/components/HostGroupView.jsx` | 團主視角群組詳情 Modal，含 `pending_confirmation`/`confirming` 倒數橫幅；側邊欄「成員評價」分頁只顯示這個群組的評價，且只在群組曾經啟用過（`active`/`paused`/`ended`）才會出現；`cancelled`（已解散）狀態不顯示「成員評價」「收款管理」「群組訊息」「續訂管理」，因為這些階段根本沒發生過 |
+| `src/features/my-groups/host/components/HostGroupView.jsx` | 團主視角群組詳情 Modal，含 `pending_confirmation`/`confirming` 倒數橫幅；側邊欄「成員評價」分頁只顯示這個群組的評價，且只在群組曾經啟用過（`active`/`paused`/`ended`）才會出現；`cancelled`（已解散）狀態不顯示「成員評價」「收款管理」「群組訊息」「續訂管理」，因為這些階段根本沒發生過；「收款管理」分頁只要群組非 `cancelled` 就會顯示，不再限定鎖定後才出現，因為招募中期間也可能已經有代管入帳 |
 | `src/features/my-groups/host/components/HostReviewsModal.jsx` | 獨立的「我的評價」Modal，彙總團主名下**所有**群組的評價，入口從「我的群組」頁側邊欄移到帳號中心（`AccountPage.jsx` 的 Hero 區塊），跟群組詳情裡只看單一群組的「成員評價」分頁分開 |
 | `src/shared/ui/primitives/CountdownText.jsx` | 顯示距 deadline 剩餘時間的小元件，逾期顯示 `expiredText` |
 | `src/shared/utils/hooks.js` | `useCountdown`，每秒重算剩餘時間，純顯示用不觸發任何副作用 |
 | `src/features/my-groups/host/components/HostedGroupCard.jsx` | 群組卡片 |
-| `src/shared/ui/FilterTabsBar.jsx` | 狀態篩選列，手機版是下拉選單、桌機版是橫向 underline tabs（不再是側邊欄）；「群組紀錄」按鈕已移到 `MyGroupsPage.jsx` 最上方的身分切換列，`FilterTabsBar` 本身不再處理任何額外按鈕 |
+| `src/shared/ui/FilterTabsBar.jsx` | 狀態篩選列，手機/桌機同一套橫向 underline tabs（不再是側邊欄，手機版也不再用下拉選單，3 個分類寬度放得下）；「群組紀錄」按鈕已移到 `MyGroupsPage.jsx` 最上方的身分切換列，`FilterTabsBar` 本身不再處理任何額外按鈕 |
 | `src/features/my-groups/host/components/ActivateServiceModal.jsx` | 啟用服務前逐一確認成員帳號的 Modal |
 | `src/features/my-groups/host/components/ReportServiceIssueModal.jsx` | 回報成員帳號問題 |
 | `src/features/my-groups/host/components/RenewalModal.jsx` | 續訂管理（見續訂流程文件） |
-| `src/features/my-groups/host/components/hostGroupView/buildMembersPanel.jsx` | 成員名單子面板，含移除成員 |
+| `src/features/my-groups/host/components/hostGroupView/buildMembersPanel.jsx` | 群組名單子面板（含團主，命名不再叫「成員名單」），含移除成員 |
 | `src/features/my-groups/host/components/hostGroupView/buildApplicationsPanel.jsx` | 申請管理子面板，只列待審核 |
 | `src/features/my-groups/host/components/hostGroupView/ApplicationCard.jsx` | 單筆申請卡片，核准／拒絕 |
-| `src/features/my-groups/host/components/hostGroupView/buildReviewHistoryPanel.jsx` | 審核紀錄第三層面板，含篩選 |
+| `src/features/my-groups/host/components/hostGroupView/buildReviewHistoryPanel.jsx` | 審核紀錄第三層面板，列出所有已審核完的申請（不分類篩選，資料量通常不多，加篩選下拉是多餘的） |
 | `src/features/my-groups/host/components/hostGroupView/buildBillingPanel.jsx` | 收款管理面板（見 PM幣代管流程文件） |
 | `src/features/my-groups/host/utils/hostFilters.js` | `STATUS_FILTER_TABS`（招募中/處理中/服務中三個大分類；待鎖定/填寫資訊中/待啟用/確認期中/申訴中五種細分狀態都併入「處理中」——`PROCESSING_STATUSES` 定義在 `src/shared/utils/groupStatus.js`，跟 member 端共用；已移除「全部」分頁，細分階段交給卡片本身的狀態 badge 顯示）、`matchesFilter`、`calcApprovalSeatPatch` |
 | `src/features/account/components/tabs/AdminTab.jsx` | 管理員裁定申訴，跨群組，非團主本人操作 |
@@ -78,23 +78,23 @@ flowchart TD
 - **自訂 hook 抽出頁面邏輯**：`useHostActions` 把 `HostPage` 拆成純 UI 加一個 hook，訂閱 `useGroupStore`/`useApplicationStore`/`useMemberStore` 三個 store，只要有任何一個變動就重算 `hostData`
 - **`pm:open-host-group` window event**：不管是點通知還是帶著 `location.state` 進來，都會走同一個處理函式，統一設定要開哪個群組、要不要自動展開鎖定/啟用/申請管理/收款面板
 - **`GroupModalShell` 三層滑動 Panel**：申請管理是第二層，審核紀錄是第三層；桌機版側邊欄在左側（`md:order-first`），手機版仍堆疊在下方
-- **`headerBanner`（倒數/狀態提醒橫幅）不綁定分頁**：渲染在 `activeDetail` 判斷之外，切到成員名單／收款管理等分頁時倒數橫幅仍會顯示，不會只留在群組概覽
+- **`headerBanner`（倒數/狀態提醒橫幅）不綁定分頁**：渲染在 `activeDetail` 判斷之外，切到群組名單／收款管理等分頁時倒數橫幅仍會顯示，不會只留在群組概覽
 - **「服務內容」分頁已整併回群組概覽**：獨立分頁已移除，服務說明／方案說明直接顯示在群組概覽畫面（`GroupOverviewContent.jsx` 的 `ServiceIntro`），跟探索頁 `GroupDetailModal` 的呈現方式統一；服務說明拆成「服務說明」「方案說明」兩個並列的大標題區塊，字級一樣大，原本服務說明區塊的方案／共享方式／主要功能三個 chip 卡片已移除
 - **群組詳情 Modal Header 顯示「服務名稱 | 方案名稱」**：原本只顯示服務名稱
 - **樂觀更新 + 背景同步**：核准/拒絕申請、移除成員時會先更新本地資料，畫面立刻反應，再到背景呼叫對應 API 跟建立通知
 - 鎖定群組、解散群組、移除成員這幾個不可逆的操作，都要透過 `CountdownConfirmDialog` 倒數確認才能執行
 - **側邊欄 pinned 項目**：招募中（`recruiting`/`full`）時側邊欄底部固定顯示「解散群組」，鎖定後（且非 `cancelled`）改成固定顯示「群組訊息」——兩者是互斥的狀態分支，不會同時出現，因此可以共用側邊欄右下角同一個位置；`cancelled`（已解散）狀態兩者都不顯示
-- **`HostedGroupCard` 依狀態切換統計格內容**：第一格招募中顯示「待處理申請」，已啟用（`active`/`cancelled`/`ended`）顯示「收款紀錄」，其餘鎖定後尚未啟用的狀態顯示「收款狀態」（因為此時「待處理申請」永遠會是 0）；第三格招募中顯示「建立日期」，已啟用顯示「收款狀態」，其餘鎖定後尚未啟用的狀態顯示「下次扣款」
+- **`HostedGroupCard` 依狀態切換統計格內容**：第一格招募中顯示「待處理申請」，已啟用（`active`/`cancelled`/`ended`）顯示「收款紀錄」，其餘鎖定後尚未啟用的狀態顯示「群組狀態」（原本叫「收款狀態」，因為此時「待處理申請」永遠會是 0）；第三格招募中顯示「建立日期」，已啟用顯示「群組狀態」，其餘鎖定後尚未啟用的狀態顯示「下次扣款」；「群組狀態」欄位文字依 `getCollectionState` 顯示已滿員/填寫資訊中/待啟用服務/確認期中/申訴中/已結束等，跟頂部 `Badge` 是同一個狀態階段的兩種呈現——頂部 Badge 在 `full` 顯示「等待鎖定」、`pending_confirmation` 顯示「收款中」（用 `label` 覆蓋 `Badge` 預設文字，只影響這張卡片，不影響探索頁等其他地方仍顯示的「已滿員」），統計格則維持原始的細分階段文字（例如 `full` 顯示「已滿員」）
 - **群組卡片列表用 `auto-fill`/`minmax` 而非 viewport 斷點排欄數**：`grid-cols-[repeat(auto-fill,minmax(20rem,1fr))]`，依容器實際可用寬度（扣掉側邊欄與 padding 後）決定一列能排幾張卡片，不會像用 `sm:`/`lg:` 斷點時，卡片被螢幕寬度硬擠出比實際可用空間更多的欄數，導致統計格內的日期文字被迫換行
 - **`statusFilter` 深連結自動對應分類**：`useHostActions.js` 的 `applyOpenHostGroup` 在沒有明確指定 `statusFilter` 時（例如從通知點擊開啟），會依目標群組目前的狀態自動找出對應的 `STATUS_FILTER_TABS` 分類並切過去，避免使用者關閉 modal 後，背景列表因為預設篩選分類（`recruiting`）對不上群組實際狀態而讓群組憑空消失
 
 ## 流程步驟
 
 **1. 查看自己的群組**
-- `HostPage` 依分頁跟篩選條件顯示 `allGroups`，統計卡上會顯示本月預估收入、平均每組收入、服務中的成員數
+- `HostPage` 依分頁跟篩選條件顯示 `allGroups`
 
 **2. 審核申請（`recruiting`）**
-- 側邊欄「申請管理」列出待審核清單；面板右下角有一個固定貼在角落、附文字的「審核紀錄」按鈕（內容捲動時仍維持在角落，樣式跟最上方的「群組紀錄」按鈕統一）；「申請管理」「審核紀錄」兩個分頁的標題列都不顯示文字，「審核紀錄」完全空狀態時返回鍵改成浮動在左上角（`subSubPanel.floatingBack`），不佔用整列高度，讓空狀態置中位置跟「申請管理」對齊；一旦有篩選下拉，改回整列標頭並讓下拉直接跟返回鍵同一列（`headerRight`，全寬填滿返回鍵右側剩餘空間），不再是獨立一整列的 `stickyHeader`
+- 側邊欄「申請管理」列出待審核清單；面板右下角有一個固定貼在角落、附文字的「審核紀錄」按鈕（內容捲動時仍維持在角落，樣式跟最上方的「群組紀錄」按鈕統一)；「申請管理」「審核紀錄」兩個分頁的標題列都不顯示文字，返回鍵一律浮動在左上角（`subSubPanel.floatingBack: true`），不佔用整列高度；審核紀錄不分類篩選，已核准/已拒絕/已退出/已移除的申請全部混在同一份清單，資料量通常不多，拆分類反而多此一舉
 - 點「核准」：先檢查名額是否足夠，通過就打 `PATCH /applications/:id { status: 'approved' }`（後端在同一個 transaction 內完成餘額檢查、代管扣款、建立成員與訂閱）；前端等後端完成後重新拉一次真實資料，並更新本地名額，剛好額滿的話還會額外通知團主自己
 - 點「拒絕」：打 `PATCH /applications/:id { status: 'rejected' }`，並通知申請人；申請人點擊該通知時會重新拉取自己的申請資料，讓探索頁「已申請」標記立即消失、恢復成可重新申請的狀態
 - 申請人也可以自行撤回 `pending` 申請：後端把狀態改成 `withdrawn` 並退款，前端會通知團主（`application_withdrawn`），團主端的申請 store 會在輪詢偵測到這則通知時自動刷新，不需要團主手動點擊或重新整理頁面就會把這筆申請從待審核清單移除
@@ -117,8 +117,9 @@ flowchart TD
 **6. 回報成員帳號問題**
 - 填寫問題說明後送出，會把說明寫進該成員的記錄，聊天室發系統訊息請該成員重新提交，並通知該成員
 
-**7. 收款管理（鎖定後）**
-- 面板掛載時會查詢該群組的所有交易紀錄（僅團主本人可查），依成員分組展開顯示代管、退款、撥款明細，並在頂部彙總已經撥給團主的總額
+**7. 收款管理**
+- 「收款管理」分頁非 `cancelled` 就能看到（不限鎖定後），面板掛載時查詢該群組的所有交易紀錄（僅團主本人可查）
+- 只呈現每位成員「目前」狀態：**最新一筆**代管入帳紀錄即可（不管撤回重新申請等留下的舊代管/退款歷史），頂部彙總目前代管中尚未撥款的總額（`group.escrowTokens`）與已撥款給團主的總額（加總所有 `release` 型交易）；退款等歷史紀錄改到（使用者端）PM幣交易紀錄查詢
 
 **8. 解散群組（僅 `recruiting`/`full`，見 PM幣代管流程文件）**
 - 入口固定在側邊欄右下角（跟鎖定後的「群組訊息」共用同一個位置）
