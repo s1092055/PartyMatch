@@ -50,49 +50,11 @@ PartyMatch 是一個共享訂閱媒合平台，讓使用者可以探索或建立
 
 ## 技術文件
 
-### 建議閱讀順序
+完整技術文件在 [`docs/`](docs/README.md)，依 Product／Flows／Architecture 分類。建議先看這幾篇：
 
-1. **先懂產品在做什麼** → [產品總覽](docs/product/product-overview.md)，用來解釋這個平台在解決什麼問題、有哪些使用者角色
-2. **再懂整體是怎麼組出來的** → [架構總覽](docs/architecture/architecture.md)，說明前端、後端、資料庫怎麼疊起來，以及為什麼選這些技術
-3. **想知道某個功能實際怎麼運作** → [使用者流程](docs/flows/user-flows.md)，使用者的流程規劃（例如「申請加入群組時錢是怎麼扣的」）
-4. **想深入技術細節** → 前端架構／後端架構／資料庫 Schema／API 總覽
-
-以下依用途分類，完整索引如下：
-
-### Product — 這個專案在做什麼
-
-- [產品總覽](docs/product/product-overview.md) — 產品定位、解決的問題、角色設計、MVP 範圍
-- [頁面地圖](docs/product/page-map.md) — 每個網址對應到哪個畫面
-- [功能地圖](docs/product/feature-map.md) — 目前做了哪些功能的完整清單
-- [服務定價查核紀錄](docs/product/service-pricing-audit.md) — 平台內 28 種訂閱服務的價格怎麼查到的、哪些還沒驗證過
-- [各服務填寫帳號資訊需求調查](docs/product/service-info-requirements.md) — 28 種服務真實的共享機制分類（Apple/Google 家庭群組、email 邀請、邀請碼、共用帳密），現有表單只收 email 的落差在哪
-
-### Flows — 各個功能實際怎麼運作
-
-- [使用者流程總覽](docs/flows/user-flows.md) — 完整使用流程與群組狀態機，看這篇最快抓到全貌
-- [群組狀態機](docs/flows/group-state-machine.md) — 一個群組會經過哪些狀態（招募中 → 額滿 → 啟用 → 結束…）
-- [探索群組流程](docs/flows/explore-flow.md)
-- [快速搜尋流程](docs/flows/quick-match-flow.md)
-- [建立群組流程](docs/flows/create-group-flow.md)
-- [申請加入流程](docs/flows/apply-join-flow.md)
-- [團主審核流程](docs/flows/approval-flow.md)
-- [PM幣代管與付款流程](docs/flows/payment-token-flow.md) — 平台內部貨幣「PM幣」怎麼儲值、代管、撥款、退款
-- [我的群組（成員視角）流程](docs/flows/my-groups-member-flow.md)
-- [我的群組（團主視角）流程](docs/flows/my-groups-host-flow.md)
-- [續訂流程](docs/flows/renewal-flow.md)
-- [申訴流程](docs/flows/dispute-flow.md)
-- [訊息流程](docs/flows/messages-flow.md)
-- [通知流程](docs/flows/notification-flow.md)
-
-### Architecture — 程式碼是怎麼寫、怎麼組織的
-
-- [架構總覽](docs/architecture/architecture.md) — 先看這篇，分層結構與技術棧選型理由
-- [前端架構](docs/architecture/frontend-architecture.md) — React 這邊的程式碼怎麼分資料夾、怎麼管理畫面上的資料
-- [後端架構](docs/architecture/backend-architecture.md) — Express 這邊的 API 怎麼寫、怎麼保護資料安全
-- [資料庫 Schema](docs/architecture/database-schema.md) — 資料庫存了哪些表、彼此關係
-- [API 總覽](docs/architecture/api-overview.md) — 每一支後端網址在做什麼、需不需要登入
-- [認證機制](docs/architecture/authentication.md) — 使用者怎麼登入、系統怎麼記得你是誰
-- [命名慣例](docs/architecture/naming-conventions.md) — 檔案跟變數的命名規則
+1. **先懂產品在做什麼** → [產品總覽](docs/product/product-overview.md)
+2. **再懂整體是怎麼組出來的** → [架構總覽](docs/architecture/architecture.md)
+3. **想知道某個功能實際怎麼運作** → [使用者流程總覽](docs/flows/user-flows.md)
 
 ---
 
