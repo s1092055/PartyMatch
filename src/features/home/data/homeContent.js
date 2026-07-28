@@ -52,7 +52,7 @@ export const HOME_FEATURES = [
     desc: '審核申請、鎖定名額、啟用服務，所有群組操作集中在一頁。款項由平台自動代管撥款，不用自己對帳。',
     videoSrc: null,
     badge: '管理',
-    action: { type: 'navigate', path: '/my-groups?view=host' },
+    action: { type: 'navigate', path: '/manage-groups' },
     cta: '前往管理',
   },
   {
@@ -61,7 +61,7 @@ export const HOME_FEATURES = [
     desc: '查看所有加入的訂閱與 PM 幣扣款紀錄，申請通過即自動從餘額代管付款，不用再手動轉帳或上傳截圖。',
     videoSrc: null,
     badge: '訂閱',
-    action: { type: 'navigate', path: '/my-groups?view=member' },
+    action: { type: 'navigate', path: '/my-subscriptions' },
     cta: '查看訂閱',
   },
 ]

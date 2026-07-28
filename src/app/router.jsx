@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react'
 import { createBrowserRouter } from 'react-router-dom'
 import ProtectedRoute from './ProtectedRoute'
 import PublicOnlyRoute from './PublicOnlyRoute'
-import { GroupRedirect, SubscriptionsRedirect, ManageRedirect } from './redirects'
+import { GroupRedirect, MyGroupsLegacyRedirect } from './redirects'
 
 function routeElement(loader) {
   const Component = lazy(loader)
@@ -35,9 +35,9 @@ const router = createBrowserRouter([
       {
         element: <ProtectedRoute />,
         children: [
-          { path: 'my-groups',           element: routeElement(() => import('../features/my-groups/MyGroupsPage')) },
-          { path: 'my-subscriptions',    element: <SubscriptionsRedirect /> },
-          { path: 'manage-groups',       element: <ManageRedirect /> },
+          { path: 'my-groups',           element: <MyGroupsLegacyRedirect /> },
+          { path: 'my-subscriptions',    element: routeElement(() => import('../features/subscriptions/SubscriptionsPage')) },
+          { path: 'manage-groups',       element: routeElement(() => import('../features/manage-groups/ManageGroupsPage')) },
           { path: 'favorites',           element: routeElement(() => import('../features/favorites/FavoritesPage')) },
           { path: 'account',             element: routeElement(() => import('../features/account/AccountPage')) },
         ],

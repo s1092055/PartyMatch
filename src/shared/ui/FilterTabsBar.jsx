@@ -1,5 +1,5 @@
 // 狀態篩選一律用橫向 tabs，手機/桌機同一套邏輯（不再用下拉選單，目前只有 3 個分類，
-// 手機寬度也放得下）——「群組紀錄」按鈕放在 MyGroupsPage 最上方的身分切換列，這裡不再處理
+// 手機寬度也放得下）——「群組紀錄」按鈕放在頁面最上方的標題列，這裡不再處理
 export default function FilterTabsBar({ tabs, value, onChange, counts = {} }) {
   return (
     <div className="mb-4 flex items-center gap-2">

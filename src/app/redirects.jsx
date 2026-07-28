@@ -1,15 +1,13 @@
 import { useEffect } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
-export function SubscriptionsRedirect() {
+// 舊版 /my-groups?view=host|member 合併頁的相容路由，依 view 參數導向對應的獨立頁面
+export function MyGroupsLegacyRedirect() {
   const navigate = useNavigate()
-  useEffect(() => { navigate('/my-groups?view=member', { replace: true }) }, [navigate])
-  return null
-}
-
-export function ManageRedirect() {
-  const navigate = useNavigate()
-  useEffect(() => { navigate('/my-groups?view=host', { replace: true }) }, [navigate])
+  const [searchParams] = useSearchParams()
+  useEffect(() => {
+    navigate(searchParams.get('view') === 'host' ? '/manage-groups' : '/my-subscriptions', { replace: true })
+  }, [navigate, searchParams])
   return null
 }
 

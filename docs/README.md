@@ -18,8 +18,8 @@
 - [申請加入流程](flows/apply-join-flow.md)
 - [團主審核流程](flows/approval-flow.md)
 - [PM幣代管與付款流程](flows/payment-token-flow.md) — 平台內部貨幣「PM幣」怎麼儲值、代管、撥款、退款
-- [我的群組（成員視角）流程](flows/my-groups-member-flow.md)
-- [我的群組（團主視角）流程](flows/my-groups-host-flow.md)
+- [我的訂閱（成員視角）流程](flows/subscriptions-flow.md)
+- [群組管理（團主視角）流程](flows/manage-groups-flow.md)
 - [續訂流程](flows/renewal-flow.md)
 - [申訴流程](flows/dispute-flow.md)
 - [訊息流程](flows/messages-flow.md)

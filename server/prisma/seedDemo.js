@@ -78,8 +78,9 @@ async function lockGroup(hostUser, groupId, members = [], serviceName) {
   const conv = await api('POST', '/conversations/group', hostUser.token, { groupId })
   await api('POST', `/groups/${groupId}/lock`, hostUser.token)
   const meta = { groupId }
-  await notify(hostUser, hostUser.id, 'group_chat_opened', '群組聊天室已開啟', '群組已鎖定，聊天室已建立，點擊查看。', meta)
+  await notify(hostUser, hostUser.id, 'group_chat_opened', '群組聊天室已啟用', '群組已鎖定，聊天室已建立，點擊查看。', meta)
   for (const m of members) {
+    await notify(hostUser, m.id, 'group_chat_opened', '群組聊天室已啟用', '群組已鎖定，聊天室已建立，點擊查看。', meta)
     await notify(hostUser, m.id, 'fill_service_info', '請填寫服務帳號資訊', `「${serviceName}」群組已鎖定，請進入填寫服務帳號並完成付款。`, meta)
   }
   return conv.id

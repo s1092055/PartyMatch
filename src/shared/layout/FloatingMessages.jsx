@@ -30,12 +30,12 @@ async function openGroupOrRedirect(groupId) {
   window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId } }))
 }
 
-// 通知指向的群組，使用者可能已經不再是成員（被移除／自己退出／申訴後出局），此時「我的群組」
+// 通知指向的群組，使用者可能已經不再是成員（被移除／自己退出／申訴後出局），此時「我的訂閱」
 // 對他來說什麼都打不開，一律改導向探索頁；還有名額就直接開群組詳情 Modal，額滿就跳 toast，
 // 跟上面 openGroupOrRedirect 同一套邏輯，不能開就不能開
 function navigateToMemberGroupOrExplore(navigate, userId, groupId) {
   if (userId && useMemberStore.getState().getByUserAndGroup(userId, groupId)) {
-    navigate('/my-groups?view=member', { state: { openGroupId: groupId } })
+    navigate('/my-subscriptions', { state: { openGroupId: groupId } })
   } else {
     navigate('/explore')
     openGroupOrRedirect(groupId)
@@ -53,32 +53,32 @@ function getMergedNotifications(userId) {
 }
 
 const NOTIFICATION_META = {
-  joined:               { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-groups?view=member' },
-  application_approved: { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-groups?view=member', state: { tab: 'processing' } },
+  joined:               { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-subscriptions' },
+  application_approved: { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-subscriptions', state: { tab: 'processing' } },
   application_rejected: { icon: AlertCircle,   iconColor: 'text-danger',     link: '/explore' },
-  application_sent:     { icon: CheckCircle2,  iconColor: 'text-brand',      link: '/my-groups?view=member', state: { tab: 'processing' } },
-  group_created:        { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-groups?view=host' },
-  new_application:      { icon: UserPlus,      iconColor: 'text-brand',      link: '/my-groups?view=host' },
-  application_withdrawn: { icon: AlertCircle,  iconColor: 'text-ink-3',      link: '/my-groups?view=host' },
-  group_full:           { icon: UserPlus,      iconColor: 'text-brand',      link: '/my-groups?view=host' },
+  application_sent:     { icon: CheckCircle2,  iconColor: 'text-brand',      link: '/my-subscriptions', state: { tab: 'processing' } },
+  group_created:        { icon: CheckCircle2,  iconColor: 'text-success',    link: '/manage-groups' },
+  new_application:      { icon: UserPlus,      iconColor: 'text-brand',      link: '/manage-groups' },
+  application_withdrawn: { icon: AlertCircle,  iconColor: 'text-ink-3',      link: '/manage-groups' },
+  group_full:           { icon: UserPlus,      iconColor: 'text-brand',      link: '/manage-groups' },
   group_chat_opened:    { icon: MessageSquare, iconColor: 'text-brand',      link: null },
-  fill_service_info:    { icon: ClipboardEdit, iconColor: 'text-warning-text', link: '/my-groups?view=member' },
-  service_info_filled:  { icon: ClipboardEdit, iconColor: 'text-success',    link: '/my-groups?view=host' },
-  group_activated:      { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-groups?view=member' },
+  fill_service_info:    { icon: ClipboardEdit, iconColor: 'text-warning-text', link: '/my-subscriptions' },
+  service_info_filled:  { icon: ClipboardEdit, iconColor: 'text-success',    link: '/manage-groups' },
+  group_activated:      { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-subscriptions' },
   group_cancelled:      { icon: AlertCircle,   iconColor: 'text-danger',     link: '/account' },
-  group_renewal:        { icon: CheckCircle2,  iconColor: 'text-brand',      link: '/my-groups?view=member' },
-  upcoming_renewal:     { icon: AlertCircle,   iconColor: 'text-warning-text', link: '/my-groups?view=member', state: { tab: 'active' } },
-  service_info_issue:   { icon: AlertCircle,   iconColor: 'text-amber-500',  link: '/my-groups?view=member' },
+  group_renewal:        { icon: CheckCircle2,  iconColor: 'text-brand',      link: '/my-subscriptions' },
+  upcoming_renewal:     { icon: AlertCircle,   iconColor: 'text-warning-text', link: '/my-subscriptions', state: { tab: 'active' } },
+  service_info_issue:   { icon: AlertCircle,   iconColor: 'text-amber-500',  link: '/my-subscriptions' },
   group_ended:          { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/explore' },
   member_removed:       { icon: AlertCircle,   iconColor: 'text-danger',     link: '/explore' },
-  member_left:          { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/my-groups?view=host' },
-  escrow_released:      { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-groups?view=host' },
-  dispute_raised:       { icon: AlertCircle,   iconColor: 'text-danger',     link: '/my-groups?view=host' },
-  dispute_resolved:     { icon: CheckCircle2,  iconColor: 'text-info',       link: '/my-groups?view=member' },
+  member_left:          { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/manage-groups' },
+  escrow_released:      { icon: CheckCircle2,  iconColor: 'text-success',    link: '/manage-groups' },
+  dispute_raised:       { icon: AlertCircle,   iconColor: 'text-danger',     link: '/manage-groups' },
+  dispute_resolved:     { icon: CheckCircle2,  iconColor: 'text-info',       link: '/my-subscriptions' },
   system:               { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/explore' },
   announcement:         { icon: AlertCircle,   iconColor: 'text-brand',      link: '/explore' },
   platform:             { icon: AlertCircle,   iconColor: 'text-brand',      link: '/explore' },
-  default:              { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/my-groups?view=member' },
+  default:              { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/my-subscriptions' },
 }
 
 function getMeta(type) {
@@ -152,7 +152,7 @@ export default function FloatingMessages() {
   function handleClick(notification) {
     if (!userId) {
       const link = getMeta(notification.type).link
-      if (link && !['/my-groups?view=member', '/my-groups?view=host', '/account', '/favorites'].includes(link)) {
+      if (link && !['/my-subscriptions', '/manage-groups', '/account', '/favorites'].includes(link)) {
         setOpen(false)
         navigate(link)
       }
@@ -169,13 +169,18 @@ export default function FloatingMessages() {
 
     if (notification.type === 'fill_service_info' && notification.meta?.groupId) {
       // 直接開該群組的成員視角詳情，畫面上會依 needsFillInfo 自動顯示「請填寫服務帳號」橫幅與按鈕，
-      // 不需要額外導向特定子面板；已經不是成員的話（例如點擊前已被移除）改導向探索頁
-      navigateToMemberGroupOrExplore(navigate, userId, notification.meta.groupId)
+      // 不需要額外導向特定子面板；已經不是成員的話（例如點擊前已被移除）改導向探索頁。
+      // 團主鎖定群組後 group.status 才會變成 pending_confirmation，本地 groupStore 快取此時可能還停在
+      // 鎖定前的舊狀態（尚未輪詢到），needsFillInfo 判斷式讀到舊 status 會誤判成不用填寫，
+      // 導致 modal 開啟當下「填寫服務帳號」按鈕沒有馬上顯示，須先重新拉一次群組資料
+      useGroupStore.getState().init({ all: true }).finally(() => {
+        navigateToMemberGroupOrExplore(navigate, userId, notification.meta.groupId)
+      })
       return
     }
 
     if (notification.type === 'group_created' && notification.meta?.groupId) {
-      navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId } })
+      navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId } })
       window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: notification.meta.groupId } }))
       return
     }
@@ -188,10 +193,10 @@ export default function FloatingMessages() {
         const hasSub = user ? !!getSubscriptionByUserAndGroup(user.id, gId) : false
         if (hasSub) {
           // 申請已通過，以成員視角開啟
-          navigate('/my-groups?view=member', { state: { openGroupId: gId } })
+          navigate('/my-subscriptions', { state: { openGroupId: gId } })
         } else {
           // 申請仍待審核，以探索視角開啟（與 ApplicationCard 一致）
-          navigate('/my-groups?view=member', { state: { tab: 'processing' } })
+          navigate('/my-subscriptions', { state: { tab: 'processing' } })
           window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: gId } }))
         }
       })
@@ -214,11 +219,11 @@ export default function FloatingMessages() {
       if (notification.meta?.groupId) {
         // 團主收到「成員退出群組」通知
         window.dispatchEvent(new CustomEvent('pm:refresh-member-stores'))
-        navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId } })
+        navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId } })
         window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: notification.meta.groupId } }))
       } else {
         // 成員自己收到「已退出群組」確認通知
-        navigate('/my-groups?view=member')
+        navigate('/my-subscriptions')
       }
       return
     }
@@ -248,7 +253,7 @@ export default function FloatingMessages() {
         if (hasSub) {
           // 已通過的申請一律停在「處理中」分頁再開群組詳情，不管群組實際狀態是 recruiting 還是
           // full，都跟「審核中的申請併入處理中」是同一種語意——申請人視角上這件事還沒完全塵埃落定
-          navigate('/my-groups?view=member', { state: { tab: 'processing', openGroupId: gId } })
+          navigate('/my-subscriptions', { state: { tab: 'processing', openGroupId: gId } })
         } else {
           navigate('/explore')
           openGroupOrRedirect(gId)
@@ -258,7 +263,7 @@ export default function FloatingMessages() {
     }
 
     if (notification.type === 'new_application' && notification.meta?.groupId) {
-      navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId, statusFilter: 'recruiting', openApplications: true } })
+      navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId, statusFilter: 'recruiting', openApplications: true } })
       useApplicationStore.getState().init().finally(() => {
         window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: notification.meta.groupId, statusFilter: 'recruiting', openApplications: true } }))
       })
@@ -266,7 +271,7 @@ export default function FloatingMessages() {
     }
 
     if (notification.type === 'service_info_filled' && notification.meta?.groupId) {
-      navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId, openMemberInfo: true } })
+      navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId, openMemberInfo: true } })
       // 先重新拉一次成員資料，避免打開「成員資料」分頁時看到的還是填寫當下的舊快取
       useMemberStore.getState().init().finally(() => {
         window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: notification.meta.groupId, openMemberInfo: true } }))
@@ -275,7 +280,7 @@ export default function FloatingMessages() {
     }
 
     if (notification.type === 'application_withdrawn' && notification.meta?.groupId) {
-      navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId, statusFilter: 'recruiting', openApplications: true } })
+      navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId, statusFilter: 'recruiting', openApplications: true } })
       useApplicationStore.getState().init().finally(() => {
         window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: notification.meta.groupId, statusFilter: 'recruiting', openApplications: true } }))
       })
@@ -283,7 +288,7 @@ export default function FloatingMessages() {
     }
 
     if (notification.type === 'group_full' && notification.meta?.groupId) {
-      navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId } })
+      navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId } })
       window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: notification.meta.groupId } }))
       return
     }
@@ -292,7 +297,7 @@ export default function FloatingMessages() {
       if (notification.type === 'escrow_released') {
         useAuthStore.getState().refreshTokenBalance().catch(console.error) // 代管款項已撥款，重新拉最新餘額
       }
-      navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId } })
+      navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId } })
       window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: notification.meta.groupId } }))
       return
     }
@@ -302,7 +307,7 @@ export default function FloatingMessages() {
       useAuthStore.getState().refreshTokenBalance().catch(console.error) // 裁定結果不管撥款或退款，都影響餘額
       const grp = getGroupById(gId)
       if (grp && grp.hostId === userId) {
-        navigate('/my-groups?view=host', { state: { openGroupId: gId } })
+        navigate('/manage-groups', { state: { openGroupId: gId } })
         window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: gId } }))
       } else {
         // 申訴不成立則成員仍在群組內；申訴成立則申訴成員已被移出群組——
@@ -315,7 +320,7 @@ export default function FloatingMessages() {
     if (notification.type === 'group_activated' && notification.meta?.groupId) {
       const grp = getGroupById(notification.meta.groupId)
       if (grp && grp.hostId === userId) {
-        navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId } })
+        navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId } })
         window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: notification.meta.groupId } }))
       } else {
         navigateToMemberGroupOrExplore(navigate, userId, notification.meta.groupId)
@@ -336,7 +341,7 @@ export default function FloatingMessages() {
     if (notification.type === 'group_cancelled') {
       // 群組解散於鎖定前，此時成員尚未有訂閱紀錄可開啟，僅導向列表
       useAuthStore.getState().refreshTokenBalance().catch(console.error) // 代管費用已退款，重新拉最新餘額
-      navigate('/my-groups?view=member')
+      navigate('/my-subscriptions')
       return
     }
 

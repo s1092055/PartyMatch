@@ -37,3 +37,7 @@ Header 原本只顯示服務名稱，後來改成顯示「服務名稱 | 方案�
 ## explore-flow.md：卡片金額文字大小
 
 `ExploreGroupCard` 的金額文字原本明顯偏大，後來改成跟「我的群組」卡片一致的 `text-base font-extrabold`。
+
+## manage-groups-flow.md／subscriptions-flow.md：「我的群組」拆回兩個獨立頁面
+
+「我的群組」原本是單一頁面（`MyGroupsPage.jsx`），依 `?view=member`／`?view=host` 切換成員／團主視角，切換身份靠頁面最上方的「切換身份」按鈕。後來拆回兩個獨立路由與資料夾：`/my-subscriptions`（`src/features/subscriptions/`，頁面「我的訂閱」）與 `/manage-groups`（`src/features/manage-groups/`，頁面「群組管理」），移除「切換身份」按鈕，桌面版側邊欄與手機版 dock 的「我的」下拉選單都改成兩個獨立入口；「群組紀錄」開關也從共用父層狀態改成各自頁面自己管理。舊的 `/my-groups?view=X` 網址仍相容，交由 `MyGroupsLegacyRedirect` 依 `view` 參數導向對應新頁面。

@@ -19,15 +19,15 @@ PartyMatch 的斷點是三段式（`src/index.css` `@theme`）：手機（< 768p
 
 ---
 
-### TC-302：我的群組頁面版面
+### TC-302：我的訂閱／群組管理頁面版面
 
-**步驟**：在 `/my-groups?view=host` 與 `?view=member` 分別測手機與 `md:` 以上寬度
+**步驟**：在 `/my-subscriptions` 與 `/manage-groups` 分別測手機與 `md:` 以上寬度
 
 **預期結果**：
 - `FilterTabsBar` 手機/桌機都是同一套橫向 underline tabs（3 個分類寬度放得下，不再用 `CustomSelect` 下拉選單，也不是左側垂直 nav），置於群組/訂閱卡片列表正上方，單欄版面（不分左右兩欄）
 - 下方卡片 grid 用 `auto-fill`/`minmax`（`grid-cols-[repeat(auto-fill,minmax(20rem,1fr))]`）依容器實際可用寬度決定一列排幾張，不是用 `md:grid-cols-2` 這種固定欄數斷點
-- 頁面最上方標題列：標題文字置左，「群組紀錄」「切換身份」兩顆按鈕並排置右（群組紀錄在切換身份左邊），手機/桌機同一種排法，沒有 fixed 定位；「切換身份」按鈕底色為主色、文字白色，「群組紀錄」是外框樣式
-- 點擊「群組紀錄」開啟 `GroupHistoryModal`（團主/成員共用同一顆按鈕與同一個 modal），切換身份時若群組紀錄 modal 開著應自動關閉，避免帶著開啟狀態掛載到另一個身分
+- 頁面最上方標題列：標題文字置左，「群組紀錄」按鈕置右，手機/桌機同一種排法，沒有 fixed 定位，外框樣式
+- 點擊「群組紀錄」開啟 `GroupHistoryModal`（`/my-subscriptions`、`/manage-groups` 各自獨立管理自己的開關狀態，互不影響）
 
 ---
 

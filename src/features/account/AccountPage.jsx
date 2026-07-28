@@ -4,7 +4,7 @@ import { Bell, ChevronDown, Clock, Coins, Lock, LogOut, Settings, Shield, User }
 import { useAuthStore } from "../../shared/stores/useAuthStore";
 import { toast } from "../../shared/utils/toast";
 import CreditScoreModal from "../../shared/ui/CreditScoreModal";
-import HostReviewsModal from "../my-groups/host/components/HostReviewsModal";
+import HostReviewsModal from "../manage-groups/components/HostReviewsModal";
 import ProfileHeaderCard from "./components/ProfileHeaderCard";
 import PersonalInfoTab from "./components/tabs/PersonalInfoTab";
 import TokenTab from "./components/tabs/TokenTab";

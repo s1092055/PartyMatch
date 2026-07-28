@@ -21,7 +21,7 @@
 - 後端 `POST /groups` 成功，回傳 `status: 'recruiting'`、`currentMembers: 0`
 - `maxMembers` 等於 Step3 設定的名額（2）
 - 群組出現在探索頁招募中列表（`GET /groups?status=recruiting`）
-- 團主（demo4）本人可在「我的群組」團主視角看到此群組
+- 團主（demo4）本人可在「群組管理」看到此群組
 
 ---
 
@@ -82,7 +82,7 @@
 **前置條件**：延續 TC-002，demo4 為團主，demo5 有 1 筆 `pending` 申請（已在申請時扣款 X PM 進代管），席位費用 X PM。
 
 **步驟**：
-1. demo4 登入，開啟「我的群組」團主視角 → 該群組 → 申請管理
+1. demo4 登入，開啟「群組管理」→ 該群組 → 申請管理
 2. 找到 demo5 的申請，點擊「接受」
 
 **預期結果**（`applications.js` PATCH `/:id`，呼叫 `finalizeApprovedApplication`）：
@@ -162,7 +162,7 @@
 **前置條件**：延續 TC-007，群組 `pending_confirmation`，成員 demo5、demo3 皆尚未填寫。
 
 **步驟**：
-1. demo5 在「我的群組」成員視角開啟該群組，填寫服務帳號資訊（例如 email）並送出
+1. demo5 在「我的訂閱」開啟該群組，填寫服務帳號資訊（例如 email）並送出
 
 **預期結果**（`PATCH /members/:id`，`serviceInfo` 更新）：
 - demo5 的 `member.serviceInfo` 被寫入

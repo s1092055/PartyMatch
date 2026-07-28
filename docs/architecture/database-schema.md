@@ -33,7 +33,7 @@
 | `pm:open-messages` | AppNav / 訂閱卡 / 群組操作 | `MessagesModal` |
 | `pm:close-messages` | `MessageBubble` 內的操作型訊息按鈕（例如點「填寫服務帳號」導頁前） | `MessagesModal` 關閉自己 |
 | `pm:open-dm` | 聯絡團主 | `MessagesModal` 建立或取得 DM |
-| `pm:open-host-group` | 通知點擊 / `FloatingMessages` / `ChatWindow` | `HostPage` 開啟指定群組 Modal（支援 `openLockGroup`、`openActivate`、`openApplications`、`openBilling` 旗標） |
+| `pm:open-host-group` | 通知點擊 / `FloatingMessages` / `ChatWindow` | `ManageGroupsPage.jsx` 開啟指定群組 Modal（支援 `openLockGroup`、`openActivate`、`openApplications`、`openBilling` 旗標） |
 | `pm:open-topup` | `GroupDetailModal`「PM幣不足」Toast 的「前往儲值」按鈕 | `AppNav` 開啟儲值 Modal |
 | `pm:refresh-member-stores` | `useNotificationStore` 輪詢偵測到 `member_left`/`member_removed`；`FloatingMessages` 點擊同類通知 | `App.jsx` 重新 `init()` 成員與訂閱 store |
 | `pm:refresh-application-store` | `useNotificationStore` 輪詢偵測到 `new_application`/`application_withdrawn` | `App.jsx` 重新 `init()` 申請 store |

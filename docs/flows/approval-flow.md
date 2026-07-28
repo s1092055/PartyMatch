@@ -48,7 +48,7 @@ sequenceDiagram
 ```
 
 ## 入口
-- `/my-groups?view=host`（`HostPage`）開啟某個群組的 `HostGroupView`，切到「申請管理」分頁（`buildApplicationsPanel`），會列出所有待審核（`pending`）的申請
+- `/manage-groups`（`ManageGroupsPage.jsx`）開啟某個群組的 `HostGroupView`，切到「申請管理」分頁（`buildApplicationsPanel`），會列出所有待審核（`pending`）的申請
 - 也可以從通知中心點「收到新的加入申請」，經 `pm:open-host-group` custom event 直接跳到該群組的申請管理分頁
 
 ## 相關檔案
@@ -57,12 +57,12 @@ sequenceDiagram
 
 | 路徑 | 說明 |
 |------|------|
-| `src/features/my-groups/host/HostPage.jsx` | 頁面入口 |
-| `src/features/my-groups/host/components/HostGroupView.jsx` | 團主視角群組詳情 |
-| `src/features/my-groups/host/components/hostGroupView/buildApplicationsPanel.jsx` | 申請管理面板 |
-| `src/features/my-groups/host/components/hostGroupView/ApplicationCard.jsx` | 單筆申請卡片：接受/拒絕按鈕、審核中/已接受/已拒絕/已移除/已退出狀態 badge |
-| `src/features/my-groups/host/hooks/useHostActions.js` | `handleApprove`、`handleReject` |
-| `src/features/my-groups/host/utils/hostFilters.js` | `calcApprovalSeatPatch`，前端本地名額計算 |
+| `src/features/manage-groups/ManageGroupsPage.jsx` | 頁面入口 |
+| `src/features/manage-groups/components/HostGroupView.jsx` | 團主視角群組詳情 |
+| `src/features/manage-groups/components/hostGroupView/buildApplicationsPanel.jsx` | 申請管理面板 |
+| `src/features/manage-groups/components/hostGroupView/ApplicationCard.jsx` | 單筆申請卡片：接受/拒絕按鈕、審核中/已接受/已拒絕/已移除/已退出狀態 badge |
+| `src/features/manage-groups/hooks/useHostActions.js` | `handleApprove`、`handleReject` |
+| `src/features/manage-groups/utils/hostFilters.js` | `calcApprovalSeatPatch`，前端本地名額計算 |
 | `src/shared/stores/useApplicationStore.js` | `updateStatus` |
 | `src/shared/api/applicationsApi.js` | `patchApplication` |
 

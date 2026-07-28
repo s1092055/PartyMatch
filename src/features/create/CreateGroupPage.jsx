@@ -319,8 +319,8 @@ export default function CreateGroupPage() {
             <Button variant="secondary" size="md" className="flex-1" onClick={() => navigate('/')}>
               返回首頁
             </Button>
-            <Button variant="success" size="md" className="flex-1" onClick={() => navigate('/my-groups?view=host')}>
-              前往我的群組
+            <Button variant="success" size="md" className="flex-1" onClick={() => navigate('/manage-groups')}>
+              前往群組管理
             </Button>
           </div>
         </div>

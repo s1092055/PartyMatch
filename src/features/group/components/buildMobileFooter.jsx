@@ -24,7 +24,7 @@ function renderCTA({
       <button
         onClick={() => {
           handleClose()
-          navigate('/my-groups?view=member', { state: { openGroupId: group.id } })
+          navigate('/my-subscriptions', { state: { openGroupId: group.id } })
         }}
         className={`flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white transition-colors ${
           hasServiceInfoIssue ? 'bg-danger hover:opacity-90' : 'bg-brand hover:bg-brand-hover'

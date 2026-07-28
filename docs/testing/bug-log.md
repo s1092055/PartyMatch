@@ -139,7 +139,7 @@
 - **嚴重度**：P1（接受後點通知體驗上像是「還在申請中」，需要手動整理頁面才會正確導向）
 - **來源**：使用者回報「點擊申請已通過的通知應該要把群組往前推進，為什麼還顯示申請中」
 - **重現方式**：申請人的申請被團主接受後，申請人這端還沒有其他操作觸發過 `subscriptionStore` 重新拉取（例如剛好在接受當下就開著通知面板），點擊 `application_approved` 通知
-- **預期結果**：應判斷出使用者已有對應訂閱，導向 `/my-groups?view=member` 並開啟該群組（會員視角）
+- **預期結果**：應判斷出使用者已有對應訂閱，導向 `/my-subscriptions` 並開啟該群組（會員視角）
 - **實際結果**：`hasSub` 直接讀本地 `useSubscriptionStore` 記憶體快取（該筆訂閱是接受當下才由後端建立，前端 store 還沒輪詢到），判斷成尚無訂閱，改成 `navigate('/explore')` + `openGroupOrRedirect`，看起來像是還在等審核
 - **推測原因**：新增 `openGroupOrRedirect` 的額滿保護邏輯（BUG-020）時，只處理了群組狀態過期的問題，沒有一併處理 `hasSub` 判斷用的訂閱快取也可能過期
 - **修正狀態**：已修——兩處點擊前先 `await useSubscriptionStore.getState().init()` 重新拉取最新訂閱清單，再判斷 `hasSub`，不需要使用者手動整理頁面
@@ -235,7 +235,7 @@
 - **修正狀態**：已修——新增共用的 `notifyError()`（`src/shared/utils/toast.js`），上述 action 的 `.catch` 一律改成記住異動前的值、失敗時回滾＋跳 `error` Toast；另外 `App.jsx` 開頭載入資料（各 store 的 `init()`）任一項失敗時，也會補一個需手動關閉的彙總 Toast，避免使用者以為「本來就沒資料」。同時新增 Toast 的 `warning` 類型（`AlertTriangle`／`text-warning`），供之後需要跟 `error`／`success` 區分的警示訊息使用
 
 ### BUG-014：解散群組的退款邏輯用讀取時的舊成員名單，跟同時發生的退出/移除撞在一起會重複退款
-- **功能**：[我的群組（團主視角）流程](../flows/my-groups-host-flow.md)，`POST /groups/:id/cancel`
+- **功能**：[我的群組（團主視角）流程](../flows/manage-groups-flow.md)，`POST /groups/:id/cancel`
 - **嚴重度**：P1（金流正確性：極窄的競態窗口下會多退一次款）
 - **來源**：使用者提問「解散群組會不會跟移除成員/退出群組衝突」，追查程式碼發現
 - **重現方式**：`findUnique` 讀出群組成員名單後、`$transaction` 真正執行前，剛好有成員自行退出或被移除（該操作會刪除自己的 `Member` 列並拿到一次退款）
@@ -265,14 +265,14 @@
 - **修正狀態**：已修（本次 code review 一併提交）——改成檢查 `result.ok`，失敗時復原欄位值並跳 toast 提示
 
 ### BUG-011：透過「我的群組」退出群組不會離開群組聊天室
-- **功能**：[我的群組（成員視角）流程](../flows/my-groups-member-flow.md)
+- **功能**：[我的群組（成員視角）流程](../flows/subscriptions-flow.md)
 - **嚴重度**：P1（資料不一致：已退出的成員仍留在聊天室裡）
 - **來源**：code review（非手動測試觸發）
 - **重現方式**：成員在 `MyGroupsPage` 的 `MemberPage`（而非 `GroupDetailModal`）點擊退出群組
 - **預期結果**：退出群組後應該跟透過 `GroupDetailModal` 退出時一樣，一併呼叫 `leaveConversation` 離開聊天室
-- **實際結果**：`MemberPage.jsx` 的 `handleLeaveGroup` 是另外重寫的一份退出邏輯（沒有呼叫 `finalizeLeaveGroup`），漏了 `leaveConversation(convId)`，導致已退出的成員永遠留在該群組聊天室的參與者名單裡
+- **實際結果**：`SubscriptionsPage.jsx` 的 `handleLeaveGroup` 是另外重寫的一份退出邏輯（沒有呼叫 `finalizeLeaveGroup`），漏了 `leaveConversation(convId)`，導致已退出的成員永遠留在該群組聊天室的參與者名單裡
 - **推測原因**：兩個入口（`GroupDetailModal` 與 `MemberPage`）的退出流程各自維護一份重複邏輯，新增 `leaveConversation` 時只改了其中一處
-- **修正狀態**：已修（本次 code review 一併提交）——`MemberPage.jsx` 改成呼叫共用的 `finalizeLeaveGroup`，統一兩個入口的行為
+- **修正狀態**：已修（本次 code review 一併提交）——`SubscriptionsPage.jsx` 改成呼叫共用的 `finalizeLeaveGroup`，統一兩個入口的行為
 
 ### BUG-010：系統公告廣播其中一位使用者失敗會讓整批廣播中斷
 - **功能**：系統公告，`POST /system-messages/broadcast`
@@ -285,7 +285,7 @@
 - **修正狀態**：已修（本次 code review 一併提交）——改用 `Promise.allSettled` 平行發送，個別失敗只記 log，不影響其他使用者
 
 ### BUG-009：退出群組通知團主誤用個人本地通知的 store 方法
-- **功能**：[退出群組流程](../flows/my-groups-member-flow.md)，`leaveGroupFlow.js`
+- **功能**：[退出群組流程](../flows/subscriptions-flow.md)，`leaveGroupFlow.js`
 - **嚴重度**：P2
 - **來源**：code review（非手動測試觸發）
 - **重現方式**：檢視 `finalizeLeaveGroup` 通知團主的那段程式碼
@@ -348,7 +348,7 @@
 - **修正狀態**：已修（`7d80c08`）——移除該行呼叫
 
 ### BUG-003：`DELETE /groups/:id` 名額判斷 off-by-one，已有成員的群組仍可被直接刪除
-- **功能**：[我的群組（團主視角）流程](../flows/my-groups-host-flow.md)
+- **功能**：[我的群組（團主視角）流程](../flows/manage-groups-flow.md)
 - **嚴重度**：P0
 - **來源**：code review（非手動測試觸發；此路由目前前端未串接，僅可透過直接呼叫 API 觸發）
 - **重現方式**：群組已有 1 名成員申請並被接受加入（該成員的 PM幣已扣款進代管），此時對該群組呼叫 `DELETE /groups/:id`

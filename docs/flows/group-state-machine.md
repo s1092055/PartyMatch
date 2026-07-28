@@ -63,7 +63,7 @@ const ALLOWED_TRANSITIONS = {
 |------|------|----------------|----------|
 | `recruiting` | 招募中，開放申請 | `POST /groups`（建立時預設值） | — |
 | `recruiting → full` | 名額額滿 | `server/src/utils/membership.js` 的 `finalizeApprovedApplication()`（由 `PATCH /applications/:id` 接受申請呼叫）或 `admitMemberIntoGroup()`（由 `POST /members` 團主直接加人呼叫） | 加入後重新查詢 `currentMembers >= maxMembers` 才自動推進；用條件式 `updateMany({ where: { status: 'recruiting', currentMembers: { lt: maxMembers } } })` 防止併發加入超額 |
-| `full → recruiting` | 成員退出或被移除，釋出名額 | 團主移除成員（`src/features/my-groups/host/hooks/useHostActions.js` 的 `handleRemoveMember`）或成員主動退出（`src/features/group/utils/leaveGroupFlow.js`），前端樂觀 `updateGroup(groupId, { status: 'recruiting' })`，同時退款 | 僅當群組目前狀態為 `full` 時才把狀態改回 `recruiting`（見 `useHostActions.js` 內 `group?.status === 'full' ? { status: 'recruiting' } : {}`） |
+| `full → recruiting` | 成員退出或被移除，釋出名額 | 團主移除成員（`src/features/manage-groups/hooks/useHostActions.js` 的 `handleRemoveMember`）或成員主動退出（`src/features/group/utils/leaveGroupFlow.js`），前端樂觀 `updateGroup(groupId, { status: 'recruiting' })`，同時退款 | 僅當群組目前狀態為 `full` 時才把狀態改回 `recruiting`（見 `useHostActions.js` 內 `group?.status === 'full' ? { status: 'recruiting' } : {}`） |
 | `full → pending_confirmation` | 團主鎖定群組 | `POST /groups/:id/lock` | 僅團主可操作；群組狀態須為 `full`，否則 400；成功後以 transaction 同步設定所有成員 `Subscription.nextBillingDate`，並設定 `Group.serviceInfoDeadline`（鎖定時間 + 24h，前端顯示倒數，逾期不自動處理） |
 | `pending_confirmation → pending_activation` | 全員填寫服務帳號資訊完成 | 前端偵測全員 `member.serviceInfo` 皆已填寫後，呼叫 `PATCH /groups/:id`（`status: 'pending_activation'`），受 `ALLOWED_TRANSITIONS` 表允許 | — |
 | `pending_activation → confirming` | 團主啟用服務 | `POST /groups/:id/activate` | 僅團主；狀態須為 `pending_activation`；設定 `confirmDeadline = now + 48h` |

@@ -143,9 +143,6 @@
 
   --shadow-success:
     0 10px 18px -12px rgb(16 178 108 / 0.75);
-
-  --shadow-focus-ring:
-    0 0 0 3px rgb(8 102 242 / 0.14);
 }
 
 /* ── Base ── */
@@ -237,7 +234,7 @@
     border-color: var(--color-brand-border);
   }
 
-  /* 群組卡片（探索/我的群組）hover 時整張卡片微幅放大，取代陰影式 hover：
+  /* 群組卡片（探索/我的訂閱/群組管理）hover 時整張卡片微幅放大，取代陰影式 hover：
      transform-gpu + backface-visibility 避免 scale 過場時文字模糊 */
   .card-lift {
     box-shadow: none;
@@ -292,8 +289,7 @@
     font-size: var(--text-sm);
   }
   .btn:focus-visible {
-    outline: 2px solid var(--color-brand);
-    outline-offset: 2px;
+    outline: none;
   }
   .btn:disabled {
     opacity: 0.5;
@@ -362,8 +358,6 @@
   }
   .field::placeholder { color: var(--color-ink-4); }
   .field:focus {
-    border-color: var(--color-brand);
-    box-shadow: var(--shadow-focus-ring);
     outline: none;
   }
   .field:disabled {
@@ -569,11 +563,6 @@
     -ms-overflow-style: none;
   }
   .scrollbar-none::-webkit-scrollbar { display: none; }
-
-  .focus-ring:focus-visible {
-    outline: 2px solid var(--color-brand);
-    outline-offset: 2px;
-  }
 }
 
 @keyframes marquee {

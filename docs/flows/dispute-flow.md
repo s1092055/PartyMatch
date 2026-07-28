@@ -42,7 +42,7 @@ sequenceDiagram
 
 | 路徑 | 說明 |
 |------|------|
-| `src/features/my-groups/member/components/MemberGroupView.jsx` | 申訴表單（`activePanel === 'dispute'`）、`handleDisputeSubmit`、`handleEvidenceSelect` |
+| `src/features/subscriptions/components/MemberGroupView.jsx` | 申訴表單（`activePanel === 'dispute'`）、`handleDisputeSubmit`、`handleEvidenceSelect` |
 | `src/shared/api/storageApi.js` | `uploadDisputeEvidence`，附件上傳 |
 | `src/shared/stores/useGroupStore.js` | `disputeGroup`、`adjudicateGroup` |
 | `src/shared/api/groupsApi.js` | `disputeGroupApi`、`adjudicateGroupApi` |

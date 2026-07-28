@@ -36,7 +36,7 @@ src/
 `features/` 底下常見的次層結構（非強制，依 feature 複雜度而定）：
 - 單頁 feature（如 `explore/`、`favorites/`）：`<Feature>Page.jsx` + `components/`
 - 多步驟流程（如 `create/`、`match/`）：`<Feature>Page.jsx` + `components/steps/` 存放各步驟元件
-- 巢狀身分（如 `my-groups/`）：`MyGroupsPage.jsx` 作為 tab wrapper，底下再依身分分出 `host/`、`member/` 子資料夾，各自擁有自己的 `components/`、`hooks/`、`utils/`
+- 雙身分獨立成頁（如 `subscriptions/`、`manage-groups/`）：兩個資料夾各自獨立、互不巢狀，各自擁有自己的 `<Feature>Page.jsx`、`components/`、`hooks/`、`utils/`；曾經合併成單一 `MyGroupsPage.jsx` tab wrapper，後來拆回兩個獨立路由頁面（見 [歷史異動](../history/flows-history.md)）
 
 ---
 
@@ -61,7 +61,7 @@ src/
 這個專案的 store 本質上是「伺服器資料的記憶體快取」（群組、申請、通知…都是後端資料的本地副本），不是複雜的前端純 UI 狀態機，所以評估點不是「哪個框架功能最完整」，而是「哪個框架跟這種用途最貼合」：
 
 - **對比 Redux**：Redux 的 action/reducer/dispatch 三層樣板碼，是為了讓「狀態怎麼變化」可追蹤、可時間旅行除錯而設計的，這在牽涉複雜使用者互動狀態機（例如編輯器的 undo/redo）時很有價值；但這裡的 store 大多是「呼叫 API → 把回應塞進 state」，額外的樣板碼換不到對應的除錯價值。Zustand 的 `set()` 直接改 state，一個 store 檔案就能看完「有哪些欄位、怎麼變化」，不用在 action type、reducer、selector 三個地方來回找
-- **對比純 Context**：Context 適合作用範圍明確、變化不頻繁的狀態（主題、語系），但這裡的 store 資料是**跨頁面共享、且頻繁被多個不相關元件同時讀取**（例如 `groupStore` 同時被探索頁、我的群組頁、通知點擊導向都要用到）。Context 沒有內建的訂閱粒度控制，任何一個值變化，所有 consume 這個 Context 的元件都會重新渲染；Zustand 的 `useXxxStore(s => s.field)` 讓元件只訂閱自己真正用到的欄位，其他欄位變化不會觸發這個元件重新渲染，不需要額外包 `useMemo`/`useCallback` 或拆多層 Context 來緩解效能問題
+- **對比純 Context**：Context 適合作用範圍明確、變化不頻繁的狀態（主題、語系），但這裡的 store 資料是**跨頁面共享、且頻繁被多個不相關元件同時讀取**（例如 `groupStore` 同時被探索頁、我的訂閱／群組管理頁、通知點擊導向都要用到）。Context 沒有內建的訂閱粒度控制，任何一個值變化，所有 consume 這個 Context 的元件都會重新渲染；Zustand 的 `useXxxStore(s => s.field)` 讓元件只訂閱自己真正用到的欄位，其他欄位變化不會觸發這個元件重新渲染，不需要額外包 `useMemo`/`useCallback` 或拆多層 Context 來緩解效能問題
 - **跟 TanStack Query 的分工**：專案裡也裝了 `@tanstack/react-query`，但目前只用來建立 `QueryClient`，實際資料讀取仍主要走 Zustand store 而非 `useQuery`——這是歷史遺留而非刻意分工，代表如果之後要幫個別頁面補上「背景重新驗證、快取失效」這類更細緻的伺服器狀態管理，`useQuery` 是現成可以逐步遷入的路徑，不需要整套換掉 Zustand
 
 9 個 Zustand store，全部透過 `shared/api/` 呼叫後端 REST API，採「記憶體快取」模式：
@@ -148,8 +148,9 @@ update: async (id, patch) => { ... }    // PATCH /api/xxx/:id
 
 | 路徑 | 頁面 |
 |------|------|
-| `/my-groups` | 我的群組（`?view=member` 成員訂閱、`?view=host` 團主管理） |
-| `/my-subscriptions`、`/manage-groups` | 分別 redirect 到 `/my-groups?view=member`、`?view=host` |
+| `/my-subscriptions` | 我的訂閱（成員視角） |
+| `/manage-groups` | 群組管理（團主視角） |
+| `/my-groups` | 舊版合併頁相容路由，依 `?view=host`／其餘 redirect 到 `/manage-groups`／`/my-subscriptions` |
 | `/favorites` | 我的收藏 |
 | `/account` | 帳號中心 |
 
@@ -184,8 +185,8 @@ update: async (id, patch) => { ... }    // PATCH /api/xxx/:id
 | Orchestrator | 拆分方式 |
 |---------|---------|
 | `shared/layout/AppNav.jsx` | 桌機 sidebar / 手機 header / 手機 dock 各自獨立元件 |
-| `features/my-groups/host/HostPage.jsx` | 抽出 `hooks/useHostActions.js` 自訂 hook |
-| `features/my-groups/host/components/HostGroupView.jsx` | 4 個 panel builder（成員/申請/審核紀錄/收款） |
+| `features/manage-groups/ManageGroupsPage.jsx` | 抽出 `hooks/useHostActions.js` 自訂 hook |
+| `features/manage-groups/components/HostGroupView.jsx` | 4 個 panel builder（成員/申請/審核紀錄/收款） |
 | `features/messages/components/ChatWindow.jsx` | 抽出 `useParticipantNames`/`useMessageScroll` hook + `MessageBubble`/`ChatMembersPanel` 元件 |
 | `features/group/GroupDetailModal.jsx` | 抽出 `ApplyModal`/`HostReviews` 元件與 panel builder |
 

@@ -1,6 +1,6 @@
 # 團主視角測試案例
 
-涵蓋：建立群組、審核申請（接受/拒絕）、移除成員、鎖定群組、啟用服務、續訂、結束群組、收款管理面板。對應程式碼：`src/features/my-groups/host/components/HostGroupView.jsx`、`server/src/routes/{groups,applications,members}.js`。
+涵蓋：建立群組、審核申請（接受/拒絕）、移除成員、鎖定群組、啟用服務、續訂、結束群組、收款管理面板。對應程式碼：`src/features/manage-groups/components/HostGroupView.jsx`、`server/src/routes/{groups,applications,members}.js`。
 
 測試帳號見 [`test-accounts.md`](./test-accounts.md)。
 
@@ -19,7 +19,7 @@
 **預期結果**：
 - `POST /groups` 成功建立，`status: 'recruiting'`，`hostId` 為 demo4
 - 名額超出 2-10 範圍應被 zod 擋下（若透過 API 直接測試邊界值）
-- 建立完成後導向成功畫面，可在團主視角「我的群組」看到新群組
+- 建立完成後導向成功畫面，可在「群組管理」看到新群組
 
 ---
 

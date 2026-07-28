@@ -85,8 +85,8 @@
 2. 成員帳號點擊 `application_approved` 通知
 
 **預期結果**：
-- 步驟 1：導向 `/my-groups?view=host`，並自動開啟該群組的申請分頁（`openApplications: true`），且申請列表資料是最新的（點擊前會先 `await applicationStore.init()`）
-- 步驟 2：若該成員已有對應訂閱，導向 `/my-groups?view=member` 並開啟該群組；若尚未有訂閱（極少見於此情境），導向 `/explore` 並開啟群組詳情
+- 步驟 1：導向 `/manage-groups`，並自動開啟該群組的申請分頁（`openApplications: true`），且申請列表資料是最新的（點擊前會先 `await applicationStore.init()`）
+- 步驟 2：若該成員已有對應訂閱，導向 `/my-subscriptions` 並開啟該群組；若尚未有訂閱（極少見於此情境），導向 `/explore` 並開啟群組詳情
 
 ---
 
@@ -98,7 +98,7 @@
 
 **預期結果**：
 - 只顯示公開系統公告（`isPublic: true`），不應出現個人通知
-- 點擊公告若有連結，僅允許導向公開頁面（不會導向 `/my-groups`、`/account`、`/favorites` 等需登入頁面，這些連結點擊應被忽略）
+- 點擊公告若有連結，僅允許導向公開頁面（不會導向 `/my-subscriptions`、`/manage-groups`、`/account`、`/favorites` 等需登入頁面，這些連結點擊應被忽略）
 
 ---
 
@@ -117,11 +117,11 @@
 
 **前置條件**：某群組已有至少一位非團主成員，團主與該成員各自登入不同瀏覽器/分頁
 **步驟**：
-1. 成員帳號透過「我的群組」或群組詳情 Modal 側邊欄的「退出群組」離開群組（兩個入口共用同一套 `finalizeLeaveGroup`）
+1. 成員帳號透過「我的訂閱」或群組詳情 Modal 側邊欄的「退出群組」離開群組（兩個入口共用同一套 `finalizeLeaveGroup`）
 2. 團主帳號重新整理頁面或等待通知輪詢，查看通知面板
 
 **預期結果**：
-- 團主應收到一筆 `member_left` 通知（標題「成員退出群組」），點擊後導向 `/my-groups?view=host` 並開啟該群組、同時觸發 `pm:refresh-member-stores` 刷新成員名單
+- 團主應收到一筆 `member_left` 通知（標題「成員退出群組」），點擊後導向 `/manage-groups` 並開啟該群組、同時觸發 `pm:refresh-member-stores` 刷新成員名單
 - 成員自己退出後也應同時離開該群組聊天室（`leaveConversation`），之後在訊息列表看不到這個群組聊天室
 - 通知寫入後端 DB（`insertNotification`），須確認團主重新整理後才看得到（非樂觀即時）
 
@@ -173,7 +173,7 @@
 
 **預期結果**：
 - 點擊當下應先重新拉取一次 `subscriptionStore`（`init()`），再判斷是否已有對應訂閱
-- 判斷出已有訂閱後，導向 `/my-groups?view=member` 並開啟該群組（會員視角），**不會**誤判成尚無訂閱而導向探索頁
+- 判斷出已有訂閱後，導向 `/my-subscriptions` 並開啟該群組（會員視角），**不會**誤判成尚無訂閱而導向探索頁
 - 驗證 `hasSub` 不會因本地快取尚未更新而誤判成尚無訂閱
 
 ---
@@ -190,9 +190,9 @@
 3. 情境 B-2（另一個測試群組）：管理員裁定 `winner: 'member'`
 
 **預期結果**：
-- 情境 A：團主應收到一筆 `escrow_released` 通知（代管款項已撥款），點擊導向 `/my-groups?view=host` 並開啟該群組
-- 情境 B-1：團主收到 `escrow_released`（撥款）；申訴成員收到 `dispute_resolved`（申訴未受理），點擊後因為此成員仍在群組內，導向 `/my-groups?view=member` 並開啟該群組
-- 情境 B-2：申訴成員收到 `dispute_resolved`（申訴已受理，退款），點擊後因為此成員已被移出群組（`prisma.member.delete`），導向 `/explore`；團主也收到 `dispute_resolved`（裁定退款給成員），點擊導向 `/my-groups?view=host`
+- 情境 A：團主應收到一筆 `escrow_released` 通知（代管款項已撥款），點擊導向 `/manage-groups` 並開啟該群組
+- 情境 B-1：團主收到 `escrow_released`（撥款）；申訴成員收到 `dispute_resolved`（申訴未受理），點擊後因為此成員仍在群組內，導向 `/my-subscriptions` 並開啟該群組
+- 情境 B-2：申訴成員收到 `dispute_resolved`（申訴已受理，退款），點擊後因為此成員已被移出群組（`prisma.member.delete`），導向 `/explore`；團主也收到 `dispute_resolved`（裁定退款給成員），點擊導向 `/manage-groups`
 
 ---
 

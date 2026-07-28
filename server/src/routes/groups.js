@@ -406,7 +406,7 @@ router.post('/:id/lock', requireAuth, async (req, res, next) => {
   try {
     const group = await prisma.group.findUnique({
       where: { id: req.params.id },
-      include: { members: true },
+      include: { members: true, service: true },
     })
     if (!group) return res.status(404).json({ message: '群組不存在' })
     if (group.hostId !== req.user.id) return res.status(403).json({ message: '僅團主可操作' })
@@ -442,6 +442,10 @@ router.post('/:id/lock', requireAuth, async (req, res, next) => {
         data:  { nextBillingDate },
       }),
     ])
+
+    // 聊天室已由前端在鎖定前先建立好，這裡補一則系統訊息告知所有成員聊天室已啟用
+    const groupLabel = group.planName ?? group.service?.name ?? ''
+    notifyGroupConversation(req.params.id, group.hostId, `「${groupLabel}」聊天室已啟用。`).catch(console.error)
 
     res.json(updated)
   } catch (err) { next(err) }

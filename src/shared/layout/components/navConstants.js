@@ -1,7 +1,8 @@
 export const LOCKED_MESSAGE = '請先登入會員'
 
 export const PROTECTED_NAV_ROUTES = new Set([
-  '/my-groups',
+  '/my-subscriptions',
+  '/manage-groups',
   '/favorites',
   '/account',
 ])

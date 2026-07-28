@@ -54,11 +54,11 @@ sequenceDiagram
 | `src/shared/api/tokensApi.js` | `fetchTokenBalance`、`topupTokens` |
 | `src/shared/stores/useAuthStore.js` | `topup(amount)`，呼叫 API 後更新餘額 |
 | `src/features/group/GroupDetailModal.jsx` | 申請加入時處理餘額不足的錯誤 |
-| `src/features/my-groups/host/components/hostGroupView/buildBillingPanel.jsx` | 團主收款管理面板，只顯示每位成員最新一筆代管紀錄，並在頂部彙總目前代管中／已撥款總額 |
+| `src/features/manage-groups/components/hostGroupView/buildBillingPanel.jsx` | 團主收款管理面板，只顯示每位成員最新一筆代管紀錄，並在頂部彙總目前代管中／已撥款總額 |
 | `src/shared/api/groupsApi.js` | `fetchGroupTransactions` |
-| `src/features/my-groups/member/components/MemberGroupView.jsx` | 確認服務（撥款）、申訴（凍結代管） |
-| `src/features/my-groups/member/components/memberGroupView/buildPaymentsPanel.jsx` | 成員端付款管理面板，邏輯跟團主端收款管理對齊，只顯示自己這期最新一筆代管紀錄 |
-| `src/features/my-groups/host/hooks/useHostActions.js` | 解散群組、移除成員、開始續訂等會牽動代管的操作 |
+| `src/features/subscriptions/components/MemberGroupView.jsx` | 確認服務（撥款）、申訴（凍結代管） |
+| `src/features/subscriptions/components/memberGroupView/buildPaymentsPanel.jsx` | 成員端付款管理面板，邏輯跟團主端收款管理對齊，只顯示自己這期最新一筆代管紀錄 |
+| `src/features/manage-groups/hooks/useHostActions.js` | 解散群組、移除成員、開始續訂等會牽動代管的操作 |
 | `src/features/account/components/tabs/AdminTab.jsx` | 申訴裁定表單 |
 
 **後端**

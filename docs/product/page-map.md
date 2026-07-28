@@ -15,9 +15,9 @@
 | `/disclaimer` | `src/features/legal/DisclaimerPage.jsx` | 否 | 平台免責聲明 |
 | `/terms` | `src/features/legal/TermsPage.jsx` | 否 | 服務條款 |
 | `/privacy` | `src/features/legal/PrivacyPage.jsx` | 否 | 隱私權政策 |
-| `/my-groups` | `src/features/my-groups/MyGroupsPage.jsx` | 是（`ProtectedRoute`） | 「我的群組」，以 `?view=member`／`?view=host` 切換成員／團主視角，內嵌 `MemberPage`／`HostPage` |
-| `/my-subscriptions` | 無頁面元件（`SubscriptionsRedirect`） | 是 | 導向 `/my-groups?view=member` 的相容路由 |
-| `/manage-groups` | 無頁面元件（`ManageRedirect`） | 是 | 導向 `/my-groups?view=host` 的相容路由 |
+| `/my-subscriptions` | `src/features/subscriptions/SubscriptionsPage.jsx` | 是（`ProtectedRoute`） | 「我的訂閱」，成員視角：查看訂閱、篩選分頁、群組紀錄 |
+| `/manage-groups` | `src/features/manage-groups/ManageGroupsPage.jsx` | 是（`ProtectedRoute`） | 「群組管理」，團主視角：管理群組名單、篩選分頁、群組紀錄 |
+| `/my-groups` | 無頁面元件（`MyGroupsLegacyRedirect`） | 是 | 舊版合併頁的相容路由，依 `?view=host`／其餘導向 `/manage-groups`／`/my-subscriptions` |
 | `/favorites` | `src/features/favorites/FavoritesPage.jsx` | 是 | 已收藏群組列表，只顯示還在招募中且有名額的群組（跟探索頁同一套過濾條件），額滿/已解散/已結束的收藏群組不會顯示 |
 | `/account` | `src/features/account/AccountPage.jsx` | 是 | 帳號中心：個人資料、付款方式、PM 幣、帳號設定（含停用帳號），`isAdmin` 使用者多一個管理員分頁 |
 | `/quick-match` | `src/features/match/QuickMatchPage.jsx` | 否（獨立全螢幕步驟頁，脫離 `AppLayout`；申請加入群組時才需登入） | 多步驟配對流程：輸入服務／預算條件 → 篩選方案 → 查看推薦結果 |
@@ -30,9 +30,9 @@
 | 觸發方式 | 元件 | 掛載位置 | 用途 |
 |----------|------|----------|------|
 | 造訪 `/groups/:groupId`，或點群組卡片、通知等處 dispatch `pm:open-group` | `src/features/group/GroupDetailModal.jsx` | `AppLayout`；`/quick-match` 因脫離 `AppLayout`，由 `QuickMatchPage.jsx` 自行額外掛載一份（lazy） | 顯示指定群組的公開詳情（服務資訊、方案、成員狀況），可在其中開啟 `ApplyModal` 送出加入申請；讓群組詳情有可分享的網址 |
-| 「我的群組」頁點自己相關的群組卡片，或 dispatch `pm:open-host-group` | `src/shared/ui/group/GroupViewModal.jsx`（依身分渲染 `HostGroupView` 或 `MemberGroupView`） | `HostPage.jsx` / `MemberPage.jsx`（`/my-groups` 內） | 團主或成員視角下管理／查看單一群組的完整細節（群組名單、收款/付款面板、服務帳號、續訂、申訴等） |
-| 「我的群組」頁最上方身分切換列的「群組紀錄」按鈕（`MyGroupsPage.jsx` 統一管理開關狀態，往下傳給目前顯示中的 `HostPage`/`MemberPage`） | `src/shared/ui/group/GroupHistoryModal.jsx` | `HostPage.jsx` / `MemberPage.jsx` | 查看已結束／已解散（`cancelled`）的群組歷史紀錄 |
-| 帳號中心 Hero 區塊「我的評價」按鈕 | `src/features/my-groups/host/components/HostReviewsModal.jsx` | `AccountPage.jsx` | 彙總團主名下所有群組收到的評價 |
+| 「群組管理」／「我的訂閱」頁點自己相關的群組卡片，或 dispatch `pm:open-host-group` | `src/shared/ui/group/GroupViewModal.jsx`（依身分渲染 `HostGroupView` 或 `MemberGroupView`） | `ManageGroupsPage.jsx` / `SubscriptionsPage.jsx` | 團主或成員視角下管理／查看單一群組的完整細節（群組名單、收款/付款面板、服務帳號、續訂、申訴等） |
+| 「群組管理」／「我的訂閱」頁最上方標題列的「群組紀錄」按鈕（各自頁面自己管理開關狀態） | `src/shared/ui/group/GroupHistoryModal.jsx` | `ManageGroupsPage.jsx` / `SubscriptionsPage.jsx` | 查看已結束／已解散（`cancelled`）的群組歷史紀錄 |
+| 帳號中心 Hero 區塊「我的評價」按鈕 | `src/features/manage-groups/components/HostReviewsModal.jsx` | `AccountPage.jsx` | 彙總團主名下所有群組收到的評價 |
 | 帳號中心 Hero 區塊「信用分數」按鈕 | `src/shared/ui/CreditScoreModal.jsx` | `AccountPage.jsx` | 查看信用分數與計分規則 |
 | 點擊訊息圖示，或 dispatch `pm:open-messages` / `pm:open-dm` | `src/features/messages/MessagesModal.jsx` | `HomePage.jsx`、`AppLayout`；`/quick-match` 同樣由 `QuickMatchPage.jsx` 自行額外掛載一份（lazy），讓搜尋結果頁的「聯絡團主」按鈕能正常開啟私訊 | 訊息中心：群組聊天室、私人 DM、系統通知聊天室，切換對話列表與聊天視窗 |
 | 點擊儲值／PM 幣不足時的「前往儲值」，或 dispatch `pm:open-topup` | `src/shared/ui/TopupModal.jsx` | `AppNav.jsx`（全站可觸發） | PM 幣儲值與交易紀錄查詢 |

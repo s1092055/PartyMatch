@@ -70,7 +70,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
               <button
                 onClick={() => {
                   window.dispatchEvent(new CustomEvent('pm:close-messages'))
-                  navigate('/my-groups?view=member', { state: { openGroupId: conversationGroupId } })
+                  navigate('/my-subscriptions', { state: { openGroupId: conversationGroupId } })
                 }}
                 className="mt-3 w-full rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-brand-hover"
               >
@@ -106,7 +106,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
               <button
                 onClick={() => {
                   window.dispatchEvent(new CustomEvent('pm:close-messages'))
-                  navigate('/my-groups?view=member', { state: { openGroupId: conversationGroupId } })
+                  navigate('/my-subscriptions', { state: { openGroupId: conversationGroupId } })
                 }}
                 className="w-full rounded-lg bg-warning px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:opacity-90"
               >
@@ -125,7 +125,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
             <button
               onClick={() => {
                 window.dispatchEvent(new CustomEvent('pm:close-messages'))
-                navigate('/my-groups?view=host', { state: { openGroupId: conversationGroupId, openBilling: true } })
+                navigate('/manage-groups', { state: { openGroupId: conversationGroupId, openBilling: true } })
                 window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: conversationGroupId, openBilling: true } }))
               }}
               className="w-full rounded-lg bg-success px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:opacity-90"

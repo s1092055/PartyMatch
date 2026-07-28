@@ -1,6 +1,6 @@
 # 成員視角測試案例
 
-涵蓋：申請加入、撤回申請、查看我的群組、填寫服務帳號資訊、確認服務、申訴、退出群組。對應程式碼：`src/features/my-groups/member/components/MemberGroupView.jsx`、`server/src/routes/{applications,members,groups}.js`。
+涵蓋：申請加入、撤回申請、查看我的訂閱、填寫服務帳號資訊、確認服務、申訴、退出群組。對應程式碼：`src/features/subscriptions/components/MemberGroupView.jsx`、`server/src/routes/{applications,members,groups}.js`。
 
 測試帳號見 [`test-accounts.md`](./test-accounts.md)。
 
@@ -26,7 +26,7 @@
 **前置條件**：延續 TC-101，demo1 有一筆 `pending` 申請。
 
 **步驟**：
-1. 在群組詳情或我的群組頁找到該筆申請，點擊「取消申請」並確認
+1. 在群組詳情或我的訂閱頁找到該筆申請，點擊「取消申請」並確認
 
 **預期結果**（`DELETE /applications/:id`）：
 - 僅申請人本人可撤回（`application.userId !== req.user.id` → 403）
@@ -36,16 +36,16 @@
 
 ---
 
-### TC-103：查看我的群組（成員視角）
+### TC-103：查看我的訂閱
 
 **前置條件**：demo1 有多個不同狀態的群組成員身分（可用 seed 資料：G1 待審申請、G9 active 成員等）。
 
 **步驟**：
-1. 登入後前往 `/my-groups?view=member`
+1. 登入後前往 `/my-subscriptions`
 2. 依序點擊「全部 / 審核中 / 招募中 / 待鎖定 / 成員填寫中 / 待啟用 / 確認期中 / 申訴中 / 服務中」分頁
 
 **預期結果**：
-- 每個分頁對應單一狀態（`FILTER_TABS`，`src/features/my-groups/member/utils/memberFilters.js`）
+- 每個分頁對應單一狀態（`FILTER_TABS`，`src/features/subscriptions/utils/memberFilters.js`）
 - 「審核中」只顯示尚未接受的申請本身（還沒有 `Subscription` 記錄），其餘分頁顯示對應狀態的訂閱
 - 「服務中」除了 `active` 狀態，也包含自己已經確認過服務、但群組仍在 `confirming` 等其他成員確認的訂閱（`subscriptionBucket`／`isEffectivelyActive` 判斷）
 - 「已結束」／已取消的群組（`ended`/`cancelled`）**不會出現在任何分頁分類中**，只能透過側邊欄底部的「群組紀錄」按鈕開啟 `GroupHistoryModal` 查看；桌機版側邊欄現在有固定高度，「群組紀錄」按鈕位置不會隨分頁項目多寡而上下浮動
@@ -110,7 +110,7 @@
 **前置條件**：demo5 為某個 `recruiting` 或 `full` 狀態群組的成員（例如 seed 資料 G3 Spotify 的其中一位），且該群組已有聊天室（demo5 是聊天室參與者之一）。
 
 **步驟**：
-1. 從「我的群組」（`MyGroupsPage` → `MemberPage`）開啟該群組（成員視角）
+1. 從「我的訂閱」（`SubscriptionsPage.jsx`）開啟該群組
 2. 確認「退出群組」按鈕固定顯示在側邊欄右下角，跟「群組訊息」共用同一個 pinned 位置
 3. 點擊「退出群組」，在 `CountdownConfirmDialog` 倒數確認後送出
 4. 退出後，換團主帳號登入，重新整理通知
@@ -121,7 +121,7 @@
 - 成功後：`member`/`subscription` 記錄刪除，`group.currentMembers` -1，代管費用（`min(seatCost, escrowTokens)`）退還至 demo5 的 `tokenBalance`，寫入一筆 `type: 'refund'` 的 `tokenTransaction`
 - 若群組原本是 `full`，退出後狀態退回 `recruiting`，名額釋出
 - `application` 狀態標記為 `left`，`activeKey` 釋放，demo5 之後可重新申請同一群組
-- **【BUG-011 迴歸測試】退出後聊天室會發出「demo5 已退出群組」系統訊息，且 demo5 不再是聊天室的參與者**——重新打開該群組聊天室時看不到（或無法再進入）這個對話串，`GET` 對話參與者名單中不應再有 demo5；這是因為 `finalizeLeaveGroup` 會先呼叫 `sendSystemMessage` 再呼叫 `leaveConversation`，`MemberPage` 跟 `GroupDetailModal` 兩個退出入口都共用同一份邏輯，不會有其中一個入口漏呼叫 `leaveConversation` 導致退出後仍留在聊天室的情形
+- **【BUG-011 迴歸測試】退出後聊天室會發出「demo5 已退出群組」系統訊息，且 demo5 不再是聊天室的參與者**——重新打開該群組聊天室時看不到（或無法再進入）這個對話串，`GET` 對話參與者名單中不應再有 demo5；這是因為 `finalizeLeaveGroup` 會先呼叫 `sendSystemMessage` 再呼叫 `leaveConversation`，`SubscriptionsPage.jsx` 跟 `GroupDetailModal` 兩個退出入口都共用同一份邏輯，不會有其中一個入口漏呼叫 `leaveConversation` 導致退出後仍留在聊天室的情形
 - **【BUG-011 迴歸測試】團主收到退出通知**：`finalizeLeaveGroup` 呼叫後端 `insertNotification` API，實際寫入團主帳號的通知資料（不是寫進 demo5 自己本地的通知清單）；團主重新整理／重新拉取通知列表後，應看到一筆「XXX 已退出群組」「demo5 已退出「群組名稱」群組。」的通知（`type: 'member_left'`）
 
 ---
