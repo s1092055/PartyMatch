@@ -8,6 +8,15 @@ PartyMatch 是一個共享訂閱媒合平台，讓使用者可以探索或建立
 
 ---
 
+## 線上 Demo
+
+- 前端：https://partymatch.ykk910309.workers.dev
+- 後端 API：https://partymatch-api.onrender.com/api
+
+後端為 Render 免費方案，閒置 15 分鐘會休眠，首次請求可能需要約 1 分鐘喚醒。可直接用 [測試帳號](docs/testing/test-accounts.md) 登入體驗（密碼皆為 `Demo1234`），或自行註冊新帳號。
+
+---
+
 ## 畫面展示
 
 <!-- TODO: 替換為實際截圖 -->
