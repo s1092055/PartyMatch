@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import { RouterProvider } from 'react-router-dom'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import router from './router'
 import ToastContainer from '../shared/ui/primitives/ToastContainer'
 import { useAuthStore } from '../shared/stores/useAuthStore'
@@ -13,15 +12,6 @@ import { useFavoriteStore } from '../shared/stores/useFavoriteStore'
 import { useNotificationStore } from '../shared/stores/useNotificationStore'
 import { useConversationStore } from '../shared/stores/useConversationStore'
 import { toast } from '../shared/utils/toast'
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5,
-      retry: 1,
-    },
-  },
-})
 
 export default function App() {
   const [ready, setReady] = useState(false)
@@ -116,9 +106,9 @@ export default function App() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <>
       <RouterProvider router={router} />
       <ToastContainer />
-    </QueryClientProvider>
+    </>
   )
 }
