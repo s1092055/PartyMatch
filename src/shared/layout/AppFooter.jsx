@@ -17,7 +17,6 @@ export default function AppFooter() {
           <span className="font-extrabold">
             <span className="text-brand">Party</span><span className="text-ink">Match</span>
           </span>
-          <span className="text-xs text-ink-4">· 訂閱共享媒合平台</span>
         </div>
 
         <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
@@ -32,7 +31,7 @@ export default function AppFooter() {
           ))}
         </nav>
 
-        <p className="text-xs text-ink-4">© 2026 PartyMatch · MVP 展示版</p>
+        <p className="text-xs text-ink-4">© 2026 PartyMatch</p>
       </div>
     </footer>
   )
