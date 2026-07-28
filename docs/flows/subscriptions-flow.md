@@ -51,7 +51,7 @@ flowchart TD
 | 路徑 | 說明 |
 |------|------|
 | `server/src/routes/members.js` | `GET /members`、`PATCH /members/:id`（填寫帳號資訊）、`DELETE /members/:id`（退出） |
-| `server/src/routes/groups.js` | `POST /groups/:id/confirm`（確認服務）、`POST /groups/:id/dispute`（申訴） |
+| `server/src/routes/groups/lifecycle.js` | `POST /groups/:id/confirm`（確認服務）、`POST /groups/:id/dispute`（申訴） |
 | `server/src/routes/subscriptions.js` | `GET /subscriptions`，附帶即將續訂提醒的副作用 |
 | `server/src/utils/pricing.js` | `computeSeatCost` |
 
@@ -68,7 +68,7 @@ flowchart TD
 - **樂觀更新，失敗會回滾**：填寫服務帳號時先寫本地 state，如果 `PATCH` 失敗就把資料復原成送出前的樣子（不是清空），避免使用者辛苦填好的內容無故消失
 - **三層滑動 Panel**：從總覽切到申訴／群組名單這類子面板，都是同一套滑動元件；「填寫帳號」不在這套機制裡，見下方獨立說明
 - **`headerBanner`（倒數/狀態提醒橫幅）不綁定分頁**：渲染在 `activeDetail` 判斷之外，切到群組名單等分頁時倒數橫幅仍會顯示，不會只留在群組概覽
-- **「付款管理」面板只顯示最新一筆代管紀錄**：邏輯跟團主端「收款管理」對齊，只看自己這期最新一筆 `escrow` 交易；未撥款時文案「本期費用已交由平台代管，尚未撥款至團主帳戶」，`group.status` 進入 `active`/`paused`/`ended` 後視為已撥款，文案改「本期費用已撥款給團主」；退款等歷史紀錄不在這裡處理
+- **「付款管理」面板只顯示最新一筆代管紀錄**：邏輯跟團主端「收款管理」對齊，只看自己這期最新一筆 `escrow` 交易；未撥款時文案「本期費用已交由平台代管，尚未撥款至團主帳戶」，`group.status` 進入 `active`/`ended` 後視為已撥款，文案改「本期費用已撥款給團主」；退款等歷史紀錄不在這裡處理
 - **服務說明／方案說明顯示在群組概覽畫面**：跟探索頁 `GroupDetailModal` 的呈現方式統一；服務說明拆成「服務說明」「方案說明」兩個並列的大標題區塊，字級一樣大
 - **「填寫帳號」是群組概覽底部的動態按鈕**：跟「確認服務」「回報問題」一樣，需要填寫帳號（`needsFillInfo`）或帳號被回報有問題（`hasServiceInfoIssue`）時才會出現在 `GroupModalShell` 的 `centeredCta`
 - **不可逆操作要倒數確認**：確認服務、退出群組都要透過 `CountdownConfirmDialog` 倒數幾秒才能真的送出，避免手滑誤觸

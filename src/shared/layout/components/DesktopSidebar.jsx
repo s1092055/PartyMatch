@@ -33,14 +33,13 @@ export default function DesktopSidebar({
   function renderSideItem(item) {
     if (isGuestLocked(item)) {
       const Icon = item.icon ?? Lock
-      const redirectTo = item.type === 'create' ? '/create-group' : item.to
 
       return (
         <button
           key={getNavItemKey(item)}
           type="button"
           aria-label={`${item.label}，${LOCKED_MESSAGE}`}
-          onClick={e => preventLockedAction(e, redirectTo)}
+          onClick={e => preventLockedAction(e)}
           onMouseEnter={e => setLockedTip({ top: e.clientY + 14, left: e.clientX + 12 })}
           onMouseMove={e => setLockedTip({ top: e.clientY + 14, left: e.clientX + 12 })}
           onMouseLeave={() => setLockedTip(null)}

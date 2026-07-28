@@ -228,7 +228,7 @@
 **步驟**：
 1. 任一使用者觸發 `GET /groups/:id`（例如重新整理群組詳情頁）
 
-**預期結果**（`groups.js` GET `/:id` 第 94-107 行，惰性撥款）：
+**預期結果**（`groups/crud.js` GET `/:id` 第 90-102 行，惰性撥款）：
 - 偵測到 `confirming` 且 `confirmDeadline <= now`，自動在 transaction 內把群組狀態改為 `active`，`escrowTokens` 撥給團主並歸零，所有 `subscription` 改為 `active`
 - 回傳的群組物件已是更新後的 `active` 狀態（不需額外重新整理）
 - 此邏輯以 `status` 重查保持冪等，多次觸發不會重複撥款

@@ -16,7 +16,7 @@ const POLL_INTERVAL_MS = 10000
 let _stopPolling = null
 let _notifUserId = null
 
-const SYSTEM_NOTIFICATION_TYPES = new Set(['system', 'announcement', 'platform'])
+const SYSTEM_NOTIFICATION_TYPES = new Set(['system'])
 
 // 保險去重：依 id 保留第一筆，避免 init/poll 交錯的競態情況讓同一筆通知在陣列中出現兩次
 function dedupeById(list) {
@@ -47,20 +47,12 @@ export function isSystemNotification(notification) {
   return (
     SYSTEM_NOTIFICATION_TYPES.has(notification.type) ||
     notification.isPublic === true ||
-    notification.audience === 'public' ||
-    notification.scope === 'public' ||
-    notification.userId === 'system' ||
     !notification.userId
   )
 }
 
 function isPublicSystemNotification(notification) {
-  const isPublic =
-    notification.isPublic === true ||
-    notification.audience === 'public' ||
-    notification.scope === 'public' ||
-    notification.userId === 'system' ||
-    !notification.userId
+  const isPublic = notification.isPublic === true || !notification.userId
   return isPublic && isSystemNotification(notification)
 }
 

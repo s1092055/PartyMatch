@@ -42,10 +42,13 @@ export default function MobileDock({
           </button>
         ) : (
           <button
-            onClick={e => preventLockedAction(e, '/create-group')}
+            onClick={e => preventLockedAction(e)}
             className="flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold text-ink-3 opacity-40"
           >
-            <PlusCircle size={22} strokeWidth={2.1} />
+            <span className="relative">
+              <PlusCircle size={22} strokeWidth={2.1} />
+              <LockBadge className="-right-1 -top-1 bg-white text-ink-4" />
+            </span>
             建立群組
           </button>
         )}
@@ -103,10 +106,13 @@ export default function MobileDock({
             </button>
           ) : (
             <button
-              onClick={e => preventLockedAction(e, '/my-subscriptions')}
+              onClick={e => preventLockedAction(e)}
               className="flex flex-col items-center gap-1 text-[0.65rem] font-bold text-ink-3 opacity-40"
             >
-              <LayoutGrid size={22} strokeWidth={2.1} />
+              <span className="relative">
+                <LayoutGrid size={22} strokeWidth={2.1} />
+                <LockBadge className="-right-1 -top-1 bg-white text-ink-4" />
+              </span>
               我的
             </button>
           )}

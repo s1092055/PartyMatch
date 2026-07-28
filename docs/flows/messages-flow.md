@@ -112,4 +112,4 @@ flowchart TD
 | 管理員後台廣播（`POST /system-messages/broadcast`） | 對全平台每個人的系統聊天室各發一則相同訊息，`Promise.allSettled` 平行送出，個別失敗不中斷整批 |
 | 管理員後台單發（`POST /system-messages/direct`） | 對單一使用者的系統聊天室發一則訊息 |
 
-`groups.js` 的 `notifyGroupConversation()` 是共用小工具，用群組 id 反查其群組聊天室（`Conversation.type: 'group'`）後呼叫 `appendMessage()` 附加一則系統訊息；找不到聊天室（例如群組還沒鎖定過）就靜默略過，不影響主流程。
+`groups/shared.js` 的 `notifyGroupConversation()` 是共用小工具，用群組 id 反查其群組聊天室（`Conversation.type: 'group'`）後呼叫 `appendMessage()` 附加一則系統訊息；找不到聊天室（例如群組還沒鎖定過）就靜默略過，不影響主流程。

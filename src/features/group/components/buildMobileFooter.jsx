@@ -9,7 +9,7 @@ function renderCTA({
 }) {
   if (!activeUserId) return (
     <Button variant="primary" size="lg" className="w-full"
-      onClick={() => navigate(`/login?redirectTo=/groups/${group.id}`)}>
+      onClick={() => navigate('/login')}>
       <LogIn size={16} />登入以加入群組
     </Button>
   )

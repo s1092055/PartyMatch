@@ -1,18 +1,13 @@
 import { useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Lock, Mail } from 'lucide-react'
 import AuthLayout, { AuthInput, AuthDivider, AuthError, GoogleMark, PasswordToggle } from '../components/AuthLayout'
 import Button from '../../../shared/ui/primitives/Button'
 import { useAuthStore } from '../../../shared/stores/useAuthStore'
 import { toast } from '../../../shared/utils/toast'
 
-function safeRedirect(path) {
-  return path?.startsWith('/') ? path : '/'
-}
-
 export default function LoginPage() {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -32,7 +27,7 @@ export default function LoginPage() {
       return
     }
     toast(`登入成功，歡迎${result.user.name ? ` ${result.user.name}` : ''}`)
-    navigate(safeRedirect(searchParams.get('redirectTo')), { replace: true })
+    navigate('/', { replace: true })
   }
 
   return (

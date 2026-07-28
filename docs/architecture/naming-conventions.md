@@ -32,6 +32,7 @@
 
 ## 後端（Express + Prisma）
 
-- Route 檔名一律複數資源名：`applications.js`、`groups.js`、`members.js`、`notifications.js`、`favorites.js`、`subscriptions.js`、`reviews.js`、`services.js`、`paymentMethods.js`、`tokens.js`；例外是 `auth.js`（動作導向而非資源導向）、`upload.js`（技術性 route）、`systemMessages.js`（camelCase 複合詞，非單一資源複數）
+- Route 檔名一律複數資源名：`applications.js`、`members.js`、`notifications.js`、`favorites.js`、`subscriptions.js`、`reviews.js`、`services.js`、`paymentMethods.js`、`tokens.js`；例外是 `auth.js`（動作導向而非資源導向）、`upload.js`（技術性 route）、`systemMessages.js`（camelCase 複合詞，非單一資源複數）
+- 例外：`groups/` 因為端點數量多（13 個）拆成子資料夾，`crud.js`（CRUD + 交易紀錄查詢）與 `lifecycle.js`（狀態機轉換動作）兩個檔案由 `groups/index.js` 合併掛載，對外仍是單一 `/api/groups` 路由
 - Prisma model 一律單數 PascalCase：`User`、`Group`、`Application`、`Member`、`Subscription`、`TokenTransaction`、`Notification`、`Favorite`、`Conversation`、`Message`、`Review`、`PaymentMethod`、`Service`
 - Model 對應的資料表名透過 `@@map()` 轉成 snake_case 複數（例如 `Application` → `applications`、`TokenTransaction` → `token_transactions`）

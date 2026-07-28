@@ -47,7 +47,7 @@ flowchart TD
 
 | 路徑 | 說明 |
 |------|------|
-| `server/src/routes/groups.js` | `POST /groups` |
+| `server/src/routes/groups/crud.js` | `POST /groups` |
 
 **資料表 / Model**
 

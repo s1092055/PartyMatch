@@ -65,7 +65,7 @@ Key 格式：**`refresh:{userId}:{sessionId}`**，value 為 refreshToken 字串�
 
 ## `ProtectedRoute` / `PublicOnlyRoute` 路由守衛
 
-- **`src/app/ProtectedRoute.jsx`**：讀 `useAuthStore(s => s.loggedIn)`。未登入時**不會直接導頁**，而是在原路由位置疊一層全螢幕遮罩 Modal（「需要登入才能繼續」），提供「取消」（設定本地 `cancelled` state，取消後改為 `<Navigate to="/" replace />`）與「登入」（導向 `/login?redirectTo=<目前路徑>`）兩個選項；顯示 Modal 期間用 `useScrollLock` 鎖住背景捲動。
+- **`src/app/ProtectedRoute.jsx`**：讀 `useAuthStore(s => s.loggedIn)`。未登入時**不會直接導頁**，而是在原路由位置疊一層全螢幕遮罩 Modal（「需要登入才能繼續」），提供「取消」（設定本地 `cancelled` state，取消後改為 `<Navigate to="/" replace />`）與「登入」（導向 `/login`）兩個選項；顯示 Modal 期間用 `useScrollLock` 鎖住背景捲動。登入成功後一律導向首頁，不記住原本想去的頁面（`redirectTo` 機制已移除，避免帳號被登出後重新登入還停在舊頁面）。
 - **`src/app/PublicOnlyRoute.jsx`**：邏輯較單純，`loggedIn` 為 true 時直接 `<Navigate to="/" replace />`，否則渲染 `children ?? <Outlet />`；用於 `/login`、`/register`、`/forgot-password`，避免已登入使用者再次看到這些頁面。
 
 兩者皆掛在 `src/app/router.jsx` 對應路由的 `element` 位置，作為該分支子路由共用的守衛層。

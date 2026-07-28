@@ -38,7 +38,7 @@ flowchart TD
 |------|------|
 | `src/features/manage-groups/ManageGroupsPage.jsx` | 頁面總入口 |
 | `src/features/manage-groups/hooks/useHostActions.js` | 所有團主操作的事件處理（鎖定、啟用、移除成員、審核、續訂、解散等） |
-| `src/features/manage-groups/components/HostGroupView.jsx` | 團主視角群組詳情 Modal，含 `pending_confirmation`/`confirming` 倒數橫幅；側邊欄「成員評價」分頁只顯示這個群組的評價，且只在群組曾經啟用過（`active`/`paused`/`ended`）才會出現；`cancelled`（已解散）狀態不顯示「成員評價」「收款管理」「群組訊息」「續訂管理」「成員資料」，因為這些階段根本沒發生過；「收款管理」分頁只要群組非 `cancelled` 就會顯示，不再限定鎖定後才出現，因為招募中期間也可能已經有代管入帳；「成員資料」分頁只在非招募中（`recruiting`/`full`）且非 `cancelled` 時顯示，因為 `Member.serviceInfo` 要鎖定群組後才有資料 |
+| `src/features/manage-groups/components/HostGroupView.jsx` | 團主視角群組詳情 Modal，含 `pending_confirmation`/`confirming` 倒數橫幅；側邊欄「成員評價」分頁只顯示這個群組的評價，且只在群組曾經啟用過（`active`/`ended`）才會出現；`cancelled`（已解散）狀態不顯示「成員評價」「收款管理」「群組訊息」「續訂管理」「成員資料」，因為這些階段根本沒發生過；「收款管理」分頁只要群組非 `cancelled` 就會顯示，不再限定鎖定後才出現，因為招募中期間也可能已經有代管入帳；「成員資料」分頁只在非招募中（`recruiting`/`full`）且非 `cancelled` 時顯示，因為 `Member.serviceInfo` 要鎖定群組後才有資料 |
 | `src/features/manage-groups/components/HostReviewsModal.jsx` | 獨立的「我的評價」Modal，彙總團主名下**所有**群組的評價，入口從「群組管理」頁側邊欄移到帳號中心（`AccountPage.jsx` 的 Hero 區塊），跟群組詳情裡只看單一群組的「成員評價」分頁分開 |
 | `src/shared/ui/primitives/CountdownText.jsx` | 顯示距 deadline 剩餘時間的小元件，逾期顯示 `expiredText` |
 | `src/shared/utils/hooks.js` | `useCountdown`，每秒重算剩餘時間，純顯示用不觸發任何副作用 |
@@ -60,7 +60,8 @@ flowchart TD
 
 | 路徑 | 說明 |
 |------|------|
-| `server/src/routes/groups.js` | `POST /:id/lock`、`POST /:id/activate`、`POST /:id/cancel`、`POST /:id/renew`、`GET /:id/transactions`、`PATCH /:id` |
+| `server/src/routes/groups/lifecycle.js` | `POST /:id/lock`、`POST /:id/activate`、`POST /:id/cancel`、`POST /:id/renew` |
+| `server/src/routes/groups/crud.js` | `GET /:id/transactions`、`PATCH /:id` |
 | `server/src/routes/applications.js` | `PATCH /:id`（接受／拒絕） |
 | `server/src/routes/members.js` | `POST /`（團主手動加人）、`PATCH /:id`（回報帳號問題）、`DELETE /:id`（移除成員） |
 | `server/src/routes/conversations.js` | `POST /group`（鎖定群組時建立聊天室） |

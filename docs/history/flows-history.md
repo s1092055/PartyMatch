@@ -38,6 +38,14 @@ Header 原本只顯示服務名稱，後來改成顯示「服務名稱 | 方案�
 
 `ExploreGroupCard` 的金額文字原本明顯偏大，後來改成跟「我的群組」卡片一致的 `text-base font-extrabold`。
 
+## group-state-machine.md：移除從未實作的 `paused` 狀態
+
+CLAUDE.md 跟部分文件曾寫著群組狀態機有 `active → paused` 這條分支，但 `GroupStatus` enum（`schema.prisma`）從來沒有定義過 `paused` 這個值，後端也從未有任何 route 會把狀態設成 `paused`；前端卻有 4 處（`HostGroupView.jsx`、`buildPaymentsPanel.jsx`、`badgeLabels.js` 兩處）把它當作可能出現的狀態在處理，都是永遠不會命中的死分支。判斷是從未實作的規劃殘留，非目前有在用的功能，已從前端程式碼與文件一併移除。
+
+## notification-flow.md：清理孤兒通知類型與判斷條件
+
+`NotificationType` enum 原本有 `member_joined`、`token_topup` 兩個值，資料庫從未有任何一筆通知用過（`token_topup` 文件本來就有註記是死值，`member_joined` 連文件都沒提到，完全被遺忘），已從 schema 移除。前端 `FloatingMessages.jsx` 也有一個永遠不會命中的 `joined` 通知類型設定（DB enum 裡根本沒有 `joined` 這個值，命名對不上）、以及 `announcement`／`platform` 兩個系統通知子類型（DB enum 只有 `system`，這兩個值不可能被建立），一併移除；`useNotificationStore.js` 的 `isSystemNotification`／`isPublicSystemNotification` 也清掉了檢查 `notification.audience`／`notification.scope`（Notification model 根本沒有這兩個欄位）與 `notification.userId === 'system'`（真正的系統帳號 id 是 cuid，不是字面上的 `'system'` 字串，只有本地端 fallback 物件會用到這個字面值，且該物件同時符合 `isPublic`/`type` 條件，這個判斷式從來沒有真正生效過）的死條件。
+
 ## manage-groups-flow.md／subscriptions-flow.md：「我的群組」拆回兩個獨立頁面
 
 「我的群組」原本是單一頁面（`MyGroupsPage.jsx`），依 `?view=member`／`?view=host` 切換成員／團主視角，切換身份靠頁面最上方的「切換身份」按鈕。後來拆回兩個獨立路由與資料夾：`/my-subscriptions`（`src/features/subscriptions/`，頁面「我的訂閱」）與 `/manage-groups`（`src/features/manage-groups/`，頁面「群組管理」），移除「切換身份」按鈕，桌面版側邊欄與手機版 dock 的「我的」下拉選單都改成兩個獨立入口；「群組紀錄」開關也從共用父層狀態改成各自頁面自己管理。舊的 `/my-groups?view=X` 網址仍相容，交由 `MyGroupsLegacyRedirect` 依 `view` 參數導向對應新頁面。

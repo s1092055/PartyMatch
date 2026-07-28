@@ -154,7 +154,7 @@ update: async (id, patch) => { ... }    // PATCH /api/xxx/:id
 | `/favorites` | 我的收藏 |
 | `/account` | 帳號中心 |
 
-皆巢狀於 `AppLayout` 內，並由 `ProtectedRoute` 包裹。`ProtectedRoute`（`src/app/ProtectedRoute.jsx`）未登入時不直接導頁，而是疊一層「需要登入才能繼續」的確認 Modal，使用者可選擇取消（留在原頁但視為未通過）或前往 `/login?redirectTo=...`。
+皆巢狀於 `AppLayout` 內，並由 `ProtectedRoute` 包裹。`ProtectedRoute`（`src/app/ProtectedRoute.jsx`）未登入時不直接導頁，而是疊一層「需要登入才能繼續」的確認 Modal，使用者可選擇取消（留在原頁但視為未通過）或前往 `/login`；登入後一律導向首頁（不記住原本想去的頁面）。
 
 ### 3. 獨立於 `AppLayout` 之外的全螢幕步驟流程頁
 

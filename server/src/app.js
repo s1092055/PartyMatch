@@ -5,7 +5,7 @@ import morgan from 'morgan'
 import { errorHandler } from './middleware/errorHandler.js'
 
 import authRoutes          from './routes/auth.js'
-import groupRoutes         from './routes/groups.js'
+import groupRoutes         from './routes/groups/index.js'
 import applicationRoutes   from './routes/applications.js'
 import subscriptionRoutes  from './routes/subscriptions.js'
 import notificationRoutes  from './routes/notifications.js'

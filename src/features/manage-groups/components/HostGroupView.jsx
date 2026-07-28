@@ -263,7 +263,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
   const isRecruiting = ['recruiting', 'full'].includes(group.status)
   const isCancelled = group.status === 'cancelled'
   // 成員評價要群組真的啟用過才會有資料，招募/處理中階段成員根本還沒用服務、不可能有評價
-  const hasBeenActive = ['active', 'paused', 'ended'].includes(group.status)
+  const hasBeenActive = ['active', 'ended'].includes(group.status)
 
   // 審核紀錄／成員紀錄都要看得到成員最新的退出/移除狀態，點開當下重新拉一次申請資料，避免顯示舊快取
   function openReviewHistory() {

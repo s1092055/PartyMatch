@@ -20,7 +20,7 @@
 | PATCH | `/users/me` | 需登入 | 更新個人資料 |
 | POST | `/users/me/deactivate` | 需登入 | 軟刪除帳號（需再次輸入密碼） |
 
-## Groups（`server/src/routes/groups.js`）
+## Groups（`server/src/routes/groups/crud.js`、`groups/lifecycle.js`）
 
 | Method | Path | 認證 | 說明 |
 |--------|------|------|------|

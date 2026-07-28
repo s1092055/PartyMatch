@@ -88,7 +88,7 @@ sequenceDiagram
   - `hasActiveApp`：排除 `rejected`/`removed`/`left`/`withdrawn`，以及「已接受但已不是成員」的邊界情況
   - `isPendingApp`：申請是否仍在審核中
 - `canApply = !isHost && !isMember && !hasActiveApp && !isFull && !!activeUserId`，全部成立才顯示「申請加入」入口
-- 未登入時 `buildMobileFooter` 改顯示導向 `/login?redirectTo=/groups/:id` 的按鈕
+- 未登入時 `buildMobileFooter` 改顯示導向 `/login` 的按鈕（登入後導向首頁，不會回到原本的群組頁）
 
 **2. 填寫並送出申請**
 - 點擊「申請加入」→ 開啟 `ApplyModal`（隱藏後方群組詳情 modal）

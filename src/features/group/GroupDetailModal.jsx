@@ -201,7 +201,7 @@ export default function GroupDetailModal() {
   }
   function toggleFav() {
     if (activeUserId) useFavoriteStore.getState().toggle(activeUserId, group.id)
-    else navigate(`/login?redirectTo=/groups/${group.id}`)
+    else navigate('/login')
   }
 
   // 已經是成員時，不管從哪個入口（探索頁、訊息、儲值紀錄…）打開群組詳情，

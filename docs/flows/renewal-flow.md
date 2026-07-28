@@ -39,7 +39,7 @@ flowchart TD
 
 | 路徑 | 說明 |
 |------|------|
-| `server/src/routes/groups.js` | `POST /groups/:id/renew` |
+| `server/src/routes/groups/lifecycle.js` | `POST /groups/:id/renew` |
 | `server/src/utils/pricing.js` | `computeSeatCost` |
 | `server/src/routes/subscriptions.js` | `notifyUpcomingRenewals`，距下次扣款日 7 天內會提醒 |
 

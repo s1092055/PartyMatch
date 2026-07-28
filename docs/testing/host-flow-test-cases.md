@@ -203,7 +203,7 @@
 1. 呼叫刪除群組操作（`DELETE /groups/:id`，若 UI 未提供入口可用 API 直接測試）
 
 **預期結果**：
-- 僅 `recruiting` 且 `currentMembers === 0` 的群組可被硬刪除（`groups.js` 第 526-528 行）
+- 僅 `recruiting` 且 `currentMembers === 0` 的群組可被硬刪除（`groups/crud.js` 第 190-192 行）
 - 已有成員加入或已鎖定的群組呼叫應回傳 400，提示改用解散群組功能
 
 ---

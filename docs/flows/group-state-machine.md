@@ -39,7 +39,7 @@ enum GroupStatus {
 
 ## 合法轉換表（`ALLOWED_TRANSITIONS`）
 
-一般狀態轉換透過 `PATCH /groups/:id`（`server/src/routes/groups.js`）處理，該路由用一份寫死在程式碼裡的白名單檢查來源狀態是否可以轉往目標狀態：
+一般狀態轉換透過 `PATCH /groups/:id`（`server/src/routes/groups/crud.js`）處理，該路由用一份寫死在程式碼裡的白名單檢查來源狀態是否可以轉往目標狀態：
 
 ```js
 const ALLOWED_TRANSITIONS = {

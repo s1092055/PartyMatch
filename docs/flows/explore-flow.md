@@ -39,7 +39,7 @@ flowchart TD
 
 | 路徑 | 說明 |
 |------|------|
-| `server/src/routes/groups.js` | `GET /groups`，App 啟動時由 `useGroupStore.init()` 呼叫一次，探索頁本身不會再另外打 API |
+| `server/src/routes/groups/crud.js` | `GET /groups`，App 啟動時由 `useGroupStore.init()` 呼叫一次，探索頁本身不會再另外打 API |
 
 **資料表 / Model**
 

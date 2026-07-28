@@ -1,11 +1,10 @@
 import { useState } from 'react'
-import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Navigate, Outlet, useNavigate } from 'react-router-dom'
 import { LogIn, Lock } from 'lucide-react'
 import { useAuthStore } from '../shared/stores/useAuthStore'
 import { useScrollLock } from '../shared/utils/hooks'
 
 export default function ProtectedRoute({ children }) {
-  const location = useLocation()
   const navigate = useNavigate()
   const [cancelled, setCancelled] = useState(false)
   const authenticated = useAuthStore(s => s.loggedIn)
@@ -14,7 +13,6 @@ export default function ProtectedRoute({ children }) {
   useScrollLock(showModal)
 
   if (showModal) {
-    const redirectTo = encodeURIComponent(`${location.pathname}${location.search}`)
     return (
       <div className="fixed inset-0 z-[55] flex items-center justify-center bg-black/50 p-4">
         <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl text-center">
@@ -31,7 +29,7 @@ export default function ProtectedRoute({ children }) {
               取消
             </button>
             <button
-              onClick={() => navigate(`/login?redirectTo=${redirectTo}`)}
+              onClick={() => navigate('/login')}
               className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-brand py-3 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
             >
               <LogIn size={16} />

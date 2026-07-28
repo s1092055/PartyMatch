@@ -85,15 +85,14 @@ export default function AppNav() {
     navigate('/quick-match')
   }
 
-  function preventLockedAction(e, redirectTo) {
+  function preventLockedAction(e) {
     e.preventDefault()
     e.stopPropagation()
     closeAll()
-    const target = redirectTo || '/'
     toast(LOCKED_MESSAGE, 'info', {
       action: {
         label: '前往登入',
-        onClick: () => navigate(`/login?redirectTo=${encodeURIComponent(target)}`),
+        onClick: () => navigate('/login'),
       },
     })
   }

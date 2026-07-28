@@ -3,7 +3,7 @@ import EmptyState from '../../../../shared/ui/primitives/EmptyState'
 import EscrowStatusCard from '../../../../shared/ui/EscrowStatusCard'
 import { formatDateTime } from '../../../../shared/utils/date'
 
-const RELEASED_STATUSES = ['active', 'paused', 'ended']
+const RELEASED_STATUSES = ['active', 'ended']
 
 export function buildPaymentsPanel({ group, member, transactions, transactionsLoading }) {
   // 只顯示「最新一筆」代管紀錄，跟團主端收款管理的邏輯對齊；退款等歷史紀錄改到（未來的）PM幣交易紀錄查詢

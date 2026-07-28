@@ -53,7 +53,6 @@ function getMergedNotifications(userId) {
 }
 
 const NOTIFICATION_META = {
-  joined:               { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-subscriptions' },
   application_approved: { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-subscriptions', state: { tab: 'processing' } },
   application_rejected: { icon: AlertCircle,   iconColor: 'text-danger',     link: '/explore' },
   application_sent:     { icon: CheckCircle2,  iconColor: 'text-brand',      link: '/my-subscriptions', state: { tab: 'processing' } },
@@ -76,8 +75,6 @@ const NOTIFICATION_META = {
   dispute_raised:       { icon: AlertCircle,   iconColor: 'text-danger',     link: '/manage-groups' },
   dispute_resolved:     { icon: CheckCircle2,  iconColor: 'text-info',       link: '/my-subscriptions' },
   system:               { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/explore' },
-  announcement:         { icon: AlertCircle,   iconColor: 'text-brand',      link: '/explore' },
-  platform:             { icon: AlertCircle,   iconColor: 'text-brand',      link: '/explore' },
   default:              { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/my-subscriptions' },
 }
 
@@ -86,7 +83,7 @@ function getMeta(type) {
 }
 
 const APPLY_TYPES   = ['joined', 'application_approved', 'application_rejected', 'application_sent', 'new_application', 'application_withdrawn', 'application']
-const SYSTEM_TYPES  = ['system', 'announcement', 'platform']
+const SYSTEM_TYPES  = ['system']
 
 const TABS = [
   { id: 'all',    label: '全部', filter: () => true },

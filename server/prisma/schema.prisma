@@ -64,11 +64,9 @@ enum NotificationType {
   group_ended
   group_cancelled
   group_renewal
-  member_joined
   member_left
   member_removed
   service_info_issue
-  token_topup
   escrow_released
   dispute_raised
   dispute_resolved

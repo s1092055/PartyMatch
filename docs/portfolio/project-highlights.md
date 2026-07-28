@@ -26,7 +26,7 @@ refreshToken 不放 MySQL，改存 Redis，key 是 `refresh:{userId}:{sessionId}
 
 ## 4. 群組狀態機
 
-群組狀態走 `recruiting → full → pending_confirmation → pending_activation → confirming → {active | disputed} → active`，另外有 `paused`/`cancelled`/`ended` 分支。每個轉換都由後端特定 route 驅動，前端不做本地假設。
+群組狀態走 `recruiting → full → pending_confirmation → pending_activation → confirming → {active | disputed} → active`，另外有 `cancelled`/`ended` 分支。每個轉換都由後端特定 route 驅動，前端不做本地假設。
 
 這個狀態機是整個系統複雜度的核心——申請、審核、鎖定、填帳號、確認、啟用、續訂、結束，每一步都牽動 PM幣代管跟多方權限。狀態機定義在 schema 層（`GroupStatus` enum），前端關鍵操作後一律重新拉真實狀態，不本地推算，避免前後端狀態對不上。
 

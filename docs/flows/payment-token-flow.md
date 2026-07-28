@@ -70,7 +70,8 @@ sequenceDiagram
 | `server/src/utils/pricing.js` | `computeSeatCost`：年繳算全年費用，月繳算月費 |
 | `server/src/routes/applications.js` | `POST /applications`（送出申請即代管扣款）、`DELETE /applications/:id`（撤回退款）、`PATCH /applications/:id`（接受建成員／拒絕退款） |
 | `server/src/routes/members.js` | `DELETE /members/:id`（退出／被移除時退款） |
-| `server/src/routes/groups.js` | 惰性自動撥款、確認服務撥款、申訴凍結、解散退款、裁定撥款或退款、續訂收款、查詢代管紀錄 |
+| `server/src/routes/groups/crud.js` | 惰性自動撥款、查詢代管紀錄 |
+| `server/src/routes/groups/lifecycle.js` | 確認服務撥款、申訴凍結、解散退款、裁定撥款或退款、續訂收款 |
 
 **資料表 / Model**
 

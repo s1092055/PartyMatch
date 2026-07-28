@@ -13,7 +13,8 @@ Node.js + Express，`server/src/app.js` 為應用組裝入口，`server/src/serv
 | 檔案 | 掛載路徑 | 負責資源 |
 |------|---------|---------|
 | `auth.js` | `/api/auth` | 註冊、登入、refresh、登出、`GET /me` |
-| `groups.js` | `/api/groups` | 群組 CRUD、狀態機推進（activate/confirm/dispute/cancel/lock/adjudicate/renew）、交易紀錄 |
+| `groups/crud.js` | `/api/groups` | 群組 CRUD、交易紀錄查詢 |
+| `groups/lifecycle.js` | `/api/groups` | 狀態機推進：activate/confirm/dispute/cancel/lock/adjudicate/renew |
 | `applications.js` | `/api/applications` | 申請建立、撤回、審核 |
 | `subscriptions.js` | `/api/subscriptions` | 成員訂閱查詢、刪除、付款狀態更新 |
 | `notifications.js` | `/api/notifications` | 個人通知與系統公告的建立／查詢／標記已讀 |
@@ -39,8 +40,8 @@ Node.js + Express，`server/src/app.js` 為應用組裝入口，`server/src/serv
 三種驗證等級，皆解析 `Authorization: Bearer <token>` header：
 
 - `requireAuth`：驗證 accessToken，失敗回 401；成功將 payload 寫入 `req.user`
-- `requireAdmin`：先驗證 accessToken，再多查一次 `prisma.user.findUnique` 確認 `isAdmin`，非管理員回 403（用於 `groups.js` 的 `/adjudicate` 與 `systemMessages.js` 全部端點）
-- `optionalAuth`：有合法 token 則填入 `req.user`，驗證失敗或無 token 都放行（不阻擋），供 `groups.js` 的 `GET /`、`GET /:id` 與 `notifications.js` 的 `GET /` 這類「訪客也能看，但登入後可看到更多」的端點使用
+- `requireAdmin`：先驗證 accessToken，再多查一次 `prisma.user.findUnique` 確認 `isAdmin`，非管理員回 403（用於 `groups/lifecycle.js` 的 `/adjudicate` 與 `systemMessages.js` 全部端點）
+- `optionalAuth`：有合法 token 則填入 `req.user`，驗證失敗或無 token 都放行（不阻擋），供 `groups/crud.js` 的 `GET /`、`GET /:id` 與 `notifications.js` 的 `GET /` 這類「訪客也能看，但登入後可看到更多」的端點使用
 
 ### `server/src/middleware/validate.js`
 
@@ -107,7 +108,7 @@ accessToken + refreshToken 雙 token 設計，refreshToken 存於 Redis（key �
 - **操作前先查一次資源確認擁有權**：`PATCH`/`DELETE` 類端點先 `findUnique` 讀出資源與其所屬 `group.hostId`，比對 `req.user.id` 是否為擁有者或該群組團主，不符回 403（`members.js`、`subscriptions.js` 皆採此模式）
 - **查詢前驗證關聯性**：`members.js` 的 `GET /?groupId=` 先確認請求人是該群組成員或團主才放行，非相關人員回 403
 - **不信任前端傳入的敏感欄位**：`notifications.js` 的 `POST /` 不採信前端傳入的 `isPublic`（一律視為 `false`），且發通知給他人時需驗證請求人與目標使用者皆與 `meta.groupId` 指定的群組有關聯（成員／團主／曾送出申請）
-- **管理員限定操作**：`requireAdmin` 用於 `groups.js` 的 `/adjudicate`（申訴裁定）與 `systemMessages.js` 全部端點（廣播公告、發送私訊）
+- **管理員限定操作**：`requireAdmin` 用於 `groups/lifecycle.js` 的 `/adjudicate`（申訴裁定）與 `systemMessages.js` 全部端點（廣播公告、發送私訊）
 
 沒有開放 `POST /subscriptions`：訂閱一律透過 `applications.js` 的接受流程以 transaction 建立，避免使用者繞過審核直接建立。
 

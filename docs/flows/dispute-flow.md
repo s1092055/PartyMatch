@@ -52,7 +52,7 @@ sequenceDiagram
 
 | 路徑 | 說明 |
 |------|------|
-| `server/src/routes/groups.js` | `POST /groups/:id/dispute`（成員送出申訴）、`POST /groups/:id/adjudicate`（管理員裁定，`requireAdmin` 保護） |
+| `server/src/routes/groups/lifecycle.js` | `POST /groups/:id/dispute`（成員送出申訴）、`POST /groups/:id/adjudicate`（管理員裁定，`requireAdmin` 保護） |
 | `server/src/middleware/auth.js` | `requireAdmin` |
 | `server/src/utils/pricing.js` | `computeSeatCost` |
 

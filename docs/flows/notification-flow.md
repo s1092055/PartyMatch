@@ -84,7 +84,7 @@ sequenceDiagram
 
 ## 通知類型總覽
 
-`NotificationType` enum（`schema.prisma`）共 21 種，實際觸發點與收件人如下：
+`NotificationType` enum（`schema.prisma`）共 22 種，實際觸發點與收件人如下：
 
 | UI 標題／訊息內容（`{}` 為代入變數） | 類型 | 觸發時機 | 收件人（即時／僅寫DB） | 點擊導向 |
 |---|---|---|---|---|
@@ -113,14 +113,12 @@ sequenceDiagram
 | 「申訴裁定結果」／「你對「{groupLabel}」的申訴已受理，本期費用已退還至你的PM幣餘額。」 | `dispute_resolved` | 管理員裁定申訴 `winner: 'member'` | 申訴成員（僅寫DB） | 探索頁（此時已被移出群組） |
 | 「申訴裁定結果」／「「{groupLabel}」的申訴裁定退款給成員，該成員本期費用已退還並移出群組。」 | `dispute_resolved` | 管理員裁定申訴 `winner: 'member'` | 團主（僅寫DB） | 群組管理該群組 |
 | 「申訴裁定結果」／「你對「{groupLabel}」的申訴未受理，本期費用已撥款給團主。」 | `dispute_resolved` | 管理員裁定申訴 `winner: 'host'` | 申訴成員（僅寫DB） | 我的訂閱該群組（此時仍在群組內） |
-| 無 | `token_topup` | 無——定義了但沒有任何程式碼建立這個類型 | — | — |
 | 無固定文案 | `system` | 保留給公開系統公告（`isPublic: true`），但 `POST /notifications` 明確禁止一般使用者建立 `isPublic:true`，目前**沒有任何後端流程會真的建立**這種通知——公告目前只走「系統聊天室」訊息廣播（見 [訊息流程](messages-flow.md)），不是走通知中心 | — | 探索頁 |
 
 ### 額滿保護
 `application_rejected`／`member_removed`／`application_approved`（尚無訂閱分支）這三種通知點擊後會開啟探索頁的群組詳情 Modal，讓使用者「重新申請」或「瀏覽」該群組。但通知建立之後、使用者實際點擊之前，這個群組可能已經被別人申請填滿（`recruiting` → `full` 或更後面的狀態）。`FloatingMessages.jsx` 的 `openGroupOrRedirect(groupId)` 會在開啟 Modal 前重新拉一次群組資料並檢查 `status === 'recruiting'`，不符合就跳一個 `info` Toast 說明並留在探索頁，不會再打開一個「按下申請也沒用」的過期群組 Modal。
 
 ### 已知落差
-- `token_topup` 是定義了但完全沒接的死 enum 值
 - 公開系統公告的 Notification（`isPublic: true`）從未被建立過，實務上公告都是走 `system-messages` 聊天室廣播
 
 `POST /groups/:id/confirm`／`POST /groups/:id/dispute` 會分別建立 `escrow_released`／`dispute_raised` 通知給團主，並在群組聊天室留一則系統訊息（見 [訊息流程](messages-flow.md)）。確認期逾期的惰性自動撥款（`GET /groups/:id`）會補發 `escrow_released` 給團主；申訴裁定（`POST /groups/:id/adjudicate`）會建立 `dispute_resolved` 這個 `NotificationType`，兩個裁定分支（`winner: 'member'`／`winner: 'host'`）都會通知申訴成員與團主雙方。前端 `FloatingMessages.jsx` 點擊 `dispute_resolved` 時，會先查該成員是否仍在群組內，決定導向會員視角（仍是成員）或探索頁（已被移出群組）。
