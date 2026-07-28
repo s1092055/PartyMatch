@@ -113,12 +113,16 @@ export const useMemberStore = create((set, get) => ({
   },
 
   // ── 移除 ────────────────────────────────────────────────────────────────────
+  // 回傳 deleteMemberRecord 的 promise，讓呼叫端可以在真的移除成功後，
+  // 再去同步後端計算過的代管退款結果（group.escrowTokens），不會是必要，
+  // 但呼叫端若不 await 也不影響這裡的樂觀更新／失敗回滾行為
   remove: (memberId) => {
     const prior = get().members.find(m => m.id === memberId) ?? null
     set(s => ({ members: s.members.filter(m => m.id !== memberId) }))
-    deleteMemberRecord(memberId).catch(err => {
+    return deleteMemberRecord(memberId).catch(err => {
       if (prior) set(s => ({ members: [...s.members, prior] }))
       notifyError(err, '移除成員失敗，請稍後再試')
+      throw err
     })
   },
 

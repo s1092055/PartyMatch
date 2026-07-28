@@ -14,6 +14,7 @@ import { toast } from '../../shared/utils/toast'
 import { TokenBadge } from '../../shared/ui/TokenAmount'
 import CountdownConfirmDialog from '../../shared/ui/primitives/CountdownConfirmDialog'
 import GroupModalShell from '../../shared/ui/group/GroupModalShell'
+import MemberGroupView from '../my-groups/member/components/MemberGroupView'
 import ExploreGroupCard from '../explore/components/ExploreGroupCard'
 import HostReviews from './components/HostReviews'
 import ApplyModal from './components/ApplyModal'
@@ -203,6 +204,12 @@ export default function GroupDetailModal() {
     else navigate(`/login?redirectTo=/groups/${group.id}`)
   }
 
+  // 已經是成員時，不管從哪個入口（探索頁、訊息、儲值紀錄…）打開群組詳情，
+  // 一律統一顯示跟「我的群組」同一份內容，不要讓同一個群組在不同入口看到不同版本
+  if (isMember && !isHost) {
+    return <MemberGroupView group={group} onLeaveGroup={handleLeave} onClose={handleClose} />
+  }
+
   const reviews = (
     <HostReviews
       group={group}
@@ -236,7 +243,11 @@ export default function GroupDetailModal() {
       plan={plan}
       hideRecruitBar={isMember || isHost || group.status !== 'recruiting'}
       extraInfoRows={[]}
-      statusBadgeOverride={isMember && group.status === 'recruiting' ? 'member_joined' : undefined}
+      statusBadgeOverride={
+        isMember && group.status === 'recruiting' ? 'member_joined' :
+        isPendingApp ? { variant: 'pending', label: '審核中' } :
+        undefined
+      }
       subPanel={showMembers ? buildMembersSubPanel({ group, groupId, members, activeUserId, setShowMembers, openDm }) : null}
       onSubPanelBack={() => { setShowMembers(false); resetApply() }}
       panelKey={showMembers ? 'members' : 'overview'}

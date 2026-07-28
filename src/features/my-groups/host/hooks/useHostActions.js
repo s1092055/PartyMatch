@@ -13,6 +13,7 @@ import { insertNotification } from '../../../../shared/api/notificationsApi'
 import { useConversationStore } from '../../../../shared/stores/useConversationStore'
 import { isHistoryGroup } from '../../../../shared/utils/groupStatusDisplay'
 import { STATUS_FILTER_TABS, matchesFilter, calcApprovalSeatPatch } from '../utils/hostFilters'
+import { getServiceById } from '../../../../shared/utils/serviceUtils'
 
 // ── store 操作的精簡別名（事件處理器內呼叫，讀取最新 store 狀態）─────────────
 const getGroupById     = (id)      => useGroupStore.getState().getById(id)
@@ -224,7 +225,12 @@ async function handleLockGroup(sharedCredentials) {
 function handleRemoveMember(member) {
     const group = getGroupById(member.groupId)
     adjustCreditScore(member.userId, CREDIT_RULES.MEMBER_REMOVED).catch(console.error)
+    // 代管退款金額是後端算的（Math.min(seatCost, escrowTokens)），這裡的樂觀更新只處理名額，
+    // 不猜測退款金額；成員真的刪除成功後再整筆重新拉一次群組，把 escrowTokens 校正回後端算出的值，
+    // 避免收款管理畫面一直顯示退款前的舊代管金額
     removeMember(member.id)
+      .then(() => useGroupStore.getState().refreshGroup(member.groupId))
+      .catch(console.error)
     const app = getApplicationByUserAndGroup(member.userId, member.groupId)
     if (app) updateApplicationStatus(app.id, 'removed')
     const sub = getSubscriptionByUserAndGroup(member.userId, member.groupId)
@@ -255,6 +261,12 @@ function handleRemoveMember(member) {
     if (convId) {
       sendSystemMessage(convId, `${member.userName} 已被移出群組`).catch(console.error)
       removeParticipantFromConversation(convId, member.userId).catch(console.error)
+    }
+
+    // 帳密共用服務一旦鎖定就已經把帳密交給所有成員看過，被移除的成員手上仍握有帳密，
+    // 提醒團主此時只有「更改密碼」才能真正拿回控制權，平台無法代為處理
+    if (group?.sharedCredentials && getServiceById(group.serviceId)?.sharingMethod === 'shared_credentials') {
+      toast('該成員已看過帳號密碼，建議盡快更改密碼避免帳號被繼續使用', 'warning', { persistent: true })
     }
   }
 
@@ -322,6 +334,10 @@ async function handleActivate() {
       }).catch(console.error)
     })
 
+    if (group?.sharedCredentials && getServiceById(group.serviceId)?.sharingMethod === 'shared_credentials') {
+      toast('所有成員都已看過帳號密碼，建議盡快更改密碼避免帳號被繼續使用', 'warning', { persistent: true })
+    }
+
     setViewGroupId(null)
     refreshGroups()
   }
@@ -373,6 +389,10 @@ async function handleActivate() {
     })
     const endConvId = getConvByGroupId(renewalModalGroupId)?.id
     if (endConvId) sendSystemMessage(endConvId, `團主已結束「${groupLabel}」群組`).catch(console.error)
+
+    if (group?.sharedCredentials && getServiceById(group.serviceId)?.sharingMethod === 'shared_credentials') {
+      toast('所有成員都已看過帳號密碼，建議盡快更改密碼避免帳號被繼續使用', 'warning', { persistent: true })
+    }
 
     setRenewalModalGroupId(null)
     refreshGroups()
@@ -487,6 +507,10 @@ async function handleApprove(appId) {
       setErrors(prev => ({ ...prev, [appId]: '拒絕失敗，請重試' }))
       return
     }
+
+    // 拒絕會退還申請當下代管的金額（後端算的），重新拉一次群組校正 escrowTokens，
+    // 避免收款管理畫面一直顯示退款前的舊代管金額（跟移除成員同一套修正方式）
+    useGroupStore.getState().refreshGroup(app.groupId).catch(console.error)
 
     // 申請人通知：只寫 DB，申請人刷新後才看到
     insertNotification({

@@ -5,7 +5,7 @@ import EscrowStatusCard from '../../../../../shared/ui/EscrowStatusCard'
 import TokenAmount from '../../../../../shared/ui/TokenAmount'
 import { formatDateTime } from '../../../../../shared/utils/date'
 
-export function buildBillingPanel({ group, members, transactions, transactionsLoading }) {
+export function buildBillingPanel({ members, transactions, transactionsLoading }) {
   // release（撥款給團主本人）不屬於任何成員，獨立加總顯示在頂部摘要
   const releasedTotal = transactions
     .filter(tx => tx.type === 'release')
@@ -20,6 +20,15 @@ export function buildBillingPanel({ group, members, transactions, transactionsLo
     latestEscrowByUserId[tx.userId] ??= tx
   }
 
+  // group.escrowTokens 是後端的技術性總帳，申請一送出（團主都還沒審核）當下就已經扣款代管，
+  // 所以會連還在 pending、團主根本還沒按下「接受」的申請人代管金額都算進去。但「本期費用由平台
+  // 代管中」這張卡片對團主來說的語意是「已經確定會加入、之後會撥款給我的錢」，只該算
+  // 已經是成員的人，不然團主會看到一筆連自己都還沒審核完的申請金額，誤以為系統算錯
+  const memberEscrowTotal = members.reduce((sum, m) => {
+    const tx = latestEscrowByUserId[m.userId]
+    return sum + (tx ? Math.abs(tx.amount) : 0)
+  }, 0)
+
   return {
     content: (
       <div className="p-5">
@@ -29,8 +38,8 @@ export function buildBillingPanel({ group, members, transactions, transactionsLo
           <EmptyState icon={Banknote} title="目前尚無成員" />
         ) : (
           <div className="space-y-4">
-            {group.escrowTokens > 0 && (
-              <EscrowStatusCard tone="info" icon={Banknote} title="目前費用由平台代管中，尚未撥款" amount={group.escrowTokens} />
+            {memberEscrowTotal > 0 && (
+              <EscrowStatusCard tone="info" icon={Banknote} title="本期費用由平台代管中" amount={memberEscrowTotal} />
             )}
             {releasedTotal > 0 && (
               <EscrowStatusCard tone="success" icon={ArrowUpCircle} title="已撥款給你的代管總額" amount={releasedTotal} />

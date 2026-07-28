@@ -30,6 +30,18 @@ async function openGroupOrRedirect(groupId) {
   window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId } }))
 }
 
+// 通知指向的群組，使用者可能已經不再是成員（被移除／自己退出／申訴後出局），此時「我的群組」
+// 對他來說什麼都打不開，一律改導向探索頁；還有名額就直接開群組詳情 Modal，額滿就跳 toast，
+// 跟上面 openGroupOrRedirect 同一套邏輯，不能開就不能開
+function navigateToMemberGroupOrExplore(navigate, userId, groupId) {
+  if (userId && useMemberStore.getState().getByUserAndGroup(userId, groupId)) {
+    navigate('/my-groups?view=member', { state: { openGroupId: groupId } })
+  } else {
+    navigate('/explore')
+    openGroupOrRedirect(groupId)
+  }
+}
+
 function getMergedNotifications(userId) {
   const notifStore = useNotificationStore.getState()
   const personal = userId ? notifStore.getByUserId(userId) : []
@@ -157,8 +169,8 @@ export default function FloatingMessages() {
 
     if (notification.type === 'fill_service_info' && notification.meta?.groupId) {
       // 直接開該群組的成員視角詳情，畫面上會依 needsFillInfo 自動顯示「請填寫服務帳號」橫幅與按鈕，
-      // 不需要額外導向特定子面板
-      navigate('/my-groups?view=member', { state: { openGroupId: notification.meta.groupId } })
+      // 不需要額外導向特定子面板；已經不是成員的話（例如點擊前已被移除）改導向探索頁
+      navigateToMemberGroupOrExplore(navigate, userId, notification.meta.groupId)
       return
     }
 
@@ -171,8 +183,8 @@ export default function FloatingMessages() {
     if (notification.type === 'application_sent' && notification.meta?.groupId) {
       const gId = notification.meta.groupId
       const user = getCurrentUser()
-      // 同 application_approved：本地 subscriptionStore 快取可能還沒反映最新接受結果，先重新拉一次再判斷
-      useSubscriptionStore.getState().init().finally(() => {
+      // 同 application_approved：本地 subscriptionStore／applicationStore 快取可能還沒反映最新接受結果，先重新拉一次再判斷
+      Promise.all([useSubscriptionStore.getState().init(), useApplicationStore.getState().init()]).finally(() => {
         const hasSub = user ? !!getSubscriptionByUserAndGroup(user.id, gId) : false
         if (hasSub) {
           // 申請已通過，以成員視角開啟
@@ -224,11 +236,19 @@ export default function FloatingMessages() {
       const user = getCurrentUser()
       // 本地 subscriptionStore／memberStore 可能還停在接受前的快照（尚未輪詢到新建立的訂閱/成員資料），
       // 用過期快取判斷會誤判成「尚無訂閱」導致導向探索頁而非會員視角；memberStore 沒同步刷新的話，
-      // 群組詳情 Modal 打開當下 myMember 會是 null，「退出群組」按鈕也會因此不會馬上顯示，須先重新拉一次
-      Promise.all([useSubscriptionStore.getState().init(), useMemberStore.getState().init()]).finally(() => {
+      // 群組詳情 Modal 打開當下 myMember 會是 null，「退出群組」按鈕也會因此不會馬上顯示，須先重新拉一次；
+      // applicationStore 沒有一起刷新的話，這筆申請在本地還是 pending，「處理中」分頁會多出一筆
+      // 早就已經核准、理論上該消失的「審核中」幽靈紀錄
+      Promise.all([
+        useSubscriptionStore.getState().init(),
+        useMemberStore.getState().init(),
+        useApplicationStore.getState().init(),
+      ]).finally(() => {
         const hasSub = user ? !!getSubscriptionByUserAndGroup(user.id, gId) : false
         if (hasSub) {
-          navigate('/my-groups?view=member', { state: { openGroupId: gId } })
+          // 已通過的申請一律停在「處理中」分頁再開群組詳情，不管群組實際狀態是 recruiting 還是
+          // full，都跟「審核中的申請併入處理中」是同一種語意——申請人視角上這件事還沒完全塵埃落定
+          navigate('/my-groups?view=member', { state: { tab: 'processing', openGroupId: gId } })
         } else {
           navigate('/explore')
           openGroupOrRedirect(gId)
@@ -284,12 +304,10 @@ export default function FloatingMessages() {
       if (grp && grp.hostId === userId) {
         navigate('/my-groups?view=host', { state: { openGroupId: gId } })
         window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: gId } }))
-      } else if (useMemberStore.getState().getByUserAndGroup(userId, gId)) {
-        // 申訴不成立，成員仍在群組內
-        navigate('/my-groups?view=member', { state: { openGroupId: gId } })
       } else {
-        // 申訴成立，申訴成員已被移出群組，沒有群組可開啟
-        navigate('/explore')
+        // 申訴不成立則成員仍在群組內；申訴成立則申訴成員已被移出群組——
+        // 是否還是成員交給共用函式判斷，不是成員就導向探索頁
+        navigateToMemberGroupOrExplore(navigate, userId, gId)
       }
       return
     }
@@ -300,18 +318,18 @@ export default function FloatingMessages() {
         navigate('/my-groups?view=host', { state: { openGroupId: notification.meta.groupId } })
         window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: notification.meta.groupId } }))
       } else {
-        navigate('/my-groups?view=member', { state: { openGroupId: notification.meta.groupId } })
+        navigateToMemberGroupOrExplore(navigate, userId, notification.meta.groupId)
       }
       return
     }
 
     if (notification.type === 'group_renewal' && notification.meta?.groupId) {
-      navigate('/my-groups?view=member', { state: { openGroupId: notification.meta.groupId } })
+      navigateToMemberGroupOrExplore(navigate, userId, notification.meta.groupId)
       return
     }
 
     if (notification.type === 'upcoming_renewal' && notification.meta?.groupId) {
-      navigate('/my-groups?view=member', { state: { openGroupId: notification.meta.groupId } })
+      navigateToMemberGroupOrExplore(navigate, userId, notification.meta.groupId)
       return
     }
 

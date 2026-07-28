@@ -19,7 +19,13 @@ export async function finalizeLeaveGroup(groupId, user) {
 
   const group = groupId ? useGroupStore.getState().getById(groupId) : null
   const member = groupId ? useMemberStore.getState().getByUserAndGroup(user.id, groupId) : null
-  if (member) useMemberStore.getState().remove(member.id)
+  if (member) {
+    // 代管退款金額是後端算的，下面對 group 的樂觀更新不包含 escrowTokens，
+    // 真的刪除成功後重新拉一次群組校正回後端算出的值（跟團主端移除成員同一套修正方式）
+    useMemberStore.getState().remove(member.id)
+      .then(() => useGroupStore.getState().refreshGroup(groupId))
+      .catch(console.error)
+  }
   // 退出會退還加入時代管的金額，重新拉一次餘額讓畫面上的PM幣顯示同步
   if (member) useAuthStore.getState().refreshTokenBalance().catch(console.error)
 

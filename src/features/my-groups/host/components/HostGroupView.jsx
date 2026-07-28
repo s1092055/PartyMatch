@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Banknote, CheckCircle2, ClipboardList, Clock, FileText, Info, Lock, MessageCircle, PlayCircle, RefreshCw, Star, Trash2, Users } from 'lucide-react'
 import CountdownConfirmDialog from '../../../../shared/ui/primitives/CountdownConfirmDialog'
 import CountdownText from '../../../../shared/ui/primitives/CountdownText'
+import DisputeReasonDialog from '../../../../shared/ui/primitives/DisputeReasonDialog'
 import GroupModalShell from '../../../../shared/ui/group/GroupModalShell'
 import GroupModalSideBarItem from '../../../../shared/ui/group/GroupModalSideBarItem'
 import HostReviews from '../../../group/components/HostReviews'
@@ -16,9 +17,11 @@ import { uploadServiceIssueEvidence } from '../../../../shared/api/storageApi'
 import { useEvidenceUpload } from '../../../../shared/utils/hooks'
 import ActivateServiceModal from './ActivateServiceModal'
 import ReportServiceIssueModal from './ReportServiceIssueModal'
+import LockGroupCredentialsModal from './LockGroupCredentialsModal'
 import { buildMembersPanel } from './hostGroupView/buildMembersPanel'
 import { buildApplicationsPanel } from './hostGroupView/buildApplicationsPanel'
 import { buildReviewHistoryPanel } from './hostGroupView/buildReviewHistoryPanel'
+import { buildMemberHistoryPanel } from './hostGroupView/buildMemberHistoryPanel'
 import { buildBillingPanel } from './hostGroupView/buildBillingPanel'
 import { buildMemberInfoPanel } from './hostGroupView/buildMemberInfoPanel'
 
@@ -29,11 +32,15 @@ export default function HostGroupView({ group, members, applications, onReportSe
   const [removingMember, setRemovingMember]               = useState(null)
   const [activePanel, setActivePanel]                     = useState(null) // 'members' | 'applications' | 'billing' | 'reviews' | null
   const [showReviewHistory, setShowReviewHistory]         = useState(false)
+  const [showMemberHistory, setShowMemberHistory]         = useState(false)
   const [showLockGroupConfirm, setShowLockGroupConfirm] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm]         = useState(false)
   const [transactions, setTransactions]                     = useState([])
   const [transactionsLoading, setTransactionsLoading]       = useState(false)
-  const [lockCredentials, setLockCredentials]               = useState('')
+  const [showCredentialsModal, setShowCredentialsModal]     = useState(false)
+  const [credentialValues, setCredentialValues]             = useState({})
+  const [lockLoading, setLockLoading]                       = useState(false)
+  const [showDisputeReason, setShowDisputeReason]           = useState(false)
 
   useEffect(() => {
     if (activePanel !== 'billing') return
@@ -143,7 +150,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
   }
 
   const lockGroupBanner = group.status === 'full' && (
-    <div className="flex items-center justify-center bg-success-subtle px-6 py-3 text-sm font-extrabold text-success-text">
+    <div className="flex items-center justify-center bg-raised px-6 py-3 text-sm font-extrabold text-ink-2">
       招募完成，請點擊鎖定群組
     </div>
   )
@@ -152,35 +159,44 @@ export default function HostGroupView({ group, members, applications, onReportSe
   // 不用回頭翻聊天室訊息
   const needsCredentialsOnLock = serviceDef?.sharingMethod === 'shared_credentials'
 
+  function openLockFlow() {
+    if (needsCredentialsOnLock) {
+      setCredentialValues({})
+      setShowCredentialsModal(true)
+    } else {
+      setShowLockGroupConfirm(true)
+    }
+  }
+
+  async function handleCredentialsSubmit(e) {
+    e.preventDefault()
+    setLockLoading(true)
+    try {
+      await onLockGroup?.(JSON.stringify(credentialValues))
+      setShowCredentialsModal(false)
+      setCredentialValues({})
+    } finally {
+      setLockLoading(false)
+    }
+  }
+
   const lockGroupCta = group.status === 'full' && (
     <div className="py-2">
       {showLockGroupConfirm ? (
-        <div className="space-y-2">
-          {needsCredentialsOnLock && (
-            <textarea
-              value={lockCredentials}
-              onChange={e => setLockCredentials(e.target.value)}
-              placeholder="請輸入要提供給成員的帳號密碼（例如：帳號 xxx / 密碼 xxx），成員填寫服務帳號時會看到這則內容"
-              rows={3}
-              className="w-full rounded-xl border border-line px-3 py-2 text-sm outline-none resize-none"
-            />
-          )}
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={() => { setShowLockGroupConfirm(false); setLockCredentials('') }}
-              className="rounded-xl border border-line px-4 py-2 text-sm font-semibold text-ink-2 transition-colors hover:bg-raised"
-            >取消</button>
-            <button
-              onClick={() => { setShowLockGroupConfirm(false); onLockGroup?.(needsCredentialsOnLock ? lockCredentials.trim() : undefined); setLockCredentials('') }}
-              disabled={needsCredentialsOnLock && !lockCredentials.trim()}
-              className="rounded-xl bg-success px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-success-text disabled:pointer-events-none disabled:opacity-40"
-            >確認鎖定</button>
-          </div>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => setShowLockGroupConfirm(false)}
+            className="rounded-xl border border-line px-4 py-2 text-sm font-semibold text-ink-2 transition-colors hover:bg-raised"
+          >取消</button>
+          <button
+            onClick={() => { setShowLockGroupConfirm(false); onLockGroup?.(undefined) }}
+            className="rounded-xl bg-ink-2 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-ink"
+          >確認鎖定</button>
         </div>
       ) : (
         <button
-          onClick={() => setShowLockGroupConfirm(true)}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-success px-6 py-2 text-sm font-bold text-white shadow-md transition-colors hover:bg-success-text"
+          onClick={openLockFlow}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-ink-2 px-6 py-2 text-sm font-bold text-white shadow-md transition-colors hover:bg-ink"
         >
           <Lock size={15} strokeWidth={1.5} /> 鎖定群組
         </button>
@@ -208,6 +224,24 @@ export default function HostGroupView({ group, members, applications, onReportSe
     </div>
   )
 
+  const disputeMember = group.status === 'disputed' ? members.find(m => m.serviceInfoIssueNote) : null
+
+  const disputedBanner = group.status === 'disputed' && (
+    <div className="flex items-center justify-center gap-2 bg-danger-subtle px-6 py-3 text-sm font-extrabold text-danger-text">
+      <Clock size={15} strokeWidth={1.5} />
+      收到問題回報，處理中
+      {group.disputeDeadline && (
+        <>，剩餘 <CountdownText deadline={group.disputeDeadline} /></>
+      )}
+      <button
+        onClick={() => setShowDisputeReason(true)}
+        className="ml-1 shrink-0 rounded-full border border-danger-text/40 px-2.5 py-0.5 text-xs font-semibold text-danger-text transition-colors hover:bg-danger-text/10"
+      >
+        查看原因
+      </button>
+    </div>
+  )
+
   const activateBanner = canActivateNow && (
     <div className="flex items-center justify-center gap-2 bg-warning-subtle px-6 py-3 text-sm font-extrabold text-warning-text">
       <CheckCircle2 size={15} />
@@ -231,21 +265,26 @@ export default function HostGroupView({ group, members, applications, onReportSe
   // 成員評價要群組真的啟用過才會有資料，招募/處理中階段成員根本還沒用服務、不可能有評價
   const hasBeenActive = ['active', 'paused', 'ended'].includes(group.status)
 
-  // 審核紀錄要看得到成員最新的退出/移除狀態，點開當下重新拉一次申請資料，避免顯示舊快取
+  // 審核紀錄／成員紀錄都要看得到成員最新的退出/移除狀態，點開當下重新拉一次申請資料，避免顯示舊快取
   function openReviewHistory() {
     setShowReviewHistory(true)
     useApplicationStore.getState().init()
   }
+  function openMemberHistory() {
+    setShowMemberHistory(true)
+    useApplicationStore.getState().init()
+  }
 
   function buildSubPanel() {
-    if (activePanel === 'members') return buildMembersPanel({ group, members, setActivePanel, onClose, setRemovingMember })
+    if (activePanel === 'members') return buildMembersPanel({ group, members, setActivePanel, onClose, setRemovingMember, setShowMemberHistory: openMemberHistory })
     if (activePanel === 'applications') return buildApplicationsPanel({ pendingApps, groupFull, errors, onApprove, onReject, setActivePanel, setShowReviewHistory: openReviewHistory })
-    if (activePanel === 'billing') return buildBillingPanel({ group, members, transactions, transactionsLoading })
+    if (activePanel === 'billing') return buildBillingPanel({ members, transactions, transactionsLoading })
     if (activePanel === 'memberInfo') {
       return buildMemberInfoPanel({
         members,
         sharingMethod: serviceDef?.sharingMethod,
         sharedCredentials: group.sharedCredentials,
+        serviceId: group.serviceId,
         // 服務啟用後成員已經確認帳號能正常使用，「帳號資訊有誤」這個理由就不成立了，
         // 回報帳號問題只開放在啟用服務之前（還在填寫/等待啟用階段）
         canReportServiceIssue: canReportServiceIssue(group.status),
@@ -257,11 +296,13 @@ export default function HostGroupView({ group, members, applications, onReportSe
   }
 
   const isReviewHistory = showReviewHistory && activePanel === 'applications'
+  const isMemberHistory = showMemberHistory && activePanel === 'members'
 
-  // 側邊欄一律視為「換到別的分頁」，一併離開審核紀錄，避免之後再點回申請管理時卡在審核紀錄出不去
+  // 側邊欄一律視為「換到別的分頁」，一併離開審核紀錄／成員紀錄，避免之後再點回申請管理時卡在裡面出不去
   function goToPanel(panel) {
     setActivePanel(panel)
     setShowReviewHistory(false)
+    setShowMemberHistory(false)
   }
 
   function renderSideBar() {
@@ -345,25 +386,46 @@ export default function HostGroupView({ group, members, applications, onReportSe
     <>
     {/* 啟用服務／回報帳號問題這兩個 sub-modal 開啟時，完全隱藏底下的群組詳情 modal，不是疊加半透明遮罩；
         關閉 sub-modal 才重新顯示群組詳情，跟成員端「填寫服務帳號」sub-modal 同一套模式 */}
-    {!showActivate && !serviceIssueMember && (
+    {!showActivate && !serviceIssueMember && !showCredentialsModal && (
     <GroupModalShell
       onClose={onClose}
       group={group}
       service={serviceDef}
       plan={planDef}
       hideRecruitBar={group.status !== 'recruiting'}
-      headerBanner={lockGroupBanner || activateBanner || pendingConfirmationBanner || confirmingBanner || undefined}
+      headerBanner={lockGroupBanner || activateBanner || pendingConfirmationBanner || confirmingBanner || disputedBanner || undefined}
       centeredCta={lockGroupCta || activateCta || undefined}
       extraInfoRows={[]}
-      pendingBadge={group.status === 'pending_confirmation' ? '成員填寫中' : undefined}
+      statusBadgeOverride={group.status === 'full' ? { variant: 'full', label: '等待鎖定' } : undefined}
+      pendingBadge={
+        group.status === 'pending_confirmation' ? '成員填寫中' :
+        group.status === 'disputed' ? '收到問題回報，處理中' :
+        undefined
+      }
+      pendingBadgeColor={group.status === 'disputed' ? 'danger' : undefined}
       subPanel={activePanel ? buildSubPanel() : null}
-      onSubPanelBack={() => { setActivePanel(null); setShowReviewHistory(false) }}
-      subSubPanel={isReviewHistory ? buildReviewHistoryPanel({ applications, groupFull, errors }) : null}
-      onSubSubPanelBack={() => setShowReviewHistory(false)}
-      panelKey={isReviewHistory ? 'reviewHistory' : activePanel ?? 'overview'}
+      onSubPanelBack={() => { setActivePanel(null); setShowReviewHistory(false); setShowMemberHistory(false) }}
+      subSubPanel={
+        isReviewHistory ? buildReviewHistoryPanel({ applications, groupFull, errors }) :
+        isMemberHistory ? buildMemberHistoryPanel({ applications, groupFull, errors }) :
+        null
+      }
+      onSubSubPanelBack={() => { setShowReviewHistory(false); setShowMemberHistory(false) }}
+      panelKey={isReviewHistory ? 'reviewHistory' : isMemberHistory ? 'memberHistory' : activePanel ?? 'overview'}
       sideBar={renderSideBar()}
     />
     )}
+
+    <LockGroupCredentialsModal
+      isOpen={showCredentialsModal}
+      onClose={() => { setShowCredentialsModal(false); setCredentialValues({}) }}
+      serviceId={group.serviceId}
+      serviceName={group.serviceName}
+      values={credentialValues}
+      setValues={setCredentialValues}
+      onSubmit={handleCredentialsSubmit}
+      loading={lockLoading}
+    />
 
     <ActivateServiceModal
       isOpen={showActivate}
@@ -401,6 +463,17 @@ export default function HostGroupView({ group, members, applications, onReportSe
         serviceIssueEvidence.reset()
       }}
     />
+
+    {showDisputeReason && (
+      <DisputeReasonDialog
+        reporterName={disputeMember?.userName}
+        reporterAvatarInitial={disputeMember?.userAvatarInitial}
+        reporterAvatarColor={disputeMember?.userAvatarColor}
+        reason={disputeMember?.serviceInfoIssueNote}
+        evidenceUrl={disputeMember?.disputeEvidenceUrl}
+        onClose={() => setShowDisputeReason(false)}
+      />
+    )}
 
     {showCancelConfirm && (
       <CountdownConfirmDialog

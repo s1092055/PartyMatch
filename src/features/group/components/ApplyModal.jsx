@@ -25,7 +25,7 @@ export default function ApplyModal({
       maxWidth="max-w-md"
     >
       {applySubmitted ? (
-        <div className="flex flex-col items-center gap-4 px-6 py-6 text-center">
+        <div className="animate-step-slide-up flex flex-col items-center gap-4 px-6 py-6 text-center">
           <div className="w-16 h-16 rounded-full bg-success-subtle flex items-center justify-center">
             <CheckCircle2 size={30} className="text-success" />
           </div>
@@ -36,7 +36,7 @@ export default function ApplyModal({
           <Button variant="primary" size="md" className="mt-2 min-w-[7rem]" onClick={onClose}>確認</Button>
         </div>
       ) : (
-        <div className="flex flex-col gap-4 p-5">
+        <div className="animate-step-slide-up flex flex-col gap-4 p-5">
           <div className="rounded-xl border border-line bg-raised/50 px-4 py-3">
             <div className="flex items-center gap-3">
               <ServiceLogo serviceId={group.serviceId} size={32} className="shrink-0 rounded-xl" />

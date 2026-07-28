@@ -17,7 +17,7 @@ import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import Button from '../../../shared/ui/primitives/Button'
 import RevealSection from '../../../shared/ui/primitives/RevealSection'
 import ScrollHint from '../../../shared/ui/primitives/ScrollHint'
-import { formatRelativeDate } from '../../../shared/utils/date'
+import { toISODate } from '../../../shared/utils/date'
 import { useScrollEdge } from '../../../shared/utils/hooks'
 import { calcDisplayPrice, calcDisplayCycle } from '../../../shared/utils/pricingUtils'
 import { FILTER_TABS, subscriptionBucket } from './utils/memberFilters'
@@ -242,7 +242,7 @@ function ApplicationCard({ app, group, onViewGroup }) {
       onClick={onViewGroup}
     >
       <div className="flex justify-center">
-        <Badge variant="pending" label="已申請" />
+        <Badge variant="pending" label="審核中" />
       </div>
 
       <div className="mt-4 flex justify-center">
@@ -266,16 +266,16 @@ function ApplicationCard({ app, group, onViewGroup }) {
 
       <div className="grid grid-cols-3 divide-x divide-line-subtle rounded-lg border border-line-subtle">
         <div className="flex flex-col items-center gap-0.5 py-2.5 text-center">
-          <span className="text-2xs font-bold text-ink-3">審核狀態</span>
+          <span className="text-2xs font-bold text-ink-3">群組狀態</span>
           <span className="text-sm font-black leading-tight text-warning-text">審核中</span>
-        </div>
-        <div className="flex flex-col items-center gap-0.5 py-2.5 text-center">
-          <span className="text-2xs font-bold text-ink-3">申請時間</span>
-          <span className="text-sm font-black leading-tight text-ink">{formatRelativeDate(app.createdAt)}</span>
         </div>
         <div className="flex flex-col items-center gap-0.5 py-2.5 text-center">
           <span className="text-2xs font-bold text-ink-3">團主</span>
           <span className="text-sm font-black leading-tight text-ink">{app.hostName ?? '—'}</span>
+        </div>
+        <div className="flex flex-col items-center gap-0.5 py-2.5 text-center">
+          <span className="text-2xs font-bold text-ink-3">申請日期</span>
+          <span className="text-sm font-black leading-tight text-ink">{toISODate(app.createdAt)}</span>
         </div>
       </div>
 

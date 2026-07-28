@@ -3,6 +3,7 @@ import Avatar from '../../../../../shared/ui/primitives/Avatar'
 import EmptyState from '../../../../../shared/ui/primitives/EmptyState'
 import { CENTERED_PANEL_BODY_CLASS } from '../../../../../shared/ui/group/panelLayout'
 import { getTextFields, hasFilledServiceInfo } from '../../../../../shared/utils/serviceInfoFields'
+import { parseHostCredentials } from '../../../../../shared/utils/hostCredentialFields'
 
 // 團主查看成員填寫的服務帳號資訊；跟 ActivateServiceModal 裡的成員清單同一套判斷邏輯，
 // 差別是這裡不限「待啟用」階段才看得到，鎖定群組後任何時候都可以來確認填寫進度。
@@ -29,14 +30,24 @@ function renderFilledInfoDetail(serviceInfo, sharingMethod) {
   )
 }
 
-export function buildMemberInfoPanel({ members, sharingMethod, sharedCredentials, canReportServiceIssue, onOpenServiceIssue }) {
+export function buildMemberInfoPanel({ members, sharingMethod, sharedCredentials, serviceId, canReportServiceIssue, onOpenServiceIssue }) {
+  const parsedCredentials = parseHostCredentials(sharedCredentials, serviceId)
   return {
     content: (
       <div className={`flex min-h-full flex-col ${CENTERED_PANEL_BODY_CLASS}`}>
         {sharingMethod === 'shared_credentials' && (
           <div className="mb-3 rounded-xl border border-line bg-raised p-3">
             <p className="mb-1 text-xs font-semibold text-ink-3">你提供給成員的帳號資訊</p>
-            {sharedCredentials ? (
+            {parsedCredentials ? (
+              <dl className="space-y-1">
+                {parsedCredentials.map(({ label, value }) => (
+                  <div key={label} className="flex items-baseline gap-2 text-sm">
+                    <dt className="shrink-0 text-ink-4">{label}</dt>
+                    <dd className="min-w-0 truncate text-ink-2">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+            ) : sharedCredentials ? (
               <p className="whitespace-pre-wrap text-sm text-ink-2">{sharedCredentials}</p>
             ) : (
               <p className="text-sm text-ink-4">尚未提供，鎖定群組時可以填寫</p>

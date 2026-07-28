@@ -6,9 +6,9 @@ import { formatDateTime, formatRelativeDate } from '../../../../../shared/utils/
 
 const APP_STATUS_BADGE = {
   approved: { cls: 'bg-success-subtle text-success-text', label: '已接受' },
+  rejected: { cls: 'bg-danger-subtle text-danger-text',   label: '已拒絕' },
   left:     { cls: 'bg-slate-100 text-slate-500',         label: '已退出' },
   removed:  { cls: 'bg-danger-subtle text-danger-text',   label: '已移除' },
-  rejected: { cls: 'bg-danger-subtle text-danger-text',   label: '已拒絕' },
 }
 
 export default function ApplicationCard({ app, groupFull, error, onApprove, onReject }) {

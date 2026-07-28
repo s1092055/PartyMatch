@@ -5,6 +5,7 @@ import {
 import Avatar from '../../../../shared/ui/primitives/Avatar'
 import CountdownConfirmDialog from '../../../../shared/ui/primitives/CountdownConfirmDialog'
 import CountdownText from '../../../../shared/ui/primitives/CountdownText'
+import DisputeReasonDialog from '../../../../shared/ui/primitives/DisputeReasonDialog'
 import GroupModalShell from '../../../../shared/ui/group/GroupModalShell'
 import GroupModalSideBarItem from '../../../../shared/ui/group/GroupModalSideBarItem'
 import ReviewHostModal from './ReviewHostModal'
@@ -29,6 +30,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
   const [leaveConfirm, setLeaveConfirm] = useState(false)
   const [showFillInfo, setShowFillInfo] = useState(false)
   const [showDispute, setShowDispute] = useState(false)
+  const [showDisputeReason, setShowDisputeReason] = useState(false)
   const [fillValues, setFillValues] = useState({})
   const [fillLoading, setFillLoading] = useState(false)
   const [confirmLoading, setConfirmLoading] = useState(false)
@@ -72,7 +74,9 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
   const isPaymentRelevant = !['recruiting', 'full'].includes(group.status)
 
   const sharingMethodConfig = getSharingMethodConfig(serviceDef?.sharingMethod)
-  const hasServiceInfoIssue = !!myMember?.serviceInfoIssueNote
+  // serviceInfoIssueNote 這個欄位被團主標記「帳號需修正」跟申訴理由共用，
+  // 送出申訴後自己的 serviceInfoIssueNote 也會被寫入申訴理由，此時要顯示的是「問題處理中」而不是「帳號需修正」
+  const hasServiceInfoIssue = !!myMember?.serviceInfoIssueNote && group.status !== 'disputed'
   const hasServiceInfo      = hasFilledServiceInfo(myMember?.serviceInfo, serviceDef?.sharingMethod) && !hasServiceInfoIssue
   const needsFillInfo       = !!sub && isPaymentRelevant && !hasServiceInfo && group.status === 'pending_confirmation'
   // 已經填完但其他成員還沒填完時，畫面不能什麼都不顯示，不然會讓人誤以為自己還沒填寫
@@ -81,6 +85,10 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
   const canConfirm          = group.status === 'confirming' && !!myMember && !myMember.confirmedAt
   const alreadyConfirmed    = group.status === 'confirming' && isEffectivelyActive(group.status, myMember?.confirmedAt)
   const isDisputed          = group.status === 'disputed'
+  // disputed 狀態下只有申訴發起人自己的 serviceInfoIssueNote 會被填入申訴理由，藉此跟其他無關成員區分文案
+  const isDisputeRaiser     = isDisputed && !!myMember?.serviceInfoIssueNote
+  const disputedBannerText  = isDisputeRaiser ? '回報已受理，處理中' : '群組進度暫停中'
+  const disputeMember       = isDisputed ? members.find(m => m.serviceInfoIssueNote) : null
 
   function openMessages() {
     onClose()
@@ -305,10 +313,16 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
         ) : isDisputed ? (
           <div className="flex items-center justify-center gap-2 bg-danger-subtle px-6 py-3 text-sm font-extrabold text-danger-text">
             <Clock size={15} strokeWidth={1.5} />
-            問題處理中
+            {disputedBannerText}
             {group.disputeDeadline && (
               <>，剩餘 <CountdownText deadline={group.disputeDeadline} /></>
             )}
+            <button
+              onClick={() => setShowDisputeReason(true)}
+              className="ml-1 shrink-0 rounded-full border border-danger-text/40 px-2.5 py-0.5 text-xs font-semibold text-danger-text transition-colors hover:bg-danger-text/10"
+            >
+              查看原因
+            </button>
           </div>
         ) : undefined
       }
@@ -318,6 +332,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
         alreadyConfirmed ? { variant: 'active' } :
         waitingForOthers ? { variant: 'active', label: '已填寫完成' } :
         group.status === 'recruiting' && !!sub ? 'member_joined' :
+        group.status === 'full' ? { variant: 'full', label: '等待鎖定' } :
         undefined
       }
       pendingBadge={
@@ -325,13 +340,14 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
         needsFillInfo       ? '請填寫服務帳號以完成加入流程' :
         waitingForOthers    ? '已填寫完成' :
         canConfirm          ? '確認期進行中，請確認服務' :
-        isDisputed          ? '問題處理中' :
+        isDisputed          ? disputedBannerText :
         group.status === 'full' && !!sub ? '招募完成，等待團主鎖定群組' :
         group.status === 'recruiting' && !!sub ? '已通過申請，需等待其他人加入' :
         undefined
       }
       pendingBadgeColor={
-        (['recruiting', 'full'].includes(group.status) && !!sub) ? 'success' :
+        (group.status === 'full' && !!sub) ? 'gray' :
+        (group.status === 'recruiting' && !!sub) ? 'success' :
         hasServiceInfoIssue ? 'danger' :
         waitingForOthers ? 'success' :
         canConfirm ? 'brand' :
@@ -382,6 +398,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
       fillValid={fillValid}
       fillLoading={fillLoading}
       onSubmit={handleFillSubmit}
+      viewerName={myMember?.userName}
     />
 
     <DisputeModal
@@ -418,6 +435,17 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
         danger
         onConfirm={() => { setLeaveConfirm(false); onLeaveGroup?.() }}
         onCancel={() => setLeaveConfirm(false)}
+      />
+    )}
+
+    {showDisputeReason && (
+      <DisputeReasonDialog
+        reporterName={isDisputeRaiser ? '你' : disputeMember?.userName}
+        reporterAvatarInitial={disputeMember?.userAvatarInitial}
+        reporterAvatarColor={disputeMember?.userAvatarColor}
+        reason={disputeMember?.serviceInfoIssueNote}
+        evidenceUrl={disputeMember?.disputeEvidenceUrl}
+        onClose={() => setShowDisputeReason(false)}
       />
     )}
 

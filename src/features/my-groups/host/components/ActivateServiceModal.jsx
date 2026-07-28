@@ -43,7 +43,7 @@ export default function ActivateServiceModal({
         >確認啟用</button>
       }
     >
-      <div className="flex-1 min-h-0 overflow-y-auto">
+      <div className="animate-step-slide-up flex-1 min-h-0 overflow-y-auto">
         {/* 服務摘要 */}
         <div className="flex items-center gap-3 border-b border-line-subtle px-5 py-4">
           <ServiceLogo serviceId={group.serviceId} size={40} className="rounded-xl" />

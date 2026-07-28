@@ -45,7 +45,9 @@ export default function GroupModalShell({
     ? 'bg-success-subtle text-success-text'
     : pendingBadgeColor === 'danger'
       ? 'bg-danger-subtle text-danger-text'
-      : 'bg-warning-subtle text-warning-text'
+      : pendingBadgeColor === 'gray'
+        ? 'bg-raised text-ink-2'
+        : 'bg-warning-subtle text-warning-text'
 
   const activeDetail = subSubPanel ?? subPanel
   // 有 sideBar 時已有明確的分頁切換入口，subPanel 不需要返回鍵；但 subSubPanel（例如審核紀錄）是從

@@ -93,7 +93,7 @@ export const useNotificationStore = create((set, get) => ({
         if (!isActive() || _notifUserId !== polledForUserId) return
         const currentIds = new Set(useNotificationStore.getState().notifications.map(n => n.id))
         const newNotifs = latest.filter(n => n.userId === _notifUserId && !currentIds.has(n.id))
-        if (newNotifs.some(n => n.type === 'member_removed' || n.type === 'member_left')) {
+        if (newNotifs.some(n => n.type === 'member_removed' || n.type === 'member_left' || n.type === 'dispute_resolved')) {
           window.dispatchEvent(new CustomEvent('pm:refresh-member-stores'))
         }
         // 這幾種通知都代表 PM幣餘額剛被後端改動過（退款或撥款），不用等使用者點擊通知才更新，

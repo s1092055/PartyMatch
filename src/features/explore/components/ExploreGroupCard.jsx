@@ -113,7 +113,7 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
           這樣同一排卡片高度才會整齊，不會因為某幾張有 badge 就比其他張高 */}
       <div className="flex h-6 items-center justify-center">
         {(isMember || isApplied) && (
-          <Badge variant={isMember ? 'member_joined' : 'pending'} label={isMember ? undefined : '已申請'} />
+          <Badge variant={isMember ? 'member_joined' : 'pending'} label={isMember ? undefined : '審核中'} />
         )}
       </div>
 
