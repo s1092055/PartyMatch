@@ -88,19 +88,6 @@ PartyMatch 是一個共享訂閱媒合平台，讓使用者可以探索或建立
 - [API 總覽](docs/architecture/api-overview.md) — 每一支後端網址在做什麼、需不需要登入
 - [認證機制](docs/architecture/authentication.md) — 使用者怎麼登入、系統怎麼記得你是誰
 - [命名慣例](docs/architecture/naming-conventions.md) — 檔案跟變數的命名規則
-- [開發指南](docs/development.md) — 環境變數與常用指令，想在自己電腦跑起來看這篇
-
-### Testing — 怎麼確認功能是好的
-
-- [手動測試計畫](docs/testing/manual-test-plan.md)
-- [測試帳號](docs/testing/test-accounts.md)
-- [核心流程測試案例](docs/testing/core-flow-test-cases.md) — 含 App 啟動失敗彙總 Toast、樂觀更新失敗回滾（`notifyError`）
-- [成員流程測試案例](docs/testing/member-flow-test-cases.md)
-- [團主流程測試案例](docs/testing/host-flow-test-cases.md)
-- [訊息與通知測試案例](docs/testing/messaging-notification-test-cases.md) — 含撤回申請通知團主、通知額滿保護（`openGroupOrRedirect`）
-- [RWD 測試案例](docs/testing/rwd-test-cases.md)
-- [Bug 紀錄](docs/testing/bug-log.md)
-- [演變記錄](docs/history/README.md) — 各文件正文已移除的設計演變過程，只想看現況可以不用點進來
 
 ### Portfolio — 給面試官或想認識這個專案的人
 
@@ -113,4 +100,4 @@ PartyMatch 是一個共享訂閱媒合平台，讓使用者可以探索或建立
 
 ## 注意事項
 
-本專案為個人作品集用途，儲值、付款、代管撥款等流程皆為模擬邏輯，未串接正式金流。正式環境所需的 API key、JWT secret、資料庫連線資訊與第三方服務設定皆未包含於此 repository，執行前請依 [開發指南](docs/development.md) 自行設定環境變數。
+本專案為個人作品集用途，儲值、付款、代管撥款等流程皆為模擬邏輯，未串接正式金流。正式環境所需的 API key、JWT secret、資料庫連線資訊與第三方服務設定皆未包含於此 repository。
