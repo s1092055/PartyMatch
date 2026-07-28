@@ -46,9 +46,9 @@ src/
 
 | 子資料夾 | 內容 | 範例 |
 |---------|------|------|
-| `primitives/` | 完全不帶業務邏輯的通用元件，可用於任何專案 | `Button.jsx`、`Modal.jsx`、`Badge.jsx`、`CustomSelect.jsx`、`ConfirmDialog.jsx`、`ToastContainer.jsx`、`StarRating.jsx`、`ScrollHint.jsx` |
+| `primitives/` | 完全不帶業務邏輯的通用元件，可用於任何專案 | `Button.jsx`、`Modal.jsx`、`Badge.jsx`、`CustomSelect.jsx`、`ConfirmDialog.jsx`、`ToastContainer.jsx`、`StarRating.jsx`、`ScrollHint.jsx`、`Slider.jsx`／`RangeSlider.jsx`（單／雙把手滑桿，共用 `sliderStyles.js` 的圓點把手樣式與 `SliderTrack.jsx` 外層軌道） |
 | `group/` | 群組詳情 Modal 家族專用元件，被 `HostGroupView`／`MemberGroupView`／`GroupDetailModal` 三處共用 | `GroupModalShell.jsx`（三層滑動軌道殼）、`GroupViewModal.jsx`（依 `isHost` 分流的薄殼）、`GroupOverviewContent.jsx`、`GroupHistoryModal.jsx`、`GroupModalSideBarItem.jsx` |
-| 最外層（無子資料夾） | 跨頁面共用、但綁定特定業務概念（PM幣、信用分數、服務 Logo…）的元件，不適合歸類為 primitive，也未形成像 `group/` 一樣的元件家族 | `TokenAmount.jsx`、`TopupModal.jsx`、`CreditScoreBadge.jsx`、`ServiceLogo.jsx`、`FilterTabsBar.jsx`、`LoginPromptModal.jsx` |
+| 最外層（無子資料夾） | 跨頁面共用、但綁定特定業務概念（PM幣、信用分數、服務 Logo…）的元件，不適合歸類為 primitive，也未形成像 `group/` 一樣的元件家族 | `TokenAmount.jsx`、`TopupModal.jsx`、`CreditScoreBadge.jsx`、`ServiceLogo.jsx`、`FilterTabsBar.jsx`、`LoginPromptModal.jsx`、`PriceRangeAmount.jsx`（PM幣圖示＋金額區間文字，快速搜尋的價格篩選顯示共用） |
 
 `group/` 集中群組 Modal 家族共用的元件，`primitives/` 收斂所有不帶業務邏輯的通用元件，避免最外層堆積過多元件。新增共用元件時依此準則放置：完全通用 → `primitives/`；群組 Modal 家族專用 → `group/`；其餘跨頁面共用的業務元件 → 最外層。
 

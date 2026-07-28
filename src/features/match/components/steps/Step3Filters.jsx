@@ -22,10 +22,14 @@ export default function Step3Filters({ conditions, onChange }) {
   const [rangeMin, setRangeMin] = useState(conditions.minPrice ?? PRICE_MIN)
   const [rangeMax, setRangeMax] = useState(conditions.maxPrice ?? DEFAULT_PRICE_MAX)
   const [priceMax, setPriceMax] = useState(Math.max(DEFAULT_PRICE_MAX, rangeMax))
-  const [priceMaxInput, setPriceMaxInput] = useState('')
 
   const curMin = conditions.minPrice ?? rangeMin
   const curMax = conditions.maxPrice ?? rangeMax
+  // 輸入框顯示的文字直接從目前選取的金額推導，不額外存一份文字 state——
+  // 不然拖動滑桿把手或取消勾選「不限」時只會更新 curMin/curMax，忘記同步更新
+  // 輸入框文字的話，畫面上就會看到跟實際選取值兜不起來的舊數字
+  const priceMinInput = String(curMin)
+  const priceMaxInput = String(curMax)
   const priceLabel = formatPriceRangeLabel(conditions.minPrice, conditions.maxPrice)
 
   function toggleUnlimitedPrice(checked) {
@@ -50,36 +54,60 @@ export default function Step3Filters({ conditions, onChange }) {
     onChange('maxPrice', clamped)
   }
 
-  // 下方輸入的是「進度條最高上限」（決定進度條長度），不是實際選取金額。
-  // 打字過程中只即時放寬/縮小進度條的刻度範圍（不等失焦/Enter），但不去夾回實際選取的
-  // 最小/最大金額——因為打字途中每一個中間值（例如輸入 1500 途中經過的 1、15、150）都只是
-  // 未完成的暫時數字，若在這時候就把選取金額夾到那個暫時數字，把手會被瞬間擠壓到刻度極小處，
-  // 看起來像「無法拖動」。真正的夾回只在打完、失焦時（commitPriceScaleInput）才做一次。
+  // 下方輸入的「最高上限」同時是進度條的刻度範圍，也直接就是目前選取的最高金額——
+  // 兩者必須同步，刻度範圍如果比目前選取的金額還小，滑桿右端把手的 value 會超出它自己的
+  // max 屬性，變成無效狀態，把手會直接消失、無法拖動
+  function applyMaxLimit(clamped) {
+    setPriceMax(clamped)
+    setRangeMax(clamped)
+    onChange('maxPrice', clamped)
+    // 最低金額不能比新的最高金額還大
+    if ((conditions.minPrice ?? rangeMin) > clamped) {
+      setRangeMin(clamped)
+      onChange('minPrice', clamped)
+    }
+  }
+
+  // 打字過程中即時套用（不等失焦/Enter），上方顯示的最高金額跟著即時變動；
+  // 清空時立刻補回預設上限，輸入框不會停留在空白狀態
   function applyPriceScale(raw) {
-    if (!raw) return
+    if (!raw) { applyMaxLimit(DEFAULT_PRICE_MAX); return }
     const num = Number(raw)
     if (!Number.isFinite(num)) return
-    const clamped = Math.min(PRICE_MAX_CAP, Math.max(PRICE_MIN, Math.round(num)))
-    setPriceMax(clamped)
+    applyMaxLimit(Math.min(PRICE_MAX_CAP, Math.max(PRICE_MIN, Math.round(num))))
   }
 
-  // 新上限比某個目前值還小時，該值才需要跟著夾回新上限
-  function clampDown(current, cap, apply) {
-    if (current != null && current > cap) apply(cap)
-  }
-
-  // 失焦時把輸入框顯示的文字正規化成實際生效的上限值；留空的話不做任何變動
+  // 失焦時把輸入框顯示的文字正規化成實際生效的上限值
   function commitPriceScaleInput(raw) {
-    if (!raw) return
+    if (!raw) { applyMaxLimit(DEFAULT_PRICE_MAX); return }
     const num = Number(raw)
-    if (!Number.isFinite(num)) { setPriceMaxInput(''); return }
-    const clamped = Math.min(PRICE_MAX_CAP, Math.max(PRICE_MIN + 10, Math.round(num)))
-    setPriceMax(clamped)
-    setPriceMaxInput(String(clamped))
-    clampDown(conditions.maxPrice, clamped, v => onChange('maxPrice', v))
-    clampDown(conditions.minPrice, clamped, v => onChange('minPrice', v))
-    clampDown(rangeMax, clamped, setRangeMax)
-    clampDown(rangeMin, clamped, setRangeMin)
+    if (!Number.isFinite(num)) { applyMaxLimit(DEFAULT_PRICE_MAX); return }
+    applyMaxLimit(Math.min(PRICE_MAX_CAP, Math.max(PRICE_MIN + 10, Math.round(num))))
+  }
+
+  // 最低金額不能高於目前的最高金額，超過的話直接夾回最高金額，而不是把最高金額往上推
+  function applyMinLimit(clamped) {
+    const finalMin = Math.min(clamped, conditions.maxPrice ?? rangeMax)
+    setRangeMin(finalMin)
+    onChange('minPrice', finalMin)
+    return finalMin
+  }
+
+  // 打字過程中即時套用（不等失焦/Enter），上方顯示的最低金額跟著即時變動；
+  // 清空時立刻補回預設下限，輸入框不會停留在空白狀態
+  function applyPriceMinInput(raw) {
+    if (!raw) { applyMinLimit(PRICE_MIN); return }
+    const num = Number(raw)
+    if (!Number.isFinite(num)) return
+    applyMinLimit(Math.min(PRICE_MAX_CAP, Math.max(PRICE_MIN, Math.round(num))))
+  }
+
+  // 失焦時把輸入框顯示的文字正規化成實際生效的最低金額
+  function commitPriceMinInput(raw) {
+    if (!raw) { applyMinLimit(PRICE_MIN); return }
+    const num = Number(raw)
+    if (!Number.isFinite(num)) { applyMinLimit(PRICE_MIN); return }
+    applyMinLimit(Math.min(PRICE_MAX_CAP, Math.max(PRICE_MIN, Math.round(num))))
   }
 
   return (
@@ -94,24 +122,29 @@ export default function Step3Filters({ conditions, onChange }) {
           />
         </div>
         <RangeSlider
-          min={PRICE_MIN} max={priceMax} step={10}
+          min={PRICE_MIN} max={priceMax} step={1}
           valueMin={curMin} valueMax={curMax}
           onChangeMin={handleMinDrag} onChangeMax={handleMaxDrag}
           disabled={isUnlimitedPrice}
         />
-        <div className="mt-4 flex items-center justify-between">
-          <span className="text-xs text-ink-4">{PRICE_MIN}</span>
+        <div className="mt-4 flex items-center justify-between gap-2">
+          <input
+            type="text"
+            inputMode="numeric"
+            placeholder="請輸入最低金額"
+            disabled={isUnlimitedPrice}
+            value={priceMinInput}
+            onChange={e => applyPriceMinInput(e.target.value.replace(/[^0-9]/g, ''))}
+            onBlur={e => commitPriceMinInput(e.target.value)}
+            className="w-36 rounded-lg border border-line bg-surface px-1.5 py-0.5 text-center text-xs text-ink-4 focus:outline-none disabled:opacity-50"
+          />
           <input
             type="text"
             inputMode="numeric"
             placeholder="請輸入最高上限"
             disabled={isUnlimitedPrice}
             value={priceMaxInput}
-            onChange={e => {
-              const digits = e.target.value.replace(/[^0-9]/g, '')
-              setPriceMaxInput(digits)
-              applyPriceScale(digits)
-            }}
+            onChange={e => applyPriceScale(e.target.value.replace(/[^0-9]/g, ''))}
             onBlur={e => commitPriceScaleInput(e.target.value)}
             className="w-36 rounded-lg border border-line bg-surface px-1.5 py-0.5 text-center text-xs text-ink-4 focus:outline-none disabled:opacity-50"
           />
@@ -121,7 +154,7 @@ export default function Step3Filters({ conditions, onChange }) {
             type="checkbox"
             checked={isUnlimitedPrice}
             onChange={e => toggleUnlimitedPrice(e.target.checked)}
-            className="h-3.5 w-3.5 rounded border-line-strong text-brand focus:outline-none"
+            className="h-3.5 w-3.5 rounded border-line-strong accent-brand focus:outline-none"
           />
           不限
         </label>

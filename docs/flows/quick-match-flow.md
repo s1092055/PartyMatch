@@ -7,8 +7,8 @@
 
 ```mermaid
 flowchart TD
-    A[步驟一：選擇服務] --> B[步驟二：方案與篩選條件\n每人費用上限 / 團主評分下限 / 群組年齡]
-    B --> C{點擊「開始查找」}
+    A[步驟一：選擇服務] --> B[步驟二：方案與篩選條件\n每人費用區間（可雙向拖曳或輸入）/ 團主評分下限 / 群組年齡]
+    B --> C{點擊「開始搜尋」}
     C --> D[過濾 useGroupStore 快取群組\n排除自己開的團]
     D --> E[matchGroups：狀態/服務/方案/價格/評分/年齡]
     E --> F[calcScore 計算推薦分數並降冪排序]
@@ -33,7 +33,7 @@ flowchart TD
 | `src/features/match/components/steps/Step1Services.jsx` | 步驟一：選擇服務 |
 | `src/features/match/components/steps/Step2PlansAndFilters.jsx` | 步驟二外殼，內含方案與篩選兩個錨點區塊 |
 | `src/features/match/components/steps/Step2Plans.jsx` | 步驟二：選擇方案 |
-| `src/features/match/components/steps/Step3Filters.jsx` | 步驟二：篩選條件（每人費用上限、團主評分下限、群組年齡） |
+| `src/features/match/components/steps/Step3Filters.jsx` | 步驟二：篩選條件（每人費用區間、團主評分下限、群組年齡） |
 | `src/features/match/components/steps/Step4Results.jsx` | 步驟三：搜尋結果列表，前 3 名加金/銀/銅名次徽章 |
 | `src/features/match/components/MatchConditionBar.jsx`、`MatchSummaryPanel.jsx` | 條件摘要顯示 |
 | `src/features/explore/components/ExploreGroupCard.jsx` | 結果列表沿用探索頁的群組卡片 |
@@ -66,12 +66,12 @@ flowchart TD
 
 **2. 設定方案與篩選條件**
 - 針對每個已選的服務，讓使用者指定要比對的方案（或不限方案）
-- 設定每人費用上限、團主信用分數下限、群組成立時間（新成立／已運作一陣子／資深／不限）
+- 設定每人費用區間（雙把手滑桿，最低/最高金額都可以拖曳或直接輸入數字，兩者互相夾住不會交叉；也可以勾選「不限」讓價格完全不篩選）、團主信用分數下限、群組成立時間（新成立／已運作一陣子／資深／不限）
 - 桌機版右側會常駐顯示目前已選條件的摘要
 
-**3. 開始查找**
+**3. 開始搜尋**
 - 讀取已快取的群組資料，先排除自己開的團，再交給配對邏輯處理
-- 配對邏輯依序過濾：狀態要是招募中而且還有名額、服務要符合已選清單（若有指定）、方案要符合已選（若非不限）、每人單價要在上限內、團主評分要達到下限、群組年齡要落在設定區間內
+- 配對邏輯依序過濾：狀態要是招募中而且還有名額、服務要符合已選清單（若有指定）、方案要符合已選（若非不限）、每人單價要落在設定的最低～最高區間內、團主評分要達到下限、群組年齡要落在設定區間內
 - 通過篩選的群組各自計算推薦分數：團主評分越高分數越高、剩餘名額越多加分、離下次扣款日越久加分、單價明顯低於使用者設定上限也加分；依分數由高到低排序
 
 **4. 查看搜尋結果**
