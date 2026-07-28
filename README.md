@@ -44,6 +44,7 @@ PartyMatch 是一個共享訂閱媒合平台，讓使用者可以探索或建立
 | 快取 | Redis |
 | 認證 | JWT（accessToken + refreshToken） |
 | 圖片上傳 | Cloudflare R2（後端代理上傳，前端不需另外設定 API Key） |
+| 匯率查詢 | 美金計價的訂閱方案改用即時匯率換算台幣顯示金額（非寫死換算），詳見[服務定價查證紀錄](docs/product/service-pricing-audit.md) |
 | Architecture | Feature-based、Store + API 雙層分離、事件驅動跨元件通訊 |
 
 ---

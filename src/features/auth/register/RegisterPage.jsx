@@ -46,7 +46,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <AuthLayout>
+    <AuthLayout backTo="/login">
       <div className="mt-10">
         <h1 className="text-4xl font-extrabold leading-tight text-ink md:text-4xl">註冊 PartyMatch</h1>
         <p className="mt-5 text-base font-medium leading-relaxed text-ink-3">

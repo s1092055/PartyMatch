@@ -1,8 +1,10 @@
 # 服務定價查證紀錄
 
-本文件記錄 PartyMatch 目錄中每個服務、每個方案目前使用的價格，以及查證時參考的官方來源網址，供之後複查或調整金額時使用。查證日期：2026-07-16。
+本文件記錄 PartyMatch 目錄中每個服務、每個方案目前使用的價格，以及查證時參考的官方來源網址，供之後複查或調整金額時使用。查證日期：2026-07-28。
 
 > 部分官網頁面為動態載入或會擋掉自動化查詢（回傳 403 / 404），這類項目仍列出正確的官方網址，但標註「⚠️ 官網無法直接擷取內容，數字為多方交叉確認」，建議直接用瀏覽器登入該頁面再次核對。
+
+> **年繳總價的計算原則**：`serviceCatalog.js` 內每個年繳方案優先顯示官方公告的真實年繳總價（`yearlyPrice` 欄位），而不是用月費 ×12 反推估算。已確認官方台幣年繳總價的方案（Disney+、HBO Max、Microsoft 365、Nintendo Switch Online）都已補上 `yearlyPrice`；美金計價的方案（Discord Nitro、Midjourney）改用 `yearlyPriceUsd` + 即時匯率換算（見 `src/shared/utils/exchangeRate.js`），畫面上顯示的台幣金額會隨匯率浮動，不是寫死的固定數字，之後美金牌價本身變動才需要改資料。其餘美金計價但方案層級/金額仍有疑慮的項目（ChatGPT、Cursor、Canva、Notion、ExpressVPN）維持用 `monthlyPrice × 12` 概算，並在程式碼內以 `// TODO` 註解標記，需要人工核對後才能改成正式欄位。
 
 | 服務 | 方案 | 目前價格（TWD） | 官方查價網址 |
 |---|---|---|---|
@@ -20,18 +22,18 @@
 | Apple TV+ | 家庭共享 | 月 250 / 年 2490 | https://tv.apple.com/tw |
 | HBO Max | 標準方案 | 月 220 / 年 2190 | https://www.hbomax.com/tw |
 | HBO Max | 高級方案 | 月 299 / 年 2990 | https://www.hbomax.com/tw |
-| Discord Nitro | 個人方案（帳號共享） | 月 320 / 年 3200 | https://discord.com/nitro |
+| Discord Nitro | 個人方案（帳號共享） | 月 320 / 年 $99.99 USD（即時匯率換算） | https://discord.com/nitro |
 | friDay影音 | 影劇暢看方案 | 月 199 | https://video.friday.tw/packages |
 | Crunchyroll | Mega Fan | 月 390 | https://www.crunchyroll.com/zh-tw ⚠️ 查無穩定官方台幣定價，數字為美元估算 |
 | Crunchyroll | Ultimate Fan | 月 520 | https://www.crunchyroll.com/zh-tw ⚠️ 同上 |
 | Claude | Pro | 月 649 | https://claude.com/pricing |
-| Midjourney | Standard | 月 975 / 年 9360 | https://docs.midjourney.com/hc/en-us/articles/27870484040333-Comparing-Midjourney-Plans |
-| Midjourney | Pro | 月 1950 / 年 18720 | https://docs.midjourney.com/hc/en-us/articles/27870484040333-Comparing-Midjourney-Plans |
+| Midjourney | Standard | 月 975 / 年 $288 USD（即時匯率換算） | https://docs.midjourney.com/hc/en-us/articles/27870484040333-Comparing-Midjourney-Plans |
+| Midjourney | Pro | 月 1950 / 年 $576 USD（即時匯率換算） | https://docs.midjourney.com/hc/en-us/articles/27870484040333-Comparing-Midjourney-Plans |
 | Cursor | Business | 月 5120 / 年 49152 | https://cursor.com/pricing |
 | Duolingo | Super Family | 月換算 199 / 年 2390 | https://www.duolingo.com/family ⚠️ 台灣在地定價由第三方交叉確認 |
 | MasterClass | 家庭方案（2人） | 月換算 480 / 年 5760 | https://www.masterclass.com/plans ⚠️ 官網無法直接擷取內容 |
 | MasterClass | 家庭方案（6人） | 月換算 640 / 年 7680 | https://www.masterclass.com/plans ⚠️ 同上 |
-| Apple Music | 家庭方案（6人） | 月 265 / 年 3180 | https://www.apple.com/tw/apple-music/ |
+| Apple Music | 家庭方案（6人） | 月 295（2026/7 由 265 調漲） | https://www.apple.com/tw/apple-music/ ⚠️ 查無官方年繳方案 |
 | KKBOX | 3人家庭方案 | 月 229 | https://help.kkbox.com/tw/zh-tw/news/1279 |
 | KKBOX | 6人家庭方案 | 月 260 | https://help.kkbox.com/tw/zh-tw/news/1279 |
 | Microsoft 365 | 家庭版（6人） | 月 419 / 年 4190 | https://www.microsoft.com/zh-tw/microsoft-365/buy/compare-all-microsoft-365-products |

@@ -1,17 +1,17 @@
 import { Eye, EyeOff, ChevronLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
-export default function AuthLayout({ children }) {
+export default function AuthLayout({ children, backTo = '/' }) {
   return (
     <main className="min-h-screen bg-canvas px-4 py-8 text-ink">
       <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-[26rem] flex-col justify-center gap-4">
         <section className="animate-fade-in-up w-full py-4">
           <Link
-            to="/"
-            className="flex items-center gap-1 text-sm font-bold text-ink-4 transition-colors hover:text-ink-2"
+            to={backTo}
+            aria-label="返回"
+            className="inline-flex text-ink-4 transition-colors hover:text-ink-2"
           >
-            <ChevronLeft size={14} strokeWidth={1.5} />
-            返回
+            <ChevronLeft size={20} strokeWidth={1.5} />
           </Link>
           {children}
         </section>

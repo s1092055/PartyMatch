@@ -7,7 +7,7 @@ function calcScore(group, conditions) {
   if (group.openSeats >= 3) score += 1
   const daysUntilBilling = daysUntil(group.nextBillingDate)
   if (daysUntilBilling > 20) score += 1
-  if (conditions.maxPrice && group.pricePerSeat < conditions.maxPrice * 0.75) score += 1
+  if (conditions.maxPrice != null && group.pricePerSeat < conditions.maxPrice * 0.75) score += 1
   return score
 }
 
@@ -16,7 +16,7 @@ function getAgeMonths(createdAt) {
 }
 
 export function matchGroups(groups, conditions) {
-  const { services = [], selectedPlans = {}, maxPrice, minRating, groupAge } = conditions
+  const { services = [], selectedPlans = {}, minPrice, maxPrice, minRating, groupAge } = conditions
 
   const filtered = groups.filter(g => {
     if (g.status !== 'recruiting') return false
@@ -24,7 +24,8 @@ export function matchGroups(groups, conditions) {
     if (services.length > 0 && !services.includes(g.serviceId)) return false
     const wantedPlan = selectedPlans[g.serviceId]
     if (wantedPlan && wantedPlan !== 'any' && g.planName !== wantedPlan) return false
-    if (maxPrice && g.pricePerSeat > maxPrice) return false
+    if (minPrice != null && g.pricePerSeat < minPrice) return false
+    if (maxPrice != null && g.pricePerSeat > maxPrice) return false
     if (minRating && minRating > 0 && g.hostRating < minRating) return false
 
     if (groupAge && groupAge !== 'any') {

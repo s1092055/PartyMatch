@@ -22,7 +22,7 @@ function EditableField({ label, value, onSave, type = 'text', placeholder }) {
             className="field py-1.5 px-3"
           />
         ) : (
-          <p className="text-sm text-ink-2">{value || <span className="text-ink-4 italic">未填寫</span>}</p>
+          <p className="text-sm text-ink-2">{value || <span className="text-ink-4">未填寫</span>}</p>
         )}
       </div>
       <div className="flex items-center gap-1 shrink-0 pt-5">

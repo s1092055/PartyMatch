@@ -3,11 +3,14 @@ import { CheckCircle2, ChevronLeft, ChevronRight, Info, Layers, Package } from '
 import { getServiceById } from '../../../../shared/utils/serviceUtils'
 import { getSharingMethodConfig } from '../../../../shared/utils/serviceInfoFields'
 import TokenAmount from '../../../../shared/ui/TokenAmount'
+import { resolvePlanDisplayPrice } from '../../../../shared/utils/pricingUtils'
+import { useUsdToTwdRate } from '../../../../shared/utils/exchangeRate'
 import Field from './Field'
 
 const DEFAULT_NOTICE = '此服務用 Email 邀請即可加入，各自使用獨立帳號，沒有其他特別注意事項。'
 
 export default function Step2Plan({ form, onChange }) {
+  const usdToTwdRate = useUsdToTwdRate()
   const service = getServiceById(form.serviceId)
   const serviceInfoNotice = getSharingMethodConfig(service?.sharingMethod).notice ?? DEFAULT_NOTICE
   // 每個方案（含拆分出來的月繳／年繳版本）都是獨立可選的一張卡片，切換方案的同時就決定了收費週期
@@ -80,7 +83,17 @@ export default function Step2Plan({ form, onChange }) {
                   </span>
                   <p className="mt-2 text-xl font-semibold truncate">{planDisplayName}</p>
                   <p className={`mt-2 flex items-center justify-center gap-1 truncate text-sm ${isPlanSelected ? 'text-brand' : 'text-slate-400'}`}>
-                    方案總價： <TokenAmount amount={currentPlan.monthlyPrice} cycle="monthly" badgeSize="!h-4 !w-4" unitClassName={isPlanSelected ? 'text-brand' : 'text-slate-400'} />
+                    {(() => {
+                      const { amount, cycle } = resolvePlanDisplayPrice(currentPlan, usdToTwdRate)
+                      return (
+                        <TokenAmount
+                          amount={amount}
+                          cycle={cycle}
+                          badgeSize="!h-4 !w-4"
+                          unitClassName={isPlanSelected ? 'text-brand' : 'text-slate-400'}
+                        />
+                      )
+                    })()}
                   </p>
                   <p className={`mt-1 truncate text-sm ${isPlanSelected ? 'text-brand' : 'text-slate-400'}`}>
                     最多 {currentPlan.maxSeats} 人共享

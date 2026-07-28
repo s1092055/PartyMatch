@@ -2,11 +2,13 @@ import { useNavigate } from 'react-router-dom'
 import { Pencil } from 'lucide-react'
 import { getServiceById } from '../../../shared/utils/serviceUtils'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
-import TokenAmount from '../../../shared/ui/TokenAmount'
+import { TokenBadge } from '../../../shared/ui/TokenAmount'
+import { formatPriceRangeLabel } from '../utils/priceRangeLabel'
 
 export default function MatchConditionBar({ conditions, showEdit = true }) {
   const navigate = useNavigate()
-  const { services, maxPrice, minRating } = conditions
+  const { services, minPrice, maxPrice, minRating } = conditions
+  const priceLabel = formatPriceRangeLabel(minPrice, maxPrice)
 
   return (
     <div className="card px-5 py-4 flex flex-wrap items-center gap-4 mb-6">
@@ -29,9 +31,9 @@ export default function MatchConditionBar({ conditions, showEdit = true }) {
       </div>
 
       <Divider />
-      <Chip label={<><TokenAmount amount={maxPrice} badgeSize="!h-3.5 !w-3.5" /> 以下</>} />
+      <Chip label={priceLabel == null ? '不限' : <span className="inline-flex items-center gap-1"><TokenBadge className="!h-3.5 !w-3.5 shrink-0" />{priceLabel}</span>} />
       <Divider />
-      <Chip label={`信用分數 ${minRating}+`} />
+      <Chip label={minRating > 0 ? `信用分數 ${minRating}+` : '信用分數不限'} />
 
       {showEdit && (
         <button

@@ -12,6 +12,7 @@ import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { useAuthStore } from '../../shared/stores/useAuthStore'
 import { useScrollEdge } from '../../shared/utils/hooks'
 import { matchGroups } from './utils/matchGroups'
+import { PRICE_MIN, DEFAULT_PRICE_MAX } from './utils/priceRangeDefaults'
 
 // /quick-match 是獨立於 AppLayout 之外的全螢幕流程頁面，GroupDetailModal 跟 MessagesModal
 // 平常只在 AppLayout 裡掛載一次；這裡要自己掛一份，搜尋結果卡片點擊才能正常開啟群組詳情、
@@ -24,8 +25,9 @@ const STEP_TITLES = ['選擇服務', '方案與條件', '搜尋結果']
 const DEFAULT_CONDITIONS = {
   services:      [],
   selectedPlans: {},
-  maxPrice:      100,
-  minRating:     70,
+  minPrice:      PRICE_MIN,
+  maxPrice:      DEFAULT_PRICE_MAX,
+  minRating:     0,
   groupAge:      'any',
 }
 
@@ -106,7 +108,7 @@ export default function QuickMatchPage() {
   function getBanner(currentStep) {
     switch (Math.min(currentStep, 3)) {
       case 1: return { Icon: AlertCircle, text: '請至少選擇一個服務' }
-      case 2: return { Icon: Info, text: '請選擇要搜尋的方案與篩選條件' }
+      case 2: return { Icon: Info, text: '請選擇搜尋的方案與篩選條件' }
       default: return results.length > 0
         ? { Icon: Info, text: `找到 ${results.length} 個符合條件的群組，依推薦分數排列` }
         : { Icon: Info, text: '沒有符合條件的群組，試著調整篩選條件' }
@@ -139,7 +141,7 @@ export default function QuickMatchPage() {
       ) : (
         <Button variant="success" size="md" className="min-w-0 flex-1" onClick={handleStartMatch}>
           <Search size={15} />
-          開始查找
+          開始搜尋
         </Button>
       )}
     </>
@@ -173,7 +175,7 @@ export default function QuickMatchPage() {
           </div>
         ) : (
           <div className={`flex h-full flex-col ${step === 2 && !canScroll ? 'lg:justify-center' : ''}`}>
-            <div className="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row lg:items-stretch">
+            <div className="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-3">
               <div className="group relative min-w-0 min-h-0 flex-1">
                 <div
                   ref={scrollRef}
@@ -193,7 +195,7 @@ export default function QuickMatchPage() {
                   <div className="hidden shrink-0 self-stretch lg:block lg:mt-6 lg:mb-4 lg:w-px lg:bg-slate-200" />
                   <div className="hidden shrink-0 lg:block lg:min-h-0 lg:w-72">
                     <div className="h-full pt-6 pb-4">
-                      <MatchSummaryPanel conditions={conditions} filtersChosen={step >= 2} />
+                      <MatchSummaryPanel conditions={conditions} filtersChosen={step >= 2} onRemoveService={toggleService} />
                     </div>
                   </div>
                 </>

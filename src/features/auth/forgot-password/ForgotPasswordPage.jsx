@@ -27,7 +27,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <AuthLayout>
+    <AuthLayout backTo="/login">
       <div className="mt-14">
         <h1 className="text-4xl font-extrabold leading-tight text-ink md:text-4xl">忘記密碼？</h1>
         <p className="mt-5 text-base font-medium leading-relaxed text-ink-3">

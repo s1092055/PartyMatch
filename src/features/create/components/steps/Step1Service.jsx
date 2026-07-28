@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Check } from "lucide-react";
 import { listServiceTypes } from "../../../../shared/utils/serviceUtils";
 import ServiceLogo from "../../../../shared/ui/ServiceLogo";
 import CategoryPills from "../../../../shared/ui/primitives/CategoryPills";
@@ -51,6 +51,11 @@ export default function Step1Service({ form, onChange }) {
                   : "border-line bg-white hover:border-brand-border hover:bg-brand-subtle/40"
               }`}
             >
+              {active && (
+                <span className="absolute left-2 top-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-brand">
+                  <Check size={12} className="text-white" strokeWidth={3} />
+                </span>
+              )}
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); setInfoService(service); }}

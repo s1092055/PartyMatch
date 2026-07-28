@@ -4,8 +4,9 @@ export const NAV_SECTIONS = [
   {
     label: '探索',
     items: [
-      { to: '/explore',     label: '探索群組', icon: Compass },
-      { type: 'match',       label: '快速搜尋', icon: Search },
+      { to: '/explore',  label: '探索群組', icon: Compass },
+      { type: 'match',   label: '快速搜尋', icon: Search },
+      { type: 'create',  label: '建立群組', icon: PlusCircle },
     ],
   },
   {
@@ -14,12 +15,6 @@ export const NAV_SECTIONS = [
       { to: '/my-subscriptions', label: '我的訂閱', icon: Users },
       { to: '/manage-groups',    label: '群組管理', icon: Crown },
       { to: '/favorites',        label: '我的收藏', icon: Heart },
-    ],
-  },
-  {
-    label: '團主專區',
-    items: [
-      { type: 'create', label: '建立群組', icon: PlusCircle },
     ],
   },
 ]
