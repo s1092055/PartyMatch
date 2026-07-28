@@ -50,7 +50,6 @@ PartyMatch 是一個共享訂閱媒合平台，讓使用者可以探索或建立
 2. **再懂整體是怎麼組出來的** → [架構總覽](docs/architecture/architecture.md)，說明前端、後端、資料庫怎麼疊起來，以及為什麼選這些技術
 3. **想知道某個功能實際怎麼運作** → [使用者流程](docs/flows/user-flows.md)，使用者的流程規劃（例如「申請加入群組時錢是怎麼扣的」）
 4. **想深入技術細節** → 前端架構／後端架構／資料庫 Schema／API 總覽
-5. **想知道這個專案做得好的地方** → [專案亮點](docs/portfolio/project-highlights.md)，專案精華與重點內容
 
 以下依用途分類，完整索引如下：
 
@@ -88,13 +87,6 @@ PartyMatch 是一個共享訂閱媒合平台，讓使用者可以探索或建立
 - [API 總覽](docs/architecture/api-overview.md) — 每一支後端網址在做什麼、需不需要登入
 - [認證機制](docs/architecture/authentication.md) — 使用者怎麼登入、系統怎麼記得你是誰
 - [命名慣例](docs/architecture/naming-conventions.md) — 檔案跟變數的命名規則
-
-### Portfolio — 給面試官或想認識這個專案的人
-
-- [面試講稿筆記](docs/portfolio/interview-notes.md) — 常見面試問題的回答草稿
-- [專案亮點](docs/portfolio/project-highlights.md) — 技術亮點與取捨原因，挑 2-3 個深入講就好
-- [AI 協作說明](docs/portfolio/ai-collaboration-note.md) — 這個專案怎麼跟 AI 協作開發的
-- [未來規劃](docs/portfolio/future-roadmap.md) — 開發狀態與後續規劃
 
 ---
 
