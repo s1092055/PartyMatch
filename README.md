@@ -13,7 +13,7 @@ PartyMatch 是一個共享訂閱媒合平台，讓使用者可以探索或建立
 - 前端：https://partymatch.ykk910309.workers.dev
 - 後端 API：https://partymatch-api.onrender.com/api
 
-後端為 Render 免費方案，閒置 15 分鐘會休眠，首次請求可能需要約 1 分鐘喚醒。可直接用 [測試帳號](docs/testing/test-accounts.md) 登入體驗（密碼皆為 `Demo1234`），或自行註冊新帳號。
+後端為 Render 免費方案，閒置 15 分鐘會休眠，首次請求可能需要約 1 分鐘喚醒。體驗方式與一般使用者相同，請自行註冊帳號。
 
 ---
 
@@ -39,42 +39,6 @@ PartyMatch 是一個共享訂閱媒合平台，讓使用者可以探索或建立
 | 認證 | JWT（accessToken + refreshToken） |
 | 圖片上傳 | Cloudflare R2（後端代理上傳，前端不需另外設定 API Key） |
 | Architecture | Feature-based、Store + API 雙層分離、事件驅動跨元件通訊 |
-
----
-
-## 如何啟動專案
-
-### 前置需求
-
-- Node.js 22+
-- MySQL 8+
-- Redis 7+
-
-### 啟動前端
-
-```bash
-npm install
-npm run dev   # http://localhost:5173
-```
-
-複製 `.env.example` 並填入設定值：
-
-```env
-VITE_API_BASE_URL=http://localhost:3001/api
-```
-
-### 啟動後端
-
-```bash
-cd server
-npm install
-npm run db:push          # 建立資料表
-npm run dev              # http://localhost:3001
-```
-
-複製 `server/.env.example` 並填入設定值（DATABASE_URL、JWT_ACCESS_SECRET 等）。
-
-更完整的環境變數說明與常用指令請見 [開發指南](docs/development.md)。
 
 ---
 
