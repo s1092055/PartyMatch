@@ -123,7 +123,7 @@
 **預期結果**：
 - 團主應收到一筆 `member_left` 通知（標題「成員退出群組」），點擊後導向 `/my-groups?view=host` 並開啟該群組、同時觸發 `pm:refresh-member-stores` 刷新成員名單
 - 成員自己退出後也應同時離開該群組聊天室（`leaveConversation`），之後在訊息列表看不到這個群組聊天室
-- 舊版 bug：通知曾誤寫進成員自己本地端的樂觀通知清單，導致團主完全收不到通知；現在改用 `insertNotification` 寫入後端 DB，須確認團主重新整理後才看得到（非樂觀即時）
+- 通知寫入後端 DB（`insertNotification`），須確認團主重新整理後才看得到（非樂觀即時）
 
 ---
 
@@ -136,7 +136,6 @@
 
 **預期結果**：
 - 後端改用 `Promise.allSettled` 平行發送給所有使用者，單一使用者寫入失敗不應中斷整批廣播
-- 舊版 bug：曾用 `for...await` 逐一序列發送，其中一人失敗會讓後面所有使用者都收不到
 
 ---
 
@@ -150,7 +149,6 @@
 **預期結果**：
 - 團主應收到一筆 `application_withdrawn` 通知（「申請人已取消申請」）
 - 團主端 `applicationStore` 輪詢偵測到變化後自動刷新，「申請管理」列表中該筆申請自動從待審核移除，不需手動重新整理頁面
-- 舊版 bug（BUG-019）：`NotificationType` enum 沒有 `application_withdrawn`，寫入通知會 500 且被 `.catch(console.error)` 吞掉，團主完全收不到通知，需確認 `schema.prisma` 已補上此 enum 值
 
 ---
 
@@ -164,7 +162,6 @@
 - 前端呼叫 `openGroupOrRedirect(groupId)`，重新拉取一次群組最新狀態，偵測到 `status !== 'recruiting'`
 - 應跳出 `info` Toast 告知群組已額滿/不再招募中，並停留在探索頁，**不會**打開該群組的詳情 Modal
 - 若群組狀態退回 `recruiting`（例如有人退出釋出名額），點擊應正常打開群組詳情 Modal
-- 舊版 bug（BUG-020）：三個入口一律 `navigate('/explore')` + 直接 `dispatchEvent('pm:open-group')`，完全不檢查群組目前狀態，使用者得自己點進去才發現「申請加入」按鈕被隱藏/停用
 
 ---
 
@@ -177,7 +174,7 @@
 **預期結果**：
 - 點擊當下應先重新拉取一次 `subscriptionStore`（`init()`），再判斷是否已有對應訂閱
 - 判斷出已有訂閱後，導向 `/my-groups?view=member` 並開啟該群組（會員視角），**不會**誤判成尚無訂閱而導向探索頁
-- 舊版 bug（BUG-024）：`hasSub` 直接讀本地記憶體快取，該筆訂閱是接受當下才建立、前端還沒輪詢到，誤判成尚無訂閱，導向探索頁看起來像「還在申請中」，需使用者手動整理頁面才會更新
+- 驗證 `hasSub` 不會因本地快取尚未更新而誤判成尚無訂閱
 
 ---
 
@@ -196,7 +193,6 @@
 - 情境 A：團主應收到一筆 `escrow_released` 通知（代管款項已撥款），點擊導向 `/my-groups?view=host` 並開啟該群組
 - 情境 B-1：團主收到 `escrow_released`（撥款）；申訴成員收到 `dispute_resolved`（申訴未受理），點擊後因為此成員仍在群組內，導向 `/my-groups?view=member` 並開啟該群組
 - 情境 B-2：申訴成員收到 `dispute_resolved`（申訴已受理，退款），點擊後因為此成員已被移出群組（`prisma.member.delete`），導向 `/explore`；團主也收到 `dispute_resolved`（裁定退款給成員），點擊導向 `/my-groups?view=host`
-- 舊版 bug（BUG-025）：這三條路徑都完全沒有發通知，撥款/退款當事人只能自己重新整理頁面才會發現PM幣餘額變動；只有「全員手動確認服務、剛好全部確認齊」（`POST /:id/confirm`）那條路徑原本就有發 `escrow_released`
 
 ---
 
@@ -212,4 +208,3 @@
 **預期結果**：
 - 不需要點擊通知，輪詢偵測到 `member_removed`／`application_rejected`／`escrow_released`／`dispute_resolved`／`group_cancelled` 這幾種通知時，就會自動呼叫 `refreshTokenBalance()` 更新畫面上的餘額；點擊通知時也會再呼叫一次（雙重保險）
 - `member_removed`／`application_rejected` 的通知內文應包含「代管費用已退還至你的PM幣餘額」字樣
-- 舊版 bug（BUG-027）：後端退款/撥款邏輯本身沒問題，但前端 `useAuthStore.user.tokenBalance` 只有在使用者「自己主動觸發」的操作後才會刷新，被動被別人操作（移除/拒絕/解散/裁定）影響到餘額時完全沒有刷新，需要重新整理頁面或剛好呼叫到 `/tokens` 才會看到正確餘額

@@ -43,7 +43,7 @@ flowchart TD
 | `src/features/my-groups/member/utils/memberFilters.js` | 分頁篩選邏輯：`FILTER_TABS`（審核中/招募中/處理中/服務中四個大分類；已移除「全部」，待鎖定/成員填寫中/待啟用/確認期中/申訴中五種細分狀態併入「處理中」，`PROCESSING_STATUSES` 定義在 `src/shared/utils/groupStatus.js`，跟 host 端共用） |
 | `src/shared/ui/group/GroupViewModal.jsx` | 依身分決定渲染團主或成員視角的薄殼 |
 | `src/shared/ui/group/GroupModalShell.jsx` | 三層滑動 Panel 共用殼；桌機版側邊欄在左側（`md:order-first`），手機版仍堆疊在下方；Header 顯示「服務名稱 \| 方案名稱」 |
-| `src/shared/ui/group/GroupOverviewContent.jsx` | 群組概覽內容，含服務說明／方案說明（原本獨立的「服務內容」分頁已整併回這裡） |
+| `src/shared/ui/group/GroupOverviewContent.jsx` | 群組概覽內容，含服務說明／方案說明 |
 | `src/shared/utils/groupStatus.js` | `isEffectivelyActive`，成員自行確認服務後個人視角提前視為已啟用 |
 
 **後端**
@@ -69,8 +69,8 @@ flowchart TD
 - **三層滑動 Panel**：從總覽切到申訴／群組名單這類子面板，都是同一套滑動元件；「填寫帳號」不在這套機制裡，見下方獨立說明
 - **`headerBanner`（倒數/狀態提醒橫幅）不綁定分頁**：渲染在 `activeDetail` 判斷之外，切到群組名單等分頁時倒數橫幅仍會顯示，不會只留在群組概覽
 - **「付款管理」面板只顯示最新一筆代管紀錄**：邏輯跟團主端「收款管理」對齊，只看自己這期最新一筆 `escrow` 交易；未撥款時文案「本期費用已交由平台代管，尚未撥款至團主帳戶」，`group.status` 進入 `active`/`paused`/`ended` 後視為已撥款，文案改「本期費用已撥款給團主」；退款等歷史紀錄不在這裡處理
-- **「服務內容」分頁已整併回群組概覽**：獨立分頁已移除，服務說明／方案說明直接顯示在群組概覽畫面，跟探索頁 `GroupDetailModal` 的呈現方式統一；服務說明拆成「服務說明」「方案說明」兩個並列的大標題區塊，字級一樣大
-- **「填寫帳號」改成群組概覽底部的動態按鈕**：不再是側邊欄項目，改成跟「確認服務」「回報問題」一樣，需要填寫帳號（`needsFillInfo`）或帳號被回報有問題（`hasServiceInfoIssue`）時才會出現在 `GroupModalShell` 的 `centeredCta`
+- **服務說明／方案說明顯示在群組概覽畫面**：跟探索頁 `GroupDetailModal` 的呈現方式統一；服務說明拆成「服務說明」「方案說明」兩個並列的大標題區塊，字級一樣大
+- **「填寫帳號」是群組概覽底部的動態按鈕**：跟「確認服務」「回報問題」一樣，需要填寫帳號（`needsFillInfo`）或帳號被回報有問題（`hasServiceInfoIssue`）時才會出現在 `GroupModalShell` 的 `centeredCta`
 - **不可逆操作要倒數確認**：確認服務、退出群組都要透過 `CountdownConfirmDialog` 倒數幾秒才能真的送出，避免手滑誤觸
 - **側邊欄 pinned 項目**：符合退出條件（`recruiting`/`full`）時側邊欄底部固定顯示「退出群組」，跟「群組訊息」共用側邊欄右下角同一個位置
 - **`SubscriptionCard` 已啟用（`active`）狀態統計格**：由左到右為團主／成員人數／下次扣款，不顯示加入日期
@@ -107,7 +107,7 @@ flowchart TD
 - 入口固定在側邊欄右下角（跟「群組訊息」共用同一個位置）
 - 符合條件時可以退出，需要倒數確認
 - 退出時會發送系統訊息並退出聊天室、移除自己的成員與訂閱資料、把對應申請標為已離開、釋出名額，並通知團主
-- 退出邏輯統一寫在 `src/features/group/utils/leaveGroupFlow.js` 的 `finalizeLeaveGroup`，`GroupDetailModal` 跟 `MyGroupsPage`／`MemberPage` 兩個入口都呼叫同一份，避免各自維護一份重複邏輯、行為不一致（曾經修過其中一份漏呼叫 `leaveConversation` 導致退出後仍留在聊天室的 bug，見 [Bug 紀錄](../testing/bug-log.md) BUG-011）
+- 退出邏輯統一寫在 `src/features/group/utils/leaveGroupFlow.js` 的 `finalizeLeaveGroup`，`GroupDetailModal` 跟 `MyGroupsPage`／`MemberPage` 兩個入口都呼叫同一份，避免各自維護一份重複邏輯、行為不一致
 
 **8. 群組名單／聯絡團主**
 - 可以查看團主與其他成員名單（分頁命名為「群組名單」，因為裡面包含團主，不只是成員），團主標示為一個只有文字「團主」的圓角標籤（不再有盾牌圖示）；點擊個別成員的訊息圖示能直接開啟私訊

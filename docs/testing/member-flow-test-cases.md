@@ -45,12 +45,12 @@
 2. 依序點擊「全部 / 審核中 / 招募中 / 待鎖定 / 成員填寫中 / 待啟用 / 確認期中 / 申訴中 / 服務中」分頁
 
 **預期結果**：
-- 每個分頁對應單一狀態（`FILTER_TABS`，`src/features/my-groups/member/utils/memberFilters.js`），不再像舊版把 `full`/`pending_confirmation`/`pending_activation`/`confirming`/`disputed` 全部混在同一個「處理中」分頁裡
+- 每個分頁對應單一狀態（`FILTER_TABS`，`src/features/my-groups/member/utils/memberFilters.js`）
 - 「審核中」只顯示尚未接受的申請本身（還沒有 `Subscription` 記錄），其餘分頁顯示對應狀態的訂閱
 - 「服務中」除了 `active` 狀態，也包含自己已經確認過服務、但群組仍在 `confirming` 等其他成員確認的訂閱（`subscriptionBucket`／`isEffectivelyActive` 判斷）
 - 「已結束」／已取消的群組（`ended`/`cancelled`）**不會出現在任何分頁分類中**，只能透過側邊欄底部的「群組紀錄」按鈕開啟 `GroupHistoryModal` 查看；桌機版側邊欄現在有固定高度，「群組紀錄」按鈕位置不會隨分頁項目多寡而上下浮動
-- 卡片右上角狀態 badge 文案跟分類分頁對齊：`active` 顯示「服務中」（原「啟用中」）、`pending_confirmation` 顯示「成員填寫中」（原「待填帳號」→「填寫資訊中」→現在的「成員填寫中」，代管費用已在申請被接受當下扣完，這個階段不是在收款），見 `src/shared/ui/primitives/badgeLabels.js` 的 `BADGE_LABELS`
-- 「服務中」（`active`）卡片的三格統計欄由左到右為「團主／成員人數／下次扣款」，不再顯示「加入日期」（`SubscriptionCard.jsx`）
+- 卡片右上角狀態 badge 文案跟分類分頁對齊：`active` 顯示「服務中」、`pending_confirmation` 顯示「成員填寫中」（代管費用已在申請被接受當下扣完，這個階段不是在收款），見 `src/shared/ui/primitives/badgeLabels.js` 的 `BADGE_LABELS`
+- 「服務中」（`active`）卡片的三格統計欄由左到右為「團主／成員人數／下次扣款」（`SubscriptionCard.jsx`）
 
 ---
 

@@ -1,6 +1,6 @@
 # 各服務「填寫服務資訊」欄位需求調查
 
-`MemberGroupView` 的「填寫服務帳號」表單原本不分服務種類，一律只收一個 `email` 欄位（`server/src/routes/members.js` 的 `PATCH /members/:id`，寫入 `Member.serviceInfo`）。但實際上平台目錄裡 28 種服務的真實共享機制差異很大，有些只要 email 就能讓團主邀請加入，有些需要額外資訊（地址、邀請碼），有些官方根本沒有多人邀請功能、只能共用帳號密碼。這份文件記錄每個服務真實的共享機制與應該收集的欄位，查證日期：2026-07-21；目前已依此規格改成依服務動態顯示欄位，實作細節見文件最後的「實作狀態」。
+這份文件記錄平台目錄裡 28 種服務真實的共享機制與應該收集的欄位（查證日期：2026-07-21）。有些服務只要 email 就能讓團主邀請加入，有些需要額外資訊（地址、邀請碼），有些官方根本沒有多人邀請功能、只能共用帳號密碼；`MemberGroupView` 的「填寫服務帳號」表單（`server/src/routes/members.js` 的 `PATCH /members/:id`，寫入 `Member.serviceInfo`）依此規格依服務動態顯示欄位，實作細節見文件最後的「實作狀態」。
 
 ## 機制分類與應收集欄位
 
@@ -93,8 +93,8 @@
 上述分類已經落地成程式碼：
 
 - `src/shared/data/serviceCatalog.js` 每個 service 都加了 `sharingMethod` 欄位（`apple_family` / `google_family` / `email_invite` / `email_invite_with_address` / `invite_code` / `shared_credentials`），對應上面 A～F 六組分類。這個欄位只存在本地 catalog，不需要後端 schema 變更——`useServiceStore.init()` 合併 API 資料時是用 `{ ...local, ...apiService }` 的展開順序，後端回應沒有 `sharingMethod` 這個 key，所以不會覆蓋掉本地值
-- `src/shared/utils/serviceInfoFields.js` 是欄位設定的唯一來源：`SHARING_METHOD_CONFIG` 定義每種機制要收哪些欄位（含 type：`email`/`text`/`checkbox`）跟要顯示的提醒文案；`hasFilledServiceInfo(serviceInfo, sharingMethod)` 取代原本寫死的 `!!serviceInfo?.email` 判斷；`getServiceInfoSummary(serviceInfo, sharingMethod)` 給聊天室訊息卡片、團主審核清單等處顯示單行摘要用
-- `MemberGroupView.jsx` 的「填寫服務帳號」表單改成讀 `sharingMethodConfig.fields` 動態渲染欄位（KKBOX 會多一個地址欄位、friDay影音欄位換成邀請碼、組 F 服務則是一個確認勾選框），不再寫死單一 email input
-- 所有原本檢查 `.serviceInfo?.email` 的地方（`MessageBubble.jsx`、`ActivateServiceModal.jsx`、`ReportServiceIssueModal.jsx`、`GroupDetailModal.jsx`）都已改用 `hasFilledServiceInfo`/`getServiceInfoSummary`，不會再對非 email 欄位的服務誤判「尚未填寫」
+- `src/shared/utils/serviceInfoFields.js` 是欄位設定的唯一來源：`SHARING_METHOD_CONFIG` 定義每種機制要收哪些欄位（含 type：`email`/`text`/`checkbox`）跟要顯示的提醒文案；`hasFilledServiceInfo(serviceInfo, sharingMethod)` 判斷是否已填妥；`getServiceInfoSummary(serviceInfo, sharingMethod)` 給聊天室訊息卡片、團主審核清單等處顯示單行摘要用
+- `MemberGroupView.jsx` 的「填寫服務帳號」表單讀 `sharingMethodConfig.fields` 動態渲染欄位（KKBOX 會多一個地址欄位、friDay影音欄位換成邀請碼、組 F 服務則是一個確認勾選框）
+- `MessageBubble.jsx`、`ActivateServiceModal.jsx`、`ReportServiceIssueModal.jsx`、`GroupDetailModal.jsx` 皆使用 `hasFilledServiceInfo`/`getServiceInfoSummary` 判斷與顯示服務帳號填寫狀態
 
 **組 F（無正式邀請機制）目前的處理方式**：表單顯示為一個確認勾選框「我已透過群組聊天室取得帳號密碼」，並附風險提醒文案，而不是假裝這些服務有 email 邀請功能。之後如果要做更完整的密碼分享機制（例如站內加密傳遞帳密），可以在這個 `shared_credentials` 分類上擴充。

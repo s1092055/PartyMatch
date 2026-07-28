@@ -136,6 +136,7 @@ npm run dev              # http://localhost:3001
 - [訊息與通知測試案例](docs/testing/messaging-notification-test-cases.md) — 含撤回申請通知團主、通知額滿保護（`openGroupOrRedirect`）
 - [RWD 測試案例](docs/testing/rwd-test-cases.md)
 - [Bug 紀錄](docs/testing/bug-log.md)
+- [演變記錄](docs/history/README.md) — 各文件正文已移除的設計演變過程，只想看現況可以不用點進來
 
 ### Portfolio — 給面試官或想認識這個專案的人
 

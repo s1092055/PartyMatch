@@ -33,7 +33,7 @@ PartyMatch 把「媒合 → 申請 → 審核 → 付款代管與確認 → 啟�
 這件事讓我更確定：只要牽涉到「檢查後再寫入」，只要有併發可能，就要優先想這個檢查跟寫入能不能合成一個原子操作，不是前端按鈕加個 loading 鎖住就當作解決了——前端鎖只能防手滑，防不了真正的併發請求。
 
 其他可以延伸的技術決策點：
-- 多裝置登入 session 從單一 refresh token 改成 per-session key 存 Redis，同時要處理舊格式 token 的相容
+- 多裝置登入 session 用 per-session key 存 Redis（而非單一 refresh token），登出或 refresh 只影響單一裝置
 - `shared/ui` 怎麼判斷一個元件算「泛用」還是「業務綁定」
 
 ## 5. 我怎麼測試這個專案？

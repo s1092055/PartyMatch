@@ -253,7 +253,6 @@ seed 資料中的 G1（Netflix，`billingCycle: 'yearly'`）可用來驗證 `com
 **預期結果**：
 - 任一 store 的 `init()` 失敗時，應跳出**一次**彙總錯誤 Toast（提示部分資料載入失敗、建議重新整理頁面），不應完全無聲失敗
 - 正式環境（無 `<StrictMode>` 開發模式行為）下不應該重複跳兩次
-- 舊版 bug（BUG-022）：開發模式下 `<StrictMode>` 會讓 mount 的 effect 多跑一次，`bootApp()` 沒有防重入機制，導致彙總 Toast 跳兩次；修正後用 `bootedRef` 擋掉第二次呼叫
 
 ### TC-013：樂觀更新失敗時回滾並跳錯誤 Toast
 
@@ -266,4 +265,3 @@ seed 資料中的 G1（Netflix，`billingCycle: 'yearly'`）可用來驗證 `com
 **預期結果**：
 - 前端應先樂觀更新畫面，請求失敗後透過共用的 `notifyError()` 回滾成失敗前的狀態，並跳出錯誤 Toast
 - 不應該讓畫面停留在「看起來成功、但後端其實沒有真的寫入」的不一致狀態
-- 舊版行為：部分樂觀更新 action 失敗時無聲失敗（不回滾也不提示），修正後統一改用 `notifyError()` 處理

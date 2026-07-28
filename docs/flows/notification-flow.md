@@ -123,6 +123,4 @@ sequenceDiagram
 - `token_topup` 是定義了但完全沒接的死 enum 值
 - 公開系統公告的 Notification（`isPublic: true`）從未被建立過，實務上公告都是走 `system-messages` 聊天室廣播
 
-> 原本「確認服務／送出申訴不會通知團主」的落差已修復：`POST /groups/:id/confirm`／`POST /groups/:id/dispute` 現在會分別建立 `escrow_released`／`dispute_raised` 通知給團主，並在群組聊天室留一則系統訊息（見 [訊息流程](messages-flow.md)）。
->
-> 另一個落差（見 [Bug 紀錄](../testing/bug-log.md) BUG-025）也已修復：確認期逾期的惰性自動撥款（`GET /groups/:id`）跟申訴裁定（`POST /groups/:id/adjudicate`）原本完全沒有發通知，撥款/退款當事人只能自己重新整理頁面才會發現PM幣餘額變動。現在惰性撥款會補發 `escrow_released` 給團主；裁定新增 `dispute_resolved` 這個 `NotificationType`，兩個裁定分支（`winner: 'member'`／`winner: 'host'`）都會通知申訴成員與團主雙方。前端 `FloatingMessages.jsx` 點擊 `dispute_resolved` 時，會先查該成員是否仍在群組內，決定導向會員視角（仍是成員）或探索頁（已被移出群組）。
+`POST /groups/:id/confirm`／`POST /groups/:id/dispute` 會分別建立 `escrow_released`／`dispute_raised` 通知給團主，並在群組聊天室留一則系統訊息（見 [訊息流程](messages-flow.md)）。確認期逾期的惰性自動撥款（`GET /groups/:id`）會補發 `escrow_released` 給團主；申訴裁定（`POST /groups/:id/adjudicate`）會建立 `dispute_resolved` 這個 `NotificationType`，兩個裁定分支（`winner: 'member'`／`winner: 'host'`）都會通知申訴成員與團主雙方。前端 `FloatingMessages.jsx` 點擊 `dispute_resolved` 時，會先查該成員是否仍在群組內，決定導向會員視角（仍是成員）或探索頁（已被移出群組）。

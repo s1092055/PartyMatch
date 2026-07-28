@@ -80,12 +80,12 @@ flowchart TD
 - **`pm:open-host-group` window event**：不管是點通知還是帶著 `location.state` 進來，都會走同一個處理函式，統一設定要開哪個群組、要不要自動展開鎖定/啟用/申請管理/收款面板
 - **`GroupModalShell` 三層滑動 Panel**：申請管理是第二層，審核紀錄是第三層；桌機版側邊欄在左側（`md:order-first`），手機版仍堆疊在下方
 - **`headerBanner`（倒數/狀態提醒橫幅）不綁定分頁**：渲染在 `activeDetail` 判斷之外，切到群組名單／收款管理等分頁時倒數橫幅仍會顯示，不會只留在群組概覽
-- **「服務內容」分頁已整併回群組概覽**：獨立分頁已移除，服務說明／方案說明直接顯示在群組概覽畫面（`GroupOverviewContent.jsx` 的 `ServiceIntro`），跟探索頁 `GroupDetailModal` 的呈現方式統一；服務說明拆成「服務說明」「方案說明」兩個並列的大標題區塊，字級一樣大，原本服務說明區塊的方案／共享方式／主要功能三個 chip 卡片已移除
-- **群組詳情 Modal Header 顯示「服務名稱 | 方案名稱」**：原本只顯示服務名稱
+- **服務說明／方案說明顯示在群組概覽畫面**（`GroupOverviewContent.jsx` 的 `ServiceIntro`），跟探索頁 `GroupDetailModal` 的呈現方式統一；服務說明拆成「服務說明」「方案說明」兩個並列的大標題區塊，字級一樣大
+- **群組詳情 Modal Header 顯示「服務名稱 | 方案名稱」**
 - **樂觀更新 + 背景同步**：接受/拒絕申請、移除成員時會先更新本地資料，畫面立刻反應，再到背景呼叫對應 API 跟建立通知
 - 鎖定群組、解散群組、移除成員這幾個不可逆的操作，都要透過 `CountdownConfirmDialog` 倒數確認才能執行
 - **側邊欄 pinned 項目**：招募中（`recruiting`/`full`）時側邊欄底部固定顯示「解散群組」，鎖定後（且非 `cancelled`）改成固定顯示「群組訊息」——兩者是互斥的狀態分支，不會同時出現，因此可以共用側邊欄右下角同一個位置；`cancelled`（已解散）狀態兩者都不顯示
-- **`HostedGroupCard` 依狀態切換統計格內容**：第一格招募中顯示「待處理申請」，已啟用（`active`/`cancelled`/`ended`）顯示「收款紀錄」，其餘鎖定後尚未啟用的狀態顯示「群組狀態」（原本叫「收款狀態」，因為此時「待處理申請」永遠會是 0）；第三格招募中顯示「建立日期」，已啟用顯示「群組狀態」，其餘鎖定後尚未啟用的狀態顯示「下次扣款」；「群組狀態」欄位文字依 `getCollectionState` 顯示已滿員/成員填寫中/待啟用服務/確認期中/申訴中/已結束等，跟頂部 `Badge` 是同一個狀態階段的兩種呈現——頂部 Badge 在 `full` 顯示「等待鎖定」（用 `label` 覆蓋 `Badge` 預設文字，只影響這張卡片，不影響探索頁等其他地方仍顯示的「已滿員」），`pending_confirmation` 則直接沿用 `Badge` 預設字典的「成員填寫中」，不用額外覆蓋；統計格則維持原始的細分階段文字（例如 `full` 顯示「已滿員」）。`pending_confirmation` 這個階段代管費用其實已經在申請被接受當下扣完了（見 PM幣代管流程文件），不是在「收款」，過去用「收款中」這個字眼容易誤導，已統一改成「成員填寫中」，跟這個階段實際在等待的事情（成員填寫服務帳號資訊）一致
+- **`HostedGroupCard` 依狀態切換統計格內容**：第一格招募中顯示「待處理申請」，已啟用（`active`/`cancelled`/`ended`）顯示「收款紀錄」，其餘鎖定後尚未啟用的狀態顯示「群組狀態」；第三格招募中顯示「建立日期」，已啟用顯示「群組狀態」，其餘鎖定後尚未啟用的狀態顯示「下次扣款」；「群組狀態」欄位文字依 `getCollectionState` 顯示已滿員/成員填寫中/待啟用服務/確認期中/申訴中/已結束等，跟頂部 `Badge` 是同一個狀態階段的兩種呈現——頂部 Badge 在 `full` 顯示「等待鎖定」（用 `label` 覆蓋 `Badge` 預設文字，只影響這張卡片，不影響探索頁等其他地方仍顯示的「已滿員」），`pending_confirmation` 則直接沿用 `Badge` 預設字典的「成員填寫中」，不用額外覆蓋；統計格則維持原始的細分階段文字（例如 `full` 顯示「已滿員」）。`pending_confirmation` 這個階段代管費用其實已經在申請被接受當下扣完了（見 PM幣代管流程文件），不是在「收款」，因此用「成員填寫中」，跟這個階段實際在等待的事情（成員填寫服務帳號資訊）一致
 - **群組卡片列表用 `auto-fill`/`minmax` 而非 viewport 斷點排欄數**：`grid-cols-[repeat(auto-fill,minmax(20rem,1fr))]`，依容器實際可用寬度（扣掉側邊欄與 padding 後）決定一列能排幾張卡片，不會像用 `sm:`/`lg:` 斷點時，卡片被螢幕寬度硬擠出比實際可用空間更多的欄數，導致統計格內的日期文字被迫換行
 - **`statusFilter` 深連結自動對應分類**：`useHostActions.js` 的 `applyOpenHostGroup` 在沒有明確指定 `statusFilter` 時（例如從通知點擊開啟），會依目標群組目前的狀態自動找出對應的 `STATUS_FILTER_TABS` 分類並切過去，避免使用者關閉 modal 後，背景列表因為預設篩選分類（`recruiting`）對不上群組實際狀態而讓群組憑空消失
 
@@ -148,5 +148,5 @@ flowchart TD
 - 移除成員只允許在 `recruiting`/`full` 狀態操作，一旦鎖定（進入 `pending_confirmation` 之後）成員名單就不能再變動
 - 查交易紀錄只有團主本人可以看，非團主一律 403
 - 通知非自己的使用者時，後端會驗證請求人跟目標使用者都跟該群組有關聯（成員／團主／曾送申請），避免任意使用者偽造通知
-- **解散群組退款 bug 修正**：`POST /groups/:id/cancel` 原本用外層讀到的舊成員名單退款，可能跟同時發生的成員退出/移除撞在一起造成重複退款；已修正成在同一個 transaction 裡重新查詢當下真正的成員名單（`tx.member.findMany`）再退款
-- **群組額滿判斷 bug 修正**：`server/src/utils/membership.js` 判斷是否額滿時原本少算團主佔的 1 個名額，導致「剩餘名額 0」但群組狀態仍停留在招募中；已修正為 `currentMembers < maxMembers - 1` 才允許入群、`currentMembers + 1 >= maxMembers` 才推進為 `full`（`currentMembers` 不含團主，`+1` 補回團主的名額）
+- **解散群組退款**：`POST /groups/:id/cancel` 在同一個 transaction 裡重新查詢當下真正的成員名單（`tx.member.findMany`）再退款，避免跟同時發生的成員退出/移除撞在一起造成重複退款
+- **群組額滿判斷**：`server/src/utils/membership.js` 用 `currentMembers < maxMembers - 1` 才允許入群、`currentMembers + 1 >= maxMembers` 才推進為 `full`（`currentMembers` 不含團主，`+1` 補回團主的名額）

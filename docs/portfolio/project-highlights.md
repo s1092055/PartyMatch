@@ -20,11 +20,9 @@
 
 ## 3. 多裝置登入 session（Redis）
 
-refreshToken 不放 MySQL，改存 Redis，key 是 `refresh:{userId}:{sessionId}`，`sessionId` 登入時產生、內含在 JWT payload 裡。同一帳號在多台裝置登入各自有獨立 session，登出或 refresh 只影響那一台裝置，不會把別台踢掉。
+refreshToken 不放 MySQL，改存 Redis，key 是 `refresh:{userId}:{sessionId}`，`sessionId` 登入時產生、內含在 JWT payload 裡。同一帳號在多台裝置登入各自有獨立 session，登出或 refresh 只影響那一台裝置，不會把別台踢掉；帳號停用時可以用 `SCAN` 找出這個使用者所有 session 一次清掉。
 
-舊版沒有 sessionId，所有裝置共用同一把 token，任何一台登出或 refresh 都會讓其他裝置一起失效。改成 per-session key 後，帳號停用時可以用 `SCAN` 找出這個使用者所有 session 一次清掉；沒有 sessionId 的舊格式 token 仍相容查詢，refresh 一次會自動升級。
-
-用 `SCAN` 不用 `KEYS` 是因為 `KEYS` 會阻塞式掃整個 keyspace，卡住整個 Redis；`SCAN` 是非阻塞游標式迭代。舊格式相容邏輯不用特別清，refresh token 本身 7 天過期，舊 key 自然會消失。
+用 `SCAN` 不用 `KEYS` 是因為 `KEYS` 會阻塞式掃整個 keyspace，卡住整個 Redis；`SCAN` 是非阻塞游標式迭代。
 
 ## 4. 群組狀態機
 

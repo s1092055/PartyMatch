@@ -138,6 +138,6 @@ sequenceDiagram
 - 重複接受防護：條件式 `updateMany({ where: { status: 'pending' } })` 是唯一防線，重複點擊或網路重試送出兩個一樣的 PATCH，後到的那個拿 `count === 0` 整批回滾，不會建成員
 - 名額超賣防護：`finalizeApprovedApplication` 的條件式 `updateMany` 確保兩筆申請幾乎同時接受時只有一筆能把 `currentMembers` 加 1，另一筆回 409，不會超過 `maxMembers`
 - 接受不再重複扣款：代管扣款只在申請當下發生一次，接受時 `finalizeApprovedApplication` 完全不碰 `tokenBalance`/`escrowTokens`
-- **拒絕/移除時狀態一定要寫入，即使不用退款**：早期版本曾經把狀態寫入也包進退款的條件式 `updateMany` 裡，導致團主移除已接受成員時（該申請當下狀態是 `approved` 不是 `pending`），退款判斷正確跳過，但狀態轉換也被一起跳過，申請永遠卡在 `approved`、`activeKey` 也永遠不會清空，使用者從此無法重新申請同一群組。修正後狀態轉換一定會執行，只有退款金額的寫入受條件式保護
+- **拒絕/移除時狀態一定要寫入，即使不用退款**：狀態轉換一定會執行，只有退款金額的寫入受條件式保護
 - 拒絕退款用 `escrowAmount` 而非即時 `computeSeatCost`，避免團主事後修改群組價格/計費週期時，退款金額跟當初真正扣的錢對不上
 - 接受、建 `Member`/`Subscription`、額滿轉 `full` 全部包在同一個 transaction，任何一步失敗就整批回滾，不會出現「接受了但沒建成員」的中間狀態
