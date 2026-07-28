@@ -3,7 +3,7 @@ import { CheckCircle2, ChevronLeft, ChevronRight, Info, Layers, Package } from '
 import { getServiceById } from '../../../../shared/utils/serviceUtils'
 import { getSharingMethodConfig } from '../../../../shared/utils/serviceInfoFields'
 import TokenAmount from '../../../../shared/ui/TokenAmount'
-import { resolvePlanDisplayPrice } from '../../../../shared/utils/pricingUtils'
+import { resolvePlanDisplayPrice } from '../../../../shared/utils/resolvePlanDisplayPrice'
 import { useUsdToTwdRate } from '../../../../shared/utils/exchangeRate'
 import Field from './Field'
 

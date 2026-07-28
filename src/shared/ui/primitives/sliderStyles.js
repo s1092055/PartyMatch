@@ -13,3 +13,7 @@ export const SLIDER_THUMB_DOT =
 // 用 inset-0 會讓 input 對齊到父層最頂端、跟往下推的軌道對不齊，圓點看起來會偏高，
 // 所以統一用 top-1 明確對齊軌道實際的垂直位置
 export const SLIDER_INPUT_POSITION = 'absolute left-0 right-0 top-1 h-1.5 w-full cursor-pointer'
+
+// 夾在 0~100 之間：min/max 邊界調整時（例如打字調整刻度上限途中）數值可能暫時超出範圍，
+// 沒有夾住的話色塊寬度會算出超過 100%，視覺上就會整條溢出到軌道右邊外面
+export const clampPct = pct => Math.min(100, Math.max(0, pct))

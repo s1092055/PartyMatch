@@ -1,7 +1,7 @@
 import { getServiceById } from '../../../../shared/utils/serviceUtils'
 import ServiceLogo from '../../../../shared/ui/ServiceLogo'
 import TokenAmount from '../../../../shared/ui/TokenAmount'
-import { resolvePlanDisplayPrice } from '../../../../shared/utils/pricingUtils'
+import { resolvePlanDisplayPrice } from '../../../../shared/utils/resolvePlanDisplayPrice'
 import { useUsdToTwdRate } from '../../../../shared/utils/exchangeRate'
 
 export default function Step2Plans({ conditions, onChangePlan }) {

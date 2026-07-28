@@ -1,7 +1,7 @@
 import { Sliders, X } from 'lucide-react'
 import { getServiceById } from '../../../shared/utils/serviceUtils'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
-import { TokenBadge } from '../../../shared/ui/TokenAmount'
+import PriceRangeAmount from '../../../shared/ui/PriceRangeAmount'
 import { formatPriceRangeLabel } from '../utils/priceRangeLabel'
 
 const GROUP_AGE_LABEL = { any: '不限', new: '三個月內', established: '三個月至一年', veteran: '一年以上' }
@@ -56,7 +56,7 @@ export default function MatchSummaryPanel({ conditions, filtersChosen, onRemoveS
       <div className="shrink-0 space-y-4 border-t border-line-subtle pt-4">
         <Row
           label="申請費用/人"
-          value={!filtersChosen ? '尚未選擇' : priceLabel == null ? '不限' : <span className="inline-flex items-center gap-1"><TokenBadge className="!h-3.5 !w-3.5 shrink-0" />{priceLabel}</span>}
+          value={!filtersChosen ? '尚未選擇' : <PriceRangeAmount label={priceLabel} badgeClassName="!h-3.5 !w-3.5" />}
           muted={!filtersChosen || priceLabel == null}
         />
         <Row label="團主信用分數" value={!filtersChosen ? '尚未選擇' : minRating > 0 ? `${minRating} 分以上` : '不限'} muted={!filtersChosen || minRating === 0} />

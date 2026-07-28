@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { TokenBadge } from '../../../../shared/ui/TokenAmount'
+import PriceRangeAmount from '../../../../shared/ui/PriceRangeAmount'
 import Slider from '../../../../shared/ui/primitives/Slider'
 import RangeSlider from '../../../../shared/ui/primitives/RangeSlider'
 import { formatPriceRangeLabel } from '../../utils/priceRangeLabel'
@@ -63,6 +63,11 @@ export default function Step3Filters({ conditions, onChange }) {
     setPriceMax(clamped)
   }
 
+  // 新上限比某個目前值還小時，該值才需要跟著夾回新上限
+  function clampDown(current, cap, apply) {
+    if (current != null && current > cap) apply(cap)
+  }
+
   // 失焦時把輸入框顯示的文字正規化成實際生效的上限值；留空的話不做任何變動
   function commitPriceScaleInput(raw) {
     if (!raw) return
@@ -71,10 +76,10 @@ export default function Step3Filters({ conditions, onChange }) {
     const clamped = Math.min(PRICE_MAX_CAP, Math.max(PRICE_MIN + 10, Math.round(num)))
     setPriceMax(clamped)
     setPriceMaxInput(String(clamped))
-    if (conditions.maxPrice != null && conditions.maxPrice > clamped) onChange('maxPrice', clamped)
-    if (conditions.minPrice != null && conditions.minPrice > clamped) onChange('minPrice', clamped)
-    if (rangeMax > clamped) setRangeMax(clamped)
-    if (rangeMin > clamped) setRangeMin(clamped)
+    clampDown(conditions.maxPrice, clamped, v => onChange('maxPrice', v))
+    clampDown(conditions.minPrice, clamped, v => onChange('minPrice', v))
+    clampDown(rangeMax, clamped, setRangeMax)
+    clampDown(rangeMin, clamped, setRangeMin)
   }
 
   return (
@@ -82,16 +87,11 @@ export default function Step3Filters({ conditions, onChange }) {
       <div>
         <div className="mb-3 flex items-center justify-between">
           <span className="text-base font-medium text-ink-2">申請費用/人</span>
-          <span className="flex items-center gap-1 text-sm font-bold text-brand">
-            {isUnlimitedPrice ? (
-              <span className="text-sm font-normal text-ink-4">不限</span>
-            ) : (
-              <>
-                <TokenBadge className="shrink-0" />
-                {priceLabel}
-              </>
-            )}
-          </span>
+          <PriceRangeAmount
+            label={isUnlimitedPrice ? null : priceLabel}
+            className="text-sm font-bold text-brand"
+            unlimitedClassName="text-sm font-normal text-ink-4"
+          />
         </div>
         <RangeSlider
           min={PRICE_MIN} max={priceMax} step={10}
