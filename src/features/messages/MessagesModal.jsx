@@ -272,7 +272,7 @@ export default function MessagesModal() {
           : null
         }
         hideClose={isMobile && !!(selectedId && selected)}
-        height="min(88vh, 820px)"
+        height="min(88dvh, 820px)"
       >
         {/* 手機：200% slide 軌道；桌機：兩欄並排 */}
         <div className="relative flex-1 overflow-hidden" style={{ minHeight: 0 }}>

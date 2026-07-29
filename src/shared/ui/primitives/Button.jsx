@@ -1,4 +1,4 @@
-const BASE = 'inline-flex items-center justify-center gap-2 font-bold rounded-inner cursor-pointer transition-colors duration-150 focus:outline-none disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed'
+const BASE = 'inline-flex items-center justify-center gap-2 font-bold rounded-inner cursor-pointer transition-all duration-150 hover:-translate-y-0.5 focus:outline-none disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed'
 
 const VARIANTS = {
   primary:   'bg-brand text-white hover:bg-brand-hover',

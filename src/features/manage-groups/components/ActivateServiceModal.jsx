@@ -39,7 +39,7 @@ export default function ActivateServiceModal({
         <button
           onClick={onConfirm}
           disabled={!allMembersChecked || !finalConfirmed}
-          className="flex-1 rounded-xl bg-success py-2.5 text-sm font-bold text-white transition-colors hover:bg-success-text disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex-1 rounded-xl bg-success py-2.5 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-success-text disabled:cursor-not-allowed disabled:opacity-40"
         >確認啟用</button>
       }
     >

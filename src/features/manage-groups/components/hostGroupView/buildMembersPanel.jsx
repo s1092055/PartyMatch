@@ -40,14 +40,14 @@ export function buildMembersPanel({ group, members, setActivePanel, onClose, set
                           detail: { hostId: m.userId, hostName: m.userName, hostAvatarInitial: m.userAvatarInitial, hostAvatarColor: m.userAvatarColor },
                         }))
                       }}
-                      className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-brand"
+                      className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-all hover:-translate-y-0.5 hover:bg-raised hover:text-brand"
                     >
                       <MessageCircle size={20} />
                     </button>
                     {removable && (
                       <button
                         onClick={() => setRemovingMember(m)}
-                        className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-danger"
+                        className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-all hover:-translate-y-0.5 hover:bg-raised hover:text-danger"
                       >
                         <UserX size={20} />
                       </button>
@@ -60,7 +60,7 @@ export function buildMembersPanel({ group, members, setActivePanel, onClose, set
         </div>
         <button
           onClick={() => setShowMemberHistory(true)}
-          className="absolute bottom-4 right-4 flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-line bg-canvas px-3 text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-ink"
+          className="absolute bottom-4 right-4 flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-line bg-canvas px-3 text-sm font-bold text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-raised hover:text-ink"
         >
           <UsersIcon size={14} strokeWidth={1.5} />
           成員紀錄

@@ -84,7 +84,7 @@ export default function GroupModalShell({
       <div className="pointer-events-none fixed inset-0 z-[56] flex items-center justify-center p-4 md:p-8">
         <div
           className="pointer-events-auto flex w-full max-w-xl flex-col overflow-hidden rounded-2xl bg-canvas shadow-2xl animate-modal-in"
-          style={{ height: 'min(92vh, 720px)' }}
+          style={{ height: 'min(92dvh, 720px)' }}
         >
           {/* Header — 固定不動，翻書效果只作用在下方內容區 */}
           <div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-4">

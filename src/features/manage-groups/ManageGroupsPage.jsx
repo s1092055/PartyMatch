@@ -53,7 +53,7 @@ export default function ManageGroupsPage() {
         <button
           onClick={() => setHistoryOpen(true)}
           aria-label="群組紀錄"
-          className="flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-line px-3 text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-ink"
+          className="flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-line px-3 text-sm font-bold text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-raised hover:text-ink"
         >
           <Archive size={14} strokeWidth={1.5} />
           群組紀錄
@@ -85,7 +85,7 @@ export default function ManageGroupsPage() {
             <div
               ref={listScrollRef}
               onScroll={handleListScroll}
-              className="max-h-[calc(100vh-16rem)] overflow-y-auto p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              className="max-h-[calc(100dvh-16rem)] overflow-y-auto p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
               <div className="grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-3">
                 {displayGroups.map((g, i) => (

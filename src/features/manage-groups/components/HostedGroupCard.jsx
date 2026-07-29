@@ -35,7 +35,7 @@ function StatCell({ label, children, onClick, highlight }) {
       <button
         type="button"
         onClick={e => { e.stopPropagation(); onClick() }}
-        className="w-full rounded-lg hover:bg-raised transition-colors"
+        className="w-full rounded-lg hover:bg-raised hover:-translate-y-0.5 transition-all"
       >
         {content}
       </button>

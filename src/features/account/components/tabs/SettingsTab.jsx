@@ -114,7 +114,7 @@ export default function SettingsTab() {
           {!showDeleteConfirm ? (
             <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="flex w-full items-center gap-3 py-1 text-sm font-semibold text-danger transition-colors hover:text-danger/80"
+              className="flex w-full items-center gap-3 py-1 text-sm font-semibold text-danger transition-all hover:-translate-y-0.5 hover:text-danger/80"
             >
               <Trash2 size={16} className="shrink-0" />
               刪除帳號
@@ -136,14 +136,14 @@ export default function SettingsTab() {
                 <button
                   onClick={resetDeleteFlow}
                   disabled={deleting}
-                  className="flex-1 rounded-lg border border-line py-2 text-xs font-bold text-ink-2 transition-colors hover:bg-raised disabled:opacity-50"
+                  className="flex-1 rounded-lg border border-line py-2 text-xs font-bold text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-raised disabled:opacity-50"
                 >
                   取消
                 </button>
                 <button
                   onClick={handleConfirmDelete}
                   disabled={!password.trim() || deleting}
-                  className="flex-1 rounded-lg bg-danger py-2 text-xs font-bold text-white transition-colors hover:bg-danger/90 disabled:opacity-50"
+                  className="flex-1 rounded-lg bg-danger py-2 text-xs font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-danger/90 disabled:opacity-50"
                 >
                   {deleting ? '處理中…' : '確認刪除'}
                 </button>

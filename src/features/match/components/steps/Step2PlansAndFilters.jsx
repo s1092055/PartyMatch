@@ -33,7 +33,7 @@ export default function Step2PlansAndFilters({ conditions, onChangePlan, onChang
           <button
             key={a.key}
             onClick={() => scrollToSection(sectionRefByKey[a.key].current)}
-            className="rounded-lg px-2 py-2 text-left text-xs font-bold text-ink-3 transition-colors hover:bg-brand-subtle hover:text-brand"
+            className="rounded-lg px-2 py-2 text-left text-xs font-bold text-ink-3 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
           >
             {a.label}
           </button>

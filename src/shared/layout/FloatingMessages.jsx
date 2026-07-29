@@ -389,7 +389,7 @@ export default function FloatingMessages() {
             )}
             <button
               onClick={() => setOpen(false)}
-              className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink active:scale-100 active:opacity-70"
+              className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink active:opacity-70"
               aria-label="關閉"
             >
               <X size={16} />

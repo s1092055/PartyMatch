@@ -26,7 +26,7 @@ function renderCTA({
           handleClose()
           navigate('/my-subscriptions', { state: { openGroupId: group.id } })
         }}
-        className={`flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white transition-colors ${
+        className={`flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white transition-all hover:-translate-y-0.5 ${
           hasServiceInfoIssue ? 'bg-danger hover:opacity-90' : 'bg-brand hover:bg-brand-hover'
         }`}
       >
@@ -73,13 +73,13 @@ export function buildMobileFooter({
         <div className="grid grid-cols-2 gap-1">
           <button
             onClick={() => setShowMembers(true)}
-            className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised"
+            className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-raised"
           >
             <Users size={17} /> 群組名單
           </button>
           <button
             onClick={() => setLeaveConfirm(true)}
-            className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-danger transition-colors hover:bg-danger-subtle"
+            className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-danger transition-all hover:-translate-y-0.5 hover:bg-danger-subtle"
           >
             <LogOut size={17} /> 退出群組
           </button>

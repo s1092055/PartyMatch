@@ -22,7 +22,7 @@ export default function CreditScoreModal({ isOpen, onClose }) {
       isOpen={isOpen}
       onClose={handleClose}
       maxWidth="max-w-md"
-      height="min(80vh, 640px)"
+      height="min(80dvh, 640px)"
       title={showHistory ? '信用分數紀錄' : '信用分數'}
       icon={showHistory ? (
         <button

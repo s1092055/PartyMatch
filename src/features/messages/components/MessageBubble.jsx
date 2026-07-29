@@ -72,7 +72,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
                   window.dispatchEvent(new CustomEvent('pm:close-messages'))
                   navigate('/my-subscriptions', { state: { openGroupId: conversationGroupId } })
                 }}
-                className="mt-3 w-full rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-brand-hover"
+                className="mt-3 w-full rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-brand-hover"
               >
                 填寫服務帳號
               </button>
@@ -108,7 +108,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
                   window.dispatchEvent(new CustomEvent('pm:close-messages'))
                   navigate('/my-subscriptions', { state: { openGroupId: conversationGroupId } })
                 }}
-                className="w-full rounded-lg bg-warning px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:opacity-90"
+                className="w-full rounded-lg bg-warning px-3 py-1.5 text-xs font-semibold text-white transition-all hover:-translate-y-0.5 hover:opacity-90"
               >
                 重新填寫服務帳號
               </button>
@@ -128,7 +128,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
                 navigate('/manage-groups', { state: { openGroupId: conversationGroupId, openBilling: true } })
                 window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: conversationGroupId, openBilling: true } }))
               }}
-              className="w-full rounded-lg bg-success px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:opacity-90"
+              className="w-full rounded-lg bg-success px-3 py-1.5 text-xs font-semibold text-white transition-all hover:-translate-y-0.5 hover:opacity-90"
             >
               前往收款管理
             </button>

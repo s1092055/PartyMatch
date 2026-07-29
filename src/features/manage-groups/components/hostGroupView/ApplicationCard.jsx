@@ -59,13 +59,13 @@ export default function ApplicationCard({ app, groupFull, error, onApprove, onRe
               <button
                 onClick={() => onApprove(app.id)}
                 disabled={groupFull}
-                className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-success py-2 text-xs font-semibold text-white transition-colors hover:bg-success-text disabled:pointer-events-none disabled:opacity-40"
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-success py-2 text-xs font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-success-text disabled:pointer-events-none disabled:opacity-40"
               >
                 {groupFull ? '已額滿' : <><Check size={12} strokeWidth={3} /> 接受</>}
               </button>
               <button
                 onClick={() => onReject(app.id)}
-                className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-line py-2 text-xs font-semibold text-ink-2 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-line py-2 text-xs font-semibold text-ink-2 transition-all hover:-translate-y-0.5 hover:border-red-200 hover:bg-red-50 hover:text-red-600"
               >
                 <X size={12} strokeWidth={3} /> 拒絕
               </button>

@@ -89,7 +89,7 @@ export default function TopupModal({ isOpen, onClose }) {
       isOpen={isOpen}
       onClose={handleClose}
       maxWidth="max-w-sm"
-      height="min(92vh, 560px)"
+      height="min(92dvh, 560px)"
       title={showHistory ? '交易紀錄' : 'PM幣儲值'}
       icon={showHistory ? (
         <button

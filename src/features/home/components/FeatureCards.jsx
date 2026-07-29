@@ -67,7 +67,7 @@ export default function FeatureCards() {
                   <p className="mt-3 text-center text-base leading-relaxed text-ink-3 md:text-left">{desc}</p>
                   <button
                     onClick={() => handleAction(action)}
-                    className="mt-6 inline-flex w-fit items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-brand-hover"
+                    className="mt-6 inline-flex w-fit items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand-hover"
                   >
                     {cta}
                     <ChevronRight size={14} strokeWidth={1.5} />

@@ -25,7 +25,7 @@ export default function HomePage() {
   const loggedIn = useAuthStore(s => s.loggedIn)
 
   return (
-    <div className="flex min-h-screen flex-col bg-canvas text-ink md:ml-24">
+    <div className="flex min-h-screen flex-col bg-canvas text-ink lg:ml-24">
       <AppNav />
       <ScrollToTop />
       <Suspense fallback={null}>
@@ -96,7 +96,7 @@ export default function HomePage() {
           <h2 className="text-2xl font-extrabold">準備好了嗎？</h2>
           <button
             onClick={() => navigate(loggedIn ? '/explore' : '/register')}
-            className="mt-7 inline-flex items-center gap-2 rounded-xl bg-brand px-7 py-3 text-sm font-bold text-white shadow transition-opacity hover:opacity-90"
+            className="mt-7 inline-flex items-center gap-2 rounded-xl bg-brand px-7 py-3 text-sm font-bold text-white shadow transition-all hover:-translate-y-0.5 hover:opacity-90"
           >
             {loggedIn ? '前往探索群組' : '免費建立帳號'}
             <ChevronRight size={15} strokeWidth={1.5} />

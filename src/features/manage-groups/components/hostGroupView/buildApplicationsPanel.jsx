@@ -27,7 +27,7 @@ export function buildApplicationsPanel({ pendingApps, groupFull, errors, onAppro
         )}
         <button
           onClick={() => setShowReviewHistory(true)}
-          className="absolute bottom-4 right-4 flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-line bg-canvas px-3 text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-ink"
+          className="absolute bottom-4 right-4 flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-line bg-canvas px-3 text-sm font-bold text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-raised hover:text-ink"
         >
           <History size={14} strokeWidth={1.5} />
           審核紀錄

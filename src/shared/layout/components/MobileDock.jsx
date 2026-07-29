@@ -19,14 +19,14 @@ export default function MobileDock({
 
   return (
     <nav
-      className={`fixed left-3 right-3 z-50 rounded-2xl border border-line bg-white shadow-sm transition-transform duration-300 ease-in-out md:hidden ${visible ? 'translate-y-0' : 'translate-y-[calc(100%+1rem)]'}`}
+      className={`fixed left-3 right-3 z-50 rounded-2xl border border-line bg-white shadow-sm transition-transform duration-300 ease-in-out lg:hidden ${visible ? 'translate-y-0' : 'translate-y-[calc(100%+1rem)]'}`}
       style={{ bottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
     >
       <div className="flex h-16 items-stretch">
 
         <button
           onClick={openMatch}
-          className="relative flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold text-ink-3 transition-colors active:text-brand"
+          className="relative flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold text-ink-3 transition-all hover:-translate-y-0.5 active:text-brand"
         >
           <Search size={22} strokeWidth={2.1} />
           快速搜尋
@@ -35,7 +35,7 @@ export default function MobileDock({
         {loggedIn ? (
           <button
             onClick={openCreate}
-            className="relative flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold text-ink-3 transition-colors active:text-brand"
+            className="relative flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold text-ink-3 transition-all hover:-translate-y-0.5 active:text-brand"
           >
             <PlusCircle size={22} strokeWidth={2.1} />
             建立群組
@@ -58,7 +58,7 @@ export default function MobileDock({
           <a
             href="/explore"
             onClick={closeAll}
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-brand text-white shadow-lg transition-all active:scale-95 hover:bg-brand-hover"
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-brand text-white shadow-lg transition-all hover:-translate-y-0.5 hover:bg-brand-hover"
             aria-label="探索"
           >
             <Compass size={22} strokeWidth={2} />
@@ -99,7 +99,7 @@ export default function MobileDock({
           {loggedIn ? (
             <button
               onClick={() => setMyMenuOpen(v => !v)}
-              className={`flex flex-col items-center gap-1 text-[0.65rem] font-bold transition-colors ${(pathname === '/my-subscriptions' || pathname === '/manage-groups' || pathname === '/favorites') ? 'text-brand' : myMenuOpen ? 'text-brand' : 'text-ink-3'}`}
+              className={`flex flex-col items-center gap-1 text-[0.65rem] font-bold transition-all hover:-translate-y-0.5 ${(pathname === '/my-subscriptions' || pathname === '/manage-groups' || pathname === '/favorites') ? 'text-brand' : myMenuOpen ? 'text-brand' : 'text-ink-3'}`}
             >
               <LayoutGrid size={22} strokeWidth={2.1} />
               我的
@@ -121,7 +121,7 @@ export default function MobileDock({
         {loggedIn ? (
           <button
             onClick={openMessages}
-            className="relative flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold text-ink-3 transition-colors active:text-brand"
+            className="relative flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold text-ink-3 transition-all hover:-translate-y-0.5 active:text-brand"
           >
             <span className="relative">
               <MessageSquare size={22} strokeWidth={2.1} />

@@ -39,7 +39,7 @@ export default function Step4Preview({ form, agreedToTerms, onAgreeChange, onSho
           </div>
           <button
             onClick={onShowPreview}
-            className="flex shrink-0 items-center gap-1.5 rounded-full border border-line px-4 py-2 text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-ink lg:hidden"
+            className="flex shrink-0 items-center gap-1.5 rounded-full border border-line px-4 py-2 text-sm font-bold text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-raised hover:text-ink lg:hidden"
           >
             <Eye size={15} />
             查看預覽

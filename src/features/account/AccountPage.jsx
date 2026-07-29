@@ -66,7 +66,7 @@ function LogoutButton({ className = "", fullWidth = false }) {
     <div className={`flex ${fullWidth ? '' : 'justify-end'} ${className}`}>
       <button
         onClick={() => { useAuthStore.getState().logout(); navigate('/login', { replace: true }) }}
-        className={`inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-brand px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-brand-hover ${fullWidth ? 'w-full' : ''}`}
+        className={`inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-brand px-6 py-3 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-brand-hover ${fullWidth ? 'w-full' : ''}`}
       >
         <LogOut size={16} className="shrink-0" />
         登出
@@ -147,7 +147,7 @@ export default function AccountPage() {
         </nav>
 
         {/* 右側內容區：固定高度，內容過長時自行垂直捲動，登出按鈕固定在底部 */}
-        <div className="flex min-w-0 flex-1 flex-col" style={{ height: 'calc(100vh - 16rem)', minHeight: '28rem' }}>
+        <div className="flex min-w-0 flex-1 flex-col" style={{ height: 'calc(100dvh - 16rem)', minHeight: '28rem' }}>
           <div className="min-h-0 flex-1 overflow-y-auto pr-1">
             <TabReveal key={activeTab}>
               <TabContent value={activeTab} user={user} onChange={handleUserChange} tabs={TABS} />

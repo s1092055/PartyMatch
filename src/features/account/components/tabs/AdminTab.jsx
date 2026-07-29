@@ -107,7 +107,7 @@ export default function AdminTab() {
             <button
               type="submit"
               disabled={loading || !groupId || !reason.trim()}
-              className="rounded-xl bg-danger px-5 py-2 text-sm font-bold text-white hover:bg-danger/80 transition-colors disabled:opacity-50"
+              className="rounded-xl bg-danger px-5 py-2 text-sm font-bold text-white hover:bg-danger/80 hover:-translate-y-0.5 transition-all disabled:opacity-50"
             >
               {loading ? '處理中...' : '送出裁定'}
             </button>

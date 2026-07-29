@@ -115,7 +115,7 @@ export default function PaymentMethodsTab() {
                 )}
                 <button
                   onClick={() => handleRemove(card.id)}
-                  className="flex h-7 w-7 items-center justify-center rounded-lg text-ink-4 transition-colors hover:bg-danger-subtle hover:text-danger"
+                  className="flex h-7 w-7 items-center justify-center rounded-lg text-ink-4 transition-all hover:-translate-y-0.5 hover:bg-danger-subtle hover:text-danger"
                 >
                   <Trash2 size={13} />
                 </button>
@@ -127,7 +127,7 @@ export default function PaymentMethodsTab() {
         {cards.length < 2 && (
           <button
             onClick={() => setModalOpen(true)}
-            className="flex w-full items-center justify-center gap-2 rounded-card border-2 border-dashed border-line py-4 text-sm text-ink-4 transition-colors hover:border-brand/40 hover:text-brand"
+            className="flex w-full items-center justify-center gap-2 rounded-card border-2 border-dashed border-line py-4 text-sm text-ink-4 transition-all hover:-translate-y-0.5 hover:border-brand/40 hover:text-brand"
           >
             <Plus size={16} />
             新增付款方式

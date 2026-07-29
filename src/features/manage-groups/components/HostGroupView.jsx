@@ -186,17 +186,17 @@ export default function HostGroupView({ group, members, applications, onReportSe
         <div className="grid grid-cols-2 gap-2">
           <button
             onClick={() => setShowLockGroupConfirm(false)}
-            className="rounded-xl border border-line px-4 py-2 text-sm font-semibold text-ink-2 transition-colors hover:bg-raised"
+            className="rounded-xl border border-line px-4 py-2 text-sm font-semibold text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-raised"
           >取消</button>
           <button
             onClick={() => { setShowLockGroupConfirm(false); onLockGroup?.(undefined) }}
-            className="rounded-xl bg-ink-2 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-ink"
+            className="rounded-xl bg-ink-2 px-4 py-2 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-ink"
           >確認鎖定</button>
         </div>
       ) : (
         <button
           onClick={openLockFlow}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-ink-2 px-6 py-2 text-sm font-bold text-white shadow-md transition-colors hover:bg-ink"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-ink-2 px-6 py-2 text-sm font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-ink"
         >
           <Lock size={15} strokeWidth={1.5} /> 鎖定群組
         </button>
@@ -235,7 +235,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
       )}
       <button
         onClick={() => setShowDisputeReason(true)}
-        className="ml-1 shrink-0 rounded-full border border-danger-text/40 px-2.5 py-0.5 text-xs font-semibold text-danger-text transition-colors hover:bg-danger-text/10"
+        className="ml-1 shrink-0 rounded-full border border-danger-text/40 px-2.5 py-0.5 text-xs font-semibold text-danger-text transition-all hover:-translate-y-0.5 hover:bg-danger-text/10"
       >
         查看原因
       </button>
@@ -253,7 +253,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
     <div className="py-2">
       <button
         onClick={openActivate}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-success px-6 py-2 text-sm font-bold text-white shadow-md transition-colors hover:bg-success-text"
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-success px-6 py-2 text-sm font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-success-text"
       >
         <PlayCircle size={15} /> 啟用服務
       </button>

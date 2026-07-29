@@ -179,7 +179,7 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
       {!hideActions && (
         <button
           onClick={openDetails}
-          className="mt-4 w-full rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
+          className="mt-4 w-full rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-brand-hover"
         >
           查看詳情
         </button>

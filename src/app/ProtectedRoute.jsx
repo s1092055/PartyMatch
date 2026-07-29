@@ -24,13 +24,13 @@ export default function ProtectedRoute({ children }) {
           <div className="mt-5 flex gap-2">
             <button
               onClick={() => setCancelled(true)}
-              className="flex flex-1 items-center justify-center rounded-2xl border border-line py-3 text-sm font-bold text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+              className="flex flex-1 items-center justify-center rounded-2xl border border-line py-3 text-sm font-bold text-ink-3 transition-all hover:-translate-y-0.5 hover:bg-raised hover:text-ink"
             >
               取消
             </button>
             <button
               onClick={() => navigate('/login')}
-              className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-brand py-3 text-sm font-bold text-white transition-colors hover:bg-brand-hover"
+              className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-brand py-3 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-brand-hover"
             >
               <LogIn size={16} />
               登入

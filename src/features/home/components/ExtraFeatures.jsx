@@ -92,7 +92,7 @@ export default function ExtraFeatures() {
                 role="button"
                 tabIndex={isActive ? 0 : -1}
                 aria-label={isActive ? `放大播放：${title}` : `切換到：${title}`}
-                className="card flex h-full w-full cursor-pointer flex-col overflow-hidden text-center transition-transform duration-200 ease-out hover:scale-[1.03] active:scale-95"
+                className="card flex h-full w-full cursor-pointer flex-col overflow-hidden text-center transition-transform duration-200 ease-out hover:scale-[1.03]"
               >
                 <VideoThumb icon={Icon} color={color} bg={bg} videoSrc={videoSrc} />
                 <div className="flex flex-1 flex-col items-center justify-center gap-1.5 px-5 py-4">

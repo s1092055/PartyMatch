@@ -21,7 +21,7 @@ export function buildMembersSubPanel({ group, groupId, members, activeUserId, se
             </div>
             <button
               onClick={() => { setShowMembers(false); openDm() }}
-              className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-brand"
+              className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-all hover:-translate-y-0.5 hover:bg-raised hover:text-brand"
             >
               <MessageCircle size={20} />
             </button>

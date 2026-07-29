@@ -60,7 +60,7 @@ export default function DesktopSidebar({
       const onClick = item.type === 'create' ? openCreate : openMatch
       return (
         <button key={item.type} onClick={onClick} aria-label={item.label}
-          className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand active:scale-[0.96]">
+          className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand">
           <span className="grid h-9 w-9 shrink-0 place-items-center">
             <item.icon size={22} strokeWidth={2.1} />
           </span>
@@ -77,7 +77,7 @@ export default function DesktopSidebar({
         key={item.to}
         href={item.to}
         onClick={closeAll}
-        className={`flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-[0.95rem] transition-all hover:-translate-y-0.5 active:scale-[0.96] ${
+        className={`flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-[0.95rem] transition-all hover:-translate-y-0.5 ${
           isActive
             ? 'bg-brand font-extrabold text-white'
             : 'font-bold text-ink-2 hover:bg-brand-subtle hover:text-brand'
@@ -107,10 +107,10 @@ export default function DesktopSidebar({
       )}
 
       {/* Desktop 通知按鈕 + PM幣顯示 — fixed top-right，PM幣寬度貼齊通知按鈕 */}
-      <div className="fixed top-6 z-50 hidden flex-col items-stretch gap-2 md:flex lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
+      <div className="fixed top-6 z-50 hidden flex-col items-stretch gap-2 lg:flex lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
         <button
           onClick={openNotify}
-          className="relative flex h-10 items-center gap-2 rounded-xl border border-line bg-white px-4 text-sm font-bold text-ink-2 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand hover:text-white active:scale-[0.96]"
+          className="relative flex h-10 items-center gap-2 rounded-xl border border-line bg-white px-4 text-sm font-bold text-ink-2 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand hover:text-white"
           aria-label="通知"
         >
           <Bell size={16} strokeWidth={2} />
@@ -122,7 +122,7 @@ export default function DesktopSidebar({
           <button
             onClick={() => setTopupOpen(true)}
             aria-label="PM幣儲值"
-            className="flex h-10 items-center gap-2 rounded-xl border border-line bg-white px-3 text-left text-ink shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand hover:text-white active:scale-[0.96]"
+            className="flex h-10 items-center gap-2 rounded-xl border border-line bg-white px-3 text-left text-ink shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand hover:text-white"
           >
             <TokenBadge className="shrink-0" />
             <span className="min-w-0 flex-1 truncate text-xs font-bold leading-none">
@@ -133,11 +133,11 @@ export default function DesktopSidebar({
       </div>
 
       {/* Desktop 訊息按鈕 — fixed bottom-right，對齊 sidebar 頭像 */}
-      <div className="fixed z-50 hidden md:block" style={{ bottom: '2.25rem', right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
+      <div className="fixed z-50 hidden lg:block" style={{ bottom: '2.25rem', right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
         {loggedIn ? (
           <button
             onClick={openMessages}
-            className="relative flex h-10 items-center gap-2 rounded-xl border border-line bg-white px-4 text-sm font-bold text-ink-2 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand hover:text-white active:scale-[0.96]"
+            className="relative flex h-10 items-center gap-2 rounded-xl border border-line bg-white px-4 text-sm font-bold text-ink-2 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand hover:text-white"
             aria-label="訊息"
           >
             <MessageSquare size={16} strokeWidth={2} />
@@ -162,7 +162,7 @@ export default function DesktopSidebar({
 
       {/* Desktop floating sidebar */}
       <aside
-        className="group/nav fixed bottom-4 left-4 top-4 z-50 hidden w-16 flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-sm transition-[width] duration-300 ease-out hover:w-64 focus-within:w-64 md:flex"
+        className="group/nav fixed bottom-4 left-4 top-4 z-50 hidden w-16 flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-sm transition-[width] duration-300 ease-out hover:w-64 focus-within:w-64 lg:flex"
       >
         <a
           href="/"
@@ -205,7 +205,7 @@ export default function DesktopSidebar({
             <a
               href="/login"
               onClick={closeAll}
-              className="flex h-12 w-full items-center gap-3 rounded-2xl bg-brand px-1 text-sm font-bold text-white transition-all hover:-translate-y-0.5 active:scale-[0.96] hover:bg-brand-hover"
+              className="flex h-12 w-full items-center gap-3 rounded-2xl bg-brand px-1 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-brand-hover"
             >
               <span className="grid h-9 w-9 shrink-0 place-items-center">
                 <LogIn size={20} strokeWidth={2.1} />

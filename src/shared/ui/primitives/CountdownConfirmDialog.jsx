@@ -31,17 +31,17 @@ export default function CountdownConfirmDialog({
         <div className="mt-6 flex gap-3">
           <button
             onClick={onCancel}
-            className="flex-1 rounded-xl border border-line py-2.5 text-sm font-bold text-ink transition-colors hover:bg-raised"
+            className="flex-1 rounded-xl border border-line py-2.5 text-sm font-bold text-ink transition-all hover:-translate-y-0.5 hover:bg-raised"
           >
             取消
           </button>
           <button
             onClick={ready ? onConfirm : undefined}
             disabled={!ready}
-            className={`flex-1 rounded-xl py-2.5 text-sm font-bold text-white transition-colors ${
+            className={`flex-1 rounded-xl py-2.5 text-sm font-bold text-white transition-all ${
               danger
-                ? ready ? 'bg-danger hover:opacity-90' : 'cursor-not-allowed bg-danger/40'
-                : ready ? 'bg-brand hover:bg-brand-hover' : 'cursor-not-allowed bg-brand/40'
+                ? ready ? 'bg-danger hover:opacity-90 hover:-translate-y-0.5' : 'cursor-not-allowed bg-danger/40'
+                : ready ? 'bg-brand hover:bg-brand-hover hover:-translate-y-0.5' : 'cursor-not-allowed bg-brand/40'
             }`}
           >
             {ready ? confirmLabel : `${confirmLabel}（${countdown}）`}

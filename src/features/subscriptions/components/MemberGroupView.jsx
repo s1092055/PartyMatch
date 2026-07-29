@@ -170,7 +170,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
     <div className="py-2">
       <button
         onClick={() => { setFillValues(myMember?.serviceInfo ?? {}); setShowFillInfo(true) }}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-6 py-2 text-sm font-bold text-white shadow-md transition-colors hover:bg-brand-hover"
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-6 py-2 text-sm font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-brand-hover"
       >
         <ClipboardEdit size={15} /> 填寫帳號
       </button>
@@ -182,13 +182,13 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
       <button
         onClick={() => setConfirmDialog(true)}
         disabled={confirmLoading}
-        className="flex items-center justify-center gap-2 rounded-xl bg-success px-6 py-2 text-sm font-bold text-white shadow-md transition-colors hover:bg-success-text disabled:opacity-60"
+        className="flex items-center justify-center gap-2 rounded-xl bg-success px-6 py-2 text-sm font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-success-text disabled:opacity-60"
       >
         <ThumbsUp size={15} /> 確認服務
       </button>
       <button
         onClick={() => { resetDisputeForm(); setShowDispute(true) }}
-        className="flex items-center justify-center gap-2 rounded-xl border border-danger px-5 py-1.5 text-sm font-semibold text-danger transition-colors hover:bg-danger-subtle"
+        className="flex items-center justify-center gap-2 rounded-xl border border-danger px-5 py-1.5 text-sm font-semibold text-danger transition-all hover:-translate-y-0.5 hover:bg-danger-subtle"
       >
         <AlertTriangle size={14} /> 回報問題
       </button>
@@ -220,7 +220,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
                       detail: { hostId: group.hostId, hostName: group.hostName, hostAvatarInitial: group.hostAvatarInitial, hostAvatarColor: group.hostAvatarColor },
                     }))
                   }}
-                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-brand"
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-all hover:-translate-y-0.5 hover:bg-raised hover:text-brand"
                 >
                   <MessageCircle size={20} />
                 </button>
@@ -242,7 +242,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
                         detail: { hostId: m.userId, hostName: m.userName, hostAvatarInitial: m.userAvatarInitial, hostAvatarColor: m.userAvatarColor },
                       }))
                     }}
-                    className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-brand"
+                    className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-all hover:-translate-y-0.5 hover:bg-raised hover:text-brand"
                   >
                     <MessageCircle size={20} />
                   </button>
@@ -319,7 +319,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
             )}
             <button
               onClick={() => setShowDisputeReason(true)}
-              className="ml-1 shrink-0 rounded-full border border-danger-text/40 px-2.5 py-0.5 text-xs font-semibold text-danger-text transition-colors hover:bg-danger-text/10"
+              className="ml-1 shrink-0 rounded-full border border-danger-text/40 px-2.5 py-0.5 text-xs font-semibold text-danger-text transition-all hover:-translate-y-0.5 hover:bg-danger-text/10"
             >
               查看原因
             </button>

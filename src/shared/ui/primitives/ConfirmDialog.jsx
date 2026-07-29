@@ -16,14 +16,14 @@ export default function ConfirmDialog({ title, message, confirmLabel, danger = f
           {onCancel && (
             <button
               onClick={onCancel}
-              className="flex-1 rounded-xl border border-line py-2.5 text-sm font-bold text-ink transition-colors hover:bg-raised"
+              className="flex-1 rounded-xl border border-line py-2.5 text-sm font-bold text-ink transition-all hover:-translate-y-0.5 hover:bg-raised"
             >
               取消
             </button>
           )}
           <button
             onClick={onConfirm}
-            className={`flex-1 rounded-xl py-2.5 text-sm font-bold text-white transition-colors ${
+            className={`flex-1 rounded-xl py-2.5 text-sm font-bold text-white transition-all hover:-translate-y-0.5 ${
               danger ? 'bg-danger hover:opacity-90' : 'bg-brand hover:bg-brand-hover'
             }`}
           >

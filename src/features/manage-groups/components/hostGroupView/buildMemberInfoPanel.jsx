@@ -72,7 +72,7 @@ export function buildMemberInfoPanel({ members, sharingMethod, sharedCredentials
                   {canReportServiceIssue && filled && !m.serviceInfoIssueNote && (
                     <button
                       onClick={() => onOpenServiceIssue(m)}
-                      className="absolute right-3 top-3 flex items-center gap-1 rounded-lg border border-warning/60 px-2.5 py-1 text-xs font-semibold text-warning-text transition-colors hover:bg-warning-subtle"
+                      className="absolute right-3 top-3 flex items-center gap-1 rounded-lg border border-warning/60 px-2.5 py-1 text-xs font-semibold text-warning-text transition-all hover:-translate-y-0.5 hover:bg-warning-subtle"
                     >
                       <AlertTriangle size={11} /> 帳號問題
                     </button>

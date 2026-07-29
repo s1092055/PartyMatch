@@ -76,7 +76,7 @@ export default function Modal({
         />
         <div
           className={`relative flex w-full flex-col ${resolvedMaxWidth} card overflow-hidden p-0 ${instantEntry ? '' : 'animate-modal-in'}`}
-          style={height ? { height, maxHeight: 'calc(100vh - 2rem)' } : { maxHeight: 'calc(100vh - 2rem)' }}
+          style={height ? { height, maxHeight: 'calc(100dvh - 2rem)' } : { maxHeight: 'calc(100dvh - 2rem)' }}
         >
           {showHeader && (title || icon) && (
             <div className="flex items-center border-b border-line-subtle px-3 py-3">
@@ -85,7 +85,7 @@ export default function Modal({
               ) : hideBack ? (
                 <div className="h-9 w-9 shrink-0" />
               ) : (
-                <button onClick={handleClose} className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink active:scale-100 active:opacity-70">
+                <button onClick={handleClose} className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink active:opacity-70">
                   <ChevronLeft size={20} strokeWidth={1.5} />
                 </button>
               )}
@@ -95,7 +95,7 @@ export default function Modal({
               </div>
               {headerEnd && <div className="shrink-0">{headerEnd}</div>}
               {closeIcon === 'x' && (
-                <button onClick={handleClose} className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink active:scale-100 active:opacity-70" aria-label="關閉">
+                <button onClick={handleClose} className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink active:opacity-70" aria-label="關閉">
                   <X size={18} />
                 </button>
               )}
@@ -128,7 +128,7 @@ export default function Modal({
             </div>
             <div className="flex items-center gap-1">
               {headerEnd}
-              <button onClick={handleClose} className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink active:scale-100 active:opacity-70 ${hideClose ? 'max-md:hidden' : ''}`} aria-label="關閉">
+              <button onClick={handleClose} className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink active:opacity-70 ${hideClose ? 'max-md:hidden' : ''}`} aria-label="關閉">
                 <X size={18} />
               </button>
             </div>

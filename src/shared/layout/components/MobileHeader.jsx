@@ -21,7 +21,7 @@ export default function MobileHeader({
   const navigate = useNavigate()
 
   return (
-    <div ref={mobileMenuRef} className="fixed left-3 right-3 top-3 z-50 md:hidden">
+    <div ref={mobileMenuRef} className="fixed left-3 right-3 top-3 z-50 lg:hidden">
       <header className="flex h-14 items-center justify-between rounded-2xl border border-line bg-white px-4 shadow-sm">
         <a href="/" className="flex items-center gap-2" aria-label="回首頁">
           <img src={logoUrl} alt="PartyMatch" className="h-8 w-8" />
@@ -84,7 +84,7 @@ export default function MobileHeader({
               <span className="text-sm font-bold text-ink">{tokenBalance.toLocaleString()} PM</span>
               <button
                 onClick={() => { setMobileMenuOpen(false); setTopupOpen(true) }}
-                className="rounded-full bg-brand px-2.5 py-1 text-xs font-bold text-white transition-colors hover:bg-brand-hover active:opacity-80"
+                className="rounded-full bg-brand px-2.5 py-1 text-xs font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-brand-hover active:opacity-80"
               >
                 加值
               </button>
@@ -104,7 +104,7 @@ export default function MobileHeader({
             </a>
             <button
               onClick={() => { setMobileMenuOpen(false); useAuthStore.getState().logout(); navigate('/login', { replace: true }) }}
-              className="flex flex-1 items-center justify-center gap-2 py-4 text-sm font-bold text-danger transition-colors hover:bg-danger-subtle"
+              className="flex flex-1 items-center justify-center gap-2 py-4 text-sm font-bold text-danger transition-all hover:-translate-y-0.5 hover:bg-danger-subtle"
             >
               <LogOut size={16} strokeWidth={2} className="shrink-0" />
               登出

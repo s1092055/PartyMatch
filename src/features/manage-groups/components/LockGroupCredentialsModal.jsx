@@ -46,7 +46,7 @@ export default function LockGroupCredentialsModal({ isOpen, onClose, serviceId, 
         <button
           type="submit"
           disabled={!valid || loading}
-          className="w-full rounded-xl bg-ink-2 py-2.5 text-sm font-bold text-white transition-colors hover:bg-ink disabled:opacity-40 disabled:pointer-events-none"
+          className="w-full rounded-xl bg-ink-2 py-2.5 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-ink disabled:opacity-40 disabled:pointer-events-none"
         >
           {loading ? '鎖定中…' : '確認鎖定群組'}
         </button>

@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 export default function AuthLayout({ children, backTo = '/' }) {
   return (
     <main className="min-h-screen bg-canvas px-4 py-8 text-ink">
-      <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-[26rem] flex-col justify-center gap-4">
+      <div className="mx-auto flex min-h-[calc(100dvh-4rem)] max-w-[26rem] flex-col justify-center gap-4">
         <section className="animate-fade-in-up w-full py-4">
           <Link
             to={backTo}

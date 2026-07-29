@@ -29,7 +29,7 @@ export default function CustomSelect({ label, value, onChange, options, classNam
       <button
         type="button"
         onClick={() => setOpen(v => !v)}
-        className={`field relative z-10 flex h-11 w-full items-center justify-between gap-2 px-3 text-sm font-bold text-ink transition-colors focus:border-line focus:shadow-none active:scale-100 ${
+        className={`field relative z-10 flex h-11 w-full items-center justify-between gap-2 px-3 text-sm font-bold text-ink transition-colors focus:border-line focus:shadow-none ${
           open ? 'rounded-b-none' : ''
         }`}
       >

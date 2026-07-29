@@ -48,7 +48,7 @@ export default function RenewalModal({ isOpen, onClose, group, onStartRenewal, o
 
         <button
           onClick={onStartRenewal}
-          className="mb-3 w-full rounded-2xl border-2 border-brand bg-brand-subtle p-4 text-left transition-colors hover:bg-brand/10"
+          className="mb-3 w-full rounded-2xl border-2 border-brand bg-brand-subtle p-4 text-left transition-all hover:-translate-y-0.5 hover:bg-brand/10"
         >
           <div className="flex items-center gap-2">
             <RefreshCw size={16} className="shrink-0 text-brand" />
@@ -61,7 +61,7 @@ export default function RenewalModal({ isOpen, onClose, group, onStartRenewal, o
 
         <button
           onClick={onEndGroup}
-          className="w-full rounded-2xl border-2 border-line p-4 text-left transition-colors hover:border-danger/40 hover:bg-danger-subtle/50"
+          className="w-full rounded-2xl border-2 border-line p-4 text-left transition-all hover:-translate-y-0.5 hover:border-danger/40 hover:bg-danger-subtle/50"
         >
           <div className="flex items-center gap-2">
             <XCircle size={16} className="shrink-0 text-danger" />
