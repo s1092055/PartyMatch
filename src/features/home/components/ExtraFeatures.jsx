@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { ChevronLeft, ChevronRight, VideoOff } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import Modal from '../../../shared/ui/primitives/Modal'
+import DeviceShowcase from './DeviceShowcase'
 import { HOME_EXTRA_FEATURES } from '../data/homeContent'
 
 const TOTAL = HOME_EXTRA_FEATURES.length
@@ -32,24 +33,10 @@ function cardStyle(offset) {
   }
 }
 
-function VideoThumb({ icon: Icon, color, bg, videoSrc }) {
+function CardThumb({ screenshots, title }) {
   return (
-    <div className="aspect-video w-full shrink-0 bg-raised">
-      {videoSrc ? (
-        <video className="h-full w-full object-cover" autoPlay muted loop playsInline>
-          <source src={videoSrc} />
-        </video>
-      ) : (
-        <div className="flex h-full w-full flex-col items-center justify-center gap-2">
-          <div className={`grid h-10 w-10 place-items-center rounded-xl ${bg}`}>
-            <Icon size={20} className={color} />
-          </div>
-          <div className="flex items-center gap-1.5 text-ink-4">
-            <VideoOff size={12} />
-            <span className="text-xs font-medium">功能示範影片即將推出</span>
-          </div>
-        </div>
-      )}
+    <div className="aspect-video w-full shrink-0 overflow-hidden bg-raised">
+      <img src={screenshots[0]} alt={title} className="h-full w-full object-cover object-top" loading="lazy" />
     </div>
   )
 }
@@ -78,7 +65,7 @@ export default function ExtraFeatures() {
 
       <div className="relative h-80 select-none overflow-hidden" style={{ perspective: '1400px' }}>
         {HOME_EXTRA_FEATURES.map((feature, i) => {
-          const { icon: Icon, title, desc, color, bg, videoSrc } = feature
+          const { title, desc, screenshots } = feature
           const offset = getOffset(i, active)
           const isActive = offset === 0
           return (
@@ -94,7 +81,7 @@ export default function ExtraFeatures() {
                 aria-label={isActive ? `放大播放：${title}` : `切換到：${title}`}
                 className="card flex h-full w-full cursor-pointer flex-col overflow-hidden text-center transition-transform duration-200 ease-out hover:scale-[1.03]"
               >
-                <VideoThumb icon={Icon} color={color} bg={bg} videoSrc={videoSrc} />
+                <CardThumb screenshots={screenshots} title={title} />
                 <div className="flex flex-1 flex-col items-center justify-center gap-1.5 px-5 py-4">
                   <h3 className="font-extrabold text-ink">{title}</h3>
                   <p className="text-sm leading-relaxed text-ink-3">{desc}</p>
@@ -141,19 +128,12 @@ export default function ExtraFeatures() {
         title={openFeature?.title}
         maxWidth="max-w-2xl"
       >
-        <div className="aspect-video w-full bg-raised">
-          {openFeature?.videoSrc ? (
-            <video className="h-full w-full object-cover" controls autoPlay>
-              <source src={openFeature.videoSrc} />
-            </video>
-          ) : (
-            <div className="flex h-full w-full flex-col items-center justify-center gap-3 text-ink-4">
-              <VideoOff size={28} />
-              <span className="text-sm font-medium">功能示範影片即將推出</span>
-            </div>
-          )}
-        </div>
-        <p className="p-5 text-sm leading-relaxed text-ink-3">{openFeature?.desc}</p>
+        {openFeature && (
+          <div className="p-5 pb-8">
+            <DeviceShowcase screenshots={openFeature.screenshots} title={openFeature.title} />
+          </div>
+        )}
+        <p className="px-5 pb-5 text-sm leading-relaxed text-ink-3">{openFeature?.desc}</p>
       </Modal>
     </section>
   )
