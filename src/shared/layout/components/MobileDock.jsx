@@ -1,4 +1,4 @@
-import { Compass, Crown, Heart, LayoutGrid, MessageSquare, PlusCircle, Search, Users } from 'lucide-react'
+import { Compass, Heart, LayoutDashboard, LayoutGrid, MessageSquare, PlusCircle, Search, Users } from 'lucide-react'
 import { Badge, LockBadge } from './navShared'
 import { useHideOnScroll } from '../../utils/hooks'
 
@@ -75,7 +75,7 @@ export default function MobileDock({
                 onClick={() => setMyMenuOpen(false)}
                 className={`flex flex-col items-center gap-1.5 rounded-xl px-2 py-2.5 text-xs font-bold whitespace-nowrap transition-colors hover:bg-raised ${pathname === '/manage-groups' ? 'text-brand' : 'text-ink'}`}
               >
-                <Crown size={20} strokeWidth={2.1} />
+                <LayoutDashboard size={20} strokeWidth={2.1} />
                 群組管理
               </a>
               <a

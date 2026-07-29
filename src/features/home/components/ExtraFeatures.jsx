@@ -1,7 +1,6 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import Modal from '../../../shared/ui/primitives/Modal'
-import DeviceShowcase from './DeviceShowcase'
+import { Lightbox } from './DeviceShowcase'
 import { HOME_EXTRA_FEATURES } from '../data/homeContent'
 
 const TOTAL = HOME_EXTRA_FEATURES.length
@@ -41,17 +40,36 @@ function CardThumb({ screenshots, title }) {
   )
 }
 
+const DRAG_THRESHOLD = 40 // px，超過這個距離才算滑動切換，不然當成點擊卡片
+
 export default function ExtraFeatures() {
   const [active, setActive] = useState(0)
-  const [openIndex, setOpenIndex] = useState(null)
-  const openFeature = openIndex !== null ? HOME_EXTRA_FEATURES[openIndex] : null
+  const [zoomedIndex, setZoomedIndex] = useState(null)
+  const zoomedFeature = zoomedIndex !== null ? HOME_EXTRA_FEATURES[zoomedIndex] : null
+  const dragRef = useRef(null)
+  const suppressClickRef = useRef(false)
 
   function go(delta) {
     setActive(prev => (prev + delta + TOTAL) % TOTAL)
   }
 
+  function handlePointerDown(e) {
+    dragRef.current = { startX: e.clientX }
+  }
+
+  function handlePointerUp(e) {
+    if (!dragRef.current) return
+    const deltaX = e.clientX - dragRef.current.startX
+    dragRef.current = null
+    if (Math.abs(deltaX) > DRAG_THRESHOLD) {
+      suppressClickRef.current = true
+      go(deltaX < 0 ? 1 : -1)
+    }
+  }
+
   function handleCardClick(i, isActive) {
-    if (isActive) setOpenIndex(i)
+    if (suppressClickRef.current) { suppressClickRef.current = false; return }
+    if (isActive) setZoomedIndex(i)
     else setActive(i)
   }
 
@@ -59,11 +77,17 @@ export default function ExtraFeatures() {
     <section>
       <div className="mx-auto mb-8 max-w-5xl px-5 text-center">
         <p className="mb-1 text-xs font-bold uppercase tracking-widest text-ink-4">附加功能</p>
-        <h2 className="text-3xl font-extrabold text-ink">更完善的體驗？</h2>
-        <p className="mt-3 text-base text-ink-3">除了核心功能，這些小工具讓整個流程更順暢。</p>
+        <h2 className="text-3xl font-extrabold text-ink">輔助功能</h2>
+        <p className="mt-3 text-base text-ink-3">除了核心功能，以下輔助工具讓整體流程更加順暢。</p>
       </div>
 
-      <div className="relative h-80 select-none overflow-hidden" style={{ perspective: '1400px' }}>
+      <div
+        className="relative h-80 cursor-grab touch-pan-y select-none overflow-hidden py-3 active:cursor-grabbing"
+        style={{ perspective: '1400px' }}
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={() => { dragRef.current = null }}
+      >
         {HOME_EXTRA_FEATURES.map((feature, i) => {
           const { title, desc, screenshots } = feature
           const offset = getOffset(i, active)
@@ -79,10 +103,10 @@ export default function ExtraFeatures() {
                 role="button"
                 tabIndex={isActive ? 0 : -1}
                 aria-label={isActive ? `放大播放：${title}` : `切換到：${title}`}
-                className="card flex h-full w-full cursor-pointer flex-col overflow-hidden text-center transition-transform duration-200 ease-out hover:scale-[1.03]"
+                className="card flex h-full w-full cursor-pointer flex-col overflow-hidden transition-transform duration-200 ease-out hover:scale-[1.03]"
               >
                 <CardThumb screenshots={screenshots} title={title} />
-                <div className="flex flex-1 flex-col items-center justify-center gap-1.5 px-5 py-4">
+                <div className="flex flex-1 flex-col items-start justify-center gap-1.5 px-5 py-4 text-left">
                   <h3 className="font-extrabold text-ink">{title}</h3>
                   <p className="text-sm leading-relaxed text-ink-3">{desc}</p>
                 </div>
@@ -122,19 +146,15 @@ export default function ExtraFeatures() {
         </button>
       </div>
 
-      <Modal
-        isOpen={!!openFeature}
-        onClose={() => setOpenIndex(null)}
-        title={openFeature?.title}
-        maxWidth="max-w-2xl"
-      >
-        {openFeature && (
-          <div className="p-5 pb-8">
-            <DeviceShowcase screenshots={openFeature.screenshots} title={openFeature.title} />
-          </div>
-        )}
-        <p className="px-5 pb-5 text-sm leading-relaxed text-ink-3">{openFeature?.desc}</p>
-      </Modal>
+      {zoomedFeature && (
+        <Lightbox
+          screenshots={zoomedFeature.screenshots}
+          title={zoomedFeature.title}
+          desc={zoomedFeature.desc}
+          initialStep={0}
+          onClose={() => setZoomedIndex(null)}
+        />
+      )}
     </section>
   )
 }

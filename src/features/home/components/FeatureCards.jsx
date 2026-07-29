@@ -19,14 +19,14 @@ export default function FeatureCards() {
     <section>
       <div className="mb-10 text-center">
         <p className="mb-1 text-xs font-bold uppercase tracking-widest text-ink-4">核心功能</p>
-        <h2 className="text-3xl font-extrabold text-ink">可以做到哪些事？</h2>
+        <h2 className="text-3xl font-extrabold text-ink">平台核心功能</h2>
         <p className="mt-3 text-base text-ink-3">
-          從找群組到管理訂閱，五大功能覆蓋合購的每個環節。
+          從尋找群組到管理訂閱，五大核心功能涵蓋合購流程的每個環節。
         </p>
       </div>
 
       <div className="space-y-20">
-        {HOME_FEATURES.map(({ icon: Icon, title, desc, screenshots, badge, action, cta }, i) => {
+        {HOME_FEATURES.map(({ title, desc, screenshots, action, cta }, i) => {
           const isEven = i % 2 === 0;
           return (
             <RevealSection key={title}>
@@ -36,13 +36,9 @@ export default function FeatureCards() {
                 }`}
               >
                 <div className="w-full md:w-1/2 md:shrink-0">
-                  <DeviceShowcase screenshots={screenshots} title={title} />
+                  <DeviceShowcase screenshots={screenshots} title={title} desc={desc} />
                 </div>
                 <div className="flex flex-col items-center md:w-1/2 md:items-start">
-                  <span className="mb-3 inline-flex w-fit items-center gap-1.5 rounded-full bg-brand-subtle px-3 py-1 text-xs font-extrabold text-brand">
-                    <Icon size={12} />
-                    {badge}
-                  </span>
                   <h3 className="text-center text-2xl font-extrabold text-ink md:text-left">{title}</h3>
                   <p className="mt-3 text-center text-base leading-relaxed text-ink-3 md:text-left">{desc}</p>
                   <button

@@ -3,8 +3,8 @@ import { Users, PlusCircle } from 'lucide-react'
 import { MEMBER_STEPS, HOST_STEPS } from '../data/homeContent'
 
 const ROLES = [
-  { key: 'member', label: '我想加入群組', icon: Users, steps: MEMBER_STEPS, color: 'text-brand', bg: 'bg-brand', subtle: 'bg-brand-subtle' },
-  { key: 'host',   label: '我想建立群組', icon: PlusCircle, steps: HOST_STEPS, color: 'text-success', bg: 'bg-success', subtle: 'bg-success/10' },
+  { key: 'member', label: '加入群組', icon: Users, steps: MEMBER_STEPS, color: 'text-brand', bg: 'bg-brand', subtle: 'bg-brand-subtle' },
+  { key: 'host',   label: '建立群組', icon: PlusCircle, steps: HOST_STEPS, color: 'text-success', bg: 'bg-success', subtle: 'bg-success/10' },
 ]
 
 export default function HowItWorks() {
@@ -15,8 +15,8 @@ export default function HowItWorks() {
     <section className="py-6">
       <div className="mb-8 text-center">
         <p className="mb-1 text-xs font-bold uppercase tracking-widest text-ink-4">使用流程</p>
-        <h2 className="text-3xl font-extrabold text-ink">你想做什麼？</h2>
-        <p className="mt-3 text-base text-ink-3">選擇你的角色，了解完整的操作流程。</p>
+        <h2 className="text-3xl font-extrabold text-ink">使用情境</h2>
+        <p className="mt-3 text-base text-ink-3">選擇您的身分，了解完整的操作流程。</p>
       </div>
 
       {/* 角色切換 */}

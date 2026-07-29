@@ -13,7 +13,6 @@ import ServiceLogo from '../../shared/ui/ServiceLogo'
 import FeatureCards from './components/FeatureCards'
 import ExtraFeatures from './components/ExtraFeatures'
 import HowItWorks from './components/HowItWorks'
-import HostGuide from './components/HostGuide'
 import FAQ from './components/FAQ'
 import RevealSection from '../../shared/ui/primitives/RevealSection'
 
@@ -39,7 +38,7 @@ export default function HomePage() {
           PartyMatch<br />
         </h1>
         <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-ink-3">
-          共享訂閱群組媒合平台——找團、申請、付款、溝通，全都在同一個地方完成。
+          共享訂閱媒合平台，整合尋找夥伴、送出申請、款項代管與即時溝通，讓您於單一平台完成所有流程。
         </p>
         <div className="mx-auto mt-12 flex flex-wrap items-center justify-center gap-3">
           <Button size="lg" className="px-8" onClick={() => navigate('/explore')}>
@@ -87,13 +86,12 @@ export default function HomePage() {
 
       <div className="mx-auto max-w-5xl flex-1 space-y-24 px-5 pb-16">
         <RevealSection><HowItWorks /></RevealSection>
-        <RevealSection><HostGuide /></RevealSection>
         <RevealSection><FAQ /></RevealSection>
       </div>
 
       <RevealSection>
         <section className="py-14 text-center text-ink">
-          <h2 className="text-2xl font-extrabold">準備好了嗎？</h2>
+          <h2 className="text-2xl font-extrabold">即刻開始使用</h2>
           <button
             onClick={() => navigate(loggedIn ? '/explore' : '/register')}
             className="mt-7 inline-flex items-center gap-2 rounded-xl bg-brand px-7 py-3 text-sm font-bold text-white shadow transition-all hover:-translate-y-0.5 hover:opacity-90"
