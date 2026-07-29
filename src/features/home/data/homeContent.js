@@ -113,7 +113,7 @@ export const MEMBER_STEPS = [
   {
     step: 1,
     title: '選擇訂閱服務',
-    desc: '從 30 種以上的熱門服務中挑選，例如 Netflix、Spotify 或 ChatGPT。',
+    desc: '從 28 種熱門服務中挑選，例如 Netflix、Spotify 或 ChatGPT。',
   },
   {
     step: 2,
@@ -189,7 +189,7 @@ export const HOST_TASKS = [
   {
     icon: CheckCircle2,
     title: '鎖定群組',
-    desc: '名額招滿後點擊「鎖定群組」，填寫收款帳號後確認。系統自動建立群組聊天室，通知所有成員進行付款。',
+    desc: '名額招滿後點擊「鎖定群組」，全員的席位費用其實已在你接受申請當下自動代管完成。系統會建立群組聊天室，通知所有成員填寫服務帳號；若服務沒有官方多人邀請機制，你會先被要求提供帳號密碼。',
   },
   {
     icon: Clock,
