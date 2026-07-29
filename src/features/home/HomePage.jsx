@@ -33,7 +33,7 @@ export default function HomePage() {
       </Suspense>
       <FloatingMessages />
 
-      <section className="mx-auto max-w-5xl px-5 pb-16 pt-28 text-center md:pt-16">
+      <section className="mx-auto max-w-5xl px-5 pb-16 pt-28 text-center lg:pt-16">
         <img src={logoUrl} alt="PartyMatch" className="mx-auto mb-5 h-16 w-auto" />
         <h1 className="mt-5 text-4xl font-extrabold leading-tight tracking-tight text-ink md:text-5xl">
           PartyMatch<br />
