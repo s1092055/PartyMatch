@@ -147,11 +147,6 @@ export const useAuthStore = create((set, get) => ({
     clearPrivateStores().catch(console.error)
   },
 
-  // ── 忘記密碼（尚未實作後端寄信功能）────────────────────────────────────────
-  resetPassword: async (_email) => {
-    return { ok: false, error: '重設密碼功能尚未開放，請聯絡客服' }
-  },
-
   // ── 停用帳號（軟刪除，需再次輸入密碼確認）──────────────────────────────────
   deactivateAccount: async (password) => {
     try {

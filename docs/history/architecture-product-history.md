@@ -1,5 +1,9 @@
 # Architecture / Product 演變記錄
 
+## development.md：未完成功能統一改成 disabled + 「即將推出」badge
+
+Google 登入按鈕、忘記密碼表單原本行為不一致：Google 登入是直接 `disabled` 並標示「即將推出」，忘記密碼卻是表單可以正常填寫送出、送出後才跳出「重設密碼功能尚未開放，請聯絡客服」的錯誤訊息（`useAuthStore.resetPassword()`），帳號中心「通知偏好」「安全驗證」分頁的 badge 則簡寫成「即將」而非「即將推出」。已統一成同一套視覺語言：忘記密碼表單改成送出按鈕直接 `disabled` 並標示「即將推出」（移除 `resetPassword()` 這個永遠回傳失敗的 stub 函式），帳號中心分頁的 badge 文字統一改成「即將推出」。同一批清理也移除了 `uploadPaymentProof()`／後端 `POST /upload/payment-proof` 這個沒有任何地方呼叫的死程式碼——是 PM 幣代管模式上線前、成員還需要手動轉帳並上傳付款截圖時代的舊功能，現在申請通過即自動代管扣款，不再需要這個上傳流程。
+
 ## frontend-architecture.md：主導覽切換點從 `md:` 改成 `lg:`
 
 `AppNav.jsx` 桌機版 sidebar／手機版 header+dock 的切換原本用 `md:`（768px），跟 `@theme` 裡其他版面排列（grid 欄數、篩選列橫排）共用同一個斷點。但桌機 sidebar 靠 `:hover`／`:focus-within` 展開才看得到文字標籤，iPad（直向 768px+、橫向 1024px+）雖然寬度落在 `md` 區間，卻是觸控裝置沒有真正的 hover，結果側邊欄卡在收合狀態、使用者只看得到圖示看不到任何文字——是實際使用 iPad Pro 13" Safari 時發現的問題。修正為裝置類型切換一律改用 `lg:`（1280px），iPad 統一改用手機版的點擊式 header/dock（本來就不依賴 hover）；純內容排版（grid 欄數等）不受影響，仍可以繼續用 `md:`。同一批修正也把 Modal／版面高度計算裡裸的 `vh` 單位全部換成 `dvh`（`GroupModalShell.jsx`、`Modal.jsx`、`TopupModal.jsx`、`CreditScoreModal.jsx`、`HostReviewsModal.jsx`、`MessagesModal.jsx`、`AccountPage.jsx`、`AuthLayout.jsx`、`ManageGroupsPage.jsx`、`SubscriptionsPage.jsx`）——iOS Safari 的 `vh` 是抓工具列收合後的最大可視高度去計算，分頁列/網址列展開時會跟實際可視範圍對不上，讓固定高度的 Modal 在 iPad Safari 上顯得過高、貼著畫面邊緣，`dvh` 會隨目前實際可視高度即時更新。

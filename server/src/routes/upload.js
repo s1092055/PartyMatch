@@ -4,18 +4,6 @@ import { requireAuth } from '../middleware/auth.js'
 
 const router = Router()
 
-// POST /upload/payment-proof
-// body: { data: 'data:image/...;base64,...' }
-router.post('/payment-proof', requireAuth, async (req, res, next) => {
-  try {
-    const { data } = req.body
-    if (!data) return res.status(400).json({ message: '缺少圖片資料' })
-
-    const result = await uploadImage(data, { folder: 'partymatch/payment-proofs' })
-    res.json(result)
-  } catch (err) { next(err) }
-})
-
 // 「附件」類上傳共用同一套邏輯（圖片或一般檔案皆可），差別只在存放的資料夾——
 // 申訴附件跟團主回報帳號問題的附件本質上是同一種東西
 function registerEvidenceUploadRoute(path, folder) {

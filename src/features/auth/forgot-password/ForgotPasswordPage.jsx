@@ -1,30 +1,11 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Mail } from 'lucide-react'
-import AuthLayout, { AuthInput, AuthError } from '../components/AuthLayout'
+import AuthLayout, { AuthInput } from '../components/AuthLayout'
 import Button from '../../../shared/ui/primitives/Button'
-import { useAuthStore } from '../../../shared/stores/useAuthStore'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
-  const [submitted, setSubmitted] = useState(false)
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-
-  async function handleSubmit(e) {
-    e.preventDefault()
-    if (!email.trim() || loading) return
-    setLoading(true)
-    const result = await useAuthStore.getState().resetPassword(email)
-    setLoading(false)
-    if (result.ok) {
-      setSubmitted(true)
-      setError('')
-    } else {
-      setError(result.error ?? '寄送失敗，請稍後再試')
-      setSubmitted(false)
-    }
-  }
 
   return (
     <AuthLayout backTo="/login">
@@ -35,26 +16,19 @@ export default function ForgotPasswordPage() {
         </p>
       </div>
 
-      <form className="mt-9 space-y-5" onSubmit={handleSubmit}>
+      <form className="mt-9 space-y-5" onSubmit={e => e.preventDefault()}>
         <AuthInput
           icon={Mail}
           label="電子郵件"
           type="email"
           placeholder="請輸入電子郵件"
           value={email}
-          onChange={value => { setEmail(value); setSubmitted(false); setError('') }}
+          onChange={setEmail}
         />
 
-        {submitted && (
-          <div className="rounded-2xl border border-success/20 bg-success-subtle px-4 py-3 text-sm font-semibold text-success-text">
-            如果此信箱已註冊，我們會寄出重設密碼連結。
-          </div>
-        )}
-
-        {error && <AuthError message={error} />}
-
-        <Button type="submit" size="lg" className="h-[3.75rem] w-full text-lg" disabled={!email.trim()} loading={loading}>
+        <Button type="submit" size="lg" className="h-[3.75rem] w-full gap-2 text-lg" disabled>
           送出重設連結
+          <span className="rounded-full bg-raised px-2 py-0.5 text-2xs font-bold text-ink-3">即將推出</span>
         </Button>
       </form>
 

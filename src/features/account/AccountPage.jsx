@@ -43,7 +43,7 @@ function ComingSoonPlaceholder({ label }) {
         <Clock size={22} className="text-ink-3" />
       </div>
       <div className="space-y-1">
-        <p className="text-sm font-bold text-ink">「{label}」尚未開放</p>
+        <p className="text-sm font-bold text-ink">「{label}」即將推出</p>
         <p className="text-xs text-ink-3">此功能正在開發中，敬請期待</p>
       </div>
     </div>
@@ -137,7 +137,7 @@ export default function AccountPage() {
                     {Icon && <Icon size={17} strokeWidth={2.1} className="shrink-0" />}
                     <span className="flex-1 text-left">{tab.label}</span>
                     {tab.comingSoon && (
-                      <span className="rounded-full bg-raised px-1.5 py-0.5 text-[0.6rem] font-bold text-ink-3">即將</span>
+                      <span className="rounded-full bg-raised px-1.5 py-0.5 text-[0.6rem] font-bold text-ink-3">即將推出</span>
                     )}
                   </button>
                 </li>
@@ -173,7 +173,7 @@ export default function AccountPage() {
                   {tab.icon && <tab.icon size={17} strokeWidth={2.1} className={isOpen ? 'text-brand' : 'text-ink-3'} />}
                   <span className={`font-bold ${isOpen ? 'text-brand' : 'text-ink'}`}>{tab.label}</span>
                   {tab.comingSoon && (
-                    <span className="rounded-full bg-raised px-1.5 py-0.5 text-[0.6rem] font-bold text-ink-3">即將</span>
+                    <span className="rounded-full bg-raised px-1.5 py-0.5 text-[0.6rem] font-bold text-ink-3">即將推出</span>
                   )}
                 </span>
                 <ChevronDown

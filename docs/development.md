@@ -155,8 +155,8 @@ zip -r partymatch.zip . \
 
 | 項目 | 說明 | 相關檔案 |
 |------|------|----------|
-| Google OAuth | 目前 `loginGoogle()` 回傳 stub 錯誤，需實作後端 OAuth 流程 | `useAuthStore.js`、`server/src/routes/auth.js` |
-| 重設密碼寄信 | 目前 `resetPassword()` 回傳 stub 錯誤，需串接 email 服務 | `useAuthStore.js`、`server/src/routes/auth.js` |
+| Google OAuth | 前端「以 Google 繼續」按鈕目前直接 `disabled` 並標示「即將推出」，沒有任何 click handler 或後端 route，需從頭實作後端 OAuth 流程 | `LoginPage.jsx`、`RegisterPage.jsx` |
+| 重設密碼寄信 | 前端表單目前直接 `disabled` 並標示「即將推出」，沒有對應的後端 route，需串接 email 服務 | `ForgotPasswordPage.jsx` |
 | 手機號碼簡訊驗證 | 註冊時手機號碼僅做格式驗證，未確認是否為本人持有，需串接簡訊 OTP 服務 | `RegisterPage.jsx`、`server/src/routes/auth.js` |
 
 ### 中優先度

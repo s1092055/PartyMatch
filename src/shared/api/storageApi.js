@@ -15,10 +15,6 @@ async function uploadFile(endpoint, file) {
   return result.url
 }
 
-export async function uploadPaymentProof(_groupId, _userId, file) {
-  return uploadFile('/upload/payment-proof', file)
-}
-
 export async function uploadDisputeEvidence(file) {
   return uploadFile('/upload/dispute-evidence', file)
 }
