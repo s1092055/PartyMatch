@@ -1,21 +1,25 @@
 # RWD 測試案例
 
-PartyMatch 的斷點是三段式（`src/index.css` `@theme`）：手機（< 768px）／`md:` 平板以上（≥ 768px）／`lg:` 桌機以上（≥ 1280px）。實測建議用瀏覽器 DevTools 的裝置模擬，至少涵蓋：手機 390px（iPhone 尺寸）、平板 768px、桌機 1440px。
+PartyMatch 的斷點實質上只有兩段（`src/index.css` `@theme`：`sm`／`md` 皆為 768px，`lg`／`xl`／`2xl` 皆為 1280px）。**這兩段在用途上分成兩層，測試時要分開驗證**：
+- **裝置類型切換（主導覽／側邊欄）一律用 `lg:`（≥1280px 才算「桌機」）**：因為側邊欄靠 `:hover`／`:focus-within` 展開顯示文字標籤，iPad（不論直向 768px+ 或橫向 1024px+，都 <1280px）是觸控裝置沒有真正的 hover，若用 `md:` 判斷會被誤判成桌機、卡在收合狀態看不到任何文字標籤（見 TC-301）
+- **純內容排版（grid 欄數、篩選列橫排/直排、Modal 內部分頁佈局等，不涉及 hover 才能看到內容）可以繼續用 `md:`（≥768px）**：這類切換手機/平板/桌機都能正常互動，不受觸控裝置無法 hover 影響
+
+實測建議用瀏覽器 DevTools 的裝置模擬，至少涵蓋：手機 390px（iPhone 尺寸）、iPad 直向 768px 與橫向 1024px（務必包含在 1280px 以下的範圍，這是最容易漏測、卡在「不上不下」中間地帶的寬度）、桌機 1440px。
 
 ---
 
 ### TC-301：主導覽 RWD 切換
 
-**步驟**：分別在手機（<768px）與桌機（≥1280px）寬度開啟任一頁面
+**步驟**：分別在手機（<768px）、iPad 寬度（768–1279px，直向與橫向都要測）、桌機（≥1280px）開啟任一頁面
 
 **預期結果**：
-- **桌機**：左側 floating sidebar，收合 64px icon bar，hover/focus-within 展開至 224px 顯示文字標籤
-- 通知按鈕與 PM幣餘額是獨立於 floating sidebar 之外、fixed 在畫面右上角的區塊（PM幣寬度貼齊通知按鈕，僅登入時顯示），不隨 sidebar 收合/展開狀態變化
-- 訊息按鈕同樣獨立 fixed 在畫面右下角，對齊 sidebar 頭像高度
-- sidebar 展開時，底部使用者頭像列右側會多出「信用分數」按鈕（hover/focus-within 才淡入顯示，收合時隱藏）
-- **手機**：頂部 header（Logo + 通知 + 頭像）+ 底部 Dock（快速搜尋、建立群組、探索中央圓形按鈕、我的 dropdown、訊息）；PM幣餘額與信用分數改收在頭像下拉選單裡，不直接顯示在 header 列
-- 手機 Dock 往下捲動時應滑出隱藏，往上捲或接近頁面頂端時重新顯示（`useHideOnScroll`）
-- `ScrollToTop` 按鈕位置應隨 Dock 顯示狀態連動，不應與 Dock 重疊
+- **手機與 iPad（<1280px）都應該顯示同一套「手機版」導覽**：頂部 header（Logo + 通知 + 頭像）+ 底部 Dock（快速搜尋、建立群組、探索中央圓形按鈕、我的 dropdown、訊息）；PM幣餘額與信用分數改收在頭像下拉選單裡，不直接顯示在 header 列。這個範圍內導覽全部是點擊觸發（不依賴 hover），文字標籤本來就一直可見
+- **只有桌機（≥1280px）才顯示側邊欄**：左側 floating sidebar，收合 64px icon bar，hover/focus-within 展開至 256px 顯示文字標籤——這個互動方式假設有滑鼠，所以刻意只在 `lg:` 才出現，避免 iPad 這類觸控裝置卡在收合狀態、永遠看不到文字標籤（曾經用 `md:` 判斷，導致 iPad 被誤判成桌機，見 [歷史異動](../history/flows-history.md)）
+- 桌機時，通知按鈕與 PM幣餘額是獨立於 floating sidebar 之外、fixed 在畫面右上角的區塊（PM幣寬度貼齊通知按鈕，僅登入時顯示），不隨 sidebar 收合/展開狀態變化
+- 桌機時，訊息按鈕同樣獨立 fixed 在畫面右下角，對齊 sidebar 頭像高度
+- 桌機時，sidebar 展開時底部使用者頭像列右側會多出「信用分數」按鈕（hover/focus-within 才淡入顯示，收合時隱藏）
+- 手機與 iPad 的 Dock 往下捲動時應滑出隱藏，往上捲或接近頁面頂端時重新顯示（`useHideOnScroll`）
+- `ScrollToTop` 按鈕位置應隨 Dock 顯示狀態連動（`lg:` 以下才需要避開 Dock），不應與 Dock 重疊
 
 ---
 
@@ -40,6 +44,7 @@ PartyMatch 的斷點是三段式（`src/index.css` `@theme`）：手機（< 768p
 - 手機：側邊欄改成橫向排列在內容區下方（`flex-row overflow-x-auto`），不應該側邊欄跟內容區同時佔滿畫面寬度導致擠壓變形
 - Modal 內三層 panel 滑動軌道（`subPanel`/`subSubPanel`）在手機寬度下滑動切換動畫應正常，不應有橫向溢出
 - 頂部倒數/狀態提醒 banner（`headerBanner`）是掛在 `panelKey` 區塊外面，切換分頁（例如概覽切到服務內容、群組名單）時 banner 應維持原地不動、不重新播放 slide-up 進場動畫；只有下方分頁內容本身有 slide-up 效果，且 banner 在所有分頁都要能看到，不只在群組概覽才顯示
+- Modal 高度是 `min(92dvh, 720px)`（用 `dvh` 不是 `vh`，原因同 TC-304）：在 iPad Safari 分頁列/網址列展開、可視範圍較小時實測，Modal 上下應留有明顯的邊界間距，不應該貼著螢幕邊緣或看起來被裁切
 
 ---
 
@@ -48,7 +53,7 @@ PartyMatch 的斷點是三段式（`src/index.css` `@theme`）：手機（< 768p
 **步驟**：開啟 `/account`，分別測手機與桌機寬度
 
 **預期結果**：
-- 桌機：左右 sidebar 分頁佈局，右側內容區固定高度（`calc(100vh - 16rem)`）並內部垂直捲動，登出按鈕固定在該容器最底部靠右
+- 桌機：左右 sidebar 分頁佈局，右側內容區固定高度（`calc(100dvh - 16rem)`，用 `dvh` 不是 `vh`——iOS Safari 的 `vh` 是抓工具列收合後的最大可視高度，跟分頁列/網址列展開時實際可視範圍對不上，會讓內容區在 iPad Safari 上算出過高的高度）並內部垂直捲動，登出按鈕固定在該容器最底部靠右
 - 手機：分頁改為 accordion 展開收合，登出按鈕獨立置於 accordion 最底部
 - 兩種版面下，帳號停用（軟刪除）流程的密碼輸入框與確認按鈕都應正常可操作
 

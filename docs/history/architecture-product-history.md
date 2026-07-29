@@ -1,5 +1,13 @@
 # Architecture / Product 演變記錄
 
+## frontend-architecture.md：主導覽切換點從 `md:` 改成 `lg:`
+
+`AppNav.jsx` 桌機版 sidebar／手機版 header+dock 的切換原本用 `md:`（768px），跟 `@theme` 裡其他版面排列（grid 欄數、篩選列橫排）共用同一個斷點。但桌機 sidebar 靠 `:hover`／`:focus-within` 展開才看得到文字標籤，iPad（直向 768px+、橫向 1024px+）雖然寬度落在 `md` 區間，卻是觸控裝置沒有真正的 hover，結果側邊欄卡在收合狀態、使用者只看得到圖示看不到任何文字——是實際使用 iPad Pro 13" Safari 時發現的問題。修正為裝置類型切換一律改用 `lg:`（1280px），iPad 統一改用手機版的點擊式 header/dock（本來就不依賴 hover）；純內容排版（grid 欄數等）不受影響，仍可以繼續用 `md:`。同一批修正也把 Modal／版面高度計算裡裸的 `vh` 單位全部換成 `dvh`（`GroupModalShell.jsx`、`Modal.jsx`、`TopupModal.jsx`、`CreditScoreModal.jsx`、`HostReviewsModal.jsx`、`MessagesModal.jsx`、`AccountPage.jsx`、`AuthLayout.jsx`、`ManageGroupsPage.jsx`、`SubscriptionsPage.jsx`）——iOS Safari 的 `vh` 是抓工具列收合後的最大可視高度去計算，分頁列/網址列展開時會跟實際可視範圍對不上，讓固定高度的 Modal 在 iPad Safari 上顯得過高、貼著畫面邊緣，`dvh` 會隨目前實際可視高度即時更新。
+
+## frontend-architecture.md：按鈕互動回饋從「點擊縮小」改成「hover 上浮」
+
+全站按鈕原本零星有 `active:scale-[0.96]`（點擊縮小）效果，但沒有統一套用；後來改成移除點擊縮小，改為 hover 時輕微上浮（`hover:-translate-y-0.5`），並統一套用到全站真正的動作按鈕（送出/確認/取消/導覽連結等），小型純圖示工具鈕（Modal 關閉、輪播翻頁箭頭）維持原樣不加位移，避免密集排列的小圖示鈕一起跳動。共用的 `Button.jsx` primitive 也一併加上這個效果，讓套用它的元件自動繼承。
+
 ## backend-architecture.md：`applications.js` PATCH /:id 狀態轉換與退款的耦合 bug
 
 早期版本曾經把狀態寫入（`status`/`activeKey`）也綁進「僅 `status: 'pending'` 才算數」的條件式 `updateMany` 裡，導致跟團主移除已接受成員（該申請當下狀態是 `approved` 不是 `pending`）撞在一起時，狀態被誤判成不用處理而卡住。已修正為狀態轉換與退款是兩個各自獨立判斷的步驟：狀態轉換不論退款與否都無條件寫入，退款則另外用條件式 `updateMany` 決定要不要呼叫 `refundEscrow`。
