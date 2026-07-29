@@ -89,7 +89,38 @@
   --color-purple-text:   #5B21B6;
   --color-purple-border: #DDD6FE;
 
-  /* ── Radius ── */
+  /* ── shadcn/ui 語意 token（遷移用，全部是既有色板的別名，非新色碼）──
+     shadcn/Radix 生態的元件（Button、Dialog、Select…）依賴這組固定命名的
+     CSS 變數才能運作。這裡只做別名，不引入新色碼，確保品牌色/中性色仍只有
+     一份真實來源（--color-brand 等），視覺不會因為換元件庫而跑掉。 */
+  --color-background:            var(--color-canvas);
+  --color-foreground:            var(--color-ink);
+  --color-primary:                var(--color-brand);
+  --color-primary-foreground:     #fff;
+  --color-secondary:              var(--color-raised);
+  --color-secondary-foreground:   var(--color-ink-2);
+  --color-muted:                  var(--color-surface-muted);
+  --color-muted-foreground:       var(--color-ink-3);
+  --color-accent:                 var(--color-brand-subtle);
+  --color-accent-foreground:      var(--color-brand);
+  --color-destructive:            var(--color-danger);
+  --color-destructive-foreground: #fff;
+  --color-card:                   var(--color-surface);
+  --color-card-foreground:        var(--color-ink);
+  --color-popover:                var(--color-surface);
+  --color-popover-foreground:     var(--color-ink);
+  --color-border:                 var(--color-line);
+  --color-input:                  var(--color-line-strong);
+  --color-ring:                   var(--color-brand-border);
+
+  /* ── Radius ──
+     注意：--radius-lg/xl/2xl 已經被全站既有元件大量使用（`rounded-lg`／`rounded-xl`
+     等 Tailwind utility），shadcn 官方 recipe 慣例會另外宣告一個 --radius 基準值，
+     用 calc() 派生出 sm/md/lg/xl 四階並覆蓋這幾個既有名稱——這裡刻意不那樣做，
+     避免全站既有元件的圓角被 shadcn 初始化一次性改掉。之後在階段 3 移植每個
+     shadcn 元件時，改成逐一手動指定該元件該對應哪個既有 --radius-* token
+     （例如 Button 用 --radius-control、Dialog 用 --radius-card），不要引入
+     會連動覆蓋 rounded-lg/xl/2xl 的通用 --radius 變數。 */
   --radius-card:    1.75rem;
   --radius-logo:    1.45rem;
   --radius-panel:   1.5rem;
