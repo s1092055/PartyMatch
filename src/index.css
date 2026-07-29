@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
 /* 建立群組 Step2/Step3 的左右兩欄版面只在「桌機寬度 + 螢幕不高」時才切成並排，
    螢幕夠高（例如大螢幕外接顯示器）時改回跟手機/平板一樣的垂直排列，避免固定高度的
@@ -112,6 +113,13 @@
   --color-border:                 var(--color-line);
   --color-input:                  var(--color-line-strong);
   --color-ring:                   var(--color-brand-border);
+
+  /* shadcn 生成的元件（如 Button 的 xs/sm 尺寸）用 --radius-sm/--radius-md
+     組 arbitrary value（例如 min(var(--radius-md),10px)）。刻意不引入會連動
+     覆蓋 rounded-lg/xl/2xl 的通用 --radius，只針對這兩個尚未被既有系統佔用
+     的名稱手動指定對應的既有 token。 */
+  --radius-sm: var(--radius-inner);
+  --radius-md: var(--radius-control);
 
   /* ── Radius ──
      注意：--radius-lg/xl/2xl 已經被全站既有元件大量使用（`rounded-lg`／`rounded-xl`
