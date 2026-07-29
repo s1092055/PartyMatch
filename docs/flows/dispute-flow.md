@@ -43,6 +43,7 @@ sequenceDiagram
 | 路徑 | 說明 |
 |------|------|
 | `src/features/subscriptions/components/MemberGroupView.jsx` | 申訴表單（`activePanel === 'dispute'`）、`handleDisputeSubmit`、`handleEvidenceSelect` |
+| `src/shared/ui/primitives/DisputeReasonDialog.jsx` | 唯讀對話框，顯示申訴人、申訴理由與附件連結；`MemberGroupView.jsx`／`src/features/manage-groups/components/HostGroupView.jsx` 都有掛載，讓成員與團主在群組進入 `disputed` 後都能點開查看同一份申訴內容，不用只靠聊天室文字傳達 |
 | `src/shared/api/storageApi.js` | `uploadDisputeEvidence`，附件上傳 |
 | `src/shared/stores/useGroupStore.js` | `disputeGroup`、`adjudicateGroup` |
 | `src/shared/api/groupsApi.js` | `disputeGroupApi`、`adjudicateGroupApi` |

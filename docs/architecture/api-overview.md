@@ -128,6 +128,7 @@
 |--------|------|------|------|
 | POST | `/upload/payment-proof` | 需登入 | 上傳付款憑證（base64 data URL） |
 | POST | `/upload/dispute-evidence` | 需登入 | 上傳申訴佐證檔案（圖片或一般檔案） |
+| POST | `/upload/service-issue-evidence` | 需登入 | 團主回報成員帳號問題時的附件；跟申訴附件同一套邏輯，差別只在存放資料夾 |
 
 ## System Messages（`server/src/routes/systemMessages.js`）
 

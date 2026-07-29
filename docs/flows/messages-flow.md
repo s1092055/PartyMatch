@@ -42,7 +42,7 @@ flowchart TD
 | `src/features/messages/components/ChatWindow.jsx` | 聊天視窗 |
 | `src/features/messages/components/ChatMembersPanel.jsx` | 群組成員面板 |
 | `src/features/messages/components/ConversationAvatar.jsx` | 對話頭像 |
-| `src/features/messages/components/ConversationMenu.jsx` | 對話選單 |
+| `src/features/messages/components/ConversationHeaderActions.jsx` | 聊天視窗 header 右側的「查看群組」「成員」兩顆按鈕，只有兩個選項就不用三個點點開下拉選單 |
 | `src/features/messages/components/MessageBubble.jsx` | 單則訊息氣泡 |
 | `src/features/messages/hooks/useMessageScroll.js` | 捲動控制 |
 | `src/features/messages/hooks/useParticipantNames.js` | 參與者名稱查詢 |

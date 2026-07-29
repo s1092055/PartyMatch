@@ -36,7 +36,9 @@ flowchart TD
 | `src/features/subscriptions/SubscriptionsPage.jsx` | 頁面總入口，串接分頁與訂閱卡片 grid |
 | `src/features/subscriptions/components/SubscriptionCard.jsx` | 單一訂閱卡片 |
 | `src/features/subscriptions/components/MemberGroupView.jsx` | 成員視角群組詳情 Modal：確認服務、申訴、退出、查看群組名單、付款管理 |
-| `src/features/subscriptions/components/FillServiceInfoModal.jsx` | 填寫服務帳號的獨立 sub-modal，開啟時底下的群組詳情 Modal 完全隱藏，關閉才恢復顯示 |
+| `src/features/subscriptions/components/FillServiceInfoModal.jsx` | 填寫服務帳號的獨立 sub-modal，開啟時底下的群組詳情 Modal 完全隱藏，關閉才恢復顯示；`shared_credentials` 服務會先顯示團主提供的帳號資訊（套 `CredentialWatermark`），再是確認勾選框 |
+| `src/shared/ui/primitives/CredentialWatermark.jsx` | 疊在帳密內容上的浮水印（查看者名稱＋時間），無法阻止截圖，但外流時至少能溯源查看者 |
+| `src/shared/utils/hostCredentialFields.js` | `getHostCredentialFields`、`parseHostCredentials`：`shared_credentials` 服務依服務別定義的結構化帳密欄位與解析 |
 | `src/features/subscriptions/components/memberGroupView/buildPaymentsPanel.jsx` | 付款管理面板，顯示自己這期最新一筆代管紀錄（見 PM幣代管流程文件） |
 | `src/shared/utils/serviceInfoFields.js` | `SHARING_METHOD_CONFIG`（各共享機制的欄位設定與提醒文案）、`hasFilledServiceInfo`、`getServiceInfoSummary` |
 | `src/features/subscriptions/components/ReviewHostModal.jsx` | 確認服務完成後的團主評價彈窗 |
@@ -85,7 +87,7 @@ flowchart TD
 - `SubscriptionsPage.jsx` 依分頁（審核中／招募中／處理中／服務中）過濾出屬於自己的訂閱資料；待鎖定／成員填寫中／待啟用／確認期中／申訴中都併在「處理中」，細分階段交給卡片本身的狀態 badge 顯示（見 `memberFilters.js` 的 `FILTER_TABS`）；已結束／已取消的訂閱不在這幾個分頁裡，要點最上方的「群組紀錄」按鈕查看
 
 **2. 填寫服務帳號（`pending_confirmation`）**
-- 還沒填寫帳號資訊時，`MemberGroupView` 會在群組概覽底部顯示「填寫帳號」動態按鈕（跟「確認服務」「回報問題」同一個位置，不是側邊欄項目），點擊後開啟 `FillServiceInfoModal`——一個堆疊在群組詳情 Modal 上方的獨立 sub-modal，開啟時底下的群組詳情 Modal 會完全隱藏（不是半透明疊加），關閉 sub-modal 才會重新顯示群組詳情；表單依該服務的 `sharingMethod` 動態顯示對應欄位（一般是 email；KKBOX 多一個地址欄位；friDay影音是邀請碼；無官方邀請機制的服務則是一個確認勾選框），送出後寫入 `Member.serviceInfo`（詳見 [各服務填寫帳號資訊需求調查](../product/service-info-requirements.md)）
+- 還沒填寫帳號資訊時，`MemberGroupView` 會在群組概覽底部顯示「填寫帳號」動態按鈕（跟「確認服務」「回報問題」同一個位置，不是側邊欄項目），點擊後開啟 `FillServiceInfoModal`——一個堆疊在群組詳情 Modal 上方的獨立 sub-modal，開啟時底下的群組詳情 Modal 會完全隱藏（不是半透明疊加），關閉 sub-modal 才會重新顯示群組詳情；表單依該服務的 `sharingMethod` 動態顯示對應欄位（一般是 email；KKBOX 多一個地址欄位；friDay影音是邀請碼；無官方邀請機制的服務（`shared_credentials`）則是先顯示團主鎖定群組時填寫的結構化帳密資訊，成員只需確認勾選），送出後寫入 `Member.serviceInfo`（詳見 [各服務填寫帳號資訊需求調查](../product/service-info-requirements.md)）；`shared_credentials` 服務顯示的帳密內容疊了一層 `CredentialWatermark` 浮水印（查看者名稱＋時間），無法阻止截圖，但外流時至少能溯源是誰看過
 - 頁面頂部會顯示「請填寫服務帳號以完成加入流程，剩餘 HH:MM:SS」倒數橫幅（讀 `group.serviceInfoDeadline`，鎖定時間 + 24h，每秒更新；逾期只顯示「已逾期」，不會有任何自動處理）
 - 後端會檢查群組內是否全員都已經填寫，如果是，就自動把群組狀態推進到「等待團主啟用」
 

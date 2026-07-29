@@ -51,6 +51,10 @@ flowchart TD
 | `src/features/manage-groups/components/hostGroupView/buildApplicationsPanel.jsx` | 申請管理子面板，只列待審核 |
 | `src/features/manage-groups/components/hostGroupView/ApplicationCard.jsx` | 單筆申請卡片，接受／拒絕 |
 | `src/features/manage-groups/components/hostGroupView/buildReviewHistoryPanel.jsx` | 審核紀錄第三層面板，只列已接受／已拒絕的申請（已退出／已移除是成員異動不是審核結果，不放進來，避免名稱跟內容對不上） |
+| `src/features/manage-groups/components/hostGroupView/buildMemberHistoryPanel.jsx` | 成員紀錄第三層面板，跟審核紀錄同層級但相反：只列已退出／已移除的成員異動記錄 |
+| `src/features/manage-groups/components/LockGroupCredentialsModal.jsx` | 鎖定群組時，官方無多人邀請機制的服務（`shared_credentials`）改用這個結構化表單填帳密（取代原本自由文字 textarea），跟成員端「填寫服務帳號」sub-modal 同一套堆疊模式 |
+| `src/shared/utils/hostCredentialFields.js` | `getHostCredentialFields`（依服務別定義的結構化帳密欄位，例如 Netflix 多一個 Profile 名稱、VPN 服務多一個裝置名額）、`parseHostCredentials`、`CREDENTIAL_RISK_NOTICE`（帳密風險提醒文案） |
+| `src/shared/ui/primitives/DisputeReasonDialog.jsx` | 查看回報原因與附件的唯讀對話框，團主可用它查看成員送出的申訴理由（`disputeMember.serviceInfoIssueNote`），跟成員端 `MemberGroupView.jsx` 共用同一個元件 |
 | `src/features/manage-groups/components/hostGroupView/buildBillingPanel.jsx` | 收款管理面板（見 PM幣代管流程文件） |
 | `src/features/manage-groups/components/hostGroupView/buildMemberInfoPanel.jsx` | 「成員資料」分頁，團主查看每位成員填寫的服務帳號資訊，跟 `ActivateServiceModal` 成員清單同一套判斷邏輯（`hasFilledServiceInfo`/`getServiceInfoSummary`），可直接從這裡回報帳號問題（`ReportServiceIssueModal`），不用等到啟用服務那一步才能看 |
 | `src/features/manage-groups/utils/hostFilters.js` | `STATUS_FILTER_TABS`（招募中/處理中/服務中三個大分類；待鎖定/成員填寫中/待啟用/確認期中/申訴中五種細分狀態都併入「處理中」——`PROCESSING_STATUSES` 定義在 `src/shared/utils/groupStatus.js`，跟 member 端共用；已移除「全部」分頁，細分階段交給卡片本身的狀態 badge 顯示）、`matchesFilter`、`calcApprovalSeatPatch` |
@@ -105,8 +109,10 @@ flowchart TD
 - 成員名單面板提供移除按鈕，倒數確認後才會真的執行
 - 後端會退款、釋出名額、把對應申請標為 `removed`
 - 前端同步更新本地名額，通知被移除的成員；如果聊天室已經存在，會發一則系統訊息並把該成員移出聊天室
+- 成員名單面板右下角也有一個固定貼在角落的「成員紀錄」按鈕（跟「審核紀錄」同樣的角落樣式），列出已退出／已移除的成員異動記錄，跟只列審核結果（已接受／已拒絕）的「審核紀錄」互不重疊
 
 **4. 鎖定群組（`full → pending_confirmation`）**
+- 官方無多人邀請機制的服務（`shared_credentials`）點擊鎖定時會先跳出 `LockGroupCredentialsModal`，要求填完該服務對應的結構化帳密欄位（帳號/密碼，依服務再加 Profile 名稱、裝置名額、Discord 邀請連結等）才能繼續，並顯示帳密外流風險提醒；填完的內容存進 `group.sharedCredentials`（JSON 字串），成員填寫服務帳號時會直接看到（套浮水印）
 - 先建立群組聊天室（把團主跟所有成員加進去），再呼叫鎖定 API，後端會同時設定所有成員的下次扣款日，以及 `serviceInfoDeadline`（鎖定時間 + 24h，僅供前端顯示倒數，逾期不會有任何自動處理）
 - 通知團主自己與所有成員聊天室已開啟／請填寫服務帳號（見上方「使用技術」的 `fill_service_info` 通知說明）；填寫帳號本身改在成員端群組詳情的 sub-modal 進行，聊天室不再另外發送提示訊息卡片
 - 群組詳情頁（團主與成員兩側）在 `pending_confirmation` 期間都會顯示「等待成員填寫服務帳號資訊，剩餘 HH:MM:SS」的倒數橫幅（`CountdownText`，每秒更新）

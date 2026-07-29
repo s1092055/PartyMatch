@@ -106,7 +106,9 @@
 
 後端 Prisma schema 定義的完整通知類型：
 
-`application_sent`、`new_application`、`application_approved`、`application_rejected`、`application_withdrawn`、`group_created`、`group_chat_opened`、`fill_service_info`（鎖定群組同一時機發給成員，跟發給團主自己的 `group_chat_opened` 內容分開，直接提醒要做的事而不是單純告知聊天室開了）、`service_info_filled`（成員送出服務帳號資訊時發給團主，由前端 `useMemberStore.fillServiceInfo` 直接呼叫 `insertNotification`，不是後端主動發送；驅動團主端「成員資料」分頁的未讀數字 badge）、`group_activated`、`group_full`、`group_ended`、`group_cancelled`、`group_renewal`、`member_joined`、`member_removed`、`member_left`、`service_info_issue`、`token_topup`、`escrow_released`（成員主動確認、確認期逾期惰性撥款、或申訴裁定團主獲勝時發送）、`dispute_raised`、`dispute_resolved`（申訴裁定結果，通知申訴成員與團主雙方）、`upcoming_renewal`（距 `nextBillingDate` 7 天內、於成員讀取自己訂閱列表時惰性補發一次，見 `GET /subscriptions`）、`system`
+`application_sent`、`new_application`、`application_approved`、`application_rejected`、`application_withdrawn`、`group_created`、`group_chat_opened`、`fill_service_info`（鎖定群組同一時機發給成員，跟發給團主自己的 `group_chat_opened` 內容分開，直接提醒要做的事而不是單純告知聊天室開了）、`service_info_filled`（成員送出服務帳號資訊時發給團主，由前端 `useMemberStore.fillServiceInfo` 直接呼叫 `insertNotification`，不是後端主動發送；驅動團主端「成員資料」分頁的未讀數字 badge）、`group_activated`、`group_full`、`group_ended`、`group_cancelled`、`group_renewal`、`member_removed`、`member_left`、`service_info_issue`、`escrow_released`（成員主動確認、確認期逾期惰性撥款、或申訴裁定團主獲勝時發送）、`dispute_raised`、`dispute_resolved`（申訴裁定結果，通知申訴成員與團主雙方）、`upcoming_renewal`（距 `nextBillingDate` 7 天內、於成員讀取自己訂閱列表時惰性補發一次，見 `GET /subscriptions`）、`system`
+
+`member_joined`、`token_topup` 是從未使用過的死值，已從 enum 移除（見 [歷史異動](../history/flows-history.md)）
 
 ---
 
