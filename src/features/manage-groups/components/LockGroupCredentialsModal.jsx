@@ -1,4 +1,4 @@
-import { Lock } from 'lucide-react'
+import { LockKeyhole } from 'lucide-react'
 import Modal from '../../../shared/ui/primitives/Modal'
 import { getHostCredentialFields, CREDENTIAL_RISK_NOTICE } from '../../../shared/utils/hostCredentialFields'
 
@@ -13,7 +13,7 @@ export default function LockGroupCredentialsModal({ isOpen, onClose, serviceId, 
       isOpen={isOpen}
       onClose={onClose}
       title="鎖定群組"
-      icon={<Lock size={18} strokeWidth={1.5} className="text-ink-2" />}
+      icon={<LockKeyhole size={18} strokeWidth={1.5} className="text-ink-2" />}
       maxWidth="max-w-lg"
       sub
       instantEntry

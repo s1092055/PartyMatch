@@ -1,4 +1,4 @@
-import { CheckCircle2, Clock, Info, User, Users, Calendar } from 'lucide-react'
+import { CheckCircle2, Clock, Info, Layers, ListChecks, Package, User, Users, Calendar } from 'lucide-react'
 import { getInfoRows } from '../../utils/groupDisplay'
 import Badge from '../primitives/Badge'
 import TokenAmount from '../TokenAmount'
@@ -34,7 +34,7 @@ export function ServiceIntro({ service, plan }) {
       )}
       {(plan?.description || (plan?.features?.length ?? 0) > 0) && (
         <div className={`${service?.description ? 'mt-4 border-t border-line-subtle pt-4' : ''}`}>
-          <p className="mb-4 text-lg font-black text-brand">方案說明</p>
+          <p className="mb-4 flex items-center gap-2 text-lg font-black text-brand"><Layers size={16} />方案說明</p>
           {plan?.description && (
             <p className="mb-3 text-sm font-medium text-ink-2">{plan.description}</p>
           )}
@@ -84,7 +84,7 @@ export default function GroupOverviewContent({ group, service, plan, reviewsSect
   return (
     <div className="divide-y divide-line-subtle">
       <div className="space-y-4 pb-5 pt-0">
-        <p className="text-lg font-black text-brand">群組資訊</p>
+        <p className="flex items-center gap-2 text-lg font-black text-brand"><Info size={16} />群組資訊</p>
         {infoRows.length > 0 && (
           <div className="space-y-2">
             {infoRows.map(({ label, value, badge, priceInfo }) => (
@@ -109,12 +109,12 @@ export default function GroupOverviewContent({ group, service, plan, reviewsSect
       </div>
 
       <div className="space-y-4 py-5">
-        <p className="text-lg font-black text-brand">群組規則</p>
+        <p className="flex items-center gap-2 text-lg font-black text-brand"><ListChecks size={16} />群組規則</p>
         <RulesList allRules={allRules} />
       </div>
 
       <div className="py-5">
-        <p className="mb-4 text-lg font-black text-brand">服務說明</p>
+        <p className="mb-4 flex items-center gap-2 text-lg font-black text-brand"><Package size={16} />服務說明</p>
         <ServiceIntro service={service} plan={plan} />
       </div>
 

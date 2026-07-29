@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Banknote, CheckCircle2, ClipboardList, Clock, FileText, Info, Lock, MessageCircle, PlayCircle, RefreshCw, Star, Trash2, Users } from 'lucide-react'
+import { Banknote, CheckCircle2, ClipboardList, Clock, FileText, Info, LockKeyhole, MessageCircle, PlayCircle, RefreshCw, Star, Trash2, Users } from 'lucide-react'
 import CountdownConfirmDialog from '../../../shared/ui/primitives/CountdownConfirmDialog'
 import CountdownText from '../../../shared/ui/primitives/CountdownText'
 import DisputeReasonDialog from '../../../shared/ui/primitives/DisputeReasonDialog'
@@ -134,11 +134,11 @@ export default function HostGroupView({ group, members, applications, onReportSe
     setShowActivate(true)
   }
 
-  // 不重置 memberChecks/finalConfirmed：關閉這個 sub-modal 唯一的理由是先去「成員資料」
-  // 分頁回報帳號問題（啟用服務 modal 開著的時候，底下的群組詳情完全隱藏，見下方render），
-  // 回報完再重新打開應該接續剛才已經勾選的進度，不用整輪重新勾一次
+  // 關閉 modal 視同放棄本次確認進度，重新打開要整輪重新勾選
   function closeActivate() {
     setShowActivate(false)
+    setFinalConfirmed(false)
+    setMemberChecks({})
   }
 
   function handleActivateConfirm() {
@@ -198,7 +198,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
           onClick={openLockFlow}
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-ink-2 px-6 py-2 text-sm font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-ink"
         >
-          <Lock size={15} strokeWidth={1.5} /> 鎖定群組
+          <LockKeyhole size={15} strokeWidth={1.5} /> 鎖定群組
         </button>
       )}
     </div>
@@ -253,7 +253,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
     <div className="py-2">
       <button
         onClick={openActivate}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-success px-6 py-2 text-sm font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-success-text"
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-6 py-2 text-sm font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-brand-hover"
       >
         <PlayCircle size={15} /> 啟用服務
       </button>

@@ -1,4 +1,4 @@
-import { Compass, Heart, LayoutDashboard, LayoutGrid, MessageSquare, PlusCircle, Search, Users } from 'lucide-react'
+import { Boxes, Compass, Heart, LayoutDashboard, LayoutGrid, MessageSquare, PlusCircle, Search } from 'lucide-react'
 import { Badge, LockBadge } from './navShared'
 import { useHideOnScroll } from '../../utils/hooks'
 
@@ -83,7 +83,7 @@ export default function MobileDock({
                 onClick={() => setMyMenuOpen(false)}
                 className={`flex flex-col items-center gap-1.5 rounded-xl px-2 py-2.5 text-xs font-bold whitespace-nowrap transition-colors hover:bg-raised ${pathname === '/my-subscriptions' ? 'text-brand' : 'text-ink'}`}
               >
-                <Users size={20} strokeWidth={2.1} />
+                <Boxes size={20} strokeWidth={2.1} />
                 我的訂閱
               </a>
               <a

@@ -1,4 +1,4 @@
-import { CheckCircle2, PlayCircle } from 'lucide-react'
+import { PlayCircle, UserCheck } from 'lucide-react'
 import Modal from '../../../shared/ui/primitives/Modal'
 import Avatar from '../../../shared/ui/primitives/Avatar'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
@@ -30,16 +30,17 @@ export default function ActivateServiceModal({
       isOpen={isOpen}
       onClose={onClose}
       title="啟用服務"
-      icon={<PlayCircle size={18} className="text-success" />}
+      icon={<PlayCircle size={18} className="text-brand" />}
       maxWidth="max-w-lg"
       height="36rem"
       sub
       instantEntry
+      closeIcon="x"
       footer={
         <button
           onClick={onConfirm}
           disabled={!allMembersChecked || !finalConfirmed}
-          className="flex-1 rounded-xl bg-success py-2.5 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-success-text disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex-1 rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
         >確認啟用</button>
       }
     >
@@ -49,7 +50,7 @@ export default function ActivateServiceModal({
           <ServiceLogo serviceId={group.serviceId} size={40} className="rounded-xl" />
           <div className="min-w-0 flex-1">
             <p className="font-bold text-ink">{group.serviceName}</p>
-            <p className="text-xs text-ink-3">{group.planName} · <TokenAmount amount={group.pricePerSeat} cycle={group.billingCycle === 'yearly' ? 'yearly' : 'monthly'} /> /位</p>
+            <p className="text-xs text-ink-3">{group.planName}</p>
           </div>
           <div className="rounded-xl bg-success-subtle px-3 py-1.5 text-right">
             <p className="text-xs text-success-text">撥款金額</p>
@@ -57,74 +58,68 @@ export default function ActivateServiceModal({
           </div>
         </div>
 
-        {/* 群組資訊／群組規則／服務說明／方案說明 */}
+        {/* 群組資訊／群組規則／服務說明／方案說明／逐一確認成員 */}
         <div className="px-5 pt-5">
-          <GroupOverviewContent group={group} service={service} plan={plan} />
-        </div>
-
-        {/* 下次扣款日 */}
-        <div className="mx-5 mt-5 flex items-center justify-between rounded-xl border border-line bg-raised px-4 py-3">
-          <div>
-            <p className="text-xs font-semibold text-ink-2">下次扣款日</p>
-            <p className="mt-0.5 text-xs text-ink-4">啟用後自動設定，不可修改</p>
-          </div>
-          <p className="text-base font-extrabold text-ink">{nextDate}</p>
-        </div>
-
-        {/* 逐一確認成員 */}
-        <div className="px-5 pt-5">
-          <div className="mb-2 flex items-center justify-between">
-            <p className="text-xs font-semibold text-ink-2">確認成員已加入外部服務</p>
-            <p className="text-xs text-ink-3">
-              {members.filter(m => memberChecks[m.id] && !m.serviceInfoIssueNote).length} / {members.length} 已確認
-            </p>
-          </div>
-          <p className="mb-3 text-xs text-ink-3">請在外部訂閱平台（{group.serviceName}）確認每位成員的帳號已完成設定，再逐一打勾。</p>
-          <div className="space-y-2">
-            {members.length === 0 ? (
-              <p className="py-2 text-center text-sm text-ink-3">尚無成員</p>
-            ) : members.map(m => (
-              <div
-                key={m.id}
-                className={`rounded-xl border p-3 transition-colors ${
-                  m.serviceInfoIssueNote ? 'border-warning/40 bg-warning-subtle' :
-                  memberChecks[m.id] ? 'border-success/40 bg-success-subtle' :
-                  'border-line'
-                }`}
-              >
-                <label className="flex cursor-pointer items-center gap-3">
-                  <input
-                    type="checkbox"
-                    checked={!!memberChecks[m.id]}
-                    onChange={e => setMemberChecks(prev => ({ ...prev, [m.id]: e.target.checked }))}
-                    className="h-4 w-4 shrink-0 accent-brand"
-                  />
-                  <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-ink">{m.userName}</p>
-                    {m.serviceInfoIssueNote ? (
-                      <p className="text-xs text-warning-text">帳號問題已回報，等待修正</p>
-                    ) : hasFilledServiceInfo(m.serviceInfo, sharingMethod) ? (
-                      <p className="text-xs text-ink-3">{getServiceInfoSummary(m.serviceInfo, sharingMethod)}</p>
-                    ) : (
-                      <p className="text-xs text-ink-4">尚未填寫帳號</p>
-                    )}
-                  </div>
-                  {memberChecks[m.id] && !m.serviceInfoIssueNote && <CheckCircle2 size={16} className="shrink-0 text-success" />}
-                </label>
+          <GroupOverviewContent
+            group={group}
+            service={service}
+            plan={plan}
+            extraRows={[{ label: '下次扣款日', value: nextDate }]}
+            reviewsSection={
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <p className="flex items-center gap-2 text-lg font-black text-brand"><UserCheck size={16} />確認成員已啟用外部服務</p>
+                  <p className="text-xs text-ink-3">
+                    {members.filter(m => memberChecks[m.id] && !m.serviceInfoIssueNote).length} / {members.length} 已確認
+                  </p>
+                </div>
+                <p className="text-sm text-ink-2">請在外部平台（{group.serviceName}）確認每位成員的帳號已完成設定，再逐一勾選。</p>
+                <div className="space-y-2">
+                  {members.length === 0 ? (
+                    <p className="py-2 text-center text-sm text-ink-3">尚無成員</p>
+                  ) : members.map(m => (
+                    <div
+                      key={m.id}
+                      className={`rounded-xl border p-3 transition-colors ${
+                        m.serviceInfoIssueNote ? 'border-warning/40 bg-warning-subtle' :
+                        memberChecks[m.id] ? 'border-brand/40 bg-brand-subtle' :
+                        'border-line'
+                      }`}
+                    >
+                      <label className="flex cursor-pointer items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={!!memberChecks[m.id]}
+                          onChange={e => {
+                            const checked = e.target.checked
+                            setMemberChecks(prev => ({ ...prev, [m.id]: checked }))
+                            if (!checked) setFinalConfirmed(false)
+                          }}
+                          className="h-4 w-4 shrink-0 accent-brand"
+                        />
+                        <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-ink">{m.userName}</p>
+                          {m.serviceInfoIssueNote ? (
+                            <p className="text-xs text-warning-text">帳號問題已回報，等待修正</p>
+                          ) : hasFilledServiceInfo(m.serviceInfo, sharingMethod) ? (
+                            <p className="text-xs text-ink-3">{getServiceInfoSummary(m.serviceInfo, sharingMethod)}</p>
+                          ) : (
+                            <p className="text-xs text-ink-4">尚未填寫帳號</p>
+                          )}
+                        </div>
+                      </label>
+                    </div>
+                  ))}
+                </div>
               </div>
-            ))}
-          </div>
+            }
+          />
         </div>
 
         {/* 最終確認 */}
         <div className="space-y-3 p-5">
-          {!allMembersChecked && (
-            <p className="rounded-xl bg-warning-subtle px-4 py-2.5 text-xs font-semibold text-warning-text">
-              請先逐一確認所有成員已在外部服務完成設定
-            </p>
-          )}
-          <label className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3.5 transition-colors ${allMembersChecked ? 'border-line hover:bg-raised' : 'pointer-events-none border-line opacity-40'}`}>
+          <label className={`flex cursor-pointer items-start gap-3 ${allMembersChecked ? '' : 'pointer-events-none opacity-40'}`}>
             <input
               type="checkbox"
               checked={finalConfirmed}
@@ -133,7 +128,7 @@ export default function ActivateServiceModal({
               className="mt-0.5 h-4 w-4 shrink-0 accent-brand"
             />
             <span className="text-sm font-medium leading-relaxed text-ink">
-              我確認所有成員皆已完成外部服務設定，同意平台依此結果進行撥款
+              我確認所有成員皆已完成外部服務設定，同意平台進行撥款
             </span>
           </label>
         </div>

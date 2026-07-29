@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, ChevronDown, Clock, Coins, Lock, LogOut, Settings, Shield, User } from "lucide-react";
+import { Bell, ChevronDown, Clock, Coins, Lock, LogOut, Settings, ShieldUser, User } from "lucide-react";
 import { useAuthStore } from "../../shared/stores/useAuthStore";
 import { toast } from "../../shared/utils/toast";
 import CreditScoreModal from "../../shared/ui/CreditScoreModal";
@@ -91,7 +91,7 @@ export default function AccountPage() {
     };
   });
 
-  const TABS = isAdmin ? [...BASE_TABS, { value: "admin", label: "管理員", icon: Shield }] : BASE_TABS
+  const TABS = isAdmin ? [...BASE_TABS, { value: "admin", label: "管理員", icon: ShieldUser }] : BASE_TABS
 
   function handleUserChange(key, value) {
     const previousValue = user[key];
