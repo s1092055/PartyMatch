@@ -12,8 +12,8 @@ export const NAV_SECTIONS = [
   {
     label: '我的帳號',
     items: [
-      { to: '/my-subscriptions', label: '我的訂閱', icon: Users },
       { to: '/manage-groups',    label: '群組管理', icon: Crown },
+      { to: '/my-subscriptions', label: '我的訂閱', icon: Users },
       { to: '/favorites',        label: '我的收藏', icon: Heart },
     ],
   },
