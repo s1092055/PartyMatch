@@ -1,12 +1,29 @@
-// Slider / RangeSlider 共用的外層容器與軌道：負責 disabled 淡化樣式、灰色底軌，
-// 以及依 fillStyle 定位的品牌色填色區塊；實際的 <input type="range"> 由呼叫端當 children 傳入
-export default function SliderTrack({ disabled = false, className = '', fillStyle, children }) {
+import { Slider as RadixSlider } from "radix-ui"
+import { cn } from "../../../lib/utils"
+
+// Slider / RangeSlider 共用的 Radix Slider 底層渲染：thumb 數量依 value 陣列
+// 長度自動決定（1 個值 = 單把手，2 個值 = 雙把手區間），拖動互不交叉、鍵盤
+// 操作、focus 管理都交給 Radix 處理，這裡只負責視覺樣式
+export default function SliderTrack({ min, max, step, value, onValueChange, disabled, className }) {
   return (
-    <div className={`relative pt-1 ${disabled ? 'opacity-40' : ''} ${className}`}>
-      <div className="relative h-1.5 rounded-full bg-line">
-        <div className="absolute h-full rounded-full bg-brand" style={fillStyle} />
-      </div>
-      {children}
-    </div>
+    <RadixSlider.Root
+      min={min}
+      max={max}
+      step={step}
+      value={value}
+      onValueChange={onValueChange}
+      disabled={disabled}
+      className={cn('relative flex h-4 w-full touch-none select-none items-center pt-1', disabled && 'opacity-40', className)}
+    >
+      <RadixSlider.Track className="relative h-1.5 w-full grow rounded-full bg-line">
+        <RadixSlider.Range className="absolute h-full rounded-full bg-brand" />
+      </RadixSlider.Track>
+      {value.map((_, i) => (
+        <RadixSlider.Thumb
+          key={i}
+          className="block h-4 w-4 shrink-0 cursor-pointer rounded-full border-2 border-brand bg-white shadow focus:outline-none"
+        />
+      ))}
+    </RadixSlider.Root>
   )
 }
