@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Search } from 'lucide-react'
 import CategoryPills from '../../../shared/ui/primitives/CategoryPills'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '../../../components/ui/select'
+import FilterSelect from './FilterSelect'
+import { useFilterSelectGroup } from './useFilterSelectGroup'
 import { CATEGORIES } from '../../../shared/data/serviceCategories'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import { TokenBadge } from '../../../shared/ui/TokenAmount'
@@ -86,14 +87,24 @@ export default function FilterBar({ filters, onChange }) {
     () => filters.category === 'all' ? groupServiceOptions(serviceOptions) : null,
     [filters.category, serviceOptions],
   )
+  const serviceGroups = useMemo(() => {
+    const allItem = { value: 'all', label: '不限服務' }
+    if (groupedServiceOptions) {
+      return [{ label: null, items: [allItem] }, ...groupedServiceOptions.map(g => ({ label: g.label, items: g.items }))]
+    }
+    return [{ label: null, items: [allItem, ...serviceOptions.filter(o => o.value !== 'all')] }]
+  }, [groupedServiceOptions, serviceOptions])
 
   const isCustomPrice = filters.maxPrice !== 'any' && !PRICE_PRESETS.includes(filters.maxPrice)
   const priceOptions = useMemo(
     () => buildPriceOptions(isCustomPrice, filters.maxPrice),
     [isCustomPrice, filters.maxPrice],
   )
+  const priceGroups = useMemo(() => [{ label: null, items: priceOptions }], [priceOptions])
+  const sortGroups = useMemo(() => [{ label: null, items: SORT_OPTIONS }], [])
   const [customEditing, setCustomEditing] = useState(false)
   const [customPriceInput, setCustomPriceInput] = useState(isCustomPrice ? filters.maxPrice : '')
+  const filterSelectGroup = useFilterSelectGroup()
 
   function handlePriceChange(val) {
     if (val === 'custom') {
@@ -128,7 +139,7 @@ export default function FilterBar({ filters, onChange }) {
       />
 
       <div className="flex flex-col gap-2 md:flex-row md:items-center">
-        <div className="field flex h-11 min-w-0 items-center md:flex-[3]">
+        <div className="field flex h-11 min-w-0 items-center md:flex-[2]">
           <div className="flex flex-1 items-center gap-2">
             <Search size={16} strokeWidth={1.5} className="pointer-events-none shrink-0 text-ink-4" />
             <input
@@ -141,38 +152,23 @@ export default function FilterBar({ filters, onChange }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 md:contents">
-          <Select value={filters.service} onValueChange={val => onChange({ service: val, category: 'all' })}>
-            <SelectTrigger className="!h-11 w-full min-w-0 flex-1 font-bold md:flex-[2]">
-              <SelectValue>
+        <div className="grid grid-cols-1 items-center gap-2 md:grid-cols-3 md:flex-[4]">
+          <FilterSelect
+            id="service"
+            group={filterSelectGroup}
+            value={filters.service}
+            onChange={val => onChange({ service: val, category: 'all' })}
+            groups={serviceGroups}
+            className="h-11 w-full font-bold"
+            triggerContent={(
+              <span className="flex min-w-0 items-center gap-1.5">
                 {findOption(serviceOptions, filters.service)?.icon}
                 <span className="truncate">{findOption(serviceOptions, filters.service)?.label}</span>
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent position="popper" align="start">
-              <SelectItem value="all">不限服務</SelectItem>
-              {groupedServiceOptions
-                ? groupedServiceOptions.map(g => (
-                  <SelectGroup key={g.category}>
-                    <SelectLabel>{g.label}</SelectLabel>
-                    {g.items.map(o => (
-                      <SelectItem key={o.value} value={o.value}>
-                        {o.icon}
-                        <span className="truncate">{o.label}</span>
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                ))
-                : serviceOptions.filter(o => o.value !== 'all').map(o => (
-                  <SelectItem key={o.value} value={o.value}>
-                    {o.icon}
-                    <span className="truncate">{o.label}</span>
-                  </SelectItem>
-                ))}
-            </SelectContent>
-          </Select>
+              </span>
+            )}
+          />
           {customEditing ? (
-            <div className="relative min-w-0 flex-1">
+            <div className="relative w-full min-w-0 flex-1">
               <TokenBadge className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
               <input
                 type="number"
@@ -187,37 +183,34 @@ export default function FilterBar({ filters, onChange }) {
               />
             </div>
           ) : (
-            <Select value={isCustomPrice ? 'custom' : filters.maxPrice} onValueChange={handlePriceChange}>
-              <SelectTrigger className="!h-11 w-full min-w-0 flex-1 font-bold">
-                <SelectValue>
+            <FilterSelect
+              id="price"
+              group={filterSelectGroup}
+              value={isCustomPrice ? 'custom' : filters.maxPrice}
+              onChange={handlePriceChange}
+              groups={priceGroups}
+              className="h-11 w-full font-bold"
+              triggerContent={(
+                <span className="flex min-w-0 items-center gap-1.5">
                   {findOption(priceOptions, isCustomPrice ? 'custom' : filters.maxPrice)?.icon}
                   <span className="truncate">{findOption(priceOptions, isCustomPrice ? 'custom' : filters.maxPrice)?.label}</span>
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent position="popper" align="start">
-                {priceOptions.map(o => (
-                  <SelectItem key={o.value} value={o.value}>
-                    {o.icon}
-                    <span className="truncate">{o.label}</span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                </span>
+              )}
+            />
           )}
-          <Select value={filters.sortBy} onValueChange={val => onChange({ sortBy: val })}>
-            <SelectTrigger className="!h-11 w-full min-w-0 flex-1 font-bold">
-              <SelectValue>
+          <FilterSelect
+            id="sort"
+            group={filterSelectGroup}
+            value={filters.sortBy}
+            onChange={val => onChange({ sortBy: val })}
+            groups={sortGroups}
+            className="h-11 w-full font-bold"
+            triggerContent={(
+              <span className="flex min-w-0 items-center gap-1.5">
                 <span className="truncate">{findOption(SORT_OPTIONS, filters.sortBy)?.label}</span>
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent position="popper" align="start">
-              {SORT_OPTIONS.map(o => (
-                <SelectItem key={o.value} value={o.value}>
-                  <span className="truncate">{o.label}</span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+              </span>
+            )}
+          />
         </div>
       </div>
     </div>
