@@ -1,5 +1,7 @@
 import { CheckCircle2, ShieldCheck, Star } from 'lucide-react'
 import { Avatar } from '../../../components/ui/avatar'
+import { Card } from '../../../components/ui/card'
+import { Badge } from '../../../components/ui/badge'
 
 // icon 大在上、文字小在下的方形按鈕；手機版左右平均分佈（flex-1），電腦版固定寬度靠右
 function HeroStatTile({ icon: Icon, iconClassName, label, onClick }) {
@@ -16,7 +18,7 @@ function HeroStatTile({ icon: Icon, iconClassName, label, onClick }) {
 
 export default function ProfileHeaderCard({ user, onOpenCreditScore, onOpenReviews }) {
   return (
-    <div className="card mb-5 flex flex-col items-center gap-4 p-5 md:flex-row">
+    <Card className="mb-5 flex flex-col items-center gap-4 p-5 md:flex-row">
       <div className="relative shrink-0">
         <Avatar
           initial={user.avatarInitial ?? (user.displayName ?? '使')[0]}
@@ -33,9 +35,9 @@ export default function ProfileHeaderCard({ user, onOpenCreditScore, onOpenRevie
         <div className="mb-0.5 flex flex-wrap items-center justify-center gap-2 md:justify-start">
           <h2 className="text-xl font-bold text-ink">{user.displayName}</h2>
           {user.isVerified && (
-            <span className="badge badge-blue">
+            <Badge>
               <CheckCircle2 size={11} /> 已驗證
-            </span>
+            </Badge>
           )}
         </div>
         <p className="text-sm text-ink-3">{user.email}</p>
@@ -47,6 +49,6 @@ export default function ProfileHeaderCard({ user, onOpenCreditScore, onOpenRevie
         <HeroStatTile icon={ShieldCheck} iconClassName="text-brand" label="信用分數" onClick={onOpenCreditScore} />
         <HeroStatTile icon={Star} iconClassName="text-brand" label="我的評價" onClick={onOpenReviews} />
       </div>
-    </div>
+    </Card>
   )
 }

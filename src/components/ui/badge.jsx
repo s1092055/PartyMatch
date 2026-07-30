@@ -16,7 +16,7 @@ export const badgeVariantClasses = {
 }
 
 const badgeVariants = cva(
-  "inline-flex items-center px-2 py-0.5 rounded-badge text-2xs font-semibold whitespace-nowrap",
+  "inline-flex items-center gap-1 px-2 py-0.5 rounded-badge text-2xs font-semibold whitespace-nowrap",
   {
     variants: { variant: badgeVariantClasses },
     defaultVariants: { variant: 'default' },

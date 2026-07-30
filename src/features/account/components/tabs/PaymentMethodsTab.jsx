@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { CreditCard, Plus, Trash2 } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter } from '../../../../components/ui/dialog'
+import { Card } from '../../../../components/ui/card'
+import { Badge } from '../../../../components/ui/badge'
 import {
   createPaymentMethod,
   deletePaymentMethod,
@@ -94,7 +96,7 @@ export default function PaymentMethodsTab() {
         {cards.map(card => {
           const style = BRAND_COLOR[card.brand] ?? { bg: 'bg-line-strong', text: card.brand }
           return (
-            <div key={card.id} className="card flex items-center gap-4 p-4">
+            <Card key={card.id} className="flex items-center gap-4 p-4">
               <div className={`flex h-8 w-12 shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white ${style.bg}`}>
                 {style.text}
               </div>
@@ -103,7 +105,7 @@ export default function PaymentMethodsTab() {
                   <span className="text-sm font-semibold text-ink-2">
                     {card.brand} •••• {card.last4}
                   </span>
-                  {card.isDefault && <span className="badge badge-blue">預設</span>}
+                  {card.isDefault && <Badge>預設</Badge>}
                 </div>
                 <p className="text-xs text-ink-3">到期日 {card.expiry}</p>
               </div>
@@ -120,7 +122,7 @@ export default function PaymentMethodsTab() {
                   <Trash2 size={13} />
                 </button>
               </div>
-            </div>
+            </Card>
           )
         })}
 

@@ -4,6 +4,7 @@ import { Bell, ChevronDown, Clock, Coins, Lock, LogOut, Settings, ShieldUser, Us
 import { useAuthStore } from "../../shared/stores/useAuthStore";
 import { toast } from "../../shared/utils/toast";
 import CreditScoreModal from "../../shared/ui/CreditScoreModal";
+import { Card } from "../../components/ui/card";
 import HostReviewsModal from "../manage-groups/components/HostReviewsModal";
 import ProfileHeaderCard from "./components/ProfileHeaderCard";
 import PersonalInfoTab from "./components/tabs/PersonalInfoTab";
@@ -164,7 +165,7 @@ export default function AccountPage() {
         {TABS.map(tab => {
           const isOpen = openAccordion === tab.value
           return (
-            <div key={tab.value} className="card overflow-hidden">
+            <Card key={tab.value} className="overflow-hidden">
               <button
                 onClick={() => setOpenAccordion(isOpen ? null : tab.value)}
                 className="flex w-full items-center justify-between px-4 py-3.5 text-left"
@@ -189,7 +190,7 @@ export default function AccountPage() {
                   </div>
                 </TabReveal>
               )}
-            </div>
+            </Card>
           )
         })}
         </div>

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { ShieldAlert, Clock } from 'lucide-react'
 import { useGroupStore } from '../../../../shared/stores/useGroupStore'
 import { toast } from '../../../../shared/utils/toast'
+import { Card } from '../../../../components/ui/card'
 
 function isOverdue(group) {
   return !!group.disputeDeadline && new Date(group.disputeDeadline) <= new Date()
@@ -39,7 +40,7 @@ export default function AdminTab() {
 
   return (
     <div className="space-y-4">
-      <div className="card p-5">
+      <Card className="p-5">
         <div className="flex items-center gap-2 mb-4">
           <ShieldAlert size={16} className="text-danger" />
           <span className="text-sm font-bold text-ink">申訴裁定</span>
@@ -113,7 +114,7 @@ export default function AdminTab() {
             </button>
           </form>
         )}
-      </div>
+      </Card>
     </div>
   )
 }
