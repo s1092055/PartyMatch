@@ -38,7 +38,7 @@ PartyMatch 是一個共享訂閱媒合平台，讓使用者可以探索或建立
 | 類別 | 技術 |
 |------|------|
 | Frontend | React 19、Vite、React Router v7、Zustand |
-| UI | Tailwind CSS v4（token 定義於 `index.css`）、lucide-react |
+| UI | Tailwind CSS v4（token 定義於 `index.css`）、shadcn/ui、Radix UI、class-variance-authority、lucide-react |
 | Backend | Node.js、Express |
 | 資料庫 | MySQL + Prisma ORM |
 | 快取 | Redis |
