@@ -83,7 +83,7 @@ export default function ExtraFeatures() {
       </div>
 
       <div
-        className="relative h-80 cursor-grab touch-pan-y select-none overflow-hidden py-3 active:cursor-grabbing"
+        className="relative h-[23rem] cursor-grab touch-pan-y select-none overflow-hidden active:cursor-grabbing"
         style={{ perspective: '1400px' }}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
@@ -96,7 +96,7 @@ export default function ExtraFeatures() {
           return (
             <div
               key={title}
-              className="absolute left-1/2 top-0 h-full w-64 transition-[transform,filter,opacity] duration-500 ease-out will-change-transform sm:w-72"
+              className="absolute left-1/2 inset-y-6 w-64 transition-[transform,filter,opacity] duration-500 ease-out will-change-transform sm:w-72"
               style={cardStyle(offset)}
             >
               <Card
