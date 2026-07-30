@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { AlertCircle, Bell, CheckCircle2, ClipboardEdit, MessageSquare, UserPlus, X } from 'lucide-react'
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from '../../components/ui/drawer'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useApplicationStore } from '../stores/useApplicationStore'
 import { useGroupStore } from '../stores/useGroupStore'
@@ -9,7 +9,6 @@ import { useMemberStore } from '../stores/useMemberStore'
 import { useNotificationStore } from '../stores/useNotificationStore'
 import { useSubscriptionStore } from '../stores/useSubscriptionStore'
 import { formatRelativeDate } from '../utils/date'
-import { useScrollLock } from '../utils/hooks'
 import { toast } from '../utils/toast'
 import EmptyState from '../ui/primitives/EmptyState'
 
@@ -111,8 +110,6 @@ export default function FloatingMessages() {
     [loggedIn, userId, notificationsState],
   )
 
-  useScrollLock(open)
-
   useEffect(() => {
     function onOpen() {
       setActiveTab(useAuthStore.getState().loggedIn ? 'all' : 'system')
@@ -121,13 +118,6 @@ export default function FloatingMessages() {
     window.addEventListener('pm:open-notify', onOpen)
     return () => window.removeEventListener('pm:open-notify', onOpen)
   }, [])
-
-  useEffect(() => {
-    if (!open) return
-    function onEsc(e) { if (e.key === 'Escape') setOpen(false) }
-    document.addEventListener('keydown', onEsc)
-    return () => document.removeEventListener('keydown', onEsc)
-  }, [open])
 
   const visibleTabs = useMemo(() => loggedIn ? TABS : TABS.filter(t => t.id === 'system'), [loggedIn])
 
@@ -347,26 +337,13 @@ export default function FloatingMessages() {
     navigate(meta.link, meta.state ? { state: meta.state } : undefined)
   }
 
-  return createPortal(
-    <>
-      {/* Backdrop */}
-      <div
-        className={`fixed inset-0 z-[55] bg-black/50 transition-opacity duration-300 ${
-          open ? 'opacity-100' : 'pointer-events-none opacity-0'
-        }`}
-        onClick={() => setOpen(false)}
-      />
-
-      {/* Slide-over panel */}
-      <div
-        className={`fixed inset-y-0 right-0 z-[56] flex w-80 flex-col bg-white shadow-2xl transition-transform duration-300 ease-out md:w-96 ${
-          open ? 'translate-x-0' : 'translate-x-full'
-        }`}
-      >
-        <div className="flex h-14 shrink-0 items-center justify-between border-b border-line px-4">
+  return (
+    <Drawer open={open} onOpenChange={setOpen} direction="right" shouldScaleBackground>
+      <DrawerContent>
+        <DrawerHeader>
           <div className="flex items-center gap-2">
             <Bell size={18} className="text-ink-3" />
-            <span className="text-sm font-extrabold text-ink">通知</span>
+            <DrawerTitle>通知</DrawerTitle>
             {!loggedIn && (
               <span className="rounded-full bg-raised px-2 py-0.5 text-xs font-bold text-ink-3">
                 系統公告
@@ -395,7 +372,8 @@ export default function FloatingMessages() {
               <X size={16} />
             </button>
           </div>
-        </div>
+        </DrawerHeader>
+        <DrawerDescription className="sr-only">通知中心</DrawerDescription>
 
         <div className="flex gap-1 border-b border-line px-3 py-2">
           {visibleTabs.map(tab => (
@@ -450,8 +428,7 @@ export default function FloatingMessages() {
             </div>
           )}
         </div>
-      </div>
-    </>,
-    document.body
+      </DrawerContent>
+    </Drawer>
   )
 }
