@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Search } from 'lucide-react'
 import CategoryPills from '../../../shared/ui/primitives/CategoryPills'
-import CustomSelect from '../../../shared/ui/primitives/CustomSelect'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import { TokenBadge } from '../../../shared/ui/TokenAmount'
 import { listServiceTypes } from '../../../shared/utils/serviceUtils'
@@ -38,6 +38,10 @@ function buildServiceOptions(category) {
       icon: <ServiceLogo serviceId={s.id} size={20} className="shrink-0 rounded-md" />,
     })),
   ]
+}
+
+function findOption(options, value) {
+  return options.find(o => o.value === value)
 }
 
 export default function FilterBar({ filters, onChange }) {
@@ -116,12 +120,22 @@ export default function FilterBar({ filters, onChange }) {
         </div>
 
         <div className="flex items-center gap-2 md:contents">
-          <CustomSelect
-            value={filters.service}
-            onChange={val => onChange({ service: val, category: 'all' })}
-            options={serviceOptions}
-            className="md:flex-[2]"
-          />
+          <Select value={filters.service} onValueChange={val => onChange({ service: val, category: 'all' })}>
+            <SelectTrigger className="!h-11 w-full font-bold md:flex-[2]">
+              {findOption(serviceOptions, filters.service)?.icon}
+              <SelectValue>
+                <span className="truncate">{findOption(serviceOptions, filters.service)?.label}</span>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent position="popper" sideOffset={6} className="w-[var(--radix-select-trigger-width)]">
+              {serviceOptions.map(o => (
+                <SelectItem key={o.value} value={o.value}>
+                  {o.icon}
+                  <span className="truncate">{o.label}</span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {customEditing ? (
             <div className="relative min-w-0 flex-1">
               <TokenBadge className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
@@ -138,17 +152,37 @@ export default function FilterBar({ filters, onChange }) {
               />
             </div>
           ) : (
-            <CustomSelect
-              value={isCustomPrice ? 'custom' : filters.maxPrice}
-              onChange={handlePriceChange}
-              options={priceOptions}
-            />
+            <Select value={isCustomPrice ? 'custom' : filters.maxPrice} onValueChange={handlePriceChange}>
+              <SelectTrigger className="!h-11 w-full font-bold">
+                {findOption(priceOptions, isCustomPrice ? 'custom' : filters.maxPrice)?.icon}
+                <SelectValue>
+                  <span className="truncate">{findOption(priceOptions, isCustomPrice ? 'custom' : filters.maxPrice)?.label}</span>
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent position="popper" sideOffset={6} className="w-[var(--radix-select-trigger-width)]">
+                {priceOptions.map(o => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.icon}
+                    <span className="truncate">{o.label}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )}
-          <CustomSelect
-            value={filters.sortBy}
-            onChange={val => onChange({ sortBy: val })}
-            options={SORT_OPTIONS}
-          />
+          <Select value={filters.sortBy} onValueChange={val => onChange({ sortBy: val })}>
+            <SelectTrigger className="!h-11 w-full font-bold">
+              <SelectValue>
+                <span className="truncate">{findOption(SORT_OPTIONS, filters.sortBy)?.label}</span>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent position="popper" sideOffset={6} className="w-[var(--radix-select-trigger-width)]">
+              {SORT_OPTIONS.map(o => (
+                <SelectItem key={o.value} value={o.value}>
+                  <span className="truncate">{o.label}</span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
     </div>
