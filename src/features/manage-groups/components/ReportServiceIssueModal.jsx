@@ -1,5 +1,5 @@
 import { AlertTriangle } from 'lucide-react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter, DialogBackButton } from '../../../components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter, DialogCloseButton } from '../../../components/ui/dialog'
 import { Avatar } from '../../../components/ui/avatar'
 import { Button } from '../../../components/ui/button'
 import EvidenceAttachmentField from '../../../shared/ui/EvidenceAttachmentField'
@@ -21,12 +21,12 @@ export default function ReportServiceIssueModal({
   return (
     <Dialog open={!!member} onOpenChange={v => { if (!v) onClose() }}>
       <DialogContent variant="panel" maxWidth="max-w-sm" instant>
-        <DialogHeader variant="panel">
-          <DialogBackButton />
-          <div className="flex min-w-0 flex-1 items-center gap-2 px-1">
-            <AlertTriangle size={18} className="text-warning-text" />
-            <DialogTitle variant="panel">帳號問題</DialogTitle>
+        <DialogHeader>
+          <div className="flex min-w-0 items-center gap-2.5">
+            <AlertTriangle size={18} className="shrink-0 text-warning-text" />
+            <DialogTitle className="truncate text-base">帳號問題</DialogTitle>
           </div>
+          <DialogCloseButton />
         </DialogHeader>
         <DialogDescription>帳號問題</DialogDescription>
         <DialogBody>

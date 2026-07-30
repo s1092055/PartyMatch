@@ -1,5 +1,5 @@
 import { CheckCircle2 } from 'lucide-react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogBackButton } from '../../../components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogCloseButton } from '../../../components/ui/dialog'
 import { Button } from '../../../components/ui/button'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import TokenAmount from '../../../shared/ui/TokenAmount'
@@ -18,11 +18,9 @@ export default function ApplyModal({
     <Dialog open={isOpen} onOpenChange={v => { if (!v) onClose() }}>
       <DialogContent variant="panel" maxWidth="max-w-md" instant>
         {!applySubmitted && (
-          <DialogHeader variant="panel">
-            <DialogBackButton />
-            <div className="flex min-w-0 flex-1 items-center gap-2 px-1">
-              <DialogTitle variant="panel">申請加入群組</DialogTitle>
-            </div>
+          <DialogHeader>
+            <DialogTitle className="truncate text-base">申請加入群組</DialogTitle>
+            <DialogCloseButton />
           </DialogHeader>
         )}
         <DialogDescription>申請加入群組</DialogDescription>

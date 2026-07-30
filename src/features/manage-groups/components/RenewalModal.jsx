@@ -1,5 +1,5 @@
 import { Calendar, RefreshCw, XCircle } from 'lucide-react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogBackButton } from '../../../components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogCloseButton } from '../../../components/ui/dialog'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import { StatusBadge } from '../../../shared/ui/StatusBadge'
 import { advanceByCycle, daysUntil, toISODate } from '../../../shared/utils/date'
@@ -15,12 +15,12 @@ export default function RenewalModal({ isOpen, onClose, group, onStartRenewal, o
   return (
     <Dialog open={isOpen} onOpenChange={v => { if (!v) onClose() }}>
       <DialogContent variant="panel" maxWidth="max-w-sm">
-        <DialogHeader variant="panel">
-          <DialogBackButton />
-          <div className="flex min-w-0 flex-1 items-center gap-2 px-1">
-            <RefreshCw size={16} className="text-brand" />
-            <DialogTitle variant="panel">續訂管理</DialogTitle>
+        <DialogHeader>
+          <div className="flex min-w-0 items-center gap-2.5">
+            <RefreshCw size={16} className="shrink-0 text-brand" />
+            <DialogTitle className="truncate text-base">續訂管理</DialogTitle>
           </div>
+          <DialogCloseButton />
         </DialogHeader>
         <DialogDescription>續訂管理</DialogDescription>
         <DialogBody>

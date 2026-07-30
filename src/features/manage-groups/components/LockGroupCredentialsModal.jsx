@@ -1,5 +1,5 @@
 import { LockKeyhole } from 'lucide-react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogBackButton } from '../../../components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogCloseButton } from '../../../components/ui/dialog'
 import { Button } from '../../../components/ui/button'
 import { getHostCredentialFields, CREDENTIAL_RISK_NOTICE } from '../../../shared/utils/hostCredentialFields'
 
@@ -12,12 +12,12 @@ export default function LockGroupCredentialsModal({ isOpen, onClose, serviceId, 
   return (
     <Dialog open={isOpen} onOpenChange={v => { if (!v) onClose() }}>
       <DialogContent variant="panel" maxWidth="max-w-lg" instant>
-        <DialogHeader variant="panel">
-          <DialogBackButton />
-          <div className="flex min-w-0 flex-1 items-center gap-2 px-1">
-            <LockKeyhole size={18} strokeWidth={1.5} className="text-ink-2" />
-            <DialogTitle variant="panel">鎖定群組</DialogTitle>
+        <DialogHeader>
+          <div className="flex min-w-0 items-center gap-2.5">
+            <LockKeyhole size={18} strokeWidth={1.5} className="shrink-0 text-ink-2" />
+            <DialogTitle className="truncate text-base">鎖定群組</DialogTitle>
           </div>
+          <DialogCloseButton />
         </DialogHeader>
         <DialogDescription>鎖定群組</DialogDescription>
         <DialogBody>

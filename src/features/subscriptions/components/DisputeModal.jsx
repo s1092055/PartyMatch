@@ -33,13 +33,12 @@ export default function DisputeModal({
   return (
     <Dialog open={isOpen} onOpenChange={v => { if (!v) onClose() }}>
       <DialogContent variant="panel" maxWidth="max-w-lg" instant>
-        <DialogHeader variant="panel">
-          <div className="w-1 shrink-0" />
-          <div className="flex min-w-0 flex-1 items-center gap-2 pl-2">
-            <AlertTriangle size={18} className="text-danger" />
-            <DialogTitle variant="panel">回報問題</DialogTitle>
+        <DialogHeader>
+          <div className="flex min-w-0 items-center gap-2.5">
+            <AlertTriangle size={18} className="shrink-0 text-danger" />
+            <DialogTitle className="truncate text-base">回報問題</DialogTitle>
           </div>
-          <DialogCloseButton className="h-9 w-9" />
+          <DialogCloseButton />
         </DialogHeader>
         <DialogDescription>回報問題</DialogDescription>
         <DialogBody>

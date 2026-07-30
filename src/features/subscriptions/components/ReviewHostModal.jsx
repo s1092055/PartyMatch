@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter } from '../../../components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter, DialogCloseButton } from '../../../components/ui/dialog'
 import { Avatar } from '../../../components/ui/avatar'
 import { Button } from '../../../components/ui/button'
 import StarRating from '../../../shared/ui/primitives/StarRating'
@@ -27,11 +27,9 @@ export default function ReviewHostModal({ group, onSubmit, onClose }) {
   return (
     <Dialog open onOpenChange={v => { if (!v) onClose() }}>
       <DialogContent variant="panel" maxWidth="max-w-sm">
-        <DialogHeader variant="panel">
-          <div className="h-9 w-9 shrink-0" />
-          <div className="flex min-w-0 flex-1 items-center gap-2 px-1">
-            <DialogTitle variant="panel">給團主一個評價</DialogTitle>
-          </div>
+        <DialogHeader>
+          <DialogTitle className="truncate text-base">給團主一個評價</DialogTitle>
+          <DialogCloseButton />
         </DialogHeader>
         <DialogDescription>給團主一個評價</DialogDescription>
         <DialogBody>

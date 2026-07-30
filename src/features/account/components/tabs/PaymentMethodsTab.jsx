@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { CreditCard, Plus, Trash2 } from 'lucide-react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter } from '../../../../components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter, DialogCloseButton } from '../../../../components/ui/dialog'
 import { Card } from '../../../../components/ui/card'
 import { Badge } from '../../../../components/ui/badge'
 import { Button } from '../../../../components/ui/button'
@@ -140,12 +140,12 @@ export default function PaymentMethodsTab() {
 
       <Dialog open={modalOpen} onOpenChange={v => { if (!v) closeModal() }}>
         <DialogContent variant="panel" maxWidth="max-w-sm">
-          <DialogHeader variant="panel">
-            <div className="h-9 w-9 shrink-0" />
-            <div className="flex min-w-0 flex-1 items-center gap-2 px-1">
-              <CreditCard size={16} className="text-brand" />
-              <DialogTitle variant="panel">新增付款方式</DialogTitle>
+          <DialogHeader>
+            <div className="flex min-w-0 items-center gap-2.5">
+              <CreditCard size={16} className="shrink-0 text-brand" />
+              <DialogTitle className="truncate text-base">新增付款方式</DialogTitle>
             </div>
+            <DialogCloseButton />
           </DialogHeader>
           <DialogDescription>新增付款方式</DialogDescription>
           <DialogBody>

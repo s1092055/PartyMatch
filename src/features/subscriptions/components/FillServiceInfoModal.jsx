@@ -1,5 +1,5 @@
 import { CheckCircle2, ClipboardEdit } from 'lucide-react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogBackButton } from '../../../components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogCloseButton } from '../../../components/ui/dialog'
 import { Button } from '../../../components/ui/button'
 import CredentialWatermark from '../../../shared/ui/primitives/CredentialWatermark'
 import { getServiceInfoSummary } from '../../../shared/utils/serviceInfoFields'
@@ -28,12 +28,12 @@ export default function FillServiceInfoModal({
   return (
     <Dialog open={isOpen} onOpenChange={v => { if (!v) onClose() }}>
       <DialogContent variant="panel" maxWidth="max-w-lg" instant>
-        <DialogHeader variant="panel">
-          <DialogBackButton />
-          <div className="flex min-w-0 flex-1 items-center gap-2 px-1">
-            <ClipboardEdit size={18} className="text-brand" />
-            <DialogTitle variant="panel">填寫服務帳號</DialogTitle>
+        <DialogHeader>
+          <div className="flex min-w-0 items-center gap-2.5">
+            <ClipboardEdit size={18} className="shrink-0 text-brand" />
+            <DialogTitle className="truncate text-base">填寫服務帳號</DialogTitle>
           </div>
+          <DialogCloseButton />
         </DialogHeader>
         <DialogDescription>填寫服務帳號</DialogDescription>
         <DialogBody>

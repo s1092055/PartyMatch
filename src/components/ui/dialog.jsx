@@ -1,5 +1,5 @@
 import { Dialog as DialogPrimitive } from "radix-ui"
-import { ChevronLeft, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { cn } from "../../lib/utils"
 
 // 本專案有兩種 Dialog 視覺：
@@ -54,17 +54,17 @@ export function DialogContent({ className, variant = 'default', maxWidth, height
   )
 }
 
-export function DialogHeader({ className, variant = 'default', border = true, ...props }) {
-  const base = variant === 'panel'
-    ? 'flex items-center px-3 py-3'
-    : 'flex shrink-0 items-center justify-between px-6 py-5'
-  const borderCls = variant === 'panel' ? 'border-b border-line-subtle' : 'border-b border-line'
-  return <div className={cn(base, border && borderCls, className)} {...props} />
+export function DialogHeader({ className, border = true, ...props }) {
+  return (
+    <div
+      className={cn('flex shrink-0 items-center justify-between px-6 py-5', border && 'border-b border-line', className)}
+      {...props}
+    />
+  )
 }
 
-export function DialogTitle({ className, variant = 'default', ...props }) {
-  const base = variant === 'panel' ? 'truncate text-base font-extrabold text-ink' : 'text-lg font-extrabold text-ink'
-  return <DialogPrimitive.Title className={cn(base, className)} {...props} />
+export function DialogTitle({ className, ...props }) {
+  return <DialogPrimitive.Title className={cn('text-lg font-extrabold text-ink', className)} {...props} />
 }
 
 export function DialogDescription({ className, ...props }) {
@@ -96,20 +96,6 @@ export function DialogCloseButton({ className, ...props }) {
         {...props}
       >
         <X size={18} />
-      </button>
-    </DialogPrimitive.Close>
-  )
-}
-
-export function DialogBackButton({ className, ...props }) {
-  return (
-    <DialogPrimitive.Close asChild>
-      <button
-        aria-label="返回"
-        className={cn('grid h-9 w-9 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink active:opacity-70', className)}
-        {...props}
-      >
-        <ChevronLeft size={20} strokeWidth={1.5} />
       </button>
     </DialogPrimitive.Close>
   )
