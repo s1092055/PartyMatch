@@ -6,6 +6,7 @@ import { useAuthStore } from '../../../../shared/stores/useAuthStore'
 import { toast } from '../../../../shared/utils/toast'
 import { Switch } from '../../../../components/ui/switch'
 import { Button } from '../../../../components/ui/button'
+import { Input } from '../../../../components/ui/input'
 
 const PREFS_KEY = 'pm_app_prefs'
 const DEFAULT_PREFS = {
@@ -124,13 +125,13 @@ export default function SettingsTab() {
             <div className="rounded-xl border border-danger/30 bg-danger-subtle p-4">
               <p className="mb-1 text-sm font-bold text-danger">確定要刪除帳號？</p>
               <p className="mb-4 text-xs text-ink-3">帳號將被停用，無法再登入；資料會保留，如需恢復請聯絡客服。請輸入密碼確認。</p>
-              <input
+              <Input
                 type="password"
                 autoComplete="current-password"
                 placeholder="請輸入密碼"
                 value={password}
                 onChange={e => { setPassword(e.target.value); setDeleteError('') }}
-                className="field mb-2 w-full text-sm"
+                className="mb-2 text-sm"
               />
               {deleteError && <p className="mb-2 text-xs font-semibold text-danger">{deleteError}</p>}
               <div className="flex gap-2">

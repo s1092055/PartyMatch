@@ -1,5 +1,6 @@
 import { MessageCircle, Users } from 'lucide-react'
 import { Avatar } from '../../../components/ui/avatar'
+import { Button } from '../../../components/ui/button'
 
 export function buildMembersSubPanel({ group, groupId, members, activeUserId, setShowMembers, openDm }) {
   return {
@@ -19,12 +20,15 @@ export function buildMembersSubPanel({ group, groupId, members, activeUserId, se
               </div>
               <p className="text-xs text-ink-3">{group.createdAt} 建立</p>
             </div>
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={`私訊${group.hostName}`}
               onClick={() => { setShowMembers(false); openDm() }}
-              className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-all hover:-translate-y-0.5 hover:bg-raised hover:text-brand"
+              className="text-ink-3 hover:text-brand"
             >
               <MessageCircle size={20} />
-            </button>
+            </Button>
           </div>
         </div>
         {members.filter(m => m.groupId === groupId).map(m => (

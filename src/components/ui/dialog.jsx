@@ -1,6 +1,7 @@
 import { Dialog as DialogPrimitive } from "radix-ui"
 import { X } from 'lucide-react'
 import { cn } from "../../lib/utils"
+import { Button } from "./button"
 
 // 本專案有兩種 Dialog 視覺：
 // - default：一般置中對話框（rounded-2xl、z-56、右上角 X）
@@ -90,13 +91,15 @@ export function DialogFooter({ className, ...props }) {
 export function DialogCloseButton({ className, ...props }) {
   return (
     <DialogPrimitive.Close asChild>
-      <button
+      <Button
+        variant="ghost"
+        size="icon"
         aria-label="關閉"
-        className={cn('grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink active:opacity-70', className)}
+        className={cn('text-ink-3 hover:text-ink active:opacity-70', className)}
         {...props}
       >
         <X size={18} />
-      </button>
+      </Button>
     </DialogPrimitive.Close>
   )
 }

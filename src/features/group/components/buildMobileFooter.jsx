@@ -1,5 +1,6 @@
-import { ChevronRight, CheckCircle2, Heart, LogIn, LogOut, ShieldCheck, Users } from 'lucide-react'
+import { ChevronRight, CheckCircle2, LogIn, LogOut, ShieldCheck, Users } from 'lucide-react'
 import { Button } from '../../../components/ui/button'
+import FavoriteToggleButton from '../../../shared/ui/FavoriteToggleButton'
 
 function renderCTA({
   group, activeUserId, navigate, handleClose,
@@ -99,15 +100,7 @@ export function buildMobileFooter({
             >
               申請加入 <ChevronRight size={16} strokeWidth={1.5} />
             </Button>
-            <button
-              onClick={toggleFav}
-              className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl border transition-colors ${
-                isFav ? 'border-red-100 bg-red-50 text-red-500' : 'border-line text-ink-2 hover:border-red-200 hover:text-red-400'
-              }`}
-              aria-label={isFav ? '取消收藏' : '加入收藏'}
-            >
-              <Heart size={18} className={isFav ? 'fill-red-500' : ''} />
-            </button>
+            <FavoriteToggleButton isFav={isFav} onClick={toggleFav} heartSize={18} className="h-12 w-12" />
           </div>
           <p className="mt-2 text-center text-xs text-ink-4">申請後需經團主審核，通過後即可加入群組</p>
         </>

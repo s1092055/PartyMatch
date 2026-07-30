@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Card } from '../../../../components/ui/card'
 import { Badge } from '../../../../components/ui/badge'
 import { Button } from '../../../../components/ui/button'
+import { Input } from '../../../../components/ui/input'
 import {
   createPaymentMethod,
   deletePaymentMethod,
@@ -116,12 +117,15 @@ export default function PaymentMethodsTab() {
                     設為預設
                   </button>
                 )}
-                <button
+                <Button
                   onClick={() => handleRemove(card.id)}
-                  className="flex h-7 w-7 items-center justify-center rounded-lg text-ink-4 transition-all hover:-translate-y-0.5 hover:bg-danger-subtle hover:text-danger"
+                  variant="ghost"
+                  size="icon"
+                  aria-label="移除付款方式"
+                  className="text-ink-4 hover:bg-danger-subtle hover:text-danger"
                 >
                   <Trash2 size={13} />
-                </button>
+                </Button>
               </div>
             </Card>
           )
@@ -150,12 +154,12 @@ export default function PaymentMethodsTab() {
           <DialogDescription>新增付款方式</DialogDescription>
           <DialogBody>
         <div className="space-y-3 p-5">
-          <input type="text" placeholder="卡號" maxLength={19} className="field py-2 px-3" {...field('number')} />
+          <Input type="text" placeholder="卡號" maxLength={19} className="py-2 px-3" {...field('number')} />
           <div className="grid grid-cols-2 gap-3">
-            <input type="text" placeholder="到期日 MM/YY" maxLength={5} className="field py-2 px-3" {...field('expiry')} />
-            <input type="text" placeholder="CVC" maxLength={4} className="field py-2 px-3" {...field('cvc')} />
+            <Input type="text" placeholder="到期日 MM/YY" maxLength={5} className="py-2 px-3" {...field('expiry')} />
+            <Input type="text" placeholder="CVC" maxLength={4} className="py-2 px-3" {...field('cvc')} />
           </div>
-          <input type="text" placeholder="持卡人姓名" className="field py-2 px-3" {...field('name')} />
+          <Input type="text" placeholder="持卡人姓名" className="py-2 px-3" {...field('name')} />
         </div>
           </DialogBody>
           <DialogFooter>

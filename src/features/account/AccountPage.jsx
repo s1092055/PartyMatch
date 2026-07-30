@@ -88,8 +88,6 @@ export default function AccountPage() {
     return {
       ...profile,
       phone: profile?.phone ?? "",
-      bio: profile?.bio ?? "",
-      lineId: profile?.lineId ?? "",
     };
   });
 

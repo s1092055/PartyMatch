@@ -1,6 +1,7 @@
 import { CheckCircle2 } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogCloseButton } from '../../../components/ui/dialog'
 import { Button } from '../../../components/ui/button'
+import { Textarea } from '../../../components/ui/input'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import TokenAmount from '../../../shared/ui/TokenAmount'
 import { calcDisplayPrice, calcDisplayCycle } from '../../../shared/utils/pricingUtils'
@@ -57,12 +58,12 @@ export default function ApplyModal({
             <label className="block text-xs font-medium text-ink-2 mb-1.5">
               申請備註<span className="ml-1 text-ink-4 font-normal">（選填）</span>
             </label>
-            <textarea
+            <Textarea
               value={applyMessage}
               onChange={e => setApplyMessage(e.target.value)}
               rows={3}
               placeholder="可以介紹自己或說明申請原因…"
-              className="field w-full resize-none px-3 py-2.5 text-sm placeholder:text-ink-4 focus:border-line focus:shadow-none"
+              className="resize-none"
             />
           </div>
           <label className="flex items-start gap-2.5 cursor-pointer select-none">

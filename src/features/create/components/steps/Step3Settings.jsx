@@ -3,6 +3,7 @@ import { FileText, ListChecks, Minus, Plus, PlusCircle, ShieldCheck, Users, X } 
 import { getServiceById } from '../../../../shared/utils/serviceUtils'
 import { useMediaQuery, SHORT_LG_QUERY } from '../../../../shared/utils/hooks'
 import Field from './Field'
+import { Input, Textarea } from '../../../../components/ui/input'
 
 const MIN_CREDIT_OPTIONS = [
   { value: 0,  label: '不限' },
@@ -106,7 +107,7 @@ export default function Step3Settings({ form, onChange }) {
         </Field>
 
         <Field label="帳號需求" icon={FileText} hint="說明成員是否需要自備帳號，或有其他帳號相關條件（選填）">
-          <textarea
+          <Textarea
             ref={textareaRef}
             rows={1}
             placeholder="例如：需使用自己的 Google 帳號登入"
@@ -114,7 +115,7 @@ export default function Step3Settings({ form, onChange }) {
             onChange={e => onChange('requirements', e.target.value)}
             maxLength={120}
             style={textareaHeight ? { height: textareaHeight } : undefined}
-            className="field w-full resize-none text-base focus:border-line focus:shadow-none"
+            className="resize-none text-base"
           />
         </Field>
       </div>
@@ -126,14 +127,14 @@ export default function Step3Settings({ form, onChange }) {
             {form.rules.map((rule, i) => (
               <div key={i} className="flex items-center gap-2">
                 <span className="text-sm text-slate-400 w-4 shrink-0 text-right">{i + 1}.</span>
-                <input
+                <Input
                   ref={i === form.rules.length - 1 ? lastRuleRef : undefined}
                   type="text"
                   placeholder="例如：每月 15 日前完成付款"
                   value={rule}
                   onChange={e => updateRule(i, e.target.value)}
                   maxLength={80}
-                  className="field flex-1 text-base"
+                  className="flex-1 text-base"
                 />
                 {form.rules.length > 1 && (
                   <button

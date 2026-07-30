@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CheckCircle2, ChevronLeft, ChevronRight, Heart } from 'lucide-react'
+import { CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { getServiceById } from '../../shared/utils/serviceUtils'
 import { hasFilledServiceInfo } from '../../shared/utils/serviceInfoFields'
@@ -14,6 +14,7 @@ import { toast } from '../../shared/utils/toast'
 import { TokenBadge } from '../../shared/ui/TokenAmount'
 import ConfirmActionDialog from '../../shared/ui/ConfirmActionDialog'
 import GroupModalShell from '../../shared/ui/group/GroupModalShell'
+import FavoriteToggleButton from '../../shared/ui/FavoriteToggleButton'
 import MemberGroupView from '../subscriptions/components/MemberGroupView'
 import ExploreGroupCard from '../explore/components/ExploreGroupCard'
 import HostReviews from './components/HostReviews'
@@ -264,13 +265,7 @@ export default function GroupDetailModal() {
         ) : undefined
       }
       summaryFavoriteSlot={
-        <button
-          onClick={toggleFav}
-          className="mt-1 flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-raised"
-          aria-label={isFav ? '取消收藏' : '加入收藏'}
-        >
-          <Heart size={19} className={isFav ? 'fill-red-500 text-red-500' : 'text-ink-4'} />
-        </button>
+        <FavoriteToggleButton isFav={isFav} onClick={toggleFav} heartSize={19} className="mt-1 h-8 w-8" />
       }
       mobileReviewsSection={reviews}
       mobileFooter={buildMobileFooter({

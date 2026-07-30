@@ -33,7 +33,10 @@ export function buildMembersPanel({ group, members, setActivePanel, onClose, set
                     <p className="text-xs text-ink-3">{m.joinedAt} 加入</p>
                   </div>
                   <div className="flex shrink-0 items-center gap-1">
-                    <button
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`私訊${m.userName}`}
                       onClick={() => {
                         setActivePanel(null)
                         onClose()
@@ -41,17 +44,20 @@ export function buildMembersPanel({ group, members, setActivePanel, onClose, set
                           detail: { hostId: m.userId, hostName: m.userName, hostAvatarInitial: m.userAvatarInitial, hostAvatarColor: m.userAvatarColor },
                         }))
                       }}
-                      className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-all hover:-translate-y-0.5 hover:bg-raised hover:text-brand"
+                      className="text-ink-3 hover:text-brand"
                     >
                       <MessageCircle size={20} />
-                    </button>
+                    </Button>
                     {removable && (
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`移除${m.userName}`}
                         onClick={() => setRemovingMember(m)}
-                        className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-all hover:-translate-y-0.5 hover:bg-raised hover:text-danger"
+                        className="text-ink-3 hover:text-danger"
                       >
                         <UserX size={20} />
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </div>

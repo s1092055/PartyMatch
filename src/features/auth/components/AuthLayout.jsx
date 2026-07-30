@@ -1,5 +1,6 @@
 import { Eye, EyeOff, ChevronLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { Button } from '../../../components/ui/button'
 
 export default function AuthLayout({ children, backTo = '/' }) {
   return (
@@ -41,14 +42,16 @@ export function AuthInput({ icon: Icon, label, value, onChange, trailing, ...pro
 
 export function PasswordToggle({ visible, onClick }) {
   return (
-    <button
+    <Button
       type="button"
       onClick={onClick}
-      className="grid h-9 w-9 place-items-center rounded-full text-ink-4 transition-colors hover:bg-raised hover:text-ink-2"
+      variant="ghost"
+      size="icon"
+      className="text-ink-4 hover:text-ink-2"
       aria-label={visible ? '隱藏密碼' : '顯示密碼'}
     >
       {visible ? <EyeOff size={18} /> : <Eye size={18} />}
-    </button>
+    </Button>
   )
 }
 

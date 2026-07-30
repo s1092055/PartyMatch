@@ -2,7 +2,7 @@
 
 本文件列出 `server/prisma/seedDemo.js` 建立的 demo 帳號，供手動測試使用。全部帳號完全自給自足（不依賴任何外部既有帳號），密碼皆為 `Demo1234`。
 
-[線上 Demo](https://partymatch.ykk910309.workers.dev)（後端：https://partymatch-api.onrender.com）的正式資料庫已灌入這批帳號，可直接登入體驗，不需要自己跑 seed。
+[線上 Demo](https://partymatch.ykk910309.workers.dev)（後端：https://partymatch-api.onrender.com）的正式資料庫已灌入這批帳號，可直接登入體驗，不需要自己跑 seed。若正式環境的 demo 資料被測試流程弄亂，可在 `server/` 執行 `npm run db:reset-demo:prod`（需先建立 `server/.env.production`，放正式版 `DATABASE_URL`，見 [開發指令](../development.md)）一次重置回乾淨狀態。
 
 ## 這支 seed 腳本跟一般 seed 腳本的差異
 
@@ -18,6 +18,8 @@ npm run db:seed         # 服務目錄（若尚未執行過）
 npm run db:clear        # 清空所有使用者與業務資料（含 users），保留 services；會要求輸入 yes 確認
 npm run db:seed-demo    # 建立 10 個 demo 帳號（含 1 個管理員）、22 個涵蓋各種情境的群組
 ```
+
+上面 `db:seed`／`db:clear`／`db:seed-demo` 三步驟也可以用 `npm run db:reset-demo` 一次執行（本機）；正式環境對應 `npm run db:reset-demo:prod`，見 [開發指令](../development.md)。
 
 **執行前提**：
 1. 後端伺服器要在跑（`npm run dev`），因為這支腳本會打真實的 HTTP API

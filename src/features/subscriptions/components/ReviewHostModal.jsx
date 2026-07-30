@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter, DialogCloseButton } from '../../../components/ui/dialog'
 import { Avatar } from '../../../components/ui/avatar'
 import { Button } from '../../../components/ui/button'
+import { Textarea } from '../../../components/ui/input'
 import StarRating from '../../../shared/ui/primitives/StarRating'
 import { toast } from '../../../shared/utils/toast'
 
@@ -46,13 +47,13 @@ export default function ReviewHostModal({ group, onSubmit, onClose }) {
           <StarRating value={rating} onChange={setRating} size={28} />
         </div>
 
-        <textarea
+        <Textarea
           value={comment}
           onChange={e => setComment(e.target.value)}
           placeholder="想跟其他人分享這次共享的體驗嗎？（選填）"
           rows={3}
           maxLength={500}
-          className="field w-full resize-none text-sm focus:border-line focus:shadow-none"
+          className="resize-none"
         />
       </div>
         </DialogBody>

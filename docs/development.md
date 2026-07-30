@@ -80,6 +80,8 @@ NODE_ENV=development
 | `npm run db:seed-demo` | 執行 `prisma/seedDemo.js`，建立 10 個自給自足的 demo 帳號（含 1 個管理員）與涵蓋所有群組/申請狀態的完整 demo 資料，需在乾淨的資料庫上執行（先 `npm run db:clear`），見 [測試帳號](testing/test-accounts.md) |
 | `npm run db:clear-data` | 清空所有資料（保留 users 與 services），用於重設測試環境 |
 | `npm run db:clear` | 清空所有正式版資料**含 users**（保留 services），執行前需在終端機輸入 `yes` 確認 |
+| `npm run db:reset-demo` | 依序執行 `db:clear` → `db:seed` → `db:seed-demo`，一次重置本機 demo 資料（`db:clear` 的 `yes` 確認仍會觸發） |
+| `npm run db:reset-demo:prod` | 與上者相同，但透過 `DOTENV_CONFIG_PATH=.env.production` 指向正式環境資料庫；`.env.production` 需自行建立（已列入 `.gitignore`，放正式版 `DATABASE_URL`），用於重置線上 Demo 網站的展示資料 |
 
 ---
 

@@ -5,6 +5,7 @@ import FilterSelect from './FilterSelect'
 import { useFilterSelectGroup } from './useFilterSelectGroup'
 import { CATEGORIES } from '../../../shared/data/serviceCategories'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
+import { Input } from '../../../components/ui/input'
 import { TokenBadge } from '../../../shared/ui/TokenAmount'
 import { listServiceTypes } from '../../../shared/utils/serviceUtils'
 
@@ -139,7 +140,7 @@ export default function FilterBar({ filters, onChange }) {
       />
 
       <div className="flex flex-col gap-2 md:flex-row md:items-center">
-        <div className="field flex h-11 min-w-0 items-center md:flex-[2]">
+        <div className="flex h-11 min-w-0 items-center rounded-control border border-line bg-surface px-3.5 md:flex-[2]">
           <div className="flex flex-1 items-center gap-2">
             <Search size={16} strokeWidth={1.5} className="pointer-events-none shrink-0 text-ink-4" />
             <input
@@ -170,7 +171,7 @@ export default function FilterBar({ filters, onChange }) {
           {customEditing ? (
             <div className="relative w-full min-w-0 flex-1">
               <TokenBadge className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
-              <input
+              <Input
                 type="number"
                 min="1"
                 autoFocus
@@ -179,7 +180,7 @@ export default function FilterBar({ filters, onChange }) {
                 onChange={e => setCustomPriceInput(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') submitCustomPrice() }}
                 onBlur={submitCustomPrice}
-                className="field h-11 w-full pl-9 pr-3 text-sm font-bold"
+                className="h-11 pl-9 pr-3 text-sm font-bold"
               />
             </div>
           ) : (

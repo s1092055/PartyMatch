@@ -215,7 +215,10 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
                   </div>
                   <p className="text-xs text-ink-3">{group.createdAt} 建立</p>
                 </div>
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={`私訊${group.hostName}`}
                   onClick={() => {
                     setActivePanel(null)
                     onClose()
@@ -223,10 +226,10 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
                       detail: { hostId: group.hostId, hostName: group.hostName, hostAvatarInitial: group.hostAvatarInitial, hostAvatarColor: group.hostAvatarColor },
                     }))
                   }}
-                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-all hover:-translate-y-0.5 hover:bg-raised hover:text-brand"
+                  className="text-ink-3 hover:text-brand"
                 >
                   <MessageCircle size={20} />
-                </button>
+                </Button>
               </div>
             </div>
             {members.filter(m => m.userId !== currentUser?.id).map(m => (
@@ -237,7 +240,10 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
                     <p className="text-sm font-semibold text-ink">{m.userName}</p>
                     <p className="text-xs text-ink-3">{m.joinedAt} 加入</p>
                   </div>
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`私訊${m.userName}`}
                     onClick={() => {
                       setActivePanel(null)
                       onClose()
@@ -245,10 +251,10 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
                         detail: { hostId: m.userId, hostName: m.userName, hostAvatarInitial: m.userAvatarInitial, hostAvatarColor: m.userAvatarColor },
                       }))
                     }}
-                    className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-all hover:-translate-y-0.5 hover:bg-raised hover:text-brand"
+                    className="text-ink-3 hover:text-brand"
                   >
                     <MessageCircle size={20} />
-                  </button>
+                  </Button>
                 </div>
               </div>
             ))}

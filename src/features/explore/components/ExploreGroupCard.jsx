@@ -1,11 +1,11 @@
 import { memo, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Heart,
   Monitor,
   Users,
 } from 'lucide-react'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
+import FavoriteToggleButton from '../../../shared/ui/FavoriteToggleButton'
 import TokenAmount from '../../../shared/ui/TokenAmount'
 import { StatusBadge } from '../../../shared/ui/StatusBadge'
 import { getStatusLabel } from '../../../shared/ui/statusBadgeConfig'
@@ -99,17 +99,12 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
       )}
 
       {!hideActions && (
-        <button
+        <FavoriteToggleButton
+          isFav={isFav}
           onClick={handleFav}
-          className={`absolute right-4 top-4 grid h-9 w-9 shrink-0 place-items-center rounded-full border bg-surface shadow-floating transition-colors ${
-            isFav
-              ? 'border-red-100 text-red-500'
-              : 'border-line-subtle text-ink hover:border-red-100 hover:text-red-400'
-          }`}
-          aria-label={isFav ? '取消收藏' : '加入收藏'}
-        >
-          <Heart size={18} strokeWidth={2.4} className={isFav ? 'fill-red-500' : ''} />
-        </button>
+          heartSize={18}
+          className="absolute right-4 top-4 h-9 w-9 bg-surface shadow-floating"
+        />
       )}
 
       {/* 固定保留一列高度給申請狀態 badge，不管有沒有顯示都佔同樣空間，
