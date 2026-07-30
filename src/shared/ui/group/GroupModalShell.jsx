@@ -1,12 +1,12 @@
 import { useEffect } from 'react'
-import { createPortal } from 'react-dom'
-import { ChevronLeft, X } from 'lucide-react'
+import { ChevronLeft } from 'lucide-react'
+import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogCloseButton } from '../../../components/ui/dialog'
 import ServiceLogo from '../ServiceLogo'
 import GroupOverviewContent from './GroupOverviewContent'
 import { Progress } from '../../../components/ui/progress'
 import TokenAmount from '../TokenAmount'
 import ScrollHint from '../primitives/ScrollHint'
-import { useScrollLock, useScrollEdge } from '../../utils/hooks'
+import { useScrollEdge } from '../../utils/hooks'
 import { calcDisplayPrice, calcDisplayCycle } from '../../utils/pricingUtils'
 
 export default function GroupModalShell({
@@ -59,33 +59,22 @@ export default function GroupModalShell({
   const floatingBackButton = !!subSubPanel?.floatingBack
   const showHeaderRow = (showBackButton && !floatingBackButton) || activeDetail?.icon || activeDetail?.title || activeDetail?.headerRight
 
-  useScrollLock(true)
-
-  useEffect(() => {
-    function onKeyDown(e) {
-      if (e.key === 'Escape') {
-        if (subSubPanel && onSubSubPanelBack) onSubSubPanelBack()
-        else if (subPanel && onSubPanelBack) onSubPanelBack()
-        else onClose()
-      }
-    }
-    document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
-  }, [onClose, subPanel, onSubPanelBack, subSubPanel, onSubSubPanelBack])
+  function handleEscapeKeyDown(e) {
+    e.preventDefault()
+    if (subSubPanel && onSubSubPanelBack) onSubSubPanelBack()
+    else if (subPanel && onSubPanelBack) onSubPanelBack()
+    else onClose()
+  }
 
   useEffect(() => {
     if (scrollBodyElRef.current) scrollBodyElRef.current.scrollTop = 0
   }, [group?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  return createPortal(
-    <>
-      <div className="fixed inset-0 z-[55] bg-black/50 animate-backdrop-in" onClick={handleClose} />
-
-      <div className="pointer-events-none fixed inset-0 z-[56] flex items-center justify-center p-4 md:p-8">
-        <div
-          className="pointer-events-auto flex w-full max-w-xl flex-col overflow-hidden rounded-2xl bg-canvas shadow-2xl animate-modal-in"
-          style={{ height: 'min(92dvh, 720px)' }}
-        >
+  return (
+    <Dialog open onOpenChange={v => { if (!v) handleClose() }}>
+      <DialogContent maxWidth="max-w-xl" height="min(92dvh, 720px)" onEscapeKeyDown={handleEscapeKeyDown}>
+          <DialogTitle className="sr-only">{group.serviceName}</DialogTitle>
+          <DialogDescription>{group.serviceName}</DialogDescription>
           {/* Header — 固定不動，翻書效果只作用在下方內容區 */}
           <div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-4">
             <div className="flex min-w-0 items-center gap-2.5">
@@ -97,13 +86,7 @@ export default function GroupModalShell({
                 )}
               </span>
             </div>
-            <button
-              onClick={handleClose}
-              className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
-              aria-label="關閉"
-            >
-              <X size={18} />
-            </button>
+            <DialogCloseButton />
           </div>
 
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
@@ -247,9 +230,7 @@ export default function GroupModalShell({
           </div>
 
           {children}
-        </div>
-      </div>
-    </>,
-    document.body
+      </DialogContent>
+    </Dialog>
   )
 }
