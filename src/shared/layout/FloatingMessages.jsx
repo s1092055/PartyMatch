@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AlertCircle, Bell, CheckCircle2, ClipboardEdit, MessageSquare, UserPlus, X } from 'lucide-react'
 import { Drawer, DrawerContent, DrawerHeader, DrawerFooter, DrawerTitle, DrawerDescription } from '../../components/ui/drawer'
+import { Button } from '../../components/ui/button'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useApplicationStore } from '../stores/useApplicationStore'
 import { useGroupStore } from '../stores/useGroupStore'
@@ -424,13 +425,14 @@ export default function FloatingMessages() {
         </div>
 
         <DrawerFooter>
-          <button
+          <Button
+            variant="ghost"
             onClick={() => setOpen(false)}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-line py-2.5 text-sm font-bold text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-raised"
+            className="w-full rounded-xl border border-line"
           >
             <X size={15} strokeWidth={1.5} />
             關閉
-          </button>
+          </Button>
         </DrawerFooter>
       </DrawerContent>
     </Drawer>
