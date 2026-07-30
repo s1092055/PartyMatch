@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import PriceRangeAmount from '../../../../shared/ui/PriceRangeAmount'
-import Slider from '../../../../shared/ui/primitives/Slider'
-import RangeSlider from '../../../../shared/ui/primitives/RangeSlider'
+import { Slider } from '../../../../components/ui/slider'
 import { formatPriceRangeLabel } from '../../utils/priceRangeLabel'
 import { PRICE_MIN, DEFAULT_PRICE_MAX, PRICE_MAX_CAP } from '../../utils/priceRangeDefaults'
 
@@ -121,10 +120,13 @@ export default function Step3Filters({ conditions, onChange }) {
             unlimitedClassName="text-sm font-normal text-ink-4"
           />
         </div>
-        <RangeSlider
+        <Slider
           min={PRICE_MIN} max={priceMax} step={1}
-          valueMin={curMin} valueMax={curMax}
-          onChangeMin={handleMinDrag} onChangeMax={handleMaxDrag}
+          value={[curMin, curMax]}
+          onValueChange={([newMin, newMax]) => {
+            if (newMin !== curMin) handleMinDrag(newMin)
+            if (newMax !== curMax) handleMaxDrag(newMax)
+          }}
           disabled={isUnlimitedPrice}
         />
         <div className="mt-4 flex items-center justify-between gap-2">
@@ -164,7 +166,7 @@ export default function Step3Filters({ conditions, onChange }) {
           <span className="text-base font-medium text-ink-2">團主信用分數</span>
           <span className="text-sm font-bold text-brand">{conditions.minRating > 0 ? `${conditions.minRating} 分以上` : '不限'}</span>
         </div>
-        <Slider min={0} max={100} step={1} value={conditions.minRating} onChange={v => onChange('minRating', v)} />
+        <Slider min={0} max={100} step={1} value={[conditions.minRating]} onValueChange={([v]) => onChange('minRating', v)} />
         <div className="mt-4 flex justify-between">
           <span className="text-xs text-ink-4">0</span>
           <span className="text-xs text-ink-4">100</span>
