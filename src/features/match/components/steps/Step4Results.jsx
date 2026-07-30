@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Compass, Search } from 'lucide-react'
+import { Button } from '../../../../components/ui/button'
 import MatchConditionBar from '../MatchConditionBar'
 import ExploreGroupCard from '../../../explore/components/ExploreGroupCard'
 import { useMemberStore } from '../../../../shared/stores/useMemberStore'
@@ -23,13 +24,14 @@ export default function Step4Results({ results, conditions }) {
         <p className="max-w-xs text-sm text-ink-3">
           試著調整每人申請費用、放寬團主信用分數要求，或選擇更多服務類型
         </p>
-        <button
+        <Button
+          variant="ghost"
           onClick={() => navigate('/explore')}
-          className="mt-6 flex items-center gap-2 rounded-xl border border-line px-4 py-2 text-sm font-bold text-ink-2 transition-colors hover:border-brand/40 hover:text-brand"
+          className="mt-6 rounded-xl border border-line hover:border-brand/40 hover:text-brand"
         >
           <Compass size={14} />
           探索所有群組
-        </button>
+        </Button>
       </div>
     )
   }
