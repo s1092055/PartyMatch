@@ -4,6 +4,7 @@ import logoUrl from '../../../assets/Logo.svg'
 import { useAuthStore } from '../../stores/useAuthStore'
 import { TokenBadge } from '../../ui/TokenAmount'
 import { CountBadge } from './navShared'
+import { Button } from '../../../components/ui/button'
 
 export default function MobileHeader({
   loggedIn,
@@ -82,12 +83,12 @@ export default function MobileHeader({
             <div className="inline-flex items-center gap-2 rounded-xl bg-raised px-4 py-2.5">
               <TokenBadge className="shrink-0" />
               <span className="text-sm font-bold text-ink">{tokenBalance.toLocaleString()} PM</span>
-              <button
+              <Button
                 onClick={() => { setMobileMenuOpen(false); setTopupOpen(true) }}
-                className="rounded-full bg-brand px-2.5 py-1 text-xs font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-brand-hover active:opacity-80"
+                className="h-auto rounded-full px-2.5 py-1 text-xs"
               >
                 加值
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -102,13 +103,14 @@ export default function MobileHeader({
               <Settings size={16} strokeWidth={2} className="shrink-0 text-ink-3" />
               我的帳號
             </a>
-            <button
+            <Button
+              variant="ghost"
               onClick={() => { setMobileMenuOpen(false); useAuthStore.getState().logout(); navigate('/login', { replace: true }) }}
-              className="flex flex-1 items-center justify-center gap-2 py-4 text-sm font-bold text-danger transition-all hover:-translate-y-0.5 hover:bg-danger-subtle"
+              className="h-auto flex-1 py-4 text-danger hover:bg-danger-subtle"
             >
               <LogOut size={16} strokeWidth={2} className="shrink-0" />
               登出
-            </button>
+            </Button>
           </div>
         </div>
       )}
