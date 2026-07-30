@@ -10,13 +10,13 @@ export default function CustomSelect({ label, value, onChange, options, classNam
         <span className="mb-1 block text-2xs font-medium text-ink-3 text-center md:text-left">{label}</span>
       )}
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="h-11 w-full font-bold">
+        <SelectTrigger className="!h-11 w-full font-bold">
           {selectedOption?.icon}
           <SelectValue>
             <span className="truncate">{selectedOption?.label ?? selectedOption?.name}</span>
           </SelectValue>
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent position="popper" sideOffset={6} className="w-[var(--radix-select-trigger-width)]">
           {options.map(o => {
             const val = o.value ?? o.id
             return (
