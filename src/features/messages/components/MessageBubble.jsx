@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { CheckCircle2 } from 'lucide-react'
+import { Button } from '../../../components/ui/button'
 import { useMemberStore } from '../../../shared/stores/useMemberStore'
 import { getServiceById } from '../../../shared/utils/serviceUtils'
 import { hasFilledServiceInfo, getServiceInfoSummary } from '../../../shared/utils/serviceInfoFields'
@@ -67,15 +68,15 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
               ))}
             </div>
             {!iAlreadyFilled && (
-              <button
+              <Button
                 onClick={() => {
                   window.dispatchEvent(new CustomEvent('pm:close-messages'))
                   navigate('/my-subscriptions', { state: { openGroupId: conversationGroupId } })
                 }}
-                className="mt-3 w-full rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-brand-hover"
+                className="mt-3 h-auto w-full rounded-lg px-3 py-1.5 text-xs"
               >
                 填寫服務帳號
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -103,15 +104,15 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
                 <CheckCircle2 size={13} /> 已重新填寫
               </p>
             ) : (
-              <button
+              <Button
                 onClick={() => {
                   window.dispatchEvent(new CustomEvent('pm:close-messages'))
                   navigate('/my-subscriptions', { state: { openGroupId: conversationGroupId } })
                 }}
-                className="w-full rounded-lg bg-warning px-3 py-1.5 text-xs font-semibold text-white transition-all hover:-translate-y-0.5 hover:opacity-90"
+                className="h-auto w-full rounded-lg bg-warning px-3 py-1.5 text-xs hover:bg-warning hover:opacity-90"
               >
                 重新填寫服務帳號
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -122,16 +123,17 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
         <div key={msg.id} className="flex justify-center">
           <div className="w-64 rounded-2xl border border-success/30 bg-success-subtle px-4 py-3 text-center shadow-sm">
             <p className="mb-2 text-xs text-ink-2">{msg.text}</p>
-            <button
+            <Button
+              variant="success"
               onClick={() => {
                 window.dispatchEvent(new CustomEvent('pm:close-messages'))
                 navigate('/manage-groups', { state: { openGroupId: conversationGroupId, openBilling: true } })
                 window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: conversationGroupId, openBilling: true } }))
               }}
-              className="w-full rounded-lg bg-success px-3 py-1.5 text-xs font-semibold text-white transition-all hover:-translate-y-0.5 hover:opacity-90"
+              className="h-auto w-full rounded-lg px-3 py-1.5 text-xs"
             >
               前往收款管理
-            </button>
+            </Button>
           </div>
         </div>
       )
