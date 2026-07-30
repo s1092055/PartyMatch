@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { RouterProvider } from 'react-router-dom'
 import router from './router'
 import { Toaster } from '../components/ui/sonner'
+import LoadingScreen from '../shared/layout/LoadingScreen'
 import { useAuthStore } from '../shared/stores/useAuthStore'
 import { useServiceStore } from '../shared/stores/useServiceStore'
 import { useGroupStore } from '../shared/stores/useGroupStore'
@@ -98,11 +99,7 @@ export default function App() {
   }, [])
 
   if (!ready) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-canvas">
-        <p className="text-sm text-ink-3">載入中…</p>
-      </div>
-    )
+    return <LoadingScreen />
   }
 
   return (

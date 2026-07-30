@@ -356,6 +356,35 @@
   to   { transform: translateX(-50%); }
 }
 
+@keyframes logoBounce {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-12px); }
+}
+
+.animate-logo-bounce {
+  animation: logoBounce 1s ease-in-out infinite;
+}
+
+@keyframes typewriter {
+  from { width: 0; }
+  to   { width: 10ch; }
+}
+
+@keyframes typewriterCaret {
+  50% { border-color: transparent; }
+}
+
+.animate-typewriter {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  vertical-align: bottom;
+  border-right: 2px solid var(--color-brand);
+  animation:
+    typewriter 1s steps(10, end) forwards,
+    typewriterCaret 0.75s step-end infinite;
+}
+
 @keyframes fadeInUp {
   from { opacity: 0; }
   to   { opacity: 1; }
