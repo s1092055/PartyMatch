@@ -8,6 +8,7 @@ import TokenAmount from '../../../../shared/ui/TokenAmount'
 import ServiceLogo from '../../../../shared/ui/ServiceLogo'
 import LivePreviewPanel from '../LivePreviewPanel'
 import { calcDisplayPrice } from '../../../../shared/utils/pricingUtils'
+import { Button } from '../../../../components/ui/button'
 
 
 function InfoField({ icon: Icon, label, value }) {
@@ -37,13 +38,14 @@ export default function Step4Preview({ form, agreedToTerms, onAgreeChange, onSho
             <h2 className="truncate text-base font-black text-ink">{service?.fullName ?? '尚未選擇服務'}</h2>
             <p className="truncate text-sm text-ink-3">{form.planName || '尚未選擇方案'}</p>
           </div>
-          <button
+          <Button
+            variant="ghost"
             onClick={onShowPreview}
-            className="flex shrink-0 items-center gap-1.5 rounded-full border border-line px-4 py-2 text-sm font-bold text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-raised hover:text-ink lg:hidden"
+            className="h-auto shrink-0 rounded-full border border-line px-4 py-2 lg:hidden"
           >
             <Eye size={15} />
             查看預覽
-          </button>
+          </Button>
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto pr-1">

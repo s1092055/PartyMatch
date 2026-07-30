@@ -11,6 +11,7 @@ import { StatusBadge } from '../../../shared/ui/StatusBadge'
 import { getStatusLabel } from '../../../shared/ui/statusBadgeConfig'
 import { Progress } from '../../../components/ui/progress'
 import { Card } from '../../../components/ui/card'
+import { Button } from '../../../components/ui/button'
 import { calcDisplayPrice, calcDisplayCycle } from '../../../shared/utils/pricingUtils'
 import { useFavoriteStore } from '../../../shared/stores/useFavoriteStore'
 import { useAuthStore } from '../../../shared/stores/useAuthStore'
@@ -179,12 +180,9 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
       </div>
 
       {!hideActions && (
-        <button
-          onClick={openDetails}
-          className="mt-4 w-full rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-brand-hover"
-        >
+        <Button onClick={openDetails} className="mt-4 w-full">
           查看詳情
-        </button>
+        </Button>
       )}
 
     </Card>

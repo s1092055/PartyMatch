@@ -21,17 +21,17 @@ function renderCTA({
   if (isWaitingMembers) return null
   if (needsFillInfo) return (
     <div className="flex justify-center">
-      <button
+      <Button
+        variant={hasServiceInfoIssue ? 'destructive' : 'default'}
+        size="lg"
+        className="w-full"
         onClick={() => {
           handleClose()
           navigate('/my-subscriptions', { state: { openGroupId: group.id } })
         }}
-        className={`flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white transition-all hover:-translate-y-0.5 ${
-          hasServiceInfoIssue ? 'bg-danger hover:opacity-90' : 'bg-brand hover:bg-brand-hover'
-        }`}
       >
         {hasServiceInfoIssue ? '修正服務帳號' : '填寫服務帳號'}
-      </button>
+      </Button>
     </div>
   )
   if (isMember) return (
@@ -71,18 +71,22 @@ export function buildMobileFooter({
     <div className="px-6 py-3">
       {isWaitingMembers ? (
         <div className="grid grid-cols-2 gap-1">
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-auto flex-col gap-1 py-2 text-xs"
             onClick={() => setShowMembers(true)}
-            className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-raised"
           >
             <Users size={17} /> 群組名單
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-auto flex-col gap-1 py-2 text-xs text-danger hover:bg-danger-subtle"
             onClick={() => setLeaveConfirm(true)}
-            className="flex flex-col items-center gap-1 rounded-xl py-2 text-xs font-semibold text-danger transition-all hover:-translate-y-0.5 hover:bg-danger-subtle"
           >
             <LogOut size={17} /> 退出群組
-          </button>
+          </Button>
         </div>
       ) : canApply ? (
         <>
