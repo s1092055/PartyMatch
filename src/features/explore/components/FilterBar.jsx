@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Search } from 'lucide-react'
 import CategoryPills from '../../../shared/ui/primitives/CategoryPills'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '../../../components/ui/select'
+import { CATEGORIES } from '../../../shared/data/serviceCategories'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import { TokenBadge } from '../../../shared/ui/TokenAmount'
 import { listServiceTypes } from '../../../shared/utils/serviceUtils'
@@ -35,9 +36,26 @@ function buildServiceOptions(category) {
     ...services.map(s => ({
       value: s.id,
       label: s.name,
+      category: s.category,
       icon: <ServiceLogo serviceId={s.id} size={20} className="shrink-0 rounded-md" />,
     })),
   ]
+}
+
+function groupServiceOptions(options) {
+  const byCategory = new Map()
+  for (const o of options) {
+    if (o.value === 'all') continue
+    if (!byCategory.has(o.category)) byCategory.set(o.category, [])
+    byCategory.get(o.category).push(o)
+  }
+  const order = [...CATEGORIES.map(c => c.value), ...byCategory.keys()]
+  const seen = new Set()
+  return order.filter(c => byCategory.has(c) && !seen.has(c) && seen.add(c)).map(c => ({
+    category: c,
+    label: CATEGORIES.find(cat => cat.value === c)?.label ?? c,
+    items: byCategory.get(c),
+  }))
 }
 
 function findOption(options, value) {
@@ -64,6 +82,10 @@ export default function FilterBar({ filters, onChange }) {
   }, [keyword])
 
   const serviceOptions = useMemo(() => buildServiceOptions(filters.category), [filters.category])
+  const groupedServiceOptions = useMemo(
+    () => filters.category === 'all' ? groupServiceOptions(serviceOptions) : null,
+    [filters.category, serviceOptions],
+  )
 
   const isCustomPrice = filters.maxPrice !== 'any' && !PRICE_PRESETS.includes(filters.maxPrice)
   const priceOptions = useMemo(
@@ -127,13 +149,26 @@ export default function FilterBar({ filters, onChange }) {
                 <span className="truncate">{findOption(serviceOptions, filters.service)?.label}</span>
               </SelectValue>
             </SelectTrigger>
-            <SelectContent>
-              {serviceOptions.map(o => (
-                <SelectItem key={o.value} value={o.value}>
-                  {o.icon}
-                  <span className="truncate">{o.label}</span>
-                </SelectItem>
-              ))}
+            <SelectContent position="popper" align="start">
+              <SelectItem value="all">不限服務</SelectItem>
+              {groupedServiceOptions
+                ? groupedServiceOptions.map(g => (
+                  <SelectGroup key={g.category}>
+                    <SelectLabel>{g.label}</SelectLabel>
+                    {g.items.map(o => (
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.icon}
+                        <span className="truncate">{o.label}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                ))
+                : serviceOptions.filter(o => o.value !== 'all').map(o => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.icon}
+                    <span className="truncate">{o.label}</span>
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
           {customEditing ? (
@@ -159,7 +194,7 @@ export default function FilterBar({ filters, onChange }) {
                   <span className="truncate">{findOption(priceOptions, isCustomPrice ? 'custom' : filters.maxPrice)?.label}</span>
                 </SelectValue>
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper" align="start">
                 {priceOptions.map(o => (
                   <SelectItem key={o.value} value={o.value}>
                     {o.icon}
@@ -175,7 +210,7 @@ export default function FilterBar({ filters, onChange }) {
                 <span className="truncate">{findOption(SORT_OPTIONS, filters.sortBy)?.label}</span>
               </SelectValue>
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper" align="start">
               {SORT_OPTIONS.map(o => (
                 <SelectItem key={o.value} value={o.value}>
                   <span className="truncate">{o.label}</span>

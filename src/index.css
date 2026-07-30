@@ -215,6 +215,16 @@
     input, select, textarea { font-size: 16px; }
   }
 
+  /* 瀏覽器原生 :focus-visible 判斷對 combobox/自訂互動元件（例如 Radix
+     Select trigger）不準，滑鼠點擊仍可能顯示 focus outline／ring。用
+     main.jsx 偵測到的實際輸入方式（見 .using-mouse class）取代瀏覽器判斷，
+     滑鼠操作一律不顯示，鍵盤 Tab 導覽時焦點框仍保留 */
+  html.using-mouse *:focus,
+  html.using-mouse *:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
   * { box-sizing: border-box; }
 
   body {
