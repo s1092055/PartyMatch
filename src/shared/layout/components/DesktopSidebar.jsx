@@ -4,7 +4,7 @@ import { Bell, Lock, LogIn, MessageSquare } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
 import { NAV_SECTIONS } from '../../constants/nav'
 import { TokenBadge } from '../../ui/TokenAmount'
-import { Badge, LockBadge, LockedHint } from './navShared'
+import { CountBadge, LockBadge, LockedHint } from './navShared'
 import { LOCKED_MESSAGE, getNavItemKey, isProtectedNavItem } from './navConstants'
 
 export default function DesktopSidebar({
@@ -115,7 +115,7 @@ export default function DesktopSidebar({
         >
           <Bell size={16} strokeWidth={2} />
           通知
-          <Badge count={unreadNotifs} />
+          <CountBadge count={unreadNotifs} />
         </button>
 
         {loggedIn && (
@@ -142,7 +142,7 @@ export default function DesktopSidebar({
           >
             <MessageSquare size={16} strokeWidth={2} />
             訊息
-            <Badge count={unreadMsgs} />
+            <CountBadge count={unreadMsgs} />
           </button>
         ) : (
           <button

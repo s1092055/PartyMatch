@@ -1,7 +1,7 @@
 import { Lock } from 'lucide-react'
 import { LOCKED_MESSAGE } from './navConstants'
 
-export function Badge({ count }) {
+export function CountBadge({ count }) {
   if (!count) return null
   return (
     <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-0.5 text-[0.6rem] font-black leading-none text-white">

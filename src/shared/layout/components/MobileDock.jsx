@@ -1,5 +1,5 @@
 import { Boxes, Compass, Heart, LayoutDashboard, LayoutGrid, MessageSquare, PlusCircle, Search } from 'lucide-react'
-import { Badge, LockBadge } from './navShared'
+import { CountBadge, LockBadge } from './navShared'
 import { useHideOnScroll } from '../../utils/hooks'
 
 export default function MobileDock({
@@ -125,7 +125,7 @@ export default function MobileDock({
           >
             <span className="relative">
               <MessageSquare size={22} strokeWidth={2.1} />
-              <Badge count={unreadMsgs} />
+              <CountBadge count={unreadMsgs} />
             </span>
             訊息
           </button>

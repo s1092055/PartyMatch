@@ -3,7 +3,7 @@ import { Bell, LogOut, Settings, UserCircle2 } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
 import { useAuthStore } from '../../stores/useAuthStore'
 import { TokenBadge } from '../../ui/TokenAmount'
-import { Badge } from './navShared'
+import { CountBadge } from './navShared'
 
 export default function MobileHeader({
   loggedIn,
@@ -36,7 +36,7 @@ export default function MobileHeader({
             aria-label="通知"
           >
             <Bell size={24} strokeWidth={2} />
-            <Badge count={unreadNotifs} />
+            <CountBadge count={unreadNotifs} />
           </button>
           {loggedIn ? (
             <button
