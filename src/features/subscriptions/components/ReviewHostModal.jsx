@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter } from '../../../components/ui/dialog'
 import { Avatar } from '../../../components/ui/avatar'
+import { Button } from '../../../components/ui/button'
 import StarRating from '../../../shared/ui/primitives/StarRating'
 import { toast } from '../../../shared/utils/toast'
 
@@ -58,14 +59,14 @@ export default function ReviewHostModal({ group, onSubmit, onClose }) {
       </div>
         </DialogBody>
         <DialogFooter>
-          <button onClick={onClose} className="btn btn-ghost flex-1">先跳過</button>
-          <button
+          <Button variant="ghost" onClick={onClose} className="flex-1">先跳過</Button>
+          <Button
             onClick={handleSubmit}
             disabled={rating === 0 || submitting}
-            className="btn btn-primary flex-1"
+            className="flex-1"
           >
             {submitting ? '送出中…' : '送出評價'}
-          </button>
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

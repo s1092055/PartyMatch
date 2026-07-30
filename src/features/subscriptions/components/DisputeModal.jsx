@@ -1,5 +1,6 @@
 import { AlertTriangle } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter, DialogCloseButton } from '../../../components/ui/dialog'
+import { Button } from '../../../components/ui/button'
 import EvidenceAttachmentField from '../../../shared/ui/EvidenceAttachmentField'
 
 const DISPUTE_REASON_OPTIONS = [
@@ -86,14 +87,15 @@ export default function DisputeModal({
       </form>
         </DialogBody>
         <DialogFooter>
-          <button
+          <Button
             type="submit"
             form="dispute-form"
+            variant="destructive"
             disabled={disputeReasons.length === 0 || disputeLoading || evidenceUploading}
-            className="w-full rounded-xl bg-danger py-2.5 text-sm font-bold text-white transition-colors hover:opacity-90 disabled:opacity-40 disabled:pointer-events-none"
+            className="w-full rounded-xl"
           >
             {disputeLoading ? '送出中…' : '送出回報'}
-          </button>
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

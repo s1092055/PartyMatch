@@ -3,6 +3,7 @@ import {
   Banknote, CheckCircle2, Clock, Info, LogOut, MessageCircle, Users, ClipboardEdit, ThumbsUp, AlertTriangle,
 } from 'lucide-react'
 import { Avatar } from '../../../components/ui/avatar'
+import { Button } from '../../../components/ui/button'
 import ConfirmActionDialog from '../../../shared/ui/ConfirmActionDialog'
 import CountdownText from '../../../shared/ui/primitives/CountdownText'
 import DisputeReasonDialog from '../../../shared/ui/DisputeReasonDialog'
@@ -168,30 +169,32 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
 
   const fillInfoCta = (needsFillInfo || hasServiceInfoIssue) && (
     <div className="py-2">
-      <button
+      <Button
         onClick={() => { setFillValues(myMember?.serviceInfo ?? {}); setShowFillInfo(true) }}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-6 py-2 text-sm font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-brand-hover"
+        className="w-full rounded-xl shadow-md"
       >
         <ClipboardEdit size={15} /> 填寫帳號
-      </button>
+      </Button>
     </div>
   )
 
   const confirmCta = canConfirm && (
     <div className="grid grid-cols-2 gap-2 p-2">
-      <button
+      <Button
+        variant="success"
         onClick={() => setConfirmDialog(true)}
         disabled={confirmLoading}
-        className="flex items-center justify-center gap-2 rounded-xl bg-success px-6 py-2 text-sm font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-success-text disabled:opacity-60"
+        className="rounded-xl shadow-md"
       >
         <ThumbsUp size={15} /> 確認服務
-      </button>
-      <button
+      </Button>
+      <Button
+        variant="ghost"
         onClick={() => { resetDisputeForm(); setShowDispute(true) }}
-        className="flex items-center justify-center gap-2 rounded-xl border border-danger px-5 py-1.5 text-sm font-semibold text-danger transition-all hover:-translate-y-0.5 hover:bg-danger-subtle"
+        className="rounded-xl border border-danger text-danger hover:bg-danger-subtle"
       >
         <AlertTriangle size={14} /> 回報問題
-      </button>
+      </Button>
     </div>
   )
 

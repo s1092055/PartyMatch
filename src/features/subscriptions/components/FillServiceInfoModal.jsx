@@ -1,5 +1,6 @@
 import { CheckCircle2, ClipboardEdit } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogBackButton } from '../../../components/ui/dialog'
+import { Button } from '../../../components/ui/button'
 import CredentialWatermark from '../../../shared/ui/primitives/CredentialWatermark'
 import { getServiceInfoSummary } from '../../../shared/utils/serviceInfoFields'
 import { parseHostCredentials } from '../../../shared/utils/hostCredentialFields'
@@ -105,13 +106,13 @@ export default function FillServiceInfoModal({
             </div>
           )
         ))}
-        <button
+        <Button
           type="submit"
           disabled={!fillValid || fillLoading}
-          className="w-full rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-brand-hover disabled:opacity-40 disabled:pointer-events-none"
+          className="w-full rounded-xl"
         >
           {fillLoading ? '送出中…' : '送出帳號資訊'}
-        </button>
+        </Button>
       </form>
         </DialogBody>
       </DialogContent>
