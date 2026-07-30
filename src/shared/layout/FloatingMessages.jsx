@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AlertCircle, Bell, CheckCircle2, ClipboardEdit, MessageSquare, UserPlus, X } from 'lucide-react'
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from '../../components/ui/drawer'
+import { Drawer, DrawerContent, DrawerHeader, DrawerFooter, DrawerTitle, DrawerDescription } from '../../components/ui/drawer'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useApplicationStore } from '../stores/useApplicationStore'
 import { useGroupStore } from '../stores/useGroupStore'
@@ -358,23 +358,14 @@ export default function FloatingMessages() {
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2">
-            {unreadCount > 0 && (
-              <button
-                onClick={handleMarkAllRead}
-                className="text-xs font-bold text-brand transition-colors hover:text-brand-hover"
-              >
-                全部已讀
-              </button>
-            )}
+          {unreadCount > 0 && (
             <button
-              onClick={() => setOpen(false)}
-              className="grid h-8 w-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink active:opacity-70"
-              aria-label="關閉"
+              onClick={handleMarkAllRead}
+              className="text-xs font-bold text-brand transition-colors hover:text-brand-hover"
             >
-              <X size={16} />
+              全部已讀
             </button>
-          </div>
+          )}
         </DrawerHeader>
         <DrawerDescription className="sr-only">通知中心</DrawerDescription>
 
@@ -431,6 +422,16 @@ export default function FloatingMessages() {
             </div>
           )}
         </div>
+
+        <DrawerFooter>
+          <button
+            onClick={() => setOpen(false)}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-line py-2.5 text-sm font-bold text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-raised"
+          >
+            <X size={15} strokeWidth={1.5} />
+            關閉
+          </button>
+        </DrawerFooter>
       </DrawerContent>
     </Drawer>
   )
