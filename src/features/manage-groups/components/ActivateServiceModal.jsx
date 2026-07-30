@@ -1,6 +1,7 @@
 import { PlayCircle, UserCheck } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter, DialogCloseButton } from '../../../components/ui/dialog'
 import { Avatar } from '../../../components/ui/avatar'
+import { Button } from '../../../components/ui/button'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import TokenAmount from '../../../shared/ui/TokenAmount'
 import GroupOverviewContent from '../../../shared/ui/group/GroupOverviewContent'
@@ -129,11 +130,11 @@ export default function ActivateServiceModal({
       </div>
         </DialogBody>
         <DialogFooter>
-          <button
+          <Button
             onClick={onConfirm}
             disabled={!allMembersChecked || !finalConfirmed}
-            className="flex-1 rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
-          >確認啟用</button>
+            className="flex-1 rounded-xl"
+          >確認啟用</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

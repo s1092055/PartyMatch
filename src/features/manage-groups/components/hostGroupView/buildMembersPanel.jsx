@@ -1,5 +1,6 @@
 import { MessageCircle, UserX, Users as UsersIcon } from 'lucide-react'
 import { Avatar } from '../../../../components/ui/avatar'
+import { Button } from '../../../../components/ui/button'
 
 export function buildMembersPanel({ group, members, setActivePanel, onClose, setRemovingMember, setShowMemberHistory }) {
   return {
@@ -58,13 +59,14 @@ export function buildMembersPanel({ group, members, setActivePanel, onClose, set
             )
           })}
         </div>
-        <button
+        <Button
+          variant="ghost"
           onClick={() => setShowMemberHistory(true)}
-          className="absolute bottom-4 right-4 flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-line bg-canvas px-3 text-sm font-bold text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-raised hover:text-ink"
+          className="absolute bottom-4 right-4 h-9 shrink-0 rounded-xl border border-line bg-canvas px-3"
         >
           <UsersIcon size={14} strokeWidth={1.5} />
           成員紀錄
-        </button>
+        </Button>
       </div>
     ),
   }

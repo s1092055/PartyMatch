@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Check, ChevronDown, ChevronUp, X } from 'lucide-react'
 import { Avatar } from '../../../../components/ui/avatar'
+import { Button } from '../../../../components/ui/button'
 import CreditScoreBadge from '../../../../shared/ui/CreditScoreBadge'
 import { formatDateTime, formatRelativeDate } from '../../../../shared/utils/date'
 
@@ -56,19 +57,21 @@ export default function ApplicationCard({ app, groupFull, error, onApprove, onRe
           {error && <p className="mt-1.5 text-xs text-danger">{error}</p>}
           {isPending && (
             <div className="mt-3 flex gap-2">
-              <button
+              <Button
+                variant="success"
                 onClick={() => onApprove(app.id)}
                 disabled={groupFull}
-                className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-success py-2 text-xs font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-success-text disabled:pointer-events-none disabled:opacity-40"
+                className="h-auto flex-1 rounded-xl py-2 text-xs"
               >
                 {groupFull ? '已額滿' : <><Check size={12} strokeWidth={3} /> 接受</>}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
                 onClick={() => onReject(app.id)}
-                className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-line py-2 text-xs font-semibold text-ink-2 transition-all hover:-translate-y-0.5 hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                className="h-auto flex-1 rounded-xl border border-line py-2 text-xs hover:border-red-200 hover:bg-red-50 hover:text-red-600"
               >
                 <X size={12} strokeWidth={3} /> 拒絕
-              </button>
+              </Button>
             </div>
           )}
         </div>

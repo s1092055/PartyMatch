@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Banknote, CheckCircle2, ClipboardList, Clock, FileText, Info, LockKeyhole, MessageCircle, PlayCircle, RefreshCw, Star, Trash2, Users } from 'lucide-react'
+import { Button } from '../../../components/ui/button'
 import ConfirmActionDialog from '../../../shared/ui/ConfirmActionDialog'
 import CountdownText from '../../../shared/ui/primitives/CountdownText'
 import DisputeReasonDialog from '../../../shared/ui/DisputeReasonDialog'
@@ -184,22 +185,25 @@ export default function HostGroupView({ group, members, applications, onReportSe
     <div className="py-2">
       {showLockGroupConfirm ? (
         <div className="grid grid-cols-2 gap-2">
-          <button
+          <Button
+            variant="ghost"
             onClick={() => setShowLockGroupConfirm(false)}
-            className="rounded-xl border border-line px-4 py-2 text-sm font-semibold text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-raised"
-          >取消</button>
-          <button
+            className="rounded-xl border border-line"
+          >取消</Button>
+          <Button
+            variant="ink"
             onClick={() => { setShowLockGroupConfirm(false); onLockGroup?.(undefined) }}
-            className="rounded-xl bg-ink-2 px-4 py-2 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-ink"
-          >確認鎖定</button>
+            className="rounded-xl"
+          >確認鎖定</Button>
         </div>
       ) : (
-        <button
+        <Button
+          variant="ink"
           onClick={openLockFlow}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-ink-2 px-6 py-2 text-sm font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-ink"
+          className="w-full rounded-xl shadow-md"
         >
           <LockKeyhole size={15} strokeWidth={1.5} /> 鎖定群組
-        </button>
+        </Button>
       )}
     </div>
   )
@@ -251,12 +255,12 @@ export default function HostGroupView({ group, members, applications, onReportSe
 
   const activateCta = canActivateNow && (
     <div className="py-2">
-      <button
+      <Button
         onClick={openActivate}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-6 py-2 text-sm font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-brand-hover"
+        className="w-full rounded-xl shadow-md"
       >
         <PlayCircle size={15} /> 啟用服務
-      </button>
+      </Button>
     </div>
   )
 

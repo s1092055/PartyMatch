@@ -1,6 +1,7 @@
 import { AlertTriangle } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter, DialogBackButton } from '../../../components/ui/dialog'
 import { Avatar } from '../../../components/ui/avatar'
+import { Button } from '../../../components/ui/button'
 import EvidenceAttachmentField from '../../../shared/ui/EvidenceAttachmentField'
 import { getServiceInfoSummary } from '../../../shared/utils/serviceInfoFields'
 
@@ -60,13 +61,13 @@ export default function ReportServiceIssueModal({
       )}
         </DialogBody>
         <DialogFooter>
-          <button
+          <Button
             onClick={onSubmit}
             disabled={!note.trim() || evidenceUploading}
-            className="flex-1 rounded-xl bg-warning py-2.5 text-sm font-bold text-white transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex-1 rounded-xl bg-warning hover:bg-warning hover:opacity-90"
           >
             發送通知
-          </button>
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

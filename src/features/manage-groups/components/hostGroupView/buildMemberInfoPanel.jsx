@@ -1,5 +1,6 @@
 import { AlertTriangle, FileText, Paperclip } from 'lucide-react'
 import { Avatar } from '../../../../components/ui/avatar'
+import { Button } from '../../../../components/ui/button'
 import EmptyState from '../../../../shared/ui/primitives/EmptyState'
 import { CENTERED_PANEL_BODY_CLASS } from '../../../../shared/ui/group/panelLayout'
 import { getTextFields, hasFilledServiceInfo } from '../../../../shared/utils/serviceInfoFields'
@@ -70,12 +71,13 @@ export function buildMemberInfoPanel({ members, sharingMethod, sharedCredentials
                   }`}
                 >
                   {canReportServiceIssue && filled && !m.serviceInfoIssueNote && (
-                    <button
+                    <Button
+                      variant="ghost"
                       onClick={() => onOpenServiceIssue(m)}
-                      className="absolute right-3 top-3 flex items-center gap-1 rounded-lg border border-warning/60 px-2.5 py-1 text-xs font-semibold text-warning-text transition-all hover:-translate-y-0.5 hover:bg-warning-subtle"
+                      className="absolute right-3 top-3 h-auto rounded-lg border border-warning/60 px-2.5 py-1 text-xs text-warning-text hover:bg-warning-subtle"
                     >
                       <AlertTriangle size={11} /> 帳號問題
-                    </button>
+                    </Button>
                   )}
                   <div className={`flex items-center gap-3 ${canReportServiceIssue ? 'pr-24' : ''}`}>
                     <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Archive } from 'lucide-react'
+import { Button } from '../../components/ui/button'
 import { useAuthStore } from '../../shared/stores/useAuthStore'
 import EmptyState from '../../shared/ui/primitives/EmptyState'
 import GroupViewModal from '../../shared/ui/group/GroupViewModal'
@@ -50,14 +51,15 @@ export default function ManageGroupsPage() {
     <div className="px-2 md:px-4 lg:px-16">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="page-title mb-0">群組管理</h1>
-        <button
+        <Button
+          variant="ghost"
           onClick={() => setHistoryOpen(true)}
           aria-label="群組紀錄"
-          className="flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-line px-3 text-sm font-bold text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-raised hover:text-ink"
+          className="h-9 shrink-0 rounded-xl border border-line px-3"
         >
           <Archive size={14} strokeWidth={1.5} />
           群組紀錄
-        </button>
+        </Button>
       </div>
 
       <FilterTabsBar
