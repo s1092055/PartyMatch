@@ -121,7 +121,7 @@ export default function FilterBar({ filters, onChange }) {
 
         <div className="flex items-center gap-2 md:contents">
           <Select value={filters.service} onValueChange={val => onChange({ service: val, category: 'all' })}>
-            <SelectTrigger className="!h-11 w-full font-bold md:flex-[2]">
+            <SelectTrigger className="!h-11 w-full min-w-0 flex-1 font-bold md:flex-[2]">
               {findOption(serviceOptions, filters.service)?.icon}
               <SelectValue>
                 <span className="truncate">{findOption(serviceOptions, filters.service)?.label}</span>
@@ -153,7 +153,7 @@ export default function FilterBar({ filters, onChange }) {
             </div>
           ) : (
             <Select value={isCustomPrice ? 'custom' : filters.maxPrice} onValueChange={handlePriceChange}>
-              <SelectTrigger className="!h-11 w-full font-bold">
+              <SelectTrigger className="!h-11 w-full min-w-0 flex-1 font-bold">
                 {findOption(priceOptions, isCustomPrice ? 'custom' : filters.maxPrice)?.icon}
                 <SelectValue>
                   <span className="truncate">{findOption(priceOptions, isCustomPrice ? 'custom' : filters.maxPrice)?.label}</span>
@@ -170,7 +170,7 @@ export default function FilterBar({ filters, onChange }) {
             </Select>
           )}
           <Select value={filters.sortBy} onValueChange={val => onChange({ sortBy: val })}>
-            <SelectTrigger className="!h-11 w-full font-bold">
+            <SelectTrigger className="!h-11 w-full min-w-0 flex-1 font-bold">
               <SelectValue>
                 <span className="truncate">{findOption(SORT_OPTIONS, filters.sortBy)?.label}</span>
               </SelectValue>

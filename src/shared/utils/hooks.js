@@ -206,6 +206,20 @@ export function useCountdown(deadline) {
   return { label, expired: false }
 }
 
+// 重要操作（解散群組、移除成員等）的確認按鈕倒數幾秒才能點擊，避免使用者誤觸；
+// 跟上面的 useCountdown 不同，這裡是單純從整數秒數倒數到 0，不是算到某個 deadline
+export function useConfirmCountdown(seconds) {
+  const [remaining, setRemaining] = useState(seconds)
+
+  useEffect(() => {
+    if (remaining <= 0) return
+    const timer = setTimeout(() => setRemaining(prev => prev - 1), 1000)
+    return () => clearTimeout(timer)
+  }, [remaining])
+
+  return { remaining, ready: remaining <= 0 }
+}
+
 // 附件上傳共用邏輯：申訴附件、團主回報帳號問題的附件都是同一套「選檔→上傳→存 url/name→
 // 失敗跳 toast→清空重選」流程，差別只在呼叫哪支 upload API（uploadFn）
 export function useEvidenceUpload(uploadFn) {

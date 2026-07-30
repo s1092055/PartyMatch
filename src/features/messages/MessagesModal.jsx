@@ -17,7 +17,6 @@ import {
   getOrCreateDmConversation,
 } from '../../shared/api/messagesApi'
 import { normalizeConversation, normalizeMessage } from '../../shared/utils/modelNormalizers'
-import ConfirmDialog from '../../shared/ui/primitives/ConfirmDialog'
 import ConversationList, { CONV_TABS } from './components/ConversationList'
 import ChatWindow from './components/ChatWindow'
 import { isSystemConversation, markConversationReadLocal } from './utils'
@@ -42,7 +41,6 @@ export default function MessagesModal() {
   const [sending, setSending] = useState(false)
   const [sendError, setSendError] = useState(false)
   const [showMembers, setShowMembers] = useState(false)
-  const [confirmDialog, setConfirmDialog] = useState(null)
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768)
 
   const inputRef = useRef(null)
@@ -235,16 +233,6 @@ export default function MessagesModal() {
 
   return (
     <>
-      {confirmDialog && (
-        <ConfirmDialog
-          title={confirmDialog.title}
-          message={confirmDialog.message}
-          confirmLabel={confirmDialog.confirmLabel}
-          danger={confirmDialog.danger}
-          onConfirm={confirmDialog.onConfirm}
-          onCancel={() => setConfirmDialog(null)}
-        />
-      )}
       <Modal
         onClose={handleClose}
         icon={isMobile && selectedId && selected

@@ -12,7 +12,7 @@ import { finalizeLeaveGroup } from './utils/leaveGroupFlow'
 import { calcDisplayPrice } from '../../shared/utils/pricingUtils'
 import { toast } from '../../shared/utils/toast'
 import { TokenBadge } from '../../shared/ui/TokenAmount'
-import CountdownConfirmDialog from '../../shared/ui/primitives/CountdownConfirmDialog'
+import ConfirmActionDialog from '../../shared/ui/ConfirmActionDialog'
 import GroupModalShell from '../../shared/ui/group/GroupModalShell'
 import MemberGroupView from '../subscriptions/components/MemberGroupView'
 import ExploreGroupCard from '../explore/components/ExploreGroupCard'
@@ -323,7 +323,7 @@ export default function GroupDetailModal() {
 
     {/* 退出確認 */}
     {leaveConfirm && (
-      <CountdownConfirmDialog
+      <ConfirmActionDialog
         title="確認退出群組？"
         message={`退出後將釋出名額，需重新申請才能加入「${group?.serviceName}」。`}
         confirmLabel="退出群組"

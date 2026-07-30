@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Banknote, CheckCircle2, ClipboardList, Clock, FileText, Info, LockKeyhole, MessageCircle, PlayCircle, RefreshCw, Star, Trash2, Users } from 'lucide-react'
-import CountdownConfirmDialog from '../../../shared/ui/primitives/CountdownConfirmDialog'
+import ConfirmActionDialog from '../../../shared/ui/ConfirmActionDialog'
 import CountdownText from '../../../shared/ui/primitives/CountdownText'
-import DisputeReasonDialog from '../../../shared/ui/primitives/DisputeReasonDialog'
+import DisputeReasonDialog from '../../../shared/ui/DisputeReasonDialog'
 import GroupModalShell from '../../../shared/ui/group/GroupModalShell'
 import GroupModalSideBarItem from '../../../shared/ui/group/GroupModalSideBarItem'
 import HostReviews from '../../group/components/HostReviews'
@@ -476,7 +476,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
     )}
 
     {showCancelConfirm && (
-      <CountdownConfirmDialog
+      <ConfirmActionDialog
         title="解散群組"
         message={`確定要解散「${group.serviceName}」群組嗎？所有代管費用將退還給成員，此操作無法撤回。`}
         confirmLabel="解散群組"
@@ -488,7 +488,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
 
     {/* 移除成員確認（倒數 5 秒才可確認） */}
     {removingMember && (
-      <CountdownConfirmDialog
+      <ConfirmActionDialog
         title="移除成員"
         message={`確定要將「${removingMember.userName}」移出群組嗎？對方會立即失去名額與聊天室存取權限，且會收到通知；若要再加入需要重新提出申請。`}
         confirmLabel="移除"

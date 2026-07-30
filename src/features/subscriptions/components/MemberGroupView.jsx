@@ -3,9 +3,9 @@ import {
   Banknote, CheckCircle2, Clock, Info, LogOut, MessageCircle, Users, ClipboardEdit, ThumbsUp, AlertTriangle,
 } from 'lucide-react'
 import { Avatar } from '../../../components/ui/avatar'
-import CountdownConfirmDialog from '../../../shared/ui/primitives/CountdownConfirmDialog'
+import ConfirmActionDialog from '../../../shared/ui/ConfirmActionDialog'
 import CountdownText from '../../../shared/ui/primitives/CountdownText'
-import DisputeReasonDialog from '../../../shared/ui/primitives/DisputeReasonDialog'
+import DisputeReasonDialog from '../../../shared/ui/DisputeReasonDialog'
 import GroupModalShell from '../../../shared/ui/group/GroupModalShell'
 import GroupModalSideBarItem from '../../../shared/ui/group/GroupModalSideBarItem'
 import ReviewHostModal from './ReviewHostModal'
@@ -418,7 +418,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
     />
 
     {confirmDialog && (
-      <CountdownConfirmDialog
+      <ConfirmActionDialog
         title="確認服務正常"
         message={`確認「${group.serviceName}」服務已正常啟用？確認後款項將立即撥付給團主，此操作無法撤回。`}
         confirmLabel="確認服務正常"
@@ -428,7 +428,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
     )}
 
     {leaveConfirm && (
-      <CountdownConfirmDialog
+      <ConfirmActionDialog
         title="退出群組"
         message={`確定要退出「${group.serviceName}」群組嗎？退出後名額將釋出，若要再加入需要重新提出申請。`}
         confirmLabel="退出"
