@@ -1,22 +1,13 @@
-let _listener = null
-const _queue = []
+import { toast as sonnerToast } from 'sonner'
 
-// options: { duration?: number, action?: { label: string, onClick: () => void }, icon?: ReactNode }
-// action 用於「復原」之類可回應的提示；duration 覆寫預設 4 秒的自動消失時間；
-// icon 用於覆寫預設的 type 圖示（例如PM幣不足要顯示 PM幣徽章而非通用錯誤圖示）。
+// options: { duration?: number, action?: { label: string, onClick: () => void }, icon?: ReactNode, persistent?: boolean }
+// action 用於「復原」之類可回應的提示；duration 覆寫預設的自動消失時間；
+// icon 用於覆寫預設的 type 圖示（例如PM幣不足要顯示 PM幣徽章而非通用錯誤圖示）；
+// persistent 代表不自動消失，換算成 sonner 的 duration: Infinity。
 export function toast(message, type = 'success', options = {}) {
-  const item = { id: Date.now() + Math.random(), message, type, ...options }
-  if (_listener) {
-    _listener(item)
-  } else {
-    _queue.push(item)
-  }
-}
-
-export function subscribeToast(fn) {
-  _listener = fn
-  _queue.splice(0).forEach(fn)
-  return () => { if (_listener === fn) _listener = null }
+  const { persistent, duration, ...rest } = options
+  const emit = sonnerToast[type] ?? sonnerToast.success
+  emit(message, { duration: persistent ? Infinity : duration, ...rest })
 }
 
 // 給 store 內樂觀更新失敗（fire-and-forget 的背景 API 呼叫）用：記錄錯誤並跳 Toast 告知使用者，
