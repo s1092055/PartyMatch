@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronRight, Compass, Search } from 'lucide-react'
-import Button from '../../shared/ui/primitives/Button'
+import { Button } from '../../components/ui/button'
 import logoUrl from '../../assets/Logo.svg'
 import { useAuthStore } from '../../shared/stores/useAuthStore'
 import { listServiceTypes } from '../../shared/utils/serviceUtils'

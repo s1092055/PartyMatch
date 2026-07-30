@@ -4,7 +4,7 @@ import { Globe, LogOut, Shield, Trash2 } from 'lucide-react'
 import { readStorage, writeStorage } from '../../../../shared/utils/storage'
 import { useAuthStore } from '../../../../shared/stores/useAuthStore'
 import { toast } from '../../../../shared/utils/toast'
-import Toggle from '../../../../shared/ui/primitives/Toggle'
+import { Switch } from '../../../../components/ui/switch'
 
 const PREFS_KEY = 'pm_app_prefs'
 const DEFAULT_PREFS = {
@@ -26,7 +26,7 @@ function SettingRow({ label, desc, checked, onChange }) {
         <p className="text-sm font-medium text-ink-2">{label}</p>
         {desc && <p className="mt-0.5 text-xs text-ink-3">{desc}</p>}
       </div>
-      <Toggle checked={checked} onChange={onChange} />
+      <Switch checked={checked} onChange={onChange} />
     </div>
   )
 }

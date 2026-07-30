@@ -9,7 +9,7 @@ import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import TokenAmount from '../../../shared/ui/TokenAmount'
 import Badge from '../../../shared/ui/primitives/Badge'
 import { BADGE_LABELS } from '../../../shared/ui/primitives/badgeLabels'
-import ProgressBar from '../../../shared/ui/primitives/ProgressBar'
+import { Progress } from '../../../components/ui/progress'
 import { calcDisplayPrice, calcDisplayCycle } from '../../../shared/utils/pricingUtils'
 import { useFavoriteStore } from '../../../shared/stores/useFavoriteStore'
 import { useAuthStore } from '../../../shared/stores/useAuthStore'
@@ -171,7 +171,7 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
                 )}
               </p>
             </div>
-            <ProgressBar value={group.usedSeats} max={group.totalSeats} label="名額使用率" className="mt-1.5" />
+            <Progress value={group.usedSeats} max={group.totalSeats} label="名額使用率" className="mt-1.5" />
           </>
         )}
       </div>

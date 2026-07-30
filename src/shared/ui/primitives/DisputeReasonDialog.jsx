@@ -1,7 +1,7 @@
 import { createPortal } from 'react-dom'
 import { FileText, X } from 'lucide-react'
 import { useScrollLock } from '../../utils/hooks'
-import Avatar from './Avatar'
+import { Avatar } from '../../../components/ui/avatar'
 
 export default function DisputeReasonDialog({ reporterName, reporterAvatarInitial, reporterAvatarColor, reason, evidenceUrl, onClose }) {
   useScrollLock(true)

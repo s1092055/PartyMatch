@@ -1,6 +1,6 @@
 import { AlertTriangle } from 'lucide-react'
 import Modal from '../../../shared/ui/primitives/Modal'
-import Avatar from '../../../shared/ui/primitives/Avatar'
+import { Avatar } from '../../../components/ui/avatar'
 import EvidenceAttachmentField from '../../../shared/ui/EvidenceAttachmentField'
 import { getServiceInfoSummary } from '../../../shared/utils/serviceInfoFields'
 

@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { ChevronLeft, X } from 'lucide-react'
 import ServiceLogo from '../ServiceLogo'
 import GroupOverviewContent from './GroupOverviewContent'
-import ProgressBar from '../primitives/ProgressBar'
+import { Progress } from '../../../components/ui/progress'
 import TokenAmount from '../TokenAmount'
 import ScrollHint from '../primitives/ScrollHint'
 import { useScrollLock, useScrollEdge } from '../../utils/hooks'
@@ -218,7 +218,7 @@ export default function GroupModalShell({
                           </div>
                         </div>
                         <div className="mt-3">
-                          <ProgressBar value={group.usedSeats} max={group.totalSeats} />
+                          <Progress value={group.usedSeats} max={group.totalSeats} />
                         </div>
                       </div>
                     ) : null}

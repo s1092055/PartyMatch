@@ -1,5 +1,5 @@
 import { SearchX } from 'lucide-react'
-import Button from './Button'
+import { Button } from '../../../components/ui/button'
 
 export default function EmptyState({
   icon: Icon = SearchX,

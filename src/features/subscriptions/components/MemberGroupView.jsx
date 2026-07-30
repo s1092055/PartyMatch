@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import {
   Banknote, CheckCircle2, Clock, Info, LogOut, MessageCircle, Users, ClipboardEdit, ThumbsUp, AlertTriangle,
 } from 'lucide-react'
-import Avatar from '../../../shared/ui/primitives/Avatar'
+import { Avatar } from '../../../components/ui/avatar'
 import CountdownConfirmDialog from '../../../shared/ui/primitives/CountdownConfirmDialog'
 import CountdownText from '../../../shared/ui/primitives/CountdownText'
 import DisputeReasonDialog from '../../../shared/ui/primitives/DisputeReasonDialog'

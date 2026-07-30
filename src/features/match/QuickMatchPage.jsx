@@ -7,7 +7,7 @@ import Step1Services from './components/steps/Step1Services'
 import Step2PlansAndFilters from './components/steps/Step2PlansAndFilters'
 import Step4Results from './components/steps/Step4Results'
 import MatchSummaryPanel from './components/MatchSummaryPanel'
-import Button from '../../shared/ui/primitives/Button'
+import { Button } from '../../components/ui/button'
 import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { useAuthStore } from '../../shared/stores/useAuthStore'
 import { useScrollEdge } from '../../shared/utils/hooks'
@@ -134,7 +134,7 @@ export default function QuickMatchPage() {
         {step === 1 ? '取消' : '上一步'}
       </Button>
       {step < 2 ? (
-        <Button variant="primary" size="md" className="min-w-0 flex-1" disabled={!canNext} onClick={handleNext}>
+        <Button variant="default" size="md" className="min-w-0 flex-1" disabled={!canNext} onClick={handleNext}>
           下一步
           <ChevronRight size={15} strokeWidth={1.5} />
         </Button>

@@ -1,5 +1,5 @@
 import { cva } from "class-variance-authority"
-import { cn } from "../../../lib/utils"
+import { cn } from "../../lib/utils"
 
 const avatarVariants = cva(
   "rounded-full flex items-center justify-center text-white font-semibold shrink-0",
@@ -17,7 +17,7 @@ const avatarVariants = cva(
   }
 )
 
-export default function Avatar({ initial, color, size, className }) {
+export function Avatar({ initial, color, size, className }) {
   return (
     <div className={cn(avatarVariants({ size }), className)} style={{ background: color }}>
       {initial}

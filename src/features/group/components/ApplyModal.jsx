@@ -1,6 +1,6 @@
 import { CheckCircle2 } from 'lucide-react'
 import Modal from '../../../shared/ui/primitives/Modal'
-import Button from '../../../shared/ui/primitives/Button'
+import { Button } from '../../../components/ui/button'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import TokenAmount from '../../../shared/ui/TokenAmount'
 import { calcDisplayPrice, calcDisplayCycle } from '../../../shared/utils/pricingUtils'
@@ -33,7 +33,7 @@ export default function ApplyModal({
             <p className="text-base font-bold text-ink">申請已送出！</p>
             <p className="text-sm text-ink-3">等待團主審核後即可加入，請留意通知。</p>
           </div>
-          <Button variant="primary" size="md" className="mt-2 min-w-[7rem]" onClick={onClose}>確認</Button>
+          <Button variant="default" size="md" className="mt-2 min-w-[7rem]" onClick={onClose}>確認</Button>
         </div>
       ) : (
         <div className="animate-step-slide-up flex flex-col gap-4 p-5">
@@ -75,7 +75,7 @@ export default function ApplyModal({
           </label>
           <div className="flex gap-3 pt-1">
             <Button variant="ghost" size="md" className="flex-1 border border-line" onClick={onClose}>取消</Button>
-            <Button variant="primary" size="md" className="flex-1" disabled={!applyAgreed} loading={applying} onClick={onApply}>送出申請</Button>
+            <Button variant="default" size="md" className="flex-1" disabled={!applyAgreed} loading={applying} onClick={onApply}>送出申請</Button>
           </div>
         </div>
       )}

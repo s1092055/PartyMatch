@@ -1,7 +1,7 @@
 import { memo } from 'react'
 import Badge from '../../../shared/ui/primitives/Badge'
 import { getStatusTextColor } from '../../../shared/ui/primitives/badgeLabels'
-import Button from '../../../shared/ui/primitives/Button'
+import { Button } from '../../../components/ui/button'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import TokenAmount from '../../../shared/ui/TokenAmount'
 import { getRenewalAwareStatus } from '../../../shared/utils/groupStatusDisplay'

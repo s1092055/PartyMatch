@@ -1,5 +1,5 @@
 import { ChevronRight, CheckCircle2, Heart, LogIn, LogOut, ShieldCheck, Users } from 'lucide-react'
-import Button from '../../../shared/ui/primitives/Button'
+import { Button } from '../../../components/ui/button'
 
 function renderCTA({
   group, activeUserId, navigate, handleClose,
@@ -8,7 +8,7 @@ function renderCTA({
   withdrawConfirm, setWithdrawConfirm, withdrawing, handleWithdraw,
 }) {
   if (!activeUserId) return (
-    <Button variant="primary" size="lg" className="w-full"
+    <Button variant="default" size="lg" className="w-full"
       onClick={() => navigate('/login')}>
       <LogIn size={16} />登入以加入群組
     </Button>
@@ -43,7 +43,7 @@ function renderCTA({
     withdrawConfirm ? (
       <div className="flex gap-2">
         <Button variant="ghost" size="lg" className="flex-1 border border-line" onClick={() => setWithdrawConfirm(false)}>返回</Button>
-        <Button variant="danger" size="lg" className="flex-1" disabled={withdrawing} onClick={handleWithdraw}>
+        <Button variant="destructive" size="lg" className="flex-1" disabled={withdrawing} onClick={handleWithdraw}>
           {withdrawing ? '處理中…' : '確認取消'}
         </Button>
       </div>

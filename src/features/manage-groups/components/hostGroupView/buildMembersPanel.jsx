@@ -1,5 +1,5 @@
 import { MessageCircle, UserX, Users as UsersIcon } from 'lucide-react'
-import Avatar from '../../../../shared/ui/primitives/Avatar'
+import { Avatar } from '../../../../components/ui/avatar'
 
 export function buildMembersPanel({ group, members, setActivePanel, onClose, setRemovingMember, setShowMemberHistory }) {
   return {

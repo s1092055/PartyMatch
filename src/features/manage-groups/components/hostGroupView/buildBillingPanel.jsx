@@ -1,5 +1,5 @@
 import { ArrowUpCircle, Banknote } from 'lucide-react'
-import Avatar from '../../../../shared/ui/primitives/Avatar'
+import { Avatar } from '../../../../components/ui/avatar'
 import EmptyState from '../../../../shared/ui/primitives/EmptyState'
 import EscrowStatusCard from '../../../../shared/ui/EscrowStatusCard'
 import TokenAmount from '../../../../shared/ui/TokenAmount'

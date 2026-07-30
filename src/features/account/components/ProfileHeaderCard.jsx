@@ -1,5 +1,5 @@
 import { CheckCircle2, ShieldCheck, Star } from 'lucide-react'
-import Avatar from '../../../shared/ui/primitives/Avatar'
+import { Avatar } from '../../../components/ui/avatar'
 
 // icon 大在上、文字小在下的方形按鈕；手機版左右平均分佈（flex-1），電腦版固定寬度靠右
 function HeroStatTile({ icon: Icon, iconClassName, label, onClick }) {

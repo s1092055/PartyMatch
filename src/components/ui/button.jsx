@@ -1,17 +1,17 @@
 import { cva } from "class-variance-authority"
-import { cn } from "../../../lib/utils"
+import { cn } from "../../lib/utils"
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 font-bold rounded-inner cursor-pointer transition-all duration-150 hover:-translate-y-0.5 focus:outline-none disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed",
   {
     variants: {
       variant: {
-        primary:   "bg-brand text-white hover:bg-brand-hover",
-        secondary: "border border-brand-border bg-surface text-brand hover:bg-brand-subtle",
-        ghost:     "text-ink-2 hover:bg-raised",
-        danger:    "bg-danger text-white hover:bg-danger-text",
-        success:   "bg-success text-white hover:bg-success-text",
-        ink:       "bg-ink text-white hover:bg-ink-2",
+        default:     "bg-brand text-white hover:bg-brand-hover",
+        secondary:   "border border-brand-border bg-surface text-brand hover:bg-brand-subtle",
+        ghost:       "text-ink-2 hover:bg-raised",
+        destructive: "bg-danger text-white hover:bg-danger-text",
+        success:     "bg-success text-white hover:bg-success-text",
+        ink:         "bg-ink text-white hover:bg-ink-2",
       },
       size: {
         sm: "text-xs px-4 h-8",
@@ -20,13 +20,13 @@ const buttonVariants = cva(
       },
     },
     defaultVariants: {
-      variant: "primary",
+      variant: "default",
       size: "md",
     },
   }
 )
 
-export default function Button({ variant, size, loading = false, className, children, ...props }) {
+export function Button({ variant, size, loading = false, className, children, ...props }) {
   return (
     <button
       disabled={loading || props.disabled}
@@ -39,3 +39,5 @@ export default function Button({ variant, size, loading = false, className, chil
     </button>
   )
 }
+
+export { buttonVariants }

@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { MessageCircle, Star } from 'lucide-react'
-import Avatar from '../../../shared/ui/primitives/Avatar'
+import { Avatar } from '../../../components/ui/avatar'
 import StarRating from '../../../shared/ui/primitives/StarRating'
 import EmptyState from '../../../shared/ui/primitives/EmptyState'
 import { CENTERED_PANEL_BODY_CLASS } from '../../../shared/ui/group/panelLayout'

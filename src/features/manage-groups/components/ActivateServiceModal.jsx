@@ -1,6 +1,6 @@
 import { PlayCircle, UserCheck } from 'lucide-react'
 import Modal from '../../../shared/ui/primitives/Modal'
-import Avatar from '../../../shared/ui/primitives/Avatar'
+import { Avatar } from '../../../components/ui/avatar'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import TokenAmount from '../../../shared/ui/TokenAmount'
 import GroupOverviewContent from '../../../shared/ui/group/GroupOverviewContent'

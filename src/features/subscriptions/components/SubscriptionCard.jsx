@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import Button from '../../../shared/ui/primitives/Button'
+import { Button } from '../../../components/ui/button'
 import Badge from '../../../shared/ui/primitives/Badge'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import TokenAmount from '../../../shared/ui/TokenAmount'

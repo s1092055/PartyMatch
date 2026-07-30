@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import Modal from '../../../shared/ui/primitives/Modal'
-import Avatar from '../../../shared/ui/primitives/Avatar'
+import { Avatar } from '../../../components/ui/avatar'
 import StarRating from '../../../shared/ui/primitives/StarRating'
 import { toast } from '../../../shared/utils/toast'
 

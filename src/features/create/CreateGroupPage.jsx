@@ -6,7 +6,7 @@ import Step1Service from './components/steps/Step1Service'
 import Step2Plan from './components/steps/Step2Plan'
 import Step3Settings from './components/steps/Step3Settings'
 import Step4Preview from './components/steps/Step4Preview'
-import Button from '../../shared/ui/primitives/Button'
+import { Button } from '../../components/ui/button'
 import ServiceLogo from '../../shared/ui/ServiceLogo'
 import TokenAmount from '../../shared/ui/TokenAmount'
 import ScrollHint from '../../shared/ui/primitives/ScrollHint'
@@ -195,7 +195,7 @@ export default function CreateGroupPage() {
         </Button>
       )}
       {step < 4 ? (
-        <Button variant="primary" size="md" className="min-w-0 flex-1" disabled={!canNext()} onClick={handleNext}>
+        <Button variant="default" size="md" className="min-w-0 flex-1" disabled={!canNext()} onClick={handleNext}>
           下一步
           <ChevronRight size={15} strokeWidth={1.5} />
         </Button>

@@ -1,6 +1,6 @@
-import { cn } from "../../../lib/utils"
+import { cn } from "../../lib/utils"
 
-export default function ProgressBar({ value, max, color = 'bg-success', className, label }) {
+export function Progress({ value, max, color = 'bg-success', className, label }) {
   const pct = max > 0 ? Math.min(100, Math.round((value / max) * 100)) : 0
   return (
     <div

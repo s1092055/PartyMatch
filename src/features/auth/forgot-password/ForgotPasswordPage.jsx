@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Mail } from 'lucide-react'
 import AuthLayout, { AuthInput } from '../components/AuthLayout'
-import Button from '../../../shared/ui/primitives/Button'
+import { Button } from '../../../components/ui/button'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
