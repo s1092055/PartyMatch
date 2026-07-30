@@ -92,13 +92,14 @@ export default function HomePage() {
       <RevealSection>
         <section className="py-14 text-center text-ink">
           <h2 className="text-2xl font-extrabold">即刻開始使用</h2>
-          <button
+          <Button
+            size="lg"
             onClick={() => navigate(loggedIn ? '/explore' : '/register')}
-            className="mt-7 inline-flex items-center gap-2 rounded-xl bg-brand px-7 py-3 text-sm font-bold text-white shadow transition-all hover:-translate-y-0.5 hover:opacity-90"
+            className="mt-7 rounded-xl shadow"
           >
             {loggedIn ? '前往探索群組' : '免費建立帳號'}
             <ChevronRight size={15} strokeWidth={1.5} />
-          </button>
+          </Button>
         </section>
       </RevealSection>
 
