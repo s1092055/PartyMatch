@@ -1,6 +1,6 @@
 import { memo } from 'react'
-import Badge from '../../../shared/ui/primitives/Badge'
-import { getStatusTextColor } from '../../../shared/ui/primitives/badgeLabels'
+import { StatusBadge } from '../../../shared/ui/StatusBadge'
+import { getStatusTextColor } from '../../../shared/ui/statusBadgeConfig'
 import { Button } from '../../../components/ui/button'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import TokenAmount from '../../../shared/ui/TokenAmount'
@@ -74,8 +74,8 @@ function HostedGroupCard({
       onClick={onViewGroup}
     >
       <div className="flex justify-center">
-        <Badge
-          variant={displayStatus}
+        <StatusBadge
+          status={displayStatus}
           label={group.status === 'full' ? '等待鎖定' : undefined}
         />
       </div>

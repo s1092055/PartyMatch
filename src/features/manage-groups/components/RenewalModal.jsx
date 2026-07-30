@@ -1,7 +1,7 @@
 import { Calendar, RefreshCw, XCircle } from 'lucide-react'
 import Modal from '../../../shared/ui/primitives/Modal'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
-import Badge from '../../../shared/ui/primitives/Badge'
+import { StatusBadge } from '../../../shared/ui/StatusBadge'
 import { advanceByCycle, daysUntil, toISODate } from '../../../shared/utils/date'
 
 export default function RenewalModal({ isOpen, onClose, group, onStartRenewal, onEndGroup }) {
@@ -29,7 +29,7 @@ export default function RenewalModal({ isOpen, onClose, group, onStartRenewal, o
             <p className="font-extrabold text-ink">{group.serviceName}</p>
             <p className="text-xs text-ink-3">{group.planName}</p>
           </div>
-          <Badge variant={group.status} />
+          <StatusBadge status={group.status} />
         </div>
 
 <div className={`mb-5 flex items-center gap-2 rounded-2xl border px-4 py-3 ${

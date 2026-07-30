@@ -1,6 +1,6 @@
 import { CheckCircle2, Clock, Info, Layers, ListChecks, Package, User, Users, Calendar } from 'lucide-react'
 import { getInfoRows } from '../../utils/groupDisplay'
-import Badge from '../primitives/Badge'
+import { StatusBadge } from '../StatusBadge'
 import TokenAmount from '../TokenAmount'
 
 const TAG_CONFIG = {
@@ -92,8 +92,8 @@ export default function GroupOverviewContent({ group, service, plan, reviewsSect
                 <span className="w-16 shrink-0 text-ink-4">{label}</span>
                 <span className="text-ink-2">{badge ? (
                   typeof badge === 'object'
-                    ? <Badge variant={badge.variant} label={badge.label} />
-                    : <Badge variant={badge} />
+                    ? <StatusBadge status={badge.variant} label={badge.label} />
+                    : <StatusBadge status={badge} />
                 ) : priceInfo ? (
                   <TokenAmount amount={priceInfo.amount} cycle={priceInfo.cycle} />
                 ) : priceInfo === null ? '—' : value}</span>

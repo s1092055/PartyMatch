@@ -1,6 +1,6 @@
 import { memo } from 'react'
 import { Button } from '../../../components/ui/button'
-import Badge from '../../../shared/ui/primitives/Badge'
+import { StatusBadge } from '../../../shared/ui/StatusBadge'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import TokenAmount from '../../../shared/ui/TokenAmount'
 import { toISODate } from '../../../shared/utils/date'
@@ -42,8 +42,8 @@ function SubscriptionCard({ sub, onViewGroup }) {
       onClick={() => onViewGroup?.(sub)}
     >
       <div className="flex justify-center">
-        <Badge
-          variant={waitingForOthers ? 'active' : displayStatus === 'recruiting' ? 'member_joined' : displayStatus}
+        <StatusBadge
+          status={waitingForOthers ? 'active' : displayStatus === 'recruiting' ? 'member_joined' : displayStatus}
           label={waitingForOthers ? '已填寫完成' : displayStatus === 'full' ? '等待鎖定' : undefined}
         />
       </div>

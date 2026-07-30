@@ -9,7 +9,7 @@ import { useAuthStore } from '../../shared/stores/useAuthStore'
 import { finalizeLeaveGroup } from '../group/utils/leaveGroupFlow'
 import SubscriptionCard from './components/SubscriptionCard'
 import EmptyState from '../../shared/ui/primitives/EmptyState'
-import Badge from '../../shared/ui/primitives/Badge'
+import { StatusBadge } from '../../shared/ui/StatusBadge'
 import GroupViewModal from '../../shared/ui/group/GroupViewModal'
 import TokenAmount from '../../shared/ui/TokenAmount'
 import FilterTabsBar from '../../shared/ui/FilterTabsBar'
@@ -249,7 +249,7 @@ function ApplicationCard({ app, group, onViewGroup }) {
       onClick={onViewGroup}
     >
       <div className="flex justify-center">
-        <Badge variant="pending" label="審核中" />
+        <StatusBadge status="pending" label="審核中" />
       </div>
 
       <div className="mt-4 flex justify-center">

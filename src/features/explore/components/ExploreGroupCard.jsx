@@ -7,8 +7,8 @@ import {
 } from 'lucide-react'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import TokenAmount from '../../../shared/ui/TokenAmount'
-import Badge from '../../../shared/ui/primitives/Badge'
-import { BADGE_LABELS } from '../../../shared/ui/primitives/badgeLabels'
+import { StatusBadge } from '../../../shared/ui/StatusBadge'
+import { getStatusLabel } from '../../../shared/ui/statusBadgeConfig'
 import { Progress } from '../../../components/ui/progress'
 import { calcDisplayPrice, calcDisplayCycle } from '../../../shared/utils/pricingUtils'
 import { useFavoriteStore } from '../../../shared/stores/useFavoriteStore'
@@ -113,7 +113,7 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
           這樣同一排卡片高度才會整齊，不會因為某幾張有 badge 就比其他張高 */}
       <div className="flex h-6 items-center justify-center">
         {(isMember || isApplied) && (
-          <Badge variant={isMember ? 'member_joined' : 'pending'} label={isMember ? undefined : '審核中'} />
+          <StatusBadge status={isMember ? 'member_joined' : 'pending'} label={isMember ? undefined : '審核中'} />
         )}
       </div>
 
@@ -162,7 +162,7 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
               <p className="text-xs font-bold text-ink-3">剩餘名額</p>
               <p className="text-sm font-black text-ink">
                 {group.openSeats <= 0 ? (
-                  <span className="text-ink-3">{BADGE_LABELS.full}</span>
+                  <span className="text-ink-3">{getStatusLabel('full')}</span>
                 ) : (
                   <>
                     <span className={isLastSeat ? 'text-warning-text' : 'text-success'}>{group.openSeats}</span>
