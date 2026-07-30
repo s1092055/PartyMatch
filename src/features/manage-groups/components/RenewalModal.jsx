@@ -1,5 +1,5 @@
 import { Calendar, RefreshCw, XCircle } from 'lucide-react'
-import Modal from '../../../shared/ui/primitives/Modal'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogBackButton } from '../../../components/ui/dialog'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import { StatusBadge } from '../../../shared/ui/StatusBadge'
 import { advanceByCycle, daysUntil, toISODate } from '../../../shared/utils/date'
@@ -13,14 +13,17 @@ export default function RenewalModal({ isOpen, onClose, group, onStartRenewal, o
   const nextCycleDate = toISODate(advanceByCycle(group.nextBillingDate, group.billingCycle))
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="續訂管理"
-      icon={<RefreshCw size={16} className="text-brand" />}
-      maxWidth="max-w-sm"
-      sub
-    >
+    <Dialog open={isOpen} onOpenChange={v => { if (!v) onClose() }}>
+      <DialogContent variant="panel" maxWidth="max-w-sm">
+        <DialogHeader variant="panel">
+          <DialogBackButton />
+          <div className="flex min-w-0 flex-1 items-center gap-2 px-1">
+            <RefreshCw size={16} className="text-brand" />
+            <DialogTitle variant="panel">續訂管理</DialogTitle>
+          </div>
+        </DialogHeader>
+        <DialogDescription>續訂管理</DialogDescription>
+        <DialogBody>
       <div className="p-5">
         
         <div className="mb-5 flex items-center gap-3 rounded-2xl bg-raised p-3">
@@ -73,6 +76,8 @@ export default function RenewalModal({ isOpen, onClose, group, onStartRenewal, o
         </button>
 
       </div>
-    </Modal>
+        </DialogBody>
+      </DialogContent>
+    </Dialog>
   )
 }

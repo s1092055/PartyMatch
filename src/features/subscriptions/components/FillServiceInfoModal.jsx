@@ -1,5 +1,5 @@
 import { CheckCircle2, ClipboardEdit } from 'lucide-react'
-import Modal from '../../../shared/ui/primitives/Modal'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogBackButton } from '../../../components/ui/dialog'
 import CredentialWatermark from '../../../shared/ui/primitives/CredentialWatermark'
 import { getServiceInfoSummary } from '../../../shared/utils/serviceInfoFields'
 import { parseHostCredentials } from '../../../shared/utils/hostCredentialFields'
@@ -25,15 +25,17 @@ export default function FillServiceInfoModal({
   const parsedCredentials = parseHostCredentials(group.sharedCredentials, group.serviceId)
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="填寫服務帳號"
-      icon={<ClipboardEdit size={18} className="text-brand" />}
-      maxWidth="max-w-lg"
-      sub
-      instantEntry
-    >
+    <Dialog open={isOpen} onOpenChange={v => { if (!v) onClose() }}>
+      <DialogContent variant="panel" maxWidth="max-w-lg" instant>
+        <DialogHeader variant="panel">
+          <DialogBackButton />
+          <div className="flex min-w-0 flex-1 items-center gap-2 px-1">
+            <ClipboardEdit size={18} className="text-brand" />
+            <DialogTitle variant="panel">填寫服務帳號</DialogTitle>
+          </div>
+        </DialogHeader>
+        <DialogDescription>填寫服務帳號</DialogDescription>
+        <DialogBody>
       <form onSubmit={onSubmit} className="animate-step-slide-up p-5 space-y-4">
         <p className="text-sm text-ink-3">
           請填寫你用於 <span className="font-semibold text-ink">{group.serviceName}</span> 的服務資訊，團主將使用此資訊幫你設定訂閱。
@@ -111,6 +113,8 @@ export default function FillServiceInfoModal({
           {fillLoading ? '送出中…' : '送出帳號資訊'}
         </button>
       </form>
-    </Modal>
+        </DialogBody>
+      </DialogContent>
+    </Dialog>
   )
 }

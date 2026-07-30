@@ -1,5 +1,5 @@
 import { LockKeyhole } from 'lucide-react'
-import Modal from '../../../shared/ui/primitives/Modal'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogBackButton } from '../../../components/ui/dialog'
 import { getHostCredentialFields, CREDENTIAL_RISK_NOTICE } from '../../../shared/utils/hostCredentialFields'
 
 // 鎖定群組時，官方無多人邀請機制的服務改成填這個結構化表單（取代原本的自由文字 textarea），
@@ -9,15 +9,17 @@ export default function LockGroupCredentialsModal({ isOpen, onClose, serviceId, 
   const valid  = config.fields.every(({ key }) => !!values[key]?.trim())
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="鎖定群組"
-      icon={<LockKeyhole size={18} strokeWidth={1.5} className="text-ink-2" />}
-      maxWidth="max-w-lg"
-      sub
-      instantEntry
-    >
+    <Dialog open={isOpen} onOpenChange={v => { if (!v) onClose() }}>
+      <DialogContent variant="panel" maxWidth="max-w-lg" instant>
+        <DialogHeader variant="panel">
+          <DialogBackButton />
+          <div className="flex min-w-0 flex-1 items-center gap-2 px-1">
+            <LockKeyhole size={18} strokeWidth={1.5} className="text-ink-2" />
+            <DialogTitle variant="panel">鎖定群組</DialogTitle>
+          </div>
+        </DialogHeader>
+        <DialogDescription>鎖定群組</DialogDescription>
+        <DialogBody>
       <form onSubmit={onSubmit} className="animate-step-slide-up p-5 space-y-4">
         <p className="text-sm text-ink-3">
           <span className="font-semibold text-ink">{serviceName}</span> 官方沒有多人邀請機制，鎖定群組後請提供以下帳號資訊，成員填寫服務帳號時會直接看到。
@@ -51,6 +53,8 @@ export default function LockGroupCredentialsModal({ isOpen, onClose, serviceId, 
           {loading ? '鎖定中…' : '確認鎖定群組'}
         </button>
       </form>
-    </Modal>
+        </DialogBody>
+      </DialogContent>
+    </Dialog>
   )
 }

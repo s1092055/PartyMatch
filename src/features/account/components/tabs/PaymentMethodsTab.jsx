@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { CreditCard, Plus, Trash2 } from 'lucide-react'
-import Modal from '../../../../shared/ui/primitives/Modal'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter } from '../../../../components/ui/dialog'
 import {
   createPaymentMethod,
   deletePaymentMethod,
@@ -135,27 +135,17 @@ export default function PaymentMethodsTab() {
         )}
       </div>
 
-      <Modal
-        isOpen={modalOpen}
-        onClose={closeModal}
-        title="新增付款方式"
-        icon={<CreditCard size={16} className="text-brand" />}
-        maxWidth="max-w-sm"
-        sub
-        hideBack
-        footer={
-          <>
-            <button onClick={closeModal} className="btn btn-ghost flex-1">取消</button>
-            <button
-              onClick={handleAdd}
-              disabled={!newCard.number || !newCard.expiry || saving}
-              className="btn btn-primary flex-1"
-            >
-              {saving ? '新增中…' : '新增'}
-            </button>
-          </>
-        }
-      >
+      <Dialog open={modalOpen} onOpenChange={v => { if (!v) closeModal() }}>
+        <DialogContent variant="panel" maxWidth="max-w-sm">
+          <DialogHeader variant="panel">
+            <div className="h-9 w-9 shrink-0" />
+            <div className="flex min-w-0 flex-1 items-center gap-2 px-1">
+              <CreditCard size={16} className="text-brand" />
+              <DialogTitle variant="panel">新增付款方式</DialogTitle>
+            </div>
+          </DialogHeader>
+          <DialogDescription>新增付款方式</DialogDescription>
+          <DialogBody>
         <div className="space-y-3 p-5">
           <input type="text" placeholder="卡號" maxLength={19} className="field py-2 px-3" {...field('number')} />
           <div className="grid grid-cols-2 gap-3">
@@ -164,7 +154,19 @@ export default function PaymentMethodsTab() {
           </div>
           <input type="text" placeholder="持卡人姓名" className="field py-2 px-3" {...field('name')} />
         </div>
-      </Modal>
+          </DialogBody>
+          <DialogFooter>
+            <button onClick={closeModal} className="btn btn-ghost flex-1">取消</button>
+            <button
+              onClick={handleAdd}
+              disabled={!newCard.number || !newCard.expiry || saving}
+              className="btn btn-primary flex-1"
+            >
+              {saving ? '新增中…' : '新增'}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

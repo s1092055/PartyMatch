@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ArrowDownLeft, ChevronLeft, Clock, Coins, Lock, TrendingUp } from 'lucide-react'
-import Modal from './primitives/Modal'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter, DialogCloseButton } from '../../components/ui/dialog'
 import { useAuthStore } from '../stores/useAuthStore'
 import { fetchTokenBalance } from '../api/tokensApi'
 import { TokenBadge } from './TokenAmount'
@@ -85,45 +85,27 @@ export default function TopupModal({ isOpen, onClose }) {
   function handleClose() { setShowHistory(false); onClose() }
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={handleClose}
-      maxWidth="max-w-sm"
-      height="min(92dvh, 560px)"
-      title={showHistory ? '交易紀錄' : 'PM幣儲值'}
-      icon={showHistory ? (
-        <button
-          onClick={() => setShowHistory(false)}
-          className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
-          aria-label="返回"
-        >
-          <ChevronLeft size={18} strokeWidth={1.5} />
-        </button>
-      ) : (
-        <TokenBadge />
-      )}
-      footer={!showHistory && (
-        <div className="flex w-full flex-col gap-2">
-          <div className="flex gap-3">
-            <button onClick={handleClose} className="btn btn-ghost flex-1">取消</button>
-            <button
-              disabled={!activeAmount || loading}
-              onClick={handleTopup}
-              className="btn btn-primary flex-1"
-            >
-              {loading ? '處理中…' : activeAmount ? `儲值 ${activeAmount.toLocaleString()} PM` : '請選擇金額'}
-            </button>
+    <Dialog open={isOpen} onOpenChange={v => { if (!v) handleClose() }}>
+      <DialogContent maxWidth="max-w-sm" height="min(92dvh, 560px)">
+        <DialogHeader>
+          <div className="flex items-center gap-2">
+            {showHistory ? (
+              <button
+                onClick={() => setShowHistory(false)}
+                className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+                aria-label="返回"
+              >
+                <ChevronLeft size={18} strokeWidth={1.5} />
+              </button>
+            ) : (
+              <TokenBadge />
+            )}
+            <DialogTitle>{showHistory ? '交易紀錄' : 'PM幣儲值'}</DialogTitle>
           </div>
-          <button
-            onClick={() => setShowHistory(true)}
-            className="flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-medium text-ink-4 transition-colors hover:bg-raised hover:text-ink"
-          >
-            <Clock size={13} />
-            查看交易紀錄
-          </button>
-        </div>
-      )}
-    >
+          <DialogCloseButton />
+        </DialogHeader>
+        <DialogDescription>PM幣儲值</DialogDescription>
+        <DialogBody>
       <div key={showHistory ? 'history' : 'main'} className="flex min-h-0 flex-1 flex-col animate-step-slide-up">
         {showHistory ? (
           txLoading ? (
@@ -233,6 +215,29 @@ export default function TopupModal({ isOpen, onClose }) {
           </div>
         )}
       </div>
-    </Modal>
+        </DialogBody>
+        {!showHistory && (
+          <DialogFooter className="flex-col gap-2">
+            <div className="flex gap-3">
+              <button onClick={handleClose} className="btn btn-ghost flex-1">取消</button>
+              <button
+                disabled={!activeAmount || loading}
+                onClick={handleTopup}
+                className="btn btn-primary flex-1"
+              >
+                {loading ? '處理中…' : activeAmount ? `儲值 ${activeAmount.toLocaleString()} PM` : '請選擇金額'}
+              </button>
+            </div>
+            <button
+              onClick={() => setShowHistory(true)}
+              className="flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-medium text-ink-4 transition-colors hover:bg-raised hover:text-ink"
+            >
+              <Clock size={13} />
+              查看交易紀錄
+            </button>
+          </DialogFooter>
+        )}
+      </DialogContent>
+    </Dialog>
   )
 }

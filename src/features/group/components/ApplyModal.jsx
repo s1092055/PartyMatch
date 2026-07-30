@@ -1,5 +1,5 @@
 import { CheckCircle2 } from 'lucide-react'
-import Modal from '../../../shared/ui/primitives/Modal'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogBackButton } from '../../../components/ui/dialog'
 import { Button } from '../../../components/ui/button'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import TokenAmount from '../../../shared/ui/TokenAmount'
@@ -15,15 +15,18 @@ export default function ApplyModal({
   onApply,
 }) {
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={applySubmitted ? undefined : '申請加入群組'}
-      sub
-      instantEntry
-      showHeader={!applySubmitted}
-      maxWidth="max-w-md"
-    >
+    <Dialog open={isOpen} onOpenChange={v => { if (!v) onClose() }}>
+      <DialogContent variant="panel" maxWidth="max-w-md" instant>
+        {!applySubmitted && (
+          <DialogHeader variant="panel">
+            <DialogBackButton />
+            <div className="flex min-w-0 flex-1 items-center gap-2 px-1">
+              <DialogTitle variant="panel">申請加入群組</DialogTitle>
+            </div>
+          </DialogHeader>
+        )}
+        <DialogDescription>申請加入群組</DialogDescription>
+        <DialogBody>
       {applySubmitted ? (
         <div className="animate-step-slide-up flex flex-col items-center gap-4 px-6 py-6 text-center">
           <div className="w-16 h-16 rounded-full bg-success-subtle flex items-center justify-center">
@@ -79,6 +82,8 @@ export default function ApplyModal({
           </div>
         </div>
       )}
-    </Modal>
+        </DialogBody>
+      </DialogContent>
+    </Dialog>
   )
 }

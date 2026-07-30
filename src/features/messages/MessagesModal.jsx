@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ChevronLeft, MessageSquare } from 'lucide-react'
 import ConversationAvatar from './components/ConversationAvatar'
 import ConversationHeaderActions from './components/ConversationHeaderActions'
-import Modal from '../../shared/ui/primitives/Modal'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogCloseButton } from '../../components/ui/dialog'
 import LoginPromptModal from '../../shared/ui/LoginPromptModal'
 import { useAuthStore } from '../../shared/stores/useAuthStore'
 import { useConversationStore } from '../../shared/stores/useConversationStore'
@@ -233,35 +233,41 @@ export default function MessagesModal() {
 
   return (
     <>
-      <Modal
-        onClose={handleClose}
-        icon={isMobile && selectedId && selected
-          ? <>
-              <button
-                onClick={() => setSelectedId(null)}
-                className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
-                aria-label="返回"
-              >
-                <ChevronLeft size={18} strokeWidth={1.5} />
-              </button>
-              <div className="shrink-0">
-                <ConversationAvatar conversation={selected} size={28} />
-              </div>
-            </>
-          : <MessageSquare size={20} className="text-brand" />
-        }
-        title={isMobile && selectedId && selected ? selected.name : '訊息'}
-        headerEnd={isMobile && selectedId && selected
-          ? <ConversationHeaderActions
-              key={selectedId}
-              selected={selected}
-              onMembersToggle={() => setShowMembers(v => !v)}
-            />
-          : null
-        }
-        hideClose={isMobile && !!(selectedId && selected)}
-        height="min(88dvh, 820px)"
-      >
+      <Dialog open onOpenChange={v => { if (!v) handleClose() }}>
+      <DialogContent height="min(88dvh, 820px)">
+        <DialogHeader>
+          <div className="flex items-center gap-2">
+            {isMobile && selectedId && selected ? (
+              <>
+                <button
+                  onClick={() => setSelectedId(null)}
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+                  aria-label="返回"
+                >
+                  <ChevronLeft size={18} strokeWidth={1.5} />
+                </button>
+                <div className="shrink-0">
+                  <ConversationAvatar conversation={selected} size={28} />
+                </div>
+              </>
+            ) : (
+              <MessageSquare size={20} className="text-brand" />
+            )}
+            <DialogTitle>{isMobile && selectedId && selected ? selected.name : '訊息'}</DialogTitle>
+          </div>
+          <div className="flex items-center gap-1">
+            {isMobile && selectedId && selected && (
+              <ConversationHeaderActions
+                key={selectedId}
+                selected={selected}
+                onMembersToggle={() => setShowMembers(v => !v)}
+              />
+            )}
+            <DialogCloseButton className={isMobile && selectedId && selected ? 'max-md:hidden' : undefined} />
+          </div>
+        </DialogHeader>
+        <DialogDescription>訊息</DialogDescription>
+        <DialogBody>
         {/* 手機：200% slide 軌道；桌機：兩欄並排 */}
         <div className="relative flex-1 overflow-hidden" style={{ minHeight: 0 }}>
           {/* track 用 absolute top/bottom 取得確定高度，不依賴 flex-1 層層傳遞 */}
@@ -319,7 +325,9 @@ export default function MessagesModal() {
             </div>
           </div>
         </div>
-      </Modal>
+        </DialogBody>
+      </DialogContent>
+      </Dialog>
     </>
   )
 }

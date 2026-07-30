@@ -1,5 +1,5 @@
 import { PlayCircle, UserCheck } from 'lucide-react'
-import Modal from '../../../shared/ui/primitives/Modal'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter, DialogCloseButton } from '../../../components/ui/dialog'
 import { Avatar } from '../../../components/ui/avatar'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import TokenAmount from '../../../shared/ui/TokenAmount'
@@ -26,24 +26,18 @@ export default function ActivateServiceModal({
   const sharingMethod = service?.sharingMethod
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="啟用服務"
-      icon={<PlayCircle size={18} className="text-brand" />}
-      maxWidth="max-w-lg"
-      height="36rem"
-      sub
-      instantEntry
-      closeIcon="x"
-      footer={
-        <button
-          onClick={onConfirm}
-          disabled={!allMembersChecked || !finalConfirmed}
-          className="flex-1 rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
-        >確認啟用</button>
-      }
-    >
+    <Dialog open={isOpen} onOpenChange={v => { if (!v) onClose() }}>
+      <DialogContent variant="panel" maxWidth="max-w-lg" height="36rem" instant>
+        <DialogHeader variant="panel">
+          <div className="w-1 shrink-0" />
+          <div className="flex min-w-0 flex-1 items-center gap-2 pl-2">
+            <PlayCircle size={18} className="text-brand" />
+            <DialogTitle variant="panel">啟用服務</DialogTitle>
+          </div>
+          <DialogCloseButton className="h-9 w-9" />
+        </DialogHeader>
+        <DialogDescription>啟用服務</DialogDescription>
+        <DialogBody>
       <div className="animate-step-slide-up flex-1 min-h-0 overflow-y-auto">
         {/* 服務摘要 */}
         <div className="flex items-center gap-3 border-b border-line-subtle px-5 py-4">
@@ -133,6 +127,15 @@ export default function ActivateServiceModal({
           </label>
         </div>
       </div>
-    </Modal>
+        </DialogBody>
+        <DialogFooter>
+          <button
+            onClick={onConfirm}
+            disabled={!allMembersChecked || !finalConfirmed}
+            className="flex-1 rounded-xl bg-brand py-2.5 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
+          >確認啟用</button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

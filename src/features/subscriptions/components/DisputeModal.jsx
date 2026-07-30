@@ -1,5 +1,5 @@
 import { AlertTriangle } from 'lucide-react'
-import Modal from '../../../shared/ui/primitives/Modal'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter, DialogCloseButton } from '../../../components/ui/dialog'
 import EvidenceAttachmentField from '../../../shared/ui/EvidenceAttachmentField'
 
 const DISPUTE_REASON_OPTIONS = [
@@ -30,26 +30,18 @@ export default function DisputeModal({
   onRemoveEvidence,
 }) {
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="回報問題"
-      icon={<AlertTriangle size={18} className="text-danger" />}
-      maxWidth="max-w-lg"
-      sub
-      instantEntry
-      closeIcon="x"
-      footer={
-        <button
-          type="submit"
-          form="dispute-form"
-          disabled={disputeReasons.length === 0 || disputeLoading || evidenceUploading}
-          className="w-full rounded-xl bg-danger py-2.5 text-sm font-bold text-white transition-colors hover:opacity-90 disabled:opacity-40 disabled:pointer-events-none"
-        >
-          {disputeLoading ? '送出中…' : '送出回報'}
-        </button>
-      }
-    >
+    <Dialog open={isOpen} onOpenChange={v => { if (!v) onClose() }}>
+      <DialogContent variant="panel" maxWidth="max-w-lg" instant>
+        <DialogHeader variant="panel">
+          <div className="w-1 shrink-0" />
+          <div className="flex min-w-0 flex-1 items-center gap-2 pl-2">
+            <AlertTriangle size={18} className="text-danger" />
+            <DialogTitle variant="panel">回報問題</DialogTitle>
+          </div>
+          <DialogCloseButton className="h-9 w-9" />
+        </DialogHeader>
+        <DialogDescription>回報問題</DialogDescription>
+        <DialogBody>
       <form id="dispute-form" onSubmit={onSubmit} className="animate-step-slide-up p-5 space-y-4">
         <div>
           <label className="block text-xs text-ink-3 mb-1.5">回報原因 <span className="text-danger">*</span>（可複選）</label>
@@ -92,6 +84,18 @@ export default function DisputeModal({
           <p>送出後代管金額會先凍結，將於 48 小時內處理完成。請詳細說明問題，方便盡快確認狀況。</p>
         </div>
       </form>
-    </Modal>
+        </DialogBody>
+        <DialogFooter>
+          <button
+            type="submit"
+            form="dispute-form"
+            disabled={disputeReasons.length === 0 || disputeLoading || evidenceUploading}
+            className="w-full rounded-xl bg-danger py-2.5 text-sm font-bold text-white transition-colors hover:opacity-90 disabled:opacity-40 disabled:pointer-events-none"
+          >
+            {disputeLoading ? '送出中…' : '送出回報'}
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

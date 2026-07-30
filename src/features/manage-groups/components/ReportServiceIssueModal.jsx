@@ -1,5 +1,5 @@
 import { AlertTriangle } from 'lucide-react'
-import Modal from '../../../shared/ui/primitives/Modal'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter, DialogBackButton } from '../../../components/ui/dialog'
 import { Avatar } from '../../../components/ui/avatar'
 import EvidenceAttachmentField from '../../../shared/ui/EvidenceAttachmentField'
 import { getServiceInfoSummary } from '../../../shared/utils/serviceInfoFields'
@@ -18,24 +18,17 @@ export default function ReportServiceIssueModal({
   onSubmit,
 }) {
   return (
-    <Modal
-      isOpen={!!member}
-      onClose={onClose}
-      title="帳號問題"
-      icon={<AlertTriangle size={18} className="text-warning-text" />}
-      maxWidth="max-w-sm"
-      sub
-      instantEntry
-      footer={
-        <button
-          onClick={onSubmit}
-          disabled={!note.trim() || evidenceUploading}
-          className="flex-1 rounded-xl bg-warning py-2.5 text-sm font-bold text-white transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          發送通知
-        </button>
-      }
-    >
+    <Dialog open={!!member} onOpenChange={v => { if (!v) onClose() }}>
+      <DialogContent variant="panel" maxWidth="max-w-sm" instant>
+        <DialogHeader variant="panel">
+          <DialogBackButton />
+          <div className="flex min-w-0 flex-1 items-center gap-2 px-1">
+            <AlertTriangle size={18} className="text-warning-text" />
+            <DialogTitle variant="panel">帳號問題</DialogTitle>
+          </div>
+        </DialogHeader>
+        <DialogDescription>帳號問題</DialogDescription>
+        <DialogBody>
       {member && (
         <div className="animate-step-slide-up flex-1 min-h-0 overflow-y-auto p-5 space-y-4">
           <div className="flex items-center gap-3 rounded-xl bg-raised px-4 py-3">
@@ -65,6 +58,17 @@ export default function ReportServiceIssueModal({
           />
         </div>
       )}
-    </Modal>
+        </DialogBody>
+        <DialogFooter>
+          <button
+            onClick={onSubmit}
+            disabled={!note.trim() || evidenceUploading}
+            className="flex-1 rounded-xl bg-warning py-2.5 text-sm font-bold text-white transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            發送通知
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

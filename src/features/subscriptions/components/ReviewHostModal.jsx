@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import Modal from '../../../shared/ui/primitives/Modal'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter } from '../../../components/ui/dialog'
 import { Avatar } from '../../../components/ui/avatar'
 import StarRating from '../../../shared/ui/primitives/StarRating'
 import { toast } from '../../../shared/utils/toast'
@@ -24,26 +24,16 @@ export default function ReviewHostModal({ group, onSubmit, onClose }) {
   }
 
   return (
-    <Modal
-      isOpen
-      onClose={onClose}
-      title="給團主一個評價"
-      maxWidth="max-w-sm"
-      sub
-      hideBack
-      footer={
-        <>
-          <button onClick={onClose} className="btn btn-ghost flex-1">先跳過</button>
-          <button
-            onClick={handleSubmit}
-            disabled={rating === 0 || submitting}
-            className="btn btn-primary flex-1"
-          >
-            {submitting ? '送出中…' : '送出評價'}
-          </button>
-        </>
-      }
-    >
+    <Dialog open onOpenChange={v => { if (!v) onClose() }}>
+      <DialogContent variant="panel" maxWidth="max-w-sm">
+        <DialogHeader variant="panel">
+          <div className="h-9 w-9 shrink-0" />
+          <div className="flex min-w-0 flex-1 items-center gap-2 px-1">
+            <DialogTitle variant="panel">給團主一個評價</DialogTitle>
+          </div>
+        </DialogHeader>
+        <DialogDescription>給團主一個評價</DialogDescription>
+        <DialogBody>
       <div className="space-y-4 p-5">
         <div className="flex items-center gap-3">
           <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="md" />
@@ -66,6 +56,18 @@ export default function ReviewHostModal({ group, onSubmit, onClose }) {
           className="field w-full resize-none text-sm focus:border-line focus:shadow-none"
         />
       </div>
-    </Modal>
+        </DialogBody>
+        <DialogFooter>
+          <button onClick={onClose} className="btn btn-ghost flex-1">先跳過</button>
+          <button
+            onClick={handleSubmit}
+            disabled={rating === 0 || submitting}
+            className="btn btn-primary flex-1"
+          >
+            {submitting ? '送出中…' : '送出評價'}
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

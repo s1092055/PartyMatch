@@ -10,7 +10,7 @@ import { Button } from '../../components/ui/button'
 import ServiceLogo from '../../shared/ui/ServiceLogo'
 import TokenAmount from '../../shared/ui/TokenAmount'
 import ScrollHint from '../../shared/ui/primitives/ScrollHint'
-import Modal from '../../shared/ui/primitives/Modal'
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '../../components/ui/dialog'
 import LivePreviewPanel from './components/LivePreviewPanel'
 import { useGroupStore } from '../../shared/stores/useGroupStore'
 import { useNotificationStore } from '../../shared/stores/useNotificationStore'
@@ -308,23 +308,27 @@ export default function CreateGroupPage() {
         )}
       </FlowLayout>
 
-      <Modal isOpen={showSuccessModal} showHeader={false} maxWidth="max-w-sm">
-        <div className="flex flex-col items-center px-6 py-8 text-center">
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
-            <CheckCircle2 size={28} className="text-emerald-500" />
+      <Dialog open={showSuccessModal} onOpenChange={() => {}}>
+        <DialogContent maxWidth="max-w-sm">
+          <DialogTitle className="sr-only">群組已成功上架</DialogTitle>
+          <DialogDescription>群組已成功上架</DialogDescription>
+          <div className="flex flex-col items-center px-6 py-8 text-center">
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
+              <CheckCircle2 size={28} className="text-emerald-500" />
+            </div>
+            <h3 className="mb-1 text-lg font-extrabold text-ink">群組已成功上架！</h3>
+            <p className="text-sm leading-relaxed text-ink-3">你的群組現在已開放招募成員</p>
+            <div className="mt-6 flex w-full gap-3">
+              <Button variant="secondary" size="md" className="flex-1" onClick={() => navigate('/')}>
+                返回首頁
+              </Button>
+              <Button variant="success" size="md" className="flex-1" onClick={() => navigate('/manage-groups')}>
+                前往群組管理
+              </Button>
+            </div>
           </div>
-          <h3 className="mb-1 text-lg font-extrabold text-ink">群組已成功上架！</h3>
-          <p className="text-sm leading-relaxed text-ink-3">你的群組現在已開放招募成員</p>
-          <div className="mt-6 flex w-full gap-3">
-            <Button variant="secondary" size="md" className="flex-1" onClick={() => navigate('/')}>
-              返回首頁
-            </Button>
-            <Button variant="success" size="md" className="flex-1" onClick={() => navigate('/manage-groups')}>
-              前往群組管理
-            </Button>
-          </div>
-        </div>
-      </Modal>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }
