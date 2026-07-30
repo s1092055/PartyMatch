@@ -196,6 +196,10 @@
        所有 --text-* token 皆為 rem，故全站文字皆隨此根字體大小一起縮放 */
     font-size: clamp(15px, 14.17px + 0.221vw, 17px);
     overflow-y: scroll;
+    /* Radix（Select/Dialog 等）開啟時會用 react-remove-scroll 暫時鎖住捲動，
+       並用 padding 補償被藏起來的捲軸寬度；scrollbar-gutter: stable 讓捲軸
+       的版面空間隨時保留，這個補償動作就不會造成內容左右跳動 */
+    scrollbar-gutter: stable;
   }
 
   @media (max-width: 767px) {
