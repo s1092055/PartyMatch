@@ -25,6 +25,18 @@
 - [訊息流程](flows/messages-flow.md)
 - [通知流程](flows/notification-flow.md)
 
+### Testing — 手動測試怎麼跑
+
+- [手動測試計畫](testing/manual-test-plan.md) — 測試範圍、優先級分類、建議測試順序，從這篇開始
+- [測試帳號清單](testing/test-accounts.md) — demo 帳號/群組怎麼建立、每個帳號適合測什麼情境
+- [核心主線測試案例](testing/core-flow-test-cases.md) — 建立群組 → 申請 → 審核 → 鎖定 → 填資訊 → 啟用 → 確認
+- [團主視角測試案例](testing/host-flow-test-cases.md)
+- [成員視角測試案例](testing/member-flow-test-cases.md)
+- [訊息與通知測試案例](testing/messaging-notification-test-cases.md)
+- [探索頁／快速搜尋／收藏／帳號中心測試案例](testing/explore-account-test-cases.md)
+- [RWD 測試案例](testing/rwd-test-cases.md) — 手機/平板/桌機版面
+- [Bug 紀錄](testing/bug-log.md) — 手動測試過程中發現並修復的問題
+
 ### Architecture — 程式碼是怎麼寫、怎麼組織的
 
 - [架構總覽](architecture/architecture.md) — 先看這篇，分層結構與技術棧選型理由

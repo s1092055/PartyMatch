@@ -72,11 +72,12 @@ npm run db:seed-demo    # 建立 10 個 demo 帳號（含 1 個管理員）、22
 
 - 爭議申訴流程（成員申訴、平台裁定）
 - 續訂（`renew`）與結束群組（`ended`）
-- 收藏群組
+- 收藏群組（見 [`explore-account-test-cases.md`](./explore-account-test-cases.md) TC-420/TC-421）
 - 評價系統（確認服務後評分、團主整體評價彙總）
 - 訊息中心（群組聊天室、DM 延遲曝光、系統通知聊天室）
 - 通知中心（未讀數、已讀、點擊導向）
-- 帳號設定（付款方式、刪除帳號軟刪除）
+- 帳號設定（付款方式、刪除帳號軟刪除，見 [`explore-account-test-cases.md`](./explore-account-test-cases.md) TC-430～TC-432）
+- 探索頁篩選（分類/服務/價格/排序/關鍵字）與快速搜尋三步驟（見 [`explore-account-test-cases.md`](./explore-account-test-cases.md) TC-401～TC-415）
 - 團主解散群組（鎖定前）
 
 ### P2（邊界情況與 RWD）
@@ -84,7 +85,7 @@ npm run db:seed-demo    # 建立 10 個 demo 帳號（含 1 個管理員）、22
 - 名額檢查併發情境（條件式 `updateMany`，一般手動測試較難重現，可略過或用兩個分頁快速點擊模擬）
 - 各角色跨裝置多重登入（session 各自獨立）
 - RWD：sidebar/Dock 切換、Modal 響應式版面、表單版面、卡片 grid 欄數
-- 快速搜尋免登入使用、點擊申請時導向登入頁
+- 快速搜尋免登入使用、點擊申請時導向登入頁、每人費用區間滑桿邊界案例（雙把手夾住、輸入框同步，見 TC-411）
 - 群組狀態非法轉換（`ALLOWED_TRANSITIONS` 之外的狀態切換應被拒絕，一般不易透過 UI 觸發，可用 API 直接測試）
 
 ---
@@ -94,5 +95,6 @@ npm run db:seed-demo    # 建立 10 個 demo 帳號（含 1 個管理員）、22
 1. 先跑一輪 [`core-flow-test-cases.md`](./core-flow-test-cases.md) 的 P0 主線，確認交易流程完整無誤
 2. 接著跑 [`host-flow-test-cases.md`](./host-flow-test-cases.md) 與 [`member-flow-test-cases.md`](./member-flow-test-cases.md) 的角色細節（審核、移除成員、填寫帳號、申訴等）
 3. 再測 [`messaging-notification-test-cases.md`](./messaging-notification-test-cases.md)（訊息與通知，依賴前面流程建立的群組聊天室）
-4. 最後測 [`rwd-test-cases.md`](./rwd-test-cases.md)（可與前面流程並行，用不同裝置寬度重複關鍵頁面）
-5. 過程中發現的問題記錄於 [`bug-log.md`](./bug-log.md)
+4. 接著測 [`explore-account-test-cases.md`](./explore-account-test-cases.md)（探索頁篩選、快速搜尋、收藏、帳號中心付款方式/刪除帳號，皆可獨立於前面流程進行）
+5. 最後測 [`rwd-test-cases.md`](./rwd-test-cases.md)（可與前面流程並行，用不同裝置寬度重複關鍵頁面）
+6. 過程中發現的問題記錄於 [`bug-log.md`](./bug-log.md)
