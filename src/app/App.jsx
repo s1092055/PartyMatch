@@ -106,12 +106,9 @@ export default function App() {
   }
 
   return (
-    // data-vaul-drawer-wrapper：Drawer（通知中心）用 shouldScaleBackground 時，
-    // vaul 需要找到這個屬性標記的元素才能把背景頁面縮小＋加圓角，做出開啟時的
-    // 立體效果
-    <div data-vaul-drawer-wrapper className="bg-canvas">
+    <>
       <RouterProvider router={router} />
       <Toaster />
-    </div>
+    </>
   )
 }

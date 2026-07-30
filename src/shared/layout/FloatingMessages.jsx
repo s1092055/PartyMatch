@@ -338,7 +338,7 @@ export default function FloatingMessages() {
   }
 
   return (
-    <Drawer open={open} onOpenChange={setOpen} direction="right" shouldScaleBackground>
+    <Drawer open={open} onOpenChange={setOpen} swipeDirection="right">
       <DrawerContent>
         <DrawerHeader>
           <div className="flex items-center gap-2">
@@ -391,7 +391,7 @@ export default function FloatingMessages() {
           ))}
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {filtered.length === 0 ? (
             <EmptyState
               icon={Bell}
