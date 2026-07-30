@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ChevronLeft, Clock, ShieldCheck } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter, DialogCloseButton } from '../../components/ui/dialog'
+import { Button } from '../../components/ui/button'
 import { useAuthStore } from '../stores/useAuthStore'
 import CreditScoreBadge from './CreditScoreBadge'
 import EmptyState from './primitives/EmptyState'
@@ -66,7 +67,7 @@ export default function CreditScoreModal({ isOpen, onClose }) {
         </DialogBody>
         {!showHistory && (
           <DialogFooter className="flex-col gap-2">
-            <button onClick={handleClose} className="btn btn-primary w-full">關閉</button>
+            <Button onClick={handleClose} className="w-full">關閉</Button>
             <button
               onClick={() => setShowHistory(true)}
               className="flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-medium text-ink-4 transition-colors hover:bg-raised hover:text-ink"

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ArrowDownLeft, ChevronLeft, Clock, Coins, Lock, TrendingUp } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter, DialogCloseButton } from '../../components/ui/dialog'
+import { Button } from '../../components/ui/button'
 import { useAuthStore } from '../stores/useAuthStore'
 import { fetchTokenBalance } from '../api/tokensApi'
 import { TokenBadge } from './TokenAmount'
@@ -219,14 +220,14 @@ export default function TopupModal({ isOpen, onClose }) {
         {!showHistory && (
           <DialogFooter className="flex-col gap-2">
             <div className="flex gap-3">
-              <button onClick={handleClose} className="btn btn-ghost flex-1">取消</button>
-              <button
+              <Button variant="ghost" onClick={handleClose} className="flex-1">取消</Button>
+              <Button
                 disabled={!activeAmount || loading}
                 onClick={handleTopup}
-                className="btn btn-primary flex-1"
+                className="flex-1"
               >
                 {loading ? '處理中…' : activeAmount ? `儲值 ${activeAmount.toLocaleString()} PM` : '請選擇金額'}
-              </button>
+              </Button>
             </div>
             <button
               onClick={() => setShowHistory(true)}
