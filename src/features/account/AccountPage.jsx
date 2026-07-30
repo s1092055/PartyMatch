@@ -5,6 +5,7 @@ import { useAuthStore } from "../../shared/stores/useAuthStore";
 import { toast } from "../../shared/utils/toast";
 import CreditScoreModal from "../../shared/ui/CreditScoreModal";
 import { Card } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
 import HostReviewsModal from "../manage-groups/components/HostReviewsModal";
 import ProfileHeaderCard from "./components/ProfileHeaderCard";
 import PersonalInfoTab from "./components/tabs/PersonalInfoTab";
@@ -65,13 +66,13 @@ function LogoutButton({ className = "", fullWidth = false }) {
   const navigate = useNavigate();
   return (
     <div className={`flex ${fullWidth ? '' : 'justify-end'} ${className}`}>
-      <button
+      <Button
         onClick={() => { useAuthStore.getState().logout(); navigate('/login', { replace: true }) }}
-        className={`inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-brand px-6 py-3 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-brand-hover ${fullWidth ? 'w-full' : ''}`}
+        className={`shrink-0 rounded-2xl ${fullWidth ? 'w-full' : ''}`}
       >
         <LogOut size={16} className="shrink-0" />
         登出
-      </button>
+      </Button>
     </div>
   )
 }

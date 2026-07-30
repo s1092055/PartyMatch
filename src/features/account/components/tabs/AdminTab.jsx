@@ -3,6 +3,7 @@ import { ShieldAlert, Clock } from 'lucide-react'
 import { useGroupStore } from '../../../../shared/stores/useGroupStore'
 import { toast } from '../../../../shared/utils/toast'
 import { Card } from '../../../../components/ui/card'
+import { Button } from '../../../../components/ui/button'
 
 function isOverdue(group) {
   return !!group.disputeDeadline && new Date(group.disputeDeadline) <= new Date()
@@ -105,13 +106,14 @@ export default function AdminTab() {
               />
             </div>
 
-            <button
+            <Button
               type="submit"
+              variant="destructive"
               disabled={loading || !groupId || !reason.trim()}
-              className="rounded-xl bg-danger px-5 py-2 text-sm font-bold text-white hover:bg-danger/80 hover:-translate-y-0.5 transition-all disabled:opacity-50"
+              className="rounded-xl"
             >
               {loading ? '處理中...' : '送出裁定'}
-            </button>
+            </Button>
           </form>
         )}
       </Card>

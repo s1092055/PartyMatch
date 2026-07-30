@@ -5,6 +5,7 @@ import { readStorage, writeStorage } from '../../../../shared/utils/storage'
 import { useAuthStore } from '../../../../shared/stores/useAuthStore'
 import { toast } from '../../../../shared/utils/toast'
 import { Switch } from '../../../../components/ui/switch'
+import { Button } from '../../../../components/ui/button'
 
 const PREFS_KEY = 'pm_app_prefs'
 const DEFAULT_PREFS = {
@@ -133,20 +134,22 @@ export default function SettingsTab() {
               />
               {deleteError && <p className="mb-2 text-xs font-semibold text-danger">{deleteError}</p>}
               <div className="flex gap-2">
-                <button
+                <Button
+                  variant="ghost"
                   onClick={resetDeleteFlow}
                   disabled={deleting}
-                  className="flex-1 rounded-lg border border-line py-2 text-xs font-bold text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-raised disabled:opacity-50"
+                  className="h-auto flex-1 rounded-lg border border-line py-2 text-xs"
                 >
                   取消
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="destructive"
                   onClick={handleConfirmDelete}
                   disabled={!password.trim() || deleting}
-                  className="flex-1 rounded-lg bg-danger py-2 text-xs font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-danger/90 disabled:opacity-50"
+                  className="h-auto flex-1 rounded-lg py-2 text-xs"
                 >
                   {deleting ? '處理中…' : '確認刪除'}
-                </button>
+                </Button>
               </div>
             </div>
           )}

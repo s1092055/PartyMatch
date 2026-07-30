@@ -3,6 +3,7 @@ import { CreditCard, Plus, Trash2 } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter } from '../../../../components/ui/dialog'
 import { Card } from '../../../../components/ui/card'
 import { Badge } from '../../../../components/ui/badge'
+import { Button } from '../../../../components/ui/button'
 import {
   createPaymentMethod,
   deletePaymentMethod,
@@ -158,14 +159,14 @@ export default function PaymentMethodsTab() {
         </div>
           </DialogBody>
           <DialogFooter>
-            <button onClick={closeModal} className="btn btn-ghost flex-1">取消</button>
-            <button
+            <Button variant="ghost" onClick={closeModal} className="flex-1">取消</Button>
+            <Button
               onClick={handleAdd}
               disabled={!newCard.number || !newCard.expiry || saving}
-              className="btn btn-primary flex-1"
+              className="flex-1"
             >
               {saving ? '新增中…' : '新增'}
-            </button>
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
