@@ -339,7 +339,10 @@ export default function FloatingMessages() {
 
   return (
     <Drawer open={open} onOpenChange={setOpen} swipeDirection="right">
-      <DrawerContent className="rounded-2xl" style={{ '--drawer-inset': '0.75rem' }}>
+      <DrawerContent
+        className="rounded-2xl"
+        style={{ '--drawer-inset': '0.75rem', '--drawer-bleed-background': 'transparent' }}
+      >
         <DrawerHeader>
           <div className="flex items-center gap-2">
             <Bell size={18} className="text-ink-3" />
