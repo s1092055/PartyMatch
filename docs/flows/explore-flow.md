@@ -54,7 +54,7 @@ flowchart TD
 - **關鍵字輸入用本地 state + 300ms debounce**：`FilterBar` 內用 `useEffect` + `setTimeout`，避免每敲一個字就觸發一次上層更新
 - **篩選/排序全部是前端純運算**：對 `useGroupStore` 已經快取好的群組陣列做 `Array.filter`/`Array.sort`（`applyFilters`），不會另外打搜尋 API
 - 用 `useMemo` 快取 `allGroups`（排除自己開的團）、`filtered`，以及已申請／已加入的 `Set`，避免每次 render 都重新掃一次整個列表
-- **`FilterBar` 沒有展開/收合互動**：搜尋框跟服務/價格/排序三個 `CustomSelect` 一律同時顯示，沒有動畫；桌機版同一列（搜尋框最寬），手機版搜尋框獨立一列、三個篩選在下面平分寬度排成一列
+- **搜尋框跟三個篩選一律同時顯示**：服務/價格/排序用自製的 `FilterSelect`（不依賴 Radix Select，避免多個下拉框同時存在時「切換要點兩下」的問題），展開時從觸發按鈕下緣無縫延伸、有滑入動畫；桌機版與搜尋框同一列，手機版搜尋框獨立一列、三個篩選各自獨立一整列全寬顯示
 - **分類切換時重播卡片進場動畫**：結果 grid 外層包 `key={filters.category}`，切換分類 pill 時強制整個 grid 重新掛載，讓卡片重新播放 slide-up 動畫
 
 ## 流程步驟

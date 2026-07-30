@@ -15,6 +15,8 @@
 ```
 src/
 ├── app/           # 路由、路由守衛、啟動流程（不屬於任何 feature）
+├── components/ui/ # shadcn/ui 風格的通用元件（Button、Dialog、Select…），見下方「元件分層」一節
+├── lib/           # `cn()` helper（clsx + tailwind-merge），供 components/ui/ 與其餘元件組 className
 ├── features/      # 依「使用者看到的功能」切分，每個 feature 自成一個資料夾
 │   └── <feature>/
 │       ├── <Feature>Page.jsx 或 <Feature>Modal.jsx   # 該 feature 的進入點
@@ -24,7 +26,7 @@ src/
 └── shared/        # 兩個以上 feature 共用，或不屬於任何特定 feature 的程式碼
     ├── api/        # REST API 封裝
     ├── stores/     # Zustand store
-    ├── ui/         # 共用 UI 元件
+    ├── ui/         # 共用 UI 元件（業務層，見下方「元件分層」一節）
     ├── layout/     # 全域版面元件（AppLayout、AppNav、FlowLayout…）
     ├── data/       # 靜態資料（serviceCatalog）
     ├── constants/  # 常數
@@ -40,17 +42,20 @@ src/
 
 ---
 
-## `shared/ui/` 的分類方式
+## 元件分層：`components/ui/` vs `shared/ui/primitives/` vs `shared/ui/`
 
-`shared/ui/` 收錄「跨頁面共用」的 UI 元件，內部依綁定業務邏輯的深淺再分三層：
+全站 UI 元件依「有沒有業務邏輯」與「是否為 shadcn/ui 對應元件」分三層：
 
-| 子資料夾 | 內容 | 範例 |
-|---------|------|------|
-| `primitives/` | 完全不帶業務邏輯的通用元件，可用於任何專案 | `Button.jsx`、`Modal.jsx`、`Badge.jsx`、`CustomSelect.jsx`、`ConfirmDialog.jsx`、`ToastContainer.jsx`、`StarRating.jsx`、`ScrollHint.jsx`、`Slider.jsx`／`RangeSlider.jsx`（單／雙把手滑桿，共用 `sliderStyles.js` 的圓點把手樣式與 `SliderTrack.jsx` 外層軌道） |
-| `group/` | 群組詳情 Modal 家族專用元件，被 `HostGroupView`／`MemberGroupView`／`GroupDetailModal` 三處共用 | `GroupModalShell.jsx`（三層滑動軌道殼）、`GroupViewModal.jsx`（依 `isHost` 分流的薄殼）、`GroupOverviewContent.jsx`、`GroupHistoryModal.jsx`、`GroupModalSideBarItem.jsx` |
-| 最外層（無子資料夾） | 跨頁面共用、但綁定特定業務概念（PM幣、信用分數、服務 Logo…）的元件，不適合歸類為 primitive，也未形成像 `group/` 一樣的元件家族 | `TokenAmount.jsx`、`TopupModal.jsx`、`CreditScoreBadge.jsx`、`ServiceLogo.jsx`、`FilterTabsBar.jsx`、`LoginPromptModal.jsx`、`PriceRangeAmount.jsx`（PM幣圖示＋金額區間文字，快速搜尋的價格篩選顯示共用） |
+| 層級 | 內容 | 範例 |
+|------|------|------|
+| `components/ui/` | shadcn/ui 風格的通用元件，底層為 Radix UI primitives（`radix-ui` 套件）+ `class-variance-authority` 管理 variant，命名／組合方式對齊 shadcn 官方慣例（如 `Dialog`/`DialogContent`/`DialogHeader` 這種 compound component 寫法） | `button.jsx`、`dialog.jsx`（一般置中 Dialog／堆疊在另一個 Dialog 上方的 `variant="panel"` 次層 Dialog 共用同一組件）、`alert-dialog.jsx`、`avatar.jsx`、`badge.jsx`、`card.jsx`、`drawer.jsx`（`@base-ui/react` 實作，僅通知中心使用）、`progress.jsx`、`slider.jsx`、`switch.jsx`、`sonner.jsx`（toast，取代舊版 `ToastContainer.jsx`） |
+| `shared/ui/primitives/` | 完全不帶業務邏輯、但沒有對應 shadcn 元件的專案特有通用元件 | `CategoryPills.jsx`、`CountdownText.jsx`、`CredentialWatermark.jsx`、`EmptyState.jsx`、`RevealSection.jsx`、`ScrollHint.jsx`、`StarRating.jsx` |
+| `shared/ui/`（最外層，無子資料夾） | 跨頁面共用、但綁定特定業務概念（PM幣、信用分數、服務 Logo、確認對話框的倒數規則…）的元件，組合 `components/ui/` 的通用元件實作 | `TokenAmount.jsx`、`TopupModal.jsx`、`CreditScoreBadge.jsx`、`ServiceLogo.jsx`、`FilterTabsBar.jsx`、`LoginPromptModal.jsx`、`PriceRangeAmount.jsx`、`StatusBadge.jsx`（業務狀態字串 → `Badge` 視覺 variant 的對照層）、`ConfirmActionDialog.jsx`（重要操作確認＋倒數秒數解鎖，包在 `alert-dialog.jsx` 之上） |
+| `shared/ui/group/` | 群組詳情 Modal 家族專用元件，被 `HostGroupView`／`MemberGroupView`／`GroupDetailModal` 三處共用 | `GroupModalShell.jsx`（三層滑動軌道殼）、`GroupViewModal.jsx`（依 `isHost` 分流的薄殼）、`GroupOverviewContent.jsx`、`GroupHistoryModal.jsx`、`GroupModalSideBarItem.jsx` |
 
-`group/` 集中群組 Modal 家族共用的元件，`primitives/` 收斂所有不帶業務邏輯的通用元件，避免最外層堆積過多元件。新增共用元件時依此準則放置：完全通用 → `primitives/`；群組 Modal 家族專用 → `group/`；其餘跨頁面共用的業務元件 → 最外層。
+新增共用元件時依此準則放置：shadcn 官方有對應元件 → 照 shadcn 慣例放 `components/ui/`；完全通用但 shadcn 沒有對應物 → `shared/ui/primitives/`；綁定業務邏輯 → `shared/ui/` 最外層；群組 Modal 家族專用 → `group/`。
+
+探索頁的服務／金額／排序篩選下拉框（`features/explore/components/FilterSelect.jsx`）是唯一例外：因為 Radix Select 在「同時有多個下拉框」情境下，切換到另一個下拉框需要點兩下才能開啟（`disableOutsidePointerEvents` 內部機制導致），改為自製、不依賴 Radix 的 combobox（含完整鍵盤導覽：方向鍵／Home／End／Enter／Tab／首字快速跳轉），只作為該 feature 的區域元件，不放進 `components/ui/`。
 
 ---
 
@@ -123,7 +128,7 @@ update: async (id, patch) => { ... }    // PATCH /api/xxx/:id
 
 主要事件：`pm:open-group`（開啟群組詳情）、`pm:open-messages`／`pm:open-dm`（訊息中心）、`pm:open-topup`（PM幣儲值）、`pm:open-notify`（通知面板）；成員異動類事件 `pm:refresh-member-stores`、`pm:refresh-application-store` 則是用於 store 同步而非開啟 Modal。完整事件清單見 [資料庫 Schema 文件](./database-schema.md#事件驅動清單)。
 
-群組詳情 Modal 家族（`GroupDetailModal`／`HostGroupView`／`MemberGroupView`）共用 `shared/ui/group/GroupModalShell.jsx` 作為殼：內部是 300% 寬的滑動軌道，支援主面板 → `subPanel`（第二層）→ `subSubPanel`（第三層）三層滑入動畫，取代疊加多個獨立 Modal；殼本身管理 scroll lock 與 Escape 逐層關閉。`shared/ui/primitives/Modal.jsx` 則是更底層的通用 Modal 外殼，支援 `sub` prop 表示子 Modal 模式（z-index 提升、左上角返回鍵），`GroupModalShell` 與其餘一次性 Modal（`ActivateServiceModal`、`RenewalModal`…）皆建立在它之上。
+群組詳情 Modal 家族（`GroupDetailModal`／`HostGroupView`／`MemberGroupView`）共用 `shared/ui/group/GroupModalShell.jsx` 作為殼：內部是 300% 寬的滑動軌道，支援主面板 → `subPanel`（第二層）→ `subSubPanel`（第三層）三層滑入動畫，取代疊加多個獨立 Modal；殼本身管理 scroll lock 與 Escape 逐層關閉。底層的通用 Dialog 外殼是 `components/ui/dialog.jsx`（Radix Dialog 為基礎的 compound component：`Dialog`/`DialogContent`/`DialogHeader`/`DialogTitle`/`DialogBody`/`DialogFooter`/`DialogCloseButton`），`DialogContent` 支援 `variant="panel"`（z-index 提升至群組詳情 Modal 之上，用於「從另一個 Dialog 疊出的次層 Dialog」情境，例如群組詳情 → 啟用服務／回報問題）；`GroupModalShell` 與其餘一次性 Modal（`ActivateServiceModal`、`RenewalModal`…）皆建立在它之上，header 一律用 `DialogHeader`（icon+標題置左、`DialogCloseButton` 置右）維持視覺一致。
 
 ---
 

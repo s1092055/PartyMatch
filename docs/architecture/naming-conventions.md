@@ -5,13 +5,14 @@
 ## 資料夾
 
 - `src/features/` 下每個資料夾對應一個產品功能區（`explore`、`create`、`subscriptions`、`manage-groups` 等），內部再依 `components/`、`hooks/`、`utils/` 拆分
-- `src/shared/` 下依技術層次拆分：`api/`（REST 封裝）、`stores/`（Zustand）、`ui/`（共用元件）、`utils/`（工具函式）、`layout/`（全域版面）
-- `shared/ui/` 內再依用途分兩層子資料夾：`primitives/`（不帶業務邏輯的通用元件）、`group/`（群組詳情 Modal 家族），其餘綁定特定業務概念但非群組專屬的元件留在最外層（見 [前端架構](./frontend-architecture.md)）
+- `src/shared/` 下依技術層次拆分：`api/`（REST 封裝）、`stores/`（Zustand）、`ui/`（共用業務元件）、`utils/`（工具函式）、`layout/`（全域版面）
+- `shared/ui/` 內再依用途分兩層子資料夾：`primitives/`（不帶業務邏輯、shadcn 沒有對應物的通用元件）、`group/`（群組詳情 Modal 家族），其餘綁定特定業務概念但非群組專屬的元件留在最外層
+- `src/components/ui/` 是另一層：shadcn/ui 風格的通用元件（`button.jsx`、`dialog.jsx`、`avatar.jsx` 等），檔名一律 kebab-case（對齊 shadcn CLI 產生的檔案慣例），跟 `shared/ui/` 的 PascalCase 業務元件明確區分（見 [前端架構](./frontend-architecture.md)）
 
 ## 元件
 
 - **Page 元件**一律以 `Page` 結尾，且是路由直接掛載的頂層元件：`ExplorePage.jsx`、`HomePage.jsx`、`CreateGroupPage.jsx`、`ManageGroupsPage.jsx`、`SubscriptionsPage.jsx` 等
-- **Modal 元件**一律以 `Modal` 結尾：`GroupDetailModal.jsx`、`MessagesModal.jsx`、`ApplyModal.jsx`、`TopupModal.jsx` 等，包含 `shared/ui/primitives/Modal.jsx` 這個共用殼本身
+- **Modal 元件**（feature/業務層）一律以 `Modal` 結尾：`GroupDetailModal.jsx`、`MessagesModal.jsx`、`ApplyModal.jsx`、`TopupModal.jsx` 等；底層共用殼例外，命名對齊 shadcn/Radix 官方慣例叫 `Dialog`（`components/ui/dialog.jsx`），不叫 `Modal`
 - **Card 元件**一律以 `Card` 結尾，用於列表中的單一項目呈現：`ExploreGroupCard.jsx`、`HostedGroupCard.jsx`、`SubscriptionCard.jsx`、`ApplicationCard.jsx`
 - 元件檔名一律 PascalCase，且檔名與 `export default function` 的名稱一致
 - 例外：`src/features/manage-groups/components/hostGroupView/` 底下有一組 `buildXxxPanel.jsx`（`buildBillingPanel.jsx`、`buildMembersPanel.jsx` 等），命名不是 PascalCase 元件慣例，而是「回傳 JSX 的建構函式」——這是 `HostGroupView.jsx` 這個大型元件拆分出來的 panel builder，刻意用 `build` 前綴跟一般 Page/Modal/Card 元件區分，代表它們不是獨立可路由/可複用的元件，而是orchestrator 內部的拆分單位

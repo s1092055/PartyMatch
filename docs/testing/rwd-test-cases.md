@@ -28,7 +28,7 @@ PartyMatch 的斷點實質上只有兩段（`src/index.css` `@theme`：`sm`／`m
 **步驟**：在 `/my-subscriptions` 與 `/manage-groups` 分別測手機與 `md:` 以上寬度
 
 **預期結果**：
-- `FilterTabsBar` 手機/桌機都是同一套橫向 underline tabs（3 個分類寬度放得下，不再用 `CustomSelect` 下拉選單，也不是左側垂直 nav），置於群組/訂閱卡片列表正上方，單欄版面（不分左右兩欄）
+- `FilterTabsBar` 手機/桌機都是同一套橫向 underline tabs（3 個分類寬度放得下，不用下拉選單，也不是左側垂直 nav），置於群組/訂閱卡片列表正上方，單欄版面（不分左右兩欄）
 - 下方卡片 grid 用 `auto-fill`/`minmax`（`grid-cols-[repeat(auto-fill,minmax(20rem,1fr))]`）依容器實際可用寬度決定一列排幾張，不是用 `md:grid-cols-2` 這種固定欄數斷點
 - 頁面最上方標題列：標題文字置左，「群組紀錄」按鈕置右，手機/桌機同一種排法，沒有 fixed 定位，外框樣式
 - 點擊「群組紀錄」開啟 `GroupHistoryModal`（`/my-subscriptions`、`/manage-groups` 各自獨立管理自己的開關狀態，互不影響）
@@ -65,9 +65,9 @@ PartyMatch 的斷點實質上只有兩段（`src/index.css` `@theme`：`sm`／`m
 
 **預期結果**：
 - 分類 `CategoryPills`（`variant="grid"`）桌機版排成固定欄數的 grid（`md:grid-cols-10`），手機版改為單行可橫向滑動（不需要箭頭按鈕，靠手勢滑動）
-- 搜尋框與服務/價格/排序三個 `CustomSelect` 一律同時顯示，沒有展開/收合的互動，也沒有動畫效果：桌機版同一列（`md:flex-row`，搜尋框 `md:flex-[3]` 最寬，服務下拉 `md:flex-[2]` 其次，價格/排序平分剩餘寬度）；手機版搜尋框獨立一列（`w-full`），下面三個篩選再各自平分寬度排成一列
-- 價格選項選「自訂金額」時應切換成一個帶 PM 幣圖示的數字輸入框，直接輸入自訂金額上限（按 Enter 或失焦送出），輸入非正數或非數字時應保留在編輯狀態讓使用者修正，不會靜默捨棄
-- `CustomSelect` 下拉展開時應緊貼在觸發按鈕正下方（無縫隙，圓角用 `rounded-b-control` 對齊按鈕本身的 `rounded-control`），不會有多餘的藍色 focus 光暈或點擊縮放效果；選項清單過長時內部捲動，捲軸本身要隱藏（`scrollbar-none`）
+- 搜尋框與服務/價格/排序三個 `FilterSelect`（`features/explore/components/FilterSelect.jsx`，自製 combobox，不依賴 Radix Select）一律同時顯示：桌機版同一列（`md:flex-row`，搜尋框 `md:flex-[2]`，三個篩選共用一個 `md:flex-[4]` 的 grid 容器、`md:grid-cols-3` 平分寬度）；手機版搜尋框獨立一列，下面三個篩選改成 `grid-cols-1` 各自獨立一整列、全寬顯示
+- 價格選項選「自訂金額」時應切換成一個帶 PM 幣圖示的數字輸入框，直接輸入自訂金額上限（按 Enter 或失焦送出），輸入非正數或非數字時應保留在編輯狀態讓使用者修正，不會靜默捨棄；切換前後三個篩選框跟搜尋框寬度應保持一致，不會因為 Select 換成 input 就跑版變寬變窄
+- `FilterSelect` 下拉展開時應緊貼在觸發按鈕正下方、無縫隙、共用同一條邊框（觸發按鈕展開時下邊框變透明、下拉選單 `rounded-b-lg` 補上圓角，視覺上像同一個容器往下延伸，不是浮在按鈕上方的獨立卡片），搭配由上往下滑入的位移＋淡入動畫；不會有多餘的 focus 光暈或點擊縮放效果；選項清單過長時內部捲動，捲軸本身要隱藏；服務篩選在「不限分類」時選項依分類分組並附灰色分類標題；同時只能有一個展開，點擊另一個篩選按鈕時前一個要單擊立即切換（不用點兩下）；支援方向鍵／Home／End／Enter／Esc／Tab 完整鍵盤操作
 - 上方分類 pill 切換時，底下群組卡片 grid 應整個重新掛載並重播 slide-up 進場動畫（`key={filters.category}`）
 
 ---

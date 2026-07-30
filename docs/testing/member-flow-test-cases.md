@@ -49,7 +49,7 @@
 - 「審核中」只顯示尚未接受的申請本身（還沒有 `Subscription` 記錄），其餘分頁顯示對應狀態的訂閱
 - 「服務中」除了 `active` 狀態，也包含自己已經確認過服務、但群組仍在 `confirming` 等其他成員確認的訂閱（`subscriptionBucket`／`isEffectivelyActive` 判斷）
 - 「已結束」／已取消的群組（`ended`/`cancelled`）**不會出現在任何分頁分類中**，只能透過側邊欄底部的「群組紀錄」按鈕開啟 `GroupHistoryModal` 查看；桌機版側邊欄現在有固定高度，「群組紀錄」按鈕位置不會隨分頁項目多寡而上下浮動
-- 卡片右上角狀態 badge 文案跟分類分頁對齊：`active` 顯示「服務中」、`pending_confirmation` 顯示「成員填寫中」（代管費用已在申請被接受當下扣完，這個階段不是在收款），見 `src/shared/ui/primitives/badgeLabels.js` 的 `BADGE_LABELS`
+- 卡片右上角狀態 badge 文案跟分類分頁對齊：`active` 顯示「服務中」、`pending_confirmation` 顯示「成員填寫中」（代管費用已在申請被接受當下扣完，這個階段不是在收款），見 `src/shared/ui/statusBadgeConfig.js` 的 `STATUS_CONFIG`
 - 「服務中」（`active`）卡片的三格統計欄由左到右為「團主／成員人數／下次扣款」（`SubscriptionCard.jsx`）
 
 ---
