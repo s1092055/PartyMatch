@@ -23,7 +23,9 @@ export default function CustomSelect({ label, value, onChange, options, classNam
 
         <Select.Portal>
           <Select.Content
-            className="relative z-50 max-h-[var(--radix-select-content-available-height)] min-w-36 max-w-[min(20rem,90vw)] origin-[var(--radix-select-content-transform-origin)] overflow-hidden rounded-lg border border-line bg-surface shadow-lg"
+            position="popper"
+            sideOffset={6}
+            className="z-50 w-[var(--radix-select-trigger-width)] max-w-[min(20rem,90vw)] overflow-hidden rounded-lg border border-line bg-surface shadow-lg"
           >
             <Select.Viewport className="max-h-60 overflow-y-auto scrollbar-none p-1">
               {options.map(o => {
