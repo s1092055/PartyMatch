@@ -1,5 +1,6 @@
 import { memo } from 'react'
 import { Button } from '../../../components/ui/button'
+import { Card } from '../../../components/ui/card'
 import { StatusBadge } from '../../../shared/ui/StatusBadge'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import TokenAmount from '../../../shared/ui/TokenAmount'
@@ -37,8 +38,9 @@ function SubscriptionCard({ sub, onViewGroup }) {
     hasFilledServiceInfo(sub.serviceInfo, sharingMethod) && !sub.serviceInfoIssueNote
 
   return (
-    <article
-      className="card card-lift relative flex min-h-full cursor-pointer flex-col overflow-hidden rounded-card border-line bg-surface p-5"
+    <Card
+      as="article"
+      className="card-lift relative flex min-h-full cursor-pointer flex-col overflow-hidden p-5"
       onClick={() => onViewGroup?.(sub)}
     >
       <div className="flex justify-center">
@@ -80,7 +82,7 @@ function SubscriptionCard({ sub, onViewGroup }) {
           查看群組
         </Button>
       </div>
-    </article>
+    </Card>
   )
 }
 

@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Lightbox } from './DeviceShowcase'
+import { Card } from '../../../components/ui/card'
 import { HOME_EXTRA_FEATURES } from '../data/homeContent'
 
 const TOTAL = HOME_EXTRA_FEATURES.length
@@ -98,19 +99,19 @@ export default function ExtraFeatures() {
               className="absolute left-1/2 top-0 h-full w-64 transition-[transform,filter,opacity] duration-500 ease-out will-change-transform sm:w-72"
               style={cardStyle(offset)}
             >
-              <div
+              <Card
                 onClick={() => handleCardClick(i, isActive)}
                 role="button"
                 tabIndex={isActive ? 0 : -1}
                 aria-label={isActive ? `放大播放：${title}` : `切換到：${title}`}
-                className="card flex h-full w-full cursor-pointer flex-col overflow-hidden transition-transform duration-200 ease-out hover:scale-[1.03]"
+                className="flex h-full w-full cursor-pointer flex-col overflow-hidden transition-transform duration-200 ease-out hover:scale-[1.03]"
               >
                 <CardThumb screenshots={screenshots} title={title} />
                 <div className="flex flex-1 flex-col items-start justify-center gap-1.5 px-5 py-4 text-left">
                   <h3 className="font-extrabold text-ink">{title}</h3>
                   <p className="text-sm leading-relaxed text-ink-3">{desc}</p>
                 </div>
-              </div>
+              </Card>
             </div>
           )
         })}

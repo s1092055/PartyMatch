@@ -1,8 +1,8 @@
 import { cn } from "../../lib/utils"
 
-export function Card({ className, ...props }) {
+export function Card({ as: Tag = 'div', className, ...props }) {
   return (
-    <div
+    <Tag
       className={cn('rounded-card border border-line bg-surface shadow-card', className)}
       {...props}
     />

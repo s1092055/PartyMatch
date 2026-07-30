@@ -10,6 +10,7 @@ import TokenAmount from '../../../shared/ui/TokenAmount'
 import { StatusBadge } from '../../../shared/ui/StatusBadge'
 import { getStatusLabel } from '../../../shared/ui/statusBadgeConfig'
 import { Progress } from '../../../components/ui/progress'
+import { Card } from '../../../components/ui/card'
 import { calcDisplayPrice, calcDisplayCycle } from '../../../shared/utils/pricingUtils'
 import { useFavoriteStore } from '../../../shared/stores/useFavoriteStore'
 import { useAuthStore } from '../../../shared/stores/useAuthStore'
@@ -85,8 +86,9 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
   }
 
   return (
-    <article
-      className="card card-lift relative flex min-h-full cursor-pointer flex-col overflow-hidden rounded-card border-line bg-surface px-6 py-5"
+    <Card
+      as="article"
+      className="card-lift relative flex min-h-full cursor-pointer flex-col overflow-hidden px-6 py-5"
       onClick={openDetails}
     >
       {rank != null && (
@@ -185,7 +187,7 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
         </button>
       )}
 
-    </article>
+    </Card>
   )
 }
 

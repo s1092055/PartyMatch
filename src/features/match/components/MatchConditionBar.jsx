@@ -4,6 +4,7 @@ import { getServiceById } from '../../../shared/utils/serviceUtils'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import PriceRangeAmount from '../../../shared/ui/PriceRangeAmount'
 import { formatPriceRangeLabel } from '../utils/priceRangeLabel'
+import { Card } from '../../../components/ui/card'
 
 export default function MatchConditionBar({ conditions, showEdit = true }) {
   const navigate = useNavigate()
@@ -11,7 +12,7 @@ export default function MatchConditionBar({ conditions, showEdit = true }) {
   const priceLabel = formatPriceRangeLabel(minPrice, maxPrice)
 
   return (
-    <div className="card px-5 py-4 flex flex-wrap items-center gap-4 mb-6">
+    <Card className="px-5 py-4 flex flex-wrap items-center gap-4 mb-6">
       <span className="text-xs font-bold text-ink-4 mr-1">配對條件</span>
 
       <div className="flex items-center gap-1.5">
@@ -44,7 +45,7 @@ export default function MatchConditionBar({ conditions, showEdit = true }) {
           修改條件
         </button>
       )}
-    </div>
+    </Card>
   )
 }
 

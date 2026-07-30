@@ -2,6 +2,7 @@ import { memo } from 'react'
 import { StatusBadge } from '../../../shared/ui/StatusBadge'
 import { getStatusTextColor } from '../../../shared/ui/statusBadgeConfig'
 import { Button } from '../../../components/ui/button'
+import { Card } from '../../../components/ui/card'
 import ServiceLogo from '../../../shared/ui/ServiceLogo'
 import TokenAmount from '../../../shared/ui/TokenAmount'
 import { getRenewalAwareStatus } from '../../../shared/utils/groupStatusDisplay'
@@ -69,8 +70,9 @@ function HostedGroupCard({
   const isActivated    = ['active', 'cancelled', 'ended'].includes(group.status)
 
   return (
-    <article
-      className="card card-lift relative flex min-h-full cursor-pointer flex-col overflow-hidden rounded-card border-line bg-surface p-5"
+    <Card
+      as="article"
+      className="card-lift relative flex min-h-full cursor-pointer flex-col overflow-hidden p-5"
       onClick={onViewGroup}
     >
       <div className="flex justify-center">
@@ -140,7 +142,7 @@ function HostedGroupCard({
           查看群組
         </Button>
       </div>
-    </article>
+    </Card>
   )
 }
 

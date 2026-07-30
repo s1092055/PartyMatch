@@ -15,6 +15,7 @@ import TokenAmount from '../../shared/ui/TokenAmount'
 import FilterTabsBar from '../../shared/ui/FilterTabsBar'
 import ServiceLogo from '../../shared/ui/ServiceLogo'
 import { Button } from '../../components/ui/button'
+import { Card } from '../../components/ui/card'
 import RevealSection from '../../shared/ui/primitives/RevealSection'
 import ScrollHint from '../../shared/ui/primitives/ScrollHint'
 import { toISODate } from '../../shared/utils/date'
@@ -244,8 +245,9 @@ export default function SubscriptionsPage() {
 
 function ApplicationCard({ app, group, onViewGroup }) {
   return (
-    <article
-      className="card card-lift relative flex min-h-full cursor-pointer flex-col overflow-hidden rounded-card border-line bg-surface p-5"
+    <Card
+      as="article"
+      className="card-lift relative flex min-h-full cursor-pointer flex-col overflow-hidden p-5"
       onClick={onViewGroup}
     >
       <div className="flex justify-center">
@@ -291,7 +293,7 @@ function ApplicationCard({ app, group, onViewGroup }) {
           查看群組
         </Button>
       </div>
-    </article>
+    </Card>
   )
 }
 
