@@ -9,27 +9,40 @@ export default function FilterSelect({ id, group, value, onChange, groups, trigg
   const listRef = useRef(null)
   const [activeIndex, setActiveIndex] = useState(-1)
   const [mounted, setMounted] = useState(false)
+  const [visible, setVisible] = useState(false)
   const listboxId = useId()
   const typeaheadRef = useRef({ text: '', timer: null })
+  const rafRef = useRef(null)
 
   useEffect(() => {
     if (open || !mounted) return
-    const timer = setTimeout(() => setMounted(false), 100)
+    const timer = setTimeout(() => setMounted(false), 150)
     return () => clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
+
+  useEffect(() => {
+    if (!mounted || !open) return
+    const raf1 = requestAnimationFrame(() => {
+      rafRef.current = requestAnimationFrame(() => setVisible(true))
+    })
+    rafRef.current = raf1
+    return () => cancelAnimationFrame(rafRef.current)
+  }, [mounted, open])
 
   const flatItems = useMemo(() => groups.flatMap(g => g.items), [groups])
 
   function close() {
     group.setOpenKey(k => (k === id ? null : k))
     setActiveIndex(-1)
+    setVisible(false)
   }
 
   function openList() {
     const idx = flatItems.findIndex(i => i.value === value)
     setActiveIndex(idx >= 0 ? idx : 0)
     setMounted(true)
+    setVisible(false)
     group.setOpenKey(id)
   }
 
@@ -139,8 +152,8 @@ export default function FilterSelect({ id, group, value, onChange, groups, trigg
           tabIndex={-1}
           aria-hidden={!open}
           className={cn(
-            'absolute left-0 top-full z-50 max-h-72 w-full overflow-x-hidden overflow-y-auto rounded-b-lg border border-t-0 border-input bg-popover text-popover-foreground shadow-md transition-opacity duration-100 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
-            open ? 'opacity-100' : 'pointer-events-none opacity-0'
+            'absolute left-0 top-full z-50 max-h-72 w-full overflow-x-hidden overflow-y-auto rounded-b-lg border border-t-0 border-input bg-popover text-popover-foreground shadow-md transition-[opacity,transform] duration-150 ease-out [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+            open && visible ? 'translate-y-0 opacity-100' : 'pointer-events-none -translate-y-2 opacity-0'
           )}
         >
           {groups.map((g, gi) => (
