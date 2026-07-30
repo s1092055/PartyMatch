@@ -196,10 +196,18 @@
        所有 --text-* token 皆為 rem，故全站文字皆隨此根字體大小一起縮放 */
     font-size: clamp(15px, 14.17px + 0.221vw, 17px);
     overflow-y: scroll;
-    /* Radix（Select/Dialog 等）開啟時會用 react-remove-scroll 暫時鎖住捲動，
-       並用 padding 補償被藏起來的捲軸寬度；scrollbar-gutter: stable 讓捲軸
-       的版面空間隨時保留，這個補償動作就不會造成內容左右跳動 */
     scrollbar-gutter: stable;
+  }
+
+  /* Radix（Select/Dialog 等）開啟時會透過 react-remove-scroll-bar 注入一段
+     <style>，對 body[data-scroll-locked] 加上 margin-right: <捲軸寬度>px
+     !important，想藉此補償「捲軸被暫時藏起來」讓出的空間——但本站的捲軸
+     一直是常駐顯示（上面 html 的 overflow-y: scroll），從頭到尾沒有真的
+     被藏起來過，所以這段補償是多算的，會把 body 往左推、造成內容偏移。
+     用比對方選擇器（body[data-scroll-locked]）更高優先度的寫法蓋掉這個
+     margin-right，不動 overflow: hidden（那部分是真的要鎖背景捲動）。 */
+  html body[data-scroll-locked] {
+    margin-right: 0 !important;
   }
 
   @media (max-width: 767px) {
