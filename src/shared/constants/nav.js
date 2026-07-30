@@ -1,4 +1,4 @@
-import { CalendarClock, Compass, Heart, LayoutDashboard, PlusCircle, Search } from 'lucide-react'
+import { Clipboard, Compass, Heart, LayoutDashboard, PlusCircle, Search } from 'lucide-react'
 
 export const NAV_SECTIONS = [
   {
@@ -13,7 +13,7 @@ export const NAV_SECTIONS = [
     label: '我的帳號',
     items: [
       { to: '/manage-groups',    label: '群組管理', icon: LayoutDashboard },
-      { to: '/my-subscriptions', label: '我的訂閱', icon: CalendarClock },
+      { to: '/my-subscriptions', label: '我的訂閱', icon: Clipboard },
       { to: '/favorites',        label: '我的收藏', icon: Heart },
     ],
   },

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AlertCircle, Bell, CheckCircle2, ClipboardEdit, MessageSquare, UserPlus, X } from 'lucide-react'
+import { AlertCircle, Bell, CheckCircle2, ClipboardEdit, MessageSquare, UserPlus } from 'lucide-react'
 import { Drawer, DrawerContent, DrawerHeader, DrawerFooter, DrawerTitle, DrawerDescription } from '../../components/ui/drawer'
 import { Button } from '../../components/ui/button'
 import { useAuthStore } from '../stores/useAuthStore'
@@ -430,7 +430,6 @@ export default function FloatingMessages() {
             onClick={() => setOpen(false)}
             className="w-full rounded-xl border border-line"
           >
-            <X size={15} strokeWidth={1.5} />
             關閉
           </Button>
         </DrawerFooter>
