@@ -20,7 +20,7 @@ export function Toaster(props) {
           toast: 'flex w-max max-w-sm items-center gap-3 rounded-2xl border border-line bg-surface px-4 py-3 shadow-lg',
           title: 'min-w-0 text-sm font-semibold text-ink',
           actionButton: '!bg-transparent !p-0 shrink-0 text-sm font-bold !text-brand hover:underline',
-          closeButton: '!border-line !bg-surface text-ink-3 hover:!bg-raised hover:!text-ink',
+          closeButton: 'order-last shrink-0 !border-line !bg-surface text-ink-3 hover:!bg-raised hover:!text-ink',
           icon: 'shrink-0',
         },
       }}

@@ -21,6 +21,7 @@ export function buildMembersPanel({ group, members, setActivePanel, onClose, set
                 團主
               </span>
             </div>
+            {group.hostBio && <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-ink-3">{group.hostBio}</p>}
           </div>
           {members.map(m => {
             const removable = ['recruiting', 'full'].includes(group.status)
@@ -61,6 +62,7 @@ export function buildMembersPanel({ group, members, setActivePanel, onClose, set
                     )}
                   </div>
                 </div>
+                {m.userBio && <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-ink-3">{m.userBio}</p>}
               </div>
             )
           })}

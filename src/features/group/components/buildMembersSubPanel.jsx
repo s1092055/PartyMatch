@@ -30,6 +30,7 @@ export function buildMembersSubPanel({ group, groupId, members, activeUserId, se
               <MessageCircle size={20} />
             </Button>
           </div>
+          {group.hostBio && <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-ink-3">{group.hostBio}</p>}
         </div>
         {members.filter(m => m.groupId === groupId).map(m => (
           <div key={m.id} className="rounded-xl border border-line p-3">
@@ -43,6 +44,7 @@ export function buildMembersSubPanel({ group, groupId, members, activeUserId, se
                 <p className="text-xs text-ink-3">{m.joinedAt} 加入</p>
               </div>
             </div>
+            {m.userBio && <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-ink-3">{m.userBio}</p>}
           </div>
         ))}
       </div>

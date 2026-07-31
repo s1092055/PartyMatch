@@ -41,7 +41,7 @@ router.get('/', requireAuth, async (req, res, next) => {
     const members = await prisma.member.findMany({
       where,
       include: {
-        user: { select: { id: true, name: true, avatarColor: true, avatarInitial: true } },
+        user: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, bio: true } },
       },
       orderBy: { joinedAt: 'asc' },
     })

@@ -1,16 +1,18 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Lock, Mail, Phone, User } from 'lucide-react'
-import AuthLayout, { AuthInput, AuthDivider, AuthError, GoogleMark, PasswordToggle } from '../components/AuthLayout'
+import { Lock, Mail, User } from 'lucide-react'
+import AuthLayout, { AuthInput, AuthDivider, AuthError, GoogleMark, PasswordToggle, PhoneInput } from '../components/AuthLayout'
 import { Button } from '../../../components/ui/button'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
+import { DEFAULT_COUNTRY_CODE, toE164 } from '../../../common/utils/phone'
 
 export default function RegisterPage() {
   const navigate = useNavigate()
   const [form, setForm] = useState({
     name: '',
     email: '',
-    phone: '',
+    phoneCountryCode: DEFAULT_COUNTRY_CODE,
+    phoneLocal: '',
     password: '',
     confirmPassword: '',
   })
@@ -36,7 +38,8 @@ export default function RegisterPage() {
     }
     setLoading(true)
     setError('')
-    const result = await useAuthStore.getState().register(form)
+    const { phoneCountryCode, phoneLocal, ...rest } = form
+    const result = await useAuthStore.getState().register({ ...rest, phone: toE164(phoneCountryCode, phoneLocal) })
     setLoading(false)
     if (!result.ok) {
       setError(result.error)
@@ -72,14 +75,12 @@ export default function RegisterPage() {
           value={form.email}
           onChange={value => updateField('email', value)}
         />
-        <AuthInput
-          icon={Phone}
+        <PhoneInput
           label="手機號碼"
-          type="tel"
-          autoComplete="tel"
-          placeholder="請輸入手機號碼"
-          value={form.phone}
-          onChange={value => updateField('phone', value)}
+          countryCode={form.phoneCountryCode}
+          onCountryCodeChange={value => updateField('phoneCountryCode', value)}
+          value={form.phoneLocal}
+          onChange={value => updateField('phoneLocal', value)}
         />
         <AuthInput
           icon={Lock}
@@ -154,8 +155,8 @@ export default function RegisterPage() {
 function getValidationError(form, accepted) {
   if (!form.name.trim()) return '請輸入顯示名稱'
   if (!form.email.trim()) return '請輸入電子郵件'
-  if (!form.phone.trim()) return '請輸入手機號碼'
-  if (!/^09\d{8}$/.test(form.phone.trim())) return '請輸入正確的手機號碼格式'
+  if (!form.phoneLocal.trim()) return '請輸入手機號碼'
+  if (!/^\+[1-9]\d{6,14}$/.test(toE164(form.phoneCountryCode, form.phoneLocal))) return '請輸入正確的手機號碼格式'
   if (form.password.length < 6) return '密碼至少需要 6 碼'
   if (form.confirmPassword !== form.password) return '確認密碼必須和密碼一致'
   if (!accepted) return '請先同意服務條款與隱私政策'

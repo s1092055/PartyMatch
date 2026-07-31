@@ -52,6 +52,7 @@ export function normalizeMember(m) {
     userName,
     userAvatarInitial: m.userAvatarInitial ?? user.avatarInitial ?? userName[0] ?? '?',
     userAvatarColor:   m.userAvatarColor   ?? user.avatarColor   ?? '#94A3B8',
+    userBio:           m.userBio           ?? user.bio           ?? '',
     userId:            m.userId            ?? user.id            ?? '',
     joinedAt,
     joinedAtTime,
@@ -143,6 +144,7 @@ export function normalizeGroup(group) {
     hostRating:        migrateRating(group.hostRating ?? host.creditScore ?? 80),
     hostAvatarInitial: group.hostAvatarInitial ?? host.avatarInitial ?? '',
     hostAvatarColor:   group.hostAvatarColor   ?? host.avatarColor   ?? '#94A3B8',
+    hostBio:           group.hostBio           ?? host.bio           ?? '',
     hostReviewCount:   group.hostReviewCount   ?? 0,
     // 其他
     rules:     Array.isArray(group.rules) ? group.rules : (group.rules ? group.rules.split('\n').filter(Boolean) : []),

@@ -1,6 +1,8 @@
 import { Eye, EyeOff, ChevronLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '../../../components/ui/button'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../../components/ui/select'
+import { COUNTRY_CODES } from '../../../common/utils/phone'
 
 export default function AuthLayout({ children, backTo = '/' }) {
   return (
@@ -35,6 +37,36 @@ export function AuthInput({ icon: Icon, label, value, onChange, trailing, ...pro
           {...props}
         />
         {trailing}
+      </span>
+    </label>
+  )
+}
+
+export function PhoneInput({ label, countryCode, onCountryCodeChange, value, onChange }) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-sm font-extrabold text-ink">{label}</span>
+      <span className="flex h-[3.75rem] items-center gap-2 rounded-2xl border border-line bg-surface pl-2 pr-4 transition-colors focus-within:border-brand focus-within:ring-4 focus-within:ring-brand-subtle">
+        <Select value={countryCode} onValueChange={onCountryCodeChange}>
+          <SelectTrigger aria-label="國碼" className="h-full w-auto shrink-0 gap-1 border-0 bg-transparent px-2 text-base font-bold focus:border-0 focus:ring-0">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {COUNTRY_CODES.map(c => (
+              <SelectItem key={c.code} value={c.code}>{c.code} {c.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <span className="h-6 w-px shrink-0 bg-line" />
+        <input
+          type="tel"
+          inputMode="numeric"
+          autoComplete="tel-national"
+          placeholder="請輸入手機號碼"
+          value={value}
+          onChange={e => onChange(e.target.value.replace(/[^0-9]/g, ''))}
+          className="h-full flex-1 bg-transparent text-base font-medium text-ink outline-none placeholder:text-ink-4"
+        />
       </span>
     </label>
   )

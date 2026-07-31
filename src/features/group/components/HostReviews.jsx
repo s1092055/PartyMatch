@@ -74,6 +74,9 @@ export default function HostReviews({ group, headerClassName, onDm, groupId, tit
           )}
         </div>
       )}
+      {showHeader && group.hostBio && (
+        <p className="whitespace-pre-wrap border-b border-line-subtle pb-4 text-sm leading-relaxed text-ink-3">{group.hostBio}</p>
+      )}
       {emptyOrLoading ? (
         centerEmpty ? <div className="flex flex-1 items-center justify-center">{emptyOrLoading}</div> : emptyOrLoading
       ) : (

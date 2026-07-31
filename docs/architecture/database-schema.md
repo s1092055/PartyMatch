@@ -6,7 +6,7 @@
 
 | Table | 說明 |
 |-------|------|
-| `users` | 使用者帳號、密碼 hash、手機號碼（`phone`，註冊必填）、Google ID、`creditScore`（信用分數，預設／滿分 100，目前僅為靜態欄位，尚未有動態調整或上限保護機制，新增寫入時需自行確保不超過 100）、`tokenBalance`（平台PM幣餘額，1:1 對應 TWD）、`deactivatedAt`（非 null 代表帳號已軟刪除停用，登入/refresh 一律拒絕，保留資料供日後申請恢復） |
+| `users` | 使用者帳號、密碼 hash、手機號碼（`phone`，註冊必填，E.164 格式如 `+886912345678`，前端拆成國碼下拉＋本地號碼兩欄輸入，方便之後擴充其他國家）、`bio`（個人簡介，選填，上限 500 字，群組詳情的團主介紹與成員名單都會顯示，讓同群組的人彼此看得到）、Google ID、`creditScore`（信用分數，預設／滿分 100，目前僅為靜態欄位，尚未有動態調整或上限保護機制，新增寫入時需自行確保不超過 100）、`tokenBalance`（平台PM幣餘額，1:1 對應 TWD）、`deactivatedAt`（非 null 代表帳號已軟刪除停用，登入/refresh 一律拒絕，保留資料供日後申請恢復） |
 | `payment_methods` | 使用者付款方式（`brand`、卡片末四碼、有效期限、是否為預設） |
 | `services` | 28 種訂閱服務清單與方案（JSON 欄位） |
 | `groups` | 群組主資料（狀態、名額、方案、`billingCycle`、`escrowTokens`（代管中PM幣總額）、`serviceInfoDeadline`（`pending_confirmation` 狀態的填寫帳號資訊截止時間，鎖定時間 + 24h，僅供前端顯示倒數）、`confirmDeadline`（`confirming` 狀態的確認截止時間，啟用時間 + 48h）、`disputeDeadline`（`disputed` 狀態的裁定截止時間，申訴提出時間 + 3 天）、`sharedCredentials`（無官方多人邀請機制的服務，團主鎖定群組時提供的帳號密碼，讓成員填寫服務帳號畫面能直接顯示，不用回頭翻聊天室訊息，僅存在前端 `sharingMethod: shared_credentials` 分類會用到，後端不知道這個分類本身，單純是有傳就存）） |

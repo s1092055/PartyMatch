@@ -141,16 +141,16 @@ async function main() {
   console.log(`開始建立 demo 資料（透過 ${BASE} 的真實 API）...\n`)
 
   // ── 使用者：3 個團主帳號 + 6 個一般成員帳號 + 1 個管理員帳號 ──────────
-  const H1 = await registerUser({ email: 'demo7@partymatch.test', name: '吳志豪', phone: '0911000007' })
-  const H2 = await registerUser({ email: 'demo8@partymatch.test', name: '許雅涵', phone: '0911000008' })
-  const H3 = await registerUser({ email: 'demo9@partymatch.test', name: '劉建成', phone: '0911000009' })
-  const D1 = await registerUser({ email: 'demo1@partymatch.test', name: '王小明', phone: '0911000001' })
-  const D2 = await registerUser({ email: 'demo2@partymatch.test', name: '林小美', phone: '0911000002' })
-  const D3 = await registerUser({ email: 'demo3@partymatch.test', name: '陳大文', phone: '0911000003' })
-  const D4 = await registerUser({ email: 'demo4@partymatch.test', name: '張雅婷', phone: '0911000004' })
-  const D5 = await registerUser({ email: 'demo5@partymatch.test', name: '李冠宇', phone: '0911000005' })
-  const D6 = await registerUser({ email: 'demo6@partymatch.test', name: '黃詩涵', phone: '0911000006' })
-  const ADMIN = await registerUser({ email: 'demo-admin@partymatch.test', name: '平台管理員', phone: '0911000099' })
+  const H1 = await registerUser({ email: 'demo7@partymatch.test', name: '吳志豪', phone: '+886911000007' })
+  const H2 = await registerUser({ email: 'demo8@partymatch.test', name: '許雅涵', phone: '+886911000008' })
+  const H3 = await registerUser({ email: 'demo9@partymatch.test', name: '劉建成', phone: '+886911000009' })
+  const D1 = await registerUser({ email: 'demo1@partymatch.test', name: '王小明', phone: '+886911000001' })
+  const D2 = await registerUser({ email: 'demo2@partymatch.test', name: '林小美', phone: '+886911000002' })
+  const D3 = await registerUser({ email: 'demo3@partymatch.test', name: '陳大文', phone: '+886911000003' })
+  const D4 = await registerUser({ email: 'demo4@partymatch.test', name: '張雅婷', phone: '+886911000004' })
+  const D5 = await registerUser({ email: 'demo5@partymatch.test', name: '李冠宇', phone: '+886911000005' })
+  const D6 = await registerUser({ email: 'demo6@partymatch.test', name: '黃詩涵', phone: '+886911000006' })
+  const ADMIN = await registerUser({ email: 'demo-admin@partymatch.test', name: '平台管理員', phone: '+886911000099' })
   await prisma.user.update({ where: { id: ADMIN.id }, data: { isAdmin: true } }) // 唯一沒有 API 可做的例外
   console.log('已註冊 10 個帳號（demo7~demo9 團主、demo1~demo6 成員、demo-admin 管理員）')
 

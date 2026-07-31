@@ -10,7 +10,8 @@ const router = Router()
 
 const updateProfileSchema = z.object({
   name:         z.string().min(1).max(50).optional(),
-  phone:        z.union([z.literal(''), z.string().regex(/^09\d{8}$/)]).optional(),
+  phone:        z.union([z.literal(''), z.string().regex(/^\+[1-9]\d{6,14}$/)]).optional(),
+  bio:          z.string().max(500).optional(),
   avatarColor:  z.string().optional(),
   avatarInitial: z.string().max(2).optional(),
 })
@@ -24,7 +25,7 @@ router.get('/:id', async (req, res, next) => {
   try {
     const user = await prisma.user.findUnique({
       where:  { id: req.params.id },
-      select: { id: true, name: true, avatarColor: true, avatarInitial: true, creditScore: true, createdAt: true },
+      select: { id: true, name: true, avatarColor: true, avatarInitial: true, creditScore: true, bio: true, createdAt: true },
     })
     if (!user) return res.status(404).json({ message: '使用者不存在' })
     res.json(user)
@@ -37,7 +38,7 @@ router.patch('/me', requireAuth, validate(updateProfileSchema), async (req, res,
     const user = await prisma.user.update({
       where:  { id: req.user.id },
       data:   req.body,
-      select: { id: true, email: true, name: true, phone: true, avatarColor: true, avatarInitial: true, creditScore: true },
+      select: { id: true, email: true, name: true, phone: true, avatarColor: true, avatarInitial: true, creditScore: true, bio: true },
     })
     res.json(user)
   } catch (err) { next(err) }

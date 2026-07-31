@@ -348,6 +348,32 @@
    置中位置），而不是單純視窗置中，全站所有頁面統一套用同一個位置，不隨頁面本身的留白
    對不對稱而改變。只在跟側邊欄同一個斷點（1280px）生效；sonner 本身的手機版位移邏輯只在
    max-width:600px 生效，跟這裡的 1280px 斷點不重疊，不會互相影響 */
+/* sonner 的置中定位只置中「容器」本身（寬度固定為 --width，預設 356px），容器裡的
+   個別 toast 因為 unstyled + w-max（寬度依內容縮放）沒有自己置中，預設貼齊容器左緣，
+   內容比容器窄時視覺上就會偏左，看起來完全沒置中。用 left:0/right:0 + margin 自動置中
+   這個經典技巧讓個別 toast 在容器內部也置中，不能用 transform:translateX(-50%)，
+   因為 transform 已經被進場/離場動畫用來做垂直位移（--y），會互相覆蓋打架 */
+[data-sonner-toast] {
+  left: 0 !important;
+  right: 0 !important;
+  margin-inline: auto !important;
+  /* sonner 手機版（max-width:600px）另外會把寬度改成 calc(100% - offset*2)，
+     蓋掉我們自己 w-max（依內容縮放寬度）的設計，這裡一併鎖死寬度不讓它蓋過去，
+     避免內容窄的 toast 在手機上被拉成快滿版寬、置中計算跟著跑掉 */
+  width: fit-content !important;
+  max-width: min(24rem, calc(100vw - 2rem)) !important;
+}
+
+/* sonner 自己的手機/桌機兩種頂部留白（offset／mobileOffset）切換點固定在 600px，
+   但本站手機版導覽列（MobileHeader.jsx，fixed top-3 h-14）一路顯示到 1280px（lg
+   斷點）才切成桌機版側邊欄，600～1279px 這段會誤用桌機版的 1.5rem 留白，蓋到導覽列。
+   統一在 lg 斷點以下都用跟手機版一樣寬的頂部留白，跟實際導覽列高度對齊 */
+@media (max-width: 1279px) {
+  [data-sonner-toaster] {
+    --offset-top: 5rem !important;
+  }
+}
+
 @media (min-width: 1280px) {
   [data-sonner-toaster][data-x-position='center'] {
     left: calc(50% + 3rem) !important;
