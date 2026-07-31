@@ -15,9 +15,32 @@ import { useNotificationStore } from '../common/stores/useNotificationStore'
 import { useConversationStore } from '../common/stores/useConversationStore'
 import { toast } from '../common/utils/toast'
 
+// Modal／Drawer 開啟時鎖定捲動（見 common/utils/hooks.js 的 useScrollLock，或
+// @base-ui/react 內建的 Dialog/Drawer 各自的鎖定機制，兩者都是對 <html> 設
+// overflowY:hidden）——iOS Safari 在鎖定的當下有時不會立刻重新計算 position:fixed
+// 元素的版面，導致 Modal／Drawer 背後殘留鎖定前捲動位置的頁面內容透出來（尤其是
+// 使用者先把頁面往下捲，再開啟 Modal 的情境）。用同一個座標重新呼叫 scrollTo
+// 強迫瀏覽器重新排版，畫面上不會真的移動，只是觸發重繪修正這個殘影
+function useIosFixedPositionScrollFix() {
+  useEffect(() => {
+    const html = document.documentElement
+    let wasLocked = html.style.overflowY === 'hidden'
+    const observer = new MutationObserver(() => {
+      const isLocked = html.style.overflowY === 'hidden'
+      if (isLocked && !wasLocked) {
+        requestAnimationFrame(() => window.scrollTo(window.scrollX, window.scrollY))
+      }
+      wasLocked = isLocked
+    })
+    observer.observe(html, { attributes: true, attributeFilter: ['style'] })
+    return () => observer.disconnect()
+  }, [])
+}
+
 export default function App() {
   const [ready, setReady] = useState(false)
   const bootedRef = useRef(false)
+  useIosFixedPositionScrollFix()
 
   useEffect(() => {
     function onRefreshMemberStores() {
