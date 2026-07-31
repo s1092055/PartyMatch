@@ -1,8 +1,8 @@
-import { MessageCircle, UserX, Users as UsersIcon } from 'lucide-react'
+import { MessageCircle, Star, UserX, Users as UsersIcon } from 'lucide-react'
 import { Avatar } from '../../../../components/ui/avatar'
 import { Button } from '../../../../components/ui/button'
 
-export function buildMembersPanel({ group, members, setActivePanel, onClose, setRemovingMember, setShowMemberHistory }) {
+export function buildMembersPanel({ group, members, setActivePanel, onClose, setRemovingMember, setShowMemberHistory, setShowMemberReviews, showMemberReviewsButton }) {
   return {
     content: (
       <div className="relative min-h-full p-5 pb-16">
@@ -67,14 +67,26 @@ export function buildMembersPanel({ group, members, setActivePanel, onClose, set
             )
           })}
         </div>
-        <Button
-          variant="ghost"
-          onClick={() => setShowMemberHistory(true)}
-          className="absolute bottom-4 right-4 h-9 shrink-0 rounded-xl border border-line bg-canvas px-3"
-        >
-          <UsersIcon size={14} strokeWidth={1.5} />
-          成員紀錄
-        </Button>
+        <div className="absolute bottom-4 right-4 flex items-center gap-2">
+          {showMemberReviewsButton && (
+            <Button
+              variant="ghost"
+              onClick={() => setShowMemberReviews(true)}
+              className="h-9 shrink-0 rounded-xl border border-line bg-canvas px-3"
+            >
+              <Star size={14} strokeWidth={1.5} />
+              成員評價
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            onClick={() => setShowMemberHistory(true)}
+            className="h-9 shrink-0 rounded-xl border border-line bg-canvas px-3"
+          >
+            <UsersIcon size={14} strokeWidth={1.5} />
+            成員紀錄
+          </Button>
+        </div>
       </div>
     ),
   }

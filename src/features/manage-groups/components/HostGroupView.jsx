@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Banknote, CheckCircle2, ClipboardList, Clock, FileText, Info, LockKeyhole, MessageCircle, PlayCircle, RefreshCw, Star, Trash2, Users } from 'lucide-react'
+import { Banknote, CheckCircle2, ClipboardList, Clock, FileText, Info, LockKeyhole, MessageCircle, PlayCircle, RefreshCw, Trash2, Users } from 'lucide-react'
 import { Button } from '../../../components/ui/button'
 import ConfirmActionDialog from '../../../components/ui/ConfirmActionDialog'
 import CountdownText from '../../../components/ui/primitives/CountdownText'
@@ -34,6 +34,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
   const [activePanel, setActivePanel]                     = useState(null) // 'members' | 'applications' | 'billing' | 'reviews' | null
   const [showReviewHistory, setShowReviewHistory]         = useState(false)
   const [showMemberHistory, setShowMemberHistory]         = useState(false)
+  const [showMemberReviews, setShowMemberReviews]         = useState(false)
   const [showLockGroupConfirm, setShowLockGroupConfirm] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm]         = useState(false)
   const [transactions, setTransactions]                     = useState([])
@@ -280,7 +281,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
   }
 
   function buildSubPanel() {
-    if (activePanel === 'members') return buildMembersPanel({ group, members, setActivePanel, onClose, setRemovingMember, setShowMemberHistory: openMemberHistory })
+    if (activePanel === 'members') return buildMembersPanel({ group, members, setActivePanel, onClose, setRemovingMember, setShowMemberHistory: openMemberHistory, setShowMemberReviews: () => setShowMemberReviews(true), showMemberReviewsButton: hasBeenActive })
     if (activePanel === 'applications') return buildApplicationsPanel({ pendingApps, groupFull, errors, onApprove, onReject, setActivePanel, setShowReviewHistory: openReviewHistory })
     if (activePanel === 'billing') return buildBillingPanel({ members, transactions, transactionsLoading })
     if (activePanel === 'memberInfo') {
@@ -295,18 +296,19 @@ export default function HostGroupView({ group, members, applications, onReportSe
         onOpenServiceIssue: m => { setServiceIssueMember(m); setServiceIssueNote(m.serviceInfoIssueNote ?? '') },
       })
     }
-    if (activePanel === 'reviews') return { content: <div className="flex min-h-full flex-col"><HostReviews group={group} groupId={group.id} title="" headerClassName="text-lg font-black text-brand" centerEmpty /></div> }
     return null
   }
 
   const isReviewHistory = showReviewHistory && activePanel === 'applications'
   const isMemberHistory = showMemberHistory && activePanel === 'members'
+  const isMemberReviews = showMemberReviews && activePanel === 'members'
 
-  // 側邊欄一律視為「換到別的分頁」，一併離開審核紀錄／成員紀錄，避免之後再點回申請管理時卡在裡面出不去
+  // 側邊欄一律視為「換到別的分頁」，一併離開審核紀錄／成員紀錄／成員評價，避免之後再點回申請管理時卡在裡面出不去
   function goToPanel(panel) {
     setActivePanel(panel)
     setShowReviewHistory(false)
     setShowMemberHistory(false)
+    setShowMemberReviews(false)
   }
 
   function renderSideBar() {
@@ -319,11 +321,6 @@ export default function HostGroupView({ group, members, applications, onReportSe
         <GroupModalSideBarItem active={activePanel === 'members'} onClick={() => goToPanel('members')}>
           <Users size={17} /> 群組名單
         </GroupModalSideBarItem>
-        {hasBeenActive && (
-          <GroupModalSideBarItem active={activePanel === 'reviews'} onClick={() => goToPanel('reviews')}>
-            <Star size={17} /> 成員評價
-          </GroupModalSideBarItem>
-        )}
         {!isCancelled && (
           <GroupModalSideBarItem active={activePanel === 'billing'} onClick={() => goToPanel('billing')}>
             <Banknote size={17} />
@@ -408,14 +405,15 @@ export default function HostGroupView({ group, members, applications, onReportSe
       }
       pendingBadgeColor={group.status === 'disputed' ? 'danger' : undefined}
       subPanel={activePanel ? buildSubPanel() : null}
-      onSubPanelBack={() => { setActivePanel(null); setShowReviewHistory(false); setShowMemberHistory(false) }}
+      onSubPanelBack={() => { setActivePanel(null); setShowReviewHistory(false); setShowMemberHistory(false); setShowMemberReviews(false) }}
       subSubPanel={
         isReviewHistory ? buildReviewHistoryPanel({ applications, groupFull, errors }) :
         isMemberHistory ? buildMemberHistoryPanel({ applications, groupFull, errors }) :
+        isMemberReviews ? { floatingBack: true, content: <div className="flex min-h-full flex-col"><HostReviews group={group} groupId={group.id} title="" centerEmpty /></div> } :
         null
       }
-      onSubSubPanelBack={() => { setShowReviewHistory(false); setShowMemberHistory(false) }}
-      panelKey={isReviewHistory ? 'reviewHistory' : isMemberHistory ? 'memberHistory' : activePanel ?? 'overview'}
+      onSubSubPanelBack={() => { setShowReviewHistory(false); setShowMemberHistory(false); setShowMemberReviews(false) }}
+      panelKey={isReviewHistory ? 'reviewHistory' : isMemberHistory ? 'memberHistory' : isMemberReviews ? 'memberReviews' : activePanel ?? 'overview'}
       sideBar={renderSideBar()}
     />
     )}
