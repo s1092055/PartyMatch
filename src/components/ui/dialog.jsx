@@ -28,7 +28,7 @@ export function DialogClose(props) {
 function DialogOverlay({ className, variant = 'default', instant, ...props }) {
   return (
     <DialogPrimitive.Overlay
-      className={cn('fixed inset-0 cursor-pointer bg-black/70', VARIANT_Z[variant], !instant && 'animate-backdrop-in', className)}
+      className={cn('fixed inset-0 cursor-pointer bg-black/80', VARIANT_Z[variant], !instant && 'animate-backdrop-in', className)}
       {...props}
     />
   )

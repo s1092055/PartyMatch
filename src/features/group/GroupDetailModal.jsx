@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react'
+import { CheckCircle2, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
 import { useGroupStore } from '../../common/stores/useGroupStore'
 import { getServiceById } from '../../common/utils/serviceUtils'
 import { hasFilledServiceInfo } from '../../common/utils/serviceInfoFields'
@@ -277,7 +277,10 @@ export default function GroupDetailModal() {
       })}
       afterColumns={picks.length > 0 && (
         <div className="border-t border-line px-6 pb-4 pt-5">
-          <h3 className="mb-4 text-lg font-black text-brand">其他推薦群組</h3>
+          <h3 className="mb-4 flex items-center gap-2 text-lg font-black text-brand">
+            <Sparkles size={16} strokeWidth={1.5} className="shrink-0" />
+            其他推薦群組
+          </h3>
           <div className="relative">
             {!picksAtStart && (
               <button

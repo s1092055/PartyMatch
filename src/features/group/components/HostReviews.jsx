@@ -40,7 +40,12 @@ export default function HostReviews({ group, headerClassName, onDm, groupId, tit
 
   return (
     <div className={centerEmpty ? `flex min-h-0 flex-1 flex-col space-y-4 ${CENTERED_PANEL_BODY_CLASS}` : 'space-y-4 py-5'}>
-      {title && <p className={headerClassName}>{title}</p>}
+      {title && (
+        <p className={`flex items-center gap-2 ${headerClassName}`}>
+          <Star size={16} strokeWidth={1.5} className="shrink-0 text-brand" />
+          {title}
+        </p>
+      )}
       {showHeader && (
         <div className="flex items-center gap-3 border-b border-line-subtle pb-4">
           <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="md" />

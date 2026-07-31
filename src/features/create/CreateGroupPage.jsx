@@ -17,7 +17,7 @@ import { useNotificationStore } from '../../common/stores/useNotificationStore'
 import { getServiceById } from '../../common/utils/serviceUtils'
 import { calcPricePerSeat, calcDisplayPrice } from '../../common/utils/pricingUtils'
 import { useAuthStore } from '../../common/stores/useAuthStore'
-import { useScrollEdge } from '../../common/utils/hooks'
+import { useScrollEdge, useScrollLock } from '../../common/utils/hooks'
 
 const STEP_COMPONENTS = [Step1Service, Step2Plan, Step3Settings, Step4Preview]
 const STEP_TITLES = ['選擇服務', '選擇方案', '群組設定', '最後確認']
@@ -103,6 +103,7 @@ export default function CreateGroupPage() {
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
+  useScrollLock(showPreview)
   const isPlanOrSettingsStep = step === 2 || step === 3
   // 步驟三（群組設定）左右兩欄各自有自己的 overflow-y-auto 捲動區，所以外層容器在
   // short-lg（桌機寬度+螢幕不高）時要停用外層捲動，改讓內層各自捲動；步驟二（選擇方案）
@@ -298,7 +299,7 @@ export default function CreateGroupPage() {
 
         {showPreview && (
           <div
-            className="fixed inset-0 z-30 flex items-center justify-center bg-black/70 px-4 md:px-8"
+            className="fixed inset-0 z-30 flex items-center justify-center bg-black/80 px-4 md:px-8"
             onClick={() => setShowPreview(false)}
           >
             <div className="mx-auto w-full max-w-xs" onClick={e => e.stopPropagation()}>
