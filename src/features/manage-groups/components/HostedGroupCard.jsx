@@ -100,7 +100,11 @@ function HostedGroupCard({
       <div className="my-4 border-t border-line-subtle" />
 
       <div className="grid grid-cols-3 divide-x divide-line-subtle rounded-lg border border-line-subtle">
-        {isActivated ? (
+        {group.status === 'active' ? (
+          <StatCell label="群組狀態" highlight={collectionHighlight}>
+            {collectionState}
+          </StatCell>
+        ) : isActivated ? (
           <StatCell label="收款紀錄">
             {paymentCount} 件
           </StatCell>
@@ -119,7 +123,11 @@ function HostedGroupCard({
         <StatCell label="成員人數">
           {members.length + 1} 人
         </StatCell>
-        {group.status === 'recruiting' ? (
+        {group.status === 'active' ? (
+          <StatCell label="續訂日期">
+            {toISODate(group.nextBillingDate, '—')}
+          </StatCell>
+        ) : group.status === 'recruiting' ? (
           <StatCell label="建立日期">
             {group.createdAt ?? '—'}
           </StatCell>
