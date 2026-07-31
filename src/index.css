@@ -130,11 +130,9 @@
      （例如 Button 用 --radius-control、Dialog 用 --radius-card），不要引入
      會連動覆蓋 rounded-lg/xl/2xl 的通用 --radius 變數。 */
   --radius-card:    1.75rem;
-  --radius-logo:    1.45rem;
   --radius-panel:   1.5rem;
   --radius-inner:   0.875rem;
   --radius-control: 0.875rem;
-  --radius-icon:    1rem;
   --radius-badge:   9999px;
   --radius-pill:    9999px;
   --radius-lg:      0.75rem;

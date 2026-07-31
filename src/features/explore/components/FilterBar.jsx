@@ -39,7 +39,7 @@ function buildServiceOptions(category) {
       value: s.id,
       label: s.name,
       category: s.category,
-      icon: <ServiceLogo serviceId={s.id} size={20} className="shrink-0 rounded-md" />,
+      icon: <ServiceLogo serviceId={s.id} size={20} className="shrink-0" />,
     })),
   ]
 }

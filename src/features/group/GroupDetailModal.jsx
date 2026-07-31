@@ -287,7 +287,7 @@ export default function GroupDetailModal() {
                 type="button"
                 onClick={() => scrollPicks(-280)}
                 aria-label="往左看更多"
-                className="absolute left-0 top-1/2 z-10 hidden h-9 w-9 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-line bg-canvas text-ink-3 shadow-md transition-colors hover:bg-raised hover:text-ink md:grid"
+                className="absolute left-2 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-line bg-canvas text-ink-3 shadow-md transition-colors hover:bg-raised hover:text-ink md:grid"
               >
                 <ChevronLeft size={16} strokeWidth={1.5} />
               </button>
@@ -308,7 +308,7 @@ export default function GroupDetailModal() {
                 type="button"
                 onClick={() => scrollPicks(280)}
                 aria-label="往右看更多"
-                className="absolute right-0 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 translate-x-1/2 place-items-center rounded-full border border-line bg-canvas text-ink-3 shadow-md transition-colors hover:bg-raised hover:text-ink md:grid"
+                className="absolute right-2 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-line bg-canvas text-ink-3 shadow-md transition-colors hover:bg-raised hover:text-ink md:grid"
               >
                 <ChevronRight size={16} strokeWidth={1.5} />
               </button>

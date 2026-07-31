@@ -8,7 +8,7 @@ import { Button } from "./button"
 // - panel：次層對話框（card 樣式、z-65、左上角返回箭頭或 X，用在「從另一個
 //   Dialog 換頁」的情境，例如群組詳情 → 啟用服務）
 const VARIANT_CONTENT = {
-  default: 'max-w-5xl rounded-2xl bg-canvas shadow-2xl',
+  default: 'max-w-5xl rounded-2xl border border-line bg-canvas shadow-2xl',
   panel:   'max-w-md rounded-card border border-line bg-surface shadow-card p-0',
 }
 const VARIANT_Z = { default: 'z-[56]', panel: 'z-[65]' }

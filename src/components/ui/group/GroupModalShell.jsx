@@ -78,7 +78,7 @@ export default function GroupModalShell({
           {/* Header — 固定不動，翻書效果只作用在下方內容區 */}
           <div className="flex shrink-0 items-center justify-between border-b border-line px-6 py-4">
             <div className="flex min-w-0 items-center gap-2.5">
-              <ServiceLogo serviceId={group.serviceId} size={26} className="shrink-0 rounded-lg" />
+              <ServiceLogo serviceId={group.serviceId} size={26} className="shrink-0" />
               <span className="min-w-0 truncate text-base font-extrabold text-ink">
                 {group.serviceName}
                 {group.planName && (

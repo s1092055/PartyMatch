@@ -41,7 +41,7 @@ export default function ApplyModal({
         <div className="animate-step-slide-up flex flex-col gap-4 p-5">
           <div className="rounded-xl border border-line bg-raised/50 px-4 py-3">
             <div className="flex items-center gap-3">
-              <ServiceLogo serviceId={group.serviceId} size={32} className="shrink-0 rounded-xl" />
+              <ServiceLogo serviceId={group.serviceId} size={32} className="shrink-0" />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-bold text-ink truncate">{group.serviceName}</p>
                 <p className="text-xs text-ink-3">{group.planName}</p>

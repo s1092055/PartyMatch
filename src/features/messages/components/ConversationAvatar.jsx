@@ -2,7 +2,7 @@ import ServiceLogo from '../../../components/ui/ServiceLogo'
 
 export default function ConversationAvatar({ conversation, size = 44 }) {
   if (conversation.serviceId) {
-    return <ServiceLogo serviceId={conversation.serviceId} size={size} className="shrink-0 rounded-xl" />
+    return <ServiceLogo serviceId={conversation.serviceId} size={size} className="shrink-0" />
   }
   return (
     <span

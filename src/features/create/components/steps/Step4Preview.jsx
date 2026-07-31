@@ -33,7 +33,7 @@ export default function Step4Preview({ form, agreedToTerms, onAgreeChange, onSho
     <div className="flex h-full min-h-0 flex-col lg:flex-row lg:items-start lg:gap-6">
       <div className="flex h-full min-h-0 flex-1 flex-col bg-surface border border-slate-200 rounded-xl p-4">
         <div className="flex shrink-0 items-center gap-3 mb-4 pb-4 border-b border-slate-100">
-          <ServiceLogo serviceId={form.serviceId} size={44} className="shrink-0 rounded-logo border-line-strong" />
+          <ServiceLogo serviceId={form.serviceId} size={44} className="shrink-0 border-line-strong" />
           <div className="min-w-0 flex-1">
             <h2 className="truncate text-base font-black text-ink">{service?.fullName ?? '尚未選擇服務'}</h2>
             <p className="truncate text-sm text-ink-3">{form.planName || '尚未選擇方案'}</p>

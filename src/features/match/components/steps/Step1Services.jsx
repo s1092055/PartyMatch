@@ -78,7 +78,7 @@ export default function Step1Services({ conditions, onToggle }) {
             <DialogTitle className="sr-only">{infoService.name}</DialogTitle>
             <DialogDescription>{infoService.name}</DialogDescription>
             <div className="flex flex-col items-center gap-4 px-6 py-6 text-center">
-              <ServiceLogo serviceId={infoService.id} size={64} className="rounded-logo border-line-strong" />
+              <ServiceLogo serviceId={infoService.id} size={64} className="border-line-strong" />
               <h2 className="text-lg font-black text-ink">{infoService.name}</h2>
               <p className="w-full text-left text-sm leading-relaxed text-ink-3">
                 {infoService.description || '尚無服務說明'}

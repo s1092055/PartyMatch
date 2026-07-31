@@ -341,7 +341,7 @@ export default function FloatingMessages() {
   return (
     <Drawer open={open} onOpenChange={setOpen} swipeDirection="right">
       <DrawerContent
-        className="rounded-2xl"
+        className="rounded-2xl border border-line"
         style={{ '--drawer-inset': '0.75rem', '--drawer-bleed-background': 'transparent' }}
       >
         <DrawerHeader>

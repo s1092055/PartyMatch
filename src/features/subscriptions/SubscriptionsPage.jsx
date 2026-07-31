@@ -256,7 +256,7 @@ function ApplicationCard({ app, group, onViewGroup }) {
       </div>
 
       <div className="mt-4 flex justify-center">
-        <ServiceLogo serviceId={app.serviceId} size={80} className="rounded-logo border-line-strong" />
+        <ServiceLogo serviceId={app.serviceId} size={80} className="border-line-strong" />
       </div>
 
       <div className="mt-3 text-center">

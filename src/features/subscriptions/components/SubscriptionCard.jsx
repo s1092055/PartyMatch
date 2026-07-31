@@ -51,7 +51,7 @@ function SubscriptionCard({ sub, onViewGroup }) {
       </div>
 
       <div className="mt-4 flex justify-center">
-        <ServiceLogo serviceId={sub.serviceId} size={80} className="rounded-logo border-line-strong" />
+        <ServiceLogo serviceId={sub.serviceId} size={80} className="border-line-strong" />
       </div>
 
       <div className="mt-3 text-center">

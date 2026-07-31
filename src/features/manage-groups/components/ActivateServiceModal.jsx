@@ -41,7 +41,7 @@ export default function ActivateServiceModal({
       <div className="animate-step-slide-up flex-1 min-h-0 overflow-y-auto">
         {/* 服務摘要 */}
         <div className="flex items-center gap-3 border-b border-line-subtle px-5 py-4">
-          <ServiceLogo serviceId={group.serviceId} size={40} className="rounded-xl" />
+          <ServiceLogo serviceId={group.serviceId} size={40} />
           <div className="min-w-0 flex-1">
             <p className="font-bold text-ink">{group.serviceName}</p>
             <p className="text-xs text-ink-3">{group.planName}</p>

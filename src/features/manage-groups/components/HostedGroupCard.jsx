@@ -83,7 +83,7 @@ function HostedGroupCard({
       </div>
 
       <div className="mt-4 flex justify-center">
-        <ServiceLogo serviceId={group.serviceId} size={80} className="rounded-logo border-line-strong" />
+        <ServiceLogo serviceId={group.serviceId} size={80} className="border-line-strong" />
       </div>
 
       <div className="mt-3 text-center">

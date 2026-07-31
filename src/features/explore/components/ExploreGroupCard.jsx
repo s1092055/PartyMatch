@@ -119,7 +119,7 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
         <ServiceLogo
           serviceId={group.serviceId}
           size={80}
-          className="rounded-logo border-line-strong"
+          className="border-line-strong"
         />
       </div>
 

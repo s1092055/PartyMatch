@@ -15,7 +15,7 @@ export default function Step2Plans({ conditions, onChangePlan }) {
         return (
           <div key={serviceId}>
             <div className="mb-3 flex items-center gap-2">
-              <ServiceLogo serviceId={serviceId} size={24} className="rounded-lg" />
+              <ServiceLogo serviceId={serviceId} size={24} />
               <p className="text-base font-medium text-ink-2">{service.name}</p>
             </div>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">

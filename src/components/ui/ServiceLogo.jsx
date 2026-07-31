@@ -12,7 +12,7 @@ export default function ServiceLogo({ serviceId, size = 52, className = '' }) {
 
   return (
     <div
-      className={`flex shrink-0 items-center justify-center overflow-hidden rounded-icon border border-line bg-white font-bold shadow-[inset_0_0_0_1px_rgb(255_255_255_/_0.36)] ${className}`}
+      className={`flex shrink-0 items-center justify-center overflow-hidden rounded-[22%] border border-line bg-white font-bold shadow-[inset_0_0_0_1px_rgb(255_255_255_/_0.36)] ${className}`}
       style={{ width: size, height: size, backgroundColor: failed ? `${icon.color}18` : icon.surface }}
       aria-label={icon.alt}
     >
