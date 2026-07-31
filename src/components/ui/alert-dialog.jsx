@@ -11,7 +11,7 @@ function AlertDialogPortal(props) {
 }
 
 function AlertDialogOverlay({ className, ...props }) {
-  return <AlertDialogPrimitive.Overlay className={cn('fixed inset-0 z-[70] bg-black/50', className)} {...props} />
+  return <AlertDialogPrimitive.Overlay className={cn('fixed inset-0 z-[70] bg-black/70', className)} {...props} />
 }
 
 export function AlertDialogContent({ className, ...props }) {

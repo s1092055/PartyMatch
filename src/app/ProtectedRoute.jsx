@@ -14,7 +14,7 @@ export default function ProtectedRoute({ children }) {
 
   if (showModal) {
     return (
-      <div className="fixed inset-0 z-[55] flex items-center justify-center bg-black/50 p-4">
+      <div className="fixed inset-0 z-[55] flex items-center justify-center bg-black/70 p-4">
         <div className="w-full max-w-sm rounded-2xl bg-surface p-6 shadow-2xl text-center">
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-subtle mx-auto">
             <Lock size={22} className="text-brand" />

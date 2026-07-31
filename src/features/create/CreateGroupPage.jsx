@@ -298,7 +298,7 @@ export default function CreateGroupPage() {
 
         {showPreview && (
           <div
-            className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 px-4 md:px-8"
+            className="fixed inset-0 z-30 flex items-center justify-center bg-black/70 px-4 md:px-8"
             onClick={() => setShowPreview(false)}
           >
             <div className="mx-auto w-full max-w-xs" onClick={e => e.stopPropagation()}>
