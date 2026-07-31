@@ -35,7 +35,7 @@ flowchart TD
 | `src/features/match/components/steps/Step2Plans.jsx` | 步驟二：選擇方案 |
 | `src/features/match/components/steps/Step3Filters.jsx` | 步驟二：篩選條件（每人費用區間、團主評分下限、群組年齡） |
 | `src/features/match/components/steps/Step4Results.jsx` | 步驟三：搜尋結果列表，前 3 名加金/銀/銅名次徽章 |
-| `src/features/match/components/MatchConditionBar.jsx`、`MatchSummaryPanel.jsx` | 條件摘要顯示 |
+| `src/features/match/components/MatchSummaryPanel.jsx` | 條件摘要顯示，步驟二（方案與條件）與步驟四（搜尋結果）共用同一個元件，皆為桌機常駐右側欄、手機隱藏 |
 | `src/features/explore/components/ExploreGroupCard.jsx` | 結果列表沿用探索頁的群組卡片 |
 | `src/features/group/GroupDetailModal.jsx` | 群組詳情 Modal；`GroupDetailModal` 平常只在 `AppLayout` 裡掛載一次，`/quick-match` 在 `AppLayout` 之外，`QuickMatchPage.jsx` 額外自己掛了一份（`lazy` + `Suspense`），否則卡片點擊時 `pm:open-group` 事件沒有監聽者、Modal 開不起來 |
 | `src/features/messages/MessagesModal.jsx` | 私訊 Modal；同樣只在 `AppLayout` 掛載，`QuickMatchPage.jsx` 也額外自己掛了一份，否則群組詳情內團主評價區的「聯絡團主」（dispatch `pm:open-dm`）在 `/quick-match` 會沒有監聽者、私訊開不起來 |
@@ -75,7 +75,8 @@ flowchart TD
 - 通過篩選的群組各自計算推薦分數：團主評分越高分數越高、剩餘名額越多加分、離下次扣款日越久加分、單價明顯低於使用者設定上限也加分；依分數由高到低排序
 
 **4. 查看搜尋結果**
-- 顯示唯讀的條件摘要與結果網格，前 3 名加上金/銀/銅名次徽章
+- 版面沿用步驟二「方案與條件」同一套左右分欄排版：左側是結果網格（可捲動），桌機版右側常駐顯示唯讀的 `MatchSummaryPanel` 條件摘要（不含移除服務按鈕），手機版收合成單欄、不顯示摘要；曾經在頂部另外放一條 `MatchConditionBar` 橫式條件列，服務選多時會超出容器（`flex flex-wrap` 但內層服務 chip 群組本身不會換行），已移除改用這個排版
+- 結果網格前 3 名加上金/銀/銅名次徽章
 - 每張卡片沿用探索頁的卡片樣式，點擊會開啟群組詳情（後續申請流程見 `apply-join-flow.md`），未登入時點申請會先導向登入頁
 - 名次徽章是透過 `ExploreGroupCard` 的 `rank` prop 畫在卡片內部（`<article>` 自己的 `relative` 定位範圍內），不是外層包一層 `absolute` 疊上去——這樣卡片 hover 放大（`card-lift`）時徽章才會跟著卡片一起縮放移動，不會維持原地不動看起來像脫落
 - 卡片容器的 `overflow-y-auto` 捲動區用 `p-2` 而不是 `p-0.5`，讓最左/最右欄的卡片 hover 放大時有足夠留白，不會被容器邊緣裁掉

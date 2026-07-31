@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Bell, LogOut, Settings, UserCircle2 } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
@@ -20,6 +21,14 @@ export default function MobileHeader({
   openNotify,
 }) {
   const navigate = useNavigate()
+  const [loggingOut, setLoggingOut] = useState(false)
+
+  async function handleLogout() {
+    setLoggingOut(true)
+    setMobileMenuOpen(false)
+    await useAuthStore.getState().logout()
+    navigate('/login', { replace: true })
+  }
 
   return (
     <div ref={mobileMenuRef} className="fixed left-3 right-3 top-3 z-50 lg:hidden">
@@ -105,7 +114,8 @@ export default function MobileHeader({
             </a>
             <Button
               variant="ghost"
-              onClick={() => { setMobileMenuOpen(false); useAuthStore.getState().logout(); navigate('/login', { replace: true }) }}
+              onClick={handleLogout}
+              loading={loggingOut}
               className="h-auto flex-1 py-4 text-danger hover:bg-danger-subtle"
             >
               <LogOut size={16} strokeWidth={2} className="shrink-0" />

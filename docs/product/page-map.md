@@ -6,7 +6,7 @@
 
 | 路由 | 頁面元件 | 是否需登入 | 用途說明 |
 |------|----------|------------|----------|
-| `/` | `src/features/home/HomePage.jsx` | 否 | 行銷首頁：Hero、支援服務跑馬燈、功能介紹、如何運作、團主指南、FAQ，導向「探索群組」或「快速搜尋」 |
+| `/` | `src/features/home/HomePage.jsx` | 否 | 行銷首頁：Hero（單一「探索群組」CTA 置中）、支援服務跑馬燈、功能介紹、如何運作、團主指南、FAQ；「快速搜尋」入口在導覽列（側邊欄／手機 Dock），不放在 Hero |
 | `/login` | `src/features/auth/login/LoginPage.jsx` | 否（`PublicOnlyRoute`，已登入會被導開） | Email/密碼登入表單 |
 | `/register` | `src/features/auth/register/RegisterPage.jsx` | 否（`PublicOnlyRoute`） | 新使用者註冊表單 |
 | `/forgot-password` | `src/features/auth/forgot-password/ForgotPasswordPage.jsx` | 否（`PublicOnlyRoute`） | 忘記密碼流程 |

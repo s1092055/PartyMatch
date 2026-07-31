@@ -424,7 +424,7 @@
 }
 
 .animate-logo-bounce {
-  animation: logoBounce 1s ease-in-out infinite;
+  animation: logoBounce 1.6s ease-in-out infinite;
 }
 
 @keyframes typewriter {
@@ -447,7 +447,7 @@
      不是被裁掉一點點就是留了一截空白，讓文字在外層置中容器裡看起來偏左 */
   interpolate-size: allow-keywords;
   animation:
-    typewriter 1s steps(10, end) forwards,
+    typewriter 2s steps(10, end) forwards,
     typewriterCaret 0.75s step-end infinite;
 }
 

@@ -64,10 +64,19 @@ function TabContent({ value, user, onChange, tabs }) {
 
 function LogoutButton({ className = "", fullWidth = false }) {
   const navigate = useNavigate();
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  async function handleLogout() {
+    setLoggingOut(true);
+    await useAuthStore.getState().logout();
+    navigate('/login', { replace: true });
+  }
+
   return (
     <div className={`flex ${fullWidth ? '' : 'justify-end'} ${className}`}>
       <Button
-        onClick={() => { useAuthStore.getState().logout(); navigate('/login', { replace: true }) }}
+        onClick={handleLogout}
+        loading={loggingOut}
         className={`shrink-0 rounded-2xl ${fullWidth ? 'w-full' : ''}`}
       >
         <LogOut size={16} className="shrink-0" />
