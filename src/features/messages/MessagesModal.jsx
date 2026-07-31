@@ -3,10 +3,10 @@ import { ChevronLeft, MessageSquare } from 'lucide-react'
 import ConversationAvatar from './components/ConversationAvatar'
 import ConversationHeaderActions from './components/ConversationHeaderActions'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogCloseButton } from '../../components/ui/dialog'
-import LoginPromptModal from '../../shared/ui/LoginPromptModal'
-import { useAuthStore } from '../../shared/stores/useAuthStore'
-import { useConversationStore } from '../../shared/stores/useConversationStore'
-import { useNotificationStore } from '../../shared/stores/useNotificationStore'
+import LoginPromptModal from '../../components/ui/LoginPromptModal'
+import { useAuthStore } from '../../common/stores/useAuthStore'
+import { useConversationStore } from '../../common/stores/useConversationStore'
+import { useNotificationStore } from '../../common/stores/useNotificationStore'
 
 const getCurrentUser = () => useAuthStore.getState().user
 const isAuthenticated = () => useAuthStore.getState().loggedIn
@@ -15,8 +15,8 @@ import {
   subscribeToMessages,
   sendMessage,
   getOrCreateDmConversation,
-} from '../../shared/api/messagesApi'
-import { normalizeConversation, normalizeMessage } from '../../shared/utils/modelNormalizers'
+} from '../../common/api/messagesApi'
+import { normalizeConversation, normalizeMessage } from '../../common/utils/modelNormalizers'
 import ConversationList, { CONV_TABS } from './components/ConversationList'
 import ChatWindow from './components/ChatWindow'
 import { isSystemConversation, markConversationReadLocal } from './utils'

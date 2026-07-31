@@ -9,7 +9,7 @@ PartyMatch 的產品定位、核心功能規劃、使用者角色設計（一般
 我的工作集中在：
 
 - **產品與功能範圍**：哪些功能要做、優先順序、MVP 邊界在哪（見 [產品總覽](../product/product-overview.md) 的「不支援的功能」）
-- **架構與設計取捨**：像 `shared/ui` 什麼時候該重新分類、design token 該不該拆成多個檔案，這類決策先聽 AI 說明 trade-off，再自己決定要不要做、做到什麼程度
+- **架構與設計取捨**：像共用元件資料夾什麼時候該重新分類（`components/ui/` 與 `shared/ui/` 兩個獨立資料夾用了一陣子後，覺得「兩個都叫 ui」造成混淆，決定合併成一個）、design token 該不該拆成多個檔案，這類決策先聽 AI 說明 trade-off，再自己決定要不要做、做到什麼程度
 - **程式碼審查**：跑過多輪 code review 找出併發安全性、重複程式碼、資料一致性等問題並驗證修正（接受申請缺少狀態鎖導致可雙擊重複扣款、`DELETE /groups` 名額判斷 off-by-one 等，累計 12 筆，見 [Bug 紀錄](../testing/bug-log.md)）
 - **手動測試**：依 [手動測試計畫](../testing/manual-test-plan.md) 實際跑過主要流程
 

@@ -10,7 +10,7 @@ import {
   deletePaymentMethod,
   fetchPaymentMethods,
   setDefaultPaymentMethod,
-} from '../../../../shared/api/paymentMethodsApi'
+} from '../../../../common/api/paymentMethodsApi'
 
 const BRAND_COLOR = {
   Visa:       { bg: 'bg-blue-600', text: 'VISA' },

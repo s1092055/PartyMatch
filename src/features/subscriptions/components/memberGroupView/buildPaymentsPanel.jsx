@@ -1,7 +1,7 @@
 import { ArrowUpCircle, Banknote } from 'lucide-react'
-import EmptyState from '../../../../shared/ui/primitives/EmptyState'
-import EscrowStatusCard from '../../../../shared/ui/EscrowStatusCard'
-import { formatDateTime } from '../../../../shared/utils/date'
+import EmptyState from '../../../../components/ui/primitives/EmptyState'
+import EscrowStatusCard from '../../../../components/ui/EscrowStatusCard'
+import { formatDateTime } from '../../../../common/utils/date'
 
 const RELEASED_STATUSES = ['active', 'ended']
 

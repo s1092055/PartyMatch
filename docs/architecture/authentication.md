@@ -2,7 +2,7 @@
 
 ## 概覽
 
-JWT accessToken + refreshToken 雙 token 設計。accessToken 有效期短（`JWT_ACCESS_EXPIRES`，預設 `15m`），存於前端 `localStorage`（key `pm_access_token`），每次 request 自動帶入 `Authorization: Bearer` header；refreshToken 有效期長（`JWT_REFRESH_EXPIRES`，預設 `7d`），存於前端 `localStorage`（key `pm_refresh_token`），同時後端也把它存一份到 Redis 供驗證比對。相關檔案：後端 `server/src/routes/auth.js`、`server/src/utils/jwt.js`、前端 `src/shared/api/axiosClient.js`、`src/shared/stores/useAuthStore.js`。
+JWT accessToken + refreshToken 雙 token 設計。accessToken 有效期短（`JWT_ACCESS_EXPIRES`，預設 `15m`），存於前端 `localStorage`（key `pm_access_token`），每次 request 自動帶入 `Authorization: Bearer` header；refreshToken 有效期長（`JWT_REFRESH_EXPIRES`，預設 `7d`），存於前端 `localStorage`（key `pm_refresh_token`），同時後端也把它存一份到 Redis 供驗證比對。相關檔案：後端 `server/src/routes/auth.js`、`server/src/utils/jwt.js`、前端 `src/common/api/axiosClient.js`、`src/common/stores/useAuthStore.js`。
 
 ---
 
@@ -53,7 +53,7 @@ Key 格式：**`refresh:{userId}:{sessionId}`**，value 為 refreshToken 字串�
 
 ## `axiosClient` 的自動帶 token 與 401 處理
 
-`src/shared/api/axiosClient.js`：
+`src/common/api/axiosClient.js`：
 
 - **Request interceptor**：每個 request 自動從 `tokenManager.get()`（`localStorage.pm_access_token`）取出 token，若存在則帶入 `Authorization: Bearer <token>`
 - **Response interceptor**（成功 case 只回傳 `res.data`，錯誤 case 分三種）：

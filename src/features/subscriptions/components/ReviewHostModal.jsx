@@ -3,8 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Avatar } from '../../../components/ui/avatar'
 import { Button } from '../../../components/ui/button'
 import { Textarea } from '../../../components/ui/input'
-import StarRating from '../../../shared/ui/primitives/StarRating'
-import { toast } from '../../../shared/utils/toast'
+import StarRating from '../../../components/ui/primitives/StarRating'
+import { toast } from '../../../common/utils/toast'
 
 export default function ReviewHostModal({ group, onSubmit, onClose }) {
   const [rating, setRating] = useState(0)

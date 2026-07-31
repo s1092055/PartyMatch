@@ -1,11 +1,11 @@
 import { useEffect, useMemo } from 'react'
 import { MessageCircle, Star } from 'lucide-react'
 import { Avatar } from '../../../components/ui/avatar'
-import StarRating from '../../../shared/ui/primitives/StarRating'
-import EmptyState from '../../../shared/ui/primitives/EmptyState'
-import { CENTERED_PANEL_BODY_CLASS } from '../../../shared/ui/group/panelLayout'
-import { useReviewStore } from '../../../shared/stores/useReviewStore'
-import { toISODate } from '../../../shared/utils/date'
+import StarRating from '../../../components/ui/primitives/StarRating'
+import EmptyState from '../../../components/ui/primitives/EmptyState'
+import { CENTERED_PANEL_BODY_CLASS } from '../../../components/ui/group/panelLayout'
+import { useReviewStore } from '../../../common/stores/useReviewStore'
+import { toISODate } from '../../../common/utils/date'
 
 export default function HostReviews({ group, headerClassName, onDm, groupId, title = '團主評價', scrollable = false, centerEmpty = false }) {
   const hostId = group.hostId

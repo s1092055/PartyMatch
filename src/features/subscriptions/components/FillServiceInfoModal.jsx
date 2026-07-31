@@ -1,9 +1,9 @@
 import { CheckCircle2, ClipboardEdit } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogCloseButton } from '../../../components/ui/dialog'
 import { Button } from '../../../components/ui/button'
-import CredentialWatermark from '../../../shared/ui/primitives/CredentialWatermark'
-import { getServiceInfoSummary } from '../../../shared/utils/serviceInfoFields'
-import { parseHostCredentials } from '../../../shared/utils/hostCredentialFields'
+import CredentialWatermark from '../../../components/ui/primitives/CredentialWatermark'
+import { getServiceInfoSummary } from '../../../common/utils/serviceInfoFields'
+import { parseHostCredentials } from '../../../common/utils/hostCredentialFields'
 
 // 填寫服務帳號改成堆疊在群組詳情 Modal 上方的 sub-modal（跟團主端 ActivateServiceModal 同一套模式），
 // 而不是側邊欄那種切換內容的 subPanel——關閉時只會回到底下的群組詳情，不會像 subPanel 一樣

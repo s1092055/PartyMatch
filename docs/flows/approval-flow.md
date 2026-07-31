@@ -63,8 +63,8 @@ sequenceDiagram
 | `src/features/manage-groups/components/hostGroupView/ApplicationCard.jsx` | 單筆申請卡片：接受/拒絕按鈕、審核中/已接受/已拒絕/已移除/已退出狀態 badge |
 | `src/features/manage-groups/hooks/useHostActions.js` | `handleApprove`、`handleReject` |
 | `src/features/manage-groups/utils/hostFilters.js` | `calcApprovalSeatPatch`，前端本地名額計算 |
-| `src/shared/stores/useApplicationStore.js` | `updateStatus` |
-| `src/shared/api/applicationsApi.js` | `patchApplication` |
+| `src/common/stores/useApplicationStore.js` | `updateStatus` |
+| `src/common/api/applicationsApi.js` | `patchApplication` |
 
 **後端**
 

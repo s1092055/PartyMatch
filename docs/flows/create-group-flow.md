@@ -38,12 +38,12 @@ flowchart TD
 | `src/features/create/components/steps/Field.jsx` | 表單欄位外殼元件，支援 `hint` 說明泡泡與 `endAdornment`（標籤列最右側可掛額外內容） |
 | `src/features/create/components/LivePreviewPanel.jsx` | 桌機常駐 / 手機彈窗的即時預覽卡片，沿用探索頁卡片樣式 |
 | `src/features/create/utils/previewGroupId.js` | 預覽用的暫時群組 id |
-| `src/shared/stores/useGroupStore.js` | `create` action |
-| `src/shared/api/groupsApi.js` | `insertGroup` |
-| `src/shared/utils/serviceUtils.js` | `getServiceById`，讀取 `serviceCatalog.js` 的服務/方案資料 |
-| `src/shared/utils/pricingUtils.js` | `calcPricePerSeat`、`calcDisplayPrice` |
-| `src/shared/utils/resolvePlanDisplayPrice.js` | 步驟二「方案總價」實際顯示金額：優先官方年繳總價，其次美金年繳定價乘即時匯率，都沒有才退回 `monthlyPrice×12` 概算 |
-| `src/shared/utils/exchangeRate.js` | `useUsdToTwdRate` hook，取得即時美金匯率供 `resolvePlanDisplayPrice` 換算 |
+| `src/common/stores/useGroupStore.js` | `create` action |
+| `src/common/api/groupsApi.js` | `insertGroup` |
+| `src/common/utils/serviceUtils.js` | `getServiceById`，讀取 `serviceCatalog.js` 的服務/方案資料 |
+| `src/common/utils/pricingUtils.js` | `calcPricePerSeat`、`calcDisplayPrice` |
+| `src/common/utils/resolvePlanDisplayPrice.js` | 步驟二「方案總價」實際顯示金額：優先官方年繳總價，其次美金年繳定價乘即時匯率，都沒有才退回 `monthlyPrice×12` 概算 |
+| `src/common/utils/exchangeRate.js` | `useUsdToTwdRate` hook，取得即時美金匯率供 `resolvePlanDisplayPrice` 換算 |
 
 **後端**
 

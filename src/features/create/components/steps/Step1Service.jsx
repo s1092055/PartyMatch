@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { AlertCircle, Check } from "lucide-react";
-import { listServiceTypes } from "../../../../shared/utils/serviceUtils";
-import ServiceLogo from "../../../../shared/ui/ServiceLogo";
-import CategoryPills from "../../../../shared/ui/primitives/CategoryPills";
+import { listServiceTypes } from "../../../../common/utils/serviceUtils";
+import ServiceLogo from "../../../../components/ui/ServiceLogo";
+import CategoryPills from "../../../../components/ui/primitives/CategoryPills";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "../../../../components/ui/dialog";
 
 const ALL_SERVICES = listServiceTypes();
@@ -48,7 +48,7 @@ export default function Step1Service({ form, onChange }) {
               className={`relative flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 p-4 text-center transition-all ${
                 active
                   ? "border-brand bg-brand-subtle"
-                  : "border-line bg-white hover:border-brand-border hover:bg-brand-subtle/40"
+                  : "border-line bg-surface hover:border-brand-border hover:bg-brand-subtle/40"
               }`}
             >
               {active && (

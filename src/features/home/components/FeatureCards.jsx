@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { Button } from "../../../components/ui/button";
-import RevealSection from "../../../shared/ui/primitives/RevealSection";
+import RevealSection from "../../../components/ui/primitives/RevealSection";
 import DeviceShowcase from "./DeviceShowcase";
 import { HOME_FEATURES } from "../data/homeContent";
 

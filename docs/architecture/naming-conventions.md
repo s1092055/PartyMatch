@@ -5,9 +5,8 @@
 ## 資料夾
 
 - `src/features/` 下每個資料夾對應一個產品功能區（`explore`、`create`、`subscriptions`、`manage-groups` 等），內部再依 `components/`、`hooks/`、`utils/` 拆分
-- `src/shared/` 下依技術層次拆分：`api/`（REST 封裝）、`stores/`（Zustand）、`ui/`（共用業務元件）、`utils/`（工具函式）、`layout/`（全域版面）
-- `shared/ui/` 內再依用途分兩層子資料夾：`primitives/`（不帶業務邏輯、shadcn 沒有對應物的通用元件）、`group/`（群組詳情 Modal 家族），其餘綁定特定業務概念但非群組專屬的元件留在最外層
-- `src/components/ui/` 是另一層：shadcn/ui 風格的通用元件（`button.jsx`、`dialog.jsx`、`avatar.jsx` 等），檔名一律 kebab-case（對齊 shadcn CLI 產生的檔案慣例），跟 `shared/ui/` 的 PascalCase 業務元件明確區分（見 [前端架構](./frontend-architecture.md)）
+- `src/common/` 下依技術層次拆分：`api/`（REST 封裝）、`stores/`（Zustand）、`utils/`（工具函式）、`layout/`（全域版面）——**不含 `ui/`**，所有共用元件統一放在 `src/components/ui/`
+- `src/components/ui/` 是全站唯一的共用元件資料夾，內部依用途分層（不是分成兩個各自獨立的頂層資料夾）：最外層是 shadcn/ui 風格的純元件（`button.jsx`、`dialog.jsx`、`avatar.jsx` 等，檔名一律 kebab-case，對齊 shadcn CLI 產生的檔案慣例），跟這些純元件同一層還有綁定業務邏輯的組合元件（`TopupModal.jsx`、`StatusBadge.jsx` 等，檔名 PascalCase）；`primitives/` 子資料夾放不帶業務邏輯、但 shadcn 沒有對應物的通用元件；`group/` 子資料夾放群組詳情 Modal 家族專用元件。原本這兩層曾經拆成 `components/ui/` 與 `shared/ui/`（後改名 `common/`）兩個各自獨立的頂層資料夾，因為「兩個都叫 ui」在瀏覽專案時容易誤以為沒整理乾淨，已合併成一個（見 [前端架構](./frontend-architecture.md)）
 
 ## 元件
 
@@ -19,7 +18,7 @@
 
 ## Hooks
 
-- 自訂 hook 一律以 `use` 開頭：`useScrollEdge`、`useMediaQuery`、`useHideOnScroll`、`useMessageScroll`、`useParticipantNames` 等，散落於 `shared/utils/hooks.js`（跨功能共用）與各 feature 自己的 `hooks/` 資料夾（功能專屬）
+- 自訂 hook 一律以 `use` 開頭：`useScrollEdge`、`useMediaQuery`、`useHideOnScroll`、`useMessageScroll`、`useParticipantNames` 等，散落於 `common/utils/hooks.js`（跨功能共用）與各 feature 自己的 `hooks/` 資料夾（功能專屬）
 
 ## Stores（Zustand）
 

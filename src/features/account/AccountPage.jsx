@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bell, ChevronDown, Clock, Coins, Lock, LogOut, Settings, ShieldUser, User } from "lucide-react";
-import { useAuthStore } from "../../shared/stores/useAuthStore";
-import { toast } from "../../shared/utils/toast";
-import CreditScoreModal from "../../shared/ui/CreditScoreModal";
+import { useAuthStore } from "../../common/stores/useAuthStore";
+import { toast } from "../../common/utils/toast";
+import CreditScoreModal from "../../components/ui/CreditScoreModal";
 import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import HostReviewsModal from "../manage-groups/components/HostReviewsModal";

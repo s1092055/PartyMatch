@@ -3,8 +3,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Lock, Mail } from 'lucide-react'
 import AuthLayout, { AuthInput, AuthDivider, AuthError, GoogleMark, PasswordToggle } from '../components/AuthLayout'
 import { Button } from '../../../components/ui/button'
-import { useAuthStore } from '../../../shared/stores/useAuthStore'
-import { toast } from '../../../shared/utils/toast'
+import { useAuthStore } from '../../../common/stores/useAuthStore'
+import { toast } from '../../../common/utils/toast'
 
 export default function LoginPage() {
   const navigate = useNavigate()

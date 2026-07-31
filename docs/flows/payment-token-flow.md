@@ -48,14 +48,14 @@ sequenceDiagram
 
 | 路徑 | 說明 |
 |------|------|
-| `src/shared/ui/TopupModal.jsx` | 儲值 + 交易紀錄雙面板 Modal |
-| `src/shared/ui/TokenAmount.jsx` | `TokenBadge`／`TokenAmount` 金額顯示元件 |
+| `src/components/ui/TopupModal.jsx` | 儲值 + 交易紀錄雙面板 Modal |
+| `src/components/ui/TokenAmount.jsx` | `TokenBadge`／`TokenAmount` 金額顯示元件 |
 | `src/features/account/components/tabs/TokenTab.jsx` | 帳號中心 PM幣分頁 |
-| `src/shared/api/tokensApi.js` | `fetchTokenBalance`、`topupTokens` |
-| `src/shared/stores/useAuthStore.js` | `topup(amount)`，呼叫 API 後更新餘額 |
+| `src/common/api/tokensApi.js` | `fetchTokenBalance`、`topupTokens` |
+| `src/common/stores/useAuthStore.js` | `topup(amount)`，呼叫 API 後更新餘額 |
 | `src/features/group/GroupDetailModal.jsx` | 申請加入時處理餘額不足的錯誤 |
 | `src/features/manage-groups/components/hostGroupView/buildBillingPanel.jsx` | 團主收款管理面板，只顯示每位成員最新一筆代管紀錄，並在頂部彙總目前代管中／已撥款總額 |
-| `src/shared/api/groupsApi.js` | `fetchGroupTransactions` |
+| `src/common/api/groupsApi.js` | `fetchGroupTransactions` |
 | `src/features/subscriptions/components/MemberGroupView.jsx` | 確認服務（撥款）、申訴（凍結代管） |
 | `src/features/subscriptions/components/memberGroupView/buildPaymentsPanel.jsx` | 成員端付款管理面板，邏輯跟團主端收款管理對齊，只顯示自己這期最新一筆代管紀錄 |
 | `src/features/manage-groups/hooks/useHostActions.js` | 解散群組、移除成員、開始續訂等會牽動代管的操作 |

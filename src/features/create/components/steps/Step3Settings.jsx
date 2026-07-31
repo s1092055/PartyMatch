@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { FileText, ListChecks, Minus, Plus, PlusCircle, ShieldCheck, Users, X } from 'lucide-react'
-import { getServiceById } from '../../../../shared/utils/serviceUtils'
-import { useMediaQuery, SHORT_LG_QUERY } from '../../../../shared/utils/hooks'
+import { getServiceById } from '../../../../common/utils/serviceUtils'
+import { useMediaQuery, SHORT_LG_QUERY } from '../../../../common/utils/hooks'
 import Field from './Field'
 import { Input, Textarea } from '../../../../components/ui/input'
 
@@ -97,7 +97,7 @@ export default function Step3Settings({ form, onChange }) {
                 className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium transition-colors ${
                   (form.minCreditScore ?? 0) === o.value
                     ? 'border-brand bg-brand-subtle text-brand'
-                    : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                    : 'border-slate-200 bg-surface text-slate-600 hover:border-slate-300'
                 }`}
               >
                 {o.label}

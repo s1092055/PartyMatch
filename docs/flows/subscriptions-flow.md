@@ -37,16 +37,16 @@ flowchart TD
 | `src/features/subscriptions/components/SubscriptionCard.jsx` | 單一訂閱卡片 |
 | `src/features/subscriptions/components/MemberGroupView.jsx` | 成員視角群組詳情 Modal：確認服務、申訴、退出、查看群組名單、付款管理 |
 | `src/features/subscriptions/components/FillServiceInfoModal.jsx` | 填寫服務帳號的獨立 sub-modal，開啟時底下的群組詳情 Modal 完全隱藏，關閉才恢復顯示；`shared_credentials` 服務會先顯示團主提供的帳號資訊（套 `CredentialWatermark`），再是確認勾選框 |
-| `src/shared/ui/primitives/CredentialWatermark.jsx` | 疊在帳密內容上的浮水印（查看者名稱＋時間），無法阻止截圖，但外流時至少能溯源查看者 |
-| `src/shared/utils/hostCredentialFields.js` | `getHostCredentialFields`、`parseHostCredentials`：`shared_credentials` 服務依服務別定義的結構化帳密欄位與解析 |
+| `src/components/ui/primitives/CredentialWatermark.jsx` | 疊在帳密內容上的浮水印（查看者名稱＋時間），無法阻止截圖，但外流時至少能溯源查看者 |
+| `src/common/utils/hostCredentialFields.js` | `getHostCredentialFields`、`parseHostCredentials`：`shared_credentials` 服務依服務別定義的結構化帳密欄位與解析 |
 | `src/features/subscriptions/components/memberGroupView/buildPaymentsPanel.jsx` | 付款管理面板，顯示自己這期最新一筆代管紀錄（見 PM幣代管流程文件） |
-| `src/shared/utils/serviceInfoFields.js` | `SHARING_METHOD_CONFIG`（各共享機制的欄位設定與提醒文案）、`hasFilledServiceInfo`、`getServiceInfoSummary` |
+| `src/common/utils/serviceInfoFields.js` | `SHARING_METHOD_CONFIG`（各共享機制的欄位設定與提醒文案）、`hasFilledServiceInfo`、`getServiceInfoSummary` |
 | `src/features/subscriptions/components/ReviewHostModal.jsx` | 確認服務完成後的團主評價彈窗 |
-| `src/features/subscriptions/utils/memberFilters.js` | 分頁篩選邏輯：`FILTER_TABS`（審核中/招募中/處理中/服務中四個大分類；已移除「全部」，待鎖定/成員填寫中/待啟用/確認期中/申訴中五種細分狀態併入「處理中」，`PROCESSING_STATUSES` 定義在 `src/shared/utils/groupStatus.js`，跟 host 端共用） |
-| `src/shared/ui/group/GroupViewModal.jsx` | 依身分決定渲染團主或成員視角的薄殼 |
-| `src/shared/ui/group/GroupModalShell.jsx` | 三層滑動 Panel 共用殼；桌機版側邊欄在左側（`md:order-first`），手機版仍堆疊在下方；Header 顯示「服務名稱 \| 方案名稱」 |
-| `src/shared/ui/group/GroupOverviewContent.jsx` | 群組概覽內容，含服務說明／方案說明 |
-| `src/shared/utils/groupStatus.js` | `isEffectivelyActive`，成員自行確認服務後個人視角提前視為已啟用 |
+| `src/features/subscriptions/utils/memberFilters.js` | 分頁篩選邏輯：`FILTER_TABS`（審核中/招募中/處理中/服務中四個大分類；已移除「全部」，待鎖定/成員填寫中/待啟用/確認期中/申訴中五種細分狀態併入「處理中」，`PROCESSING_STATUSES` 定義在 `src/common/utils/groupStatus.js`，跟 host 端共用） |
+| `src/components/ui/group/GroupViewModal.jsx` | 依身分決定渲染團主或成員視角的薄殼 |
+| `src/components/ui/group/GroupModalShell.jsx` | 三層滑動 Panel 共用殼；桌機版側邊欄在左側（`md:order-first`），手機版仍堆疊在下方；Header 顯示「服務名稱 \| 方案名稱」 |
+| `src/components/ui/group/GroupOverviewContent.jsx` | 群組概覽內容，含服務說明／方案說明 |
+| `src/common/utils/groupStatus.js` | `isEffectivelyActive`，成員自行確認服務後個人視角提前視為已啟用 |
 
 **後端**
 

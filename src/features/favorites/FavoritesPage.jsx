@@ -1,12 +1,12 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Heart } from 'lucide-react'
-import EmptyState from '../../shared/ui/primitives/EmptyState'
-import { useAuthStore } from '../../shared/stores/useAuthStore'
-import PageHeader from '../../shared/layout/PageHeader'
-import { useFavoriteStore } from '../../shared/stores/useFavoriteStore'
-import { useGroupStore } from '../../shared/stores/useGroupStore'
-import { useMemberStore } from '../../shared/stores/useMemberStore'
+import EmptyState from '../../components/ui/primitives/EmptyState'
+import { useAuthStore } from '../../common/stores/useAuthStore'
+import PageHeader from '../../common/layout/PageHeader'
+import { useFavoriteStore } from '../../common/stores/useFavoriteStore'
+import { useGroupStore } from '../../common/stores/useGroupStore'
+import { useMemberStore } from '../../common/stores/useMemberStore'
 import ExploreGroupCard from '../explore/components/ExploreGroupCard'
 
 export default function FavoritesPage() {

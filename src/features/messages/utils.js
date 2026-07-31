@@ -1,5 +1,5 @@
-import { markConversationRead } from '../../shared/api/messagesApi'
-import { useConversationStore } from '../../shared/stores/useConversationStore'
+import { markConversationRead } from '../../common/api/messagesApi'
+import { useConversationStore } from '../../common/stores/useConversationStore'
 
 export function isSystemConversation(conversation) {
   return conversation?.type === 'system'

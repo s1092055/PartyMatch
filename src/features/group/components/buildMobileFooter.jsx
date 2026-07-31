@@ -1,6 +1,6 @@
 import { ChevronRight, CheckCircle2, LogIn, LogOut, ShieldCheck, Users } from 'lucide-react'
 import { Button } from '../../../components/ui/button'
-import FavoriteToggleButton from '../../../shared/ui/FavoriteToggleButton'
+import FavoriteToggleButton from '../../../components/ui/FavoriteToggleButton'
 
 function renderCTA({
   group, activeUserId, navigate, handleClose,

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import Step2Plans from './Step2Plans'
 import Step3Filters from './Step3Filters'
-import { smoothScrollTo } from '../../../../shared/utils/scroll'
+import { smoothScrollTo } from '../../../../common/utils/scroll'
 
 const SCROLL_MARGIN = 24 // 對應 scroll-mt-6
 
@@ -40,7 +40,7 @@ export default function Step2PlansAndFilters({ conditions, onChangePlan, onChang
         ))}
       </nav>
 
-      <div className="min-w-0 flex-1 space-y-8 rounded-xl bg-white p-5">
+      <div className="min-w-0 flex-1 space-y-8 rounded-xl bg-surface p-5">
         <div ref={plansRef}>
           <h2 className="mb-4 text-lg font-extrabold text-ink">選擇方案</h2>
           <Step2Plans conditions={conditions} onChangePlan={onChangePlan} />

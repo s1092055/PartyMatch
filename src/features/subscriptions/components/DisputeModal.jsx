@@ -1,7 +1,7 @@
 import { AlertTriangle } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter, DialogCloseButton } from '../../../components/ui/dialog'
 import { Button } from '../../../components/ui/button'
-import EvidenceAttachmentField from '../../../shared/ui/EvidenceAttachmentField'
+import EvidenceAttachmentField from '../../../components/ui/EvidenceAttachmentField'
 
 const DISPUTE_REASON_OPTIONS = [
   '服務帳號未提供或有誤',

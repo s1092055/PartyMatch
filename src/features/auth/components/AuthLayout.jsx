@@ -76,7 +76,7 @@ export function AuthError({ message }) {
 
 export function GoogleMark() {
   return (
-    <span className="grid h-6 w-6 place-items-center rounded-full bg-white text-base font-black shadow-sm">
+    <span className="grid h-6 w-6 place-items-center rounded-full bg-surface text-base font-black shadow-sm">
       <span className="bg-gradient-to-br from-blue-500 via-green-500 to-amber-500 bg-clip-text text-transparent">G</span>
     </span>
   )

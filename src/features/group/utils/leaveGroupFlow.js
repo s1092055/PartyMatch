@@ -1,11 +1,11 @@
-import { useGroupStore } from '../../../shared/stores/useGroupStore'
-import { useMemberStore } from '../../../shared/stores/useMemberStore'
-import { useSubscriptionStore } from '../../../shared/stores/useSubscriptionStore'
-import { useApplicationStore } from '../../../shared/stores/useApplicationStore'
-import { useConversationStore } from '../../../shared/stores/useConversationStore'
-import { useAuthStore } from '../../../shared/stores/useAuthStore'
-import { leaveConversation, sendSystemMessage } from '../../../shared/api/messagesApi'
-import { insertNotification } from '../../../shared/api/notificationsApi'
+import { useGroupStore } from '../../../common/stores/useGroupStore'
+import { useMemberStore } from '../../../common/stores/useMemberStore'
+import { useSubscriptionStore } from '../../../common/stores/useSubscriptionStore'
+import { useApplicationStore } from '../../../common/stores/useApplicationStore'
+import { useConversationStore } from '../../../common/stores/useConversationStore'
+import { useAuthStore } from '../../../common/stores/useAuthStore'
+import { leaveConversation, sendSystemMessage } from '../../../common/api/messagesApi'
+import { insertNotification } from '../../../common/api/notificationsApi'
 
 export async function finalizeLeaveGroup(groupId, user) {
   const convId = useConversationStore.getState().getByGroupId(groupId)?.id ?? null

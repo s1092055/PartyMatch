@@ -26,7 +26,7 @@ export default function HowItWorks() {
             key={key}
             onClick={() => setRoleKey(key)}
             className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 px-3 text-sm font-bold transition-colors ${
-              roleKey === key ? 'bg-white text-ink shadow-sm' : 'text-ink-3 hover:text-ink'
+              roleKey === key ? 'bg-surface text-ink shadow-sm' : 'text-ink-3 hover:text-ink'
             }`}
           >
             <Icon size={14} />

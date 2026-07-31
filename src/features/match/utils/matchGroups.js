@@ -1,4 +1,4 @@
-import { daysUntil } from '../../../shared/utils/date'
+import { daysUntil } from '../../../common/utils/date'
 
 function calcScore(group, conditions) {
   let score = 0

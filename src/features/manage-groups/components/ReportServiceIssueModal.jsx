@@ -2,8 +2,8 @@ import { AlertTriangle } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter, DialogCloseButton } from '../../../components/ui/dialog'
 import { Avatar } from '../../../components/ui/avatar'
 import { Button } from '../../../components/ui/button'
-import EvidenceAttachmentField from '../../../shared/ui/EvidenceAttachmentField'
-import { getServiceInfoSummary } from '../../../shared/utils/serviceInfoFields'
+import EvidenceAttachmentField from '../../../components/ui/EvidenceAttachmentField'
+import { getServiceInfoSummary } from '../../../common/utils/serviceInfoFields'
 
 export default function ReportServiceIssueModal({
   member,

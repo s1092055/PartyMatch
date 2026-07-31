@@ -1,13 +1,13 @@
 import { CalendarDays, Eye, FileText, ListChecks, Package, ShieldCheck, User, Users, Wallet } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { getServiceById } from '../../../../shared/utils/serviceUtils'
-import { toISODate } from '../../../../shared/utils/date'
-import { useAuthStore } from '../../../../shared/stores/useAuthStore'
-import { formatMinCreditScore } from '../../../../shared/utils/creditScore'
-import TokenAmount from '../../../../shared/ui/TokenAmount'
-import ServiceLogo from '../../../../shared/ui/ServiceLogo'
+import { getServiceById } from '../../../../common/utils/serviceUtils'
+import { toISODate } from '../../../../common/utils/date'
+import { useAuthStore } from '../../../../common/stores/useAuthStore'
+import { formatMinCreditScore } from '../../../../common/utils/creditScore'
+import TokenAmount from '../../../../components/ui/TokenAmount'
+import ServiceLogo from '../../../../components/ui/ServiceLogo'
 import LivePreviewPanel from '../LivePreviewPanel'
-import { calcDisplayPrice } from '../../../../shared/utils/pricingUtils'
+import { calcDisplayPrice } from '../../../../common/utils/pricingUtils'
 import { Button } from '../../../../components/ui/button'
 
 
@@ -31,7 +31,7 @@ export default function Step4Preview({ form, agreedToTerms, onAgreeChange, onSho
 
   return (
     <div className="flex h-full min-h-0 flex-col lg:flex-row lg:items-start lg:gap-6">
-      <div className="flex h-full min-h-0 flex-1 flex-col bg-white border border-slate-200 rounded-xl p-4">
+      <div className="flex h-full min-h-0 flex-1 flex-col bg-surface border border-slate-200 rounded-xl p-4">
         <div className="flex shrink-0 items-center gap-3 mb-4 pb-4 border-b border-slate-100">
           <ServiceLogo serviceId={form.serviceId} size={44} className="shrink-0 rounded-logo border-line-strong" />
           <div className="min-w-0 flex-1">

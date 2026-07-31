@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getUserProfile } from '../../../shared/api/usersApi'
+import { getUserProfile } from '../../../common/api/usersApi'
 
 // 名稱解析的最後備援：當 participantMeta 缺漏且使用者不在 memberStore 時，
 // 呼叫 GET /users/:id 補全。模組層快取在對話間共用，避免重複查詢。

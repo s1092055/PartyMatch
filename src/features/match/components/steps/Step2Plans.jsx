@@ -1,8 +1,8 @@
-import { getServiceById } from '../../../../shared/utils/serviceUtils'
-import ServiceLogo from '../../../../shared/ui/ServiceLogo'
-import TokenAmount from '../../../../shared/ui/TokenAmount'
-import { resolvePlanDisplayPrice } from '../../../../shared/utils/resolvePlanDisplayPrice'
-import { useUsdToTwdRate } from '../../../../shared/utils/exchangeRate'
+import { getServiceById } from '../../../../common/utils/serviceUtils'
+import ServiceLogo from '../../../../components/ui/ServiceLogo'
+import TokenAmount from '../../../../components/ui/TokenAmount'
+import { resolvePlanDisplayPrice } from '../../../../common/utils/resolvePlanDisplayPrice'
+import { useUsdToTwdRate } from '../../../../common/utils/exchangeRate'
 
 export default function Step2Plans({ conditions, onChangePlan }) {
   const usdToTwdRate = useUsdToTwdRate()

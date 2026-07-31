@@ -4,8 +4,8 @@ import { Compass, Search } from 'lucide-react'
 import { Button } from '../../../../components/ui/button'
 import MatchConditionBar from '../MatchConditionBar'
 import ExploreGroupCard from '../../../explore/components/ExploreGroupCard'
-import { useMemberStore } from '../../../../shared/stores/useMemberStore'
-import { useAuthStore } from '../../../../shared/stores/useAuthStore'
+import { useMemberStore } from '../../../../common/stores/useMemberStore'
+import { useAuthStore } from '../../../../common/stores/useAuthStore'
 
 export default function Step4Results({ results, conditions }) {
   const navigate = useNavigate()

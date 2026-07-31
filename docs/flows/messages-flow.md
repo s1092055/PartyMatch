@@ -46,9 +46,9 @@ flowchart TD
 | `src/features/messages/components/MessageBubble.jsx` | 單則訊息氣泡 |
 | `src/features/messages/hooks/useMessageScroll.js` | 捲動控制 |
 | `src/features/messages/hooks/useParticipantNames.js` | 參與者名稱查詢 |
-| `src/shared/stores/useConversationStore.js` | 對話 store |
-| `src/shared/api/messagesApi.js` | 訊息 API 封裝 |
-| `src/shared/utils/poller.js` | 輪詢共用機制 |
+| `src/common/stores/useConversationStore.js` | 對話 store |
+| `src/common/api/messagesApi.js` | 訊息 API 封裝 |
+| `src/common/utils/poller.js` | 輪詢共用機制 |
 
 **後端**
 

@@ -1,16 +1,16 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Globe, LogOut, Shield, Trash2 } from 'lucide-react'
-import { readStorage, writeStorage } from '../../../../shared/utils/storage'
-import { useAuthStore } from '../../../../shared/stores/useAuthStore'
-import { toast } from '../../../../shared/utils/toast'
+import { readStorage, writeStorage } from '../../../../common/utils/storage'
+import { useAuthStore } from '../../../../common/stores/useAuthStore'
+import { toast } from '../../../../common/utils/toast'
 import { Switch } from '../../../../components/ui/switch'
 import { Button } from '../../../../components/ui/button'
 import { Input } from '../../../../components/ui/input'
+import { useTheme } from '../../../../components/theme-provider'
 
 const PREFS_KEY = 'pm_app_prefs'
 const DEFAULT_PREFS = {
-  darkMode:       false,
   autoOpenSearch: false,
   showAvatars:    true,
   marketingEmail: false,
@@ -47,6 +47,7 @@ function SectionGroup({ title, icon: Icon, children }) {
 
 export default function SettingsTab() {
   const navigate = useNavigate()
+  const { theme, setTheme } = useTheme()
   const [prefs, setPrefs] = useState(loadPrefs)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [password, setPassword] = useState('')
@@ -84,9 +85,9 @@ export default function SettingsTab() {
       <SectionGroup title="一般偏好" icon={Globe}>
         <SettingRow
           label="深色模式"
-          desc="（開發中）切換深色介面"
-          checked={prefs.darkMode}
-          onChange={() => toggle('darkMode')}
+          desc="切換深色介面"
+          checked={theme === 'dark'}
+          onChange={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
         />
         <SettingRow
           label="顯示成員大頭貼"

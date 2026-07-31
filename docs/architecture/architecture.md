@@ -7,9 +7,9 @@ React 19 + React Router v7
           │
     Feature Modules (src/features/)     ← UI 與頁面
           │
-    Shared Stores (src/shared/stores/)  ← 記憶體快取 + 業務邏輯
+    Common Stores (src/common/stores/)  ← 記憶體快取 + 業務邏輯
           │
-    API Layer (src/shared/api/)         ← REST API 封裝（axios）
+    API Layer (src/common/api/)         ← REST API 封裝（axios）
           │
   Express 後端 (server/src/)
           │

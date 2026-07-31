@@ -1,13 +1,13 @@
 import { memo } from 'react'
-import { StatusBadge } from '../../../shared/ui/StatusBadge'
-import { getStatusTextColor } from '../../../shared/ui/statusBadgeConfig'
+import { StatusBadge } from '../../../components/ui/StatusBadge'
+import { getStatusTextColor } from '../../../components/ui/statusBadgeConfig'
 import { Button } from '../../../components/ui/button'
 import { Card } from '../../../components/ui/card'
-import ServiceLogo from '../../../shared/ui/ServiceLogo'
-import TokenAmount from '../../../shared/ui/TokenAmount'
-import { getRenewalAwareStatus } from '../../../shared/utils/groupStatusDisplay'
-import { toISODate } from '../../../shared/utils/date'
-import { calcDisplayPrice, calcDisplayCycle } from '../../../shared/utils/pricingUtils'
+import ServiceLogo from '../../../components/ui/ServiceLogo'
+import TokenAmount from '../../../components/ui/TokenAmount'
+import { getRenewalAwareStatus } from '../../../common/utils/groupStatusDisplay'
+import { toISODate } from '../../../common/utils/date'
+import { calcDisplayPrice, calcDisplayCycle } from '../../../common/utils/pricingUtils'
 
 // 這裡的文字刻意跟 Badge.jsx 的 LABELS 分開維護：StatCell 用的是稍微更完整的描述用語
 // （例如「待啟用服務」而非 Badge 的「待啟用」），且這裡多了 Badge 沒有的「追蹤中」「正常」兩種細分狀態，

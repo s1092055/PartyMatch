@@ -31,9 +31,9 @@ flowchart TD
 | `src/features/explore/ExplorePage.jsx` | 頁面入口 |
 | `src/features/explore/components/FilterBar.jsx` | 篩選列 |
 | `src/features/explore/components/ExploreGroupCard.jsx` | 群組卡片 |
-| `src/shared/utils/searchUtils.js` | `applyFilters` |
-| `src/shared/utils/serviceUtils.js` | `listServiceTypes`、`getServiceById` |
-| `src/shared/stores/useGroupStore.js`、`useApplicationStore.js`、`useMemberStore.js` | 純讀取用 |
+| `src/common/utils/searchUtils.js` | `applyFilters` |
+| `src/common/utils/serviceUtils.js` | `listServiceTypes`、`getServiceById` |
+| `src/common/stores/useGroupStore.js`、`useApplicationStore.js`、`useMemberStore.js` | 純讀取用 |
 
 **後端**
 

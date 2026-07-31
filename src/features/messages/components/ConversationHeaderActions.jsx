@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { Info, Users } from 'lucide-react'
-import { useAuthStore } from '../../../shared/stores/useAuthStore'
+import { useAuthStore } from '../../../common/stores/useAuthStore'
 
 // 直接放兩顆按鈕在聊天室 header 右邊，不用三個點點開選單——只有兩個選項，
 // 點兩下（開選單、選項目）比直接點一下多一道手續，沒有必要

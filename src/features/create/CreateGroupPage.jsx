@@ -1,23 +1,23 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, Info, PlusCircle } from 'lucide-react'
-import FlowLayout from '../../shared/layout/FlowLayout'
+import FlowLayout from '../../common/layout/FlowLayout'
 import Step1Service from './components/steps/Step1Service'
 import Step2Plan from './components/steps/Step2Plan'
 import Step3Settings from './components/steps/Step3Settings'
 import Step4Preview from './components/steps/Step4Preview'
 import { Button } from '../../components/ui/button'
-import ServiceLogo from '../../shared/ui/ServiceLogo'
-import TokenAmount from '../../shared/ui/TokenAmount'
-import ScrollHint from '../../shared/ui/primitives/ScrollHint'
+import ServiceLogo from '../../components/ui/ServiceLogo'
+import TokenAmount from '../../components/ui/TokenAmount'
+import ScrollHint from '../../components/ui/primitives/ScrollHint'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '../../components/ui/dialog'
 import LivePreviewPanel from './components/LivePreviewPanel'
-import { useGroupStore } from '../../shared/stores/useGroupStore'
-import { useNotificationStore } from '../../shared/stores/useNotificationStore'
-import { getServiceById } from '../../shared/utils/serviceUtils'
-import { calcPricePerSeat, calcDisplayPrice } from '../../shared/utils/pricingUtils'
-import { useAuthStore } from '../../shared/stores/useAuthStore'
-import { useScrollEdge } from '../../shared/utils/hooks'
+import { useGroupStore } from '../../common/stores/useGroupStore'
+import { useNotificationStore } from '../../common/stores/useNotificationStore'
+import { getServiceById } from '../../common/utils/serviceUtils'
+import { calcPricePerSeat, calcDisplayPrice } from '../../common/utils/pricingUtils'
+import { useAuthStore } from '../../common/stores/useAuthStore'
+import { useScrollEdge } from '../../common/utils/hooks'
 
 const STEP_COMPONENTS = [Step1Service, Step2Plan, Step3Settings, Step4Preview]
 const STEP_TITLES = ['選擇服務', '選擇方案', '群組設定', '最後確認']
@@ -257,7 +257,7 @@ export default function CreateGroupPage() {
             <div key={step} className="h-full animate-step-slide-up p-0.5">
               <div className="flex h-full flex-col">
                 {isPlanOrSettingsStep && (
-                  <div className="mb-6 flex shrink-0 items-center gap-4 rounded-2xl border border-line bg-white px-6 py-5 shadow-sm">
+                  <div className="mb-6 flex shrink-0 items-center gap-4 rounded-2xl border border-line bg-surface px-6 py-5 shadow-sm">
                     <ServiceLogo serviceId={form.serviceId} size={56} className="shrink-0 rounded-logo border-line-strong" />
                     <div className="min-w-0 flex-1">
                       <h2 className="truncate text-lg font-black text-ink">{service?.fullName ?? '尚未選擇服務'}</h2>

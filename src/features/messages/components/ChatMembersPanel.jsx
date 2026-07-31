@@ -4,7 +4,7 @@ import { userProfileCache } from '../hooks/useParticipantNames'
 export default function ChatMembersPanel({ open, selected, memberMap, userId, getParticipantName, onClose }) {
   return (
     <div
-      className={`absolute bottom-0 right-0 top-0 z-10 flex w-60 flex-col border-l border-line bg-white shadow-lg transition-transform duration-300 ease-out ${
+      className={`absolute bottom-0 right-0 top-0 z-10 flex w-60 flex-col border-l border-line bg-surface shadow-lg transition-transform duration-300 ease-out ${
         open ? 'translate-x-0' : 'pointer-events-none translate-x-full'
       }`}
     >

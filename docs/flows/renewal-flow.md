@@ -31,9 +31,9 @@ flowchart TD
 | `src/features/manage-groups/components/RenewalModal.jsx` | 續訂管理 Modal，顯示帳單日倒數與兩個選項（開始新一期／結束服務） |
 | `src/features/manage-groups/components/HostGroupView.jsx` | 側邊欄「續訂管理」入口 |
 | `src/features/manage-groups/hooks/useHostActions.js` | `handleStartRenewal`、`handleEndGroup` |
-| `src/shared/stores/useGroupStore.js` | `startRenewalCycle`、`endGroup` |
-| `src/shared/stores/useMemberStore.js` | `clearGroupServiceInfos`，本地清空成員帳號資訊，呼應後端重置 |
-| `src/shared/utils/date.js` | 計算下一期帳單日、倒數天數的日期工具 |
+| `src/common/stores/useGroupStore.js` | `startRenewalCycle`、`endGroup` |
+| `src/common/stores/useMemberStore.js` | `clearGroupServiceInfos`，本地清空成員帳號資訊，呼應後端重置 |
+| `src/common/utils/date.js` | 計算下一期帳單日、倒數天數的日期工具 |
 
 **後端**
 

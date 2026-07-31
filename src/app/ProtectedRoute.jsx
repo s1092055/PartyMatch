@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Navigate, Outlet, useNavigate } from 'react-router-dom'
 import { LogIn, Lock } from 'lucide-react'
-import { useAuthStore } from '../shared/stores/useAuthStore'
-import { useScrollLock } from '../shared/utils/hooks'
+import { useAuthStore } from '../common/stores/useAuthStore'
+import { useScrollLock } from '../common/utils/hooks'
 
 export default function ProtectedRoute({ children }) {
   const navigate = useNavigate()
@@ -15,7 +15,7 @@ export default function ProtectedRoute({ children }) {
   if (showModal) {
     return (
       <div className="fixed inset-0 z-[55] flex items-center justify-center bg-black/50 p-4">
-        <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl text-center">
+        <div className="w-full max-w-sm rounded-2xl bg-surface p-6 shadow-2xl text-center">
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-subtle mx-auto">
             <Lock size={22} className="text-brand" />
           </div>

@@ -2,12 +2,12 @@ import { PlayCircle, UserCheck } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter, DialogCloseButton } from '../../../components/ui/dialog'
 import { Avatar } from '../../../components/ui/avatar'
 import { Button } from '../../../components/ui/button'
-import ServiceLogo from '../../../shared/ui/ServiceLogo'
-import TokenAmount from '../../../shared/ui/TokenAmount'
-import GroupOverviewContent from '../../../shared/ui/group/GroupOverviewContent'
-import { advanceByCycle, toISODate } from '../../../shared/utils/date'
-import { getServiceById } from '../../../shared/utils/serviceUtils'
-import { hasFilledServiceInfo, getServiceInfoSummary } from '../../../shared/utils/serviceInfoFields'
+import ServiceLogo from '../../../components/ui/ServiceLogo'
+import TokenAmount from '../../../components/ui/TokenAmount'
+import GroupOverviewContent from '../../../components/ui/group/GroupOverviewContent'
+import { advanceByCycle, toISODate } from '../../../common/utils/date'
+import { getServiceById } from '../../../common/utils/serviceUtils'
+import { hasFilledServiceInfo, getServiceInfoSummary } from '../../../common/utils/serviceInfoFields'
 
 export default function ActivateServiceModal({
   isOpen,

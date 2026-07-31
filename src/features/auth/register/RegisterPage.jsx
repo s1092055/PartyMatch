@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Lock, Mail, Phone, User } from 'lucide-react'
 import AuthLayout, { AuthInput, AuthDivider, AuthError, GoogleMark, PasswordToggle } from '../components/AuthLayout'
 import { Button } from '../../../components/ui/button'
-import { useAuthStore } from '../../../shared/stores/useAuthStore'
+import { useAuthStore } from '../../../common/stores/useAuthStore'
 
 export default function RegisterPage() {
   const navigate = useNavigate()

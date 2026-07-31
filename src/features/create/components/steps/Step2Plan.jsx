@@ -1,10 +1,10 @@
 import { useEffect } from 'react'
 import { CheckCircle2, ChevronLeft, ChevronRight, Info, Layers, Package } from 'lucide-react'
-import { getServiceById } from '../../../../shared/utils/serviceUtils'
-import { getSharingMethodConfig } from '../../../../shared/utils/serviceInfoFields'
-import TokenAmount from '../../../../shared/ui/TokenAmount'
-import { resolvePlanDisplayPrice } from '../../../../shared/utils/resolvePlanDisplayPrice'
-import { useUsdToTwdRate } from '../../../../shared/utils/exchangeRate'
+import { getServiceById } from '../../../../common/utils/serviceUtils'
+import { getSharingMethodConfig } from '../../../../common/utils/serviceInfoFields'
+import TokenAmount from '../../../../components/ui/TokenAmount'
+import { resolvePlanDisplayPrice } from '../../../../common/utils/resolvePlanDisplayPrice'
+import { useUsdToTwdRate } from '../../../../common/utils/exchangeRate'
 import Field from './Field'
 
 const DEFAULT_NOTICE = '此服務用 Email 邀請即可加入，各自使用獨立帳號，沒有其他特別注意事項。'
@@ -63,7 +63,7 @@ export default function Step2Plan({ form, onChange }) {
               type="button"
               onClick={() => selectPlanAt(activeIndex - 1)}
               disabled={groupPlans.length <= 1 || activeIndex <= 0}
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-30"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-slate-200 bg-surface text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-30"
               aria-label="上一個方案"
             >
               <ChevronLeft size={16} strokeWidth={1.5} />
@@ -110,7 +110,7 @@ export default function Step2Plan({ form, onChange }) {
               type="button"
               onClick={() => selectPlanAt(activeIndex + 1)}
               disabled={groupPlans.length <= 1 || activeIndex >= groupPlans.length - 1}
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-30"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-slate-200 bg-surface text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-30"
               aria-label="下一個方案"
             >
               <ChevronRight size={16} strokeWidth={1.5} />

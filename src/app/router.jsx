@@ -25,7 +25,7 @@ const router = createBrowserRouter([
   },
   {
     path: '/',
-    element: routeElement(() => import('../shared/layout/AppLayout')),
+    element: routeElement(() => import('../common/layout/AppLayout')),
     children: [
       { path: 'explore',         element: routeElement(() => import('../features/explore/ExplorePage')) },
       { path: 'groups/:groupId', element: <GroupRedirect /> },

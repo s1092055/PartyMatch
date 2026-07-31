@@ -2,6 +2,9 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './app/App.jsx'
+import { getStoredTheme, getSystemTheme } from './lib/theme'
+
+document.documentElement.classList.toggle('dark', (getStoredTheme() ?? getSystemTheme()) === 'dark')
 
 document.documentElement.classList.add('using-mouse')
 window.addEventListener('mousedown', () => document.documentElement.classList.add('using-mouse'), true)

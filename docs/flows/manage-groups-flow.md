@@ -40,10 +40,10 @@ flowchart TD
 | `src/features/manage-groups/hooks/useHostActions.js` | 所有團主操作的事件處理（鎖定、啟用、移除成員、審核、續訂、解散等） |
 | `src/features/manage-groups/components/HostGroupView.jsx` | 團主視角群組詳情 Modal，含 `pending_confirmation`/`confirming` 倒數橫幅；側邊欄「成員評價」分頁只顯示這個群組的評價，且只在群組曾經啟用過（`active`/`ended`）才會出現；`cancelled`（已解散）狀態不顯示「成員評價」「收款管理」「群組訊息」「續訂管理」「成員資料」，因為這些階段根本沒發生過；「收款管理」分頁只要群組非 `cancelled` 就會顯示，不再限定鎖定後才出現，因為招募中期間也可能已經有代管入帳；「成員資料」分頁只在非招募中（`recruiting`/`full`）且非 `cancelled` 時顯示，因為 `Member.serviceInfo` 要鎖定群組後才有資料 |
 | `src/features/manage-groups/components/HostReviewsModal.jsx` | 獨立的「我的評價」Modal，彙總團主名下**所有**群組的評價，入口從「群組管理」頁側邊欄移到帳號中心（`AccountPage.jsx` 的 Hero 區塊），跟群組詳情裡只看單一群組的「成員評價」分頁分開 |
-| `src/shared/ui/primitives/CountdownText.jsx` | 顯示距 deadline 剩餘時間的小元件，逾期顯示 `expiredText` |
-| `src/shared/utils/hooks.js` | `useCountdown`，每秒重算剩餘時間，純顯示用不觸發任何副作用 |
+| `src/components/ui/primitives/CountdownText.jsx` | 顯示距 deadline 剩餘時間的小元件，逾期顯示 `expiredText` |
+| `src/common/utils/hooks.js` | `useCountdown`，每秒重算剩餘時間，純顯示用不觸發任何副作用 |
 | `src/features/manage-groups/components/HostedGroupCard.jsx` | 群組卡片 |
-| `src/shared/ui/FilterTabsBar.jsx` | 狀態篩選列，手機/桌機同一套橫向 underline tabs（不再是側邊欄，手機版也不再用下拉選單，3 個分類寬度放得下）；「群組紀錄」按鈕在 `ManageGroupsPage.jsx` 自己最上方的標題列，`FilterTabsBar` 本身不再處理任何額外按鈕 |
+| `src/components/ui/FilterTabsBar.jsx` | 狀態篩選列，手機/桌機同一套橫向 underline tabs（不再是側邊欄，手機版也不再用下拉選單，3 個分類寬度放得下）；「群組紀錄」按鈕在 `ManageGroupsPage.jsx` 自己最上方的標題列，`FilterTabsBar` 本身不再處理任何額外按鈕 |
 | `src/features/manage-groups/components/ActivateServiceModal.jsx` | 啟用服務前逐一確認成員帳號的 Modal |
 | `src/features/manage-groups/components/ReportServiceIssueModal.jsx` | 回報成員帳號問題 |
 | `src/features/manage-groups/components/RenewalModal.jsx` | 續訂管理（見續訂流程文件） |
@@ -53,11 +53,11 @@ flowchart TD
 | `src/features/manage-groups/components/hostGroupView/buildReviewHistoryPanel.jsx` | 審核紀錄第三層面板，只列已接受／已拒絕的申請（已退出／已移除是成員異動不是審核結果，不放進來，避免名稱跟內容對不上） |
 | `src/features/manage-groups/components/hostGroupView/buildMemberHistoryPanel.jsx` | 成員紀錄第三層面板，跟審核紀錄同層級但相反：只列已退出／已移除的成員異動記錄 |
 | `src/features/manage-groups/components/LockGroupCredentialsModal.jsx` | 鎖定群組時，官方無多人邀請機制的服務（`shared_credentials`）改用這個結構化表單填帳密（取代原本自由文字 textarea），跟成員端「填寫服務帳號」sub-modal 同一套堆疊模式 |
-| `src/shared/utils/hostCredentialFields.js` | `getHostCredentialFields`（依服務別定義的結構化帳密欄位，例如 Netflix 多一個 Profile 名稱、VPN 服務多一個裝置名額）、`parseHostCredentials`、`CREDENTIAL_RISK_NOTICE`（帳密風險提醒文案） |
-| `src/shared/ui/DisputeReasonDialog.jsx` | 查看回報原因與附件的唯讀對話框，團主可用它查看成員送出的申訴理由（`disputeMember.serviceInfoIssueNote`），跟成員端 `MemberGroupView.jsx` 共用同一個元件 |
+| `src/common/utils/hostCredentialFields.js` | `getHostCredentialFields`（依服務別定義的結構化帳密欄位，例如 Netflix 多一個 Profile 名稱、VPN 服務多一個裝置名額）、`parseHostCredentials`、`CREDENTIAL_RISK_NOTICE`（帳密風險提醒文案） |
+| `src/components/ui/DisputeReasonDialog.jsx` | 查看回報原因與附件的唯讀對話框，團主可用它查看成員送出的申訴理由（`disputeMember.serviceInfoIssueNote`），跟成員端 `MemberGroupView.jsx` 共用同一個元件 |
 | `src/features/manage-groups/components/hostGroupView/buildBillingPanel.jsx` | 收款管理面板（見 PM幣代管流程文件） |
 | `src/features/manage-groups/components/hostGroupView/buildMemberInfoPanel.jsx` | 「成員資料」分頁，團主查看每位成員填寫的服務帳號資訊，跟 `ActivateServiceModal` 成員清單同一套判斷邏輯（`hasFilledServiceInfo`/`getServiceInfoSummary`），可直接從這裡回報帳號問題（`ReportServiceIssueModal`），不用等到啟用服務那一步才能看 |
-| `src/features/manage-groups/utils/hostFilters.js` | `STATUS_FILTER_TABS`（招募中/處理中/服務中三個大分類；待鎖定/成員填寫中/待啟用/確認期中/申訴中五種細分狀態都併入「處理中」——`PROCESSING_STATUSES` 定義在 `src/shared/utils/groupStatus.js`，跟 member 端共用；已移除「全部」分頁，細分階段交給卡片本身的狀態 badge 顯示）、`matchesFilter`、`calcApprovalSeatPatch` |
+| `src/features/manage-groups/utils/hostFilters.js` | `STATUS_FILTER_TABS`（招募中/處理中/服務中三個大分類；待鎖定/成員填寫中/待啟用/確認期中/申訴中五種細分狀態都併入「處理中」——`PROCESSING_STATUSES` 定義在 `src/common/utils/groupStatus.js`，跟 member 端共用；已移除「全部」分頁，細分階段交給卡片本身的狀態 badge 顯示）、`matchesFilter`、`calcApprovalSeatPatch` |
 | `src/features/account/components/tabs/AdminTab.jsx` | 管理員裁定申訴，跨群組，非團主本人操作 |
 
 **後端**

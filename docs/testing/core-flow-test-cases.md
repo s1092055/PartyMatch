@@ -181,7 +181,7 @@
 
 **前置條件**：seed 資料已包含 3 個涵蓋不同 `sharingMethod` 的 `pending_confirmation` 群組（見 [`test-accounts.md`](./test-accounts.md)）：G14（Apple Music，`apple_family`）、G15（Google One，`google_family`）、G16（friDay影音，`invite_code`）。另可用 G4（Disney+，`shared_credentials`）、G9（KKBOX，`email_invite_with_address`）對照一般 `email_invite` 服務（例如 G1 Netflix）。
 
-**步驟與預期結果**（`src/shared/utils/serviceInfoFields.js`）：
+**步驟與預期結果**（`src/common/utils/serviceInfoFields.js`）：
 1. demo2 開啟 G14（Apple Music），點「填寫帳號」→ 表單只有一個「Apple ID」欄位（type=email），上方顯示家庭共享提醒文案（一年僅能異動一次成員、會共用購買紀錄）
 2. demo3 開啟 G15（Google One）→ 表單只有一個「Google 帳戶 Email」欄位，提醒文案為 Google 家庭群組版本
 3. demo5 開啟 G16（friDay影音）→ 表單只有一個「邀請碼」欄位（非 email），提醒文案說明要先在 friDay App 內產生邀請碼、綁定方向與其他服務相反

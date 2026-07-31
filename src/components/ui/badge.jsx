@@ -3,7 +3,7 @@ import { cn } from "../../lib/utils"
 
 // default/secondary/destructive/outline 是 shadcn 官方詞彙；success/warning/info/neutral
 // 是本專案延伸的語意色（比照 Button 的 success/ink 延伸做法），業務狀態顏色透過
-// shared/ui/StatusBadge.jsx 對照到這些 variant，不在這裡處理業務語意
+// components/ui/StatusBadge.jsx 對照到這些 variant，不在這裡處理業務語意
 export const badgeVariantClasses = {
   default:     'bg-brand-subtle text-brand',
   secondary:   'bg-raised text-ink-2',

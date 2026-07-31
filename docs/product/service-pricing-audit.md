@@ -4,7 +4,7 @@
 
 > 部分官網頁面為動態載入或會擋掉自動化查詢（回傳 403 / 404），這類項目仍列出正確的官方網址，但標註「⚠️ 官網無法直接擷取內容，數字為多方交叉確認」，建議直接用瀏覽器登入該頁面再次核對。
 
-> **年繳總價的計算原則**：`serviceCatalog.js` 內每個年繳方案優先顯示官方公告的真實年繳總價（`yearlyPrice` 欄位），而不是用月費 ×12 反推估算。已確認官方台幣年繳總價的方案（Disney+、HBO Max、Microsoft 365、Nintendo Switch Online）都已補上 `yearlyPrice`；美金計價的方案（Discord Nitro、Midjourney）改用 `yearlyPriceUsd` + 即時匯率換算（見 `src/shared/utils/exchangeRate.js`），畫面上顯示的台幣金額會隨匯率浮動，不是寫死的固定數字，之後美金牌價本身變動才需要改資料。其餘美金計價但方案層級/金額仍有疑慮的項目（ChatGPT、Cursor、Canva、Notion、ExpressVPN）維持用 `monthlyPrice × 12` 概算，並在程式碼內以 `// TODO` 註解標記，需要人工核對後才能改成正式欄位。
+> **年繳總價的計算原則**：`serviceCatalog.js` 內每個年繳方案優先顯示官方公告的真實年繳總價（`yearlyPrice` 欄位），而不是用月費 ×12 反推估算。已確認官方台幣年繳總價的方案（Disney+、HBO Max、Microsoft 365、Nintendo Switch Online）都已補上 `yearlyPrice`；美金計價的方案（Discord Nitro、Midjourney）改用 `yearlyPriceUsd` + 即時匯率換算（見 `src/common/utils/exchangeRate.js`），畫面上顯示的台幣金額會隨匯率浮動，不是寫死的固定數字，之後美金牌價本身變動才需要改資料。其餘美金計價但方案層級/金額仍有疑慮的項目（ChatGPT、Cursor、Canva、Notion、ExpressVPN）維持用 `monthlyPrice × 12` 概算，並在程式碼內以 `// TODO` 註解標記，需要人工核對後才能改成正式欄位。
 
 | 服務 | 方案 | 目前價格（TWD） | 官方查價網址 |
 |---|---|---|---|

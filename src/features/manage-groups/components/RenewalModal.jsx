@@ -1,8 +1,8 @@
 import { Calendar, RefreshCw, XCircle } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogCloseButton } from '../../../components/ui/dialog'
-import ServiceLogo from '../../../shared/ui/ServiceLogo'
-import { StatusBadge } from '../../../shared/ui/StatusBadge'
-import { advanceByCycle, daysUntil, toISODate } from '../../../shared/utils/date'
+import ServiceLogo from '../../../components/ui/ServiceLogo'
+import { StatusBadge } from '../../../components/ui/StatusBadge'
+import { advanceByCycle, daysUntil, toISODate } from '../../../common/utils/date'
 
 export default function RenewalModal({ isOpen, onClose, group, onStartRenewal, onEndGroup }) {
   if (!group) return null

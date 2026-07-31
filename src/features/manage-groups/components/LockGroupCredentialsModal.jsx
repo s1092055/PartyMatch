@@ -1,7 +1,7 @@
 import { LockKeyhole } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogCloseButton } from '../../../components/ui/dialog'
 import { Button } from '../../../components/ui/button'
-import { getHostCredentialFields, CREDENTIAL_RISK_NOTICE } from '../../../shared/utils/hostCredentialFields'
+import { getHostCredentialFields, CREDENTIAL_RISK_NOTICE } from '../../../common/utils/hostCredentialFields'
 
 // 鎖定群組時，官方無多人邀請機制的服務改成填這個結構化表單（取代原本的自由文字 textarea），
 // 跟成員端「填寫服務帳號」sub-modal 同一套堆疊模式

@@ -4,17 +4,17 @@ import {
   Monitor,
   Users,
 } from 'lucide-react'
-import ServiceLogo from '../../../shared/ui/ServiceLogo'
-import FavoriteToggleButton from '../../../shared/ui/FavoriteToggleButton'
-import TokenAmount from '../../../shared/ui/TokenAmount'
-import { StatusBadge } from '../../../shared/ui/StatusBadge'
-import { getStatusLabel } from '../../../shared/ui/statusBadgeConfig'
+import ServiceLogo from '../../../components/ui/ServiceLogo'
+import FavoriteToggleButton from '../../../components/ui/FavoriteToggleButton'
+import TokenAmount from '../../../components/ui/TokenAmount'
+import { StatusBadge } from '../../../components/ui/StatusBadge'
+import { getStatusLabel } from '../../../components/ui/statusBadgeConfig'
 import { Progress } from '../../../components/ui/progress'
 import { Card } from '../../../components/ui/card'
 import { Button } from '../../../components/ui/button'
-import { calcDisplayPrice, calcDisplayCycle } from '../../../shared/utils/pricingUtils'
-import { useFavoriteStore } from '../../../shared/stores/useFavoriteStore'
-import { useAuthStore } from '../../../shared/stores/useAuthStore'
+import { calcDisplayPrice, calcDisplayCycle } from '../../../common/utils/pricingUtils'
+import { useFavoriteStore } from '../../../common/stores/useFavoriteStore'
+import { useAuthStore } from '../../../common/stores/useAuthStore'
 
 // Tags that are too generic or junk to show as feature chips
 const JUNK_TAGS = new Set(['審核加入', '需要審核', '需審核', '名額剩 1'])

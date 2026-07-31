@@ -1,6 +1,6 @@
 import ExploreGroupCard from "../../explore/components/ExploreGroupCard";
-import { getServiceById } from "../../../shared/utils/serviceUtils";
-import { useAuthStore } from "../../../shared/stores/useAuthStore";
+import { getServiceById } from "../../../common/utils/serviceUtils";
+import { useAuthStore } from "../../../common/stores/useAuthStore";
 import { buildPreviewGroupId } from "../utils/previewGroupId";
 
 export default function LivePreviewPanel({ form }) {

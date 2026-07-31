@@ -2,9 +2,9 @@ import { CheckCircle2 } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogCloseButton } from '../../../components/ui/dialog'
 import { Button } from '../../../components/ui/button'
 import { Textarea } from '../../../components/ui/input'
-import ServiceLogo from '../../../shared/ui/ServiceLogo'
-import TokenAmount from '../../../shared/ui/TokenAmount'
-import { calcDisplayPrice, calcDisplayCycle } from '../../../shared/utils/pricingUtils'
+import ServiceLogo from '../../../components/ui/ServiceLogo'
+import TokenAmount from '../../../components/ui/TokenAmount'
+import { calcDisplayPrice, calcDisplayCycle } from '../../../common/utils/pricingUtils'
 
 export default function ApplyModal({
   group,

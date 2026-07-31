@@ -2,17 +2,18 @@ import { useEffect, useRef, useState } from 'react'
 import { RouterProvider } from 'react-router-dom'
 import router from './router'
 import { Toaster } from '../components/ui/sonner'
-import LoadingScreen from '../shared/layout/LoadingScreen'
-import { useAuthStore } from '../shared/stores/useAuthStore'
-import { useServiceStore } from '../shared/stores/useServiceStore'
-import { useGroupStore } from '../shared/stores/useGroupStore'
-import { useApplicationStore } from '../shared/stores/useApplicationStore'
-import { useSubscriptionStore } from '../shared/stores/useSubscriptionStore'
-import { useMemberStore } from '../shared/stores/useMemberStore'
-import { useFavoriteStore } from '../shared/stores/useFavoriteStore'
-import { useNotificationStore } from '../shared/stores/useNotificationStore'
-import { useConversationStore } from '../shared/stores/useConversationStore'
-import { toast } from '../shared/utils/toast'
+import { ThemeProvider } from '../components/theme-provider'
+import LoadingScreen from '../common/layout/LoadingScreen'
+import { useAuthStore } from '../common/stores/useAuthStore'
+import { useServiceStore } from '../common/stores/useServiceStore'
+import { useGroupStore } from '../common/stores/useGroupStore'
+import { useApplicationStore } from '../common/stores/useApplicationStore'
+import { useSubscriptionStore } from '../common/stores/useSubscriptionStore'
+import { useMemberStore } from '../common/stores/useMemberStore'
+import { useFavoriteStore } from '../common/stores/useFavoriteStore'
+import { useNotificationStore } from '../common/stores/useNotificationStore'
+import { useConversationStore } from '../common/stores/useConversationStore'
+import { toast } from '../common/utils/toast'
 
 export default function App() {
   const [ready, setReady] = useState(false)
@@ -103,9 +104,9 @@ export default function App() {
   }
 
   return (
-    <>
+    <ThemeProvider>
       <RouterProvider router={router} />
       <Toaster />
-    </>
+    </ThemeProvider>
   )
 }

@@ -36,11 +36,11 @@ sequenceDiagram
 
 | 路徑 | 說明 |
 |------|------|
-| `src/shared/layout/FloatingMessages.jsx` | 通知面板 UI + 點擊後的導向邏輯 |
-| `src/shared/layout/AppNav.jsx` | 觸發開啟通知面板 |
-| `src/shared/stores/useNotificationStore.js` | 通知 store |
-| `src/shared/api/notificationsApi.js` | 通知 API 封裝（`insertNotification` 是各業務流程寫入通知的共用函式） |
-| `src/features/manage-groups/hooks/useHostActions.js`、`src/features/group/utils/leaveGroupFlow.js`、`src/shared/stores/useApplicationStore.js` | 各業務動作成功後呼叫 `insertNotification` 通知對方的實際發起處 |
+| `src/common/layout/FloatingMessages.jsx` | 通知面板 UI + 點擊後的導向邏輯 |
+| `src/common/layout/AppNav.jsx` | 觸發開啟通知面板 |
+| `src/common/stores/useNotificationStore.js` | 通知 store |
+| `src/common/api/notificationsApi.js` | 通知 API 封裝（`insertNotification` 是各業務流程寫入通知的共用函式） |
+| `src/features/manage-groups/hooks/useHostActions.js`、`src/features/group/utils/leaveGroupFlow.js`、`src/common/stores/useApplicationStore.js` | 各業務動作成功後呼叫 `insertNotification` 通知對方的實際發起處 |
 
 **後端**
 

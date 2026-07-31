@@ -3,9 +3,9 @@ import ConversationAvatar from './ConversationAvatar'
 import ConversationHeaderActions from './ConversationHeaderActions'
 import ChatMembersPanel from './ChatMembersPanel'
 import MessageBubble from './MessageBubble'
-import { useMemberStore } from '../../../shared/stores/useMemberStore'
-import { useGroupStore } from '../../../shared/stores/useGroupStore'
-import { useAuthStore } from '../../../shared/stores/useAuthStore'
+import { useMemberStore } from '../../../common/stores/useMemberStore'
+import { useGroupStore } from '../../../common/stores/useGroupStore'
+import { useAuthStore } from '../../../common/stores/useAuthStore'
 import { useParticipantNames } from '../hooks/useParticipantNames'
 import { useMessageScroll } from '../hooks/useMessageScroll'
 import { isSystemConversation, markConversationReadLocal } from '../utils'
@@ -118,7 +118,7 @@ export default function ChatWindow({
         <button
           onClick={() => scrollToBottom()}
           aria-label="回到最新訊息"
-          className="absolute bottom-4 right-4 z-20 grid h-10 w-10 place-items-center rounded-full border border-line bg-white text-ink-3 shadow-popover transition-colors hover:bg-raised hover:text-ink"
+          className="absolute bottom-4 right-4 z-20 grid h-10 w-10 place-items-center rounded-full border border-line bg-surface text-ink-3 shadow-popover transition-colors hover:bg-raised hover:text-ink"
         >
           <ChevronDown size={18} strokeWidth={1.5} />
         </button>
@@ -126,7 +126,7 @@ export default function ChatWindow({
       </div>
 
       {/* 輸入區 */}
-      <div className="shrink-0 border-t border-line bg-white px-6 py-4">
+      <div className="shrink-0 border-t border-line bg-surface px-6 py-4">
         {isSystemConversation(selected) ? (
           <p className="text-center text-xs text-ink-4">此為系統通知，無法回覆</p>
         ) : (

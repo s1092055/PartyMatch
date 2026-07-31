@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
-import { useScrollLock } from '../../../shared/utils/hooks'
-import { MacFrame } from '../../../shared/ui/DeviceFrame'
+import { useScrollLock } from '../../../common/utils/hooks'
+import { MacFrame } from '../../../components/ui/DeviceFrame'
 
 const DRAG_THRESHOLD = 40 // px，超過這個距離才算滑動切換，不然當成點擊放大
 

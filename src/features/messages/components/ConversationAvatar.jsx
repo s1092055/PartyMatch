@@ -1,4 +1,4 @@
-import ServiceLogo from '../../../shared/ui/ServiceLogo'
+import ServiceLogo from '../../../components/ui/ServiceLogo'
 
 export default function ConversationAvatar({ conversation, size = 44 }) {
   if (conversation.serviceId) {

@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Search } from 'lucide-react'
-import CategoryPills from '../../../shared/ui/primitives/CategoryPills'
+import CategoryPills from '../../../components/ui/primitives/CategoryPills'
 import FilterSelect from './FilterSelect'
 import { useFilterSelectGroup } from './useFilterSelectGroup'
-import { CATEGORIES } from '../../../shared/data/serviceCategories'
-import ServiceLogo from '../../../shared/ui/ServiceLogo'
+import { CATEGORIES } from '../../../common/data/serviceCategories'
+import ServiceLogo from '../../../components/ui/ServiceLogo'
 import { Input } from '../../../components/ui/input'
-import { TokenBadge } from '../../../shared/ui/TokenAmount'
-import { listServiceTypes } from '../../../shared/utils/serviceUtils'
+import { TokenBadge } from '../../../components/ui/TokenAmount'
+import { listServiceTypes } from '../../../common/utils/serviceUtils'
 
 const PRICE_PRESETS = ['any', '100', '200', '300', '500']
 

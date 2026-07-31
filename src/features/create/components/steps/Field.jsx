@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { AlertCircle } from 'lucide-react'
-import { useClickOutside } from '../../../../shared/utils/hooks'
+import { useClickOutside } from '../../../../common/utils/hooks'
 
 export default function Field({ label, icon: Icon, required, children, hint, endAdornment, className = '' }) {
   const [showHint, setShowHint] = useState(false)

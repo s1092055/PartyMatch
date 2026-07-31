@@ -1,10 +1,10 @@
 import { AlertTriangle, FileText, Paperclip } from 'lucide-react'
 import { Avatar } from '../../../../components/ui/avatar'
 import { Button } from '../../../../components/ui/button'
-import EmptyState from '../../../../shared/ui/primitives/EmptyState'
-import { CENTERED_PANEL_BODY_CLASS } from '../../../../shared/ui/group/panelLayout'
-import { getTextFields, hasFilledServiceInfo } from '../../../../shared/utils/serviceInfoFields'
-import { parseHostCredentials } from '../../../../shared/utils/hostCredentialFields'
+import EmptyState from '../../../../components/ui/primitives/EmptyState'
+import { CENTERED_PANEL_BODY_CLASS } from '../../../../components/ui/group/panelLayout'
+import { getTextFields, hasFilledServiceInfo } from '../../../../common/utils/serviceInfoFields'
+import { parseHostCredentials } from '../../../../common/utils/hostCredentialFields'
 
 // 團主查看成員填寫的服務帳號資訊；跟 ActivateServiceModal 裡的成員清單同一套判斷邏輯，
 // 差別是這裡不限「待啟用」階段才看得到，鎖定群組後任何時候都可以來確認填寫進度。

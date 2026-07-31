@@ -205,14 +205,14 @@
 - **修正狀態**：已修——`withdraw()` 成功後呼叫 `insertNotification` 通知團主（`application_withdrawn`）；`useNotificationStore` 的輪詢偵測到這個類型會直接觸發 `pm:refresh-application-store`，不需要團主點擊通知就會自動刷新（另見 BUG-019，enum 沒對齊導致這個修正一開始沒有真的生效）
 
 ### BUG-017：申請時間被截斷成純日期，審核紀錄畫面永遠顯示同一個固定時間
-- **功能**：團主審核紀錄，`normalizeApplication`（`src/shared/utils/modelNormalizers.js`）
+- **功能**：團主審核紀錄，`normalizeApplication`（`src/common/utils/modelNormalizers.js`）
 - **嚴重度**：P2（顯示問題，不影響資料正確性，但會讓使用者誤以為系統有 bug）
 - **來源**：使用者回報「審核紀錄裡面顯示的申請時間都固定顯示『今天 8:00』」
 - **重現方式**：接受或拒絕一筆申請，到審核紀錄查看該筆的申請時間
 - **預期結果**：顯示這筆申請實際送出的日期與時間
 - **實際結果**：畫面上所有紀錄的時間都固定顯示同一個時間點
 - **推測原因**：`normalizeApplication` 把後端回傳的完整 ISO 時間戳記用 `.slice(0, 10)` 截斷成純日期字串（例如 `2026-07-24`）；`formatRelativeDate`/畫面上再用 `new Date('2026-07-24')` 解析時，JS 會當成 UTC 午夜，換算成台灣時區（UTC+8）就固定變成早上 8:00，跟這筆申請實際送出的時間完全無關
-- **修正狀態**：已修——`normalizeApplication` 不再截斷 `createdAt`，完整保留時間戳記；新增 `formatDateTime()`（`src/shared/utils/date.js`）顯示實際日期＋時間，審核紀錄（已審核的申請）改用這個函式，待審核列表維持原本的相對時間（「3小時前」）；順手把團主收款管理面板（`buildBillingPanel.jsx`）同樣只顯示日期的交易時間也改成顯示實際時間
+- **修正狀態**：已修——`normalizeApplication` 不再截斷 `createdAt`，完整保留時間戳記；新增 `formatDateTime()`（`src/common/utils/date.js`）顯示實際日期＋時間，審核紀錄（已審核的申請）改用這個函式，待審核列表維持原本的相對時間（「3小時前」）；順手把團主收款管理面板（`buildBillingPanel.jsx`）同樣只顯示日期的交易時間也改成顯示實際時間
 
 ### BUG-016：申請未通過的通知點擊後，申請人本地資料沒有刷新，群組卡片卡在「已申請」狀態
 - **功能**：[通知流程](../flows/notification-flow.md)，`FloatingMessages.jsx`
@@ -232,7 +232,7 @@
 - **預期結果**：背景同步失敗時，畫面應該回滾成失敗前的值，並提示使用者操作沒有真的成功
 - **實際結果**：這些 action 全部是 `.catch(console.error)`，失敗時畫面保持樂觀更新後的值（例如收藏愛心圖示、付款狀態、群組狀態）跟後端實際資料不同步，使用者完全不會發現，只有重新整理頁面才會看到「打回原形」，容易誤以為是系統 bug
 - **推測原因**：這些 action 大多是「fire-and-forget」（呼叫端沒有 `await`，store 內部也沒接住失敗分支），實作當下只處理了成功路徑
-- **修正狀態**：已修——新增共用的 `notifyError()`（`src/shared/utils/toast.js`），上述 action 的 `.catch` 一律改成記住異動前的值、失敗時回滾＋跳 `error` Toast；另外 `App.jsx` 開頭載入資料（各 store 的 `init()`）任一項失敗時，也會補一個需手動關閉的彙總 Toast，避免使用者以為「本來就沒資料」。同時新增 Toast 的 `warning` 類型（`AlertTriangle`／`text-warning`），供之後需要跟 `error`／`success` 區分的警示訊息使用
+- **修正狀態**：已修——新增共用的 `notifyError()`（`src/common/utils/toast.js`），上述 action 的 `.catch` 一律改成記住異動前的值、失敗時回滾＋跳 `error` Toast；另外 `App.jsx` 開頭載入資料（各 store 的 `init()`）任一項失敗時，也會補一個需手動關閉的彙總 Toast，避免使用者以為「本來就沒資料」。同時新增 Toast 的 `warning` 類型（`AlertTriangle`／`text-warning`），供之後需要跟 `error`／`success` 區分的警示訊息使用
 
 ### BUG-014：解散群組的退款邏輯用讀取時的舊成員名單，跟同時發生的退出/移除撞在一起會重複退款
 - **功能**：[我的群組（團主視角）流程](../flows/manage-groups-flow.md)，`POST /groups/:id/cancel`
@@ -372,7 +372,7 @@
 - **嚴重度**：P2
 - **來源**：code review（非手動測試觸發）
 - **重現方式**：檢視 `useGroupStore.js` 的 `getByHostId` selector
-- **預期結果**：全站列表排序邏輯應統一呼叫共用的 `byNewest`（`src/shared/utils/date.js`）
+- **預期結果**：全站列表排序邏輯應統一呼叫共用的 `byNewest`（`src/common/utils/date.js`）
 - **實際結果**：這處仍是逐字重複的 inline 版本 `(b.createdAt ?? '').localeCompare(a.createdAt ?? '')`，跟已抽出的共用函式重複
 - **推測原因**：抽出 `byNewest` 共用函式時漏改這一處呼叫端
 - **修正狀態**：已修（`7d80c08`）——改用 `.sort(byNewest)`

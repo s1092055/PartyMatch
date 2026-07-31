@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import PriceRangeAmount from '../../../../shared/ui/PriceRangeAmount'
+import PriceRangeAmount from '../../../../components/ui/PriceRangeAmount'
 import { Slider } from '../../../../components/ui/slider'
 import { formatPriceRangeLabel } from '../../utils/priceRangeLabel'
 import { PRICE_MIN, DEFAULT_PRICE_MAX, PRICE_MAX_CAP } from '../../utils/priceRangeDefaults'

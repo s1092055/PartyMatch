@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom'
 import { Pencil } from 'lucide-react'
-import { getServiceById } from '../../../shared/utils/serviceUtils'
-import ServiceLogo from '../../../shared/ui/ServiceLogo'
-import PriceRangeAmount from '../../../shared/ui/PriceRangeAmount'
+import { getServiceById } from '../../../common/utils/serviceUtils'
+import ServiceLogo from '../../../components/ui/ServiceLogo'
+import PriceRangeAmount from '../../../components/ui/PriceRangeAmount'
 import { formatPriceRangeLabel } from '../utils/priceRangeLabel'
 import { Card } from '../../../components/ui/card'
 

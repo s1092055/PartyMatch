@@ -1,9 +1,9 @@
 import { ArrowUpCircle, Banknote } from 'lucide-react'
 import { Avatar } from '../../../../components/ui/avatar'
-import EmptyState from '../../../../shared/ui/primitives/EmptyState'
-import EscrowStatusCard from '../../../../shared/ui/EscrowStatusCard'
-import TokenAmount from '../../../../shared/ui/TokenAmount'
-import { formatDateTime } from '../../../../shared/utils/date'
+import EmptyState from '../../../../components/ui/primitives/EmptyState'
+import EscrowStatusCard from '../../../../components/ui/EscrowStatusCard'
+import TokenAmount from '../../../../components/ui/TokenAmount'
+import { formatDateTime } from '../../../../common/utils/date'
 
 export function buildBillingPanel({ members, transactions, transactionsLoading }) {
   // release（撥款給團主本人）不屬於任何成員，獨立加總顯示在頂部摘要

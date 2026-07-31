@@ -1,9 +1,9 @@
 import { useNavigate } from 'react-router-dom'
 import { CheckCircle2 } from 'lucide-react'
 import { Button } from '../../../components/ui/button'
-import { useMemberStore } from '../../../shared/stores/useMemberStore'
-import { getServiceById } from '../../../shared/utils/serviceUtils'
-import { hasFilledServiceInfo, getServiceInfoSummary } from '../../../shared/utils/serviceInfoFields'
+import { useMemberStore } from '../../../common/stores/useMemberStore'
+import { getServiceById } from '../../../common/utils/serviceUtils'
+import { hasFilledServiceInfo, getServiceInfoSummary } from '../../../common/utils/serviceInfoFields'
 import { formatTime } from '../utils'
 
 const getMemberByUserAndGroup = (uid, gid) => useMemberStore.getState().getByUserAndGroup(uid, gid)
@@ -44,7 +44,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
       const iAlreadyFilled = isHost || (hasFilledServiceInfo(myMember?.serviceInfo, sharingMethod) && !myMember?.serviceInfoIssueNote)
       return (
         <div key={msg.id} className="flex justify-center">
-          <div className="w-72 rounded-2xl border border-line bg-white p-4 shadow-sm">
+          <div className="w-72 rounded-2xl border border-line bg-surface p-4 shadow-sm">
             <p className="mb-2 text-xs font-semibold text-ink-2">服務帳號填寫進度</p>
             <div className="space-y-2">
               {groupMembers.map(m => (
@@ -98,7 +98,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
         <div key={msg.id} className="flex justify-center">
           <div className="w-64 rounded-2xl border border-warning/30 bg-warning-subtle px-4 py-3 text-center shadow-sm">
             <p className="mb-2 text-xs font-semibold text-warning-text">服務帳號需要修正</p>
-            {msg.text && <p className="mb-3 rounded-lg bg-white/60 px-3 py-2 text-left text-xs text-ink-2">{msg.text}</p>}
+            {msg.text && <p className="mb-3 rounded-lg bg-surface/60 px-3 py-2 text-left text-xs text-ink-2">{msg.text}</p>}
             {alreadyFixed ? (
               <p className="flex items-center justify-center gap-1 text-xs font-semibold text-ink-3">
                 <CheckCircle2 size={13} /> 已重新填寫
@@ -172,7 +172,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
       </span>
       <div className="max-w-[70%]">
         <p className="mb-1 text-xs font-bold text-ink-3">{getMessageSenderName(msg)}</p>
-        <div className="w-fit rounded-2xl rounded-tl-md bg-white px-4 py-2.5 text-sm text-ink shadow-sm">
+        <div className="w-fit rounded-2xl rounded-tl-md bg-surface px-4 py-2.5 text-sm text-ink shadow-sm">
           {msg.text}
         </div>
         <p className="mt-1 text-xs text-ink-4">{formatTime(msg.createdAt)}</p>

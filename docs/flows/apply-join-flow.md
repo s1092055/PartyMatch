@@ -55,9 +55,9 @@ sequenceDiagram
 | `src/features/group/GroupDetailModal.jsx` | `canApply` 判斷、`handleApply`、`handleWithdraw` |
 | `src/features/group/components/ApplyModal.jsx` | 申請留言、同意條款、送出/成功畫面 |
 | `src/features/group/components/buildMobileFooter.jsx` | 未登入時導向登入頁；已登入且 `canApply` 時顯示「申請加入」按鈕 |
-| `src/shared/stores/useApplicationStore.js` | `create`、`withdraw`，成功後都會呼叫 `useAuthStore.refreshTokenBalance()` 同步餘額顯示 |
-| `src/shared/api/applicationsApi.js` | `insertApplication`、`deleteApplication` |
-| `src/shared/utils/toast.js` | PM 幣不足時的錯誤提示，含「前往儲值」action |
+| `src/common/stores/useApplicationStore.js` | `create`、`withdraw`，成功後都會呼叫 `useAuthStore.refreshTokenBalance()` 同步餘額顯示 |
+| `src/common/api/applicationsApi.js` | `insertApplication`、`deleteApplication` |
+| `src/common/utils/toast.js` | PM 幣不足時的錯誤提示，含「前往儲值」action |
 
 **後端**
 

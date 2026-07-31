@@ -1,6 +1,6 @@
 import { Users } from 'lucide-react'
-import EmptyState from '../../../../shared/ui/primitives/EmptyState'
-import { CENTERED_PANEL_BODY_CLASS } from '../../../../shared/ui/group/panelLayout'
+import EmptyState from '../../../../components/ui/primitives/EmptyState'
+import { CENTERED_PANEL_BODY_CLASS } from '../../../../components/ui/group/panelLayout'
 import ApplicationCard from './ApplicationCard'
 
 export function buildMemberHistoryPanel({ applications, groupFull, errors }) {

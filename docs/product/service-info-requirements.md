@@ -92,8 +92,8 @@
 
 上述分類已經落地成程式碼：
 
-- `src/shared/data/serviceCatalog.js` 每個 service 都加了 `sharingMethod` 欄位（`apple_family` / `google_family` / `email_invite` / `email_invite_with_address` / `invite_code` / `shared_credentials`），對應上面 A～F 六組分類。這個欄位只存在本地 catalog，不需要後端 schema 變更——`useServiceStore.init()` 合併 API 資料時是用 `{ ...local, ...apiService }` 的展開順序，後端回應沒有 `sharingMethod` 這個 key，所以不會覆蓋掉本地值
-- `src/shared/utils/serviceInfoFields.js` 是欄位設定的唯一來源：`SHARING_METHOD_CONFIG` 定義每種機制要收哪些欄位（含 type：`email`/`text`/`checkbox`）跟要顯示的提醒文案；`hasFilledServiceInfo(serviceInfo, sharingMethod)` 判斷是否已填妥；`getServiceInfoSummary(serviceInfo, sharingMethod)` 給聊天室訊息卡片、團主審核清單等處顯示單行摘要用
+- `src/common/data/serviceCatalog.js` 每個 service 都加了 `sharingMethod` 欄位（`apple_family` / `google_family` / `email_invite` / `email_invite_with_address` / `invite_code` / `shared_credentials`），對應上面 A～F 六組分類。這個欄位只存在本地 catalog，不需要後端 schema 變更——`useServiceStore.init()` 合併 API 資料時是用 `{ ...local, ...apiService }` 的展開順序，後端回應沒有 `sharingMethod` 這個 key，所以不會覆蓋掉本地值
+- `src/common/utils/serviceInfoFields.js` 是欄位設定的唯一來源：`SHARING_METHOD_CONFIG` 定義每種機制要收哪些欄位（含 type：`email`/`text`/`checkbox`）跟要顯示的提醒文案；`hasFilledServiceInfo(serviceInfo, sharingMethod)` 判斷是否已填妥；`getServiceInfoSummary(serviceInfo, sharingMethod)` 給聊天室訊息卡片、團主審核清單等處顯示單行摘要用
 - `MemberGroupView.jsx` 的「填寫服務帳號」表單讀 `sharingMethodConfig.fields` 動態渲染欄位（KKBOX 會多一個地址欄位、friDay影音欄位換成邀請碼、組 F 服務則是一個確認勾選框）
 - `MessageBubble.jsx`、`ActivateServiceModal.jsx`、`ReportServiceIssueModal.jsx`、`GroupDetailModal.jsx` 皆使用 `hasFilledServiceInfo`/`getServiceInfoSummary` 判斷與顯示服務帳號填寫狀態
 

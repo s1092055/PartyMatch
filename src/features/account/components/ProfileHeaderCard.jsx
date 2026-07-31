@@ -26,7 +26,7 @@ export default function ProfileHeaderCard({ user, onOpenCreditScore, onOpenRevie
           size="xl"
         />
         {user.isVerified && (
-          <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-white shadow">
+          <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-surface shadow">
             <CheckCircle2 size={18} className="text-brand" />
           </div>
         )}

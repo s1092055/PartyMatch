@@ -50,8 +50,10 @@ refreshToken 不放 MySQL，改存 Redis，key 是 `refresh:{userId}:{sessionId}
 
 三處輪詢（訊息列表、單一對話訊息、通知）共用同一個 `poller.js` 的 `startPolling(pollOnce, intervalMs)` helper，內部把 `isActive()` 傳給 callback，讓輪詢邏輯自己判斷「這次拿到的結果現在還要不要寫回畫面」——避免使用者中途登出，前一次還沒回來的請求把過期資料寫進已經清空的畫面。
 
-## 7. shared/ui 依用途分類
+## 7. `components/ui/` 依用途分類，且刻意合併成單一資料夾
 
-`shared/ui/` 分成 `primitives/`（不帶業務邏輯的通用元件，Button、Modal、Badge 這類）、`group/`（群組詳情 Modal 家族，團主跟成員視角共用）、其餘留在最外層（會用到業務概念但不專屬某個 Modal 家族的，例如 ServiceLogo、TokenAmount）。
+`src/components/ui/` 內部依用途分層：最外層是 shadcn/ui 風格純元件（Button、Dialog、Badge 這類，檔名 kebab-case）跟綁定業務概念的組合元件（TopupModal、ServiceLogo、TokenAmount 這類，檔名 PascalCase）並存；`primitives/` 放不帶業務邏輯、但 shadcn 沒有對應物的通用元件；`group/` 放群組詳情 Modal 家族專用元件（團主跟成員視角共用）。
 
-分類邊界看元件本身知不知道「群組」「PM幣」這些業務概念——不知道的算 primitive；知道但又不專屬某個 Modal 家族的，留在最外層，不硬塞進去湊乾淨。
+分類邊界看元件本身知不知道「群組」「PM幣」這些業務概念——不知道的算 primitive；知道但又不專屬某個 Modal 家族的，跟純元件放同一層，不硬塞進去湊乾淨。
+
+這個資料夾原本是 `components/ui/`（shadcn 純元件）跟 `shared/ui/`（業務組合元件）兩個各自獨立的頂層資料夾，設計原意是用資料夾位置強制區分「有沒有業務邏輯」。實際用起來發現這個區分對開發沒有實質幫助，兩個都叫 `ui` 反而在瀏覽專案結構時容易讓人誤以為是重複、沒整理乾淨——後來決定合併成一個資料夾，改用資料夾內部的命名慣例（kebab-case vs PascalCase）跟子資料夾（`primitives/`／`group/`）做同樣的區分，訊息量沒有減少，但少了一層容易造成混淆的頂層目錄。

@@ -1,5 +1,5 @@
 import { AlertTriangle } from 'lucide-react'
-import PageHeader from '../../shared/layout/PageHeader'
+import PageHeader from '../../common/layout/PageHeader'
 
 const ITEMS = [
   {

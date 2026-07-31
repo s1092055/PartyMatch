@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { ShieldAlert, Clock } from 'lucide-react'
-import { useGroupStore } from '../../../../shared/stores/useGroupStore'
-import { toast } from '../../../../shared/utils/toast'
+import { useGroupStore } from '../../../../common/stores/useGroupStore'
+import { toast } from '../../../../common/utils/toast'
 import { Card } from '../../../../components/ui/card'
 import { Button } from '../../../../components/ui/button'
 

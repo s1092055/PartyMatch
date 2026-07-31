@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { fetchOlderMessages } from '../../../shared/api/messagesApi'
+import { fetchOlderMessages } from '../../../common/api/messagesApi'
 
 export function useMessageScroll({ selectedId, messages }) {
   // 「回到最新訊息」按鈕：使用者往上捲動看舊訊息時顯示，並避免捲動容器處於非底部時
