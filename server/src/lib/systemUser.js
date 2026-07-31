@@ -54,12 +54,19 @@ const WELCOME_MESSAGE = '歡迎加入 PartyMatch！這裡是系統通知聊天�
 
 // 確保使用者的系統聊天室存在，不存在就建立並附上歡迎訊息——新註冊使用者一定會走到「建立」這條路；
 // 既有使用者的聊天室若因故被清空（例如測試環境用 clear-data 腳本清過 Conversation/Message，但保留了 User），
-// 下次登入呼叫這裡也會自動補回來，不需要重新註冊帳號
+// 下次登入呼叫這裡也會自動補回來，不需要重新註冊帳號。
+// 註冊當下呼叫這個函式是 fire-and-forget（不阻塞註冊回應），若那次呼叫途中失敗，會留下
+// 一筆「聊天室已建立、但從未成功附上歡迎訊息」的空殼紀錄——如果只檢查「聊天室存不存在」
+// 就直接回傳，之後每次登入都會一直找到這筆空殼、誤判成「已經處理過」而永遠不會補發歡迎訊息，
+// 所以這裡額外檢查 lastMessage，找到空殼時要主動補發，而不是略過
 export async function ensureSystemConversation(userId) {
   const existing = await prisma.conversation.findFirst({
     where: { type: 'system', participants: { array_contains: userId } },
   })
-  if (existing) return existing
+  if (existing) {
+    if (existing.lastMessage == null) await deliverSystemMessage(existing, WELCOME_MESSAGE)
+    return existing
+  }
 
   const conversation = await prisma.conversation.create({
     data: { type: 'system', participants: [userId] },
