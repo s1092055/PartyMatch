@@ -367,7 +367,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
         ) : !isCancelled && (
           <>
             {showRenewal && (
-              <GroupModalSideBarItem onClick={() => onOpenRenewal?.()}>
+              <GroupModalSideBarItem pinned onClick={() => onOpenRenewal?.()}>
                 <RefreshCw size={17} /> 續訂管理
               </GroupModalSideBarItem>
             )}
