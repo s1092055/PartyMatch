@@ -22,7 +22,6 @@ import LockGroupCredentialsModal from './LockGroupCredentialsModal'
 import { buildMembersPanel } from './hostGroupView/buildMembersPanel'
 import { buildApplicationsPanel } from './hostGroupView/buildApplicationsPanel'
 import { buildReviewHistoryPanel } from './hostGroupView/buildReviewHistoryPanel'
-import { buildMemberHistoryPanel } from './hostGroupView/buildMemberHistoryPanel'
 import { buildBillingPanel } from './hostGroupView/buildBillingPanel'
 import { buildMemberInfoPanel } from './hostGroupView/buildMemberInfoPanel'
 
@@ -33,7 +32,6 @@ export default function HostGroupView({ group, members, applications, onReportSe
   const [removingMember, setRemovingMember]               = useState(null)
   const [activePanel, setActivePanel]                     = useState(null) // 'members' | 'applications' | 'billing' | 'reviews' | null
   const [showReviewHistory, setShowReviewHistory]         = useState(false)
-  const [showMemberHistory, setShowMemberHistory]         = useState(false)
   const [showMemberReviews, setShowMemberReviews]         = useState(false)
   const [showLockGroupConfirm, setShowLockGroupConfirm] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm]         = useState(false)
@@ -270,18 +268,14 @@ export default function HostGroupView({ group, members, applications, onReportSe
   // 成員評價要群組真的啟用過才會有資料，招募/處理中階段成員根本還沒用服務、不可能有評價
   const hasBeenActive = ['active', 'ended'].includes(group.status)
 
-  // 審核紀錄／成員紀錄都要看得到成員最新的退出/移除狀態，點開當下重新拉一次申請資料，避免顯示舊快取
+  // 審核紀錄要看得到成員最新的退出/移除狀態，點開當下重新拉一次申請資料，避免顯示舊快取
   function openReviewHistory() {
     setShowReviewHistory(true)
     useApplicationStore.getState().init()
   }
-  function openMemberHistory() {
-    setShowMemberHistory(true)
-    useApplicationStore.getState().init()
-  }
 
   function buildSubPanel() {
-    if (activePanel === 'members') return buildMembersPanel({ group, members, setActivePanel, onClose, setRemovingMember, setShowMemberHistory: openMemberHistory, setShowMemberReviews: () => setShowMemberReviews(true), showMemberReviewsButton: hasBeenActive })
+    if (activePanel === 'members') return buildMembersPanel({ group, members, setActivePanel, onClose, setRemovingMember, setShowMemberReviews: () => setShowMemberReviews(true), showMemberReviewsButton: hasBeenActive })
     if (activePanel === 'applications') return buildApplicationsPanel({ pendingApps, groupFull, errors, onApprove, onReject, setActivePanel, setShowReviewHistory: openReviewHistory })
     if (activePanel === 'billing') return buildBillingPanel({ members, transactions, transactionsLoading })
     if (activePanel === 'memberInfo') {
@@ -300,14 +294,12 @@ export default function HostGroupView({ group, members, applications, onReportSe
   }
 
   const isReviewHistory = showReviewHistory && activePanel === 'applications'
-  const isMemberHistory = showMemberHistory && activePanel === 'members'
   const isMemberReviews = showMemberReviews && activePanel === 'members'
 
-  // 側邊欄一律視為「換到別的分頁」，一併離開審核紀錄／成員紀錄／成員評價，避免之後再點回申請管理時卡在裡面出不去
+  // 側邊欄一律視為「換到別的分頁」，一併離開審核紀錄／成員評價，避免之後再點回申請管理時卡在裡面出不去
   function goToPanel(panel) {
     setActivePanel(panel)
     setShowReviewHistory(false)
-    setShowMemberHistory(false)
     setShowMemberReviews(false)
   }
 
@@ -405,15 +397,14 @@ export default function HostGroupView({ group, members, applications, onReportSe
       }
       pendingBadgeColor={group.status === 'disputed' ? 'danger' : undefined}
       subPanel={activePanel ? buildSubPanel() : null}
-      onSubPanelBack={() => { setActivePanel(null); setShowReviewHistory(false); setShowMemberHistory(false); setShowMemberReviews(false) }}
+      onSubPanelBack={() => { setActivePanel(null); setShowReviewHistory(false); setShowMemberReviews(false) }}
       subSubPanel={
         isReviewHistory ? buildReviewHistoryPanel({ applications, groupFull, errors }) :
-        isMemberHistory ? buildMemberHistoryPanel({ applications, groupFull, errors }) :
         isMemberReviews ? { floatingBack: true, content: <div className="flex min-h-full flex-col"><HostReviews group={group} groupId={group.id} title="" centerEmpty /></div> } :
         null
       }
-      onSubSubPanelBack={() => { setShowReviewHistory(false); setShowMemberHistory(false); setShowMemberReviews(false) }}
-      panelKey={isReviewHistory ? 'reviewHistory' : isMemberHistory ? 'memberHistory' : isMemberReviews ? 'memberReviews' : activePanel ?? 'overview'}
+      onSubSubPanelBack={() => { setShowReviewHistory(false); setShowMemberReviews(false) }}
+      panelKey={isReviewHistory ? 'reviewHistory' : isMemberReviews ? 'memberReviews' : activePanel ?? 'overview'}
       sideBar={renderSideBar()}
     />
     )}
