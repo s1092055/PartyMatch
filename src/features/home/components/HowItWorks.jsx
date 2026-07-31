@@ -36,7 +36,7 @@ export default function HowItWorks() {
       </div>
 
       {/* 步驟列表 */}
-      <div className="mx-auto max-w-lg">
+      <div key={roleKey} className="mx-auto max-w-lg animate-step-slide-up">
         {role.steps.map(({ step, title, desc }, i) => (
           <div key={step} className="flex gap-4">
             {/* 左側：數字 + 連接線 */}

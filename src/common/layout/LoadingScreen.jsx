@@ -1,11 +1,31 @@
+import { useLayoutEffect, useRef, useState } from 'react'
 import logoUrl from '../../assets/Logo.svg'
 
 export default function LoadingScreen() {
+  const measureRef = useRef(null)
+  const [typewriterWidth, setTypewriterWidth] = useState(null)
+
+  useLayoutEffect(() => {
+    if (measureRef.current) setTypewriterWidth(measureRef.current.offsetWidth)
+  }, [])
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-canvas">
       <img src={logoUrl} alt="" className="h-14 w-14 animate-logo-bounce" />
-      <span className="animate-typewriter text-xl font-extrabold">
-        <span className="text-brand">Party</span><span className="text-ink">Match</span>
+      <span className="relative inline-block text-xl font-extrabold">
+        {/* 隱藏的量測副本：跟顯示文字同字型/字重，用來量出實際像素寬度餵給 CSS 動畫，
+            取代猜的 ch 單位或不是全瀏覽器都支援的 max-content 關鍵字動畫 */}
+        <span ref={measureRef} className="invisible absolute left-0 top-0 whitespace-nowrap" aria-hidden="true">
+          <span>Party</span><span>Match</span>
+        </span>
+        {typewriterWidth != null && (
+          <span
+            className="animate-typewriter block"
+            style={{ '--typewriter-width': `${typewriterWidth}px` }}
+          >
+            <span className="text-brand">Party</span><span className="text-ink">Match</span>
+          </span>
+        )}
       </span>
     </div>
   )

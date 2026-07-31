@@ -429,7 +429,7 @@
 
 @keyframes typewriter {
   from { width: 0; }
-  to   { width: max-content; }
+  to   { width: var(--typewriter-width, 10ch); }
 }
 
 @keyframes typewriterCaret {
@@ -442,12 +442,15 @@
   white-space: nowrap;
   vertical-align: bottom;
   border-right: 2px solid var(--color-brand);
-  /* 結束寬度改用 max-content（實際文字寬度）而不是猜的 10ch——"PartyMatch" 這幾個
-     字母寬度不平均，ch 是用「0」這個字元的寬度去估，跟粗體文字的實際寬度對不太起來，
-     不是被裁掉一點點就是留了一截空白，讓文字在外層置中容器裡看起來偏左 */
-  interpolate-size: allow-keywords;
+  /* 結束寬度用 LoadingScreen.jsx 量出來的實際像素寬度（--typewriter-width），
+     取代猜的 10ch 或 max-content 關鍵字。曾經改用 max-content 想解決 10ch 跟
+     實際文字寬度對不起來、置中會偏移的問題，但 max-content 是關鍵字，要搭配
+     interpolate-size: allow-keywords 才能讓 width 動畫平滑跑到這個值，這個屬性
+     目前只有 Chrome/Edge 支援，Safari（iOS）不支援時整段動畫直接失效、變成瞬間
+     跳到最終寬度，等於打字效果整個消失。改成量測出來的實際 px 數字（不是關鍵字）
+     動畫全瀏覽器都能正常跑，同時保留精準置中 */
   animation:
-    typewriter 2s steps(10, end) forwards,
+    typewriter 3.5s steps(10, end) forwards,
     typewriterCaret 0.75s step-end infinite;
 }
 

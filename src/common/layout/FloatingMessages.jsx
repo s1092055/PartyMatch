@@ -426,9 +426,8 @@ export default function FloatingMessages() {
 
         <DrawerFooter>
           <Button
-            variant="ghost"
             onClick={() => setOpen(false)}
-            className="w-full rounded-xl border border-line text-ink-3 hover:text-ink"
+            className="w-full rounded-xl"
           >
             關閉
           </Button>
