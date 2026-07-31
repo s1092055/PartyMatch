@@ -93,7 +93,6 @@ export function buildMobileFooter({
         <>
           <div className="flex items-center gap-2">
             <Button
-              variant="ink"
               size="lg"
               className="flex-1"
               onClick={onApplyClick}

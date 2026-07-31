@@ -110,7 +110,7 @@ export default function DesktopSidebar({
       <div className="fixed top-6 z-50 hidden flex-col items-stretch gap-2 lg:flex lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
         <button
           onClick={openNotify}
-          className="relative flex h-10 items-center gap-2 rounded-xl border border-line bg-surface px-4 text-sm font-bold text-ink-2 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand hover:text-white"
+          className="relative flex h-10 items-center gap-2 rounded-xl bg-brand px-4 text-sm font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand-hover"
           aria-label="通知"
         >
           <Bell size={16} strokeWidth={2} />
@@ -122,7 +122,7 @@ export default function DesktopSidebar({
           <button
             onClick={() => setTopupOpen(true)}
             aria-label="PM幣儲值"
-            className="flex h-10 items-center gap-2 rounded-xl border border-line bg-surface px-3 text-left text-ink shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand hover:text-white"
+            className="flex h-10 items-center gap-2 rounded-xl bg-brand px-3 text-left text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand-hover"
           >
             <TokenBadge className="shrink-0" />
             <span className="min-w-0 flex-1 truncate text-xs font-bold leading-none">
@@ -137,7 +137,7 @@ export default function DesktopSidebar({
         {loggedIn ? (
           <button
             onClick={openMessages}
-            className="relative flex h-10 items-center gap-2 rounded-xl border border-line bg-surface px-4 text-sm font-bold text-ink-2 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand hover:text-white"
+            className="relative flex h-10 items-center gap-2 rounded-xl bg-brand px-4 text-sm font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand-hover"
             aria-label="訊息"
           >
             <MessageSquare size={16} strokeWidth={2} />
@@ -150,7 +150,7 @@ export default function DesktopSidebar({
             aria-disabled="true"
             aria-label={`訊息，${LOCKED_MESSAGE}`}
             onClick={e => preventLockedAction(e)}
-            className="group/locked relative flex h-10 cursor-not-allowed items-center gap-2 rounded-xl border border-line bg-surface px-4 text-sm font-bold text-ink-2 opacity-40 shadow-sm"
+            className="group/locked relative flex h-10 cursor-not-allowed items-center gap-2 rounded-xl bg-brand px-4 text-sm font-bold text-white opacity-40 shadow-sm"
           >
             <MessageSquare size={16} strokeWidth={2} />
             訊息

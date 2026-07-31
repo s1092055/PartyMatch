@@ -429,7 +429,7 @@
 
 @keyframes typewriter {
   from { width: 0; }
-  to   { width: 10ch; }
+  to   { width: max-content; }
 }
 
 @keyframes typewriterCaret {
@@ -442,6 +442,10 @@
   white-space: nowrap;
   vertical-align: bottom;
   border-right: 2px solid var(--color-brand);
+  /* 結束寬度改用 max-content（實際文字寬度）而不是猜的 10ch——"PartyMatch" 這幾個
+     字母寬度不平均，ch 是用「0」這個字元的寬度去估，跟粗體文字的實際寬度對不太起來，
+     不是被裁掉一點點就是留了一截空白，讓文字在外層置中容器裡看起來偏左 */
+  interpolate-size: allow-keywords;
   animation:
     typewriter 1s steps(10, end) forwards,
     typewriterCaret 0.75s step-end infinite;

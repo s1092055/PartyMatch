@@ -165,13 +165,26 @@ export default function QuickMatchPage() {
     >
       <div className="h-full">
         {isResultStep ? (
-          <div
-            ref={scrollRef}
-            onScroll={handleContentScroll}
-            key={step}
-            className="h-full overflow-y-auto p-2 pt-6 pb-4 animate-step-slide-up [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          >
-            <Step4Results results={results} conditions={conditions} />
+          <div className="flex h-full flex-col">
+            <div className="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-3">
+              <div className="group relative min-w-0 min-h-0 flex-1">
+                <div
+                  ref={scrollRef}
+                  onScroll={handleContentScroll}
+                  key={step}
+                  className="h-full overflow-y-auto p-2 pt-6 pb-4 animate-step-slide-up [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                >
+                  <Step4Results results={results} />
+                </div>
+                <ScrollHint canScroll={canScroll} atBottom={atBottom} isScrolling={isScrolling} />
+              </div>
+              <div className="hidden shrink-0 self-stretch lg:block lg:mt-6 lg:mb-4 lg:w-px lg:bg-slate-200" />
+              <div className="hidden shrink-0 lg:block lg:min-h-0 lg:w-72">
+                <div className="h-full pt-6 pb-4">
+                  <MatchSummaryPanel conditions={conditions} filtersChosen />
+                </div>
+              </div>
+            </div>
           </div>
         ) : (
           <div className={`flex h-full flex-col ${step === 2 && !canScroll ? 'lg:justify-center' : ''}`}>

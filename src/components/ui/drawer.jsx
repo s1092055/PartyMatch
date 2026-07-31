@@ -98,7 +98,10 @@ export function DrawerContent({ className, children, ...props }) {
           data-snap-points={hasSnapPoints ? "" : undefined}
           className={cn(
             // Base.
-            "group/drawer-popup pointer-events-auto fixed z-[56] m-(--drawer-inset,0px) flex h-(--drawer-content-height) max-h-(--drawer-content-max-height,none) min-h-0 w-(--drawer-content-width,auto) transform-[translate3d(var(--translate-x,0px),var(--translate-y,0px),0)_scale(var(--stack-scale))] flex-col bg-surface text-sm text-ink shadow-2xl transition-[transform,height,opacity,filter] duration-450 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform outline-none select-none [interpolate-size:allow-keywords] data-[swipe-direction=down]:rounded-t-2xl data-[swipe-direction=down]:border-t data-[swipe-direction=left]:rounded-r-2xl data-[swipe-direction=left]:border-r data-[swipe-direction=right]:rounded-l-2xl data-[swipe-direction=right]:border-l data-[swipe-direction=up]:rounded-b-2xl data-[swipe-direction=up]:border-b",
+            // 進出場方向對應的邊框（border-t/r/l/b）只有 Tailwind 的寬度 utility，沒有帶顏色，
+            // 沒指定顏色時會落回 Tailwind reset 內建的預設灰色，深色模式下在深色背景上會顯得
+            // 像一條突兀的白邊，這裡統一補上 border-line 讓它照樣跟著主題色改變
+            "group/drawer-popup pointer-events-auto fixed z-[56] m-(--drawer-inset,0px) flex h-(--drawer-content-height) max-h-(--drawer-content-max-height,none) min-h-0 w-(--drawer-content-width,auto) transform-[translate3d(var(--translate-x,0px),var(--translate-y,0px),0)_scale(var(--stack-scale))] flex-col border-line bg-surface text-sm text-ink shadow-2xl transition-[transform,height,opacity,filter] duration-450 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform outline-none select-none [interpolate-size:allow-keywords] data-[swipe-direction=down]:rounded-t-2xl data-[swipe-direction=down]:border-t data-[swipe-direction=left]:rounded-r-2xl data-[swipe-direction=left]:border-r data-[swipe-direction=right]:rounded-l-2xl data-[swipe-direction=right]:border-l data-[swipe-direction=up]:rounded-b-2xl data-[swipe-direction=up]:border-b",
             // Nested.
             "data-nested-drawer-open:overflow-hidden data-nested-drawer-open:brightness-95",
             // Bleed.

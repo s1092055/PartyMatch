@@ -2,12 +2,11 @@ import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Compass, Search } from 'lucide-react'
 import { Button } from '../../../../components/ui/button'
-import MatchConditionBar from '../MatchConditionBar'
 import ExploreGroupCard from '../../../explore/components/ExploreGroupCard'
 import { useMemberStore } from '../../../../common/stores/useMemberStore'
 import { useAuthStore } from '../../../../common/stores/useAuthStore'
 
-export default function Step4Results({ results, conditions }) {
+export default function Step4Results({ results }) {
   const navigate = useNavigate()
   const activeUserId = useAuthStore(s => s.user?.id)
   const members = useMemberStore(s => s.members)
@@ -37,18 +36,15 @@ export default function Step4Results({ results, conditions }) {
   }
 
   return (
-    <div className="pt-2 pb-3 lg:pt-3 lg:pb-6">
-      <MatchConditionBar conditions={conditions} showEdit={false} />
-      <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {results.map((group, i) => (
-          <ExploreGroupCard
-            key={group.id}
-            group={group}
-            isMember={memberGroupIds.has(group.id)}
-            rank={i < 3 ? i + 1 : undefined}
-          />
-        ))}
-      </div>
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2">
+      {results.map((group, i) => (
+        <ExploreGroupCard
+          key={group.id}
+          group={group}
+          isMember={memberGroupIds.has(group.id)}
+          rank={i < 3 ? i + 1 : undefined}
+        />
+      ))}
     </div>
   )
 }

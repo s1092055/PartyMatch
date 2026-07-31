@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronRight, Compass, Search } from 'lucide-react'
+import { ChevronRight, Compass } from 'lucide-react'
 import { Button } from '../../components/ui/button'
 import logoUrl from '../../assets/Logo.svg'
 import { useAuthStore } from '../../common/stores/useAuthStore'
@@ -40,18 +40,10 @@ export default function HomePage() {
         <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-ink-3">
           共享訂閱媒合平台，整合尋找夥伴、送出申請、款項代管與即時溝通，讓您於單一平台完成所有流程。
         </p>
-        <div className="mx-auto mt-12 flex flex-wrap items-center justify-center gap-3">
+        <div className="mx-auto mt-12 flex items-center justify-center">
           <Button size="lg" className="px-8" onClick={() => navigate('/explore')}>
             <Compass size={16} />
             探索群組
-          </Button>
-          <Button
-            size="lg"
-            variant="secondary"
-            onClick={() => navigate('/quick-match')}
-          >
-            <Search size={16} />
-            快速搜尋
           </Button>
         </div>
       </section>

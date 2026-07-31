@@ -9,11 +9,11 @@ export default function FavoriteToggleButton({ isFav, onClick, heartSize = 18, c
       aria-label={isFav ? '取消收藏' : '加入收藏'}
       className={`grid shrink-0 place-items-center rounded-full border transition-colors ${
         isFav
-          ? 'border-red-100 bg-red-50 text-red-500'
-          : 'border-line-subtle text-ink-3 hover:border-red-100 hover:text-red-400'
+          ? 'border-danger/30 bg-danger-subtle text-danger'
+          : 'border-line-subtle text-ink-3 hover:border-danger/30 hover:text-danger'
       } ${className}`}
     >
-      <Heart size={heartSize} className={isFav ? 'fill-red-500' : ''} />
+      <Heart size={heartSize} className={isFav ? 'fill-danger' : ''} />
     </button>
   )
 }
