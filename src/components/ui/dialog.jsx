@@ -9,7 +9,7 @@ import { Button } from "./button"
 //   Dialog 換頁」的情境，例如群組詳情 → 啟用服務）
 const VARIANT_CONTENT = {
   default: 'max-w-5xl rounded-2xl bg-canvas shadow-2xl',
-  panel:   'max-w-md card p-0',
+  panel:   'max-w-md rounded-card border border-line bg-surface shadow-card p-0',
 }
 const VARIANT_Z = { default: 'z-[56]', panel: 'z-[65]' }
 
