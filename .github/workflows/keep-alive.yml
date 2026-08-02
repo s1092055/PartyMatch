@@ -1,0 +1,14 @@
+name: Keep Backend Alive
+
+# Render 免費方案的後端閒置 15 分鐘會休眠，喚醒約需 30 秒到 1 分鐘（見 README.md）。
+# 每 10 分鐘 ping 一次 /health，讓服務維持喚醒狀態，避免使用者遇到冷啟動延遲。
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -fsS --max-time 60 https://partymatch-api.onrender.com/health
