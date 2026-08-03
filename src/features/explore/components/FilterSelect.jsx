@@ -137,7 +137,7 @@ export default function FilterSelect({ id, group, value, onChange, groups, trigg
         onClick={() => (open ? close() : openList())}
         onKeyDown={onKeyDown}
         className={cn(
-          'flex items-center justify-between gap-1.5 rounded-lg border border-input bg-transparent py-2 pr-2 pl-2.5 text-sm whitespace-nowrap transition-[border-color,box-shadow] outline-none select-none focus:border-brand focus:ring-4 focus:ring-brand-subtle [-webkit-tap-highlight-color:transparent] data-[state=open]:rounded-b-none data-[state=open]:border-b-transparent',
+          'flex items-center justify-between gap-1.5 rounded-lg border border-input bg-transparent py-2 pr-2 pl-2.5 text-sm whitespace-nowrap transition-[border-color,box-shadow] outline-none select-none focus:border-brand focus:ring-4 focus:ring-brand-subtle [-webkit-tap-highlight-color:transparent] data-[state=open]:rounded-b-none data-[state=open]:border-b-transparent data-[state=open]:ring-0',
           className
         )}
       >

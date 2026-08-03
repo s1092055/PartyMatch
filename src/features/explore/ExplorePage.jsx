@@ -60,9 +60,13 @@ export default function ExplorePage() {
           description="試著調整篩選條件"
         />
       ) : (
-        // key={filters.category} 讓切換分類時整批卡片重新掛載，重播 slide-up 進場動畫，
-        // 而不是只有新出現的卡片才有動畫（同一個 group.id 在篩選前後都存在的卡片預設會被 React 直接重用）
-        <div key={filters.category} className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+        // key 用篩選條件（不含 q，避免打字時每個字都重播動畫）組成，任何一個篩選變動
+        // 都讓整批卡片重新掛載、重播 slide-up 進場動畫，而不是只有新出現的卡片才有動畫
+        // （同一個 group.id 在篩選前後都存在的卡片預設會被 React 直接重用，不會重新播放）
+        <div
+          key={`${filters.category}|${filters.service}|${filters.maxPrice}|${filters.sortBy}`}
+          className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3"
+        >
           {filtered.map((group, i) => (
             <RevealSection key={group.id} delay={Math.min(i * 60, 300)}>
               <ExploreGroupCard group={group} isApplied={appliedGroupIds.has(group.id)} isMember={memberGroupIds.has(group.id)} />
