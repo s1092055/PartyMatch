@@ -15,7 +15,7 @@ export default function CreditScoreBadge({ score, size = 'sm' }) {
 
   if (size === 'md') {
     return (
-      <span className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-sm font-bold ${bg} ${border} ${color}`}>
+      <span className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-bold ${bg} ${border} ${color}`}>
         {displayScore}
         <span className="text-xs font-normal opacity-70">{label}</span>
       </span>

@@ -37,7 +37,7 @@ export function buildMemberInfoPanel({ members, sharingMethod, sharedCredentials
     content: (
       <div className={`flex min-h-full flex-col ${CENTERED_PANEL_BODY_CLASS}`}>
         {sharingMethod === 'shared_credentials' && (
-          <div className="mb-3 rounded-xl border border-line bg-raised p-3">
+          <div className="mb-3 rounded-lg border border-line bg-raised p-3">
             <p className="mb-1 text-xs font-semibold text-ink-3">你提供給成員的帳號資訊</p>
             {parsedCredentials ? (
               <dl className="space-y-1">
@@ -66,7 +66,7 @@ export function buildMemberInfoPanel({ members, sharingMethod, sharedCredentials
               return (
                 <div
                   key={m.id}
-                  className={`relative rounded-xl border p-3 ${
+                  className={`relative rounded-lg border p-3 ${
                     m.serviceInfoIssueNote ? 'border-warning/40 bg-warning-subtle' : 'border-line'
                   }`}
                 >

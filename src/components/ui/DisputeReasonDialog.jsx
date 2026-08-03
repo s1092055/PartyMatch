@@ -18,7 +18,7 @@ export default function DisputeReasonDialog({ reporterName, reporterAvatarInitia
           </button>
         </div>
         <AlertDialogDescription asChild>
-          <div className="flex items-start gap-3 rounded-xl bg-raised p-3">
+          <div className="flex items-start gap-3 rounded-lg bg-raised p-3">
             <Avatar initial={reporterAvatarInitial} color={reporterAvatarColor} size="sm" />
             <div className="min-w-0 flex-1">
               {reporterName && (

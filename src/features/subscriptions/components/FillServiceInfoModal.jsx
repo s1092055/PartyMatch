@@ -1,6 +1,7 @@
 import { CheckCircle2, ClipboardEdit } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogCloseButton } from '../../../components/ui/dialog'
 import { Button } from '../../../components/ui/button'
+import { Input } from '../../../components/ui/input'
 import CredentialWatermark from '../../../components/ui/primitives/CredentialWatermark'
 import { getServiceInfoSummary } from '../../../common/utils/serviceInfoFields'
 import { parseHostCredentials } from '../../../common/utils/hostCredentialFields'
@@ -51,7 +52,7 @@ export default function FillServiceInfoModal({
             <label className="block text-xs text-ink-3 mb-1.5">團主提供的帳號資訊</label>
             {parsedCredentials ? (
               <CredentialWatermark viewerName={viewerName}>
-                <dl className="space-y-1 rounded-xl border border-line bg-raised px-3 py-2.5">
+                <dl className="space-y-1 rounded-lg border border-line bg-raised px-3 py-2.5">
                   {parsedCredentials.map(({ label, value }) => (
                     <div key={label} className="flex items-baseline gap-2 text-sm">
                       <dt className="shrink-0 text-ink-4">{label}</dt>
@@ -62,12 +63,12 @@ export default function FillServiceInfoModal({
               </CredentialWatermark>
             ) : group.sharedCredentials ? (
               <CredentialWatermark viewerName={viewerName}>
-                <p className="whitespace-pre-wrap rounded-xl border border-line bg-raised px-3 py-2.5 text-sm text-ink-2">
+                <p className="whitespace-pre-wrap rounded-lg border border-line bg-raised px-3 py-2.5 text-sm text-ink-2">
                   {group.sharedCredentials}
                 </p>
               </CredentialWatermark>
             ) : (
-              <p className="rounded-xl border border-dashed border-line px-3 py-2.5 text-sm text-ink-4">
+              <p className="rounded-lg border border-dashed border-line px-3 py-2.5 text-sm text-ink-4">
                 團主尚未提供帳號資訊，請先在群組聊天室詢問團主
               </p>
             )}
@@ -95,13 +96,12 @@ export default function FillServiceInfoModal({
           ) : (
             <div key={key}>
               <label className="block text-xs text-ink-3 mb-1.5">{label}</label>
-              <input
+              <Input
                 type={type}
                 value={fillValues[key] ?? ''}
                 onChange={e => setFillValues(prev => ({ ...prev, [key]: e.target.value }))}
                 placeholder={placeholder}
                 required
-                className="w-full rounded-xl border border-line px-3 py-2 text-sm focus:outline-none"
               />
             </div>
           )
@@ -109,7 +109,7 @@ export default function FillServiceInfoModal({
         <Button
           type="submit"
           disabled={!fillValid || fillLoading}
-          className="w-full rounded-xl"
+          className="w-full rounded-lg"
         >
           {fillLoading ? '送出中…' : '送出帳號資訊'}
         </Button>

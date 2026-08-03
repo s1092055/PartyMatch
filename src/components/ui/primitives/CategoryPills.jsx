@@ -16,7 +16,7 @@ export default function CategoryPills({ active, onChange, variant = 'pills', sho
             <button
               key={cat.value}
               onClick={() => onChange(cat.value)}
-              className={`flex shrink-0 w-20 flex-col items-center justify-center gap-1 rounded-xl py-3.5 text-xs font-bold transition-all md:w-full md:gap-2 md:py-4 ${
+              className={`flex shrink-0 w-20 flex-col items-center justify-center gap-1 rounded-lg py-3.5 text-xs font-bold transition-all md:w-full md:gap-2 md:py-4 ${
                 isActive
                   ? 'bg-raised text-ink md:scale-105'
                   : 'bg-transparent text-ink-2 hover:text-ink md:hover:scale-105 md:hover:bg-raised md:hover:text-ink'
@@ -47,7 +47,7 @@ export default function CategoryPills({ active, onChange, variant = 'pills', sho
             <button
               key={cat.value}
               onClick={() => onChange(cat.value)}
-              className={`flex w-full items-center gap-2.5 rounded-xl font-bold transition-colors ${
+              className={`flex w-full items-center gap-2.5 rounded-lg font-bold transition-colors ${
                 fullHeight ? 'flex-1 px-3 text-sm' : 'gap-2 px-2.5 py-2 text-xs'
               } ${
                 isActive
@@ -75,7 +75,7 @@ export default function CategoryPills({ active, onChange, variant = 'pills', sho
           <button
             key={cat.value}
             onClick={() => onChange(cat.value)}
-            className={`flex shrink-0 items-center gap-2 rounded-xl px-2.5 py-2 text-xs font-bold transition-colors ${
+            className={`flex shrink-0 items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-bold transition-colors ${
               isActive
                 ? 'bg-raised text-ink'
                 : 'bg-transparent text-ink-2 hover:bg-raised hover:text-ink'

@@ -44,7 +44,7 @@ export function buildBillingPanel({ members, transactions, transactionsLoading }
             {releasedTotal > 0 && (
               <EscrowStatusCard tone="success" icon={ArrowUpCircle} title="已撥款給你的代管總額" amount={releasedTotal} />
             )}
-            <div className="overflow-hidden rounded-xl border border-line">
+            <div className="overflow-hidden rounded-lg border border-line">
               {members.map((m, i) => {
                 const tx = latestEscrowByUserId[m.userId]
                 return (

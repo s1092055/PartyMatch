@@ -8,7 +8,7 @@ function HeroStatTile({ icon: Icon, iconClassName, label, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="flex flex-1 flex-col items-center justify-center gap-1.5 rounded-xl border border-line-subtle py-3 transition-all hover:-translate-y-0.5 hover:bg-raised md:w-24 md:flex-none"
+      className="flex flex-1 flex-col items-center justify-center gap-1.5 rounded-lg border border-line-subtle py-3 transition-all hover:-translate-y-0.5 hover:bg-raised md:w-24 md:flex-none"
     >
       <Icon size={22} strokeWidth={1.5} className={iconClassName ?? 'text-ink-3'} />
       <span className="text-xs font-bold text-ink-3">{label}</span>

@@ -67,7 +67,7 @@ export default function Step3Settings({ form, onChange }) {
           hint={`最多可開放 ${maxSeats - 1} 位成員加入（不含你自己）`}
           endAdornment={<span className="text-sm font-normal text-slate-400">最多 {maxSeats} 人共享</span>}
         >
-          <div className="flex w-full items-center justify-between gap-3 border border-slate-200 rounded-xl p-1">
+          <div className="flex w-full items-center justify-between gap-3 border border-slate-200 rounded-lg p-1">
             <button
               onClick={() => onChange('totalSeats', Math.max(2, form.totalSeats - 1))}
               className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-100 transition-colors disabled:opacity-30"
@@ -94,7 +94,7 @@ export default function Step3Settings({ form, onChange }) {
               <button
                 key={o.value}
                 onClick={() => onChange('minCreditScore', o.value)}
-                className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium transition-colors ${
+                className={`flex-1 py-2.5 rounded-lg border-2 text-sm font-medium transition-colors ${
                   (form.minCreditScore ?? 0) === o.value
                     ? 'border-brand bg-brand-subtle text-brand'
                     : 'border-slate-200 bg-surface text-slate-600 hover:border-slate-300'

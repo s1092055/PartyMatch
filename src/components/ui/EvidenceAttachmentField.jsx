@@ -8,7 +8,7 @@ export default function EvidenceAttachmentField({ label = '附件說明（選填
     <div>
       <label className="block text-xs text-ink-3 mb-1.5">{label}</label>
       {url ? (
-        <div className="flex w-full items-center gap-3 rounded-xl border border-line px-3 py-2.5">
+        <div className="flex w-full items-center gap-3 rounded-lg border border-line px-3 py-2.5">
           {isImageUrl(url) ? (
             <img src={url} alt={name} className="h-10 w-10 shrink-0 rounded-lg object-cover" />
           ) : (
@@ -25,7 +25,7 @@ export default function EvidenceAttachmentField({ label = '附件說明（選填
           </button>
         </div>
       ) : (
-        <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-line px-3 py-2.5 text-sm font-medium text-ink-3 transition-colors hover:border-brand/40 hover:text-brand">
+        <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-line px-3 py-2.5 text-sm font-medium text-ink-3 transition-colors hover:border-brand/40 hover:text-brand">
           <input type="file" onChange={onSelect} className="hidden" disabled={uploading} />
           <Paperclip size={16} />
           {uploading ? '上傳中…' : '新增附件'}

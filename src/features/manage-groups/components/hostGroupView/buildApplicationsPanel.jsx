@@ -29,7 +29,7 @@ export function buildApplicationsPanel({ pendingApps, groupFull, errors, onAppro
         <Button
           variant="ghost"
           onClick={() => setShowReviewHistory(true)}
-          className="absolute bottom-4 right-4 h-9 shrink-0 rounded-xl border border-line bg-canvas px-3"
+          className="absolute bottom-4 right-4 h-9 shrink-0 rounded-lg border border-line bg-canvas px-3"
         >
           <History size={14} strokeWidth={1.5} />
           審核紀錄

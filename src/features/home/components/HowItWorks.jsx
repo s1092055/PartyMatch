@@ -25,7 +25,7 @@ export default function HowItWorks() {
           <button
             key={key}
             onClick={() => setRoleKey(key)}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 px-3 text-sm font-bold transition-colors ${
+            className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 px-3 text-sm font-bold transition-colors ${
               roleKey === key ? 'bg-surface text-ink shadow-sm' : 'text-ink-3 hover:text-ink'
             }`}
           >

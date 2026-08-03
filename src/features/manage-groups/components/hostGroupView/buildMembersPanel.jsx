@@ -7,7 +7,7 @@ export function buildMembersPanel({ group, members, setActivePanel, onClose, set
     content: (
       <div className="relative min-h-full p-5 pb-16">
         <div className="space-y-2">
-          <div className="rounded-xl border border-line p-3">
+          <div className="rounded-lg border border-line p-3">
             <div className="flex items-center gap-3">
               <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="sm" />
               <div className="min-w-0 flex-1">
@@ -26,7 +26,7 @@ export function buildMembersPanel({ group, members, setActivePanel, onClose, set
           {members.map(m => {
             const removable = ['recruiting', 'full'].includes(group.status)
             return (
-              <div key={m.id} className="rounded-xl border border-line p-3">
+              <div key={m.id} className="rounded-lg border border-line p-3">
                 <div className="flex items-center gap-3">
                   <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
                   <div className="min-w-0 flex-1">
@@ -71,7 +71,7 @@ export function buildMembersPanel({ group, members, setActivePanel, onClose, set
           <Button
             variant="ghost"
             onClick={() => setShowMemberReviews(true)}
-            className="absolute bottom-4 right-4 h-9 shrink-0 rounded-xl border border-line bg-canvas px-3"
+            className="absolute bottom-4 right-4 h-9 shrink-0 rounded-lg border border-line bg-canvas px-3"
           >
             <Star size={14} strokeWidth={1.5} />
             成員評價

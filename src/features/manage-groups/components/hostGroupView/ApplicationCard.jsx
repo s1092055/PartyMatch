@@ -50,7 +50,7 @@ export default function ApplicationCard({ app, groupFull, error, onApprove, onRe
                 申請留言 {expanded ? <ChevronUp size={11} strokeWidth={1.5} /> : <ChevronDown size={11} strokeWidth={1.5} />}
               </button>
               {expanded && (
-                <p className="mt-1.5 rounded-xl bg-raised px-3 py-2 text-xs leading-relaxed text-ink-2">{app.message}</p>
+                <p className="mt-1.5 rounded-lg bg-raised px-3 py-2 text-xs leading-relaxed text-ink-2">{app.message}</p>
               )}
             </div>
           )}
@@ -61,14 +61,14 @@ export default function ApplicationCard({ app, groupFull, error, onApprove, onRe
                 variant="success"
                 onClick={() => onApprove(app.id)}
                 disabled={groupFull}
-                className="h-auto flex-1 rounded-xl py-2 text-xs"
+                className="h-auto flex-1 rounded-lg py-2 text-xs"
               >
                 {groupFull ? '已額滿' : <><Check size={12} strokeWidth={3} /> 接受</>}
               </Button>
               <Button
                 variant="ghost"
                 onClick={() => onReject(app.id)}
-                className="h-auto flex-1 rounded-xl border border-line py-2 text-xs hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                className="h-auto flex-1 rounded-lg border border-line py-2 text-xs hover:border-red-200 hover:bg-red-50 hover:text-red-600"
               >
                 <X size={12} strokeWidth={3} /> 拒絕
               </Button>

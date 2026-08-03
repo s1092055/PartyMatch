@@ -8,7 +8,7 @@ export function buildMembersSubPanel({ group, groupId, members, activeUserId, se
     icon: <Users size={18} className="text-brand" />,
     content: (
       <div className="p-5 space-y-2">
-        <div className="rounded-xl border border-line p-3">
+        <div className="rounded-lg border border-line p-3">
           <div className="flex items-center gap-3">
             <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="sm" />
             <div className="min-w-0 flex-1">
@@ -33,7 +33,7 @@ export function buildMembersSubPanel({ group, groupId, members, activeUserId, se
           {group.hostBio && <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-ink-3">{group.hostBio}</p>}
         </div>
         {members.filter(m => m.groupId === groupId).map(m => (
-          <div key={m.id} className="rounded-xl border border-line p-3">
+          <div key={m.id} className="rounded-lg border border-line p-3">
             <div className="flex items-center gap-3">
               <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
               <div className="min-w-0 flex-1">

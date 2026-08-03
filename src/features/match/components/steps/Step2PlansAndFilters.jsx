@@ -40,7 +40,7 @@ export default function Step2PlansAndFilters({ conditions, onChangePlan, onChang
         ))}
       </nav>
 
-      <div className="min-w-0 flex-1 space-y-8 rounded-xl bg-surface p-5">
+      <div className="min-w-0 flex-1 space-y-8 rounded-2xl bg-surface p-5">
         <div ref={plansRef}>
           <h2 className="mb-4 text-lg font-extrabold text-ink">選擇方案</h2>
           <Step2Plans conditions={conditions} onChangePlan={onChangePlan} />

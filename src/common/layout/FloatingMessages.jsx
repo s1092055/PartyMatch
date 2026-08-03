@@ -427,7 +427,7 @@ export default function FloatingMessages() {
         <DrawerFooter>
           <Button
             onClick={() => setOpen(false)}
-            className="w-full rounded-xl"
+            className="w-full rounded-lg"
           >
             關閉
           </Button>

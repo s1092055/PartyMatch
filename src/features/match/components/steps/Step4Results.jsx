@@ -26,7 +26,7 @@ export default function Step4Results({ results }) {
         <Button
           variant="ghost"
           onClick={() => navigate('/explore')}
-          className="mt-6 rounded-xl border border-line hover:border-brand/40 hover:text-brand"
+          className="mt-6 rounded-lg border border-line hover:border-brand/40 hover:text-brand"
         >
           <Compass size={14} />
           探索所有群組

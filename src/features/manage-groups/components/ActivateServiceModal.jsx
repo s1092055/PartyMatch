@@ -46,7 +46,7 @@ export default function ActivateServiceModal({
             <p className="font-bold text-ink">{group.serviceName}</p>
             <p className="text-xs text-ink-3">{group.planName}</p>
           </div>
-          <div className="rounded-xl bg-success-subtle px-3 py-1.5 text-right">
+          <div className="rounded-lg bg-success-subtle px-3 py-1.5 text-right">
             <p className="text-xs text-success-text">撥款金額</p>
             <p className="text-base font-extrabold text-success-text"><TokenAmount amount={group.escrowTokens} /></p>
           </div>
@@ -74,7 +74,7 @@ export default function ActivateServiceModal({
                   ) : members.map(m => (
                     <div
                       key={m.id}
-                      className={`rounded-xl border p-3 transition-colors ${
+                      className={`rounded-lg border p-3 transition-colors ${
                         m.serviceInfoIssueNote ? 'border-warning/40 bg-warning-subtle' :
                         memberChecks[m.id] ? 'border-brand/40 bg-brand-subtle' :
                         'border-line'
@@ -132,7 +132,7 @@ export default function ActivateServiceModal({
           <Button
             onClick={onConfirm}
             disabled={!allMembersChecked || !finalConfirmed}
-            className="flex-1 rounded-xl"
+            className="flex-1 rounded-lg"
           >確認啟用</Button>
         </DialogFooter>
       </DialogContent>

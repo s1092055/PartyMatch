@@ -87,7 +87,7 @@ export default function HomePage() {
           <Button
             size="lg"
             onClick={() => navigate(loggedIn ? '/explore' : '/register')}
-            className="mt-7 rounded-xl shadow"
+            className="mt-7 rounded-lg shadow"
           >
             {loggedIn ? '前往探索群組' : '免費建立帳號'}
             <ChevronRight size={15} strokeWidth={1.5} />

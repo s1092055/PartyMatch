@@ -8,7 +8,7 @@ const TONE_CLASSES = {
 export default function EscrowStatusCard({ tone, icon: Icon, title, subtitle, amount }) {
   const cls = TONE_CLASSES[tone] ?? TONE_CLASSES.info
   return (
-    <div className={`flex items-center gap-3 rounded-xl border ${cls.border} ${cls.bg} px-4 py-3`}>
+    <div className={`flex items-center gap-3 rounded-lg border ${cls.border} ${cls.bg} px-4 py-3`}>
       <Icon size={16} className={`shrink-0 ${cls.icon}`} />
       <div className="min-w-0 flex-1">
         <p className={`text-sm font-semibold ${cls.text}`}>{title}</p>

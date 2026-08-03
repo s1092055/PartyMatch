@@ -1,6 +1,7 @@
 import { AlertTriangle } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter, DialogCloseButton } from '../../../components/ui/dialog'
 import { Button } from '../../../components/ui/button'
+import { Textarea } from '../../../components/ui/input'
 import EvidenceAttachmentField from '../../../components/ui/EvidenceAttachmentField'
 
 const DISPUTE_REASON_OPTIONS = [
@@ -49,7 +50,7 @@ export default function DisputeModal({
             {DISPUTE_REASON_OPTIONS.map(option => (
               <label
                 key={option}
-                className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-line px-3 py-2 text-sm text-ink-2 transition-colors hover:border-brand/40"
+                className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-line px-3 py-2 text-sm text-ink-2 transition-colors hover:border-brand/40"
               >
                 <input
                   type="checkbox"
@@ -64,12 +65,11 @@ export default function DisputeModal({
         </div>
         <div>
           <label className="block text-xs text-ink-3 mb-1.5">補充說明（選填）</label>
-          <textarea
+          <Textarea
             value={disputeDetail}
             onChange={e => setDisputeDetail(e.target.value)}
             placeholder="請描述服務未正常啟用的具體情況..."
             rows={4}
-            className="w-full rounded-xl border border-line px-3 py-2 text-sm outline-none resize-none"
           />
         </div>
         <EvidenceAttachmentField
@@ -91,7 +91,7 @@ export default function DisputeModal({
             form="dispute-form"
             variant="destructive"
             disabled={disputeReasons.length === 0 || disputeLoading || evidenceUploading}
-            className="w-full rounded-xl"
+            className="w-full rounded-lg"
           >
             {disputeLoading ? '送出中…' : '送出回報'}
           </Button>

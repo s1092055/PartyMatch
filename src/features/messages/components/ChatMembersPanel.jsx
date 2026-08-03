@@ -26,7 +26,7 @@ export default function ChatMembersPanel({ open, selected, memberMap, userId, ge
           const avatarInitial = meta?.avatarInitial ?? member?.userAvatarInitial ?? cached?.avatarInitial ?? name[0] ?? '?'
           const avatarColor   = meta?.avatarColor   ?? member?.userAvatarColor   ?? cached?.avatarColor   ?? '#64748b'
           return (
-            <div key={pid} className="flex items-center gap-3 rounded-xl px-2 py-2">
+            <div key={pid} className="flex items-center gap-3 rounded-lg px-2 py-2">
               <span
                 className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-xs font-black text-white"
                 style={{ background: avatarColor }}

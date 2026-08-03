@@ -13,7 +13,7 @@ export default function GroupModalSideBarItem({ active, tone, pinned = false, on
     <button
       type="button"
       onClick={onClick}
-      className={`flex flex-1 flex-col items-center gap-1 rounded-xl py-2 text-2xs font-semibold transition-all hover:-translate-y-0.5 md:flex-none ${pinned ? 'md:mt-auto' : ''} ${toneCls} ${className}`}
+      className={`flex flex-1 flex-col items-center gap-1 rounded-lg py-2 text-2xs font-semibold transition-all hover:-translate-y-0.5 md:flex-none ${pinned ? 'md:mt-auto' : ''} ${toneCls} ${className}`}
     >
       {children}
     </button>

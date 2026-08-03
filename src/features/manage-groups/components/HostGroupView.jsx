@@ -187,19 +187,19 @@ export default function HostGroupView({ group, members, applications, onReportSe
           <Button
             variant="ghost"
             onClick={() => setShowLockGroupConfirm(false)}
-            className="rounded-xl border border-line"
+            className="rounded-lg border border-line"
           >取消</Button>
           <Button
             variant="ink"
             onClick={() => { setShowLockGroupConfirm(false); onLockGroup?.(undefined) }}
-            className="rounded-xl"
+            className="rounded-lg"
           >確認鎖定</Button>
         </div>
       ) : (
         <Button
           variant="ink"
           onClick={openLockFlow}
-          className="w-full rounded-xl shadow-md"
+          className="w-full rounded-lg shadow-md"
         >
           <LockKeyhole size={15} strokeWidth={1.5} /> 鎖定群組
         </Button>
@@ -256,7 +256,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
     <div className="py-2">
       <Button
         onClick={openActivate}
-        className="w-full rounded-xl shadow-md"
+        className="w-full rounded-lg shadow-md"
       >
         <PlayCircle size={15} /> 啟用服務
       </Button>

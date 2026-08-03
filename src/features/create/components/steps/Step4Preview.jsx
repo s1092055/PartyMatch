@@ -31,7 +31,7 @@ export default function Step4Preview({ form, agreedToTerms, onAgreeChange, onSho
 
   return (
     <div className="flex h-full min-h-0 flex-col lg:flex-row lg:items-start lg:gap-6">
-      <div className="flex h-full min-h-0 flex-1 flex-col bg-surface border border-slate-200 rounded-xl p-4">
+      <div className="flex h-full min-h-0 flex-1 flex-col bg-surface border border-slate-200 rounded-2xl p-4">
         <div className="flex shrink-0 items-center gap-3 mb-4 pb-4 border-b border-slate-100">
           <ServiceLogo serviceId={form.serviceId} size={44} className="shrink-0 border-line-strong" />
           <div className="min-w-0 flex-1">
@@ -84,7 +84,7 @@ export default function Step4Preview({ form, agreedToTerms, onAgreeChange, onSho
           </div>
         </div>
 
-        <label className="mt-4 flex shrink-0 cursor-pointer items-start gap-3 rounded-xl bg-canvas px-4 py-2.5">
+        <label className="mt-4 flex shrink-0 cursor-pointer items-start gap-3 rounded-lg bg-canvas px-4 py-2.5">
           <input
             type="checkbox"
             checked={agreedToTerms ?? false}

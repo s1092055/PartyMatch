@@ -116,27 +116,31 @@
 
   /* shadcn 生成的元件（如 Button 的 xs/sm 尺寸）用 --radius-sm/--radius-md
      組 arbitrary value（例如 min(var(--radius-md),10px)）。刻意不引入會連動
-     覆蓋 rounded-lg/xl/2xl 的通用 --radius，只針對這兩個尚未被既有系統佔用
+     覆蓋 rounded-lg/2xl 的通用 --radius，只針對這兩個尚未被既有系統佔用
      的名稱手動指定對應的既有 token。 */
-  --radius-sm: var(--radius-inner);
+  --radius-sm: var(--radius-control);
   --radius-md: var(--radius-control);
 
   /* ── Radius ──
-     注意：--radius-lg/xl/2xl 已經被全站既有元件大量使用（`rounded-lg`／`rounded-xl`
+     全站圓角只留 3 種規格＋rounded-full（不算在內，那是形狀而非圓角刻度）：
+     control（小型控制項：按鈕、輸入框、標籤、列表項）／2xl（中型容器：卡片、
+     面板、對話框內容）／card（最大型獨立版面：Dialog 主體、Card 元件）。
+     --radius-control／--radius-inner／--radius-lg 過去是三個數值相近但不同
+     （14px／14px／12px）的 token，現在統一收斂成同一個值，rounded-lg／
+     rounded-control／rounded-inner／rounded-md/sm 這些 class 名稱雖然不同，
+     視覺上都是同一種「小圓角」。
+     注意：--radius-lg/2xl 已經被全站既有元件大量使用（`rounded-lg`／`rounded-2xl`
      等 Tailwind utility），shadcn 官方 recipe 慣例會另外宣告一個 --radius 基準值，
      用 calc() 派生出 sm/md/lg/xl 四階並覆蓋這幾個既有名稱——這裡刻意不那樣做，
      避免全站既有元件的圓角被 shadcn 初始化一次性改掉。之後在階段 3 移植每個
      shadcn 元件時，改成逐一手動指定該元件該對應哪個既有 --radius-* token
      （例如 Button 用 --radius-control、Dialog 用 --radius-card），不要引入
-     會連動覆蓋 rounded-lg/xl/2xl 的通用 --radius 變數。 */
+     會連動覆蓋 rounded-lg/2xl 的通用 --radius 變數。 */
   --radius-card:    1.75rem;
-  --radius-panel:   1.5rem;
-  --radius-inner:   0.875rem;
-  --radius-control: 0.875rem;
+  --radius-inner:   0.75rem;
+  --radius-control: 0.75rem;
   --radius-badge:   9999px;
-  --radius-pill:    9999px;
   --radius-lg:      0.75rem;
-  --radius-xl:      1rem;
   --radius-2xl:     1.25rem;
 
   /* ── Type scale ── */

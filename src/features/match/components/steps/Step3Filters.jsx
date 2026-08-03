@@ -130,26 +130,30 @@ export default function Step3Filters({ conditions, onChange }) {
           disabled={isUnlimitedPrice}
         />
         <div className="mt-4 flex items-center justify-between gap-2">
-          <input
-            type="text"
-            inputMode="numeric"
-            placeholder="請輸入最低金額"
-            disabled={isUnlimitedPrice}
-            value={priceMinInput}
-            onChange={e => applyPriceMinInput(e.target.value.replace(/[^0-9]/g, ''))}
-            onBlur={e => commitPriceMinInput(e.target.value)}
-            className="w-36 rounded-lg border border-line bg-surface px-1.5 py-0.5 text-center text-xs text-ink-4 focus:outline-none disabled:opacity-50"
-          />
-          <input
-            type="text"
-            inputMode="numeric"
-            placeholder="請輸入最高上限"
-            disabled={isUnlimitedPrice}
-            value={priceMaxInput}
-            onChange={e => applyPriceScale(e.target.value.replace(/[^0-9]/g, ''))}
-            onBlur={e => commitPriceScaleInput(e.target.value)}
-            className="w-36 rounded-lg border border-line bg-surface px-1.5 py-0.5 text-center text-xs text-ink-4 focus:outline-none disabled:opacity-50"
-          />
+          <span className="w-36 rounded-lg border border-line bg-surface px-1.5 py-0.5 transition-[border-color,box-shadow] focus-within:border-brand focus-within:ring-4 focus-within:ring-brand-subtle has-[:disabled]:opacity-50">
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="請輸入最低金額"
+              disabled={isUnlimitedPrice}
+              value={priceMinInput}
+              onChange={e => applyPriceMinInput(e.target.value.replace(/[^0-9]/g, ''))}
+              onBlur={e => commitPriceMinInput(e.target.value)}
+              className="w-full bg-transparent text-center text-xs text-ink-4 outline-none"
+            />
+          </span>
+          <span className="w-36 rounded-lg border border-line bg-surface px-1.5 py-0.5 transition-[border-color,box-shadow] focus-within:border-brand focus-within:ring-4 focus-within:ring-brand-subtle has-[:disabled]:opacity-50">
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="請輸入最高上限"
+              disabled={isUnlimitedPrice}
+              value={priceMaxInput}
+              onChange={e => applyPriceScale(e.target.value.replace(/[^0-9]/g, ''))}
+              onBlur={e => commitPriceScaleInput(e.target.value)}
+              className="w-full bg-transparent text-center text-xs text-ink-4 outline-none"
+            />
+          </span>
         </div>
         <label className="mt-3 flex items-center gap-2 text-xs text-ink-4">
           <input
@@ -174,7 +178,7 @@ export default function Step3Filters({ conditions, onChange }) {
         <div className="mt-3 flex gap-2">
           <button
             onClick={() => onChange('minRating', 0)}
-            className={`flex-1 rounded-xl border-2 py-2.5 text-sm font-medium transition-colors ${
+            className={`flex-1 rounded-lg border-2 py-2.5 text-sm font-medium transition-colors ${
               conditions.minRating === 0
                 ? 'border-brand bg-brand-subtle text-brand'
                 : 'border-line bg-surface text-ink-2 hover:border-line-strong'
@@ -186,7 +190,7 @@ export default function Step3Filters({ conditions, onChange }) {
             <button
               key={r}
               onClick={() => onChange('minRating', r)}
-              className={`flex-1 rounded-xl border-2 py-2.5 text-sm font-medium transition-colors ${
+              className={`flex-1 rounded-lg border-2 py-2.5 text-sm font-medium transition-colors ${
                 activeRatingMark(conditions.minRating) === r
                   ? 'border-brand bg-brand-subtle text-brand'
                   : 'border-line bg-surface text-ink-2 hover:border-line-strong'
@@ -209,7 +213,7 @@ export default function Step3Filters({ conditions, onChange }) {
             <button
               key={opt.value}
               onClick={() => onChange('groupAge', opt.value)}
-              className={`rounded-xl border-2 px-3 py-2.5 text-sm font-medium transition-colors ${
+              className={`rounded-lg border-2 px-3 py-2.5 text-sm font-medium transition-colors ${
                 conditions.groupAge === opt.value
                   ? 'border-brand bg-brand-subtle text-brand'
                   : 'border-line bg-surface text-ink-2 hover:border-line-strong'

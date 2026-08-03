@@ -15,7 +15,7 @@ function renderCTA({
     </Button>
   )
   if (isHost) return (
-    <div className="flex items-center justify-center gap-2 rounded-xl bg-brand-subtle px-4 py-3 text-sm font-medium text-brand">
+    <div className="flex items-center justify-center gap-2 rounded-lg bg-brand-subtle px-4 py-3 text-sm font-medium text-brand">
       <ShieldCheck size={15} />你是此群組的團主
     </div>
   )
@@ -36,7 +36,7 @@ function renderCTA({
     </div>
   )
   if (isMember) return (
-    <div className="flex items-center justify-center gap-2 rounded-xl bg-success-subtle px-4 py-3 text-sm font-medium text-success-text">
+    <div className="flex items-center justify-center gap-2 rounded-lg bg-success-subtle px-4 py-3 text-sm font-medium text-success-text">
       <CheckCircle2 size={15} />已加入此群組
     </div>
   )

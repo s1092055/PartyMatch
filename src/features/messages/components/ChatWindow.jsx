@@ -134,7 +134,7 @@ export default function ChatWindow({
         {sendError && (
           <p className="mb-2 text-xs text-danger">傳送失敗，請稍後再試</p>
         )}
-        <div className={`flex items-center gap-3 rounded-2xl border bg-raised px-4 py-2 ${sendError ? 'border-danger' : 'border-line'}`}>
+        <div className={`flex items-center gap-3 rounded-2xl border bg-raised px-4 py-2 transition-[border-color,box-shadow] ${sendError ? 'border-danger' : 'border-line focus-within:border-brand focus-within:ring-4 focus-within:ring-brand-subtle'}`}>
           <input
             ref={inputRef}
             type="text"

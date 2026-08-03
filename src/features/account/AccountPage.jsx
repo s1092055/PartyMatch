@@ -138,7 +138,7 @@ export default function AccountPage() {
                 <li key={tab.value}>
                   <button
                     onClick={() => setActiveTab(tab.value)}
-                    className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold transition-colors ${
+                    className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-bold transition-colors ${
                       isActive
                         ? 'bg-brand-subtle text-brand'
                         : 'text-ink-2 hover:bg-raised hover:text-ink'

@@ -21,7 +21,7 @@ export default function Step2Plans({ conditions, onChangePlan }) {
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               <button
                 onClick={() => onChangePlan(serviceId, 'any')}
-                className={`rounded-xl border-2 px-4 py-2.5 text-left transition-colors ${
+                className={`rounded-lg border-2 px-4 py-2.5 text-left transition-colors ${
                   selected === 'any'
                     ? 'border-brand bg-brand-subtle text-brand'
                     : 'border-line bg-surface text-ink-2 hover:border-line-strong'
@@ -36,7 +36,7 @@ export default function Step2Plans({ conditions, onChangePlan }) {
                   <button
                     key={plan.name}
                     onClick={() => onChangePlan(serviceId, plan.name)}
-                    className={`rounded-xl border-2 px-4 py-2.5 text-left transition-colors ${
+                    className={`rounded-lg border-2 px-4 py-2.5 text-left transition-colors ${
                       selected === plan.name
                         ? 'border-brand bg-brand-subtle text-brand'
                         : 'border-line bg-surface text-ink-2 hover:border-line-strong'

@@ -44,7 +44,7 @@ export default function FeatureCards() {
                   <p className="mt-3 text-center text-base leading-relaxed text-ink-3 md:text-left">{desc}</p>
                   <Button
                     onClick={() => handleAction(action)}
-                    className="mt-6 w-fit rounded-xl shadow-sm"
+                    className="mt-6 w-fit rounded-lg shadow-sm"
                   >
                     {cta}
                     <ChevronRight size={14} strokeWidth={1.5} />

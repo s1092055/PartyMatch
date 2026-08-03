@@ -1,6 +1,7 @@
 import { LockKeyhole } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogCloseButton } from '../../../components/ui/dialog'
 import { Button } from '../../../components/ui/button'
+import { Input } from '../../../components/ui/input'
 import { getHostCredentialFields, CREDENTIAL_RISK_NOTICE } from '../../../common/utils/hostCredentialFields'
 
 // 鎖定群組時，官方無多人邀請機制的服務改成填這個結構化表單（取代原本的自由文字 textarea），
@@ -36,13 +37,12 @@ export default function LockGroupCredentialsModal({ isOpen, onClose, serviceId, 
         {config.fields.map(({ key, label, placeholder }) => (
           <div key={key}>
             <label className="block text-xs text-ink-3 mb-1.5">{label}</label>
-            <input
+            <Input
               type="text"
               value={values[key] ?? ''}
               onChange={e => setValues(prev => ({ ...prev, [key]: e.target.value }))}
               placeholder={placeholder}
               required
-              className="w-full rounded-xl border border-line px-3 py-2 text-sm focus:outline-none"
             />
           </div>
         ))}
@@ -50,7 +50,7 @@ export default function LockGroupCredentialsModal({ isOpen, onClose, serviceId, 
           type="submit"
           variant="ink"
           disabled={!valid || loading}
-          className="w-full rounded-xl"
+          className="w-full rounded-lg"
         >
           {loading ? '鎖定中…' : '確認鎖定群組'}
         </Button>

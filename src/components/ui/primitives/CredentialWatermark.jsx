@@ -5,7 +5,7 @@ export default function CredentialWatermark({ viewerName, children }) {
   const stamp = `${viewerName ?? '使用者'} · ${new Date().toLocaleString('zh-TW', { hour12: false })}`
 
   return (
-    <div className="relative overflow-hidden rounded-xl">
+    <div className="relative overflow-hidden rounded-lg">
       {children}
       <div
         aria-hidden

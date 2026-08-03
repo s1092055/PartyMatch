@@ -12,7 +12,7 @@ export default function MatchSummaryPanel({ conditions, filtersChosen, onRemoveS
   const isEmpty = services.length === 0
 
   return (
-    <div className="flex h-full flex-col gap-5 rounded-xl bg-surface p-5">
+    <div className="flex h-full flex-col gap-5 rounded-2xl bg-surface p-5">
       <div className="flex shrink-0 items-center gap-2">
         <Sliders size={15} className="text-ink-4" />
         <span className="text-sm font-semibold text-ink-2">你選擇的內容</span>

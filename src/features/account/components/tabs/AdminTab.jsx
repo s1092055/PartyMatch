@@ -4,6 +4,7 @@ import { useGroupStore } from '../../../../common/stores/useGroupStore'
 import { toast } from '../../../../common/utils/toast'
 import { Card } from '../../../../components/ui/card'
 import { Button } from '../../../../components/ui/button'
+import { Textarea } from '../../../../components/ui/input'
 
 function isOverdue(group) {
   return !!group.disputeDeadline && new Date(group.disputeDeadline) <= new Date()
@@ -63,7 +64,7 @@ export default function AdminTab() {
               <select
                 value={groupId}
                 onChange={e => setGroupId(e.target.value)}
-                className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:outline-none"
+                className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-brand focus:ring-4 focus:ring-brand-subtle"
                 required
               >
                 <option value="">-- 選擇群組 --</option>
@@ -96,12 +97,11 @@ export default function AdminTab() {
 
             <div>
               <label className="text-xs font-semibold text-ink-3 mb-1 block">裁定說明</label>
-              <textarea
+              <Textarea
                 value={reason}
                 onChange={e => setReason(e.target.value)}
                 rows={3}
                 placeholder="請填寫裁定原因及說明..."
-                className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink resize-none outline-none"
                 required
               />
             </div>
@@ -110,7 +110,7 @@ export default function AdminTab() {
               type="submit"
               variant="destructive"
               disabled={loading || !groupId || !reason.trim()}
-              className="rounded-xl"
+              className="rounded-lg"
             >
               {loading ? '處理中...' : '送出裁定'}
             </Button>

@@ -55,7 +55,7 @@ export default function ManageGroupsPage() {
           variant="ghost"
           onClick={() => setHistoryOpen(true)}
           aria-label="群組紀錄"
-          className="h-9 shrink-0 rounded-xl border border-line px-3"
+          className="h-9 shrink-0 rounded-lg border border-line px-3"
         >
           <Archive size={14} strokeWidth={1.5} />
           群組紀錄

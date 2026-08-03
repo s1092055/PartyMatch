@@ -40,7 +40,7 @@ export default function Step1Services({ conditions, onToggle }) {
                   onToggle(service.id)
                 }
               }}
-              className={`relative flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 p-4 text-center transition-all ${
+              className={`relative flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 p-4 text-center transition-all ${
                 active
                   ? 'border-brand bg-brand-subtle'
                   : 'border-line bg-surface hover:border-brand-border hover:bg-brand-subtle/40'

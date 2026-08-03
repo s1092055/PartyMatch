@@ -171,7 +171,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
     <div className="py-2">
       <Button
         onClick={() => { setFillValues(myMember?.serviceInfo ?? {}); setShowFillInfo(true) }}
-        className="w-full rounded-xl shadow-md"
+        className="w-full rounded-lg shadow-md"
       >
         <ClipboardEdit size={15} /> 填寫帳號
       </Button>
@@ -184,14 +184,14 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
         variant="success"
         onClick={() => setConfirmDialog(true)}
         disabled={confirmLoading}
-        className="rounded-xl shadow-md"
+        className="rounded-lg shadow-md"
       >
         <ThumbsUp size={15} /> 確認服務
       </Button>
       <Button
         variant="ghost"
         onClick={() => { resetDisputeForm(); setShowDispute(true) }}
-        className="rounded-xl border border-danger text-danger hover:bg-danger-subtle"
+        className="rounded-lg border border-danger text-danger hover:bg-danger-subtle"
       >
         <AlertTriangle size={14} /> 回報問題
       </Button>
@@ -203,7 +203,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
       return {
         content: (
           <div className="p-5 space-y-2">
-            <div className="rounded-xl border border-line p-3">
+            <div className="rounded-lg border border-line p-3">
               <div className="flex items-center gap-3">
                 <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="sm" />
                 <div className="min-w-0 flex-1">
@@ -233,7 +233,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
               </div>
             </div>
             {members.filter(m => m.userId !== currentUser?.id).map(m => (
-              <div key={m.id} className="rounded-xl border border-line p-3">
+              <div key={m.id} className="rounded-lg border border-line p-3">
                 <div className="flex items-center gap-3">
                   <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
                   <div className="min-w-0 flex-1">
@@ -259,7 +259,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
               </div>
             ))}
             {myMember && (
-              <div className="rounded-xl border border-line p-3">
+              <div className="rounded-lg border border-line p-3">
                 <div className="flex items-center gap-3">
                   <Avatar initial={myMember.userAvatarInitial} color={myMember.userAvatarColor} size="sm" />
                   <div className="min-w-0 flex-1">

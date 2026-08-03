@@ -156,7 +156,7 @@ export default function TopupModal({ isOpen, onClose }) {
           )
         ) : (
           <div className="flex flex-col gap-5 px-5 py-4">
-            <div className="flex items-center justify-between rounded-xl bg-brand-subtle px-4 py-3">
+            <div className="flex items-center justify-between rounded-lg bg-brand-subtle px-4 py-3">
               <span className="text-sm font-medium text-brand">目前餘額</span>
               <div className="flex items-center gap-1.5">
                 <TokenBadge />
@@ -171,7 +171,7 @@ export default function TopupModal({ isOpen, onClose }) {
                   <button
                     key={amt}
                     onClick={() => selectPreset(amt)}
-                    className={`rounded-xl border py-3 text-sm font-bold transition-colors ${
+                    className={`rounded-lg border py-3 text-sm font-bold transition-colors ${
                       selected === amt
                         ? 'border-brand bg-brand text-white'
                         : 'border-line bg-surface text-ink hover:border-brand hover:text-brand'
@@ -188,12 +188,12 @@ export default function TopupModal({ isOpen, onClose }) {
 
             <div>
               <p className="mb-2.5 text-xs font-medium text-ink-3">或自行輸入金額</p>
-              <div className={`flex items-center gap-2 rounded-xl border px-4 py-3 transition-colors ${
+              <div className={`flex items-center gap-2 rounded-lg border px-4 py-3 transition-[border-color,box-shadow] focus-within:ring-4 focus-within:ring-brand-subtle ${
                 customAmount && !customAmountValid
                   ? 'border-danger'
                   : customAmountValid
                     ? 'border-brand'
-                    : 'border-line'
+                    : 'border-line focus-within:border-brand'
               }`}>
                 <TokenBadge className="shrink-0" />
                 <input
@@ -231,7 +231,7 @@ export default function TopupModal({ isOpen, onClose }) {
             </div>
             <button
               onClick={() => setShowHistory(true)}
-              className="flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-medium text-ink-4 transition-colors hover:bg-raised hover:text-ink"
+              className="flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium text-ink-4 transition-colors hover:bg-raised hover:text-ink"
             >
               <Clock size={13} />
               查看交易紀錄

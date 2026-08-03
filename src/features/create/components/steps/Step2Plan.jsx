@@ -38,13 +38,13 @@ export default function Step2Plan({ form, onChange }) {
   return (
     <div className="space-y-5 pb-1">
       <Field label="服務說明" icon={Package}>
-        <div className="rounded-xl bg-canvas p-3.5">
+        <div className="rounded-lg bg-canvas p-3.5">
           <p className="text-sm leading-relaxed text-ink-2">{service?.description ?? '尚未選擇服務'}</p>
         </div>
       </Field>
 
       <Field label="填寫服務資訊注意事項" icon={Info}>
-        <div className="rounded-xl bg-canvas p-3.5">
+        <div className="rounded-lg bg-canvas p-3.5">
           <p className="text-sm leading-relaxed text-ink-2">{serviceInfoNotice}</p>
         </div>
       </Field>
@@ -73,7 +73,7 @@ export default function Step2Plan({ form, onChange }) {
               <button
                 type="button"
                 onClick={() => selectPlanAt(activeIndex)}
-                className={`flex min-h-40 min-w-0 flex-1 items-center justify-center self-stretch rounded-xl border-2 px-4 text-base transition-all ${
+                className={`flex min-h-40 min-w-0 flex-1 items-center justify-center self-stretch rounded-lg border-2 px-4 text-base transition-all ${
                   isPlanSelected ? 'border-brand/40 text-brand' : 'border-slate-200 text-slate-600'
                 }`}
               >
@@ -101,7 +101,7 @@ export default function Step2Plan({ form, onChange }) {
                 </div>
               </button>
             ) : (
-              <div className="flex min-h-40 flex-1 items-center justify-center self-stretch rounded-xl border-2 border-slate-200 px-4 text-sm text-slate-400">
+              <div className="flex min-h-40 flex-1 items-center justify-center self-stretch rounded-lg border-2 border-slate-200 px-4 text-sm text-slate-400">
                 尚無可選方案
               </div>
             )}
@@ -118,7 +118,7 @@ export default function Step2Plan({ form, onChange }) {
           </div>
 
           {/* 右：方案說明，全部內容直接顯示，不內部捲動 */}
-          <div className="mt-4 min-w-0 flex-1 rounded-xl bg-canvas p-3.5 md:mt-0">
+          <div className="mt-4 min-w-0 flex-1 rounded-lg bg-canvas p-3.5 md:mt-0">
             {(currentPlan?.features?.length ?? 0) > 0 ? (
               <ul className="space-y-1.5">
                 {currentPlan.features.map((feat, i) => (

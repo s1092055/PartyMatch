@@ -50,7 +50,7 @@ export default function CreditScoreModal({ isOpen, onClose }) {
                 </div>
                 <div>
                   <p className="mb-2.5 text-xs font-medium text-ink-3">分數如何計算</p>
-                  <div className="divide-y divide-line-subtle rounded-xl border border-line">
+                  <div className="divide-y divide-line-subtle rounded-lg border border-line">
                     {RULES.map(rule => (
                       <div key={rule.label} className="flex items-center justify-between px-4 py-3 text-sm">
                         <span className="text-ink-2">{rule.label}</span>
@@ -70,7 +70,7 @@ export default function CreditScoreModal({ isOpen, onClose }) {
             <Button onClick={handleClose} className="w-full">關閉</Button>
             <button
               onClick={() => setShowHistory(true)}
-              className="flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-medium text-ink-4 transition-colors hover:bg-raised hover:text-ink"
+              className="flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium text-ink-4 transition-colors hover:bg-raised hover:text-ink"
             >
               <Clock size={13} /> 查看信用分數紀錄
             </button>

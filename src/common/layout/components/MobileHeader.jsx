@@ -89,7 +89,7 @@ export default function MobileHeader({
           </div>
 
           <div className="mb-4 flex justify-center">
-            <div className="inline-flex items-center gap-2 rounded-xl bg-raised px-4 py-2.5">
+            <div className="inline-flex items-center gap-2 rounded-lg bg-raised px-4 py-2.5">
               <TokenBadge className="shrink-0" />
               <span className="text-sm font-bold text-ink">{tokenBalance.toLocaleString()} PM</span>
               <Button
