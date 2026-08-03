@@ -75,6 +75,7 @@ export default function RegisterPage() {
           placeholder="請輸入顯示名稱"
           value={form.name}
           onChange={value => updateField('name', value)}
+          hint="1～50 字，可使用中文、英文或數字"
         />
         <AuthInput
           icon={Mail}
@@ -84,6 +85,7 @@ export default function RegisterPage() {
           placeholder="請輸入電子郵件"
           value={form.email}
           onChange={value => updateField('email', value)}
+          hint="需符合信箱格式，例如 name@example.com"
           trailing={(
             <VerifyTrailingButton
               verified={emailVerified}
@@ -98,6 +100,7 @@ export default function RegisterPage() {
           onCountryCodeChange={value => updateField('phoneCountryCode', value)}
           value={form.phoneLocal}
           onChange={value => updateField('phoneLocal', value)}
+          hint="請輸入不含國碼、開頭 0 的手機號碼，例如 912345678"
           trailing={(
             <VerifyTrailingButton
               verified={phoneVerified}
@@ -114,6 +117,7 @@ export default function RegisterPage() {
           placeholder="請輸入密碼"
           value={form.password}
           onChange={value => updateField('password', value)}
+          hint="至少 6 碼"
           trailing={<PasswordToggle visible={showPassword} onClick={() => setShowPassword(v => !v)} />}
         />
         <AuthInput
@@ -124,6 +128,7 @@ export default function RegisterPage() {
           placeholder="請再次輸入密碼"
           value={form.confirmPassword}
           onChange={value => updateField('confirmPassword', value)}
+          hint="需與上方密碼一致"
           trailing={<PasswordToggle visible={showConfirmPassword} onClick={() => setShowConfirmPassword(v => !v)} />}
         />
 

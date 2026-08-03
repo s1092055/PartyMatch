@@ -24,7 +24,7 @@ export default function AuthLayout({ children, backTo = '/' }) {
   )
 }
 
-export function AuthInput({ icon: Icon, label, value, onChange, trailing, ...props }) {
+export function AuthInput({ icon: Icon, label, value, onChange, trailing, hint, ...props }) {
   return (
     <label className="block">
       <span className="mb-2 block text-sm font-extrabold text-ink">{label}</span>
@@ -38,11 +38,12 @@ export function AuthInput({ icon: Icon, label, value, onChange, trailing, ...pro
         />
         {trailing}
       </span>
+      {hint && <span className="mt-1.5 block text-xs font-medium text-ink-4">{hint}</span>}
     </label>
   )
 }
 
-export function PhoneInput({ label, countryCode, onCountryCodeChange, value, onChange, trailing }) {
+export function PhoneInput({ label, countryCode, onCountryCodeChange, value, onChange, trailing, hint }) {
   return (
     <label className="block">
       <span className="mb-2 block text-sm font-extrabold text-ink">{label}</span>
@@ -69,6 +70,7 @@ export function PhoneInput({ label, countryCode, onCountryCodeChange, value, onC
         />
         {trailing}
       </span>
+      {hint && <span className="mt-1.5 block text-xs font-medium text-ink-4">{hint}</span>}
     </label>
   )
 }
