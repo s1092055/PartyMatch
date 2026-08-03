@@ -42,7 +42,7 @@ export function AuthInput({ icon: Icon, label, value, onChange, trailing, ...pro
   )
 }
 
-export function PhoneInput({ label, countryCode, onCountryCodeChange, value, onChange }) {
+export function PhoneInput({ label, countryCode, onCountryCodeChange, value, onChange, trailing }) {
   return (
     <label className="block">
       <span className="mb-2 block text-sm font-extrabold text-ink">{label}</span>
@@ -67,6 +67,7 @@ export function PhoneInput({ label, countryCode, onCountryCodeChange, value, onC
           onChange={e => onChange(e.target.value.replace(/[^0-9]/g, ''))}
           className="h-full flex-1 bg-transparent text-base font-medium text-ink outline-none placeholder:text-ink-4"
         />
+        {trailing}
       </span>
     </label>
   )
