@@ -41,10 +41,6 @@ R2_SECRET_ACCESS_KEY=
 R2_BUCKET_NAME=
 R2_PUBLIC_URL=
 
-# Stripe（已安裝 SDK，尚未串接實際扣款邏輯）
-STRIPE_SECRET_KEY=
-STRIPE_WEBHOOK_SECRET=
-
 # 伺服器 port（預設 3001）
 PORT=3001
 CLIENT_ORIGIN=http://localhost:5173
@@ -159,7 +155,7 @@ zip -r partymatch.zip . \
 |------|------|----------|
 | Google OAuth | 前端「以 Google 繼續」按鈕目前直接 `disabled` 並標示「即將推出」，沒有任何 click handler 或後端 route，需從頭實作後端 OAuth 流程 | `LoginPage.jsx`、`RegisterPage.jsx` |
 | 重設密碼寄信 | 前端表單目前直接 `disabled` 並標示「即將推出」，沒有對應的後端 route，需串接 email 服務 | `ForgotPasswordPage.jsx` |
-| 手機號碼簡訊驗證 | 註冊時手機號碼僅做格式驗證，未確認是否為本人持有，需串接簡訊 OTP 服務 | `RegisterPage.jsx`、`server/src/routes/auth.js` |
+| 信箱／手機號碼真實驗證 | 註冊頁信箱、手機號碼輸入框已有「驗證」按鈕與驗證碼 Modal（`VerifyCodeModal.jsx`），未驗證通過無法送出註冊表單，但後端尚未接信箱/簡訊發送服務，驗證碼目前固定為 `123456`（模擬完整互動流程，之後接上真的發送服務時只需替換驗證邏輯本身） | `RegisterPage.jsx`、`components/VerifyCodeModal.jsx`、`server/src/routes/auth.js` |
 
 ### 中優先度
 
@@ -172,8 +168,8 @@ zip -r partymatch.zip . \
 
 | 項目 | 說明 |
 |------|------|
-| 正式金流串接 | 已安裝 Stripe SDK（`server/package.json`）與對應環境變數，尚未串接實際扣款邏輯，取代目前模擬儲值 |
+| 正式金流串接 | 尚未安裝任何金流 SDK，目前儲值/付款/代管撥款皆為平台內模擬邏輯，未來要接上真實金流服務（如 Stripe）才能取代 |
 | WebSocket 取代輪詢 | 訊息中心目前每 5 秒 polling，WebSocket 可降低延遲 |
-| 探索頁更多搜尋功能 | 目前篩選已透過 URL query params 傳遞；未來可考慮加入全文搜尋後端 API |
+| 探索頁更多搜尋功能 | 目前篩選條件只存在頁面內的 React state，不進 URL query string；未來可考慮加入全文搜尋後端 API |
 | 快速搜尋結果分頁 | 資料量大時需分頁或虛擬捲動 |
 | TypeScript 型別覆蓋 | 目前全為 JavaScript |

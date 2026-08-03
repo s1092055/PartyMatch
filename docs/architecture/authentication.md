@@ -12,7 +12,7 @@ JWT accessToken + refreshToken 雙 token 設計。accessToken 有效期短（`JW
 
 ### 註冊（`POST /auth/register`）與登入（`POST /auth/login`）
 
-流程一致：驗證輸入（`zod` schema：email、密碼至少 8 碼、姓名、`09` 開頭手機號碼）→ 密碼以 `bcrypt`（cost 12）雜湊比對／儲存 → 產生 `sessionId`（`crypto.randomUUID()`）→ 簽發 accessToken（payload 含 `id`、`email`、`sessionId`）與 refreshToken（payload 含 `id`、`sessionId`）→ 呼叫 `saveRefreshToken` 寫入 Redis → 回傳 `{ user, accessToken, refreshToken }`。
+流程一致：驗證輸入（`zod` schema：email、密碼至少 8 碼、姓名、E.164 格式手機號碼如 `+886912345678`）→ 密碼以 `bcrypt`（cost 12）雜湊比對／儲存 → 產生 `sessionId`（`crypto.randomUUID()`）→ 簽發 accessToken（payload 含 `id`、`email`、`sessionId`）與 refreshToken（payload 含 `id`、`sessionId`）→ 呼叫 `saveRefreshToken` 寫入 Redis → 回傳 `{ user, accessToken, refreshToken }`。
 
 登入時額外檢查 `user.deactivatedAt`，非 null（帳號已軟刪除停用）直接回 `403 { code: 'ACCOUNT_DEACTIVATED' }`。
 

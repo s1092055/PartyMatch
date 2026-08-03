@@ -53,7 +53,7 @@ src/
 
 新增共用元件時依此準則放置：shadcn 官方有對應元件 → kebab-case 放最外層；完全通用但 shadcn 沒有對應物 → `primitives/`；綁定業務邏輯 → PascalCase 放最外層；群組 Modal 家族專用 → `group/`。
 
-兩個已知例外，維持手刻實作、不強制套用 shadcn（詳見 [遷移基準清單](../migration/shadcn-inventory.md)）：
+兩個已知例外，維持手刻實作、不強制套用 shadcn：
 - 探索頁的服務／金額／排序篩選下拉框（`features/explore/components/FilterSelect.jsx`）：因為 Radix Select 在「同時有多個下拉框」情境下，切換到另一個下拉框需要點兩下才能開啟（`disableOutsidePointerEvents` 內部機制導致），改為自製、不依賴 Radix 的 combobox（含完整鍵盤導覽：方向鍵／Home／End／Enter／Tab／首字快速跳轉），只作為該 feature 的區域元件，不放進 `components/ui/`
 - 首頁截圖放大燈箱（`features/home/components/DeviceShowcase.jsx` 的 `Lightbox`）：`Dialog`／`DialogContent` 的內容區固定 `overflow-x-hidden` 並以視窗寬度為準把內容「縮」進去，手機上放大後會跟縮圖一樣大、失去放大意義，改為真正全螢幕、不限制寬度的 `createPortal` 實作
 

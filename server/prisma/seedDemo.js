@@ -19,7 +19,7 @@
  */
 import 'dotenv/config'
 import prisma from '../src/lib/prisma.js'
-import { SERVICES } from '../../src/shared/data/serviceCatalog.js'
+import { SERVICES } from '../../src/common/data/serviceCatalog.js'
 
 const BASE = process.env.SEED_API_BASE ?? `http://localhost:${process.env.PORT ?? 3001}/api`
 const DEMO_PASSWORD = 'Demo1234'

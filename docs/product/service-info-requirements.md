@@ -75,18 +75,18 @@
 | Adobe CC「全應用程式」 | **此為個人版 All Apps 方案（非 Adobe Teams 企業版）**，Adobe 個人版沒有任何合法的多人邀請機制 |
 | NordVPN／ExpressVPN | `maxSeats` 實際上是「裝置數上限」而非人數，官方只有一組登入帳密，同時連線的裝置數共用同一個上限 |
 
-**應收集欄位**：這組服務沒有「填寫資訊給團主邀請」這回事——如果要讓 PartyMatch 上的陌生人真的合購，實務上只能是團主把帳號密碼直接給成員（或反過來成員把帳密給團主代操作），已經不是「服務帳號資訊」欄位可以處理的範疇，而是要嘛提供密碼分享機制、要嘛提示使用者這類服務不適合以陌生人合購的方式進行。
+**應收集欄位**：這組服務沒有「填寫資訊給團主邀請」這回事——如果要讓 PartyMatch 上的陌生人真的合購，實務上只能是團主把帳號密碼直接給成員。**這個問題已經解決**：團主鎖定群組時透過結構化表單（`LockGroupCredentialsModal.jsx`＋`hostCredentialFields.js`）填寫依服務別定義的帳密欄位，存進 `Group.sharedCredentials`，成員填寫服務帳號畫面會直接顯示（套浮水印），見下方「實作狀態」。
 
 **特別提醒**：
-- Adobe CC「全應用程式」如果真的用共用帳密的方式合購，其實已經違反 Adobe 的個人授權條款，是所有服務中風險最高的一項，產品面應該考慮是否要繼續收錄，或至少在群組詳情頁加註風險提示
-- NordVPN／ExpressVPN 共用帳密之外還要協調「裝置連線數」不要超過上限，可能需要額外欄位讓成員登記自己會用哪些裝置
+- Adobe CC「全應用程式」如果真的用共用帳密的方式合購，其實已經違反 Adobe 的個人授權條款，是所有服務中風險最高的一項；`hostCredentialFields.js` 對 Adobe CC 額外加了 ToS 風險警語
+- NordVPN／ExpressVPN 共用帳密之外還要協調「裝置連線數」不要超過上限，`hostCredentialFields.js` 已針對這兩個服務多加一個「裝置名額」欄位
 
 ## 總結：三種「填寫服務資訊」欄位型態
 
 1. **email 邀請型**（組 A、B、C）：現有的單一 `email` 欄位已經夠用，只是要分清楚哪些服務（組 A/B）背後其實是綁定到 Apple／Google 整個家庭群組，UI 文案應該提醒使用者這點差異
 2. **email + 額外欄位型**（組 D）：KKBOX 需要多一個「居住地址」欄位，且要顯示團主的地址供成員比對
 3. **邀請碼型**（組 E）：friDay影音需要把欄位從 email 換成「邀請碼」，且流程方向是反過來的（member 先產生碼）
-4. **無正式欄位可言型**（組 F）：目前這組服務套用「填寫服務帳號 email」表單本質上文不對題，因為根本沒有官方邀請機制，需要另外設計（例如密碼分享流程，或標示為不建議合購）
+4. **團主結構化帳密分享型**（組 F）：沒有官方邀請機制，改成團主鎖定群組時填寫結構化帳密表單（依服務別定義欄位），成員填寫服務帳號畫面直接顯示，不套用「email 邀請」表單
 
 ## 實作狀態（已完成）
 
@@ -94,7 +94,7 @@
 
 - `src/common/data/serviceCatalog.js` 每個 service 都加了 `sharingMethod` 欄位（`apple_family` / `google_family` / `email_invite` / `email_invite_with_address` / `invite_code` / `shared_credentials`），對應上面 A～F 六組分類。這個欄位只存在本地 catalog，不需要後端 schema 變更——`useServiceStore.init()` 合併 API 資料時是用 `{ ...local, ...apiService }` 的展開順序，後端回應沒有 `sharingMethod` 這個 key，所以不會覆蓋掉本地值
 - `src/common/utils/serviceInfoFields.js` 是欄位設定的唯一來源：`SHARING_METHOD_CONFIG` 定義每種機制要收哪些欄位（含 type：`email`/`text`/`checkbox`）跟要顯示的提醒文案；`hasFilledServiceInfo(serviceInfo, sharingMethod)` 判斷是否已填妥；`getServiceInfoSummary(serviceInfo, sharingMethod)` 給聊天室訊息卡片、團主審核清單等處顯示單行摘要用
-- `MemberGroupView.jsx` 的「填寫服務帳號」表單讀 `sharingMethodConfig.fields` 動態渲染欄位（KKBOX 會多一個地址欄位、friDay影音欄位換成邀請碼、組 F 服務則是一個確認勾選框）
-- `MessageBubble.jsx`、`ActivateServiceModal.jsx`、`ReportServiceIssueModal.jsx`、`GroupDetailModal.jsx` 皆使用 `hasFilledServiceInfo`/`getServiceInfoSummary` 判斷與顯示服務帳號填寫狀態
+- 成員端 `src/features/subscriptions/components/FillServiceInfoModal.jsx` 讀 `sharingMethodConfig.fields` 動態渲染欄位（KKBOX 會多一個地址欄位、friDay影音欄位換成邀請碼）
+- `MessageBubble.jsx`、`ActivateServiceModal.jsx`、`ReportServiceIssueModal.jsx`、`buildMemberInfoPanel.jsx`、`SubscriptionCard.jsx` 皆使用 `hasFilledServiceInfo`/`getServiceInfoSummary` 判斷與顯示服務帳號填寫狀態
 
-**組 F（無正式邀請機制）目前的處理方式**：表單顯示為一個確認勾選框「我已透過群組聊天室取得帳號密碼」，並附風險提醒文案，而不是假裝這些服務有 email 邀請功能。之後如果要做更完整的密碼分享機制（例如站內加密傳遞帳密），可以在這個 `shared_credentials` 分類上擴充。
+**組 F（無正式邀請機制）目前的處理方式**：團主鎖定群組時透過 `LockGroupCredentialsModal.jsx` 填寫結構化帳密表單（`hostCredentialFields.js` 依服務別定義欄位，例如 Netflix 多一個 Profile 名稱、VPN 服務多一個裝置名額），並顯示帳密外流風險提醒（`CREDENTIAL_RISK_NOTICE`）；填完的內容存進 `Group.sharedCredentials`（JSON 字串），成員在 `FillServiceInfoModal.jsx` 會直接看到（`parseHostCredentials` 解析，套 `CredentialWatermark` 浮水印，提醒不要截圖轉傳）。

@@ -55,7 +55,7 @@ export default function AdminTab() {
             {overdueCount > 0 && (
               <div className="flex items-center gap-2 rounded-lg bg-danger/10 px-3 py-2 text-xs font-semibold text-danger">
                 <Clock size={14} strokeWidth={1.5} />
-                <span>{overdueCount} 筆申訴已超過 3 天裁定期限，代管金額仍凍結中，請優先處理</span>
+                <span>{overdueCount} 筆申訴已超過 48 小時裁定期限，代管金額仍凍結中，請優先處理</span>
               </div>
             )}
 

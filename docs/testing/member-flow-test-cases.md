@@ -42,15 +42,14 @@
 
 **步驟**：
 1. 登入後前往 `/my-subscriptions`
-2. 依序點擊「全部 / 審核中 / 招募中 / 待鎖定 / 成員填寫中 / 待啟用 / 確認期中 / 申訴中 / 服務中」分頁
+2. 依序點擊「招募中 / 處理中 / 服務中」三個分頁（`FILTER_TABS`，`src/features/subscriptions/utils/memberFilters.js`；細分狀態如待鎖定/成員填寫中/待啟用/確認期中/申訴中皆併入「處理中」，`PROCESSING_STATUSES`，`src/common/utils/groupStatus.js`）
 
 **預期結果**：
-- 每個分頁對應單一狀態（`FILTER_TABS`，`src/features/subscriptions/utils/memberFilters.js`）
-- 「審核中」只顯示尚未接受的申請本身（還沒有 `Subscription` 記錄），其餘分頁顯示對應狀態的訂閱
+- 「處理中」涵蓋 `full`／`pending_confirmation`／`pending_activation`／`confirming`／`disputed` 這幾個細分狀態，不再各自獨立分頁
 - 「服務中」除了 `active` 狀態，也包含自己已經確認過服務、但群組仍在 `confirming` 等其他成員確認的訂閱（`subscriptionBucket`／`isEffectivelyActive` 判斷）
 - 「已結束」／已取消的群組（`ended`/`cancelled`）**不會出現在任何分頁分類中**，只能透過側邊欄底部的「群組紀錄」按鈕開啟 `GroupHistoryModal` 查看；桌機版側邊欄現在有固定高度，「群組紀錄」按鈕位置不會隨分頁項目多寡而上下浮動
 - 卡片右上角狀態 badge 文案跟分類分頁對齊：`active` 顯示「服務中」、`pending_confirmation` 顯示「成員填寫中」（代管費用已在申請被接受當下扣完，這個階段不是在收款），見 `src/components/ui/statusBadgeConfig.js` 的 `STATUS_CONFIG`
-- 「服務中」（`active`）卡片的三格統計欄由左到右為「團主／成員人數／下次扣款」（`SubscriptionCard.jsx`）
+- 「服務中」（`active`）卡片的三格統計欄由左到右為「群組狀態（固定顯示「服務中」）／成員人數／下期收費」（`SubscriptionCard.jsx`，「下次扣款」已改名「下期收費」）；其餘狀態維持「團主／成員人數／加入日期」
 
 ---
 
@@ -59,7 +58,7 @@
 **前置條件**：demo2 為 G4（Disney+）成員，群組狀態 `pending_confirmation`，`myMember.serviceInfo` 為 null。
 
 **步驟**：
-1. 開啟該群組（成員視角），側邊欄點擊「填寫帳號資訊」（`activePanel === 'fillInfo'`）
+1. 開啟該群組（成員視角），點擊置中的「填寫帳號」CTA 按鈕，開啟 `FillServiceInfoModal` sub-modal（不是側邊欄分頁）
 2. 輸入服務帳號 email 並送出
 
 **預期結果**（`PATCH /members/:id`，`fillServiceInfo`）：
@@ -89,17 +88,17 @@
 **前置條件**：demo6 為 G7（ExpressVPN）成員，群組狀態 `confirming`（若 seed 資料已是 `disputed`，可另建一個 `confirming` 群組測試，或用 Prisma Studio 把狀態改回 `confirming` 並清空 `disputeDeadline`）。
 
 **步驟**：
-1. 在確認期 CTA 點擊「回報問題」，進入申訴表單
-2. 至少勾選 1 項申訴原因（多選）
+1. 在確認期 CTA 點擊「回報問題」，開啟 `DisputeModal`（標題「回報問題」）
+2. 至少勾選 1 項回報原因（多選，欄位標籤「回報原因」）
 3. 選填補充說明
 4. 選填上傳附件（圖片會顯示縮圖預覽，非圖片顯示檔案圖示；`uploadDisputeEvidence` 上傳失敗會 toast 錯誤，不會擋住表單其餘欄位）
-5. 送出申訴
+5. 送出回報
 
 **預期結果**（`POST /groups/:id/dispute`）：
-- 「送出申訴」按鈕在未勾選任何原因、或申訴/附件上傳進行中時停用
-- 群組狀態變為 `disputed`，`disputeDeadline` 設為目前時間 +3 天
+- 「送出回報」按鈕在未勾選任何原因、或回報/附件上傳進行中時停用
+- 群組狀態變為 `disputed`，`disputeDeadline` 設為目前時間 +48 小時（跟確認期 `confirmDeadline` 同一套節奏）
 - 該成員的 `member.serviceInfoIssueNote` 寫入合併後的原因文字（多選原因以頓號合併 + 補充說明），若有附件則 `disputeEvidenceUrl` 一併寫入
-- toast 顯示「申訴已送出，客服將在 3 天內裁定」，Modal 關閉
+- toast 顯示「已送出回報，將於 48 小時內處理」，Modal 關閉
 - 非 `confirming` 狀態的群組呼叫此 API 應回傳 400
 - 非該群組成員呼叫應回傳 403「你不是此群組成員」
 
@@ -112,7 +111,7 @@
 **步驟**：
 1. 從「我的訂閱」（`SubscriptionsPage.jsx`）開啟該群組
 2. 確認「退出群組」按鈕固定顯示在側邊欄右下角，跟「群組訊息」共用同一個 pinned 位置
-3. 點擊「退出群組」，在 `CountdownConfirmDialog` 倒數確認後送出
+3. 點擊「退出群組」，在 `ConfirmActionDialog` 倒數確認後送出
 4. 退出後，換團主帳號登入，重新整理通知
 5. 換回 demo5 帳號，打開該群組的聊天室
 
@@ -135,7 +134,7 @@
 
 **預期結果**：
 - UI 端 `canLeaveGroup` 為 false，側邊欄右下角（原本「退出群組」跟「群組訊息」的 pinned 位置）只剩「群組訊息」，不應顯示退出按鈕
-- 若直接呼叫 `DELETE /members/:id`（API 測試），應回傳 400「群組啟用後無法變更成員名單」（`members.js` 第 136-138 行，僅 `recruiting`/`full` 允許）
+- 若直接呼叫 `DELETE /members/:id`（API 測試），應回傳 400「群組啟用後無法變更成員名單」（`members.js` 第 130-132 行，僅 `recruiting`/`full` 允許）
 
 ---
 

@@ -72,7 +72,7 @@
 
 **步驟**：
 1. 開啟群組詳情 → 群組名單 → 點擊 demo5 旁的移除圖示
-2. 確認對話框需倒數 5 秒才可點擊「移除」（`CountdownConfirmDialog`）
+2. 確認對話框需倒數 5 秒才可點擊「移除」（`ConfirmActionDialog`）
 
 **預期結果**（`DELETE /members/:id`，`isHost`）：
 - 代管費用（`min(seatCost, escrowTokens)`）退還給 demo5

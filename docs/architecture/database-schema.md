@@ -9,7 +9,7 @@
 | `users` | 使用者帳號、密碼 hash、手機號碼（`phone`，註冊必填，E.164 格式如 `+886912345678`，前端拆成國碼下拉＋本地號碼兩欄輸入，方便之後擴充其他國家）、`bio`（個人簡介，選填，上限 500 字，群組詳情的團主介紹與成員名單都會顯示，讓同群組的人彼此看得到）、Google ID、`creditScore`（信用分數，預設／滿分 100，目前僅為靜態欄位，尚未有動態調整或上限保護機制，新增寫入時需自行確保不超過 100）、`tokenBalance`（平台PM幣餘額，1:1 對應 TWD）、`deactivatedAt`（非 null 代表帳號已軟刪除停用，登入/refresh 一律拒絕，保留資料供日後申請恢復） |
 | `payment_methods` | 使用者付款方式（`brand`、卡片末四碼、有效期限、是否為預設） |
 | `services` | 28 種訂閱服務清單與方案（JSON 欄位） |
-| `groups` | 群組主資料（狀態、名額、方案、`billingCycle`、`escrowTokens`（代管中PM幣總額）、`serviceInfoDeadline`（`pending_confirmation` 狀態的填寫帳號資訊截止時間，鎖定時間 + 24h，僅供前端顯示倒數）、`confirmDeadline`（`confirming` 狀態的確認截止時間，啟用時間 + 48h）、`disputeDeadline`（`disputed` 狀態的裁定截止時間，申訴提出時間 + 3 天）、`sharedCredentials`（無官方多人邀請機制的服務，團主鎖定群組時提供的帳號密碼，讓成員填寫服務帳號畫面能直接顯示，不用回頭翻聊天室訊息，僅存在前端 `sharingMethod: shared_credentials` 分類會用到，後端不知道這個分類本身，單純是有傳就存）） |
+| `groups` | 群組主資料（狀態、名額、方案、`billingCycle`、`escrowTokens`（代管中PM幣總額）、`serviceInfoDeadline`（`pending_confirmation` 狀態的填寫帳號資訊截止時間，鎖定時間 + 24h，僅供前端顯示倒數）、`confirmDeadline`（`confirming` 狀態的確認截止時間，啟用時間 + 48h）、`disputeDeadline`（`disputed` 狀態的裁定截止時間，申訴提出時間 + 48 小時，跟確認期 `confirmDeadline` 同一套節奏）、`sharedCredentials`（無官方多人邀請機制的服務，團主鎖定群組時提供的帳號密碼，讓成員填寫服務帳號畫面能直接顯示，不用回頭翻聊天室訊息，僅存在前端 `sharingMethod: shared_credentials` 分類會用到，後端不知道這個分類本身，單純是有傳就存）） |
 | `applications` | 申請紀錄（`pending` / `approved` / `rejected` / `removed` / `left` / `withdrawn`）；`withdrawn` 為申請人在審核前自行取消；被拒絕、移除、退出或自行取消後可重新申請（建立新記錄，保留歷史）；`escrowAmount` 記錄送出申請當下實際代管扣款的金額，撤回/拒絕退款要用這個值而非即時價格重算，避免群組價格事後變動導致退款金額對不上；`activeKey` 只在 `pending`/`approved`（進行中）時為 `'active'`，其餘狀態為 `null`，搭配 `@@unique([groupId, userId, activeKey])`（MySQL unique index 允許多個 null 並存）模擬「同一使用者對同一群組最多一筆進行中申請」的 partial unique index，避免併發送出申請造成重複 pending 申請 |
 | `members` | 群組成員（`serviceInfo` 訂閱帳號資訊、`serviceInfoIssueNote`、`disputeEvidenceUrl`（僅申訴階段使用，成員提供的爭議佐證截圖）） |
 | `subscriptions` | 成員訂閱（帳號資訊、訂閱狀態、下次扣款日、`lastPaidAt`） |
@@ -49,7 +49,7 @@
 | `pending_confirmation` | 帳號資訊填寫階段：成員填寫訂閱帳號資訊；**付款已在申請當下代管完成，扣款日已在鎖定時設定，本階段無任何付款操作**；`serviceInfoDeadline`（鎖定時間 + 24h）僅在團主與成員的群組詳情頁顯示倒數提醒，逾期不會自動處理 | 全員填寫完成後自動推進 |
 | `pending_activation` | 帳號資訊齊全，等待團主啟用服務 | 啟用服務 |
 | `confirming` | 服務啟用後最長 2 天（48 小時）確認期倒數；成員主動確認則倒數立即結束並撥款；成員向平台申訴則進入 `disputed`；倒數結束未操作則自動撥款。**注意**：`group.status` 是全體共用的真實狀態，只有全員都確認（或倒數結束自動撥款）才會轉為 `active`；但已自行確認的成員在自己的畫面（群組卡片、群組詳情）會顯示為「服務中」，這是前端依 `member.confirmedAt` 計算的個人化顯示，不代表群組真實狀態已改變 | 成員主動確認（即時結束）/ 向平台申訴 / 後端惰性自動撥款 |
-| `disputed` | 有成員向平台正式申訴；`disputeDeadline` 設為申訴提出時間 + 3 天；代管金額凍結，由平台客服在期限內裁定並附說明；裁定只影響申訴的那位成員，其餘成員不受影響；**成員獲勝** → 退款給該成員並離開群組、群組回 `active`；**團主獲勝** → 代管撥款給團主、群組回 `active` | 平台客服裁定後手動推進 |
+| `disputed` | 有成員向平台正式申訴；`disputeDeadline` 設為申訴提出時間 + 48 小時；代管金額凍結，由平台客服在期限內裁定並附說明；裁定只影響申訴的那位成員，其餘成員不受影響；**成員獲勝** → 退款給該成員並離開群組、群組回 `active`；**團主獲勝** → 代管撥款給團主、群組回 `active` | 平台客服裁定後手動推進 |
 | `active` | 服務已啟用 | 開始新一期收款或結束服務 |
 | `cancelled` | 團主在群組鎖定前（`recruiting` / `full`）解散群組；所有代管金額退還成員PM幣餘額 | 歷史狀態，唯讀 |
 | `ended` | 服務到期後團主結束服務 | 歷史狀態，唯讀 |
@@ -76,7 +76,7 @@
 48h 窗口內
 ├── 成員主動確認服務正常 → 確認期立即結束，即時撥款給團主；token_transaction（type: release）
 ├── 成員向團主反應問題 → 透過群組聊天室溝通，狀態維持 confirming，計時持續
-├── 成員向平台正式申訴 → 群組進入 disputed，代管凍結；成員可提供截圖佐證（disputeEvidenceUrl）；客服 3 天內裁定
+├── 成員向平台正式申訴 → 群組進入 disputed，代管凍結；成員可提供截圖佐證（disputeEvidenceUrl）；客服 48 小時內裁定
 └── 逾期未操作 → 後端惰性求值（讀取 group 時若 confirming + deadline 已過，自動撥款給團主）
 ```
 
@@ -86,7 +86,7 @@
 
 ### 儲值（模擬）
 
-目前為模擬模式：使用者點擊「儲值」按鈕後，平台直接增加PM幣餘額，並記錄 `token_transaction（type: topup）`。已安裝 Stripe SDK，尚未串接實際扣款邏輯，為未來擴充項目。
+目前為模擬模式：使用者點擊「儲值」按鈕後，平台直接增加PM幣餘額，並記錄 `token_transaction（type: topup）`。尚未安裝任何金流 SDK，串接真實金流服務為未來擴充項目。
 
 ---
 
@@ -118,7 +118,7 @@
 |------|------|
 | 認證 | Google OAuth 尚未實作（前端按鈕直接 `disabled` 並標示「即將推出」，沒有對應後端 route） |
 | 認證 | 重設密碼寄信尚未實作（前端表單直接 `disabled` 並標示「即將推出」，沒有對應後端 route） |
-| 認證 | 註冊手機號碼僅做格式驗證（`09xxxxxxxx`），尚未串接簡訊 OTP 驗證是否為本人持有 |
+| 認證 | 手機號碼採 E.164 格式儲存（如 `+886912345678`）；註冊頁信箱／手機號碼已有前端驗證碼 Modal 攔住表單送出，但驗證碼目前固定為 `123456`，後端尚未串接真實信箱/簡訊發送服務 |
 | 金流 | PM幣儲值為模擬模式（點擊即儲值），尚未串接正式金流 |
 | 代管 | `confirming` 狀態的自動撥款採惰性求值（讀取 group 時觸發），非排程任務 |
 | 即時性 | 訊息中心採用 5 秒 polling，非 WebSocket 即時推送 |
