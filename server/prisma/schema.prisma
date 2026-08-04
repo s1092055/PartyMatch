@@ -27,7 +27,7 @@ enum ApplicationStatus {
   rejected
   removed
   left
-  withdrawn
+  cancelled
 }
 
 enum SubscriptionStatus {
@@ -59,7 +59,7 @@ enum NotificationType {
   application_sent
   application_approved
   application_rejected
-  application_withdrawn
+  application_cancelled
   new_application
   group_created
   group_activated

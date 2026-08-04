@@ -58,7 +58,7 @@ const NOTIFICATION_META = {
   application_sent:     { icon: CheckCircle2,  iconColor: 'text-brand',      link: '/my-subscriptions', state: { tab: 'processing' } },
   group_created:        { icon: CheckCircle2,  iconColor: 'text-success',    link: '/manage-groups' },
   new_application:      { icon: UserPlus,      iconColor: 'text-brand',      link: '/manage-groups' },
-  application_withdrawn: { icon: AlertCircle,  iconColor: 'text-ink-3',      link: '/manage-groups' },
+  application_cancelled: { icon: AlertCircle,  iconColor: 'text-ink-3',      link: '/manage-groups' },
   group_full:           { icon: UserPlus,      iconColor: 'text-brand',      link: '/manage-groups' },
   group_chat_opened:    { icon: MessageSquare, iconColor: 'text-brand',      link: null },
   fill_service_info:    { icon: ClipboardEdit, iconColor: 'text-warning-text', link: '/my-subscriptions' },
@@ -82,7 +82,7 @@ function getMeta(type) {
   return NOTIFICATION_META[type] ?? NOTIFICATION_META.default
 }
 
-const APPLY_TYPES   = ['joined', 'application_approved', 'application_rejected', 'application_sent', 'new_application', 'application_withdrawn', 'application']
+const APPLY_TYPES   = ['joined', 'application_approved', 'application_rejected', 'application_sent', 'new_application', 'application_cancelled', 'application']
 const SYSTEM_TYPES  = ['system']
 
 const TABS = [
@@ -272,7 +272,7 @@ export default function FloatingMessages() {
       return
     }
 
-    if (notification.type === 'application_withdrawn' && notification.meta?.groupId) {
+    if (notification.type === 'application_cancelled' && notification.meta?.groupId) {
       navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId, statusFilter: 'recruiting', openApplications: true } })
       useApplicationStore.getState().init().finally(() => {
         window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: notification.meta.groupId, statusFilter: 'recruiting', openApplications: true } }))

@@ -94,7 +94,7 @@ export const useNotificationStore = create((set, get) => ({
         if (newNotifs.some(n => BALANCE_AFFECTING_TYPES.has(n.type))) {
           useAuthStore.getState().refreshTokenBalance().catch(console.error)
         }
-        if (newNotifs.some(n => n.type === 'new_application' || n.type === 'application_withdrawn')) {
+        if (newNotifs.some(n => n.type === 'new_application' || n.type === 'application_cancelled')) {
           window.dispatchEvent(new CustomEvent('pm:refresh-application-store'))
         }
         set({ notifications: dedupeById(latest) })

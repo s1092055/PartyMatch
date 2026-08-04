@@ -121,10 +121,10 @@ export const useApplicationStore = create((set, get) => ({
   },
 
   // ── 取消申請（申請人自行取消 pending 申請）────────────────────────────────
-  withdraw: async (id) => {
+  cancel: async (id) => {
     const app = get().applications.find(a => a.id === id)
     set(s => ({
-      applications: s.applications.map(a => a.id === id ? { ...a, status: 'withdrawn' } : a),
+      applications: s.applications.map(a => a.id === id ? { ...a, status: 'cancelled' } : a),
     }))
     try {
       await deleteApplication(id)
@@ -135,7 +135,7 @@ export const useApplicationStore = create((set, get) => ({
       if (app?.hostId) {
         insertNotification({
           userId:  app.hostId,
-          type:    'application_withdrawn',
+          type:    'application_cancelled',
           title:   '申請人已取消申請',
           message: `${app.applicantName ?? '申請人'} 已取消加入「${app.groupName ?? app.serviceName}」群組的申請。`,
           meta:    { groupId: app.groupId, applicationId: id },

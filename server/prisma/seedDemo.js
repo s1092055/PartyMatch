@@ -175,14 +175,14 @@ async function main() {
   await api('POST', `/favorites/${g2.id}`, H1.token)
   console.log('G2 recruiting（Notion，1 位接受 + 1 位拒絕，demo7 已收藏）')
 
-  // ── G3 full：demo8 主揪 Spotify（6 人方案），滿員 + 1 筆撤回 ────────────
+  // ── G3 full：demo8 主揪 Spotify（6 人方案），滿員 + 1 筆取消 ────────────
   const g3 = await createGroup(H2, { serviceId: 'spotify', planId: 'spotify-family', maxMembers: 6 })
   for (const u of [D1, D2, D3, D4]) await applyAndApprove(H2, g3.id, u, 'Spotify') // 先接受 4/5，group 仍是 recruiting
-  const g3AppWithdraw = await api('POST', '/applications', D6.token, { groupId: g3.id, message: '手滑申請到了，抱歉' })
-  await api('DELETE', `/applications/${g3AppWithdraw.id}`, D6.token) // 撤回，此時仍在 recruiting 才能撤回
+  const g3AppCancel = await api('POST', '/applications', D6.token, { groupId: g3.id, message: '手滑申請到了，抱歉' })
+  await api('DELETE', `/applications/${g3AppCancel.id}`, D6.token) // 取消，此時仍在 recruiting 才能取消
   await applyAndApprove(H2, g3.id, H3, 'Spotify') // 接受第 5 位（+ 團主本人共 6 人），正式額滿 → full
   await notify(H2, H2.id, 'group_full', '群組名額已滿', 'Spotify 群組名額已滿，記得鎖定群組並通知成員填寫帳號資訊', { groupId: g3.id })
-  console.log('G3 full（Spotify，5 位成員＋團主共 6 人滿員 + 1 筆撤回）')
+  console.log('G3 full（Spotify，5 位成員＋團主共 6 人滿員 + 1 筆取消）')
 
   // ── G4 pending_confirmation：demo7 主揪 Disney+，剛鎖定尚未填寫（shared_credentials）──
   const g4 = await createGroup(H1, { serviceId: 'disney', planId: 'disney-std-monthly', maxMembers: 2 })

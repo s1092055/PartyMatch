@@ -6,7 +6,7 @@ function renderCTA({
   group, activeUserId, navigate, handleClose,
   isHost, isWaitingMembers, needsFillInfo, hasServiceInfoIssue,
   isMember, isPendingApp, isFull,
-  withdrawConfirm, setWithdrawConfirm, withdrawing, handleWithdraw,
+  cancelConfirm, setCancelConfirm, cancelling, handleCancel,
 }) {
   if (!activeUserId) return (
     <Button variant="default" size="lg" className="w-full"
@@ -41,16 +41,16 @@ function renderCTA({
     </div>
   )
   if (isPendingApp) return (
-    withdrawConfirm ? (
+    cancelConfirm ? (
       <div className="flex gap-2">
-        <Button variant="ghost" size="lg" className="flex-1 border border-line" onClick={() => setWithdrawConfirm(false)}>返回</Button>
-        <Button variant="destructive" size="lg" className="flex-1" disabled={withdrawing} onClick={handleWithdraw}>
-          {withdrawing ? '處理中…' : '確認取消'}
+        <Button variant="ghost" size="lg" className="flex-1 border border-line" onClick={() => setCancelConfirm(false)}>返回</Button>
+        <Button variant="destructive" size="lg" className="flex-1" disabled={cancelling} onClick={handleCancel}>
+          {cancelling ? '處理中…' : '確認取消'}
         </Button>
       </div>
     ) : (
       <Button variant="ghost" size="lg" className="w-full border border-line text-ink-3 hover:border-danger hover:text-danger"
-        onClick={() => setWithdrawConfirm(true)}>
+        onClick={() => setCancelConfirm(true)}>
         取消申請
       </Button>
     )
@@ -65,7 +65,7 @@ export function buildMobileFooter({
   group, activeUserId, navigate, handleClose,
   isHost, isWaitingMembers, needsFillInfo, hasServiceInfoIssue,
   isMember, isPendingApp, isFull, canApply, isFav,
-  withdrawConfirm, setWithdrawConfirm, withdrawing, handleWithdraw,
+  cancelConfirm, setCancelConfirm, cancelling, handleCancel,
   setShowMembers, setLeaveConfirm, onApplyClick, toggleFav,
 }) {
   return (
@@ -108,7 +108,7 @@ export function buildMobileFooter({
           group, activeUserId, navigate, handleClose,
           isHost, isWaitingMembers, needsFillInfo, hasServiceInfoIssue,
           isMember, isPendingApp, isFull,
-          withdrawConfirm, setWithdrawConfirm, withdrawing, handleWithdraw,
+          cancelConfirm, setCancelConfirm, cancelling, handleCancel,
         })
       )}
     </div>

@@ -31,8 +31,8 @@ export default function GroupDetailModal() {
   const [applySubmitted, setApplySubmitted] = useState(false)
   const [showMembers, setShowMembers]           = useState(false)
   const [leaveConfirm, setLeaveConfirm]         = useState(false)
-  const [withdrawConfirm, setWithdrawConfirm]   = useState(false)
-  const [withdrawing, setWithdrawing]           = useState(false)
+  const [cancelConfirm, setCancelConfirm]       = useState(false)
+  const [cancelling, setCancelling]             = useState(false)
   const [applying, setApplying]                 = useState(false)
   const picksScrollRef = useRef(null)
   const picksObserverRef = useRef(null)
@@ -140,12 +140,12 @@ export default function GroupDetailModal() {
   // approved && !isMember → false，確保退出後可重新申請
   const app          = activeUserId ? useApplicationStore.getState().getByUserAndGroup(activeUserId, group.id) : null
   const appStatus    = app?.status
-  const hasActiveApp = !!app && appStatus !== 'rejected' && appStatus !== 'removed' && appStatus !== 'left' && appStatus !== 'withdrawn' && !(appStatus === 'approved' && !isMember)
+  const hasActiveApp = !!app && appStatus !== 'rejected' && appStatus !== 'removed' && appStatus !== 'left' && appStatus !== 'cancelled' && !(appStatus === 'approved' && !isMember)
   const isPendingApp = appStatus === 'pending'
 
   const canApply = !isHost && !isMember && !hasActiveApp && !isFull && !!activeUserId
 
-  function handleClose() { setGroupId(null); setShowMembers(false); setLeaveConfirm(false); setWithdrawConfirm(false); resetApply() }
+  function handleClose() { setGroupId(null); setShowMembers(false); setLeaveConfirm(false); setCancelConfirm(false); resetApply() }
 
   // 點「申請加入」當下就先比對餘額，不足就直接引導儲值，不用等填完留言表單送出才被後端擋下來
   function handleApplyClick() {
@@ -161,17 +161,17 @@ export default function GroupDetailModal() {
     setShowApply(true)
   }
 
-  async function handleWithdraw() {
-    if (withdrawing || !app) return
-    setWithdrawing(true)
+  async function handleCancel() {
+    if (cancelling || !app) return
+    setCancelling(true)
     try {
-      await useApplicationStore.getState().withdraw(app.id)
-      setWithdrawConfirm(false)
+      await useApplicationStore.getState().cancel(app.id)
+      setCancelConfirm(false)
     } catch (err) {
       const msg = err?.response?.data?.message ?? err?.message ?? '取消申請失敗，請稍後再試'
       toast(msg, 'error')
     } finally {
-      setWithdrawing(false)
+      setCancelling(false)
     }
   }
 
@@ -293,7 +293,7 @@ export default function GroupDetailModal() {
         group, activeUserId, navigate, handleClose,
         isHost, isWaitingMembers, needsFillInfo, hasServiceInfoIssue,
         isMember, isPendingApp, isFull, canApply, isFav,
-        withdrawConfirm, setWithdrawConfirm, withdrawing, handleWithdraw,
+        cancelConfirm, setCancelConfirm, cancelling, handleCancel,
         setShowMembers, setLeaveConfirm, onApplyClick: handleApplyClick, toggleFav,
       })}
       afterColumns={picks.length > 0 && (

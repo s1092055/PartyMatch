@@ -60,7 +60,7 @@ router.post('/', requireAuth, validate(applySchema), async (req, res, next) => {
       where:   { groupId, userId: req.user.id },
       orderBy: { createdAt: 'desc' },
     })
-    if (existing && !['rejected', 'removed', 'left', 'withdrawn'].includes(existing.status)) {
+    if (existing && !['rejected', 'removed', 'left', 'cancelled'].includes(existing.status)) {
       return res.status(409).json({ message: '你已有一筆進行中的申請' })
     }
 
@@ -125,7 +125,7 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
       // 條件式更新：僅在仍為 pending 時才退款，避免跟團主同時審核造成重複退款
       const claimed = await tx.application.updateMany({
         where: { id: req.params.id, status: 'pending' },
-        data:  { status: 'withdrawn', activeKey: null },
+        data:  { status: 'cancelled', activeKey: null },
       })
       if (claimed.count === 0) {
         const err = new Error('此申請已被處理，請重新整理頁面')
