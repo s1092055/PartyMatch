@@ -60,7 +60,7 @@ function LoginRequiredPlaceholder({ label }) {
         <Lock size={22} className="text-ink-3" />
       </div>
       <div className="space-y-1">
-        <p className="text-sm font-bold text-ink">登入後才能查看「{label}」</p>
+        <p className="text-sm font-bold text-ink">登入後查看「{label}」</p>
       </div>
     </div>
   )
