@@ -1,10 +1,10 @@
 import { Lock } from 'lucide-react'
 import { LOCKED_MESSAGE, PRESENCE_COLORS } from './navConstants'
 
-export function CountBadge({ count }) {
+export function CountBadge({ count, className = '-right-1 -top-1' }) {
   if (!count) return null
   return (
-    <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-0.5 text-[0.6rem] font-black leading-none text-white">
+    <span className={`absolute flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-0.5 text-[0.6rem] font-black leading-none text-white ${className}`}>
       {count > 99 ? '99+' : count}
     </span>
   )

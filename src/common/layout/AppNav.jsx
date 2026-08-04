@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from '../utils/toast'
-import { useClickOutside } from '../utils/hooks'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useNotificationStore } from '../stores/useNotificationStore'
 import { useConversationStore } from '../stores/useConversationStore'
@@ -14,21 +13,18 @@ import MobileDock from './components/MobileDock'
 export default function AppNav() {
   const navigate = useNavigate()
   const { pathname } = useLocation()
+  // 「我的」跟帳號選單都是底部 Drawer（bottom sheet），Base UI Drawer 本身的 backdrop
+  // 點擊／Esc 已經會處理「點外面關閉」，不需要再額外用 useClickOutside 偵測
   const [myMenuOpen, setMyMenuOpen] = useState(false)
-  const myMenuRef = useRef(null)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const mobileMenuRef = useRef(null)
-
-  useClickOutside(myMenuOpen, [myMenuRef], () => setMyMenuOpen(false))
-  useClickOutside(mobileMenuOpen, [mobileMenuRef], () => setMobileMenuOpen(false))
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false)
 
   // 路由切換時關閉所有選單：於 render 期間比對前一次 pathname 並直接呼叫 setState，
   // 避免用 useEffect（會多觸發一次無謂的 render-commit-effect 循環）
   const [prevPathname, setPrevPathname] = useState(pathname)
   if (pathname !== prevPathname) {
     setPrevPathname(pathname)
-    setMobileMenuOpen(false)
     setMyMenuOpen(false)
+    setAccountMenuOpen(false)
   }
 
   const loggedIn = useAuthStore(s => s.loggedIn)
@@ -50,18 +46,10 @@ export default function AppNav() {
   const unreadNotifs = useNotificationStore(s => loggedIn && currentUser?.id ? s.getUnreadCount(currentUser.id) : 0)
   const unreadMsgs = useConversationStore(s => loggedIn && currentUser?.id ? s.getUnreadMsgCount(currentUser.id) : 0)
 
-  const [prevLoggedIn, setPrevLoggedIn] = useState(loggedIn)
-  if (loggedIn !== prevLoggedIn) {
-    setPrevLoggedIn(loggedIn)
-    if (!loggedIn) {
-      setMobileMenuOpen(false)
-    }
-  }
-
   function closeAll() {
     document.activeElement?.blur()
-    setMobileMenuOpen(false)
     setMyMenuOpen(false)
+    setAccountMenuOpen(false)
   }
 
   function openCreate() {
@@ -121,17 +109,10 @@ export default function AppNav() {
 
       <MobileHeader
         loggedIn={loggedIn}
-        userName={userName}
-        avatarInitial={avatarInitial}
-        avatarColor={avatarColor}
-        presenceStatus={presenceStatus}
         unreadNotifs={unreadNotifs}
-        tokenBalance={tokenBalance}
-        mobileMenuOpen={mobileMenuOpen}
-        setMobileMenuOpen={setMobileMenuOpen}
-        mobileMenuRef={mobileMenuRef}
-        setTopupOpen={setTopupOpen}
+        unreadMsgs={unreadMsgs}
         openNotify={openNotify}
+        openMessages={openMessages}
       />
 
       <TopupModal isOpen={topupOpen} onClose={() => setTopupOpen(false)} />
@@ -139,15 +120,20 @@ export default function AppNav() {
       <MobileDock
         pathname={pathname}
         loggedIn={loggedIn}
+        userName={userName}
+        avatarInitial={avatarInitial}
+        avatarColor={avatarColor}
+        presenceStatus={presenceStatus}
+        tokenBalance={tokenBalance}
+        setTopupOpen={setTopupOpen}
         closeAll={closeAll}
         openMatch={openMatch}
         openCreate={openCreate}
-        openMessages={openMessages}
         preventLockedAction={preventLockedAction}
         myMenuOpen={myMenuOpen}
         setMyMenuOpen={setMyMenuOpen}
-        myMenuRef={myMenuRef}
-        unreadMsgs={unreadMsgs}
+        accountMenuOpen={accountMenuOpen}
+        setAccountMenuOpen={setAccountMenuOpen}
       />
     </>
   )

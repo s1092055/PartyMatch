@@ -188,7 +188,7 @@ update: async (id, patch) => { ... }    // PATCH /api/xxx/:id
 `common/layout/AppNav.jsx` 依裝置寬度切換成兩套完全不同的 UI（拆成獨立元件，不是同一份 markup 用 CSS 調整外觀），切換點是 `lg:`（1280px）而不是 `md:`（768px）——因為桌機版 sidebar 靠 `:hover`／`:focus-within` 展開顯示文字標籤，iPad（不論直向 768px+ 或橫向 1024px+）雖然寬度落在 `md` 區間，但是觸控裝置沒有真正的 hover，若切換點設在 `md:` 會讓 iPad 顯示出永遠收合、看不到文字標籤的側邊欄（見 [歷史異動](../history/flows-history.md)）：
 
 - **桌機版**（≥1280px，`DesktopSidebar.jsx`）：左側浮動 sidebar，預設收合為 icon bar，hover/focus-within 展開顯示文字標籤；右上角固定通知按鈕與 PM幣餘額顯示；sidebar 底部是使用者頭像按鈕（點擊直接導向 `/account`），信用分數以按鈕形式疊在頭像右側。
-- **手機與平板版**（<1280px，含 iPad）：頂部 `MobileHeader.jsx`（Logo + 通知 + 頭像／登入按鈕，點頭像展開 dropdown）+ 底部 `MobileDock.jsx`（快速搜尋、建立群組、探索置中圓形按鈕、我的 dropdown、訊息），往下捲動時 Dock 會滑出隱藏、往上捲或接近頁面頂端時顯示；這一版全部靠點擊觸發，文字標籤本來就一直可見，不受觸控裝置無法 hover 影響。
+- **手機與平板版**（<1280px，含 iPad）：頂部 `MobileHeader.jsx` 只留 Logo，右側依登入狀態固定留通知（訪客也看得到）／訊息（僅登入）兩顆獨立圓形按鈕；底部 `MobileDock.jsx`（快速搜尋、建立群組、探索置中圓形按鈕、我的、我的帳號），往下捲動時 Dock 會滑出隱藏、往上捲或接近頁面頂端時顯示。「我的」（群組管理／我的訂閱／我的收藏）跟「我的帳號」（頭像、PM幣、深色模式切換、登出）都改用共用 `Drawer` 元件（`components/ui/drawer.jsx`，Base UI）做成從螢幕底部滑出的 bottom sheet，不用貼在觸發點上方的小 popup——header 貼在螢幕最上緣，往上展開的傳統 dropdown 會被螢幕邊界裁掉大半，且 Drawer 本身的背景點擊／Esc 就會處理「點外面關閉」，不需要額外用 `useClickOutside`。
 
 未登入時，需要登入才能用的項目會顯示鎖頭圖示，點擊觸發 `preventLockedAction`（提示前往登入，不直接導頁）。
 

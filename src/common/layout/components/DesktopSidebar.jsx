@@ -146,7 +146,7 @@ export default function DesktopSidebar({
           >
             <MessageSquare size={16} strokeWidth={2} />
             訊息
-            <CountBadge count={unreadMsgs} />
+            <CountBadge count={unreadMsgs} className="-right-1.5 -top-1.5" />
           </button>
         ) : (
           <button
@@ -189,7 +189,7 @@ export default function DesktopSidebar({
         <div className="px-2 pb-4">
           <button
             type="button"
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            onClick={e => { setTheme(theme === 'dark' ? 'light' : 'dark'); e.currentTarget.blur() }}
             aria-label={theme === 'dark' ? '切換淺色模式' : '切換深色模式'}
             className="mb-1 flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
           >
