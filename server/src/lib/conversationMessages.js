@@ -23,7 +23,7 @@ export async function appendMessage(conversation, { senderId, content, type = 't
       ...(actionType !== undefined && { actionType }),
       ...(payload    !== undefined && { payload }),
     },
-    include: { sender: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true } } },
+    include: { sender: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true } } },
   })
   message.sender = maskAvatar(message.sender)
 

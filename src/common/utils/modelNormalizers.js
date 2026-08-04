@@ -6,6 +6,7 @@ export function normalizeMessage(msg) {
     senderName:    msg.senderName    ?? sender.name        ?? '',
     avatarInitial: msg.avatarInitial ?? sender.avatarInitial ?? '',
     avatarColor:   msg.avatarColor   ?? sender.avatarColor   ?? '#64748b',
+    presenceStatus: msg.presenceStatus ?? sender.presenceStatus ?? 'offline',
   }
 }
 
@@ -54,6 +55,7 @@ export function normalizeMember(m) {
     // 這裡不能再 fallback 到姓名首字，否則等於前端自己把被遮罩的大頭照重新畫出來
     userAvatarInitial: m.userAvatarInitial ?? user.avatarInitial ?? '',
     userAvatarColor:   m.userAvatarColor   ?? user.avatarColor   ?? '#94A3B8',
+    userPresenceStatus: m.userPresenceStatus ?? user.presenceStatus ?? 'offline',
     userBio:           m.userBio           ?? user.bio           ?? '',
     userId:            m.userId            ?? user.id            ?? '',
     joinedAt,

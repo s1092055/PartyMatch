@@ -39,7 +39,7 @@ router.get('/', requireAuth, async (req, res, next) => {
     const users = allParticipantIds.length
       ? await prisma.user.findMany({
           where:  { id: { in: allParticipantIds } },
-          select: { id: true, name: true, avatarInitial: true, avatarColor: true, showAvatar: true },
+          select: { id: true, name: true, avatarInitial: true, avatarColor: true, showAvatar: true, presenceStatus: true },
         })
       : []
     const userMap = Object.fromEntries(users.map(u => [u.id, maskAvatar(u)]))
@@ -112,7 +112,7 @@ router.get('/:id/messages', requireAuth, async (req, res, next) => {
     const { cursor, limit = '50' } = req.query
     const messages = await prisma.message.findMany({
       where:   { conversationId: req.params.id, ...(cursor && { createdAt: { lt: new Date(cursor) } }) },
-      include: { sender: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true } } },
+      include: { sender: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true } } },
       orderBy: { createdAt: 'desc' },
       take:    parseInt(limit),
     })

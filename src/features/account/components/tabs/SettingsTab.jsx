@@ -150,7 +150,7 @@ export default function SettingsTab({ loggedIn = true }) {
         {loggedIn && (
           <SettingRow
             label="顯示自己的大頭照"
-            desc="關閉後，其他使用者在群組、聊天室、評價等地方看到的會是 PartyMatch 預設圖示，不是你的大頭照"
+            desc="關閉後其他使用者會看到 PartyMatch 預設圖示"
             checked={showAvatar}
             onChange={savingAvatarVisibility ? undefined : toggleAvatarVisibility}
           />

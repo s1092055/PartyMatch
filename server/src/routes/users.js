@@ -28,7 +28,7 @@ router.get('/:id', async (req, res, next) => {
   try {
     const user = await prisma.user.findUnique({
       where:  { id: req.params.id },
-      select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, creditScore: true, bio: true, createdAt: true },
+      select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true, createdAt: true },
     })
     if (!user) return res.status(404).json({ message: '使用者不存在' })
     res.json(maskAvatar(user))

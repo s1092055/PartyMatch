@@ -217,7 +217,9 @@ export default function MessagesModal() {
     if (c.type === 'dm') {
       const otherId = c.participants?.find(p => p !== user?.id)
       const meta = c.participantMeta?.[otherId] ?? {}
-      return { ...c, name: meta.name ?? '私訊', avatarInitial: meta.avatarInitial ?? '?', avatarColor: meta.avatarColor ?? '#64748b' }
+      // avatarInitial 為 null 代表對方關閉了大頭照顯示（後端已遮罩），不能 fallback 成 '?' 這種
+      // 看起來像是「有頭像」的字元，交給 ConversationAvatar 判斷是否要改顯示 PartyMatch logo
+      return { ...c, name: meta.name ?? '私訊', avatarInitial: meta.avatarInitial ?? '', avatarColor: meta.avatarColor ?? '#64748b', presenceStatus: meta.presenceStatus ?? 'offline' }
     }
     if (isSystemConversation(c)) {
       return { ...c, name: 'PartyMatch 系統訊息', avatarInitial: 'P', avatarColor: 'linear-gradient(135deg,#667eea,#764ba2)' }
