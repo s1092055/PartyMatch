@@ -5,7 +5,6 @@ import { useAuthStore } from "../../common/stores/useAuthStore";
 import { toast } from "../../common/utils/toast";
 import { usePromptLogin } from "../../common/utils/hooks";
 import CreditScoreModal from "../../components/ui/CreditScoreModal";
-import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import HostReviewsModal from "../manage-groups/components/HostReviewsModal";
 import ProfileHeaderCard from "./components/ProfileHeaderCard";
@@ -119,9 +118,8 @@ function LogoutButton({ className = "", fullWidth = false, loggedIn }) {
 }
 
 export default function AccountPage() {
-  // 訪客沒有「個人資料」可看，預設分頁改停在唯一能用的「其他設定」，避免一進頁面就先撞到登入提示
-  const [activeTab, setActiveTab] = useState(() => useAuthStore.getState().loggedIn ? "profile" : "settings");
-  const [openAccordion, setOpenAccordion] = useState(() => useAuthStore.getState().loggedIn ? null : "settings");
+  const [activeTab, setActiveTab] = useState("profile");
+  const [openAccordion, setOpenAccordion] = useState(null);
   const [creditScoreOpen, setCreditScoreOpen] = useState(false);
   const [reviewsOpen, setReviewsOpen] = useState(false);
   const loggedIn = useAuthStore(s => s.loggedIn)
@@ -221,7 +219,7 @@ export default function AccountPage() {
         {TABS.map(tab => {
           const isOpen = openAccordion === tab.value
           return (
-            <Card key={tab.value} className="overflow-hidden">
+            <div key={tab.value} className="overflow-hidden rounded-inner border border-line bg-surface shadow-card">
               <button
                 id={`account-accordion-${tab.value}`}
                 aria-expanded={isOpen}
@@ -254,7 +252,7 @@ export default function AccountPage() {
                   </div>
                 </TabReveal>
               )}
-            </Card>
+            </div>
           )
         })}
         </div>
