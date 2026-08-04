@@ -8,19 +8,10 @@ export default function RevealSection({ children, delay = 0, className = '' }) {
     const el = ref.current
     if (!el) return
 
-    const rect = el.getBoundingClientRect()
-    if (rect.top < window.innerHeight && rect.bottom > 0) {
-      setVisible(true)
-      return
-    }
-
+    // 不再 unobserve：離開視窗時把 visible 收回 false，下次滾回來才會重新
+    // 播放同一套 slide-up 動畫，而不是只有第一次進場才有效果
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true)
-          observer.unobserve(el)
-        }
-      },
+      ([entry]) => setVisible(entry.isIntersecting),
       { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
     )
     observer.observe(el)
