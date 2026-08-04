@@ -41,7 +41,7 @@ function TabReveal({ children }) {
 
 function ComingSoonPlaceholder({ label }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-line py-16 text-center">
+    <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-line py-16 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-raised">
         <Clock size={22} className="text-ink-3" />
       </div>
@@ -55,7 +55,7 @@ function ComingSoonPlaceholder({ label }) {
 
 function LoginRequiredPlaceholder({ label, promptLogin }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-line py-16 text-center">
+    <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-line py-16 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-raised">
         <Lock size={22} className="text-ink-3" />
       </div>
