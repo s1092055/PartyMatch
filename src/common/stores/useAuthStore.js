@@ -72,8 +72,8 @@ function activeProfile(user) {
     ...user,
     displayName,
     joinedAt,
-    avatarInitial: user.avatarInitial ?? displayName[0] ?? 'U',
-    avatarColor:   user.avatarColor ?? '#3B82F6',
+    avatarInitial: user.avatarInitial ?? null,
+    avatarColor:   user.avatarColor ?? null,
     showAvatar:    user.showAvatar ?? true,
     presenceStatus: user.presenceStatus ?? 'online',
   }
