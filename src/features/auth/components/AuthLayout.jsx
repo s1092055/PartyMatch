@@ -28,7 +28,7 @@ export function AuthInput({ icon: Icon, label, value, onChange, trailing, hint, 
   return (
     <label className="block">
       <span className="mb-2 block text-sm font-extrabold text-ink">{label}</span>
-      <span className="flex h-[3.75rem] items-center gap-3 rounded-2xl border border-line bg-surface px-4 transition-colors focus-within:border-brand focus-within:ring-4 focus-within:ring-brand-subtle">
+      <span className="flex h-[3.75rem] items-center gap-3 rounded-2xl border border-line bg-surface px-4 transition-[box-shadow] focus-within:ring-4 focus-within:ring-brand-subtle">
         <Icon size={20} className="shrink-0 text-ink-4" />
         <input
           value={value}
@@ -47,7 +47,7 @@ export function PhoneInput({ label, countryCode, onCountryCodeChange, value, onC
   return (
     <label className="block">
       <span className="mb-2 block text-sm font-extrabold text-ink">{label}</span>
-      <span className="flex h-[3.75rem] items-center gap-2 rounded-2xl border border-line bg-surface pl-2 pr-4 transition-colors focus-within:border-brand focus-within:ring-4 focus-within:ring-brand-subtle">
+      <span className="flex h-[3.75rem] items-center gap-2 rounded-2xl border border-line bg-surface pl-2 pr-4 transition-[box-shadow] focus-within:ring-4 focus-within:ring-brand-subtle">
         <Select value={countryCode} onValueChange={onCountryCodeChange}>
           <SelectTrigger aria-label="國碼" className="h-full w-auto shrink-0 gap-1 border-0 bg-transparent px-2 text-base font-bold focus:border-0 focus:ring-0">
             <SelectValue />

@@ -140,7 +140,7 @@ export default function FilterBar({ filters, onChange }) {
       />
 
       <div className="flex flex-col gap-2 md:flex-row md:items-center">
-        <div className="flex h-11 min-w-0 items-center rounded-control border border-line bg-surface px-3.5 transition-[border-color,box-shadow] focus-within:border-brand focus-within:ring-4 focus-within:ring-brand-subtle md:flex-[2]">
+        <div className="flex h-11 min-w-0 items-center rounded-control border border-line bg-surface px-3.5 transition-[box-shadow] focus-within:ring-4 focus-within:ring-brand-subtle md:flex-[2]">
           <div className="flex flex-1 items-center gap-2">
             <Search size={16} strokeWidth={1.5} className="pointer-events-none shrink-0 text-ink-4" />
             <input

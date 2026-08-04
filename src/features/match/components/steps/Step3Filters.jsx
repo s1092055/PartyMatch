@@ -130,7 +130,7 @@ export default function Step3Filters({ conditions, onChange }) {
           disabled={isUnlimitedPrice}
         />
         <div className="mt-4 flex items-center justify-between gap-2">
-          <span className="w-36 rounded-lg border border-line bg-surface px-1.5 py-0.5 transition-[border-color,box-shadow] focus-within:border-brand focus-within:ring-4 focus-within:ring-brand-subtle has-[:disabled]:opacity-50">
+          <span className="w-36 rounded-lg border border-line bg-surface px-1.5 py-0.5 transition-[box-shadow] focus-within:ring-4 focus-within:ring-brand-subtle has-[:disabled]:opacity-50">
             <input
               type="text"
               inputMode="numeric"
@@ -142,7 +142,7 @@ export default function Step3Filters({ conditions, onChange }) {
               className="w-full bg-transparent text-center text-xs text-ink-4 outline-none"
             />
           </span>
-          <span className="w-36 rounded-lg border border-line bg-surface px-1.5 py-0.5 transition-[border-color,box-shadow] focus-within:border-brand focus-within:ring-4 focus-within:ring-brand-subtle has-[:disabled]:opacity-50">
+          <span className="w-36 rounded-lg border border-line bg-surface px-1.5 py-0.5 transition-[box-shadow] focus-within:ring-4 focus-within:ring-brand-subtle has-[:disabled]:opacity-50">
             <input
               type="text"
               inputMode="numeric"

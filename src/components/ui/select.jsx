@@ -10,7 +10,7 @@ export function SelectTrigger({ className, children, ...props }) {
   return (
     <SelectPrimitive.Trigger
       className={cn(
-        "group flex h-10 w-full items-center justify-between gap-2 rounded-control border border-line bg-surface px-3.5 text-sm text-ink outline-none transition-colors focus:border-brand focus:ring-4 focus:ring-brand-subtle data-[placeholder]:text-ink-4 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+        "group flex h-10 w-full items-center justify-between gap-2 rounded-control border border-line bg-surface px-3.5 text-sm text-ink outline-none transition-[box-shadow] focus:ring-4 focus:ring-brand-subtle data-[placeholder]:text-ink-4 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
         className
       )}
       {...props}

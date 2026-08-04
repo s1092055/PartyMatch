@@ -1,4 +1,4 @@
-import { CheckCircle2 } from 'lucide-react'
+import { CheckCircle2, FileText } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogCloseButton } from '../../../components/ui/dialog'
 import { Button } from '../../../components/ui/button'
 import { Textarea } from '../../../components/ui/input'
@@ -20,7 +20,10 @@ export default function ApplyModal({
       <DialogContent variant="panel" maxWidth="max-w-md" instant>
         {!applySubmitted && (
           <DialogHeader>
-            <DialogTitle className="truncate text-base">申請加入群組</DialogTitle>
+            <div className="flex min-w-0 items-center gap-2.5">
+              <FileText size={16} strokeWidth={1.5} className="shrink-0 text-brand" />
+              <DialogTitle className="truncate text-base">申請加入群組</DialogTitle>
+            </div>
             <DialogCloseButton />
           </DialogHeader>
         )}

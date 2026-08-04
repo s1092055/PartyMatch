@@ -14,7 +14,7 @@ export default function ConversationList({ filteredConvs, activeTab, selectedId,
   return (
     <div className="flex flex-1 min-h-0 flex-col">
       <div className="px-3 py-2">
-        <div className="flex items-center gap-2 rounded-lg border border-transparent bg-raised px-3 py-2 transition-[border-color,box-shadow] focus-within:border-brand focus-within:ring-4 focus-within:ring-brand-subtle">
+        <div className="flex items-center gap-2 rounded-lg border border-transparent bg-raised px-3 py-2 transition-[box-shadow] focus-within:ring-4 focus-within:ring-brand-subtle">
           <Search size={14} className="shrink-0 text-ink-4" />
           <input
             type="text"

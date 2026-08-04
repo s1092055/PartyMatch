@@ -193,7 +193,7 @@ export default function TopupModal({ isOpen, onClose }) {
                   ? 'border-danger'
                   : customAmountValid
                     ? 'border-brand'
-                    : 'border-line focus-within:border-brand'
+                    : 'border-line'
               }`}>
                 <TokenBadge className="shrink-0" />
                 <input
