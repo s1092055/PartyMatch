@@ -58,7 +58,7 @@ export function buildBillingPanel({ members, transactions, transactionsLoading }
                       <p className="text-sm font-semibold text-ink">{m.userName}</p>
                       {/* 顯示團主按下「接受」的時間（Member.joinedAt），不是申請送出當下實際扣款的時間（tx.createdAt）——
                           代管扣款雖然在申請當下就發生，但對團主來說「入帳」的認知時間點是自己接受申請的那一刻 */}
-                      <p className="text-xs text-ink-3">{tx ? `${formatDateTime(m.joinedAtTime)} 代管入帳` : '尚無代管紀錄'}</p>
+                      <p className="text-xs text-ink-3">{tx ? `${formatDateTime(m.joinedAtTime)} 平台代管` : '尚無代管紀錄'}</p>
                     </div>
                     {tx && <span className="shrink-0 text-sm font-bold text-info"><TokenAmount amount={Math.abs(tx.amount)} /></span>}
                   </div>
