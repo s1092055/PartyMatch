@@ -9,7 +9,7 @@
 flowchart LR
     A[儲值 TopupModal] -->|topup| B(("tokenBalance"))
     B -->|送出申請 escrow| C(("group.escrowTokens"))
-    C -->|拒絕/撤回 refund| B
+    C -->|拒絕/取消 refund| B
     C -->|確認期結束 release| D(("host.tokenBalance"))
     C -->|退出/被移除 refund| B
     C -->|團主解散 refund| B
@@ -26,7 +26,7 @@ sequenceDiagram
 
     M->>BE: 申請加入（POST /applications）
     BE->>DB: 條件式扣款 tokenBalance，escrow++\n建立 Application + TokenTransaction(escrow)
-    alt 團主拒絕 / 申請人撤回
+    alt 團主拒絕 / 申請人取消
         BE->>DB: escrowTokens → tokenBalance（refund）
     else 團主接受
         BE->>DB: 鎖定名額，建立 Member/Subscription\n（代管已在申請時扣過，這裡不再扣款）
@@ -39,7 +39,7 @@ sequenceDiagram
 ## 入口
 - **儲值**：桌機側欄／手機導覽列的「加值」按鈕、`TopupModal` 內的儲值面板；任何顯示「PM幣不足」toast 時的「前往儲值」按鈕
 - **代管扣款**：`GroupDetailModal` 送出申請加入群組（扣款發生在這裡，不是接受時）
-- **撥款／退款**：團主在 `HostGroupView` 審核申請、解散群組、移除成員、開始續訂；成員在 `MemberGroupView` 確認服務、撤回申請或申訴；管理員在 `AdminTab` 裁定申訴
+- **撥款／退款**：團主在 `HostGroupView` 審核申請、解散群組、移除成員、開始續訂；成員在 `MemberGroupView` 確認服務、取消申請或申訴；管理員在 `AdminTab` 裁定申訴
 - **交易紀錄查詢**：`TopupModal` 的交易紀錄子面板（個人）；`HostGroupView` 收款管理面板（該群組全體成員，只顯示每人最新一筆代管紀錄）；`MemberGroupView` 付款管理面板（自己這期最新一筆代管紀錄）
 
 ## 相關檔案
@@ -66,9 +66,9 @@ sequenceDiagram
 | 路徑 | 說明 |
 |------|------|
 | `server/src/routes/tokens.js` | `GET /tokens`（餘額 + 近 50 筆交易）、`POST /tokens/topup`（模擬儲值） |
-| `server/src/utils/membership.js` | `admitMemberIntoGroup`（團主手動加人，走完整扣款）、`finalizeApprovedApplication`（申請接受，代管已扣過款）、`refundEscrow`（拒絕/撤回/移除成員共用的退款邏輯） |
+| `server/src/utils/membership.js` | `admitMemberIntoGroup`（團主手動加人，走完整扣款）、`finalizeApprovedApplication`（申請接受，代管已扣過款）、`refundEscrow`（拒絕/取消/移除成員共用的退款邏輯） |
 | `server/src/utils/pricing.js` | `computeSeatCost`：年繳算全年費用，月繳算月費 |
-| `server/src/routes/applications.js` | `POST /applications`（送出申請即代管扣款）、`DELETE /applications/:id`（撤回退款）、`PATCH /applications/:id`（接受建成員／拒絕退款） |
+| `server/src/routes/applications.js` | `POST /applications`（送出申請即代管扣款）、`DELETE /applications/:id`（取消退款）、`PATCH /applications/:id`（接受建成員／拒絕退款） |
 | `server/src/routes/members.js` | `DELETE /members/:id`（退出／被移除時退款） |
 | `server/src/routes/groups/crud.js` | 惰性自動撥款、查詢代管紀錄 |
 | `server/src/routes/groups/lifecycle.js` | 確認服務撥款、申訴凍結、解散退款、裁定撥款或退款、續訂收款 |
@@ -83,10 +83,10 @@ sequenceDiagram
 | `TokenTransaction` | `type` 分 `topup`／`escrow`／`release`／`refund`，正負號代表增減，`relatedGroupId` 可以是 null（例如儲值） |
 
 ## 使用技術
-- **代管扣款發生在申請當下**：送出申請就會扣款進入代管，接受時不再重複扣款，拒絕或撤回則會退款——跟「先預檢、接受才扣款」的舊設計不同，好處是使用者一送出申請就知道錢已經圈住了，不會等到接受當下才發現餘額不夠
-- **退款用當初實際扣的金額，不是即時價格**：`Application.escrowAmount` 記下申請當下真正扣了多少 PM 幣，拒絕、撤回、成員被移除都讀這個值退款，並跟目前 `escrowTokens` 取 `Math.min` 夾住；如果用即時 `computeSeatCost(group)` 重算，團主事後改價格或計費週期就會讓退款金額跟當初真正扣的錢對不上
-- **退款邏輯只寫一次**：`refundEscrow(tx, { userId, groupId, amount, note })` 是拒絕、撤回、成員被移除/退出三處共用的退款函式，不用各自重寫「加回餘額、扣代管、寫交易紀錄」三個步驟
-- **用 Prisma `$transaction` 包住每一次金流異動**：送出申請、接受、拒絕、撤回、成員退出/移除、解散群組、裁定申訴、續訂收款，都把「檢查餘額 → 扣款/退款 → 寫交易紀錄」包在同一個交易裡，確保不會半途而廢
+- **代管扣款發生在申請當下**：送出申請就會扣款進入代管，接受時不再重複扣款，拒絕或取消則會退款——跟「先預檢、接受才扣款」的舊設計不同，好處是使用者一送出申請就知道錢已經圈住了，不會等到接受當下才發現餘額不夠
+- **退款用當初實際扣的金額，不是即時價格**：`Application.escrowAmount` 記下申請當下真正扣了多少 PM 幣，拒絕、取消、成員被移除都讀這個值退款，並跟目前 `escrowTokens` 取 `Math.min` 夾住；如果用即時 `computeSeatCost(group)` 重算，團主事後改價格或計費週期就會讓退款金額跟當初真正扣的錢對不上
+- **退款邏輯只寫一次**：`refundEscrow(tx, { userId, groupId, amount, note })` 是拒絕、取消、成員被移除/退出三處共用的退款函式，不用各自重寫「加回餘額、扣代管、寫交易紀錄」三個步驟
+- **用 Prisma `$transaction` 包住每一次金流異動**：送出申請、接受、拒絕、取消、成員退出/移除、解散群組、裁定申訴、續訂收款，都把「檢查餘額 → 扣款/退款 → 寫交易紀錄」包在同一個交易裡，確保不會半途而廢
 - **用條件式 `updateMany` 當樂觀鎖**：申請扣款、接受、拒絕退款、名額檢查、續訂扣款都是靠這個手法，避免同時間有好幾個請求打進來時重複扣款或超賣名額
 - **惰性求值**：`GET /groups/:id` 如果發現群組在確認期而且已經逾期，讀取的當下就會順便觸發自動撥款並回寫，不需要另外排程任務去掃描
 - 前端 toast 上的「前往儲值」按鈕會廣播一個事件，跨元件直接開啟儲值 Modal
@@ -102,7 +102,7 @@ sequenceDiagram
 
 **3. 接受或拒絕**
 - 團主接受：交易內搶佔申請（避免雙擊重複接受）→ 核對名額並鎖定 → 建立成員與訂閱；代管扣款已在申請時完成，這裡不再扣款 → 額滿的話把群組狀態推進為額滿
-- 團主拒絕（或申請人自行撤回）：交易內把申請狀態改掉 → 把代管的席位費用退還給申請人、`escrowTokens` 減少 → 寫入退款交易紀錄；申請人自行撤回時，前端會額外呼叫 `insertNotification` 通知團主（`application_withdrawn`），避免團主端 applications store 還停在撤回前的 `pending` 狀態，誤操作一筆已失效的申請
+- 團主拒絕（或申請人自行取消）：交易內把申請狀態改掉 → 把代管的席位費用退還給申請人、`escrowTokens` 減少 → 寫入退款交易紀錄；申請人自行取消時，前端會額外呼叫 `insertNotification` 通知團主（`application_cancelled`），避免團主端 applications store 還停在取消前的 `pending` 狀態，誤操作一筆已失效的申請
 
 **4. 確認期撥款**
 - 成員點「確認服務」後，如果剛好全員都確認完了，後端就一次撥款：把代管金額轉給團主、清空代管餘額、把所有成員的訂閱設成啟用中

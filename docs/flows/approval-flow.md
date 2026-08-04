@@ -90,8 +90,8 @@ sequenceDiagram
 - **用 Prisma interactive transaction 包住整個接受流程**：查名額上限、呼叫 `finalizeApprovedApplication`（名額檢查、建立 member/subscription、額滿轉 full）全部包在同一個 `$transaction` 裡，任何一步出錯就整個回滾，不會發生「申請標成 approved，但成員卻沒建出來」這種半套狀態
 - **用條件式 `updateMany` 當樂觀鎖**：`tx.application.updateMany({ where: { id, status: 'pending' }, data: { status: 'approved' } })`，靠 `WHERE status = 'pending'` 確保只有第一個請求能把 `count` 變成 1；重複點擊或多開分頁送出的第二個請求會拿到 `count === 0`，直接回 409 中止
 - **拒絕分支：狀態一定寫入，退款才看情況**：拒絕（或團主移除已接受成員時前端連帶送出的 `status: 'removed'`）都會先嘗試條件式 `updateMany`（僅 `status: 'pending'` 才算數）；搶到了才退款，沒搶到（代表這筆申請已經不是 `pending`，例如成員被移除、`DELETE /members/:id` 已經處理過自己的退款）就退化成一次無條件的狀態寫入，只是不會再退一次款——狀態轉換跟退款是兩件事，不能共用同一個判斷式，不然申請狀態會卡住出不去（見下方「驗證重點」）
-- **退款用當初實際扣的金額，不是即時價格**：`Application.escrowAmount` 記錄申請當下真正扣了多少 PM 幣，拒絕/撤回退款都讀這個值，並跟目前 `group.escrowTokens` 取 `Math.min` 夾住，避免團主事後改價格、或代管餘額因故不足時退款金額對不上或被扣成負數
-- **退款邏輯抽成共用函式**：`refundEscrow(tx, { userId, groupId, amount, note })` 讓這裡（拒絕）、撤回申請（`DELETE /applications/:id`）、成員移除/退出（`members.js`）三處共用，不用各自重寫一次「加回餘額、扣代管、寫交易紀錄」
+- **退款用當初實際扣的金額，不是即時價格**：`Application.escrowAmount` 記錄申請當下真正扣了多少 PM 幣，拒絕/取消退款都讀這個值，並跟目前 `group.escrowTokens` 取 `Math.min` 夾住，避免團主事後改價格、或代管餘額因故不足時退款金額對不上或被扣成負數
+- **退款邏輯抽成共用函式**：`refundEscrow(tx, { userId, groupId, amount, note })` 讓這裡（拒絕）、取消申請（`DELETE /applications/:id`）、成員移除/退出（`members.js`）三處共用，不用各自重寫一次「加回餘額、扣代管、寫交易紀錄」
 - **名額防超賣也是靠條件式 `updateMany`**：`count === 0` 就代表寫入的那一瞬間名額其實已經滿了，直接 409 擋下，避免兩筆申請同時接受、超過 `maxMembers`
 - 前端 `handleApprove` 送出前會先做一次本地名額快照檢查，這只是給使用者的即時回饋，真正的防線還是後端的 transaction；接受成功後會重新拉一次真實資料，確保 store 裡拿到的是 transaction 建出來的真實 `Member`/`Subscription` id
 

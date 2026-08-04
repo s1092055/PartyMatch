@@ -1,7 +1,7 @@
 # 申請加入群組
 
 ## 使用者目標
-在群組詳情頁對招募中（`recruiting`）的群組送出加入申請，等待團主審核。送出申請的當下就會把席位費用轉入平台代管，等待期間可以隨時撤回拿回這筆錢。
+在群組詳情頁對招募中（`recruiting`）的群組送出加入申請，等待團主審核。送出申請的當下就會把席位費用轉入平台代管，等待期間可以隨時取消拿回這筆錢。
 
 ## 流程圖
 
@@ -34,10 +34,10 @@ sequenceDiagram
         FE-->>U: 顯示「申請已送出」
     end
 
-    Note over U,BE: 審核前可隨時撤回，代管的錢會退回來
+    Note over U,BE: 審核前可隨時取消，代管的錢會退回來
     U->>FE: 點擊「取消申請」
     FE->>BE: DELETE /applications/:id
-    BE->>DB: status → withdrawn，清空 activeKey
+    BE->>DB: status → cancelled，清空 activeKey
     BE->>DB: tokenBalance += 席位費用，escrowTokens -= 費用，寫入 TokenTransaction(refund)
     BE-->>FE: 200（可重新申請同一群組）
 ```
@@ -52,7 +52,7 @@ sequenceDiagram
 
 | 路徑 | 說明 |
 |------|------|
-| `src/features/group/GroupDetailModal.jsx` | `canApply` 判斷、`handleApply`、`handleWithdraw` |
+| `src/features/group/GroupDetailModal.jsx` | `canApply` 判斷、`handleApply`、`handleCancel` |
 | `src/features/group/components/ApplyModal.jsx` | 申請留言、同意條款、送出/成功畫面 |
 | `src/features/group/components/buildMobileFooter.jsx` | 未登入時導向登入頁；已登入且 `canApply` 時顯示「申請加入」按鈕 |
 | `src/common/stores/useApplicationStore.js` | `create`、`withdraw`，成功後都會呼叫 `useAuthStore.refreshTokenBalance()` 同步餘額顯示 |
@@ -70,10 +70,10 @@ sequenceDiagram
 
 | Model | 用途 |
 |-------|------|
-| `Application` | 新建 / 撤回；`escrowAmount` 記錄申請當下實際代管扣款的金額，撤回退款要用這個值 |
-| `Group` | 讀取 `status`、`hostId`、`monthlyFee`、`billingCycle`；撤回時更新 `escrowTokens` |
+| `Application` | 新建 / 取消；`escrowAmount` 記錄申請當下實際代管扣款的金額，取消退款要用這個值 |
+| `Group` | 讀取 `status`、`hostId`、`monthlyFee`、`billingCycle`；取消時更新 `escrowTokens` |
 | `User` | 讀取／扣款／退款 `tokenBalance` |
-| `TokenTransaction` | 申請時寫入 `escrow`，撤回時寫入 `refund` |
+| `TokenTransaction` | 申請時寫入 `escrow`，取消時寫入 `refund` |
 
 ## 使用技術
 - **不做樂觀更新**：`useApplicationStore.create` 要等 `insertApplication(...)` 真的成功才寫入 store。如果先樂觀更新，遇到餘額不足這類錯誤時，探索頁的「已申請」標籤就會先跳出來又馬上消失，體驗反而更差
@@ -85,7 +85,7 @@ sequenceDiagram
 
 **1. 判斷是否可申請**
 - `GroupDetailModal` 計算 `app = getByUserAndGroup(activeUserId, group.id)`，推導出：
-  - `hasActiveApp`：排除 `rejected`/`removed`/`left`/`withdrawn`，以及「已接受但已不是成員」的邊界情況
+  - `hasActiveApp`：排除 `rejected`/`removed`/`left`/`cancelled`，以及「已接受但已不是成員」的邊界情況
   - `isPendingApp`：申請是否仍在審核中
 - `canApply = !isHost && !isMember && !hasActiveApp && !isFull && !!activeUserId`，全部成立才顯示「申請加入」入口
 - 未登入時 `buildMobileFooter` 改顯示導向 `/login` 的按鈕（登入後導向首頁，不會回到原本的群組頁）
@@ -99,8 +99,8 @@ sequenceDiagram
 - 併發查詢群組（`prisma.group.findUnique`）與申請人 `tokenBalance`
 - 依序檢查：群組存在、`status === 'recruiting'`、`group.hostId !== req.user.id`（團主不能申請自己的群組）
 - 用 `computeSeatCost(group)` 算出席位費用，`tokenBalance < seatCost` 回 `400 INSUFFICIENT_BALANCE`（這一步只是給友善錯誤訊息的預檢）
-- 查該使用者對此群組最新一筆申請，若存在且非 `['rejected','removed','left','withdrawn']`，回 `409`
-- 通過後進入 `$transaction`：條件式扣款 `tokenBalance`（不足則回 `400 INSUFFICIENT_BALANCE`）→ `prisma.application.create(...)` 同時把 `escrowAmount` 設成這次扣的 `seatCost`（之後撤回/拒絕退款要用這個值，不能用即時價格重算）→ `group.escrowTokens` 增加 → 寫入 `TokenTransaction(type: 'escrow')`；若資料庫層 unique constraint 擋下（`P2002`）回 `409`，整筆交易回滾（不會留下扣了錢但沒建申請的中間狀態）
+- 查該使用者對此群組最新一筆申請，若存在且非 `['rejected','removed','left','cancelled']`，回 `409`
+- 通過後進入 `$transaction`：條件式扣款 `tokenBalance`（不足則回 `400 INSUFFICIENT_BALANCE`）→ `prisma.application.create(...)` 同時把 `escrowAmount` 設成這次扣的 `seatCost`（之後取消/拒絕退款要用這個值，不能用即時價格重算）→ `group.escrowTokens` 增加 → 寫入 `TokenTransaction(type: 'escrow')`；若資料庫層 unique constraint 擋下（`P2002`）回 `409`，整筆交易回滾（不會留下扣了錢但沒建申請的中間狀態）
 
 **4. 送出成功後**
 - 前端把新申請（覆蓋為後端回傳的真實 `id`）加入 `applications` store，並呼叫 `refreshTokenBalance()` 讓畫面上的 PM 幣顯示同步扣款後的餘額
@@ -108,11 +108,11 @@ sequenceDiagram
 - 只寫 DB 通知團主（不即時推入團主 session 的 store，需刷新頁面才會看到）
 - `ApplyModal` 切到成功畫面：「申請已送出！等待團主審核後即可加入」
 
-**5. 撤回申請**
-- `isPendingApp` 為真時，`GroupDetailModal` 提供「取消申請」（`handleWithdraw`）
-- 前端樂觀把該筆狀態改為 `withdrawn` → `DELETE /applications/:id`；失敗則重新 `init()` 拉取真實狀態並拋出錯誤
-- 後端檢查：申請存在、`userId === req.user.id`（僅申請人可撤回）、`status === 'pending'`（只能撤回審核中的）
-- 通過後進入 `$transaction`：條件式更新（僅 `status: 'pending'` 才處理，避免跟團主同時審核衝突）把 `status → withdrawn`、清空 `activeKey` → 呼叫共用的 `refundEscrow`，用 `escrowAmount`（跟目前 `escrowTokens` 取 `Math.min`）退還代管金額、寫入 `TokenTransaction(type: 'refund')`
+**5. 取消申請**
+- `isPendingApp` 為真時，`GroupDetailModal` 提供「取消申請」（`handleCancel`）
+- 前端樂觀把該筆狀態改為 `cancelled` → `DELETE /applications/:id`；失敗則重新 `init()` 拉取真實狀態並拋出錯誤
+- 後端檢查：申請存在、`userId === req.user.id`（僅申請人可取消）、`status === 'pending'`（只能取消審核中的）
+- 通過後進入 `$transaction`：條件式更新（僅 `status: 'pending'` 才處理，避免跟團主同時審核衝突）把 `status → cancelled`、清空 `activeKey` → 呼叫共用的 `refundEscrow`，用 `escrowAmount`（跟目前 `escrowTokens` 取 `Math.min`）退還代管金額、寫入 `TokenTransaction(type: 'refund')`
 - 成功後前端呼叫 `refreshTokenBalance()` 同步餘額顯示
 
 ## 驗證重點
@@ -120,5 +120,5 @@ sequenceDiagram
 - 團主不能申請自己的群組（`group.hostId === req.user.id` → 400）
 - 群組必須是 `recruiting` 才能申請，`full`／已鎖定一律 400
 - 重複申請防護雙層：應用層先 `findFirst` 查最新一筆申請擋掉一般情況，資料庫層再靠 `(groupId, userId, activeKey)` unique index 擋併發（第二筆 `P2002` 回 409，且整個 transaction 一起回滾，不會留下已扣款但沒建立申請的資料）
-- 撤回只能撤自己、且仍為 `pending` 的申請；已接受/已拒絕/已離開的無法撤回，撤回時的退款用條件式 `updateMany` 限定僅 `pending` 才處理，避免跟團主幾乎同時審核造成重複退款
-- 撤回後 `activeKey` 清空為 `null`，可對同一群組重新申請（重新申請會是全新一筆代管扣款）
+- 取消只能取消自己、且仍為 `pending` 的申請；已接受/已拒絕/已離開的無法取消，取消時的退款用條件式 `updateMany` 限定僅 `pending` 才處理，避免跟團主幾乎同時審核造成重複退款
+- 取消後 `activeKey` 清空為 `null`，可對同一群組重新申請（重新申請會是全新一筆代管扣款）

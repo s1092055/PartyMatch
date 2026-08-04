@@ -15,7 +15,7 @@ Node.js + Express，`server/src/app.js` 為應用組裝入口，`server/src/serv
 | `auth.js` | `/api/auth` | 註冊、登入、refresh、登出、`GET /me` |
 | `groups/crud.js` | `/api/groups` | 群組 CRUD、交易紀錄查詢 |
 | `groups/lifecycle.js` | `/api/groups` | 狀態機推進：activate/confirm/dispute/cancel/lock/adjudicate/renew |
-| `applications.js` | `/api/applications` | 申請建立、撤回、審核 |
+| `applications.js` | `/api/applications` | 申請建立、取消、審核 |
 | `subscriptions.js` | `/api/subscriptions` | 成員訂閱查詢、刪除、付款狀態更新 |
 | `notifications.js` | `/api/notifications` | 個人通知與系統公告的建立／查詢／標記已讀 |
 | `conversations.js` | `/api/conversations` | 對話列表、訊息收發、已讀狀態、參與者管理 |
@@ -63,10 +63,10 @@ Schema 定義於 `server/prisma/schema.prisma`，`datasource` 為 MySQL 8，所�
 
 - **`applications.js` 的 `POST /`（送出申請）**：代管扣款發生在這裡，不是等團主接受——條件式 `updateMany` 扣款（`tokenBalance: { gte: seatCost }`）→ 建立 `Application`（含 `escrowAmount: seatCost`，記錄實際扣了多少錢）→ `group.escrowTokens` 增加 → 寫入 `TokenTransaction`；任一步驟失敗整包回滾。
 - **`applications.js` 的 `PATCH /:id`（接受申請）**：條件式 `updateMany`（僅 `status: 'pending'` 才能轉 `approved`，避免併發重複接受）→ 檢查群組名額 → 呼叫 `finalizeApprovedApplication(tx, ...)`（`server/src/utils/membership.js`，只做名額與招募狀態更新、建立 member/subscription，因為代管扣款已在申請時完成，這裡完全不碰 `tokenBalance`/`escrowTokens`）。拒絕分支則先用條件式 `updateMany`（僅 `status: 'pending'` 才算數）決定要不要呼叫 `refundEscrow` 退款，狀態轉換（`status`/`activeKey`）與退款是兩個各自獨立判斷的步驟，狀態轉換不論退款與否都會無條件寫入。
-- **`applications.js` 的 `DELETE /:id`（撤回申請）**：跟拒絕分支相同的退款邏輯，僅本人可對自己 `pending` 的申請操作。
+- **`applications.js` 的 `DELETE /:id`（取消申請）**：跟拒絕分支相同的退款邏輯，僅本人可對自己 `pending` 的申請操作。
 - **`members.js` 的 `POST /`（團主手動加入成員）**：呼叫 `admitMemberIntoGroup(tx, ...)`（走完整扣款邏輯，因為這個路徑沒有經過「申請」步驟），與申請接受流程共用同一套名額邏輯，避免繞過上限。
 - **`members.js` 的 `DELETE /:id`（移除成員／成員退出）**：刪除 member → 群組人數遞減 → 呼叫 `refundEscrow` 退款給使用者 → 對應 `Application` 狀態改為 `left`/`removed`，全部在同一 transaction 內完成。
-- 上述三處退款（拒絕、撤回、成員移除/退出）都共用 `server/src/utils/membership.js` 的 `refundEscrow(tx, { userId, groupId, amount, note })`，退款金額一律由呼叫端算好（取當初 `escrowAmount` 與目前 `escrowTokens` 的 `Math.min`）再傳進去，避免三處各自重寫一次「加回餘額、扣代管、寫交易紀錄」且退款上限的夾法不一致。
+- 上述三處退款（拒絕、取消、成員移除/退出）都共用 `server/src/utils/membership.js` 的 `refundEscrow(tx, { userId, groupId, amount, note })`，退款金額一律由呼叫端算好（取當初 `escrowAmount` 與目前 `escrowTokens` 的 `Math.min`）再傳進去，避免三處各自重寫一次「加回餘額、扣代管、寫交易紀錄」且退款上限的夾法不一致。
 
 非跨表寫入或不需要原子性的查詢（如各資源的 `GET`）則直接呼叫 `prisma.<model>.findMany`/`findUnique`，不包 transaction。
 

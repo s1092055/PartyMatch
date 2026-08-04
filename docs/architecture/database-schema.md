@@ -10,7 +10,7 @@
 | `payment_methods` | 使用者付款方式（`brand`、卡片末四碼、有效期限、是否為預設） |
 | `services` | 28 種訂閱服務清單與方案（JSON 欄位） |
 | `groups` | 群組主資料（狀態、名額、方案、`billingCycle`、`escrowTokens`（代管中PM幣總額）、`serviceInfoDeadline`（`pending_confirmation` 狀態的填寫帳號資訊截止時間，鎖定時間 + 24h，僅供前端顯示倒數）、`confirmDeadline`（`confirming` 狀態的確認截止時間，啟用時間 + 48h）、`disputeDeadline`（`disputed` 狀態的裁定截止時間，申訴提出時間 + 48 小時，跟確認期 `confirmDeadline` 同一套節奏）、`sharedCredentials`（無官方多人邀請機制的服務，團主鎖定群組時提供的帳號密碼，讓成員填寫服務帳號畫面能直接顯示，不用回頭翻聊天室訊息，僅存在前端 `sharingMethod: shared_credentials` 分類會用到，後端不知道這個分類本身，單純是有傳就存）） |
-| `applications` | 申請紀錄（`pending` / `approved` / `rejected` / `removed` / `left` / `withdrawn`）；`withdrawn` 為申請人在審核前自行取消；被拒絕、移除、退出或自行取消後可重新申請（建立新記錄，保留歷史）；`escrowAmount` 記錄送出申請當下實際代管扣款的金額，撤回/拒絕退款要用這個值而非即時價格重算，避免群組價格事後變動導致退款金額對不上；`activeKey` 只在 `pending`/`approved`（進行中）時為 `'active'`，其餘狀態為 `null`，搭配 `@@unique([groupId, userId, activeKey])`（MySQL unique index 允許多個 null 並存）模擬「同一使用者對同一群組最多一筆進行中申請」的 partial unique index，避免併發送出申請造成重複 pending 申請 |
+| `applications` | 申請紀錄（`pending` / `approved` / `rejected` / `removed` / `left` / `cancelled`）；`cancelled` 為申請人在審核前自行取消；被拒絕、移除、退出或自行取消後可重新申請（建立新記錄，保留歷史）；`escrowAmount` 記錄送出申請當下實際代管扣款的金額，取消/拒絕退款要用這個值而非即時價格重算，避免群組價格事後變動導致退款金額對不上；`activeKey` 只在 `pending`/`approved`（進行中）時為 `'active'`，其餘狀態為 `null`，搭配 `@@unique([groupId, userId, activeKey])`（MySQL unique index 允許多個 null 並存）模擬「同一使用者對同一群組最多一筆進行中申請」的 partial unique index，避免併發送出申請造成重複 pending 申請 |
 | `members` | 群組成員（`serviceInfo` 訂閱帳號資訊、`serviceInfoIssueNote`、`disputeEvidenceUrl`（僅申訴階段使用，成員提供的爭議佐證截圖）） |
 | `subscriptions` | 成員訂閱（帳號資訊、訂閱狀態、下次扣款日、`lastPaidAt`） |
 | `token_transactions` | PM幣交易審計日誌（`userId`、`type`、`amount`、`relatedGroupId`、`note`）；類型包含 `topup`（儲值）、`escrow`（凍結至代管）、`release`（撥款給團主）、`refund`（退還給成員） |
@@ -42,7 +42,7 @@
 | `pm:open-host-group` | 通知點擊 / `FloatingMessages` / `ChatWindow` | `ManageGroupsPage.jsx` 開啟指定群組 Modal（支援 `openLockGroup`、`openActivate`、`openApplications`、`openBilling` 旗標） |
 | `pm:open-topup` | `GroupDetailModal`「PM幣不足」Toast 的「前往儲值」按鈕 | `AppNav` 開啟儲值 Modal |
 | `pm:refresh-member-stores` | `useNotificationStore` 輪詢偵測到 `member_left`/`member_removed`；`FloatingMessages` 點擊同類通知 | `App.jsx` 重新 `init()` 成員與訂閱 store |
-| `pm:refresh-application-store` | `useNotificationStore` 輪詢偵測到 `new_application`/`application_withdrawn` | `App.jsx` 重新 `init()` 申請 store |
+| `pm:refresh-application-store` | `useNotificationStore` 輪詢偵測到 `new_application`/`application_cancelled` | `App.jsx` 重新 `init()` 申請 store |
 
 ---
 
@@ -73,7 +73,7 @@
      ↓
 團主接受：僅建立 member/subscription、名額 +1，代管金額已在申請時扣款，這裡不再重複扣款
      ↓
-團主拒絕 / 申請人撤回：group.escrowTokens -= 費用；user.tokenBalance += 費用；寫入 token_transaction（type: refund）
+團主拒絕 / 申請人取消：group.escrowTokens -= 費用；user.tokenBalance += 費用；寫入 token_transaction（type: refund）
      ↓
 團主鎖定群組：設定各成員訂閱的 nextBillingDate，並設定 serviceInfoDeadline（鎖定時間 + 24h，前端顯示倒數，逾期不自動處理）
      ↓
@@ -112,7 +112,7 @@
 
 後端 Prisma schema 定義的完整通知類型：
 
-`application_sent`、`new_application`、`application_approved`、`application_rejected`、`application_withdrawn`、`group_created`、`group_chat_opened`、`fill_service_info`（鎖定群組同一時機發給成員，跟發給團主自己的 `group_chat_opened` 內容分開，直接提醒要做的事而不是單純告知聊天室開了）、`service_info_filled`（成員送出服務帳號資訊時發給團主，由前端 `useMemberStore.fillServiceInfo` 直接呼叫 `insertNotification`，不是後端主動發送；驅動團主端「成員資料」分頁的未讀數字 badge）、`group_activated`、`group_full`、`group_ended`、`group_cancelled`、`group_renewal`、`member_removed`、`member_left`、`service_info_issue`、`escrow_released`（成員主動確認、確認期逾期惰性撥款、或申訴裁定團主獲勝時發送）、`dispute_raised`、`dispute_resolved`（申訴裁定結果，通知申訴成員與團主雙方）、`upcoming_renewal`（距 `nextBillingDate` 7 天內、於成員讀取自己訂閱列表時惰性補發一次，見 `GET /subscriptions`）、`system`
+`application_sent`、`new_application`、`application_approved`、`application_rejected`、`application_cancelled`、`group_created`、`group_chat_opened`、`fill_service_info`（鎖定群組同一時機發給成員，跟發給團主自己的 `group_chat_opened` 內容分開，直接提醒要做的事而不是單純告知聊天室開了）、`service_info_filled`（成員送出服務帳號資訊時發給團主，由前端 `useMemberStore.fillServiceInfo` 直接呼叫 `insertNotification`，不是後端主動發送；驅動團主端「成員資料」分頁的未讀數字 badge）、`group_activated`、`group_full`、`group_ended`、`group_cancelled`、`group_renewal`、`member_removed`、`member_left`、`service_info_issue`、`escrow_released`（成員主動確認、確認期逾期惰性撥款、或申訴裁定團主獲勝時發送）、`dispute_raised`、`dispute_resolved`（申訴裁定結果，通知申訴成員與團主雙方）、`upcoming_renewal`（距 `nextBillingDate` 7 天內、於成員讀取自己訂閱列表時惰性補發一次，見 `GET /subscriptions`）、`system`
 
 `member_joined`、`token_topup` 是從未使用過的死值，已從 enum 移除（見 [歷史異動](../history/flows-history.md)）
 

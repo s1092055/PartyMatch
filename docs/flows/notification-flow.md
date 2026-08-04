@@ -92,7 +92,7 @@ sequenceDiagram
 | 「收到新的加入申請」／「{applicantName} 申請加入「{groupName}」群組。」 | `new_application` | 同上 | 團主（僅寫DB） | 群組管理該群組，自動開申請列表 |
 | 「申請已通過」／「恭喜！你加入「{groupName}」群組的申請已通過，請前往我的訂閱查看。」 | `application_approved` | 團主接受申請 | 申請人（僅寫DB） | 已有訂閱→成員視角群組頁；否則→探索頁開該群組（開啟前見下方「額滿保護」） |
 | 「申請未通過」／「很遺憾，你加入「{groupName}」群組的申請未通過，你可以繼續探索其他群組。」 | `application_rejected` | 團主拒絕申請 | 申請人（僅寫DB） | 探索頁，並重新拉取申請人自己的 `applicationStore`（本地紀錄還停在 `pending`，不重拉的話「已申請」標記不會消失），開啟該群組 Modal 前見下方「額滿保護」 |
-| 「申請人已取消申請」／「{applicantName} 已取消加入「{groupName}」群組的申請。」 | `application_withdrawn` | 申請人自行撤回 `pending` 申請 | 團主（僅寫DB） | 群組管理該群組，自動開申請列表；輪詢偵測到這則通知會直接觸發 `pm:refresh-application-store`，不需要點擊就會刷新，避免團主對著已撤回的申請按接受/拒絕 |
+| 「申請人已取消申請」／「{applicantName} 已取消加入「{groupName}」群組的申請。」 | `application_cancelled` | 申請人自行取消 `pending` 申請 | 團主（僅寫DB） | 群組管理該群組，自動開申請列表；輪詢偵測到這則通知會直接觸發 `pm:refresh-application-store`，不需要點擊就會刷新，避免團主對著已取消的申請按接受/拒絕 |
 | 「群組已成功建立」／「「{serviceName}」群組已上架，開始招募成員中！」 | `group_created` | 建立群組成功當下 | 團主自己（即時） | 群組管理該群組 |
 | 「群組名額已滿」／「「{groupName}」群組名額已滿，可以點擊鎖定群組了。」 | `group_full` | 接受申請後名額剛好滿 | 團主自己（即時） | 群組管理該群組 |
 | 「群組聊天室已開啟」／「「{serviceName}」群組已鎖定，聊天室已建立，點擊查看。」 | `group_chat_opened` | 團主鎖定群組（建立聊天室） | 團主自己（即時） | 直接開啟該群組聊天室 |

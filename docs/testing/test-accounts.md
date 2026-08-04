@@ -76,7 +76,7 @@ npm run db:seed-demo    # 建立 10 個 demo 帳號（含 1 個管理員）、22
 |------|------|------|------|------|
 | G1 | Netflix（年繳） | demo7 | `recruiting` | 1 筆待審申請（demo1），可測審核流程；年繳計費路徑 |
 | G2 | Notion | demo4 | `recruiting` | 1 位已接受成員（demo5）+ 1 筆已拒絕申請（demo3），demo7 已收藏 |
-| G3 | Spotify（6 人方案） | demo8 | `full` | 5 位成員（demo1～demo4、demo9）＋團主共 6 人滿員 + 1 筆已撤回申請（demo6） |
+| G3 | Spotify（6 人方案） | demo8 | `full` | 5 位成員（demo1～demo4、demo9）＋團主共 6 人滿員 + 1 筆已取消申請（demo6） |
 | G4 | Disney+ | demo7 | `pending_confirmation` | 已鎖定，成員（demo2）尚未填帳號資訊（`sharingMethod: shared_credentials`）；2 人方案，1 位成員＋團主即滿員 |
 | G5 | HBO Max（3 人方案） | demo9 | `pending_activation` | 2 位成員（demo3、demo5）＋團主共 3 人已全部填完帳號（確認勾選），待團主啟用 |
 | G6 | ChatGPT Team | demo8 | `confirming` | demo7 為成員，尚無人確認；2 人方案，1 位成員＋團主即滿員 |

@@ -46,7 +46,7 @@
 
 ---
 
-### TC-002b：申請人撤回申請（退款）
+### TC-002b：申請人取消申請（退款）
 
 **前置條件**：延續 TC-002，demo5 有 1 筆 `pending` 申請，`tokenBalance` 已扣除 X PM。
 
@@ -54,7 +54,7 @@
 1. demo5 在群組詳情頁點擊「取消申請」
 
 **預期結果**（`DELETE /applications/:id`）：
-- 申請狀態變為 `withdrawn`，`activeKey` 清空
+- 申請狀態變為 `cancelled`，`activeKey` 清空
 - demo5 的 `tokenBalance` 加回 X PM，回到扣款前的餘額
 - 群組 `escrowTokens` 減少 X PM
 - 寫入一筆 `tokenTransaction`（`type: 'refund'`）

@@ -65,7 +65,7 @@ PartyMatch 把媒合、審核、代管撥款、服務帳號確認做成平台內
 - **申請加入**：送出申請、查看審核狀態（`server/src/routes/applications.js`）
 - **團主審核**：接受／拒絕申請，代管扣款在申請當下已完成，接受只處理名額、拒絕則退款（`src/features/manage-groups/`）
 - **我的訂閱／群組管理（雙頁面）**：成員與團主視角各自獨立成頁，查看訂閱／管理群組名單、群組紀錄（`src/features/subscriptions/`、`src/features/manage-groups/`）
-- **PM 幣代管與撥款**：送出申請即扣款進入群組代管餘額，拒絕或撤回退款，啟用服務時撥款給團主（`server/src/routes/tokens.js`、`server/src/routes/applications.js`、`server/src/routes/groups/crud.js`、`groups/lifecycle.js`）
+- **PM 幣代管與撥款**：送出申請即扣款進入群組代管餘額，拒絕或取消退款，啟用服務時撥款給團主（`server/src/routes/tokens.js`、`server/src/routes/applications.js`、`server/src/routes/groups/crud.js`、`groups/lifecycle.js`）
 - **續訂**：團主可手動開始新一期續訂週期（`groups/lifecycle.js` 的 `/renew`）
 - **申訴與裁定**：成員可在確認期間提出申訴並上傳證據，管理員裁定勝方（`groups/lifecycle.js` 的 `/dispute`、`/adjudicate`）
 - **訊息**：群組聊天室、私人 DM、系統通知聊天室，採 5 秒 polling（`src/features/messages/`）

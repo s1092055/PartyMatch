@@ -44,7 +44,7 @@
 |--------|------|------|------|
 | GET | `/applications` | 需登入 | 與目前用戶相關的申請（申請人或團主視角） |
 | POST | `/applications` | 需登入 | 送出申請 |
-| DELETE | `/applications/:id` | 需登入 | 申請人撤回自己 `pending` 的申請 |
+| DELETE | `/applications/:id` | 需登入 | 申請人取消自己 `pending` 的申請 |
 | PATCH | `/applications/:id` | 需登入 | 團主審核（`approved`/`rejected`/`removed`） |
 
 ## Members（`server/src/routes/members.js`）

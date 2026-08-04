@@ -1,6 +1,6 @@
 # 成員視角測試案例
 
-涵蓋：申請加入、撤回申請、查看我的訂閱、填寫服務帳號資訊、確認服務、申訴、退出群組。對應程式碼：`src/features/subscriptions/components/MemberGroupView.jsx`、`server/src/routes/{applications,members,groups}.js`。
+涵蓋：申請加入、取消申請、查看我的訂閱、填寫服務帳號資訊、確認服務、申訴、退出群組。對應程式碼：`src/features/subscriptions/components/MemberGroupView.jsx`、`server/src/routes/{applications,members,groups}.js`。
 
 測試帳號見 [`test-accounts.md`](./test-accounts.md)。
 
@@ -21,7 +21,7 @@
 
 ---
 
-### TC-102：撤回審核中的申請
+### TC-102：取消審核中的申請
 
 **前置條件**：延續 TC-101，demo1 有一筆 `pending` 申請。
 
@@ -29,10 +29,10 @@
 1. 在群組詳情或我的訂閱頁找到該筆申請，點擊「取消申請」並確認
 
 **預期結果**（`DELETE /applications/:id`）：
-- 僅申請人本人可撤回（`application.userId !== req.user.id` → 403）
-- 僅能撤回 `pending` 狀態的申請（非 `pending` → 400「只能撤回審核中的申請」）
-- 成功後狀態變為 `withdrawn`，`activeKey` 清空
-- 撤回後可對同一群組重新申請（`applications.js` 第 62 行的白名單包含 `withdrawn`）
+- 僅申請人本人可取消（`application.userId !== req.user.id` → 403）
+- 僅能取消 `pending` 狀態的申請（非 `pending` → 400「只能取消審核中的申請」）
+- 成功後狀態變為 `cancelled`，`activeKey` 清空
+- 取消後可對同一群組重新申請（`applications.js` 第 62 行的白名單包含 `cancelled`）
 
 ---
 

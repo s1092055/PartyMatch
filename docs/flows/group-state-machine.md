@@ -84,7 +84,7 @@ const ALLOWED_TRANSITIONS = {
 | 時機 | PM幣異動 | `TokenTransaction.type` |
 |------|----------|--------------------------|
 | 送出申請（`POST /applications`） | 申請人 `tokenBalance` -= 席位費用；`group.escrowTokens` += 費用 | `escrow` |
-| 團主拒絕 / 申請人撤回 | `group.escrowTokens` -= 費用；申請人 `tokenBalance` += 費用 | `refund` |
+| 團主拒絕 / 申請人取消 | `group.escrowTokens` -= 費用；申請人 `tokenBalance` += 費用 | `refund` |
 | 申請接受（`finalizeApprovedApplication`） | 僅建立成員/訂閱、更新名額，代管金額已在申請時扣過，不再異動 | — |
 | 確認期結束（`/confirm` 或惰性撥款） | `group.escrowTokens` → 團主 `tokenBalance` | `release` |
 | 成員退出 / 被移除 | `group.escrowTokens` → 該成員 `tokenBalance` | `refund` |
