@@ -121,7 +121,7 @@ sequenceDiagram
 - 不做任何餘額檢查或扣款，因為申請當下已經確認過餘額並扣款完成
 - 用條件式 `updateMany` 檢查並鎖定名額，失敗就丟出 409
 - 平行執行：`Member.upsert`、`Subscription.upsert`（用 `upsert` 是因為「團主直接加人」跟「申請接受」概念上是同一件事，就算使用者已經有殘留記錄也不會報錯）
-- 重新查一次群組的 `currentMembers`/`maxMembers`，剛好達到上限就把群組狀態推進為 `full`
+- 重新查一次群組的 `currentMembers`/`maxMembers`，剛好達到上限就把群組狀態推進為 `full`；額滿的同一個 transaction 內還會呼叫 `autoRejectPendingApplications`，把同群組其他還在 `pending` 的申請批次轉為 `rejected`、依各自 `escrowAmount` 退款，並各自發送「申請未通過（名額已滿）」通知，不用等團主之後手動一一拒絕（見 [Bug 紀錄](../testing/bug-log.md) BUG-035）
 
 **5. 接受成功後**
 - 前端重新拉取真實的成員/訂閱資料
