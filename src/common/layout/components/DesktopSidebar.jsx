@@ -209,7 +209,7 @@ export default function DesktopSidebar({
               className="flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left transition-all hover:bg-raised"
             >
               <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-line bg-surface shadow-md">
-                <img src={logoUrl} alt="" className="h-5 w-5" />
+                <img src={logoUrl} alt="" className="h-6 w-6" />
               </span>
               <span className="min-w-0 flex-1 opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
                 <span className="block truncate text-sm font-extrabold text-ink">訪客</span>

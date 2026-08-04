@@ -35,7 +35,7 @@ export default function ProfileHeaderCard({ user, loggedIn = true, onOpenCreditS
           />
         ) : (
           <div className="grid h-20 w-20 place-items-center rounded-full border border-line bg-surface shadow-md">
-            <img src={logoUrl} alt="" className="h-9 w-9" />
+            <img src={logoUrl} alt="" className="h-11 w-11" />
           </div>
         )}
         {user.isVerified && (
