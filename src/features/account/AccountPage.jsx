@@ -61,7 +61,6 @@ function LoginRequiredPlaceholder({ label, promptLogin }) {
       </div>
       <div className="space-y-1">
         <p className="text-sm font-bold text-ink">登入後才能查看「{label}」</p>
-        <p className="text-xs text-ink-3">這裡的內容跟你的帳號綁在一起，請先登入</p>
       </div>
       <Button onClick={promptLogin} className="mt-2">
         <LogIn size={16} className="shrink-0" />
