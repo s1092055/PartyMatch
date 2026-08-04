@@ -5,13 +5,12 @@ import { Input, Textarea } from '../../../../components/ui/input'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../../../components/ui/select'
 import { COUNTRY_CODES, parsePhone, toE164, formatPhoneDisplay } from '../../../../common/utils/phone'
 
-function EditableField({ label, value, onSave, type = 'text', placeholder, locked, onLockedClick }) {
+function EditableField({ label, value, onSave, type = 'text', placeholder }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(value)
 
   function save() { onSave(draft); setEditing(false) }
   function cancel() { setDraft(value); setEditing(false) }
-  function startEdit() { locked ? onLockedClick() : setEditing(true) }
 
   return (
     <div className="flex items-start gap-3 py-3 border-b border-line-subtle last:border-0">
@@ -37,7 +36,7 @@ function EditableField({ label, value, onSave, type = 'text', placeholder, locke
             <Button onClick={cancel} variant="ghost" size="icon" aria-label="取消編輯" className="border border-line text-ink-3"><X size={13} /></Button>
           </>
         ) : (
-          <Button onClick={startEdit} variant="ghost" size="icon" aria-label={`編輯${label}`} className="border border-line text-ink-3">
+          <Button onClick={() => setEditing(true)} variant="ghost" size="icon" aria-label={`編輯${label}`} className="border border-line text-ink-3">
             <Pencil size={12} />
           </Button>
         )}
@@ -46,7 +45,7 @@ function EditableField({ label, value, onSave, type = 'text', placeholder, locke
   )
 }
 
-function PhoneEditableField({ value, onSave, locked, onLockedClick }) {
+function PhoneEditableField({ value, onSave }) {
   const [editing, setEditing] = useState(false)
   const parsed = parsePhone(value)
   const [countryCode, setCountryCode] = useState(parsed.countryCode)
@@ -61,7 +60,6 @@ function PhoneEditableField({ value, onSave, locked, onLockedClick }) {
     setLocalNumber(parsed.localNumber)
     setEditing(false)
   }
-  function startEdit() { locked ? onLockedClick() : setEditing(true) }
 
   return (
     <div className="flex items-start gap-3 py-3 border-b border-line-subtle last:border-0">
@@ -100,7 +98,7 @@ function PhoneEditableField({ value, onSave, locked, onLockedClick }) {
             <Button onClick={cancel} variant="ghost" size="icon" aria-label="取消編輯" className="border border-line text-ink-3"><X size={13} /></Button>
           </>
         ) : (
-          <Button onClick={startEdit} variant="ghost" size="icon" aria-label="編輯手機號碼" className="border border-line text-ink-3">
+          <Button onClick={() => setEditing(true)} variant="ghost" size="icon" aria-label="編輯手機號碼" className="border border-line text-ink-3">
             <Pencil size={12} />
           </Button>
         )}
@@ -109,13 +107,12 @@ function PhoneEditableField({ value, onSave, locked, onLockedClick }) {
   )
 }
 
-function BioEditableField({ value, onSave, locked, onLockedClick }) {
+function BioEditableField({ value, onSave }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(value)
 
   function save() { onSave(draft.trim()); setEditing(false) }
   function cancel() { setDraft(value); setEditing(false) }
-  function startEdit() { locked ? onLockedClick() : setEditing(true) }
 
   return (
     <div className="flex items-start gap-3 py-3 border-b border-line-subtle last:border-0">
@@ -144,7 +141,7 @@ function BioEditableField({ value, onSave, locked, onLockedClick }) {
             <Button onClick={cancel} variant="ghost" size="icon" aria-label="取消編輯" className="border border-line text-ink-3"><X size={13} /></Button>
           </>
         ) : (
-          <Button onClick={startEdit} variant="ghost" size="icon" aria-label="編輯個人簡介" className="border border-line text-ink-3">
+          <Button onClick={() => setEditing(true)} variant="ghost" size="icon" aria-label="編輯個人簡介" className="border border-line text-ink-3">
             <Pencil size={12} />
           </Button>
         )}
@@ -153,13 +150,13 @@ function BioEditableField({ value, onSave, locked, onLockedClick }) {
   )
 }
 
-export default function PersonalInfoTab({ user, onChange, locked, onLockedClick }) {
+export default function PersonalInfoTab({ user, onChange }) {
   return (
     <div>
-      <EditableField label="顯示名稱" value={user.displayName}  onSave={v => onChange('displayName', v)} locked={locked} onLockedClick={onLockedClick} />
-      <EditableField label="電子信箱" value={user.email}        onSave={v => onChange('email', v)} type="email" locked={locked} onLockedClick={onLockedClick} />
-      <PhoneEditableField value={user.phone ?? ''} onSave={v => onChange('phone', v)} locked={locked} onLockedClick={onLockedClick} />
-      <BioEditableField value={user.bio ?? ''} onSave={v => onChange('bio', v)} locked={locked} onLockedClick={onLockedClick} />
+      <EditableField label="顯示名稱" value={user.displayName}  onSave={v => onChange('displayName', v)} />
+      <EditableField label="電子信箱" value={user.email}        onSave={v => onChange('email', v)} type="email" />
+      <PhoneEditableField value={user.phone ?? ''} onSave={v => onChange('phone', v)} />
+      <BioEditableField value={user.bio ?? ''} onSave={v => onChange('bio', v)} />
     </div>
   )
 }

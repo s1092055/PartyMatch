@@ -73,9 +73,11 @@ function LoginRequiredPlaceholder({ label, promptLogin }) {
 
 function TabContent({ value, user, onChange, tabs, loggedIn, promptLogin }) {
   const tab = tabs.find(t => t.value === value)
+  // 未登入時，除了「其他設定」（純本機偏好，不需帳號），其餘分頁一律提示先登入
+  if (!loggedIn && value !== "settings") return <LoginRequiredPlaceholder label={tab.label} promptLogin={promptLogin} />
   if (tab?.comingSoon) return <ComingSoonPlaceholder label={tab.label} />
-  if (value === "profile")       return <PersonalInfoTab user={user} onChange={onChange} locked={!loggedIn} onLockedClick={promptLogin} />
-  if (value === "tokens")        return loggedIn ? <TokenTab /> : <LoginRequiredPlaceholder label={tab.label} promptLogin={promptLogin} />
+  if (value === "profile")       return <PersonalInfoTab user={user} onChange={onChange} />
+  if (value === "tokens")        return <TokenTab />
   if (value === "settings")      return <SettingsTab loggedIn={loggedIn} />
   if (value === "admin")         return <AdminTab />
   return null
@@ -141,7 +143,6 @@ export default function AccountPage() {
   const TABS = isAdmin ? [...BASE_TABS, { value: "admin", label: "管理員", icon: ShieldUser }] : BASE_TABS
 
   function handleUserChange(key, value) {
-    if (!loggedIn) { promptLogin(); return; }
     const previousValue = user[key];
     setUser((prev) => ({ ...prev, [key]: value }));
     // updateProfile 失敗時回傳 { ok: false }（不會 throw），先前用 .catch 接永遠接不到，
