@@ -1,7 +1,6 @@
 import { CheckCircle2, ShieldCheck, Star } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
 import { Avatar } from '../../../components/ui/avatar'
-import { Card } from '../../../components/ui/card'
 import { Badge } from '../../../components/ui/badge'
 import { LockBadge, PresenceDot } from '../../../common/layout/components/navShared'
 import { LOCKED_MESSAGE } from '../../../common/layout/components/navConstants'
@@ -29,7 +28,7 @@ export default function ProfileHeaderCard({ user, loggedIn = true, onOpenCreditS
   // 不吃 user prop 裡那份只在 AccountPage 掛載當下取一次快照的舊值，才會即時反映
   const presenceStatus = useAuthStore(s => s.user?.presenceStatus ?? 'online')
   return (
-    <Card className="mb-5 flex flex-col items-center gap-4 p-5 md:flex-row">
+    <div className="mb-5 flex flex-col items-center gap-4 rounded-inner border border-line bg-surface p-5 shadow-card md:flex-row">
       <div className="relative shrink-0">
         {loggedIn ? (
           <Avatar
@@ -67,6 +66,6 @@ export default function ProfileHeaderCard({ user, loggedIn = true, onOpenCreditS
         <HeroStatTile icon={ShieldCheck} iconClassName="text-brand" label="信用分數" onClick={onOpenCreditScore} locked={!loggedIn} />
         <HeroStatTile icon={Star} iconClassName="text-brand" label="我的評價" onClick={onOpenReviews} locked={!loggedIn} />
       </div>
-    </Card>
+    </div>
   )
 }
