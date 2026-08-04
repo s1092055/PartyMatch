@@ -47,7 +47,7 @@ export default function ProfileHeaderCard({ user, loggedIn = true, onOpenCreditS
             <CheckCircle2 size={18} className="text-brand" />
           </div>
         )}
-        {loggedIn && <PresenceDot status={presenceStatus} className="absolute -bottom-0.5 -left-0.5 h-4 w-4" />}
+        {loggedIn && <PresenceDot status={presenceStatus} className="absolute -bottom-0.5 -right-0.5 h-4 w-4" />}
       </div>
       <div className="min-w-0 flex-1 text-center md:text-left">
         <div className="mb-0.5 flex flex-wrap items-center justify-center gap-2 md:justify-start">
