@@ -111,8 +111,9 @@ function LogoutButton({ className = "", fullWidth = false, loggedIn }) {
 }
 
 export default function AccountPage() {
-  const [activeTab, setActiveTab] = useState("profile");
-  const [openAccordion, setOpenAccordion] = useState(null);
+  // 訪客沒有「個人資料」可看，預設分頁改停在唯一能用的「其他設定」，避免一進頁面就先撞到登入提示
+  const [activeTab, setActiveTab] = useState(() => useAuthStore.getState().loggedIn ? "profile" : "settings");
+  const [openAccordion, setOpenAccordion] = useState(() => useAuthStore.getState().loggedIn ? null : "settings");
   const [creditScoreOpen, setCreditScoreOpen] = useState(false);
   const [reviewsOpen, setReviewsOpen] = useState(false);
   const loggedIn = useAuthStore(s => s.loggedIn)
