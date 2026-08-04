@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { THEME_STORAGE_KEY, getStoredTheme, getSystemTheme } from '../lib/theme'
 
 const ThemeContext = createContext(null)
@@ -22,14 +22,18 @@ export function ThemeProvider({ children }) {
     return () => mql.removeEventListener('change', onChange)
   }, [hasOverride])
 
-  function setTheme(next) {
+  const setTheme = useCallback(next => {
     setThemeState(next)
     setHasOverride(true)
     localStorage.setItem(THEME_STORAGE_KEY, next)
-  }
+  }, [])
+
+  // 沒有 memo 的話每次 render 都會建一個新物件，任何 consumer（例如掛在會隨捲動
+  // 重新渲染的 MobileDock 上）都會被迫跟著重渲染，即使 theme 本身沒變
+  const value = useMemo(() => ({ theme, setTheme }), [theme, setTheme])
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   )
