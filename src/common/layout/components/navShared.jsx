@@ -11,8 +11,8 @@ export function CountBadge({ count, className }) {
   )
 }
 
-export function LockBadge({ className = '' }) {
-  return <Lock size={11} strokeWidth={2.3} className={`absolute rounded-full ${className}`} />
+export function LockBadge({ className }) {
+  return <Lock size={11} strokeWidth={2.3} className={cn('absolute -right-1 -top-1 rounded-full', className)} />
 }
 
 // 掛在頭像右下角的狀態點：使用者在「其他設定」手動選擇的線上狀態，不是自動偵測。

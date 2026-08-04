@@ -58,7 +58,7 @@ function SectionGroup({ title, icon: Icon, children }) {
 
 export default function SettingsTab() {
   const navigate = useNavigate()
-  const { theme, setTheme } = useTheme()
+  const { theme, toggleTheme } = useTheme()
   const [prefs, setPrefs] = useState(loadPrefs)
   const showAvatar = useAuthStore(s => s.user?.showAvatar ?? true)
   const [savingAvatarVisibility, setSavingAvatarVisibility] = useState(false)
@@ -133,7 +133,7 @@ export default function SettingsTab() {
           label="深色模式"
           desc="切換深色介面"
           checked={theme === 'dark'}
-          onChange={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          onChange={toggleTheme}
         />
         <div className="flex items-center gap-4 py-3 border-b border-line-subtle last:border-0">
           <div className="min-w-0 flex-1">

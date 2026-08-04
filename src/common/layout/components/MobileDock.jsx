@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Compass, LayoutGrid, LogIn, LogOut, Moon, PlusCircle, Search, Settings, Sun } from 'lucide-react'
-import { NAV_SECTIONS } from '../nav'
+import { MY_NAV_ITEMS } from '../nav'
 import { Avatar } from '../../../components/ui/avatar'
 import { TokenBadge } from '../../../components/ui/TokenAmount'
 import { Button } from '../../../components/ui/button'
@@ -9,9 +9,8 @@ import { Drawer, DrawerContent, DrawerTitle } from '../../../components/ui/drawe
 import { useAuthStore } from '../../stores/useAuthStore'
 import { useTheme } from '../../../components/theme-provider'
 import { LockBadge, PresenceDot } from './navShared'
+import { PROTECTED_NAV_ROUTES } from './navConstants'
 import { useHideOnScroll } from '../../utils/hooks'
-
-const MY_ITEMS = NAV_SECTIONS[1].items
 
 // 「我的」跟「我的帳號」都用同一套底部 Drawer（bottom sheet）骨架呈現選單內容，
 // 不再用貼在觸發點上方的小 popup——手機上滑出式比固定定位的小選單好操作、也不用
@@ -35,7 +34,7 @@ function LockedDockButton({ icon: Icon, label, onClick }) {
     >
       <span className="relative">
         <Icon size={22} strokeWidth={2.1} />
-        <LockBadge className="-right-1 -top-1" />
+        <LockBadge />
       </span>
       {label}
     </button>
@@ -63,19 +62,22 @@ export default function MobileDock({
   const visible = useHideOnScroll()
   const navigate = useNavigate()
   const [loggingOut, setLoggingOut] = useState(false)
-  const { theme, setTheme } = useTheme()
+  const { theme, toggleTheme } = useTheme()
 
-  const isMyActive = MY_ITEMS.some(item => item.to === pathname)
+  const isMyActive = PROTECTED_NAV_ROUTES.has(pathname)
+  // 帳號選單觸發點與 drawer 裡的主要連結，登入/訪客只差 icon、文案、目的地
+  const accountTrigger = loggedIn
+    ? { icon: <Avatar initial={avatarInitial} color={avatarColor} size="xs" className={pathname === '/account' ? 'ring-2 ring-brand' : ''} />, label: '我的帳號' }
+    : { icon: <LogIn size={22} strokeWidth={2.1} />, label: '登入' }
+  const primaryLink = loggedIn
+    ? { href: '/account', icon: Settings, label: '我的帳號' }
+    : { href: '/login', icon: LogIn, label: '登入' }
 
   async function handleLogout() {
     setLoggingOut(true)
     setAccountMenuOpen(false)
     await useAuthStore.getState().logout()
     navigate('/login', { replace: true })
-  }
-
-  function toggleTheme() {
-    setTheme(theme === 'dark' ? 'light' : 'dark')
   }
 
   return (
@@ -134,34 +136,22 @@ export default function MobileDock({
           )}
         </div>
 
-        {loggedIn ? (
-          <button
-            onClick={() => setAccountMenuOpen(true)}
-            aria-label="我的帳號"
-            aria-expanded={accountMenuOpen}
-            className={`flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold transition-all hover:-translate-y-0.5 active:text-brand ${pathname === '/account' ? 'text-brand' : 'text-ink-3'}`}
-          >
-            <Avatar initial={avatarInitial} color={avatarColor} size="xs" className={pathname === '/account' ? 'ring-2 ring-brand' : ''} />
-            我的帳號
-          </button>
-        ) : (
-          <button
-            onClick={() => setAccountMenuOpen(true)}
-            aria-label="登入"
-            aria-expanded={accountMenuOpen}
-            className="flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold text-ink-3 transition-all hover:-translate-y-0.5 active:text-brand"
-          >
-            <LogIn size={22} strokeWidth={2.1} />
-            登入
-          </button>
-        )}
+        <button
+          onClick={() => setAccountMenuOpen(true)}
+          aria-label={accountTrigger.label}
+          aria-expanded={accountMenuOpen}
+          className={`flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold transition-all hover:-translate-y-0.5 active:text-brand ${pathname === '/account' ? 'text-brand' : 'text-ink-3'}`}
+        >
+          {accountTrigger.icon}
+          {accountTrigger.label}
+        </button>
 
       </div>
 
       {loggedIn && (
         <DrawerSheet open={myMenuOpen} onOpenChange={setMyMenuOpen} title="我的">
           <div className="flex divide-x divide-line-subtle">
-            {MY_ITEMS.map(item => (
+            {MY_NAV_ITEMS.map(item => (
               <a
                 key={item.to}
                 href={item.to}
@@ -181,7 +171,7 @@ export default function MobileDock({
       <DrawerSheet open={accountMenuOpen} onOpenChange={setAccountMenuOpen} title={loggedIn ? '帳號選單' : '訪客選單'}>
         <div className="flex flex-col items-center gap-3 px-6 pt-2 pb-4">
           <span className="relative shadow-md rounded-full">
-            <Avatar initial={loggedIn ? avatarInitial : null} color={avatarColor} className="!h-14 !w-14 !text-lg" />
+            <Avatar initial={avatarInitial} color={avatarColor} size="lg" />
             {loggedIn && <PresenceDot status={presenceStatus} className="absolute bottom-0.5 right-0.5 h-3.5 w-3.5" />}
           </span>
           <p className="text-sm font-extrabold text-ink">{loggedIn ? userName : '訪客'}</p>
@@ -206,25 +196,14 @@ export default function MobileDock({
         )}
 
         <div className="flex divide-x divide-line-subtle">
-          {loggedIn ? (
-            <a
-              href="/account"
-              onClick={() => setAccountMenuOpen(false)}
-              className="flex min-w-0 flex-1 items-center justify-center gap-2 py-4 text-sm font-bold text-ink transition-colors hover:bg-raised"
-            >
-              <Settings size={16} strokeWidth={2} className="shrink-0 text-ink-3" />
-              我的帳號
-            </a>
-          ) : (
-            <a
-              href="/login"
-              onClick={() => setAccountMenuOpen(false)}
-              className="flex min-w-0 flex-1 items-center justify-center gap-2 py-4 text-sm font-bold text-ink transition-colors hover:bg-raised"
-            >
-              <LogIn size={16} strokeWidth={2} className="shrink-0 text-ink-3" />
-              登入
-            </a>
-          )}
+          <a
+            href={primaryLink.href}
+            onClick={() => setAccountMenuOpen(false)}
+            className="flex min-w-0 flex-1 items-center justify-center gap-2 py-4 text-sm font-bold text-ink transition-colors hover:bg-raised"
+          >
+            <primaryLink.icon size={16} strokeWidth={2} className="shrink-0 text-ink-3" />
+            {primaryLink.label}
+          </a>
           <button
             type="button"
             onClick={() => { toggleTheme(); setAccountMenuOpen(false) }}

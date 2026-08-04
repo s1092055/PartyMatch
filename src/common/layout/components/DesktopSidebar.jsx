@@ -28,7 +28,7 @@ export default function DesktopSidebar({
   preventLockedAction,
 }) {
   const [lockedTip, setLockedTip] = useState(null)
-  const { theme, setTheme } = useTheme()
+  const { theme, toggleTheme } = useTheme()
 
   function isGuestLocked(item) {
     return !loggedIn && isProtectedNavItem(item)
@@ -36,8 +36,8 @@ export default function DesktopSidebar({
 
   // 展開/收合的側邊欄靠 hover/focus-within 撐開，按鈕點擊後若沒有主動 blur，
   // focus-within 會在滑鼠移開後繼續生效，讓側邊欄卡在展開狀態收不回去
-  function toggleTheme(e) {
-    setTheme(theme === 'dark' ? 'light' : 'dark')
+  function handleThemeToggle(e) {
+    toggleTheme()
     e.currentTarget.blur()
   }
 
@@ -196,7 +196,7 @@ export default function DesktopSidebar({
         <div className="px-2 pb-4">
           <button
             type="button"
-            onClick={toggleTheme}
+            onClick={handleThemeToggle}
             aria-label={theme === 'dark' ? '切換淺色模式' : '切換深色模式'}
             className="mb-1 flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
           >

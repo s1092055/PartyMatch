@@ -28,9 +28,16 @@ export function ThemeProvider({ children }) {
     localStorage.setItem(THEME_STORAGE_KEY, next)
   }, [])
 
-  // 沒有 memo 的話每次 render 都會建一個新物件，任何 consumer（例如掛在會隨捲動
-  // 重新渲染的 MobileDock 上）都會被迫跟著重渲染，即使 theme 本身沒變
-  const value = useMemo(() => ({ theme, setTheme }), [theme, setTheme])
+  // 深/淺色互轉的翻轉規則只在這裡寫一次，DesktopSidebar／MobileDock／SettingsTab
+  // 都呼叫這支，不用各自重複 theme === 'dark' ? 'light' : 'dark'
+  const toggleTheme = useCallback(() => {
+    setTheme(theme === 'dark' ? 'light' : 'dark')
+  }, [theme, setTheme])
+
+  // provider 本身沒有會變動的 props，只在 theme/hasOverride 改變時才重新 render，
+  // 所以這裡的 useMemo 攔不到「provider 沒變但硬是重建 value」的情況；保留它單純是
+  // 讓 value 物件的 identity 只在真的有變化時才換新，維持一般 context 慣例
+  const value = useMemo(() => ({ theme, setTheme, toggleTheme }), [theme, setTheme, toggleTheme])
 
   return (
     <ThemeContext.Provider value={value}>
