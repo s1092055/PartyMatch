@@ -140,7 +140,7 @@ export default function FilterSelect({ id, group, value, onChange, groups, trigg
           'flex items-center justify-between gap-1.5 rounded-lg border bg-transparent py-2 pr-2 pl-2.5 text-sm whitespace-nowrap transition-[border-color,box-shadow] outline-none select-none [-webkit-tap-highlight-color:transparent]',
           open
             ? 'rounded-b-none border-brand border-b-transparent'
-            : 'border-input focus:border-brand focus:ring-4 focus:ring-brand-subtle',
+            : 'border-line focus:border-brand focus:ring-4 focus:ring-brand-subtle',
           className
         )}
       >
