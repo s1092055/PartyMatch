@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, Info, PlusCircle } from 'lucide-react'
+import { AlertCircle, ChevronLeft, ChevronRight, Info, PlusCircle } from 'lucide-react'
 import FlowLayout from '../../common/layout/FlowLayout'
 import Step1Service from './components/steps/Step1Service'
 import Step2Plan from './components/steps/Step2Plan'
@@ -201,7 +201,7 @@ export default function CreateGroupPage() {
           <ChevronRight size={15} strokeWidth={1.5} />
         </Button>
       ) : (
-        <Button variant="success" size="md" className="min-w-0 flex-1" disabled={!agreedToTerms} onClick={handleSubmit}>
+        <Button variant="default" size="md" className="min-w-0 flex-1" disabled={!agreedToTerms} onClick={handleSubmit}>
           確認建立
         </Button>
       )}
@@ -314,16 +314,15 @@ export default function CreateGroupPage() {
           <DialogTitle className="sr-only">群組已成功上架</DialogTitle>
           <DialogDescription>群組已成功上架</DialogDescription>
           <div className="flex flex-col items-center px-6 py-8 text-center">
-            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
-              <CheckCircle2 size={28} className="text-emerald-500" />
-            </div>
-            <h3 className="mb-1 text-lg font-extrabold text-ink">群組已成功上架！</h3>
-            <p className="text-sm leading-relaxed text-ink-3">你的群組現在已開放招募成員</p>
+            <ServiceLogo serviceId={form.serviceId} size={56} className="mb-4 border-line-strong" />
+            <p className="text-sm font-bold text-ink">{service?.fullName ?? service?.name}</p>
+            <p className="text-sm text-ink-3">{form.planName}</p>
+            <h3 className="mt-3 text-lg font-extrabold text-ink">群組已成功上架！</h3>
             <div className="mt-6 flex w-full gap-3">
               <Button variant="secondary" size="md" className="flex-1" onClick={() => navigate('/')}>
                 返回首頁
               </Button>
-              <Button variant="success" size="md" className="flex-1" onClick={() => navigate('/manage-groups')}>
+              <Button variant="default" size="md" className="flex-1" onClick={() => navigate('/manage-groups')}>
                 前往群組管理
               </Button>
             </div>

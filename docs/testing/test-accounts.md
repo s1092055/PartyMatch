@@ -43,22 +43,24 @@ npm run db:seed-demo    # 建立 10 個 demo 帳號（含 1 個管理員）、22
 
 ## 團主帳號（demo7～demo9）
 
-| Email | 姓名 | 主要身分 |
-|-------|------|----------|
-| demo7@partymatch.test | 吳志豪 | G1（Netflix）、G4（Disney+）、G8（Google One）、G15（Google One）、G_removed（MasterClass）、G20（NordVPN）的團主；同時是 G6（ChatGPT Team）、G9（KKBOX）、G13（Cursor）、G14（Apple Music）的成員 |
-| demo8@partymatch.test | 許雅涵 | G3（Spotify）、G6（ChatGPT Team）、G9（KKBOX）、G10b（Crunchyroll）、G11（Duolingo）、G16（friDay影音）、G18（Microsoft 365）的團主；同時是 G19（Dropbox）的成員 |
-| demo9@partymatch.test | 劉建成 | G5（HBO Max）、G7（ExpressVPN）、G10a（Discord）、G14（Apple Music）、G17（iCloud+）、G19（Dropbox）的團主；同時是 G3（Spotify）、G18（Microsoft 365）的成員 |
+| Email | 姓名 | PM幣餘額（seed 完成後） | 主要身分 |
+|-------|------|------------------------|----------|
+| demo7@partymatch.test | 吳志豪 | 5731 | G1（Netflix）、G4（Disney+）、G8（Google One）、G15（Google One）、G_removed（MasterClass）、G20（NordVPN）的團主；同時是 G6（ChatGPT Team）、G9（KKBOX）、G13（Cursor）、G14（Apple Music）的成員 |
+| demo8@partymatch.test | 許雅涵 | 8529 | G3（Spotify）、G6（ChatGPT Team）、G9（KKBOX）、G10b（Crunchyroll）、G11（Duolingo）、G16（friDay影音）、G18（Microsoft 365）的團主；同時是 G19（Dropbox）的成員 |
+| demo9@partymatch.test | 劉建成 | 7810 | G5（HBO Max）、G7（ExpressVPN）、G10a（Discord）、G14（Apple Music）、G17（iCloud+）、G19（Dropbox）的團主；同時是 G3（Spotify）、G18（Microsoft 365）的成員 |
 
 ## 一般成員帳號（demo1～demo6）
 
-| Email | 姓名 | 信用分數 | 適合測試情境 |
-|-------|------|----------|--------------|
-| demo1@partymatch.test | 王小明 | 100 | 一般正常流程；信用分數為滿分預設值 |
-| demo2@partymatch.test | 林小美 | 85（原 100，因 G_removed 被移除扣 15 分） | 曾被團主移除並扣信用分數的示範帳號；也是 G19（Dropbox）申訴獲勝、退款離開群組的示範帳號 |
-| demo3@partymatch.test | 陳大文 | 100 | 一般中等帳號，涵蓋多個群組的成員角色 |
-| demo4@partymatch.test | 張雅婷 | 100 | 一般正常流程；同時是 G17 被團主手動加入（略過申請流程）的示範帳號 |
-| demo5@partymatch.test | 李冠宇 | 100 | 曾在 G9（KKBOX）招募期間自行退出、釋出名額的示範帳號；也是 G20（NordVPN）申訴但團主獲勝的示範帳號 |
-| demo6@partymatch.test | 黃詩涵 | 100 | **PM幣餘額刻意維持低額（起始只有 500，實際約 200～300）**——只用於 G7 一筆低成本申請，其餘刻意不安排任何情境，保留給測試者現場示範「餘額不足擋下申請」（例如去申請 G6 ChatGPT Team 需要 800 PM、G13 Cursor 需要 2560 PM 都會被擋下）與「信用分數門檻篩選」 |
+| Email | 姓名 | PM幣餘額（seed 完成後） | 信用分數 | 適合測試情境 |
+|-------|------|------------------------|----------|--------------|
+| demo1@partymatch.test | 王小明 | 3232 | 100 | 一般正常流程；信用分數為滿分預設值 |
+| demo2@partymatch.test | 林小美 | 5567 | 85（原 100，因 G_removed 被移除扣 15 分） | 曾被團主移除並扣信用分數的示範帳號；也是 G19（Dropbox）申訴獲勝、退款離開群組的示範帳號 |
+| demo3@partymatch.test | 陳大文 | 5357 | 100 | 一般中等帳號，涵蓋多個群組的成員角色 |
+| demo4@partymatch.test | 張雅婷 | 5571 | 100 | 一般正常流程；同時是 G17 被團主手動加入（略過申請流程）的示範帳號 |
+| demo5@partymatch.test | 李冠宇 | 3354 | 100 | 曾在 G9（KKBOX）招募期間自行退出、釋出名額的示範帳號；也是 G20（NordVPN）申訴但團主獲勝的示範帳號 |
+| demo6@partymatch.test | 黃詩涵 | 305 | 100 | **PM幣餘額刻意維持低額（起始儲值 500，扣除 G7 申請費用後 seed 完成為 305）**——只用於 G7 一筆低成本申請，其餘刻意不安排任何情境，保留給測試者現場示範「餘額不足擋下申請」（例如去申請 G6 ChatGPT Team 需要 800 PM、G13 Cursor 需要 1707 PM 都會被擋下）與「信用分數門檻篩選」 |
+
+> 上表金額為目前 `seedDemo.js` 邏輯下 `npm run db:reset-demo`（或 `:prod`）執行後的確定值（腳本無隨機成分，每次重置結果相同）；若之後調整 seed 腳本的儲值金額或情境安排，需要一併更新這裡的數字。
 
 ## 管理員帳號
 
