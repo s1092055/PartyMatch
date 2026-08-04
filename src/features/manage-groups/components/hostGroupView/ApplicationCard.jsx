@@ -63,7 +63,7 @@ export default function ApplicationCard({ app, groupFull, error, onApprove, onRe
           {isPending && (
             <div className="mt-3 flex gap-2">
               <Button
-                variant="success"
+                variant="default"
                 onClick={() => onApprove(app.id)}
                 disabled={groupFull}
                 className="h-auto flex-1 rounded-lg py-2 text-xs"
@@ -71,9 +71,9 @@ export default function ApplicationCard({ app, groupFull, error, onApprove, onRe
                 {groupFull ? '已額滿' : <><Check size={12} strokeWidth={3} /> 接受</>}
               </Button>
               <Button
-                variant="ghost"
+                variant="destructive"
                 onClick={() => onReject(app.id)}
-                className="h-auto flex-1 rounded-lg border border-line py-2 text-xs hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                className="h-auto flex-1 rounded-lg py-2 text-xs"
               >
                 <X size={12} strokeWidth={3} /> 拒絕
               </Button>

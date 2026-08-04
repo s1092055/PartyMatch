@@ -83,7 +83,7 @@ async function advanceToFullIfNeeded(tx, groupId) {
   }
 }
 
-// 退還代管金額共用邏輯：申請被拒絕、申請人撤回、成員被移除或自行退出時都要走這裡，
+// 退還代管金額共用邏輯：申請被拒絕、申請人取消、成員被移除或自行退出時都要走這裡，
 // 避免三處各自重寫一次「退款、扣代管、寫交易紀錄」。amount 由呼叫端先算好（用
 // Math.min(實際扣過的金額, 目前 escrowTokens) 夾住），這裡不重新計算金額。
 export async function refundEscrow(tx, { userId, groupId, amount, note }) {

@@ -105,7 +105,7 @@ router.post('/', requireAuth, validate(applySchema), async (req, res, next) => {
   } catch (err) { next(err) }
 })
 
-// DELETE /applications/:id — 申請人撤回自己的 pending 申請；退還申請當下代管的金額
+// DELETE /applications/:id — 申請人取消自己的 pending 申請；退還申請當下代管的金額
 router.delete('/:id', requireAuth, async (req, res, next) => {
   try {
     const application = await prisma.application.findUnique({
@@ -113,8 +113,8 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
       include: { group: { select: { id: true, monthlyFee: true, billingCycle: true, escrowTokens: true } } },
     })
     if (!application) return res.status(404).json({ message: '申請不存在' })
-    if (application.userId !== req.user.id) return res.status(403).json({ message: '僅申請人可撤回' })
-    if (application.status !== 'pending') return res.status(400).json({ message: '只能撤回審核中的申請' })
+    if (application.userId !== req.user.id) return res.status(403).json({ message: '僅申請人可取消' })
+    if (application.status !== 'pending') return res.status(400).json({ message: '只能取消審核中的申請' })
 
     // 退款用申請當下實際扣的金額（escrowAmount），不用即時價格重算；舊資料沒有這個值才 fallback
     // 用 computeSeatCost；並跟目前 escrowTokens 取 min，避免代管餘額因故不足時被扣成負數
@@ -133,7 +133,7 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
         throw err
       }
 
-      await refundEscrow(tx, { userId: req.user.id, groupId: application.groupId, amount: refundAmount, note: '撤回申請，代管退款' })
+      await refundEscrow(tx, { userId: req.user.id, groupId: application.groupId, amount: refundAmount, note: '取消申請，代管退款' })
 
       return tx.application.findUnique({ where: { id: req.params.id } })
     })

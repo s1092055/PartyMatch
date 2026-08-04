@@ -13,7 +13,7 @@ export function buildBillingPanel({ members, transactions, transactionsLoading }
     .reduce((sum, tx) => sum + tx.amount, 0)
 
   // 收款管理只需要呈現每位成員「目前」的代管狀態：最新一筆代管入帳即可；
-  // 撤回重新申請等留下的舊代管/退款歷史紀錄不在這裡處理，改到（使用者端）PM幣交易紀錄查詢
+  // 取消重新申請等留下的舊代管/退款歷史紀錄不在這裡處理，改到（使用者端）PM幣交易紀錄查詢
   const latestEscrowByUserId = {}
   for (const tx of transactions) {
     if (tx.type !== 'escrow') continue

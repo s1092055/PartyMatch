@@ -45,22 +45,22 @@ export default function AdminTab() {
       <Card className="p-5">
         <div className="flex items-center gap-2 mb-4">
           <ShieldAlert size={16} className="text-danger" />
-          <span className="text-sm font-bold text-ink">申訴裁定</span>
+          <span className="text-sm font-bold text-ink">回報問題裁定</span>
         </div>
 
         {groups.length === 0 ? (
-          <p className="text-sm text-ink-4 py-4 text-center">目前沒有待裁定的申訴群組</p>
+          <p className="text-sm text-ink-4 py-4 text-center">目前沒有待裁定的回報群組</p>
         ) : (
           <form onSubmit={handleAdjudicate} className="space-y-3">
             {overdueCount > 0 && (
               <div className="flex items-center gap-2 rounded-lg bg-danger/10 px-3 py-2 text-xs font-semibold text-danger">
                 <Clock size={14} strokeWidth={1.5} />
-                <span>{overdueCount} 筆申訴已超過 48 小時裁定期限，代管金額仍凍結中，請優先處理</span>
+                <span>{overdueCount} 筆回報已超過 48 小時裁定期限，代管金額仍凍結中，請優先處理</span>
               </div>
             )}
 
             <div>
-              <label className="text-xs font-semibold text-ink-3 mb-1 block">選擇申訴群組</label>
+              <label className="text-xs font-semibold text-ink-3 mb-1 block">選擇回報群組</label>
               <select
                 value={groupId}
                 onChange={e => setGroupId(e.target.value)}

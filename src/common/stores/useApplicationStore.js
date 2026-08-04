@@ -120,7 +120,7 @@ export const useApplicationStore = create((set, get) => ({
     return patchApplication(id, { status })
   },
 
-  // ── 撤回申請（申請人自行取消 pending 申請）────────────────────────────────
+  // ── 取消申請（申請人自行取消 pending 申請）────────────────────────────────
   withdraw: async (id) => {
     const app = get().applications.find(a => a.id === id)
     set(s => ({
@@ -128,10 +128,10 @@ export const useApplicationStore = create((set, get) => ({
     }))
     try {
       await deleteApplication(id)
-      // 撤回會退還申請當下代管的金額，重新拉一次餘額讓畫面上的PM幣顯示同步
+      // 取消會退還申請當下代管的金額，重新拉一次餘額讓畫面上的PM幣顯示同步
       useAuthStore.getState().refreshTokenBalance()
       // 通知團主：申請人已取消申請。團主端的 applications store 在這之前完全不知道
-      // 這筆申請已經失效，不通知的話團主可能還會去接受/拒絕一筆早就撤回的申請
+      // 這筆申請已經失效，不通知的話團主可能還會去接受/拒絕一筆早就取消的申請
       if (app?.hostId) {
         insertNotification({
           userId:  app.hostId,
