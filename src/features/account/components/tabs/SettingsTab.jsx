@@ -141,7 +141,7 @@ export default function SettingsTab({ loggedIn = true }) {
                 {Object.entries(PRESENCE_LABELS).map(([value, label]) => (
                   <SelectItem key={value} value={value}>
                     <span className="flex items-center gap-2">
-                      <PresenceDot status={value} className="h-2 w-2 shrink-0 border-0" />
+                      <PresenceDot status={value} className="h-2.5 w-2.5 shrink-0" />
                       {label}
                     </span>
                   </SelectItem>
