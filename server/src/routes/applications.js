@@ -5,6 +5,7 @@ import { requireAuth } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
 import { computeSeatCost } from '../utils/pricing.js'
 import { finalizeApprovedApplication, refundEscrow } from '../utils/membership.js'
+import { maskAvatar } from '../lib/avatarVisibility.js'
 
 const router = Router()
 
@@ -28,12 +29,12 @@ router.get('/', requireAuth, async (req, res, next) => {
         ],
       },
       include: {
-        user:  { select: { id: true, name: true, avatarColor: true, avatarInitial: true, creditScore: true } },
+        user:  { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, creditScore: true } },
         group: { select: { id: true, hostId: true, planName: true, serviceId: true, service: { select: { id: true, name: true } }, host: { select: { id: true, name: true } } } },
       },
       orderBy: { createdAt: 'desc' },
     })
-    res.json(applications)
+    res.json(applications.map(app => ({ ...app, user: maskAvatar(app.user) })))
   } catch (err) { next(err) }
 })
 

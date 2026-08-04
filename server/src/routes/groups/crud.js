@@ -4,8 +4,18 @@ import prisma from '../../lib/prisma.js'
 import { requireAuth, optionalAuth } from '../../middleware/auth.js'
 import { validate } from '../../middleware/validate.js'
 import { notify } from './shared.js'
+import { maskAvatar } from '../../lib/avatarVisibility.js'
 
 const router = Router()
+
+// 群組物件裡的 host / members[].user 都是「別人」看得到的資料，統一在這裡套用大頭照遮罩
+function maskGroupAvatars(group) {
+  return {
+    ...group,
+    ...(group.host && { host: maskAvatar(group.host) }),
+    ...(group.members && { members: group.members.map(m => ({ ...m, user: maskAvatar(m.user) })) }),
+  }
+}
 
 const createGroupSchema = z.object({
   serviceId:      z.string().min(1),
@@ -60,14 +70,14 @@ router.get('/', optionalAuth, async (req, res, next) => {
         ...(category && { service: { category } }),
       },
       include: {
-        host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, creditScore: true, bio: true } },
+        host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, creditScore: true, bio: true } },
         service: true,
         _count:  { select: { members: true } },
       },
       orderBy: { createdAt: 'desc' },
     })
 
-    res.json(groups)
+    res.json(groups.map(maskGroupAvatars))
   } catch (err) { next(err) }
 })
 
@@ -77,10 +87,10 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
     const group = await prisma.group.findUnique({
       where: { id: req.params.id },
       include: {
-        host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, creditScore: true, bio: true } },
+        host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, creditScore: true, bio: true } },
         service: true,
         members: {
-          include: { user: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, bio: true } } },
+          include: { user: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, bio: true } } },
         },
       },
     })
@@ -109,10 +119,10 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
           meta:    { groupId: group.id },
         })
       }
-      return res.json({ ...group, status: 'active', confirmDeadline: null, escrowTokens: 0 })
+      return res.json(maskGroupAvatars({ ...group, status: 'active', confirmDeadline: null, escrowTokens: 0 }))
     }
 
-    res.json(group)
+    res.json(maskGroupAvatars(group))
   } catch (err) { next(err) }
 })
 
@@ -124,9 +134,9 @@ router.post('/', requireAuth, validate(createGroupSchema), async (req, res, next
     const data = Object.fromEntries(Object.entries(req.body).filter(([k]) => allowed.includes(k)))
     const group = await prisma.group.create({
       data: { ...data, hostId: req.user.id },
-      include: { service: true, host: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, creditScore: true, bio: true } } },
+      include: { service: true, host: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, creditScore: true, bio: true } } },
     })
-    res.status(201).json(group)
+    res.status(201).json(maskGroupAvatars(group))
   } catch (err) { next(err) }
 })
 
@@ -175,9 +185,9 @@ router.get('/:id/transactions', requireAuth, async (req, res, next) => {
     const transactions = await prisma.tokenTransaction.findMany({
       where:   { relatedGroupId: req.params.id },
       orderBy: { createdAt: 'desc' },
-      include: { user: { select: { id: true, name: true, avatarInitial: true, avatarColor: true } } },
+      include: { user: { select: { id: true, name: true, avatarInitial: true, avatarColor: true, showAvatar: true } } },
     })
-    res.json(transactions)
+    res.json(transactions.map(t => ({ ...t, user: maskAvatar(t.user) })))
   } catch (err) { next(err) }
 })
 

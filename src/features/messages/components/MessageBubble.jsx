@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { CheckCircle2 } from 'lucide-react'
 import { Button } from '../../../components/ui/button'
+import { Avatar } from '../../../components/ui/avatar'
 import { useMemberStore } from '../../../common/stores/useMemberStore'
 import { getServiceById } from '../../../common/utils/serviceUtils'
 import { hasFilledServiceInfo, getServiceInfoSummary } from '../../../common/utils/serviceInfoFields'
@@ -49,12 +50,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
             <div className="space-y-2">
               {groupMembers.map(m => (
                 <div key={m.id} className="flex items-center gap-2">
-                  <span
-                    className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-2xs font-black text-white"
-                    style={{ background: m.userAvatarColor }}
-                  >
-                    {m.userAvatarInitial}
-                  </span>
+                  <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="xs" className="text-2xs" />
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-semibold text-ink">{m.userName}</p>
                     {hasFilledServiceInfo(m.serviceInfo, sharingMethod) ? (
@@ -164,12 +160,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
   }
   return (
     <div key={msg.id} className="flex items-end gap-2">
-      <span
-        className="mb-6 grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-black text-white"
-        style={{ background: msg.avatarColor ?? '#64748b' }}
-      >
-        {msg.avatarInitial}
-      </span>
+      <Avatar initial={msg.avatarInitial} color={msg.avatarColor} size="sm" className="mb-6 text-xs" />
       <div className="max-w-[70%]">
         <p className="mb-1 text-xs font-bold text-ink-3">{getMessageSenderName(msg)}</p>
         <div className="w-fit rounded-2xl rounded-tl-md bg-surface px-4 py-2.5 text-sm text-ink shadow-sm">

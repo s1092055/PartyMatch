@@ -1,5 +1,6 @@
 import { X } from 'lucide-react'
 import { userProfileCache } from '../hooks/useParticipantNames'
+import { Avatar } from '../../../components/ui/avatar'
 
 export default function ChatMembersPanel({ open, selected, memberMap, userId, getParticipantName, onClose }) {
   return (
@@ -22,17 +23,12 @@ export default function ChatMembersPanel({ open, selected, memberMap, userId, ge
           const meta = selected.participantMeta?.[pid]
           const member = memberMap[pid]
           const cached = userProfileCache.get(pid)
-          const name          = getParticipantName(pid)
-          const avatarInitial = meta?.avatarInitial ?? member?.userAvatarInitial ?? cached?.avatarInitial ?? name[0] ?? '?'
+          // meta/member/cached 任何一層明確給了 null 都代表對方關閉了大頭照顯示，不能再 fallback 到姓名首字
+          const avatarInitial = meta?.avatarInitial ?? member?.userAvatarInitial ?? cached?.avatarInitial ?? ''
           const avatarColor   = meta?.avatarColor   ?? member?.userAvatarColor   ?? cached?.avatarColor   ?? '#64748b'
           return (
             <div key={pid} className="flex items-center gap-3 rounded-lg px-2 py-2">
-              <span
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-xs font-black text-white"
-                style={{ background: avatarColor }}
-              >
-                {avatarInitial}
-              </span>
+              <Avatar initial={avatarInitial} color={avatarColor} size="sm" className="text-xs" />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold text-ink">{getParticipantName(pid)}</p>
                 {pid === userId && <p className="text-xs text-ink-4">（我）</p>}

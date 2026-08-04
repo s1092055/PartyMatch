@@ -5,8 +5,13 @@ import { requireAuth, requireAdmin } from '../../middleware/auth.js'
 import { validate } from '../../middleware/validate.js'
 import { computeSeatCost } from '../../utils/pricing.js'
 import { notify, notifyGroupConversation } from './shared.js'
+import { maskAvatar } from '../../lib/avatarVisibility.js'
 
 const router = Router()
+
+function maskGroupHost(group) {
+  return group?.host ? { ...group, host: maskAvatar(group.host) } : group
+}
 
 const disputeSchema = z.object({
   reason:      z.string().trim().min(1).max(500),
@@ -28,12 +33,12 @@ router.post('/:id/activate', requireAuth, async (req, res, next) => {
       where: { id: req.params.id },
       data: { status: 'confirming', confirmDeadline },
       include: {
-        host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, creditScore: true, bio: true } },
+        host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, creditScore: true, bio: true } },
         service: true,
         _count:  { select: { members: true } },
       },
     })
-    res.json(updated)
+    res.json(maskGroupHost(updated))
   } catch (err) { next(err) }
 })
 
@@ -77,7 +82,7 @@ router.post('/:id/confirm', requireAuth, async (req, res, next) => {
           where: { id: req.params.id },
           data:  { status: 'active', confirmDeadline: null },
           include: {
-            host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, creditScore: true, bio: true } },
+            host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, creditScore: true, bio: true } },
             service: true,
             _count:  { select: { members: true } },
           },
@@ -116,7 +121,7 @@ router.post('/:id/confirm', requireAuth, async (req, res, next) => {
       }).catch(console.error)
       notifyGroupConversation(req.params.id, member.userId, `確認期結束，代管款項已撥款給團主。`).catch(console.error)
 
-      return res.json({ group: { ...updated, escrowTokens: 0 }, released: true })
+      return res.json({ group: maskGroupHost({ ...updated, escrowTokens: 0 }), released: true })
     }
 
     res.json({ group: null, released: false })
@@ -151,7 +156,7 @@ router.post('/:id/dispute', requireAuth, validate(disputeSchema), async (req, re
         where: { id: req.params.id },
         data:  { status: 'disputed', disputeDeadline },
         include: {
-          host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, creditScore: true, bio: true } },
+          host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, creditScore: true, bio: true } },
           service: true,
           _count:  { select: { members: true } },
         },
@@ -164,6 +169,7 @@ router.post('/:id/dispute', requireAuth, validate(disputeSchema), async (req, re
         },
       }),
     ])
+    updated.host = maskAvatar(updated.host)
 
     prisma.notification.create({
       data: {
@@ -262,7 +268,7 @@ router.post('/:id/lock', requireAuth, async (req, res, next) => {
         where: { id: req.params.id },
         data: { status: 'pending_confirmation', serviceInfoDeadline, ...(sharedCredentials !== undefined && { sharedCredentials }) },
         include: {
-          host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, creditScore: true, bio: true } },
+          host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, creditScore: true, bio: true } },
           service: true,
           _count:  { select: { members: true } },
         },
@@ -272,6 +278,7 @@ router.post('/:id/lock', requireAuth, async (req, res, next) => {
         data:  { nextBillingDate },
       }),
     ])
+    updated.host = maskAvatar(updated.host)
 
     // 聊天室已由前端在鎖定前先建立好，這裡補一則系統訊息告知所有成員聊天室已啟用
     const groupLabel = group.planName ?? group.service?.name ?? ''
@@ -438,14 +445,14 @@ router.post('/:id/renew', requireAuth, async (req, res, next) => {
         where: { id: req.params.id },
         data:  { status: 'pending_confirmation', nextBillingDate: base, serviceInfoDeadline, escrowTokens: { increment: seatCost * memberIds.length } },
         include: {
-          host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, creditScore: true, bio: true } },
+          host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, creditScore: true, bio: true } },
           service: true,
           _count:  { select: { members: true } },
         },
       })
     })
 
-    res.json(updated)
+    res.json(maskGroupHost(updated))
   } catch (err) { next(err) }
 })
 

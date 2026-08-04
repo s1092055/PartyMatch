@@ -74,6 +74,7 @@ function activeProfile(user) {
     joinedAt,
     avatarInitial: user.avatarInitial ?? displayName[0] ?? 'U',
     avatarColor:   user.avatarColor ?? '#3B82F6',
+    showAvatar:    user.showAvatar ?? true,
   }
 }
 

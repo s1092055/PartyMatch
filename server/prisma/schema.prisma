@@ -85,6 +85,7 @@ model User {
   phone         String
   avatarColor   String?
   avatarInitial String?
+  showAvatar    Boolean  @default(true)
   bio           String?  @db.VarChar(500)
   creditScore   Int      @default(100)
   tokenBalance  Int      @default(0)

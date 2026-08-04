@@ -1,4 +1,5 @@
 import prisma from './prisma.js'
+import { maskAvatar } from './avatarVisibility.js'
 
 export function isSystemConversation(conversation) {
   return conversation.type === 'system'
@@ -22,8 +23,9 @@ export async function appendMessage(conversation, { senderId, content, type = 't
       ...(actionType !== undefined && { actionType }),
       ...(payload    !== undefined && { payload }),
     },
-    include: { sender: { select: { id: true, name: true, avatarColor: true, avatarInitial: true } } },
+    include: { sender: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true } } },
   })
+  message.sender = maskAvatar(message.sender)
 
   const unreadCounts = { ...(conversation.unreadCounts ?? {}) }
   for (const uid of participants ?? parseParticipants(conversation)) {

@@ -20,7 +20,6 @@ import { useTheme } from '../../../../components/theme-provider'
 const PREFS_KEY = 'pm_app_prefs'
 const DEFAULT_PREFS = {
   autoOpenSearch: false,
-  showAvatars:    true,
   marketingEmail: false,
   shareActivity:  false,
 }
@@ -57,6 +56,8 @@ export default function SettingsTab({ loggedIn = true }) {
   const navigate = useNavigate()
   const { theme, setTheme } = useTheme()
   const [prefs, setPrefs] = useState(loadPrefs)
+  const showAvatar = useAuthStore(s => s.user?.showAvatar ?? true)
+  const [savingAvatarVisibility, setSavingAvatarVisibility] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [password, setPassword] = useState('')
   const [deleteError, setDeleteError] = useState('')
@@ -66,6 +67,15 @@ export default function SettingsTab({ loggedIn = true }) {
     const next = { ...prefs, [key]: !prefs[key] }
     setPrefs(next)
     writeStorage(PREFS_KEY, next)
+  }
+
+  // 這是會影響其他使用者看到你的方式的帳號設定（後端遮罩 avatarInitial/avatarColor），
+  // 不是本機偏好，要打 API 存到你的帳號，不能跟其他純本機開關一樣寫 localStorage
+  async function toggleAvatarVisibility() {
+    setSavingAvatarVisibility(true)
+    const result = await useAuthStore.getState().updateProfile({ showAvatar: !showAvatar })
+    setSavingAvatarVisibility(false)
+    if (!result.ok) toast(result.error ?? '儲存失敗，請稍後再試', 'error')
   }
 
   function resetDeleteFlow() {
@@ -102,15 +112,17 @@ export default function SettingsTab({ loggedIn = true }) {
           checked={theme === 'dark'}
           onChange={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
         />
-        <SettingRow
-          label="顯示成員大頭貼"
-          desc="在群組列表中顯示成員頭像"
-          checked={prefs.showAvatars}
-          onChange={() => toggle('showAvatars')}
-        />
       </SectionGroup>
 
       <SectionGroup title="隱私設定" icon={Shield}>
+        {loggedIn && (
+          <SettingRow
+            label="顯示自己的大頭照"
+            desc="關閉後，其他使用者在群組、聊天室、評價等地方看到的會是 PartyMatch 預設圖示，不是你的大頭照"
+            checked={showAvatar}
+            onChange={savingAvatarVisibility ? undefined : toggleAvatarVisibility}
+          />
+        )}
         <SettingRow
           label="接收行銷郵件"
           desc="優惠活動與新功能消息"

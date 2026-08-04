@@ -3,6 +3,7 @@ import { z } from 'zod'
 import prisma from '../lib/prisma.js'
 import { requireAuth } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
+import { maskAvatar } from '../lib/avatarVisibility.js'
 
 const router = Router()
 
@@ -20,12 +21,12 @@ router.get('/host/:hostId', async (req, res, next) => {
       prisma.review.aggregate({ where: { hostId }, _avg: { rating: true }, _count: true }),
       prisma.review.findMany({
         where:   { hostId },
-        include: { author: { select: { id: true, name: true, avatarColor: true, avatarInitial: true } } },
+        include: { author: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true } } },
         orderBy: { createdAt: 'desc' },
         take: 50,
       }),
     ])
-    res.json({ average: aggregate._avg.rating, count: aggregate._count, reviews })
+    res.json({ average: aggregate._avg.rating, count: aggregate._count, reviews: reviews.map(r => ({ ...r, author: maskAvatar(r.author) })) })
   } catch (err) { next(err) }
 })
 

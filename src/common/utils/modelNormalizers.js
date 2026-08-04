@@ -50,7 +50,9 @@ export function normalizeMember(m) {
   return {
     ...m,
     userName,
-    userAvatarInitial: m.userAvatarInitial ?? user.avatarInitial ?? userName[0] ?? '?',
+    // 後端在使用者關閉「顯示自己的大頭照」時會把 avatarInitial 明確回傳 null（遮罩），
+    // 這裡不能再 fallback 到姓名首字，否則等於前端自己把被遮罩的大頭照重新畫出來
+    userAvatarInitial: m.userAvatarInitial ?? user.avatarInitial ?? '',
     userAvatarColor:   m.userAvatarColor   ?? user.avatarColor   ?? '#94A3B8',
     userBio:           m.userBio           ?? user.bio           ?? '',
     userId:            m.userId            ?? user.id            ?? '',
@@ -77,12 +79,13 @@ export function normalizeApplication(app) {
     ...app,
     applicantId,
     applicantName,
-    applicantAvatarInitial: app.applicantAvatarInitial ?? user.avatarInitial ?? applicantName[0] ?? '?',
+    // 同 normalizeMember：avatarInitial 為 null 代表使用者關閉了大頭照顯示，不能再 fallback 到姓名首字
+    applicantAvatarInitial: app.applicantAvatarInitial ?? user.avatarInitial ?? '',
     applicantAvatarColor:   app.applicantAvatarColor   ?? user.avatarColor   ?? '#94A3B8',
     applicantCreditScore:   app.applicantCreditScore   ?? user.creditScore   ?? 80,
     userId:                 app.userId ?? applicantId,
     userName:               app.userName ?? applicantName,
-    userAvatarInitial:      app.userAvatarInitial ?? user.avatarInitial ?? applicantName[0] ?? '?',
+    userAvatarInitial:      app.userAvatarInitial ?? user.avatarInitial ?? '',
     userAvatarColor:        app.userAvatarColor   ?? user.avatarColor   ?? '#94A3B8',
     // 群組 / 服務資訊（從巢狀 group 展平）
     groupId:    app.groupId   ?? group.id      ?? '',

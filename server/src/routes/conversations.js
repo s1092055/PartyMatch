@@ -4,6 +4,7 @@ import prisma from '../lib/prisma.js'
 import { requireAuth } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
 import { appendMessage, isSystemConversation, parseParticipants } from '../lib/conversationMessages.js'
+import { maskAvatar } from '../lib/avatarVisibility.js'
 
 const router = Router()
 
@@ -38,10 +39,10 @@ router.get('/', requireAuth, async (req, res, next) => {
     const users = allParticipantIds.length
       ? await prisma.user.findMany({
           where:  { id: { in: allParticipantIds } },
-          select: { id: true, name: true, avatarInitial: true, avatarColor: true },
+          select: { id: true, name: true, avatarInitial: true, avatarColor: true, showAvatar: true },
         })
       : []
-    const userMap = Object.fromEntries(users.map(u => [u.id, u]))
+    const userMap = Object.fromEntries(users.map(u => [u.id, maskAvatar(u)]))
 
     const enriched = conversations.map(c => {
       const participantMeta = Object.fromEntries(parseParticipants(c).map(id => [id, userMap[id] ?? {}]))
@@ -111,11 +112,11 @@ router.get('/:id/messages', requireAuth, async (req, res, next) => {
     const { cursor, limit = '50' } = req.query
     const messages = await prisma.message.findMany({
       where:   { conversationId: req.params.id, ...(cursor && { createdAt: { lt: new Date(cursor) } }) },
-      include: { sender: { select: { id: true, name: true, avatarColor: true, avatarInitial: true } } },
+      include: { sender: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true } } },
       orderBy: { createdAt: 'desc' },
       take:    parseInt(limit),
     })
-    res.json(messages.reverse())
+    res.json(messages.reverse().map(m => ({ ...m, sender: maskAvatar(m.sender) })))
   } catch (err) { next(err) }
 })
 

@@ -5,6 +5,7 @@ import prisma from '../lib/prisma.js'
 import { requireAuth } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
 import { deleteAllUserSessions } from './auth.js'
+import { maskAvatar } from '../lib/avatarVisibility.js'
 
 const router = Router()
 
@@ -14,6 +15,7 @@ const updateProfileSchema = z.object({
   bio:          z.string().max(500).optional(),
   avatarColor:  z.string().optional(),
   avatarInitial: z.string().max(2).optional(),
+  showAvatar:   z.boolean().optional(),
 })
 
 const deactivateSchema = z.object({
@@ -25,10 +27,10 @@ router.get('/:id', async (req, res, next) => {
   try {
     const user = await prisma.user.findUnique({
       where:  { id: req.params.id },
-      select: { id: true, name: true, avatarColor: true, avatarInitial: true, creditScore: true, bio: true, createdAt: true },
+      select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, creditScore: true, bio: true, createdAt: true },
     })
     if (!user) return res.status(404).json({ message: '使用者不存在' })
-    res.json(user)
+    res.json(maskAvatar(user))
   } catch (err) { next(err) }
 })
 
@@ -38,7 +40,7 @@ router.patch('/me', requireAuth, validate(updateProfileSchema), async (req, res,
     const user = await prisma.user.update({
       where:  { id: req.user.id },
       data:   req.body,
-      select: { id: true, email: true, name: true, phone: true, avatarColor: true, avatarInitial: true, creditScore: true, bio: true },
+      select: { id: true, email: true, name: true, phone: true, avatarColor: true, avatarInitial: true, showAvatar: true, creditScore: true, bio: true },
     })
     res.json(user)
   } catch (err) { next(err) }

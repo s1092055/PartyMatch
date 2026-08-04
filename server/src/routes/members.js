@@ -5,6 +5,7 @@ import { requireAuth } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
 import { computeSeatCost } from '../utils/pricing.js'
 import { admitMemberIntoGroup, refundEscrow } from '../utils/membership.js'
+import { maskAvatar } from '../lib/avatarVisibility.js'
 
 const router = Router()
 
@@ -41,11 +42,11 @@ router.get('/', requireAuth, async (req, res, next) => {
     const members = await prisma.member.findMany({
       where,
       include: {
-        user: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, bio: true } },
+        user: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, bio: true } },
       },
       orderBy: { joinedAt: 'asc' },
     })
-    res.json(members)
+    res.json(members.map(m => ({ ...m, user: maskAvatar(m.user) })))
   } catch (err) { next(err) }
 })
 
