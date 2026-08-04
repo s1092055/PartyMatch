@@ -8,6 +8,7 @@ import { Switch } from '../../../../components/ui/switch'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../../../components/ui/select'
 import { Input } from '../../../../components/ui/input'
 import { PRESENCE_LABELS } from '../../../../common/layout/components/navConstants'
+import { PresenceDot } from '../../../../common/layout/components/navShared'
 import {
   AlertDialog,
   AlertDialogContent,
@@ -138,7 +139,12 @@ export default function SettingsTab({ loggedIn = true }) {
               </SelectTrigger>
               <SelectContent>
                 {Object.entries(PRESENCE_LABELS).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>{label}</SelectItem>
+                  <SelectItem key={value} value={value}>
+                    <span className="flex items-center gap-2">
+                      <PresenceDot status={value} className="h-2 w-2 shrink-0 border-0" />
+                      {label}
+                    </span>
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>

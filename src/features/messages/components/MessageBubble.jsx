@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { CheckCircle2 } from 'lucide-react'
 import { Button } from '../../../components/ui/button'
 import { Avatar } from '../../../components/ui/avatar'
+import { PresenceDot } from '../../../common/layout/components/navShared'
 import { useMemberStore } from '../../../common/stores/useMemberStore'
 import { getServiceById } from '../../../common/utils/serviceUtils'
 import { hasFilledServiceInfo, getServiceInfoSummary } from '../../../common/utils/serviceInfoFields'
@@ -50,7 +51,10 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
             <div className="space-y-2">
               {groupMembers.map(m => (
                 <div key={m.id} className="flex items-center gap-2">
-                  <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="xs" className="text-2xs" />
+                  <span className="relative inline-block shrink-0">
+                    <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="xs" className="text-2xs" />
+                    <PresenceDot status={m.userPresenceStatus} className="absolute -bottom-0.5 -right-0.5 h-2 w-2" />
+                  </span>
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-semibold text-ink">{m.userName}</p>
                     {hasFilledServiceInfo(m.serviceInfo, sharingMethod) ? (
@@ -160,7 +164,10 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
   }
   return (
     <div key={msg.id} className="flex items-end gap-2">
-      <Avatar initial={msg.avatarInitial} color={msg.avatarColor} size="sm" className="mb-6 text-xs" />
+      <span className="relative mb-6 inline-block shrink-0">
+        <Avatar initial={msg.avatarInitial} color={msg.avatarColor} size="sm" className="text-xs" />
+        <PresenceDot status={msg.presenceStatus} className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5" />
+      </span>
       <div className="max-w-[70%]">
         <p className="mb-1 text-xs font-bold text-ink-3">{getMessageSenderName(msg)}</p>
         <div className="w-fit rounded-2xl rounded-tl-md bg-surface px-4 py-2.5 text-sm text-ink shadow-sm">
