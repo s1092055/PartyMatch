@@ -74,7 +74,7 @@ const NOTIFICATION_META = {
   escrow_released:      { icon: CheckCircle2,  iconColor: 'text-success',    link: '/manage-groups' },
   dispute_raised:       { icon: AlertCircle,   iconColor: 'text-danger',     link: '/manage-groups' },
   dispute_resolved:     { icon: CheckCircle2,  iconColor: 'text-info',       link: '/my-subscriptions' },
-  system:               { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/explore' },
+  system:               { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/' },
   default:              { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/my-subscriptions' },
 }
 
