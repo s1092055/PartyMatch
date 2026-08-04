@@ -54,7 +54,6 @@ function ComingSoonPlaceholder({ label }) {
 }
 
 function LoginRequiredPlaceholder({ label }) {
-  const navigate = useNavigate()
   return (
     <div className="flex flex-col items-center justify-center gap-3 rounded-2xl py-16 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-raised">
@@ -63,10 +62,6 @@ function LoginRequiredPlaceholder({ label }) {
       <div className="space-y-1">
         <p className="text-sm font-bold text-ink">登入後才能查看「{label}」</p>
       </div>
-      <Button onClick={() => navigate('/login')} className="mt-2">
-        <LogIn size={16} className="shrink-0" />
-        登入
-      </Button>
     </div>
   )
 }
