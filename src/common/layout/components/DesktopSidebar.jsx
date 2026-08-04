@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Bell, Lock, MessageSquare, User } from 'lucide-react'
+import { Bell, Lock, LogIn, MessageSquare } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
 import { NAV_SECTIONS } from '../nav'
 import { TokenBadge } from '../../../components/ui/TokenAmount'
@@ -208,10 +208,10 @@ export default function DesktopSidebar({
               className="flex h-12 w-full items-center gap-3 rounded-2xl bg-brand px-1 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-brand-hover"
             >
               <span className="grid h-9 w-9 shrink-0 place-items-center">
-                <User size={20} strokeWidth={2.1} />
+                <LogIn size={20} strokeWidth={2.1} />
               </span>
               <span className="whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
-                我的帳號
+                登入
               </span>
             </a>
           )}

@@ -66,7 +66,7 @@ export default function MobileHeader({
           ) : (
             <a
               href="/account"
-              aria-label="我的帳號"
+              aria-label="前往登入"
               className="relative ml-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink"
             >
               <UserCircle2 size={28} strokeWidth={2} />
