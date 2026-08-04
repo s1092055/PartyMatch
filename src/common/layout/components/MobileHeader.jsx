@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Bell, LogOut, Settings, UserCircle2 } from 'lucide-react'
+import { Bell, LogOut, Settings } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
 import { useAuthStore } from '../../stores/useAuthStore'
 import { TokenBadge } from '../../../components/ui/TokenAmount'
@@ -66,10 +66,12 @@ export default function MobileHeader({
           ) : (
             <a
               href="/account"
-              aria-label="前往登入"
-              className="relative ml-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink-2 transition-all hover:bg-raised hover:text-ink"
+              aria-label="訪客，前往登入"
+              className="relative ml-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-all hover:bg-raised"
             >
-              <UserCircle2 size={28} strokeWidth={2} />
+              <span className="grid h-9 w-9 place-items-center rounded-full border border-line bg-surface shadow-md">
+                <img src={logoUrl} alt="" className="h-4 w-4" />
+              </span>
             </a>
           )}
         </div>

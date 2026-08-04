@@ -72,9 +72,11 @@ function LoginRequiredPlaceholder({ label, promptLogin }) {
 
 function TabContent({ value, user, onChange, tabs, loggedIn, promptLogin }) {
   const tab = tabs.find(t => t.value === value)
+  // 即將推出的分頁不管有沒有登入都一樣看不到內容，先判斷這個，
+  // 避免訪客看到「登入後才能查看」、登入後才發現其實還沒做完的矛盾訊息
+  if (tab?.comingSoon) return <ComingSoonPlaceholder label={tab.label} />
   // 未登入時，除了「其他設定」（純本機偏好，不需帳號），其餘分頁一律提示先登入
   if (!loggedIn && value !== "settings") return <LoginRequiredPlaceholder label={tab.label} promptLogin={promptLogin} />
-  if (tab?.comingSoon) return <ComingSoonPlaceholder label={tab.label} />
   if (value === "profile")       return <PersonalInfoTab user={user} onChange={onChange} />
   if (value === "tokens")        return <TokenTab />
   if (value === "settings")      return <SettingsTab loggedIn={loggedIn} />
@@ -129,16 +131,16 @@ export default function AccountPage() {
 
   const TABS = isAdmin ? [...BASE_TABS, { value: "admin", label: "管理員", icon: ShieldUser }] : BASE_TABS
 
-  function handleUserChange(key, value) {
+  async function handleUserChange(key, value) {
     const previousValue = user[key];
     setUser((prev) => ({ ...prev, [key]: value }));
     // updateProfile 失敗時回傳 { ok: false }（不會 throw），先前用 .catch 接永遠接不到，
-    // 導致儲存失敗被完全吞掉、畫面仍顯示未儲存成功的樂觀值——改為檢查 result.ok 並復原
-    useAuthStore.getState().updateProfile({ [key]: value }).then((result) => {
-      if (result.ok) return;
-      setUser((prev) => ({ ...prev, [key]: previousValue }));
-      toast(result.error ?? "儲存失敗，請稍後再試", "error");
-    });
+    // 導致儲存失敗被完全吞掉、畫面仍顯示未儲存成功的樂觀值——改為檢查 result.ok 並復原；
+    // 回傳這個 promise 讓呼叫端（欄位的儲存按鈕）可以在存檔中顯示 loading 狀態
+    const result = await useAuthStore.getState().updateProfile({ [key]: value });
+    if (result.ok) return;
+    setUser((prev) => ({ ...prev, [key]: previousValue }));
+    toast(result.error ?? "儲存失敗，請稍後再試", "error");
   }
 
   return (
@@ -154,18 +156,22 @@ export default function AccountPage() {
       <HostReviewsModal isOpen={reviewsOpen} onClose={() => setReviewsOpen(false)} host={user} />
 
       {/* 桌面版：左右 sidebar 佈局 */}
-      <div className="hidden md:flex md:gap-6 lg:gap-8">
+      <div className="hidden lg:flex lg:gap-8">
         {/* 左側 tab 選單 */}
-        <nav className="w-44 shrink-0 self-start">
-          <ul className="flex flex-col gap-1">
+        <nav className="w-44 shrink-0 self-start" aria-label="帳號設定分頁">
+          <ul className="flex flex-col gap-1" role="tablist">
             {TABS.map(tab => {
               const Icon = tab.icon
               const isActive = activeTab === tab.value
               return (
-                <li key={tab.value}>
+                <li key={tab.value} role="presentation">
                   <button
+                    id={`account-tab-${tab.value}`}
+                    role="tab"
+                    aria-selected={isActive}
+                    aria-controls={`account-tabpanel-${tab.value}`}
                     onClick={() => setActiveTab(tab.value)}
-                    className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-bold transition-colors ${
+                    className={`flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-bold transition-colors ${
                       isActive
                         ? 'bg-brand-subtle text-brand'
                         : 'text-ink-2 hover:bg-raised hover:text-ink'
@@ -185,7 +191,12 @@ export default function AccountPage() {
 
         {/* 右側內容區：固定高度，內容過長時自行垂直捲動，登出按鈕固定在底部 */}
         <div className="flex min-w-0 flex-1 flex-col" style={{ height: 'calc(100dvh - 16rem)', minHeight: '28rem' }}>
-          <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+          <div
+            id={`account-tabpanel-${activeTab}`}
+            role="tabpanel"
+            aria-labelledby={`account-tab-${activeTab}`}
+            className="min-h-0 flex-1 overflow-y-auto pr-1"
+          >
             <TabReveal key={activeTab}>
               <TabContent value={activeTab} user={user} onChange={handleUserChange} tabs={TABS} loggedIn={loggedIn} promptLogin={promptLogin} />
             </TabReveal>
@@ -195,14 +206,17 @@ export default function AccountPage() {
         </div>
       </div>
 
-      {/* 手機版：Accordion */}
-      <div className="md:hidden">
+      {/* 手機版／平板：Accordion */}
+      <div className="lg:hidden">
         <div className="space-y-2">
         {TABS.map(tab => {
           const isOpen = openAccordion === tab.value
           return (
             <Card key={tab.value} className="overflow-hidden">
               <button
+                id={`account-accordion-${tab.value}`}
+                aria-expanded={isOpen}
+                aria-controls={`account-accordion-panel-${tab.value}`}
                 onClick={() => setOpenAccordion(isOpen ? null : tab.value)}
                 className="flex w-full items-center justify-between px-4 py-3.5 text-left"
               >
@@ -221,7 +235,12 @@ export default function AccountPage() {
               </button>
               {isOpen && (
                 <TabReveal key={tab.value}>
-                  <div className="border-t border-line px-4 py-4">
+                  <div
+                    id={`account-accordion-panel-${tab.value}`}
+                    role="region"
+                    aria-labelledby={`account-accordion-${tab.value}`}
+                    className="border-t border-line px-4 py-4"
+                  >
                     <TabContent value={tab.value} user={user} onChange={handleUserChange} tabs={TABS} loggedIn={loggedIn} promptLogin={promptLogin} />
                   </div>
                 </TabReveal>

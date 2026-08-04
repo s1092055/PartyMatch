@@ -4,12 +4,14 @@ import { Avatar } from '../../../components/ui/avatar'
 import { Card } from '../../../components/ui/card'
 import { Badge } from '../../../components/ui/badge'
 import { LockBadge } from '../../../common/layout/components/navShared'
+import { LOCKED_MESSAGE } from '../../../common/layout/components/navConstants'
 
 // icon 大在上、文字小在下的方形按鈕；手機版左右平均分佈（flex-1），電腦版固定寬度靠右
 function HeroStatTile({ icon: Icon, iconClassName, label, onClick, locked }) {
   return (
     <button
       onClick={onClick}
+      aria-label={locked ? `${label}，${LOCKED_MESSAGE}` : label}
       className="flex flex-1 flex-col items-center justify-center gap-1.5 rounded-lg border border-line-subtle py-3 transition-all hover:-translate-y-0.5 hover:bg-raised md:w-24 md:flex-none"
     >
       <span className="relative">

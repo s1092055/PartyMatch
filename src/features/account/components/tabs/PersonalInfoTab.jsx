@@ -5,26 +5,46 @@ import { Input, Textarea } from '../../../../components/ui/input'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../../../components/ui/select'
 import { COUNTRY_CODES, parsePhone, toE164, formatPhoneDisplay } from '../../../../common/utils/phone'
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 function EditableField({ label, value, onSave, type = 'text', placeholder }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(value)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
 
-  function save() { onSave(draft); setEditing(false) }
-  function cancel() { setDraft(value); setEditing(false) }
+  function validate(v) {
+    if (type === 'email' && v && !EMAIL_PATTERN.test(v)) return '請輸入正確的電子信箱格式'
+    return ''
+  }
+
+  async function save() {
+    const msg = validate(draft)
+    if (msg) { setError(msg); return }
+    setSaving(true)
+    await onSave(draft)
+    setSaving(false)
+    setEditing(false)
+  }
+  function cancel() { setDraft(value); setError(''); setEditing(false) }
 
   return (
     <div className="flex items-start gap-3 py-3 border-b border-line-subtle last:border-0">
       <div className="flex-1 min-w-0">
         <p className="text-xs text-ink-3 mb-1">{label}</p>
         {editing ? (
-          <Input
-            type={type}
-            value={draft}
-            onChange={e => setDraft(e.target.value)}
-            placeholder={placeholder}
-            autoFocus
-            className="py-1.5 px-3"
-          />
+          <>
+            <Input
+              type={type}
+              value={draft}
+              onChange={e => { setDraft(e.target.value); setError('') }}
+              onBlur={() => setError(validate(draft))}
+              placeholder={placeholder}
+              autoFocus
+              className="py-1.5 px-3"
+            />
+            {error && <p className="mt-1 text-xs font-semibold text-danger">{error}</p>}
+          </>
         ) : (
           <p className="text-sm text-ink-2">{value || <span className="text-ink-4">未填寫</span>}</p>
         )}
@@ -32,8 +52,8 @@ function EditableField({ label, value, onSave, type = 'text', placeholder }) {
       <div className="flex items-center gap-1 shrink-0 pt-5">
         {editing ? (
           <>
-            <Button onClick={save} size="icon" aria-label="儲存"><Check size={13} strokeWidth={3} /></Button>
-            <Button onClick={cancel} variant="ghost" size="icon" aria-label="取消編輯" className="border border-line text-ink-3"><X size={13} /></Button>
+            <Button onClick={save} loading={saving} size="icon" aria-label="儲存"><Check size={13} strokeWidth={3} /></Button>
+            <Button onClick={cancel} disabled={saving} variant="ghost" size="icon" aria-label="取消編輯" className="border border-line text-ink-3"><X size={13} /></Button>
           </>
         ) : (
           <Button onClick={() => setEditing(true)} variant="ghost" size="icon" aria-label={`編輯${label}`} className="border border-line text-ink-3">
@@ -50,9 +70,12 @@ function PhoneEditableField({ value, onSave }) {
   const parsed = parsePhone(value)
   const [countryCode, setCountryCode] = useState(parsed.countryCode)
   const [localNumber, setLocalNumber] = useState(parsed.localNumber)
+  const [saving, setSaving] = useState(false)
 
-  function save() {
-    onSave(toE164(countryCode, localNumber))
+  async function save() {
+    setSaving(true)
+    await onSave(toE164(countryCode, localNumber))
+    setSaving(false)
     setEditing(false)
   }
   function cancel() {
@@ -94,8 +117,8 @@ function PhoneEditableField({ value, onSave }) {
       <div className="flex items-center gap-1 shrink-0 pt-5">
         {editing ? (
           <>
-            <Button onClick={save} size="icon" aria-label="儲存"><Check size={13} strokeWidth={3} /></Button>
-            <Button onClick={cancel} variant="ghost" size="icon" aria-label="取消編輯" className="border border-line text-ink-3"><X size={13} /></Button>
+            <Button onClick={save} loading={saving} size="icon" aria-label="儲存"><Check size={13} strokeWidth={3} /></Button>
+            <Button onClick={cancel} disabled={saving} variant="ghost" size="icon" aria-label="取消編輯" className="border border-line text-ink-3"><X size={13} /></Button>
           </>
         ) : (
           <Button onClick={() => setEditing(true)} variant="ghost" size="icon" aria-label="編輯手機號碼" className="border border-line text-ink-3">
@@ -110,8 +133,14 @@ function PhoneEditableField({ value, onSave }) {
 function BioEditableField({ value, onSave }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(value)
+  const [saving, setSaving] = useState(false)
 
-  function save() { onSave(draft.trim()); setEditing(false) }
+  async function save() {
+    setSaving(true)
+    await onSave(draft.trim())
+    setSaving(false)
+    setEditing(false)
+  }
   function cancel() { setDraft(value); setEditing(false) }
 
   return (
@@ -137,8 +166,8 @@ function BioEditableField({ value, onSave }) {
       <div className="flex items-center gap-1 shrink-0 pt-5">
         {editing ? (
           <>
-            <Button onClick={save} size="icon" aria-label="儲存"><Check size={13} strokeWidth={3} /></Button>
-            <Button onClick={cancel} variant="ghost" size="icon" aria-label="取消編輯" className="border border-line text-ink-3"><X size={13} /></Button>
+            <Button onClick={save} loading={saving} size="icon" aria-label="儲存"><Check size={13} strokeWidth={3} /></Button>
+            <Button onClick={cancel} disabled={saving} variant="ghost" size="icon" aria-label="取消編輯" className="border border-line text-ink-3"><X size={13} /></Button>
           </>
         ) : (
           <Button onClick={() => setEditing(true)} variant="ghost" size="icon" aria-label="編輯個人簡介" className="border border-line text-ink-3">
