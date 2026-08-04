@@ -4,7 +4,7 @@ import { Bell, Lock, MessageSquare } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
 import { NAV_SECTIONS } from '../nav'
 import { TokenBadge } from '../../../components/ui/TokenAmount'
-import { CountBadge, LockBadge, LockedHint } from './navShared'
+import { CountBadge, LockBadge, LockedHint, PresenceDot } from './navShared'
 import { LOCKED_MESSAGE, getNavItemKey, isProtectedNavItem } from './navConstants'
 
 export default function DesktopSidebar({
@@ -13,6 +13,7 @@ export default function DesktopSidebar({
   userName,
   avatarInitial,
   avatarColor,
+  presenceStatus,
   unreadNotifs,
   unreadMsgs,
   tokenBalance,
@@ -195,7 +196,7 @@ export default function DesktopSidebar({
                 style={{ background: avatarColor ?? 'linear-gradient(135deg, #cbd5e1, #64748b)' }}
               >
                 {avatarInitial}
-                <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
+                <PresenceDot status={presenceStatus} className="absolute bottom-0 right-0 h-3 w-3" />
               </span>
               <span className="min-w-0 flex-1 opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
                 <span className="block truncate text-sm font-extrabold text-ink">{userName}</span>

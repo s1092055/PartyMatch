@@ -16,6 +16,7 @@ const updateProfileSchema = z.object({
   avatarColor:  z.string().optional(),
   avatarInitial: z.string().max(2).optional(),
   showAvatar:   z.boolean().optional(),
+  presenceStatus: z.enum(['online', 'busy', 'offline']).optional(),
 })
 
 const deactivateSchema = z.object({
@@ -40,7 +41,7 @@ router.patch('/me', requireAuth, validate(updateProfileSchema), async (req, res,
     const user = await prisma.user.update({
       where:  { id: req.user.id },
       data:   req.body,
-      select: { id: true, email: true, name: true, phone: true, avatarColor: true, avatarInitial: true, showAvatar: true, creditScore: true, bio: true },
+      select: { id: true, email: true, name: true, phone: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true },
     })
     res.json(user)
   } catch (err) { next(err) }

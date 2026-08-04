@@ -36,6 +36,7 @@ export default function AppNav() {
   const userName = currentUser?.name ?? currentUser?.displayName ?? '使用者'
   const avatarInitial = userName[0] ?? 'U'
   const avatarColor = currentUser?.avatarColor ?? null
+  const presenceStatus = currentUser?.presenceStatus ?? 'online'
 
   const tokenBalance = useAuthStore(s => s.user?.tokenBalance ?? 0)
   const [topupOpen, setTopupOpen] = useState(false)
@@ -105,6 +106,7 @@ export default function AppNav() {
         userName={userName}
         avatarInitial={avatarInitial}
         avatarColor={avatarColor}
+        presenceStatus={presenceStatus}
         unreadNotifs={unreadNotifs}
         unreadMsgs={unreadMsgs}
         tokenBalance={tokenBalance}
@@ -122,6 +124,7 @@ export default function AppNav() {
         userName={userName}
         avatarInitial={avatarInitial}
         avatarColor={avatarColor}
+        presenceStatus={presenceStatus}
         unreadNotifs={unreadNotifs}
         tokenBalance={tokenBalance}
         mobileMenuOpen={mobileMenuOpen}

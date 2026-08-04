@@ -5,7 +5,9 @@ import { readStorage, writeStorage } from '../../../../common/utils/storage'
 import { useAuthStore } from '../../../../common/stores/useAuthStore'
 import { toast } from '../../../../common/utils/toast'
 import { Switch } from '../../../../components/ui/switch'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../../../components/ui/select'
 import { Input } from '../../../../components/ui/input'
+import { PRESENCE_LABELS } from '../../../../common/layout/components/navConstants'
 import {
   AlertDialog,
   AlertDialogContent,
@@ -58,6 +60,8 @@ export default function SettingsTab({ loggedIn = true }) {
   const [prefs, setPrefs] = useState(loadPrefs)
   const showAvatar = useAuthStore(s => s.user?.showAvatar ?? true)
   const [savingAvatarVisibility, setSavingAvatarVisibility] = useState(false)
+  const presenceStatus = useAuthStore(s => s.user?.presenceStatus ?? 'online')
+  const [savingPresence, setSavingPresence] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [password, setPassword] = useState('')
   const [deleteError, setDeleteError] = useState('')
@@ -75,6 +79,16 @@ export default function SettingsTab({ loggedIn = true }) {
     setSavingAvatarVisibility(true)
     const result = await useAuthStore.getState().updateProfile({ showAvatar: !showAvatar })
     setSavingAvatarVisibility(false)
+    if (!result.ok) toast(result.error ?? '儲存失敗，請稍後再試', 'error')
+  }
+
+  // 狀態是手動選擇的，不是自動偵測上下線，跟 showAvatar 一樣要打 API 存到帳號，
+  // 其他使用者才看得到（群組成員列表、聊天室等）
+  async function changePresence(next) {
+    if (next === presenceStatus) return
+    setSavingPresence(true)
+    const result = await useAuthStore.getState().updateProfile({ presenceStatus: next })
+    setSavingPresence(false)
     if (!result.ok) toast(result.error ?? '儲存失敗，請稍後再試', 'error')
   }
 
@@ -112,6 +126,24 @@ export default function SettingsTab({ loggedIn = true }) {
           checked={theme === 'dark'}
           onChange={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
         />
+        {loggedIn && (
+          <div className="flex items-center gap-4 py-3 border-b border-line-subtle last:border-0">
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-ink-2">目前狀態</p>
+              <p className="mt-0.5 text-xs text-ink-3">顯示在你的頭像旁邊，其他使用者也看得到</p>
+            </div>
+            <Select value={presenceStatus} onValueChange={changePresence} disabled={savingPresence}>
+              <SelectTrigger aria-label="目前狀態" className="h-9 w-28 shrink-0 text-sm font-bold">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(PRESENCE_LABELS).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </SectionGroup>
 
       <SectionGroup title="隱私設定" icon={Shield}>

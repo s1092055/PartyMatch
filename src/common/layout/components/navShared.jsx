@@ -1,5 +1,5 @@
 import { Lock } from 'lucide-react'
-import { LOCKED_MESSAGE } from './navConstants'
+import { LOCKED_MESSAGE, PRESENCE_COLORS } from './navConstants'
 
 export function CountBadge({ count }) {
   if (!count) return null
@@ -12,6 +12,11 @@ export function CountBadge({ count }) {
 
 export function LockBadge({ className = '' }) {
   return <Lock size={11} strokeWidth={2.3} className={`absolute rounded-full ${className}`} />
+}
+
+// 掛在頭像右下角的狀態點：使用者在「其他設定」手動選擇的線上狀態，不是自動偵測
+export function PresenceDot({ status = 'online', className = '' }) {
+  return <span className={`rounded-full border-2 border-white ${PRESENCE_COLORS[status] ?? PRESENCE_COLORS.online} ${className}`} />
 }
 
 export function LockedHint({ className = '' }) {

@@ -4,7 +4,7 @@ import { Bell, LogOut, Settings } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
 import { useAuthStore } from '../../stores/useAuthStore'
 import { TokenBadge } from '../../../components/ui/TokenAmount'
-import { CountBadge } from './navShared'
+import { CountBadge, PresenceDot } from './navShared'
 import { Button } from '../../../components/ui/button'
 
 export default function MobileHeader({
@@ -12,6 +12,7 @@ export default function MobileHeader({
   userName,
   avatarInitial,
   avatarColor,
+  presenceStatus,
   unreadNotifs,
   tokenBalance,
   mobileMenuOpen,
@@ -61,7 +62,7 @@ export default function MobileHeader({
               >
                 {avatarInitial}
               </span>
-              <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white bg-emerald-500" />
+              <PresenceDot status={presenceStatus} className="absolute bottom-0 right-0 h-2.5 w-2.5" />
             </button>
           ) : (
             <a
@@ -85,7 +86,7 @@ export default function MobileHeader({
               style={{ background: avatarColor ?? 'linear-gradient(135deg, #cbd5e1, #64748b)' }}
             >
               {avatarInitial}
-              <span className="absolute bottom-0.5 right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-500" />
+              <PresenceDot status={presenceStatus} className="absolute bottom-0.5 right-0.5 h-3.5 w-3.5" />
             </span>
             <p className="text-sm font-extrabold text-ink">{userName}</p>
           </div>
