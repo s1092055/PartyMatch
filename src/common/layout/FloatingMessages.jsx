@@ -142,7 +142,12 @@ export default function FloatingMessages() {
       const link = getMeta(notification.type).link
       if (link && !['/my-subscriptions', '/manage-groups', '/account', '/favorites'].includes(link)) {
         setOpen(false)
-        navigate(link)
+        // 系統歡迎通知導回首頁時順便整頁刷新，讓訪客回到最乾淨的初始畫面（不只是換路由）
+        if (link === '/') {
+          window.location.replace('/')
+        } else {
+          navigate(link)
+        }
       }
       return
     }
