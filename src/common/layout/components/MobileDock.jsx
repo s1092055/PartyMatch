@@ -47,7 +47,7 @@ export default function MobileDock({
           >
             <span className="relative">
               <PlusCircle size={22} strokeWidth={2.1} />
-              <LockBadge className="-right-1 -top-1 bg-surface text-ink-4" />
+              <LockBadge className="-right-1 -top-1 text-ink-4" />
             </span>
             建立群組
           </button>
@@ -111,7 +111,7 @@ export default function MobileDock({
             >
               <span className="relative">
                 <LayoutGrid size={22} strokeWidth={2.1} />
-                <LockBadge className="-right-1 -top-1 bg-surface text-ink-4" />
+                <LockBadge className="-right-1 -top-1 text-ink-4" />
               </span>
               我的
             </button>
@@ -136,7 +136,7 @@ export default function MobileDock({
           >
             <MessageSquare size={22} strokeWidth={2.1} />
             訊息
-            <LockBadge className="right-4 top-1.5 bg-surface text-ink-4" />
+            <LockBadge className="right-4 top-1.5 text-ink-4" />
           </button>
         )}
 

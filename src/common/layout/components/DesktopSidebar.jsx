@@ -47,7 +47,7 @@ export default function DesktopSidebar({
         >
           <span className="relative grid h-9 w-9 shrink-0 place-items-center">
             <Icon size={22} strokeWidth={2.1} />
-            <LockBadge className="right-0 top-0 bg-canvas text-ink-4" />
+            <LockBadge className="right-0 top-0 text-ink-4" />
           </span>
           <span className="whitespace-nowrap font-bold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
             {item.label}
@@ -154,7 +154,7 @@ export default function DesktopSidebar({
           >
             <MessageSquare size={16} strokeWidth={2} />
             訊息
-            <LockBadge className="right-1 top-1 bg-surface text-ink-4" />
+            <LockBadge className="right-1 top-1 text-ink-4" />
             <LockedHint className="right-full top-1/2 mr-2 -translate-y-1/2" />
           </button>
         )}
