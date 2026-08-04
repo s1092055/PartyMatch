@@ -152,28 +152,28 @@ export default function SettingsTab({ loggedIn = true }) {
         )}
       </SectionGroup>
 
-      <SectionGroup title="隱私設定" icon={Shield}>
-        {loggedIn && (
+      {loggedIn && (
+        <SectionGroup title="隱私設定" icon={Shield}>
           <SettingRow
             label="顯示自己的大頭照"
             desc="關閉後其他使用者會看到 PartyMatch 預設圖示"
             checked={showAvatar}
             onChange={savingAvatarVisibility ? undefined : toggleAvatarVisibility}
           />
-        )}
-        <SettingRow
-          label="接收行銷郵件"
-          desc="優惠活動與新功能消息"
-          checked={prefs.marketingEmail}
-          onChange={() => toggle('marketingEmail')}
-        />
-        <SettingRow
-          label="分享使用資料"
-          desc="協助改善平台體驗（匿名）"
-          checked={prefs.shareActivity}
-          onChange={() => toggle('shareActivity')}
-        />
-      </SectionGroup>
+          <SettingRow
+            label="接收行銷郵件"
+            desc="優惠活動與新功能消息"
+            checked={prefs.marketingEmail}
+            onChange={() => toggle('marketingEmail')}
+          />
+          <SettingRow
+            label="分享使用資料"
+            desc="協助改善平台體驗（匿名）"
+            checked={prefs.shareActivity}
+            onChange={() => toggle('shareActivity')}
+          />
+        </SectionGroup>
+      )}
 
       {loggedIn && (
         <SectionGroup title="帳號操作" icon={LogOut}>
