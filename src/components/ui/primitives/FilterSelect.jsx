@@ -140,7 +140,7 @@ export default function FilterSelect({ id, group, value, onChange, groups, trigg
         className={cn(
           'flex items-center justify-between gap-1.5 rounded-lg border bg-transparent py-2 pr-2 pl-2.5 text-sm whitespace-nowrap transition-[border-color,box-shadow] outline-none select-none [-webkit-tap-highlight-color:transparent]',
           open
-            ? 'rounded-b-none border-brand border-b-transparent'
+            ? 'rounded-b-none border-line border-b-transparent'
             : 'border-line focus:outline-none',
           className
         )}
@@ -156,7 +156,7 @@ export default function FilterSelect({ id, group, value, onChange, groups, trigg
           tabIndex={-1}
           aria-hidden={!open}
           className={cn(
-            'absolute left-0 top-full z-50 max-h-72 w-full overflow-x-hidden overflow-y-auto rounded-b-lg border border-t-0 border-brand bg-popover text-popover-foreground shadow-md transition-[opacity,transform] duration-150 ease-out [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+            'absolute left-0 top-full z-50 max-h-72 w-full overflow-x-hidden overflow-y-auto rounded-b-lg border border-t-0 border-line bg-popover text-popover-foreground shadow-md transition-[opacity,transform] duration-150 ease-out [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
             open && visible ? 'translate-y-0 opacity-100' : 'pointer-events-none -translate-y-2 opacity-0'
           )}
         >
