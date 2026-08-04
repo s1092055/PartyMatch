@@ -29,7 +29,7 @@ router.get('/', requireAuth, async (req, res, next) => {
         ],
       },
       include: {
-        user:  { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, creditScore: true } },
+        user:  { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true } },
         group: { select: { id: true, hostId: true, planName: true, serviceId: true, service: { select: { id: true, name: true } }, host: { select: { id: true, name: true } } } },
       },
       orderBy: { createdAt: 'desc' },

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter, DialogCloseButton } from '../../../components/ui/dialog'
 import { Avatar } from '../../../components/ui/avatar'
+import { PresenceDot } from '../../../common/layout/components/navShared'
 import { Button } from '../../../components/ui/button'
 import { Textarea } from '../../../components/ui/input'
 import StarRating from '../../../components/ui/primitives/StarRating'
@@ -36,7 +37,10 @@ export default function ReviewHostModal({ group, onSubmit, onClose }) {
         <DialogBody>
       <div className="space-y-4 p-5">
         <div className="flex items-center gap-3">
-          <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="md" />
+          <span className="relative inline-block shrink-0">
+            <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="md" />
+            <PresenceDot status={group.hostPresenceStatus} className="absolute -bottom-0.5 -right-0.5 h-3 w-3" />
+          </span>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-ink">{group.hostName}</p>
             <p className="text-xs text-ink-3">{group.serviceName} · {group.planName}</p>

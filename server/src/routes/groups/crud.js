@@ -70,7 +70,7 @@ router.get('/', optionalAuth, async (req, res, next) => {
         ...(category && { service: { category } }),
       },
       include: {
-        host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, creditScore: true, bio: true } },
+        host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true } },
         service: true,
         _count:  { select: { members: true } },
       },
@@ -87,10 +87,10 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
     const group = await prisma.group.findUnique({
       where: { id: req.params.id },
       include: {
-        host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, creditScore: true, bio: true } },
+        host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true } },
         service: true,
         members: {
-          include: { user: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, bio: true } } },
+          include: { user: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, bio: true } } },
         },
       },
     })
@@ -134,7 +134,7 @@ router.post('/', requireAuth, validate(createGroupSchema), async (req, res, next
     const data = Object.fromEntries(Object.entries(req.body).filter(([k]) => allowed.includes(k)))
     const group = await prisma.group.create({
       data: { ...data, hostId: req.user.id },
-      include: { service: true, host: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, creditScore: true, bio: true } } },
+      include: { service: true, host: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true } } },
     })
     res.status(201).json(maskGroupAvatars(group))
   } catch (err) { next(err) }
@@ -185,7 +185,7 @@ router.get('/:id/transactions', requireAuth, async (req, res, next) => {
     const transactions = await prisma.tokenTransaction.findMany({
       where:   { relatedGroupId: req.params.id },
       orderBy: { createdAt: 'desc' },
-      include: { user: { select: { id: true, name: true, avatarInitial: true, avatarColor: true, showAvatar: true } } },
+      include: { user: { select: { id: true, name: true, avatarInitial: true, avatarColor: true, showAvatar: true, presenceStatus: true } } },
     })
     res.json(transactions.map(t => ({ ...t, user: maskAvatar(t.user) })))
   } catch (err) { next(err) }

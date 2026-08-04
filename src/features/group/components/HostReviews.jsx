@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { MessageCircle, Star } from 'lucide-react'
 import { Avatar } from '../../../components/ui/avatar'
+import { PresenceDot } from '../../../common/layout/components/navShared'
 import StarRating from '../../../components/ui/primitives/StarRating'
 import EmptyState from '../../../components/ui/primitives/EmptyState'
 import { CENTERED_PANEL_BODY_CLASS } from '../../../components/ui/group/panelLayout'
@@ -48,7 +49,10 @@ export default function HostReviews({ group, headerClassName, onDm, groupId, tit
       )}
       {showHeader && (
         <div className="flex items-center gap-3 border-b border-line-subtle pb-4">
-          <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="md" />
+          <span className="relative inline-block shrink-0">
+            <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="md" />
+            <PresenceDot status={group.hostPresenceStatus} className="absolute -bottom-0.5 -right-0.5 h-3 w-3" />
+          </span>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <p className="text-sm font-semibold text-ink">{group.hostName}</p>

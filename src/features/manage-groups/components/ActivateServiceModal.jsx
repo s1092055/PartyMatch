@@ -1,6 +1,7 @@
 import { PlayCircle, UserCheck } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter, DialogCloseButton } from '../../../components/ui/dialog'
 import { Avatar } from '../../../components/ui/avatar'
+import { PresenceDot } from '../../../common/layout/components/navShared'
 import { Button } from '../../../components/ui/button'
 import ServiceLogo from '../../../components/ui/ServiceLogo'
 import TokenAmount from '../../../components/ui/TokenAmount'
@@ -91,7 +92,10 @@ export default function ActivateServiceModal({
                           }}
                           className="h-4 w-4 shrink-0 accent-brand"
                         />
-                        <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
+                        <span className="relative inline-block shrink-0">
+                          <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
+                          <PresenceDot status={m.userPresenceStatus} className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5" />
+                        </span>
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-semibold text-ink">{m.userName}</p>
                           {m.serviceInfoIssueNote ? (

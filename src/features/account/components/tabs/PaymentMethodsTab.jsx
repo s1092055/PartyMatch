@@ -134,7 +134,7 @@ export default function PaymentMethodsTab() {
         {cards.length < 2 && (
           <button
             onClick={() => setModalOpen(true)}
-            className="flex w-full items-center justify-center gap-2 rounded-card border-2 border-dashed border-line py-4 text-sm text-ink-4 transition-all hover:-translate-y-0.5 hover:border-brand/40 hover:text-brand"
+            className="flex w-full items-center justify-center gap-2 rounded-card border border-line py-4 text-sm text-ink-4 transition-all hover:-translate-y-0.5 hover:border-brand/40 hover:text-brand"
           >
             <Plus size={16} />
             新增付款方式

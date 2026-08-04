@@ -84,11 +84,13 @@ export function normalizeApplication(app) {
     // 同 normalizeMember：avatarInitial 為 null 代表使用者關閉了大頭照顯示，不能再 fallback 到姓名首字
     applicantAvatarInitial: app.applicantAvatarInitial ?? user.avatarInitial ?? '',
     applicantAvatarColor:   app.applicantAvatarColor   ?? user.avatarColor   ?? '#94A3B8',
+    applicantPresenceStatus: app.applicantPresenceStatus ?? user.presenceStatus ?? 'offline',
     applicantCreditScore:   app.applicantCreditScore   ?? user.creditScore   ?? 80,
     userId:                 app.userId ?? applicantId,
     userName:               app.userName ?? applicantName,
     userAvatarInitial:      app.userAvatarInitial ?? user.avatarInitial ?? '',
     userAvatarColor:        app.userAvatarColor   ?? user.avatarColor   ?? '#94A3B8',
+    userPresenceStatus:     app.userPresenceStatus ?? user.presenceStatus ?? 'offline',
     // 群組 / 服務資訊（從巢狀 group 展平）
     groupId:    app.groupId   ?? group.id      ?? '',
     groupName:  app.groupName ?? service.name  ?? '未命名群組',
@@ -100,6 +102,7 @@ export function normalizeApplication(app) {
     hostName:          app.hostName          ?? host.name      ?? '',
     hostAvatarInitial: app.hostAvatarInitial ?? host.avatarInitial ?? '',
     hostAvatarColor:   app.hostAvatarColor   ?? host.avatarColor   ?? '#94A3B8',
+    hostPresenceStatus: app.hostPresenceStatus ?? host.presenceStatus ?? 'offline',
     status:    app.status ?? 'pending',
     createdAt,
   }
@@ -149,6 +152,7 @@ export function normalizeGroup(group) {
     hostRating:        migrateRating(group.hostRating ?? host.creditScore ?? 80),
     hostAvatarInitial: group.hostAvatarInitial ?? host.avatarInitial ?? '',
     hostAvatarColor:   group.hostAvatarColor   ?? host.avatarColor   ?? '#94A3B8',
+    hostPresenceStatus: group.hostPresenceStatus ?? host.presenceStatus ?? 'offline',
     hostBio:           group.hostBio           ?? host.bio           ?? '',
     hostReviewCount:   group.hostReviewCount   ?? 0,
     // 其他
@@ -182,6 +186,7 @@ export function normalizeSubscription(sub) {
     hostName:          sub.hostName          ?? host.name          ?? '',
     hostAvatarInitial: sub.hostAvatarInitial ?? host.avatarInitial ?? '',
     hostAvatarColor:   sub.hostAvatarColor   ?? host.avatarColor   ?? '#94A3B8',
+    hostPresenceStatus: sub.hostPresenceStatus ?? host.presenceStatus ?? 'offline',
     createdAt,
     joinedAt:          sub.joinedAt ?? createdAt,
   }

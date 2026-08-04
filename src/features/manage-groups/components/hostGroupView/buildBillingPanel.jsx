@@ -1,5 +1,6 @@
 import { ArrowUpCircle, Banknote } from 'lucide-react'
 import { Avatar } from '../../../../components/ui/avatar'
+import { PresenceDot } from '../../../../common/layout/components/navShared'
 import EmptyState from '../../../../components/ui/primitives/EmptyState'
 import EscrowStatusCard from '../../../../components/ui/EscrowStatusCard'
 import TokenAmount from '../../../../components/ui/TokenAmount'
@@ -49,7 +50,10 @@ export function buildBillingPanel({ members, transactions, transactionsLoading }
                 const tx = latestEscrowByUserId[m.userId]
                 return (
                   <div key={m.id} className={`flex items-center gap-3 px-4 py-3 ${i > 0 ? 'border-t border-line-subtle' : ''}`}>
-                    <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
+                    <span className="relative inline-block shrink-0">
+                      <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
+                      <PresenceDot status={m.userPresenceStatus} className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5" />
+                    </span>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold text-ink">{m.userName}</p>
                       {/* 顯示團主按下「接受」的時間（Member.joinedAt），不是申請送出當下實際扣款的時間（tx.createdAt）——

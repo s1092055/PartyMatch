@@ -3,6 +3,7 @@ import {
   Banknote, CheckCircle2, Clock, Info, LogOut, MessageCircle, Users, ClipboardEdit, ThumbsUp, AlertTriangle,
 } from 'lucide-react'
 import { Avatar } from '../../../components/ui/avatar'
+import { PresenceDot } from '../../../common/layout/components/navShared'
 import { Button } from '../../../components/ui/button'
 import ConfirmActionDialog from '../../../components/ui/ConfirmActionDialog'
 import CountdownText from '../../../components/ui/primitives/CountdownText'
@@ -205,7 +206,10 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
           <div className="p-5 space-y-2">
             <div className="rounded-lg border border-line p-3">
               <div className="flex items-center gap-3">
-                <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="sm" />
+                <span className="relative inline-block shrink-0">
+                  <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="sm" />
+                  <PresenceDot status={group.hostPresenceStatus} className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5" />
+                </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-semibold text-ink">{group.hostName}</p>
@@ -235,7 +239,10 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
             {members.filter(m => m.userId !== currentUser?.id).map(m => (
               <div key={m.id} className="rounded-lg border border-line p-3">
                 <div className="flex items-center gap-3">
-                  <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
+                  <span className="relative inline-block shrink-0">
+                    <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
+                    <PresenceDot status={m.userPresenceStatus} className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5" />
+                  </span>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-ink">{m.userName}</p>
                     <p className="text-xs text-ink-3">{m.joinedAt} 加入</p>
@@ -261,7 +268,10 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
             {myMember && (
               <div className="rounded-lg border border-line p-3">
                 <div className="flex items-center gap-3">
-                  <Avatar initial={myMember.userAvatarInitial} color={myMember.userAvatarColor} size="sm" />
+                  <span className="relative inline-block shrink-0">
+                    <Avatar initial={myMember.userAvatarInitial} color={myMember.userAvatarColor} size="sm" />
+                    <PresenceDot status={myMember.userPresenceStatus} className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5" />
+                  </span>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-ink">
                       {myMember.userName}

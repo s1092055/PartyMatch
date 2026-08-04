@@ -33,7 +33,7 @@ router.post('/:id/activate', requireAuth, async (req, res, next) => {
       where: { id: req.params.id },
       data: { status: 'confirming', confirmDeadline },
       include: {
-        host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, creditScore: true, bio: true } },
+        host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true } },
         service: true,
         _count:  { select: { members: true } },
       },
@@ -82,7 +82,7 @@ router.post('/:id/confirm', requireAuth, async (req, res, next) => {
           where: { id: req.params.id },
           data:  { status: 'active', confirmDeadline: null },
           include: {
-            host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, creditScore: true, bio: true } },
+            host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true } },
             service: true,
             _count:  { select: { members: true } },
           },
@@ -156,7 +156,7 @@ router.post('/:id/dispute', requireAuth, validate(disputeSchema), async (req, re
         where: { id: req.params.id },
         data:  { status: 'disputed', disputeDeadline },
         include: {
-          host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, creditScore: true, bio: true } },
+          host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true } },
           service: true,
           _count:  { select: { members: true } },
         },
@@ -268,7 +268,7 @@ router.post('/:id/lock', requireAuth, async (req, res, next) => {
         where: { id: req.params.id },
         data: { status: 'pending_confirmation', serviceInfoDeadline, ...(sharedCredentials !== undefined && { sharedCredentials }) },
         include: {
-          host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, creditScore: true, bio: true } },
+          host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true } },
           service: true,
           _count:  { select: { members: true } },
         },
@@ -445,7 +445,7 @@ router.post('/:id/renew', requireAuth, async (req, res, next) => {
         where: { id: req.params.id },
         data:  { status: 'pending_confirmation', nextBillingDate: base, serviceInfoDeadline, escrowTokens: { increment: seatCost * memberIds.length } },
         include: {
-          host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, creditScore: true, bio: true } },
+          host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true } },
           service: true,
           _count:  { select: { members: true } },
         },

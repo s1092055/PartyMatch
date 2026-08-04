@@ -21,7 +21,7 @@ router.get('/host/:hostId', async (req, res, next) => {
       prisma.review.aggregate({ where: { hostId }, _avg: { rating: true }, _count: true }),
       prisma.review.findMany({
         where:   { hostId },
-        include: { author: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true } } },
+        include: { author: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true } } },
         orderBy: { createdAt: 'desc' },
         take: 50,
       }),
