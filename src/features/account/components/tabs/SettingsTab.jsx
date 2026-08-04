@@ -5,7 +5,8 @@ import { readStorage, writeStorage } from '../../../../common/utils/storage'
 import { useAuthStore } from '../../../../common/stores/useAuthStore'
 import { toast } from '../../../../common/utils/toast'
 import { Switch } from '../../../../components/ui/switch'
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../../../components/ui/select'
+import FilterSelect from '../../../../components/ui/primitives/FilterSelect'
+import { useFilterSelectGroup } from '../../../../components/ui/primitives/useFilterSelectGroup'
 import { Input } from '../../../../components/ui/input'
 import { PRESENCE_LABELS } from '../../../../common/layout/components/navConstants'
 import { PresenceDot } from '../../../../common/layout/components/navShared'
@@ -63,6 +64,13 @@ export default function SettingsTab({ loggedIn = true }) {
   const [savingAvatarVisibility, setSavingAvatarVisibility] = useState(false)
   const presenceStatus = useAuthStore(s => s.user?.presenceStatus ?? 'online')
   const [savingPresence, setSavingPresence] = useState(false)
+  const presenceFilterGroup = useFilterSelectGroup()
+  const presenceOptions = Object.entries(PRESENCE_LABELS).map(([value, label]) => ({
+    value,
+    label,
+    icon: <PresenceDot status={value} className="h-2.5 w-2.5 shrink-0" />,
+  }))
+  const presenceGroups = [{ label: null, items: presenceOptions }]
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [password, setPassword] = useState('')
   const [deleteError, setDeleteError] = useState('')
@@ -133,21 +141,21 @@ export default function SettingsTab({ loggedIn = true }) {
               <p className="text-sm font-medium text-ink-2">目前狀態</p>
               <p className="mt-0.5 text-xs text-ink-3">顯示在你的頭像旁邊，其他使用者也看得到</p>
             </div>
-            <Select value={presenceStatus} onValueChange={changePresence} disabled={savingPresence}>
-              <SelectTrigger aria-label="目前狀態" className="h-9 w-[7.5rem] shrink-0 text-sm font-bold">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(PRESENCE_LABELS).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    <span className="flex items-center gap-2">
-                      <PresenceDot status={value} className="h-2.5 w-2.5 shrink-0" />
-                      {label}
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <FilterSelect
+              id="presence-status"
+              ariaLabel="目前狀態"
+              group={presenceFilterGroup}
+              value={presenceStatus}
+              onChange={savingPresence ? () => {} : changePresence}
+              groups={presenceGroups}
+              className="h-9 w-[7.5rem] shrink-0 font-bold"
+              triggerContent={(
+                <span className="flex min-w-0 items-center gap-1.5">
+                  {presenceOptions.find(o => o.value === presenceStatus)?.icon}
+                  <span className="truncate">{presenceOptions.find(o => o.value === presenceStatus)?.label}</span>
+                </span>
+              )}
+            />
           </div>
         )}
       </SectionGroup>

@@ -2,7 +2,7 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Check, ChevronDown } from 'lucide-react'
 import { cn } from '../../../lib/utils'
 
-export default function FilterSelect({ id, group, value, onChange, groups, triggerContent, className = '' }) {
+export default function FilterSelect({ id, group, value, onChange, groups, triggerContent, className = '', ariaLabel }) {
   const open = group.openKey === id
   const rootRef = useRef(null)
   const triggerRef = useRef(null)
@@ -133,6 +133,7 @@ export default function FilterSelect({ id, group, value, onChange, groups, trigg
         aria-expanded={open}
         aria-controls={listboxId}
         aria-haspopup="listbox"
+        aria-label={ariaLabel}
         data-state={open ? 'open' : 'closed'}
         onClick={() => (open ? close() : openList())}
         onKeyDown={onKeyDown}
@@ -140,7 +141,7 @@ export default function FilterSelect({ id, group, value, onChange, groups, trigg
           'flex items-center justify-between gap-1.5 rounded-lg border bg-transparent py-2 pr-2 pl-2.5 text-sm whitespace-nowrap transition-[border-color,box-shadow] outline-none select-none [-webkit-tap-highlight-color:transparent]',
           open
             ? 'rounded-b-none border-brand border-b-transparent'
-            : 'border-line focus:border-brand focus:ring-4 focus:ring-brand-subtle',
+            : 'border-line focus:outline-none',
           className
         )}
       >
