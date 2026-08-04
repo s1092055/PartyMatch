@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Bell, Lock, LogIn, MessageSquare } from 'lucide-react'
+import { Bell, Lock, MessageSquare } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
 import { NAV_SECTIONS } from '../nav'
 import { TokenBadge } from '../../../components/ui/TokenAmount'
@@ -205,13 +205,14 @@ export default function DesktopSidebar({
             <a
               href="/account"
               onClick={closeAll}
-              className="flex h-12 w-full items-center gap-3 rounded-2xl bg-brand px-1 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-brand-hover"
+              aria-label="訪客，前往登入"
+              className="flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left transition-all hover:bg-raised"
             >
-              <span className="grid h-9 w-9 shrink-0 place-items-center">
-                <LogIn size={20} strokeWidth={2.1} />
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-line bg-surface shadow-md">
+                <img src={logoUrl} alt="" className="h-5 w-5" />
               </span>
-              <span className="whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
-                登入
+              <span className="min-w-0 flex-1 opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
+                <span className="block truncate text-sm font-extrabold text-ink">訪客</span>
               </span>
             </a>
           )}
