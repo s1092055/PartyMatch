@@ -70,7 +70,7 @@ export default function MobileHeader({
               className="relative ml-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-all hover:bg-raised"
             >
               <span className="grid h-9 w-9 place-items-center rounded-full border border-line bg-surface shadow-md">
-                <img src={logoUrl} alt="" className="h-4 w-4" />
+                <img src={logoUrl} alt="" className="h-5 w-5" />
               </span>
             </a>
           )}
