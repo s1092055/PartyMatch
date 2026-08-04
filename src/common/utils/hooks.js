@@ -1,18 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { toast } from './toast'
-import { LOCKED_MESSAGE } from '../layout/components/navConstants'
-
-// 未登入時點擊「需要登入才能用」的操作按鈕，跳出跟側邊欄鎖定項目同一套提示，
-// 附一顆「前往登入」的 action 按鈕，不強制導頁、讓使用者自己決定要不要去登入
-export function usePromptLogin() {
-  const navigate = useNavigate()
-  return useCallback(() => {
-    toast(LOCKED_MESSAGE, 'info', {
-      action: { label: '前往登入', onClick: () => navigate('/login') },
-    })
-  }, [navigate])
-}
 
 // Reference counter so nested modals don't re-measure or prematurely release the lock.
 let _lockCount = 0

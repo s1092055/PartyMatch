@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Mail } from 'lucide-react'
-import AuthLayout, { AuthInput } from '../components/AuthLayout'
+import AuthLayout, { AuthTitle, AuthInput } from '../components/AuthLayout'
 import { Button } from '../../../components/ui/button'
 
 export default function ForgotPasswordPage() {
@@ -10,10 +10,7 @@ export default function ForgotPasswordPage() {
   return (
     <AuthLayout backTo="/login">
       <div className="mt-14">
-        <h1 className="text-4xl font-extrabold leading-tight text-ink md:text-4xl">忘記密碼？</h1>
-        <p className="mt-5 text-base font-medium leading-relaxed text-ink-3">
-          輸入你的電子郵件，我們會寄出重設密碼連結。
-        </p>
+        <AuthTitle>忘記密碼？</AuthTitle>
       </div>
 
       <form className="mt-9 space-y-5" onSubmit={e => e.preventDefault()}>

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Lock, Mail } from 'lucide-react'
-import AuthLayout, { AuthInput, AuthDivider, AuthError, GoogleMark, PasswordToggle } from '../components/AuthLayout'
+import AuthLayout, { AuthTitle, AuthInput, AuthDivider, AuthError, GoogleMark, PasswordToggle } from '../components/AuthLayout'
 import { Button } from '../../../components/ui/button'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
 import { toast } from '../../../common/utils/toast'
@@ -33,10 +33,7 @@ export default function LoginPage() {
   return (
     <AuthLayout>
       <div className="mt-12">
-        <h1 className="text-4xl font-extrabold leading-tight text-ink md:text-4xl">登入 PartyMatch</h1>
-        <p className="mt-5 text-base font-medium leading-relaxed text-ink-3">
-          登入後即可探索共享訂閱群組、快速搜尋並管理你的訂閱。
-        </p>
+        <AuthTitle>登入 PartyMatch</AuthTitle>
       </div>
 
       <form className="mt-9 space-y-5" onSubmit={handleSubmit}>

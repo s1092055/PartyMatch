@@ -1,5 +1,6 @@
 import { Eye, EyeOff, ChevronLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import logoUrl from '../../../assets/Logo.svg'
 import { Button } from '../../../components/ui/button'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../../components/ui/select'
 import { COUNTRY_CODES } from '../../../common/utils/phone'
@@ -7,7 +8,7 @@ import { COUNTRY_CODES } from '../../../common/utils/phone'
 export default function AuthLayout({ children, backTo = '/' }) {
   return (
     <main className="min-h-screen bg-canvas px-4 py-8 text-ink">
-      <div className="mx-auto flex min-h-[calc(100dvh-4rem)] max-w-[26rem] flex-col justify-center gap-4">
+      <div className="mx-auto flex min-h-[calc(100dvh-4rem)] max-w-[26rem] flex-col justify-between gap-4">
         <section className="animate-fade-in-up w-full py-4">
           <Link
             to={backTo}
@@ -21,6 +22,15 @@ export default function AuthLayout({ children, backTo = '/' }) {
         <p className="text-center text-sm font-medium text-ink-3">© 2026 PartyMatch</p>
       </div>
     </main>
+  )
+}
+
+export function AuthTitle({ children }) {
+  return (
+    <div className="flex items-center gap-3">
+      <img src={logoUrl} alt="" className="h-12 w-12 shrink-0 sm:h-16 sm:w-16" />
+      <h1 className="whitespace-nowrap text-2xl font-extrabold leading-tight text-ink sm:text-3xl">{children}</h1>
+    </div>
   )
 }
 
@@ -38,7 +48,7 @@ export function AuthInput({ icon: Icon, label, value, onChange, trailing, hint, 
         />
         {trailing}
       </span>
-      {hint && <span className="mt-1.5 block text-xs font-medium text-ink-4">{hint}</span>}
+      {hint && <span className="mt-1.5 block pl-4 text-xs font-medium text-ink-4">{hint}</span>}
     </label>
   )
 }
@@ -70,7 +80,7 @@ export function PhoneInput({ label, countryCode, onCountryCodeChange, value, onC
         />
         {trailing}
       </span>
-      {hint && <span className="mt-1.5 block text-xs font-medium text-ink-4">{hint}</span>}
+      {hint && <span className="mt-1.5 block pl-4 text-xs font-medium text-ink-4">{hint}</span>}
     </label>
   )
 }

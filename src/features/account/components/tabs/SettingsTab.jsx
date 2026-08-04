@@ -56,7 +56,7 @@ function SectionGroup({ title, icon: Icon, children }) {
   )
 }
 
-export default function SettingsTab({ loggedIn = true }) {
+export default function SettingsTab() {
   const navigate = useNavigate()
   const { theme, setTheme } = useTheme()
   const [prefs, setPrefs] = useState(loadPrefs)
@@ -135,67 +135,61 @@ export default function SettingsTab({ loggedIn = true }) {
           checked={theme === 'dark'}
           onChange={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
         />
-        {loggedIn && (
-          <div className="flex items-center gap-4 py-3 border-b border-line-subtle last:border-0">
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-ink-2">目前狀態</p>
-              <p className="mt-0.5 text-xs text-ink-3">顯示在你的頭像旁邊，其他使用者也看得到</p>
-            </div>
-            <FilterSelect
-              id="presence-status"
-              ariaLabel="目前狀態"
-              group={presenceFilterGroup}
-              value={presenceStatus}
-              onChange={savingPresence ? () => {} : changePresence}
-              groups={presenceGroups}
-              className="h-9 w-[7.5rem] shrink-0 font-bold"
-              triggerContent={(
-                <span className="flex min-w-0 items-center gap-1.5">
-                  {presenceOptions.find(o => o.value === presenceStatus)?.icon}
-                  <span className="truncate">{presenceOptions.find(o => o.value === presenceStatus)?.label}</span>
-                </span>
-              )}
-            />
+        <div className="flex items-center gap-4 py-3 border-b border-line-subtle last:border-0">
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-ink-2">目前狀態</p>
+            <p className="mt-0.5 text-xs text-ink-3">顯示在你的頭像旁邊，其他使用者也看得到</p>
           </div>
-        )}
+          <FilterSelect
+            id="presence-status"
+            ariaLabel="目前狀態"
+            group={presenceFilterGroup}
+            value={presenceStatus}
+            onChange={savingPresence ? () => {} : changePresence}
+            groups={presenceGroups}
+            className="h-9 w-[7.5rem] shrink-0 font-bold"
+            triggerContent={(
+              <span className="flex min-w-0 items-center gap-1.5">
+                {presenceOptions.find(o => o.value === presenceStatus)?.icon}
+                <span className="truncate">{presenceOptions.find(o => o.value === presenceStatus)?.label}</span>
+              </span>
+            )}
+          />
+        </div>
       </SectionGroup>
 
-      {loggedIn && (
-        <SectionGroup title="隱私設定" icon={Shield}>
-          <SettingRow
-            label="顯示自己的大頭照"
-            desc="關閉後其他使用者會看到 PartyMatch 預設圖示"
-            checked={showAvatar}
-            onChange={savingAvatarVisibility ? undefined : toggleAvatarVisibility}
-          />
-          <SettingRow
-            label="接收行銷郵件"
-            desc="優惠活動與新功能消息"
-            checked={prefs.marketingEmail}
-            onChange={() => toggle('marketingEmail')}
-          />
-          <SettingRow
-            label="分享使用資料"
-            desc="協助改善平台體驗（匿名）"
-            checked={prefs.shareActivity}
-            onChange={() => toggle('shareActivity')}
-          />
-        </SectionGroup>
-      )}
+      <SectionGroup title="隱私設定" icon={Shield}>
+        <SettingRow
+          label="顯示自己的大頭照"
+          desc="關閉後其他使用者會看到 PartyMatch 預設圖示"
+          checked={showAvatar}
+          onChange={savingAvatarVisibility ? undefined : toggleAvatarVisibility}
+        />
+        <SettingRow
+          label="接收行銷郵件"
+          desc="優惠活動與新功能消息"
+          checked={prefs.marketingEmail}
+          onChange={() => toggle('marketingEmail')}
+        />
+        <SettingRow
+          label="分享使用資料"
+          desc="協助改善平台體驗（匿名）"
+          checked={prefs.shareActivity}
+          onChange={() => toggle('shareActivity')}
+        />
+      </SectionGroup>
 
-      {loggedIn && (
-        <SectionGroup title="帳號操作" icon={LogOut}>
-          <div className="py-3 border-b border-line-subtle last:border-0">
-            <button
-              onClick={() => setShowDeleteConfirm(true)}
-              className="flex w-full items-center gap-3 py-1 text-sm font-semibold text-danger transition-all hover:-translate-y-0.5 hover:text-danger/80"
-            >
-              <Trash2 size={16} className="shrink-0" />
-              刪除帳號
-            </button>
-          </div>
-        </SectionGroup>
-      )}
+      <SectionGroup title="帳號操作" icon={LogOut}>
+        <div className="py-3 border-b border-line-subtle last:border-0">
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="flex w-full items-center gap-3 py-1 text-sm font-semibold text-danger transition-all hover:-translate-y-0.5 hover:text-danger/80"
+          >
+            <Trash2 size={16} className="shrink-0" />
+            刪除帳號
+          </button>
+        </div>
+      </SectionGroup>
 
       <AlertDialog open={showDeleteConfirm} onOpenChange={v => { if (!v) resetDeleteFlow() }}>
         <AlertDialogContent>

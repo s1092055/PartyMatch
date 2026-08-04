@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, ChevronDown, Clock, Coins, LogIn, Lock, LogOut, Settings, ShieldUser, User } from "lucide-react";
+import { Bell, ChevronDown, Clock, Coins, Lock, LogOut, Settings, ShieldUser, User } from "lucide-react";
 import { useAuthStore } from "../../common/stores/useAuthStore";
 import { toast } from "../../common/utils/toast";
-import { usePromptLogin } from "../../common/utils/hooks";
 import CreditScoreModal from "../../components/ui/CreditScoreModal";
 import { Button } from "../../components/ui/button";
 import HostReviewsModal from "../manage-groups/components/HostReviewsModal";
@@ -52,34 +51,17 @@ function ComingSoonPlaceholder({ label }) {
   )
 }
 
-function LoginRequiredPlaceholder({ label }) {
-  return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-2xl py-16 text-center">
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-raised">
-        <Lock size={22} className="text-ink-3" />
-      </div>
-      <div className="space-y-1">
-        <p className="text-sm font-bold text-ink">登入後查看「{label}」</p>
-      </div>
-    </div>
-  )
-}
-
-function TabContent({ value, user, onChange, tabs, loggedIn }) {
+function TabContent({ value, user, onChange, tabs }) {
   const tab = tabs.find(t => t.value === value)
-  // 即將推出的分頁不管有沒有登入都一樣看不到內容，先判斷這個，
-  // 避免訪客看到「登入後才能查看」、登入後才發現其實還沒做完的矛盾訊息
   if (tab?.comingSoon) return <ComingSoonPlaceholder label={tab.label} />
-  // 未登入時，除了「其他設定」（純本機偏好，不需帳號），其餘分頁一律提示先登入
-  if (!loggedIn && value !== "settings") return <LoginRequiredPlaceholder label={tab.label} />
   if (value === "profile")       return <PersonalInfoTab user={user} onChange={onChange} />
   if (value === "tokens")        return <TokenTab />
-  if (value === "settings")      return <SettingsTab loggedIn={loggedIn} />
+  if (value === "settings")      return <SettingsTab />
   if (value === "admin")         return <AdminTab />
   return null
 }
 
-function LogoutButton({ className = "", fullWidth = false, loggedIn }) {
+function LogoutButton({ className = "", fullWidth = false }) {
   const navigate = useNavigate();
   const [loggingOut, setLoggingOut] = useState(false);
 
@@ -87,20 +69,6 @@ function LogoutButton({ className = "", fullWidth = false, loggedIn }) {
     setLoggingOut(true);
     await useAuthStore.getState().logout();
     navigate('/login', { replace: true });
-  }
-
-  if (!loggedIn) {
-    return (
-      <div className={`flex ${fullWidth ? '' : 'justify-end'} ${className}`}>
-        <Button
-          onClick={() => navigate('/login')}
-          className={`shrink-0 rounded-2xl ${fullWidth ? 'w-full' : ''}`}
-        >
-          <LogIn size={16} className="shrink-0" />
-          登入
-        </Button>
-      </div>
-    )
   }
 
   return (
@@ -122,15 +90,11 @@ export default function AccountPage() {
   const [openAccordion, setOpenAccordion] = useState(null);
   const [creditScoreOpen, setCreditScoreOpen] = useState(false);
   const [reviewsOpen, setReviewsOpen] = useState(false);
-  const loggedIn = useAuthStore(s => s.loggedIn)
   const isAdmin = useAuthStore(s => s.user?.isAdmin ?? false)
-  const promptLogin = usePromptLogin()
   const [user, setUser] = useState(() => {
     const profile = useAuthStore.getState().getProfile();
     return {
       ...profile,
-      displayName: profile?.displayName ?? "訪客",
-      email: profile?.email ?? "登入後顯示",
       phone: profile?.phone ?? "",
       bio: profile?.bio ?? "",
     };
@@ -154,9 +118,8 @@ export default function AccountPage() {
     <div className="px-2 md:mx-auto md:max-w-2xl md:px-4 lg:max-w-3xl">
       <ProfileHeaderCard
         user={user}
-        loggedIn={loggedIn}
-        onOpenCreditScore={loggedIn ? () => setCreditScoreOpen(true) : promptLogin}
-        onOpenReviews={loggedIn ? () => setReviewsOpen(true) : promptLogin}
+        onOpenCreditScore={() => setCreditScoreOpen(true)}
+        onOpenReviews={() => setReviewsOpen(true)}
       />
 
       <CreditScoreModal isOpen={creditScoreOpen} onClose={() => setCreditScoreOpen(false)} />
@@ -205,11 +168,11 @@ export default function AccountPage() {
             className="min-h-0 flex-1 overflow-y-auto pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             <TabReveal key={activeTab}>
-              <TabContent value={activeTab} user={user} onChange={handleUserChange} tabs={TABS} loggedIn={loggedIn} />
+              <TabContent value={activeTab} user={user} onChange={handleUserChange} tabs={TABS} />
             </TabReveal>
           </div>
 
-          <LogoutButton className="mt-4" loggedIn={loggedIn} />
+          <LogoutButton className="mt-4" />
         </div>
       </div>
 
@@ -250,7 +213,7 @@ export default function AccountPage() {
                     aria-labelledby={`account-accordion-${tab.value}`}
                     className="border-t border-line px-4 py-4"
                   >
-                    <TabContent value={tab.value} user={user} onChange={handleUserChange} tabs={TABS} loggedIn={loggedIn} />
+                    <TabContent value={tab.value} user={user} onChange={handleUserChange} tabs={TABS} />
                   </div>
                 </TabReveal>
               )}
@@ -259,7 +222,7 @@ export default function AccountPage() {
         })}
         </div>
 
-        <LogoutButton fullWidth className="mt-6" loggedIn={loggedIn} />
+        <LogoutButton fullWidth className="mt-6" />
       </div>
     </div>
   );

@@ -20,8 +20,8 @@ export default function LivePreviewPanel({ form }) {
     openSeats: form.planName ? Math.max(form.totalSeats - 1, 0) : null,
     tags: [service?.category].filter(Boolean),
     hostName: activeUser?.displayName ?? "使用者",
-    hostAvatarColor: activeUser?.avatarColor ?? "#94A3B8",
-    hostAvatarInitial: activeUser?.avatarInitial ?? "U",
+    hostAvatarColor: activeUser?.avatarColor ?? null,
+    hostAvatarInitial: activeUser?.avatarInitial ?? "",
     hostRating: null,
     status: "recruiting",
   };

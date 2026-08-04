@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Lock, Mail, User } from 'lucide-react'
-import AuthLayout, { AuthInput, AuthDivider, AuthError, GoogleMark, PasswordToggle, PhoneInput } from '../components/AuthLayout'
+import AuthLayout, { AuthTitle, AuthInput, AuthDivider, AuthError, GoogleMark, PasswordToggle, PhoneInput } from '../components/AuthLayout'
 import VerifyCodeModal, { VerifyTrailingButton } from '../components/VerifyCodeModal'
 import { Button } from '../../../components/ui/button'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
@@ -61,10 +61,7 @@ export default function RegisterPage() {
   return (
     <AuthLayout backTo="/login">
       <div className="mt-10">
-        <h1 className="text-4xl font-extrabold leading-tight text-ink md:text-4xl">註冊 PartyMatch</h1>
-        <p className="mt-5 text-base font-medium leading-relaxed text-ink-3">
-          建立帳號後即可開始探索共享訂閱群組、快速搜尋並管理你的訂閱。
-        </p>
+        <AuthTitle>註冊 PartyMatch</AuthTitle>
       </div>
 
       <form className="mt-8 space-y-4" onSubmit={handleSubmit}>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Bell, LogOut, Settings } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
 import { useAuthStore } from '../../stores/useAuthStore'
+import { Avatar } from '../../../components/ui/avatar'
 import { TokenBadge } from '../../../components/ui/TokenAmount'
 import { CountBadge, PresenceDot } from './navShared'
 import { Button } from '../../../components/ui/button'
@@ -56,17 +57,12 @@ export default function MobileHeader({
               aria-expanded={mobileMenuOpen}
               className="relative ml-1 shrink-0"
             >
-              <span
-                className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-black text-white shadow-md"
-                style={{ background: avatarColor ?? 'linear-gradient(135deg, #cbd5e1, #64748b)' }}
-              >
-                {avatarInitial}
-              </span>
+              <Avatar initial={avatarInitial} color={avatarColor} className="!h-9 !w-9 shadow-md" />
               <PresenceDot status={presenceStatus} className="absolute bottom-0 right-0 h-2.5 w-2.5" />
             </button>
           ) : (
             <a
-              href="/account"
+              href="/login"
               aria-label="訪客，前往登入"
               className="relative ml-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-all hover:bg-raised"
             >
@@ -81,11 +77,8 @@ export default function MobileHeader({
       {mobileMenuOpen && loggedIn && (
         <div className="absolute right-0 top-full mt-2 w-64 overflow-hidden rounded-2xl border border-line bg-surface shadow-2xl">
           <div className="flex flex-col items-center gap-3 px-6 pt-6 pb-4">
-            <span
-              className="relative flex h-14 w-14 items-center justify-center rounded-full text-lg font-black text-white shadow-md"
-              style={{ background: avatarColor ?? 'linear-gradient(135deg, #cbd5e1, #64748b)' }}
-            >
-              {avatarInitial}
+            <span className="relative shadow-md rounded-full">
+              <Avatar initial={avatarInitial} color={avatarColor} className="!h-14 !w-14 !text-lg" />
               <PresenceDot status={presenceStatus} className="absolute bottom-0.5 right-0.5 h-3.5 w-3.5" />
             </span>
             <p className="text-sm font-extrabold text-ink">{userName}</p>

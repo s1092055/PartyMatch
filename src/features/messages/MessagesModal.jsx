@@ -167,7 +167,7 @@ export default function MessagesModal() {
     const optimisticMsg = normalizeMessage({
       id:          tempId,
       senderId:    user.id,
-      sender:      { id: user.id, name: user.name, avatarInitial: user.name?.[0] ?? '?', avatarColor: user.avatarColor ?? '#64748b' },
+      sender:      { id: user.id, name: user.name, avatarInitial: user.avatarInitial ?? '', avatarColor: user.avatarColor ?? null },
       content:     text,
       type:        'text',
       createdAt:   new Date().toISOString(),
@@ -178,8 +178,8 @@ export default function MessagesModal() {
     try {
       const saved = await sendMessage(selectedId, user.id, {
         senderName: user.name,
-        avatarInitial: user.name?.[0] ?? '?',
-        avatarColor: user.avatarColor ?? '#64748b',
+        avatarInitial: user.avatarInitial ?? '',
+        avatarColor: user.avatarColor ?? null,
         text,
         participants: selected?.participants ?? [],
       })

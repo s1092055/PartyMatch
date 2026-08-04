@@ -4,7 +4,6 @@ import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import prisma from '../lib/prisma.js'
 import redis from '../lib/redis.js'
-import { randomAvatarColor } from '../utils/avatarColor.js'
 import { ensureSystemConversation } from '../lib/systemUser.js'
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/jwt.js'
 import { validate } from '../middleware/validate.js'
@@ -38,8 +37,6 @@ router.post('/register', validate(registerSchema), async (req, res, next) => {
         passwordHash,
         name,
         phone,
-        avatarInitial: name[0].toUpperCase(),
-        avatarColor: randomAvatarColor(),
       },
       select: { id: true, email: true, name: true, phone: true, creditScore: true, tokenBalance: true, isAdmin: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, bio: true },
     })

@@ -157,7 +157,7 @@ update: async (id, patch) => { ... }    // PATCH /api/xxx/:id
 | `/groups/:groupId` | 重導至探索頁並開啟群組詳情 Modal |
 | `/login`、`/register`、`/forgot-password` | 登入／註冊／忘記密碼，由 `PublicOnlyRoute` 包裹 |
 | `/disclaimer`、`/terms`、`/privacy` | 法務頁 |
-| `/account` | 帳號中心；訪客也可瀏覽，個人資料相關區塊顯示佔位內容，點擊需登入才能做的操作（如編輯資料、儲值）會跳出登入提示 Toast，不直接導頁 |
+| `/account` | 帳號中心；需登入（`ProtectedRoute`），未登入直接進入會看到登入提示 Modal |
 
 `PublicOnlyRoute`（`src/app/PublicOnlyRoute.jsx`）邏輯簡單：已登入直接 `<Navigate to="/" replace />`，否則渲染子路由。
 

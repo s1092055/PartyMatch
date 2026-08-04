@@ -19,7 +19,7 @@
 | `/manage-groups` | `src/features/manage-groups/ManageGroupsPage.jsx` | 是（`ProtectedRoute`） | 「群組管理」，團主視角：管理群組名單、篩選分頁、群組紀錄 |
 | `/my-groups` | 無頁面元件（`MyGroupsLegacyRedirect`） | 是 | 舊版合併頁的相容路由，依 `?view=host`／其餘導向 `/manage-groups`／`/my-subscriptions` |
 | `/favorites` | `src/features/favorites/FavoritesPage.jsx` | 是 | 已收藏群組列表，只顯示還在招募中且有名額的群組（跟探索頁同一套過濾條件），額滿/已解散/已結束的收藏群組不會顯示 |
-| `/account` | `src/features/account/AccountPage.jsx` | 否（訪客可進入，但除「其他設定」外各分頁皆顯示「登入後查看」提示） | 帳號中心：個人資料、付款方式、PM 幣、帳號設定（含停用帳號、顯示大頭照與目前狀態等隱私/偏好設定），`isAdmin` 使用者多一個管理員分頁；側邊欄／手機版頭像入口未登入時也導向此頁（顯示 PartyMatch logo 頭像＋「訪客」） |
+| `/account` | `src/features/account/AccountPage.jsx` | 是（`ProtectedRoute`） | 帳號中心：個人資料、付款方式、PM 幣、帳號設定（含停用帳號、顯示大頭照與目前狀態等隱私/偏好設定），`isAdmin` 使用者多一個管理員分頁；側邊欄／手機版頭像入口未登入時直接導向 `/login` |
 | `/quick-match` | `src/features/match/QuickMatchPage.jsx` | 否（獨立全螢幕步驟頁，脫離 `AppLayout`；申請加入群組時才需登入） | 多步驟配對流程：輸入服務／預算條件 → 篩選方案 → 查看推薦結果 |
 | `/create-group` | `src/features/create/CreateGroupPage.jsx` | 是（頂層 `ProtectedRoute`，獨立全螢幕步驟頁，脫離 `AppLayout`） | 4 步驟建立群組表單：選服務 → 選方案（含收費週期）→ 群組設定 → 確認送出（桌機有即時預覽） |
 

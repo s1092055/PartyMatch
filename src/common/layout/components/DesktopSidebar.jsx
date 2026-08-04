@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Bell, Lock, MessageSquare } from 'lucide-react'
+import { Bell, Lock, LogIn, MessageSquare, Moon, Sun } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
 import { NAV_SECTIONS } from '../nav'
+import { Avatar } from '../../../components/ui/avatar'
 import { TokenBadge } from '../../../components/ui/TokenAmount'
 import { CountBadge, LockBadge, LockedHint, PresenceDot } from './navShared'
 import { LOCKED_MESSAGE, getNavItemKey, isProtectedNavItem } from './navConstants'
+import { useTheme } from '../../../components/theme-provider'
 
 export default function DesktopSidebar({
   loggedIn,
@@ -26,6 +28,7 @@ export default function DesktopSidebar({
   preventLockedAction,
 }) {
   const [lockedTip, setLockedTip] = useState(null)
+  const { theme, setTheme } = useTheme()
 
   function isGuestLocked(item) {
     return !loggedIn && isProtectedNavItem(item)
@@ -184,6 +187,19 @@ export default function DesktopSidebar({
         </nav>
 
         <div className="px-2 pb-4">
+          <button
+            type="button"
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            aria-label={theme === 'dark' ? '切換淺色模式' : '切換深色模式'}
+            className="mb-1 flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
+          >
+            <span className="grid h-9 w-9 shrink-0 place-items-center">
+              {theme === 'dark' ? <Sun size={22} strokeWidth={2.1} /> : <Moon size={22} strokeWidth={2.1} />}
+            </span>
+            <span className="whitespace-nowrap font-bold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
+              {theme === 'dark' ? '淺色模式' : '深色模式'}
+            </span>
+          </button>
           {loggedIn ? (
             <a
               href="/account"
@@ -191,11 +207,8 @@ export default function DesktopSidebar({
               aria-label="我的帳號"
               className="flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left transition-all hover:bg-raised"
             >
-              <span
-                className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-black text-white shadow-md"
-                style={{ background: avatarColor ?? 'linear-gradient(135deg, #cbd5e1, #64748b)' }}
-              >
-                {avatarInitial}
+              <span className="relative shrink-0 shadow-md rounded-full">
+                <Avatar initial={avatarInitial} color={avatarColor} size="md" />
                 <PresenceDot status={presenceStatus} className="absolute bottom-0 right-0 h-3 w-3" />
               </span>
               <span className="min-w-0 flex-1 opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
@@ -204,16 +217,16 @@ export default function DesktopSidebar({
             </a>
           ) : (
             <a
-              href="/account"
+              href="/login"
               onClick={closeAll}
-              aria-label="訪客，前往登入"
-              className="flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left transition-all hover:bg-raised"
+              aria-label="登入"
+              className="flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
             >
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-line bg-surface shadow-md">
-                <img src={logoUrl} alt="" className="h-6 w-6" />
+              <span className="grid h-10 w-10 shrink-0 place-items-center">
+                <LogIn size={22} strokeWidth={2.1} />
               </span>
-              <span className="min-w-0 flex-1 opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
-                <span className="block truncate text-sm font-extrabold text-ink">訪客</span>
+              <span className="min-w-0 flex-1 whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
+                <span className="block truncate text-sm font-extrabold">登入</span>
               </span>
             </a>
           )}

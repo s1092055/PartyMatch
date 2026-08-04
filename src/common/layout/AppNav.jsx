@@ -34,7 +34,7 @@ export default function AppNav() {
   const loggedIn = useAuthStore(s => s.loggedIn)
   const currentUser = useAuthStore(s => s.user)
   const userName = currentUser?.name ?? currentUser?.displayName ?? '使用者'
-  const avatarInitial = userName[0] ?? 'U'
+  const avatarInitial = currentUser?.avatarInitial ?? null
   const avatarColor = currentUser?.avatarColor ?? null
   const presenceStatus = currentUser?.presenceStatus ?? 'online'
 
