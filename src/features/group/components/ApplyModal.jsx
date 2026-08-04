@@ -1,4 +1,4 @@
-import { CheckCircle2, FileText } from 'lucide-react'
+import { FileText } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogCloseButton } from '../../../components/ui/dialog'
 import { Button } from '../../../components/ui/button'
 import { Textarea } from '../../../components/ui/input'
@@ -31,12 +31,12 @@ export default function ApplyModal({
         <DialogBody>
       {applySubmitted ? (
         <div className="animate-step-slide-up flex flex-col items-center gap-4 px-6 py-6 text-center">
-          <div className="w-16 h-16 rounded-full bg-success-subtle flex items-center justify-center">
-            <CheckCircle2 size={30} className="text-success" />
-          </div>
+          <ServiceLogo serviceId={group.serviceId} size={56} className="border-line-strong" />
           <div className="space-y-1">
-            <p className="text-base font-bold text-ink">申請已送出！</p>
-            <p className="text-sm text-ink-3">等待團主審核後即可加入，請留意通知。</p>
+            <p className="text-sm font-bold text-ink">{group.serviceName}</p>
+            <p className="text-sm text-ink-3">{group.planName}</p>
+            <p className="mt-2 text-base font-bold text-ink">申請已送出！</p>
+            <p className="text-sm text-ink-3">等待團主審核，請留意通知。</p>
           </div>
           <Button variant="default" size="md" className="mt-2 min-w-[7rem]" onClick={onClose}>確認</Button>
         </div>

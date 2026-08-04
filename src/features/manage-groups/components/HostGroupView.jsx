@@ -313,6 +313,23 @@ export default function HostGroupView({ group, members, applications, onReportSe
         <GroupModalSideBarItem active={activePanel === 'members'} onClick={() => goToPanel('members')}>
           <Users size={17} /> 群組名單
         </GroupModalSideBarItem>
+        {isRecruiting && (
+          <GroupModalSideBarItem
+            active={activePanel === 'applications'}
+            onClick={() => goToPanel('applications')}
+            className="relative"
+          >
+            <span className="relative">
+              <ClipboardList size={17} />
+              {pendingApps.length > 0 && (
+                <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-warning-text px-0.5 text-2xs font-bold text-white">
+                  {pendingApps.length}
+                </span>
+              )}
+            </span>
+            申請管理
+          </GroupModalSideBarItem>
+        )}
         {!isCancelled && (
           <GroupModalSideBarItem active={activePanel === 'billing'} onClick={() => goToPanel('billing')}>
             <Banknote size={17} />
@@ -333,26 +350,9 @@ export default function HostGroupView({ group, members, applications, onReportSe
           </GroupModalSideBarItem>
         )}
         {isRecruiting ? (
-          <>
-            <GroupModalSideBarItem
-              active={activePanel === 'applications'}
-              onClick={() => goToPanel('applications')}
-              className="relative"
-            >
-              <span className="relative">
-                <ClipboardList size={17} />
-                {pendingApps.length > 0 && (
-                  <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-warning-text px-0.5 text-2xs font-bold text-white">
-                    {pendingApps.length}
-                  </span>
-                )}
-              </span>
-              申請管理
-            </GroupModalSideBarItem>
-            <GroupModalSideBarItem pinned tone="danger" onClick={() => setShowCancelConfirm(true)}>
-              <Trash2 size={17} /> 解散群組
-            </GroupModalSideBarItem>
-          </>
+          <GroupModalSideBarItem pinned tone="danger" onClick={() => setShowCancelConfirm(true)}>
+            <Trash2 size={17} /> 解散群組
+          </GroupModalSideBarItem>
         ) : !isCancelled && (
           <>
             {showRenewal && (
@@ -483,7 +483,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
     {removingMember && (
       <ConfirmActionDialog
         title="移除成員"
-        message={`確定要將「${removingMember.userName}」移出群組嗎？對方會立即失去名額與聊天室存取權限，且會收到通知；若要再加入需要重新提出申請。`}
+        message={`確定要將「${removingMember.userName}」移出群組嗎？`}
         confirmLabel="移除"
         danger
         onConfirm={() => { onRemoveMember?.(removingMember); setRemovingMember(null) }}

@@ -18,7 +18,7 @@
 
 ## Hooks
 
-- 自訂 hook 一律以 `use` 開頭：`useScrollEdge`、`useMediaQuery`、`useHideOnScroll`、`useMessageScroll`、`useParticipantNames` 等，散落於 `common/utils/hooks.js`（跨功能共用）與各 feature 自己的 `hooks/` 資料夾（功能專屬）
+- 自訂 hook 一律以 `use` 開頭：`useScrollEdge`、`useCountdown`、`useHideOnScroll`、`useMessageScroll`、`useParticipantNames` 等，散落於 `common/utils/hooks.js`（跨功能共用）與各 feature 自己的 `hooks/` 資料夾（功能專屬）
 
 ## Stores（Zustand）
 

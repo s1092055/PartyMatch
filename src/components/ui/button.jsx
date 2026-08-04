@@ -15,11 +15,10 @@ const buttonVariants = cva(
         ghost:       "text-ink-2 hover:bg-raised",
         destructive: "bg-danger text-white hover:bg-danger-text",
         success:     "bg-success text-white hover:bg-success-text",
-        // 用 neutral（Tailwind 內建、沒被本專案 @theme 改寫的固定色階）而不是 bg-ink：
-        // --color-ink 是跟著深色模式反轉的「文字色」token（深色模式下會變成接近白色），
-        // 拿來當背景色在深色模式下會變成「白底白字」看不見，這顆按鈕要的是不管什麼模式
-        // 都維持深色實心的效果，需要一個不會跟著主題反轉的固定色
-        ink:         "bg-neutral-900 text-white hover:bg-neutral-800",
+        // 用 --color-brand（深色模式下設計成淺藍色，見 index.css 的 :root.dark）而不是
+        // bg-neutral-900：這顆按鈕要跟著主題走──淺色模式維持深色實心，深色模式換成淺藍色，
+        // 不能用不會反轉的固定色階
+        ink:         "bg-brand text-white hover:bg-brand-hover",
       },
       size: {
         sm:   "text-xs px-4 h-8 hover:-translate-y-0.5",
