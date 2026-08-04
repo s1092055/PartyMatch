@@ -56,7 +56,12 @@ function DrawerOverlay({ className, ...props }) {
     <DrawerPrimitive.Backdrop
       data-slot="drawer-overlay"
       className={cn(
-        "fixed inset-0 z-[56] min-h-dvh bg-black/80 opacity-[max(var(--drawer-overlay-min-opacity,0),calc(1-var(--drawer-swipe-progress)))] transition-opacity duration-450 ease-[cubic-bezier(0.32,0.72,0,1)] select-none data-ending-style:pointer-events-none data-ending-style:opacity-0 data-ending-style:duration-[calc(var(--drawer-swipe-strength)*400ms)] data-snap-points:[--drawer-overlay-min-opacity:0.5] data-starting-style:opacity-0 data-swiping:duration-0 supports-[-webkit-touch-callout:none]:absolute",
+        // 不用 supports-[-webkit-touch-callout:none]:absolute 這個 WebKit workaround：
+        // iOS 上 Safari／Chrome 都吃 WebKit 引擎，命中後遮罩會從 fixed 變 absolute，相對「文件頂端」
+        // 而非「目前可視範圍頂端」定位，導致頁面捲動後遮罩沒蓋住畫面、或開啟前頁面已捲動時完全看不到遮罩
+        // （桌機 Chrome DevTools 手機模擬用 Blink 引擎不會命中，才會測不出來）。目前只有通知中心用到
+        // 這個共用 Drawer，內容沒有輸入框、不需要處理鍵盤彈出跟 fixed 定位打架的情境，直接維持 fixed 即可
+        "fixed inset-0 z-[56] min-h-dvh bg-black/80 opacity-[max(var(--drawer-overlay-min-opacity,0),calc(1-var(--drawer-swipe-progress)))] transition-opacity duration-450 ease-[cubic-bezier(0.32,0.72,0,1)] select-none data-ending-style:pointer-events-none data-ending-style:opacity-0 data-ending-style:duration-[calc(var(--drawer-swipe-strength)*400ms)] data-snap-points:[--drawer-overlay-min-opacity:0.5] data-starting-style:opacity-0 data-swiping:duration-0",
         className
       )}
       {...props}
