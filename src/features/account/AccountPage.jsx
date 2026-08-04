@@ -95,7 +95,19 @@ function LogoutButton({ className = "", fullWidth = false, loggedIn }) {
     navigate('/login', { replace: true });
   }
 
-  if (!loggedIn) return null
+  if (!loggedIn) {
+    return (
+      <div className={`flex ${fullWidth ? '' : 'justify-end'} ${className}`}>
+        <Button
+          onClick={() => navigate('/login')}
+          className={`shrink-0 rounded-2xl ${fullWidth ? 'w-full' : ''}`}
+        >
+          <LogIn size={16} className="shrink-0" />
+          登入
+        </Button>
+      </div>
+    )
+  }
 
   return (
     <div className={`flex ${fullWidth ? '' : 'justify-end'} ${className}`}>
