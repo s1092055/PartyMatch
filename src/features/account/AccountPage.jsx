@@ -64,7 +64,7 @@ function LoginRequiredPlaceholder({ label, promptLogin }) {
       </div>
       <Button onClick={promptLogin} className="mt-2">
         <LogIn size={16} className="shrink-0" />
-        前往登入
+        登入
       </Button>
     </div>
   )
@@ -92,19 +92,7 @@ function LogoutButton({ className = "", fullWidth = false, loggedIn }) {
     navigate('/login', { replace: true });
   }
 
-  if (!loggedIn) {
-    return (
-      <div className={`flex ${fullWidth ? '' : 'justify-end'} ${className}`}>
-        <Button
-          onClick={() => navigate('/login')}
-          className={`shrink-0 rounded-2xl ${fullWidth ? 'w-full' : ''}`}
-        >
-          <LogIn size={16} className="shrink-0" />
-          登入
-        </Button>
-      </div>
-    )
-  }
+  if (!loggedIn) return null
 
   return (
     <div className={`flex ${fullWidth ? '' : 'justify-end'} ${className}`}>
