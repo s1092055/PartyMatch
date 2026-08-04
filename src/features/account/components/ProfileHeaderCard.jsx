@@ -1,30 +1,41 @@
 import { CheckCircle2, ShieldCheck, Star } from 'lucide-react'
+import logoUrl from '../../../assets/Logo.svg'
 import { Avatar } from '../../../components/ui/avatar'
 import { Card } from '../../../components/ui/card'
 import { Badge } from '../../../components/ui/badge'
+import { LockBadge } from '../../../common/layout/components/navShared'
 
 // icon 大在上、文字小在下的方形按鈕；手機版左右平均分佈（flex-1），電腦版固定寬度靠右
-function HeroStatTile({ icon: Icon, iconClassName, label, onClick }) {
+function HeroStatTile({ icon: Icon, iconClassName, label, onClick, locked }) {
   return (
     <button
       onClick={onClick}
       className="flex flex-1 flex-col items-center justify-center gap-1.5 rounded-lg border border-line-subtle py-3 transition-all hover:-translate-y-0.5 hover:bg-raised md:w-24 md:flex-none"
     >
-      <Icon size={22} strokeWidth={1.5} className={iconClassName ?? 'text-ink-3'} />
+      <span className="relative">
+        <Icon size={22} strokeWidth={1.5} className={iconClassName ?? 'text-ink-3'} />
+        {locked && <LockBadge className="-right-1.5 -top-1.5 text-ink-4" />}
+      </span>
       <span className="text-xs font-bold text-ink-3">{label}</span>
     </button>
   )
 }
 
-export default function ProfileHeaderCard({ user, onOpenCreditScore, onOpenReviews }) {
+export default function ProfileHeaderCard({ user, loggedIn = true, onOpenCreditScore, onOpenReviews }) {
   return (
     <Card className="mb-5 flex flex-col items-center gap-4 p-5 md:flex-row">
       <div className="relative shrink-0">
-        <Avatar
-          initial={user.avatarInitial ?? (user.displayName ?? '使')[0]}
-          color={user.avatarColor}
-          size="xl"
-        />
+        {loggedIn ? (
+          <Avatar
+            initial={user.avatarInitial ?? (user.displayName ?? '使')[0]}
+            color={user.avatarColor}
+            size="xl"
+          />
+        ) : (
+          <div className="grid h-20 w-20 place-items-center rounded-full border border-line bg-surface shadow-md">
+            <img src={logoUrl} alt="" className="h-9 w-9" />
+          </div>
+        )}
         {user.isVerified && (
           <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-surface shadow">
             <CheckCircle2 size={18} className="text-brand" />
@@ -46,8 +57,8 @@ export default function ProfileHeaderCard({ user, onOpenCreditScore, onOpenRevie
       {/* 信用分數／我的評價：手機版跟電腦版用同一套「icon 大在上、文字小在下」設計，
           手機版在 Hero 底部左右平均分佈，電腦版固定寬度放在 Hero 右側 */}
       <div className="flex w-full gap-2 md:w-auto md:shrink-0">
-        <HeroStatTile icon={ShieldCheck} iconClassName="text-brand" label="信用分數" onClick={onOpenCreditScore} />
-        <HeroStatTile icon={Star} iconClassName="text-brand" label="我的評價" onClick={onOpenReviews} />
+        <HeroStatTile icon={ShieldCheck} iconClassName="text-brand" label="信用分數" onClick={onOpenCreditScore} locked={!loggedIn} />
+        <HeroStatTile icon={Star} iconClassName="text-brand" label="我的評價" onClick={onOpenReviews} locked={!loggedIn} />
       </div>
     </Card>
   )

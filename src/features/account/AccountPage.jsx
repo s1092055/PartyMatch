@@ -145,6 +145,7 @@ export default function AccountPage() {
     <div className="px-2 md:mx-auto md:max-w-2xl md:px-4 lg:max-w-3xl">
       <ProfileHeaderCard
         user={user}
+        loggedIn={loggedIn}
         onOpenCreditScore={loggedIn ? () => setCreditScoreOpen(true) : promptLogin}
         onOpenReviews={loggedIn ? () => setReviewsOpen(true) : promptLogin}
       />
