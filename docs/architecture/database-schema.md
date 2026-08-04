@@ -6,7 +6,7 @@
 
 | Table | 說明 |
 |-------|------|
-| `users` | 使用者帳號、密碼 hash、手機號碼（`phone`，註冊必填，E.164 格式如 `+886912345678`，前端拆成國碼下拉＋本地號碼兩欄輸入，方便之後擴充其他國家）、`bio`（個人簡介，選填，上限 500 字，群組詳情的團主介紹與成員名單都會顯示，讓同群組的人彼此看得到）、Google ID、`creditScore`（信用分數，預設／滿分 100，目前僅為靜態欄位，尚未有動態調整或上限保護機制，新增寫入時需自行確保不超過 100）、`tokenBalance`（平台PM幣餘額，1:1 對應 TWD）、`deactivatedAt`（非 null 代表帳號已軟刪除停用，登入/refresh 一律拒絕，保留資料供日後申請恢復） |
+| `users` | 使用者帳號、密碼 hash、手機號碼（`phone`，註冊必填，E.164 格式如 `+886912345678`，前端拆成國碼下拉＋本地號碼兩欄輸入，方便之後擴充其他國家）、`bio`（個人簡介，選填，上限 500 字，群組詳情的團主介紹與成員名單都會顯示，讓同群組的人彼此看得到）、Google ID、`creditScore`（信用分數，預設／滿分 100，目前僅為靜態欄位，尚未有動態調整或上限保護機制，新增寫入時需自行確保不超過 100）、`tokenBalance`（平台PM幣餘額，1:1 對應 TWD）、`deactivatedAt`（非 null 代表帳號已軟刪除停用，登入/refresh 一律拒絕，保留資料供日後申請恢復）、`showAvatar`（`Boolean`，預設 `true`；隱私設定「顯示自己的大頭照」，帳號中心「其他設定」切換；為 `false` 時，後端會在回傳給「別人」看的資料裡把該使用者的 `avatarInitial`/`avatarColor` 遮罩成 `null`，見下方〈大頭照隱私遮罩〉）、`presenceStatus`（`PresenceStatus` 列舉 `online`／`busy`／`offline`，預設 `online`；使用者在帳號中心手動選擇的線上狀態，非自動偵測，不受 `showAvatar` 影響、一律照實回傳） |
 | `payment_methods` | 使用者付款方式（`brand`、卡片末四碼、有效期限、是否為預設） |
 | `services` | 28 種訂閱服務清單與方案（JSON 欄位） |
 | `groups` | 群組主資料（狀態、名額、方案、`billingCycle`、`escrowTokens`（代管中PM幣總額）、`serviceInfoDeadline`（`pending_confirmation` 狀態的填寫帳號資訊截止時間，鎖定時間 + 24h，僅供前端顯示倒數）、`confirmDeadline`（`confirming` 狀態的確認截止時間，啟用時間 + 48h）、`disputeDeadline`（`disputed` 狀態的裁定截止時間，申訴提出時間 + 48 小時，跟確認期 `confirmDeadline` 同一套節奏）、`sharedCredentials`（無官方多人邀請機制的服務，團主鎖定群組時提供的帳號密碼，讓成員填寫服務帳號畫面能直接顯示，不用回頭翻聊天室訊息，僅存在前端 `sharingMethod: shared_credentials` 分類會用到，後端不知道這個分類本身，單純是有傳就存）） |
@@ -19,6 +19,12 @@
 | `conversations` | 對話（群組聊天室 / DM / 系統通知）；`type` 為 `group`、`dm` 或 `system`；`participants`、`unreadCounts`、`lastReadAt`、`lastMessage` 為 JSON 欄位，`initiatorId` 記錄 DM 發起人（僅供除錯/分析用，延遲曝光機制實際只依 `lastMessage` 是否為 null 判斷，不分是不是發起人自己，見「專案亮點」）；`system` 類型的聊天室每位使用者僅有一間（`participants` 只有自己），註冊時自動建立，唯讀（成員無法回覆），由平台系統帳號發送公告或客服訊息 |
 | `messages` | 訊息（屬於某個 conversation）；一般訊息 `type: 'text'`，系統訊息另有 `actionType`/`payload`（JSON）欄位供前端渲染操作型訊息 |
 | `reviews` | 團主評價（`groupId`、`hostId`、`authorId`、`rating` 1-5、`comment`）；`(groupId, authorId)` 唯一索引，成員確認服務後可留言，同一群組同一人重複送出視為更新；評價依 `hostId` 彙總，是跨群組的團主整體評價，非單一群組評分 |
+
+---
+
+## 大頭照隱私遮罩
+
+`server/src/lib/avatarVisibility.js` 匯出 `maskAvatar(user)`：使用者關閉「顯示自己的大頭照」（`showAvatar: false`）時，把要回傳給「別人」看的使用者資料裡的 `avatarInitial`/`avatarColor` 蓋成 `null`（前端 `Avatar` 元件遇到 `initial` 為空會 fallback 成 PartyMatch logo），並拿掉 `showAvatar` 欄位本身，不讓其他使用者知道對方的開關狀態。所有會把使用者資料回傳給「別人」看的 route 都套用這層遮罩：群組詳情/列表的 `host`／成員 `user`（`groups/crud.js`、`groups/lifecycle.js`）、`members.js`、`applications.js`、對話參與者與訊息寄件者（`conversations.js`）、評價作者（`reviews.js`）、群組交易紀錄的使用者（`groups/crud.js` 的 `GET /:id/transactions`）、`GET /users/:id`。**自己看自己**的端點（`GET /auth/me`、`PATCH /users/me`）不套用遮罩，一律回傳真實值。`presenceStatus`（線上狀態點）不受這層遮罩影響，加在跟 `avatarInitial`/`avatarColor` 相同的 select 清單裡，但一律照實回傳，不會被 `maskAvatar` 蓋掉。
 
 ---
 

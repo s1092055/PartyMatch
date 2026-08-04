@@ -16,7 +16,7 @@
 
 | Method | Path | 認證 | 說明 |
 |--------|------|------|------|
-| GET | `/users/:id` | 公開 | 使用者公開資料（姓名、頭像、信用分數、`bio`、`createdAt`） |
+| GET | `/users/:id` | 公開 | 使用者公開資料（姓名、頭像、`presenceStatus`、信用分數、`bio`、`createdAt`）；`avatarInitial`/`avatarColor` 在對方關閉「顯示大頭照」時會是 `null` |
 | PATCH | `/users/me` | 需登入 | 更新個人資料 |
 | POST | `/users/me/deactivate` | 需登入 | 軟刪除帳號（需再次輸入密碼） |
 
@@ -137,5 +137,7 @@
 | POST | `/system-messages/direct` | 需管理員 | 對單一使用者的系統聊天室發送訊息 |
 
 ---
+
+凡是回傳「其他使用者」資料的端點（群組 `host`／成員、申請人、對話參與者與訊息寄件者、評價作者、群組交易紀錄），`avatarInitial`／`avatarColor` 都可能因對方關閉「顯示大頭照」而是 `null`（前端需 fallback 成 logo）；`presenceStatus` 不受此規則影響，一律照實回傳。詳見 [資料庫 Schema 文件](./database-schema.md#大頭照隱私遮罩)。
 
 各端點的權限收斂邏輯（如何限定查詢範圍到登入者本人）見 [後端架構文件](./backend-architecture.md#權限控管慣例)；認證 token 機制見 [認證機制](./authentication.md)。

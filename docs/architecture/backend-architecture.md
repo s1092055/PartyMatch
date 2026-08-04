@@ -109,6 +109,7 @@ accessToken + refreshToken 雙 token 設計，refreshToken 存於 Redis（key �
 - **查詢前驗證關聯性**：`members.js` 的 `GET /?groupId=` 先確認請求人是該群組成員或團主才放行，非相關人員回 403
 - **不信任前端傳入的敏感欄位**：`notifications.js` 的 `POST /` 不採信前端傳入的 `isPublic`（一律視為 `false`），且發通知給他人時需驗證請求人與目標使用者皆與 `meta.groupId` 指定的群組有關聯（成員／團主／曾送出申請）
 - **管理員限定操作**：`requireAdmin` 用於 `groups/lifecycle.js` 的 `/adjudicate`（申訴裁定）與 `systemMessages.js` 全部端點（廣播公告、發送私訊）
+- **回傳給他人前先遮罩隱私欄位**：`server/src/lib/avatarVisibility.js` 的 `maskAvatar(user)`，在使用者關閉「顯示大頭照」（`showAvatar: false`）時，把要回傳給「別人」看的 `avatarInitial`/`avatarColor` 蓋成 `null`；`groups/crud.js`、`groups/lifecycle.js`、`applications.js`、`members.js`、`conversations.js`、`reviews.js`、`users.js` 這些會把使用者資料回傳給別人看的 route 皆套用，僅使用者查看/編輯自己資料的端點（`GET /auth/me`、`PATCH /users/me`）不套用，詳見 [資料庫 Schema 文件](./database-schema.md#大頭照隱私遮罩)
 
 沒有開放 `POST /subscriptions`：訂閱一律透過 `applications.js` 的接受流程以 transaction 建立，避免使用者繞過審核直接建立。
 

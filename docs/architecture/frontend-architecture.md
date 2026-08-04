@@ -157,6 +157,7 @@ update: async (id, patch) => { ... }    // PATCH /api/xxx/:id
 | `/groups/:groupId` | 重導至探索頁並開啟群組詳情 Modal |
 | `/login`、`/register`、`/forgot-password` | 登入／註冊／忘記密碼，由 `PublicOnlyRoute` 包裹 |
 | `/disclaimer`、`/terms`、`/privacy` | 法務頁 |
+| `/account` | 帳號中心；訪客也可瀏覽，個人資料相關區塊顯示佔位內容，點擊需登入才能做的操作（如編輯資料、儲值）會跳出登入提示 Toast，不直接導頁 |
 
 `PublicOnlyRoute`（`src/app/PublicOnlyRoute.jsx`）邏輯簡單：已登入直接 `<Navigate to="/" replace />`，否則渲染子路由。
 
@@ -168,7 +169,6 @@ update: async (id, patch) => { ... }    // PATCH /api/xxx/:id
 | `/manage-groups` | 群組管理（團主視角） |
 | `/my-groups` | 舊版合併頁相容路由，依 `?view=host`／其餘 redirect 到 `/manage-groups`／`/my-subscriptions` |
 | `/favorites` | 我的收藏 |
-| `/account` | 帳號中心 |
 
 皆巢狀於 `AppLayout` 內，並由 `ProtectedRoute` 包裹。`ProtectedRoute`（`src/app/ProtectedRoute.jsx`）未登入時不直接導頁，而是疊一層「需要登入才能繼續」的確認 Modal，使用者可選擇取消（留在原頁但視為未通過）或前往 `/login`；登入後一律導向首頁（不記住原本想去的頁面）。
 

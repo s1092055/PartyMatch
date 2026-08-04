@@ -91,6 +91,12 @@ flowchart TD
 - 每個使用者註冊時都會自動建立一間 `type: 'system'` 的對話，參與者只有自己
 - 這個對話是唯讀的，使用者無法回覆，由平台系統帳號發送公告或客服訊息；訊息可能帶 `actionType`/`payload`，讓前端渲染成可以互動的操作型訊息
 
+## 使用者狀態點（Presence）
+- 對話列表頭像（`ConversationAvatar`）、聊天視窗訊息氣泡（`MessageBubble`，含私訊對象頭像與群組聊天室每則訊息的發送者頭像）、群組成員面板（`ChatMembersPanel`）都會在頭像右下角疊一個 `PresenceDot`，顯示對方目前狀態
+- 狀態是使用者在帳號頁 → 其他設定 → 一般偏好手動選擇的三選一（線上中/忙碌中/已離線），不是依活動自動偵測，欄位是帳號的 `presenceStatus`（後端真實欄位，非本機偏好），變更方式與大頭照顯示設定一致，見 [使用者流程總覽](./user-flows.md) 或直接看 `src/features/account/components/tabs/SettingsTab.jsx`
+- `PresenceDot` 元件本身定義在 `src/common/layout/components/navShared.jsx`（跟側邊欄/手機頭像共用），顏色對應在 `src/common/layout/components/navConstants.js` 的 `PRESENCE_LABELS`：線上中＝綠、忙碌中＝amber、已離線＝紅（已離線用紅色是刻意的設計選擇，不是誤用danger色）
+- 頭像本身若對方關閉「顯示自己的大頭照」（Account → 其他設定 → 隱私設定），會改顯示 PartyMatch logo 取代真實大頭貼；這條規則跟狀態點是分開兩個獨立設定，頭像換成 logo 不影響狀態點照常顯示
+
 ## 驗證重點
 - 所有跟訊息有關的 route 都會先解析 `participants`（要相容陣列或字串兩種儲存格式），確認發送者確實在裡面，不是參與者一律拒絕；這段解析邏輯統一抽到 `server/src/lib/conversationMessages.js` 的 `parseParticipants()`，避免每支 route 各自複製一份
 - 建立 DM 時會先把兩個使用者的 id 排序再查詢，確保同一對使用者不會重複建出好幾個 DM 對話

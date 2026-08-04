@@ -71,7 +71,7 @@ PartyMatch 把媒合、審核、代管撥款、服務帳號確認做成平台內
 - **訊息**：群組聊天室、私人 DM、系統通知聊天室，採 5 秒 polling（`src/features/messages/`）
 - **通知**：站內通知，含個人通知與系統公告（`server/src/routes/notifications.js`）
 - **收藏**：收藏／取消收藏群組（`server/src/routes/favorites.js`）
-- **帳號設定**：個人資料、付款方式管理、PM 幣餘額與交易紀錄、帳號停用（軟刪除）（`src/features/account/`）
+- **帳號設定**：個人資料、付款方式管理、PM 幣餘額與交易紀錄、帳號停用（軟刪除）；帳號中心免登入即可進入，未登入時各分頁顯示登入提示；隱私設定可關閉「顯示自己的大頭照」（後端遮罩他人看到的頭像）、可手動設定「目前狀態」（線上中／忙碌中／已離線），兩者皆會顯示在群組成員、聊天室、申請、評價等全站頭像出現處（`src/features/account/`）
 - **團主評價**：服務確認後成員可評分並留言，可查看團主歷史評價（`server/src/routes/reviews.js`）
 - **圖片上傳**：付款憑證、問題回報附件上傳，經後端代理至 Cloudflare R2（`server/src/routes/upload.js`）
 - **認證**：Email/密碼註冊登入、JWT（accessToken + refreshToken）（`server/src/routes/auth.js`）；忘記密碼、Google 登入為前端 `disabled` 佔位，未串接後端

@@ -18,6 +18,7 @@ PartyMatch 的斷點實質上只有兩段（`src/index.css` `@theme`：`sm`／`m
 - 桌機時，通知按鈕與 PM幣餘額是獨立於 floating sidebar 之外、fixed 在畫面右上角的區塊（PM幣寬度貼齊通知按鈕，僅登入時顯示），不隨 sidebar 收合/展開狀態變化
 - 桌機時，訊息按鈕同樣獨立 fixed 在畫面右下角，對齊 sidebar 頭像高度
 - 桌機時，sidebar 展開時底部使用者頭像列右側會多出「信用分數」按鈕（hover/focus-within 才淡入顯示，收合時隱藏）
+- 未登入時，桌機 sidebar 與手機版 header 的頭像都改顯示 PartyMatch logo（不是姓名縮寫色塊），文字顯示「登入」；點擊仍會導向帳號中心 `/account`（訪客也能瀏覽，見 [`explore-account-test-cases.md`](./explore-account-test-cases.md) TC-433），不是直接跳登入頁
 - 手機與 iPad 的 Dock 往下捲動時應滑出隱藏，往上捲或接近頁面頂端時重新顯示（`useHideOnScroll`）
 - `ScrollToTop` 按鈕位置應隨 Dock 顯示狀態連動（`lg:` 以下才需要避開 Dock），不應與 Dock 重疊
 

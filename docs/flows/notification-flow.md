@@ -114,7 +114,7 @@ sequenceDiagram
 | 「問題處理結果」／「「{groupLabel}」的問題處理結果為退款給成員，該成員本期費用已退還並移出群組。」 | `dispute_resolved` | 管理員裁定 `winner: 'member'` | 團主（僅寫DB） | 群組管理該群組 |
 | 「問題處理結果」／「你對「{groupLabel}」回報的問題經確認後，本期費用已撥款給團主。」 | `dispute_resolved` | 管理員裁定 `winner: 'host'` | 回報成員（僅寫DB） | 探索頁 |
 | 「申訴裁定結果」／「你對「{groupLabel}」的申訴未受理，本期費用已撥款給團主。」 | `dispute_resolved` | 管理員裁定申訴 `winner: 'host'` | 申訴成員（僅寫DB） | 我的訂閱該群組（此時仍在群組內） |
-| 無固定文案 | `system` | 保留給公開系統公告（`isPublic: true`），但 `POST /notifications` 明確禁止一般使用者建立 `isPublic:true`，目前**沒有任何後端流程會真的建立**這種通知——公告目前只走「系統聊天室」訊息廣播（見 [訊息流程](messages-flow.md)），不是走通知中心 | — | 探索頁 |
+| 無固定文案 | `system` | 保留給公開系統公告（`isPublic: true`），但 `POST /notifications` 明確禁止一般使用者建立 `isPublic:true`，目前**沒有任何後端流程會真的建立**這種通知——公告目前只走「系統聊天室」訊息廣播（見 [訊息流程](messages-flow.md)）,不是走通知中心 | — | 首頁（`/`）。這個類型目前唯一的實例是前端寫死的訪客「歡迎來到 PartyMatch」通知（`useNotificationStore.js` 的 `system_guest_welcome`，非登入使用者才看得到），點擊時用 `window.location.replace('/')` 整頁刷新導回首頁，不是 `navigate('/')` 的 client-side 換頁，讓訪客回到最乾淨的初始畫面 |
 
 ### 額滿保護
 `application_rejected`／`member_removed`／`application_approved`（尚無訂閱分支）這三種通知點擊後會開啟探索頁的群組詳情 Modal，讓使用者「重新申請」或「瀏覽」該群組。但通知建立之後、使用者實際點擊之前，這個群組可能已經被別人申請填滿（`recruiting` → `full` 或更後面的狀態）。`FloatingMessages.jsx` 的 `openGroupOrRedirect(groupId)` 會在開啟 Modal 前重新拉一次群組資料並檢查 `status === 'recruiting'`，不符合就跳一個 `info` Toast 說明並留在探索頁，不會再打開一個「按下申請也沒用」的過期群組 Modal。
