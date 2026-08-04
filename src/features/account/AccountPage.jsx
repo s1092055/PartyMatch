@@ -53,7 +53,8 @@ function ComingSoonPlaceholder({ label }) {
   )
 }
 
-function LoginRequiredPlaceholder({ label, promptLogin }) {
+function LoginRequiredPlaceholder({ label }) {
+  const navigate = useNavigate()
   return (
     <div className="flex flex-col items-center justify-center gap-3 rounded-2xl py-16 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-raised">
@@ -62,7 +63,7 @@ function LoginRequiredPlaceholder({ label, promptLogin }) {
       <div className="space-y-1">
         <p className="text-sm font-bold text-ink">登入後才能查看「{label}」</p>
       </div>
-      <Button onClick={promptLogin} className="mt-2">
+      <Button onClick={() => navigate('/login')} className="mt-2">
         <LogIn size={16} className="shrink-0" />
         登入
       </Button>
@@ -70,13 +71,13 @@ function LoginRequiredPlaceholder({ label, promptLogin }) {
   )
 }
 
-function TabContent({ value, user, onChange, tabs, loggedIn, promptLogin }) {
+function TabContent({ value, user, onChange, tabs, loggedIn }) {
   const tab = tabs.find(t => t.value === value)
   // 即將推出的分頁不管有沒有登入都一樣看不到內容，先判斷這個，
   // 避免訪客看到「登入後才能查看」、登入後才發現其實還沒做完的矛盾訊息
   if (tab?.comingSoon) return <ComingSoonPlaceholder label={tab.label} />
   // 未登入時，除了「其他設定」（純本機偏好，不需帳號），其餘分頁一律提示先登入
-  if (!loggedIn && value !== "settings") return <LoginRequiredPlaceholder label={tab.label} promptLogin={promptLogin} />
+  if (!loggedIn && value !== "settings") return <LoginRequiredPlaceholder label={tab.label} />
   if (value === "profile")       return <PersonalInfoTab user={user} onChange={onChange} />
   if (value === "tokens")        return <TokenTab />
   if (value === "settings")      return <SettingsTab loggedIn={loggedIn} />
@@ -199,7 +200,7 @@ export default function AccountPage() {
             className="min-h-0 flex-1 overflow-y-auto pr-1"
           >
             <TabReveal key={activeTab}>
-              <TabContent value={activeTab} user={user} onChange={handleUserChange} tabs={TABS} loggedIn={loggedIn} promptLogin={promptLogin} />
+              <TabContent value={activeTab} user={user} onChange={handleUserChange} tabs={TABS} loggedIn={loggedIn} />
             </TabReveal>
           </div>
 
@@ -242,7 +243,7 @@ export default function AccountPage() {
                     aria-labelledby={`account-accordion-${tab.value}`}
                     className="border-t border-line px-4 py-4"
                   >
-                    <TabContent value={tab.value} user={user} onChange={handleUserChange} tabs={TABS} loggedIn={loggedIn} promptLogin={promptLogin} />
+                    <TabContent value={tab.value} user={user} onChange={handleUserChange} tabs={TABS} loggedIn={loggedIn} />
                   </div>
                 </TabReveal>
               )}
