@@ -145,7 +145,7 @@ export default function FilterSelect({ id, group, value, onChange, groups, trigg
         )}
       >
         {triggerContent}
-        <ChevronDown className="pointer-events-none size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />
+        <ChevronDown className={cn('pointer-events-none size-4 shrink-0 text-muted-foreground transition-transform duration-200', open && 'rotate-180')} strokeWidth={1.5} />
       </button>
       {mounted && (
         <div
