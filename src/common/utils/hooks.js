@@ -1,5 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { toast } from './toast'
+import { LOCKED_MESSAGE } from '../layout/components/navConstants'
+
+// 未登入時點擊「需要登入才能用」的操作按鈕，跳出跟側邊欄鎖定項目同一套提示，
+// 附一顆「前往登入」的 action 按鈕，不強制導頁、讓使用者自己決定要不要去登入
+export function usePromptLogin() {
+  const navigate = useNavigate()
+  return useCallback(() => {
+    toast(LOCKED_MESSAGE, 'info', {
+      action: { label: '前往登入', onClick: () => navigate('/login') },
+    })
+  }, [navigate])
+}
 
 // 建立群組 Step2/Step3 左右兩欄版面只在「桌機寬度（對齊 index.css 的 lg: 1280px）+ 螢幕不高」時才並排，
 // 螢幕夠高時改回跟手機/平板一樣的垂直排列，避免固定高度的兩欄容器在高螢幕下方留下大片空白

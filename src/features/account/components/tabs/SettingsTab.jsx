@@ -53,7 +53,7 @@ function SectionGroup({ title, icon: Icon, children }) {
   )
 }
 
-export default function SettingsTab() {
+export default function SettingsTab({ loggedIn = true }) {
   const navigate = useNavigate()
   const { theme, setTheme } = useTheme()
   const [prefs, setPrefs] = useState(loadPrefs)
@@ -125,17 +125,19 @@ export default function SettingsTab() {
         />
       </SectionGroup>
 
-      <SectionGroup title="帳號操作" icon={LogOut}>
-        <div className="py-3 border-b border-line-subtle last:border-0">
-          <button
-            onClick={() => setShowDeleteConfirm(true)}
-            className="flex w-full items-center gap-3 py-1 text-sm font-semibold text-danger transition-all hover:-translate-y-0.5 hover:text-danger/80"
-          >
-            <Trash2 size={16} className="shrink-0" />
-            刪除帳號
-          </button>
-        </div>
-      </SectionGroup>
+      {loggedIn && (
+        <SectionGroup title="帳號操作" icon={LogOut}>
+          <div className="py-3 border-b border-line-subtle last:border-0">
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="flex w-full items-center gap-3 py-1 text-sm font-semibold text-danger transition-all hover:-translate-y-0.5 hover:text-danger/80"
+            >
+              <Trash2 size={16} className="shrink-0" />
+              刪除帳號
+            </button>
+          </div>
+        </SectionGroup>
+      )}
 
       <AlertDialog open={showDeleteConfirm} onOpenChange={v => { if (!v) resetDeleteFlow() }}>
         <AlertDialogContent>

@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, ChevronDown, Clock, Coins, Lock, LogOut, Settings, ShieldUser, User } from "lucide-react";
+import { Bell, ChevronDown, Clock, Coins, LogIn, Lock, LogOut, Settings, ShieldUser, User } from "lucide-react";
 import { useAuthStore } from "../../common/stores/useAuthStore";
 import { toast } from "../../common/utils/toast";
+import { usePromptLogin } from "../../common/utils/hooks";
 import CreditScoreModal from "../../components/ui/CreditScoreModal";
 import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
@@ -52,17 +53,35 @@ function ComingSoonPlaceholder({ label }) {
   )
 }
 
-function TabContent({ value, user, onChange, tabs }) {
+function LoginRequiredPlaceholder({ label, promptLogin }) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-line py-16 text-center">
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-raised">
+        <Lock size={22} className="text-ink-3" />
+      </div>
+      <div className="space-y-1">
+        <p className="text-sm font-bold text-ink">登入後才能查看「{label}」</p>
+        <p className="text-xs text-ink-3">這裡的內容跟你的帳號綁在一起，請先登入</p>
+      </div>
+      <Button onClick={promptLogin} className="mt-2">
+        <LogIn size={16} className="shrink-0" />
+        前往登入
+      </Button>
+    </div>
+  )
+}
+
+function TabContent({ value, user, onChange, tabs, loggedIn, promptLogin }) {
   const tab = tabs.find(t => t.value === value)
   if (tab?.comingSoon) return <ComingSoonPlaceholder label={tab.label} />
-  if (value === "profile")       return <PersonalInfoTab user={user} onChange={onChange} />
-  if (value === "tokens")        return <TokenTab />
-  if (value === "settings")      return <SettingsTab />
+  if (value === "profile")       return <PersonalInfoTab user={user} onChange={onChange} locked={!loggedIn} onLockedClick={promptLogin} />
+  if (value === "tokens")        return loggedIn ? <TokenTab /> : <LoginRequiredPlaceholder label={tab.label} promptLogin={promptLogin} />
+  if (value === "settings")      return <SettingsTab loggedIn={loggedIn} />
   if (value === "admin")         return <AdminTab />
   return null
 }
 
-function LogoutButton({ className = "", fullWidth = false }) {
+function LogoutButton({ className = "", fullWidth = false, loggedIn }) {
   const navigate = useNavigate();
   const [loggingOut, setLoggingOut] = useState(false);
 
@@ -70,6 +89,20 @@ function LogoutButton({ className = "", fullWidth = false }) {
     setLoggingOut(true);
     await useAuthStore.getState().logout();
     navigate('/login', { replace: true });
+  }
+
+  if (!loggedIn) {
+    return (
+      <div className={`flex ${fullWidth ? '' : 'justify-end'} ${className}`}>
+        <Button
+          onClick={() => navigate('/login')}
+          className={`shrink-0 rounded-2xl ${fullWidth ? 'w-full' : ''}`}
+        >
+          <LogIn size={16} className="shrink-0" />
+          登入
+        </Button>
+      </div>
+    )
   }
 
   return (
@@ -91,11 +124,15 @@ export default function AccountPage() {
   const [openAccordion, setOpenAccordion] = useState(null);
   const [creditScoreOpen, setCreditScoreOpen] = useState(false);
   const [reviewsOpen, setReviewsOpen] = useState(false);
+  const loggedIn = useAuthStore(s => s.loggedIn)
   const isAdmin = useAuthStore(s => s.user?.isAdmin ?? false)
+  const promptLogin = usePromptLogin()
   const [user, setUser] = useState(() => {
     const profile = useAuthStore.getState().getProfile();
     return {
       ...profile,
+      displayName: profile?.displayName ?? "訪客",
+      email: profile?.email ?? "登入後顯示",
       phone: profile?.phone ?? "",
       bio: profile?.bio ?? "",
     };
@@ -104,6 +141,7 @@ export default function AccountPage() {
   const TABS = isAdmin ? [...BASE_TABS, { value: "admin", label: "管理員", icon: ShieldUser }] : BASE_TABS
 
   function handleUserChange(key, value) {
+    if (!loggedIn) { promptLogin(); return; }
     const previousValue = user[key];
     setUser((prev) => ({ ...prev, [key]: value }));
     // updateProfile 失敗時回傳 { ok: false }（不會 throw），先前用 .catch 接永遠接不到，
@@ -119,8 +157,8 @@ export default function AccountPage() {
     <div className="px-2 md:mx-auto md:max-w-2xl md:px-4 lg:max-w-3xl">
       <ProfileHeaderCard
         user={user}
-        onOpenCreditScore={() => setCreditScoreOpen(true)}
-        onOpenReviews={() => setReviewsOpen(true)}
+        onOpenCreditScore={loggedIn ? () => setCreditScoreOpen(true) : promptLogin}
+        onOpenReviews={loggedIn ? () => setReviewsOpen(true) : promptLogin}
       />
 
       <CreditScoreModal isOpen={creditScoreOpen} onClose={() => setCreditScoreOpen(false)} />
@@ -160,11 +198,11 @@ export default function AccountPage() {
         <div className="flex min-w-0 flex-1 flex-col" style={{ height: 'calc(100dvh - 16rem)', minHeight: '28rem' }}>
           <div className="min-h-0 flex-1 overflow-y-auto pr-1">
             <TabReveal key={activeTab}>
-              <TabContent value={activeTab} user={user} onChange={handleUserChange} tabs={TABS} />
+              <TabContent value={activeTab} user={user} onChange={handleUserChange} tabs={TABS} loggedIn={loggedIn} promptLogin={promptLogin} />
             </TabReveal>
           </div>
 
-          <LogoutButton className="mt-4" />
+          <LogoutButton className="mt-4" loggedIn={loggedIn} />
         </div>
       </div>
 
@@ -195,7 +233,7 @@ export default function AccountPage() {
               {isOpen && (
                 <TabReveal key={tab.value}>
                   <div className="border-t border-line px-4 py-4">
-                    <TabContent value={tab.value} user={user} onChange={handleUserChange} tabs={TABS} />
+                    <TabContent value={tab.value} user={user} onChange={handleUserChange} tabs={TABS} loggedIn={loggedIn} promptLogin={promptLogin} />
                   </div>
                 </TabReveal>
               )}
@@ -204,7 +242,7 @@ export default function AccountPage() {
         })}
         </div>
 
-        <LogoutButton fullWidth className="mt-6" />
+        <LogoutButton fullWidth className="mt-6" loggedIn={loggedIn} />
       </div>
     </div>
   );
