@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CheckCircle2, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
 import { useGroupStore } from '../../common/stores/useGroupStore'
@@ -35,17 +35,38 @@ export default function GroupDetailModal() {
   const [withdrawing, setWithdrawing]           = useState(false)
   const [applying, setApplying]                 = useState(false)
   const picksScrollRef = useRef(null)
+  const picksObserverRef = useRef(null)
   const [picksAtStart, setPicksAtStart] = useState(true)
   const [picksAtEnd, setPicksAtEnd]     = useState(true)
+
+  function measurePicksScroll(el) {
+    setPicksAtStart(el.scrollLeft <= 0)
+    setPicksAtEnd(el.scrollWidth <= el.clientWidth + 1)
+  }
+
+  // 用 callback ref 而不是 useRef + useEffect：GroupModalShell 外層的 Dialog 進場動畫會讓
+  // 這個捲動容器晚一個 commit 才真正掛載到 DOM（Dialog 內部另有自己的 mounted 狀態），
+  // 用「掛載當下量一次」的 useEffect／useLayoutEffect（依賴 picks 是否變化）量到的常常是
+  // 掛載前的舊 ref（null），且後續 picks 不再變化就永遠不會重新量測，導致明明有更多可捲動
+  // 的推薦群組，右邊箭頭卻因為誤判「已到底」而不會顯示。callback ref 保證容器「真正接上
+  // DOM 的那一刻」就會執行，不管是哪個祖先元件的哪一次 commit 造成的掛載
+  function picksScrollCallbackRef(el) {
+    picksObserverRef.current?.disconnect()
+    picksObserverRef.current = null
+    picksScrollRef.current = el
+    if (!el) return
+    measurePicksScroll(el)
+    const observer = new ResizeObserver(() => measurePicksScroll(el))
+    observer.observe(el)
+    picksObserverRef.current = observer
+  }
 
   function scrollPicks(delta) {
     picksScrollRef.current?.scrollBy({ left: delta, behavior: 'smooth' })
   }
 
   function handlePicksScroll(e) {
-    const { scrollLeft, scrollWidth, clientWidth } = e.currentTarget
-    setPicksAtStart(scrollLeft <= 0)
-    setPicksAtEnd(scrollLeft + clientWidth >= scrollWidth - 1)
+    measurePicksScroll(e.currentTarget)
   }
 
   const isOpen       = !!groupId
@@ -88,11 +109,11 @@ export default function GroupDetailModal() {
     ]
   }, [group, groups, activeUserId])
 
-  useEffect(() => {
-    const el = picksScrollRef.current
-    if (!el) return
-    setPicksAtStart(true)
-    setPicksAtEnd(el.scrollWidth <= el.clientWidth)
+  // 從「其他推薦群組」卡片切換到另一個群組時，picksScrollRef 是同一個 DOM 節點（沒有重新掛載，
+  // callback ref 不會再觸發一次），但捲動內容（picks 卡片）換了一批，容器實際寬度也跟著變，
+  // 這裡補一次重新量測，讓箭頭顯示狀態跟著新的內容同步
+  useLayoutEffect(() => {
+    if (picksScrollRef.current) measurePicksScroll(picksScrollRef.current)
   }, [picks])
 
   const memberGroupIds  = useMemo(
@@ -251,7 +272,7 @@ export default function GroupDetailModal() {
       }
       subPanel={showMembers ? buildMembersSubPanel({ group, groupId, members, activeUserId, setShowMembers, openDm }) : null}
       onSubPanelBack={() => { setShowMembers(false); resetApply() }}
-      panelKey={showMembers ? 'members' : 'overview'}
+      panelKey={showMembers ? 'members' : `overview-${groupId}`}
       headerBanner={
         isWaitingMembers ? (
           <div className="flex items-center justify-center gap-2 bg-success-subtle px-6 py-3 text-sm font-medium text-success-text">
@@ -293,7 +314,7 @@ export default function GroupDetailModal() {
               </button>
             )}
             <div
-              ref={picksScrollRef}
+              ref={picksScrollCallbackRef}
               onScroll={handlePicksScroll}
               className="flex gap-3 overflow-x-auto px-2 pb-4 pt-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
