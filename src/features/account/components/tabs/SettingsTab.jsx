@@ -134,7 +134,7 @@ export default function SettingsTab({ loggedIn = true }) {
               <p className="mt-0.5 text-xs text-ink-3">顯示在你的頭像旁邊，其他使用者也看得到</p>
             </div>
             <Select value={presenceStatus} onValueChange={changePresence} disabled={savingPresence}>
-              <SelectTrigger aria-label="目前狀態" className="h-9 w-36 shrink-0 text-sm font-bold">
+              <SelectTrigger aria-label="目前狀態" className="h-9 w-32 shrink-0 text-sm font-bold">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
