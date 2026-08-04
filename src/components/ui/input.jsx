@@ -19,7 +19,9 @@ export function Input({ className, ...props }) {
 
 export function Textarea({ className, ...props }) {
   return (
-    <span className={cn(WRAPPER_BASE, 'items-start', className)}>
+    // items-stretch：外層 span 的高度由呼叫端的 className（flex-1、min-h-* 等）決定，
+    // 內層 textarea 要撐滿整個 span，不能卡在自己的 intrinsic height
+    <span className={cn(WRAPPER_BASE, 'items-stretch', className)}>
       <textarea className={cn(FIELD_BASE, 'resize-none')} {...props} />
     </span>
   )

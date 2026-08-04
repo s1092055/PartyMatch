@@ -99,7 +99,7 @@ export default function DesktopSidebar({
       {/* Sidebar locked tooltip portal */}
       {lockedTip && createPortal(
         <span
-          className="pointer-events-none fixed z-[200] whitespace-nowrap rounded-lg bg-ink px-2.5 py-1.5 text-xs font-bold text-white shadow-lg"
+          className="pointer-events-none fixed z-[200] whitespace-nowrap rounded-lg bg-neutral-900 px-2.5 py-1.5 text-xs font-bold text-white shadow-popover"
           style={{ top: lockedTip.top, left: lockedTip.left }}
         >
           {LOCKED_MESSAGE}

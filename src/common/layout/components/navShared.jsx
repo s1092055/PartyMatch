@@ -23,7 +23,7 @@ export function PresenceDot({ status = 'online', className = '', style }) {
 export function LockedHint({ className = '' }) {
   return (
     <span
-      className={`pointer-events-none absolute z-30 whitespace-nowrap rounded-lg bg-ink px-2.5 py-1.5 text-xs font-bold text-white opacity-0 shadow-popover transition-opacity duration-150 group-hover/locked:opacity-100 group-focus-visible/locked:opacity-100 ${className}`}
+      className={`pointer-events-none absolute z-30 whitespace-nowrap rounded-lg bg-neutral-900 px-2.5 py-1.5 text-xs font-bold text-white opacity-0 shadow-popover transition-opacity duration-150 group-hover/locked:opacity-100 group-focus-visible/locked:opacity-100 ${className}`}
     >
       {LOCKED_MESSAGE}
     </span>

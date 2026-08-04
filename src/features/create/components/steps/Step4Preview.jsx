@@ -61,7 +61,9 @@ export default function Step4Preview({ form, agreedToTerms, onAgreeChange, onSho
             <InfoField icon={Users}       label="開放名額" value={`${form.totalSeats - 1} 人`} />
             <InfoField icon={ShieldCheck} label="信用分數" value={formatMinCreditScore(form.minCreditScore)} />
             <InfoField icon={CalendarDays} label="建立日期" value={today} />
-            <InfoField icon={FileText} label="帳號需求" value={form.requirements.trim() || '無'} />
+            <div className="lg:col-span-2">
+              <InfoField icon={FileText} label="帳號需求" value={form.requirements.trim() || '無'} />
+            </div>
 
             <div className="lg:col-span-2">
               <div className="flex items-center gap-2 mb-2">

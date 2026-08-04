@@ -76,7 +76,6 @@ function getStepErrors(step, form) {
       if (!Number.isInteger(form.totalSeats) || form.totalSeats < 2 || form.totalSeats > maxSeats) {
         errors.push(`開放名額需介於 1 至 ${maxSeats - 1} 位`)
       }
-      if (rules.length > 5) errors.push('群組規則最多 5 條')
       if (rules.some(rule => rule.length > 80)) errors.push('每條群組規則最多 80 字')
       break
     }
@@ -105,16 +104,13 @@ export default function CreateGroupPage() {
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   useScrollLock(showPreview)
   const isPlanOrSettingsStep = step === 2 || step === 3
-  // 步驟三（群組設定）左右兩欄各自有自己的 overflow-y-auto 捲動區，所以外層容器在
-  // short-lg（桌機寬度+螢幕不高）時要停用外層捲動，改讓內層各自捲動；步驟二（選擇方案）
-  // 已經沒有內部捲動區，一律靠外層捲動即可，不受此限制
   // 內容區第一層子元素固定 h-full（跟容器等高), ResizeObserver 盯著它偵測不到內部真正的
   // 內容溢出，所以要求 MutationObserver 監看整個子樹的異動，每次異動都重新讀取真實的
   // scrollHeight/clientHeight 來判斷是否 overflow
   const {
     scrollRef, elRef: scrollElRef, atBottom, canScroll, isScrolling,
     handleScroll: handleContentScroll,
-  } = useScrollEdge({ withMutationObserver: true, forwardWheel: step !== 3 })
+  } = useScrollEdge({ withMutationObserver: true, forwardWheel: true })
 
   function onChange(key, value) {
     setForm(prev => {
@@ -253,7 +249,7 @@ export default function CreateGroupPage() {
           <div
             ref={scrollRef}
             onScroll={handleContentScroll}
-            className={`h-full overflow-y-auto pt-6 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${step === 3 ? 'short-lg:overflow-hidden' : step === 4 ? 'overflow-hidden' : ''}`}
+            className={`h-full overflow-y-auto pt-6 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${step === 4 ? 'overflow-hidden' : ''}`}
           >
             <div key={step} className="h-full animate-step-slide-up p-0.5">
               <div className="flex h-full flex-col">

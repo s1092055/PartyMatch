@@ -21,6 +21,7 @@ export default function Step2Plan({ form, onChange }) {
   // 計費週期改用卡片上方的 badge 顯示，方案名稱不用再重複顯示「（月繳）／（年繳）」字樣，
   // 卡片標題也因此變短，在窄螢幕下比較不會被擠壓截斷
   const planDisplayName = currentPlan?.name.replace(/（(?:月|年)繳）\s*$/, '').trim()
+  const planPriceAmount = currentPlan ? resolvePlanDisplayPrice(currentPlan, usdToTwdRate).amount : 0
 
   useEffect(() => {
     if (!form.planName && groupPlans.length > 0) {
@@ -83,17 +84,11 @@ export default function Step2Plan({ form, onChange }) {
                   </span>
                   <p className="mt-2 text-xl font-semibold truncate">{planDisplayName}</p>
                   <p className={`mt-2 flex items-center justify-center gap-1 truncate text-sm ${isPlanSelected ? 'text-brand' : 'text-slate-400'}`}>
-                    {(() => {
-                      const { amount, cycle } = resolvePlanDisplayPrice(currentPlan, usdToTwdRate)
-                      return (
-                        <TokenAmount
-                          amount={amount}
-                          cycle={cycle}
-                          badgeSize="!h-4 !w-4"
-                          unitClassName={isPlanSelected ? 'text-brand' : 'text-slate-400'}
-                        />
-                      )
-                    })()}
+                    <TokenAmount
+                      amount={planPriceAmount}
+                      badgeSize="!h-4 !w-4"
+                      unitClassName={isPlanSelected ? 'text-brand' : 'text-slate-400'}
+                    />
                   </p>
                   <p className={`mt-1 truncate text-sm ${isPlanSelected ? 'text-brand' : 'text-slate-400'}`}>
                     最多 {currentPlan.maxSeats} 人共享

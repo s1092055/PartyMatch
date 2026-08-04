@@ -1,10 +1,11 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* 建立群組 Step2/Step3 的左右兩欄版面只在「桌機寬度 + 螢幕不高」時才切成並排，
-   螢幕夠高（例如大螢幕外接顯示器）時改回跟手機/平板一樣的垂直排列，避免固定高度的
-   兩欄容器在高螢幕下方留下大片空白 */
-@custom-variant short-lg (@media (min-width: 1280px) and (max-height: 899px));
+/* 建立群組 Step3（群組設定）的左右兩欄版面只在「桌機寬度 + 螢幕不高」時才切成並排，
+   螢幕夠高（例如大螢幕外接顯示器）時改回跟手機/平板一樣的垂直排列。下限 640px：
+   視窗矮到這個程度時（例如筆電視窗沒有最大化、瀏覽器又開了書籤列/DevTools），
+   並排會讓可用高度過於侷促，改回垂直排列靠一般頁面捲動顯示內容 */
+@custom-variant short-lg (@media (min-width: 1280px) and (max-height: 899px) and (min-height: 640px));
 
 @theme {
   /* ── Breakpoints（三段式：手機 / 平板 md: 768px / 桌機 lg: 1280px）── */

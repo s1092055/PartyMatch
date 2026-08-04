@@ -14,23 +14,6 @@ export function usePromptLogin() {
   }, [navigate])
 }
 
-// 建立群組 Step2/Step3 左右兩欄版面只在「桌機寬度（對齊 index.css 的 lg: 1280px）+ 螢幕不高」時才並排，
-// 螢幕夠高時改回跟手機/平板一樣的垂直排列，避免固定高度的兩欄容器在高螢幕下方留下大片空白
-export const SHORT_LG_QUERY = '(min-width: 1280px) and (max-height: 899px)'
-
-export function useMediaQuery(query) {
-  const [matches, setMatches] = useState(() => window.matchMedia(query).matches)
-
-  useEffect(() => {
-    const mql = window.matchMedia(query)
-    const onChange = e => setMatches(e.matches)
-    mql.addEventListener('change', onChange)
-    return () => mql.removeEventListener('change', onChange)
-  }, [query])
-
-  return matches
-}
-
 // Reference counter so nested modals don't re-measure or prematurely release the lock.
 let _lockCount = 0
 

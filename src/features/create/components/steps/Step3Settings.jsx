@@ -1,7 +1,5 @@
-import { useLayoutEffect, useRef, useState } from 'react'
-import { FileText, ListChecks, Minus, Plus, PlusCircle, ShieldCheck, Users, X } from 'lucide-react'
+import { FileText, ListChecks, Minus, Plus, ShieldCheck, Users } from 'lucide-react'
 import { getServiceById } from '../../../../common/utils/serviceUtils'
-import { useMediaQuery, SHORT_LG_QUERY } from '../../../../common/utils/hooks'
 import Field from './Field'
 import { Input, Textarea } from '../../../../components/ui/input'
 
@@ -18,48 +16,16 @@ export default function Step3Settings({ form, onChange }) {
   const maxSeats = plan?.maxSeats ?? 10
   const openSeats = form.totalSeats - 1
 
-  // 帳號需求 textarea 的底部要對齊右欄群組規則最後一項的底部，兩欄並排只在 short-lg 生效
-  // （見 index.css），兩欄內容天生不等高，只能量測實際位置後直接設定 textarea 高度
-  const textareaRef = useRef(null)
-  const lastRuleRef = useRef(null)
-  const [textareaHeight, setTextareaHeight] = useState(null)
-  const isShortLgUp = useMediaQuery(SHORT_LG_QUERY)
-
-  useLayoutEffect(() => {
-    function sync() {
-      const textarea = textareaRef.current
-      const lastRule = lastRuleRef.current
-      if (!textarea || !lastRule || !isShortLgUp) {
-        setTextareaHeight(prev => (prev === null ? prev : null))
-        return
-      }
-      const height = lastRule.getBoundingClientRect().bottom - textarea.getBoundingClientRect().top
-      const next = Math.max(32, Math.round(height))
-      setTextareaHeight(prev => (prev === next ? prev : next))
-    }
-    sync()
-    window.addEventListener('resize', sync)
-    return () => window.removeEventListener('resize', sync)
-  }, [form.rules.length, isShortLgUp])
-
   function updateRule(i, val) {
     const next = [...form.rules]
     next[i] = val
     onChange('rules', next)
   }
 
-  function addRule() {
-    onChange('rules', [...form.rules, ''])
-  }
-
-  function removeRule(i) {
-    onChange('rules', form.rules.filter((_, idx) => idx !== i))
-  }
-
   return (
-    <div className="pb-3 short-lg:flex short-lg:h-96 short-lg:items-stretch short-lg:gap-8">
+    <div className="pb-3 short-lg:flex short-lg:items-stretch short-lg:gap-8">
       {/* 左：開放名額、信用分數、帳號需求 */}
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col space-y-5 overflow-y-auto pb-1 pl-1 pr-1">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col space-y-5 px-1 pb-1">
         <Field
           label="開放名額"
           icon={Users}
@@ -106,58 +72,40 @@ export default function Step3Settings({ form, onChange }) {
           </div>
         </Field>
 
-        <Field label="帳號需求" icon={FileText} hint="說明成員是否需要自備帳號，或有其他帳號相關條件（選填）">
+        <Field label="帳號需求" icon={FileText} hint="說明成員是否需要自備帳號，或有其他帳號相關條件（選填）" className="flex min-h-0 flex-1 flex-col">
           <Textarea
-            ref={textareaRef}
-            rows={1}
             placeholder="例如：需使用自己的 Google 帳號登入"
             value={form.requirements}
             onChange={e => onChange('requirements', e.target.value)}
             maxLength={120}
-            style={textareaHeight ? { height: textareaHeight } : undefined}
-            className="resize-none text-base"
+            className="min-h-32 flex-1"
           />
         </Field>
       </div>
 
-      {/* 右：群組規則 */}
-      <div className="mt-6 flex flex-1 flex-col space-y-1 short-lg:mt-0">
-        <Field label="群組規則" icon={ListChecks} hint="最多 5 條，清楚的規則可降低後續糾紛">
-          <div className="space-y-1">
-            {form.rules.map((rule, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <span className="text-sm text-slate-400 w-4 shrink-0 text-right">{i + 1}.</span>
-                <Input
-                  ref={i === form.rules.length - 1 ? lastRuleRef : undefined}
-                  type="text"
-                  placeholder="例如：每月 15 日前完成付款"
-                  value={rule}
-                  onChange={e => updateRule(i, e.target.value)}
-                  maxLength={80}
-                  className="flex-1 text-base"
-                />
-                {form.rules.length > 1 && (
-                  <button
-                    onClick={() => removeRule(i)}
-                    className="text-slate-300 hover:text-red-400 transition-colors"
-                  >
-                    <X size={17} />
-                  </button>
-                )}
-              </div>
-            ))}
-            {form.rules.length < 5 && (
-              <button
-                onClick={addRule}
-                className="ml-6 flex items-center gap-1.5 text-base text-brand hover:text-brand/80 mt-1"
-              >
-                <PlusCircle size={16} />
-                新增規則
-              </button>
-            )}
-          </div>
-        </Field>
-      </div>
+      {/* 右：群組規則 —— 固定顯示 5 列，允許留白，不用另外新增/移除 */}
+      <Field
+        label="群組規則"
+        icon={ListChecks}
+        hint="最多 5 條，清楚的規則可降低後續糾紛，留空即可不設定"
+        className="mt-6 flex min-h-0 min-w-0 flex-1 flex-col px-1 pb-1 short-lg:mt-0"
+      >
+        <div className="flex min-h-0 flex-1 flex-col justify-between gap-3">
+          {form.rules.map((rule, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <span className="text-sm text-slate-400 w-4 shrink-0 text-right">{i + 1}.</span>
+              <Input
+                type="text"
+                placeholder="例如：每月 15 日前完成付款"
+                value={rule}
+                onChange={e => updateRule(i, e.target.value)}
+                maxLength={80}
+                className="flex-1 py-3 text-base"
+              />
+            </div>
+          ))}
+        </div>
+      </Field>
     </div>
   )
 }

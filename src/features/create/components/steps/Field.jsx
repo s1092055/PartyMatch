@@ -22,7 +22,7 @@ export default function Field({ label, icon: Icon, required, children, hint, end
             >
               <AlertCircle size={16} />
             </button>
-            <span className={`pointer-events-none absolute left-0 top-full z-10 mt-1.5 w-max max-w-[16rem] rounded-lg bg-ink px-2.5 py-1.5 text-sm font-normal leading-relaxed text-white shadow-lg transition-opacity group-hover/hint:opacity-100 ${showHint ? 'opacity-100' : 'opacity-0'}`}>
+            <span className={`pointer-events-none absolute left-0 top-full z-10 mt-1.5 w-max max-w-[16rem] rounded-lg bg-neutral-900 px-2.5 py-1.5 text-sm font-normal leading-relaxed text-white shadow-popover transition-opacity group-hover/hint:opacity-100 ${showHint ? 'opacity-100' : 'opacity-0'}`}>
               {hint}
             </span>
           </span>
