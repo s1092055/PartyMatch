@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AlertCircle, Bell, CheckCircle2, ClipboardEdit, MessageSquare, UserPlus } from 'lucide-react'
+import { AlertCircle, Bell, CalendarClock, CheckCircle2, ClipboardEdit, MessageSquare, UserPlus } from 'lucide-react'
 import { Drawer, DrawerContent, DrawerHeader, DrawerFooter, DrawerTitle, DrawerDescription } from '../../components/ui/drawer'
 import { Button } from '../../components/ui/button'
 import { useAuthStore } from '../stores/useAuthStore'
@@ -71,7 +71,7 @@ const NOTIFICATION_META = {
   fill_service_info:    { icon: ClipboardEdit, iconColor: 'text-warning-text', link: '/my-subscriptions' },
   service_info_filled:  { icon: ClipboardEdit, iconColor: 'text-success',    link: '/manage-groups' },
   group_activated:      { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-subscriptions' },
-  group_cancelled:      { icon: AlertCircle,   iconColor: 'text-danger',     link: '/account' },
+  group_cancelled:      { icon: AlertCircle,   iconColor: 'text-danger',     link: '/explore' },
   group_renewal:        { icon: CheckCircle2,  iconColor: 'text-brand',      link: '/my-subscriptions' },
   upcoming_renewal:     { icon: AlertCircle,   iconColor: 'text-warning-text', link: '/my-subscriptions', state: { tab: 'active' } },
   service_info_issue:   { icon: AlertCircle,   iconColor: 'text-amber-500',  link: '/my-subscriptions' },
@@ -81,6 +81,8 @@ const NOTIFICATION_META = {
   escrow_released:      { icon: CheckCircle2,  iconColor: 'text-success',    link: '/manage-groups' },
   dispute_raised:       { icon: AlertCircle,   iconColor: 'text-danger',     link: '/manage-groups' },
   dispute_resolved:     { icon: CheckCircle2,  iconColor: 'text-info',       link: '/my-subscriptions' },
+  billing_date_confirmed: { icon: CalendarClock, iconColor: 'text-brand',      link: '/my-subscriptions' },
+  billing_date_adjusted:  { icon: CalendarClock, iconColor: 'text-warning-text', link: '/my-subscriptions' },
   system:               { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/' },
   default:              { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/my-subscriptions' },
 }
@@ -358,6 +360,20 @@ export default function FloatingMessages() {
       return
     }
 
+    if ((notification.type === 'billing_date_confirmed' || notification.type === 'billing_date_adjusted') && notification.meta?.groupId) {
+      const gId = notification.meta.groupId
+      const grp = getGroupById(gId)
+      if (grp && grp.hostId === userId) {
+        navigate('/manage-groups', { state: { openGroupId: gId } })
+        useGroupStore.getState().init({ all: true }).finally(() => {
+          window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: gId } }))
+        })
+      } else {
+        navigateToMemberGroupOrExplore(navigate, userId, gId)
+      }
+      return
+    }
+
     if (notification.type === 'group_renewal' && notification.meta?.groupId) {
       navigateToMemberGroupOrExplore(navigate, userId, notification.meta.groupId)
       return
@@ -369,9 +385,14 @@ export default function FloatingMessages() {
     }
 
     if (notification.type === 'group_cancelled') {
-      // 群組解散於鎖定前，此時成員尚未有訂閱紀錄可開啟，僅導向列表
+      // 群組解散於鎖定前，此時成員尚未有訂閱紀錄可開啟；改導向探索頁找其他群組，
+      // 不要停在「我的訂閱」——那裡本來就不會列出已解散的群組，留在原地只會讓人
+      // 對著空白/舊畫面疑惑。輪詢每 5 秒偵測到這則通知時已經會刷新 group/member 等
+      // store（見 useNotificationStore），這裡再刷一次是為了使用者搶在輪詢之前
+      // 手動點開通知的情境，確保探索頁列表不會殘留這個已解散的群組
       useAuthStore.getState().refreshTokenBalance().catch(console.error) // 代管費用已退款，重新拉最新餘額
-      navigate('/my-subscriptions')
+      navigate('/explore')
+      useGroupStore.getState().init({ all: true })
       return
     }
 

@@ -30,6 +30,10 @@ export async function confirmGroupApi(id) {
   return client.post(`/groups/${id}/confirm`)
 }
 
+export async function adjustBillingDateApi(id, { nextBillingDate, note }) {
+  return client.patch(`/groups/${id}/billing-date`, { nextBillingDate, note })
+}
+
 export async function cancelGroupApi(id) {
   return client.post(`/groups/${id}/cancel`)
 }

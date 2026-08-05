@@ -169,6 +169,10 @@ model Group {
   serviceInfoDeadline DateTime?
   confirmDeadline DateTime?
   disputeDeadline DateTime?
+  // 團主在確認期（confirming）調整下次扣款日的額度用掉了沒有：非 null 代表這個計費週期已經調整過，
+  // 不能再調第二次；進入新週期（/lock 第一次鎖定、/renew 續訂）時重置回 null，重新給一次額度
+  billingDateAdjustedAt     DateTime?
+  billingDateAdjustmentNote String?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 

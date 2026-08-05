@@ -45,6 +45,7 @@ export default function ManageGroupsPage() {
     handleApprove,
     handleReportServiceInfoIssue,
     handleReject,
+    handleAdjustBillingDate,
   } = useHostActions(activeUser)
 
   return (
@@ -119,6 +120,7 @@ export default function ManageGroupsPage() {
         onRemoveMember={handleRemoveMember}
         onApprove={handleApprove}
         onReject={handleReject}
+        onAdjustBillingDate={handleAdjustBillingDate}
         errors={errors}
         autoOpenLockGroup={autoOpenLockGroup}
         autoOpenActivate={autoOpenActivate}

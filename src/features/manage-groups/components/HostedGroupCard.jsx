@@ -127,13 +127,20 @@ function HostedGroupCard({
           <StatCell label="續訂日期">
             {toISODate(group.nextBillingDate, '—')}
           </StatCell>
-        ) : group.status === 'recruiting' ? (
+        ) : group.status === 'recruiting' || group.status === 'cancelled' ? (
+          // 已解散的群組上方已經有「已解散」badge，這裡不重複顯示群組狀態，改跟招募中
+          // 一樣顯示建立日期
           <StatCell label="建立日期">
             {group.createdAt ?? '—'}
           </StatCell>
         ) : isActivated ? (
           <StatCell label="群組狀態" highlight={collectionHighlight}>
             {collectionState}
+          </StatCell>
+        ) : group.status === 'pending_confirmation' || group.status === 'pending_activation' ? (
+          // 鎖定當下算出來的日期只是預估，真正定案要等啟用服務那一步重新計算
+          <StatCell label="預估下次扣款">
+            {toISODate(group.nextBillingDate, '—')}
           </StatCell>
         ) : (
           <StatCell label="下次扣款">
@@ -159,6 +166,7 @@ export default memo(HostedGroupCard, (prev, next) =>
   prev.group.status === next.group.status &&
   prev.group.usedSeats === next.group.usedSeats &&
   prev.group.openSeats === next.group.openSeats &&
+  prev.group.nextBillingDate === next.group.nextBillingDate &&
   prev.pendingAppCount === next.pendingAppCount &&
   prev.paymentCount === next.paymentCount &&
   prev.members.length === next.members.length &&

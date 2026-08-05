@@ -21,6 +21,7 @@ const getGroupsByHostId = (hostId) => useGroupStore.getState().getByHostId(hostI
 const updateGroup      = (id, p)   => useGroupStore.getState().update(id, p)
 const lockGroup           = (id, sharedCredentials) => useGroupStore.getState().lockGroup(id, sharedCredentials)
 const activateService     = (id)   => useGroupStore.getState().activateService(id)
+const adjustBillingDate   = (id, payload) => useGroupStore.getState().adjustBillingDate(id, payload)
 const startRenewalCycle = (id)     => useGroupStore.getState().startRenewalCycle(id)
 const endGroup         = (id)      => useGroupStore.getState().endGroup(id)
 
@@ -316,6 +317,28 @@ async function handleActivate() {
     refreshGroups()
   }
 
+  // 確認期內調整下次扣款日：跟 handleActivate 不同，這裡失敗要讓錯誤往上拋，讓
+  // AdjustBillingDateModal 保持開啟顯示錯誤，不能像 handleActivate 一樣吞掉直接 return
+  // ——後端已經會通知全部成員，這裡不用再自己 insertNotification 一次
+  async function handleAdjustBillingDate(nextBillingDate, note) {
+    if (!viewGroupId) return
+    const group = getGroupById(viewGroupId)
+    if (!group) return
+
+    try {
+      await adjustBillingDate(viewGroupId, { nextBillingDate, note })
+    } catch (err) {
+      toast(err?.message ?? '調整失敗，請稍後再試', 'error')
+      throw err
+    }
+
+    const convId = getConvByGroupId(viewGroupId)?.id
+    if (convId) sendSystemMessage(convId, `團主調整了下次扣款日，原因：${note}`).catch(console.error)
+
+    toast('已調整下次扣款日')
+    refreshGroups()
+  }
+
   async function handleCancelGroup() {
     if (!viewGroupId) return
     const group = getGroupById(viewGroupId)
@@ -563,6 +586,7 @@ async function handleApprove(appId) {
     handleLockGroup,
     handleRemoveMember,
     handleActivate,
+    handleAdjustBillingDate,
     handleCancelGroup,
     handleStartRenewal,
     handleEndGroup,

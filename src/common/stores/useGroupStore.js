@@ -11,6 +11,7 @@ import {
   disputeGroupApi,
   adjudicateGroupApi,
   renewGroupApi,
+  adjustBillingDateApi,
 } from '../api/groupsApi'
 import { normalizeGroup } from '../utils/modelNormalizers'
 import { createId } from '../utils/storage'
@@ -132,6 +133,15 @@ export const useGroupStore = create((set, get) => ({
       }))
     }
     return res
+  },
+
+  // ── 確認期調整下次扣款日（每期僅能調整一次，只能延後，見後端 /billing-date 的規則）────
+  adjustBillingDate: async (id, payload) => {
+    const updated = await adjustBillingDateApi(id, payload)
+    set(s => ({
+      groups: s.groups.map(g => g.id === id ? normalizeGroup({ ...g, ...updated }) : g),
+    }))
+    return updated
   },
 
   // ── 申訴（confirming → disputed）─────────────────────────────────────────────

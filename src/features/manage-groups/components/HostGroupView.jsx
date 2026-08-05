@@ -19,6 +19,7 @@ import { useEvidenceUpload } from '../../../common/utils/hooks'
 import ActivateServiceModal from './ActivateServiceModal'
 import ReportServiceIssueModal from './ReportServiceIssueModal'
 import LockGroupCredentialsModal from './LockGroupCredentialsModal'
+import AdjustBillingDateModal from './AdjustBillingDateModal'
 import { buildMembersPanel } from './hostGroupView/buildMembersPanel'
 import { buildApplicationsPanel } from './hostGroupView/buildApplicationsPanel'
 import { buildReviewHistoryPanel } from './hostGroupView/buildReviewHistoryPanel'
@@ -27,7 +28,7 @@ import { buildMemberInfoPanel } from './hostGroupView/buildMemberInfoPanel'
 
 // ── 團主視角 ──────────────────────────────────────────────────────────────────
 
-export default function HostGroupView({ group, members, applications, onReportServiceInfoIssue, onRemoveMember, onActivate, onLockGroup, onCancelGroup, onApprove, onReject, errors, onClose, autoOpenLockGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling, autoOpenMemberInfo, onOpenRenewal }) {
+export default function HostGroupView({ group, members, applications, onReportServiceInfoIssue, onRemoveMember, onActivate, onLockGroup, onCancelGroup, onApprove, onReject, onAdjustBillingDate, errors, onClose, autoOpenLockGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling, autoOpenMemberInfo, onOpenRenewal }) {
   const [showActivate, setShowActivate]                   = useState(false)
   const [removingMember, setRemovingMember]               = useState(null)
   const [activePanel, setActivePanel]                     = useState(null) // 'members' | 'applications' | 'billing' | 'reviews' | null
@@ -41,6 +42,10 @@ export default function HostGroupView({ group, members, applications, onReportSe
   const [credentialValues, setCredentialValues]             = useState({})
   const [lockLoading, setLockLoading]                       = useState(false)
   const [showDisputeReason, setShowDisputeReason]           = useState(false)
+  const [showAdjustBillingDate, setShowAdjustBillingDate]   = useState(false)
+  const [newBillingDate, setNewBillingDate]                 = useState('')
+  const [billingDateNote, setBillingDateNote]               = useState('')
+  const [adjustingBillingDate, setAdjustingBillingDate]     = useState(false)
 
   useEffect(() => {
     if (activePanel !== 'billing') return
@@ -180,6 +185,19 @@ export default function HostGroupView({ group, members, applications, onReportSe
     }
   }
 
+  async function handleAdjustBillingDateSubmit() {
+    if (!newBillingDate || !billingDateNote.trim()) return
+    setAdjustingBillingDate(true)
+    try {
+      await onAdjustBillingDate?.(newBillingDate, billingDateNote.trim())
+      setShowAdjustBillingDate(false)
+      setNewBillingDate('')
+      setBillingDateNote('')
+    } finally {
+      setAdjustingBillingDate(false)
+    }
+  }
+
   const lockGroupCta = group.status === 'full' && (
     <div className="py-2">
       {showLockGroupConfirm ? (
@@ -223,6 +241,15 @@ export default function HostGroupView({ group, members, applications, onReportSe
       確認期進行中
       {group.confirmDeadline && (
         <>，剩餘 <CountdownText deadline={group.confirmDeadline} /></>
+      )}
+      {/* 每期只能調整一次，已經用掉額度就不再顯示按鈕，避免點了才發現後端擋掉 */}
+      {!group.billingDateAdjustedAt && (
+        <button
+          onClick={() => { setNewBillingDate(''); setBillingDateNote(''); setShowAdjustBillingDate(true) }}
+          className="ml-1 shrink-0 rounded-full border border-info-text/40 px-2.5 py-0.5 text-xs font-semibold text-info-text transition-all hover:-translate-y-0.5 hover:bg-info-text/10"
+        >
+          調整扣款日
+        </button>
       )}
     </div>
   )
@@ -455,6 +482,18 @@ export default function HostGroupView({ group, members, applications, onReportSe
         setServiceIssueNote('')
         serviceIssueEvidence.reset()
       }}
+    />
+
+    <AdjustBillingDateModal
+      open={showAdjustBillingDate}
+      currentDate={group.nextBillingDate}
+      newDate={newBillingDate}
+      setNewDate={setNewBillingDate}
+      note={billingDateNote}
+      setNote={setBillingDateNote}
+      saving={adjustingBillingDate}
+      onClose={() => { setShowAdjustBillingDate(false); setNewBillingDate(''); setBillingDateNote('') }}
+      onSubmit={handleAdjustBillingDateSubmit}
     />
 
     {showDisputeReason && (

@@ -18,10 +18,20 @@ const disputeSchema = z.object({
   evidenceUrl: z.string().url().optional(),
 })
 
+const adjustBillingDateSchema = z.object({
+  nextBillingDate: z.string(),
+  note:            z.string().trim().min(1).max(300),
+})
+
+const MAX_BILLING_DATE_ADJUST_DAYS = 7
+
 // POST /groups/:id/activate — pending_activation → confirming（48h 確認期開始）
 router.post('/:id/activate', requireAuth, async (req, res, next) => {
   try {
-    const group = await prisma.group.findUnique({ where: { id: req.params.id } })
+    const group = await prisma.group.findUnique({
+      where: { id: req.params.id },
+      include: { members: true, service: true },
+    })
     if (!group) return res.status(404).json({ message: '群組不存在' })
     if (group.hostId !== req.user.id) return res.status(403).json({ message: '僅團主可操作' })
     if (group.status !== 'pending_activation') return res.status(400).json({ message: `群組狀態為 ${group.status}，無法啟用（需為 pending_activation）` })
@@ -29,20 +39,116 @@ router.post('/:id/activate', requireAuth, async (req, res, next) => {
     const confirmDeadline = new Date()
     confirmDeadline.setHours(confirmDeadline.getHours() + 48)
 
-    const updated = await prisma.group.update({
-      where: { id: req.params.id },
-      data: { status: 'confirming', confirmDeadline },
-      include: {
-        host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true } },
-        service: true,
-        _count:  { select: { members: true } },
-      },
+    // 下次扣款日改成從實際啟用當下重新算，不沿用鎖定當下（見 /lock）算出來的舊值：鎖定到
+    // 啟用之間可能因為成員填寫帳號資訊、回報問題等流程拖了好幾天，用鎖定當下的舊值會讓
+    // 成員實際用到服務的天數比完整一個計費週期短
+    const nextBillingDate = new Date()
+    if (group.billingCycle === 'yearly') nextBillingDate.setFullYear(nextBillingDate.getFullYear() + 1)
+    else nextBillingDate.setMonth(nextBillingDate.getMonth() + 1)
+
+    const [updated] = await prisma.$transaction([
+      prisma.group.update({
+        where: { id: req.params.id },
+        data: { status: 'confirming', confirmDeadline, nextBillingDate },
+        include: {
+          host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true } },
+          service: true,
+          _count:  { select: { members: true } },
+        },
+      }),
+      prisma.subscription.updateMany({
+        where: { groupId: req.params.id },
+        data:  { nextBillingDate },
+      }),
+    ])
+
+    // 到這裡扣款日才算正式定案（不會再因為填寫/回報流程拖延而變動），跟 /lock 那則「預估」
+    // 通知是同一種通知類型，前端靠 meta.estimated 分辨要不要顯示成「預估」字樣
+    const groupLabel = group.planName ?? group.service?.name ?? ''
+    const finalDateText = nextBillingDate.toISOString().slice(0, 10).replace(/-/g, '/')
+    ;[group.hostId, ...group.members.map(m => m.userId)].forEach(userId => {
+      notify({
+        userId,
+        type:    'billing_date_confirmed',
+        title:   '下次扣款日已確定',
+        message: `「${groupLabel}」服務已啟用，下次扣款日確定為 ${finalDateText}。`,
+        meta:    { groupId: req.params.id, nextBillingDate: nextBillingDate.toISOString(), estimated: false },
+      })
     })
+
     res.json(maskGroupHost(updated))
   } catch (err) { next(err) }
 })
 
-// POST /groups/:id/confirm — 成員確認服務正常（confirming 期間）
+// PATCH /groups/:id/billing-date — 團主在確認期調整下次扣款日（外部設定延誤等情況的補救窗口）
+router.patch('/:id/billing-date', requireAuth, validate(adjustBillingDateSchema), async (req, res, next) => {
+  try {
+    const group = await prisma.group.findUnique({
+      where: { id: req.params.id },
+      include: { members: true, service: true },
+    })
+    if (!group) return res.status(404).json({ message: '群組不存在' })
+    if (group.hostId !== req.user.id) return res.status(403).json({ message: '僅團主可操作' })
+    if (group.status !== 'confirming') return res.status(400).json({ message: `群組狀態為 ${group.status}，只能在確認期調整扣款日` })
+    if (group.billingDateAdjustedAt) return res.status(400).json({ message: '本期已經調整過扣款日，每期僅能調整一次' })
+    if (!group.nextBillingDate) return res.status(400).json({ message: '這個群組目前沒有扣款日可以調整' })
+
+    const requested = new Date(req.body.nextBillingDate)
+    if (Number.isNaN(requested.getTime())) return res.status(400).json({ message: '日期格式不正確' })
+
+    // 只能延後、不能提前（防止團主藉此提早催繳），且延後幅度有上限（避免變相無限拖延服務期）
+    const current = new Date(group.nextBillingDate)
+    const maxAllowed = new Date(current)
+    maxAllowed.setDate(maxAllowed.getDate() + MAX_BILLING_DATE_ADJUST_DAYS)
+    if (requested <= current) {
+      return res.status(400).json({ message: '新的扣款日只能比原本的日期晚' })
+    }
+    if (requested > maxAllowed) {
+      return res.status(400).json({ message: `最多只能延後 ${MAX_BILLING_DATE_ADJUST_DAYS} 天` })
+    }
+
+    const note = req.body.note.trim()
+
+    const [updated] = await prisma.$transaction([
+      prisma.group.update({
+        where: { id: req.params.id },
+        data: {
+          nextBillingDate:           requested,
+          billingDateAdjustedAt:     new Date(),
+          billingDateAdjustmentNote: note,
+        },
+        include: {
+          host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true } },
+          service: true,
+          _count:  { select: { members: true } },
+        },
+      }),
+      prisma.subscription.updateMany({
+        where: { groupId: req.params.id },
+        data:  { nextBillingDate: requested },
+      }),
+    ])
+
+    // 只通知成員，不通知團主自己（是他本人操作的）；不重複用 billing_date_confirmed，
+    // 讓成員清楚分辨這是「事後被改過」而不是原本啟用時就定案的日期
+    const groupLabel = group.planName ?? group.service?.name ?? ''
+    const oldDateText = current.toISOString().slice(0, 10).replace(/-/g, '/')
+    const newDateText = requested.toISOString().slice(0, 10).replace(/-/g, '/')
+    group.members.forEach(m => {
+      notify({
+        userId:  m.userId,
+        type:    'billing_date_adjusted',
+        title:   '下次扣款日已調整',
+        message: `「${groupLabel}」的下次扣款日由 ${oldDateText} 調整為 ${newDateText}，原因：${note}`,
+        meta:    { groupId: req.params.id, oldDate: current.toISOString(), nextBillingDate: requested.toISOString(), note },
+      })
+    })
+
+    res.json(maskGroupHost(updated))
+  } catch (err) { next(err) }
+})
+
+// POST /groups/:id/confirm — 成員確認服務正常（確認期間）
 router.post('/:id/confirm', requireAuth, async (req, res, next) => {
   try {
     const group = await prisma.group.findUnique({
@@ -266,7 +372,16 @@ router.post('/:id/lock', requireAuth, async (req, res, next) => {
     const [updated] = await prisma.$transaction([
       prisma.group.update({
         where: { id: req.params.id },
-        data: { status: 'pending_confirmation', serviceInfoDeadline, ...(sharedCredentials !== undefined && { sharedCredentials }) },
+        // nextBillingDate 這裡也一起寫回 Group（不只 Subscription），/renew 續訂時是讀 Group 這個
+        // 欄位當基準；billingDateAdjustedAt/Note 重置成 null，讓這個新週期重新擁有一次調整額度
+        data: {
+          status: 'pending_confirmation',
+          serviceInfoDeadline,
+          nextBillingDate,
+          billingDateAdjustedAt:     null,
+          billingDateAdjustmentNote: null,
+          ...(sharedCredentials !== undefined && { sharedCredentials }),
+        },
         include: {
           host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true } },
           service: true,
@@ -283,6 +398,19 @@ router.post('/:id/lock', requireAuth, async (req, res, next) => {
     // 聊天室已由前端在鎖定前先建立好，這裡補一則系統訊息告知所有成員聊天室已啟用
     const groupLabel = group.planName ?? group.service?.name ?? ''
     notifyGroupConversation(req.params.id, group.hostId, `「${groupLabel}」聊天室已啟用。`).catch(console.error)
+
+    // 這個階段的扣款日只是預估（實際啟用服務時會重新計算，見 /activate），先提醒成員跟團主自己
+    // 心裡有個底，開啟群組詳情時前端會用一個 Dialog 特別提示一次
+    const estimatedDateText = nextBillingDate.toISOString().slice(0, 10).replace(/-/g, '/')
+    ;[group.hostId, ...group.members.map(m => m.userId)].forEach(userId => {
+      notify({
+        userId,
+        type:    'billing_date_confirmed',
+        title:   '預估下次扣款日',
+        message: `「${groupLabel}」目前預估下次扣款日為 ${estimatedDateText}，實際日期會在團主啟用服務時重新確認。`,
+        meta:    { groupId: req.params.id, nextBillingDate: nextBillingDate.toISOString(), estimated: true },
+      })
+    })
 
     res.json(updated)
   } catch (err) { next(err) }
@@ -441,14 +569,41 @@ router.post('/:id/renew', requireAuth, async (req, res, next) => {
         data:  { serviceInfo: null, serviceInfoIssueNote: null, confirmedAt: null },
       })
 
+      // Subscription.nextBillingDate 也要一起更新（跟 /lock 一樣），不然成員端卡片顯示的
+      // 還是上一期的舊日期；billingDateAdjustedAt/Note 重置成 null，讓新的一期重新擁有一次調整額度
+      await tx.subscription.updateMany({
+        where: { groupId: req.params.id },
+        data:  { nextBillingDate: base },
+      })
+
       return tx.group.update({
         where: { id: req.params.id },
-        data:  { status: 'pending_confirmation', nextBillingDate: base, serviceInfoDeadline, escrowTokens: { increment: seatCost * memberIds.length } },
+        data:  {
+          status: 'pending_confirmation',
+          nextBillingDate: base,
+          serviceInfoDeadline,
+          escrowTokens: { increment: seatCost * memberIds.length },
+          billingDateAdjustedAt:     null,
+          billingDateAdjustmentNote: null,
+        },
         include: {
           host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true } },
           service: true,
           _count:  { select: { members: true } },
         },
+      })
+    })
+
+    // 續訂後回到跟第一次鎖定群組一樣的「預估」階段，同一套通知類型，見 /lock 的說明
+    const groupLabel = group.planName ?? ''
+    const estimatedDateText = base.toISOString().slice(0, 10).replace(/-/g, '/')
+    ;[group.hostId, ...memberIds].forEach(userId => {
+      notify({
+        userId,
+        type:    'billing_date_confirmed',
+        title:   '預估下次扣款日',
+        message: `「${groupLabel}」新一期目前預估下次扣款日為 ${estimatedDateText}，實際日期會在團主啟用服務時重新確認。`,
+        meta:    { groupId: req.params.id, nextBillingDate: base.toISOString(), estimated: true },
       })
     })
 
