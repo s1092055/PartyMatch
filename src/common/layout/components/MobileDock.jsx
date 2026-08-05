@@ -142,7 +142,7 @@ export default function MobileDock({
           aria-expanded={accountMenuOpen}
           className={`flex flex-1 flex-col items-center justify-center gap-1 text-[0.65rem] font-bold transition-all hover:-translate-y-0.5 active:text-brand ${pathname === '/account' ? 'text-brand' : 'text-ink-3'}`}
         >
-          {accountTrigger.icon}
+          <span className="flex h-[22px] items-center justify-center">{accountTrigger.icon}</span>
           {accountTrigger.label}
         </button>
 

@@ -186,7 +186,7 @@ export default function SubscriptionsPage() {
             <div
               ref={listScrollRef}
               onScroll={handleListScroll}
-              className="max-h-[calc(100dvh-16rem)] overflow-y-auto p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              className="p-2 lg:max-h-[calc(100dvh-16rem)] lg:overflow-y-auto lg:[scrollbar-width:none] lg:[&::-webkit-scrollbar]:hidden"
             >
               <div className="grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-3">
                 {visibleApplications.map((app, i) => {
@@ -252,7 +252,7 @@ function ApplicationCard({ app, group, onViewGroup }) {
       onClick={onViewGroup}
     >
       <div className="flex justify-center">
-        <StatusBadge status="pending" label="審核中" />
+        <StatusBadge status="pending" label="團主審核中" />
       </div>
 
       <div className="mt-4 flex justify-center">
@@ -276,12 +276,12 @@ function ApplicationCard({ app, group, onViewGroup }) {
 
       <div className="grid grid-cols-3 divide-x divide-line-subtle rounded-lg border border-line-subtle">
         <div className="flex flex-col items-center gap-0.5 py-2.5 text-center">
-          <span className="text-2xs font-bold text-ink-3">群組狀態</span>
-          <span className="text-sm font-black leading-tight text-warning-text">審核中</span>
-        </div>
-        <div className="flex flex-col items-center gap-0.5 py-2.5 text-center">
           <span className="text-2xs font-bold text-ink-3">團主</span>
           <span className="text-sm font-black leading-tight text-ink">{app.hostName ?? '—'}</span>
+        </div>
+        <div className="flex flex-col items-center gap-0.5 py-2.5 text-center">
+          <span className="text-2xs font-bold text-ink-3">群組狀態</span>
+          <span className="text-sm font-black leading-tight text-warning-text">審核中</span>
         </div>
         <div className="flex flex-col items-center gap-0.5 py-2.5 text-center">
           <span className="text-2xs font-bold text-ink-3">申請日期</span>

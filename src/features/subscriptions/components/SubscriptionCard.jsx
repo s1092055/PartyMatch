@@ -76,7 +76,7 @@ function SubscriptionCard({ sub, onViewGroup }) {
 
       <div className="grid grid-cols-3 divide-x divide-line-subtle rounded-lg border border-line-subtle">
         <StatCell label="團主">{sub.hostName ?? '—'}</StatCell>
-        <StatCell label="成員人數">{memberCount} 人</StatCell>
+        <StatCell label="群組人數">{memberCount} 人</StatCell>
         {isActive ? (
           <StatCell label="下期收費">{toISODate(sub.nextBillingDate, '—')}</StatCell>
         ) : showsBillingDate ? (

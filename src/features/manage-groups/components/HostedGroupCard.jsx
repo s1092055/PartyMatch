@@ -120,7 +120,7 @@ function HostedGroupCard({
             {collectionState}
           </StatCell>
         )}
-        <StatCell label="成員人數">
+        <StatCell label="群組人數">
           {members.length + 1} 人
         </StatCell>
         {group.status === 'active' ? (
