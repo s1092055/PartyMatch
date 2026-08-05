@@ -67,7 +67,7 @@ export default function MobileDock({
   const isMyActive = PROTECTED_NAV_ROUTES.has(pathname)
   // 帳號選單觸發點與 drawer 裡的主要連結，登入/訪客只差 icon、文案、目的地
   const accountTrigger = loggedIn
-    ? { icon: <Avatar initial={avatarInitial} color={avatarColor} size="xs" className={pathname === '/account' ? 'ring-2 ring-brand' : ''} />, label: '我的帳號' }
+    ? { icon: <Avatar initial={avatarInitial} color={avatarColor} size="sm" className={pathname === '/account' ? 'ring-2 ring-brand' : ''} />, label: '帳號選單' }
     : { icon: <LogIn size={22} strokeWidth={2.1} />, label: '登入' }
   const primaryLink = loggedIn
     ? { href: '/account', icon: Settings, label: '我的帳號' }
