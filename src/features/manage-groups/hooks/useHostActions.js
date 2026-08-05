@@ -186,7 +186,8 @@ async function handleLockGroup(sharedCredentials) {
         meta:    { groupId: viewGroupId },
       })
       // 通知所有成員（只寫 DB，成員刷新後看到）：跟團主一樣收到「聊天室已啟用」，
-      // 另外再加一則「請填寫服務帳號資訊」提醒接下來要做的事——填寫服務帳號
+      // 另外再加一則提醒接下來要做的事——團主提供帳密的服務是「提取帳號資訊」，其餘是「填寫服務帳號」
+      const isSharedCredentials = getServiceById(group.serviceId)?.sharingMethod === 'shared_credentials'
       groupMembers.forEach(m => {
         insertNotification({
           userId:  m.userId,
@@ -198,8 +199,10 @@ async function handleLockGroup(sharedCredentials) {
         insertNotification({
           userId:  m.userId,
           type:    'fill_service_info',
-          title:   '請填寫服務帳號資訊',
-          message: `「${group.serviceName}」群組已鎖定，請進入填寫服務帳號並完成付款。`,
+          title:   isSharedCredentials ? '請提取帳號資訊' : '請填寫服務帳號資訊',
+          message: isSharedCredentials
+            ? `「${group.serviceName}」群組已鎖定，請進入提取帳號資訊並完成付款。`
+            : `「${group.serviceName}」群組已鎖定，請進入填寫服務帳號並完成付款。`,
           meta:    { groupId: viewGroupId },
         }).catch(console.error)
       })

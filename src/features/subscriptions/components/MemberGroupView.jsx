@@ -76,6 +76,9 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
   const isPaymentRelevant = !['recruiting', 'full'].includes(group.status)
 
   const sharingMethodConfig = getSharingMethodConfig(serviceDef?.sharingMethod)
+  // 團主主動提供帳密的服務（shared_credentials）成員端不需要「填寫」任何東西，只有一個確認框，
+  // 文案要跟其他 5 種要成員自己填 Email／邀請碼的方式區分開來，避免讓人誤以為要自己輸入帳密
+  const isSharedCredentials = serviceDef?.sharingMethod === 'shared_credentials'
   // serviceInfoIssueNote 這個欄位被團主標記「帳號需修正」跟申訴理由共用，
   // 送出申訴後自己的 serviceInfoIssueNote 也會被寫入申訴理由，此時要顯示的是「問題處理中」而不是「帳號需修正」
   const hasServiceInfoIssue = !!myMember?.serviceInfoIssueNote && group.status !== 'disputed'
@@ -174,7 +177,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
         onClick={() => { setFillValues(myMember?.serviceInfo ?? {}); setShowFillInfo(true) }}
         className="w-full rounded-lg shadow-md"
       >
-        <ClipboardEdit size={15} /> 填寫帳號
+        <ClipboardEdit size={15} /> {isSharedCredentials ? '提取帳號資訊' : '填寫帳號'}
       </Button>
     </div>
   )
@@ -311,7 +314,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
         ) : needsFillInfo ? (
           <div className="flex items-center justify-center gap-2 bg-brand-subtle px-6 py-3 text-sm font-extrabold text-brand">
             <Clock size={15} strokeWidth={1.5} />
-            請填寫服務帳號
+            {isSharedCredentials ? '請提取帳號資訊' : '請填寫服務帳號'}
             {group.serviceInfoDeadline && (
               <>，剩餘 <CountdownText deadline={group.serviceInfoDeadline} /></>
             )}
@@ -319,7 +322,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
         ) : waitingForOthers ? (
           <div className="flex items-center justify-center gap-2 bg-success-subtle px-6 py-3 text-sm font-extrabold text-success-text">
             <CheckCircle2 size={15} strokeWidth={1.5} />
-            已填寫服務帳號，等待其他成員完成填寫
+            {isSharedCredentials ? '已提取帳號資訊，等待其他成員完成' : '已填寫服務帳號，等待其他成員完成填寫'}
           </div>
         ) : canConfirm ? (
           <div className="flex items-center justify-center gap-2 bg-info-subtle px-6 py-3 text-sm font-extrabold text-info-text">
@@ -349,14 +352,15 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
       centeredCta={fillInfoCta || confirmCta || undefined}
       statusBadgeOverride={
         alreadyConfirmed ? { variant: 'active' } :
-        waitingForOthers ? { variant: 'active', label: '已填寫完成' } :
+        waitingForOthers ? { variant: 'active', label: isSharedCredentials ? '已提取完成' : '已填寫完成' } :
         group.status === 'recruiting' && !!sub ? 'member_joined' :
         group.status === 'full' ? { variant: 'full', label: '等待鎖定' } :
+        group.status === 'pending_confirmation' && isSharedCredentials ? { variant: 'warning', label: '成員提取中' } :
         undefined
       }
       pendingBadge={
         hasServiceInfoIssue ? '服務帳號需要修正' :
-        needsFillInfo       ? '請填寫服務帳號以完成加入流程' :
+        needsFillInfo       ? (isSharedCredentials ? '請提取帳號資訊' : '請填寫服務帳號以完成加入流程') :
         waitingForOthers    ? '已填寫完成' :
         canConfirm          ? '確認期進行中，請確認服務' :
         isDisputed          ? disputedBannerText :

@@ -4,7 +4,7 @@ import FavoriteToggleButton from '../../../components/ui/FavoriteToggleButton'
 
 function renderCTA({
   group, activeUserId, navigate, handleClose,
-  isHost, isWaitingMembers, needsFillInfo, hasServiceInfoIssue,
+  isHost, isWaitingMembers, needsFillInfo, hasServiceInfoIssue, isSharedCredentials,
   isMember, isPendingApp, isFull,
   cancelConfirm, setCancelConfirm, cancelling, handleCancel,
 }) {
@@ -31,7 +31,7 @@ function renderCTA({
           navigate('/my-subscriptions', { state: { openGroupId: group.id } })
         }}
       >
-        {hasServiceInfoIssue ? '修正服務帳號' : '填寫服務帳號'}
+        {hasServiceInfoIssue ? '修正服務帳號' : isSharedCredentials ? '提取帳號資訊' : '填寫服務帳號'}
       </Button>
     </div>
   )
@@ -63,7 +63,7 @@ function renderCTA({
 
 export function buildMobileFooter({
   group, activeUserId, navigate, handleClose,
-  isHost, isWaitingMembers, needsFillInfo, hasServiceInfoIssue,
+  isHost, isWaitingMembers, needsFillInfo, hasServiceInfoIssue, isSharedCredentials,
   isMember, isPendingApp, isFull, canApply, isFav,
   cancelConfirm, setCancelConfirm, cancelling, handleCancel,
   setShowMembers, setLeaveConfirm, onApplyClick, toggleFav,
@@ -106,7 +106,7 @@ export function buildMobileFooter({
       ) : (
         renderCTA({
           group, activeUserId, navigate, handleClose,
-          isHost, isWaitingMembers, needsFillInfo, hasServiceInfoIssue,
+          isHost, isWaitingMembers, needsFillInfo, hasServiceInfoIssue, isSharedCredentials,
           isMember, isPendingApp, isFull,
           cancelConfirm, setCancelConfirm, cancelling, handleCancel,
         })

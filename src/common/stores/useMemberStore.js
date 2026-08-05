@@ -11,6 +11,7 @@ import { insertNotification } from '../api/notificationsApi'
 // 所以這邊可以放心靜態 import，不會形成真正的循環依賴
 import { useGroupStore } from './useGroupStore'
 import { useAuthStore } from './useAuthStore'
+import { getServiceById } from '../utils/serviceUtils'
 
 export const useMemberStore = create((set, get) => ({
   members: [],
@@ -77,11 +78,14 @@ export const useMemberStore = create((set, get) => ({
       const group = useGroupStore.getState().getById(groupId)
       if (group) {
         const currentUser = useAuthStore.getState().user
+        const isSharedCredentials = getServiceById(group.serviceId)?.sharingMethod === 'shared_credentials'
         insertNotification({
           userId:  group.hostId,
           type:    'service_info_filled',
-          title:   '成員已填寫服務帳號',
-          message: `${currentUser?.name ?? '成員'} 已填寫「${group.serviceName ?? group.groupName}」群組的服務帳號資訊。`,
+          title:   isSharedCredentials ? '成員已提取帳號資訊' : '成員已填寫服務帳號',
+          message: isSharedCredentials
+            ? `${currentUser?.name ?? '成員'} 已確認取得「${group.serviceName ?? group.groupName}」群組的帳號資訊。`
+            : `${currentUser?.name ?? '成員'} 已填寫「${group.serviceName ?? group.groupName}」群組的服務帳號資訊。`,
           meta:    { groupId, memberId },
         }).catch(console.error)
       }

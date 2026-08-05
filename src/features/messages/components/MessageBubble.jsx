@@ -41,13 +41,14 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
     if (msg.actionType === 'fill_service_info') {
       const isHost = userId === hostId
       const sharingMethod = getServiceById(msg.payload?.serviceId)?.sharingMethod
+      const isSharedCredentials = sharingMethod === 'shared_credentials'
       // 純粹顯示大家目前的填寫狀態，不是敏感資料，群組裡每個人都看得到同一份，不用分團主/成員兩種版本
       const myMember = getMemberByUserAndGroup(userId, conversationGroupId)
       const iAlreadyFilled = isHost || (hasFilledServiceInfo(myMember?.serviceInfo, sharingMethod) && !myMember?.serviceInfoIssueNote)
       return (
         <div key={msg.id} className="flex justify-center">
           <div className="w-72 rounded-2xl border border-line bg-surface p-4 shadow-sm">
-            <p className="mb-2 text-xs font-semibold text-ink-2">服務帳號填寫進度</p>
+            <p className="mb-2 text-xs font-semibold text-ink-2">{isSharedCredentials ? '帳號資訊提取進度' : '服務帳號填寫進度'}</p>
             <div className="space-y-2">
               {groupMembers.map(m => (
                 <div key={m.id} className="flex items-center gap-2">
@@ -60,7 +61,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
                     {hasFilledServiceInfo(m.serviceInfo, sharingMethod) ? (
                       <p className="text-xs text-ink-3">{getServiceInfoSummary(m.serviceInfo, sharingMethod)}</p>
                     ) : (
-                      <p className="text-xs text-ink-4">尚未填寫</p>
+                      <p className="text-xs text-ink-4">{isSharedCredentials ? '尚未提取' : '尚未填寫'}</p>
                     )}
                   </div>
                   {hasFilledServiceInfo(m.serviceInfo, sharingMethod) && <CheckCircle2 size={13} className="shrink-0 text-success" />}
@@ -75,7 +76,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
                 }}
                 className="mt-3 h-auto w-full rounded-lg px-3 py-1.5 text-xs"
               >
-                填寫服務帳號
+                {isSharedCredentials ? '提取帳號資訊' : '填寫服務帳號'}
               </Button>
             )}
           </div>
@@ -93,6 +94,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
     if (msg.actionType === 'request_service_resubmit') {
       const svcMember = getMemberByUserAndGroup(userId, conversationGroupId)
       const resubmitSharingMethod = getServiceById(msg.payload?.serviceId)?.sharingMethod
+      const resubmitIsSharedCredentials = resubmitSharingMethod === 'shared_credentials'
       const alreadyFixed = hasFilledServiceInfo(svcMember?.serviceInfo, resubmitSharingMethod) && !svcMember?.serviceInfoIssueNote
       return (
         <div key={msg.id} className="flex justify-center">
@@ -101,7 +103,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
             {msg.text && <p className="mb-3 rounded-lg bg-surface/60 px-3 py-2 text-left text-xs text-ink-2">{msg.text}</p>}
             {alreadyFixed ? (
               <p className="flex items-center justify-center gap-1 text-xs font-semibold text-ink-3">
-                <CheckCircle2 size={13} /> 已重新填寫
+                <CheckCircle2 size={13} /> {resubmitIsSharedCredentials ? '已重新確認' : '已重新填寫'}
               </p>
             ) : (
               <Button
@@ -111,7 +113,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
                 }}
                 className="h-auto w-full rounded-lg bg-warning px-3 py-1.5 text-xs hover:bg-warning hover:opacity-90"
               >
-                重新填寫服務帳號
+                {resubmitIsSharedCredentials ? '重新提取帳號資訊' : '重新填寫服務帳號'}
               </Button>
             )}
           </div>

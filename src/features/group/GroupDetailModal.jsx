@@ -292,6 +292,7 @@ export default function GroupDetailModal() {
       mobileFooter={buildMobileFooter({
         group, activeUserId, navigate, handleClose,
         isHost, isWaitingMembers, needsFillInfo, hasServiceInfoIssue,
+        isSharedCredentials: service?.sharingMethod === 'shared_credentials',
         isMember, isPendingApp, isFull, canApply, isFav,
         cancelConfirm, setCancelConfirm, cancelling, handleCancel,
         setShowMembers, setLeaveConfirm, onApplyClick: handleApplyClick, toggleFav,

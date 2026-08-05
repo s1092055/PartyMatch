@@ -229,7 +229,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
   const pendingConfirmationBanner = group.status === 'pending_confirmation' && (
     <div className="flex items-center justify-center gap-2 bg-info-subtle px-6 py-3 text-sm font-extrabold text-info-text">
       <Clock size={15} strokeWidth={1.5} />
-      等待成員填寫服務帳號資訊
+      {needsCredentialsOnLock ? '等待成員提取帳號資訊' : '等待成員填寫服務帳號資訊'}
       {group.serviceInfoDeadline && (
         <>，剩餘 <CountdownText deadline={group.serviceInfoDeadline} /></>
       )}
@@ -276,7 +276,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
   const activateBanner = canActivateNow && (
     <div className="flex items-center justify-center gap-2 bg-warning-subtle px-6 py-3 text-sm font-extrabold text-warning-text">
       <CheckCircle2 size={15} />
-      所有成員已完成填寫服務帳號，可以啟用服務了
+      {needsCredentialsOnLock ? '所有成員已完成提取帳號資訊，可以啟用服務了' : '所有成員已完成填寫服務帳號，可以啟用服務了'}
     </div>
   )
 
@@ -419,9 +419,13 @@ export default function HostGroupView({ group, members, applications, onReportSe
       headerBanner={lockGroupBanner || activateBanner || pendingConfirmationBanner || confirmingBanner || disputedBanner || undefined}
       centeredCta={lockGroupCta || activateCta || undefined}
       extraInfoRows={[]}
-      statusBadgeOverride={group.status === 'full' ? { variant: 'full', label: '等待鎖定' } : undefined}
+      statusBadgeOverride={
+        group.status === 'full' ? { variant: 'full', label: '等待鎖定' } :
+        group.status === 'pending_confirmation' && needsCredentialsOnLock ? { variant: 'warning', label: '成員提取中' } :
+        undefined
+      }
       pendingBadge={
-        group.status === 'pending_confirmation' ? '成員填寫中' :
+        group.status === 'pending_confirmation' ? (needsCredentialsOnLock ? '成員提取中' : '成員填寫中') :
         group.status === 'disputed' ? '收到問題回報，處理中' :
         undefined
       }

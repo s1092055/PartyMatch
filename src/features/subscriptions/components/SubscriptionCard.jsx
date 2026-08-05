@@ -41,6 +41,7 @@ function SubscriptionCard({ sub, onViewGroup }) {
   // 已填完服務帳號、還在等其他成員的話，卡片不能顯示跟「還沒填」一樣的「成員填寫中」，
   // 不然會讓人誤以為自己還沒填寫；改成綠色「已填寫完成」，跟群組詳情 Modal 的判斷邏輯一致
   const sharingMethod   = getServiceById(sub.serviceId)?.sharingMethod
+  const isSharedCredentials = sharingMethod === 'shared_credentials'
   const waitingForOthers = badgeStatus === 'pending_confirmation' &&
     hasFilledServiceInfo(sub.serviceInfo, sharingMethod) && !sub.serviceInfoIssueNote
 
@@ -53,7 +54,12 @@ function SubscriptionCard({ sub, onViewGroup }) {
       <div className="flex justify-center">
         <StatusBadge
           status={waitingForOthers ? 'active' : displayStatus === 'recruiting' ? 'member_joined' : displayStatus}
-          label={waitingForOthers ? '已填寫完成' : displayStatus === 'full' ? '等待鎖定' : undefined}
+          label={
+            waitingForOthers ? (isSharedCredentials ? '已提取完成' : '已填寫完成') :
+            displayStatus === 'full' ? '等待鎖定' :
+            displayStatus === 'pending_confirmation' && isSharedCredentials ? '成員提取中' :
+            undefined
+          }
         />
       </div>
 

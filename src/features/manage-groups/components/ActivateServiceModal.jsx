@@ -103,7 +103,7 @@ export default function ActivateServiceModal({
                           ) : hasFilledServiceInfo(m.serviceInfo, sharingMethod) ? (
                             <p className="text-xs text-ink-3">{getServiceInfoSummary(m.serviceInfo, sharingMethod)}</p>
                           ) : (
-                            <p className="text-xs text-ink-4">尚未填寫帳號</p>
+                            <p className="text-xs text-ink-4">{sharingMethod === 'shared_credentials' ? '尚未提取帳號資訊' : '尚未填寫帳號'}</p>
                           )}
                         </div>
                       </label>

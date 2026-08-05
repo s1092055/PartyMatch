@@ -8,6 +8,7 @@ import TokenAmount from '../../../components/ui/TokenAmount'
 import { getRenewalAwareStatus } from '../../../common/utils/groupStatusDisplay'
 import { toISODate } from '../../../common/utils/date'
 import { calcDisplayPrice, calcDisplayCycle } from '../../../common/utils/pricingUtils'
+import { getServiceById } from '../../../common/utils/serviceUtils'
 
 // 這裡的文字刻意跟 Badge.jsx 的 LABELS 分開維護：StatCell 用的是稍微更完整的描述用語
 // （例如「待啟用服務」而非 Badge 的「待啟用」），且這裡多了 Badge 沒有的「追蹤中」「正常」兩種細分狀態，
@@ -53,6 +54,7 @@ function HostedGroupCard({
   onViewGroup,
 }) {
   const displayStatus = getRenewalAwareStatus(group.status, group.nextBillingDate)
+  const isSharedCredentials = getServiceById(group.serviceId)?.sharingMethod === 'shared_credentials'
 
   const collectionState = getCollectionState({ group, paidCount: 0, paymentTarget: members.length })
 
@@ -78,7 +80,11 @@ function HostedGroupCard({
       <div className="flex justify-center">
         <StatusBadge
           status={displayStatus}
-          label={group.status === 'full' ? '等待鎖定' : undefined}
+          label={
+            group.status === 'full' ? '等待鎖定' :
+            group.status === 'pending_confirmation' && isSharedCredentials ? '成員提取中' :
+            undefined
+          }
         />
       </div>
 

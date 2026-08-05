@@ -25,6 +25,8 @@ export default function FillServiceInfoModal({
 }) {
   const existingSummary = getServiceInfoSummary(serviceInfo, sharingMethod)
   const parsedCredentials = parseHostCredentials(group.sharedCredentials, group.serviceId)
+  const isSharedCredentials = sharingMethod === 'shared_credentials'
+  const modalTitle = isSharedCredentials ? '提取帳號資訊' : '填寫服務帳號'
 
   return (
     <Dialog open={isOpen} onOpenChange={v => { if (!v) onClose() }}>
@@ -32,15 +34,17 @@ export default function FillServiceInfoModal({
         <DialogHeader>
           <div className="flex min-w-0 items-center gap-2.5">
             <ClipboardEdit size={18} className="shrink-0 text-brand" />
-            <DialogTitle className="truncate text-base">填寫服務帳號</DialogTitle>
+            <DialogTitle className="truncate text-base">{modalTitle}</DialogTitle>
           </div>
           <DialogCloseButton />
         </DialogHeader>
-        <DialogDescription>填寫服務帳號</DialogDescription>
+        <DialogDescription>{modalTitle}</DialogDescription>
         <DialogBody>
       <form onSubmit={onSubmit} className="animate-step-slide-up p-5 space-y-4">
         <p className="text-sm text-ink-3">
-          請填寫你用於 <span className="font-semibold text-ink">{group.serviceName}</span> 的服務資訊，團主將使用此資訊幫你設定訂閱。
+          {isSharedCredentials
+            ? <>團主已提供 <span className="font-semibold text-ink">{group.serviceName}</span> 的帳號資訊，請取得後確認可以登入。</>
+            : <>請填寫你用於 <span className="font-semibold text-ink">{group.serviceName}</span> 的服務資訊，團主將使用此資訊幫你設定訂閱。</>}
         </p>
         {sharingMethodConfig.notice && (
           <div className="rounded-lg bg-warning-subtle px-3 py-2 text-xs leading-relaxed text-warning-text">
@@ -111,7 +115,7 @@ export default function FillServiceInfoModal({
           disabled={!fillValid || fillLoading}
           className="w-full rounded-lg"
         >
-          {fillLoading ? '送出中…' : '送出帳號資訊'}
+          {fillLoading ? '送出中…' : isSharedCredentials ? '確認已取得帳號資訊' : '送出帳號資訊'}
         </Button>
       </form>
         </DialogBody>

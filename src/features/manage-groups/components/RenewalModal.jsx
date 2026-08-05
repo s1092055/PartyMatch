@@ -3,10 +3,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import ServiceLogo from '../../../components/ui/ServiceLogo'
 import { StatusBadge } from '../../../components/ui/StatusBadge'
 import { advanceByCycle, daysUntil, toISODate } from '../../../common/utils/date'
+import { getServiceById } from '../../../common/utils/serviceUtils'
 
 export default function RenewalModal({ isOpen, onClose, group, onStartRenewal, onEndGroup }) {
   if (!group) return null
 
+  const isSharedCredentials = getServiceById(group.serviceId)?.sharingMethod === 'shared_credentials'
   const days = daysUntil(group.nextBillingDate)
   const isOverdue = days < 0
   const currentBillingDate = toISODate(group.nextBillingDate)
@@ -58,7 +60,7 @@ export default function RenewalModal({ isOpen, onClose, group, onStartRenewal, o
             <p className="font-bold text-brand">開始新一期收款</p>
           </div>
           <p className="mt-1.5 text-xs text-ink-3">
-            將立即向每位成員收取本期費用並代管，下期帳單日設為 {nextCycleDate}，成員會收到通知並需重新填寫服務帳號資訊。
+            將立即向每位成員收取本期費用並代管，下期帳單日設為 {nextCycleDate}，成員會收到通知並需{isSharedCredentials ? '重新提取帳號資訊' : '重新填寫服務帳號資訊'}。
           </p>
         </button>
 
