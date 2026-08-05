@@ -10,41 +10,41 @@ sequenceDiagram
     participant U as 使用者
     participant FE as 前端
     participant BE as 後端
-    participant DB as 資料庫（$transaction）
+    participant DB as 資料庫（交易）
 
     U->>FE: 開啟群組詳情，點擊「申請加入」
-    FE->>FE: canApply 檢查（非團主/非成員/無進行中申請/未額滿/已登入）
+    FE->>FE: 檢查是否符合申請資格（非團主/非成員/無進行中申請/未額滿/已登入）
     U->>FE: 填寫申請留言，勾選同意條款
-    FE->>BE: POST /applications
-    BE->>DB: 查群組狀態 + 申請人 tokenBalance（友善預檢）
-    alt 群組非 recruiting 或為自己的群組
-        BE-->>FE: 400
-    else 餘額 < 席位費用
-        BE-->>FE: 400 INSUFFICIENT_BALANCE
+    FE->>BE: 送出申請
+    BE->>DB: 查群組狀態與申請人餘額（友善預檢）
+    alt 群組非招募中或為自己的群組
+        BE-->>FE: 拒絕
+    else 餘額不足
+        BE-->>FE: 拒絕，提示餘額不足
         FE-->>U: toast「前往儲值」
     else 已有進行中申請
-        BE-->>FE: 409
+        BE-->>FE: 拒絕（重複申請）
     else 通過檢查
-        BE->>DB: 條件式扣款 tokenBalance
-        BE->>DB: 建立 Application（activeKey: 'active'）
-        BE->>DB: escrowTokens += 席位費用，寫入 TokenTransaction(escrow)
-        BE-->>FE: 201
-        FE->>FE: 重新整理 tokenBalance 顯示
+        BE->>DB: 條件式扣款
+        BE->>DB: 建立申請紀錄
+        BE->>DB: 代管金額增加席位費用，寫入交易紀錄
+        BE-->>FE: 成功
+        FE->>FE: 重新整理餘額顯示
         FE->>DB: 寫入通知（申請人 + 團主）
         FE-->>U: 顯示「申請已送出」
     end
 
     Note over U,BE: 審核前可隨時取消，代管的錢會退回來
     U->>FE: 點擊「取消申請」
-    FE->>BE: DELETE /applications/:id
-    BE->>DB: status → cancelled，清空 activeKey
-    BE->>DB: tokenBalance += 席位費用，escrowTokens -= 費用，寫入 TokenTransaction(refund)
-    BE-->>FE: 200（可重新申請同一群組）
+    FE->>BE: 取消申請
+    BE->>DB: 狀態改為已取消
+    BE->>DB: 退還席位費用、扣除代管金額，寫入退款交易紀錄
+    BE-->>FE: 成功（可重新申請同一群組）
 ```
 
 ## 入口
-- `GroupDetailModal` 內的「申請加入」按鈕（手機版在 `buildMobileFooter.jsx`，桌機版為對應按鈕），開啟 `ApplyModal` 子彈窗
-- `GroupDetailModal` 透過 `pm:open-group` custom event 開啟，於探索頁 `ExploreGroupCard`、快速搜尋結果、收藏頁等處點擊群組卡片觸發
+- 群組詳情頁的「申請加入」按鈕（手機版與桌機版各自對應按鈕），會開啟申請彈窗
+- 群組詳情彈窗透過共用事件開啟，在探索頁、快速搜尋結果、收藏頁等處點擊群組卡片皆會觸發
 
 ## 相關檔案
 
@@ -76,49 +76,47 @@ sequenceDiagram
 | `TokenTransaction` | 申請時寫入 `escrow`，取消時寫入 `refund` |
 
 ## 使用技術
-- **不做樂觀更新**：`useApplicationStore.create` 要等 `insertApplication(...)` 真的成功才寫入 store。如果先樂觀更新，遇到餘額不足這類錯誤時，探索頁的「已申請」標籤就會先跳出來又馬上消失，體驗反而更差
-- **`activeKey` 模擬 partial unique index**：`Application` 有 `@@unique([groupId, userId, activeKey])`，`pending`/`approved` 時 `activeKey = 'active'`，其餘狀態則是 `null`；MySQL 的 unique index 允許多個 `null` 並存，就靠這點擋掉併發時的重複申請
-- **申請狀態即時從 store 讀，不放進 modal 自己的 state**：這樣團主審核完之後，群組詳情頁看到的狀態才不會跟 store 對不上
-- **友善預檢 + 條件式扣款兩層把關**：送出申請前先讀一次餘額，餘額不夠就給明確的錯誤訊息；真正扣款時還是靠 transaction 內的條件式 `updateMany`（`tokenBalance: { gte: seatCost }`）確保不會扣成負數，避免使用者同時對兩個不同群組送出申請時被超扣
+- **不會先在畫面上更新**：申請成功要等後端真的確認才寫入本地狀態。如果送出當下就先顯示成功，遇到餘額不足這類錯誤時，探索頁的「已申請」標籤就會先跳出來又馬上消失，體驗反而更差
+- **用「進行中才給值、其餘留空」模擬部分唯一索引**：申請在審核中或已通過時會標記為進行中，其餘狀態則清空；MySQL 的 unique index 允許多個空值並存，就靠這點擋掉併發時的重複申請
+- **申請狀態即時從 store 讀，不放進彈窗自己的 state**：這樣團主審核完之後，群組詳情頁看到的狀態才不會跟 store 對不上
+- **友善預檢 + 條件式扣款兩層把關**：送出申請前先讀一次餘額，餘額不夠就給明確的錯誤訊息；真正扣款時還是靠交易內的條件式更新確保不會扣成負數，避免使用者同時對兩個不同群組送出申請時被超扣
 
 ## 流程步驟
 
 **1. 判斷是否可申請**
-- `GroupDetailModal` 計算 `app = getByUserAndGroup(activeUserId, group.id)`，推導出：
-  - `hasActiveApp`：排除 `rejected`/`removed`/`left`/`cancelled`，以及「已接受但已不是成員」的邊界情況
-  - `isPendingApp`：申請是否仍在審核中
-- `canApply = !isHost && !isMember && !hasActiveApp && !isFull && !!activeUserId`，全部成立才顯示「申請加入」入口
-- 未登入時 `buildMobileFooter` 改顯示導向 `/login` 的按鈕（登入後導向首頁，不會回到原本的群組頁）
+- 前端根據使用者與群組的關係，推導出是否已有進行中的申請（排除已拒絕/已移除/已退出/已取消，以及「已接受但已不是成員」的邊界情況），以及該申請是否仍在審核中
+- 非團主、非成員、無進行中申請、群組未額滿、且已登入，才會顯示「申請加入」入口
+- 未登入時改顯示導向登入頁的按鈕（登入後導向首頁，不會回到原本的群組頁）
 
 **2. 填寫並送出申請**
-- 點擊「申請加入」→ 開啟 `ApplyModal`（隱藏後方群組詳情 modal）
-- 填寫選填的申請留言（`applyMessage`），勾選同意群組規則與付款條件（`applyAgreed`）
-- 「送出申請」在 `!applyAgreed` 時停用；點擊後呼叫 `useApplicationStore.create(...)` → `insertApplication` → `POST /applications`
+- 點擊「申請加入」開啟申請彈窗（隱藏後方的群組詳情彈窗）
+- 填寫選填的申請留言，勾選同意群組規則與付款條件
+- 未勾選同意條款時「送出申請」按鈕停用；點擊後送出申請
 
 **3. 後端驗證與代管扣款**
-- 併發查詢群組（`prisma.group.findUnique`）與申請人 `tokenBalance`
-- 依序檢查：群組存在、`status === 'recruiting'`、`group.hostId !== req.user.id`（團主不能申請自己的群組）
-- 用 `computeSeatCost(group)` 算出席位費用，`tokenBalance < seatCost` 回 `400 INSUFFICIENT_BALANCE`（這一步只是給友善錯誤訊息的預檢）
-- 查該使用者對此群組最新一筆申請，若存在且非 `['rejected','removed','left','cancelled']`，回 `409`
-- 通過後進入 `$transaction`：條件式扣款 `tokenBalance`（不足則回 `400 INSUFFICIENT_BALANCE`）→ `prisma.application.create(...)` 同時把 `escrowAmount` 設成這次扣的 `seatCost`（之後取消/拒絕退款要用這個值，不能用即時價格重算）→ `group.escrowTokens` 增加 → 寫入 `TokenTransaction(type: 'escrow')`；若資料庫層 unique constraint 擋下（`P2002`）回 `409`，整筆交易回滾（不會留下扣了錢但沒建申請的中間狀態）
+- 併發查詢群組與申請人餘額
+- 依序檢查：群組存在、群組狀態為招募中、團主不能申請自己的群組
+- 算出席位費用，餘額不足就回傳錯誤（這一步只是給友善錯誤訊息的預檢）
+- 查該使用者對此群組最新一筆申請，若存在且仍算進行中，回傳重複申請錯誤
+- 通過後進入交易：條件式扣款（不足則失敗）→ 建立申請紀錄，同時記下這次實際扣款的金額（之後取消/拒絕退款要用這個值，不能用即時價格重算）→ 群組代管金額增加 → 寫入代管交易紀錄；若資料庫層擋下重複申請，整筆交易回滾（不會留下扣了錢但沒建申請的中間狀態）
 
 **4. 送出成功後**
-- 前端把新申請（覆蓋為後端回傳的真實 `id`）加入 `applications` store，並呼叫 `refreshTokenBalance()` 讓畫面上的 PM 幣顯示同步扣款後的餘額
-- 即時寫入「申請已送出」通知給申請人自己（本地 store + DB）
-- 只寫 DB 通知團主（不即時推入團主 session 的 store，需刷新頁面才會看到）
-- `ApplyModal` 切到成功畫面：「申請已送出！等待團主審核後即可加入」
+- 前端把新申請加入本地列表，並重新整理餘額顯示，讓畫面上的 PM 幣同步扣款後的金額
+- 即時通知申請人自己「申請已送出」
+- 只寫入資料庫通知團主，不即時推送，需刷新頁面才會看到
+- 彈窗切到成功畫面：「申請已送出！等待團主審核後即可加入」
 
 **5. 取消申請**
-- `isPendingApp` 為真時，`GroupDetailModal` 提供「取消申請」（`handleCancel`）
-- 前端樂觀把該筆狀態改為 `cancelled` → `DELETE /applications/:id`；失敗則重新 `init()` 拉取真實狀態並拋出錯誤
-- 後端檢查：申請存在、`userId === req.user.id`（僅申請人可取消）、`status === 'pending'`（只能取消審核中的）
-- 通過後進入 `$transaction`：條件式更新（僅 `status: 'pending'` 才處理，避免跟團主同時審核衝突）把 `status → cancelled`、清空 `activeKey` → 呼叫共用的 `refundEscrow`，用 `escrowAmount`（跟目前 `escrowTokens` 取 `Math.min`）退還代管金額、寫入 `TokenTransaction(type: 'refund')`
-- 成功後前端呼叫 `refreshTokenBalance()` 同步餘額顯示
+- 申請仍在審核中時，群組詳情頁會提供「取消申請」
+- 前端先把該筆狀態改成已取消並顯示在畫面上，再送出取消請求；失敗則重新拉取真實狀態並拋出錯誤
+- 後端檢查：申請存在、僅申請人本人可取消、且申請仍在審核中
+- 通過後進入交易：條件式更新（避免跟團主同時審核衝突）把狀態改為已取消、清空進行中標記，接著用共用的退款流程，取當初扣款金額與目前代管餘額中較小者退還、寫入退款交易紀錄
+- 成功後前端重新整理餘額顯示
 
 ## 驗證重點
-- 代管扣款發生在申請當下，不是等團主接受：友善預檢用讀到的餘額快照給明確錯誤訊息，正式扣款仍在 transaction 內用條件式 `updateMany` 二次核對，兩邊都失敗才不會產生扣了一半的狀態
-- 團主不能申請自己的群組（`group.hostId === req.user.id` → 400）
-- 群組必須是 `recruiting` 才能申請，`full`／已鎖定一律 400
-- 重複申請防護雙層：應用層先 `findFirst` 查最新一筆申請擋掉一般情況，資料庫層再靠 `(groupId, userId, activeKey)` unique index 擋併發（第二筆 `P2002` 回 409，且整個 transaction 一起回滾，不會留下已扣款但沒建立申請的資料）
-- 取消只能取消自己、且仍為 `pending` 的申請；已接受/已拒絕/已離開的無法取消，取消時的退款用條件式 `updateMany` 限定僅 `pending` 才處理，避免跟團主幾乎同時審核造成重複退款
-- 取消後 `activeKey` 清空為 `null`，可對同一群組重新申請（重新申請會是全新一筆代管扣款）
+- 代管扣款發生在申請當下，不是等團主接受：友善預檢用讀到的餘額快照給明確錯誤訊息，正式扣款仍在交易內用條件式更新二次核對，兩邊都失敗才不會產生扣了一半的狀態
+- 團主不能申請自己的群組
+- 群組必須是招募中才能申請，額滿或已鎖定一律拒絕
+- 重複申請防護雙層：應用層先查最新一筆申請擋掉一般情況，資料庫層再靠唯一索引擋併發（第二筆送出時整個交易一起回滾，不會留下已扣款但沒建立申請的資料）
+- 取消只能取消自己、且仍在審核中的申請；已接受/已拒絕/已離開的無法取消，取消時的退款用條件式更新限定僅審核中才處理，避免跟團主幾乎同時審核造成重複退款
+- 取消後可對同一群組重新申請（重新申請會是全新一筆代管扣款）

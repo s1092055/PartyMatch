@@ -12,18 +12,18 @@ sequenceDiagram
     participant FE as 前端（每 10 秒輪詢）
     participant U as 使用者
 
-    FE1->>DB: 業務動作成功後呼叫 insertNotification\nPOST /notifications（附 type + meta.groupId）
+    FE1->>DB: 業務動作成功後寫入通知（附類型與關聯群組）
     loop 每 10 秒
-        FE->>DB: GET /notifications（optionalAuth）
+        FE->>DB: 取得通知列表
         DB-->>FE: 個人通知 + 公開公告
     end
-    FE->>FE: dedupeById 去重，計算未讀數
+    FE->>FE: 去除重複通知，計算未讀數
 
     U->>FE: 點擊某則通知
-    FE->>DB: PATCH /notifications/:id/read
-    FE->>FE: navigate(route) + dispatchEvent('pm:open-xxx')
-    Note over FE: 雙重觸發：同頁面 location.state 不會變化\n改用 window event 確保 Modal 一定開啟
-    FE-->>U: 導向對應頁面並開啟對應 Modal
+    FE->>DB: 標記為已讀
+    FE->>FE: 換頁並廣播開啟事件
+    Note over FE: 雙重觸發：同頁面換頁本身不會有變化\n改用事件廣播確保視窗一定開啟
+    FE-->>U: 導向對應頁面並開啟對應視窗
 ```
 
 ## 入口
@@ -56,14 +56,14 @@ sequenceDiagram
 | `Notification` | 個人通知 + 系統公告（`isPublic: true` 為公告）；`meta` 存放 `groupId` 等關聯資訊供前端導向使用 |
 
 ## 使用技術
-- **用 Polling**：`useNotificationStore` 每 10 秒輪詢一次，跟其他輪詢共用同一套機制
-- **事件驅動導向**：點擊通知不是單純換頁，而是「換頁 + 廣播一個 window event」雙重觸發——如果只換頁，同一頁面內重複點同一個群組的通知不會有變化，得靠 window event 才能保證 Modal 每次都真的打開
-- **去重保險**：依 `id` 過濾掉重複項目，避免初次載入跟輪詢交錯時，同一筆通知在列表裡出現兩次
+- **用 Polling**：每 10 秒輪詢一次，跟其他輪詢共用同一套機制
+- **事件驅動導向**：點擊通知不是單純換頁，而是「換頁 + 廣播事件」雙重觸發——如果只換頁，同一頁面內重複點同一個群組的通知不會有變化，得靠事件廣播才能保證視窗每次都真的打開
+- **去重保險**：依編號過濾掉重複項目，避免初次載入跟輪詢交錯時，同一筆通知在列表裡出現兩次
 
 ## 流程步驟
 
 **1. 通知建立**
-- `POST /notifications` 是通用端點，實際上大多數通知（申請接受、成員移除、群組額滿等）是前端動作成功之後，由發起動作的那一端呼叫 `insertNotification(...)` 寫入，不是後端業務 route 自動建立；例外是 `server/src/routes/subscriptions.js` 的 `notifyUpcomingRenewals`（距下次扣款日 7 天內的提醒）這種沒有對應前端互動時機的通知，才由後端在讀取訂閱資料時順便建立
+- 建立通知是通用端點，實際上大多數通知（申請接受、成員移除、群組額滿等）是前端動作成功之後，由發起動作的那一端寫入，不是後端業務流程自動建立；例外是距下次扣款日 7 天內的續訂提醒，這種沒有對應前端互動時機的通知，才由後端在讀取訂閱資料時順便建立
 - 通知自己（例如申請已送出）會同時寫本地 store（即時顯示）跟呼叫 API；通知別人（例如通知團主）只呼叫 API 寫 DB，不會即時出現在對方畫面，要等對方輪詢或重新整理才看得到
 
 **2. 前端取得通知**
@@ -91,13 +91,13 @@ sequenceDiagram
 | 「申請已送出」／「你的加入申請已送達「{groupName}」團主，等待審核。」 | `application_sent` | 送出加入申請當下 | 申請人自己（即時） | 我的訂閱「已申請」分頁 |
 | 「收到新的加入申請」／「{applicantName} 申請加入「{groupName}」群組。」 | `new_application` | 同上 | 團主（僅寫DB） | 群組管理該群組，自動開申請列表 |
 | 「申請已通過」／「恭喜！你加入「{groupName}」群組的申請已通過，請前往我的訂閱查看。」 | `application_approved` | 團主接受申請 | 申請人（僅寫DB） | 已有訂閱→成員視角群組頁；否則→探索頁開該群組（開啟前見下方「額滿保護」） |
-| 「申請未通過」／「很遺憾，你加入「{groupName}」群組的申請未通過，你可以繼續探索其他群組。」 | `application_rejected` | 團主拒絕申請 | 申請人（僅寫DB） | 探索頁，並重新拉取申請人自己的 `applicationStore`（本地紀錄還停在 `pending`，不重拉的話「已申請」標記不會消失），開啟該群組 Modal 前見下方「額滿保護」 |
-| 「申請人已取消申請」／「{applicantName} 已取消加入「{groupName}」群組的申請。」 | `application_cancelled` | 申請人自行取消 `pending` 申請 | 團主（僅寫DB） | 群組管理該群組，自動開申請列表；輪詢偵測到這則通知會直接觸發 `pm:refresh-application-store`，不需要點擊就會刷新，避免團主對著已取消的申請按接受/拒絕 |
+| 「申請未通過」／「很遺憾，你加入「{groupName}」群組的申請未通過，你可以繼續探索其他群組。」 | `application_rejected` | 團主拒絕申請 | 申請人（僅寫DB） | 探索頁，並重新拉取申請人自己的申請紀錄（不重拉的話「已申請」標記不會消失），開啟該群組視窗前見下方「額滿保護」 |
+| 「申請人已取消申請」／「{applicantName} 已取消加入「{groupName}」群組的申請。」 | `application_cancelled` | 申請人自行取消待審申請 | 團主（僅寫DB） | 群組管理該群組，自動開申請列表；輪詢偵測到這則通知會直接觸發刷新，不需要點擊就會更新，避免團主對著已取消的申請按接受/拒絕 |
 | 「群組已成功建立」／「「{serviceName}」群組已上架，開始招募成員中！」 | `group_created` | 建立群組成功當下 | 團主自己（即時） | 群組管理該群組 |
 | 「群組名額已滿」／「「{groupName}」群組名額已滿，可以點擊鎖定群組了。」 | `group_full` | 接受申請後名額剛好滿 | 團主自己（即時） | 群組管理該群組 |
 | 「群組聊天室已開啟」／「「{serviceName}」群組已鎖定，聊天室已建立，點擊查看。」 | `group_chat_opened` | 團主鎖定群組（建立聊天室） | 團主自己（即時） | 直接開啟該群組聊天室 |
 | 「請填寫服務帳號資訊」／「「{serviceName}」群組已鎖定，請進入填寫服務帳號並完成付款。」 | `fill_service_info` | 團主鎖定群組（建立聊天室） | 全體成員（僅寫DB） | 我的訂閱該群組，畫面會依 `needsFillInfo` 自動顯示填寫橫幅與按鈕。跟團主收到的 `group_chat_opened` 是同一個觸發時機分成兩種通知：團主單純被告知聊天室開了，成員則是直接被提醒要做的事，避免兩則內容幾乎一樣的通知混在一起像是重複發送 |
-| 「成員已填寫服務帳號」／「{userName} 已填寫「{serviceName}」群組的服務帳號資訊。」 | `service_info_filled` | 成員送出 `PATCH /members/:id`（`serviceInfo` 有值） | 團主（僅寫DB，由成員端 `useMemberStore.fillServiceInfo` 直接呼叫 `insertNotification`，不是後端主動發送） | 群組管理該群組，自動開「成員資料」分頁（`openMemberInfo`），點擊前先重新拉一次 `useMemberStore`，避免看到填寫當下的舊快取；側邊欄「成員資料」分頁的未讀數字 badge（樣式跟「申請管理」一致）也是靠這則通知的已讀狀態計算 |
+| 「成員已填寫服務帳號」／「{userName} 已填寫「{serviceName}」群組的服務帳號資訊。」 | `service_info_filled` | 成員送出服務帳號資訊 | 團主（僅寫DB，由成員端動作直接寫入，不是後端主動發送） | 群組管理該群組，自動開「成員資料」分頁，點擊前先重新拉一次成員資料，避免看到填寫當下的舊快取；側邊欄「成員資料」分頁的未讀數字徽章（樣式跟「申請管理」一致）也是靠這則通知的已讀狀態計算 |
 | 團主：「服務已啟用，確認期開始」／「「{serviceName}」群組服務已啟用，成員有 48 小時確認期。」；成員：「服務已啟用，請確認」／「「{serviceName}」服務已啟用！請在 48 小時內確認服務是否正常，否則將自動完成。」 | `group_activated` | 團主啟用服務 | 團主自己（即時）＋全體成員（僅寫DB） | 團主→自己群組頁；成員→成員視角群組頁 |
 | 「新一期已開始」／「「{serviceName}」群組開始新一期，請前往填寫最新服務帳號資訊。」 | `group_renewal` | 團主開始新一期續訂 | 全體成員（僅寫DB） | 我的訂閱該群組 |
 | 「群組已結束」／「「{groupLabel}」群組已由團主結束，合購服務將不再續訂。」 | `group_ended` | 團主結束群組 | 全體成員（僅寫DB） | 探索頁 |
@@ -105,21 +105,21 @@ sequenceDiagram
 | 「已被移出群組」／「團主已將你移出「{groupLabel}」群組。」 | `member_removed` | 團主移除成員 | 被移除的成員（僅寫DB） | 探索頁，開啟該群組 Modal 前見下方「額滿保護」 |
 | 「成員退出群組」／「{userName} 已退出「{groupLabel}」群組。」 | `member_left` | 成員自行退出群組（`finalizeLeaveGroup`） | 團主（僅寫DB） | 團主→該群組；成員自己不會收到這則 |
 | 「服務帳號需要修正」／「團主在「{groupName}」發現服務帳號問題，請前往修正。」 | `service_info_issue` | 團主回報帳號問題 | 該成員（僅寫DB） | 我的訂閱該群組 |
-| 「即將續訂」／「「{serviceName}」將於 今天／{days} 天後扣款，請確認PM幣餘額充足。」 | `upcoming_renewal` | 呼叫 `GET /subscriptions` 時後端檢查：`active` 訂閱且距下次扣款 ≤7 天，依 `nextBillingDate` 去重、同一期只發一次 | 該訂閱使用者 | 我的訂閱「服務中」分頁 |
-| 「收到成員問題回報」／「{memberName} 針對「{groupLabel}」服務回報問題，將於 48 小時內處理完成。」 | `dispute_raised` | 成員送出問題回報（`POST /groups/:id/dispute`） | 團主（僅寫DB） | 群組管理該群組 |
-| 「代管款項已撥款」／「「{groupLabel}」群組確認期結束，代管款項已撥入你的PM幣餘額。」 | `escrow_released` | 全員確認服務觸發撥款（`POST /groups/:id/confirm`） | 團主（僅寫DB） | 群組管理該群組 |
-| 「代管款項已撥款」／「「{groupLabel}」確認期已逾期，代管款項已自動撥入你的PM幣餘額。」 | `escrow_released` | 確認期逾期，`GET /groups/:id` 惰性撥款（任何人打開群組詳情觸發） | 團主（僅寫DB） | 群組管理該群組 |
-| 「代管款項已撥款」／「問題處理結果：「{groupLabel}」代管款項已撥入你的PM幣餘額。」 | `escrow_released` | 管理員裁定 `winner: 'host'`（`POST /groups/:id/adjudicate`） | 團主（僅寫DB） | 群組管理該群組 |
-| 「問題處理結果」／「你對「{groupLabel}」回報的問題已確認，本期費用已退還至你的PM幣餘額。」 | `dispute_resolved` | 管理員裁定 `winner: 'member'` | 回報成員（僅寫DB） | 探索頁（此時已被移出群組） |
-| 「問題處理結果」／「「{groupLabel}」的問題處理結果為退款給成員，該成員本期費用已退還並移出群組。」 | `dispute_resolved` | 管理員裁定 `winner: 'member'` | 團主（僅寫DB） | 群組管理該群組 |
-| 「問題處理結果」／「你對「{groupLabel}」回報的問題經確認後，本期費用已撥款給團主。」 | `dispute_resolved` | 管理員裁定 `winner: 'host'` | 回報成員（僅寫DB） | 探索頁 |
-| 「申訴裁定結果」／「你對「{groupLabel}」的申訴未受理，本期費用已撥款給團主。」 | `dispute_resolved` | 管理員裁定申訴 `winner: 'host'` | 申訴成員（僅寫DB） | 我的訂閱該群組（此時仍在群組內） |
-| 無固定文案 | `system` | 保留給公開系統公告（`isPublic: true`），但 `POST /notifications` 明確禁止一般使用者建立 `isPublic:true`，目前**沒有任何後端流程會真的建立**這種通知——公告目前只走「系統聊天室」訊息廣播（見 [訊息流程](messages-flow.md)）,不是走通知中心 | — | 首頁（`/`）。這個類型目前唯一的實例是前端寫死的訪客「歡迎來到 PartyMatch」通知（`useNotificationStore.js` 的 `system_guest_welcome`，非登入使用者才看得到），點擊時用 `window.location.replace('/')` 整頁刷新導回首頁，不是 `navigate('/')` 的 client-side 換頁，讓訪客回到最乾淨的初始畫面 |
+| 「即將續訂」／「「{serviceName}」將於 今天／{days} 天後扣款，請確認PM幣餘額充足。」 | `upcoming_renewal` | 讀取訂閱列表時後端檢查：服務中的訂閱且距下次扣款在 7 天內，依下次扣款日去重、同一期只發一次 | 該訂閱使用者 | 我的訂閱「服務中」分頁 |
+| 「收到成員問題回報」／「{memberName} 針對「{groupLabel}」服務回報問題，將於 48 小時內處理完成。」 | `dispute_raised` | 成員送出問題回報 | 團主（僅寫DB） | 群組管理該群組 |
+| 「代管款項已撥款」／「「{groupLabel}」群組確認期結束，代管款項已撥入你的PM幣餘額。」 | `escrow_released` | 全員確認服務觸發撥款 | 團主（僅寫DB） | 群組管理該群組 |
+| 「代管款項已撥款」／「「{groupLabel}」確認期已逾期，代管款項已自動撥入你的PM幣餘額。」 | `escrow_released` | 確認期逾期，讀取群組詳情時順便觸發的惰性撥款 | 團主（僅寫DB） | 群組管理該群組 |
+| 「代管款項已撥款」／「問題處理結果：「{groupLabel}」代管款項已撥入你的PM幣餘額。」 | `escrow_released` | 管理員裁定團主獲勝 | 團主（僅寫DB） | 群組管理該群組 |
+| 「問題處理結果」／「你對「{groupLabel}」回報的問題已確認，本期費用已退還至你的PM幣餘額。」 | `dispute_resolved` | 管理員裁定成員獲勝 | 回報成員（僅寫DB） | 探索頁（此時已被移出群組） |
+| 「問題處理結果」／「「{groupLabel}」的問題處理結果為退款給成員，該成員本期費用已退還並移出群組。」 | `dispute_resolved` | 管理員裁定成員獲勝 | 團主（僅寫DB） | 群組管理該群組 |
+| 「問題處理結果」／「你對「{groupLabel}」回報的問題經確認後，本期費用已撥款給團主。」 | `dispute_resolved` | 管理員裁定團主獲勝 | 回報成員（僅寫DB） | 探索頁 |
+| 「申訴裁定結果」／「你對「{groupLabel}」的申訴未受理，本期費用已撥款給團主。」 | `dispute_resolved` | 管理員裁定申訴由團主獲勝 | 申訴成員（僅寫DB） | 我的訂閱該群組（此時仍在群組內） |
+| 無固定文案 | `system` | 保留給公開系統公告，但一般使用者不能自行建立公開公告，目前**沒有任何後端流程會真的建立**這種通知——公告目前只走「系統聊天室」訊息廣播（見 [訊息流程](messages-flow.md)），不是走通知中心 | — | 首頁。這個類型目前唯一的實例是前端寫死的訪客「歡迎來到 PartyMatch」通知（非登入使用者才看得到），點擊時整頁刷新導回首頁，而不是單純換頁，讓訪客回到最乾淨的初始畫面 |
 
 ### 額滿保護
-`application_rejected`／`member_removed`／`application_approved`（尚無訂閱分支）這三種通知點擊後會開啟探索頁的群組詳情 Modal，讓使用者「重新申請」或「瀏覽」該群組。但通知建立之後、使用者實際點擊之前，這個群組可能已經被別人申請填滿（`recruiting` → `full` 或更後面的狀態）。`FloatingMessages.jsx` 的 `openGroupOrRedirect(groupId)` 會在開啟 Modal 前重新拉一次群組資料並檢查 `status === 'recruiting'`，不符合就跳一個 `info` Toast 說明並留在探索頁，不會再打開一個「按下申請也沒用」的過期群組 Modal。
+「申請未通過」／「已被移出群組」／「申請已通過（尚無訂閱分支）」這三種通知點擊後會開啟探索頁的群組詳情視窗，讓使用者「重新申請」或「瀏覽」該群組。但通知建立之後、使用者實際點擊之前，這個群組可能已經被別人申請填滿。點擊時會先重新拉一次群組資料，確認狀態還是招募中，不符合就跳一個提示並留在探索頁，不會再打開一個「按下申請也沒用」的過期群組視窗。
 
 ### 已知落差
-- 公開系統公告的 Notification（`isPublic: true`）從未被建立過，實務上公告都是走 `system-messages` 聊天室廣播
+- 公開系統公告從未被建立過，實務上公告都是走系統聊天室廣播
 
-`POST /groups/:id/confirm`／`POST /groups/:id/dispute` 會分別建立 `escrow_released`／`dispute_raised` 通知給團主，並在群組聊天室留一則系統訊息（見 [訊息流程](messages-flow.md)）。確認期逾期的惰性自動撥款（`GET /groups/:id`）會補發 `escrow_released` 給團主；申訴裁定（`POST /groups/:id/adjudicate`）會建立 `dispute_resolved` 這個 `NotificationType`，兩個裁定分支（`winner: 'member'`／`winner: 'host'`）都會通知申訴成員與團主雙方。前端 `FloatingMessages.jsx` 點擊 `dispute_resolved` 時，會先查該成員是否仍在群組內，決定導向會員視角（仍是成員）或探索頁（已被移出群組）。
+代管撥款與申訴回報會分別建立「代管款項已撥款」／「收到成員問題回報」通知給團主，並在群組聊天室留一則系統訊息（見 [訊息流程](messages-flow.md)）。確認期逾期的惰性自動撥款會補發撥款通知給團主；申訴裁定會建立「問題處理結果」通知，成員獲勝或團主獲勝兩種結果都會通知申訴成員與團主雙方。前端點擊「問題處理結果」通知時，會先查該成員是否仍在群組內，決定導向會員視角（仍是成員）或探索頁（已被移出群組）。
