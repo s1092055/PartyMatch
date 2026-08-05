@@ -72,7 +72,7 @@ export default function RegisterPage() {
           placeholder="請輸入顯示名稱"
           value={form.name}
           onChange={value => updateField('name', value)}
-          hint="1～50 字，可使用中文、英文或數字"
+          hint="1～50 字"
         />
         <AuthInput
           icon={Mail}
@@ -97,7 +97,7 @@ export default function RegisterPage() {
           onCountryCodeChange={value => updateField('phoneCountryCode', value)}
           value={form.phoneLocal}
           onChange={value => updateField('phoneLocal', value)}
-          hint="請輸入不含國碼、開頭 0 的手機號碼，例如 912345678"
+          hint="不含國碼、開頭 0，例如 912345678"
           trailing={(
             <VerifyTrailingButton
               verified={phoneVerified}

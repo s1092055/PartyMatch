@@ -4,7 +4,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Card } from '../../../../components/ui/card'
 import { Badge } from '../../../../components/ui/badge'
 import { Button } from '../../../../components/ui/button'
-import { Input } from '../../../../components/ui/input'
+import { Input, Textarea } from '../../../../components/ui/input'
+import FilterSelect from '../../../../components/ui/primitives/FilterSelect'
+import { useFilterSelectGroup } from '../../../../components/ui/primitives/useFilterSelectGroup'
 import {
   createPaymentMethod,
   deletePaymentMethod,
@@ -17,7 +19,26 @@ const BRAND_COLOR = {
   Mastercard: { bg: 'bg-red-500',  text: 'MC'   },
 }
 
-const EMPTY_CARD = { number: '', expiry: '', cvc: '', name: '' }
+const MONTHS = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'))
+const CURRENT_YEAR = new Date().getFullYear()
+const YEARS = Array.from({ length: 16 }, (_, i) => String(CURRENT_YEAR + i))
+const MONTH_GROUPS = [{ label: null, items: MONTHS.map(m => ({ value: m, label: m })) }]
+const YEAR_GROUPS = [{ label: null, items: YEARS.map(y => ({ value: y, label: y })) }]
+
+const EMPTY_CARD = {
+  name: '', number: '', month: '', year: '', cvc: '',
+  address: '', city: '', postalCode: '', comments: '',
+}
+
+function FormField({ label, hint, children }) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-sm font-bold text-ink">{label}</label>
+      {children}
+      {hint && <p className="mt-1.5 text-xs text-ink-4">{hint}</p>}
+    </div>
+  )
+}
 
 export default function PaymentMethodsTab() {
   const [cards, setCards]       = useState([])
@@ -25,6 +46,7 @@ export default function PaymentMethodsTab() {
   const [modalOpen, setModalOpen] = useState(false)
   const [saving, setSaving]     = useState(false)
   const [newCard, setNewCard]   = useState(EMPTY_CARD)
+  const expiryFilterGroup = useFilterSelectGroup()
 
   useEffect(() => {
     fetchPaymentMethods()
@@ -37,13 +59,13 @@ export default function PaymentMethodsTab() {
   }, [])
 
   async function handleAdd() {
-    if (!newCard.number || !newCard.expiry) return
+    if (!newCard.number || !newCard.month || !newCard.year) return
     setSaving(true)
     try {
       const created = await createPaymentMethod({
         brand:  'Visa',
         last4:  newCard.number.replace(/\s/g, '').slice(-4),
-        expiry: newCard.expiry,
+        expiry: `${newCard.month}/${newCard.year.slice(-2)}`,
       })
       setCards(prev => [...prev, created])
       setNewCard(EMPTY_CARD)
@@ -143,7 +165,7 @@ export default function PaymentMethodsTab() {
       </div>
 
       <Dialog open={modalOpen} onOpenChange={v => { if (!v) closeModal() }}>
-        <DialogContent variant="panel" maxWidth="max-w-sm">
+        <DialogContent variant="panel" maxWidth="max-w-sm" height="min(85dvh, 34rem)">
           <DialogHeader>
             <div className="flex min-w-0 items-center gap-2.5">
               <CreditCard size={16} className="shrink-0 text-brand" />
@@ -151,26 +173,80 @@ export default function PaymentMethodsTab() {
             </div>
             <DialogCloseButton />
           </DialogHeader>
-          <DialogDescription>新增付款方式</DialogDescription>
+          <DialogDescription>交易已加密保護</DialogDescription>
           <DialogBody>
-        <div className="space-y-3 p-5">
-          <Input type="text" placeholder="卡號" maxLength={19} className="py-2 px-3" {...field('number')} />
-          <div className="grid grid-cols-2 gap-3">
-            <Input type="text" placeholder="到期日 MM/YY" maxLength={5} className="py-2 px-3" {...field('expiry')} />
-            <Input type="text" placeholder="CVC" maxLength={4} className="py-2 px-3" {...field('cvc')} />
-          </div>
-          <Input type="text" placeholder="持卡人姓名" className="py-2 px-3" {...field('name')} />
-        </div>
+            <div className="space-y-4 p-5">
+              <p className="-mt-1 text-sm text-ink-3">交易已加密保護</p>
+
+              <FormField label="持卡人姓名">
+                <Input type="text" placeholder="王小明" {...field('name')} />
+              </FormField>
+
+              <FormField label="卡號" hint="請輸入 16 碼卡號">
+                <Input type="text" placeholder="1234 5678 9012 3456" maxLength={19} {...field('number')} />
+              </FormField>
+
+              <div className="grid grid-cols-3 gap-3">
+                <FormField label="月">
+                  <FilterSelect
+                    id="card-month"
+                    ariaLabel="到期月份"
+                    group={expiryFilterGroup}
+                    value={newCard.month}
+                    onChange={v => setNewCard(p => ({ ...p, month: v }))}
+                    groups={MONTH_GROUPS}
+                    className="h-10 w-full font-bold"
+                    listClassName="max-h-40"
+                    triggerContent={<span className="truncate">{newCard.month || 'MM'}</span>}
+                  />
+                </FormField>
+                <FormField label="年">
+                  <FilterSelect
+                    id="card-year"
+                    ariaLabel="到期年份"
+                    group={expiryFilterGroup}
+                    value={newCard.year}
+                    onChange={v => setNewCard(p => ({ ...p, year: v }))}
+                    groups={YEAR_GROUPS}
+                    className="h-10 w-full font-bold"
+                    listClassName="max-h-40"
+                    triggerContent={<span className="truncate">{newCard.year || 'YYYY'}</span>}
+                  />
+                </FormField>
+                <FormField label="安全碼">
+                  <Input type="text" placeholder="123" maxLength={4} {...field('cvc')} />
+                </FormField>
+              </div>
+
+              <div className="space-y-4 border-t border-line-subtle pt-4">
+                <p className="text-sm font-bold text-ink">帳單地址</p>
+                <FormField label="地址">
+                  <Input type="text" placeholder="請輸入詳細地址" {...field('address')} />
+                </FormField>
+                <div className="grid grid-cols-2 gap-3">
+                  <FormField label="城市">
+                    <Input type="text" placeholder="台北市" {...field('city')} />
+                  </FormField>
+                  <FormField label="郵遞區號">
+                    <Input type="text" placeholder="100" {...field('postalCode')} />
+                  </FormField>
+                </div>
+              </div>
+
+              <FormField label="備註">
+                <Textarea placeholder="新增任何補充說明" rows={3} {...field('comments')} />
+              </FormField>
+            </div>
           </DialogBody>
           <DialogFooter>
-            <Button variant="ghost" onClick={closeModal} className="flex-1">取消</Button>
             <Button
               onClick={handleAdd}
-              disabled={!newCard.number || !newCard.expiry || saving}
+              disabled={!newCard.number || !newCard.month || !newCard.year || saving}
               className="flex-1"
             >
-              {saving ? '新增中…' : '新增'}
+              {saving ? '儲存中…' : '儲存'}
             </Button>
+            <Button variant="ghost" onClick={closeModal} className="flex-1">取消</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

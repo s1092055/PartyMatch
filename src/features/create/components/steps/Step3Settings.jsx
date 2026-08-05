@@ -54,7 +54,7 @@ export default function Step3Settings({ form, onChange }) {
           </div>
         </Field>
 
-        <Field label="信用分數" icon={ShieldCheck} hint="設定申請人需達到的最低信用分數門檻，篩掉高風險使用者">
+        <Field label="信用分數" icon={ShieldCheck} hint="申請人需達到的最低信用分數門檻">
           <div className="flex gap-2">
             {MIN_CREDIT_OPTIONS.map(o => (
               <button
@@ -72,7 +72,7 @@ export default function Step3Settings({ form, onChange }) {
           </div>
         </Field>
 
-        <Field label="帳號需求" icon={FileText} hint="說明成員是否需要自備帳號，或有其他帳號相關條件（選填）" className="flex min-h-0 flex-1 flex-col">
+        <Field label="帳號需求" icon={FileText} hint="帳號相關條件（選填）" className="flex min-h-0 flex-1 flex-col">
           <Textarea
             placeholder="例如：需使用自己的 Google 帳號登入"
             value={form.requirements}
@@ -87,7 +87,7 @@ export default function Step3Settings({ form, onChange }) {
       <Field
         label="群組規則"
         icon={ListChecks}
-        hint="最多 5 條，清楚的規則可降低後續糾紛，留空即可不設定"
+        hint="最多 5 條，留空即不設定"
         className="mt-6 flex min-h-0 min-w-0 flex-1 flex-col px-1 pb-1 short-lg:mt-0"
       >
         <div className="flex min-h-0 flex-1 flex-col justify-between gap-3">

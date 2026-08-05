@@ -52,7 +52,7 @@ export function buildMemberInfoPanel({ members, sharingMethod, sharedCredentials
             ) : sharedCredentials ? (
               <p className="whitespace-pre-wrap text-sm text-ink-2">{sharedCredentials}</p>
             ) : (
-              <p className="text-sm text-ink-4">尚未提供，鎖定群組時可以填寫</p>
+              <p className="text-sm text-ink-4">尚未提供</p>
             )}
           </div>
         )}

@@ -73,7 +73,7 @@ export default function ManageGroupsPage() {
         {allGroups.length === 0 ? (
           <EmptyState
             title="你還沒有建立任何群組"
-            description="建立你的第一個共享群組，開始招募成員一起分攤費用"
+            description="建立你的第一個共享群組"
             actionLabel="建立第一個群組"
             onAction={() => navigate('/create-group')}
           />

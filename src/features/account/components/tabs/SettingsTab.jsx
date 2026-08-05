@@ -138,7 +138,7 @@ export default function SettingsTab() {
         <div className="flex items-center gap-4 py-3 border-b border-line-subtle last:border-0">
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium text-ink-2">目前狀態</p>
-            <p className="mt-0.5 text-xs text-ink-3">顯示在你的頭像旁邊，其他使用者也看得到</p>
+            <p className="mt-0.5 text-xs text-ink-3">顯示在你的頭像旁邊</p>
           </div>
           <FilterSelect
             id="presence-status"
@@ -161,7 +161,7 @@ export default function SettingsTab() {
       <SectionGroup title="隱私設定" icon={Shield}>
         <SettingRow
           label="顯示自己的大頭照"
-          desc="關閉後其他使用者會看到 PartyMatch 預設圖示"
+          desc="關閉後其他人會看到預設圖示"
           checked={showAvatar}
           onChange={savingAvatarVisibility ? undefined : toggleAvatarVisibility}
         />

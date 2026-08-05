@@ -152,7 +152,7 @@ function BioEditableField({ value, onSave }) {
             <Textarea
               value={draft}
               onChange={e => setDraft(e.target.value.slice(0, 500))}
-              placeholder="簡單介紹一下自己，讓其他成員在群組裡認識你"
+              placeholder="簡單介紹一下自己"
               autoFocus
               rows={3}
               className="py-1.5 px-3"
@@ -160,7 +160,7 @@ function BioEditableField({ value, onSave }) {
             <p className="mt-1 text-right text-xs text-ink-4">{draft.length}/500</p>
           </>
         ) : (
-          <p className="whitespace-pre-wrap text-sm text-ink-2">{value || <span className="text-ink-4">尚未填寫，群組成員彼此都看得到</span>}</p>
+          <p className="whitespace-pre-wrap text-sm text-ink-2">{value || <span className="text-ink-4">尚未填寫</span>}</p>
         )}
       </div>
       <div className="flex items-center gap-1 shrink-0 pt-5">

@@ -2,7 +2,7 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Check, ChevronDown } from 'lucide-react'
 import { cn } from '../../../lib/utils'
 
-export default function FilterSelect({ id, group, value, onChange, groups, triggerContent, className = '', ariaLabel }) {
+export default function FilterSelect({ id, group, value, onChange, groups, triggerContent, className = '', listClassName = '', ariaLabel }) {
   const open = group.openKey === id
   const rootRef = useRef(null)
   const triggerRef = useRef(null)
@@ -157,7 +157,8 @@ export default function FilterSelect({ id, group, value, onChange, groups, trigg
           aria-hidden={!open}
           className={cn(
             'absolute left-0 top-full z-50 max-h-72 w-full overflow-x-hidden overflow-y-auto rounded-b-lg border border-t-0 border-line bg-popover text-popover-foreground shadow-md transition-[opacity,transform] duration-150 ease-out [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
-            open && visible ? 'translate-y-0 opacity-100' : 'pointer-events-none -translate-y-2 opacity-0'
+            open && visible ? 'translate-y-0 opacity-100' : 'pointer-events-none -translate-y-2 opacity-0',
+            listClassName
           )}
         >
           {groups.map((g, gi) => (

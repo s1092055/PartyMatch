@@ -54,7 +54,7 @@ export default function ReviewHostModal({ group, onSubmit, onClose }) {
         <Textarea
           value={comment}
           onChange={e => setComment(e.target.value)}
-          placeholder="想跟其他人分享這次共享的體驗嗎？（選填）"
+          placeholder="分享你的體驗（選填）"
           rows={3}
           maxLength={500}
           className="resize-none"

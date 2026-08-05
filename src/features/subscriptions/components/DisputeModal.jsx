@@ -68,7 +68,7 @@ export default function DisputeModal({
           <Textarea
             value={disputeDetail}
             onChange={e => setDisputeDetail(e.target.value)}
-            placeholder="請描述服務未正常啟用的具體情況..."
+            placeholder="描述服務未正常啟用的情況"
             rows={4}
           />
         </div>

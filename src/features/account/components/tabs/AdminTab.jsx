@@ -101,7 +101,7 @@ export default function AdminTab() {
                 value={reason}
                 onChange={e => setReason(e.target.value)}
                 rows={3}
-                placeholder="請填寫裁定原因及說明..."
+                placeholder="請填寫裁定原因"
                 required
               />
             </div>

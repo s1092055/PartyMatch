@@ -165,7 +165,7 @@ export default function AccountPage() {
             id={`account-tabpanel-${activeTab}`}
             role="tabpanel"
             aria-labelledby={`account-tab-${activeTab}`}
-            className="min-h-0 flex-1 overflow-y-auto pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="min-h-0 flex-1 overflow-y-auto pl-1.5 pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             <TabReveal key={activeTab}>
               <TabContent value={activeTab} user={user} onChange={handleUserChange} tabs={TABS} />

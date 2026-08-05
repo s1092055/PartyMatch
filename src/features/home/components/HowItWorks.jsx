@@ -16,7 +16,7 @@ export default function HowItWorks() {
       <div className="mb-8 text-center">
         <p className="mb-1 text-xs font-bold uppercase tracking-widest text-ink-4">使用流程</p>
         <h2 className="text-3xl font-extrabold text-ink">使用情境</h2>
-        <p className="mt-3 text-base text-ink-3">選擇您的身分，了解完整的操作流程。</p>
+        <p className="mt-3 text-base text-ink-3">選擇身分，查看操作流程</p>
       </div>
 
       {/* 角色切換 */}

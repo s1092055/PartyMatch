@@ -101,7 +101,7 @@ export function buildMobileFooter({
             </Button>
             <FavoriteToggleButton isFav={isFav} onClick={toggleFav} heartSize={18} className="h-12 w-12" />
           </div>
-          <p className="mt-2 text-center text-xs text-ink-4">申請後需經團主審核，通過後即可加入群組</p>
+          <p className="mt-2 text-center text-xs text-ink-4">申請後需經團主審核</p>
         </>
       ) : (
         renderCTA({

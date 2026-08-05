@@ -396,7 +396,7 @@ export default function FloatingMessages() {
             <EmptyState
               icon={Bell}
               title={loggedIn ? '沒有通知' : '沒有系統公告'}
-              description={loggedIn && activeTab === 'all' ? '加入或建立群組後，這裡會顯示申請與群組動態' : loggedIn ? '這個分類目前沒有任何訊息' : '目前沒有需要公告的系統訊息'}
+              description={loggedIn && activeTab === 'all' ? '加入或建立群組後會顯示動態' : loggedIn ? '這裡沒有訊息' : '目前沒有公告'}
               className="py-10"
             />
           ) : (
