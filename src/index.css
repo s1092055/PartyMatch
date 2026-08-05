@@ -7,6 +7,10 @@
    並排會讓可用高度過於侷促，改回垂直排列靠一般頁面捲動顯示內容 */
 @custom-variant short-lg (@media (min-width: 1280px) and (max-height: 899px) and (min-height: 640px));
 
+/* 深色模式是手動切換 <html class="dark">（見 theme-provider.jsx），不是跟著系統
+   偏好走，所以 dark: 要對應 class 而非預設的 prefers-color-scheme media query */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   /* ── Breakpoints（三段式：手機 / 平板 md: 768px / 桌機 lg: 1280px）── */
   --breakpoint-sm: 768px;

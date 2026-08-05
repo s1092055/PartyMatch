@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Search } from 'lucide-react'
+import { Search, SlidersHorizontal } from 'lucide-react'
 import CategoryPills from '../../../components/ui/primitives/CategoryPills'
 import FilterSelect from '../../../components/ui/primitives/FilterSelect'
 import { useFilterSelectGroup } from '../../../components/ui/primitives/useFilterSelectGroup'
@@ -105,6 +105,7 @@ export default function FilterBar({ filters, onChange }) {
   const sortGroups = useMemo(() => [{ label: null, items: SORT_OPTIONS }], [])
   const [customEditing, setCustomEditing] = useState(false)
   const [customPriceInput, setCustomPriceInput] = useState(isCustomPrice ? filters.maxPrice : '')
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const filterSelectGroup = useFilterSelectGroup()
 
   function handlePriceChange(val) {
@@ -140,20 +141,31 @@ export default function FilterBar({ filters, onChange }) {
       />
 
       <div className="flex flex-col gap-2 md:flex-row md:items-center">
-        <div className="flex h-11 min-w-0 items-center rounded-control border border-line bg-surface px-3.5 transition-[box-shadow] focus-within:ring-4 focus-within:ring-brand-subtle md:flex-[2]">
-          <div className="flex flex-1 items-center gap-2">
-            <Search size={16} strokeWidth={1.5} className="pointer-events-none shrink-0 text-ink-4" />
-            <input
-              type="text"
-              placeholder="搜尋服務或方案名稱"
-              value={keyword}
-              onChange={e => setKeyword(e.target.value)}
-              className="min-w-0 flex-1 bg-transparent text-left text-sm outline-none placeholder:text-ink-4"
-            />
+        <div className="flex items-center gap-2 md:flex-[2]">
+          <div className="flex h-11 min-w-0 flex-1 items-center rounded-control border border-line bg-surface px-3.5 transition-[box-shadow] focus-within:ring-4 focus-within:ring-brand-subtle">
+            <div className="flex flex-1 items-center gap-2">
+              <Search size={16} strokeWidth={1.5} className="pointer-events-none shrink-0 text-ink-4" />
+              <input
+                type="text"
+                placeholder="搜尋服務或方案名稱"
+                value={keyword}
+                onChange={e => setKeyword(e.target.value)}
+                className="min-w-0 flex-1 bg-transparent text-left text-sm outline-none placeholder:text-ink-4"
+              />
+            </div>
           </div>
+          <button
+            type="button"
+            onClick={() => setFiltersOpen(v => !v)}
+            aria-label={filtersOpen ? '收合篩選' : '展開篩選'}
+            aria-expanded={filtersOpen}
+            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-control border transition-colors md:hidden ${filtersOpen ? 'border-brand bg-brand-subtle text-brand' : 'border-line bg-surface text-ink-3 hover:bg-raised'}`}
+          >
+            <SlidersHorizontal size={16} strokeWidth={1.5} />
+          </button>
         </div>
 
-        <div className="grid grid-cols-1 items-center gap-2 md:grid-cols-3 md:flex-[4]">
+        <div className={`grid-cols-1 items-center gap-2 md:grid md:grid-cols-3 md:flex-[4] ${filtersOpen ? 'grid' : 'hidden'}`}>
           <FilterSelect
             id="service"
             group={filterSelectGroup}
