@@ -201,10 +201,19 @@ export default function FloatingMessages() {
         if (hasSub) {
           // 申請已通過，以成員視角開啟
           navigate('/my-subscriptions', { state: { openGroupId: gId } })
-        } else {
-          // 申請仍待審核，以探索視角開啟（與 ApplicationCard 一致）
+          return
+        }
+        // 申請仍待審核：群組如果還在招募中，以探索視角開啟（與 ApplicationCard 一致）；
+        // 但如果名額已經被別人佔滿或群組不再招募，這筆申請等於已經沒有下文（後端不會
+        // 主動幫還卡在 pending 的申請人自動拒絕），跟點擊「申請未通過」通知一樣導向
+        // 探索頁並顯示 toast，不要硬開一個進不去、按鈕都是灰的群組詳情
+        const grp = getGroupById(gId)
+        if (grp && grp.status === 'recruiting') {
           navigate('/my-subscriptions', { state: { tab: 'processing' } })
           window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: gId } }))
+        } else {
+          navigate('/explore')
+          openGroupOrRedirect(gId)
         }
       })
       return

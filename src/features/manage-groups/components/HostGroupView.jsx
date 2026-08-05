@@ -39,6 +39,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
   const [transactions, setTransactions]                     = useState([])
   const [transactionsLoading, setTransactionsLoading]       = useState(false)
   const [showCredentialsModal, setShowCredentialsModal]     = useState(false)
+  const [showPassword, setShowPassword]                     = useState(false)
   const [credentialValues, setCredentialValues]             = useState({})
   const [lockLoading, setLockLoading]                       = useState(false)
   const [showDisputeReason, setShowDisputeReason]           = useState(false)
@@ -315,6 +316,8 @@ export default function HostGroupView({ group, members, applications, onReportSe
         // 回報帳號問題只開放在啟用服務之前（還在填寫/等待啟用階段）
         canReportServiceIssue: canReportServiceIssue(group.status),
         onOpenServiceIssue: m => { setServiceIssueMember(m); setServiceIssueNote(m.serviceInfoIssueNote ?? '') },
+        showPassword,
+        onTogglePassword: () => setShowPassword(v => !v),
       })
     }
     return null

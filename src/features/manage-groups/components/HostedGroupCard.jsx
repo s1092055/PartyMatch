@@ -16,7 +16,7 @@ function getCollectionState({ group, paidCount, paymentTarget }) {
   if (['cancelled', 'ended'].includes(group.status)) return '已結束'
   if (group.status === 'recruiting') return '招募中'
   if (group.status === 'full') return '已滿員'
-  if (group.status === 'pending_confirmation') return '成員填寫中'
+  if (group.status === 'pending_confirmation') return '處理中'
   if (group.status === 'pending_activation') return '待啟用服務'
   if (group.status === 'confirming') return '確認期中'
   if (group.status === 'disputed') return '問題處理中'

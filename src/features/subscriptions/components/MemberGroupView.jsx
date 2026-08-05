@@ -311,7 +311,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
         ) : needsFillInfo ? (
           <div className="flex items-center justify-center gap-2 bg-brand-subtle px-6 py-3 text-sm font-extrabold text-brand">
             <Clock size={15} strokeWidth={1.5} />
-            請填寫服務帳號以完成加入流程
+            請填寫服務帳號
             {group.serviceInfoDeadline && (
               <>，剩餘 <CountdownText deadline={group.serviceInfoDeadline} /></>
             )}

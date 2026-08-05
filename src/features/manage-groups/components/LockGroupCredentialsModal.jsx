@@ -26,9 +26,6 @@ export default function LockGroupCredentialsModal({ isOpen, onClose, serviceId, 
         <p className="text-sm text-ink-3">
           <span className="font-semibold text-ink">{serviceName}</span> 官方沒有多人邀請機制，鎖定群組後請提供以下帳號資訊，成員填寫服務帳號時會直接看到。
         </p>
-        <div className="rounded-lg bg-danger-subtle px-3 py-2 text-xs leading-relaxed text-danger-text">
-          {CREDENTIAL_RISK_NOTICE}
-        </div>
         {config.warning && (
           <div className="rounded-lg bg-warning-subtle px-3 py-2 text-xs leading-relaxed text-warning-text">
             {config.warning}
@@ -46,6 +43,9 @@ export default function LockGroupCredentialsModal({ isOpen, onClose, serviceId, 
             />
           </div>
         ))}
+        <div className="rounded-lg bg-danger-subtle px-3 py-2 text-xs leading-relaxed text-danger-text">
+          {CREDENTIAL_RISK_NOTICE}
+        </div>
         <Button
           type="submit"
           variant="ink"

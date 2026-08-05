@@ -3,7 +3,7 @@
 // 取代原本讓團主自由輸入一段文字的 textarea。
 const ACCOUNT_FIELD  = { key: 'account', label: '帳號 / Email', placeholder: 'example@gmail.com' }
 const PASSWORD_FIELD = { key: 'password', label: '密碼', placeholder: '請輸入密碼' }
-const PROFILE_FIELD  = { key: 'profileName', label: '指定使用的 Profile 名稱', placeholder: '例如：Profile 2，避免互相洗掉觀看紀錄' }
+const PROFILE_FIELD  = { key: 'profileName', label: '團主指定使用的 Profile 名稱', placeholder: '請填寫自己要使用的 Profile，避免其他成員互相影響使用體驗' }
 const DEVICE_FIELD    = { key: 'deviceSlots', label: '可用裝置登入名額', placeholder: '此服務的名額上限是裝置數而非人數，請說明可用的裝置配額' }
 const DISCORD_FIELD   = { key: 'discordInviteUrl', label: 'Discord 邀請連結', placeholder: 'https://discord.gg/xxxx' }
 
@@ -45,6 +45,6 @@ export function parseHostCredentials(sharedCredentials, serviceId) {
   }
   if (!data || typeof data !== 'object') return null
   const { fields } = getHostCredentialFields(serviceId)
-  const entries = fields.map(({ key, label }) => ({ label, value: data[key] })).filter(({ value }) => !!value)
+  const entries = fields.map(({ key, label }) => ({ key, label, value: data[key] })).filter(({ value }) => !!value)
   return entries.length > 0 ? entries : null
 }

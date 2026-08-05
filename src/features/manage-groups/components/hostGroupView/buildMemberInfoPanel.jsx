@@ -1,4 +1,4 @@
-import { AlertTriangle, FileText, Paperclip } from 'lucide-react'
+import { AlertTriangle, Eye, EyeOff, FileText, Paperclip } from 'lucide-react'
 import { Avatar } from '../../../../components/ui/avatar'
 import { Button } from '../../../../components/ui/button'
 import { PresenceDot } from '../../../../common/layout/components/navShared'
@@ -32,7 +32,7 @@ function renderFilledInfoDetail(serviceInfo, sharingMethod) {
   )
 }
 
-export function buildMemberInfoPanel({ members, sharingMethod, sharedCredentials, serviceId, canReportServiceIssue, onOpenServiceIssue }) {
+export function buildMemberInfoPanel({ members, sharingMethod, sharedCredentials, serviceId, canReportServiceIssue, onOpenServiceIssue, showPassword, onTogglePassword }) {
   const parsedCredentials = parseHostCredentials(sharedCredentials, serviceId)
   return {
     content: (
@@ -42,10 +42,23 @@ export function buildMemberInfoPanel({ members, sharingMethod, sharedCredentials
             <p className="mb-1 text-xs font-semibold text-ink-3">你提供給成員的帳號資訊</p>
             {parsedCredentials ? (
               <dl className="space-y-1">
-                {parsedCredentials.map(({ label, value }) => (
-                  <div key={label} className="flex items-baseline gap-2 text-sm">
+                {parsedCredentials.map(({ key, label, value }) => (
+                  <div key={label} className="flex items-baseline justify-between gap-2 text-sm">
                     <dt className="shrink-0 text-ink-4">{label}</dt>
-                    <dd className="min-w-0 truncate text-ink-2">{value}</dd>
+                    {key === 'password' ? (
+                      <dd className="flex min-w-0 items-center gap-1.5 text-right text-ink-2">
+                        <span className="truncate">{showPassword ? value : '••••••••'}</span>
+                        <button
+                          type="button"
+                          onClick={onTogglePassword}
+                          className="shrink-0 rounded-md p-1 text-ink-4 transition-colors hover:bg-raised hover:text-ink-2"
+                        >
+                          {showPassword ? <EyeOff size={14} strokeWidth={1.5} /> : <Eye size={14} strokeWidth={1.5} />}
+                        </button>
+                      </dd>
+                    ) : (
+                      <dd className="min-w-0 truncate text-right text-ink-2">{value}</dd>
+                    )}
                   </div>
                 ))}
               </dl>
