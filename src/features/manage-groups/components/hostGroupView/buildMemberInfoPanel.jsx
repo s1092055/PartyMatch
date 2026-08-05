@@ -103,7 +103,7 @@ export function buildMemberInfoPanel({ members, sharingMethod, sharedCredentials
                       {m.serviceInfoIssueNote ? (
                         <p className="text-xs text-warning-text">帳號問題已回報，等待修正</p>
                       ) : !filled ? (
-                        <p className="text-xs text-ink-4">尚未填寫帳號</p>
+                        <p className="text-xs text-ink-4">{sharingMethod === 'shared_credentials' ? '尚未提取帳號' : '尚未填寫帳號'}</p>
                       ) : null}
                     </div>
                   </div>

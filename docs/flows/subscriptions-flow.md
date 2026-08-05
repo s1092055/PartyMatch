@@ -35,7 +35,7 @@ flowchart TD
 |------|------|
 | `src/features/subscriptions/SubscriptionsPage.jsx` | 頁面總入口，串接分頁與訂閱卡片 grid |
 | `src/features/subscriptions/components/SubscriptionCard.jsx` | 單一訂閱卡片 |
-| `src/features/subscriptions/components/MemberGroupView.jsx` | 成員視角群組詳情 Modal：確認服務、申訴、退出、查看群組名單、付款管理 |
+| `src/features/subscriptions/components/MemberGroupView.jsx` | 成員視角群組詳情 Modal：確認服務、申訴、退出、查看群組名單、付款管理、查看團主提供的帳號資訊（`shared_credentials` 服務限定） |
 | `src/features/subscriptions/components/FillServiceInfoModal.jsx` | 填寫服務帳號的獨立彈窗，開啟時底下的群組詳情視窗完全隱藏，關閉才恢復顯示；`shared_credentials` 服務會先顯示團主提供的帳號資訊並疊上浮水印，再是確認勾選框 |
 | `src/components/ui/primitives/CredentialWatermark.jsx` | 疊在帳密內容上的浮水印（查看者名稱＋時間），無法阻止截圖，但外流時至少能溯源查看者 |
 | `src/common/utils/hostCredentialFields.js` | `getHostCredentialFields`、`parseHostCredentials`：`shared_credentials` 服務依服務別定義的結構化帳密欄位與解析 |
@@ -75,6 +75,7 @@ flowchart TD
 - **「填寫帳號」是群組概覽底部的動態按鈕**：跟「確認服務」「回報問題」一樣，只有在需要填寫帳號、或帳號被回報有問題時才會出現；`shared_credentials` 服務（團主主動提供帳密，成員只需提取確認）按鈕與相關文案改顯示「提取帳號資訊」，跟其他組需要成員自行輸入帳號的情境區隔
 - **不可逆操作要倒數確認**：確認服務、退出群組都要倒數幾秒才能真的送出，避免手滑誤觸
 - **側邊欄固定項目**：符合退出條件（招募中或已額滿）時側邊欄底部固定顯示「退出群組」，跟「群組訊息」共用側邊欄右下角同一個位置
+- **「帳號資訊」側邊欄項目（`shared_credentials` 服務限定）**：群組鎖定後（`isPaymentRelevant`，即非招募中／額滿）就固定顯示在側邊欄，不受填寫進度影響——這組服務的帳密是團主一次性提供、整個訂閱週期都有效，成員可能事後忘記密碼，不能只在「尚未提取」的當下才給查看入口；點擊沿用「填寫服務帳號」sub-modal（此時已預先勾選確認框、可直接查看帳密後關閉，不強制重新送出）
 - **訂閱卡片（`SubscriptionCard.jsx`）依狀態切換統計格內容**：比團主端的 `HostedGroupCard.jsx`（見群組管理流程文件）簡單很多，中間格固定顯示「群組人數」，左格一律固定顯示「團主」（頂部 badge 已經顯示目前狀態，左格不重複顯示狀態文字），只有右格會依是否已啟用切換：
 
   | `sub.groupStatus`（判定用） | 卡片頂部 Badge | 左格 | 中格 | 右格 |
@@ -83,7 +84,7 @@ flowchart TD
   | `recruiting` 招募中 | 申請通過 | 團主：{團主名稱} | 群組人數 | 加入日期 |
   | `full` 額滿 | 等待鎖定 | 團主：{團主名稱} | 群組人數 | 加入日期 |
   | `pending_confirmation` 待成員填寫（自己已填完、等其他人） | 已填寫完成（`shared_credentials` 服務顯示「已提取完成」） | 團主：{團主名稱} | 群組人數 | 預估下次扣款 |
-  | `pending_confirmation` 待成員填寫（自己尚未填） | 成員填寫中（`shared_credentials` 服務顯示「成員提取中」） | 團主：{團主名稱} | 群組人數 | 預估下次扣款 |
+  | `pending_confirmation` 待成員填寫（自己尚未填） | 成員填寫中（`shared_credentials` 服務顯示「帳號提取中」） | 團主：{團主名稱} | 群組人數 | 預估下次扣款 |
   | `pending_activation` 待啟用 | 待啟用 | 團主：{團主名稱} | 群組人數 | 預估下次扣款 |
   | `confirming` 確認期中（自己尚未確認） | 確認期中 | 團主：{團主名稱} | 群組人數 | 下次扣款 |
   | `confirming` 確認期中（自己已確認） | 服務中（視同已啟用） | 團主：{團主名稱} | 群組人數 | 下期收費 |

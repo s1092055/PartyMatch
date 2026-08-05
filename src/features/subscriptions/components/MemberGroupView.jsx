@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import {
-  Banknote, CheckCircle2, Clock, Info, LogOut, MessageCircle, Users, ClipboardEdit, ThumbsUp, AlertTriangle,
+  Banknote, CheckCircle2, Clock, Info, LogOut, MessageCircle, Users, ClipboardEdit, ThumbsUp, AlertTriangle, KeyRound,
 } from 'lucide-react'
 import { Avatar } from '../../../components/ui/avatar'
 import { PresenceDot } from '../../../common/layout/components/navShared'
@@ -79,6 +79,9 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
   // 團主主動提供帳密的服務（shared_credentials）成員端不需要「填寫」任何東西，只有一個確認框，
   // 文案要跟其他 5 種要成員自己填 Email／邀請碼的方式區分開來，避免讓人誤以為要自己輸入帳密
   const isSharedCredentials = serviceDef?.sharingMethod === 'shared_credentials'
+  // 團主提供帳密的服務，鎖定後不管填寫進度如何都要讓成員隨時能回來查看帳密（忘記密碼時），
+  // 不能只在「尚未提取」的當下才給入口——跟其他要成員自行輸入的共享機制不同，資訊有效期是整個訂閱週期
+  const canViewCredentials  = isSharedCredentials && isPaymentRelevant
   // serviceInfoIssueNote 這個欄位被團主標記「帳號需修正」跟申訴理由共用，
   // 送出申訴後自己的 serviceInfoIssueNote 也會被寫入申訴理由，此時要顯示的是「問題處理中」而不是「帳號需修正」
   const hasServiceInfoIssue = !!myMember?.serviceInfoIssueNote && group.status !== 'disputed'
@@ -355,7 +358,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
         waitingForOthers ? { variant: 'active', label: isSharedCredentials ? '已提取完成' : '已填寫完成' } :
         group.status === 'recruiting' && !!sub ? 'member_joined' :
         group.status === 'full' ? { variant: 'full', label: '等待鎖定' } :
-        group.status === 'pending_confirmation' && isSharedCredentials ? { variant: 'warning', label: '成員提取中' } :
+        group.status === 'pending_confirmation' && isSharedCredentials ? { variant: 'warning', label: '帳號提取中' } :
         undefined
       }
       pendingBadge={
@@ -388,6 +391,11 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
           {!!sub && (
             <GroupModalSideBarItem active={activePanel === 'payments'} onClick={() => setActivePanel('payments')}>
               <Banknote size={17} /> 付款管理
+            </GroupModalSideBarItem>
+          )}
+          {canViewCredentials && (
+            <GroupModalSideBarItem onClick={() => { setFillValues(myMember?.serviceInfo ?? {}); setShowFillInfo(true) }}>
+              <KeyRound size={17} /> 帳號資訊
             </GroupModalSideBarItem>
           )}
           {canLeaveGroup && (

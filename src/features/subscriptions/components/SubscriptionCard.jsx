@@ -57,7 +57,7 @@ function SubscriptionCard({ sub, onViewGroup }) {
           label={
             waitingForOthers ? (isSharedCredentials ? '已提取完成' : '已填寫完成') :
             displayStatus === 'full' ? '等待鎖定' :
-            displayStatus === 'pending_confirmation' && isSharedCredentials ? '成員提取中' :
+            displayStatus === 'pending_confirmation' && isSharedCredentials ? '帳號提取中' :
             undefined
           }
         />
