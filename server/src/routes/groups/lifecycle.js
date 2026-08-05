@@ -39,42 +39,56 @@ router.post('/:id/activate', requireAuth, async (req, res, next) => {
     const confirmDeadline = new Date()
     confirmDeadline.setHours(confirmDeadline.getHours() + 48)
 
-    // 下次扣款日改成從實際啟用當下重新算，不沿用鎖定當下（見 /lock）算出來的舊值：鎖定到
-    // 啟用之間可能因為成員填寫帳號資訊、回報問題等流程拖了好幾天，用鎖定當下的舊值會讓
-    // 成員實際用到服務的天數比完整一個計費週期短
-    const nextBillingDate = new Date()
-    if (group.billingCycle === 'yearly') nextBillingDate.setFullYear(nextBillingDate.getFullYear() + 1)
-    else nextBillingDate.setMonth(nextBillingDate.getMonth() + 1)
+    // 下次扣款日只在「第一次」啟用（首期，來自 /lock）才從實際啟用當下重新算，確保第一期
+    // 不會因為鎖定到啟用中間拖延而縮水；之後每次續訂再啟用（hasActivatedOnce 已是 true）都
+    // 固定沿用 /renew 已經算好、錨定在「上一期排定日期 + 一個週期」的值，不再重算——不然扣款日
+    // 會因為每期啟用延誤而持續往後漂移，不再固定在同一天。真的遇到需要延後的情況交給團主
+    // 用「調整下次扣款日」手動處理（見 PATCH /billing-date）
+    const isFirstActivation = !group.hasActivatedOnce
+    const nextBillingDate = isFirstActivation ? new Date() : group.nextBillingDate
+    if (isFirstActivation) {
+      if (group.billingCycle === 'yearly') nextBillingDate.setFullYear(nextBillingDate.getFullYear() + 1)
+      else nextBillingDate.setMonth(nextBillingDate.getMonth() + 1)
+    }
 
     const [updated] = await prisma.$transaction([
       prisma.group.update({
         where: { id: req.params.id },
-        data: { status: 'confirming', confirmDeadline, nextBillingDate },
+        data: {
+          status: 'confirming',
+          confirmDeadline,
+          hasActivatedOnce: true,
+          ...(isFirstActivation && { nextBillingDate }),
+        },
         include: {
           host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true } },
           service: true,
           _count:  { select: { members: true } },
         },
       }),
-      prisma.subscription.updateMany({
-        where: { groupId: req.params.id },
-        data:  { nextBillingDate },
-      }),
+      ...(isFirstActivation ? [
+        prisma.subscription.updateMany({
+          where: { groupId: req.params.id },
+          data:  { nextBillingDate },
+        }),
+      ] : []),
     ])
 
-    // 到這裡扣款日才算正式定案（不會再因為填寫/回報流程拖延而變動），跟 /lock 那則「預估」
-    // 通知是同一種通知類型，前端靠 meta.estimated 分辨要不要顯示成「預估」字樣
-    const groupLabel = group.planName ?? group.service?.name ?? ''
-    const finalDateText = nextBillingDate.toISOString().slice(0, 10).replace(/-/g, '/')
-    ;[group.hostId, ...group.members.map(m => m.userId)].forEach(userId => {
-      notify({
-        userId,
-        type:    'billing_date_confirmed',
-        title:   '下次扣款日已確定',
-        message: `「${groupLabel}」服務已啟用，下次扣款日確定為 ${finalDateText}。`,
-        meta:    { groupId: req.params.id, nextBillingDate: nextBillingDate.toISOString(), estimated: false },
+    // 只有第一次啟用才會改動扣款日，才需要另外發「已確定」通知；續訂後的啟用日期本來就
+    // 沒變（/renew 那則「預估」通知已經講過這個日期），不用重複通知造成誤會
+    if (isFirstActivation) {
+      const groupLabel = group.planName ?? group.service?.name ?? ''
+      const finalDateText = nextBillingDate.toISOString().slice(0, 10).replace(/-/g, '/')
+      ;[group.hostId, ...group.members.map(m => m.userId)].forEach(userId => {
+        notify({
+          userId,
+          type:    'billing_date_confirmed',
+          title:   '下次扣款日已確定',
+          message: `「${groupLabel}」服務已啟用，下次扣款日確定為 ${finalDateText}。`,
+          meta:    { groupId: req.params.id, nextBillingDate: nextBillingDate.toISOString(), estimated: false },
+        })
       })
-    })
+    }
 
     res.json(maskGroupHost(updated))
   } catch (err) { next(err) }

@@ -173,6 +173,11 @@ model Group {
   // 不能再調第二次；進入新週期（/lock 第一次鎖定、/renew 續訂）時重置回 null，重新給一次額度
   billingDateAdjustedAt     DateTime?
   billingDateAdjustmentNote String?
+  // 這個群組有沒有成功啟用過服務：/activate 只在第一次（false）才會重新計算 nextBillingDate
+  // （從實際啟用當下起算一個週期），確保第一期不會因為鎖定到啟用中間的延誤而縮水；後續每次
+  // 續訂再啟用都固定沿用 /renew 已經算好、錨定在「上一期排定日期 + 一個週期」的值，避免扣款日
+  // 每期都因為啟用延誤往後漂移。真的遇到需要延後的情況交給團主用「調整下次扣款日」手動處理
+  hasActivatedOnce Boolean @default(false)
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 

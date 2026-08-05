@@ -127,9 +127,9 @@ function HostedGroupCard({
           <StatCell label="續訂日期">
             {toISODate(group.nextBillingDate, '—')}
           </StatCell>
-        ) : group.status === 'recruiting' || group.status === 'cancelled' ? (
-          // 已解散的群組上方已經有「已解散」badge，這裡不重複顯示群組狀態，改跟招募中
-          // 一樣顯示建立日期
+        ) : group.status === 'recruiting' || group.status === 'cancelled' || group.status === 'ended' ? (
+          // 已解散／已結束的群組上方已經有對應 badge 了，這裡不重複顯示群組狀態，
+          // 改跟招募中一樣顯示建立日期
           <StatCell label="建立日期">
             {group.createdAt ?? '—'}
           </StatCell>
