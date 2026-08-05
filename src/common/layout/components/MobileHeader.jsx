@@ -7,7 +7,7 @@ function HeaderIconButton({ onClick, label, icon: Icon, count }) {
     <button
       onClick={onClick}
       aria-label={label}
-      className="relative grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-line bg-surface text-ink-2 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-raised hover:text-ink dark:border-transparent dark:bg-brand dark:text-white dark:hover:bg-brand-hover"
+      className="relative grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-line bg-surface text-ink-2 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
     >
       <Icon size={22} strokeWidth={2} />
       <CountBadge count={count} />
