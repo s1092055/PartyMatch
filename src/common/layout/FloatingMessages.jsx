@@ -32,14 +32,21 @@ async function openGroupOrRedirect(groupId) {
 
 // 通知指向的群組，使用者可能已經不再是成員（被移除／自己退出／申訴後出局），此時「我的訂閱」
 // 對他來說什麼都打不開，一律改導向探索頁；還有名額就直接開群組詳情 Modal，額滿就跳 toast，
-// 跟上面 openGroupOrRedirect 同一套邏輯，不能開就不能開
+// 跟上面 openGroupOrRedirect 同一套邏輯，不能開就不能開。先重新拉一次 memberStore／groupStore
+// 再判斷：觸發這個函式的通知（續訂、申訴裁定、服務啟用）本身就代表 member 資格或 group.status
+// 剛剛發生變化，本地快取這時大機率是舊的，用舊快取判斷會誤判成員資格或顯示舊狀態
 function navigateToMemberGroupOrExplore(navigate, userId, groupId) {
-  if (userId && useMemberStore.getState().getByUserAndGroup(userId, groupId)) {
-    navigate('/my-subscriptions', { state: { openGroupId: groupId } })
-  } else {
-    navigate('/explore')
-    openGroupOrRedirect(groupId)
-  }
+  Promise.all([
+    useMemberStore.getState().init(),
+    useGroupStore.getState().init({ all: true }),
+  ]).finally(() => {
+    if (userId && useMemberStore.getState().getByUserAndGroup(userId, groupId)) {
+      navigate('/my-subscriptions', { state: { openGroupId: groupId } })
+    } else {
+      navigate('/explore')
+      openGroupOrRedirect(groupId)
+    }
+  })
 }
 
 function getMergedNotifications(userId) {
@@ -181,8 +188,13 @@ export default function FloatingMessages() {
     if (notification.type === 'application_sent' && notification.meta?.groupId) {
       const gId = notification.meta.groupId
       const user = getCurrentUser()
-      // 同 application_approved：本地 subscriptionStore／applicationStore 快取可能還沒反映最新接受結果，先重新拉一次再判斷
-      Promise.all([useSubscriptionStore.getState().init(), useApplicationStore.getState().init()]).finally(() => {
+      // 同 application_approved：本地 subscriptionStore／applicationStore／groupStore 快取可能還沒
+      // 反映最新接受結果（含群組是否剛好額滿），先重新拉一次再判斷
+      Promise.all([
+        useSubscriptionStore.getState().init(),
+        useApplicationStore.getState().init(),
+        useGroupStore.getState().init({ all: true }),
+      ]).finally(() => {
         const hasSub = user ? !!getSubscriptionByUserAndGroup(user.id, gId) : false
         if (hasSub) {
           // 申請已通過，以成員視角開啟
@@ -236,11 +248,14 @@ export default function FloatingMessages() {
       // 用過期快取判斷會誤判成「尚無訂閱」導致導向探索頁而非會員視角；memberStore 沒同步刷新的話，
       // 群組詳情 Modal 打開當下 myMember 會是 null，「退出群組」按鈕也會因此不會馬上顯示，須先重新拉一次；
       // applicationStore 沒有一起刷新的話，這筆申請在本地還是 pending，「處理中」分頁會多出一筆
-      // 早就已經核准、理論上該消失的「審核中」幽靈紀錄
+      // 早就已經核准、理論上該消失的「審核中」幽靈紀錄；groupStore 沒有一起刷新的話，這筆申請剛好是
+      // 最後一個名額時，本地 group.status 還停在鎖定前的 recruiting，MemberGroupView 會誤判成「已通過
+      // 申請，需等待其他人加入」而不是「等待鎖定」，跟 fill_service_info 是同一種快取過期問題
       Promise.all([
         useSubscriptionStore.getState().init(),
         useMemberStore.getState().init(),
         useApplicationStore.getState().init(),
+        useGroupStore.getState().init({ all: true }),
       ]).finally(() => {
         const hasSub = user ? !!getSubscriptionByUserAndGroup(user.id, gId) : false
         if (hasSub) {
@@ -281,27 +296,45 @@ export default function FloatingMessages() {
     }
 
     if (notification.type === 'group_full' && notification.meta?.groupId) {
-      navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId } })
-      window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: notification.meta.groupId } }))
+      const gId = notification.meta.groupId
+      navigate('/manage-groups', { state: { openGroupId: gId } })
+      // 這則通知本身就代表群組剛額滿、有新成員加入，group.status／成員名單的本地快取一定是舊的
+      Promise.all([
+        useGroupStore.getState().init({ all: true }),
+        useMemberStore.getState().init(),
+      ]).finally(() => {
+        window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: gId } }))
+      })
       return
     }
 
     if ((notification.type === 'escrow_released' || notification.type === 'dispute_raised') && notification.meta?.groupId) {
+      const gId = notification.meta.groupId
       if (notification.type === 'escrow_released') {
         useAuthStore.getState().refreshTokenBalance().catch(console.error) // 代管款項已撥款，重新拉最新餘額
       }
-      navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId } })
-      window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: notification.meta.groupId } }))
+      navigate('/manage-groups', { state: { openGroupId: gId } })
+      // 撥款／申訴都代表 group.status 剛剛變化（撥款後轉為服務中，申訴則轉為申訴中），先重新拉一次
+      useGroupStore.getState().init({ all: true }).finally(() => {
+        window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: gId } }))
+      })
       return
     }
 
     if (notification.type === 'dispute_resolved' && notification.meta?.groupId) {
       const gId = notification.meta.groupId
       useAuthStore.getState().refreshTokenBalance().catch(console.error) // 裁定結果不管撥款或退款，都影響餘額
+      // hostId 是固定欄位，不會因裁定而變，用目前的本地快取判斷角色不會有問題；
+      // 但裁定後 group.status／成員名單一定變了，兩邊分支各自負責重新整理自己要用的資料
       const grp = getGroupById(gId)
       if (grp && grp.hostId === userId) {
         navigate('/manage-groups', { state: { openGroupId: gId } })
-        window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: gId } }))
+        Promise.all([
+          useGroupStore.getState().init({ all: true }),
+          useMemberStore.getState().init(),
+        ]).finally(() => {
+          window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: gId } }))
+        })
       } else {
         // 申訴不成立則成員仍在群組內；申訴成立則申訴成員已被移出群組——
         // 是否還是成員交給共用函式判斷，不是成員就導向探索頁
@@ -311,12 +344,16 @@ export default function FloatingMessages() {
     }
 
     if (notification.type === 'group_activated' && notification.meta?.groupId) {
-      const grp = getGroupById(notification.meta.groupId)
+      const gId = notification.meta.groupId
+      const grp = getGroupById(gId)
       if (grp && grp.hostId === userId) {
-        navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId } })
-        window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: notification.meta.groupId } }))
+        navigate('/manage-groups', { state: { openGroupId: gId } })
+        // 啟用服務代表 group.status 剛從待啟用轉成確認期，先重新拉一次
+        useGroupStore.getState().init({ all: true }).finally(() => {
+          window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: gId } }))
+        })
       } else {
-        navigateToMemberGroupOrExplore(navigate, userId, notification.meta.groupId)
+        navigateToMemberGroupOrExplore(navigate, userId, gId)
       }
       return
     }
