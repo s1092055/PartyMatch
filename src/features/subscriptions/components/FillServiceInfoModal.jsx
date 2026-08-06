@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from '../../../components/ui/button'
 import { Input } from '../../../components/ui/input'
 import CredentialWatermark from '../../../components/ui/primitives/CredentialWatermark'
-import { getServiceInfoSummary } from '../../../common/utils/serviceInfoFields'
+import { getServiceInfoSummary, isSharedCredentialsMethod } from '../../../common/utils/serviceInfoFields'
 import { parseHostCredentials } from '../../../common/utils/hostCredentialFields'
 
 // 填寫服務帳號改成堆疊在群組詳情 Modal 上方的 sub-modal（跟團主端 ActivateServiceModal 同一套模式），
@@ -25,7 +25,7 @@ export default function FillServiceInfoModal({
 }) {
   const existingSummary = getServiceInfoSummary(serviceInfo, sharingMethod)
   const parsedCredentials = parseHostCredentials(group.sharedCredentials, group.serviceId)
-  const isSharedCredentials = sharingMethod === 'shared_credentials'
+  const isSharedCredentials = isSharedCredentialsMethod(sharingMethod)
   const modalTitle = isSharedCredentials ? '提取帳號資訊' : '填寫服務帳號'
 
   return (
@@ -51,7 +51,7 @@ export default function FillServiceInfoModal({
             {sharingMethodConfig.notice}
           </div>
         )}
-        {sharingMethod === 'shared_credentials' && (
+        {isSharedCredentials && (
           <div>
             <label className="block text-xs text-ink-3 mb-1.5">團主提供的帳號資訊</label>
             {parsedCredentials ? (

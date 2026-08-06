@@ -12,6 +12,7 @@ import { insertNotification } from '../api/notificationsApi'
 import { useGroupStore } from './useGroupStore'
 import { useAuthStore } from './useAuthStore'
 import { getServiceById } from '../utils/serviceUtils'
+import { isSharedCredentialsMethod } from '../utils/serviceInfoFields'
 
 export const useMemberStore = create((set, get) => ({
   members: [],
@@ -78,7 +79,7 @@ export const useMemberStore = create((set, get) => ({
       const group = useGroupStore.getState().getById(groupId)
       if (group) {
         const currentUser = useAuthStore.getState().user
-        const isSharedCredentials = getServiceById(group.serviceId)?.sharingMethod === 'shared_credentials'
+        const isSharedCredentials = isSharedCredentialsMethod(getServiceById(group.serviceId)?.sharingMethod)
         insertNotification({
           userId:  group.hostId,
           type:    'service_info_filled',

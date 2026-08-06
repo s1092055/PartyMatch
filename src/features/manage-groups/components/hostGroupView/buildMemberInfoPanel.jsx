@@ -4,7 +4,7 @@ import { Button } from '../../../../components/ui/button'
 import { PresenceDot } from '../../../../common/layout/components/navShared'
 import EmptyState from '../../../../components/ui/primitives/EmptyState'
 import { CENTERED_PANEL_BODY_CLASS } from '../../../../components/ui/group/panelLayout'
-import { getTextFields, hasFilledServiceInfo } from '../../../../common/utils/serviceInfoFields'
+import { getTextFields, hasFilledServiceInfo, isSharedCredentialsMethod } from '../../../../common/utils/serviceInfoFields'
 import { parseHostCredentials } from '../../../../common/utils/hostCredentialFields'
 
 // 團主查看成員填寫的服務帳號資訊；跟 ActivateServiceModal 裡的成員清單同一套判斷邏輯，
@@ -37,7 +37,7 @@ export function buildMemberInfoPanel({ members, sharingMethod, sharedCredentials
   return {
     content: (
       <div className={`flex min-h-full flex-col ${CENTERED_PANEL_BODY_CLASS}`}>
-        {sharingMethod === 'shared_credentials' && (
+        {isSharedCredentialsMethod(sharingMethod) && (
           <div className="mb-3 rounded-lg border border-line bg-raised p-3">
             <p className="mb-1 text-xs font-semibold text-ink-3">你提供給成員的帳號資訊</p>
             {parsedCredentials ? (
@@ -103,7 +103,7 @@ export function buildMemberInfoPanel({ members, sharingMethod, sharedCredentials
                       {m.serviceInfoIssueNote ? (
                         <p className="text-xs text-warning-text">帳號問題已回報，等待修正</p>
                       ) : !filled ? (
-                        <p className="text-xs text-ink-4">{sharingMethod === 'shared_credentials' ? '尚未提取帳號' : '尚未填寫帳號'}</p>
+                        <p className="text-xs text-ink-4">{isSharedCredentialsMethod(sharingMethod) ? '尚未提取帳號' : '尚未填寫帳號'}</p>
                       ) : null}
                     </div>
                   </div>

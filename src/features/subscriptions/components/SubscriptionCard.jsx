@@ -9,7 +9,7 @@ import { isEffectivelyActive } from '../../../common/utils/groupStatus'
 import { getRenewalAwareStatus } from '../../../common/utils/groupStatusDisplay'
 import { calcDisplayPrice, calcDisplayCycle } from '../../../common/utils/pricingUtils'
 import { getServiceById } from '../../../common/utils/serviceUtils'
-import { hasFilledServiceInfo } from '../../../common/utils/serviceInfoFields'
+import { hasFilledServiceInfo, isSharedCredentialsMethod } from '../../../common/utils/serviceInfoFields'
 
 function getBadgeStatus(sub) {
   const status = sub.groupStatus ?? sub.status
@@ -41,7 +41,7 @@ function SubscriptionCard({ sub, onViewGroup }) {
   // 已填完服務帳號、還在等其他成員的話，卡片不能顯示跟「還沒填」一樣的「成員填寫中」，
   // 不然會讓人誤以為自己還沒填寫；改成綠色「已填寫完成」，跟群組詳情 Modal 的判斷邏輯一致
   const sharingMethod   = getServiceById(sub.serviceId)?.sharingMethod
-  const isSharedCredentials = sharingMethod === 'shared_credentials'
+  const isSharedCredentials = isSharedCredentialsMethod(sharingMethod)
   const waitingForOthers = badgeStatus === 'pending_confirmation' &&
     hasFilledServiceInfo(sub.serviceInfo, sharingMethod) && !sub.serviceInfoIssueNote
 

@@ -14,6 +14,7 @@ import { useConversationStore } from '../../../common/stores/useConversationStor
 import { isHistoryGroup } from '../../../common/utils/groupStatusDisplay'
 import { STATUS_FILTER_TABS, matchesFilter, calcApprovalSeatPatch } from '../utils/hostFilters'
 import { getServiceById } from '../../../common/utils/serviceUtils'
+import { isSharedCredentialsMethod } from '../../../common/utils/serviceInfoFields'
 
 // ── store 操作的精簡別名（事件處理器內呼叫，讀取最新 store 狀態）─────────────
 const getGroupById     = (id)      => useGroupStore.getState().getById(id)
@@ -187,7 +188,7 @@ async function handleLockGroup(sharedCredentials) {
       })
       // 通知所有成員（只寫 DB，成員刷新後看到）：跟團主一樣收到「聊天室已啟用」，
       // 另外再加一則提醒接下來要做的事——團主提供帳密的服務是「提取帳號資訊」，其餘是「填寫服務帳號」
-      const isSharedCredentials = getServiceById(group.serviceId)?.sharingMethod === 'shared_credentials'
+      const isSharedCredentials = isSharedCredentialsMethod(getServiceById(group.serviceId)?.sharingMethod)
       groupMembers.forEach(m => {
         insertNotification({
           userId:  m.userId,
@@ -275,7 +276,7 @@ function handleRemoveMember(member) {
 
     // 帳密共用服務一旦鎖定就已經把帳密交給所有成員看過，被移除的成員手上仍握有帳密，
     // 提醒團主此時只有「更改密碼」才能真正拿回控制權，平台無法代為處理
-    if (group?.sharedCredentials && getServiceById(group.serviceId)?.sharingMethod === 'shared_credentials') {
+    if (group?.sharedCredentials && isSharedCredentialsMethod(getServiceById(group.serviceId)?.sharingMethod)) {
       toast('該成員已看過帳號密碼，建議盡快更改密碼避免帳號被繼續使用', 'warning', { persistent: true })
     }
   }
@@ -366,7 +367,7 @@ async function handleActivate() {
       }).catch(console.error)
     })
 
-    if (group?.sharedCredentials && getServiceById(group.serviceId)?.sharingMethod === 'shared_credentials') {
+    if (group?.sharedCredentials && isSharedCredentialsMethod(getServiceById(group.serviceId)?.sharingMethod)) {
       toast('所有成員都已看過帳號密碼，建議盡快更改密碼避免帳號被繼續使用', 'warning', { persistent: true })
     }
 
@@ -422,7 +423,7 @@ async function handleActivate() {
     const endConvId = getConvByGroupId(renewalModalGroupId)?.id
     if (endConvId) sendSystemMessage(endConvId, `團主已結束「${groupLabel}」群組`).catch(console.error)
 
-    if (group?.sharedCredentials && getServiceById(group.serviceId)?.sharingMethod === 'shared_credentials') {
+    if (group?.sharedCredentials && isSharedCredentialsMethod(getServiceById(group.serviceId)?.sharingMethod)) {
       toast('所有成員都已看過帳號密碼，建議盡快更改密碼避免帳號被繼續使用', 'warning', { persistent: true })
     }
 

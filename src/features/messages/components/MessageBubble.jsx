@@ -5,7 +5,7 @@ import { Avatar } from '../../../components/ui/avatar'
 import { PresenceDot } from '../../../common/layout/components/navShared'
 import { useMemberStore } from '../../../common/stores/useMemberStore'
 import { getServiceById } from '../../../common/utils/serviceUtils'
-import { hasFilledServiceInfo, getServiceInfoSummary } from '../../../common/utils/serviceInfoFields'
+import { hasFilledServiceInfo, getServiceInfoSummary, isSharedCredentialsMethod } from '../../../common/utils/serviceInfoFields'
 import { formatTime } from '../utils'
 
 const getMemberByUserAndGroup = (uid, gid) => useMemberStore.getState().getByUserAndGroup(uid, gid)
@@ -41,7 +41,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
     if (msg.actionType === 'fill_service_info') {
       const isHost = userId === hostId
       const sharingMethod = getServiceById(msg.payload?.serviceId)?.sharingMethod
-      const isSharedCredentials = sharingMethod === 'shared_credentials'
+      const isSharedCredentials = isSharedCredentialsMethod(sharingMethod)
       // 純粹顯示大家目前的填寫狀態，不是敏感資料，群組裡每個人都看得到同一份，不用分團主/成員兩種版本
       const myMember = getMemberByUserAndGroup(userId, conversationGroupId)
       const iAlreadyFilled = isHost || (hasFilledServiceInfo(myMember?.serviceInfo, sharingMethod) && !myMember?.serviceInfoIssueNote)
@@ -94,7 +94,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
     if (msg.actionType === 'request_service_resubmit') {
       const svcMember = getMemberByUserAndGroup(userId, conversationGroupId)
       const resubmitSharingMethod = getServiceById(msg.payload?.serviceId)?.sharingMethod
-      const resubmitIsSharedCredentials = resubmitSharingMethod === 'shared_credentials'
+      const resubmitIsSharedCredentials = isSharedCredentialsMethod(resubmitSharingMethod)
       const alreadyFixed = hasFilledServiceInfo(svcMember?.serviceInfo, resubmitSharingMethod) && !svcMember?.serviceInfoIssueNote
       return (
         <div key={msg.id} className="flex justify-center">

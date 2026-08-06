@@ -207,13 +207,15 @@ export default function FloatingMessages() {
         // 但如果名額已經被別人佔滿或群組不再招募，這筆申請等於已經沒有下文（後端不會
         // 主動幫還卡在 pending 的申請人自動拒絕），跟點擊「申請未通過」通知一樣導向
         // 探索頁並顯示 toast，不要硬開一個進不去、按鈕都是灰的群組詳情
+        // groupStore 剛在上面的 Promise.all 重新拉過，這裡的 grp 已經是最新資料，
+        // 不用再呼叫 openGroupOrRedirect（它會再多打一次 groupStore.init 重覆同一次網路請求）
         const grp = getGroupById(gId)
         if (grp && grp.status === 'recruiting') {
           navigate('/my-subscriptions', { state: { tab: 'processing' } })
           window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: gId } }))
         } else {
           navigate('/explore')
-          openGroupOrRedirect(gId)
+          toast('此群組已額滿或不再招募', 'info')
         }
       })
       return

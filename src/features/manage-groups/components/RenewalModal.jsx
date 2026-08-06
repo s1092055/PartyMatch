@@ -4,11 +4,12 @@ import ServiceLogo from '../../../components/ui/ServiceLogo'
 import { StatusBadge } from '../../../components/ui/StatusBadge'
 import { advanceByCycle, daysUntil, toISODate } from '../../../common/utils/date'
 import { getServiceById } from '../../../common/utils/serviceUtils'
+import { isSharedCredentialsMethod } from '../../../common/utils/serviceInfoFields'
 
 export default function RenewalModal({ isOpen, onClose, group, onStartRenewal, onEndGroup }) {
   if (!group) return null
 
-  const isSharedCredentials = getServiceById(group.serviceId)?.sharingMethod === 'shared_credentials'
+  const isSharedCredentials = isSharedCredentialsMethod(getServiceById(group.serviceId)?.sharingMethod)
   const days = daysUntil(group.nextBillingDate)
   const isOverdue = days < 0
   const currentBillingDate = toISODate(group.nextBillingDate)

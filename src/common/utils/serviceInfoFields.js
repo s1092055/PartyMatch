@@ -46,6 +46,13 @@ export function getSharingMethodConfig(sharingMethod) {
   return SHARING_METHOD_CONFIG[sharingMethod] ?? SHARING_METHOD_CONFIG[DEFAULT_METHOD]
 }
 
+// 團主主動提供帳密的服務（shared_credentials）跟其他 5 種要成員自行輸入帳號的機制不同：
+// 成員不用「填寫」，只需要「提取」團主已提供的帳密並勾選確認，UI 文案（按鈕/banner/badge/通知）
+// 因此要跟其他組區分開來；集中成一個判斷式，避免各元件各自比對字串
+export function isSharedCredentialsMethod(sharingMethod) {
+  return sharingMethod === 'shared_credentials'
+}
+
 // 判斷 Member.serviceInfo 是否已經算「填寫完成」：只要必填欄位都有值即可，
 // 不同 sharingMethod 的欄位組合不同，不能寫死檢查 .email
 export function hasFilledServiceInfo(serviceInfo, sharingMethod) {

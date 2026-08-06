@@ -8,7 +8,7 @@ import TokenAmount from '../../../components/ui/TokenAmount'
 import GroupOverviewContent from '../../../components/ui/group/GroupOverviewContent'
 import { advanceByCycle, toISODate } from '../../../common/utils/date'
 import { getServiceById } from '../../../common/utils/serviceUtils'
-import { hasFilledServiceInfo, getServiceInfoSummary } from '../../../common/utils/serviceInfoFields'
+import { hasFilledServiceInfo, getServiceInfoSummary, isSharedCredentialsMethod } from '../../../common/utils/serviceInfoFields'
 
 export default function ActivateServiceModal({
   isOpen,
@@ -103,7 +103,7 @@ export default function ActivateServiceModal({
                           ) : hasFilledServiceInfo(m.serviceInfo, sharingMethod) ? (
                             <p className="text-xs text-ink-3">{getServiceInfoSummary(m.serviceInfo, sharingMethod)}</p>
                           ) : (
-                            <p className="text-xs text-ink-4">{sharingMethod === 'shared_credentials' ? '尚未提取帳號資訊' : '尚未填寫帳號'}</p>
+                            <p className="text-xs text-ink-4">{isSharedCredentialsMethod(sharingMethod) ? '尚未提取帳號資訊' : '尚未填寫帳號'}</p>
                           )}
                         </div>
                       </label>

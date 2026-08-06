@@ -15,7 +15,7 @@ import FillServiceInfoModal from './FillServiceInfoModal'
 import DisputeModal from './DisputeModal'
 import { buildPaymentsPanel } from './memberGroupView/buildPaymentsPanel'
 import { getServiceById } from '../../../common/utils/serviceUtils'
-import { getSharingMethodConfig, hasFilledServiceInfo } from '../../../common/utils/serviceInfoFields'
+import { getSharingMethodConfig, hasFilledServiceInfo, isSharedCredentialsMethod } from '../../../common/utils/serviceInfoFields'
 import { useMemberStore } from '../../../common/stores/useMemberStore'
 import { useGroupStore } from '../../../common/stores/useGroupStore'
 import { useSubscriptionStore } from '../../../common/stores/useSubscriptionStore'
@@ -78,7 +78,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
   const sharingMethodConfig = getSharingMethodConfig(serviceDef?.sharingMethod)
   // 團主主動提供帳密的服務（shared_credentials）成員端不需要「填寫」任何東西，只有一個確認框，
   // 文案要跟其他 5 種要成員自己填 Email／邀請碼的方式區分開來，避免讓人誤以為要自己輸入帳密
-  const isSharedCredentials = serviceDef?.sharingMethod === 'shared_credentials'
+  const isSharedCredentials = isSharedCredentialsMethod(serviceDef?.sharingMethod)
   // 團主提供帳密的服務，鎖定後不管填寫進度如何都要讓成員隨時能回來查看帳密（忘記密碼時），
   // 不能只在「尚未提取」的當下才給入口——跟其他要成員自行輸入的共享機制不同，資訊有效期是整個訂閱週期
   const canViewCredentials  = isSharedCredentials && isPaymentRelevant

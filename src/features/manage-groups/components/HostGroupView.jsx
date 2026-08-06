@@ -8,6 +8,7 @@ import GroupModalShell from '../../../components/ui/group/GroupModalShell'
 import GroupModalSideBarItem from '../../../components/ui/group/GroupModalSideBarItem'
 import HostReviews from '../../group/components/HostReviews'
 import { getServiceById } from '../../../common/utils/serviceUtils'
+import { isSharedCredentialsMethod } from '../../../common/utils/serviceInfoFields'
 import { canReportServiceIssue } from '../../../common/utils/groupStatus'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
 import { useApplicationStore } from '../../../common/stores/useApplicationStore'
@@ -163,7 +164,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
 
   // 無官方多人邀請機制的服務，鎖定群組當下順便讓團主提供帳號密碼，成員填寫帳號時就能直接看到，
   // 不用回頭翻聊天室訊息
-  const needsCredentialsOnLock = serviceDef?.sharingMethod === 'shared_credentials'
+  const needsCredentialsOnLock = isSharedCredentialsMethod(serviceDef?.sharingMethod)
 
   function openLockFlow() {
     if (needsCredentialsOnLock) {
