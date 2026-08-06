@@ -6,10 +6,8 @@ import { CREDIT_RULES } from '../../../common/utils/creditScore'
 import { useApplicationStore } from '../../../common/stores/useApplicationStore'
 import { useMemberStore } from '../../../common/stores/useMemberStore'
 import { useSubscriptionStore } from '../../../common/stores/useSubscriptionStore'
-import { useNotificationStore } from '../../../common/stores/useNotificationStore'
 import { createGroupConversation, removeParticipantFromConversation, sendSystemMessage, sendActionMessage } from '../../../common/api/messagesApi'
 import { toast } from '../../../common/utils/toast'
-import { insertNotification } from '../../../common/api/notificationsApi'
 import { useConversationStore } from '../../../common/stores/useConversationStore'
 import { isHistoryGroup } from '../../../common/utils/groupStatusDisplay'
 import { STATUS_FILTER_TABS, matchesFilter, calcApprovalSeatPatch } from '../utils/hostFilters'
@@ -41,7 +39,6 @@ const clearMemberServiceInfos    = (gid)    => useMemberStore.getState().clearGr
 const getSubscriptionByUserAndGroup   = (uid, gid) => useSubscriptionStore.getState().getByUserAndGroup(uid, gid)
 const removeSubscription              = (id)     => useSubscriptionStore.getState().remove(id)
 
-const createNotification         = (data)    => useNotificationStore.getState().create(data)
 const addConversationOptimistic  = (conv)    => useConversationStore.getState().addConversationOptimistic(conv)
 const getConvByGroupId           = (gid)     => useConversationStore.getState().getByGroupId(gid)
 
@@ -178,35 +175,7 @@ async function handleLockGroup(sharedCredentials) {
       const convId = conv.id
       await lockGroup(viewGroupId, sharedCredentials)
 
-      // 通知團主自己
-      createNotification({
-        userId:  group.hostId,
-        type:    'group_chat_opened',
-        title:   '群組聊天室已啟用',
-        message: `「${group.serviceName}」群組已鎖定，聊天室已建立，點擊查看。`,
-        meta:    { groupId: viewGroupId },
-      })
-      // 通知所有成員（只寫 DB，成員刷新後看到）：跟團主一樣收到「聊天室已啟用」，
-      // 另外再加一則提醒接下來要做的事——團主提供帳密的服務是「提取帳號資訊」，其餘是「填寫服務帳號」
-      const isSharedCredentials = isSharedCredentialsMethod(getServiceById(group.serviceId)?.sharingMethod)
-      groupMembers.forEach(m => {
-        insertNotification({
-          userId:  m.userId,
-          type:    'group_chat_opened',
-          title:   '群組聊天室已啟用',
-          message: `「${group.serviceName}」群組已鎖定，聊天室已建立，點擊查看。`,
-          meta:    { groupId: viewGroupId },
-        }).catch(console.error)
-        insertNotification({
-          userId:  m.userId,
-          type:    'fill_service_info',
-          title:   isSharedCredentials ? '請提取帳號資訊' : '請填寫服務帳號資訊',
-          message: isSharedCredentials
-            ? `「${group.serviceName}」群組已鎖定，請進入提取帳號資訊並完成付款。`
-            : `「${group.serviceName}」群組已鎖定，請進入填寫服務帳號並完成付款。`,
-          meta:    { groupId: viewGroupId },
-        }).catch(console.error)
-      })
+      // group_chat_opened／fill_service_info 通知（團主與所有成員）已經由後端 POST /:id/lock 建立
 
       // 樂觀新增聊天室到本地 store
       const participantMeta = {
@@ -260,14 +229,7 @@ function handleRemoveMember(member) {
       }),
     }))
 
-    const groupLabel = group?.groupName ?? group?.serviceName ?? '群組'
-    insertNotification({
-      userId:  member.userId,
-      type:    'member_removed',
-      title:   '已被移出群組',
-      message: `團主已將你移出「${groupLabel}」群組，代管費用已退還至你的PM幣餘額。`,
-      meta:    { groupId: member.groupId },
-    }).catch(console.error)
+    // member_removed 通知已經由後端 DELETE /members/:id 建立
     const convId = getConvByGroupId(member.groupId)?.id
     if (convId) {
       sendSystemMessage(convId, `${member.userName} 已被移出群組`).catch(console.error)
@@ -285,7 +247,6 @@ async function handleActivate() {
     if (!viewGroupId) return
     const group = getGroupById(viewGroupId)
     if (!group) return
-    const groupMembers = getMembersByGroupId(viewGroupId)
 
     try {
       await activateService(viewGroupId)
@@ -300,22 +261,7 @@ async function handleActivate() {
       `${group.serviceName} 服務已啟用！請在 48 小時內確認服務是否正常運作。`
     ).catch(console.error)
 
-    createNotification({
-      userId:  activeUser.id,
-      type:    'group_activated',
-      title:   '服務已啟用，確認期開始',
-      message: `「${group.serviceName}」群組服務已啟用，成員有 48 小時確認期。`,
-      meta:    { groupId: viewGroupId },
-    })
-    groupMembers.forEach(m => {
-      insertNotification({
-        userId:  m.userId,
-        type:    'group_activated',
-        title:   '服務已啟用，請確認',
-        message: `「${group.serviceName}」服務已啟用！請在 48 小時內確認服務是否正常，否則將自動完成。`,
-        meta:    { groupId: viewGroupId },
-      }).catch(console.error)
-    })
+    // group_activated 通知（團主與所有成員）已經由後端 POST /:id/activate 建立
 
     setViewGroupId(null)
     refreshGroups()
@@ -358,7 +304,6 @@ async function handleActivate() {
     if (!viewGroupId) return
     const group = getGroupById(viewGroupId)
     if (!group) return
-    const groupMembers = getMembersByGroupId(viewGroupId)
 
     try {
       await useGroupStore.getState().cancelGroup(viewGroupId)
@@ -367,16 +312,7 @@ async function handleActivate() {
       return
     }
 
-    // 通知所有成員
-    groupMembers.forEach(m => {
-      insertNotification({
-        userId:  m.userId,
-        type:    'group_cancelled',
-        title:   '群組已解散',
-        message: `「${group.serviceName}」群組已被團主解散，代管費用已退還至你的PM幣餘額。`,
-        meta:    { groupId: viewGroupId },
-      }).catch(console.error)
-    })
+    // group_cancelled 通知（所有成員）已經由後端 POST /:id/cancel 建立
 
     if (group?.sharedCredentials && isSharedCredentialsMethod(getServiceById(group.serviceId)?.sharingMethod)) {
       toast('所有成員都已看過帳號密碼，建議盡快更改密碼避免帳號被繼續使用', 'warning', { persistent: true })
@@ -388,8 +324,6 @@ async function handleActivate() {
 
   async function handleStartRenewal() {
     if (!renewalModalGroupId) return
-    const group = getGroupById(renewalModalGroupId)
-    const groupMembers = getMembersByGroupId(renewalModalGroupId)
     try {
       await startRenewalCycle(renewalModalGroupId)
     } catch (err) {
@@ -401,15 +335,7 @@ async function handleActivate() {
     if (convId) sendSystemMessage(
       convId, `新一期已開始，請重新填寫訂閱帳號資訊。`
     ).catch(console.error)
-    groupMembers.forEach(m => {
-      insertNotification({
-        userId:  m.userId,
-        type:    'group_renewal',
-        title:   '新一期已開始',
-        message: `「${group?.serviceName}」群組開始新一期，請前往填寫最新服務帳號資訊。`,
-        meta:    { groupId: renewalModalGroupId },
-      }).catch(console.error)
-    })
+    // group_renewal 通知（所有成員）已經由後端 POST /:id/renew 建立
     setRenewalModalGroupId(null)
     refreshGroups()
   }
@@ -417,20 +343,11 @@ async function handleActivate() {
   function handleEndGroup() {
     if (!renewalModalGroupId) return
     const group = getGroupById(renewalModalGroupId)
-    const groupMembers = getMembersByGroupId(renewalModalGroupId)
     const groupLabel = group?.groupName ?? group?.serviceName ?? '群組'
 
     endGroup(renewalModalGroupId)
 
-    groupMembers.forEach(m => {
-      insertNotification({
-        userId:  m.userId,
-        type:    'group_ended',
-        title:   '群組已結束',
-        message: `「${groupLabel}」群組已由團主結束，合購服務將不再續訂。`,
-        meta:    { groupId: renewalModalGroupId },
-      }).catch(console.error)
-    })
+    // group_ended 通知（所有成員）已經由後端 PATCH /groups/:id（status: 'ended'）建立
     const endConvId = getConvByGroupId(renewalModalGroupId)?.id
     if (endConvId) sendSystemMessage(endConvId, `團主已結束「${groupLabel}」群組`).catch(console.error)
 
@@ -479,25 +396,8 @@ async function handleApprove(appId) {
     const newOpenSeats = seatPatch?.openSeats ?? seats.openSeats
     if (seatPatch) updateGroup(app.groupId, seatPatch)
 
-    // 申請人通知：只寫 DB，申請人刷新後才看到
-    insertNotification({
-      userId:  applicantId,
-      type:    'application_approved',
-      title:   '申請已通過',
-      message: `恭喜！你加入「${app.groupName ?? app.serviceName}」群組的申請已通過，請前往我的訂閱查看。`,
-      meta:    { groupId: app.groupId, applicationId: appId },
-    }).catch(console.error)
-
-    if (seatPatch?.status === 'full') {
-      // 名額已滿通知給宿主自己（即時）
-      createNotification({
-        userId:  group.hostId,
-        type:    'group_full',
-        title:   '群組名額已滿',
-        message: `「${app.groupName ?? app.serviceName}」群組名額已滿，可以點擊鎖定群組了。`,
-        meta:    { groupId: app.groupId },
-      })
-    }
+    // application_approved（申請人）／group_full（額滿時通知團主自己）通知已經由後端
+    // PATCH /applications/:id 建立
 
     setHostData(prev => {
       const updatedHostedGroups = prev.hostedGroups.map(g =>
@@ -529,13 +429,7 @@ async function handleApprove(appId) {
       payload: { targetUserId: member.userId, serviceId: group?.serviceId },
     }).catch(console.error)
 
-    insertNotification({
-      userId:  member.userId,
-      type:    'service_info_issue',
-      title:   '服務帳號需要修正',
-      message: `團主在「${member.groupName ?? group?.serviceName ?? ''}」發現服務帳號問題，請前往修正。`,
-      meta:    { groupId: member.groupId },
-    }).catch(console.error)
+    // service_info_issue 通知已經由後端 PATCH /members/:id 建立
 
     refreshGroups()
   }
@@ -556,14 +450,7 @@ async function handleApprove(appId) {
     // 避免收款管理畫面一直顯示退款前的舊代管金額（跟移除成員同一套修正方式）
     useGroupStore.getState().refreshGroup(app.groupId).catch(console.error)
 
-    // 申請人通知：只寫 DB，申請人刷新後才看到
-    insertNotification({
-      userId:  app.applicantId ?? app.userId,
-      type:    'application_rejected',
-      title:   '申請未通過',
-      message: `很遺憾，你加入「${app.groupName ?? app.serviceName}」群組的申請未通過，代管費用已退還至你的PM幣餘額，你可以繼續探索其他群組。`,
-      meta:    { groupId: app.groupId, applicationId: appId },
-    }).catch(console.error)
+    // application_rejected 通知已經由後端 PATCH /applications/:id 建立
 
     setHostData(prev => ({
       ...prev,

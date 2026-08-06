@@ -136,6 +136,15 @@ router.post('/', requireAuth, validate(createGroupSchema), async (req, res, next
       data: { ...data, hostId: req.user.id },
       include: { service: true, host: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true } } },
     })
+
+    notify({
+      userId:  req.user.id,
+      type:    'group_created',
+      title:   '群組已成功建立',
+      message: `「${group.planName ?? group.service?.name ?? ''}」群組已上架，開始招募成員中！`,
+      meta:    { groupId: group.id },
+    })
+
     res.status(201).json(maskGroupAvatars(group))
   } catch (err) { next(err) }
 })
@@ -155,7 +164,10 @@ const ALLOWED_TRANSITIONS = {
 // PATCH /groups/:id
 router.patch('/:id', requireAuth, validate(updateGroupSchema), async (req, res, next) => {
   try {
-    const group = await prisma.group.findUnique({ where: { id: req.params.id } })
+    const group = await prisma.group.findUnique({
+      where: { id: req.params.id },
+      include: { members: true, service: { select: { name: true } } },
+    })
     if (!group) return res.status(404).json({ message: '群組不存在' })
     if (group.hostId !== req.user.id) return res.status(403).json({ message: '僅團主可操作' })
 
@@ -171,6 +183,20 @@ router.patch('/:id', requireAuth, validate(updateGroupSchema), async (req, res, 
       where: { id: req.params.id },
       data:  req.body,
     })
+
+    if (status === 'ended' && group.status !== 'ended') {
+      const groupLabel = group.planName ?? group.service?.name ?? ''
+      group.members.forEach(m => {
+        notify({
+          userId:  m.userId,
+          type:    'group_ended',
+          title:   '群組已結束',
+          message: `「${groupLabel}」群組已由團主結束，合購服務將不再續訂。`,
+          meta:    { groupId: req.params.id },
+        })
+      })
+    }
+
     res.json(updated)
   } catch (err) { next(err) }
 })

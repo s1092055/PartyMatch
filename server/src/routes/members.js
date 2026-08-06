@@ -6,6 +6,7 @@ import { validate } from '../middleware/validate.js'
 import { computeSeatCost } from '../utils/pricing.js'
 import { admitMemberIntoGroup, refundEscrow } from '../utils/membership.js'
 import { maskAvatar } from '../lib/avatarVisibility.js'
+import { notify } from './groups/shared.js'
 
 const router = Router()
 
@@ -84,7 +85,10 @@ router.patch('/:id', requireAuth, validate(patchMemberSchema), async (req, res, 
   try {
     const existing = await prisma.member.findUnique({
       where: { id: req.params.id },
-      include: { group: { select: { hostId: true } } },
+      include: {
+        group: { select: { hostId: true, planName: true, sharedCredentials: true, service: { select: { name: true } } } },
+        user:  { select: { name: true } },
+      },
     })
     if (!existing) return res.status(404).json({ message: '成員不存在' })
 
@@ -97,9 +101,23 @@ router.patch('/:id', requireAuth, validate(patchMemberSchema), async (req, res, 
       data:  req.body,
     })
 
+    const groupLabel = existing.group.planName ?? existing.group.service?.name ?? ''
+
     // 填寫 serviceInfo 後，檢查是否全員完成 → 自動推進 pending_confirmation → pending_activation
     let groupAdvancedStatus = null
     if (req.body.serviceInfo !== undefined) {
+      // 團主提供帳密的服務（sharedCredentials 有值）成員端動作是「確認取得」不是「填寫」，通知文案要分開講
+      const isSharedCredentials = !!existing.group.sharedCredentials
+      notify({
+        userId:  existing.group.hostId,
+        type:    'service_info_filled',
+        title:   isSharedCredentials ? '成員已提取帳號資訊' : '成員已填寫服務帳號',
+        message: isSharedCredentials
+          ? `${existing.user?.name ?? '成員'} 已確認取得「${groupLabel}」群組的帳號資訊。`
+          : `${existing.user?.name ?? '成員'} 已填寫「${groupLabel}」群組的服務帳號資訊。`,
+        meta:    { groupId: existing.groupId },
+      })
+
       const allMembers = await prisma.member.findMany({ where: { groupId: existing.groupId } })
       const allFilled  = allMembers.every(m => m.serviceInfo != null)
       if (allFilled) {
@@ -111,6 +129,16 @@ router.patch('/:id', requireAuth, validate(patchMemberSchema), async (req, res, 
       }
     }
 
+    if (isHost && req.body.serviceInfoIssueNote) {
+      notify({
+        userId:  existing.userId,
+        type:    'service_info_issue',
+        title:   '服務帳號需要修正',
+        message: `團主在「${groupLabel}」發現服務帳號問題，請前往修正。`,
+        meta:    { groupId: existing.groupId },
+      })
+    }
+
     res.json(groupAdvancedStatus ? { ...member, _groupAdvanced: groupAdvancedStatus } : member)
   } catch (err) { next(err) }
 })
@@ -120,7 +148,10 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
   try {
     const existing = await prisma.member.findUnique({
       where:   { id: req.params.id },
-      include: { group: { select: { id: true, hostId: true, status: true, monthlyFee: true, billingCycle: true, escrowTokens: true } } },
+      include: {
+        group: { select: { id: true, hostId: true, planName: true, status: true, monthlyFee: true, billingCycle: true, escrowTokens: true, service: { select: { name: true } } } },
+        user:  { select: { name: true } },
+      },
     })
     if (!existing) return res.status(404).json({ message: '成員不存在' })
 
@@ -160,6 +191,25 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
       })
       return updated.currentMembers
     })
+
+    const groupLabel = existing.group.planName ?? existing.group.service?.name ?? ''
+    if (isSelf) {
+      notify({
+        userId:  existing.group.hostId,
+        type:    'member_left',
+        title:   '成員已退出群組',
+        message: `${existing.user?.name ?? '成員'} 已退出「${groupLabel}」群組。`,
+        meta:    { groupId: existing.groupId },
+      })
+    } else {
+      notify({
+        userId:  existing.userId,
+        type:    'member_removed',
+        title:   '已被移出群組',
+        message: `團主已將你移出「${groupLabel}」群組，代管費用已退還至你的PM幣餘額。`,
+        meta:    { groupId: existing.groupId },
+      })
+    }
 
     res.status(200).json({ currentMembers: newCount })
   } catch (err) { next(err) }

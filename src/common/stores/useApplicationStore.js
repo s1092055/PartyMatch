@@ -5,7 +5,6 @@ import {
   patchApplication,
   deleteApplication,
 } from '../api/applicationsApi'
-import { insertNotification } from '../api/notificationsApi'
 
 import { normalizeApplication } from '../utils/modelNormalizers'
 import { nowISO, byNewest } from '../utils/date'
@@ -81,25 +80,8 @@ export const useApplicationStore = create((set, get) => ({
     set(s => ({ applications: [app, ...s.applications] }))
     // 申請當下就會代管扣款，重新拉一次餘額讓畫面上的PM幣顯示同步
     useAuthStore.getState().refreshTokenBalance()
-    const notifStore = useNotificationStore.getState()
-    // 通知申請人（本人，即時寫入本地 store + DB）
-    notifStore.create({
-      userId:  app.applicantId,
-      type:    'application_sent',
-      title:   '申請已送出',
-      message: `你的加入申請已送達「${app.groupName ?? app.serviceName}」團主，等待審核。`,
-      meta:    { groupId: app.groupId, applicationId: app.id },
-    })
-    // 宿主通知：只寫入 DB，宿主刷新頁面後自然出現（不即時推入對方 session 的 store）
-    if (app.hostId) {
-      insertNotification({
-        userId:  app.hostId,
-        type:    'new_application',
-        title:   '收到新的加入申請',
-        message: `${app.applicantName ?? '有人'} 申請加入「${app.groupName ?? app.serviceName}」群組。`,
-        meta:    { groupId: app.groupId, applicationId: app.id },
-      }).catch(console.error)
-    }
+    // application_sent／new_application 通知已經由後端 POST /applications 在同一個請求裡建立，
+    // 不在這裡另外呼叫，避免使用者關閉分頁時前端這段程式碼沒機會執行，通知就此消失
     return app
   },
 
@@ -122,7 +104,6 @@ export const useApplicationStore = create((set, get) => ({
 
   // ── 取消申請（申請人自行取消 pending 申請）────────────────────────────────
   cancel: async (id) => {
-    const app = get().applications.find(a => a.id === id)
     set(s => ({
       applications: s.applications.map(a => a.id === id ? { ...a, status: 'cancelled' } : a),
     }))
@@ -130,66 +111,10 @@ export const useApplicationStore = create((set, get) => ({
       await deleteApplication(id)
       // 取消會退還申請當下代管的金額，重新拉一次餘額讓畫面上的PM幣顯示同步
       useAuthStore.getState().refreshTokenBalance()
-      // 通知團主：申請人已取消申請。團主端的 applications store 在這之前完全不知道
-      // 這筆申請已經失效，不通知的話團主可能還會去接受/拒絕一筆早就取消的申請
-      if (app?.hostId) {
-        insertNotification({
-          userId:  app.hostId,
-          type:    'application_cancelled',
-          title:   '申請人已取消申請',
-          message: `${app.applicantName ?? '申請人'} 已取消加入「${app.groupName ?? app.serviceName}」群組的申請。`,
-          meta:    { groupId: app.groupId, applicationId: id },
-        }).catch(console.error)
-      }
+      // application_cancelled 通知已經由後端 DELETE /applications/:id 建立，不在這裡重複呼叫
     } catch (err) {
       await get().init()
       throw err
     }
-  },
-
-  // 冷啟動補通知：init + notifications init 都完成後呼叫
-  checkMissedNotifications: (currentUser) => {
-    if (!currentUser) return
-    const notifStore = useNotificationStore.getState()
-    const existingNotifAppIds = new Set(
-      notifStore.getByUserId(currentUser.id)
-        .filter(n => ['application_approved', 'application_rejected', 'new_application'].includes(n.type))
-        .map(n => n.meta?.applicationId)
-        .filter(Boolean)
-    )
-
-    get().applications.forEach(app => {
-      const applicantId = app.applicantId ?? app.userId
-
-      if (applicantId === currentUser.id && !existingNotifAppIds.has(app.id)) {
-        if (app.status === 'approved') {
-          notifStore.create({
-            userId:  currentUser.id,
-            type:    'application_approved',
-            title:   '申請已通過',
-            message: `你申請加入的「${app.groupName ?? app.serviceName}」群組已通過審核，歡迎加入！`,
-            meta:    { applicationId: app.id, groupId: app.groupId },
-          })
-        } else if (app.status === 'rejected') {
-          notifStore.create({
-            userId:  currentUser.id,
-            type:    'application_rejected',
-            title:   '申請未通過',
-            message: `很抱歉，你申請加入的「${app.groupName ?? app.serviceName}」群組申請未通過，代管費用已退還至你的PM幣餘額。`,
-            meta:    { applicationId: app.id, groupId: app.groupId },
-          })
-        }
-      }
-
-      if (app.hostId === currentUser.id && app.status === 'pending' && !existingNotifAppIds.has(app.id)) {
-        notifStore.create({
-          userId:  currentUser.id,
-          type:    'new_application',
-          title:   '收到新的加入申請',
-          message: `${app.applicantName ?? '有人'} 申請加入「${app.groupName ?? app.serviceName}」群組。`,
-          meta:    { groupId: app.groupId, applicationId: app.id },
-        })
-      }
-    })
   },
 }))

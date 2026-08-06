@@ -13,7 +13,6 @@ import ScrollHint from '../../components/ui/primitives/ScrollHint'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '../../components/ui/dialog'
 import LivePreviewPanel from './components/LivePreviewPanel'
 import { useGroupStore } from '../../common/stores/useGroupStore'
-import { useNotificationStore } from '../../common/stores/useNotificationStore'
 import { getServiceById } from '../../common/utils/serviceUtils'
 import { calcPricePerSeat, calcDisplayPrice } from '../../common/utils/pricingUtils'
 import { useAuthStore } from '../../common/stores/useAuthStore'
@@ -165,16 +164,9 @@ export default function CreateGroupPage() {
 
     const groupData = mapFormToGroup(form)
     const host = useAuthStore.getState().getProfile()
-    const group = useGroupStore.getState().create(groupData, host)
-    if (host) {
-      useNotificationStore.getState().create({
-        userId:  host.id,
-        type:    'group_created',
-        title:   '群組已成功建立',
-        message: `「${group.serviceName}」群組已上架，開始招募成員中！`,
-        meta:    { groupId: group.id },
-      })
-    }
+    useGroupStore.getState().create(groupData, host)
+    // group_created 通知已經由後端 POST /groups 建立（用後端真正產生的 group id，
+    // 不會像這裡樂觀新增的本地暫時 id 之後被换掉，deep link 才不會連到不存在的群組）
     setShowSuccessModal(true)
   }
 

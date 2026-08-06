@@ -76,7 +76,10 @@ enum NotificationType {
   escrow_released
   dispute_raised
   dispute_resolved
+  dispute_resolved_by_host
   upcoming_renewal
+  billing_date_confirmed
+  billing_date_adjusted
   system
 }
 

@@ -1,13 +1,11 @@
 import { create } from 'zustand'
 import {
   readAllNotifications,
-  insertNotification,
   patchNotification,
   markAllNotificationsRead,
 } from '../api/notificationsApi'
 import { useAuthStore } from './useAuthStore'
-import { nowISO, todayISO, byNewest } from '../utils/date'
-import { createId } from '../utils/storage'
+import { todayISO, byNewest } from '../utils/date'
 import { startPolling } from '../utils/poller'
 import { notifyError } from '../utils/toast'
 
@@ -86,8 +84,9 @@ export const useNotificationStore = create((set, get) => ({
         const currentIds = new Set(useNotificationStore.getState().notifications.map(n => n.id))
         const newNotifs = latest.filter(n => n.userId === _notifUserId && !currentIds.has(n.id))
         // group_cancelled：團主解散群組後，不管是團主自己的其他分頁還是成員端，都要立刻讓畫面
-        // 不再顯示已經不存在的招募中/額滿群組，不用等使用者點開這則通知才刷新
-        if (newNotifs.some(n => n.type === 'member_removed' || n.type === 'member_left' || n.type === 'dispute_resolved' || n.type === 'group_cancelled')) {
+        // 不再顯示已經不存在的招募中/額滿群組，不用等使用者點開這則通知才刷新；
+        // dispute_resolved 不在此列——團主標記問題處理完成後，成員端要重新整理頁面才會看到最新狀態，不即時刷新
+        if (newNotifs.some(n => n.type === 'member_removed' || n.type === 'member_left' || n.type === 'group_cancelled')) {
           window.dispatchEvent(new CustomEvent('pm:refresh-member-stores'))
         }
         // 這幾種通知都代表 PM幣餘額剛被後端改動過（退款或撥款），不用等使用者點擊通知才更新，
@@ -126,35 +125,6 @@ export const useNotificationStore = create((set, get) => ({
     return get().notifications.filter(n => n.userId === userId && !n.isRead).length
   },
 
-  // ── 新增通知（本地推入 + 寫入後端，再將 tempId 替換成後端真實 ID）──────────
-  create: async ({ userId, type, title, message, meta }) => {
-    const tempId = createId('notif')
-    const notif = {
-      id:        tempId,
-      userId,
-      type,
-      title,
-      message,
-      isRead:    false,
-      createdAt: nowISO(),
-      ...(meta ? { meta } : {}),
-    }
-    set(s => ({ notifications: [notif, ...s.notifications] }))
-    try {
-      const saved = await insertNotification(notif)
-      if (saved?.id && saved.id !== tempId) {
-        set(s => ({
-          notifications: s.notifications.map(n => n.id === tempId ? { ...n, id: saved.id } : n),
-        }))
-        notif.id = saved.id
-      }
-    } catch (err) {
-      console.error('[notificationStore] create failed:', err)
-      // 後端寫入失敗時移除本地暫存通知，避免留下一筆 markRead 永遠無法同步的 tempId 幽靈通知
-      set(s => ({ notifications: s.notifications.filter(n => n.id !== tempId) }))
-    }
-    return notif
-  },
 
   // ── 標記單則已讀 ────────────────────────────────────────────────────────────
   markRead: (id) => {

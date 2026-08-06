@@ -6,6 +6,7 @@ import { validate } from '../middleware/validate.js'
 import { computeSeatCost } from '../utils/pricing.js'
 import { finalizeApprovedApplication, refundEscrow } from '../utils/membership.js'
 import { maskAvatar } from '../lib/avatarVisibility.js'
+import { notify } from './groups/shared.js'
 
 const router = Router()
 
@@ -43,8 +44,8 @@ router.post('/', requireAuth, validate(applySchema), async (req, res, next) => {
   try {
     const { groupId, message } = req.body
     const [group, applicant] = await Promise.all([
-      prisma.group.findUnique({ where: { id: groupId } }),
-      prisma.user.findUnique({ where: { id: req.user.id }, select: { tokenBalance: true } }),
+      prisma.group.findUnique({ where: { id: groupId }, include: { service: { select: { name: true } } } }),
+      prisma.user.findUnique({ where: { id: req.user.id }, select: { tokenBalance: true, name: true } }),
     ])
     if (!group) return res.status(404).json({ message: '群組不存在' })
     if (group.status !== 'recruiting') return res.status(400).json({ message: '此群組目前不開放申請' })
@@ -96,6 +97,23 @@ router.post('/', requireAuth, validate(applySchema), async (req, res, next) => {
 
         return created
       })
+
+      const groupLabel = group.planName ?? group.service?.name ?? ''
+      notify({
+        userId:  req.user.id,
+        type:    'application_sent',
+        title:   '申請已送出',
+        message: `你的加入申請已送達「${groupLabel}」團主，等待審核。`,
+        meta:    { groupId, applicationId: application.id },
+      })
+      notify({
+        userId:  group.hostId,
+        type:    'new_application',
+        title:   '收到新的加入申請',
+        message: `${applicant?.name ?? '有人'} 申請加入「${groupLabel}」群組。`,
+        meta:    { groupId, applicationId: application.id },
+      })
+
       res.status(201).json(application)
     } catch (err) {
       if (err.code === 'P2002') return res.status(409).json({ message: '你已有一筆進行中的申請' })
@@ -110,7 +128,10 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
   try {
     const application = await prisma.application.findUnique({
       where:   { id: req.params.id },
-      include: { group: { select: { id: true, monthlyFee: true, billingCycle: true, escrowTokens: true } } },
+      include: {
+        group: { select: { id: true, hostId: true, planName: true, monthlyFee: true, billingCycle: true, escrowTokens: true, service: { select: { name: true } } } },
+        user:  { select: { name: true } },
+      },
     })
     if (!application) return res.status(404).json({ message: '申請不存在' })
     if (application.userId !== req.user.id) return res.status(403).json({ message: '僅申請人可取消' })
@@ -137,6 +158,16 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
 
       return tx.application.findUnique({ where: { id: req.params.id } })
     })
+
+    const groupLabel = application.group.planName ?? application.group.service?.name ?? ''
+    notify({
+      userId:  application.group.hostId,
+      type:    'application_cancelled',
+      title:   '申請人已取消申請',
+      message: `${application.user?.name ?? '申請人'} 已取消加入「${groupLabel}」群組的申請。`,
+      meta:    { groupId: application.groupId, applicationId: req.params.id },
+    })
+
     res.json(updated)
   } catch (err) { next(err) }
 })
@@ -146,12 +177,13 @@ router.patch('/:id', requireAuth, validate(reviewSchema), async (req, res, next)
   try {
     const application = await prisma.application.findUnique({
       where:   { id: req.params.id },
-      include: { group: { select: { hostId: true, monthlyFee: true, billingCycle: true, escrowTokens: true } } },
+      include: { group: { select: { hostId: true, planName: true, monthlyFee: true, billingCycle: true, escrowTokens: true, service: { select: { name: true } } } } },
     })
     if (!application) return res.status(404).json({ message: '申請不存在' })
     if (application.group.hostId !== req.user.id) return res.status(403).json({ message: '僅團主可審核' })
 
     const { status } = req.body
+    const groupLabel = application.group.planName ?? application.group.service?.name ?? ''
 
     if (status !== 'approved') {
       // 拒絕／移除都會走到這裡：member 被移除（status: 'removed'）時，DELETE /members/:id 已經處理過
@@ -175,6 +207,18 @@ router.patch('/:id', requireAuth, validate(reviewSchema), async (req, res, next)
 
         return tx.application.findUnique({ where: { id: req.params.id } })
       })
+
+      // 'removed' 是成員被移出群組後同步狀態，member_removed 通知已經在 DELETE /members/:id 發過，這裡不重複
+      if (status === 'rejected') {
+        notify({
+          userId:  application.userId,
+          type:    'application_rejected',
+          title:   '申請未通過',
+          message: `很遺憾，你加入「${groupLabel}」群組的申請未通過，代管費用已退還至你的PM幣餘額，你可以繼續探索其他群組。`,
+          meta:    { groupId: application.groupId, applicationId: req.params.id },
+        })
+      }
+
       return res.json(updated)
     }
 
@@ -209,6 +253,14 @@ router.patch('/:id', requireAuth, validate(reviewSchema), async (req, res, next)
       })
 
       return tx.application.findUnique({ where: { id: req.params.id } })
+    })
+
+    notify({
+      userId:  application.userId,
+      type:    'application_approved',
+      title:   '申請已通過',
+      message: `恭喜！你加入「${groupLabel}」群組的申請已通過，請前往我的訂閱查看。`,
+      meta:    { groupId: application.groupId, applicationId: req.params.id },
     })
 
     res.json(updated)

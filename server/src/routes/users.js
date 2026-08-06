@@ -2,12 +2,28 @@ import { Router } from 'express'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import prisma from '../lib/prisma.js'
-import { requireAuth } from '../middleware/auth.js'
+import { requireAuth, requireAdmin } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
 import { deleteAllUserSessions } from './auth.js'
 import { maskAvatar } from '../lib/avatarVisibility.js'
 
 const router = Router()
+
+// GET /users?email=xxx — 管理員依 email 查詢單一使用者（單發系統訊息前先確認對象），
+// 僅限管理員：email 對應真實身份，一般使用者不該能拿 email 反查別人是否有帳號、id 是什麼
+router.get('/', requireAdmin, async (req, res, next) => {
+  try {
+    const email = req.query.email?.trim()
+    if (!email) return res.status(400).json({ message: '請提供 email' })
+
+    const user = await prisma.user.findUnique({
+      where:  { email },
+      select: { id: true, name: true, email: true },
+    })
+    if (!user) return res.status(404).json({ message: '查無此使用者' })
+    res.json(user)
+  } catch (err) { next(err) }
+})
 
 const updateProfileSchema = z.object({
   name:         z.string().min(1).max(50).optional(),

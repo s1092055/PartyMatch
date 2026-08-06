@@ -90,6 +90,24 @@ router.post('/:id/activate', requireAuth, async (req, res, next) => {
       })
     }
 
+    const groupLabelForActivation = group.planName ?? group.service?.name ?? ''
+    notify({
+      userId:  group.hostId,
+      type:    'group_activated',
+      title:   '服務已啟用，確認期開始',
+      message: `「${groupLabelForActivation}」群組服務已啟用，成員有 48 小時確認期。`,
+      meta:    { groupId: req.params.id },
+    })
+    group.members.forEach(m => {
+      notify({
+        userId:  m.userId,
+        type:    'group_activated',
+        title:   '服務已啟用，請確認',
+        message: `「${groupLabelForActivation}」服務已啟用！請在 48 小時內確認服務是否正常，否則將自動完成。`,
+        meta:    { groupId: req.params.id },
+      })
+    })
+
     res.json(maskGroupHost(updated))
   } catch (err) { next(err) }
 })
@@ -360,9 +378,12 @@ router.post('/:id/resolve-dispute', requireAuth, validate(resolveDisputeSchema),
     ])
     updated.host = maskAvatar(updated.host)
 
+    // 用獨立的 dispute_resolved_by_host 型別，跟 /adjudicate（管理員裁定，會動到金流）共用的
+    // dispute_resolved 分開，這樣前端才能只在裁定那邊觸發餘額即時刷新，自行協調解決不涉及金流，
+    // 不需要（也不應該）觸發成員端的餘額 API 呼叫
     notify({
       userId:  disputeMember.userId,
-      type:    'dispute_resolved',
+      type:    'dispute_resolved_by_host',
       title:   '問題已處理完成',
       message: `團主已回覆「${groupLabel}」你回報的問題並處理完成，請重新確認服務是否正常。`,
       meta:    { groupId: req.params.id },
@@ -383,7 +404,7 @@ router.post('/:id/resolve-dispute', requireAuth, validate(resolveDisputeSchema),
 // POST /groups/:id/cancel — 解散群組（啟用前），退還所有代管給成員
 router.post('/:id/cancel', requireAuth, async (req, res, next) => {
   try {
-    const group = await prisma.group.findUnique({ where: { id: req.params.id } })
+    const group = await prisma.group.findUnique({ where: { id: req.params.id }, include: { service: { select: { name: true } } } })
     if (!group) return res.status(404).json({ message: '群組不存在' })
     if (group.hostId !== req.user.id) return res.status(403).json({ message: '僅團主可解散群組' })
 
@@ -394,7 +415,7 @@ router.post('/:id/cancel', requireAuth, async (req, res, next) => {
 
     const seatCost = computeSeatCost(group)
 
-    await prisma.$transaction(async (tx) => {
+    const currentMembers = await prisma.$transaction(async (tx) => {
       // 條件式更新：確保狀態沒有在讀取跟寫入之間被其他請求（例如同時退出/被移除）變動過
       const updated = await tx.group.updateMany({
         where: { id: req.params.id, status: { in: cancellable } },
@@ -425,6 +446,19 @@ router.post('/:id/cancel', requireAuth, async (req, res, next) => {
           })),
         })
       }
+
+      return currentMembers
+    })
+
+    const groupLabelForCancel = group.planName ?? group.service?.name ?? ''
+    currentMembers.forEach(m => {
+      notify({
+        userId:  m.userId,
+        type:    'group_cancelled',
+        title:   '群組已解散',
+        message: `「${groupLabelForCancel}」群組已被團主解散，代管費用已退還至你的PM幣餘額。`,
+        meta:    { groupId: req.params.id },
+      })
     })
 
     res.json({ status: 'cancelled' })
@@ -497,6 +531,35 @@ router.post('/:id/lock', requireAuth, async (req, res, next) => {
         title:   '預估下次扣款日',
         message: `「${groupLabel}」目前預估下次扣款日為 ${estimatedDateText}，實際日期會在團主啟用服務時重新確認。`,
         meta:    { groupId: req.params.id, nextBillingDate: nextBillingDate.toISOString(), estimated: true },
+      })
+    })
+
+    // sharedCredentials 是否有值可以用來判斷這個服務是不是團主提供帳密的類型（見上方 sharedCredentials
+    // 賦值的註解），後端沒有 sharingMethod 分類資料，只能用這個訊號決定通知文案要說「提取」還是「填寫」
+    const isSharedCredentials = sharedCredentials !== undefined
+    notify({
+      userId:  group.hostId,
+      type:    'group_chat_opened',
+      title:   '群組聊天室已啟用',
+      message: `「${groupLabel}」群組已鎖定，聊天室已建立，點擊查看。`,
+      meta:    { groupId: req.params.id },
+    })
+    group.members.forEach(m => {
+      notify({
+        userId:  m.userId,
+        type:    'group_chat_opened',
+        title:   '群組聊天室已啟用',
+        message: `「${groupLabel}」群組已鎖定，聊天室已建立，點擊查看。`,
+        meta:    { groupId: req.params.id },
+      })
+      notify({
+        userId:  m.userId,
+        type:    'fill_service_info',
+        title:   isSharedCredentials ? '請提取帳號資訊' : '請填寫服務帳號資訊',
+        message: isSharedCredentials
+          ? `「${groupLabel}」群組已鎖定，請進入提取帳號資訊並完成付款。`
+          : `「${groupLabel}」群組已鎖定，請進入填寫服務帳號並完成付款。`,
+        meta:    { groupId: req.params.id },
       })
     })
 
@@ -692,6 +755,16 @@ router.post('/:id/renew', requireAuth, async (req, res, next) => {
         title:   '預估下次扣款日',
         message: `「${groupLabel}」新一期目前預估下次扣款日為 ${estimatedDateText}，實際日期會在團主啟用服務時重新確認。`,
         meta:    { groupId: req.params.id, nextBillingDate: base.toISOString(), estimated: true },
+      })
+    })
+
+    memberIds.forEach(userId => {
+      notify({
+        userId,
+        type:    'group_renewal',
+        title:   '新一期已開始',
+        message: `「${groupLabel}」群組開始新一期，請前往填寫最新服務帳號資訊。`,
+        meta:    { groupId: req.params.id },
       })
     })
 

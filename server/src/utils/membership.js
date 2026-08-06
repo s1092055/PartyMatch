@@ -80,10 +80,22 @@ export async function finalizeApprovedApplication(tx, { groupId, userId, maxMemb
 async function advanceToFullIfNeeded(tx, groupId) {
   // 加入後自動檢查是否額滿，若滿則推進到 full；currentMembers 只計非團主成員，
   // +1 是團主自己佔的名額，跟前端 normalizeGroup() 的 usedSeats = memberCount + 1 對齊
-  const updatedGroup = await tx.group.findUnique({ where: { id: groupId }, select: { currentMembers: true, maxMembers: true } })
+  const updatedGroup = await tx.group.findUnique({
+    where:  { id: groupId },
+    select: { currentMembers: true, maxMembers: true, hostId: true, planName: true, service: { select: { name: true } } },
+  })
   if (updatedGroup.currentMembers + 1 >= updatedGroup.maxMembers) {
     await tx.group.update({ where: { id: groupId }, data: { status: 'full' } })
     await autoRejectPendingApplications(tx, groupId)
+
+    const groupLabel = updatedGroup.planName ?? updatedGroup.service?.name ?? ''
+    notify({
+      userId:  updatedGroup.hostId,
+      type:    'group_full',
+      title:   '群組名額已滿',
+      message: `「${groupLabel}」群組名額已滿，可以點擊鎖定群組了。`,
+      meta:    { groupId },
+    })
   }
 }
 

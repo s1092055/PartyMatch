@@ -4,10 +4,6 @@ export async function readAllNotifications() {
   return client.get('/notifications')
 }
 
-export async function insertNotification(data) {
-  return client.post('/notifications', data)
-}
-
 export async function patchNotification(id) {
   return client.patch(`/notifications/${id}/read`)
 }

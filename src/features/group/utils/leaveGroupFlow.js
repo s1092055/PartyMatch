@@ -5,7 +5,6 @@ import { useApplicationStore } from '../../../common/stores/useApplicationStore'
 import { useConversationStore } from '../../../common/stores/useConversationStore'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
 import { leaveConversation, sendSystemMessage } from '../../../common/api/messagesApi'
-import { insertNotification } from '../../../common/api/notificationsApi'
 
 export async function finalizeLeaveGroup(groupId, user) {
   const convId = useConversationStore.getState().getByGroupId(groupId)?.id ?? null
@@ -52,13 +51,6 @@ export async function finalizeLeaveGroup(groupId, user) {
         status: g.status === 'full' ? 'recruiting' : g.status,
       } : g),
     }))
-    // 通知團主（非目前操作者本人，只寫 DB，團主刷新後才看到，避免污染目前使用者的本地通知清單）
-    insertNotification({
-      userId:  group.hostId,
-      type:    'member_left',
-      title:   '成員退出群組',
-      message: `${user.name} 已退出「${group.groupName ?? group.serviceName}」群組。`,
-      meta:    { groupId },
-    }).catch(console.error)
+    // member_left 通知（團主）已經由後端 DELETE /members/:id 建立
   }
 }

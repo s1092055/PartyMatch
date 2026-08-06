@@ -1,30 +1,8 @@
 import { Router } from 'express'
-import { z } from 'zod'
 import prisma from '../lib/prisma.js'
 import { requireAuth, optionalAuth } from '../middleware/auth.js'
-import { validate } from '../middleware/validate.js'
 
 const router = Router()
-
-const createNotificationSchema = z.object({
-  userId:  z.string().min(1),
-  type:    z.string().min(1).max(50),
-  title:   z.string().min(1).max(100),
-  message: z.string().max(500).optional(),
-  body:    z.string().max(500).optional(),
-  meta:    z.record(z.unknown()).optional(),
-})
-
-// 檢查 userId 是否與 groupId 有關聯（曾為成員、曾送出申請、或為團主）
-// Application 紀錄只會變更狀態、不會被刪除，因此即使成員已退出/被移除仍可通過檢查
-async function hasGroupRelationship(userId, groupId) {
-  const [member, application, group] = await Promise.all([
-    prisma.member.findFirst({ where: { groupId, userId } }),
-    prisma.application.findFirst({ where: { groupId, userId } }),
-    prisma.group.findFirst({ where: { id: groupId, hostId: userId } }),
-  ])
-  return Boolean(member || application || group)
-}
 
 // GET /notifications — 個人通知 + 系統公告
 router.get('/', optionalAuth, async (req, res, next) => {
@@ -39,35 +17,6 @@ router.get('/', optionalAuth, async (req, res, next) => {
       take: 100,
     })
     res.json(notifications)
-  } catch (err) { next(err) }
-})
-
-// POST /notifications — 建立通知；通知他人時須與目標 userId 同屬一個群組（成員/團主/申請人）
-router.post('/', requireAuth, validate(createNotificationSchema), async (req, res, next) => {
-  try {
-    const { userId, type, title, message, body, meta } = req.body
-
-    if (userId !== req.user.id) {
-      const groupId = meta?.groupId
-      if (!groupId) return res.status(403).json({ message: '無權限建立此通知' })
-      const [requesterOk, targetOk] = await Promise.all([
-        hasGroupRelationship(req.user.id, groupId),
-        hasGroupRelationship(userId, groupId),
-      ])
-      if (!requesterOk || !targetOk) return res.status(403).json({ message: '無權限建立此通知' })
-    }
-
-    const notif = await prisma.notification.create({
-      data: {
-        userId,
-        type,
-        title,
-        message: message ?? body ?? '',
-        meta:    meta ?? undefined,
-        isPublic: false, // 公開系統公告一律由後端管理流程建立，一般使用者不可指定
-      },
-    })
-    res.status(201).json(notif)
   } catch (err) { next(err) }
 })
 

@@ -31,7 +31,6 @@ async function initPrivateStores(userId) {
   ])
   useConversationStore.getState().init(userId)
   useNotificationStore.getState().startPolling(userId)
-  useApplicationStore.getState().checkMissedNotifications({ id: userId })
 }
 
 async function clearPrivateStores() {

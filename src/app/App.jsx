@@ -94,7 +94,6 @@ export default function App() {
         // initConversations 必須在 notifications init 完成後才執行
         useConversationStore.getState().init(user.id)
         useNotificationStore.getState().startPolling(user.id)
-        useApplicationStore.getState().checkMissedNotifications(user)
       }
 
       // 各 store 的 init() 內部已自行 catch 錯誤（記錄在各自的 error 欄位，不會讓這裡的

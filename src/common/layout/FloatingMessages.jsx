@@ -81,6 +81,7 @@ const NOTIFICATION_META = {
   escrow_released:      { icon: CheckCircle2,  iconColor: 'text-success',    link: '/manage-groups' },
   dispute_raised:       { icon: AlertCircle,   iconColor: 'text-danger',     link: '/manage-groups' },
   dispute_resolved:     { icon: CheckCircle2,  iconColor: 'text-info',       link: '/my-subscriptions' },
+  dispute_resolved_by_host: { icon: CheckCircle2, iconColor: 'text-info',    link: '/my-subscriptions' },
   billing_date_confirmed: { icon: CalendarClock, iconColor: 'text-brand',      link: '/my-subscriptions' },
   billing_date_adjusted:  { icon: CalendarClock, iconColor: 'text-warning-text', link: '/my-subscriptions' },
   system:               { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/' },
@@ -321,16 +322,34 @@ export default function FloatingMessages() {
       return
     }
 
-    if ((notification.type === 'escrow_released' || notification.type === 'dispute_raised') && notification.meta?.groupId) {
+    if (notification.type === 'escrow_released' && notification.meta?.groupId) {
       const gId = notification.meta.groupId
-      if (notification.type === 'escrow_released') {
-        useAuthStore.getState().refreshTokenBalance().catch(console.error) // 代管款項已撥款，重新拉最新餘額
-      }
+      useAuthStore.getState().refreshTokenBalance().catch(console.error) // 代管款項已撥款，重新拉最新餘額
       navigate('/manage-groups', { state: { openGroupId: gId } })
-      // 撥款／申訴都代表 group.status 剛剛變化（撥款後轉為服務中，申訴則轉為申訴中），先重新拉一次
+      // 撥款代表 group.status 剛轉成服務中，先重新拉一次
       useGroupStore.getState().init({ all: true }).finally(() => {
         window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: gId } }))
       })
+      return
+    }
+
+    if (notification.type === 'dispute_raised' && notification.meta?.groupId) {
+      const gId = notification.meta.groupId
+      // 直接開「帳號資訊」分頁看成員回報的問題內容，跟 service_info_filled 同一套做法；
+      // group.status 剛轉成申訴中、成員的 serviceInfoIssueNote 也才剛寫入，兩份本地快取都要重新拉
+      navigate('/manage-groups', { state: { openGroupId: gId, openMemberInfo: true } })
+      Promise.all([
+        useGroupStore.getState().init({ all: true }),
+        useMemberStore.getState().init(),
+      ]).finally(() => {
+        window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: gId, openMemberInfo: true } }))
+      })
+      return
+    }
+
+    if (notification.type === 'dispute_resolved_by_host' && notification.meta?.groupId) {
+      // 團主自行協調解決，只會發給申訴成員本人，不影響餘額，不用判斷團主/成員視角
+      navigateToMemberGroupOrExplore(navigate, userId, notification.meta.groupId)
       return
     }
 
