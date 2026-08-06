@@ -281,6 +281,14 @@
     margin-right: 0 !important;
   }
 
+  /* react-remove-scroll 只會鎖 body 的 overflow，但本站真正的捲動容器是 html
+     （上面 overflow-y: scroll 那條規則讓 html 變成 document.scrollingElement），
+     鎖 body 對 html 完全沒有作用，導致 Modal/Dialog 開啟時背景頁面依然可以捲動。
+     跟著 body[data-scroll-locked] 一起把 html 也鎖住，桌機/手機都適用（沒有斷點限制） */
+  html:has(body[data-scroll-locked]) {
+    overflow: hidden;
+  }
+
   @media (max-width: 767px) {
     /* iOS Safari 對 font-size < 16px 的 input 會強制縮放整頁 */
     input, select, textarea { font-size: 16px; }
