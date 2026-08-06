@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { AlertTriangle, ChevronDown, Paperclip } from 'lucide-react'
+import { AlertTriangle, ChevronDown } from 'lucide-react'
 import { Avatar } from '../../../../components/ui/avatar'
 import { Button } from '../../../../components/ui/button'
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '../../../../components/ui/collapsible'
+import EvidenceLink from '../../../../components/ui/EvidenceLink'
 import { PresenceDot } from '../../../../common/layout/components/navShared'
 import { getTextFields } from '../../../../common/utils/serviceInfoFields'
 
@@ -87,16 +88,10 @@ export default function MemberIssueCard({ m, filled, sharingMethod, isSharedCred
               <p className="min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 py-2 text-xs text-ink-2">
                 {m.serviceInfoIssueNote}
               </p>
-              {evidenceUrl && (
-                <a
-                  href={evidenceUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex h-auto shrink-0 items-center gap-1 rounded-lg border border-line px-2.5 py-2 text-xs font-medium text-brand hover:bg-brand-subtle"
-                >
-                  <Paperclip size={11} /> 查看附件
-                </a>
-              )}
+              <EvidenceLink
+                url={evidenceUrl}
+                className="flex h-auto shrink-0 items-center gap-1 rounded-lg border border-line px-2.5 py-2 text-xs font-medium text-brand hover:bg-brand-subtle"
+              />
             </div>
           </CollapsibleContent>
         )}

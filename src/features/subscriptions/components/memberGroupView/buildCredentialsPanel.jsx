@@ -1,8 +1,7 @@
-import { Eye, EyeOff, Paperclip } from 'lucide-react'
-import { Avatar } from '../../../../components/ui/avatar'
-import { PresenceDot } from '../../../../common/layout/components/navShared'
+import { Eye, EyeOff } from 'lucide-react'
 import CredentialWatermark from '../../../../components/ui/primitives/CredentialWatermark'
 import CredentialCommentsSection from '../../../../components/ui/group/CredentialCommentsSection'
+import MemberIssueCard from './MemberIssueCard'
 import { parseHostCredentials } from '../../../../common/utils/hostCredentialFields'
 
 // 團主提供帳密的服務（shared_credentials），成員第一次提取後改用這個常駐分頁查看，
@@ -53,33 +52,14 @@ export function buildCredentialsPanel({ group, viewerName, viewerAvatarInitial, 
           <p className="mt-1.5 text-xs text-ink-4">請勿將帳號資訊截圖、轉傳或提供給群組以外的任何人，違反約定將影響你的信用分數。</p>
         )}
         {issueNote && (
-          <div className="relative mt-4 rounded-lg border border-line p-3">
-            <div className="flex items-center gap-3">
-              <span className="relative inline-block shrink-0">
-                <Avatar initial={viewerAvatarInitial} color={viewerAvatarColor} size="sm" />
-                <PresenceDot status={viewerPresenceStatus} className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-ink">{viewerName}</p>
-                <p className="text-xs text-danger-text">帳號問題已回報，處理中</p>
-              </div>
-            </div>
-            <div className="mt-2 flex items-start gap-2">
-              <p className="min-w-0 flex-1 whitespace-pre-line rounded-lg border border-line bg-surface px-3 py-2 text-xs text-ink-2">
-                {issueNote}
-              </p>
-              {evidenceUrl && (
-                <a
-                  href={evidenceUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex h-auto shrink-0 items-center gap-1 rounded-lg border border-line px-2.5 py-2 text-xs font-medium text-brand hover:bg-brand-subtle"
-                >
-                  <Paperclip size={11} strokeWidth={1.5} /> 查看附件
-                </a>
-              )}
-            </div>
-          </div>
+          <MemberIssueCard
+            viewerName={viewerName}
+            viewerAvatarInitial={viewerAvatarInitial}
+            viewerAvatarColor={viewerAvatarColor}
+            viewerPresenceStatus={viewerPresenceStatus}
+            issueNote={issueNote}
+            evidenceUrl={evidenceUrl}
+          />
         )}
         <CredentialCommentsSection groupId={group.id} />
       </div>

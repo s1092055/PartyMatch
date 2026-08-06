@@ -15,7 +15,7 @@ function maskGroupHost(group) {
 
 const disputeSchema = z.object({
   reason:      z.string().trim().min(1).max(500),
-  evidenceUrl: z.string().url().optional(),
+  evidenceUrl: z.string().url(),
 })
 
 const adjustBillingDateSchema = z.object({

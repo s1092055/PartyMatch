@@ -532,6 +532,21 @@
   animation: collapsibleUp 0.2s ease-out;
 }
 
+/* Select／FilterSelect 這類浮動選單的進場動畫，只做開啟（Radix Portal 一關閉就直接
+   從 DOM 移除，不會停留播放收合動畫，跟 DialogContent 只有 animate-modal-in 沒有對應
+   的關閉動畫是同一個理由）；從稍微往上 4px 的位置淡入滑下定位，不像 Collapsible 是把
+   下面內容推開，這裡是浮動 Portal，展開/收合不影響周圍版面高度 */
+@keyframes selectContentIn {
+  from { opacity: 0; transform: scale(0.96) translateY(-4px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.animate-select-in {
+  animation: selectContentIn 0.15s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: opacity, transform;
+  backface-visibility: hidden;
+}
+
 /* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

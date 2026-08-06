@@ -18,8 +18,13 @@ const EXT_BY_MIME = {
   'image/gif':  'gif',
   'image/webp': 'webp',
   'image/heic': 'heic',
-  'application/pdf': 'pdf',
 }
+
+// 目前唯二的呼叫端（申訴附件、團主回報帳號問題附件）都是截圖佐證，只收圖片格式，
+// 不開放任意文件；MAX_FILE_SIZE_BYTES 用解碼後的實際 buffer 長度判斷，不能只信任
+// 前端回報的 file.size（可以被竄改），這裡才是真正擋得住的那一關
+const ALLOWED_MIME_TYPES = Object.keys(EXT_BY_MIME)
+const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024 // 5MB
 
 // 上傳到 R2，介面刻意跟先前版本一樣（回傳 { url, publicId }），呼叫端不用改。
 // data: 'data:<mime>;base64,...'
@@ -28,13 +33,26 @@ export async function uploadImage(data, { folder = '' } = {}) {
   if (!match) throw new Error('附件格式錯誤')
   const [, mime, base64] = match
 
-  const ext = EXT_BY_MIME[mime] ?? 'bin'
+  if (!ALLOWED_MIME_TYPES.includes(mime)) {
+    const err = new Error('僅支援圖片格式（PNG／JPG／GIF／WEBP／HEIC）')
+    err.status = 400
+    throw err
+  }
+
+  const buffer = Buffer.from(base64, 'base64')
+  if (buffer.length > MAX_FILE_SIZE_BYTES) {
+    const err = new Error('附件檔案大小不能超過 5MB')
+    err.status = 400
+    throw err
+  }
+
+  const ext = EXT_BY_MIME[mime]
   const key = folder ? `${folder}/${randomUUID()}.${ext}` : `${randomUUID()}.${ext}`
 
   await r2.send(new PutObjectCommand({
     Bucket:      process.env.R2_BUCKET_NAME,
     Key:         key,
-    Body:        Buffer.from(base64, 'base64'),
+    Body:        buffer,
     ContentType: mime,
   }))
 

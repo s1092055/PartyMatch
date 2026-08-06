@@ -73,6 +73,7 @@ export default function DisputeModal({
           />
         </div>
         <EvidenceAttachmentField
+          label={<>附件 <span className="text-danger">*</span>（截圖或其他佐證檔案）</>}
           url={evidenceUrl}
           name={evidenceName}
           uploading={evidenceUploading}
@@ -90,7 +91,7 @@ export default function DisputeModal({
             type="submit"
             form="dispute-form"
             variant="destructive"
-            disabled={disputeReasons.length === 0 || disputeLoading || evidenceUploading}
+            disabled={disputeReasons.length === 0 || !evidenceUrl || disputeLoading || evidenceUploading}
             className="w-full rounded-lg"
           >
             {disputeLoading ? '送出中…' : '送出回報'}

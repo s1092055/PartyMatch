@@ -35,12 +35,12 @@ function DialogOverlay({ className, variant = 'default', instant, ...props }) {
 }
 
 export function DialogContent({ className, variant = 'default', maxWidth, height, outerPadding = 'p-4 md:p-8', instant, onInteractOutside, ...props }) {
-  // Sonner 的 toast 是另外掛在 document.body 底下的獨立 portal，不在 Dialog 自己的內容樹裡；
-  // Radix 判斷「點擊外部」只看有沒有在 Dialog content 範圍內，不知道 toast 其實也是應該被允許
-  // 互動的浮層，點擊 toast（包含它自己的關閉 X、action 按鈕）會被誤判成「點外面」，導致 Dialog
-  // 也跟著關閉。這裡統一排除掉 toast 內的互動，讓 Dialog 底下所有 Modal 都不會有這個問題
+  // Sonner 的 toast、附件圖片燈箱（ImageLightbox）都是另外掛在 document.body 底下的獨立
+  // portal，不在 Dialog 自己的內容樹裡；Radix 判斷「點擊外部」只看有沒有在 Dialog content
+  // 範圍內，不知道這些浮層其實也是應該被允許互動的，點擊會被誤判成「點外面」，導致 Dialog
+  // 也跟著關閉。這裡統一排除掉這些浮層內的互動，讓 Dialog 底下所有 Modal 都不會有這個問題
   function handleInteractOutside(event) {
-    if (event.target.closest?.('[data-sonner-toaster]')) {
+    if (event.target.closest?.('[data-sonner-toaster], [data-image-lightbox]')) {
       event.preventDefault()
       return
     }

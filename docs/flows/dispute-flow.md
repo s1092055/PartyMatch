@@ -13,7 +13,7 @@ sequenceDiagram
     participant A as 管理員
 
     Note over M: 群組處於確認期（48 小時）
-    M->>FE: 點擊「回報問題」，複選原因 + 選填附件/說明
+    M->>FE: 點擊「回報問題」，複選原因 + 必填附件（截圖佐證）+ 選填說明
     FE->>BE: 送出申訴
     BE->>BE: 驗證請求人為該群組成員，且群組正處於確認期
     BE->>BE: 交易：群組狀態轉為申訴中\n設定 48 小時後的裁定期限\n寫入申訴原因與附件
@@ -55,11 +55,14 @@ sequenceDiagram
 | `src/features/subscriptions/components/DisputeModal.jsx` | 回報問題表單本體（標題「回報問題」、欄位「回報原因」），`MemberGroupView.jsx` 用 `showDispute` state 控制開關 |
 | `src/features/subscriptions/components/MemberGroupView.jsx` | `handleDisputeSubmit`，並透過 `useEvidenceUpload(uploadDisputeEvidence)` hook 管理附件上傳狀態 |
 | `src/features/manage-groups/components/hostGroupView/buildMemberInfoPanel.jsx` | 團主端「帳號資訊」分頁：帳密區塊改標題形式呈現（`KeyRound` icon＋「帳號資訊」），成員清單改用 `MemberIssueCard` |
-| `src/features/manage-groups/components/hostGroupView/MemberIssueCard.jsx` | 單一成員的狀態卡片：沒問題時顯示已填寫的服務帳號摘要；有問題回報時預設收合成一行摘要（頭像／名稱／「帳號問題已回報，等待修正」），點擊展開（`Collapsible`）看完整原因＋「查看附件」；申訴中（`group.status === 'disputed'`）才會在展開內容右下角顯示「處理完成」按鈕，呼叫 `onResolveDispute` |
+| `src/features/manage-groups/components/hostGroupView/MemberIssueCard.jsx` | 單一成員的狀態卡片：沒問題時顯示已填寫的服務帳號摘要；有問題回報時預設收合成一行摘要（頭像／名稱／「帳號問題已回報，等待處理」），點擊展開（`Collapsible`）看完整原因＋「查看附件」；「處理完成」按鈕是卡片外面另一個獨立 box，不在這個元件裡（見下方 `buildMemberInfoPanel.jsx`） |
+| `src/features/manage-groups/components/hostGroupView/buildMemberInfoPanel.jsx`（成員清單部分） | 每個成員一列，`MemberIssueCard` 佔 `flex-1`，申訴中（`group.status === 'disputed'`）才在旁邊多顯示一個固定高度的「處理完成」按鈕，呼叫 `onResolveDispute` |
 | `src/components/ui/collapsible.jsx` | 薄包一層 Radix `Collapsible`（`Collapsible`／`CollapsibleTrigger`／`CollapsibleContent`），展開/收合動畫吃 Radix 注入的 `--radix-collapsible-content-height` 變數，不是寫死高度 |
 | `src/features/subscriptions/components/memberGroupView/buildCredentialsPanel.jsx` | 成員端「帳號資訊」分頁：顯示自己頭像／名稱＋送出的申訴內容與附件連結，排版跟團主端一致；**限 `shared_credentials` 服務**才有這個分頁，其他共享機制的服務目前沒有對應頁面可以回顧自己送出的申訴內容 |
 | `src/components/ui/group/CredentialCommentsSection.jsx` | 「帳號資訊」分頁底下的留言區（見 subscriptions-flow.md），送出申訴時後端會自動留一筆系統留言，團主與所有成員打開分頁就直接看到，不用只靠聊天室訊息才知道發生什麼事；帳號相關問題的後續溝通（包含團主說明已修正什麼）直接在這裡進行，不透過群組聊天室 |
-| `src/common/utils/hooks.js` | `useEvidenceUpload`，選檔→上傳→存 url/name→失敗跳 toast→清空重選的共用流程 |
+| `src/components/ui/EvidenceLink.jsx` | 「查看附件」共用連結，圖片用 `src/components/ui/ImageLightbox.jsx` 燈箱在頁面內直接開啟（點背景或 Esc 關閉），不再開新分頁；非圖片格式才 fallback 回開新分頁 |
+| `src/components/ui/EvidenceAttachmentField.jsx` | 附件選擇/預覽欄位；`input[type=file]` 加了 `accept` 限定圖片格式；`DisputeModal.jsx`（成員申訴）用自訂 `label` 加星號標成必填，`ReportServiceIssueModal.jsx`（團主回報）維持預設的選填標籤 |
+| `src/common/utils/hooks.js` | `useEvidenceUpload`，選檔→上傳→存 url/name→失敗跳 toast→清空重選的共用流程；選檔當下就先檢查 MIME type（僅圖片）跟大小（5MB）擋一次，不符合直接跳錯誤 toast，不會真的打去後端 |
 | `src/common/api/storageApi.js` | `uploadDisputeEvidence`，附件上傳 |
 | `src/common/stores/useGroupStore.js` | `disputeGroup`、`resolveDispute`（團主與成員自行解決，不需要平台介入）、`adjudicateGroup`（管理員裁定）|
 | `src/common/api/groupsApi.js` | `disputeGroupApi`、`resolveDisputeApi`、`adjudicateGroupApi` |
@@ -70,7 +73,8 @@ sequenceDiagram
 
 | 路徑 | 說明 |
 |------|------|
-| `server/src/routes/groups/lifecycle.js` | `POST /groups/:id/dispute`（成員送出申訴）、`POST /groups/:id/resolve-dispute`（團主與成員自行解決，`disputed → confirming`，僅團主可呼叫）、`POST /groups/:id/adjudicate`（管理員裁定，`requireAdmin` 保護，涉及金流分配） |
+| `server/src/routes/groups/lifecycle.js` | `POST /groups/:id/dispute`（成員送出申訴，`disputeSchema` 要求 `reason` 跟 `evidenceUrl` 皆為必填）、`POST /groups/:id/resolve-dispute`（團主與成員自行解決，`disputed → confirming`，僅團主可呼叫）、`POST /groups/:id/adjudicate`（管理員裁定，`requireAdmin` 保護，涉及金流分配） |
+| `server/src/lib/r2Storage.js` | `uploadImage`：白名單只收圖片 MIME type（PNG／JPG／GIF／WEBP／HEIC），超過 5MB（解碼後的實際 buffer 長度，不信任前端回報的 `file.size`）一律拒絕，回傳帶 `status: 400` 的 `Error` 給 `errorHandler` 轉成友善訊息 |
 | `server/src/middleware/auth.js` | `requireAdmin` |
 | `server/src/utils/pricing.js` | `computeSeatCost` |
 
@@ -79,7 +83,7 @@ sequenceDiagram
 | Model | 用途 |
 |-------|------|
 | `Group` | `status`（`confirming → disputed → active`）、`disputeDeadline`（申訴提出時間 + 48 小時）、`escrowTokens` |
-| `Member` | `serviceInfoIssueNote`（申訴原因與補充說明合併存放）、`disputeEvidenceUrl`（選填附件 URL） |
+| `Member` | `serviceInfoIssueNote`（申訴原因與補充說明合併存放）、`disputeEvidenceUrl`（附件 URL；申訴時必填，`disputeSchema` 強制要求） |
 | `TokenTransaction` | 裁定結果依 `winner` 寫入 `refund`（成員獲勝）或 `release`（團主獲勝） |
 
 ## 使用技術
@@ -95,7 +99,7 @@ sequenceDiagram
 
 **2. 填寫申訴表單**
 - 點擊「回報問題」開啟申訴表單，可以從 6 個固定選項複選申訴原因（服務帳號未提供或有誤／服務尚未啟用／服務品質與描述不符／團主已讀不回無法聯繫／帳號被團主收回或更改密碼／其他），也能填補充說明
-- 選填上傳附件截圖佐證：選檔當下就上傳並拿到網址，上傳中會先禁用送出按鈕
+- **必填**上傳附件截圖佐證（`EvidenceAttachmentField` 標籤帶星號）：選檔當下就上傳並拿到網址，上傳中或還沒有附件都會禁用送出按鈕；後端 `disputeSchema` 也同步要求 `evidenceUrl`，不是只有前端擋
 
 **3. 送出申訴**
 - 把複選原因跟補充說明合併成單一字串，送出申訴請求

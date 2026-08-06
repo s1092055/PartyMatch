@@ -203,6 +203,12 @@ export function useConfirmCountdown(seconds) {
   return { remaining, ready: remaining <= 0 }
 }
 
+// 附件限制：只收截圖用的圖片格式，跟後端 r2Storage.js 的 ALLOWED_MIME_TYPES／
+// MAX_FILE_SIZE_BYTES 同一份規則，前端先擋一次給即時回饋，後端才是真正擋得住的那一關
+// （前端這層可以被繞過，不能只靠這裡）
+const EVIDENCE_MIME_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp', 'image/heic']
+const EVIDENCE_MAX_SIZE_BYTES = 5 * 1024 * 1024 // 5MB
+
 // 附件上傳共用邏輯：申訴附件、團主回報帳號問題的附件都是同一套「選檔→上傳→存 url/name→
 // 失敗跳 toast→清空重選」流程，差別只在呼叫哪支 upload API（uploadFn）
 export function useEvidenceUpload(uploadFn) {
@@ -214,6 +220,14 @@ export function useEvidenceUpload(uploadFn) {
     const file = e.target.files?.[0]
     e.target.value = ''
     if (!file) return
+    if (!EVIDENCE_MIME_TYPES.includes(file.type)) {
+      toast('僅支援圖片格式（PNG／JPG／GIF／WEBP／HEIC）', 'error')
+      return
+    }
+    if (file.size > EVIDENCE_MAX_SIZE_BYTES) {
+      toast('附件檔案大小不能超過 5MB', 'error')
+      return
+    }
     setUploading(true)
     try {
       const uploadedUrl = await uploadFn(file)
