@@ -37,7 +37,7 @@ flowchart TD
 | `src/features/subscriptions/components/SubscriptionCard.jsx` | 單一訂閱卡片 |
 | `src/features/subscriptions/components/MemberGroupView.jsx` | 成員視角群組詳情 Modal：確認服務、申訴、退出、查看群組名單、付款管理、查看團主提供的帳號資訊分頁（`shared_credentials` 服務限定） |
 | `src/features/subscriptions/components/FillServiceInfoModal.jsx` | 第一次提取／填寫服務帳號的獨立彈窗，開啟時底下的群組詳情視窗完全隱藏，關閉才恢復顯示；`shared_credentials` 服務會先顯示團主提供的帳號資訊並疊上浮水印，再是確認勾選框 |
-| `src/features/subscriptions/components/memberGroupView/buildCredentialsPanel.jsx` | 「帳號資訊」分頁內容（`shared_credentials` 服務限定），提取過一次之後改走這裡查看，不用再重新跑一次 sub-modal；密碼欄位預設遮罩，眼睛 icon 切換顯示，跟團主端 `buildMemberInfoPanel.jsx` 一致；底部接一個 `CredentialCommentsSection` 留言區 |
+| `src/features/subscriptions/components/memberGroupView/buildCredentialsPanel.jsx` | 「帳號資訊」分頁內容（`shared_credentials` 服務限定），提取過一次之後改走這裡查看，不用再重新跑一次 sub-modal；密碼欄位預設遮罩，眼睛 icon 切換顯示，跟團主端 `buildMemberInfoPanel.jsx` 一致；群組進入申訴中時，帳密區塊下方會多顯示自己的頭像／名稱＋申訴內容（有附件則卡片右上角有「查看附件」連結），排版比照團主端；再往下接一個 `CredentialCommentsSection` 留言區，帳號相關問題的後續溝通走這裡的留言，不透過群組聊天室 |
 | `src/components/ui/group/CredentialCommentsSection.jsx` | 「帳號資訊」分頁底下的留言區元件，團主端／成員端共用；每 5 秒輪詢 `GET /credential-comments/:groupId`，送出打 `POST /credential-comments` |
 | `src/components/ui/primitives/CredentialWatermark.jsx` | 疊在帳密內容上的浮水印（查看者名稱＋時間），無法阻止截圖，但外流時至少能溯源查看者 |
 | `src/common/utils/hostCredentialFields.js` | `getHostCredentialFields`、`parseHostCredentials`：`shared_credentials` 服務依服務別定義的結構化帳密欄位與解析 |

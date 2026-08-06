@@ -302,6 +302,80 @@ router.post('/:id/dispute', requireAuth, validate(disputeSchema), async (req, re
     }).catch(console.error)
     notifyGroupConversation(req.params.id, member.userId, `${member.user.name} 回報了服務問題，等待處理。`).catch(console.error)
 
+    // 「帳號資訊」分頁的留言區也留一筆，讓群組所有人（團主＋所有成員）打開分頁就直接看到，
+    // 不用只靠聊天室訊息才知道發生什麼事
+    prisma.credentialComment.create({
+      data: {
+        groupId:  req.params.id,
+        authorId: member.userId,
+        content:  `已提出問題回報：${reason.trim()}`.slice(0, 500),
+      },
+    }).catch(console.error)
+
+    res.json(updated)
+  } catch (err) { next(err) }
+})
+
+const resolveDisputeSchema = z.object({
+  note: z.string().trim().max(500).optional(),
+})
+
+// POST /groups/:id/resolve-dispute — 團主與成員自行協調解決，不需要平台介入裁定（disputed → confirming）
+// 跟 /adjudicate（管理員裁定，涉及金流分配）是兩條不同路徑：這裡純粹是「雙方已經自己談好，問題排除了」，
+// 錢完全不動，只是把群組放回確認期讓成員可以重新確認服務正常，不用每次小問題都卡著等平台處理
+router.post('/:id/resolve-dispute', requireAuth, validate(resolveDisputeSchema), async (req, res, next) => {
+  try {
+    const { note } = req.body
+
+    const group = await prisma.group.findUnique({
+      where:   { id: req.params.id },
+      include: { members: { include: { user: { select: { id: true, name: true } } } }, service: { select: { name: true } } },
+    })
+    if (!group) return res.status(404).json({ message: '群組不存在' })
+    if (group.hostId !== req.user.id) return res.status(403).json({ message: '僅團主可操作' })
+    if (group.status !== 'disputed') return res.status(400).json({ message: `群組狀態為 ${group.status}，不在申訴期` })
+
+    const disputeMember = group.members.find(m => m.serviceInfoIssueNote)
+    if (!disputeMember) return res.status(400).json({ message: '找不到申訴成員' })
+
+    // 回到確認期給成員一個全新的 48 小時確認窗口，跟啟用服務當下第一次進確認期用同一套節奏
+    const confirmDeadline = new Date()
+    confirmDeadline.setHours(confirmDeadline.getHours() + 48)
+    const groupLabel = group.planName ?? group.service?.name ?? ''
+
+    const [updated] = await prisma.$transaction([
+      prisma.group.update({
+        where: { id: req.params.id },
+        data:  { status: 'confirming', disputeDeadline: null, confirmDeadline },
+        include: {
+          host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true } },
+          service: true,
+          _count:  { select: { members: true } },
+        },
+      }),
+      prisma.member.update({
+        where: { id: disputeMember.id },
+        data:  { serviceInfoIssueNote: null, disputeEvidenceUrl: null, confirmedAt: null },
+      }),
+    ])
+    updated.host = maskAvatar(updated.host)
+
+    notify({
+      userId:  disputeMember.userId,
+      type:    'dispute_resolved',
+      title:   '問題已處理完成',
+      message: `團主已回覆「${groupLabel}」你回報的問題並處理完成，請重新確認服務是否正常。`,
+      meta:    { groupId: req.params.id },
+    })
+
+    prisma.credentialComment.create({
+      data: {
+        groupId:  req.params.id,
+        authorId: req.user.id,
+        content:  (note ? `問題已處理完成：${note}` : '問題已處理完成').slice(0, 500),
+      },
+    }).catch(console.error)
+
     res.json(updated)
   } catch (err) { next(err) }
 })

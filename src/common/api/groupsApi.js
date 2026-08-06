@@ -46,6 +46,10 @@ export async function adjudicateGroupApi(id, { winner, reason }) {
   return client.post(`/groups/${id}/adjudicate`, { winner, reason })
 }
 
+export async function resolveDisputeApi(id, { note } = {}) {
+  return client.post(`/groups/${id}/resolve-dispute`, { note })
+}
+
 export async function renewGroupApi(id) {
   return client.post(`/groups/${id}/renew`)
 }

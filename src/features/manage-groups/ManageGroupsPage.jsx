@@ -44,6 +44,7 @@ export default function ManageGroupsPage() {
     handleEndGroup,
     handleApprove,
     handleReportServiceInfoIssue,
+    handleResolveDispute,
     handleReject,
     handleAdjustBillingDate,
   } = useHostActions(activeUser)
@@ -114,6 +115,7 @@ export default function ManageGroupsPage() {
         onClose={() => { setViewGroupId(null); setAutoOpenLockGroup(false); setAutoOpenActivate(false); setAutoOpenApplications(false); setAutoOpenBilling(false); setAutoOpenMemberInfo(false); refreshGroups() }}
         groupId={viewGroupId}
         onReportServiceInfoIssue={handleReportServiceInfoIssue}
+        onResolveDispute={handleResolveDispute}
         onActivate={handleActivate}
         onLockGroup={handleLockGroup}
         onCancelGroup={handleCancelGroup}

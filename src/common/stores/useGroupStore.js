@@ -10,6 +10,7 @@ import {
   cancelGroupApi,
   disputeGroupApi,
   adjudicateGroupApi,
+  resolveDisputeApi,
   renewGroupApi,
   adjustBillingDateApi,
 } from '../api/groupsApi'
@@ -147,6 +148,19 @@ export const useGroupStore = create((set, get) => ({
   // ── 申訴（confirming → disputed）─────────────────────────────────────────────
   disputeGroup: async (id, payload) => {
     const updated = await disputeGroupApi(id, payload)
+    set(s => ({
+      groups: s.groups.map(g => g.id === id ? normalizeGroup({ ...g, ...updated }) : g),
+    }))
+    return updated
+  },
+
+  // ── 團主與成員自行協調解決申訴，不需要平台裁定（disputed → confirming）────────────
+  resolveDispute: async (id, payload) => {
+    const updated = await resolveDisputeApi(id, payload)
+    // 後端同時清空了申訴成員的 serviceInfoIssueNote/disputeEvidenceUrl/confirmedAt，
+    // 這些欄位存在 memberStore 不是 groupStore，重新 init 換回真實狀態，不用自己兜本地更新
+    const { useMemberStore } = await import('./useMemberStore')
+    await useMemberStore.getState().init()
     set(s => ({
       groups: s.groups.map(g => g.id === id ? normalizeGroup({ ...g, ...updated }) : g),
     }))

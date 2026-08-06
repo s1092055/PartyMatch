@@ -53,9 +53,8 @@ flowchart TD
 | `src/features/manage-groups/components/hostGroupView/buildReviewHistoryPanel.jsx` | 審核紀錄第三層面板，只列已接受／已拒絕的申請（已退出／已移除是成員異動不是審核結果，不放進來） |
 | `src/features/manage-groups/components/LockGroupCredentialsModal.jsx` | 鎖定群組時，官方無多人邀請機制的服務改用這個結構化表單填帳密，跟成員端「填寫服務帳號」的堆疊模式一致 |
 | `src/common/utils/hostCredentialFields.js` | 依服務別定義的結構化帳密欄位（例如 Netflix 多一個 Profile 名稱、VPN 服務多一個裝置名額）與帳密風險提醒文案 |
-| `src/components/ui/DisputeReasonDialog.jsx` | 查看回報原因與附件的唯讀對話框，團主可用它查看成員送出的申訴理由，跟成員端共用同一個元件 |
 | `src/features/manage-groups/components/hostGroupView/buildBillingPanel.jsx` | 收款管理面板（見 PM幣代管流程文件） |
-| `src/features/manage-groups/components/hostGroupView/buildMemberInfoPanel.jsx` | 「帳號資訊」分頁，團主查看每位成員填寫的服務帳號資訊，可直接從這裡回報帳號問題，不用等到啟用服務那一步才能看；`shared_credentials` 服務底部另外接一個 `CredentialCommentsSection` 留言區 |
+| `src/features/manage-groups/components/hostGroupView/buildMemberInfoPanel.jsx` | 「帳號資訊」分頁，團主查看每位成員填寫的服務帳號資訊，可直接從這裡回報帳號問題，不用等到啟用服務那一步才能看；成員申訴時對應卡片直接顯示申訴內容，有附件的話卡片右上角會有「查看附件」連結（附件可能來自團主自己回報的 `serviceInfoIssueEvidenceUrl`，也可能來自成員申訴的 `disputeEvidenceUrl`，兩個欄位都要看）；`shared_credentials` 服務底部另外接一個 `CredentialCommentsSection` 留言區，帳號相關問題的後續溝通走這裡的留言，不透過群組聊天室 |
 | `src/features/manage-groups/utils/hostFilters.js` | 狀態篩選分類（招募中/處理中/服務中三個大分類，待鎖定、成員填寫中、待啟用、確認期中、申訴中五種細分狀態都併入「處理中」，細分階段交給卡片本身的狀態 badge 顯示）與名額計算邏輯 |
 | `src/features/account/components/tabs/AdminTab.jsx` | 管理員裁定申訴，跨群組，非團主本人操作 |
 

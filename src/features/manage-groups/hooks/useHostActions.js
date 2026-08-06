@@ -343,6 +343,17 @@ async function handleActivate() {
     refreshGroups()
   }
 
+  // 團主與成員自行溝通解決申訴，不用等平台裁定——通知/留言/成員欄位重置都在後端一次做完，
+  // 前端只需要呼叫並把最新群組/成員資料換回來
+  async function handleResolveDispute(groupId, note) {
+    try {
+      await useGroupStore.getState().resolveDispute(groupId, { note })
+      toast('已標記問題處理完成')
+    } catch (err) {
+      toast(err?.message ?? '處理失敗，請稍後再試', 'error')
+    }
+  }
+
   async function handleCancelGroup() {
     if (!viewGroupId) return
     const group = getGroupById(viewGroupId)
@@ -596,6 +607,7 @@ async function handleApprove(appId) {
     handleEndGroup,
     handleApprove,
     handleReportServiceInfoIssue,
+    handleResolveDispute,
     handleReject,
   }
 }

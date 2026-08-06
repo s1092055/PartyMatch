@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Banknote, CheckCircle2, ClipboardList, Clock, FileText, Info, LockKeyhole, MessageCircle, PlayCircle, RefreshCw, Trash2, Users } from 'lucide-react'
+import { Banknote, CheckCircle2, ClipboardList, Clock, Info, KeyRound, LockKeyhole, MessageCircle, PlayCircle, RefreshCw, Trash2, Users } from 'lucide-react'
 import { Button } from '../../../components/ui/button'
 import ConfirmActionDialog from '../../../components/ui/ConfirmActionDialog'
 import CountdownText from '../../../components/ui/primitives/CountdownText'
-import DisputeReasonDialog from '../../../components/ui/DisputeReasonDialog'
 import GroupModalShell from '../../../components/ui/group/GroupModalShell'
 import GroupModalSideBarItem from '../../../components/ui/group/GroupModalSideBarItem'
 import HostReviews from '../../group/components/HostReviews'
@@ -29,7 +28,7 @@ import { buildMemberInfoPanel } from './hostGroupView/buildMemberInfoPanel'
 
 // ── 團主視角 ──────────────────────────────────────────────────────────────────
 
-export default function HostGroupView({ group, members, applications, onReportServiceInfoIssue, onRemoveMember, onActivate, onLockGroup, onCancelGroup, onApprove, onReject, onAdjustBillingDate, errors, onClose, autoOpenLockGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling, autoOpenMemberInfo, onOpenRenewal }) {
+export default function HostGroupView({ group, members, applications, onReportServiceInfoIssue, onResolveDispute, onRemoveMember, onActivate, onLockGroup, onCancelGroup, onApprove, onReject, onAdjustBillingDate, errors, onClose, autoOpenLockGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling, autoOpenMemberInfo, onOpenRenewal }) {
   const [showActivate, setShowActivate]                   = useState(false)
   const [removingMember, setRemovingMember]               = useState(null)
   const [activePanel, setActivePanel]                     = useState(null) // 'members' | 'applications' | 'billing' | 'reviews' | null
@@ -43,7 +42,6 @@ export default function HostGroupView({ group, members, applications, onReportSe
   const [showPassword, setShowPassword]                     = useState(false)
   const [credentialValues, setCredentialValues]             = useState({})
   const [lockLoading, setLockLoading]                       = useState(false)
-  const [showDisputeReason, setShowDisputeReason]           = useState(false)
   const [showAdjustBillingDate, setShowAdjustBillingDate]   = useState(false)
   const [newBillingDate, setNewBillingDate]                 = useState('')
   const [billingDateNote, setBillingDateNote]               = useState('')
@@ -256,8 +254,6 @@ export default function HostGroupView({ group, members, applications, onReportSe
     </div>
   )
 
-  const disputeMember = group.status === 'disputed' ? members.find(m => m.serviceInfoIssueNote) : null
-
   const disputedBanner = group.status === 'disputed' && (
     <div className="flex items-center justify-center gap-2 bg-danger-subtle px-6 py-3 text-sm font-extrabold text-danger-text">
       <Clock size={15} strokeWidth={1.5} />
@@ -265,12 +261,6 @@ export default function HostGroupView({ group, members, applications, onReportSe
       {group.disputeDeadline && (
         <>，剩餘 <CountdownText deadline={group.disputeDeadline} /></>
       )}
-      <button
-        onClick={() => setShowDisputeReason(true)}
-        className="ml-1 shrink-0 rounded-full border border-danger-text/40 px-2.5 py-0.5 text-xs font-semibold text-danger-text transition-all hover:-translate-y-0.5 hover:bg-danger-text/10"
-      >
-        查看原因
-      </button>
     </div>
   )
 
@@ -310,6 +300,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
     if (activePanel === 'memberInfo') {
       return buildMemberInfoPanel({
         groupId: group.id,
+        groupStatus: group.status,
         members,
         sharingMethod: serviceDef?.sharingMethod,
         sharedCredentials: group.sharedCredentials,
@@ -318,6 +309,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
         // 回報帳號問題只開放在啟用服務之前（還在填寫/等待啟用階段）
         canReportServiceIssue: canReportServiceIssue(group.status),
         onOpenServiceIssue: m => { setServiceIssueMember(m); setServiceIssueNote(m.serviceInfoIssueNote ?? '') },
+        onResolveDispute: () => onResolveDispute?.(group.id),
         showPassword,
         onTogglePassword: () => setShowPassword(v => !v),
       })
@@ -371,7 +363,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
         {!isRecruiting && !isCancelled && (
           <GroupModalSideBarItem active={activePanel === 'memberInfo'} onClick={() => goToPanel('memberInfo')} className="relative">
             <span className="relative">
-              <FileText size={17} />
+              <KeyRound size={17} />
               {unseenMemberInfoCount > 0 && (
                 <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-warning-text px-0.5 text-2xs font-bold text-white">
                   {unseenMemberInfoCount}
@@ -504,17 +496,6 @@ export default function HostGroupView({ group, members, applications, onReportSe
       onClose={() => { setShowAdjustBillingDate(false); setNewBillingDate(''); setBillingDateNote('') }}
       onSubmit={handleAdjustBillingDateSubmit}
     />
-
-    {showDisputeReason && (
-      <DisputeReasonDialog
-        reporterName={disputeMember?.userName}
-        reporterAvatarInitial={disputeMember?.userAvatarInitial}
-        reporterAvatarColor={disputeMember?.userAvatarColor}
-        reason={disputeMember?.serviceInfoIssueNote}
-        evidenceUrl={disputeMember?.disputeEvidenceUrl}
-        onClose={() => setShowDisputeReason(false)}
-      />
-    )}
 
     {showCancelConfirm && (
       <ConfirmActionDialog

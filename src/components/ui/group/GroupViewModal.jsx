@@ -20,7 +20,7 @@ const BILLING_DATE_NOTIF_TYPES = new Set(['billing_date_confirmed', 'billing_dat
 
 export default function GroupViewModal({
   isOpen, onClose, groupId,
-  onReportServiceInfoIssue, onActivate, onLockGroup, onCancelGroup, onRemoveMember,
+  onReportServiceInfoIssue, onResolveDispute, onActivate, onLockGroup, onCancelGroup, onRemoveMember,
   onLeaveGroup, onApprove, onReject, onAdjustBillingDate, errors,
   autoOpenLockGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling, autoOpenMemberInfo,
   onOpenRenewal,
@@ -91,6 +91,7 @@ export default function GroupViewModal({
     <HostGroupView
       group={group} members={members} applications={applications}
       onReportServiceInfoIssue={onReportServiceInfoIssue}
+      onResolveDispute={onResolveDispute}
       onRemoveMember={onRemoveMember}
       onActivate={onActivate} onLockGroup={onLockGroup} onCancelGroup={onCancelGroup}
       onApprove={onApprove} onReject={onReject} onAdjustBillingDate={onAdjustBillingDate}

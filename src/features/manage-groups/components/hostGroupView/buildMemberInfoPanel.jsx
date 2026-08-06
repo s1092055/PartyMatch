@@ -1,39 +1,17 @@
-import { AlertTriangle, Eye, EyeOff, FileText, Paperclip } from 'lucide-react'
-import { Avatar } from '../../../../components/ui/avatar'
+import { CheckCircle2, Eye, EyeOff, FileText, KeyRound } from 'lucide-react'
 import { Button } from '../../../../components/ui/button'
-import { PresenceDot } from '../../../../common/layout/components/navShared'
 import EmptyState from '../../../../components/ui/primitives/EmptyState'
 import { CENTERED_PANEL_BODY_CLASS } from '../../../../components/ui/group/panelLayout'
 import CredentialCommentsSection from '../../../../components/ui/group/CredentialCommentsSection'
-import { getTextFields, hasFilledServiceInfo, isSharedCredentialsMethod } from '../../../../common/utils/serviceInfoFields'
+import MemberIssueCard from './MemberIssueCard'
+import { hasFilledServiceInfo, isSharedCredentialsMethod } from '../../../../common/utils/serviceInfoFields'
 import { parseHostCredentials } from '../../../../common/utils/hostCredentialFields'
 
 // 團主查看成員填寫的服務帳號資訊；跟 ActivateServiceModal 裡的成員清單同一套判斷邏輯，
 // 差別是這裡不限「待啟用」階段才看得到，鎖定群組後任何時候都可以來確認填寫進度。
-// 內容直接把每個欄位拆開列出（不是壓縮成一行摘要），團主要核對帳號資訊時看得更清楚。
 // 「帳號問題」回報按鈕則限縮在 canReportServiceIssue（啟用服務之前）才顯示——
 // 一旦服務啟用，成員已經確認帳號能正常使用，「帳號資訊有誤」這個理由就不成立了
-function renderFilledInfoDetail(serviceInfo, sharingMethod) {
-  const textFields = getTextFields(sharingMethod)
-
-  if (textFields.length === 0) {
-    // 只有 checkbox 欄位（例如 shared_credentials）沒有實際內容可列，回報已確認
-    return <p className="text-xs text-success-text">已確認取得帳號資訊</p>
-  }
-
-  return (
-    <dl className="space-y-1">
-      {textFields.map(({ key, label }) => (
-        <div key={key} className="flex items-baseline gap-2 text-xs">
-          <dt className="shrink-0 text-ink-4">{label}</dt>
-          <dd className="min-w-0 truncate text-ink-2">{serviceInfo[key] || '—'}</dd>
-        </div>
-      ))}
-    </dl>
-  )
-}
-
-export function buildMemberInfoPanel({ groupId, members, sharingMethod, sharedCredentials, serviceId, canReportServiceIssue, onOpenServiceIssue, showPassword, onTogglePassword }) {
+export function buildMemberInfoPanel({ groupId, groupStatus, members, sharingMethod, sharedCredentials, serviceId, canReportServiceIssue, onOpenServiceIssue, onResolveDispute, showPassword, onTogglePassword }) {
   const parsedCredentials = parseHostCredentials(sharedCredentials, serviceId)
   const isSharedCredentials = isSharedCredentialsMethod(sharingMethod)
   return {
@@ -41,7 +19,7 @@ export function buildMemberInfoPanel({ groupId, members, sharingMethod, sharedCr
       <div className={`flex min-h-full flex-col ${CENTERED_PANEL_BODY_CLASS}`}>
         {isSharedCredentials && (
           <div className="mb-3 rounded-lg border border-line bg-raised p-3">
-            <p className="mb-1 text-xs font-semibold text-ink-3">你提供給成員的帳號資訊</p>
+            <p className="mb-2 flex items-center gap-1.5 text-base font-black text-ink"><KeyRound size={15} strokeWidth={1.5} />帳號資訊</p>
             {parsedCredentials ? (
               <dl className="space-y-1">
                 {parsedCredentials.map(({ key, label, value }) => (
@@ -78,56 +56,27 @@ export function buildMemberInfoPanel({ groupId, members, sharingMethod, sharedCr
         ) : (
           <div className="space-y-2">
             {members.map(m => {
-              const filled = hasFilledServiceInfo(m.serviceInfo, sharingMethod)
+              const canResolve = groupStatus === 'disputed' && !!m.serviceInfoIssueNote
               return (
-                <div
-                  key={m.id}
-                  className={`relative rounded-lg border p-3 ${
-                    m.serviceInfoIssueNote ? 'border-warning/40 bg-warning-subtle' : 'border-line'
-                  }`}
-                >
-                  {canReportServiceIssue && filled && !m.serviceInfoIssueNote && (
-                    <Button
-                      variant="ghost"
-                      onClick={() => onOpenServiceIssue(m)}
-                      className="absolute right-3 top-3 h-auto rounded-lg border border-warning/60 px-2.5 py-1 text-xs text-warning-text hover:bg-warning-subtle"
-                    >
-                      <AlertTriangle size={11} /> 帳號問題
-                    </Button>
-                  )}
-                  <div className={`flex items-center gap-3 ${canReportServiceIssue ? 'pr-24' : ''}`}>
-                    <span className="relative inline-block shrink-0">
-                      <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
-                      <PresenceDot status={m.userPresenceStatus} className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5" />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-ink">{m.userName}</p>
-                      {m.serviceInfoIssueNote ? (
-                        <p className="text-xs text-warning-text">帳號問題已回報，等待修正</p>
-                      ) : !filled ? (
-                        <p className="text-xs text-ink-4">{isSharedCredentials ? '尚未提取帳號' : '尚未填寫帳號'}</p>
-                      ) : null}
-                    </div>
+                <div key={m.id} className="flex items-start gap-2">
+                  <div className="min-w-0 flex-1">
+                    <MemberIssueCard
+                      m={m}
+                      filled={hasFilledServiceInfo(m.serviceInfo, sharingMethod)}
+                      sharingMethod={sharingMethod}
+                      isSharedCredentials={isSharedCredentials}
+                      canReportServiceIssue={canReportServiceIssue}
+                      onOpenServiceIssue={onOpenServiceIssue}
+                    />
                   </div>
-                  {!m.serviceInfoIssueNote && filled && (
-                    <div className="mt-2 rounded-lg bg-raised px-3 py-2">
-                      {renderFilledInfoDetail(m.serviceInfo, sharingMethod)}
-                    </div>
-                  )}
-                  {m.serviceInfoIssueNote && (
-                    <div className="mt-2 space-y-1.5 rounded-lg bg-raised px-3 py-2">
-                      <p className="text-xs text-ink-2">{m.serviceInfoIssueNote}</p>
-                      {m.serviceInfoIssueEvidenceUrl && (
-                        <a
-                          href={m.serviceInfoIssueEvidenceUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="flex items-center gap-1 text-xs font-medium text-brand hover:underline"
-                        >
-                          <Paperclip size={11} /> 查看附件
-                        </a>
-                      )}
-                    </div>
+                  {canResolve && (
+                    <Button
+                      onClick={() => onResolveDispute(m)}
+                      className="flex h-16 shrink-0 flex-col items-center justify-center gap-0.5 rounded-lg border border-success/60 bg-transparent px-3 text-xs text-success-text hover:bg-success-subtle"
+                    >
+                      <CheckCircle2 size={13} />
+                      處理完成
+                    </Button>
                   )}
                 </div>
               )

@@ -11,7 +11,8 @@ stateDiagram-v2
   pending_confirmation --> pending_activation : 全員填寫帳號資訊完成
   pending_activation --> confirming : 團主啟用服務（48h 確認期開始）
   confirming --> active : 成員主動確認 / 逾期未操作（自動撥款）
-  confirming --> disputed : 成員向平台正式申訴
+  confirming --> disputed : 成員回報問題
+  disputed --> confirming : 團主與成員自行解決，重新給一次確認窗口
   disputed --> active : 平台客服裁定後（撥款或退款）
   active --> pending_confirmation : 團主開始新一期收款
   active --> ended : 團主結束服務

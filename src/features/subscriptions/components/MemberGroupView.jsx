@@ -7,7 +7,6 @@ import { PresenceDot } from '../../../common/layout/components/navShared'
 import { Button } from '../../../components/ui/button'
 import ConfirmActionDialog from '../../../components/ui/ConfirmActionDialog'
 import CountdownText from '../../../components/ui/primitives/CountdownText'
-import DisputeReasonDialog from '../../../components/ui/DisputeReasonDialog'
 import GroupModalShell from '../../../components/ui/group/GroupModalShell'
 import GroupModalSideBarItem from '../../../components/ui/group/GroupModalSideBarItem'
 import ReviewHostModal from './ReviewHostModal'
@@ -33,7 +32,6 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
   const [leaveConfirm, setLeaveConfirm] = useState(false)
   const [showFillInfo, setShowFillInfo] = useState(false)
   const [showDispute, setShowDispute] = useState(false)
-  const [showDisputeReason, setShowDisputeReason] = useState(false)
   const [fillValues, setFillValues] = useState({})
   const [fillLoading, setFillLoading] = useState(false)
   const [confirmLoading, setConfirmLoading] = useState(false)
@@ -97,8 +95,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
   const isDisputed          = group.status === 'disputed'
   // disputed 狀態下只有申訴發起人自己的 serviceInfoIssueNote 會被填入申訴理由，藉此跟其他無關成員區分文案
   const isDisputeRaiser     = isDisputed && !!myMember?.serviceInfoIssueNote
-  const disputedBannerText  = isDisputeRaiser ? '回報已受理，處理中' : '群組進度暫停中'
-  const disputeMember       = isDisputed ? members.find(m => m.serviceInfoIssueNote) : null
+  const disputedBannerText  = isDisputeRaiser ? '回報處理中' : '群組進度暫停中'
 
   function openMessages() {
     onClose()
@@ -300,8 +297,13 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
       return buildCredentialsPanel({
         group,
         viewerName: myMember?.userName,
+        viewerAvatarInitial: myMember?.userAvatarInitial,
+        viewerAvatarColor: myMember?.userAvatarColor,
+        viewerPresenceStatus: myMember?.userPresenceStatus,
         showPassword,
         onTogglePassword: () => setShowPassword(v => !v),
+        issueNote: myMember?.serviceInfoIssueNote,
+        evidenceUrl: myMember?.disputeEvidenceUrl ?? myMember?.serviceInfoIssueEvidenceUrl,
       })
     }
 
@@ -352,12 +354,6 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
             {group.disputeDeadline && (
               <>，剩餘 <CountdownText deadline={group.disputeDeadline} /></>
             )}
-            <button
-              onClick={() => setShowDisputeReason(true)}
-              className="ml-1 shrink-0 rounded-full border border-danger-text/40 px-2.5 py-0.5 text-xs font-semibold text-danger-text transition-all hover:-translate-y-0.5 hover:bg-danger-text/10"
-            >
-              查看原因
-            </button>
           </div>
         ) : undefined
       }
@@ -476,17 +472,6 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
         danger
         onConfirm={() => { setLeaveConfirm(false); onLeaveGroup?.() }}
         onCancel={() => setLeaveConfirm(false)}
-      />
-    )}
-
-    {showDisputeReason && (
-      <DisputeReasonDialog
-        reporterName={isDisputeRaiser ? '你' : disputeMember?.userName}
-        reporterAvatarInitial={disputeMember?.userAvatarInitial}
-        reporterAvatarColor={disputeMember?.userAvatarColor}
-        reason={disputeMember?.serviceInfoIssueNote}
-        evidenceUrl={disputeMember?.disputeEvidenceUrl}
-        onClose={() => setShowDisputeReason(false)}
       />
     )}
 
