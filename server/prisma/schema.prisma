@@ -326,6 +326,7 @@ model Message {
   type           String       @default("text")
   actionType     String?
   payload        Json?
+  attachmentUrl  String?      @db.VarChar(500)
   createdAt      DateTime     @default(now())
 
   @@map("messages")
@@ -359,6 +360,7 @@ model CredentialComment {
   authorId  String
   author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   content   String   @db.VarChar(500)
+  attachmentUrl String? @db.VarChar(500)
   createdAt DateTime @default(now())
 
   @@index([groupId])

@@ -13,15 +13,16 @@ export function parseParticipants(conversation) {
 
 // 建立訊息並更新對話的 lastMessage / 未讀數，供一般聊天室與系統聊天室共用
 // participants 可由呼叫端傳入已解析好的陣列，避免重複 JSON.parse
-export async function appendMessage(conversation, { senderId, content, type = 'text', actionType, payload, participants }) {
+export async function appendMessage(conversation, { senderId, content, type = 'text', actionType, payload, attachmentUrl, participants }) {
   const message = await prisma.message.create({
     data: {
       conversationId: conversation.id,
       senderId,
       content,
       type,
-      ...(actionType !== undefined && { actionType }),
-      ...(payload    !== undefined && { payload }),
+      ...(actionType     !== undefined && { actionType }),
+      ...(payload        !== undefined && { payload }),
+      ...(attachmentUrl  !== undefined && { attachmentUrl }),
     },
     include: { sender: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true } } },
   })
@@ -32,10 +33,11 @@ export async function appendMessage(conversation, { senderId, content, type = 't
     if (uid !== senderId) unreadCounts[uid] = (unreadCounts[uid] ?? 0) + 1
   }
 
+  const lastMessageContent = content || (attachmentUrl ? '[圖片]' : '')
   await prisma.conversation.update({
     where: { id: conversation.id },
     data:  {
-      lastMessage: { content, senderId, createdAt: message.createdAt },
+      lastMessage: { content: lastMessageContent, senderId, createdAt: message.createdAt },
       unreadCounts,
       updatedAt: new Date(),
     },

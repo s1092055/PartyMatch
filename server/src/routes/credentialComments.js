@@ -9,7 +9,10 @@ const router = Router()
 
 const createCommentSchema = z.object({
   groupId: z.string().min(1),
-  content: z.string().trim().min(1).max(500),
+  content: z.string().trim().max(500).default(''),
+  attachmentUrl: z.string().url().optional(),
+}).refine(data => data.content.length > 0 || !!data.attachmentUrl, {
+  message: '留言內容或附件至少需要一項',
 })
 
 async function assertGroupAccess(groupId, userId) {
@@ -39,12 +42,12 @@ router.get('/:groupId', requireAuth, async (req, res, next) => {
 // POST /credential-comments — 留言，僅團主或該群組成員可操作
 router.post('/', requireAuth, validate(createCommentSchema), async (req, res, next) => {
   try {
-    const { groupId, content } = req.body
+    const { groupId, content, attachmentUrl } = req.body
     if (!(await assertGroupAccess(groupId, req.user.id))) {
       return res.status(403).json({ message: '無權限在此群組留言' })
     }
     const comment = await prisma.credentialComment.create({
-      data:    { groupId, authorId: req.user.id, content },
+      data:    { groupId, authorId: req.user.id, content, ...(attachmentUrl && { attachmentUrl }) },
       include: { author: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true } } },
     })
     res.status(201).json({ ...comment, author: maskAvatar(comment.author) })

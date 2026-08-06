@@ -300,6 +300,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
     if (activePanel === 'memberInfo') {
       return buildMemberInfoPanel({
         groupId: group.id,
+        hostId: group.hostId,
         groupStatus: group.status,
         members,
         sharingMethod: serviceDef?.sharingMethod,

@@ -22,5 +22,9 @@ function registerEvidenceUploadRoute(path, folder) {
 registerEvidenceUploadRoute('/dispute-evidence', 'partymatch/dispute-evidence')
 // POST /upload/service-issue-evidence — 團主回報成員帳號問題時的附件
 registerEvidenceUploadRoute('/service-issue-evidence', 'partymatch/service-issue-evidence')
+// POST /upload/credential-comment-attachment — 帳號資訊留言區的附件
+registerEvidenceUploadRoute('/credential-comment-attachment', 'partymatch/credential-comment-attachments')
+// POST /upload/message-attachment — 聊天室訊息的附件
+registerEvidenceUploadRoute('/message-attachment', 'partymatch/message-attachments')
 
 export default router

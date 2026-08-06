@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { AlertTriangle, ChevronDown } from 'lucide-react'
 import { Avatar } from '../../../../components/ui/avatar'
 import { Button } from '../../../../components/ui/button'
@@ -6,6 +6,7 @@ import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '../../../..
 import EvidenceLink from '../../../../components/ui/EvidenceLink'
 import { PresenceDot } from '../../../../common/layout/components/navShared'
 import { getTextFields } from '../../../../common/utils/serviceInfoFields'
+import { useClickOutside } from '../../../../common/utils/hooks'
 
 function renderFilledInfoDetail(serviceInfo, sharingMethod) {
   const textFields = getTextFields(sharingMethod)
@@ -33,12 +34,15 @@ function renderFilledInfoDetail(serviceInfo, sharingMethod) {
 // 不是卡片內部的一部分
 export default function MemberIssueCard({ m, filled, sharingMethod, isSharedCredentials, canReportServiceIssue, onOpenServiceIssue }) {
   const [expanded, setExpanded] = useState(false)
+  const cardRef = useRef(null)
   const evidenceUrl = m.disputeEvidenceUrl ?? m.serviceInfoIssueEvidenceUrl
   const hasIssue = !!m.serviceInfoIssueNote
   const showReportButton = canReportServiceIssue && filled && !hasIssue
 
+  useClickOutside(expanded, [cardRef], () => setExpanded(false))
+
   return (
-    <div className="relative h-full rounded-lg border border-line p-3">
+    <div ref={cardRef} className="relative h-full rounded-lg border border-line p-3">
       {showReportButton && (
         <Button
           variant="ghost"

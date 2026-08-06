@@ -61,7 +61,7 @@ export function buildCredentialsPanel({ group, viewerName, viewerAvatarInitial, 
             evidenceUrl={evidenceUrl}
           />
         )}
-        <CredentialCommentsSection groupId={group.id} />
+        <CredentialCommentsSection groupId={group.id} hostId={group.hostId} />
       </div>
     ),
   }

@@ -16,6 +16,8 @@ import {
   sendMessage,
   getOrCreateDmConversation,
 } from '../../common/api/messagesApi'
+import { uploadMessageAttachment } from '../../common/api/storageApi'
+import { useEvidenceUpload } from '../../common/utils/hooks'
 import { normalizeConversation, normalizeMessage } from '../../common/utils/modelNormalizers'
 import ConversationList, { CONV_TABS } from './components/ConversationList'
 import ChatWindow from './components/ChatWindow'
@@ -46,6 +48,7 @@ export default function MessagesModal() {
   const inputRef = useRef(null)
   const isComposingRef = useRef(false)
   const lastCompositionEndRef = useRef(0)
+  const attachment = useEvidenceUpload(uploadMessageAttachment)
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 767px)')
@@ -149,11 +152,13 @@ export default function MessagesModal() {
     setSearchQuery('')
     setCanSend(false)
     setSendError(false)
+    attachment.reset()
   }
 
   async function handleSend() {
     const text = inputRef.current?.value.trim() ?? ''
-    if (!text || !selectedId) return
+    const attachmentUrl = attachment.url
+    if ((!text && !attachmentUrl) || !selectedId || attachment.uploading) return
     const user = getCurrentUser()
     if (!user) return
     if (!selected) return
@@ -161,6 +166,7 @@ export default function MessagesModal() {
     setCanSend(false)
     setSendError(false)
     if (inputRef.current) inputRef.current.value = ''
+    attachment.reset()
     requestAnimationFrame(() => inputRef.current?.focus())
 
     const tempId = `temp-${crypto.randomUUID()}`
@@ -170,6 +176,7 @@ export default function MessagesModal() {
       sender:      { id: user.id, name: user.name, avatarInitial: user.avatarInitial ?? '', avatarColor: user.avatarColor ?? null },
       content:     text,
       type:        'text',
+      attachmentUrl,
       createdAt:   new Date().toISOString(),
     })
     setMessages(prev => [...prev, optimisticMsg])
@@ -181,6 +188,7 @@ export default function MessagesModal() {
         avatarInitial: user.avatarInitial ?? '',
         avatarColor: user.avatarColor ?? null,
         text,
+        attachmentUrl,
         participants: selected?.participants ?? [],
       })
       const msg = normalizeMessage(saved)
@@ -315,6 +323,7 @@ export default function MessagesModal() {
                 sending={sending}
                 sendError={sendError}
                 canSend={canSend}
+                attachment={attachment}
                 inputRef={inputRef}
                 showMembers={showMembers}
                 isComposingRef={isComposingRef}

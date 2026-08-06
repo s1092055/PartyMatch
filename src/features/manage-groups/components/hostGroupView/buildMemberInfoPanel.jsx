@@ -11,14 +11,14 @@ import { parseHostCredentials } from '../../../../common/utils/hostCredentialFie
 // 差別是這裡不限「待啟用」階段才看得到，鎖定群組後任何時候都可以來確認填寫進度。
 // 「帳號問題」回報按鈕則限縮在 canReportServiceIssue（啟用服務之前）才顯示——
 // 一旦服務啟用，成員已經確認帳號能正常使用，「帳號資訊有誤」這個理由就不成立了
-export function buildMemberInfoPanel({ groupId, groupStatus, members, sharingMethod, sharedCredentials, serviceId, canReportServiceIssue, onOpenServiceIssue, onResolveDispute, showPassword, onTogglePassword }) {
+export function buildMemberInfoPanel({ groupId, hostId, groupStatus, members, sharingMethod, sharedCredentials, serviceId, canReportServiceIssue, onOpenServiceIssue, onResolveDispute, showPassword, onTogglePassword }) {
   const parsedCredentials = parseHostCredentials(sharedCredentials, serviceId)
   const isSharedCredentials = isSharedCredentialsMethod(sharingMethod)
   return {
     content: (
       <div className={`flex min-h-full flex-col ${CENTERED_PANEL_BODY_CLASS}`}>
         {isSharedCredentials && (
-          <div className="mb-3 rounded-lg border border-line bg-raised p-3">
+          <div className="mb-3 py-3">
             <p className="mb-2 flex items-center gap-1.5 text-base font-black text-ink"><KeyRound size={15} strokeWidth={1.5} />帳號資訊</p>
             {parsedCredentials ? (
               <dl className="space-y-1">
@@ -83,7 +83,7 @@ export function buildMemberInfoPanel({ groupId, groupStatus, members, sharingMet
             })}
           </div>
         )}
-        {isSharedCredentials && <CredentialCommentsSection groupId={groupId} />}
+        {isSharedCredentials && <CredentialCommentsSection groupId={groupId} hostId={hostId} />}
       </div>
     ),
   }

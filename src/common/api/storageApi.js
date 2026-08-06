@@ -22,3 +22,11 @@ export async function uploadDisputeEvidence(file) {
 export async function uploadServiceIssueEvidence(file) {
   return uploadFile('/upload/service-issue-evidence', file)
 }
+
+export async function uploadCredentialCommentAttachment(file) {
+  return uploadFile('/upload/credential-comment-attachment', file)
+}
+
+export async function uploadMessageAttachment(file) {
+  return uploadFile('/upload/message-attachment', file)
+}

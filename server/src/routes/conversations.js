@@ -9,10 +9,13 @@ import { maskAvatar } from '../lib/avatarVisibility.js'
 const router = Router()
 
 const sendMessageSchema = z.object({
-  content:    z.string().min(1).max(2000),
-  type:       z.enum(['text', 'system', 'action']).default('text'),
-  actionType: z.string().optional(),
-  payload:    z.record(z.unknown()).optional(),
+  content:       z.string().max(2000).default(''),
+  type:          z.enum(['text', 'system', 'action']).default('text'),
+  actionType:    z.string().optional(),
+  payload:       z.record(z.unknown()).optional(),
+  attachmentUrl: z.string().url().optional(),
+}).refine(data => data.content.length > 0 || !!data.attachmentUrl, {
+  message: '訊息內容或附件至少需要一項',
 })
 
 const dmSchema = z.object({
@@ -133,9 +136,9 @@ router.post('/:id/messages', requireAuth, validate(sendMessageSchema), async (re
       return res.status(403).json({ message: '無發送權限' })
     }
 
-    const { content, type, actionType, payload } = req.body
+    const { content, type, actionType, payload, attachmentUrl } = req.body
     const message = await appendMessage(conversation, {
-      senderId: req.user.id, content, type, actionType, payload, participants,
+      senderId: req.user.id, content, type, actionType, payload, attachmentUrl, participants,
     })
 
     res.status(201).json(message)

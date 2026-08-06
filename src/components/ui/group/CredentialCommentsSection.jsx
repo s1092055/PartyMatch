@@ -3,21 +3,27 @@ import { Send, MessageSquare } from 'lucide-react'
 import { Avatar } from '../avatar'
 import { Input } from '../input'
 import { Button } from '../button'
+import EvidenceLink from '../EvidenceLink'
+import AttachmentPickerButton from '../AttachmentPickerButton'
+import AttachmentPreviewChip from '../AttachmentPreviewChip'
 import { PresenceDot } from '../../../common/layout/components/navShared'
 import { fetchCredentialComments, createCredentialComment } from '../../../common/api/credentialCommentsApi'
+import { uploadCredentialCommentAttachment } from '../../../common/api/storageApi'
 import { startPolling } from '../../../common/utils/poller'
 import { formatRelativeDate } from '../../../common/utils/date'
 import { toast } from '../../../common/utils/toast'
+import { useEvidenceUpload } from '../../../common/utils/hooks'
 
 // 「帳號資訊」分頁底下的留言區（shared_credentials 服務限定），團主與該群組所有成員都看得到、
 // 都能留言，用來針對帳密內容直接溝通（密碼錯誤、詢問 Profile 名稱等），跟群組聊天室分開，
 // 訊息不會混在一起；用輪詢而非即時連線，跟 Conversations 同一套做法（見 CLAUDE.md）
-export default function CredentialCommentsSection({ groupId }) {
+export default function CredentialCommentsSection({ groupId, hostId }) {
   const [comments, setComments] = useState([])
   const [loading, setLoading] = useState(true)
   const [text, setText] = useState('')
   const [sending, setSending] = useState(false)
   const listRef = useRef(null)
+  const attachment = useEvidenceUpload(uploadCredentialCommentAttachment)
 
   useEffect(() => {
     const stop = startPolling(async (isActive) => {
@@ -38,12 +44,13 @@ export default function CredentialCommentsSection({ groupId }) {
   async function handleSend(e) {
     e.preventDefault()
     const content = text.trim()
-    if (!content || sending) return
+    if ((!content && !attachment.url) || sending || attachment.uploading) return
     setSending(true)
     try {
-      const comment = await createCredentialComment({ groupId, content })
+      const comment = await createCredentialComment({ groupId, content, attachmentUrl: attachment.url })
       setComments(prev => [...prev, comment])
       setText('')
+      attachment.reset()
     } catch (err) {
       toast(err?.message ?? '留言失敗，請稍後再試', 'error')
     } finally {
@@ -70,13 +77,23 @@ export default function CredentialCommentsSection({ groupId }) {
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline gap-1.5">
                 <p className="truncate text-xs font-semibold text-ink">{c.author?.name ?? '使用者'}</p>
+                {c.author?.id === hostId && (
+                  <span className="shrink-0 rounded-full bg-brand-subtle px-1.5 py-0.5 text-2xs font-semibold leading-none text-brand">團主</span>
+                )}
                 <p className="shrink-0 text-2xs text-ink-4">{formatRelativeDate(c.createdAt)}</p>
               </div>
-              <p className="whitespace-pre-wrap break-words text-xs text-ink-2">{c.content}</p>
+              {c.content && <p className="whitespace-pre-wrap break-words text-xs text-ink-2">{c.content}</p>}
+              {c.attachmentUrl && (
+                <EvidenceLink
+                  url={c.attachmentUrl}
+                  className="mt-1 flex h-auto w-fit items-center gap-1 rounded-lg border border-line px-2 py-1 text-2xs font-medium text-brand hover:bg-brand-subtle"
+                />
+              )}
             </div>
           </div>
         ))}
       </div>
+      <AttachmentPreviewChip attachment={attachment} />
       <form onSubmit={handleSend} className="mt-2 flex items-center gap-2">
         <Input
           value={text}
@@ -85,7 +102,11 @@ export default function CredentialCommentsSection({ groupId }) {
           maxLength={500}
           className="flex-1 py-2"
         />
-        <Button type="submit" size="icon" disabled={!text.trim() || sending} className="shrink-0 rounded-lg">
+        <AttachmentPickerButton
+          attachment={attachment}
+          className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-ink-4 transition-colors hover:bg-raised hover:text-ink-2 disabled:opacity-40"
+        />
+        <Button type="submit" size="icon" disabled={(!text.trim() && !attachment.url) || sending || attachment.uploading} className="shrink-0 rounded-lg">
           <Send size={15} strokeWidth={1.5} />
         </Button>
       </form>

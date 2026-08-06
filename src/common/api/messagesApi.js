@@ -28,8 +28,8 @@ export async function fetchOlderMessages(conversationId, oldestCreatedAt, pageSi
   }
 }
 
-export async function sendMessage(conversationId, _senderId, { text, type = 'text' }) {
-  return client.post(`/conversations/${conversationId}/messages`, { content: text, type })
+export async function sendMessage(conversationId, _senderId, { text, type = 'text', attachmentUrl }) {
+  return client.post(`/conversations/${conversationId}/messages`, { content: text, type, ...(attachmentUrl && { attachmentUrl }) })
 }
 
 export async function sendSystemMessage(conversationId, text) {

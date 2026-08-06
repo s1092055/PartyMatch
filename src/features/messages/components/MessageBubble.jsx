@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CheckCircle2 } from 'lucide-react'
 import { Button } from '../../../components/ui/button'
 import { Avatar } from '../../../components/ui/avatar'
+import ImageLightbox from '../../../components/ui/ImageLightbox'
 import { PresenceDot } from '../../../common/layout/components/navShared'
 import { useMemberStore } from '../../../common/stores/useMemberStore'
 import { getServiceById } from '../../../common/utils/serviceUtils'
@@ -21,6 +23,19 @@ function ReadReceipt({ readers }) {
         {tooltip}
       </span>
     </span>
+  )
+}
+
+function MessageAttachment({ url }) {
+  const [open, setOpen] = useState(false)
+  if (!url) return null
+  return (
+    <>
+      <button type="button" onClick={() => setOpen(true)} className="mt-1.5 block">
+        <img src={url} alt="附件" className="max-h-48 max-w-48 rounded-xl object-cover" />
+      </button>
+      {open && <ImageLightbox url={url} onClose={() => setOpen(false)} />}
+    </>
   )
 }
 
@@ -155,6 +170,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
               仍貼齊右側（跟下方時間/已讀那一列一致），不會整個往左移 */}
           <div className="ml-auto w-fit rounded-2xl rounded-tr-md bg-brand px-4 py-2.5 text-sm text-white">
             {msg.text}
+            <MessageAttachment url={msg.attachmentUrl} />
           </div>
           <div className="mt-1 flex items-center justify-end gap-1.5">
             <span className="text-xs leading-normal text-ink-4">{formatTime(msg.createdAt)}</span>
@@ -174,6 +190,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
         <p className="mb-1 text-xs font-bold text-ink-3">{getMessageSenderName(msg)}</p>
         <div className="w-fit rounded-2xl rounded-tl-md bg-surface px-4 py-2.5 text-sm text-ink shadow-sm">
           {msg.text}
+          <MessageAttachment url={msg.attachmentUrl} />
         </div>
         <p className="mt-1 text-xs text-ink-4">{formatTime(msg.createdAt)}</p>
       </div>

@@ -3,6 +3,8 @@ import ConversationAvatar from './ConversationAvatar'
 import ConversationHeaderActions from './ConversationHeaderActions'
 import ChatMembersPanel from './ChatMembersPanel'
 import MessageBubble from './MessageBubble'
+import AttachmentPickerButton from '../../../components/ui/AttachmentPickerButton'
+import AttachmentPreviewChip from '../../../components/ui/AttachmentPreviewChip'
 import { useMemberStore } from '../../../common/stores/useMemberStore'
 import { useGroupStore } from '../../../common/stores/useGroupStore'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
@@ -15,6 +17,7 @@ const getCurrentUser = () => useAuthStore.getState().user
 export default function ChatWindow({
   selected, selectedId, messages, user,
   sending, sendError, canSend,
+  attachment,
   inputRef,
   showMembers,
   isComposingRef, lastCompositionEndRef,
@@ -134,6 +137,7 @@ export default function ChatWindow({
         {sendError && (
           <p className="mb-2 text-xs text-danger">傳送失敗，請稍後再試</p>
         )}
+        {attachment && <AttachmentPreviewChip attachment={attachment} />}
         <div className={`flex items-center gap-3 rounded-2xl border bg-raised px-4 py-2 transition-[box-shadow] ${sendError ? 'border-danger' : 'border-line focus-within:ring-4 focus-within:ring-brand-subtle'}`}>
           <input
             ref={inputRef}
@@ -152,10 +156,16 @@ export default function ChatWindow({
             onKeyDown={onKeyDown}
             className="flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-ink-4"
           />
+          {attachment && (
+            <AttachmentPickerButton
+              attachment={attachment}
+              className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-4 transition-colors hover:bg-surface hover:text-ink-2 disabled:opacity-40"
+            />
+          )}
           <button
             type="button"
             onClick={onSend}
-            disabled={!canSend}
+            disabled={!canSend && !attachment?.url}
             aria-busy={sending}
             className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand text-white transition-all hover:-translate-y-0.5 hover:bg-brand-hover disabled:opacity-40"
             aria-label="傳送"
