@@ -1,8 +1,8 @@
 # 測試帳號清單
 
-本文件列出 `server/prisma/seedDemo.js` 建立的 demo 帳號，供手動測試使用。全部帳號完全自給自足（不依賴任何外部既有帳號），密碼皆為 `Demo1234`。
+本文件列出 `server/prisma/seedDemo.js` 建立的 demo 帳號，供手動測試使用。全部帳號完全自給自足（不依賴任何外部既有帳號），一般帳號（demo1～demo9）密碼皆為 `Demo1234`；**管理員帳號（demo-admin）不在此列**，見下方「管理員帳號」章節說明。
 
-[線上 Demo](https://partymatch.ykk910309.workers.dev)（後端：https://partymatch-api.onrender.com）的正式資料庫已灌入這批帳號，可直接登入體驗，不需要自己跑 seed。若正式環境的 demo 資料被測試流程弄亂，可在 `server/` 執行 `npm run db:reset-demo:prod`（需先建立 `server/.env.production`，放正式版 `DATABASE_URL`，見 [開發指令](../development.md)）一次重置回乾淨狀態。
+[線上 Demo](https://partymatch.ykk910309.workers.dev)（後端：https://partymatch-api.onrender.com）的正式資料庫已灌入這批帳號，一般帳號可直接登入體驗，不需要自己跑 seed。若正式環境的 demo 資料被測試流程弄亂，可在 `server/` 執行 `npm run db:reset-demo:prod`（需先建立 `server/.env.production`，放正式版 `DATABASE_URL`，見 [開發指令](../development.md)）一次重置回乾淨狀態。
 
 ## 這支 seed 腳本跟一般 seed 腳本的差異
 
@@ -67,6 +67,11 @@ npm run db:seed-demo    # 建立 10 個 demo 帳號（含 1 個管理員）、22
 | Email | 姓名 | 說明 |
 |-------|------|------|
 | demo-admin@partymatch.test | 平台管理員 | `isAdmin: true`，唯一具備管理員權限的 seed 帳號；不參與任何一般群組（不是任何群組的團主或成員），登入後直接進入 `/admin` 管理員後台 Dashboard，可查看平台概覽數據、發送系統公告/單發訊息，以及測試 `POST /groups/:id/adjudicate` 申訴裁定。Seed 資料裡已經示範了兩種裁定結果：G19（成員獲勝）、G20（團主獲勝） |
+
+**密碼刻意不寫在這份文件裡**：管理員後台能對全平台使用者廣播/單發系統訊息，不像其他 demo 帳號只影響自己名下的資料，所以不適合跟其他測試帳密一樣公開在 repo 裡讓任何人登入。
+
+- **本機開發**：沒有設定 `ADMIN_PASSWORD` 環境變數時，`seedDemo.js` 會讓 demo-admin 跟其他帳號一樣使用 `Demo1234`，方便本機測試管理員後台
+- **正式環境**：`server/.env.production`（未進 git）設定了獨立的 `ADMIN_PASSWORD`，密碼只有專案擁有者知道；執行 `npm run db:reset-demo:prod` 重置資料時會自動套用這組密碼，不會被打回 `Demo1234`
 
 ---
 

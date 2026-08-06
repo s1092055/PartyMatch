@@ -14,7 +14,8 @@ export default defineConfig([
       reactRefresh.configs.vite,
     ],
     languageOptions: {
-      globals: globals.browser,
+      // __APP_BUILD_ID__ 由 vite.config.js 的 define 在 build 時注入，用來偵測是否有新版本部署
+      globals: { ...globals.browser, __APP_BUILD_ID__: 'readonly' },
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
     rules: {

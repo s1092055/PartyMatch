@@ -14,6 +14,7 @@ import { useFavoriteStore } from '../common/stores/useFavoriteStore'
 import { useNotificationStore } from '../common/stores/useNotificationStore'
 import { useConversationStore } from '../common/stores/useConversationStore'
 import { toast } from '../common/utils/toast'
+import { useVersionCheck } from '../common/utils/versionCheck'
 
 // Modal／Drawer 開啟時鎖定捲動（見 common/utils/hooks.js 的 useScrollLock，或
 // @base-ui/react 內建的 Dialog/Drawer 各自的鎖定機制，兩者都是對 <html> 設
@@ -41,6 +42,7 @@ export default function App() {
   const [ready, setReady] = useState(false)
   const bootedRef = useRef(false)
   useIosFixedPositionScrollFix()
+  useVersionCheck()
 
   useEffect(() => {
     function onRefreshMemberStores() {
