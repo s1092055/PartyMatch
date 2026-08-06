@@ -20,6 +20,7 @@ import paymentMethodRoutes from './routes/paymentMethods.js'
 import reviewRoutes        from './routes/reviews.js'
 import systemMessageRoutes from './routes/systemMessages.js'
 import credentialCommentRoutes from './routes/credentialComments.js'
+import adminRoutes         from './routes/admin.js'
 
 const app = express()
 
@@ -49,6 +50,7 @@ app.use('/api/payment-methods', paymentMethodRoutes)
 app.use('/api/reviews',         reviewRoutes)
 app.use('/api/system-messages', systemMessageRoutes)
 app.use('/api/credential-comments', credentialCommentRoutes)
+app.use('/api/admin',         adminRoutes)
 
 // ── Health check ───────────────────────────────────────────────────────────────
 app.get('/health', (req, res) => res.json({ status: 'ok', ts: new Date() }))

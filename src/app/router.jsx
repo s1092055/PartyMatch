@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 import { createBrowserRouter } from 'react-router-dom'
 import ProtectedRoute from './ProtectedRoute'
 import PublicOnlyRoute from './PublicOnlyRoute'
+import AdminRoute from './AdminRoute'
 import { GroupRedirect, MyGroupsLegacyRedirect } from './redirects'
 
 function routeElement(loader) {
@@ -49,6 +50,18 @@ const router = createBrowserRouter([
     element: <ProtectedRoute />,
     children: [
       { path: '/create-group', element: routeElement(() => import('../features/create/CreateGroupPage')) },
+    ],
+  },
+  {
+    element: <AdminRoute />,
+    children: [
+      {
+        path: '/admin',
+        element: routeElement(() => import('../common/layout/AdminDashboardLayout')),
+        children: [
+          { index: true, element: routeElement(() => import('../features/admin/AdminDashboardPage')) },
+        ],
+      },
     ],
   },
 ])

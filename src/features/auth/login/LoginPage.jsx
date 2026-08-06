@@ -27,7 +27,8 @@ export default function LoginPage() {
       return
     }
     toast(`登入成功，歡迎${result.user.name ? ` ${result.user.name}` : ''}`)
-    navigate('/', { replace: true })
+    // 管理員不參與一般使用者流程（探索/建立/加入群組），登入後直接進管理員後台
+    navigate(result.user.isAdmin ? '/admin' : '/', { replace: true })
   }
 
   return (

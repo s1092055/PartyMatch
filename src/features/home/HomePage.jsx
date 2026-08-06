@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { ChevronRight, Compass } from 'lucide-react'
 import { Button } from '../../components/ui/button'
 import logoUrl from '../../assets/Logo.svg'
@@ -22,6 +22,11 @@ const MessagesModal = lazy(() => import('../messages/MessagesModal'))
 export default function HomePage() {
   const navigate = useNavigate()
   const loggedIn = useAuthStore(s => s.loggedIn)
+  const isAdmin = useAuthStore(s => s.user?.isAdmin ?? false)
+
+  // 管理員帳號不參與一般使用者流程（探索/建立/加入群組），登入後一律停在管理員後台，
+  // 這裡額外攔一次是為了「已登入的管理員直接輸入網址回到首頁」的情境，不只靠登入當下的導頁
+  if (loggedIn && isAdmin) return <Navigate to="/admin" replace />
 
   return (
     <div className="flex min-h-screen flex-col bg-canvas text-ink lg:ml-24">

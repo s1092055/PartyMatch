@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, ChevronDown, Clock, Coins, Lock, LogOut, Settings, ShieldUser, User } from "lucide-react";
+import { Bell, ChevronDown, Clock, Coins, Lock, LogOut, Settings, User } from "lucide-react";
 import { useAuthStore } from "../../common/stores/useAuthStore";
 import { toast } from "../../common/utils/toast";
 import CreditScoreModal from "../../components/ui/CreditScoreModal";
@@ -9,7 +9,6 @@ import HostReviewsModal from "../manage-groups/components/HostReviewsModal";
 import ProfileHeaderCard from "./components/ProfileHeaderCard";
 import PersonalInfoTab from "./components/tabs/PersonalInfoTab";
 import TokenTab from "./components/tabs/TokenTab";
-import AdminTab from "./components/tabs/AdminTab";
 import SettingsTab from "./components/tabs/SettingsTab";
 
 const BASE_TABS = [
@@ -57,7 +56,6 @@ function TabContent({ value, user, onChange, tabs }) {
   if (value === "profile")       return <PersonalInfoTab user={user} onChange={onChange} />
   if (value === "tokens")        return <TokenTab />
   if (value === "settings")      return <SettingsTab />
-  if (value === "admin")         return <AdminTab />
   return null
 }
 
@@ -90,7 +88,6 @@ export default function AccountPage() {
   const [openAccordion, setOpenAccordion] = useState(null);
   const [creditScoreOpen, setCreditScoreOpen] = useState(false);
   const [reviewsOpen, setReviewsOpen] = useState(false);
-  const isAdmin = useAuthStore(s => s.user?.isAdmin ?? false)
   const [user, setUser] = useState(() => {
     const profile = useAuthStore.getState().getProfile();
     return {
@@ -99,8 +96,6 @@ export default function AccountPage() {
       bio: profile?.bio ?? "",
     };
   });
-
-  const TABS = isAdmin ? [...BASE_TABS, { value: "admin", label: "管理員", icon: ShieldUser }] : BASE_TABS
 
   async function handleUserChange(key, value) {
     const previousValue = user[key];
@@ -130,7 +125,7 @@ export default function AccountPage() {
         {/* 左側 tab 選單 */}
         <nav className="w-44 shrink-0 self-start" aria-label="帳號設定分頁">
           <ul className="flex flex-col gap-1" role="tablist">
-            {TABS.map(tab => {
+            {BASE_TABS.map(tab => {
               const Icon = tab.icon
               const isActive = activeTab === tab.value
               return (
@@ -168,7 +163,7 @@ export default function AccountPage() {
             className="min-h-0 flex-1 overflow-y-auto pl-1.5 pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             <TabReveal key={activeTab}>
-              <TabContent value={activeTab} user={user} onChange={handleUserChange} tabs={TABS} />
+              <TabContent value={activeTab} user={user} onChange={handleUserChange} tabs={BASE_TABS} />
             </TabReveal>
           </div>
 
@@ -181,7 +176,7 @@ export default function AccountPage() {
           之間留一大截空白，用負 margin 把這段多出來的間距收回來 */}
       <div className="lg:hidden -mb-20">
         <div className="space-y-2">
-        {TABS.map(tab => {
+        {BASE_TABS.map(tab => {
           const isOpen = openAccordion === tab.value
           return (
             <div key={tab.value} className="overflow-hidden rounded-inner border border-line bg-surface shadow-card">
@@ -213,7 +208,7 @@ export default function AccountPage() {
                     aria-labelledby={`account-accordion-${tab.value}`}
                     className="border-t border-line px-4 py-4"
                   >
-                    <TabContent value={tab.value} user={user} onChange={handleUserChange} tabs={TABS} />
+                    <TabContent value={tab.value} user={user} onChange={handleUserChange} tabs={BASE_TABS} />
                   </div>
                 </TabReveal>
               )}
