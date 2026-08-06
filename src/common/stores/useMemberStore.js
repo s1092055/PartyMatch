@@ -74,7 +74,7 @@ export const useMemberStore = create((set, get) => ({
         // 全員填完，後端已自動推進群組狀態
         useGroupStore.getState().setGroupStatus(groupId, res._groupAdvanced)
       }
-      // 通知團主：成員填寫了服務帳號資訊，「成員資料」分頁靠這則通知顯示未讀紅點；
+      // 通知團主：成員填寫了服務帳號資訊，「帳號資訊」分頁靠這則通知顯示未讀紅點；
       // 只寫 DB（不是 notifStore.create()），避免這則「別人的」通知混進目前操作者（成員本人）的本地通知清單
       const group = useGroupStore.getState().getById(groupId)
       if (group) {

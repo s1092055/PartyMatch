@@ -38,7 +38,7 @@ flowchart TD
 |------|------|
 | `src/features/manage-groups/ManageGroupsPage.jsx` | 頁面總入口 |
 | `src/features/manage-groups/hooks/useHostActions.js` | 所有團主操作的事件處理（鎖定、啟用、移除成員、審核、續訂、解散等） |
-| `src/features/manage-groups/components/HostGroupView.jsx` | 團主視角群組詳情 Modal，含成員填寫中／確認期的倒數橫幅；「成員評價」只顯示這個群組的評價，且只在群組曾經啟用過才會出現；已解散的群組不顯示評價、收款、群組訊息、續訂管理、成員資料這幾個分頁，因為這些階段根本沒發生過；「收款管理」只要群組沒解散就會顯示，不限鎖定後，因為招募中期間也可能已經有代管入帳；「成員資料」只在鎖定後、非解散狀態顯示，因為要鎖定群組後成員才會填寫帳號資訊 |
+| `src/features/manage-groups/components/HostGroupView.jsx` | 團主視角群組詳情 Modal，含成員填寫中／確認期的倒數橫幅；「成員評價」只顯示這個群組的評價，且只在群組曾經啟用過才會出現；已解散的群組不顯示評價、收款、群組訊息、續訂管理、帳號資訊這幾個分頁，因為這些階段根本沒發生過；「收款管理」只要群組沒解散就會顯示，不限鎖定後，因為招募中期間也可能已經有代管入帳；「帳號資訊」（原「成員資料」，僅改文案未改內部 `activePanel` key）只在鎖定後、非解散狀態顯示，因為要鎖定群組後成員才會填寫帳號資訊 |
 | `src/features/manage-groups/components/HostReviewsModal.jsx` | 獨立的「我的評價」Modal，彙總團主名下所有群組的評價，入口在帳號中心，跟群組詳情裡只看單一群組的「成員評價」分頁分開 |
 | `src/components/ui/primitives/CountdownText.jsx` | 顯示距截止時間剩餘時間的小元件，逾期顯示自訂文字 |
 | `src/common/utils/hooks.js` | 倒數計時 hook，每秒重算剩餘時間，純顯示用 |
@@ -55,7 +55,7 @@ flowchart TD
 | `src/common/utils/hostCredentialFields.js` | 依服務別定義的結構化帳密欄位（例如 Netflix 多一個 Profile 名稱、VPN 服務多一個裝置名額）與帳密風險提醒文案 |
 | `src/components/ui/DisputeReasonDialog.jsx` | 查看回報原因與附件的唯讀對話框，團主可用它查看成員送出的申訴理由，跟成員端共用同一個元件 |
 | `src/features/manage-groups/components/hostGroupView/buildBillingPanel.jsx` | 收款管理面板（見 PM幣代管流程文件） |
-| `src/features/manage-groups/components/hostGroupView/buildMemberInfoPanel.jsx` | 「成員資料」分頁，團主查看每位成員填寫的服務帳號資訊，可直接從這裡回報帳號問題，不用等到啟用服務那一步才能看 |
+| `src/features/manage-groups/components/hostGroupView/buildMemberInfoPanel.jsx` | 「帳號資訊」分頁，團主查看每位成員填寫的服務帳號資訊，可直接從這裡回報帳號問題，不用等到啟用服務那一步才能看；`shared_credentials` 服務底部另外接一個 `CredentialCommentsSection` 留言區 |
 | `src/features/manage-groups/utils/hostFilters.js` | 狀態篩選分類（招募中/處理中/服務中三個大分類，待鎖定、成員填寫中、待啟用、確認期中、申訴中五種細分狀態都併入「處理中」，細分階段交給卡片本身的狀態 badge 顯示）與名額計算邏輯 |
 | `src/features/account/components/tabs/AdminTab.jsx` | 管理員裁定申訴，跨群組，非團主本人操作 |
 
@@ -130,8 +130,9 @@ flowchart TD
 - 通知團主自己與所有成員聊天室已開啟／請填寫服務帳號（`shared_credentials` 服務改發「請提取帳號資訊」，措辭跟其他組區分）；填寫帳號本身改在成員端群組詳情的 sub-modal 進行，聊天室不再另外發送提示訊息卡片
 - 群組詳情頁（團主與成員兩側）在這個階段都會顯示倒數橫幅，剩餘 HH:MM:SS：一般服務顯示「等待成員填寫服務帳號資訊」，`shared_credentials` 服務顯示「等待成員提取帳號資訊」，每秒更新
 
-**5. 查看成員資料**
-- 側邊欄「成員資料」分頁（鎖定後、非已解散都看得到）列出每位成員目前的填寫狀態：已填寫顯示摘要、尚未填寫顯示提示、已回報問題顯示等待修正中；可直接從這裡點「帳號問題」開啟回報視窗，不用等到啟用服務那一步才能檢查
+**5. 查看帳號資訊（原「成員資料」）**
+- 側邊欄「帳號資訊」分頁（鎖定後、非已解散都看得到）列出每位成員目前的填寫狀態：已填寫顯示摘要、尚未填寫顯示提示、已回報問題顯示等待修正中；可直接從這裡點「帳號問題」開啟回報視窗，不用等到啟用服務那一步才能檢查
+- `shared_credentials` 服務（團主提供帳密）額外在分頁底部顯示留言區（`CredentialCommentsSection`）：團主與該群組所有成員都能看、都能留言，用來針對帳密內容直接溝通（密碼錯誤、詢問 Profile 名稱等），跟群組聊天室分開，訊息不會混在一起；每 5 秒輪詢一次，跟 Conversations 同一套做法。成員端「帳號資訊」分頁（見我的訂閱流程文件）底下是同一份留言串，雙方看到的內容一致
 
 **6. 啟用服務（待啟用 → 確認期）**
 - 要求逐一勾選確認每位成員的帳號資訊都沒問題，才能按下最終確認

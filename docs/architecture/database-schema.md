@@ -19,12 +19,13 @@
 | `conversations` | 對話（群組聊天室 / DM / 系統通知）；`type` 為 `group`、`dm` 或 `system`；`participants`、`unreadCounts`、`lastReadAt`、`lastMessage` 為 JSON 欄位，`initiatorId` 記錄 DM 發起人（僅供除錯/分析用，延遲曝光機制實際只依 `lastMessage` 是否為 null 判斷，不分是不是發起人自己，見「專案亮點」）；`system` 類型的聊天室每位使用者僅有一間（`participants` 只有自己），註冊時自動建立，唯讀（成員無法回覆），由平台系統帳號發送公告或客服訊息 |
 | `messages` | 訊息（屬於某個 conversation）；一般訊息 `type: 'text'`，系統訊息另有 `actionType`/`payload`（JSON）欄位供前端渲染操作型訊息 |
 | `reviews` | 團主評價（`groupId`、`hostId`、`authorId`、`rating` 1-5、`comment`）；`(groupId, authorId)` 唯一索引，成員確認服務後可留言，同一群組同一人重複送出視為更新；評價依 `hostId` 彙總，是跨群組的團主整體評價，非單一群組評分 |
+| `credential_comments` | 「帳號資訊」分頁底下的留言（`groupId`、`authorId`、`content` 上限 500 字），僅 `shared_credentials` 服務會用到；團主與該群組所有成員皆可讀寫，依 `groupId` 建索引，依 `createdAt` 升冪顯示 |
 
 ---
 
 ## 大頭照隱私遮罩
 
-`server/src/lib/avatarVisibility.js` 匯出 `maskAvatar(user)`：使用者關閉「顯示自己的大頭照」（`showAvatar: false`）時，把要回傳給「別人」看的使用者資料裡的 `avatarInitial`/`avatarColor` 蓋成 `null`（前端 `Avatar` 元件遇到 `initial` 為空會 fallback 成 PartyMatch logo），並拿掉 `showAvatar` 欄位本身，不讓其他使用者知道對方的開關狀態。所有會把使用者資料回傳給「別人」看的 route 都套用這層遮罩：群組詳情/列表的 `host`／成員 `user`（`groups/crud.js`、`groups/lifecycle.js`）、`members.js`、`applications.js`、對話參與者與訊息寄件者（`conversations.js`）、評價作者（`reviews.js`）、群組交易紀錄的使用者（`groups/crud.js` 的 `GET /:id/transactions`）、`GET /users/:id`。**自己看自己**的端點（`GET /auth/me`、`PATCH /users/me`）不套用遮罩，一律回傳真實值。`presenceStatus`（線上狀態點）不受這層遮罩影響，加在跟 `avatarInitial`/`avatarColor` 相同的 select 清單裡，但一律照實回傳，不會被 `maskAvatar` 蓋掉。
+`server/src/lib/avatarVisibility.js` 匯出 `maskAvatar(user)`：使用者關閉「顯示自己的大頭照」（`showAvatar: false`）時，把要回傳給「別人」看的使用者資料裡的 `avatarInitial`/`avatarColor` 蓋成 `null`（前端 `Avatar` 元件遇到 `initial` 為空會 fallback 成 PartyMatch logo），並拿掉 `showAvatar` 欄位本身，不讓其他使用者知道對方的開關狀態。所有會把使用者資料回傳給「別人」看的 route 都套用這層遮罩：群組詳情/列表的 `host`／成員 `user`（`groups/crud.js`、`groups/lifecycle.js`）、`members.js`、`applications.js`、對話參與者與訊息寄件者（`conversations.js`）、評價作者（`reviews.js`）、群組交易紀錄的使用者（`groups/crud.js` 的 `GET /:id/transactions`）、留言作者（`credentialComments.js`）、`GET /users/:id`。**自己看自己**的端點（`GET /auth/me`、`PATCH /users/me`）不套用遮罩，一律回傳真實值。`presenceStatus`（線上狀態點）不受這層遮罩影響，加在跟 `avatarInitial`/`avatarColor` 相同的 select 清單裡，但一律照實回傳，不會被 `maskAvatar` 蓋掉。
 
 ---
 

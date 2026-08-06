@@ -99,6 +99,13 @@
 | GET | `/reviews/host/:hostId` | 公開 | 某位使用者作為團主的整體評價（跨群組彙總） |
 | POST | `/reviews` | 需登入 | 對群組團主留下評價（同一群組同一人重複送出視為更新） |
 
+## Credential Comments（`server/src/routes/credentialComments.js`）
+
+| Method | Path | 認證 | 說明 |
+|--------|------|------|------|
+| GET | `/credential-comments/:groupId` | 需登入（限該群組團主或成員） | 「帳號資訊」分頁底下的留言串，依 `createdAt` 升冪 |
+| POST | `/credential-comments` | 需登入（限該群組團主或成員） | 留言（`groupId`、`content`，上限 500 字） |
+
 ## Services（`server/src/routes/services.js`）
 
 | Method | Path | 認證 | 說明 |

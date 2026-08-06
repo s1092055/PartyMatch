@@ -293,7 +293,7 @@ export default function FloatingMessages() {
 
     if (notification.type === 'service_info_filled' && notification.meta?.groupId) {
       navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId, openMemberInfo: true } })
-      // 先重新拉一次成員資料，避免打開「成員資料」分頁時看到的還是填寫當下的舊快取
+      // 先重新拉一次成員資料，避免打開「帳號資訊」分頁時看到的還是填寫當下的舊快取
       useMemberStore.getState().init().finally(() => {
         window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: notification.meta.groupId, openMemberInfo: true } }))
       })

@@ -113,6 +113,7 @@ model User {
   paymentMethods    PaymentMethod[]
   hostReviews       Review[]             @relation("HostReviews")
   authoredReviews   Review[]             @relation("AuthoredReviews")
+  credentialComments CredentialComment[]
 
   @@map("users")
 }
@@ -189,6 +190,7 @@ model Group {
   notifications     Notification[]
   tokenTransactions TokenTransaction[]
   reviews           Review[]
+  credentialComments CredentialComment[]
 
   @@index([status])
   @@map("groups")
@@ -346,4 +348,19 @@ model Review {
 
   @@unique([groupId, authorId])
   @@map("reviews")
+}
+
+// 「帳號資訊」分頁底下的留言區（團主提供帳密的服務限定），團主與該群組所有成員都能看、都能留言，
+// 用來針對帳密內容直接溝通（例如密碼錯誤、詢問 Profile 名稱），不透過群組聊天室避免訊息混在一起
+model CredentialComment {
+  id        String   @id @default(cuid())
+  groupId   String
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  content   String   @db.VarChar(500)
+  createdAt DateTime @default(now())
+
+  @@index([groupId])
+  @@map("credential_comments")
 }

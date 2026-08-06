@@ -35,8 +35,10 @@ flowchart TD
 |------|------|
 | `src/features/subscriptions/SubscriptionsPage.jsx` | 頁面總入口，串接分頁與訂閱卡片 grid |
 | `src/features/subscriptions/components/SubscriptionCard.jsx` | 單一訂閱卡片 |
-| `src/features/subscriptions/components/MemberGroupView.jsx` | 成員視角群組詳情 Modal：確認服務、申訴、退出、查看群組名單、付款管理、查看團主提供的帳號資訊（`shared_credentials` 服務限定） |
-| `src/features/subscriptions/components/FillServiceInfoModal.jsx` | 填寫服務帳號的獨立彈窗，開啟時底下的群組詳情視窗完全隱藏，關閉才恢復顯示；`shared_credentials` 服務會先顯示團主提供的帳號資訊並疊上浮水印，再是確認勾選框 |
+| `src/features/subscriptions/components/MemberGroupView.jsx` | 成員視角群組詳情 Modal：確認服務、申訴、退出、查看群組名單、付款管理、查看團主提供的帳號資訊分頁（`shared_credentials` 服務限定） |
+| `src/features/subscriptions/components/FillServiceInfoModal.jsx` | 第一次提取／填寫服務帳號的獨立彈窗，開啟時底下的群組詳情視窗完全隱藏，關閉才恢復顯示；`shared_credentials` 服務會先顯示團主提供的帳號資訊並疊上浮水印，再是確認勾選框 |
+| `src/features/subscriptions/components/memberGroupView/buildCredentialsPanel.jsx` | 「帳號資訊」分頁內容（`shared_credentials` 服務限定），提取過一次之後改走這裡查看，不用再重新跑一次 sub-modal；密碼欄位預設遮罩，眼睛 icon 切換顯示，跟團主端 `buildMemberInfoPanel.jsx` 一致；底部接一個 `CredentialCommentsSection` 留言區 |
+| `src/components/ui/group/CredentialCommentsSection.jsx` | 「帳號資訊」分頁底下的留言區元件，團主端／成員端共用；每 5 秒輪詢 `GET /credential-comments/:groupId`，送出打 `POST /credential-comments` |
 | `src/components/ui/primitives/CredentialWatermark.jsx` | 疊在帳密內容上的浮水印（查看者名稱＋時間），無法阻止截圖，但外流時至少能溯源查看者 |
 | `src/common/utils/hostCredentialFields.js` | `getHostCredentialFields`、`parseHostCredentials`：`shared_credentials` 服務依服務別定義的結構化帳密欄位與解析 |
 | `src/features/subscriptions/components/memberGroupView/buildPaymentsPanel.jsx` | 付款管理面板，顯示自己這期最新一筆代管紀錄（見 PM幣代管流程文件） |
@@ -75,7 +77,8 @@ flowchart TD
 - **「填寫帳號」是群組概覽底部的動態按鈕**：跟「確認服務」「回報問題」一樣，只有在需要填寫帳號、或帳號被回報有問題時才會出現；`shared_credentials` 服務（團主主動提供帳密，成員只需提取確認）按鈕與相關文案改顯示「提取帳號資訊」，跟其他組需要成員自行輸入帳號的情境區隔
 - **不可逆操作要倒數確認**：確認服務、退出群組都要倒數幾秒才能真的送出，避免手滑誤觸
 - **側邊欄固定項目**：符合退出條件（招募中或已額滿）時側邊欄底部固定顯示「退出群組」，跟「群組訊息」共用側邊欄右下角同一個位置
-- **「帳號資訊」側邊欄項目（`shared_credentials` 服務限定）**：群組鎖定後（`isPaymentRelevant`，即非招募中／額滿）就固定顯示在側邊欄，不受填寫進度影響——這組服務的帳密是團主一次性提供、整個訂閱週期都有效，成員可能事後忘記密碼，不能只在「尚未提取」的當下才給查看入口；點擊沿用「填寫服務帳號」sub-modal（此時已預先勾選確認框、可直接查看帳密後關閉，不強制重新送出）
+- **「帳號資訊」側邊欄項目（`shared_credentials` 服務限定）**：只有在已經提取過一次帳密後（`hasServiceInfo` 為 true）才會出現，跟「群組名單」「付款管理」排在側邊欄同一個區塊；點擊開啟的是內嵌在群組詳情 Modal 裡的「帳號資訊」分頁（`buildCredentialsPanel.jsx`），不是重新彈出提取用的 sub-modal——這組服務的帳密是團主一次性提供、整個訂閱週期都有效，成員可能事後忘記密碼，不能只在第一次提取的當下才給查看入口；分頁裡密碼欄位預設遮罩，眼睛 icon 可切換顯示，跟團主端「帳號資訊」分頁（原「成員資料」）一致
+- **帳號資訊分頁底部的留言區**：只有 `shared_credentials` 服務才有，團主與該群組所有成員都能看、都能留言（後端 `CredentialComment` 表，`GET`/`POST /credential-comments`），用來針對帳密內容直接溝通，不透過群組聊天室避免訊息混在一起；每 5 秒輪詢一次，跟 Conversations 同一套做法；團主端「帳號資訊」分頁底下接的是同一個元件、同一份留言串，雙方看到的內容一致
 - **訂閱卡片（`SubscriptionCard.jsx`）依狀態切換統計格內容**：比團主端的 `HostedGroupCard.jsx`（見群組管理流程文件）簡單很多，中間格固定顯示「群組人數」，左格一律固定顯示「團主」（頂部 badge 已經顯示目前狀態，左格不重複顯示狀態文字），只有右格會依是否已啟用切換：
 
   | `sub.groupStatus`（判定用） | 卡片頂部 Badge | 左格 | 中格 | 右格 |

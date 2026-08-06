@@ -4,6 +4,7 @@ import { Button } from '../../../../components/ui/button'
 import { PresenceDot } from '../../../../common/layout/components/navShared'
 import EmptyState from '../../../../components/ui/primitives/EmptyState'
 import { CENTERED_PANEL_BODY_CLASS } from '../../../../components/ui/group/panelLayout'
+import CredentialCommentsSection from '../../../../components/ui/group/CredentialCommentsSection'
 import { getTextFields, hasFilledServiceInfo, isSharedCredentialsMethod } from '../../../../common/utils/serviceInfoFields'
 import { parseHostCredentials } from '../../../../common/utils/hostCredentialFields'
 
@@ -32,12 +33,13 @@ function renderFilledInfoDetail(serviceInfo, sharingMethod) {
   )
 }
 
-export function buildMemberInfoPanel({ members, sharingMethod, sharedCredentials, serviceId, canReportServiceIssue, onOpenServiceIssue, showPassword, onTogglePassword }) {
+export function buildMemberInfoPanel({ groupId, members, sharingMethod, sharedCredentials, serviceId, canReportServiceIssue, onOpenServiceIssue, showPassword, onTogglePassword }) {
   const parsedCredentials = parseHostCredentials(sharedCredentials, serviceId)
+  const isSharedCredentials = isSharedCredentialsMethod(sharingMethod)
   return {
     content: (
       <div className={`flex min-h-full flex-col ${CENTERED_PANEL_BODY_CLASS}`}>
-        {isSharedCredentialsMethod(sharingMethod) && (
+        {isSharedCredentials && (
           <div className="mb-3 rounded-lg border border-line bg-raised p-3">
             <p className="mb-1 text-xs font-semibold text-ink-3">你提供給成員的帳號資訊</p>
             {parsedCredentials ? (
@@ -103,7 +105,7 @@ export function buildMemberInfoPanel({ members, sharingMethod, sharedCredentials
                       {m.serviceInfoIssueNote ? (
                         <p className="text-xs text-warning-text">帳號問題已回報，等待修正</p>
                       ) : !filled ? (
-                        <p className="text-xs text-ink-4">{isSharedCredentialsMethod(sharingMethod) ? '尚未提取帳號' : '尚未填寫帳號'}</p>
+                        <p className="text-xs text-ink-4">{isSharedCredentials ? '尚未提取帳號' : '尚未填寫帳號'}</p>
                       ) : null}
                     </div>
                   </div>
@@ -132,6 +134,7 @@ export function buildMemberInfoPanel({ members, sharingMethod, sharedCredentials
             })}
           </div>
         )}
+        {isSharedCredentials && <CredentialCommentsSection groupId={groupId} />}
       </div>
     ),
   }

@@ -94,7 +94,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
 
   useEffect(() => {
     if (activePanel !== 'memberInfo') return
-    // 每次打開「成員資料」都重新拉一次，避免看到的是成員填寫當下、輪詢還沒同步到的舊快取
+    // 每次打開「帳號資訊」都重新拉一次，避免看到的是成員填寫當下、輪詢還沒同步到的舊快取
     useMemberStore.getState().init()
     markGroupNotifsRead('service_info_filled')
   }, [activePanel, group.id]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -309,6 +309,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
     if (activePanel === 'billing') return buildBillingPanel({ members, transactions, transactionsLoading })
     if (activePanel === 'memberInfo') {
       return buildMemberInfoPanel({
+        groupId: group.id,
         members,
         sharingMethod: serviceDef?.sharingMethod,
         sharedCredentials: group.sharedCredentials,
@@ -377,7 +378,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
                 </span>
               )}
             </span>
-            成員資料
+            帳號資訊
           </GroupModalSideBarItem>
         )}
         {isRecruiting ? (

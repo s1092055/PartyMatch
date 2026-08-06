@@ -14,6 +14,7 @@ import ReviewHostModal from './ReviewHostModal'
 import FillServiceInfoModal from './FillServiceInfoModal'
 import DisputeModal from './DisputeModal'
 import { buildPaymentsPanel } from './memberGroupView/buildPaymentsPanel'
+import { buildCredentialsPanel } from './memberGroupView/buildCredentialsPanel'
 import { getServiceById } from '../../../common/utils/serviceUtils'
 import { getSharingMethodConfig, hasFilledServiceInfo, isSharedCredentialsMethod } from '../../../common/utils/serviceInfoFields'
 import { useMemberStore } from '../../../common/stores/useMemberStore'
@@ -44,6 +45,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
   const [reviewPrompt, setReviewPrompt] = useState(null) // null | { closeOnDone: boolean }
   const [transactions, setTransactions] = useState([])
   const [transactionsLoading, setTransactionsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   useEffect(() => {
     if (activePanel !== 'payments') return
@@ -294,6 +296,14 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
     }
 
     if (activePanel === 'payments') return buildPaymentsPanel({ group, member: myMember, transactions, transactionsLoading })
+    if (activePanel === 'credentials') {
+      return buildCredentialsPanel({
+        group,
+        viewerName: myMember?.userName,
+        showPassword,
+        onTogglePassword: () => setShowPassword(v => !v),
+      })
+    }
 
     return null
   }
@@ -393,8 +403,8 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
               <Banknote size={17} /> 付款管理
             </GroupModalSideBarItem>
           )}
-          {canViewCredentials && (
-            <GroupModalSideBarItem onClick={() => { setFillValues(myMember?.serviceInfo ?? {}); setShowFillInfo(true) }}>
+          {canViewCredentials && hasServiceInfo && (
+            <GroupModalSideBarItem active={activePanel === 'credentials'} onClick={() => setActivePanel('credentials')}>
               <KeyRound size={17} /> 帳號資訊
             </GroupModalSideBarItem>
           )}
