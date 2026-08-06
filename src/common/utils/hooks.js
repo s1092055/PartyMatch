@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { toast } from './toast'
+import { useAuthStore } from '../stores/useAuthStore'
 
 // Reference counter so nested modals don't re-measure or prematurely release the lock.
 let _lockCount = 0
@@ -259,4 +261,19 @@ export function useClickOutside(enabled, refs, onClose) {
       if (refsRef.current.every(ref => !ref.current?.contains(e.target))) onCloseRef.current()
     })
   }, [enabled])
+}
+
+// 登出共用邏輯（清除 auth store + 導回登入頁），AccountPage／MobileDock／AdminDashboardLayout
+// 都是同一套流程，呼叫端可以在 logout() 前後加自己的額外步驟（例如先關掉選單）
+export function useLogout() {
+  const navigate = useNavigate()
+  const [loggingOut, setLoggingOut] = useState(false)
+
+  const logout = useCallback(async () => {
+    setLoggingOut(true)
+    await useAuthStore.getState().logout()
+    navigate('/login', { replace: true })
+  }, [navigate])
+
+  return { loggingOut, logout }
 }

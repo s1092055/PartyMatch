@@ -5,6 +5,7 @@ import AuthLayout, { AuthTitle, AuthInput, AuthDivider, AuthError, GoogleMark, P
 import { Button } from '../../../components/ui/button'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
 import { toast } from '../../../common/utils/toast'
+import { ADMIN_HOME_PATH } from '../../../app/AdminRoute'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -28,7 +29,7 @@ export default function LoginPage() {
     }
     toast(`登入成功，歡迎${result.user.name ? ` ${result.user.name}` : ''}`)
     // 管理員不參與一般使用者流程（探索/建立/加入群組），登入後直接進管理員後台
-    navigate(result.user.isAdmin ? '/admin' : '/', { replace: true })
+    navigate(result.user.isAdmin ? ADMIN_HOME_PATH : '/', { replace: true })
   }
 
   return (

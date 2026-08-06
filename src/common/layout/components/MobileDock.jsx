@@ -1,16 +1,13 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Compass, LayoutGrid, LogIn, LogOut, Moon, PlusCircle, Search, Settings, Sun } from 'lucide-react'
 import { MY_NAV_ITEMS } from '../nav'
 import { Avatar } from '../../../components/ui/avatar'
 import { TokenBadge } from '../../../components/ui/TokenAmount'
 import { Button } from '../../../components/ui/button'
 import { Drawer, DrawerContent, DrawerTitle } from '../../../components/ui/drawer'
-import { useAuthStore } from '../../stores/useAuthStore'
 import { useTheme } from '../../../components/theme-provider'
 import { LockBadge, PresenceDot } from './navShared'
 import { PROTECTED_NAV_ROUTES } from './navConstants'
-import { useHideOnScroll } from '../../utils/hooks'
+import { useHideOnScroll, useLogout } from '../../utils/hooks'
 
 // 「我的」跟「我的帳號」都用同一套底部 Drawer（bottom sheet）骨架呈現選單內容，
 // 不再用貼在觸發點上方的小 popup——手機上滑出式比固定定位的小選單好操作、也不用
@@ -60,8 +57,7 @@ export default function MobileDock({
   setAccountMenuOpen,
 }) {
   const visible = useHideOnScroll()
-  const navigate = useNavigate()
-  const [loggingOut, setLoggingOut] = useState(false)
+  const { loggingOut, logout } = useLogout()
   const { theme, toggleTheme } = useTheme()
 
   const isMyActive = PROTECTED_NAV_ROUTES.has(pathname)
@@ -74,10 +70,8 @@ export default function MobileDock({
     : { href: '/login', icon: LogIn, label: '登入' }
 
   async function handleLogout() {
-    setLoggingOut(true)
     setAccountMenuOpen(false)
-    await useAuthStore.getState().logout()
-    navigate('/login', { replace: true })
+    await logout()
   }
 
   return (

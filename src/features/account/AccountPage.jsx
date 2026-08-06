@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Bell, ChevronDown, Clock, Coins, Lock, LogOut, Settings, User } from "lucide-react";
 import { useAuthStore } from "../../common/stores/useAuthStore";
+import { useLogout } from "../../common/utils/hooks";
 import { toast } from "../../common/utils/toast";
 import CreditScoreModal from "../../components/ui/CreditScoreModal";
 import { Button } from "../../components/ui/button";
@@ -60,19 +60,12 @@ function TabContent({ value, user, onChange, tabs }) {
 }
 
 function LogoutButton({ className = "", fullWidth = false }) {
-  const navigate = useNavigate();
-  const [loggingOut, setLoggingOut] = useState(false);
-
-  async function handleLogout() {
-    setLoggingOut(true);
-    await useAuthStore.getState().logout();
-    navigate('/login', { replace: true });
-  }
+  const { loggingOut, logout } = useLogout();
 
   return (
     <div className={`flex ${fullWidth ? '' : 'justify-end'} ${className}`}>
       <Button
-        onClick={handleLogout}
+        onClick={logout}
         loading={loggingOut}
         className={`shrink-0 rounded-2xl ${fullWidth ? 'w-full' : ''}`}
       >

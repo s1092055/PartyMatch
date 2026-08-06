@@ -1,21 +1,14 @@
-import { useState } from 'react'
-import { Outlet, useNavigate } from 'react-router-dom'
+import { Outlet } from 'react-router-dom'
 import { LogOut, ShieldUser } from 'lucide-react'
 import logoUrl from '../../assets/Logo.svg'
 import { useAuthStore } from '../stores/useAuthStore'
+import { useLogout } from '../utils/hooks'
 
 // 管理員後台獨立的極簡版 layout，不共用一般使用者那套探索/建立群組/訊息中心的 nav——
 // 管理員不參與一般群組流程，塞那些功能進來只會是雜訊
 export default function AdminDashboardLayout() {
-  const navigate = useNavigate()
   const user = useAuthStore(s => s.user)
-  const [loggingOut, setLoggingOut] = useState(false)
-
-  async function handleLogout() {
-    setLoggingOut(true)
-    await useAuthStore.getState().logout()
-    navigate('/login', { replace: true })
-  }
+  const { loggingOut, logout } = useLogout()
 
   return (
     <div className="min-h-screen bg-canvas">
@@ -30,7 +23,7 @@ export default function AdminDashboardLayout() {
         <div className="flex items-center gap-3">
           <span className="hidden text-sm font-semibold text-ink-3 md:inline">{user?.name}</span>
           <button
-            onClick={handleLogout}
+            onClick={logout}
             disabled={loggingOut}
             className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-sm font-semibold text-ink-3 transition-colors hover:bg-raised hover:text-ink disabled:opacity-60"
           >
