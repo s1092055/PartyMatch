@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import LoginPromptModal from '../../components/ui/LoginPromptModal'
 import { useAuthStore } from '../../common/stores/useAuthStore'
 import { useConversationStore } from '../../common/stores/useConversationStore'
+import { useGroupStore } from '../../common/stores/useGroupStore'
 import { useNotificationStore } from '../../common/stores/useNotificationStore'
 
 const getCurrentUser = () => useAuthStore.getState().user
@@ -19,6 +20,8 @@ import {
 import { uploadMessageAttachment } from '../../common/api/storageApi'
 import { useEvidenceUpload } from '../../common/utils/hooks'
 import { normalizeConversation, normalizeMessage } from '../../common/utils/modelNormalizers'
+import { getGroupStatusBucket } from '../../common/utils/groupStatusDisplay'
+import { byNewest } from '../../common/utils/date'
 import ConversationList, { CONV_TABS } from './components/ConversationList'
 import ChatWindow from './components/ChatWindow'
 import { isSystemConversation, markConversationReadLocal } from './utils'
@@ -36,9 +39,14 @@ export default function MessagesModal() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [selectedId, setSelectedId] = useState(null)
   const [activeTab, setActiveTab] = useState('all')
+  const [unreadOnly, setUnreadOnly] = useState(false)
+  const [roleFilter, setRoleFilter] = useState('all') // 'all' | 'host' | 'member'
+  const [statusFilter, setStatusFilter] = useState('all') // 'all' | 'processing' | 'active' | 'history'
+  const [sortOrder, setSortOrder] = useState('newest') // 'newest' | 'oldest'
   const [searchQuery, setSearchQuery] = useState('')
   const [canSend, setCanSend] = useState(false)
   const conversations = useConversationStore(s => s.conversations)
+  const groups = useGroupStore(s => s.groups)
   const [messages, setMessages] = useState([])
   const [sending, setSending] = useState(false)
   const [sendError, setSendError] = useState(false)
@@ -232,6 +240,11 @@ export default function MessagesModal() {
     if (isSystemConversation(c)) {
       return { ...c, name: 'PartyMatch 系統訊息', avatarInitial: 'P', avatarColor: 'linear-gradient(135deg,#667eea,#764ba2)' }
     }
+    if (c.type === 'group' && c.groupId) {
+      // 左側列表要能快速看出「我在這個群組是團主還是成員」、目前是什麼狀態，跟 groupStore 對一下
+      const group = groups.find(g => g.id === c.groupId)
+      if (group) return { ...c, memberRole: group.hostId === user?.id ? 'host' : 'member', groupStatus: group.status }
+    }
     return c
   })
 
@@ -240,6 +253,21 @@ export default function MessagesModal() {
   const filteredConvs = enrichedConvs
     .filter(tabFilter)
     .filter(c => !searchQuery || c.name?.includes(searchQuery))
+    .filter(c => !unreadOnly || (c.unreadCounts?.[user?.id] ?? 0) > 0)
+    // 身分/狀態篩選只對群組類型的對話有意義（DM 沒有 memberRole/groupStatus），
+    // 篩選條件不是「全部」時，DM 對話自然會被排除
+    .filter(c => roleFilter === 'all' || c.memberRole === roleFilter)
+    .filter(c => statusFilter === 'all' || (c.type === 'group' && getGroupStatusBucket(c.groupStatus) === statusFilter))
+    // 一律用「最後一則訊息的時間」排序，不能用 conversation.updatedAt——標記已讀（PATCH
+    // .../read）也會更新 updatedAt，如果拿它排序，使用者點開一個對話看完，列表順序就會
+    // 因為這次「已讀」的寫入被打亂，不是因為真的有新訊息；跟其他 store 共用同一個 byNewest
+    // 比較器，只是排序鍵換成 lastMessage.createdAt，最舊優先時交換參數順序即可，不用另外
+    // 重寫一次字串比較邏輯
+    .sort((a, b) => {
+      const ka = { createdAt: a.lastMessage?.createdAt ?? a.createdAt }
+      const kb = { createdAt: b.lastMessage?.createdAt ?? b.createdAt }
+      return sortOrder === 'oldest' ? byNewest(kb, ka) : byNewest(ka, kb)
+    })
 
   return (
     <>
@@ -302,9 +330,17 @@ export default function MessagesModal() {
                 selectedId={selectedId}
                 user={user}
                 searchQuery={searchQuery}
+                unreadOnly={unreadOnly}
+                roleFilter={roleFilter}
+                statusFilter={statusFilter}
+                sortOrder={sortOrder}
                 onSelectConversation={setSelectedId}
                 onTabChange={setActiveTab}
                 onSearchChange={setSearchQuery}
+                onUnreadOnlyChange={setUnreadOnly}
+                onRoleFilterChange={setRoleFilter}
+                onStatusFilterChange={setStatusFilter}
+                onSortOrderChange={setSortOrder}
               />
             </div>
             {/* 右欄：聊天視窗 */}

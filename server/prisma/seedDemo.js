@@ -5,8 +5,11 @@
  *
  * 例外（無法透過任何現有 API 做到，明確標註）：
  *   - isAdmin 旗標：沒有任何路由能設定，管理員帳號註冊後直接用 Prisma 補一次
- *   - 信用分數增減：目前系統本身還沒有任何會員行為觸發信用分數變動的路由
- *     （adjustCreditScore 在前端只是空函式），示範「被移除扣分」情境時用 Prisma 直接調整
+ *   - 訊息/通知已讀狀態：跑完所有情境後統一標記已讀，避免一登入就看到一堆嚇人的未讀角標；
+ *     通知有 PATCH /notifications/read-all 可以用真實 API，但訊息的已讀 API
+ *     （PATCH /conversations/:id/read）一次只清一個使用者，同一對話多位參與者要清時
+ *     並行呼叫會互相用舊快照蓋掉對方剛清空的結果（read-modify-write race），改用 Prisma
+ *     直接整批歸零 unreadCounts
  *
  * 帳號規劃（7 個，2025-08 從原本 10 個精簡）：2 位團主（H1、H2，互相交錯身兼對方群組的成員，
  * 才能測「同一使用者同時是這個群組的團主、又是另一個群組的一般成員」）＋ 4 位一般成員
@@ -151,8 +154,10 @@ async function main() {
 
   // PM幣餘額：demo6（D4）一開始刻意維持低額，先用來示範「餘額不足擋下申請」，示範完再儲值到
   // 跟其他成員一樣的水準，避免後面其他情境的申請/續訂扣款也一併被擋下
-  await topup(H1, 8000); await topup(H2, 8000)
-  await topup(D1, 6000); await topup(D2, 6000); await topup(D3, 6000)
+  // demo3（D1）比其他成員多留一些餘額：G1 的 Netflix 年繳申請故意一直卡在 pending 沒有審核
+  // （示範用），代管費用會整支腳本期間都鎖住拿不回來，是唯一一個「有一筆錢永遠回不來」的帳號
+  await topup(H1, 6000); await topup(H2, 6000)
+  await topup(D1, 6500); await topup(D2, 4500); await topup(D3, 4500)
   await topup(D4, 500)
   console.log('已完成PM幣儲值\n')
 
@@ -166,7 +171,7 @@ async function main() {
   } catch (err) {
     if (!String(err.message).includes('INSUFFICIENT_BALANCE')) throw err
   }
-  await topup(D4, 5500) // 示範完畢，補足到跟其他成員一樣的 6000 水準
+  await topup(D4, 4000) // 示範完畢，補足到跟其他成員一樣的 4500 水準
   console.log('G1 recruiting（Netflix，年繳，1 筆待審申請 + demo6 示範餘額不足被擋下）')
 
   // ── G2 recruiting：demo2 主揪 Notion，1 位接受成員 + 1 筆拒絕 ──────────
@@ -290,12 +295,13 @@ async function main() {
   console.log('G12 ended（Duolingo，完整跑完一輪後結束服務）')
 
   // ── G_removed：demo1 主揪 MasterClass（2人方案），demo4 招募期間被移除（信用分數扣分）──
+  // 團主移除成員現在會自動觸發 -10 分（DELETE /members/:id 內的 adjustCreditScore，
+  // 見 server/src/utils/creditScore.js），不用再額外用 Prisma 手動扣分
   const gRemoved = await createGroup(H1, { serviceId: 'masterclass', planId: 'masterclass-2', maxMembers: 2, billingCycle: 'yearly' })
   await applyAndApprove(H1, gRemoved.id, D2, 'MasterClass')
   const gRemovedMemberId = await getMemberId(H1, gRemoved.id, D2.id)
-  await api('DELETE', `/members/${gRemovedMemberId}`, H1.token) // 團主移除，退款 + 標記 application 為 removed
-  await prisma.user.update({ where: { id: D2.id }, data: { creditScore: { decrement: 15 } } }) // 目前系統沒有信用分數 API，僅有的直寫例外
-  console.log('G_removed（MasterClass，demo4 被團主移除並扣 15 分信用分數）')
+  await api('DELETE', `/members/${gRemovedMemberId}`, H1.token) // 團主移除，退款 + 標記 application 為 removed + 自動扣 10 分信用分數
+  console.log('G_removed（MasterClass，demo4 被團主移除並自動扣 10 分信用分數）')
 
   // ── G13 recruiting：demo2 主揪 Canva，設信用分數門檻，尚無人申請 ────────
   await createGroup(H2, { serviceId: 'canva', planId: 'canva-team-monthly', maxMembers: 5, minCreditScore: 70 })
@@ -414,6 +420,19 @@ async function main() {
   await api('POST', '/payment-methods', H1.token, { brand: 'Mastercard', last4: '5588', expiry: '06/27' })
   await api('POST', '/payment-methods', D1.token, { brand: 'Visa', last4: '1234', expiry: '09/26' })
   console.log('已建立付款方式')
+
+  // ── 全部標記已讀 ──────────────────────────────────────────────────────
+  // seed 資料代表「已經發生過的歷史」，不是使用者剛登入時的新通知/訊息；notify() 建立通知、
+  // appendMessage() 更新未讀數時都是套用一般使用者的預設行為（isRead: false、unreadCounts+1），
+  // 整支腳本跑完後這裡才統一補一次「已讀」動作，一登入才不會看到一堆嚇人的未讀角標
+  const allUsers = [H1, H2, D1, D2, D3, D4, ADMIN]
+  await Promise.all(allUsers.map(u => api('PATCH', '/notifications/read-all', u.token)))
+  // 訊息已讀沒有對應的「批次清空」API（PATCH /conversations/:id/read 一次只清一個使用者），
+  // 同一個對話有多位參與者時，並行呼叫會互相用舊快照蓋掉對方剛清空的結果（read-modify-write
+  // race，見 server/src/routes/conversations.js 的 :id/read）；直接用 Prisma 整批歸零
+  // unreadCounts，比逐一呼叫 API 安全，也不用擔心呼叫順序
+  await prisma.conversation.updateMany({ data: { unreadCounts: {} } })
+  console.log('已將所有通知與訊息標記為已讀')
 
   console.log(`\ndemo 資料建立完成！共 7 個帳號、23 個群組，demo1~demo6 密碼皆為: ${DEMO_PASSWORD}；demo-admin ${process.env.ADMIN_PASSWORD ? '使用 ADMIN_PASSWORD 環境變數設定的密碼' : `密碼同上（未設定 ADMIN_PASSWORD）: ${DEMO_PASSWORD}`}`)
   console.log('  demo1～demo2：團主帳號（互相交錯身兼對方群組成員）　demo3～demo6：一般成員帳號（demo6 曾示範餘額不足，之後已補足儲值）　demo-admin：管理員帳號')

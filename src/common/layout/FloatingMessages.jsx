@@ -14,6 +14,11 @@ import { toast } from '../utils/toast'
 import { getServiceById } from '../utils/serviceUtils'
 import { isSharedCredentialsMethod } from '../utils/serviceInfoFields'
 import EmptyState from '../../components/ui/primitives/EmptyState'
+import SearchInput from '../../components/ui/primitives/SearchInput'
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuCheckboxItem,
+  DropdownMenuRadioSection, DropdownMenuFilterTrigger,
+} from '../../components/ui/dropdown-menu'
 
 const getGroupById = (id) => useGroupStore.getState().getById(id)
 const getCurrentUser = () => useAuthStore.getState().user
@@ -107,6 +112,11 @@ const TABS = [
   { id: 'system', label: '系統', filter: n => SYSTEM_TYPES.includes(n.type) && (!n.userId || n.userId === 'system' || n.isPublic === true) },
 ]
 
+const SORT_OPTIONS = [
+  { id: 'newest', label: '最新在前' },
+  { id: 'oldest', label: '最舊在前' },
+]
+
 export default function FloatingMessages() {
   const navigate = useNavigate()
   const loggedIn = useAuthStore(s => s.loggedIn)
@@ -117,6 +127,9 @@ export default function FloatingMessages() {
 
   const [open, setOpen] = useState(false)
   const [activeTab, setActiveTab] = useState(() => loggedIn ? 'all' : 'system')
+  const [unreadOnly, setUnreadOnly] = useState(false)
+  const [sortOrder, setSortOrder] = useState('newest') // 'newest' | 'oldest'
+  const [searchQuery, setSearchQuery] = useState('')
 
   const notifications = useMemo(
     () => loggedIn
@@ -145,8 +158,16 @@ export default function FloatingMessages() {
 
   const filtered = useMemo(() => {
     const tab = visibleTabs.find(t => t.id === activeTab)
-    return tab ? notifications.filter(tab.filter) : notifications
-  }, [activeTab, notifications, visibleTabs])
+    let result = tab ? notifications.filter(tab.filter) : notifications
+    if (unreadOnly) result = result.filter(n => !n.isRead)
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase()
+      result = result.filter(n => n.title?.toLowerCase().includes(q) || n.message?.toLowerCase().includes(q))
+    }
+    // notifications 本身已經是 createdAt 新到舊排序（見 getMergedNotifications），這裡只有
+    // 選「最舊優先」時才需要額外反轉，「最新優先」維持原本順序即可，不用多做一次排序運算
+    return sortOrder === 'oldest' ? [...result].reverse() : result
+  }, [activeTab, notifications, visibleTabs, unreadOnly, searchQuery, sortOrder])
 
   function handleMarkAllRead() {
     if (!userId) return
@@ -518,20 +539,23 @@ export default function FloatingMessages() {
         </DrawerHeader>
         <DrawerDescription className="sr-only">通知中心</DrawerDescription>
 
-        <div className="flex gap-1 border-b border-line px-3 py-2">
-          {visibleTabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 rounded-lg py-1.5 text-xs font-bold transition-colors ${
-                activeTab === tab.id
-                  ? 'bg-brand text-white'
-                  : 'text-ink-3 hover:bg-raised hover:text-ink'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+        <div className="flex items-center gap-2 border-b border-line px-3 py-2">
+          <SearchInput value={searchQuery} onChange={setSearchQuery} placeholder="搜尋通知..." />
+          {visibleTabs.length > 1 && (
+            <DropdownMenu>
+              <DropdownMenuFilterTrigger
+                active={activeTab !== 'all' || unreadOnly || sortOrder !== 'newest'}
+                ariaLabel="篩選通知"
+              />
+              <DropdownMenuContent>
+                <DropdownMenuRadioSection label="顯示範圍" options={visibleTabs} value={activeTab} onValueChange={setActiveTab} />
+                <DropdownMenuRadioSection label="排序" options={SORT_OPTIONS} value={sortOrder} onValueChange={setSortOrder} />
+                <DropdownMenuCheckboxItem checked={unreadOnly} onCheckedChange={setUnreadOnly}>
+                  只顯示未讀
+                </DropdownMenuCheckboxItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
 
         <div className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">

@@ -20,3 +20,10 @@ export function isHistoryGroup(group) {
 export function isHistorySubscription(sub) {
   return HISTORY_STATUSES.has(sub.groupStatus ?? sub.status)
 }
+
+// 「進行中／服務中／已結束」三分類，跟 isHistoryGroup 共用同一組 HISTORY_STATUSES，
+// 供任何需要粗略分群組狀態的篩選器使用（例如訊息中心左側列表的「群組狀態」篩選）
+export function getGroupStatusBucket(status) {
+  if (isHistoryGroup({ status })) return 'history'
+  return status === 'active' ? 'active' : 'processing'
+}
