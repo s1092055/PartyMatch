@@ -1,9 +1,5 @@
-import { memo, useMemo } from 'react'
+import { memo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  Monitor,
-  Users,
-} from 'lucide-react'
 import ServiceLogo from '../../../components/ui/ServiceLogo'
 import FavoriteToggleButton from '../../../components/ui/FavoriteToggleButton'
 import TokenAmount from '../../../components/ui/TokenAmount'
@@ -15,49 +11,6 @@ import { Button } from '../../../components/ui/button'
 import { calcDisplayPrice, calcDisplayCycle } from '../../../common/utils/pricingUtils'
 import { useFavoriteStore } from '../../../common/stores/useFavoriteStore'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
-
-// Tags that are too generic or junk to show as feature chips
-const JUNK_TAGS = new Set(['審核加入', '需要審核', '需審核', '名額剩 1'])
-// Tags to skip in the first pass (broad categories), but use as fallback
-const CATEGORY_TAGS = new Set(['影音', '音樂', '雲端', 'AI 工具', 'AI工具', '辦公', '通訊'])
-
-function buildFeatureChips(group) {
-  const tags = group.tags ?? []
-  const source = `${group.planName} ${tags.join(' ')}`
-  const labels = []
-
-  if (/4K|HDR/i.test(source) || (group.serviceId === 'disney' && group.planName.includes('高級'))) {
-    labels.push('4K 畫質')
-  }
-  if (/家庭|Family|共享/.test(source)) {
-    labels.push('家庭方案')
-  }
-  if (/2\s*TB/i.test(source)) {
-    labels.push('2TB 空間')
-  } else if (/200\s*GB/i.test(source)) {
-    labels.push('200GB 空間')
-  }
-
-  // First pass: specific (non-category) tags
-  tags
-    .filter(tag => !JUNK_TAGS.has(tag) && !CATEGORY_TAGS.has(tag))
-    .forEach(tag => {
-      if (!labels.includes(tag) && labels.length < 2) labels.push(tag)
-    })
-
-  // Fallback: use category tags when nothing specific was found
-  if (labels.length === 0) {
-    tags
-      .filter(tag => !JUNK_TAGS.has(tag))
-      .slice(0, 2)
-      .forEach(tag => { if (!labels.includes(tag)) labels.push(tag) })
-  }
-
-  return labels.slice(0, 3).map(label => ({
-    label,
-    Icon: label.includes('家庭') ? Users : Monitor,
-  }))
-}
 
 const RANK_BADGE_STYLES = [
   'bg-amber-400 text-white',
@@ -71,7 +24,6 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
   const isFav = useFavoriteStore(s => activeUser ? s.isFavorited(activeUser.id, group.id) : false)
 
   const isLastSeat = group.openSeats === 1
-  const featureChips = useMemo(() => buildFeatureChips(group), [group])
 
   function openDetails(e) {
     e.stopPropagation()
@@ -134,18 +86,6 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
         </p>
       </div>
 
-      <div className="mt-3 flex h-7 justify-center gap-1.5 overflow-hidden">
-        {featureChips.map(({ label, Icon }) => (
-          <span
-            key={label}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-line px-2.5 py-1 text-xs font-extrabold text-ink-3"
-          >
-            <Icon size={14} strokeWidth={2.25} />
-            {label}
-          </span>
-        ))}
-      </div>
-
       <div className="my-4 border-t border-line-subtle" />
 
       <div className="px-2">
@@ -192,7 +132,6 @@ export default memo(ExploreGroupCard, (prev, next) =>
   prev.group.totalSeats === next.group.totalSeats &&
   prev.group.pricePerSeat === next.group.pricePerSeat &&
   prev.group.planName === next.group.planName &&
-  prev.group.tags?.join(',') === next.group.tags?.join(',') &&
   prev.isApplied === next.isApplied &&
   prev.isMember === next.isMember &&
   prev.hideActions === next.hideActions &&
