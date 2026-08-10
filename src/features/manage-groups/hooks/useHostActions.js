@@ -382,6 +382,10 @@ async function handleApprove(appId) {
       await updateApplicationStatus(appId, 'approved')
     } catch (err) {
       console.error('[handleApprove] failed:', err)
+      // 失敗最常見的原因是申請人剛好搶先一步取消申請：init() 會把這筆申請從 applications 拿掉
+      // （已經不是 pending 了），卡片會直接從清單消失，下面設的 errors[appId] 沒機會被看到，
+      // 所以一定要另外跳 Toast，不能只依賴卡片上的行內錯誤文字
+      toast(err?.response?.data?.message ?? '接受失敗，請重試', 'error')
       setErrors(prev => ({ ...prev, [appId]: '接受失敗，請重試' }))
       await useApplicationStore.getState().init()
       return
@@ -442,7 +446,12 @@ async function handleApprove(appId) {
       await updateApplicationStatus(appId, 'rejected')
     } catch (err) {
       console.error('[handleReject] failed:', err)
+      // updateApplicationStatus 在呼叫 API 前就先樂觀把本地狀態改成 rejected，失敗時如果不 init()
+      // 復原，畫面會一直卡在「已拒絕」但後端其實什麼都沒變的不一致狀態；同樣要跳 Toast，
+      // 不能只依賴卡片上的行內錯誤文字（原因見 handleApprove 的說明）
+      toast(err?.response?.data?.message ?? '拒絕失敗，請重試', 'error')
       setErrors(prev => ({ ...prev, [appId]: '拒絕失敗，請重試' }))
+      await useApplicationStore.getState().init()
       return
     }
 
