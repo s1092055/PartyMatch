@@ -1,22 +1,18 @@
 # 功能地圖
 
-各功能對照其前端入口、主要元件、Store、API 模組、後端 Route 與主要 Prisma Model。Store 皆位於 `src/common/stores/`，API 模組皆位於 `src/common/api/`，後端 Route 皆位於 `server/src/routes/`。
+PartyMatch 主要功能區塊：
 
-| 功能 | 前端入口 | 主要元件 | Store | API 模組 | 後端 Route | 主要 Prisma Model | 備註 |
-|------|----------|----------|-------|----------|------------|--------------------|------|
-| 探索群組 | `/explore` | `src/features/explore/ExplorePage.jsx`、`components/FilterBar.jsx`、`components/ExploreGroupCard.jsx` | `useGroupStore`、`useApplicationStore`、`useMemberStore` | `groupsApi.js` | `groups/crud.js`（`GET /groups`） | `Group`、`Service` | 篩選條件（分類／關鍵字／價格上限／排序）只存在頁面內的 React state，離開頁面即消失，不進 URL query string 也不進 store |
-| 快速搜尋 | `/quick-match` | `src/features/match/QuickMatchPage.jsx`、`components/MatchSummaryPanel.jsx`、`components/steps/Step1Services.jsx`、`Step2PlansAndFilters.jsx`（內含 `Step2Plans.jsx`＋`Step3Filters.jsx`）、`Step4Results.jsx`、`utils/matchGroups.js` | `useGroupStore`（讀取現有群組做配對） | `groupsApi.js` | `groups/crud.js`（`GET /groups`） | `Group` | 篩選條件只存在頁面內的 React state，離開頁面即消失，不進 `sessionStorage` 也不進 store；免登入可用，申請加入時才導向登入；最後一步「搜尋結果」頁沿用步驟二「方案與條件」同一套左右分欄排版（右側常駐 `MatchSummaryPanel` 條件摘要，取代曾經使用、後已移除的 `MatchConditionBar.jsx` 橫式條件列），並另外自行掛載 `GroupDetailModal`／`MessagesModal`（lazy），讓卡片可開群組詳情、聯絡團主 |
-| 建立群組 | `/create-group` | `src/features/create/CreateGroupPage.jsx`、`components/steps/Step1Service.jsx`〜`Step4Preview.jsx`、`components/LivePreviewPanel.jsx` | `useGroupStore` | `groupsApi.js` | `groups/crud.js`（`POST /groups`） | `Group`、`Service` | 4 步驟：選服務 → 選方案（含收費週期）→ 群組設定 → 確認送出；桌機顯示即時預覽 |
-| 申請加入 | `GroupDetailModal` 內的「申請加入」 | `src/features/group/components/ApplyModal.jsx` | `useApplicationStore` | `applicationsApi.js` | `applications.js`（`POST /applications`） | `Application` | 免審核制群組送出即直接建立成員資格；審核制群組進入 `pending` 等團主審核 |
-| 團主審核申請 | `/manage-groups` → `GroupViewModal`／`HostGroupView` 的申請面板 | `src/features/manage-groups/components/HostGroupView.jsx`、`hostGroupView/buildApplicationsPanel.jsx`、`hostGroupView/ApplicationCard.jsx` | `useApplicationStore`、`useGroupStore`、`useMemberStore`、`useAuthStore` | `applicationsApi.js` | `applications.js`（`PATCH /applications/:id`） | `Application`、`Member`、`TokenTransaction` | 代管扣款已在申請當下完成，接受時只需在單一 Prisma transaction 內完成名額更新與 `Member`／`Subscription` 建立；拒絕則退還申請時代管的金額；皆以條件式 `updateMany` 防止併發重複處理 |
-| 我的訂閱（成員視角） | `/my-subscriptions` | `src/features/subscriptions/SubscriptionsPage.jsx`、`components/MemberGroupView.jsx`、`components/SubscriptionCard.jsx` | `useGroupStore`、`useSubscriptionStore`、`useMemberStore`、`useApplicationStore` | `groupsApi.js`、`subscriptionsApi.js`、`membersApi.js` | `subscriptions.js`、`members.js`、`groups/lifecycle.js` | `Subscription`、`Member`、`Group` | 填寫服務帳號資訊、查看訂閱與續訂狀態、提出申訴 |
-| 群組管理（團主視角） | `/manage-groups` | `src/features/manage-groups/ManageGroupsPage.jsx`、`components/HostGroupView.jsx`、`components/HostedGroupCard.jsx`、`hooks/useHostActions.js`、`hostGroupView/buildMemberInfoPanel.jsx` | `useGroupStore`、`useApplicationStore`、`useMemberStore`、`useSubscriptionStore`、`useAuthStore`、`useNotificationStore` | `groupsApi.js`、`membersApi.js` | `groups/lifecycle.js`（`/lock`、`/activate`）、`members.js` | `Group`、`Member` | 招募期間可移除成員，鎖定後名單鎖定；可回報成員服務帳號問題（`ReportServiceIssueModal.jsx`）；「成員資料」分頁查看每位成員填寫的服務帳號內容，未讀數字 badge 跟「申請管理」同一套樣式 |
-| PM 幣代管與撥款 | `AccountPage` 的 PM 幣分頁（`TokenTab`）、`TopupModal` | `src/features/account/components/tabs/TokenTab.jsx`、`src/components/ui/TopupModal.jsx` | `useAuthStore`（`tokenBalance`、`topupTokens`） | `tokensApi.js` | `tokens.js`（`GET /tokens`、`POST /tokens/topup`）、`applications.js`（`POST /`、`DELETE /:id`、`PATCH /:id`）、`groups/lifecycle.js`（`/activate` 撥款、`/confirm`） | `TokenTransaction`、`Group.escrowTokens` | 儲值與代管撥款皆為平台內模擬邏輯，未接正式金流；送出申請即扣款進代管，拒絕或取消會退款，確認服務或啟用服務時撥給團主 |
-| 續訂 | `HostGroupView` 內「開始新一期」 | `src/features/manage-groups/components/RenewalModal.jsx` | `useGroupStore` | `groupsApi.js` | `groups/lifecycle.js`（`POST /groups/:id/renew`） | `Group`、`Subscription`、`TokenTransaction` | 由團主手動觸發，非排程自動續訂 |
-| 申訴 | `MemberGroupView` 內「申訴」入口 | `src/features/subscriptions/components/MemberGroupView.jsx`、`AdminTab.jsx`（裁定端） | `useGroupStore`（`disputeGroup`、`adjudicateGroup`） | `groupsApi.js`（`disputeGroupApi`）、`storageApi.js`（上傳證據） | `groups/lifecycle.js`（`POST /groups/:id/dispute`、`POST /groups/:id/adjudicate`）、`upload.js`（`/dispute-evidence`） | `Group`（`disputed` 狀態）、`Member.disputeEvidenceUrl` | 申訴僅限管理員（`isAdmin`）裁定，裁定介面在 `AccountPage` 的管理員分頁 |
-| 聊天室／訊息 | 全域訊息 Modal（`pm:open-messages` / `pm:open-dm`） | `src/features/messages/MessagesModal.jsx`、`components/ChatWindow.jsx`、`components/ConversationList.jsx`、`components/MessageBubble.jsx` | `useConversationStore` | `messagesApi.js` | `conversations.js` | `Conversation`、`Message` | 群組聊天室 + 私人 DM + 系統通知聊天室；採 5 秒 polling 取代即時監聽，登出呼叫 `teardown()` 停止；DM 延遲曝光：對話還沒有任何訊息時，雙方（含發起人自己）都看不到，依 `lastMessage` 是否為 null 判斷 |
-| 通知 | 全域通知面板（`pm:open-notify`） | `src/common/layout/FloatingMessages.jsx` | `useNotificationStore` | `notificationsApi.js` | `notifications.js` | `Notification` | 支援個人通知與公開系統公告（`isPublic`），點擊依類型導向對應頁面並帶出 Modal |
-| 收藏 | 群組卡片的收藏按鈕、`/favorites` | `src/features/favorites/FavoritesPage.jsx`、`src/features/explore/components/ExploreGroupCard.jsx` | `useFavoriteStore` | `favoritesApi.js` | `favorites.js` | `Favorite` | — |
-| 帳號設定（含帳號停用） | `/account` | `src/features/account/AccountPage.jsx`、`components/tabs/SettingsTab.jsx`、`PersonalInfoTab.jsx`、`PaymentMethodsTab.jsx` | `useAuthStore`（`deactivateAccount`、`updateProfile`） | `usersApi.js`、`paymentMethodsApi.js` | `users.js`（`PATCH /users/me`、`POST /users/me/deactivate`）、`paymentMethods.js` | `User`、`PaymentMethod` | `/account` 免登入即可進入，除「其他設定」外各分頁未登入時顯示「登入後查看」提示；「即將推出」（通知偏好／安全驗證）分頁優先於登入提示判斷。停用帳號需輸入密碼確認，為軟刪除（`deactivatedAt`），會把所有裝置一併登出，資料保留供日後恢復；手機號碼存 E.164 格式（`common/utils/phone.js` 負責國碼下拉＋本地號碼的拆合），個人簡介（`bio`）會顯示在群組詳情的團主介紹與成員名單 |
-| 大頭照顯示與目前狀態（隱私／偏好設定） | `/account` →「其他設定」（僅登入可見） | `src/features/account/components/tabs/SettingsTab.jsx`、`src/common/layout/components/navShared.jsx`（`PresenceDot`）、`navConstants.js`（`PRESENCE_LABELS`／`PRESENCE_COLORS`） | `useAuthStore`（`updateProfile`） | `usersApi.js` | `users.js`（`PATCH /users/me`）、`server/src/lib/avatarVisibility.js`（`maskAvatar`，套用於 `auth.js`、`users.js`、`groups/*`、`members.js`、`applications.js`、`conversations.js`、`reviews.js` 等回傳他人資料的 route） | `User.showAvatar`、`User.presenceStatus` | 「顯示自己的大頭照」關閉後，後端把回傳給「其他人」的 `avatarInitial`/`avatarColor` 遮罩成 `null`（前端 fallback 成 PartyMatch logo），本人查看自己時不遮罩；「目前狀態」（線上中／忙碌中／已離線）為手動選擇、非自動偵測，以彩色圓點顯示在頭像旁，兩者皆會出現在群組成員列表、申請卡片、聊天室、評價、帳號頁 Hero 等所有顯示他人頭像的地方 |
-| 團主評價 | `MemberGroupView` 內「評價團主」、`GroupDetailModal` / `HostGroupView` 內評價紀錄 | `src/features/subscriptions/components/ReviewHostModal.jsx`、`src/features/group/components/HostReviews.jsx`、`hostGroupView/buildReviewHistoryPanel.jsx` | `useReviewStore` | `reviewsApi.js` | `reviews.js`（`GET /reviews/host/:hostId`、`POST /reviews`） | `Review` | 僅能在服務確認（`confirmedAt` 已設定）後評價，可查看團主歷史整體評價 |
+- **探索與快速搜尋**：分類篩選、關鍵字搜尋、價格上限、排序；快速搜尋免登入即可依條件配對現有群組
+- **建立群組**：4 步驟表單（選服務 → 選方案 → 群組設定 → 確認送出），含即時預覽
+- **申請與審核**：送出申請即進入代管扣款，團主審核通過建立成員資格、拒絕則退款
+- **我的訂閱 / 群組管理**：成員與團主各自視角管理群組、追蹤狀態、查看歷史紀錄
+- **PM 幣代管與撥款**：申請扣款進代管、拒絕/取消退款、服務啟用時撥給團主
+- **續訂與申訴**：團主手動開啟新一期續訂；成員可提出申訴並上傳證據，由管理員裁定
+- **管理員後台**：獨立路由，平台概覽數據、系統訊息（廣播/單發）、申訴裁定；管理員登入即直接導向此頁
+- **聊天室與通知**：群組聊天室、私人 DM、系統通知，站內通知含公告；聊天訊息可附加圖片
+- **帳號資訊留言**：需填寫共用帳密的群組，團主與成員可在「帳號資訊」分頁針對帳密內容留言、附加圖片，跟群組聊天室分開
+- **收藏**：收藏／取消收藏群組
+- **帳號設定**：個人資料、付款方式、PM 幣餘額、帳號停用、大頭照顯示與線上狀態等隱私偏好
+- **團主評價**：服務確認後成員可評分留言，可查看團主歷史評價
+
+各功能對應的前端元件、Store、API 與後端 Route 詳見程式碼內對應目錄結構。
