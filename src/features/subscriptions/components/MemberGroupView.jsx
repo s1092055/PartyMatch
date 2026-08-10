@@ -27,8 +27,8 @@ import { toast } from '../../../common/utils/toast'
 import { useEvidenceUpload } from '../../../common/utils/hooks'
 import { isEffectivelyActive } from '../../../common/utils/groupStatus'
 
-export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
-  const [activePanel, setActivePanel] = useState(null) // 'members' | 'payments' | null
+export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpenCredentials }) {
+  const [activePanel, setActivePanel] = useState(null) // 'members' | 'payments' | 'credentials' | null
   const [leaveConfirm, setLeaveConfirm] = useState(false)
   const [showFillInfo, setShowFillInfo] = useState(false)
   const [showDispute, setShowDispute] = useState(false)
@@ -44,6 +44,14 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
   const [transactions, setTransactions] = useState([])
   const [transactionsLoading, setTransactionsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [extractLoading, setExtractLoading] = useState(false)
+
+  // 通知中心的「請提取帳號資訊」點進來要直接落在這個分頁，不能只是打開群組詳情、
+  // 讓使用者自己找側邊欄——見 FloatingMessages.jsx 的 fill_service_info 處理
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (autoOpenCredentials) setActivePanel('credentials')
+  }, [autoOpenCredentials])
 
   useEffect(() => {
     if (activePanel !== 'payments') return
@@ -151,6 +159,21 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
     }
   }
 
+  // 團主提供帳密的服務不用走 FillServiceInfoModal 那套「填寫表單」，直接在帳號資訊分頁
+  // 按下按鈕就等同確認取得，payload 固定是 sharingMethodConfig 裡唯一的 checkbox 欄位
+  async function handleExtractCredentials() {
+    if (!myMember || extractLoading) return
+    setExtractLoading(true)
+    try {
+      await fillServiceInfo(myMember.id, group.id, { acknowledged: true })
+      toast('已提取帳號資訊', 'success')
+    } catch (err) {
+      toast(err?.message ?? '提取失敗，請稍後再試', 'error')
+    } finally {
+      setExtractLoading(false)
+    }
+  }
+
   const fillValid = myMember && sharingMethodConfig.fields.every(({ key, type }) =>
     type === 'checkbox' ? fillValues[key] === true : !!fillValues[key]?.trim()
   )
@@ -173,7 +196,10 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
     }
   }
 
-  const fillInfoCta = (needsFillInfo || hasServiceInfoIssue) && (
+  // 團主提供帳密的服務改成在帳號資訊分頁裡按按鈕提取（見下方 buildCredentialsPanel），
+  // 這裡的 CTA 不用再重複開一個 sub-modal；帳號被團主標記需要修正時則不分服務類型，
+  // 都還是走這顆按鈕重新打開 FillServiceInfoModal 確認/修正
+  const fillInfoCta = ((needsFillInfo && !isSharedCredentials) || hasServiceInfoIssue) && (
     <div className="py-2">
       <Button
         onClick={() => { setFillValues(myMember?.serviceInfo ?? {}); setShowFillInfo(true) }}
@@ -304,6 +330,9 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
         onTogglePassword: () => setShowPassword(v => !v),
         issueNote: myMember?.serviceInfoIssueNote,
         evidenceUrl: myMember?.disputeEvidenceUrl ?? myMember?.serviceInfoIssueEvidenceUrl,
+        hasServiceInfo,
+        onExtract: handleExtractCredentials,
+        extractLoading,
       })
     }
 
@@ -399,7 +428,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose }) {
               <Banknote size={17} /> 付款管理
             </GroupModalSideBarItem>
           )}
-          {canViewCredentials && hasServiceInfo && (
+          {canViewCredentials && (
             <GroupModalSideBarItem active={activePanel === 'credentials'} onClick={() => setActivePanel('credentials')}>
               <KeyRound size={17} /> 帳號資訊
             </GroupModalSideBarItem>

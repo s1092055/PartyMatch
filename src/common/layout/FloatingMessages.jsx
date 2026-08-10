@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AlertCircle, Bell, CalendarClock, CheckCircle2, ClipboardEdit, MessageSquare, UserPlus } from 'lucide-react'
+import { AlertCircle, Bell, CalendarClock, CheckCircle2, ClipboardEdit, MessageSquare, PlayCircle, UserPlus } from 'lucide-react'
 import { Drawer, DrawerContent, DrawerHeader, DrawerFooter, DrawerTitle, DrawerDescription } from '../../components/ui/drawer'
 import { Button } from '../../components/ui/button'
 import { useAuthStore } from '../stores/useAuthStore'
@@ -11,6 +11,8 @@ import { useNotificationStore } from '../stores/useNotificationStore'
 import { useSubscriptionStore } from '../stores/useSubscriptionStore'
 import { formatRelativeDate } from '../utils/date'
 import { toast } from '../utils/toast'
+import { getServiceById } from '../utils/serviceUtils'
+import { isSharedCredentialsMethod } from '../utils/serviceInfoFields'
 import EmptyState from '../../components/ui/primitives/EmptyState'
 
 const getGroupById = (id) => useGroupStore.getState().getById(id)
@@ -35,13 +37,13 @@ async function openGroupOrRedirect(groupId) {
 // 跟上面 openGroupOrRedirect 同一套邏輯，不能開就不能開。先重新拉一次 memberStore／groupStore
 // 再判斷：觸發這個函式的通知（續訂、申訴裁定、服務啟用）本身就代表 member 資格或 group.status
 // 剛剛發生變化，本地快取這時大機率是舊的，用舊快取判斷會誤判成員資格或顯示舊狀態
-function navigateToMemberGroupOrExplore(navigate, userId, groupId) {
+function navigateToMemberGroupOrExplore(navigate, userId, groupId, extraState) {
   Promise.all([
     useMemberStore.getState().init(),
     useGroupStore.getState().init({ all: true }),
   ]).finally(() => {
     if (userId && useMemberStore.getState().getByUserAndGroup(userId, groupId)) {
-      navigate('/my-subscriptions', { state: { openGroupId: groupId } })
+      navigate('/my-subscriptions', { state: { openGroupId: groupId, ...extraState } })
     } else {
       navigate('/explore')
       openGroupOrRedirect(groupId)
@@ -70,6 +72,7 @@ const NOTIFICATION_META = {
   group_chat_opened:    { icon: MessageSquare, iconColor: 'text-brand',      link: null },
   fill_service_info:    { icon: ClipboardEdit, iconColor: 'text-warning-text', link: '/my-subscriptions' },
   service_info_filled:  { icon: ClipboardEdit, iconColor: 'text-success',    link: '/manage-groups' },
+  all_service_info_filled: { icon: PlayCircle, iconColor: 'text-success',    link: '/manage-groups' },
   group_activated:      { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-subscriptions' },
   group_cancelled:      { icon: AlertCircle,   iconColor: 'text-danger',     link: '/explore' },
   group_renewal:        { icon: CheckCircle2,  iconColor: 'text-brand',      link: '/my-subscriptions' },
@@ -171,13 +174,16 @@ export default function FloatingMessages() {
     }
 
     if (notification.type === 'fill_service_info' && notification.meta?.groupId) {
-      // 直接開該群組的成員視角詳情，畫面上會依 needsFillInfo 自動顯示「請填寫服務帳號」橫幅與按鈕，
-      // 不需要額外導向特定子面板；已經不是成員的話（例如點擊前已被移除）改導向探索頁。
-      // 團主鎖定群組後 group.status 才會變成 pending_confirmation，本地 groupStore 快取此時可能還停在
-      // 鎖定前的舊狀態（尚未輪詢到），needsFillInfo 判斷式讀到舊 status 會誤判成不用填寫，
-      // 導致 modal 開啟當下「填寫服務帳號」按鈕沒有馬上顯示，須先重新拉一次群組資料
+      // 直接開該群組的成員視角詳情；團主提供帳密的服務（shared_credentials）直接落在「帳號資訊」
+      // 分頁（見 MemberGroupView 的 autoOpenCredentials），其他服務則依 needsFillInfo 自動顯示
+      // 「請填寫服務帳號」橫幅與按鈕，不需要導向特定子面板；已經不是成員的話（例如點擊前已被移除）
+      // 改導向探索頁。團主鎖定群組後 group.status 才會變成 pending_confirmation，本地 groupStore
+      // 快取此時可能還停在鎖定前的舊狀態（尚未輪詢到），needsFillInfo 判斷式讀到舊 status 會誤判成
+      // 不用填寫，導致 modal 開啟當下「填寫服務帳號」按鈕沒有馬上顯示，須先重新拉一次群組資料
       useGroupStore.getState().init({ all: true }).finally(() => {
-        navigateToMemberGroupOrExplore(navigate, userId, notification.meta.groupId)
+        const grp = getGroupById(notification.meta.groupId)
+        const isSharedCredentials = isSharedCredentialsMethod(getServiceById(grp?.serviceId)?.sharingMethod)
+        navigateToMemberGroupOrExplore(navigate, userId, notification.meta.groupId, isSharedCredentials ? { openCredentials: true } : undefined)
       })
       return
     }
@@ -313,6 +319,20 @@ export default function FloatingMessages() {
       const gId = notification.meta.groupId
       navigate('/manage-groups', { state: { openGroupId: gId } })
       // 這則通知本身就代表群組剛額滿、有新成員加入，group.status／成員名單的本地快取一定是舊的
+      Promise.all([
+        useGroupStore.getState().init({ all: true }),
+        useMemberStore.getState().init(),
+      ]).finally(() => {
+        window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: gId } }))
+      })
+      return
+    }
+
+    if (notification.type === 'all_service_info_filled' && notification.meta?.groupId) {
+      const gId = notification.meta.groupId
+      navigate('/manage-groups', { state: { openGroupId: gId } })
+      // 這則通知本身就代表 group.status 剛從 pending_confirmation 推進到 pending_activation，
+      // 本地快取還停在舊狀態的話，「啟用服務」按鈕不會馬上出現，須先重新拉一次
       Promise.all([
         useGroupStore.getState().init({ all: true }),
         useMemberStore.getState().init(),

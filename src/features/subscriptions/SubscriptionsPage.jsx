@@ -92,6 +92,7 @@ export default function SubscriptionsPage() {
   )
   const [viewGroupId, setViewGroupId] = useState(null)
   const [autoOpenPayment, setAutoOpenPayment] = useState(false)
+  const [autoOpenCredentials, setAutoOpenCredentials] = useState(false)
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -99,6 +100,7 @@ export default function SubscriptionsPage() {
     if (location.state?.openGroupId) {
       setViewGroupId(location.state.openGroupId)
       setAutoOpenPayment(!!location.state.openPayment)
+      setAutoOpenCredentials(!!location.state.openCredentials)
     }
   }, [location.key]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -219,9 +221,10 @@ export default function SubscriptionsPage() {
 
       <GroupViewModal
         isOpen={!!viewGroupId}
-        onClose={() => { setViewGroupId(null); setAutoOpenPayment(false) }}
+        onClose={() => { setViewGroupId(null); setAutoOpenPayment(false); setAutoOpenCredentials(false) }}
         groupId={viewGroupId}
         autoOpenPayment={autoOpenPayment}
+        autoOpenCredentials={autoOpenCredentials}
         onLeaveGroup={handleLeaveGroup}
       />
 

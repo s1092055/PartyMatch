@@ -7,6 +7,7 @@ export default function EmptyState({
   description,
   actionLabel,
   onAction,
+  actionVariant = 'secondary',
   className = 'py-16',
 }) {
   return (
@@ -17,7 +18,7 @@ export default function EmptyState({
       <p className="font-semibold text-ink-2 mb-1">{title}</p>
       {description && <p className="text-sm text-ink-3 max-w-xs">{description}</p>}
       {actionLabel && onAction && (
-        <Button variant="secondary" size="sm" className="mt-5" onClick={onAction}>
+        <Button variant={actionVariant} size="sm" className="mt-5" onClick={onAction}>
           {actionLabel}
         </Button>
       )}

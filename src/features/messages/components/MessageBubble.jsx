@@ -87,7 +87,12 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
               <Button
                 onClick={() => {
                   window.dispatchEvent(new CustomEvent('pm:close-messages'))
-                  navigate('/my-subscriptions', { state: { openGroupId: conversationGroupId } })
+                  // 有帳號問題（serviceInfoIssueNote）時這顆按鈕也會出現，此時要走 fillInfoCta 開啟
+                  // FillServiceInfoModal 讓使用者看到問題原因再重新確認，不能直接跳去帳號資訊分頁
+                  // （分頁的提取按鈕只是單純重新呼叫同一個 API，不會顯示問題原因文字）
+                  navigate('/my-subscriptions', {
+                    state: { openGroupId: conversationGroupId, openCredentials: isSharedCredentials && !myMember?.serviceInfoIssueNote },
+                  })
                 }}
                 className="mt-3 h-auto w-full rounded-lg px-3 py-1.5 text-xs"
               >

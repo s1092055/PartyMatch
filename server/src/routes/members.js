@@ -118,6 +118,18 @@ router.patch('/:id', requireAuth, validate(patchMemberSchema), async (req, res, 
         meta:    { groupId: existing.groupId },
       })
 
+      // 「帳號資訊」分頁的留言區也留一筆，跟團主標記帳號問題（見上方 dispute 那段的做法）同一套慣例，
+      // 讓所有人打開分頁就直接看到提取進度，不用只靠通知才知道誰完成了
+      if (isSharedCredentials) {
+        prisma.credentialComment.create({
+          data: {
+            groupId:  existing.groupId,
+            authorId: existing.userId,
+            content:  '已成功提取帳號資訊',
+          },
+        }).catch(console.error)
+      }
+
       const allMembers = await prisma.member.findMany({ where: { groupId: existing.groupId } })
       const allFilled  = allMembers.every(m => m.serviceInfo != null)
       if (allFilled) {
@@ -125,6 +137,16 @@ router.patch('/:id', requireAuth, validate(patchMemberSchema), async (req, res, 
         if (grp?.status === 'pending_confirmation') {
           await prisma.group.update({ where: { id: existing.groupId }, data: { status: 'pending_activation' } })
           groupAdvancedStatus = 'pending_activation'
+
+          // 最後一位成員完成提取/填寫才發這則，跟上面每個人都會收到一次的 service_info_filled 不同，
+          // 這則只發一次、直接告訴團主「可以去啟用服務了」，不用自己數還剩幾個人沒填
+          notify({
+            userId:  existing.group.hostId,
+            type:    'all_service_info_filled',
+            title:   isSharedCredentials ? '成員已全部完成提取' : '成員已全部完成填寫',
+            message: `「${groupLabel}」群組所有成員都已${isSharedCredentials ? '提取帳號資訊' : '填寫服務帳號'}，可以前往啟用服務了。`,
+            meta:    { groupId: existing.groupId },
+          })
         }
       }
     }

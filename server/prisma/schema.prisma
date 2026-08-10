@@ -66,6 +66,7 @@ enum NotificationType {
   group_chat_opened
   fill_service_info
   service_info_filled
+  all_service_info_filled
   group_full
   group_ended
   group_cancelled
