@@ -1,4 +1,5 @@
-import { LockKeyhole } from 'lucide-react'
+import { useState } from 'react'
+import { Eye, EyeOff, LockKeyhole } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogCloseButton } from '../../../components/ui/dialog'
 import { Button } from '../../../components/ui/button'
 import { Input } from '../../../components/ui/input'
@@ -9,6 +10,7 @@ import { getHostCredentialFields, CREDENTIAL_RISK_NOTICE } from '../../../common
 export default function LockGroupCredentialsModal({ isOpen, onClose, serviceId, serviceName, values, setValues, onSubmit, loading }) {
   const config = getHostCredentialFields(serviceId)
   const valid  = config.fields.every(({ key }) => !!values[key]?.trim())
+  const [showPassword, setShowPassword] = useState(false)
 
   return (
     <Dialog open={isOpen} onOpenChange={v => { if (!v) onClose() }}>
@@ -24,7 +26,7 @@ export default function LockGroupCredentialsModal({ isOpen, onClose, serviceId, 
         <DialogBody>
       <form onSubmit={onSubmit} className="animate-step-slide-up p-5 space-y-4">
         <p className="text-sm text-ink-3">
-          <span className="font-semibold text-ink">{serviceName}</span> 官方沒有多人邀請機制，鎖定群組後請提供以下帳號資訊，成員填寫服務帳號時會直接看到。
+          <span className="font-semibold text-ink">{serviceName}</span> 官方沒有多人邀請機制，鎖定群組後請提供以下帳號資訊，成員提取帳號時會直接看到。
         </p>
         {config.warning && (
           <div className="rounded-lg bg-warning-subtle px-3 py-2 text-xs leading-relaxed text-warning-text">
@@ -35,11 +37,24 @@ export default function LockGroupCredentialsModal({ isOpen, onClose, serviceId, 
           <div key={key}>
             <label className="block text-xs text-ink-3 mb-1.5">{label}</label>
             <Input
-              type="text"
+              type={key === 'password' && !showPassword ? 'password' : 'text'}
               value={values[key] ?? ''}
               onChange={e => setValues(prev => ({ ...prev, [key]: e.target.value }))}
               placeholder={placeholder}
+              autoComplete={key === 'password' ? 'new-password' : undefined}
               required
+              endAdornment={key === 'password' && (
+                <Button
+                  type="button"
+                  onClick={() => setShowPassword(v => !v)}
+                  variant="ghost"
+                  size="icon"
+                  className="-mr-1.5 shrink-0 text-ink-4 hover:text-ink-2"
+                  aria-label={showPassword ? '隱藏密碼' : '顯示密碼'}
+                >
+                  {showPassword ? <EyeOff size={16} strokeWidth={1.5} /> : <Eye size={16} strokeWidth={1.5} />}
+                </Button>
+              )}
             />
           </div>
         ))}
