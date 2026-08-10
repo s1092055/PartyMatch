@@ -101,7 +101,13 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
       const released = await prisma.$transaction(async (tx) => {
         const fresh = await tx.group.findUnique({ where: { id: group.id }, select: { status: true, escrowTokens: true } })
         if (fresh?.status !== 'confirming') return false // 已被其他請求處理，跳過
-        await tx.group.update({ where: { id: group.id }, data: { status: 'active', confirmDeadline: null, escrowTokens: 0 } })
+        // 用條件式 updateMany 當真正的樂觀鎖（而不是上面單純的讀取判斷）：上面的 findUnique 只是
+        // 快照讀取，不會鎖住這一列，真正防止兩個請求同時撥款兩次的是這裡 WHERE 裡的 status 條件
+        const claimed = await tx.group.updateMany({
+          where: { id: group.id, status: 'confirming' },
+          data:  { status: 'active', confirmDeadline: null, escrowTokens: 0 },
+        })
+        if (claimed.count === 0) return false // 已被其他請求搶先撥款
         await tx.user.update({ where: { id: group.hostId }, data: { tokenBalance: { increment: fresh.escrowTokens } } })
         await tx.tokenTransaction.create({
           data: { userId: group.hostId, type: 'release', amount: fresh.escrowTokens, relatedGroupId: group.id, note: '確認期逾期，自動撥款' },

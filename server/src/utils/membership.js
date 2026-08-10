@@ -86,7 +86,10 @@ async function advanceToFullIfNeeded(tx, groupId) {
   })
   if (updatedGroup.currentMembers + 1 >= updatedGroup.maxMembers) {
     await tx.group.update({ where: { id: groupId }, data: { status: 'full' } })
-    await autoRejectPendingApplications(tx, groupId)
+    await rejectPendingApplications(tx, groupId, {
+      refundNote: '群組名額已滿，代管退款',
+      buildMessage: groupLabel => `很遺憾，「${groupLabel}」群組名額已滿，你的申請未通過，代管費用已退還至你的PM幣餘額，你可以繼續探索其他群組。`,
+    })
 
     const groupLabel = updatedGroup.planName ?? updatedGroup.service?.name ?? ''
     notify({
@@ -99,9 +102,9 @@ async function advanceToFullIfNeeded(tx, groupId) {
   }
 }
 
-// 群組額滿當下，同一群組其他還在審核中的申請已經不可能再有名額，批次轉為未通過、退還各自
-// 代管的 PM 幣，並各自發通知，不用讓申請人卡在 pending 狀態、等團主之後才想到要手動一一拒絕
-async function autoRejectPendingApplications(tx, groupId) {
+// 群組額滿／被團主解散時，同一群組其他還在審核中的申請都不可能再被審核，批次轉為未通過、
+// 退還各自代管的 PM 幣，並各自發通知，不用讓申請人卡在 pending 狀態、代管費用卡死拿不回來
+export async function rejectPendingApplications(tx, groupId, { refundNote, buildMessage }) {
   const pendingApps = await tx.application.findMany({
     where:   { groupId, status: 'pending' },
     include: { group: { select: { monthlyFee: true, billingCycle: true, planName: true, escrowTokens: true, service: { select: { name: true } } } } },
@@ -117,13 +120,13 @@ async function autoRejectPendingApplications(tx, groupId) {
     remainingEscrow -= refundAmount
 
     await tx.application.update({ where: { id: app.id }, data: { status: 'rejected', activeKey: null } })
-    await refundEscrow(tx, { userId: app.userId, groupId, amount: refundAmount, note: '群組名額已滿，代管退款' })
+    await refundEscrow(tx, { userId: app.userId, groupId, amount: refundAmount, note: refundNote })
 
     notify({
       userId:  app.userId,
       type:    'application_rejected',
       title:   '申請未通過',
-      message: `很遺憾，「${groupLabel}」群組名額已滿，你的申請未通過，代管費用已退還至你的PM幣餘額，你可以繼續探索其他群組。`,
+      message: buildMessage(groupLabel),
       meta:    { groupId, applicationId: app.id },
     })
   }

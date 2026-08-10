@@ -6,7 +6,7 @@ import { validate } from '../middleware/validate.js'
 import { computeSeatCost } from '../utils/pricing.js'
 import { finalizeApprovedApplication, refundEscrow } from '../utils/membership.js'
 import { maskAvatar } from '../lib/avatarVisibility.js'
-import { notify } from './groups/shared.js'
+import { notify, claimGroupStatus } from './groups/shared.js'
 
 const router = Router()
 
@@ -80,15 +80,20 @@ router.post('/', requireAuth, validate(applySchema), async (req, res, next) => {
           throw err
         }
 
+        // 條件式代管：避免上面預檢之後、這筆 transaction 執行前，團主剛好解散/鎖定群組——
+        // 沒有這層檢查的話，代管金額會被加進一個已經不開放申請的群組，卡在裡面永遠沒有人能審核、
+        // 也不會有任何後續流程幫這筆申請退款
+        await claimGroupStatus(tx, groupId, {
+          fromStatus:   'recruiting',
+          data:         { escrowTokens: { increment: seatCost } },
+          message:      '此群組剛好被團主解散或已額滿，無法申請',
+          responseCode: 'GROUP_NOT_RECRUITING',
+        })
+
         // escrowAmount 記錄這筆申請實際扣了多少錢，之後退款要用這個值，不能用當下即時價格重算
         // （群組價格/計費週期之後可能被團主改掉，退款金額會跟當初真正扣的錢對不上）
         const created = await tx.application.create({
           data: { groupId, userId: req.user.id, message, activeKey: 'active', escrowAmount: seatCost },
-        })
-
-        await tx.group.update({
-          where: { id: groupId },
-          data:  { escrowTokens: { increment: seatCost } },
         })
 
         await tx.tokenTransaction.create({
@@ -118,6 +123,7 @@ router.post('/', requireAuth, validate(applySchema), async (req, res, next) => {
     } catch (err) {
       if (err.code === 'P2002') return res.status(409).json({ message: '你已有一筆進行中的申請' })
       if (err.balanceRace) return res.status(400).json({ message: err.message, code: 'INSUFFICIENT_BALANCE', required: seatCost })
+      if (err.responseCode) return res.status(err.statusCode ?? 409).json({ message: err.message, code: err.responseCode })
       throw err
     }
   } catch (err) { next(err) }

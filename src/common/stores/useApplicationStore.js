@@ -11,6 +11,8 @@ import { nowISO, byNewest } from '../utils/date'
 import { createId } from '../utils/storage'
 import { useAuthStore } from './useAuthStore'
 import { useNotificationStore } from './useNotificationStore'
+import { useMemberStore } from './useMemberStore'
+import { useSubscriptionStore } from './useSubscriptionStore'
 
 export const useApplicationStore = create((set, get) => ({
   applications: [],
@@ -113,7 +115,10 @@ export const useApplicationStore = create((set, get) => ({
       useAuthStore.getState().refreshTokenBalance()
       // application_cancelled 通知已經由後端 DELETE /applications/:id 建立，不在這裡重複呼叫
     } catch (err) {
-      await get().init()
+      // 取消失敗最常見的原因是團主剛好搶先一步審核通過（後端用條件式更新保證只有一邊會成功）：
+      // 這種情況下自己已經是真正的成員，不能只重新整理 applications，member/subscription
+      // 這兩個 store 也要一併重新拉，不然「我的訂閱」會漏掉這個剛剛才成立的群組
+      await Promise.all([get().init(), useMemberStore.getState().init(), useSubscriptionStore.getState().init()])
       throw err
     }
   },

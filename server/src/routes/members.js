@@ -6,7 +6,7 @@ import { validate } from '../middleware/validate.js'
 import { computeSeatCost } from '../utils/pricing.js'
 import { admitMemberIntoGroup, refundEscrow } from '../utils/membership.js'
 import { maskAvatar } from '../lib/avatarVisibility.js'
-import { notify } from './groups/shared.js'
+import { notify, claimGroupStatus } from './groups/shared.js'
 
 const router = Router()
 
@@ -149,7 +149,7 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
     const existing = await prisma.member.findUnique({
       where:   { id: req.params.id },
       include: {
-        group: { select: { id: true, hostId: true, planName: true, status: true, monthlyFee: true, billingCycle: true, escrowTokens: true, service: { select: { name: true } } } },
+        group: { select: { id: true, hostId: true, planName: true, status: true, monthlyFee: true, billingCycle: true, escrowTokens: true, currentMembers: true, service: { select: { name: true } } } },
         user:  { select: { name: true } },
       },
     })
@@ -167,15 +167,22 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
     const seatCost = computeSeatCost(existing.group)
     const refundAmount = Math.min(seatCost, existing.group.escrowTokens)
 
-    const newCount = await prisma.$transaction(async (tx) => {
+    const newCount = existing.group.currentMembers - 1
+
+    await prisma.$transaction(async (tx) => {
+      // 條件式搶佔：確保群組狀態沒有在上面的檢查之後、這筆交易真正寫入之前被團主鎖定群組
+      // （full → pending_confirmation）改變過，避免鎖定後成員名單仍然可以被異動
+      await claimGroupStatus(tx, existing.groupId, {
+        fromStatus: ['recruiting', 'full'],
+        data:       { currentMembers: { decrement: 1 } },
+        message:    '群組已被鎖定，無法變更成員名單，請重新整理頁面',
+      })
       await tx.member.delete({ where: { id: req.params.id } })
-      const updated = await tx.group.update({
-        where: { id: existing.groupId },
-        data:  {
-          currentMembers: { decrement: 1 },
-          ...(existing.group.status === 'full' ? { status: 'recruiting' } : {}),
-        },
-        select: { currentMembers: true },
+      // 上面的條件式搶佔已經確認過交易當下狀態仍是 recruiting/full 其中之一，這裡再用一次
+      // 條件式更新把「額滿後有人離開」的 full → recruiting 轉換也一併原子化，不用依賴外層讀到的舊狀態
+      await tx.group.updateMany({
+        where: { id: existing.groupId, status: 'full' },
+        data:  { status: 'recruiting' },
       })
       await refundEscrow(tx, {
         userId:  existing.userId,
@@ -189,7 +196,6 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
         where: { groupId: existing.groupId, userId: existing.userId, status: 'approved' },
         data:  { status: isHost ? 'removed' : 'left', activeKey: null },
       })
-      return updated.currentMembers
     })
 
     const groupLabel = existing.group.planName ?? existing.group.service?.name ?? ''

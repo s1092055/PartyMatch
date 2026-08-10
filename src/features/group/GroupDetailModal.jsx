@@ -166,10 +166,22 @@ export default function GroupDetailModal() {
     setCancelling(true)
     try {
       await useApplicationStore.getState().cancel(app.id)
+      toast('已取消申請')
       setCancelConfirm(false)
+      handleClose()
+      navigate('/explore')
     } catch (err) {
-      const msg = err?.response?.data?.message ?? err?.message ?? '取消申請失敗，請稍後再試'
+      // 取消失敗最常見的原因是團主剛好搶先一步審核（後端條件式更新保證兩邊只有一個會成功）；
+      // useApplicationStore.cancel() 失敗時已經連同 member/subscription 一起重新拉過最新資料，
+      // 這裡直接讀重新整理後的真實狀態決定文案，而不是猜 HTTP 狀態碼——因為同樣是取消失敗，
+      // 團主是「通過」還是「拒絕」給使用者看到的意義完全不同
+      const freshStatus = useApplicationStore.getState().getByUserAndGroup(activeUserId, group.id)?.status
+      const msg =
+        freshStatus === 'approved' ? '慢了一步，團主剛好已經通過你的申請，你現在是這個群組的成員了' :
+        freshStatus === 'rejected' ? '慢了一步，團主剛好已經拒絕了這筆申請，代管費用已退還' :
+        (err?.response?.data?.message ?? err?.message ?? '取消申請失敗，請稍後再試')
       toast(msg, 'error')
+      setCancelConfirm(false)
     } finally {
       setCancelling(false)
     }
@@ -191,14 +203,21 @@ export default function GroupDetailModal() {
         hostAvatarColor: group.hostAvatarColor,
         message: applyMessage,
       }, useAuthStore.getState().getProfile())
+      toast('申請已送出！')
       setApplySubmitted(true)
     } catch (err) {
       const msg = err?.response?.data?.message ?? err?.message ?? '申請失敗，請稍後再試'
-      if (err?.response?.data?.code === 'INSUFFICIENT_BALANCE') {
+      const code = err?.response?.data?.code
+      if (code === 'INSUFFICIENT_BALANCE') {
         toast('PM幣不足', 'error', {
           icon: <TokenBadge />,
           action: { label: '前往儲值', onClick: () => window.dispatchEvent(new CustomEvent('pm:open-topup')) },
         })
+      } else if (code === 'GROUP_NOT_RECRUITING') {
+        // 畫面停留在舊資料時按下申請，剛好撞上團主已經解散/鎖定群組：後端已經整筆回滾，
+        // 這裡把本地群組資料刷新成最新狀態，讓「申請加入」按鈕跟著消失，不會讓使用者一直重試
+        toast('慢了一步，這個群組剛好被團主解散或已額滿，無法申請', 'error')
+        useGroupStore.getState().refreshGroup(group.id).catch(console.error)
       } else {
         toast(msg, 'error')
       }

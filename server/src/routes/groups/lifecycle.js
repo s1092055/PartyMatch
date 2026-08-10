@@ -4,8 +4,9 @@ import prisma from '../../lib/prisma.js'
 import { requireAuth, requireAdmin } from '../../middleware/auth.js'
 import { validate } from '../../middleware/validate.js'
 import { computeSeatCost } from '../../utils/pricing.js'
-import { notify, notifyGroupConversation } from './shared.js'
+import { notify, notifyGroupConversation, claimGroupStatus } from './shared.js'
 import { maskAvatar } from '../../lib/avatarVisibility.js'
+import { rejectPendingApplications } from '../../utils/membership.js'
 
 const router = Router()
 
@@ -214,26 +215,24 @@ router.post('/:id/confirm', requireAuth, async (req, res, next) => {
     const deadlinePassed = group.confirmDeadline && new Date(group.confirmDeadline) <= now
 
     if (allConfirmed || deadlinePassed) {
-      // 撥款：escrowTokens → host.tokenBalance
-      const [updated] = await prisma.$transaction([
-        prisma.group.update({
-          where: { id: req.params.id },
-          data:  { status: 'active', confirmDeadline: null },
-          include: {
-            host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true } },
-            service: true,
-            _count:  { select: { members: true } },
-          },
-        }),
-        prisma.user.update({
+      // 撥款：escrowTokens → host.tokenBalance；用條件式 updateMany 當樂觀鎖搶佔撥款資格，
+      // 避免跟另一位成員幾乎同時確認、或跟 GET /:id 觸發的逾期自動撥款互相撞在一起，
+      // 讓同一筆代管款項被撥款兩次
+      const released = await prisma.$transaction(async (tx) => {
+        const claimed = await tx.group.updateMany({
+          where: { id: req.params.id, status: 'confirming' },
+          data:  { status: 'active', confirmDeadline: null, escrowTokens: 0 },
+        })
+        if (claimed.count === 0) return null // 已被其他併發請求撥款過了
+
+        // 用函式最上方一開始就讀好的 group.escrowTokens，不用在交易內再讀一次：只要上面的
+        // updateMany 成功搶到 status='confirming' 這個條件，就保證這段期間沒有其他路徑動過
+        // escrowTokens（唯一會動它的撥款/退款路徑都要求 status 先離開 confirming 才能進行）
+        await tx.user.update({
           where: { id: group.host.id },
           data:  { tokenBalance: { increment: group.escrowTokens } },
-        }),
-        prisma.group.update({
-          where: { id: req.params.id },
-          data:  { escrowTokens: 0 },
-        }),
-        prisma.tokenTransaction.create({
+        })
+        await tx.tokenTransaction.create({
           data: {
             userId:        group.host.id,
             type:          'release',
@@ -241,25 +240,46 @@ router.post('/:id/confirm', requireAuth, async (req, res, next) => {
             relatedGroupId: req.params.id,
             note:          '確認期結束，代管款項撥付',
           },
-        }),
-        prisma.subscription.updateMany({
+        })
+        await tx.subscription.updateMany({
           where: { groupId: req.params.id },
           data:  { status: 'active' },
-        }),
-      ])
+        })
 
-      prisma.notification.create({
-        data: {
-          userId:  group.host.id,
-          type:    'escrow_released',
-          title:   '代管款項已撥款',
-          message: `「${groupLabel}」群組確認期結束，代管款項已撥入你的PM幣餘額。`,
-          meta:    { groupId: req.params.id },
+        return tx.group.findUnique({
+          where: { id: req.params.id },
+          include: {
+            host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true } },
+            service: true,
+            _count:  { select: { members: true } },
+          },
+        })
+      })
+
+      if (released) {
+        prisma.notification.create({
+          data: {
+            userId:  group.host.id,
+            type:    'escrow_released',
+            title:   '代管款項已撥款',
+            message: `「${groupLabel}」群組確認期結束，代管款項已撥入你的PM幣餘額。`,
+            meta:    { groupId: req.params.id },
+          },
+        }).catch(console.error)
+        notifyGroupConversation(req.params.id, member.userId, `確認期結束，代管款項已撥款給團主。`).catch(console.error)
+      }
+
+      // released 為 null 代表已經被其他併發請求（例如同時逾期自動撥款）處理過，直接讀目前真實狀態
+      // 回傳即可，不用讓使用者看到誤導的失敗訊息——實際上撥款這件事已經完成了
+      const finalGroup = released ?? await prisma.group.findUnique({
+        where: { id: req.params.id },
+        include: {
+          host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true } },
+          service: true,
+          _count:  { select: { members: true } },
         },
-      }).catch(console.error)
-      notifyGroupConversation(req.params.id, member.userId, `確認期結束，代管款項已撥款給團主。`).catch(console.error)
-
-      return res.json({ group: maskGroupHost({ ...updated, escrowTokens: 0 }), released: true })
+      })
+      return res.json({ group: maskGroupHost({ ...finalGroup, escrowTokens: 0 }), released: true })
     }
 
     res.json({ group: null, released: false })
@@ -289,24 +309,31 @@ router.post('/:id/dispute', requireAuth, validate(disputeSchema), async (req, re
     disputeDeadline.setHours(disputeDeadline.getHours() + 48)
     const groupLabel = group.planName ?? group.service?.name ?? ''
 
-    const [updated] = await prisma.$transaction([
-      prisma.group.update({
-        where: { id: req.params.id },
-        data:  { status: 'disputed', disputeDeadline },
-        include: {
-          host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true } },
-          service: true,
-          _count:  { select: { members: true } },
-        },
-      }),
-      prisma.member.update({
+    const updated = await prisma.$transaction(async (tx) => {
+      // 條件式搶佔：避免跟同時發生的「全員確認完成撥款」互相撞在一起，讓已經撥款給團主、
+      // 進入 active 的群組又被這裡的舊快照蓋回 disputed
+      await claimGroupStatus(tx, req.params.id, {
+        fromStatus: 'confirming',
+        data:       { status: 'disputed', disputeDeadline },
+      })
+
+      await tx.member.update({
         where: { id: member.id },
         data:  {
           serviceInfoIssueNote: reason.trim(),
           ...(evidenceUrl ? { disputeEvidenceUrl: evidenceUrl } : {}),
         },
-      }),
-    ])
+      })
+
+      return tx.group.findUnique({
+        where: { id: req.params.id },
+        include: {
+          host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true } },
+          service: true,
+          _count:  { select: { members: true } },
+        },
+      })
+    })
     updated.host = maskAvatar(updated.host)
 
     prisma.notification.create({
@@ -361,21 +388,29 @@ router.post('/:id/resolve-dispute', requireAuth, validate(resolveDisputeSchema),
     confirmDeadline.setHours(confirmDeadline.getHours() + 48)
     const groupLabel = group.planName ?? group.service?.name ?? ''
 
-    const [updated] = await prisma.$transaction([
-      prisma.group.update({
+    const updated = await prisma.$transaction(async (tx) => {
+      // 條件式搶佔：避免跟管理員幾乎同時裁定申訴（/adjudicate）互相撞在一起——兩邊都是從
+      // disputed 轉出去，只能有一邊真正生效，另一邊要收到明確的錯誤而不是把對方的結果蓋掉
+      await claimGroupStatus(tx, req.params.id, {
+        fromStatus: 'disputed',
+        data:       { status: 'confirming', disputeDeadline: null, confirmDeadline },
+        message:    '這筆申訴剛好已經被處理過了，請重新整理頁面',
+      })
+
+      await tx.member.update({
+        where: { id: disputeMember.id },
+        data:  { serviceInfoIssueNote: null, disputeEvidenceUrl: null, confirmedAt: null },
+      })
+
+      return tx.group.findUnique({
         where: { id: req.params.id },
-        data:  { status: 'confirming', disputeDeadline: null, confirmDeadline },
         include: {
           host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true } },
           service: true,
           _count:  { select: { members: true } },
         },
-      }),
-      prisma.member.update({
-        where: { id: disputeMember.id },
-        data:  { serviceInfoIssueNote: null, disputeEvidenceUrl: null, confirmedAt: null },
-      }),
-    ])
+      })
+    })
     updated.host = maskAvatar(updated.host)
 
     // 用獨立的 dispute_resolved_by_host 型別，跟 /adjudicate（管理員裁定，會動到金流）共用的
@@ -414,12 +449,15 @@ router.post('/:id/cancel', requireAuth, async (req, res, next) => {
     }
 
     const seatCost = computeSeatCost(group)
+    const groupLabelForCancel = group.planName ?? group.service?.name ?? ''
 
     const currentMembers = await prisma.$transaction(async (tx) => {
-      // 條件式更新：確保狀態沒有在讀取跟寫入之間被其他請求（例如同時退出/被移除）變動過
+      // 條件式更新：確保狀態沒有在讀取跟寫入之間被其他請求（例如同時退出/被移除，或申請人剛好
+      // 同時送出新申請）變動過；escrowTokens 這裡先不歸零，等下面把成員跟還在審核中的申請都
+      // 退完款才統一歸零，避免 rejectPendingApplications 退款時讀到已經被提早歸零的代管餘額
       const updated = await tx.group.updateMany({
         where: { id: req.params.id, status: { in: cancellable } },
-        data:  { status: 'cancelled', escrowTokens: 0 },
+        data:  { status: 'cancelled' },
       })
       if (updated.count === 0) {
         const err = new Error('群組狀態已變動，請重新整理頁面')
@@ -447,10 +485,18 @@ router.post('/:id/cancel', requireAuth, async (req, res, next) => {
         })
       }
 
+      // 還在審核中的申請不會有人再處理了，一併退款並標記為未通過，不能只退成員的錢——
+      // 團主解散群組時如果剛好有申請人在申請中，這些人的代管費用之前完全沒有被退還過
+      await rejectPendingApplications(tx, req.params.id, {
+        refundNote:   '群組已解散，代管退款',
+        buildMessage: groupLabel => `很遺憾，「${groupLabel}」群組已被團主解散，你的申請未通過，代管費用已退還至你的PM幣餘額。`,
+      })
+
+      await tx.group.update({ where: { id: req.params.id }, data: { escrowTokens: 0 } })
+
       return currentMembers
     })
 
-    const groupLabelForCancel = group.planName ?? group.service?.name ?? ''
     currentMembers.forEach(m => {
       notify({
         userId:  m.userId,
@@ -590,25 +636,27 @@ router.post('/:id/adjudicate', requireAdmin, async (req, res, next) => {
     const groupLabel = group.planName ?? group.service?.name ?? ''
 
     if (winner === 'member') {
-      // 退款給申訴成員，移出群組，其他人代管不變，群組回 active
-      await prisma.$transaction([
-        prisma.group.update({
-          where: { id: group.id },
-          data:  { status: 'active', disputeDeadline: null, escrowTokens: { decrement: seatCost } },
-        }),
-        prisma.user.update({
+      // 退款給申訴成員，移出群組，其他人代管不變，群組回 active；條件式搶佔避免跟團主幾乎
+      // 同時自行標記解決（/resolve-dispute）互相撞在一起
+      await prisma.$transaction(async (tx) => {
+        await claimGroupStatus(tx, group.id, {
+          fromStatus: 'disputed',
+          data:       { status: 'active', disputeDeadline: null, escrowTokens: { decrement: seatCost } },
+          message:    '這筆申訴剛好已經被處理過了，請重新整理頁面',
+        })
+        await tx.user.update({
           where: { id: disputeMember.userId },
           data:  { tokenBalance: { increment: seatCost } },
-        }),
-        prisma.tokenTransaction.create({
+        })
+        await tx.tokenTransaction.create({
           data: { userId: disputeMember.userId, type: 'refund', amount: seatCost, relatedGroupId: group.id, note: `問題處理結果：${reason.trim()}` },
-        }),
-        prisma.member.delete({ where: { id: disputeMember.id } }),
-        prisma.subscription.updateMany({
+        })
+        await tx.member.delete({ where: { id: disputeMember.id } })
+        await tx.subscription.updateMany({
           where: { groupId: group.id, userId: disputeMember.userId },
           data:  { status: 'ended' },
-        }),
-      ])
+        })
+      })
 
       notify({
         userId:  disputeMember.userId,
@@ -625,21 +673,22 @@ router.post('/:id/adjudicate', requireAdmin, async (req, res, next) => {
         meta:    { groupId: group.id },
       })
     } else {
-      // 撥款給團主，群組回 active，全員訂閱啟用
-      await prisma.$transaction([
-        prisma.group.update({
-          where: { id: group.id },
-          data:  { status: 'active', disputeDeadline: null, escrowTokens: 0 },
-        }),
-        prisma.user.update({
+      // 撥款給團主，群組回 active，全員訂閱啟用；同樣用條件式搶佔避免跟團主自行解決互相撞在一起
+      await prisma.$transaction(async (tx) => {
+        await claimGroupStatus(tx, group.id, {
+          fromStatus: 'disputed',
+          data:       { status: 'active', disputeDeadline: null, escrowTokens: 0 },
+          message:    '這筆申訴剛好已經被處理過了，請重新整理頁面',
+        })
+        await tx.user.update({
           where: { id: group.hostId },
           data:  { tokenBalance: { increment: group.escrowTokens } },
-        }),
-        prisma.tokenTransaction.create({
+        })
+        await tx.tokenTransaction.create({
           data: { userId: group.hostId, type: 'release', amount: group.escrowTokens, relatedGroupId: group.id, note: `問題處理結果：${reason.trim()}` },
-        }),
-        prisma.subscription.updateMany({ where: { groupId: group.id }, data: { status: 'active' } }),
-      ])
+        })
+        await tx.subscription.updateMany({ where: { groupId: group.id }, data: { status: 'active' } })
+      })
 
       notify({
         userId:  group.hostId,
@@ -693,6 +742,13 @@ router.post('/:id/renew', requireAuth, async (req, res, next) => {
     serviceInfoDeadline.setHours(serviceInfoDeadline.getHours() + 24)
 
     const updated = await prisma.$transaction(async (tx) => {
+      // 條件式搶佔：確保只有一個 renew 請求能真正往下扣款，避免團主快速點兩下（或分頁重複送出）
+      // 導致同一期跟每位成員收了兩次錢——下面的餘額 gte 檢查只能防止扣成負數，防不了重複扣款
+      await claimGroupStatus(tx, req.params.id, {
+        fromStatus: 'active',
+        data:       { status: 'pending_confirmation' },
+      })
+
       // 向每位成員收取本期代管費用；用 gte 條件式扣款，避免上方檢查後、寫入前餘額被其他請求變動造成扣成負數
       const charged = await tx.user.updateMany({
         where: { id: { in: memberIds }, tokenBalance: { gte: seatCost } },

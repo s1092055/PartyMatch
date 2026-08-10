@@ -17,6 +17,7 @@ import { getServiceById } from '../../common/utils/serviceUtils'
 import { calcPricePerSeat, calcDisplayPrice } from '../../common/utils/pricingUtils'
 import { useAuthStore } from '../../common/stores/useAuthStore'
 import { useScrollEdge, useScrollLock } from '../../common/utils/hooks'
+import { toast } from '../../common/utils/toast'
 
 const STEP_COMPONENTS = [Step1Service, Step2Plan, Step3Settings, Step4Preview]
 const STEP_TITLES = ['選擇服務', '選擇方案', '群組設定', '最後確認']
@@ -167,6 +168,7 @@ export default function CreateGroupPage() {
     useGroupStore.getState().create(groupData, host)
     // group_created 通知已經由後端 POST /groups 建立（用後端真正產生的 group id，
     // 不會像這裡樂觀新增的本地暫時 id 之後被换掉，deep link 才不會連到不存在的群組）
+    toast('群組已成功上架！')
     setShowSuccessModal(true)
   }
 
