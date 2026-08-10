@@ -7,6 +7,7 @@ import { computeSeatCost } from '../../utils/pricing.js'
 import { notify, notifyGroupConversation, claimGroupStatus } from './shared.js'
 import { maskAvatar } from '../../lib/avatarVisibility.js'
 import { rejectPendingApplications } from '../../utils/membership.js'
+import { adjustCreditScore } from '../../utils/creditScore.js'
 
 const router = Router()
 
@@ -52,8 +53,11 @@ router.post('/:id/activate', requireAuth, async (req, res, next) => {
       else nextBillingDate.setMonth(nextBillingDate.getMonth() + 1)
     }
 
-    const [updated] = await prisma.$transaction([
-      prisma.group.update({
+    // 改用 callback transaction（而不是原本的陣列式）：信用分數的 adjustCreditScore() 需要先讀出
+    // 目前分數才能夾在 [0, 100] 之間再寫回，陣列式的每個項目都是各自獨立的 Prisma promise，
+    // 沒辦法在同一個 transaction 裡先讀後寫
+    const updated = await prisma.$transaction(async (tx) => {
+      const updatedGroup = await tx.group.update({
         where: { id: req.params.id },
         data: {
           status: 'confirming',
@@ -66,14 +70,17 @@ router.post('/:id/activate', requireAuth, async (req, res, next) => {
           service: true,
           _count:  { select: { members: true } },
         },
-      }),
-      ...(isFirstActivation ? [
-        prisma.subscription.updateMany({
+      })
+      if (isFirstActivation) {
+        await tx.subscription.updateMany({
           where: { groupId: req.params.id },
           data:  { nextBillingDate },
-        }),
-      ] : []),
-    ])
+        })
+      }
+      // 信用分數：團主成功啟用群組 +5（每次成功啟用都加，含續訂重新啟用）
+      await adjustCreditScore(tx, { userId: group.hostId, delta: 5, reason: '團主成功啟用群組', groupId: req.params.id })
+      return updatedGroup
+    })
 
     // 只有第一次啟用才會改動扣款日，才需要另外發「已確定」通知；續訂後的啟用日期本來就
     // 沒變（/renew 那則「預估」通知已經講過這個日期），不用重複通知造成誤會
@@ -201,9 +208,10 @@ router.post('/:id/confirm', requireAuth, async (req, res, next) => {
     const now = new Date()
     const groupLabel = group.planName ?? group.service?.name ?? ''
 
-    await prisma.member.update({
-      where: { id: member.id },
-      data:  { confirmedAt: now },
+    // 成員確認服務正常跟信用分數 +2（付款被團主確認）包在同一個 transaction，避免確認成功但加分失敗
+    await prisma.$transaction(async (tx) => {
+      await tx.member.update({ where: { id: member.id }, data: { confirmedAt: now } })
+      await adjustCreditScore(tx, { userId: member.userId, delta: 2, reason: '付款被團主確認', groupId: req.params.id })
     })
 
     // 團主目前完全不會被通知有成員確認服務，先寫一則系統訊息讓團主至少能在聊天室看到進度

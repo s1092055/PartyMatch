@@ -73,6 +73,7 @@ const NOTIFICATION_META = {
   fill_service_info:    { icon: ClipboardEdit, iconColor: 'text-warning-text', link: '/my-subscriptions' },
   service_info_filled:  { icon: ClipboardEdit, iconColor: 'text-success',    link: '/manage-groups' },
   all_service_info_filled: { icon: PlayCircle, iconColor: 'text-success',    link: '/manage-groups' },
+  service_info_deadline_passed: { icon: AlertCircle, iconColor: 'text-warning-text', link: '/manage-groups' },
   group_activated:      { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-subscriptions' },
   group_cancelled:      { icon: AlertCircle,   iconColor: 'text-danger',     link: '/explore' },
   group_renewal:        { icon: CheckCircle2,  iconColor: 'text-brand',      link: '/my-subscriptions' },
@@ -256,6 +257,7 @@ export default function FloatingMessages() {
     if (notification.type === 'member_removed' && notification.meta?.groupId) {
       window.dispatchEvent(new CustomEvent('pm:refresh-member-stores'))
       useAuthStore.getState().refreshTokenBalance().catch(console.error) // 代管費用已退款，重新拉最新餘額
+      useAuthStore.getState().refreshCreditScore().catch(console.error)  // 被移出群組，信用分數已扣分，重新拉最新分數
       navigate('/explore')
       openGroupOrRedirect(notification.meta.groupId)
       return
@@ -336,6 +338,20 @@ export default function FloatingMessages() {
       Promise.all([
         useGroupStore.getState().init({ all: true }),
         useMemberStore.getState().init(),
+      ]).finally(() => {
+        window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: gId } }))
+      })
+      return
+    }
+
+    if (notification.type === 'service_info_deadline_passed' && notification.meta?.groupId) {
+      const gId = notification.meta.groupId
+      navigate('/manage-groups', { state: { openGroupId: gId } })
+      // 這則通知代表群組剛被伺服器自動退回 recruiting（有成員逾期被移出），本地快取一定是舊的
+      Promise.all([
+        useGroupStore.getState().init({ all: true }),
+        useMemberStore.getState().init(),
+        useApplicationStore.getState().init(),
       ]).finally(() => {
         window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: gId } }))
       })

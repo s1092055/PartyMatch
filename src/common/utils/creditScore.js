@@ -1,4 +1,4 @@
-export const DEFAULT_CREDIT_SCORE = 80
+export const DEFAULT_CREDIT_SCORE = 100
 
 export const CREDIT_RULES = {
   PAYMENT_CONFIRMED: +2,   // 付款被團主確認

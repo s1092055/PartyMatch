@@ -5,6 +5,9 @@ import { requireAuth, optionalAuth } from '../../middleware/auth.js'
 import { validate } from '../../middleware/validate.js'
 import { notify } from './shared.js'
 import { maskAvatar } from '../../lib/avatarVisibility.js'
+import { computeSeatCost } from '../../utils/pricing.js'
+import { refundEscrow } from '../../utils/membership.js'
+import { adjustCreditScore } from '../../utils/creditScore.js'
 
 const router = Router()
 
@@ -126,6 +129,70 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
         })
       }
       return res.json(maskGroupAvatars({ ...group, status: 'active', confirmDeadline: null, escrowTokens: 0 }))
+    }
+
+    // 惰性自動踢除：pending_confirmation 且 serviceInfoDeadline 已到期，把還沒填寫／提取帳號資訊的
+    // 成員移出群組並退款、狀態退回 recruiting 讓團主可以重新招募補位。這個狀態鎖定後任何人都不能
+    // 自己退出（canLeaveGroup 只涵蓋 recruiting/full），沒有這層機制的話，只要一位成員不回應，
+    // 其他已經填完的成員、代管費用會一起被卡死，永遠等不到團主重新鎖定
+    if (group.status === 'pending_confirmation' && group.serviceInfoDeadline && new Date(group.serviceInfoDeadline) <= new Date()) {
+      const stalled = group.members.filter(m => m.serviceInfo == null)
+      if (stalled.length > 0) {
+        const seatCost = computeSeatCost(group)
+        const removed = await prisma.$transaction(async (tx) => {
+          // 條件式搶佔：避免跟「剛好在逾期前一刻全員填完」的併發請求互相打架
+          const claimed = await tx.group.updateMany({
+            where: { id: group.id, status: 'pending_confirmation' },
+            data:  { status: 'recruiting', serviceInfoDeadline: null, currentMembers: { decrement: stalled.length } },
+          })
+          if (claimed.count === 0) return [] // 已被其他請求處理過
+
+          for (const m of stalled) {
+            // 逐一重新讀取 escrowTokens 才夾住退款金額，避免前一位成員退款後金額被沿用成舊值
+            const fresh = await tx.group.findUnique({ where: { id: group.id }, select: { escrowTokens: true } })
+            const refundAmount = Math.min(seatCost, fresh?.escrowTokens ?? 0)
+            await tx.member.delete({ where: { id: m.id } })
+            await refundEscrow(tx, { userId: m.userId, groupId: group.id, amount: refundAmount, note: '逾期未完成帳號資訊填寫，自動移出群組並退款' })
+            // 信用分數：跟團主手動移除共用同一條「被移除出群組」規則——站在被踢除成員的角度，
+            // 兩種途徑的後果對他來說是同一件事
+            await adjustCreditScore(tx, { userId: m.userId, delta: -10, reason: '被移除出群組', groupId: group.id })
+            await tx.application.updateMany({
+              where: { groupId: group.id, userId: m.userId, status: 'approved' },
+              data:  { status: 'removed', activeKey: null },
+            })
+          }
+          return stalled
+        })
+
+        if (removed.length > 0) {
+          const groupLabel = group.planName ?? group.service?.name ?? ''
+          removed.forEach(m => {
+            notify({
+              userId:  m.userId,
+              type:    'member_removed',
+              title:   '已被移出群組',
+              message: `「${groupLabel}」群組因你逾期未完成帳號資訊填寫，已被自動移出，代管費用已退還至你的PM幣餘額，可以重新申請或選擇其他群組。`,
+              meta:    { groupId: group.id },
+            })
+          })
+          notify({
+            userId:  group.hostId,
+            type:    'service_info_deadline_passed',
+            title:   '成員逾期未完成，已自動移出',
+            message: `「${groupLabel}」群組有 ${removed.length} 位成員逾期未完成帳號資訊填寫，已自動移出並退款，群組已重新開放招募補位。`,
+            meta:    { groupId: group.id },
+          })
+          const fresh = await prisma.group.findUnique({
+            where: { id: group.id },
+            include: {
+              host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true } },
+              service: true,
+              members: { include: { user: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, bio: true } } } },
+            },
+          })
+          return res.json(maskGroupAvatars(fresh))
+        }
+      }
     }
 
     res.json(maskGroupAvatars(group))

@@ -124,11 +124,14 @@ export function normalizeGroup(group) {
   const serviceName = group.serviceName ?? service.name ?? ''
   const pricePerSeat = group.pricePerSeat ?? group.monthlyFee ?? 0
   const totalSeats   = Number(group.totalSeats ?? group.maxMembers ?? 0)
-  // usedSeats = 成員數 + 團主(1)
-  const usedSeats    = Number(group.usedSeats ?? (memberCount + 1))
-  const openSeats    = Number.isFinite(Number(group.openSeats))
-    ? Number(group.openSeats)
-    : Math.max(totalSeats - usedSeats, 0)
+  // usedSeats = 成員數 + 團主(1)；同樣一律現算，不信任傳進來的值，理由同下面 openSeats 的註解
+  const usedSeats    = memberCount + 1
+  // openSeats 一律由 totalSeats/usedSeats 現算，不能信任傳進來的 group.openSeats——這個函式
+  // 常常被拿去 re-normalize「已經 normalize 過一次」的舊物件（例如 refreshGroup 的
+  // {...舊物件, ...新API資料} 合併），舊物件本身就帶著上一輪算好的 openSeats，如果這裡選擇
+  // 沿用它，currentMembers 已經在後端變動、但新的 API 回應沒有 openSeats 欄位可以覆蓋時，
+  // 畫面就會顯示過期的剩餘名額
+  const openSeats    = Math.max(totalSeats - usedSeats, 0)
 
   // 日期格式：MySQL 回傳完整 ISO datetime，只取 YYYY-MM-DD 顯示
   const createdAt = group.createdAt

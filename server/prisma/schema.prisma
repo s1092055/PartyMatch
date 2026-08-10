@@ -67,6 +67,7 @@ enum NotificationType {
   fill_service_info
   service_info_filled
   all_service_info_filled
+  service_info_deadline_passed
   group_full
   group_ended
   group_cancelled
@@ -114,6 +115,7 @@ model User {
   favorites         Favorite[]
   sentMessages      Message[]
   tokenTransactions TokenTransaction[]
+  creditScoreLogs   CreditScoreLog[]
   paymentMethods    PaymentMethod[]
   hostReviews       Review[]             @relation("HostReviews")
   authoredReviews   Review[]             @relation("AuthoredReviews")
@@ -170,7 +172,8 @@ model Group {
   // 無官方多人邀請機制的服務（sharingMethod: shared_credentials，只存在前端 serviceCatalog，後端不知道這個分類）
   // 鎖定群組時由團主一次性提供帳號密碼，存在這裡讓所有成員都能在「填寫帳號」畫面直接看到，不用回頭翻聊天室訊息
   sharedCredentials String?
-  // 鎖定群組時設定為鎖定時間 + 24h，pending_confirmation 階段的填寫帳號資訊截止時間，僅供前端顯示倒數，逾期不會有任何自動處理
+  // 鎖定群組時設定為鎖定時間 + 24h，pending_confirmation 階段的填寫帳號資訊截止時間；逾期後
+  // 由 GET /groups/:id 的惰性檢查自動把還沒填寫的成員踢除並退款（見 crud.js），不是純顯示用途
   serviceInfoDeadline DateTime?
   confirmDeadline DateTime?
   disputeDeadline DateTime?
@@ -193,6 +196,7 @@ model Group {
   conversations     Conversation[]
   notifications     Notification[]
   tokenTransactions TokenTransaction[]
+  creditScoreLogs   CreditScoreLog[]
   reviews           Review[]
   credentialComments CredentialComment[]
 
@@ -271,6 +275,19 @@ model TokenTransaction {
   createdAt     DateTime             @default(now())
 
   @@map("token_transactions")
+}
+
+model CreditScoreLog {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  delta          Int
+  reason         String
+  relatedGroupId String?
+  relatedGroup   Group?   @relation(fields: [relatedGroupId], references: [id], onDelete: SetNull)
+  createdAt      DateTime @default(now())
+
+  @@map("credit_score_logs")
 }
 
 model Notification {

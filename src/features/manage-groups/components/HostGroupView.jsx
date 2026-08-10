@@ -380,8 +380,11 @@ export default function HostGroupView({ group, members, applications, onReportSe
           </GroupModalSideBarItem>
         ) : !isCancelled && (
           <>
+            {/* 續訂管理跟群組訊息都要黏在側邊欄最下方——兩個都設 pinned（md:mt-auto）的話，
+                CSS flexbox 的 auto margin 會把剩餘空間平分給兩者，變成中間有一大段空隙；
+                只在最後一個（群組訊息）留 pinned，續訂管理維持一般排列跟著它，才會真的貼在一起 */}
             {showRenewal && (
-              <GroupModalSideBarItem pinned onClick={() => onOpenRenewal?.()}>
+              <GroupModalSideBarItem onClick={() => onOpenRenewal?.()}>
                 <RefreshCw size={17} /> 續訂管理
               </GroupModalSideBarItem>
             )}

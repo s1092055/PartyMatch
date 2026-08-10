@@ -63,6 +63,22 @@ router.patch('/me', requireAuth, validate(updateProfileSchema), async (req, res,
   } catch (err) { next(err) }
 })
 
+// GET /users/me/credit-history — 信用分數紀錄（CreditScoreModal 歷史頁用）
+router.get('/me/credit-history', requireAuth, async (req, res, next) => {
+  try {
+    const [user, logs] = await Promise.all([
+      prisma.user.findUnique({ where: { id: req.user.id }, select: { creditScore: true } }),
+      prisma.creditScoreLog.findMany({
+        where:   { userId: req.user.id },
+        orderBy: { createdAt: 'desc' },
+        take:    50,
+        include: { relatedGroup: { select: { id: true, planName: true, service: { select: { name: true } } } } },
+      }),
+    ])
+    res.json({ creditScore: user?.creditScore ?? null, logs })
+  } catch (err) { next(err) }
+})
+
 // POST /users/me/deactivate — 軟刪除帳號：需再次輸入密碼確認，停用後立即清除所有裝置的登入 session，
 // 保留使用者/群組/交易等資料供日後申請恢復，不做實體刪除
 router.post('/me/deactivate', requireAuth, validate(deactivateSchema), async (req, res, next) => {

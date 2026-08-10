@@ -218,6 +218,10 @@ export default function GroupDetailModal() {
         // 這裡把本地群組資料刷新成最新狀態，讓「申請加入」按鈕跟著消失，不會讓使用者一直重試
         toast('慢了一步，這個群組剛好被團主解散或已額滿，無法申請', 'error')
         useGroupStore.getState().refreshGroup(group.id).catch(console.error)
+      } else if (code === 'REAPPLY_COOLDOWN') {
+        toast('你最近曾被移出此群組，暫時無法重新申請', 'error')
+      } else if (code === 'CREDIT_SCORE_TOO_LOW') {
+        toast('信用分數不足，無法申請此群組', 'error')
       } else {
         toast(msg, 'error')
       }

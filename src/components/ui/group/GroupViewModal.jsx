@@ -33,11 +33,12 @@ export default function GroupViewModal({
   const notifications = useNotificationStore(s => s.notifications)
   const [billingNoticeDismissed, setBillingNoticeDismissed] = useState(false)
 
-  // 確認期（confirming）可能已經逾期但還沒有人觸發過後端的惰性自動撥款檢查，
-  // 開啟詳情時補打一次，讓「逾期自動撥款」這個安全網真的有機會被觸發
+  // 確認期（confirming）可能已經逾期但還沒有人觸發過後端的惰性自動撥款檢查、pending_confirmation
+  // 也可能已經有成員逾期未完成帳號資訊填寫，兩者都要開啟詳情時補打一次 GET，讓後端的惰性安全網
+  // 真的有機會被觸發，不用乾等下一次剛好有人操作才會檢查
   useEffect(() => {
     if (!isOpen || !groupId) return
-    if (useGroupStore.getState().getById(groupId)?.status !== 'confirming') return
+    if (!['confirming', 'pending_confirmation'].includes(useGroupStore.getState().getById(groupId)?.status)) return
     useGroupStore.getState().refreshGroup(groupId).catch(console.error)
   }, [isOpen, groupId])
 

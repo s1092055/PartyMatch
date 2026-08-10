@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useGroupStore } from '../../../common/stores/useGroupStore'
-import { useAuthStore } from '../../../common/stores/useAuthStore'
-import { CREDIT_RULES } from '../../../common/utils/creditScore'
 import { useApplicationStore } from '../../../common/stores/useApplicationStore'
 import { useMemberStore } from '../../../common/stores/useMemberStore'
 import { useSubscriptionStore } from '../../../common/stores/useSubscriptionStore'
@@ -23,8 +21,6 @@ const activateService     = (id)   => useGroupStore.getState().activateService(i
 const adjustBillingDate   = (id, payload) => useGroupStore.getState().adjustBillingDate(id, payload)
 const startRenewalCycle = (id)     => useGroupStore.getState().startRenewalCycle(id)
 const endGroup         = (id)      => useGroupStore.getState().endGroup(id)
-
-const adjustCreditScore = (uid, d) => useAuthStore.getState().adjustCreditScore(uid, d)
 
 const getApplicationByUserAndGroup = (uid, gid)   => useApplicationStore.getState().getByUserAndGroup(uid, gid)
 const getApplicationsByHostId      = (hid, grps)  => useApplicationStore.getState().getByHostId(hid, grps)
@@ -204,7 +200,6 @@ async function handleLockGroup(sharedCredentials) {
 
 function handleRemoveMember(member) {
     const group = getGroupById(member.groupId)
-    adjustCreditScore(member.userId, CREDIT_RULES.MEMBER_REMOVED).catch(console.error)
     // 代管退款金額是後端算的（Math.min(seatCost, escrowTokens)），這裡的樂觀更新只處理名額，
     // 不猜測退款金額；成員真的刪除成功後再整筆重新拉一次群組，把 escrowTokens 校正回後端算出的值，
     // 避免收款管理畫面一直顯示退款前的舊代管金額

@@ -45,11 +45,38 @@ router.post('/', requireAuth, validate(applySchema), async (req, res, next) => {
     const { groupId, message } = req.body
     const [group, applicant] = await Promise.all([
       prisma.group.findUnique({ where: { id: groupId }, include: { service: { select: { name: true } } } }),
-      prisma.user.findUnique({ where: { id: req.user.id }, select: { tokenBalance: true, name: true } }),
+      prisma.user.findUnique({ where: { id: req.user.id }, select: { tokenBalance: true, creditScore: true, name: true } }),
     ])
     if (!group) return res.status(404).json({ message: '群組不存在' })
     if (group.status !== 'recruiting') return res.status(400).json({ message: '此群組目前不開放申請' })
     if (group.hostId === req.user.id) return res.status(400).json({ message: '團主不能申請自己的群組' })
+
+    // 重新申請冷卻期：曾經被移出這個群組（團主移除或逾期自動踢除，兩者都是 status: 'removed'）
+    // 的話，24 小時內不能再申請同一個群組，避免搗蛋成員被踢除退款後立刻重新申請、無限循環卡流程；
+    // 自願退出（left）、被拒絕（rejected）、自行取消（cancelled）都不算濫用情境，不受此限
+    const lastRemoved = await prisma.application.findFirst({
+      where:   { groupId, userId: req.user.id, status: 'removed' },
+      orderBy: { updatedAt: 'desc' },
+    })
+    if (lastRemoved) {
+      const cooldownEnds = new Date(lastRemoved.updatedAt)
+      cooldownEnds.setHours(cooldownEnds.getHours() + 24)
+      if (cooldownEnds > new Date()) {
+        return res.status(400).json({
+          message: `你先前被移出這個群組，需等到 ${cooldownEnds.toISOString()} 才能重新申請`,
+          code:    'REAPPLY_COOLDOWN',
+          cooldownEnds: cooldownEnds.toISOString(),
+        })
+      }
+    }
+
+    if ((applicant?.creditScore ?? 0) < group.minCreditScore) {
+      return res.status(400).json({
+        message: `信用分數不足，此群組需 ${group.minCreditScore} 分以上（目前 ${applicant?.creditScore ?? 0} 分）`,
+        code:    'CREDIT_SCORE_TOO_LOW',
+        required: group.minCreditScore,
+      })
+    }
 
     // 友善預檢：先讀一次餘額給使用者明確的錯誤訊息，實際扣款仍靠下面 transaction 內的條件式 updateMany 把關
     const seatCost = computeSeatCost(group)

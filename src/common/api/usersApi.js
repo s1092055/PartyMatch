@@ -8,3 +8,7 @@ export async function getUserProfile(userId) {
 export async function findUserByEmail(email) {
   return client.get('/users', { params: { email } })
 }
+
+export async function fetchCreditHistory() {
+  return client.get('/users/me/credit-history')
+}

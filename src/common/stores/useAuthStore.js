@@ -185,8 +185,11 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-  // ── 調整信用分數（後端業務操作中自動處理，前端只需同步本地狀態）────────────
-  adjustCreditScore: async (_userId, _delta) => {
-    return null
+  // ── 信用分數（後端業務操作中自動處理，前端只需同步本地狀態）────────────────
+  refreshCreditScore: async () => {
+    try {
+      const user = await client.get('/auth/me')
+      set(s => (s.user ? { user: { ...s.user, creditScore: user.creditScore } } : {}))
+    } catch { /* silent */ }
   },
 }))

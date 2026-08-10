@@ -7,6 +7,7 @@ import { computeSeatCost } from '../utils/pricing.js'
 import { admitMemberIntoGroup, refundEscrow } from '../utils/membership.js'
 import { maskAvatar } from '../lib/avatarVisibility.js'
 import { notify, claimGroupStatus } from './groups/shared.js'
+import { adjustCreditScore } from '../utils/creditScore.js'
 
 const router = Router()
 
@@ -212,6 +213,10 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
         amount:  refundAmount,
         note:    isHost ? '被團主移除，代管退款' : '自行退出，代管退款',
       })
+      // 信用分數：只有團主主動移除才扣分，成員自願退出不算過失，不扣分
+      if (isHost) {
+        await adjustCreditScore(tx, { userId: existing.userId, delta: -10, reason: '被移除出群組', groupId: existing.groupId })
+      }
       // 退出（left）或被移除（removed）後釋放 activeKey，讓使用者可重新申請同一群組。
       // 成員的 userId 不會等於團主，isHost / isSelf 必為互斥，用 isHost 就能區分兩種情境
       await tx.application.updateMany({
