@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AlertCircle, Bell, CalendarClock, CheckCircle2, ClipboardEdit, MessageSquare, PlayCircle, UserPlus } from 'lucide-react'
+import { AlertCircle, Bell, CalendarClock, CheckCircle2, ClipboardEdit, MessageSquare, PlayCircle, Star, UserPlus } from 'lucide-react'
 import { Drawer, DrawerContent, DrawerHeader, DrawerFooter, DrawerTitle, DrawerDescription } from '../../components/ui/drawer'
 import { Button } from '../../components/ui/button'
 import { useAuthStore } from '../stores/useAuthStore'
@@ -88,6 +88,8 @@ const NOTIFICATION_META = {
   dispute_resolved_by_host: { icon: CheckCircle2, iconColor: 'text-info',    link: '/my-subscriptions' },
   billing_date_confirmed: { icon: CalendarClock, iconColor: 'text-brand',      link: '/my-subscriptions' },
   billing_date_adjusted:  { icon: CalendarClock, iconColor: 'text-warning-text', link: '/my-subscriptions' },
+  member_confirmed_service: { icon: CheckCircle2, iconColor: 'text-success',   link: '/manage-groups' },
+  group_reviewed:          { icon: Star,          iconColor: 'text-warning-text', link: '/manage-groups' },
   system:               { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/' },
   default:              { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/my-subscriptions' },
 }
@@ -341,6 +343,23 @@ export default function FloatingMessages() {
       ]).finally(() => {
         window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: gId } }))
       })
+      return
+    }
+
+    if (notification.type === 'member_confirmed_service' && notification.meta?.groupId) {
+      const gId = notification.meta.groupId
+      navigate('/manage-groups', { state: { openGroupId: gId } })
+      // 這則通知代表某成員的 confirmedAt 剛被寫入，本地 memberStore 快取還停在確認前的舊值
+      useMemberStore.getState().init().finally(() => {
+        window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: gId } }))
+      })
+      return
+    }
+
+    if (notification.type === 'group_reviewed' && notification.meta?.groupId) {
+      const gId = notification.meta.groupId
+      navigate('/manage-groups', { state: { openGroupId: gId } })
+      window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: gId } }))
       return
     }
 

@@ -16,6 +16,7 @@ export function buildCredentialsPanel({ group, viewerName, viewerAvatarInitial, 
 
   const credentialsBody = (
     <div className="p-5">
+      <p className="mb-2 flex items-center gap-1.5 text-base font-black text-ink"><KeyRound size={15} strokeWidth={1.5} />帳號資訊</p>
       {parsedCredentials ? (
         <CredentialWatermark viewerName={viewerName}>
           <dl className="space-y-1 rounded-lg border border-line bg-raised px-3 py-2.5">

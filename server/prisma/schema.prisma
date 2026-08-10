@@ -82,6 +82,8 @@ enum NotificationType {
   upcoming_renewal
   billing_date_confirmed
   billing_date_adjusted
+  member_confirmed_service
+  group_reviewed
   system
 }
 

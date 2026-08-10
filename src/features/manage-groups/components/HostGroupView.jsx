@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Banknote, CheckCircle2, ClipboardList, Clock, Info, KeyRound, LockKeyhole, MessageCircle, PlayCircle, RefreshCw, Trash2, Users } from 'lucide-react'
+import { Banknote, CheckCircle2, ClipboardList, Clock, Info, KeyRound, LockKeyhole, MessageCircle, PlayCircle, Trash2, Users } from 'lucide-react'
 import { Button } from '../../../components/ui/button'
 import ConfirmActionDialog from '../../../components/ui/ConfirmActionDialog'
 import CountdownText from '../../../components/ui/primitives/CountdownText'
@@ -286,6 +286,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
   const isCancelled = group.status === 'cancelled'
   // 成員評價要群組真的啟用過才會有資料，招募/處理中階段成員根本還沒用服務、不可能有評價
   const hasBeenActive = ['active', 'ended'].includes(group.status)
+  const showRenewal = group.status === 'active'
 
   // 審核紀錄要看得到成員最新的退出/移除狀態，點開當下重新拉一次申請資料，避免顯示舊快取
   function openReviewHistory() {
@@ -296,7 +297,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
   function buildSubPanel() {
     if (activePanel === 'members') return buildMembersPanel({ group, members, setActivePanel, onClose, setRemovingMember, setShowMemberReviews: () => setShowMemberReviews(true), showMemberReviewsButton: hasBeenActive })
     if (activePanel === 'applications') return buildApplicationsPanel({ pendingApps, groupFull, errors, onApprove, onReject, setActivePanel, setShowReviewHistory: openReviewHistory })
-    if (activePanel === 'billing') return buildBillingPanel({ members, transactions, transactionsLoading })
+    if (activePanel === 'billing') return buildBillingPanel({ members, transactions, transactionsLoading, showRenewal, onOpenRenewal, escrowTokens: group.escrowTokens })
     if (activePanel === 'memberInfo') {
       return buildMemberInfoPanel({
         groupId: group.id,
@@ -329,7 +330,6 @@ export default function HostGroupView({ group, members, applications, onReportSe
   }
 
   function renderSideBar() {
-    const showRenewal = group.status === 'active'
     return (
       <>
         <GroupModalSideBarItem active={activePanel === null} onClick={() => goToPanel(null)}>
@@ -380,14 +380,6 @@ export default function HostGroupView({ group, members, applications, onReportSe
           </GroupModalSideBarItem>
         ) : !isCancelled && (
           <>
-            {/* 續訂管理跟群組訊息都要黏在側邊欄最下方——兩個都設 pinned（md:mt-auto）的話，
-                CSS flexbox 的 auto margin 會把剩餘空間平分給兩者，變成中間有一大段空隙；
-                只在最後一個（群組訊息）留 pinned，續訂管理維持一般排列跟著它，才會真的貼在一起 */}
-            {showRenewal && (
-              <GroupModalSideBarItem onClick={() => onOpenRenewal?.()}>
-                <RefreshCw size={17} /> 續訂管理
-              </GroupModalSideBarItem>
-            )}
             <GroupModalSideBarItem
               pinned
               onClick={() => {

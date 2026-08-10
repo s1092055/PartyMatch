@@ -214,8 +214,15 @@ router.post('/:id/confirm', requireAuth, async (req, res, next) => {
       await adjustCreditScore(tx, { userId: member.userId, delta: 2, reason: '付款被團主確認', groupId: req.params.id })
     })
 
-    // 團主目前完全不會被通知有成員確認服務，先寫一則系統訊息讓團主至少能在聊天室看到進度
-    notifyGroupConversation(req.params.id, member.userId, `${member.user.name} 已確認服務正常。`).catch(console.error)
+    // 原本只寫一則群組聊天室的系統訊息（見下方 git blame），使用者反應這樣不會出現在通知中心、
+    // 團主不容易注意到，改成真正的 Notification，不再另外發群組訊息
+    notify({
+      userId:  group.hostId,
+      type:    'member_confirmed_service',
+      title:   '成員已確認服務正常',
+      message: `${member.user.name} 已確認「${groupLabel}」服務正常。`,
+      meta:    { groupId: req.params.id },
+    })
 
     // 確認全員是否都已確認（含剛才更新的成員）
     const updatedMembers = await prisma.member.findMany({ where: { groupId: req.params.id } })

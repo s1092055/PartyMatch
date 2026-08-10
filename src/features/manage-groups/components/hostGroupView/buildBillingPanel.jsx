@@ -1,12 +1,13 @@
-import { ArrowUpCircle, Banknote } from 'lucide-react'
+import { ArrowUpCircle, Banknote, RefreshCw } from 'lucide-react'
 import { Avatar } from '../../../../components/ui/avatar'
 import { PresenceDot } from '../../../../common/layout/components/navShared'
+import { Button } from '../../../../components/ui/button'
 import EmptyState from '../../../../components/ui/primitives/EmptyState'
 import EscrowStatusCard from '../../../../components/ui/EscrowStatusCard'
 import TokenAmount from '../../../../components/ui/TokenAmount'
 import { formatDateTime } from '../../../../common/utils/date'
 
-export function buildBillingPanel({ members, transactions, transactionsLoading }) {
+export function buildBillingPanel({ members, transactions, transactionsLoading, showRenewal, onOpenRenewal, escrowTokens }) {
   // release（撥款給團主本人）不屬於任何成員，獨立加總顯示在頂部摘要
   const releasedTotal = transactions
     .filter(tx => tx.type === 'release')
@@ -25,14 +26,21 @@ export function buildBillingPanel({ members, transactions, transactionsLoading }
   // 所以會連還在 pending、團主根本還沒按下「接受」的申請人代管金額都算進去。但「本期費用由平台
   // 代管中」這張卡片對團主來說的語意是「已經確定會加入、之後會撥款給我的錢」，只該算
   // 已經是成員的人，不然團主會看到一筆連自己都還沒審核完的申請金額，誤以為系統算錯
-  const memberEscrowTotal = members.reduce((sum, m) => {
-    const tx = latestEscrowByUserId[m.userId]
-    return sum + (tx ? Math.abs(tx.amount) : 0)
-  }, 0)
+  //
+  // 但這裡只靠交易紀錄算不出「這筆代管有沒有已經撥款過」——撥款當下只會多一筆團主自己的
+  // release 交易，成員自己的那筆 escrow 紀錄會永遠留在歷史裡，導致撥款後這張卡片還是會照樣
+  // 顯示出來，跟下面「已撥款給你的代管總額」同時出現、自相矛盾。escrowTokens 是後端在撥款/退款
+  // 當下就會歸零的即時餘額，用它當總開關：本期真的還有錢卡在代管才顯示這張卡片
+  const memberEscrowTotal = escrowTokens > 0
+    ? members.reduce((sum, m) => {
+        const tx = latestEscrowByUserId[m.userId]
+        return sum + (tx ? Math.abs(tx.amount) : 0)
+      }, 0)
+    : 0
 
   return {
     content: (
-      <div className="p-5">
+      <div className={`relative min-h-full p-5 ${showRenewal ? 'pb-16' : ''}`}>
         {transactionsLoading ? (
           <p className="py-8 text-center text-sm text-ink-3">載入中…</p>
         ) : members.length === 0 ? (
@@ -66,6 +74,16 @@ export function buildBillingPanel({ members, transactions, transactionsLoading }
               })}
             </div>
           </div>
+        )}
+        {showRenewal && (
+          <Button
+            variant="ghost"
+            onClick={() => onOpenRenewal?.()}
+            className="absolute bottom-4 right-4 h-9 shrink-0 rounded-lg border border-line bg-canvas px-3"
+          >
+            <RefreshCw size={14} strokeWidth={1.5} />
+            續訂服務
+          </Button>
         )}
       </div>
     ),

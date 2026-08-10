@@ -20,7 +20,7 @@ export function useVersionCheck() {
         const { buildId } = await res.json()
         if (buildId && buildId !== __APP_BUILD_ID__) {
           notified = true
-          toast('有新版本可用，重新整理即可更新', 'info', {
+          toast('有新版本可用，請重新整理', 'info', {
             persistent: true,
             action: { label: '重新整理', onClick: () => window.location.reload() },
           })

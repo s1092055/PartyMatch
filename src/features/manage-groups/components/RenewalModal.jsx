@@ -21,11 +21,11 @@ export default function RenewalModal({ isOpen, onClose, group, onStartRenewal, o
         <DialogHeader>
           <div className="flex min-w-0 items-center gap-2.5">
             <RefreshCw size={16} className="shrink-0 text-brand" />
-            <DialogTitle className="truncate text-base">續訂管理</DialogTitle>
+            <DialogTitle className="truncate text-base">續訂服務</DialogTitle>
           </div>
           <DialogCloseButton />
         </DialogHeader>
-        <DialogDescription>續訂管理</DialogDescription>
+        <DialogDescription>續訂服務</DialogDescription>
         <DialogBody>
       <div className="p-5">
         

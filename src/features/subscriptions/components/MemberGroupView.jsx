@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import {
-  Banknote, CheckCircle2, Clock, Info, LogOut, MessageCircle, Users, ClipboardEdit, ThumbsUp, AlertTriangle, KeyRound,
+  Banknote, CheckCircle2, Clock, Info, LogOut, MessageCircle, Users, ClipboardEdit, AlertTriangle, KeyRound,
 } from 'lucide-react'
 import { Avatar } from '../../../components/ui/avatar'
 import { PresenceDot } from '../../../common/layout/components/navShared'
 import { Button } from '../../../components/ui/button'
 import ConfirmActionDialog from '../../../components/ui/ConfirmActionDialog'
+import ConfirmServiceModal from './ConfirmServiceModal'
 import CountdownText from '../../../components/ui/primitives/CountdownText'
 import GroupModalShell from '../../../components/ui/group/GroupModalShell'
 import GroupModalSideBarItem from '../../../components/ui/group/GroupModalSideBarItem'
@@ -36,6 +37,8 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
   const [fillLoading, setFillLoading] = useState(false)
   const [confirmLoading, setConfirmLoading] = useState(false)
   const [confirmDialog, setConfirmDialog] = useState(false)
+  const [confirmServiceAgreed, setConfirmServiceAgreed] = useState(false)
+  const [confirmProfileName, setConfirmProfileName] = useState('')
   const [disputeReasons, setDisputeReasons] = useState([])
   const [disputeDetail, setDisputeDetail] = useState('')
   const [disputeLoading, setDisputeLoading] = useState(false)
@@ -113,8 +116,14 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
   async function handleConfirmService() {
     setConfirmLoading(true)
     try {
+      // 共用帳密的服務要先把成員自己填的 Profile 名稱存進 serviceInfo，再送出確認；
+      // 沿用 fillServiceInfo 既有的 PATCH /members/:id，不用另外開新的 API
+      if (isSharedCredentials && myMember) {
+        await fillServiceInfo(myMember.id, group.id, { ...myMember.serviceInfo, memberProfileName: confirmProfileName.trim() })
+      }
       const res = await confirmService(group.id)
       setConfirmDialog(false)
+      setConfirmServiceAgreed(false)
       if (res.released) {
         useSubscriptionStore.getState().init().catch(console.error)
         toast('確認完成，款項已撥付給團主！', 'success')
@@ -213,17 +222,16 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
   const confirmCta = canConfirm && (
     <div className="grid grid-cols-2 gap-2 p-2">
       <Button
-        variant="success"
-        onClick={() => setConfirmDialog(true)}
+        onClick={() => { setConfirmProfileName(myMember?.serviceInfo?.memberProfileName ?? ''); setConfirmDialog(true) }}
         disabled={confirmLoading}
         className="rounded-lg shadow-md"
       >
-        <ThumbsUp size={15} /> 確認服務
+        <CheckCircle2 size={15} /> 確認服務
       </Button>
       <Button
-        variant="ghost"
+        variant="destructive"
         onClick={() => { resetDisputeForm(); setShowDispute(true) }}
-        className="rounded-lg border border-danger text-danger hover:bg-danger-subtle"
+        className="rounded-lg shadow-md"
       >
         <AlertTriangle size={14} /> 回報問題
       </Button>
@@ -341,9 +349,11 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
 
   return (
     <>
-    {/* 填寫服務帳號／回報問題這兩個 sub-modal 開啟時，完全隱藏底下的群組詳情 modal，不是疊加半透明遮罩；
-        關閉 sub-modal 才重新顯示群組詳情，狀態（activePanel 等）都留在這個元件裡，不會重置 */}
-    {!showFillInfo && !showDispute && (
+    {/* 填寫服務帳號／回報問題／確認服務正常這三個 sub-modal 開啟時，完全隱藏底下的群組詳情 modal，
+        不是疊加半透明遮罩；確認服務正常改成跟團主端 ActivateServiceModal 同一套完整排版後，
+        也要比照辦理，不然兩層 Dialog 的背景遮罩會疊在一起；關閉 sub-modal 才重新顯示群組詳情，
+        狀態（activePanel 等）都留在這個元件裡，不會重置 */}
+    {!showFillInfo && !showDispute && !confirmDialog && (
     <GroupModalShell
       onClose={onClose}
       group={group}
@@ -484,12 +494,19 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
     />
 
     {confirmDialog && (
-      <ConfirmActionDialog
-        title="確認服務正常"
-        message={`確認「${group.serviceName}」服務已正常啟用？確認後款項將立即撥付給團主，此操作無法撤回。`}
-        confirmLabel="確認服務正常"
+      <ConfirmServiceModal
+        isOpen={confirmDialog}
+        onClose={() => { setConfirmDialog(false); setConfirmServiceAgreed(false) }}
         onConfirm={handleConfirmService}
-        onCancel={() => setConfirmDialog(false)}
+        group={group}
+        service={serviceDef}
+        plan={planDef}
+        sharingMethod={serviceDef?.sharingMethod}
+        profileName={confirmProfileName}
+        setProfileName={setConfirmProfileName}
+        confirmed={confirmServiceAgreed}
+        setConfirmed={setConfirmServiceAgreed}
+        loading={confirmLoading}
       />
     )}
 
