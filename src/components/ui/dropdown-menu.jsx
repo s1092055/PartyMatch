@@ -41,7 +41,7 @@ export function DropdownMenuContent({ className, sideOffset = 6, align = 'end', 
           // Dialog（panel 版）是 z-[65]，這個選單常常從 Dialog 內部的觸發點開，
           // 要比所有現有 Dialog variant 都高才不會被蓋住；max-h-72 跟 FilterSelect 的下拉
           // 清單同一個高度慣例，選項一多就用捲動而不是把選單整個拉得很長
-          'z-[80] min-w-40 max-h-72 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden animate-select-in rounded-lg border border-line bg-surface p-1 shadow-lg outline-none',
+          'z-[80] min-w-40 max-h-72 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden animate-select-in rounded-lg border border-line bg-surface p-1 outline-none',
           className
         )}
         {...props}
