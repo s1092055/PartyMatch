@@ -9,29 +9,40 @@ const LEGAL_LINKS = [
 
 export default function AppFooter() {
   return (
-    <footer className="border-t border-line bg-canvas px-5 pt-10 pb-20 md:pb-10">
-      <div className="mx-auto max-w-5xl flex flex-col items-center gap-5 md:flex-row md:justify-center md:gap-10">
+    // 分隔線的左右邊界要跟探索群組／收藏／我的訂閱／群組管理這幾個頁面的群組卡片列表切齊。
+    // border 是畫在元素自己的外緣，padding 不會把 border 往內推——所以不能用 padding 去湊寬度，
+    // 要直接複製出跟頁面內容一樣的巢狀 wrapper（AppLayout 那層 + 頁面自己那層，兩層都只用
+    // padding 讓子層的起始位置跟著內縮），border-t 畫在最內層、自己不再帶任何水平 padding，
+    // 這樣它的邊緣位置才會跟被兩層 padding 往內推過的群組卡片列表完全一樣
+    <footer className="bg-canvas pb-20 pt-10 md:pb-10">
+      <div className="mx-auto w-full max-w-7xl px-4 lg:max-w-[clamp(80rem,100vw,120rem)] lg:px-2">
+        <div className="px-2 md:px-4">
+          <div className="border-t border-line pt-10">
+            <div className="mx-auto flex max-w-5xl flex-col items-center gap-5 md:flex-row md:justify-center md:gap-10">
 
-        <div className="flex items-center gap-2.5">
-          <img src={logoUrl} alt="PartyMatch" className="h-7 w-7" />
-          <span className="font-extrabold">
-            <span className="text-brand">Party</span><span className="text-ink">Match</span>
-          </span>
+              <div className="flex items-center gap-2.5">
+                <img src={logoUrl} alt="PartyMatch" className="h-7 w-7" />
+                <span className="font-extrabold">
+                  <span className="text-brand">Party</span><span className="text-ink">Match</span>
+                </span>
+              </div>
+
+              <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+                {LEGAL_LINKS.map(({ to, label }) => (
+                  <Link
+                    key={to}
+                    to={to}
+                    className="text-xs font-medium text-ink-3 transition-colors hover:text-ink"
+                  >
+                    {label}
+                  </Link>
+                ))}
+              </nav>
+
+              <p className="text-xs text-ink-4">© 2026 PartyMatch</p>
+            </div>
+          </div>
         </div>
-
-        <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-          {LEGAL_LINKS.map(({ to, label }) => (
-            <Link
-              key={to}
-              to={to}
-              className="text-xs font-medium text-ink-3 transition-colors hover:text-ink"
-            >
-              {label}
-            </Link>
-          ))}
-        </nav>
-
-        <p className="text-xs text-ink-4">© 2026 PartyMatch</p>
       </div>
     </footer>
   )

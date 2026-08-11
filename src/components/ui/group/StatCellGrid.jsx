@@ -2,7 +2,7 @@ export function StatCell({ label, children, onClick, highlight }) {
   const content = (
     <div className="flex min-w-0 flex-col items-center gap-0.5 py-2.5 text-center">
       <span className="max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-2xs font-bold text-ink-3">{label}</span>
-      <span className={`max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-sm font-black leading-tight ${highlight ?? 'text-ink'}`}>{children}</span>
+      <span className={`max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-xs font-black leading-tight ${highlight ?? 'text-ink'}`}>{children}</span>
     </div>
   )
   if (onClick) {

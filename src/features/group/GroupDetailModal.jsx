@@ -307,7 +307,7 @@ export default function GroupDetailModal() {
           className="flex gap-3 overflow-x-auto px-2 pb-4 pt-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {picks.map(g => (
-            <div key={g.id} className="w-64 shrink-0">
+            <div key={g.id} className="w-96 shrink-0">
               <ExploreGroupCard group={g} isApplied={appliedGroupIds.has(g.id)} isMember={memberGroupIds.has(g.id)} />
             </div>
           ))}

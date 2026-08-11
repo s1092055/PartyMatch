@@ -4,6 +4,7 @@ import FavoriteToggleButton from '../../../components/ui/FavoriteToggleButton'
 import { StatusBadge } from '../../../components/ui/StatusBadge'
 import { getStatusLabel } from '../../../components/ui/statusBadgeConfig'
 import { Card } from '../../../components/ui/card'
+import { Button } from '../../../components/ui/button'
 import { Progress } from '../../../components/ui/progress'
 import GroupCardHeader from '../../../components/ui/group/GroupCardHeader'
 import { StatCell, StatCellGrid } from '../../../components/ui/group/StatCellGrid'
@@ -115,11 +116,21 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
         )}
       />
 
-      <StatCellGrid>
-        <StatCell label="團主">{group.hostName ?? '—'}</StatCell>
-        <StatCell label="建立日期">{group.createdAt ?? '—'}</StatCell>
-        <StatCell label="信用分數"><CreditScoreValue score={group.minCreditScore} /></StatCell>
-      </StatCellGrid>
+      <div className="mx-6">
+        <StatCellGrid>
+          <StatCell label="團主">{group.hostName ?? '—'}</StatCell>
+          <StatCell label="建立日期">{group.createdAt ?? '—'}</StatCell>
+          <StatCell label="信用分數"><CreditScoreValue score={group.minCreditScore} /></StatCell>
+        </StatCellGrid>
+      </div>
+
+      {!hideActions && (
+        <div className="mx-6 mt-auto pt-5">
+          <Button onClick={openDetails} className="w-full">
+            查看詳情
+          </Button>
+        </div>
+      )}
     </Card>
   )
 }

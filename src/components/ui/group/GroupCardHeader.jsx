@@ -23,14 +23,14 @@ export default function GroupCardHeader({
       <div className="mt-3 text-center">
         <h2 className="text-xl font-black leading-tight text-ink">{serviceName}</h2>
         <p className="mt-1 text-sm font-semibold text-ink-3">{planName}</p>
-        <p className="mt-1 text-base font-extrabold text-ink">
+        <p className="mt-1 text-xl font-extrabold text-ink">
           <TokenAmount amount={calcDisplayPrice(pricePerSeat, billingCycle)} unit="/位" />
         </p>
       </div>
 
       {belowPrice && <div className="mt-3">{belowPrice}</div>}
 
-      <div className="my-4 border-t border-line-subtle" />
+      <div className={`my-4 border-t border-line-subtle ${belowPrice ? 'mx-6' : ''}`} />
     </>
   )
 }

@@ -11,15 +11,14 @@ import SubscriptionCard from './components/SubscriptionCard'
 import EmptyState from '../../components/ui/primitives/EmptyState'
 import { StatusBadge } from '../../components/ui/StatusBadge'
 import GroupViewModal from '../../components/ui/group/GroupViewModal'
+import { StatCell, StatCellGrid } from '../../components/ui/group/StatCellGrid'
 import TokenAmount from '../../components/ui/TokenAmount'
 import FilterTabsBar from '../../components/ui/FilterTabsBar'
 import ServiceLogo from '../../components/ui/ServiceLogo'
 import { Button } from '../../components/ui/button'
 import { Card } from '../../components/ui/card'
 import RevealSection from '../../components/ui/primitives/RevealSection'
-import ScrollHint from '../../components/ui/primitives/ScrollHint'
 import { toISODate } from '../../common/utils/date'
-import { useScrollEdge } from '../../common/utils/hooks'
 import { calcDisplayPrice, calcDisplayCycle } from '../../common/utils/pricingUtils'
 import { FILTER_TABS, subscriptionBucket } from './utils/memberFilters'
 import { isHistorySubscription } from '../../common/utils/groupStatusDisplay'
@@ -79,7 +78,6 @@ export default function SubscriptionsPage() {
   const subscriptionsState = useSubscriptionStore(s => s.subscriptions)
   const groupsState        = useGroupStore(s => s.groups)
   const applicationsState  = useApplicationStore(s => s.applications)
-  const { scrollRef: listScrollRef, canScroll: listCanScroll, atBottom: listAtBottom, isScrolling: listIsScrolling, handleScroll: handleListScroll } = useScrollEdge()
   const [activeTab, setActiveTab] = useState(() => location.state?.tab ?? 'recruiting')
   const membersState = useMemberStore(s => s.members)
   const subs = useMemo(
@@ -164,7 +162,7 @@ export default function SubscriptionsPage() {
         counts={filterCounts}
       />
 
-      <div className="group relative min-w-0">
+      <div className="min-w-0">
         {(() => {
           const showApplications = activeTab === 'processing'
           const visibleApplications = showApplications ? pendingApplications : []
@@ -185,38 +183,31 @@ export default function SubscriptionsPage() {
           }
 
           return (
-            <div
-              ref={listScrollRef}
-              onScroll={handleListScroll}
-              className="p-2 lg:max-h-[calc(100dvh-16rem)] lg:overflow-y-auto lg:[scrollbar-width:none] lg:[&::-webkit-scrollbar]:hidden"
-            >
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {visibleApplications.map((app, i) => {
-                  const group = getGroupById(app.groupId)
-                  if (!group) return null
-                  return (
-                    <RevealSection key={app.id} delay={i * 60}>
-                      <ApplicationCard
-                        app={app}
-                        group={group}
-                        onViewGroup={() => window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: app.groupId } }))}
-                      />
-                    </RevealSection>
-                  )
-                })}
-                {filtered.map((sub, i) => (
-                  <RevealSection key={sub.id} delay={(visibleApplications.length + i) * 60}>
-                    <SubscriptionCard
-                      sub={sub}
-                      onViewGroup={onViewGroup}
+            <div className="grid grid-cols-1 gap-3 p-2 md:grid-cols-2 xl:grid-cols-3">
+              {visibleApplications.map((app, i) => {
+                const group = getGroupById(app.groupId)
+                if (!group) return null
+                return (
+                  <RevealSection key={app.id} delay={i * 60}>
+                    <ApplicationCard
+                      app={app}
+                      group={group}
+                      onViewGroup={() => window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: app.groupId } }))}
                     />
                   </RevealSection>
-                ))}
-              </div>
+                )
+              })}
+              {filtered.map((sub, i) => (
+                <RevealSection key={sub.id} delay={(visibleApplications.length + i) * 60}>
+                  <SubscriptionCard
+                    sub={sub}
+                    onViewGroup={onViewGroup}
+                  />
+                </RevealSection>
+              ))}
             </div>
           )
         })()}
-        <ScrollHint canScroll={listCanScroll} atBottom={listAtBottom} isScrolling={listIsScrolling} />
       </div>
 
       <GroupViewModal
@@ -277,20 +268,11 @@ function ApplicationCard({ app, group, onViewGroup }) {
 
       <div className="my-4 border-t border-line-subtle" />
 
-      <div className="grid grid-cols-3 divide-x divide-line-subtle rounded-lg border border-line-subtle">
-        <div className="flex flex-col items-center gap-0.5 py-2.5 text-center">
-          <span className="text-2xs font-bold text-ink-3">團主</span>
-          <span className="text-sm font-black leading-tight text-ink">{app.hostName ?? '—'}</span>
-        </div>
-        <div className="flex flex-col items-center gap-0.5 py-2.5 text-center">
-          <span className="text-2xs font-bold text-ink-3">群組狀態</span>
-          <span className="text-sm font-black leading-tight text-warning-text">審核中</span>
-        </div>
-        <div className="flex flex-col items-center gap-0.5 py-2.5 text-center">
-          <span className="text-2xs font-bold text-ink-3">申請日期</span>
-          <span className="text-sm font-black leading-tight text-ink">{toISODate(app.createdAt)}</span>
-        </div>
-      </div>
+      <StatCellGrid>
+        <StatCell label="團主">{app.hostName ?? '—'}</StatCell>
+        <StatCell label="群組狀態" highlight="text-warning-text">審核中</StatCell>
+        <StatCell label="申請日期">{toISODate(app.createdAt)}</StatCell>
+      </StatCellGrid>
 
       <div className="mt-auto pt-5">
         <Button onClick={e => { e.stopPropagation(); onViewGroup?.() }} className="w-full">
