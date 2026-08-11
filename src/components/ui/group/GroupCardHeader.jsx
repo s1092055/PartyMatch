@@ -24,7 +24,7 @@ export default function GroupCardHeader({
         <h2 className="text-xl font-black leading-tight text-ink">{serviceName}</h2>
         <p className="mt-1 text-sm font-semibold text-ink-3">{planName}</p>
         <p className="mt-1 text-xl font-extrabold text-ink">
-          <TokenAmount amount={calcDisplayPrice(pricePerSeat, billingCycle)} unit="/位" />
+          <TokenAmount amount={calcDisplayPrice(pricePerSeat, billingCycle)} unit="/ 位" />
         </p>
       </div>
 

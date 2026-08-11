@@ -19,16 +19,14 @@ const RANK_BADGE_STYLES = [
 ]
 
 // 剩餘名額改成卡片下方全寬顯示（不是三格裡的其中一格）：左邊數字隨額滿程度變色，
-// 「/ 總名額」維持中性灰，下面搭一條同色的進度條。標籤跟數值都套用跟 StatCell 一樣的
-// 三欄置中版位（左欄置中對齊團主、右欄置中對齊信用分數），單純用 justify-between 的話
-// 文字會貼齊卡片邊緣，跟下面置中在各自欄位裡的團主／信用分數文字對不齊
+// 「/ 總名額」維持中性灰，下面搭一條同色的進度條。標籤跟數值左右兩側切齊進度條本身的
+// 左右邊界（同樣的 mx-2），不是置中在各自欄位裡
 function SeatSummary({ openSeats, totalSeats, usedSeats, isLastSeat }) {
   if (totalSeats == null) {
     return (
-      <div className="grid grid-cols-3 items-baseline">
-        <p className="text-center text-xs font-bold text-ink-3">剩餘名額</p>
-        <span />
-        <p className="text-center text-sm font-semibold text-ink-4">尚未設定</p>
+      <div className="mx-2 flex items-baseline justify-between">
+        <p className="text-xs font-bold text-ink-3">剩餘名額</p>
+        <p className="text-sm font-semibold text-ink-4">尚未設定</p>
       </div>
     )
   }
@@ -38,10 +36,9 @@ function SeatSummary({ openSeats, totalSeats, usedSeats, isLastSeat }) {
 
   return (
     <div>
-      <div className="grid grid-cols-3 items-baseline">
-        <p className="text-center text-xs font-bold text-ink-3">剩餘名額</p>
-        <span />
-        <p className="text-center text-sm font-black">
+      <div className="mx-2 flex items-baseline justify-between">
+        <p className="text-xs font-bold text-ink-3">剩餘名額</p>
+        <p className="text-sm font-black">
           {isFull ? (
             <span className="text-ink-3">{getStatusLabel('full')}</span>
           ) : (
