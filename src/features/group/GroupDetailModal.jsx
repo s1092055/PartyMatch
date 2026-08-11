@@ -42,8 +42,10 @@ export default function GroupDetailModal() {
   const [picksAtEnd, setPicksAtEnd]     = useState(true)
 
   function measurePicksScroll(el) {
+    // scrollWidth <= clientWidth 只代表「內容本身沒有超出容器」，不代表「目前已經捲到底」，
+    // 要看目前捲動位置 + 容器寬度是否已經到達內容總寬度，右箭頭才會在捲到最後一張時正確消失
     setPicksAtStart(el.scrollLeft <= 0)
-    setPicksAtEnd(el.scrollWidth <= el.clientWidth + 1)
+    setPicksAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 1)
   }
 
   // 用 callback ref 而不是 useRef + useEffect：GroupModalShell 外層的 Dialog 進場動畫會讓
@@ -63,8 +65,11 @@ export default function GroupDetailModal() {
     picksObserverRef.current = observer
   }
 
-  function scrollPicks(delta) {
-    picksScrollRef.current?.scrollBy({ left: delta, behavior: 'smooth' })
+  // 一次只顯示一張卡片，直接用容器寬度（= 卡片寬度）當作捲動步進，不用寫死的像素值
+  function scrollPicks(direction) {
+    const el = picksScrollRef.current
+    if (!el) return
+    el.scrollBy({ left: direction * el.clientWidth, behavior: 'smooth' })
   }
 
   function handlePicksScroll(e) {
@@ -294,9 +299,9 @@ export default function GroupDetailModal() {
         {!picksAtStart && (
           <button
             type="button"
-            onClick={() => scrollPicks(-280)}
+            onClick={() => scrollPicks(-1)}
             aria-label="往左看更多"
-            className="absolute left-2 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-line bg-canvas text-ink-3 shadow-md transition-colors hover:bg-raised hover:text-ink can-hover:grid"
+            className="absolute left-0 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-line bg-canvas text-ink-3 shadow-md transition-colors hover:bg-raised hover:text-ink can-hover:grid"
           >
             <ChevronLeft size={16} strokeWidth={1.5} />
           </button>
@@ -304,10 +309,10 @@ export default function GroupDetailModal() {
         <div
           ref={picksScrollCallbackRef}
           onScroll={handlePicksScroll}
-          className="flex gap-3 overflow-x-auto px-2 pb-4 pt-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-2 pb-4 pt-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {picks.map(g => (
-            <div key={g.id} className="w-96 shrink-0">
+            <div key={g.id} className="w-full shrink-0 snap-center">
               <ExploreGroupCard group={g} isApplied={appliedGroupIds.has(g.id)} isMember={memberGroupIds.has(g.id)} />
             </div>
           ))}
@@ -315,9 +320,9 @@ export default function GroupDetailModal() {
         {!picksAtEnd && (
           <button
             type="button"
-            onClick={() => scrollPicks(280)}
+            onClick={() => scrollPicks(1)}
             aria-label="往右看更多"
-            className="absolute right-2 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-line bg-canvas text-ink-3 shadow-md transition-colors hover:bg-raised hover:text-ink can-hover:grid"
+            className="absolute right-0 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-line bg-canvas text-ink-3 shadow-md transition-colors hover:bg-raised hover:text-ink can-hover:grid"
           >
             <ChevronRight size={16} strokeWidth={1.5} />
           </button>
