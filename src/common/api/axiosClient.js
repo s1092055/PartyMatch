@@ -1,7 +1,8 @@
 import axios from 'axios'
 
 // ── Token helpers ──────────────────────────────────────────────────────────────
-// 集中管理 token 存取，方便日後換成 httpOnly cookie 只改這一處。
+// access token 存 localStorage 沒問題（存活期短、只有 15 分鐘）；
+// refresh token 已改存 HttpOnly Cookie（見下方 refreshAccessToken），這裡不再管它
 export const tokenManager = {
   get:    ()          => localStorage.getItem('pm_access_token'),
   set:    (token)     => { localStorage.setItem('pm_access_token', token); scheduleProactiveRefresh(token) },
@@ -35,10 +36,13 @@ function scheduleProactiveRefresh(token) {
 }
 
 // ── Axios instance ─────────────────────────────────────────────────────────────
+// withCredentials：refresh token 改存 HttpOnly Cookie，跨請求靠瀏覽器自動帶上，
+// 前端完全碰不到也存取不到這個 token 的內容
 const client = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3001/api',
-  timeout: 15_000,
-  headers: { 'Content-Type': 'application/json' },
+  baseURL:         import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3001/api',
+  timeout:         15_000,
+  headers:         { 'Content-Type': 'application/json' },
+  withCredentials: true,
 })
 
 // Request：自動帶入 JWT
@@ -66,32 +70,21 @@ async function refreshAccessToken() {
     return new Promise((resolve, reject) => { _refreshQueue.push({ resolve, reject }) })
   }
 
-  const refreshToken = localStorage.getItem('pm_refresh_token')
-  if (!refreshToken) {
-    const err = new Error('登入已過期，請重新登入')
-    tokenManager.remove()
-    localStorage.removeItem('pm_refresh_token')
-    window.location.replace('/login')
-    throw err
-  }
-
   _isRefreshing = true
   try {
-    const { accessToken, refreshToken: newRefreshToken } = await axios.post(
+    // refresh token 存在 HttpOnly Cookie，瀏覽器會自動帶上（withCredentials），
+    // 前端不需要也拿不到它的值；後端 rotate 後也是直接覆寫 Set-Cookie，不必手動同步
+    const { accessToken } = await axios.post(
       `${client.defaults.baseURL}/auth/refresh`,
-      { refreshToken },
+      {},
+      { withCredentials: true },
     ).then(r => r.data)
     tokenManager.set(accessToken)
-    // 後端會 rotate refresh token（每次 refresh 都作廢舊的、發一個新的），
-    // 這裡沒同步更新的話，下一次 access token 過期時舊 refresh token 早就
-    // 在 Redis 裡被覆蓋掉，refresh 會直接 401 把使用者強制登出
-    if (newRefreshToken) localStorage.setItem('pm_refresh_token', newRefreshToken)
     processQueue(null, accessToken)
     return accessToken
   } catch (refreshErr) {
     processQueue(refreshErr)
     tokenManager.remove()
-    localStorage.removeItem('pm_refresh_token')
     window.location.replace('/login')
     throw refreshErr
   } finally {

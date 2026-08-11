@@ -23,6 +23,28 @@ const loginSchema = z.object({
   password: z.string().min(1),
 })
 
+// refresh token 改存 HttpOnly Cookie（不再放進 response body 讓前端存 localStorage），
+// path 限縮在 /api/auth，Cookie 不會隨其他 API 請求一起送出，縮小暴露面
+const REFRESH_COOKIE_NAME    = 'pm_refresh_token'
+const REFRESH_COOKIE_PATH    = '/api/auth'
+const REFRESH_COOKIE_MAX_AGE = 1000 * 60 * 60 * 24 * 7 // 7 天，跟 Redis TTL 一致
+
+function setRefreshCookie(res, token) {
+  res.cookie(REFRESH_COOKIE_NAME, token, {
+    httpOnly: true,
+    // 本機開發是 http://localhost，並非所有瀏覽器都把 localhost 視為 Secure cookie 的例外，
+    // 開發模式仍用 Secure 的話該 Cookie 會被靜默丟棄，導致每 15 分鐘（access token 效期）強制登出一次
+    secure:   process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path:     REFRESH_COOKIE_PATH,
+    maxAge:   REFRESH_COOKIE_MAX_AGE,
+  })
+}
+
+export function clearRefreshCookie(res) {
+  res.clearCookie(REFRESH_COOKIE_NAME, { path: REFRESH_COOKIE_PATH })
+}
+
 // POST /auth/register
 router.post('/register', validate(registerSchema), async (req, res, next) => {
   try {
@@ -50,7 +72,8 @@ router.post('/register', validate(registerSchema), async (req, res, next) => {
     const refreshToken = signRefreshToken({ id: user.id, sessionId })
     await saveRefreshToken(user.id, sessionId, refreshToken)
 
-    res.status(201).json({ user, accessToken, refreshToken })
+    setRefreshCookie(res, refreshToken)
+    res.status(201).json({ user, accessToken })
   } catch (err) { next(err) }
 })
 
@@ -80,14 +103,15 @@ router.post('/login', validate(loginSchema), async (req, res, next) => {
     await saveRefreshToken(user.id, sessionId, refreshToken)
 
     const { passwordHash: _, ...safeUser } = user
-    res.json({ user: safeUser, accessToken, refreshToken })
+    setRefreshCookie(res, refreshToken)
+    res.json({ user: safeUser, accessToken })
   } catch (err) { next(err) }
 })
 
 // POST /auth/refresh
 router.post('/refresh', async (req, res) => {
   try {
-    const { refreshToken } = req.body
+    const refreshToken = req.cookies?.[REFRESH_COOKIE_NAME]
     if (!refreshToken) return res.status(401).json({ message: '缺少 refresh token' })
 
     const payload = verifyRefreshToken(refreshToken)
@@ -115,7 +139,8 @@ router.post('/refresh', async (req, res) => {
     await saveRefreshToken(user.id, sessionId, newRefresh)
     if (isLegacyToken) await redis.del(sessionRefreshKey(user.id, null))
 
-    res.json({ accessToken: newAccess, refreshToken: newRefresh })
+    setRefreshCookie(res, newRefresh)
+    res.json({ accessToken: newAccess })
   } catch {
     res.status(401).json({ message: 'Refresh token 無效或已過期' })
   }
@@ -125,6 +150,7 @@ router.post('/refresh', async (req, res) => {
 router.post('/logout', requireAuth, async (req, res, next) => {
   try {
     await redis.del(sessionRefreshKey(req.user.id, req.user.sessionId))
+    clearRefreshCookie(res)
     res.json({ message: '已登出' })
   } catch (err) { next(err) }
 })

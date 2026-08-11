@@ -113,9 +113,8 @@ export const useAuthStore = create((set, get) => ({
   // ── 登入 ────────────────────────────────────────────────────────────────────
   login: async ({ email, password }) => {
     try {
-      const { user, accessToken, refreshToken } = await client.post('/auth/login', { email, password })
+      const { user, accessToken } = await client.post('/auth/login', { email, password })
       tokenManager.set(accessToken)
-      if (refreshToken) localStorage.setItem('pm_refresh_token', refreshToken)
       set({ user, loggedIn: true })
       await initPrivateStores(user.id)
       return { ok: true, user }
@@ -127,9 +126,8 @@ export const useAuthStore = create((set, get) => ({
   // ── 註冊 ────────────────────────────────────────────────────────────────────
   register: async ({ name, email, password, phone }) => {
     try {
-      const { user, accessToken, refreshToken } = await client.post('/auth/register', { name, email, password, phone })
+      const { user, accessToken } = await client.post('/auth/register', { name, email, password, phone })
       tokenManager.set(accessToken)
-      if (refreshToken) localStorage.setItem('pm_refresh_token', refreshToken)
       set({ user, loggedIn: true })
       await initPrivateStores(user.id)
       return { ok: true, user }
@@ -142,7 +140,6 @@ export const useAuthStore = create((set, get) => ({
   logout: async () => {
     try { await client.post('/auth/logout') } catch { /* ignore */ }
     tokenManager.remove()
-    localStorage.removeItem('pm_refresh_token')
     set({ user: null, loggedIn: false })
     // 清空所有私人 store 狀態，避免下一個用戶看到舊資料
     clearPrivateStores().catch(console.error)
@@ -153,7 +150,6 @@ export const useAuthStore = create((set, get) => ({
     try {
       await client.post('/users/me/deactivate', { password })
       tokenManager.remove()
-      localStorage.removeItem('pm_refresh_token')
       set({ user: null, loggedIn: false })
       clearPrivateStores().catch(console.error)
       return { ok: true }

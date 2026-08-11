@@ -4,7 +4,7 @@ import { z } from 'zod'
 import prisma from '../lib/prisma.js'
 import { requireAuth, requireAdmin } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
-import { deleteAllUserSessions } from './auth.js'
+import { deleteAllUserSessions, clearRefreshCookie } from './auth.js'
 import { maskAvatar } from '../lib/avatarVisibility.js'
 
 const router = Router()
@@ -93,6 +93,7 @@ router.post('/me/deactivate', requireAuth, validate(deactivateSchema), async (re
 
     await prisma.user.update({ where: { id: user.id }, data: { deactivatedAt: new Date() } })
     await deleteAllUserSessions(user.id)
+    clearRefreshCookie(res)
 
     res.json({ message: '帳號已停用' })
   } catch (err) { next(err) }

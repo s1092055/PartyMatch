@@ -20,7 +20,7 @@
 
 ## 部署
 
-前端：Cloudflare Workers（靜態資源＋SPA fallback）。後端：Render（長駐 Node process，非 serverless，因為架構用了持續連線的 Redis 與 polling）。資料庫：MySQL 相容的雲端服務。Redis：雲端代管服務。圖片上傳：Cloudflare R2。
+前端：Cloudflare Workers（靜態資源＋SPA fallback，同時反向代理 API 請求到後端，讓瀏覽器眼中前後端是同一個 origin，避免登入憑證需要跨網域 Cookie）。後端：Render（長駐 Node process，非 serverless，因為架構用了持續連線的 Redis 與 polling）。資料庫：MySQL 相容的雲端服務。Redis：雲端代管服務。圖片上傳：Cloudflare R2。
 
 ## 待完成項目
 
