@@ -101,14 +101,17 @@ export default function GroupDetailModal() {
   }, [])
 
   // 未登入點「登入以加入群組」導去 /login，登入/註冊成功後導回原本頁面時直接帶著
-  // { openGroupId } 一起 navigate；比起再送一次 pm:open-group 事件更可靠——這個元件常常是透過
+  // { reopenGroupModalId } 一起 navigate；比起再送一次 pm:open-group 事件更可靠——這個元件常常是透過
   // lazy() 動態載入（見 AppLayout／QuickMatchPage），剛掛載回來的當下監聽器不一定已經接上，
   // 用 location.state 才能保證掛載當下就讀得到，不會有時機競爭問題。讀取後立刻用 replace 清掉
-  // state，避免使用者之後在同一頁面內部導頁時又被重複觸發打開
+  // state，避免使用者之後在同一頁面內部導頁時又被重複觸發打開。
+  // 這個元件是全域掛載（AppLayout），不限頁面地監聽這個 state，欄位名稱不能跟 FloatingMessages.jsx
+  // 通知點擊導去 /manage-groups、/my-subscriptions 帶的 openGroupId 撞名，否則會同時誤開這裡的
+  // modal，變成疊兩層群組詳情 modal
   useEffect(() => {
-    if (location.state?.openGroupId) {
+    if (location.state?.reopenGroupModalId) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setGroupId(location.state.openGroupId)
+      setGroupId(location.state.reopenGroupModalId)
       resetApply()
       navigate(location.pathname + location.search, { replace: true, state: null })
     }
@@ -269,7 +272,7 @@ export default function GroupDetailModal() {
   }
   function toggleFav() {
     if (activeUserId) useFavoriteStore.getState().toggle(activeUserId, group.id)
-    else navigate('/login', { state: { from: location.pathname + location.search, openGroupId: group.id } })
+    else navigate('/login', { state: { from: location.pathname + location.search, reopenGroupModalId: group.id } })
   }
 
   // 已經是成員時，不管從哪個入口（探索頁、訊息、儲值紀錄…）打開群組詳情，
@@ -345,7 +348,7 @@ export default function GroupDetailModal() {
     setShowMembers, setLeaveConfirm, onApplyClick: handleApplyClick, toggleFav,
     padded: !showDesktopAside,
     squareFavorite: showDesktopAside,
-    redirectAfterLogin: { from: location.pathname + location.search, openGroupId: group.id },
+    redirectAfterLogin: { from: location.pathname + location.search, reopenGroupModalId: group.id },
   })
 
   return (

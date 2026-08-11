@@ -56,9 +56,9 @@ export default function RegisterPage() {
       setError(result.error)
       return
     }
-    const { from, openGroupId } = location.state ?? {}
-    if (openGroupId) {
-      navigate(from || '/', { replace: true, state: { openGroupId } })
+    const { from, reopenGroupModalId } = location.state ?? {}
+    if (reopenGroupModalId) {
+      navigate(from || '/', { replace: true, state: { reopenGroupModalId } })
     } else {
       navigate('/', { replace: true })
     }
