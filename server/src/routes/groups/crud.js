@@ -5,19 +5,20 @@ import { requireAuth, optionalAuth } from '../../middleware/auth.js'
 import { validate } from '../../middleware/validate.js'
 import { notify } from './shared.js'
 import { maskAvatar } from '../../lib/avatarVisibility.js'
-import { computeSeatCost } from '../../utils/pricing.js'
+import { computeSeatCost, toPlainGroup } from '../../utils/pricing.js'
 import { refundEscrow } from '../../utils/membership.js'
 import { adjustCreditScore } from '../../utils/creditScore.js'
 
 const router = Router()
 
-// 群組物件裡的 host / members[].user 都是「別人」看得到的資料，統一在這裡套用大頭照遮罩
+// 群組物件裡的 host / members[].user 都是「別人」看得到的資料，統一在這裡套用大頭照遮罩，
+// 順便把 Decimal 型別的 monthlyFee 轉回 number（見 toPlainGroup）
 function maskGroupAvatars(group) {
-  return {
+  return toPlainGroup({
     ...group,
     ...(group.host && { host: maskAvatar(group.host) }),
     ...(group.members && { members: group.members.map(m => ({ ...m, user: maskAvatar(m.user) })) }),
-  }
+  })
 }
 
 const createGroupSchema = z.object({
@@ -270,7 +271,7 @@ router.patch('/:id', requireAuth, validate(updateGroupSchema), async (req, res, 
       })
     }
 
-    res.json(updated)
+    res.json(toPlainGroup(updated))
   } catch (err) { next(err) }
 })
 

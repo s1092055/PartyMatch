@@ -162,7 +162,8 @@ model Group {
   status          GroupStatus @default(recruiting)
   maxMembers      Int
   currentMembers  Int         @default(0)
-  monthlyFee      Float
+  // 兩位小數（分）已足夠涵蓋台幣與美金匯率換算後的定價，Decimal 避免 Float 二進位浮點誤差
+  monthlyFee      Decimal     @db.Decimal(10, 2)
   currency        String      @default("TWD")
   rules           String?
   tags            Json        @default("[]")

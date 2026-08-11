@@ -3,7 +3,7 @@ import { z } from 'zod'
 import prisma from '../../lib/prisma.js'
 import { requireAuth, requireAdmin } from '../../middleware/auth.js'
 import { validate } from '../../middleware/validate.js'
-import { computeSeatCost } from '../../utils/pricing.js'
+import { computeSeatCost, toPlainGroup } from '../../utils/pricing.js'
 import { notify, notifyGroupConversation, claimGroupStatus } from './shared.js'
 import { maskAvatar } from '../../lib/avatarVisibility.js'
 import { rejectPendingApplications } from '../../utils/membership.js'
@@ -12,7 +12,7 @@ import { adjustCreditScore } from '../../utils/creditScore.js'
 const router = Router()
 
 function maskGroupHost(group) {
-  return group?.host ? { ...group, host: maskAvatar(group.host) } : group
+  return toPlainGroup(group?.host ? { ...group, host: maskAvatar(group.host) } : group)
 }
 
 const disputeSchema = z.object({
@@ -372,7 +372,7 @@ router.post('/:id/dispute', requireAuth, validate(disputeSchema), async (req, re
       },
     }).catch(console.error)
 
-    res.json(updated)
+    res.json(toPlainGroup(updated))
   } catch (err) { next(err) }
 })
 
@@ -447,7 +447,7 @@ router.post('/:id/resolve-dispute', requireAuth, validate(resolveDisputeSchema),
       },
     }).catch(console.error)
 
-    res.json(updated)
+    res.json(toPlainGroup(updated))
   } catch (err) { next(err) }
 })
 
@@ -624,7 +624,7 @@ router.post('/:id/lock', requireAuth, async (req, res, next) => {
       })
     })
 
-    res.json(updated)
+    res.json(toPlainGroup(updated))
   } catch (err) { next(err) }
 })
 
