@@ -7,7 +7,7 @@ function uniqueEmail() {
   return `test-${Date.now()}-${counter}@partymatch.test`
 }
 
-export async function createUser({ tokenBalance = 0, name = '測試使用者' } = {}) {
+export async function createUser({ tokenBalance = 0, name = '測試使用者', isAdmin = false } = {}) {
   const user = await prisma.user.create({
     data: {
       email:        uniqueEmail(),
@@ -15,6 +15,7 @@ export async function createUser({ tokenBalance = 0, name = '測試使用者' } 
       name,
       phone:        '+886900000000',
       tokenBalance,
+      isAdmin,
     },
   })
   return user

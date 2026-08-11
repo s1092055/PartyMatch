@@ -17,7 +17,7 @@
 - `npm run lint`：ESLint 檢查
 - Prisma：本專案用 `db push` 同步 schema，沒有維護 migration 歷史
 - 另外有整理測試資料用的 seed / 清空腳本，供本機開發與展示環境重置使用
-- `npm test`（後端）：Vitest + Supertest 打真實 Express app + 獨立的測試資料庫，目前涵蓋群組生命週期（申請 → 審核 → 鎖定 → 啟用 → 確認 → 撥款）這條牽涉狀態機與金流的核心路徑
+- `npm test`（後端）：Vitest + Supertest 打真實 Express app + 獨立的測試資料庫，涵蓋群組生命週期主線（申請 → 審核 → 鎖定 → 啟用 → 確認 → 撥款）與解散、成員移除、申訴裁定、續訂等牽涉狀態機與金流的分支情境
 
 ## 部署
 
