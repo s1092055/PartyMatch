@@ -30,7 +30,7 @@ export default function HomePage() {
   if (loggedIn && isAdmin) return <Navigate to={ADMIN_HOME_PATH} replace />
 
   return (
-    <div className="flex min-h-screen flex-col bg-canvas text-ink lg:ml-24">
+    <div className="flex min-h-screen flex-col bg-canvas text-ink can-hover:lg:ml-20 can-hover:lg:mr-24">
       <AppNav />
       <ScrollToTop />
       <Suspense fallback={null}>
