@@ -190,7 +190,7 @@ export default function SubscriptionsPage() {
               onScroll={handleListScroll}
               className="p-2 lg:max-h-[calc(100dvh-16rem)] lg:overflow-y-auto lg:[scrollbar-width:none] lg:[&::-webkit-scrollbar]:hidden"
             >
-              <div className="grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {visibleApplications.map((app, i) => {
                   const group = getGroupById(app.groupId)
                   if (!group) return null

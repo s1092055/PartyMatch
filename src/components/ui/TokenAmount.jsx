@@ -16,12 +16,14 @@ export function TokenBadge({ className = '' }) {
 }
 
 const ALIGN_VARIANTS = {
-  baseline: { wrapper: 'items-baseline', badge: 'self-center', amount: '',            unit: 'text-ink-3' },
+  // 中文單位字（/月／/年／/位）跟數字用同一套 items-baseline 對齊時，CJK 字元的字型
+  // 基線比阿拉伯數字高，會看起來像浮起來、跟數字對不齊；改用 items-end 讓兩者底部切齊
+  baseline: { wrapper: 'items-end', badge: 'self-center', amount: '',            unit: 'text-ink-3' },
   center:   { wrapper: 'items-center',   badge: '',             amount: 'leading-none', unit: 'text-[0.6em] font-semibold text-ink-3 leading-none' },
 }
 
-export default function TokenAmount({ amount, cycle, className = '', badgeSize = '', unitClassName = '', align = 'baseline' }) {
-  const unit = cycle === 'yearly' ? '/年' : cycle === 'monthly' ? '/月' : ''
+export default function TokenAmount({ amount, cycle, unit: unitOverride, className = '', badgeSize = '', unitClassName = '', align = 'baseline' }) {
+  const unit = unitOverride ?? (cycle === 'yearly' ? '/年' : cycle === 'monthly' ? '/月' : '')
   const variant = ALIGN_VARIANTS[align] ?? ALIGN_VARIANTS.baseline
   return (
     <span className={`inline-flex ${variant.wrapper} gap-1 ${className}`}>

@@ -2,27 +2,17 @@ import { memo } from 'react'
 import { Button } from '../../../components/ui/button'
 import { Card } from '../../../components/ui/card'
 import { StatusBadge } from '../../../components/ui/StatusBadge'
-import ServiceLogo from '../../../components/ui/ServiceLogo'
-import TokenAmount from '../../../components/ui/TokenAmount'
+import GroupCardHeader from '../../../components/ui/group/GroupCardHeader'
+import { StatCell, StatCellGrid } from '../../../components/ui/group/StatCellGrid'
 import { toISODate } from '../../../common/utils/date'
 import { isEffectivelyActive } from '../../../common/utils/groupStatus'
 import { getRenewalAwareStatus } from '../../../common/utils/groupStatusDisplay'
-import { calcDisplayPrice, calcDisplayCycle } from '../../../common/utils/pricingUtils'
 import { getServiceById } from '../../../common/utils/serviceUtils'
 import { hasFilledServiceInfo, isSharedCredentialsMethod } from '../../../common/utils/serviceInfoFields'
 
 function getBadgeStatus(sub) {
   const status = sub.groupStatus ?? sub.status
   return isEffectivelyActive(status, sub.confirmedAt) ? 'active' : status
-}
-
-function StatCell({ label, children, highlight }) {
-  return (
-    <div className="flex flex-col items-center gap-0.5 py-2.5 text-center">
-      <span className="text-2xs font-bold text-ink-3">{label}</span>
-      <span className={`text-sm font-black leading-tight ${highlight ?? 'text-ink'}`}>{children}</span>
-    </div>
-  )
 }
 
 function SubscriptionCard({ sub, onViewGroup }) {
@@ -51,36 +41,26 @@ function SubscriptionCard({ sub, onViewGroup }) {
       className="card-lift relative flex min-h-full cursor-pointer flex-col overflow-hidden p-5"
       onClick={() => onViewGroup?.(sub)}
     >
-      <div className="flex justify-center">
-        <StatusBadge
-          status={waitingForOthers ? 'active' : displayStatus === 'recruiting' ? 'member_joined' : displayStatus}
-          label={
-            waitingForOthers ? (isSharedCredentials ? '已提取完成' : '已填寫完成') :
-            displayStatus === 'full' ? '等待鎖定' :
-            displayStatus === 'pending_confirmation' && isSharedCredentials ? '帳號提取中' :
-            undefined
-          }
-        />
-      </div>
-
-      <div className="mt-4 flex justify-center">
-        <ServiceLogo serviceId={sub.serviceId} size={80} className="border-line-strong" />
-      </div>
-
-      <div className="mt-3 text-center">
-        <h2 className="text-xl font-black leading-tight text-ink">{sub.serviceName}</h2>
-        <p className="mt-1 text-sm font-semibold text-ink-3">{sub.planName}</p>
-        <p className="mt-1 text-base font-extrabold text-ink">
-          <TokenAmount
-            amount={calcDisplayPrice(sub.pricePerSeat, sub.billingCycle)}
-            cycle={calcDisplayCycle(sub.billingCycle)}
+      <GroupCardHeader
+        badge={
+          <StatusBadge
+            status={waitingForOthers ? 'active' : displayStatus === 'recruiting' ? 'member_joined' : displayStatus}
+            label={
+              waitingForOthers ? (isSharedCredentials ? '已提取完成' : '已填寫完成') :
+              displayStatus === 'full' ? '等待鎖定' :
+              displayStatus === 'pending_confirmation' && isSharedCredentials ? '帳號提取中' :
+              undefined
+            }
           />
-        </p>
-      </div>
+        }
+        serviceId={sub.serviceId}
+        serviceName={sub.serviceName}
+        planName={sub.planName}
+        pricePerSeat={sub.pricePerSeat}
+        billingCycle={sub.billingCycle}
+      />
 
-      <div className="my-4 border-t border-line-subtle" />
-
-      <div className="grid grid-cols-3 divide-x divide-line-subtle rounded-lg border border-line-subtle">
+      <StatCellGrid>
         <StatCell label="團主">{sub.hostName ?? '—'}</StatCell>
         <StatCell label="群組人數">{memberCount} 人</StatCell>
         {isActive ? (
@@ -90,7 +70,7 @@ function SubscriptionCard({ sub, onViewGroup }) {
         ) : (
           <StatCell label="加入日期">{sub.joinedAt ?? '—'}</StatCell>
         )}
-      </div>
+      </StatCellGrid>
 
       <div className="mt-auto pt-5">
         <Button onClick={e => { e.stopPropagation(); onViewGroup?.(sub) }} className="w-full">

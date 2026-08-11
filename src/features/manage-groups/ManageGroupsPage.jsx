@@ -91,7 +91,7 @@ export default function ManageGroupsPage() {
               onScroll={handleListScroll}
               className="max-h-[calc(100dvh-16rem)] overflow-y-auto p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
-              <div className="grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {displayGroups.map((g, i) => (
                   <RevealSection key={g.id} delay={i * 60}>
                     <HostedGroupCard

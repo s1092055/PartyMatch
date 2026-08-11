@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { getServiceById } from '../../../../common/utils/serviceUtils'
 import { toISODate } from '../../../../common/utils/date'
 import { useAuthStore } from '../../../../common/stores/useAuthStore'
-import { formatMinCreditScore } from '../../../../common/utils/creditScore'
+import CreditScoreValue from '../../../../components/ui/CreditScoreValue'
 import TokenAmount from '../../../../components/ui/TokenAmount'
 import ServiceLogo from '../../../../components/ui/ServiceLogo'
 import LivePreviewPanel from '../LivePreviewPanel'
@@ -59,7 +59,7 @@ export default function Step4Preview({ form, agreedToTerms, onAgreeChange, onSho
               />
             } />
             <InfoField icon={Users}       label="開放名額" value={`${form.totalSeats - 1} 人`} />
-            <InfoField icon={ShieldCheck} label="信用分數" value={formatMinCreditScore(form.minCreditScore)} />
+            <InfoField icon={ShieldCheck} label="信用分數" value={<CreditScoreValue score={form.minCreditScore} />} />
             <InfoField icon={CalendarDays} label="建立日期" value={today} />
             <div className="lg:col-span-2">
               <InfoField icon={FileText} label="帳號需求" value={form.requirements.trim() || '無'} />

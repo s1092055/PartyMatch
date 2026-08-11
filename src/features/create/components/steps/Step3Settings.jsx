@@ -2,13 +2,9 @@ import { FileText, ListChecks, Minus, Plus, ShieldCheck, Users } from 'lucide-re
 import { getServiceById } from '../../../../common/utils/serviceUtils'
 import Field from './Field'
 import { Input, Textarea } from '../../../../components/ui/input'
+import CreditScoreValue from '../../../../components/ui/CreditScoreValue'
 
-const MIN_CREDIT_OPTIONS = [
-  { value: 0,  label: '不限' },
-  { value: 90, label: '90 分以上' },
-  { value: 70, label: '70 分以上' },
-  { value: 50, label: '50 分以上' },
-]
+const MIN_CREDIT_OPTIONS = [0, 90, 70, 50]
 
 export default function Step3Settings({ form, onChange }) {
   const service = getServiceById(form.serviceId)
@@ -56,17 +52,17 @@ export default function Step3Settings({ form, onChange }) {
 
         <Field label="信用分數" icon={ShieldCheck} hint="申請人需達到的最低信用分數門檻">
           <div className="flex gap-2">
-            {MIN_CREDIT_OPTIONS.map(o => (
+            {MIN_CREDIT_OPTIONS.map(score => (
               <button
-                key={o.value}
-                onClick={() => onChange('minCreditScore', o.value)}
+                key={score}
+                onClick={() => onChange('minCreditScore', score)}
                 className={`flex-1 py-2.5 rounded-lg border-2 text-sm font-medium transition-colors ${
-                  (form.minCreditScore ?? 0) === o.value
+                  (form.minCreditScore ?? 0) === score
                     ? 'border-brand bg-brand-subtle text-brand'
                     : 'border-slate-200 bg-surface text-slate-600 hover:border-slate-300'
                 }`}
               >
-                {o.label}
+                <CreditScoreValue score={score} className="justify-center" />
               </button>
             ))}
           </div>

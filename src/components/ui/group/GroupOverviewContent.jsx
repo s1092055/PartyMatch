@@ -2,6 +2,7 @@ import { CheckCircle2, Clock, Info, Layers, ListChecks, Package, User, Users, Ca
 import { getInfoRows } from '../../../common/utils/groupDisplay'
 import { StatusBadge } from '../StatusBadge'
 import TokenAmount from '../TokenAmount'
+import CreditScoreValue from '../CreditScoreValue'
 
 const TAG_CONFIG = {
   '審核制':    { Icon: Clock,        cls: 'bg-amber-50  border border-amber-200 text-amber-700'   },
@@ -87,16 +88,18 @@ export default function GroupOverviewContent({ group, service, plan, reviewsSect
         <p className="flex items-center gap-2 text-lg font-black text-brand"><Info size={16} />群組資訊</p>
         {infoRows.length > 0 && (
           <div className="space-y-2">
-            {infoRows.map(({ label, value, badge, priceInfo }) => (
-              <div key={label} className="flex items-center gap-3 text-sm">
-                <span className="w-16 shrink-0 text-ink-4">{label}</span>
-                <span className="text-ink-2">{badge ? (
-                  typeof badge === 'object'
-                    ? <StatusBadge status={badge.variant} label={badge.label} />
-                    : <StatusBadge status={badge} />
-                ) : priceInfo ? (
-                  <TokenAmount amount={priceInfo.amount} cycle={priceInfo.cycle} />
-                ) : priceInfo === null ? '—' : value}</span>
+            {infoRows.map(row => (
+              <div key={row.label} className="flex items-center gap-3 text-sm">
+                <span className="w-16 shrink-0 text-ink-4">{row.label}</span>
+                <span className="text-ink-2">{row.badge ? (
+                  typeof row.badge === 'object'
+                    ? <StatusBadge status={row.badge.variant} label={row.badge.label} />
+                    : <StatusBadge status={row.badge} />
+                ) : row.priceInfo ? (
+                  <TokenAmount amount={row.priceInfo.amount} cycle={row.priceInfo.cycle} />
+                ) : row.priceInfo === null ? '—' : 'creditScore' in row ? (
+                  <CreditScoreValue score={row.creditScore} />
+                ) : row.value}</span>
               </div>
             ))}
           </div>

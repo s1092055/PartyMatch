@@ -15,7 +15,7 @@ export const SERVICES = [
     priceCheckedAt: '2026-07-16',
     plans: [
       {
-        name: '家庭方案',
+        name: '家庭方案（月繳）',
         billingCycle: 'monthly',
         description: '最多 6 人共享，各自獨立帳號與個人化推薦歌單。',
         monthlyPrice: 298,
@@ -33,7 +33,7 @@ export const SERVICES = [
         ],
       },
       {
-        name: 'Duo',
+        name: 'Duo（月繳）',
         billingCycle: 'monthly',
         description: '最多 2 人共享，適合情侶或室友，各自保有獨立收聽紀錄。',
         monthlyPrice: 228,
@@ -68,7 +68,7 @@ export const SERVICES = [
     priceVerified: false,
     plans: [
       {
-        name: '家庭方案',
+        name: '家庭方案（月繳）',
         billingCycle: 'monthly',
         description: '最多 6 位同住家庭成員，各自享有無廣告與背景播放功能。',
         monthlyPrice: 479,
@@ -102,7 +102,7 @@ export const SERVICES = [
     priceCheckedAt: '2026-07-16',
     plans: [
       {
-        name: '標準',
+        name: '標準（月繳）',
         billingCycle: 'monthly',
         description: '無廣告，1080p 畫質，2 台裝置同時觀看，支援下載。',
         monthlyPrice: 380,
@@ -118,7 +118,7 @@ export const SERVICES = [
         ],
       },
       {
-        name: '高級（4K）',
+        name: '高級（4K）（月繳）',
         billingCycle: 'monthly',
         description: '無廣告，4K+HDR 畫質，4 台裝置同時觀看，支援空間音訊。',
         monthlyPrice: 460,
@@ -622,7 +622,7 @@ export const SERVICES = [
     priceCheckedAt: '2026-07-16',
     plans: [
       {
-        name: '影劇暢看方案',
+        name: '影劇暢看方案（月繳）',
         billingCycle: 'monthly',
         description: '可綁定 1 位親友，2 組帳號同時使用同一組訂閱，各自保有獨立觀看紀錄。',
         monthlyPrice: 199,
@@ -654,7 +654,7 @@ export const SERVICES = [
     priceVerified: false,
     plans: [
       {
-        name: 'Mega Fan',
+        name: 'Mega Fan（月繳）',
         billingCycle: 'monthly',
         description: '無廣告，4 台裝置同時觀看，支援離線下載。',
         monthlyPrice: 390,
@@ -671,7 +671,7 @@ export const SERVICES = [
         ],
       },
       {
-        name: 'Ultimate Fan',
+        name: 'Ultimate Fan（月繳）',
         billingCycle: 'monthly',
         description: '無廣告，6 台裝置同時觀看，額外享有實體周邊好禮折扣。',
         monthlyPrice: 520,
@@ -755,7 +755,7 @@ export const SERVICES = [
     priceCheckedAt: '2026-07-16',
     plans: [
       {
-        name: '3人家庭方案',
+        name: '3人家庭方案（月繳）',
         billingCycle: 'monthly',
         description: '最多 3 人共享，各自獨立帳號與收聽紀錄，含全部音樂及 Podcast 功能。',
         monthlyPrice: 229,
@@ -771,7 +771,7 @@ export const SERVICES = [
         ],
       },
       {
-        name: '6人家庭方案',
+        name: '6人家庭方案（月繳）',
         billingCycle: 'monthly',
         description: '最多 6 人共享，各自獨立帳號與收聽紀錄，含全部音樂及 Podcast 功能。',
         monthlyPrice: 260,
@@ -803,7 +803,7 @@ export const SERVICES = [
     priceCheckedAt: '2026-07-16',
     plans: [
       {
-        name: 'Pro',
+        name: 'Pro（月繳）',
         billingCycle: 'monthly',
         description: '最多 2 人共享，享有 Claude 3.5 Sonnet 高優先使用權，含擴充上下文視窗功能。',
         monthlyPrice: 649,
@@ -1187,7 +1187,7 @@ export const SERVICES = [
     priceCheckedAt: '2026-07-16',
     plans: [
       {
-        name: '200GB',
+        name: '200GB（月繳）',
         billingCycle: 'monthly',
         description: '200GB 儲存空間，可與最多 5 位家庭成員共享，適合有中等備份需求的用戶。官方僅提供月繳。',
         monthlyPrice: 90,
@@ -1203,7 +1203,7 @@ export const SERVICES = [
         ],
       },
       {
-        name: '2TB',
+        name: '2TB（月繳）',
         billingCycle: 'monthly',
         description: '2TB 大容量儲存，可與最多 5 位家庭成員共享，適合大量照片與影片備份。官方僅提供月繳。',
         monthlyPrice: 300,
@@ -1236,7 +1236,7 @@ export const SERVICES = [
     priceVerified: false,
     plans: [
       {
-        name: 'Family',
+        name: 'Family（月繳）',
         billingCycle: 'monthly',
         description: '最多 6 人，共享 2TB 儲存空間，各自獨立帳號與私人資料夾。',
         monthlyPrice: 650,
@@ -1270,7 +1270,7 @@ export const SERVICES = [
     priceVerified: false,
     plans: [
       {
-        name: 'Family',
+        name: 'Family（年繳）',
         billingCycle: 'yearly',
         description: '最多 6 人，各自保有獨立學習進度與語言課程，共享 Super 無廣告功能。官方僅提供年繳。',
         monthlyPrice: 199,
@@ -1304,7 +1304,7 @@ export const SERVICES = [
     priceVerified: false,
     plans: [
       {
-        name: '家庭方案（2人）',
+        name: '家庭方案（2人）（年繳）',
         billingCycle: 'yearly',
         description: '最多 2 人共享，無限觀看所有 MasterClass 課程，支援多裝置離線下載。官方僅提供年繳。',
         monthlyPrice: 480,
@@ -1320,7 +1320,7 @@ export const SERVICES = [
         ],
       },
       {
-        name: '家庭方案（6人）',
+        name: '家庭方案（6人）（年繳）',
         billingCycle: 'yearly',
         description: '最多 6 人共享，各自獨立帳號，無限觀看所有課程內容。官方僅提供年繳。',
         monthlyPrice: 640,
@@ -1438,7 +1438,7 @@ export const SERVICES = [
     priceVerified: false,
     plans: [
       {
-        name: 'Standard',
+        name: 'Standard（月繳）',
         billingCycle: 'monthly',
         description: '6 台裝置，VPN 核心功能與惡意廣告封鎖，適合基本隱私保護需求。',
         monthlyPrice: 375,
@@ -1455,7 +1455,7 @@ export const SERVICES = [
         ],
       },
       {
-        name: 'Plus',
+        name: 'Plus（月繳）',
         billingCycle: 'monthly',
         description: '6 台裝置，含密碼管理器與進階惡意軟體掃描功能。',
         monthlyPrice: 487,
@@ -1470,7 +1470,7 @@ export const SERVICES = [
         ],
       },
       {
-        name: 'Complete',
+        name: 'Complete（月繳）',
         billingCycle: 'monthly',
         description: '6 台裝置，含 1TB 雲端備份、網路威脅防護與身份盜竊警示。',
         monthlyPrice: 650,
@@ -1557,7 +1557,7 @@ export const SERVICES = [
     priceCheckedAt: '2026-07-16',
     plans: [
       {
-        name: '個人方案',
+        name: '個人方案（月繳）',
         billingCycle: 'monthly',
         description: 'Apple Music + Apple TV+ + Apple Arcade + 50GB iCloud+，適合單人使用。',
         monthlyPrice: 390,
@@ -1573,7 +1573,7 @@ export const SERVICES = [
         ],
       },
       {
-        name: '家庭方案',
+        name: '家庭方案（月繳）',
         billingCycle: 'monthly',
         description: 'Apple Music + Apple TV+ + Apple Arcade + 200GB iCloud+，最多 6 位家庭成員共享。',
         monthlyPrice: 490,

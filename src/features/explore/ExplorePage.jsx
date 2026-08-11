@@ -65,7 +65,7 @@ export default function ExplorePage() {
         // （同一個 group.id 在篩選前後都存在的卡片預設會被 React 直接重用，不會重新播放）
         <div
           key={`${filters.category}|${filters.service}|${filters.maxPrice}|${filters.sortBy}`}
-          className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3"
+          className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3"
         >
           {filtered.map((group, i) => (
             <RevealSection key={group.id} delay={Math.min(i * 60, 300)}>

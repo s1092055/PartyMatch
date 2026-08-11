@@ -3,11 +3,10 @@ import { StatusBadge } from '../../../components/ui/StatusBadge'
 import { getStatusTextColor } from '../../../components/ui/statusBadgeConfig'
 import { Button } from '../../../components/ui/button'
 import { Card } from '../../../components/ui/card'
-import ServiceLogo from '../../../components/ui/ServiceLogo'
-import TokenAmount from '../../../components/ui/TokenAmount'
+import GroupCardHeader from '../../../components/ui/group/GroupCardHeader'
+import { StatCell, StatCellGrid } from '../../../components/ui/group/StatCellGrid'
 import { getRenewalAwareStatus } from '../../../common/utils/groupStatusDisplay'
 import { toISODate } from '../../../common/utils/date'
-import { calcDisplayPrice, calcDisplayCycle } from '../../../common/utils/pricingUtils'
 import { getServiceById } from '../../../common/utils/serviceUtils'
 import { isSharedCredentialsMethod } from '../../../common/utils/serviceInfoFields'
 
@@ -24,27 +23,6 @@ function getCollectionState({ group, paidCount, paymentTarget }) {
   if (group.status === 'disputed') return '問題處理中'
   if (paymentTarget > 0 && paidCount < paymentTarget && group.status === 'active') return '追蹤中'
   return '正常'
-}
-
-function StatCell({ label, children, onClick, highlight }) {
-  const content = (
-    <div className="flex flex-col items-center gap-0.5 py-2.5 text-center">
-      <span className="text-2xs font-bold text-ink-3">{label}</span>
-      <span className={`text-sm font-black leading-tight ${highlight ?? 'text-ink'}`}>{children}</span>
-    </div>
-  )
-  if (onClick) {
-    return (
-      <button
-        type="button"
-        onClick={e => { e.stopPropagation(); onClick() }}
-        className="w-full rounded-lg hover:bg-raised hover:-translate-y-0.5 transition-all"
-      >
-        {content}
-      </button>
-    )
-  }
-  return content
 }
 
 function HostedGroupCard({
@@ -78,35 +56,25 @@ function HostedGroupCard({
       className="card-lift relative flex min-h-full cursor-pointer flex-col overflow-hidden p-5"
       onClick={onViewGroup}
     >
-      <div className="flex justify-center">
-        <StatusBadge
-          status={displayStatus}
-          label={
-            group.status === 'full' ? '等待鎖定' :
-            group.status === 'pending_confirmation' && isSharedCredentials ? '成員提取中' :
-            undefined
-          }
-        />
-      </div>
-
-      <div className="mt-4 flex justify-center">
-        <ServiceLogo serviceId={group.serviceId} size={80} className="border-line-strong" />
-      </div>
-
-      <div className="mt-3 text-center">
-        <h2 className="text-xl font-black leading-tight text-ink">{group.serviceName}</h2>
-        <p className="mt-1 text-sm font-semibold text-ink-3">{group.planName}</p>
-        <p className="mt-1 text-base font-extrabold text-ink">
-          <TokenAmount
-            amount={calcDisplayPrice(group.pricePerSeat, group.billingCycle)}
-            cycle={calcDisplayCycle(group.billingCycle)}
+      <GroupCardHeader
+        badge={
+          <StatusBadge
+            status={displayStatus}
+            label={
+              group.status === 'full' ? '等待鎖定' :
+              group.status === 'pending_confirmation' && isSharedCredentials ? '成員提取中' :
+              undefined
+            }
           />
-        </p>
-      </div>
+        }
+        serviceId={group.serviceId}
+        serviceName={group.serviceName}
+        planName={group.planName}
+        pricePerSeat={group.pricePerSeat}
+        billingCycle={group.billingCycle}
+      />
 
-      <div className="my-4 border-t border-line-subtle" />
-
-      <div className="grid grid-cols-3 divide-x divide-line-subtle rounded-lg border border-line-subtle">
+      <StatCellGrid>
         {group.status === 'active' ? (
           <StatCell label="群組狀態" highlight={collectionHighlight}>
             {collectionState}
@@ -154,7 +122,7 @@ function HostedGroupCard({
             {toISODate(group.nextBillingDate, '—')}
           </StatCell>
         )}
-      </div>
+      </StatCellGrid>
 
       <div className="mt-auto pt-5">
         <Button

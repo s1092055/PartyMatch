@@ -1,14 +1,13 @@
 import { memo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import ServiceLogo from '../../../components/ui/ServiceLogo'
 import FavoriteToggleButton from '../../../components/ui/FavoriteToggleButton'
-import TokenAmount from '../../../components/ui/TokenAmount'
 import { StatusBadge } from '../../../components/ui/StatusBadge'
 import { getStatusLabel } from '../../../components/ui/statusBadgeConfig'
-import { Progress } from '../../../components/ui/progress'
 import { Card } from '../../../components/ui/card'
-import { Button } from '../../../components/ui/button'
-import { calcDisplayPrice, calcDisplayCycle } from '../../../common/utils/pricingUtils'
+import { Progress } from '../../../components/ui/progress'
+import GroupCardHeader from '../../../components/ui/group/GroupCardHeader'
+import { StatCell, StatCellGrid } from '../../../components/ui/group/StatCellGrid'
+import CreditScoreValue from '../../../components/ui/CreditScoreValue'
 import { useFavoriteStore } from '../../../common/stores/useFavoriteStore'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
 
@@ -17,6 +16,45 @@ const RANK_BADGE_STYLES = [
   'bg-slate-300 text-slate-700',
   'bg-orange-300 text-white',
 ]
+
+// 剩餘名額改成卡片下方全寬顯示（不是三格裡的其中一格）：左邊數字隨額滿程度變色，
+// 「/ 總名額」維持中性灰，下面搭一條同色的進度條。標籤跟數值都套用跟 StatCell 一樣的
+// 三欄置中版位（左欄置中對齊團主、右欄置中對齊信用分數），單純用 justify-between 的話
+// 文字會貼齊卡片邊緣，跟下面置中在各自欄位裡的團主／信用分數文字對不齊
+function SeatSummary({ openSeats, totalSeats, usedSeats, isLastSeat }) {
+  if (totalSeats == null) {
+    return (
+      <div className="grid grid-cols-3 items-baseline">
+        <p className="text-center text-xs font-bold text-ink-3">剩餘名額</p>
+        <span />
+        <p className="text-center text-sm font-semibold text-ink-4">尚未設定</p>
+      </div>
+    )
+  }
+
+  const isFull    = openSeats <= 0
+  const barColor  = isFull ? 'bg-ink-3' : isLastSeat ? 'bg-warning' : 'bg-success'
+
+  return (
+    <div>
+      <div className="grid grid-cols-3 items-baseline">
+        <p className="text-center text-xs font-bold text-ink-3">剩餘名額</p>
+        <span />
+        <p className="text-center text-sm font-black">
+          {isFull ? (
+            <span className="text-ink-3">{getStatusLabel('full')}</span>
+          ) : (
+            <>
+              <span className={isLastSeat ? 'text-warning-text' : 'text-success'}>{openSeats}</span>
+              <span className="text-ink-4"> / {totalSeats}</span>
+            </>
+          )}
+        </p>
+      </div>
+      <Progress value={usedSeats} max={totalSeats} color={barColor} className="mx-6 mt-1.5" />
+    </div>
+  )
+}
 
 function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = false, isApplied = false, isMember = false, rank }) {
   const navigate = useNavigate()
@@ -41,86 +79,47 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
   return (
     <Card
       as="article"
-      className="card-lift relative flex min-h-full cursor-pointer flex-col overflow-hidden px-6 py-5"
+      className="card-lift relative flex min-h-full cursor-pointer flex-col overflow-hidden p-5"
       onClick={openDetails}
     >
-      {rank != null && (
-        <span className={`absolute left-4 top-4 z-10 flex h-6 w-6 items-center justify-center rounded-full text-xs font-extrabold shadow-sm ${RANK_BADGE_STYLES[rank - 1] ?? RANK_BADGE_STYLES[2]}`}>
-          {rank}
-        </span>
-      )}
-
-      {!hideActions && (
-        <FavoriteToggleButton
-          isFav={isFav}
-          onClick={handleFav}
-          heartSize={18}
-          className="absolute right-4 top-4 h-9 w-9 bg-surface shadow-floating"
-          square
-        />
-      )}
-
-      {/* 固定保留一列高度給申請狀態 badge，不管有沒有顯示都佔同樣空間，
-          這樣同一排卡片高度才會整齊，不會因為某幾張有 badge 就比其他張高 */}
-      <div className="flex h-6 items-center justify-center">
-        {(isMember || isApplied) && (
+      <GroupCardHeader
+        topLeftSlot={rank != null && (
+          <span className={`absolute left-4 top-4 z-10 flex h-6 w-6 items-center justify-center rounded-full text-xs font-extrabold shadow-sm ${RANK_BADGE_STYLES[rank - 1] ?? RANK_BADGE_STYLES[2]}`}>
+            {rank}
+          </span>
+        )}
+        topRightSlot={!hideActions && (
+          <FavoriteToggleButton
+            isFav={isFav}
+            onClick={handleFav}
+            heartSize={18}
+            className="absolute right-4 top-4 h-9 w-9 bg-surface shadow-floating"
+            square
+          />
+        )}
+        badge={(isMember || isApplied) && (
           <StatusBadge status={isMember ? 'member_joined' : 'pending'} label={isMember ? undefined : '審核中'} />
         )}
-      </div>
-
-      <div className="mt-2 flex justify-center">
-        <ServiceLogo
-          serviceId={group.serviceId}
-          size={80}
-          className="border-line-strong"
-        />
-      </div>
-
-      <div className="mt-3 text-center">
-        <h2 className="text-xl font-black leading-tight text-ink">{group.serviceName}</h2>
-        <p className="mt-1 text-sm font-semibold text-ink-3">{group.planName}</p>
-        <p className="mt-1 text-base font-extrabold text-ink">
-          <TokenAmount
-            amount={calcDisplayPrice(group.pricePerSeat, group.billingCycle)}
-            cycle={calcDisplayCycle(group.billingCycle)}
+        serviceId={group.serviceId}
+        serviceName={group.serviceName}
+        planName={group.planName}
+        pricePerSeat={group.pricePerSeat}
+        billingCycle={group.billingCycle}
+        belowPrice={(
+          <SeatSummary
+            openSeats={group.openSeats}
+            totalSeats={group.totalSeats}
+            usedSeats={group.usedSeats}
+            isLastSeat={isLastSeat}
           />
-        </p>
-      </div>
-
-      <div className="my-4 border-t border-line-subtle" />
-
-      <div className="px-2">
-        {group.totalSeats == null ? (
-          <div className="flex items-baseline justify-between">
-            <p className="text-xs font-bold text-ink-3">剩餘名額</p>
-            <p className="text-sm font-semibold text-ink-4">尚未設定</p>
-          </div>
-        ) : (
-          <>
-            <div className="flex items-baseline justify-between">
-              <p className="text-xs font-bold text-ink-3">剩餘名額</p>
-              <p className="text-sm font-black text-ink">
-                {group.openSeats <= 0 ? (
-                  <span className="text-ink-3">{getStatusLabel('full')}</span>
-                ) : (
-                  <>
-                    <span className={isLastSeat ? 'text-warning-text' : 'text-success'}>{group.openSeats}</span>
-                    <span className="text-ink-4"> / {group.totalSeats}</span>
-                  </>
-                )}
-              </p>
-            </div>
-            <Progress value={group.usedSeats} max={group.totalSeats} label="名額使用率" className="mt-1.5" />
-          </>
         )}
-      </div>
+      />
 
-      {!hideActions && (
-        <Button onClick={openDetails} className="mt-4 w-full">
-          查看詳情
-        </Button>
-      )}
-
+      <StatCellGrid>
+        <StatCell label="團主">{group.hostName ?? '—'}</StatCell>
+        <StatCell label="建立日期">{group.createdAt ?? '—'}</StatCell>
+        <StatCell label="信用分數"><CreditScoreValue score={group.minCreditScore} /></StatCell>
+      </StatCellGrid>
     </Card>
   )
 }
