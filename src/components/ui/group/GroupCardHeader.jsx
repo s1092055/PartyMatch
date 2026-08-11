@@ -30,7 +30,7 @@ export default function GroupCardHeader({
 
       {belowPrice && <div className="mt-3">{belowPrice}</div>}
 
-      <div className={`my-4 border-t border-line-subtle ${belowPrice ? 'mx-6' : ''}`} />
+      <div className={`my-4 border-t border-line-subtle ${belowPrice ? 'mx-2' : ''}`} />
     </>
   )
 }

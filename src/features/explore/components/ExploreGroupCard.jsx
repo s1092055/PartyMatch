@@ -52,7 +52,7 @@ function SeatSummary({ openSeats, totalSeats, usedSeats, isLastSeat }) {
           )}
         </p>
       </div>
-      <Progress value={usedSeats} max={totalSeats} color={barColor} className="mx-6 mt-1.5" />
+      <Progress value={usedSeats} max={totalSeats} color={barColor} className="mx-2 mt-1.5" />
     </div>
   )
 }
@@ -116,7 +116,7 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
         )}
       />
 
-      <div className="mx-6">
+      <div className="mx-2">
         <StatCellGrid>
           <StatCell label="團主">{group.hostName ?? '—'}</StatCell>
           <StatCell label="建立日期">{group.createdAt ?? '—'}</StatCell>
@@ -125,7 +125,7 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
       </div>
 
       {!hideActions && (
-        <div className="mx-6 mt-auto pt-5">
+        <div className="mx-2 mt-auto pt-5">
           <Button onClick={openDetails} className="w-full">
             查看詳情
           </Button>
