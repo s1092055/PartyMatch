@@ -5,7 +5,6 @@ import { StatusBadge } from '../../../components/ui/StatusBadge'
 import { getStatusLabel } from '../../../components/ui/statusBadgeConfig'
 import { Card } from '../../../components/ui/card'
 import { Button } from '../../../components/ui/button'
-import { Progress } from '../../../components/ui/progress'
 import GroupCardHeader from '../../../components/ui/group/GroupCardHeader'
 import { StatCell, StatCellGrid } from '../../../components/ui/group/StatCellGrid'
 import CreditScoreValue from '../../../components/ui/CreditScoreValue'
@@ -17,42 +16,6 @@ const RANK_BADGE_STYLES = [
   'bg-slate-300 text-slate-700',
   'bg-orange-300 text-white',
 ]
-
-// 剩餘名額改成卡片下方全寬顯示（不是三格裡的其中一格）：左邊數字隨額滿程度變色，
-// 「/ 總名額」維持中性灰，下面搭一條同色的進度條。標籤跟數值左右兩側切齊進度條本身的
-// 左右邊界（同樣的 mx-2），不是置中在各自欄位裡
-function SeatSummary({ openSeats, totalSeats, usedSeats, isLastSeat }) {
-  if (totalSeats == null) {
-    return (
-      <div className="mx-2 flex items-baseline justify-between">
-        <p className="text-xs font-bold text-ink-3">剩餘名額</p>
-        <p className="text-sm font-semibold text-ink-4">尚未設定</p>
-      </div>
-    )
-  }
-
-  const isFull    = openSeats <= 0
-  const barColor  = isFull ? 'bg-ink-3' : isLastSeat ? 'bg-warning' : 'bg-success'
-
-  return (
-    <div>
-      <div className="mx-2 flex items-baseline justify-between">
-        <p className="text-xs font-bold text-ink-3">剩餘名額</p>
-        <p className="text-sm font-black">
-          {isFull ? (
-            <span className="text-ink-3">{getStatusLabel('full')}</span>
-          ) : (
-            <>
-              <span className={isLastSeat ? 'text-warning-text' : 'text-success'}>{openSeats}</span>
-              <span className="text-ink-4"> / {totalSeats}</span>
-            </>
-          )}
-        </p>
-      </div>
-      <Progress value={usedSeats} max={totalSeats} color={barColor} className="mx-2 mt-1.5" />
-    </div>
-  )
-}
 
 function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = false, isApplied = false, isMember = false, rank }) {
   const navigate = useNavigate()
@@ -91,7 +54,7 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
             isFav={isFav}
             onClick={handleFav}
             heartSize={18}
-            className="absolute right-4 top-4 h-9 w-9 bg-surface shadow-floating"
+            className="absolute right-7 top-4 h-9 w-9 bg-surface shadow-floating"
             square
           />
         )}
@@ -103,20 +66,18 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
         planName={group.planName}
         pricePerSeat={group.pricePerSeat}
         billingCycle={group.billingCycle}
-        belowPrice={(
-          <SeatSummary
-            openSeats={group.openSeats}
-            totalSeats={group.totalSeats}
-            usedSeats={group.usedSeats}
-            isLastSeat={isLastSeat}
-          />
-        )}
       />
 
       <div className="mx-2">
         <StatCellGrid>
           <StatCell label="團主">{group.hostName ?? '—'}</StatCell>
-          <StatCell label="建立日期">{group.createdAt ?? '—'}</StatCell>
+          <StatCell label="剩餘名額" highlight={group.openSeats <= 0 ? 'text-ink-3' : isLastSeat ? 'text-warning-text' : 'text-success'}>
+            {group.totalSeats == null
+              ? '—'
+              : group.openSeats <= 0
+                ? getStatusLabel('full')
+                : `${group.openSeats} / ${group.totalSeats}`}
+          </StatCell>
           <StatCell label="信用分數"><CreditScoreValue score={group.minCreditScore} /></StatCell>
         </StatCellGrid>
       </div>
