@@ -14,3 +14,11 @@ class IntersectionObserverStub {
   disconnect() {}
 }
 window.IntersectionObserver = IntersectionObserverStub
+
+// 同理，jsdom 也沒有實作 ResizeObserver（useScrollEdge 這類量測捲動位置的 hook 會用到）
+class ResizeObserverStub {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+window.ResizeObserver = ResizeObserverStub
