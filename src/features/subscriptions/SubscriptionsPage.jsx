@@ -143,7 +143,7 @@ export default function SubscriptionsPage() {
   const onViewGroup = useCallback(sub => setViewGroupId(sub.groupId), [])
 
   return (
-    <div className="px-2 md:px-4 lg:px-16">
+    <div className="px-2 md:px-4">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="page-title mb-0">我的訂閱</h1>
         <Button

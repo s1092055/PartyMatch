@@ -48,7 +48,7 @@ export default function ExplorePage() {
   }
 
   return (
-    <div className="px-2 md:px-4 lg:px-16">
+    <div className="px-2 md:px-4">
       <PageHeader title="探索群組" className="mb-4 text-center" />
 
       <FilterBar filters={filters} onChange={handleFilterChange} />

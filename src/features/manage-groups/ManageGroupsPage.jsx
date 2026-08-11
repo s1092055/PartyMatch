@@ -50,7 +50,7 @@ export default function ManageGroupsPage() {
   } = useHostActions(activeUser)
 
   return (
-    <div className="px-2 md:px-4 lg:px-16">
+    <div className="px-2 md:px-4">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="page-title mb-0">群組管理</h1>
         <Button
