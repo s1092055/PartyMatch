@@ -6,7 +6,7 @@ export default function ScrollHint({ canScroll, atBottom, isScrolling }) {
   if (!canScroll) return null
   return (
     <div
-      className={`pointer-events-none absolute inset-x-0 bottom-3 flex justify-end pr-2 md:pr-6 transition-opacity duration-200 lg:group-hover:opacity-0 ${
+      className={`pointer-events-none absolute inset-x-0 bottom-3 flex justify-end pr-2 md:pr-6 transition-opacity duration-200 can-hover:group-hover:opacity-0 ${
         isScrolling ? 'opacity-0' : 'opacity-100'
       }`}
     >

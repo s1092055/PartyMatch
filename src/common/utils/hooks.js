@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from './toast'
 import { useAuthStore } from '../stores/useAuthStore'
 
-// lg 斷點（見 src/index.css 的 --breakpoint-lg）；裝置類型相關的版面切換一律用這個，
-// 不要用 md，768px 會把 iPad 誤判成桌機
+// lg 斷點（見 src/index.css 的 --breakpoint-lg）；純粹看「螢幕夠不夠寬」的版面判斷可以用這個
+// （例如 modal 要不要分成左右欄），不用管有沒有滑鼠 hover 能力，觸控裝置只要夠寬一樣適用。
+// 如果是「靠 hover 展開/顯示」的元件（側邊欄展開、hover 才出現的箭頭…）不要用這個 hook，
+// 直接在 className 疊加 can-hover:lg: 這個 custom variant（見 index.css 的說明）
 export function useIsDesktop() {
-  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1280)
+  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024)
   useEffect(() => {
-    const mq = window.matchMedia('(min-width: 1280px)')
+    const mq = window.matchMedia('(min-width: 1024px)')
     const handler = e => setIsDesktop(e.matches)
     mq.addEventListener('change', handler)
     return () => mq.removeEventListener('change', handler)

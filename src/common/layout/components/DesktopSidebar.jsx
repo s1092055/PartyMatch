@@ -118,7 +118,7 @@ export default function DesktopSidebar({
       )}
 
       {/* Desktop 通知按鈕 + PM幣顯示 — fixed top-right，PM幣寬度貼齊通知按鈕 */}
-      <div className="fixed top-6 z-50 hidden flex-col items-stretch gap-2 lg:flex lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
+      <div className="fixed top-6 z-50 hidden flex-col items-stretch gap-2 can-hover:lg:flex can-hover:lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
         <button
           onClick={openNotify}
           className="relative flex h-10 items-center gap-2 rounded-lg border border-line bg-surface px-4 text-sm font-bold text-ink-2 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
@@ -144,7 +144,7 @@ export default function DesktopSidebar({
       </div>
 
       {/* Desktop 訊息按鈕 — fixed bottom-right，對齊 sidebar 頭像 */}
-      <div className="fixed z-50 hidden lg:block" style={{ bottom: '2.25rem', right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
+      <div className="fixed z-50 hidden can-hover:lg:block" style={{ bottom: '2.25rem', right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
         {loggedIn ? (
           <button
             onClick={openMessages}
@@ -173,7 +173,7 @@ export default function DesktopSidebar({
 
       {/* Desktop floating sidebar */}
       <aside
-        className="group/nav fixed bottom-4 left-4 top-4 z-50 hidden w-16 flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-sm transition-[width] duration-300 ease-out hover:w-64 focus-within:w-64 lg:flex"
+        className="group/nav fixed bottom-4 left-4 top-4 z-50 hidden w-16 flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-sm transition-[width] duration-300 ease-out hover:w-64 focus-within:w-64 can-hover:lg:flex"
       >
         <a
           href="/"

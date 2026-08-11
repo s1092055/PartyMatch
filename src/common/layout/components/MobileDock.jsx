@@ -76,7 +76,7 @@ export default function MobileDock({
 
   return (
     <nav
-      className={`fixed left-3 right-3 z-50 rounded-2xl border border-line bg-surface shadow-sm transition-transform duration-300 ease-in-out lg:hidden ${visible ? 'translate-y-0' : 'translate-y-[calc(100%+1rem)]'}`}
+      className={`fixed left-3 right-3 z-50 rounded-2xl border border-line bg-surface shadow-sm transition-transform duration-300 ease-in-out can-hover:lg:hidden ${visible ? 'translate-y-0' : 'translate-y-[calc(100%+1rem)]'}`}
       style={{ bottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
     >
       <div className="flex h-16 items-stretch">
