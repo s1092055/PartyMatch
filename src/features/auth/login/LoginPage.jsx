@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Lock, Mail } from 'lucide-react'
 import AuthLayout, { AuthTitle, AuthInput, AuthDivider, AuthError, GoogleMark, PasswordToggle } from '../components/AuthLayout'
 import { Button } from '../../../components/ui/button'
@@ -9,6 +9,7 @@ import { ADMIN_HOME_PATH } from '../../../app/AdminRoute'
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -28,8 +29,18 @@ export default function LoginPage() {
       return
     }
     toast(`登入成功，歡迎${result.user.name ? ` ${result.user.name}` : ''}`)
+    const { from, openGroupId } = location.state ?? {}
     // 管理員不參與一般使用者流程（探索/建立/加入群組），登入後直接進管理員後台
-    navigate(result.user.isAdmin ? ADMIN_HOME_PATH : '/', { replace: true })
+    if (result.user.isAdmin) {
+      navigate(ADMIN_HOME_PATH, { replace: true })
+    } else if (openGroupId) {
+      // 從群組詳情 modal 的「登入以加入群組」進來時，登入後要回到原本那一頁並重新打開該群組的
+      // 詳情 modal，而不是直接落地首頁；帶著 openGroupId 一起 navigate，GroupDetailModal
+      // 掛載時會自己讀 location.state 打開，比事後再送一次事件更不會有時機競爭問題
+      navigate(from || '/', { replace: true, state: { openGroupId } })
+    } else {
+      navigate('/', { replace: true })
+    }
   }
 
   return (
@@ -88,7 +99,7 @@ export default function LoginPage() {
 
       <p className="mt-8 text-center text-base font-medium text-ink-3">
         還沒有帳號？
-        <Link to="/register" className="ml-2 font-extrabold text-brand hover:text-brand-hover">
+        <Link to="/register" state={location.state} className="ml-2 font-extrabold text-brand hover:text-brand-hover">
           立即註冊
         </Link>
       </p>

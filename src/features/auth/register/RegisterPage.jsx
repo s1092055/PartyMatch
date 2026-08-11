@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Lock, Mail, User } from 'lucide-react'
 import AuthLayout, { AuthTitle, AuthInput, AuthDivider, AuthError, GoogleMark, PasswordToggle, PhoneInput } from '../components/AuthLayout'
 import VerifyCodeModal, { VerifyTrailingButton } from '../components/VerifyCodeModal'
@@ -12,6 +12,7 @@ const PHONE_REGEX = /^\+[1-9]\d{6,14}$/
 
 export default function RegisterPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -55,7 +56,12 @@ export default function RegisterPage() {
       setError(result.error)
       return
     }
-    navigate('/', { replace: true })
+    const { from, openGroupId } = location.state ?? {}
+    if (openGroupId) {
+      navigate(from || '/', { replace: true, state: { openGroupId } })
+    } else {
+      navigate('/', { replace: true })
+    }
   }
 
   return (
@@ -170,7 +176,7 @@ export default function RegisterPage() {
 
       <p className="mt-8 text-center text-base font-medium text-ink-3">
         已經有帳號？
-        <Link to="/login" className="ml-2 font-extrabold text-brand hover:text-brand-hover">
+        <Link to="/login" state={location.state} className="ml-2 font-extrabold text-brand hover:text-brand-hover">
           立即登入
         </Link>
       </p>

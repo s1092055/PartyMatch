@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { CheckCircle2, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
 import { useGroupStore } from '../../common/stores/useGroupStore'
 import { getServiceById } from '../../common/utils/serviceUtils'
@@ -25,6 +25,7 @@ import { buildMobileFooter } from './components/buildMobileFooter'
 
 export default function GroupDetailModal() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [groupId, setGroupId]               = useState(null)
   const [showApply, setShowApply]           = useState(false)
   const [applyMessage, setApplyMessage]     = useState('')
@@ -93,6 +94,21 @@ export default function GroupDetailModal() {
     window.addEventListener('pm:open-group', onOpen)
     return () => window.removeEventListener('pm:open-group', onOpen)
   }, [])
+
+  // 未登入點「登入以加入群組」導去 /login，登入/註冊成功後導回原本頁面時直接帶著
+  // { openGroupId } 一起 navigate；比起再送一次 pm:open-group 事件更可靠——這個元件常常是透過
+  // lazy() 動態載入（見 AppLayout／QuickMatchPage），剛掛載回來的當下監聽器不一定已經接上，
+  // 用 location.state 才能保證掛載當下就讀得到，不會有時機競爭問題。讀取後立刻用 replace 清掉
+  // state，避免使用者之後在同一頁面內部導頁時又被重複觸發打開
+  useEffect(() => {
+    if (location.state?.openGroupId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setGroupId(location.state.openGroupId)
+      resetApply()
+      navigate(location.pathname + location.search, { replace: true, state: null })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state])
 
   const group   = isOpen ? (groups.find(g => g.id === groupId) ?? null) : null
   const service = group ? getServiceById(group.serviceId) : null
@@ -248,7 +264,7 @@ export default function GroupDetailModal() {
   }
   function toggleFav() {
     if (activeUserId) useFavoriteStore.getState().toggle(activeUserId, group.id)
-    else navigate('/login')
+    else navigate('/login', { state: { from: location.pathname + location.search, openGroupId: group.id } })
   }
 
   // 已經是成員時，不管從哪個入口（探索頁、訊息、儲值紀錄…）打開群組詳情，
@@ -324,6 +340,7 @@ export default function GroupDetailModal() {
     setShowMembers, setLeaveConfirm, onApplyClick: handleApplyClick, toggleFav,
     padded: !showDesktopAside,
     squareFavorite: showDesktopAside,
+    redirectAfterLogin: { from: location.pathname + location.search, openGroupId: group.id },
   })
 
   return (

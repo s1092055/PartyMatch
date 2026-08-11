@@ -7,10 +7,11 @@ function renderCTA({
   isHost, isWaitingMembers, needsFillInfo, hasServiceInfoIssue, isSharedCredentials,
   isMember, isPendingApp, isFull,
   cancelConfirm, setCancelConfirm, cancelling, handleCancel,
+  redirectAfterLogin,
 }) {
   if (!activeUserId) return (
     <Button variant="default" size="lg" className="w-full"
-      onClick={() => navigate('/login')}>
+      onClick={() => navigate('/login', { state: redirectAfterLogin })}>
       <LogIn size={16} />登入以加入群組
     </Button>
   )
@@ -69,6 +70,7 @@ export function buildMobileFooter({
   setShowMembers, setLeaveConfirm, onApplyClick, toggleFav,
   padded = true,        // 桌機右欄已由外層容器提供左右留白，這裡不用再疊加一層，避免按鈕跟著往內縮、跟價格區塊的進度條對不齊
   squareFavorite = false, // 桌機右欄的收藏按鈕改用跟訊息按鈕一致的方形圓角，不要跟手機版一樣是圓形
+  redirectAfterLogin,   // 未登入點「登入以加入群組」時帶去 /login，登入成功後導回這裡並重新打開這個群組詳情 modal
 }) {
   return (
     <div className={padded ? 'px-6 py-3' : 'py-3'}>
@@ -108,6 +110,7 @@ export function buildMobileFooter({
           isHost, isWaitingMembers, needsFillInfo, hasServiceInfoIssue, isSharedCredentials,
           isMember, isPendingApp, isFull,
           cancelConfirm, setCancelConfirm, cancelling, handleCancel,
+          redirectAfterLogin,
         })
       )}
     </div>
