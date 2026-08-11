@@ -15,7 +15,7 @@ export default function AppFooter() {
     // padding 讓子層的起始位置跟著內縮），border-t 畫在最內層、自己不再帶任何水平 padding，
     // 這樣它的邊緣位置才會跟被兩層 padding 往內推過的群組卡片列表完全一樣
     <footer className="bg-canvas pb-20 pt-10 md:pb-10">
-      <div className="mx-auto w-full max-w-7xl px-4 lg:max-w-[clamp(80rem,100vw,120rem)] lg:px-2">
+      <div className="mx-auto w-full max-w-7xl px-4 lg:max-w-[clamp(80rem,100vw,90rem)] lg:px-2">
         <div className="px-2 md:px-4">
           <div className="border-t border-line pt-10">
             <div className="mx-auto flex max-w-5xl flex-col items-center gap-5 md:flex-row md:justify-center md:gap-10">

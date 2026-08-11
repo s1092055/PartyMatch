@@ -24,7 +24,7 @@ export default function AppLayout() {
           不然沒有滑鼠 hover 能力的裝置（例如 iPad 橫向）會兩邊都留白／留空不對，
           內容不是被 Dock 蓋到就是多留一截用不到的空間 */}
       <main className="flex flex-col pt-14 can-hover:lg:ml-20 can-hover:lg:mr-24 can-hover:lg:pt-0">
-        <div className="mx-auto min-h-[calc(100dvh-3.5rem)] w-full max-w-7xl px-4 pt-12 pb-28 can-hover:lg:min-h-dvh can-hover:lg:py-12 lg:max-w-[clamp(80rem,100vw,120rem)] lg:px-2">
+        <div className="mx-auto min-h-[calc(100dvh-3.5rem)] w-full max-w-7xl px-4 pt-12 pb-28 can-hover:lg:min-h-dvh can-hover:lg:py-12 lg:max-w-[clamp(80rem,100vw,90rem)] lg:px-2">
           <Outlet />
         </div>
         <AppFooter />
