@@ -11,10 +11,11 @@ import { useAuthStore } from '../../common/stores/useAuthStore'
 import { finalizeLeaveGroup } from './utils/leaveGroupFlow'
 import { calcDisplayPrice } from '../../common/utils/pricingUtils'
 import { toast } from '../../common/utils/toast'
+import { useIsDesktop } from '../../common/utils/hooks'
 import { TokenBadge } from '../../components/ui/TokenAmount'
 import ConfirmActionDialog from '../../components/ui/ConfirmActionDialog'
 import GroupModalShell from '../../components/ui/group/GroupModalShell'
-import FavoriteToggleButton from '../../components/ui/FavoriteToggleButton'
+import GroupPriceSeatSummary from '../../components/ui/group/GroupPriceSeatSummary'
 import MemberGroupView from '../subscriptions/components/MemberGroupView'
 import ExploreGroupCard from '../explore/components/ExploreGroupCard'
 import HostReviews from './components/HostReviews'
@@ -70,6 +71,7 @@ export default function GroupDetailModal() {
   }
 
   const isOpen       = !!groupId
+  const isDesktop    = useIsDesktop()
   const activeUser   = useAuthStore(s => s.user)
   const activeUserId = activeUser?.id
 
@@ -261,8 +263,68 @@ export default function GroupDetailModal() {
       headerClassName="text-lg font-black text-brand"
       onDm={activeUserId && !isHost ? openDm : undefined}
       scrollable
+      topPadding={!isDesktop}
+      squareDmButton={isDesktop}
     />
   )
+
+  const picksInner = (
+    <>
+      <h3 className="mb-4 flex items-center gap-2 text-lg font-black text-brand">
+        <Sparkles size={16} strokeWidth={1.5} className="shrink-0" />
+        其他推薦群組
+      </h3>
+      <div className="relative">
+        {!picksAtStart && (
+          <button
+            type="button"
+            onClick={() => scrollPicks(-280)}
+            aria-label="往左看更多"
+            className="absolute left-2 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-line bg-canvas text-ink-3 shadow-md transition-colors hover:bg-raised hover:text-ink lg:grid"
+          >
+            <ChevronLeft size={16} strokeWidth={1.5} />
+          </button>
+        )}
+        <div
+          ref={picksScrollCallbackRef}
+          onScroll={handlePicksScroll}
+          className="flex gap-3 overflow-x-auto px-2 pb-4 pt-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {picks.map(g => (
+            <div key={g.id} className="w-64 shrink-0">
+              <ExploreGroupCard group={g} isApplied={appliedGroupIds.has(g.id)} isMember={memberGroupIds.has(g.id)} />
+            </div>
+          ))}
+        </div>
+        {!picksAtEnd && (
+          <button
+            type="button"
+            onClick={() => scrollPicks(280)}
+            aria-label="往右看更多"
+            className="absolute right-2 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-line bg-canvas text-ink-3 shadow-md transition-colors hover:bg-raised hover:text-ink lg:grid"
+          >
+            <ChevronRight size={16} strokeWidth={1.5} />
+          </button>
+        )}
+      </div>
+    </>
+  )
+
+  // 桌機（lg+）改成左右分欄：左邊維持群組資訊／規則／服務說明，右邊放團主評價／推薦群組／
+  // 價格與名額／申請、收藏按鈕；手機／平板維持原本單欄由上到下的排列，不受影響。
+  // showMembers（群組名單）分頁沒有這個分欄需求，只在概覽分頁套用
+  const showDesktopAside = isDesktop && !showMembers
+  const hideRecruitBarBase = isMember || isHost || group.status !== 'recruiting'
+  const footerCta = buildMobileFooter({
+    group, activeUserId, navigate, handleClose,
+    isHost, isWaitingMembers, needsFillInfo, hasServiceInfoIssue,
+    isSharedCredentials: service?.sharingMethod === 'shared_credentials',
+    isMember, isPendingApp, isFull, canApply, isFav,
+    cancelConfirm, setCancelConfirm, cancelling, handleCancel,
+    setShowMembers, setLeaveConfirm, onApplyClick: handleApplyClick, toggleFav,
+    padded: !showDesktopAside,
+    squareFavorite: showDesktopAside,
+  })
 
   return (
     <>
@@ -286,7 +348,7 @@ export default function GroupDetailModal() {
       group={group}
       service={service}
       plan={plan}
-      hideRecruitBar={isMember || isHost || group.status !== 'recruiting'}
+      hideRecruitBar={hideRecruitBarBase || showDesktopAside}
       extraInfoRows={[]}
       statusBadgeOverride={
         isMember && group.status === 'recruiting' ? 'member_joined' :
@@ -308,57 +370,16 @@ export default function GroupDetailModal() {
           </div>
         ) : undefined
       }
-      summaryFavoriteSlot={
-        <FavoriteToggleButton isFav={isFav} onClick={toggleFav} heartSize={19} className="mt-1 h-8 w-8" />
-      }
-      mobileReviewsSection={reviews}
-      mobileFooter={buildMobileFooter({
-        group, activeUserId, navigate, handleClose,
-        isHost, isWaitingMembers, needsFillInfo, hasServiceInfoIssue,
-        isSharedCredentials: service?.sharingMethod === 'shared_credentials',
-        isMember, isPendingApp, isFull, canApply, isFav,
-        cancelConfirm, setCancelConfirm, cancelling, handleCancel,
-        setShowMembers, setLeaveConfirm, onApplyClick: handleApplyClick, toggleFav,
-      })}
+      mobileReviewsSection={showDesktopAside ? undefined : reviews}
+      mobileFooter={showDesktopAside ? undefined : footerCta}
       afterColumns={picks.length > 0 && (
-        <div className="border-t border-line px-6 pb-4 pt-5">
-          <h3 className="mb-4 flex items-center gap-2 text-lg font-black text-brand">
-            <Sparkles size={16} strokeWidth={1.5} className="shrink-0" />
-            其他推薦群組
-          </h3>
-          <div className="relative">
-            {!picksAtStart && (
-              <button
-                type="button"
-                onClick={() => scrollPicks(-280)}
-                aria-label="往左看更多"
-                className="absolute left-2 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-line bg-canvas text-ink-3 shadow-md transition-colors hover:bg-raised hover:text-ink md:grid"
-              >
-                <ChevronLeft size={16} strokeWidth={1.5} />
-              </button>
-            )}
-            <div
-              ref={picksScrollCallbackRef}
-              onScroll={handlePicksScroll}
-              className="flex gap-3 overflow-x-auto px-2 pb-4 pt-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-            >
-              {picks.map(g => (
-                <div key={g.id} className="w-64 shrink-0">
-                  <ExploreGroupCard group={g} isApplied={appliedGroupIds.has(g.id)} isMember={memberGroupIds.has(g.id)} />
-                </div>
-              ))}
-            </div>
-            {!picksAtEnd && (
-              <button
-                type="button"
-                onClick={() => scrollPicks(280)}
-                aria-label="往右看更多"
-                className="absolute right-2 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-line bg-canvas text-ink-3 shadow-md transition-colors hover:bg-raised hover:text-ink md:grid"
-              >
-                <ChevronRight size={16} strokeWidth={1.5} />
-              </button>
-            )}
-          </div>
+        <div className="border-t border-line px-6 pb-4 pt-5">{picksInner}</div>
+      )}
+      desktopAsideTop={showDesktopAside && reviews}
+      desktopAsideBottom={showDesktopAside && (
+        <div className="space-y-4">
+          {!hideRecruitBarBase && <GroupPriceSeatSummary group={group} />}
+          {footerCta}
         </div>
       )}
     >

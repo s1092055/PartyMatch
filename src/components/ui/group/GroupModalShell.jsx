@@ -3,11 +3,9 @@ import { ChevronLeft } from 'lucide-react'
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogCloseButton } from '../dialog'
 import ServiceLogo from '../ServiceLogo'
 import GroupOverviewContent from './GroupOverviewContent'
-import { Progress } from '../progress'
-import TokenAmount from '../TokenAmount'
+import GroupPriceSeatSummary from './GroupPriceSeatSummary'
 import ScrollHint from '../primitives/ScrollHint'
 import { useScrollEdge } from '../../../common/utils/hooks'
-import { calcDisplayPrice, calcDisplayCycle } from '../../../common/utils/pricingUtils'
 
 export default function GroupModalShell({
   onClose,
@@ -32,6 +30,8 @@ export default function GroupModalShell({
   onSubSubPanelBack = null,
   panelKey = 'overview', // 目前顯示的分頁識別字串；切換時搭配 key 觸發 slide-up 進場動畫
   mobileReviewsSection,
+  desktopAsideTop,       // 桌機（lg+）專用右欄可捲動內容（例如團主評價、推薦群組）；只有概覽分頁會用到
+  desktopAsideBottom,    // 桌機（lg+）專用右欄固定內容（例如價格/名額、申請按鈕）
   children,
 }) {
   const { scrollRef: scrollBodyRef, elRef: scrollBodyElRef, atBottom, canScroll, isScrolling, handleScroll } = useScrollEdge()
@@ -72,7 +72,7 @@ export default function GroupModalShell({
 
   return (
     <Dialog open onOpenChange={v => { if (!v) handleClose() }}>
-      <DialogContent maxWidth="max-w-xl" height="min(92dvh, 720px)" onEscapeKeyDown={handleEscapeKeyDown}>
+      <DialogContent maxWidth={desktopAsideTop ? 'max-w-xl lg:max-w-3xl' : 'max-w-xl'} height="min(92dvh, 720px)" onEscapeKeyDown={handleEscapeKeyDown}>
           <DialogTitle className="sr-only">{group.serviceName}</DialogTitle>
           <DialogDescription>{group.serviceName}</DialogDescription>
           {/* Header — 固定不動，翻書效果只作用在下方內容區 */}
@@ -184,25 +184,7 @@ export default function GroupModalShell({
                         這樣切到其他分頁（成員名單、申請管理等）時也看得到，不會只有概覽才有 */}
                     {!centeredCta && !hideRecruitBar ? (
                       <div className="shrink-0 border-t border-line bg-canvas px-6 py-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="mb-0.5 text-xs font-medium text-ink-4">每位價格</p>
-                            <div>
-                              <TokenAmount
-                                amount={calcDisplayPrice(group.pricePerSeat, group.billingCycle)}
-                                cycle={calcDisplayCycle(group.billingCycle)}
-                                className="text-2xl font-extrabold"
-                              />
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="mb-0.5 text-xs text-ink-4">剩餘名額</p>
-                            <p className="text-lg font-extrabold text-ink">{group.openSeats} / {group.totalSeats} 位</p>
-                          </div>
-                        </div>
-                        <div className="mt-3">
-                          <Progress value={group.usedSeats} max={group.totalSeats} />
-                        </div>
+                        <GroupPriceSeatSummary group={group} />
                       </div>
                     ) : null}
 
@@ -225,6 +207,19 @@ export default function GroupModalShell({
             {sideBar && (
               <div className="flex shrink-0 flex-row justify-between gap-1 overflow-x-auto border-t border-line bg-canvas p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:order-first md:w-24 md:flex-col md:justify-start md:overflow-x-hidden md:overflow-y-auto md:border-r md:border-t-0">
                 {sideBar}
+              </div>
+            )}
+
+            {desktopAsideTop && (
+              <div className="hidden lg:flex lg:w-80 lg:shrink-0 lg:flex-col lg:border-l lg:border-line">
+                <div className="min-h-0 flex-1 overflow-hidden px-5 py-5">
+                  {desktopAsideTop}
+                </div>
+                {desktopAsideBottom && (
+                  <div className="shrink-0 border-t border-line bg-canvas px-5 py-4">
+                    {desktopAsideBottom}
+                  </div>
+                )}
               </div>
             )}
           </div>

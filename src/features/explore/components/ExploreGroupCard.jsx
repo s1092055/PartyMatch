@@ -56,6 +56,7 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
           onClick={handleFav}
           heartSize={18}
           className="absolute right-4 top-4 h-9 w-9 bg-surface shadow-floating"
+          square
         />
       )}
 

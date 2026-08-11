@@ -67,9 +67,11 @@ export function buildMobileFooter({
   isMember, isPendingApp, isFull, canApply, isFav,
   cancelConfirm, setCancelConfirm, cancelling, handleCancel,
   setShowMembers, setLeaveConfirm, onApplyClick, toggleFav,
+  padded = true,        // 桌機右欄已由外層容器提供左右留白，這裡不用再疊加一層，避免按鈕跟著往內縮、跟價格區塊的進度條對不齊
+  squareFavorite = false, // 桌機右欄的收藏按鈕改用跟訊息按鈕一致的方形圓角，不要跟手機版一樣是圓形
 }) {
   return (
-    <div className="px-6 py-3">
+    <div className={padded ? 'px-6 py-3' : 'py-3'}>
       {isWaitingMembers ? (
         <div className="grid grid-cols-2 gap-1">
           <Button
@@ -90,19 +92,16 @@ export function buildMobileFooter({
           </Button>
         </div>
       ) : canApply ? (
-        <>
-          <div className="flex items-center gap-2">
-            <Button
-              size="lg"
-              className="flex-1"
-              onClick={onApplyClick}
-            >
-              申請加入 <ChevronRight size={16} strokeWidth={1.5} />
-            </Button>
-            <FavoriteToggleButton isFav={isFav} onClick={toggleFav} heartSize={18} className="h-12 w-12" />
-          </div>
-          <p className="mt-2 text-center text-xs text-ink-4">申請後需經團主審核</p>
-        </>
+        <div className="flex items-center gap-2">
+          <Button
+            size="lg"
+            className="flex-1"
+            onClick={onApplyClick}
+          >
+            申請加入 <ChevronRight size={16} strokeWidth={1.5} />
+          </Button>
+          <FavoriteToggleButton isFav={isFav} onClick={toggleFav} heartSize={18} className="h-12 w-12" square={squareFavorite} />
+        </div>
       ) : (
         renderCTA({
           group, activeUserId, navigate, handleClose,

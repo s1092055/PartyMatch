@@ -10,6 +10,7 @@ import ConfirmServiceModal from './ConfirmServiceModal'
 import CountdownText from '../../../components/ui/primitives/CountdownText'
 import GroupModalShell from '../../../components/ui/group/GroupModalShell'
 import GroupModalSideBarItem from '../../../components/ui/group/GroupModalSideBarItem'
+import HostReviews from '../../group/components/HostReviews'
 import ReviewHostModal from './ReviewHostModal'
 import FillServiceInfoModal from './FillServiceInfoModal'
 import DisputeModal from './DisputeModal'
@@ -112,6 +113,22 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
     onClose()
     window.dispatchEvent(new CustomEvent('pm:open-messages', { detail: { groupId: group.id } }))
   }
+
+  function openDmWithHost() {
+    onClose()
+    window.dispatchEvent(new CustomEvent('pm:open-dm', {
+      detail: { hostId: group.hostId, hostName: group.hostName, hostAvatarInitial: group.hostAvatarInitial, hostAvatarColor: group.hostAvatarColor },
+    }))
+  }
+
+  const hostReviews = (
+    <HostReviews
+      group={group}
+      headerClassName="text-lg font-black text-brand"
+      onDm={openDmWithHost}
+      scrollable
+    />
+  )
 
   async function handleConfirmService() {
     setConfirmLoading(true)
@@ -458,6 +475,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
       subPanel={activePanel ? buildSubPanel() : null}
       onSubPanelBack={() => setActivePanel(null)}
       panelKey={activePanel ?? 'overview'}
+      mobileReviewsSection={hostReviews}
     >
     </GroupModalShell>
     )}

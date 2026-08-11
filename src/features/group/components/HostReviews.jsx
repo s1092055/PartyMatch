@@ -8,7 +8,7 @@ import { CENTERED_PANEL_BODY_CLASS } from '../../../components/ui/group/panelLay
 import { useReviewStore } from '../../../common/stores/useReviewStore'
 import { toISODate } from '../../../common/utils/date'
 
-export default function HostReviews({ group, headerClassName, onDm, groupId, title = '團主評價', scrollable = false, centerEmpty = false }) {
+export default function HostReviews({ group, headerClassName, onDm, groupId, title = '團主評價', scrollable = false, centerEmpty = false, topPadding = true, squareDmButton = false }) {
   const hostId = group.hostId
   const data = useReviewStore(s => s.byHostId[hostId])
   const fetchForHost = useReviewStore(s => s.fetchForHost)
@@ -40,7 +40,7 @@ export default function HostReviews({ group, headerClassName, onDm, groupId, tit
   const showHeader = !(centerEmpty && emptyOrLoading)
 
   return (
-    <div className={centerEmpty ? `flex min-h-0 flex-1 flex-col space-y-4 ${CENTERED_PANEL_BODY_CLASS}` : 'space-y-4 py-5'}>
+    <div className={centerEmpty ? `flex min-h-0 flex-1 flex-col space-y-4 ${CENTERED_PANEL_BODY_CLASS}` : `space-y-4 pb-5 ${topPadding ? 'pt-5' : 'pt-0'}`}>
       {title && (
         <p className={`flex items-center gap-2 ${headerClassName}`}>
           <Star size={16} strokeWidth={1.5} className="shrink-0 text-brand" />
@@ -75,7 +75,7 @@ export default function HostReviews({ group, headerClassName, onDm, groupId, tit
           {onDm && (
             <button
               onClick={onDm}
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-line text-ink-3 transition-colors hover:border-brand hover:text-brand"
+              className={`grid h-9 w-9 shrink-0 place-items-center border border-line text-ink-3 transition-colors hover:border-brand hover:text-brand ${squareDmButton ? 'rounded-lg' : 'rounded-full'}`}
               aria-label="聯絡團主"
             >
               <MessageCircle size={16} strokeWidth={1.5} />

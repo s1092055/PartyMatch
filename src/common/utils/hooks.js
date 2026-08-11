@@ -3,6 +3,19 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from './toast'
 import { useAuthStore } from '../stores/useAuthStore'
 
+// lg 斷點（見 src/index.css 的 --breakpoint-lg）；裝置類型相關的版面切換一律用這個，
+// 不要用 md，768px 會把 iPad 誤判成桌機
+export function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1280)
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1280px)')
+    const handler = e => setIsDesktop(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+  return isDesktop
+}
+
 // Reference counter so nested modals don't re-measure or prematurely release the lock.
 let _lockCount = 0
 
