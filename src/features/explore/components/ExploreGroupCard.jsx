@@ -40,7 +40,7 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
   return (
     <Card
       as="article"
-      className="card-lift relative flex min-h-full cursor-pointer flex-col overflow-hidden p-5"
+      className="card-lift relative flex min-h-full cursor-pointer flex-col overflow-hidden rounded-inner p-5"
       onClick={openDetails}
     >
       <GroupCardHeader
@@ -54,7 +54,7 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
             isFav={isFav}
             onClick={handleFav}
             heartSize={18}
-            className="absolute right-7 top-4 h-9 w-9 bg-surface shadow-floating"
+            className="absolute right-7 top-4 h-9 w-9 shadow-floating"
             square
           />
         )}
@@ -71,12 +71,17 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
       <div className="mx-2">
         <StatCellGrid>
           <StatCell label="團主">{group.hostName ?? '—'}</StatCell>
-          <StatCell label="剩餘名額" highlight={group.openSeats <= 0 ? 'text-ink-3' : isLastSeat ? 'text-warning-text' : 'text-success'}>
-            {group.totalSeats == null
-              ? '—'
-              : group.openSeats <= 0
-                ? getStatusLabel('full')
-                : `${group.openSeats} / ${group.totalSeats}`}
+          <StatCell label="剩餘名額">
+            {group.totalSeats == null ? (
+              '—'
+            ) : group.openSeats <= 0 ? (
+              <span className="text-ink-3">{getStatusLabel('full')}</span>
+            ) : (
+              <>
+                <span className={isLastSeat ? 'text-warning-text' : 'text-success'}>{group.openSeats}</span>
+                <span className="text-ink-4"> / {group.totalSeats}</span>
+              </>
+            )}
           </StatCell>
           <StatCell label="信用分數"><CreditScoreValue score={group.minCreditScore} /></StatCell>
         </StatCellGrid>
