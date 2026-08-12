@@ -165,8 +165,11 @@ export default function MessagesModal() {
 
   async function handleSend() {
     const text = inputRef.current?.value.trim() ?? ''
-    const attachmentUrl = attachment.url
-    if ((!text && !attachmentUrl) || !selectedId || attachment.uploading) return
+    // attachmentKey 是要送給後端存進資料庫的永久識別碼；attachmentPreviewUrl 只是這次上傳當下
+    // 順便簽的短效網址，拿來畫本地樂觀訊息泡泡，真正顯示的網址等伺服器回應回來後就會換掉
+    const attachmentKey = attachment.key
+    const attachmentPreviewUrl = attachment.url
+    if ((!text && !attachmentKey) || !selectedId || attachment.uploading) return
     const user = getCurrentUser()
     if (!user) return
     if (!selected) return
@@ -184,7 +187,7 @@ export default function MessagesModal() {
       sender:      { id: user.id, name: user.name, avatarInitial: user.avatarInitial ?? '', avatarColor: user.avatarColor ?? null },
       content:     text,
       type:        'text',
-      attachmentUrl,
+      attachmentUrl: attachmentPreviewUrl,
       createdAt:   new Date().toISOString(),
     })
     setMessages(prev => [...prev, optimisticMsg])
@@ -196,7 +199,7 @@ export default function MessagesModal() {
         avatarInitial: user.avatarInitial ?? '',
         avatarColor: user.avatarColor ?? null,
         text,
-        attachmentUrl,
+        attachmentUrl: attachmentKey,
         participants: selected?.participants ?? [],
       })
       const msg = normalizeMessage(saved)

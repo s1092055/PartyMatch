@@ -6,7 +6,7 @@ import { validate } from '../middleware/validate.js'
 import { computeSeatCost } from '../utils/pricing.js'
 import { admitMemberIntoGroup, refundEscrow } from '../utils/membership.js'
 import { maskAvatar } from '../lib/avatarVisibility.js'
-import { maskMemberSensitiveFields } from '../lib/groupPrivacy.js'
+import { maskMemberSensitiveFields, resolveMemberEvidenceUrls, resolveMembersEvidenceUrls } from '../lib/groupPrivacy.js'
 import { notify, claimGroupStatus } from './groups/shared.js'
 import { adjustCreditScore } from '../utils/creditScore.js'
 
@@ -53,10 +53,12 @@ router.get('/', requireAuth, async (req, res, next) => {
     // 這裡回傳的成員可能橫跨多個群組（沒帶 groupId 時），每一筆要各自依「該筆所屬群組」的
     // hostId 判斷是不是團主，不能只判斷一次——這裡曾經完全沒有這層遮罩，同群組的一般成員
     // 打這支 API 可以看到其他成員的 serviceInfo/disputeEvidenceUrl 等敏感欄位，是真的漏洞
-    res.json(members.map(({ group, ...m }) => ({
+    const masked = members.map(({ group, ...m }) => ({
       ...maskMemberSensitiveFields(m, { isHost: group.hostId === req.user.id, isSelf: m.userId === req.user.id }),
       user: maskAvatar(m.user),
-    })))
+    }))
+    // serviceInfoIssueEvidenceUrl/disputeEvidenceUrl 存的是 R2 key，遮罩後才簽短效網址
+    res.json(await resolveMembersEvidenceUrls(masked))
   } catch (err) { next(err) }
 })
 
@@ -170,7 +172,11 @@ router.patch('/:id', requireAuth, validate(patchMemberSchema), async (req, res, 
       })
     }
 
-    res.json(groupAdvancedStatus ? { ...member, _groupAdvanced: groupAdvancedStatus } : member)
+    // serviceInfoIssueEvidenceUrl/disputeEvidenceUrl 存的是 R2 key，回傳前簽短效網址；
+    // 這裡不用另外套 maskMemberSensitiveFields，PATCH 本身已經被上面的 isOwner/isHost 檢查擋過，
+    // 呼叫者本來就有資格看到這筆自己的（或自己主持的群組的）完整資料
+    const resolvedMember = await resolveMemberEvidenceUrls(member)
+    res.json(groupAdvancedStatus ? { ...resolvedMember, _groupAdvanced: groupAdvancedStatus } : resolvedMember)
   } catch (err) { next(err) }
 })
 

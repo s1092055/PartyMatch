@@ -17,7 +17,8 @@ function maskGroupHost(group) {
 
 const disputeSchema = z.object({
   reason:      z.string().trim().min(1).max(500),
-  evidenceUrl: z.string().url(),
+  // 存的其實是 R2 物件 key（見 r2Storage.js），不是完整網址，讀取時才即時簽短效網址
+  evidenceUrl: z.string().min(1),
 })
 
 const adjustBillingDateSchema = z.object({

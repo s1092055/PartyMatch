@@ -474,7 +474,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
       onRemoveEvidence={serviceIssueEvidence.onRemove}
       onSubmit={() => {
         if (!serviceIssueNote.trim() || !serviceIssueMember) return
-        onReportServiceInfoIssue?.(serviceIssueMember, serviceIssueNote.trim(), serviceIssueEvidence.url || undefined)
+        onReportServiceInfoIssue?.(serviceIssueMember, serviceIssueNote.trim(), serviceIssueEvidence.key || undefined)
         setServiceIssueMember(null)
         setServiceIssueNote('')
         serviceIssueEvidence.reset()

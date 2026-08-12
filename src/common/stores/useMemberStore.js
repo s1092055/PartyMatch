@@ -46,7 +46,12 @@ export const useMemberStore = create((set, get) => ({
     set(s => ({
       members: s.members.map(m => m.id === memberId ? { ...m, ...patch } : m),
     }))
-    return patchMember(memberId, patch).catch(err => {
+    return patchMember(memberId, patch).then(updated => {
+      // 用伺服器實際回傳值再蓋一次本地樂觀更新：serviceInfoIssueEvidenceUrl/disputeEvidenceUrl
+      // 送出時是 R2 key，後端回傳的才是簽過章、真的能顯示的短效網址，這裡不同步的話畫面會
+      // 一直卡在剛剛送出的那個 key 字串，圖片顯示不出來，直到下次整頁重新 init 才會修正
+      set(s => ({ members: s.members.map(m => m.id === memberId ? { ...m, ...updated } : m) }))
+    }).catch(err => {
       // 回滾至先前值，避免付款狀態／服務帳號等畫面顯示跟後端不同步
       if (prior) set(s => ({ members: s.members.map(m => m.id === memberId ? prior : m) }))
       notifyError(err, '更新失敗，請稍後再試')

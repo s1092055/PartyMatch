@@ -35,7 +35,8 @@ describe('群組敏感欄位遮罩（sharedCredentials／serviceInfo）', () => 
         userId:  member.id,
         serviceInfo: { account: 'member-own-account@example.com', password: 'member-secret' },
         serviceInfoIssueNote: '密碼登不進去',
-        disputeEvidenceUrl: 'https://r2.example.com/private/evidence.png',
+        // 存的其實是 R2 物件 key（見 r2Storage.js），不是完整網址，讀取時才即時簽短效網址
+        disputeEvidenceUrl: 'partymatch/dispute-evidence/test-evidence.png',
       },
     })
   })
@@ -69,12 +70,14 @@ describe('群組敏感欄位遮罩（sharedCredentials／serviceInfo）', () => 
     expect(memberEntry.serviceInfo).toBeUndefined()
   })
 
-  it('GET /groups/:id 團主看得到 sharedCredentials 跟所有成員的 serviceInfo', async () => {
+  it('GET /groups/:id 團主看得到 sharedCredentials 跟所有成員的 serviceInfo，disputeEvidenceUrl 是簽過章的短效網址', async () => {
     const res = await request(app).get(`/api/groups/${group.id}`).set('Authorization', authHeader(host))
     expect(res.status).toBe(200)
     expect(res.body.sharedCredentials).toBe('netflix-shared@example.com / super-secret-password')
     const memberEntry = res.body.members.find(m => m.userId === member.id)
     expect(memberEntry.serviceInfo).toEqual({ account: 'member-own-account@example.com', password: 'member-secret' })
+    expect(memberEntry.disputeEvidenceUrl).toContain('partymatch/dispute-evidence/test-evidence.png')
+    expect(memberEntry.disputeEvidenceUrl).toContain('X-Amz-Signature')
   })
 
   it('sharedCredentials 在資料庫內不是明文，一定是 AES-256-GCM 密文', async () => {
@@ -115,7 +118,9 @@ describe('群組敏感欄位遮罩（sharedCredentials／serviceInfo）', () => 
 
     const ownEntry = res.body.find(m => m.userId === member.id)
     expect(ownEntry.serviceInfo).toEqual({ account: 'member-own-account@example.com', password: 'member-secret' })
-    expect(ownEntry.disputeEvidenceUrl).toBe('https://r2.example.com/private/evidence.png')
+    // 存的是 R2 key，回傳給前端前會即時簽一個短效網址，不會是原始 key 字串本身
+    expect(ownEntry.disputeEvidenceUrl).toContain('partymatch/dispute-evidence/test-evidence.png')
+    expect(ownEntry.disputeEvidenceUrl).toContain('X-Amz-Signature')
 
     const otherEntry = res.body.find(m => m.userId === anotherMember.id)
     expect(otherEntry.serviceInfo).toBeUndefined()

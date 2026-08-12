@@ -5,6 +5,7 @@ import { requireAuth } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
 import { appendMessage, isSystemConversation, parseParticipants } from '../lib/conversationMessages.js'
 import { maskAvatar } from '../lib/avatarVisibility.js'
+import { getSignedDownloadUrl } from '../lib/r2Storage.js'
 
 const router = Router()
 
@@ -13,7 +14,8 @@ const sendMessageSchema = z.object({
   type:          z.enum(['text', 'system', 'action']).default('text'),
   actionType:    z.string().optional(),
   payload:       z.record(z.unknown()).optional(),
-  attachmentUrl: z.string().url().optional(),
+  // 存的其實是 R2 物件 key（見 r2Storage.js），不是完整網址，讀取時才即時簽短效網址
+  attachmentUrl: z.string().min(1).optional(),
 }).refine(data => data.content.length > 0 || !!data.attachmentUrl, {
   message: '訊息內容或附件至少需要一項',
 })
@@ -119,7 +121,13 @@ router.get('/:id/messages', requireAuth, async (req, res, next) => {
       orderBy: { createdAt: 'desc' },
       take:    parseInt(limit),
     })
-    res.json(messages.reverse().map(m => ({ ...m, sender: maskAvatar(m.sender) })))
+    // attachmentUrl 存的是 R2 key（見 r2Storage.js），這裡即時簽一個短效網址給前端顯示
+    const resolved = await Promise.all(messages.reverse().map(async m => ({
+      ...m,
+      sender: maskAvatar(m.sender),
+      ...(m.attachmentUrl && { attachmentUrl: await getSignedDownloadUrl(m.attachmentUrl) }),
+    })))
+    res.json(resolved)
   } catch (err) { next(err) }
 })
 
@@ -141,7 +149,10 @@ router.post('/:id/messages', requireAuth, validate(sendMessageSchema), async (re
       senderId: req.user.id, content, type, actionType, payload, attachmentUrl, participants,
     })
 
-    res.status(201).json(message)
+    res.status(201).json({
+      ...message,
+      ...(message.attachmentUrl && { attachmentUrl: await getSignedDownloadUrl(message.attachmentUrl) }),
+    })
   } catch (err) { next(err) }
 })
 

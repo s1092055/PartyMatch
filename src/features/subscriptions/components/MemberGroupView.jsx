@@ -173,7 +173,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
     const reason = [disputeReasons.join('、'), disputeDetail.trim()].filter(Boolean).join('\n')
     setDisputeLoading(true)
     try {
-      await disputeGroup(group.id, { reason, evidenceUrl: evidence.url || undefined })
+      await disputeGroup(group.id, { reason, evidenceUrl: evidence.key || undefined })
       setShowDispute(false)
       resetDisputeForm()
       toast('已送出回報，將於 48 小時內處理', 'success')

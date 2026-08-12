@@ -5,7 +5,7 @@ import { requireAuth, optionalAuth } from '../../middleware/auth.js'
 import { validate } from '../../middleware/validate.js'
 import { notify } from './shared.js'
 import { maskAvatar } from '../../lib/avatarVisibility.js'
-import { maskGroupListSensitiveFields, maskGroupDetailSensitiveFields } from '../../lib/groupPrivacy.js'
+import { maskGroupListSensitiveFields, maskGroupDetailSensitiveFields, resolveGroupMemberEvidenceUrls } from '../../lib/groupPrivacy.js'
 import { computeSeatCost, toPlainGroup } from '../../utils/pricing.js'
 import { refundEscrow } from '../../utils/membership.js'
 import { adjustCreditScore } from '../../utils/creditScore.js'
@@ -120,7 +120,7 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
           meta:    { groupId: group.id },
         })
       }
-      return res.json(maskGroupDetailSensitiveFields(maskGroupAvatars({ ...group, status: 'active', confirmDeadline: null, escrowTokens: 0 }), req.user?.id))
+      return res.json(await resolveGroupMemberEvidenceUrls(maskGroupDetailSensitiveFields(maskGroupAvatars({ ...group, status: 'active', confirmDeadline: null, escrowTokens: 0 }), req.user?.id)))
     }
 
     // 惰性自動踢除：pending_confirmation 且 serviceInfoDeadline 已到期，把還沒填寫／提取帳號資訊的
@@ -182,12 +182,12 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
               members: { include: { user: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, bio: true } } } },
             },
           })
-          return res.json(maskGroupDetailSensitiveFields(maskGroupAvatars(fresh), req.user?.id))
+          return res.json(await resolveGroupMemberEvidenceUrls(maskGroupDetailSensitiveFields(maskGroupAvatars(fresh), req.user?.id)))
         }
       }
     }
 
-    res.json(maskGroupDetailSensitiveFields(maskGroupAvatars(group), req.user?.id))
+    res.json(await resolveGroupMemberEvidenceUrls(maskGroupDetailSensitiveFields(maskGroupAvatars(group), req.user?.id)))
   } catch (err) { next(err) }
 })
 

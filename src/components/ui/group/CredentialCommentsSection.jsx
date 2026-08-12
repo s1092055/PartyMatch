@@ -47,7 +47,7 @@ export default function CredentialCommentsSection({ groupId, hostId }) {
     if ((!content && !attachment.url) || sending || attachment.uploading) return
     setSending(true)
     try {
-      const comment = await createCredentialComment({ groupId, content, attachmentUrl: attachment.url })
+      const comment = await createCredentialComment({ groupId, content, attachmentUrl: attachment.key })
       setComments(prev => [...prev, comment])
       setText('')
       attachment.reset()

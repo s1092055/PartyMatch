@@ -226,9 +226,12 @@ export function useConfirmCountdown(seconds) {
 const EVIDENCE_MIME_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp', 'image/heic']
 const EVIDENCE_MAX_SIZE_BYTES = 5 * 1024 * 1024 // 5MB
 
-// 附件上傳共用邏輯：申訴附件、團主回報帳號問題的附件都是同一套「選檔→上傳→存 url/name→
-// 失敗跳 toast→清空重選」流程，差別只在呼叫哪支 upload API（uploadFn）
+// 附件上傳共用邏輯：申訴附件、團主回報帳號問題的附件都是同一套「選檔→上傳→存 key/url/name→
+// 失敗跳 toast→清空重選」流程，差別只在呼叫哪支 upload API（uploadFn）。
+// key 是要送給後端存進資料庫的永久識別碼；url 是上傳當下順便簽的短效網址，只給這裡的本地
+// 預覽用（提交表單前使用者可能還要等一下），不能拿去長期顯示或存到別的地方。
 export function useEvidenceUpload(uploadFn) {
+  const [key, setKey]             = useState('')
   const [url, setUrl]             = useState('')
   const [name, setName]           = useState('')
   const [uploading, setUploading] = useState(false)
@@ -247,8 +250,9 @@ export function useEvidenceUpload(uploadFn) {
     }
     setUploading(true)
     try {
-      const uploadedUrl = await uploadFn(file)
-      setUrl(uploadedUrl)
+      const uploaded = await uploadFn(file)
+      setKey(uploaded.key)
+      setUrl(uploaded.url)
       setName(file.name)
     } catch (err) {
       toast(err?.message ?? '附件上傳失敗，請稍後再試', 'error')
@@ -258,11 +262,12 @@ export function useEvidenceUpload(uploadFn) {
   }
 
   function reset() {
+    setKey('')
     setUrl('')
     setName('')
   }
 
-  return { url, name, uploading, onSelect, onRemove: reset, reset }
+  return { key, url, name, uploading, onSelect, onRemove: reset, reset }
 }
 
 export function useClickOutside(enabled, refs, onClose) {

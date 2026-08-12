@@ -4,13 +4,15 @@ import prisma from '../lib/prisma.js'
 import { requireAuth } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
 import { maskAvatar } from '../lib/avatarVisibility.js'
+import { getSignedDownloadUrl } from '../lib/r2Storage.js'
 
 const router = Router()
 
 const createCommentSchema = z.object({
   groupId: z.string().min(1),
   content: z.string().trim().max(500).default(''),
-  attachmentUrl: z.string().url().optional(),
+  // 存的其實是 R2 物件 key（見 r2Storage.js），不是完整網址，讀取時才即時簽短效網址
+  attachmentUrl: z.string().min(1).optional(),
 }).refine(data => data.content.length > 0 || !!data.attachmentUrl, {
   message: '留言內容或附件至少需要一項',
 })
@@ -35,7 +37,13 @@ router.get('/:groupId', requireAuth, async (req, res, next) => {
       include: { author: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true } } },
       orderBy: { createdAt: 'asc' },
     })
-    res.json(comments.map(c => ({ ...c, author: maskAvatar(c.author) })))
+    // attachmentUrl 存的是 R2 key（見 r2Storage.js），這裡即時簽一個短效網址給前端顯示
+    const resolved = await Promise.all(comments.map(async c => ({
+      ...c,
+      author: maskAvatar(c.author),
+      ...(c.attachmentUrl && { attachmentUrl: await getSignedDownloadUrl(c.attachmentUrl) }),
+    })))
+    res.json(resolved)
   } catch (err) { next(err) }
 })
 
@@ -50,7 +58,11 @@ router.post('/', requireAuth, validate(createCommentSchema), async (req, res, ne
       data:    { groupId, authorId: req.user.id, content, ...(attachmentUrl && { attachmentUrl }) },
       include: { author: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true } } },
     })
-    res.status(201).json({ ...comment, author: maskAvatar(comment.author) })
+    res.status(201).json({
+      ...comment,
+      author: maskAvatar(comment.author),
+      ...(comment.attachmentUrl && { attachmentUrl: await getSignedDownloadUrl(comment.attachmentUrl) }),
+    })
   } catch (err) { next(err) }
 })
 

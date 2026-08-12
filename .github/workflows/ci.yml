@@ -52,6 +52,12 @@ jobs:
       JWT_ACCESS_SECRET: ci-test-access-secret-not-for-production-use
       JWT_REFRESH_SECRET: ci-test-refresh-secret-not-for-production-use
       CREDENTIAL_ENCRYPTION_KEY: 0000000000000000000000000000000000000000000000000000000000000000
+      # R2 附件簽章網址（r2Storage.js 的 getSignedDownloadUrl）在本機測試只需要能產生語法正確
+      # 的簽章網址，不會真的打到 R2，所以隨便填非空字串即可，不需要真的 R2 帳號
+      R2_ACCOUNT_ID: ci-fake-account-id
+      R2_ACCESS_KEY_ID: ci-fake-access-key-id
+      R2_SECRET_ACCESS_KEY: ci-fake-secret-access-key
+      R2_BUCKET_NAME: ci-fake-bucket
       NODE_ENV: test
     defaults:
       run:
