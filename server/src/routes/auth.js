@@ -8,6 +8,7 @@ import { ensureSystemConversation } from '../lib/systemUser.js'
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/jwt.js'
 import { validate } from '../middleware/validate.js'
 import { requireAuth } from '../middleware/auth.js'
+import { authLimiter, refreshLimiter } from '../middleware/rateLimit.js'
 
 const router = Router()
 
@@ -46,7 +47,7 @@ export function clearRefreshCookie(res) {
 }
 
 // POST /auth/register
-router.post('/register', validate(registerSchema), async (req, res, next) => {
+router.post('/register', authLimiter, validate(registerSchema), async (req, res, next) => {
   try {
     const { email, password, name, phone } = req.body
     const exists = await prisma.user.findUnique({ where: { email } })
@@ -78,7 +79,7 @@ router.post('/register', validate(registerSchema), async (req, res, next) => {
 })
 
 // POST /auth/login
-router.post('/login', validate(loginSchema), async (req, res, next) => {
+router.post('/login', authLimiter, validate(loginSchema), async (req, res, next) => {
   try {
     const { email, password } = req.body
     const user = await prisma.user.findUnique({ where: { email } })
@@ -109,7 +110,7 @@ router.post('/login', validate(loginSchema), async (req, res, next) => {
 })
 
 // POST /auth/refresh
-router.post('/refresh', async (req, res) => {
+router.post('/refresh', refreshLimiter, async (req, res) => {
   try {
     const refreshToken = req.cookies?.[REFRESH_COOKIE_NAME]
     if (!refreshToken) return res.status(401).json({ message: '缺少 refresh token' })

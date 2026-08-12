@@ -1,13 +1,15 @@
 import { Router } from 'express'
 import { uploadImage } from '../lib/r2Storage.js'
 import { requireAuth } from '../middleware/auth.js'
+import { uploadLimiter } from '../middleware/rateLimit.js'
 
 const router = Router()
 
 // 「附件」類上傳共用同一套邏輯（圖片或一般檔案皆可），差別只在存放的資料夾——
-// 申訴附件跟團主回報帳號問題的附件本質上是同一種東西
+// 申訴附件跟團主回報帳號問題的附件本質上是同一種東西；每次上傳都會真的產生 R2
+// storage/bandwidth 成本，加 uploadLimiter 擋濫用
 function registerEvidenceUploadRoute(path, folder) {
-  router.post(path, requireAuth, async (req, res, next) => {
+  router.post(path, uploadLimiter, requireAuth, async (req, res, next) => {
     try {
       const { data } = req.body
       if (!data) return res.status(400).json({ message: '缺少附件資料' })

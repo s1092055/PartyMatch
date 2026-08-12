@@ -24,6 +24,11 @@ import adminRoutes         from './routes/admin.js'
 
 const app = express()
 
+// 正式環境部署在 Render（自己前面還有一層 Cloudflare Worker 反向代理），Express 收到的
+// req.ip 預設是代理伺服器的 IP，不是真正的使用者 IP；設 trust proxy 讓 Express 改讀
+// X-Forwarded-For 最後一段，rate limit 才能真正依「使用者」而不是依「代理伺服器」計數
+app.set('trust proxy', 1)
+
 // ── 基礎 middleware ────────────────────────────────────────────────────────────
 app.use(helmet())
 app.use(cors({
