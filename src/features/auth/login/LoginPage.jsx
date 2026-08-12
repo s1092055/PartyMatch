@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Lock, Mail } from 'lucide-react'
-import AuthLayout, { AuthTitle, AuthInput, AuthDivider, AuthError, GoogleMark, PasswordToggle } from '../components/AuthLayout'
+import AuthLayout, { AuthTitle, AuthInput, AuthError, PasswordToggle } from '../components/AuthLayout'
 import { Button } from '../../../components/ui/button'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
 import { toast } from '../../../common/utils/toast'
@@ -70,32 +70,12 @@ export default function LoginPage() {
           trailing={<PasswordToggle visible={showPassword} onClick={() => setShowPassword(v => !v)} />}
         />
 
-        <div className="flex items-center justify-end gap-4">
-          <Link to="/forgot-password" className="text-sm font-bold text-brand hover:text-brand-hover">
-            忘記密碼？
-          </Link>
-        </div>
-
         <AuthError message={error} />
 
         <Button type="submit" size="lg" className="h-[3.75rem] w-full text-lg" disabled={!email.trim() || !password.trim()} loading={loading}>
           登入
         </Button>
       </form>
-
-      <AuthDivider />
-
-      <Button
-        type="button"
-        variant="ghost"
-        size="lg"
-        disabled
-        className="h-[3.5rem] w-full cursor-not-allowed border border-line bg-surface text-base text-ink-3"
-      >
-        <GoogleMark />
-        以 Google 繼續
-        <span className="rounded-full bg-raised px-2 py-0.5 text-2xs font-bold text-ink-3">即將推出</span>
-      </Button>
 
       <p className="mt-8 text-center text-base font-medium text-ink-3">
         還沒有帳號？

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Bell, ChevronDown, Clock, Lock, LogOut, Settings, User } from "lucide-react";
+import { ChevronDown, LogOut, Settings, User } from "lucide-react";
 import { useAuthStore } from "../../common/stores/useAuthStore";
 import { useLogout } from "../../common/utils/hooks";
 import { toast } from "../../common/utils/toast";
@@ -11,10 +11,8 @@ import PersonalInfoTab from "./components/tabs/PersonalInfoTab";
 import SettingsTab from "./components/tabs/SettingsTab";
 
 const BASE_TABS = [
-  { value: "profile",       label: "個人資料", icon: User       },
-  { value: "notifications", label: "通知偏好", icon: Bell,       comingSoon: true },
-  { value: "security",      label: "安全驗證", icon: Lock,       comingSoon: true },
-  { value: "settings",      label: "其他設定", icon: Settings   },
+  { value: "profile",  label: "個人資料", icon: User     },
+  { value: "settings", label: "其他設定", icon: Settings },
 ];
 
 function TabReveal({ children }) {
@@ -34,25 +32,9 @@ function TabReveal({ children }) {
   )
 }
 
-function ComingSoonPlaceholder({ label }) {
-  return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-2xl py-16 text-center">
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-raised">
-        <Clock size={22} className="text-ink-3" />
-      </div>
-      <div className="space-y-1">
-        <p className="text-sm font-bold text-ink">「{label}」即將推出</p>
-        <p className="text-xs text-ink-3">此功能正在開發中，敬請期待</p>
-      </div>
-    </div>
-  )
-}
-
-function TabContent({ value, user, onChange, tabs }) {
-  const tab = tabs.find(t => t.value === value)
-  if (tab?.comingSoon) return <ComingSoonPlaceholder label={tab.label} />
-  if (value === "profile")       return <PersonalInfoTab user={user} onChange={onChange} />
-  if (value === "settings")      return <SettingsTab />
+function TabContent({ value, user, onChange }) {
+  if (value === "profile")  return <PersonalInfoTab user={user} onChange={onChange} />
+  if (value === "settings") return <SettingsTab />
   return null
 }
 
@@ -134,9 +116,6 @@ export default function AccountPage() {
                   >
                     {Icon && <Icon size={17} strokeWidth={2.1} className="shrink-0" />}
                     <span className="flex-1 text-left">{tab.label}</span>
-                    {tab.comingSoon && (
-                      <span className="rounded-full bg-raised px-1.5 py-0.5 text-[0.6rem] font-bold text-ink-3">即將推出</span>
-                    )}
                   </button>
                 </li>
               )
@@ -153,7 +132,7 @@ export default function AccountPage() {
             className="min-h-0 flex-1 overflow-y-auto pl-1.5 pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             <TabReveal key={activeTab}>
-              <TabContent value={activeTab} user={user} onChange={handleUserChange} tabs={BASE_TABS} />
+              <TabContent value={activeTab} user={user} onChange={handleUserChange} />
             </TabReveal>
           </div>
 
@@ -180,9 +159,6 @@ export default function AccountPage() {
                 <span className="flex items-center gap-2.5">
                   {tab.icon && <tab.icon size={17} strokeWidth={2.1} className={isOpen ? 'text-brand' : 'text-ink-3'} />}
                   <span className={`font-bold ${isOpen ? 'text-brand' : 'text-ink'}`}>{tab.label}</span>
-                  {tab.comingSoon && (
-                    <span className="rounded-full bg-raised px-1.5 py-0.5 text-[0.6rem] font-bold text-ink-3">即將推出</span>
-                  )}
                 </span>
                 <ChevronDown
                   size={18}
@@ -198,7 +174,7 @@ export default function AccountPage() {
                     aria-labelledby={`account-accordion-${tab.value}`}
                     className="border-t border-line px-4 py-4"
                   >
-                    <TabContent value={tab.value} user={user} onChange={handleUserChange} tabs={BASE_TABS} />
+                    <TabContent value={tab.value} user={user} onChange={handleUserChange} />
                   </div>
                 </TabReveal>
               )}

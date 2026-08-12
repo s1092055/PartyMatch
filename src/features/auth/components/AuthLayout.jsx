@@ -100,30 +100,12 @@ export function PasswordToggle({ visible, onClick }) {
   )
 }
 
-export function AuthDivider() {
-  return (
-    <div className="my-8 grid grid-cols-[1fr_auto_1fr] items-center gap-5 text-sm font-medium text-ink-4">
-      <span className="h-px bg-line" />
-      或使用以下方式繼續
-      <span className="h-px bg-line" />
-    </div>
-  )
-}
-
 export function AuthError({ message }) {
   if (!message) return null
   return (
     <div role="alert" className="rounded-inner border border-danger-subtle bg-danger-subtle px-4 py-3 text-sm font-semibold text-danger-text">
       {message}
     </div>
-  )
-}
-
-export function GoogleMark() {
-  return (
-    <span className="grid h-6 w-6 place-items-center rounded-full bg-surface text-base font-black shadow-sm">
-      <span className="bg-gradient-to-br from-blue-500 via-green-500 to-amber-500 bg-clip-text text-transparent">G</span>
-    </span>
   )
 }
 
