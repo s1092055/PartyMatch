@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Bell, ChevronDown, Clock, Coins, Lock, LogOut, Settings, User } from "lucide-react";
+import { Bell, ChevronDown, Clock, Lock, LogOut, Settings, User } from "lucide-react";
 import { useAuthStore } from "../../common/stores/useAuthStore";
 import { useLogout } from "../../common/utils/hooks";
 import { toast } from "../../common/utils/toast";
@@ -8,12 +8,10 @@ import { Button } from "../../components/ui/button";
 import HostReviewsModal from "../manage-groups/components/HostReviewsModal";
 import ProfileHeaderCard from "./components/ProfileHeaderCard";
 import PersonalInfoTab from "./components/tabs/PersonalInfoTab";
-import TokenTab from "./components/tabs/TokenTab";
 import SettingsTab from "./components/tabs/SettingsTab";
 
 const BASE_TABS = [
   { value: "profile",       label: "個人資料", icon: User       },
-  { value: "tokens",        label: "付款設定", icon: Coins      },
   { value: "notifications", label: "通知偏好", icon: Bell,       comingSoon: true },
   { value: "security",      label: "安全驗證", icon: Lock,       comingSoon: true },
   { value: "settings",      label: "其他設定", icon: Settings   },
@@ -54,7 +52,6 @@ function TabContent({ value, user, onChange, tabs }) {
   const tab = tabs.find(t => t.value === value)
   if (tab?.comingSoon) return <ComingSoonPlaceholder label={tab.label} />
   if (value === "profile")       return <PersonalInfoTab user={user} onChange={onChange} />
-  if (value === "tokens")        return <TokenTab />
   if (value === "settings")      return <SettingsTab />
   return null
 }

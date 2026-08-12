@@ -90,53 +90,39 @@ enum NotificationType {
 // ── Models ─────────────────────────────────────────────────────────────────────
 
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  passwordHash  String?
-  googleId      String?  @unique
-  name          String
-  phone         String
-  avatarColor   String?
-  avatarInitial String?
-  showAvatar    Boolean  @default(true)
+  id             String         @id @default(cuid())
+  email          String         @unique
+  passwordHash   String?
+  googleId       String?        @unique
+  name           String
+  phone          String
+  avatarColor    String?
+  avatarInitial  String?
+  showAvatar     Boolean        @default(true)
   presenceStatus PresenceStatus @default(online)
-  bio           String?  @db.VarChar(500)
-  creditScore   Int      @default(100)
-  tokenBalance  Int      @default(0)
-  isAdmin       Boolean  @default(false)
+  bio            String?        @db.VarChar(500)
+  creditScore    Int            @default(100)
+  tokenBalance   Int            @default(0)
+  isAdmin        Boolean        @default(false)
   // 軟刪除：非 null 代表帳號已停用，登入/refresh 一律拒絕；保留資料供日後申請恢復
-  deactivatedAt DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  deactivatedAt  DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
-  hostedGroups      Group[]              @relation("HostedGroups")
-  applications      Application[]
-  members           Member[]
-  subscriptions     Subscription[]
-  notifications     Notification[]
-  favorites         Favorite[]
-  sentMessages      Message[]
-  tokenTransactions TokenTransaction[]
-  creditScoreLogs   CreditScoreLog[]
-  paymentMethods    PaymentMethod[]
-  hostReviews       Review[]             @relation("HostReviews")
-  authoredReviews   Review[]             @relation("AuthoredReviews")
+  hostedGroups       Group[]             @relation("HostedGroups")
+  applications       Application[]
+  members            Member[]
+  subscriptions      Subscription[]
+  notifications      Notification[]
+  favorites          Favorite[]
+  sentMessages       Message[]
+  tokenTransactions  TokenTransaction[]
+  creditScoreLogs    CreditScoreLog[]
+  hostReviews        Review[]            @relation("HostReviews")
+  authoredReviews    Review[]            @relation("AuthoredReviews")
   credentialComments CredentialComment[]
 
   @@map("users")
-}
-
-model PaymentMethod {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  brand     String
-  last4     String
-  expiry    String
-  isDefault Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  @@map("payment_methods")
 }
 
 model Service {
@@ -144,42 +130,42 @@ model Service {
   name     String
   category String
   logoUrl  String?
-  plans    Json    // [{ id, name, maxMembers, monthlyFee, currency }]
+  plans    Json // [{ id, name, maxMembers, monthlyFee, currency }]
 
-  groups   Group[]
+  groups Group[]
 
   @@map("services")
 }
 
 model Group {
-  id              String      @id @default(cuid())
-  hostId          String
-  host            User        @relation("HostedGroups", fields: [hostId], references: [id])
-  serviceId       String
-  service         Service     @relation(fields: [serviceId], references: [id])
-  planId          String
-  planName        String
-  status          GroupStatus @default(recruiting)
-  maxMembers      Int
-  currentMembers  Int         @default(0)
+  id                        String      @id @default(cuid())
+  hostId                    String
+  host                      User        @relation("HostedGroups", fields: [hostId], references: [id])
+  serviceId                 String
+  service                   Service     @relation(fields: [serviceId], references: [id])
+  planId                    String
+  planName                  String
+  status                    GroupStatus @default(recruiting)
+  maxMembers                Int
+  currentMembers            Int         @default(0)
   // 兩位小數（分）已足夠涵蓋台幣與美金匯率換算後的定價，Decimal 避免 Float 二進位浮點誤差
-  monthlyFee      Decimal     @db.Decimal(10, 2)
-  currency        String      @default("TWD")
-  rules           String?
-  tags            Json        @default("[]")
-  minCreditScore  Int         @default(0)
-  minGroupAge     Int         @default(0)
-  billingCycle    String?
-  nextBillingDate DateTime?
-  escrowTokens    Int         @default(0)
+  monthlyFee                Decimal     @db.Decimal(10, 2)
+  currency                  String      @default("TWD")
+  rules                     String?
+  tags                      Json        @default("[]")
+  minCreditScore            Int         @default(0)
+  minGroupAge               Int         @default(0)
+  billingCycle              String?
+  nextBillingDate           DateTime?
+  escrowTokens              Int         @default(0)
   // 無官方多人邀請機制的服務（sharingMethod: shared_credentials，只存在前端 serviceCatalog，後端不知道這個分類）
   // 鎖定群組時由團主一次性提供帳號密碼，存在這裡讓所有成員都能在「填寫帳號」畫面直接看到，不用回頭翻聊天室訊息
-  sharedCredentials String?
+  sharedCredentials         String?
   // 鎖定群組時設定為鎖定時間 + 24h，pending_confirmation 階段的填寫帳號資訊截止時間；逾期後
   // 由 GET /groups/:id 的惰性檢查自動把還沒填寫的成員踢除並退款（見 crud.js），不是純顯示用途
-  serviceInfoDeadline DateTime?
-  confirmDeadline DateTime?
-  disputeDeadline DateTime?
+  serviceInfoDeadline       DateTime?
+  confirmDeadline           DateTime?
+  disputeDeadline           DateTime?
   // 團主在確認期（confirming）調整下次扣款日的額度用掉了沒有：非 null 代表這個計費週期已經調整過，
   // 不能再調第二次；進入新週期（/lock 第一次鎖定、/renew 續訂）時重置回 null，重新給一次額度
   billingDateAdjustedAt     DateTime?
@@ -188,19 +174,19 @@ model Group {
   // （從實際啟用當下起算一個週期），確保第一期不會因為鎖定到啟用中間的延誤而縮水；後續每次
   // 續訂再啟用都固定沿用 /renew 已經算好、錨定在「上一期排定日期 + 一個週期」的值，避免扣款日
   // 每期都因為啟用延誤往後漂移。真的遇到需要延後的情況交給團主用「調整下次扣款日」手動處理
-  hasActivatedOnce Boolean @default(false)
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  hasActivatedOnce          Boolean     @default(false)
+  createdAt                 DateTime    @default(now())
+  updatedAt                 DateTime    @updatedAt
 
-  applications      Application[]
-  members           Member[]
-  subscriptions     Subscription[]
-  favorites         Favorite[]
-  conversations     Conversation[]
-  notifications     Notification[]
-  tokenTransactions TokenTransaction[]
-  creditScoreLogs   CreditScoreLog[]
-  reviews           Review[]
+  applications       Application[]
+  members            Member[]
+  subscriptions      Subscription[]
+  favorites          Favorite[]
+  conversations      Conversation[]
+  notifications      Notification[]
+  tokenTransactions  TokenTransaction[]
+  creditScoreLogs    CreditScoreLog[]
+  reviews            Review[]
   credentialComments CredentialComment[]
 
   @@index([status])
@@ -208,13 +194,13 @@ model Group {
 }
 
 model Application {
-  id        String            @id @default(cuid())
-  groupId   String
-  group     Group             @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  status    ApplicationStatus @default(pending)
-  message   String?
+  id           String            @id @default(cuid())
+  groupId      String
+  group        Group             @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status       ApplicationStatus @default(pending)
+  message      String?
   // 送出申請當下實際代管扣款的金額（見 applications.js 的 POST /）。撤回／拒絕退款時要用這個值，
   // 不能用 computeSeatCost(group) 重新計算——群組的 monthlyFee/billingCycle 之後可能被團主改掉，
   // 用即時價格算退款會跟當初真正扣的錢對不上。舊資料或非經 API 建立的 seed 資料可能沒有這個值，
@@ -223,28 +209,28 @@ model Application {
   // 只有 pending/approved（進行中）時為 'active'，其餘狀態為 null。
   // MySQL 的 unique index 允許多個 null 並存，藉此模擬「同一使用者對同一群組最多一筆進行中申請」
   // 的 partial unique index，避免併發送出申請時 race condition 造成重複的 pending 申請。
-  activeKey String?
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
+  activeKey    String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
 
   @@unique([groupId, userId, activeKey])
   @@map("applications")
 }
 
 model Member {
-  id                   String   @id @default(cuid())
-  groupId              String
-  group                Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  userId               String
-  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  serviceInfo          Json?
-  serviceInfoIssueNote String?
+  id                          String    @id @default(cuid())
+  groupId                     String
+  group                       Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId                      String
+  user                        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  serviceInfo                 Json?
+  serviceInfoIssueNote        String?
   serviceInfoIssueEvidenceUrl String?
-  disputeEvidenceUrl   String?
-  confirmedAt          DateTime?
-  joinedAt             DateTime @default(now())
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  disputeEvidenceUrl          String?
+  confirmedAt                 DateTime?
+  joinedAt                    DateTime  @default(now())
+  createdAt                   DateTime  @default(now())
+  updatedAt                   DateTime  @updatedAt
 
   @@unique([groupId, userId])
   @@map("members")
@@ -267,15 +253,15 @@ model Subscription {
 }
 
 model TokenTransaction {
-  id            String               @id @default(cuid())
-  userId        String
-  user          User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type          TokenTransactionType
-  amount        Int
+  id             String               @id @default(cuid())
+  userId         String
+  user           User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type           TokenTransactionType
+  amount         Int
   relatedGroupId String?
-  relatedGroup  Group?               @relation(fields: [relatedGroupId], references: [id], onDelete: SetNull)
-  note          String?
-  createdAt     DateTime             @default(now())
+  relatedGroup   Group?               @relation(fields: [relatedGroupId], references: [id], onDelete: SetNull)
+  note           String?
+  createdAt      DateTime             @default(now())
 
   @@map("token_transactions")
 }
@@ -335,7 +321,7 @@ model Conversation {
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
 
-  messages     Message[]
+  messages Message[]
 
   @@map("conversations")
 }
@@ -378,14 +364,14 @@ model Review {
 // 「帳號資訊」分頁底下的留言區（團主提供帳密的服務限定），團主與該群組所有成員都能看、都能留言，
 // 用來針對帳密內容直接溝通（例如密碼錯誤、詢問 Profile 名稱），不透過群組聊天室避免訊息混在一起
 model CredentialComment {
-  id        String   @id @default(cuid())
-  groupId   String
-  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  authorId  String
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  content   String   @db.VarChar(500)
-  attachmentUrl String? @db.VarChar(500)
-  createdAt DateTime @default(now())
+  id            String   @id @default(cuid())
+  groupId       String
+  group         Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  authorId      String
+  author        User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  content       String   @db.VarChar(500)
+  attachmentUrl String?  @db.VarChar(500)
+  createdAt     DateTime @default(now())
 
   @@index([groupId])
   @@map("credential_comments")

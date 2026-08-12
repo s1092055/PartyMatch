@@ -415,12 +415,6 @@ async function main() {
   await api('POST', `/conversations/${dm.id}/messages`, H1.token, { content: '好的，附上我截的名額狀態給你參考', attachmentUrl: 'https://picsum.photos/seed/dm-attachment/600/400' })
   console.log('已建立 demo1 → demo2 的 DM 私訊（含圖片附件示範）')
 
-  // ── 付款方式 ──────────────────────────────────────────────────────────
-  await api('POST', '/payment-methods', H1.token, { brand: 'Visa', last4: '4242', expiry: '12/28' })
-  await api('POST', '/payment-methods', H1.token, { brand: 'Mastercard', last4: '5588', expiry: '06/27' })
-  await api('POST', '/payment-methods', D1.token, { brand: 'Visa', last4: '1234', expiry: '09/26' })
-  console.log('已建立付款方式')
-
   // ── 全部標記已讀 ──────────────────────────────────────────────────────
   // seed 資料代表「已經發生過的歷史」，不是使用者剛登入時的新通知/訊息；notify() 建立通知、
   // appendMessage() 更新未讀數時都是套用一般使用者的預設行為（isRead: false、unreadCounts+1），
