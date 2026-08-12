@@ -6,6 +6,7 @@ import { validate } from '../middleware/validate.js'
 import { computeSeatCost } from '../utils/pricing.js'
 import { admitMemberIntoGroup, refundEscrow } from '../utils/membership.js'
 import { maskAvatar } from '../lib/avatarVisibility.js'
+import { maskMemberSensitiveFields } from '../lib/groupPrivacy.js'
 import { notify, claimGroupStatus } from './groups/shared.js'
 import { adjustCreditScore } from '../utils/creditScore.js'
 
@@ -44,11 +45,18 @@ router.get('/', requireAuth, async (req, res, next) => {
     const members = await prisma.member.findMany({
       where,
       include: {
-        user: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, bio: true } },
+        user:  { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, bio: true } },
+        group: { select: { hostId: true } },
       },
       orderBy: { joinedAt: 'asc' },
     })
-    res.json(members.map(m => ({ ...m, user: maskAvatar(m.user) })))
+    // 這裡回傳的成員可能橫跨多個群組（沒帶 groupId 時），每一筆要各自依「該筆所屬群組」的
+    // hostId 判斷是不是團主，不能只判斷一次——這裡曾經完全沒有這層遮罩，同群組的一般成員
+    // 打這支 API 可以看到其他成員的 serviceInfo/disputeEvidenceUrl 等敏感欄位，是真的漏洞
+    res.json(members.map(({ group, ...m }) => ({
+      ...maskMemberSensitiveFields(m, { isHost: group.hostId === req.user.id, isSelf: m.userId === req.user.id }),
+      user: maskAvatar(m.user),
+    })))
   } catch (err) { next(err) }
 })
 

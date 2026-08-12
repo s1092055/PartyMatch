@@ -100,4 +100,38 @@ describe('群組敏感欄位遮罩（sharedCredentials／serviceInfo）', () => 
     const otherEntry = res.body.members.find(m => m.userId === anotherMember.id)
     expect(otherEntry.serviceInfo).toBeUndefined()
   })
+
+  // GET /members 原本完全沒有這層遮罩：只檢查呼叫者是不是這個群組的成員或團主，
+  // 通過檢查後就把該群組「所有」成員的完整 row（含 serviceInfo/disputeEvidenceUrl）一起回傳，
+  // 同群組的一般成員可以看到其他成員的服務帳號密碼跟申訴證據——這是真的漏洞
+  it('GET /members?groupId= 一般成員看得到自己的 serviceInfo，看不到其他成員的', async () => {
+    const anotherMember = await createUser({ tokenBalance: 1000, name: '另一位成員' })
+    await prisma.member.create({
+      data: { groupId: group.id, userId: anotherMember.id, serviceInfo: { account: 'another@example.com', password: 'another-secret' } },
+    })
+
+    const res = await request(app).get(`/api/members?groupId=${group.id}`).set('Authorization', authHeader(member))
+    expect(res.status).toBe(200)
+
+    const ownEntry = res.body.find(m => m.userId === member.id)
+    expect(ownEntry.serviceInfo).toEqual({ account: 'member-own-account@example.com', password: 'member-secret' })
+    expect(ownEntry.disputeEvidenceUrl).toBe('https://r2.example.com/private/evidence.png')
+
+    const otherEntry = res.body.find(m => m.userId === anotherMember.id)
+    expect(otherEntry.serviceInfo).toBeUndefined()
+  })
+
+  it('GET /members?groupId= 團主看得到所有成員的 serviceInfo', async () => {
+    const res = await request(app).get(`/api/members?groupId=${group.id}`).set('Authorization', authHeader(host))
+    expect(res.status).toBe(200)
+    const memberEntry = res.body.find(m => m.userId === member.id)
+    expect(memberEntry.serviceInfo).toEqual({ account: 'member-own-account@example.com', password: 'member-secret' })
+  })
+
+  it('GET /members（不帶 groupId，橫跨多個群組）一樣只看得到自己的 serviceInfo', async () => {
+    const res = await request(app).get('/api/members').set('Authorization', authHeader(member))
+    expect(res.status).toBe(200)
+    const ownEntry = res.body.find(m => m.userId === member.id && m.groupId === group.id)
+    expect(ownEntry.serviceInfo).toEqual({ account: 'member-own-account@example.com', password: 'member-secret' })
+  })
 })

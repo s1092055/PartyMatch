@@ -11,6 +11,20 @@ export function maskGroupListSensitiveFields(groups) {
   return groups.map(g => ({ ...g, sharedCredentials: undefined }))
 }
 
+// 單一成員的敏感欄位遮罩：只有該成員本人或該群組團主看得到 serviceInfo 等欄位。
+// 抽成獨立函式是因為這個判斷同時被「群組詳情內嵌的 members 陣列」（maskGroupDetailSensitiveFields）
+// 跟「members.js 的 GET / 端點」兩個地方需要，避免各自重寫一次判斷邏輯導致互相drift。
+export function maskMemberSensitiveFields(member, { isHost, isSelf }) {
+  if (isHost || isSelf) return member
+  return {
+    ...member,
+    serviceInfo: undefined,
+    serviceInfoIssueNote: undefined,
+    serviceInfoIssueEvidenceUrl: undefined,
+    disputeEvidenceUrl: undefined,
+  }
+}
+
 // 群組詳情：viewerId 是目前登入者（未登入則為 undefined/null）。
 // - 團主：看得到 sharedCredentials 跟所有成員的 serviceInfo（審核用）
 // - 一般成員：看得到 sharedCredentials（要用來使用服務），但只看得到自己的 serviceInfo，
@@ -26,16 +40,8 @@ export function maskGroupDetailSensitiveFields(group, viewerId) {
   if (!isParticipant) masked.sharedCredentials = undefined
 
   if (Array.isArray(group.members)) {
-    masked.members = group.members.map(m => {
-      if (isHost || m.userId === viewerId) return m
-      return {
-        ...m,
-        serviceInfo: undefined,
-        serviceInfoIssueNote: undefined,
-        serviceInfoIssueEvidenceUrl: undefined,
-        disputeEvidenceUrl: undefined,
-      }
-    })
+    masked.members = group.members.map(m =>
+      maskMemberSensitiveFields(m, { isHost, isSelf: m.userId === viewerId }))
   }
   return masked
 }
