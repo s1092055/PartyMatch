@@ -77,7 +77,6 @@ export default function ExtraFeatures() {
   return (
     <section>
       <div className="mx-auto mb-8 max-w-5xl px-5 text-center">
-        <p className="mb-1 text-xs font-bold uppercase tracking-widest text-ink-4">附加功能</p>
         <h2 className="text-3xl font-extrabold text-ink">輔助功能</h2>
         <p className="mt-3 text-base text-ink-3">更多實用的輔助工具</p>
       </div>

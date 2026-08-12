@@ -59,8 +59,7 @@ export default function FAQ() {
 
   return (
     <section>
-      <p className="mb-1 text-center text-xs font-bold uppercase tracking-widest text-ink-4">常見問題</p>
-      <h2 className="mb-6 text-center text-3xl font-extrabold text-ink">FAQ</h2>
+      <h2 className="mb-6 text-center text-3xl font-extrabold text-ink">常見問題</h2>
       <div className="space-y-1">
         {FAQS.map((item, i) => (
           <FAQItem
