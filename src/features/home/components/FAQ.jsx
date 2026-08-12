@@ -37,10 +37,9 @@ function FAQItem({ q, a, open, onToggle }) {
     <div className={`rounded-2xl px-5 transition-colors duration-200 ${open ? 'bg-raised' : 'hover:bg-raised'}`}>
       <button
         onClick={onToggle}
-        className="flex w-full items-center gap-4 py-4 text-center"
+        className="flex w-full items-center justify-between gap-4 py-4 text-left"
       >
-        <span className="w-4 shrink-0" />
-        <span className="flex-1 text-center font-bold text-ink">{q}</span>
+        <span className="font-bold text-ink">{q}</span>
         <ChevronDown
           size={16}
           strokeWidth={1.5}
@@ -60,7 +59,7 @@ export default function FAQ() {
   return (
     <section>
       <h2 className="mb-6 text-center text-3xl font-extrabold text-ink">常見問題</h2>
-      <div className="space-y-1">
+      <div className="mx-auto max-w-lg space-y-1">
         {FAQS.map((item, i) => (
           <FAQItem
             key={item.q}
