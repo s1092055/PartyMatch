@@ -20,7 +20,8 @@ const EXT_BY_MIME = {
   'image/heic': 'heic',
 }
 
-// 目前唯二的呼叫端（申訴附件、團主回報帳號問題附件）都是截圖佐證，只收圖片格式，
+// 目前所有呼叫端（申訴附件、團主回報帳號問題附件、帳號資訊留言附件、聊天訊息附件，
+// 見 upload.js 的 registerEvidenceUploadRoute）都是截圖/圖片佐證，只收圖片格式，
 // 不開放任意文件；MAX_FILE_SIZE_BYTES 用解碼後的實際 buffer 長度判斷，不能只信任
 // 前端回報的 file.size（可以被竄改），這裡才是真正擋得住的那一關
 const ALLOWED_MIME_TYPES = Object.keys(EXT_BY_MIME)
