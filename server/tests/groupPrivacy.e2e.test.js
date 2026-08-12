@@ -4,6 +4,7 @@ import app from '../src/app.js'
 import prisma from '../src/lib/prisma.js'
 import { resetDb } from './helpers/db.js'
 import { createUser, createGroup, authHeader } from './helpers/factories.js'
+import { encryptCredential } from '../src/lib/credentialEncryption.js'
 
 const MONTHLY_FEE = 300
 
@@ -22,10 +23,11 @@ describe('群組敏感欄位遮罩（sharedCredentials／serviceInfo）', () => 
     ;({ group } = await createGroup({ host, monthlyFee: MONTHLY_FEE, maxMembers: 3 }))
 
     // 直接用 Prisma 建好一個已鎖定、有共用帳密、成員已填寫服務帳號的群組，
-    // 不用真的跑一次完整流程，這份測試只關心「回傳給誰、藏什麼」
+    // 不用真的跑一次完整流程，這份測試只關心「回傳給誰、藏什麼」；sharedCredentials 存進
+    // 資料庫前一律加密（見 credentialEncryption.js），這裡模擬 lockGroup 實際寫入的密文格式
     await prisma.group.update({
       where: { id: group.id },
-      data:  { sharedCredentials: 'netflix-shared@example.com / super-secret-password' },
+      data:  { sharedCredentials: encryptCredential('netflix-shared@example.com / super-secret-password') },
     })
     await prisma.member.create({
       data: {
@@ -73,6 +75,12 @@ describe('群組敏感欄位遮罩（sharedCredentials／serviceInfo）', () => 
     expect(res.body.sharedCredentials).toBe('netflix-shared@example.com / super-secret-password')
     const memberEntry = res.body.members.find(m => m.userId === member.id)
     expect(memberEntry.serviceInfo).toEqual({ account: 'member-own-account@example.com', password: 'member-secret' })
+  })
+
+  it('sharedCredentials 在資料庫內不是明文，一定是 AES-256-GCM 密文', async () => {
+    const raw = await prisma.group.findUnique({ where: { id: group.id }, select: { sharedCredentials: true } })
+    expect(raw.sharedCredentials).not.toBe('netflix-shared@example.com / super-secret-password')
+    expect(raw.sharedCredentials).not.toContain('netflix-shared@example.com')
   })
 
   it('GET /groups/:id 成員看得到 sharedCredentials 跟自己的 serviceInfo，看不到其他成員的', async () => {

@@ -3,6 +3,7 @@ import { computeSeatCost } from '../utils/pricing.js'
 import { notify, notifyGroupConversation, claimGroupStatus } from '../routes/groups/shared.js'
 import { rejectPendingApplications } from '../utils/membership.js'
 import { adjustCreditScore } from '../utils/creditScore.js'
+import { encryptCredential } from '../lib/credentialEncryption.js'
 
 // 群組列表查詢共用的 include 組合，跟原本 routes/groups/lifecycle.js 逐一複製貼上的版本一致
 const HOST_GROUP_INCLUDE = {
@@ -469,9 +470,10 @@ export async function lockGroup({ groupId, hostId, sharedCredentials: sharedCred
   serviceInfoDeadline.setHours(serviceInfoDeadline.getHours() + 24)
 
   // 無官方多人邀請機制的服務（sharingMethod: shared_credentials），團主鎖定當下順便提供帳密，
-  // 後端不知道 sharingMethod 分類（只存在前端 catalog），單純是有傳就存、沒傳就維持 null
+  // 後端不知道 sharingMethod 分類（只存在前端 catalog），單純是有傳就存、沒傳就維持 null；
+  // 存進資料庫前用 AES-256-GCM 加密（見 credentialEncryption.js），讀取時由 toPlainGroup 解密
   const sharedCredentials = typeof sharedCredentialsRaw === 'string' && sharedCredentialsRaw.trim()
-    ? sharedCredentialsRaw.trim()
+    ? encryptCredential(sharedCredentialsRaw.trim())
     : undefined
 
   const [updated] = await prisma.$transaction([

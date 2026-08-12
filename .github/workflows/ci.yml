@@ -51,6 +51,7 @@ jobs:
       REDIS_URL: redis://127.0.0.1:6379
       JWT_ACCESS_SECRET: ci-test-access-secret-not-for-production-use
       JWT_REFRESH_SECRET: ci-test-refresh-secret-not-for-production-use
+      CREDENTIAL_ENCRYPTION_KEY: 0000000000000000000000000000000000000000000000000000000000000000
       NODE_ENV: test
     defaults:
       run:

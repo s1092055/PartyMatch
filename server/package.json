@@ -18,7 +18,9 @@
     "db:clear": "node prisma/clearProd.js",
     "db:clear-data": "node prisma/clearData.js",
     "db:reset-demo": "node prisma/clearProd.js && node prisma/seed.js && node prisma/seedDemo.js",
-    "db:reset-demo:prod": "DOTENV_CONFIG_PATH=.env.production node prisma/clearProd.js && DOTENV_CONFIG_PATH=.env.production node prisma/seed.js && DOTENV_CONFIG_PATH=.env.production SEED_API_BASE=https://partymatch-api.onrender.com/api node prisma/seedDemo.js"
+    "db:reset-demo:prod": "DOTENV_CONFIG_PATH=.env.production node prisma/clearProd.js && DOTENV_CONFIG_PATH=.env.production node prisma/seed.js && DOTENV_CONFIG_PATH=.env.production SEED_API_BASE=https://partymatch-api.onrender.com/api node prisma/seedDemo.js",
+    "db:encrypt-credentials": "node prisma/encryptSharedCredentials.js",
+    "db:encrypt-credentials:prod": "DOTENV_CONFIG_PATH=.env.production node prisma/encryptSharedCredentials.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1095.0",
