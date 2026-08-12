@@ -5,6 +5,7 @@ import { requireAuth, optionalAuth } from '../../middleware/auth.js'
 import { validate } from '../../middleware/validate.js'
 import { notify } from './shared.js'
 import { maskAvatar } from '../../lib/avatarVisibility.js'
+import { maskGroupListSensitiveFields, maskGroupDetailSensitiveFields } from '../../lib/groupPrivacy.js'
 import { computeSeatCost, toPlainGroup } from '../../utils/pricing.js'
 import { refundEscrow } from '../../utils/membership.js'
 import { adjustCreditScore } from '../../utils/creditScore.js'
@@ -21,30 +22,20 @@ function maskGroupAvatars(group) {
   })
 }
 
+// maxMembers/monthlyFee/currency/billingCycle 刻意不放進這個 schema：zod 預設會把沒宣告在
+// schema 裡的欄位整個丟掉，就算前端在請求裡塞了這些欄位也不會活過 validate() 這一關，
+// 實際寫入 DB 的值一律由 resolvePlanPricing() 從後端自己的 Service.plans 權威資料算出來
 const createGroupSchema = z.object({
   serviceId:      z.string().min(1),
-  planId:         z.string().optional(),
   planName:       z.string().min(1),
-  // 接受前端的 totalSeats 或標準的 maxMembers
-  maxMembers:     z.number().int().min(2).max(10).optional(),
-  totalSeats:     z.number().int().min(2).max(10).optional(),
-  // 接受前端的 pricePerSeat 或標準的 monthlyFee
-  monthlyFee:     z.number().min(0).optional(),
-  pricePerSeat:   z.number().min(0).optional(),
-  currency:       z.string().default('TWD'),
   rules:          z.union([z.string(), z.array(z.string())]).optional(),
   tags:           z.array(z.string()).optional(),
   minCreditScore: z.number().int().min(0).default(0),
   minGroupAge:    z.number().int().min(0).default(0),
-  billingCycle:   z.enum(['monthly', 'yearly']).optional(),
 }).transform(data => ({
   ...data,
-  maxMembers:  data.maxMembers  ?? data.totalSeats  ?? 6,
-  monthlyFee:  data.monthlyFee  ?? data.pricePerSeat ?? 0,
-  planId:      data.planId      ?? data.planName,
-  rules:       Array.isArray(data.rules) ? data.rules.join('\n') : (data.rules ?? ''),
-  tags:        data.tags ?? [],
-  billingCycle: data.billingCycle ?? 'monthly',
+  rules: Array.isArray(data.rules) ? data.rules.join('\n') : (data.rules ?? ''),
+  tags:  data.tags ?? [],
 }))
 
 const updateGroupSchema = z.object({
@@ -81,7 +72,7 @@ router.get('/', optionalAuth, async (req, res, next) => {
       orderBy: { createdAt: 'desc' },
     })
 
-    res.json(groups.map(maskGroupAvatars))
+    res.json(maskGroupListSensitiveFields(groups.map(maskGroupAvatars)))
   } catch (err) { next(err) }
 })
 
@@ -129,7 +120,7 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
           meta:    { groupId: group.id },
         })
       }
-      return res.json(maskGroupAvatars({ ...group, status: 'active', confirmDeadline: null, escrowTokens: 0 }))
+      return res.json(maskGroupDetailSensitiveFields(maskGroupAvatars({ ...group, status: 'active', confirmDeadline: null, escrowTokens: 0 }), req.user?.id))
     }
 
     // 惰性自動踢除：pending_confirmation 且 serviceInfoDeadline 已到期，把還沒填寫／提取帳號資訊的
@@ -191,23 +182,49 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
               members: { include: { user: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, bio: true } } } },
             },
           })
-          return res.json(maskGroupAvatars(fresh))
+          return res.json(maskGroupDetailSensitiveFields(maskGroupAvatars(fresh), req.user?.id))
         }
       }
     }
 
-    res.json(maskGroupAvatars(group))
+    res.json(maskGroupDetailSensitiveFields(maskGroupAvatars(group), req.user?.id))
   } catch (err) { next(err) }
 })
+
+// 建立群組時絕對不能相信前端送來的 monthlyFee/maxMembers/currency/billingCycle：這些是
+// 直接決定金流（代管扣款、續訂金額）的欄位，前端不經過 UI、直接打 API 就能自己填任意數字。
+// 一律從後端自己的 Service.plans（權威資料來源）依 planName 找出對應方案，欄位全部從那裡覆蓋，
+// 前端傳的同名欄位只當作「使用者想選哪個方案」的意圖，不當作實際要寫入的值。
+// planName 目前的文案慣例固定包含「（月繳）」/「（年繳）」字尾（見 CLAUDE.md 重要慣例），
+// billingCycle 也一併從這裡判斷，不採信前端傳的值，避免用月繳的 billingCycle 套用年繳方案的
+// 單期價格、少扣 12 倍的金額
+async function resolvePlanPricing(serviceId, planName) {
+  const service = await prisma.service.findUnique({ where: { id: serviceId }, select: { plans: true } })
+  if (!service) return null
+  const plan = service.plans.find(p => p.name === planName)
+  if (!plan) return null
+  return {
+    planId:       plan.id,
+    planName:     plan.name,
+    maxMembers:   plan.maxMembers,
+    monthlyFee:   plan.monthlyFee,
+    currency:     plan.currency ?? 'TWD',
+    billingCycle: plan.name.includes('年繳') ? 'yearly' : 'monthly',
+  }
+}
 
 // POST /groups
 router.post('/', requireAuth, validate(createGroupSchema), async (req, res, next) => {
   try {
-    // 過濾前端送來的非資料庫欄位，只留 Prisma schema 接受的欄位
-    const allowed = ['serviceId','planId','planName','maxMembers','monthlyFee','currency','rules','tags','minCreditScore','minGroupAge','billingCycle']
+    const pricing = await resolvePlanPricing(req.body.serviceId, req.body.planName)
+    if (!pricing) return res.status(400).json({ message: '找不到對應的服務方案' })
+
+    // 過濾前端送來的非資料庫欄位，只留 Prisma schema 接受的欄位；價格相關欄位一律用上面
+    // resolvePlanPricing() 算出來的權威值覆蓋，即使前端在請求裡塞了不同的值也不會生效
+    const allowed = ['serviceId','rules','tags','minCreditScore','minGroupAge']
     const data = Object.fromEntries(Object.entries(req.body).filter(([k]) => allowed.includes(k)))
     const group = await prisma.group.create({
-      data: { ...data, hostId: req.user.id },
+      data: { ...data, ...pricing, hostId: req.user.id },
       include: { service: true, host: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true } } },
     })
 
