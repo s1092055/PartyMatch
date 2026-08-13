@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { Compass } from 'lucide-react'
 import { useGroupStore } from '../../common/stores/useGroupStore'
 import { useApplicationStore } from '../../common/stores/useApplicationStore'
@@ -14,7 +15,10 @@ import ExploreGroupCard from './components/ExploreGroupCard'
 const DEFAULT_FILTERS = { category: 'all', service: 'all', maxPrice: 'any', sortBy: 'recommended', q: '' }
 
 export default function ExplorePage() {
-  const [filters, setFilters] = useState(DEFAULT_FILTERS)
+  // 從首頁搜尋框帶關鍵字過來時（navigate('/explore', { state: { q } })）用它當初始篩選值，
+  // 沒有帶的話（一般進站或瀏覽器上一頁/下一頁）就用預設空篩選，不會覆蓋使用者手動清空的關鍵字
+  const location = useLocation()
+  const [filters, setFilters] = useState(() => ({ ...DEFAULT_FILTERS, q: location.state?.q?.trim() ?? '' }))
   const activeUserId = useAuthStore(s => s.user?.id)
   const groups = useGroupStore(s => s.groups)
   const applications = useApplicationStore(s => s.applications)

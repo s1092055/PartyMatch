@@ -347,7 +347,6 @@ export default function GroupDetailModal() {
     cancelConfirm, setCancelConfirm, cancelling, handleCancel,
     setShowMembers, setLeaveConfirm, onApplyClick: handleApplyClick, toggleFav,
     padded: !showDesktopAside,
-    squareFavorite: showDesktopAside,
     redirectAfterLogin: { from: location.pathname + location.search, reopenGroupModalId: group.id },
   })
 

@@ -437,9 +437,14 @@
   }
 }
 
-@keyframes marquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
+/* Hero 服務浮動泡泡：由下往上緩緩飄浮＋左右微幅飄移，中途淡入、快到頂端前淡出，
+   --bubble-drift／--bubble-float 由每個 icon 各自的 inline style 帶入不同數值 */
+@keyframes bubble-float {
+  0%   { transform: translate(0, 0); opacity: 0; }
+  15%  { opacity: 0.9; }
+  50%  { transform: translate(calc(var(--bubble-drift) * 0.6), calc(var(--bubble-float) * 0.55)); }
+  85%  { opacity: 0.9; }
+  100% { transform: translate(var(--bubble-drift), var(--bubble-float)); opacity: 0; }
 }
 
 @keyframes logoBounce {

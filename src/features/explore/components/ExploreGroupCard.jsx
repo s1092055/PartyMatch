@@ -40,7 +40,7 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
   return (
     <Card
       as="article"
-      className="card-lift relative flex min-h-full cursor-pointer flex-col overflow-hidden rounded-inner p-5"
+      className="card-lift relative flex min-h-full cursor-pointer flex-col overflow-hidden p-5"
       onClick={openDetails}
     >
       <GroupCardHeader
@@ -55,7 +55,6 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
             onClick={handleFav}
             heartSize={18}
             className="absolute right-7 top-4 h-9 w-9 shadow-floating"
-            square
           />
         )}
         badge={(isMember || isApplied) && (
