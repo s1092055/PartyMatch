@@ -83,14 +83,12 @@ export default function HomePage() {
           <a
             href="#explore-highlight"
             onClick={() => setShowScrollCue(false)}
-            className={`absolute bottom-8 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 text-sm font-bold text-ink-2 transition-opacity duration-300 hover:text-brand ${
+            className={`absolute bottom-28 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 text-sm font-bold text-ink-2 transition-opacity duration-300 hover:text-brand can-hover:lg:bottom-16 ${
               showScrollCue ? 'opacity-100' : 'pointer-events-none opacity-0'
             }`}
           >
             查看更多
-            <span className="grid h-8 w-8 place-items-center rounded-full border border-line bg-canvas text-ink-3 shadow-md animate-bounce">
-              <ChevronDown size={16} strokeWidth={1.5} />
-            </span>
+            <ChevronDown size={16} strokeWidth={1.5} />
           </a>
         </section>
 
