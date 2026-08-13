@@ -142,13 +142,14 @@ export default function SubscriptionsPage() {
 
   return (
     <div className="px-2 md:px-4">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="page-title mb-0">我的訂閱</h1>
+      <div className="mb-6 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+        <div />
+        <h1 className="page-title mb-0 text-center">我的訂閱</h1>
         <Button
           variant="ghost"
           onClick={() => setHistoryOpen(true)}
           aria-label="群組紀錄"
-          className="h-9 shrink-0 rounded-lg border border-line px-3"
+          className="h-9 shrink-0 justify-self-end rounded-lg border border-line px-3"
         >
           <Archive size={14} strokeWidth={1.5} />
           群組紀錄

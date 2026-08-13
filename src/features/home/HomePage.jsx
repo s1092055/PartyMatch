@@ -59,39 +59,37 @@ export default function HomePage() {
       </Suspense>
       <FloatingMessages />
 
-      <div className="mx-auto w-full min-w-0 max-w-3xl px-5">
-        <section ref={heroRef} className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden pb-10 pt-28 text-center lg:pt-16">
-          <BubbleField count={9} size={46} />
+      <section ref={heroRef} className="relative flex min-h-dvh w-full flex-col items-center justify-center overflow-hidden pb-10 pt-28 text-center lg:pt-16">
+        <BubbleField count={9} size={46} />
 
-          <div className="relative">
-            <img src={logoUrl} alt="PartyMatch" className="mx-auto mb-5 h-14 w-auto" />
-            <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-ink md:text-5xl">
-              Party<span className="text-brand">Match</span>
-            </h1>
-            <p className="mx-auto mt-5 max-w-md text-base leading-relaxed text-ink-3">
-              共享訂閱服務平台
-            </p>
+        <div className="relative mx-auto w-full max-w-3xl px-5">
+          <img src={logoUrl} alt="PartyMatch" className="mx-auto mb-5 h-14 w-auto" />
+          <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-ink md:text-5xl">
+            Party<span className="text-brand">Match</span>
+          </h1>
+          <p className="mx-auto mt-5 max-w-md text-base leading-relaxed text-ink-3">
+            共享訂閱服務平台
+          </p>
 
-            <div className="mt-8 flex items-center justify-center">
-              <Button size="lg" className="rounded-card px-8" onClick={() => navigate('/explore')}>
-                <Compass size={16} strokeWidth={1.5} />
-                探索群組
-              </Button>
-            </div>
+          <div className="mt-8 flex items-center justify-center">
+            <Button size="lg" className="rounded-card px-8" onClick={() => navigate('/explore')}>
+              <Compass size={16} strokeWidth={1.5} />
+              探索群組
+            </Button>
           </div>
+        </div>
 
-          <a
-            href="#explore-highlight"
-            onClick={() => setShowScrollCue(false)}
-            className={`absolute bottom-28 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 text-sm font-bold text-ink-2 transition-opacity duration-300 hover:text-brand can-hover:lg:bottom-16 ${
-              showScrollCue ? 'opacity-100' : 'pointer-events-none opacity-0'
-            }`}
-          >
-            查看更多
-            <ChevronDown size={16} strokeWidth={1.5} />
-          </a>
-        </section>
+        <span
+          className={`pointer-events-none absolute bottom-28 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 text-sm font-bold text-ink-2 transition-opacity duration-300 can-hover:lg:bottom-16 ${
+            showScrollCue ? 'opacity-100' : 'opacity-0'
+          }`}
+        >
+          查看更多
+          <ChevronDown size={16} strokeWidth={1.5} />
+        </span>
+      </section>
 
+      <div className="mx-auto w-full min-w-0 max-w-3xl px-5">
         <div className="space-y-24 pb-24 pt-16">
           <RevealSection><ExploreHighlight /></RevealSection>
           <RevealSection><BenefitsList /></RevealSection>

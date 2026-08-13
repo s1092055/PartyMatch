@@ -21,7 +21,7 @@ function bubbleStyle(i, indexInBand, bandCount) {
   const left = bandStart + pseudoRandom(i * 3.1) * 17 // 兩側都留邊界，icon 本身寬度才不會被容器邊緣裁掉
   const slot = 88 / bandCount
   const bottom = 4 + indexInBand * slot + pseudoRandom(i * 6.5) * (slot * 0.5)
-  const duration = 10 + pseudoRandom(i * 7.7) * 8
+  const duration = 6 + pseudoRandom(i * 7.7) * 5
   const delay = -pseudoRandom(i * 5.3) * duration // 負值讓每顆一開始就在動畫中段，不會全部同時從底部浮起
   const drift = (pseudoRandom(i * 2.3) - 0.5) * 30
   const float = 80 + pseudoRandom(i * 9.1) * 60
