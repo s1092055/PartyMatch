@@ -18,6 +18,7 @@ import BenefitsList from './components/BenefitsList'
 import AudienceGrid from './components/AudienceGrid'
 import WhyUs from './components/WhyUs'
 import FAQ from './components/FAQ'
+import SectionNav from './components/SectionNav'
 import RevealSection from '../../components/ui/primitives/RevealSection'
 import { ADMIN_HOME_PATH } from '../../app/AdminRoute'
 
@@ -56,8 +57,9 @@ export default function HomePage() {
         <QuickMatchModal />
       </Suspense>
       <FloatingMessages />
+      <SectionNav />
 
-      <section className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center overflow-hidden pb-32 pt-28 text-center lg:pt-16">
+      <section id="section-hero" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center overflow-hidden pb-32 pt-28 text-center lg:pt-16">
         <BubbleField count={9} size={46} />
 
         <div className="relative mx-auto w-full max-w-3xl px-5">
@@ -80,42 +82,42 @@ export default function HomePage() {
         <ScrollCue />
       </section>
 
-      <section className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-20 can-hover:lg:pb-16 can-hover:lg:pt-16">
+      <section id="section-why-us" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-20 can-hover:lg:pb-16 can-hover:lg:pt-16">
         <RevealSection className="mx-auto w-full max-w-3xl">
           <WhyUs />
         </RevealSection>
         <ScrollCue />
       </section>
 
-      <section className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-24 sm:pb-32 sm:pt-20">
+      <section id="section-audience" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-24 sm:pb-32 sm:pt-20">
         <RevealSection className="mx-auto w-full max-w-3xl">
           <AudienceGrid />
         </RevealSection>
         <ScrollCue />
       </section>
 
-      <section className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 sm:pb-32 sm:pt-20">
+      <section id="section-featured-groups" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 sm:pb-32 sm:pt-20">
         <RevealSection className="mx-auto w-full max-w-3xl">
           <FeaturedGroupsCarousel />
         </RevealSection>
         <ScrollCue />
       </section>
 
-      <section className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-20">
+      <section id="section-explore" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-20">
         <RevealSection className="mx-auto w-full max-w-3xl">
           <ExploreHighlight />
         </RevealSection>
         <ScrollCue />
       </section>
 
-      <section className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-20">
+      <section id="section-benefits" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-20">
         <RevealSection className="mx-auto w-full max-w-3xl">
           <BenefitsList />
         </RevealSection>
         <ScrollCue />
       </section>
 
-      <section className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-20">
+      <section id="section-cta" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-20">
         <RevealSection className="mx-auto w-full max-w-3xl text-center">
           <div className="rounded-card border border-line bg-surface px-5 py-10 sm:px-8 sm:py-12">
             <h2 className="text-2xl font-extrabold text-ink md:text-3xl">立即開始你的共享訂閱之旅</h2>
@@ -148,7 +150,7 @@ export default function HomePage() {
       </section>
 
       {/* 常見問題是最後一個 Section，底下只剩 Footer，不需要再顯示「下滑查看更多」 */}
-      <section className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 py-20">
+      <section id="section-faq" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 py-20">
         <RevealSection className="mx-auto w-full max-w-3xl">
           <FAQ />
         </RevealSection>
