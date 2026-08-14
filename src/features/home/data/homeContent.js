@@ -1,11 +1,12 @@
 import {
   Wallet,
-  Bell,
-  BadgeCheck,
   MessageCircleQuestion,
   MessageCircle,
   LayoutGrid,
   Heart,
+  ClipboardList,
+  Users,
+  RefreshCw,
 } from 'lucide-react'
 import securityPhoto from '../../../assets/Security.png'
 import creditPhoto from '../../../assets/Credit.png'
@@ -15,22 +16,68 @@ import friendsPhoto from '../../../assets/Friends.png'
 import familyPhoto from '../../../assets/Family.png'
 import freelancerPhoto from '../../../assets/freelance worker.png'
 
-// 「從找人到成團，一切變得更簡單」區塊的三個重點功能
-export const HOME_BENEFITS = [
+// 「自己開團，一切變得更簡單」區塊：團主視角的完整流程，分成三個大階段（頂層底線 Tab），
+// 每個階段底下再列出更細的子流程（垂直 Tab）。順序對應 Group 狀態機：
+// 建立群組 → recruiting；群組管理涵蓋 recruiting → full → pending_confirmation →
+// pending_activation → confirming → active；續訂管理對應 active → pending_confirmation
+// 的續約流程（重新走一輪填服務資訊 → 啟用 → 確認），細節見 CLAUDE.md「重要慣例」
+export const HOME_HOST_JOURNEY = [
   {
-    icon: BadgeCheck,
-    title: '信用機制',
-    desc: '真實信用評價系統，打造可靠的共享環境。',
+    id: 'create',
+    title: '建立群組',
+    icon: ClipboardList,
+    steps: [
+      {
+        title: '選服務、挑方案',
+        desc: '從 28 種訂閱服務裡選一個，方案價格系統會自動核實，不用自己上網查。',
+      },
+      {
+        title: '設定名額，開放申請',
+        desc: '填好名額跟簡介就能送出，馬上開放其他人申請加入，不用手動找人湊團。',
+      },
+    ],
   },
   {
-    icon: Wallet,
-    title: 'PM 幣付款',
-    desc: '專屬付款方式，安全、快速、免轉帳。',
+    id: 'manage',
+    title: '群組管理',
+    icon: Users,
+    steps: [
+      {
+        title: '審核申請，信用把關',
+        desc: '看得到每位申請者的信用評價，篩選放心的夥伴，不用自己一個個私訊確認。',
+      },
+      {
+        title: '額滿鎖定，共用帳密',
+        desc: '人數到齊後鎖定群組，共用帳密加密保存，只有團主跟成員本人看得到。',
+      },
+      {
+        title: '成員確認，正式啟用',
+        desc: '等成員一一回報服務可正常使用，確認期一過群組就會正式啟用、開始收費。',
+      },
+      {
+        title: '有問題，一鍵回報',
+        desc: '服務出狀況時成員可以直接回報，不用私訊團主吵成一團，由平台介入處理。',
+      },
+    ],
   },
   {
-    icon: Bell,
-    title: '自動化管理',
-    desc: '收費、提醒、權限管理，一次搞定。',
+    id: 'renew',
+    title: '續訂管理',
+    icon: RefreshCw,
+    steps: [
+      {
+        title: '到期前主動提醒',
+        desc: '快到期時系統會通知團主跟成員，不用自己在行事曆上排提醒。',
+      },
+      {
+        title: '重新確認服務資訊',
+        desc: '團主重新填一次服務資訊，流程跟當初開團一樣簡單，不用重新招募一輪。',
+      },
+      {
+        title: '成員確認，正式續約',
+        desc: '成員逐一確認服務仍可使用後，群組直接續約啟用，原班人馬接著用下去。',
+      },
+    ],
   },
 ]
 
