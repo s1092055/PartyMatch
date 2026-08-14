@@ -121,7 +121,7 @@ export default function DesktopSidebar({
       <div className="fixed top-6 z-50 hidden flex-col items-stretch gap-2 can-hover:lg:flex can-hover:lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
         <button
           onClick={openNotify}
-          className="relative flex h-10 items-center gap-2 rounded-lg border border-line bg-surface px-4 text-sm font-bold text-ink-2 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
+          className="relative flex h-10 items-center gap-2 rounded-full border border-line bg-surface px-4 text-sm font-bold text-ink-2 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
           aria-label="通知"
         >
           <Bell size={16} strokeWidth={2} />
@@ -148,7 +148,7 @@ export default function DesktopSidebar({
         {loggedIn ? (
           <button
             onClick={openMessages}
-            className="relative flex h-10 items-center gap-2 rounded-lg border border-line bg-surface px-4 text-sm font-bold text-ink-2 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
+            className="relative flex h-10 items-center gap-2 rounded-full border border-line bg-surface px-4 text-sm font-bold text-ink-2 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
             aria-label="訊息"
           >
             <MessageSquare size={16} strokeWidth={2} />
@@ -161,7 +161,7 @@ export default function DesktopSidebar({
             aria-disabled="true"
             aria-label={`訊息，${LOCKED_MESSAGE}`}
             onClick={e => preventLockedAction(e)}
-            className="group/locked relative flex h-10 cursor-not-allowed items-center gap-2 rounded-lg border border-line bg-surface px-4 text-sm font-bold text-ink-2 opacity-40 shadow-sm"
+            className="group/locked relative flex h-10 cursor-not-allowed items-center gap-2 rounded-full border border-line bg-surface px-4 text-sm font-bold text-ink-2 opacity-40 shadow-sm"
           >
             <MessageSquare size={16} strokeWidth={2} />
             訊息

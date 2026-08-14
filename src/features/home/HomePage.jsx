@@ -62,7 +62,7 @@ export default function HomePage() {
       <section id="section-hero" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center overflow-hidden pb-32 pt-28 text-center lg:pt-16">
         <BubbleField count={9} size={46} />
 
-        <div className="relative mx-auto w-full max-w-3xl px-5">
+        <RevealSection className="relative mx-auto w-full max-w-3xl px-5">
           <img src={logoUrl} alt="PartyMatch" className="mx-auto mb-5 h-14 w-auto" />
           <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-ink md:text-5xl">
             Party<span className="text-brand">Match</span>
@@ -77,7 +77,7 @@ export default function HomePage() {
               探索群組
             </Button>
           </div>
-        </div>
+        </RevealSection>
 
         <ScrollCue />
       </section>
