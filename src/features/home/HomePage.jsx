@@ -87,14 +87,7 @@ export default function HomePage() {
         <ScrollCue />
       </section>
 
-      <section className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-20">
-        <RevealSection className="mx-auto w-full max-w-3xl">
-          <BenefitsList />
-        </RevealSection>
-        <ScrollCue />
-      </section>
-
-      <section className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-20">
+      <section className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-24 sm:pb-32 sm:pt-20">
         <RevealSection className="mx-auto w-full max-w-3xl">
           <AudienceGrid />
         </RevealSection>
@@ -111,6 +104,13 @@ export default function HomePage() {
       <section className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-20">
         <RevealSection className="mx-auto w-full max-w-3xl">
           <ExploreHighlight />
+        </RevealSection>
+        <ScrollCue />
+      </section>
+
+      <section className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-20">
+        <RevealSection className="mx-auto w-full max-w-3xl">
+          <BenefitsList />
         </RevealSection>
         <ScrollCue />
       </section>

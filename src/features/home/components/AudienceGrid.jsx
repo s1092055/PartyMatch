@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { ChevronRight } from 'lucide-react'
+import { Button } from '../../../components/ui/button'
 import { HOME_AUDIENCES } from '../data/homeContent'
 
 // 「適合每一種共享生活」區塊；photo 有素材的用 assets 裡的實際照片，沒有的才 fallback
@@ -34,16 +35,12 @@ export default function AudienceGrid() {
           適合每一種共享生活
         </h2>
         <p className="mt-3 max-w-xs text-base leading-relaxed text-ink-3">
-          不論是學生、情侶、家庭或工作夥伴，都能找到最適合的共享方式。
+          不論是學生、情侶、家庭或工作夥伴
         </p>
-        <button
-          type="button"
-          onClick={() => navigate('/explore')}
-          className="mt-5 flex w-fit items-center gap-1 text-sm font-bold text-brand transition-colors hover:text-brand-hover"
-        >
+        <Button size="lg" className="mt-5 rounded-full px-8" onClick={() => navigate('/explore')}>
           探索所有群組
           <ChevronRight size={14} strokeWidth={1.5} />
-        </button>
+        </Button>
       </div>
 
       <div className="grid w-full grid-cols-2 grid-rows-2 gap-3 sm:grid-cols-3 sm:gap-4">
