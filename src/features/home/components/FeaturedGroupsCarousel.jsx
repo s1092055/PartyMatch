@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronRight } from 'lucide-react'
+import { Compass, Search } from 'lucide-react'
 import { useGroupStore } from '../../../common/stores/useGroupStore'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
 import { Button } from '../../../components/ui/button'
@@ -62,7 +62,7 @@ export default function FeaturedGroupsCarousel() {
         </p>
       </div>
 
-      <div className="relative mt-10 overflow-x-clip">
+      <div className="relative mt-4 overflow-x-clip sm:mt-10">
         <div
           className="relative h-[420px] touch-pan-y select-none [perspective:1400px]"
           onPointerDown={handlePointerDown}
@@ -103,10 +103,19 @@ export default function FeaturedGroupsCarousel() {
         </div>
       </div>
 
-      <div className="mt-10 flex justify-center">
+      <div className="mt-5 flex flex-wrap items-center justify-center gap-4 sm:mt-10">
         <Button size="lg" className="rounded-full px-8" onClick={() => navigate('/explore')}>
-          探索所有群組
-          <ChevronRight size={14} strokeWidth={1.5} />
+          <Compass size={16} strokeWidth={1.5} />
+          探索群組
+        </Button>
+        <Button
+          size="lg"
+          variant="secondary"
+          className="rounded-full px-8"
+          onClick={() => window.dispatchEvent(new CustomEvent('pm:open-quick-match'))}
+        >
+          <Search size={16} strokeWidth={1.5} />
+          快速搜尋
         </Button>
       </div>
     </div>
