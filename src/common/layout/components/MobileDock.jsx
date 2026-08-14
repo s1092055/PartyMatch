@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Compass, LayoutGrid, LogIn, LogOut, Moon, PlusCircle, Search, Settings, Sun } from 'lucide-react'
 import { MY_NAV_ITEMS } from '../nav'
 import { Avatar } from '../../../components/ui/avatar'
@@ -59,6 +60,23 @@ export default function MobileDock({
   const { loggingOut, logout } = useLogout()
   const { theme, toggleTheme } = useTheme()
 
+  // 捲到頁面最底部（例如 Footer）時把 Dock 收合下去，避免長期蓋住底部內容；
+  // 離開最底部（往上捲）就立刻收回顯示
+  const [atBottom, setAtBottom] = useState(false)
+  useEffect(() => {
+    function checkAtBottom() {
+      const scrolledToBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 24
+      setAtBottom(scrolledToBottom)
+    }
+    checkAtBottom()
+    window.addEventListener('scroll', checkAtBottom, { passive: true })
+    window.addEventListener('resize', checkAtBottom)
+    return () => {
+      window.removeEventListener('scroll', checkAtBottom)
+      window.removeEventListener('resize', checkAtBottom)
+    }
+  }, [])
+
   const isMyActive = PROTECTED_NAV_ROUTES.has(pathname)
   // 帳號選單觸發點與 drawer 裡的主要連結，登入/訪客只差 icon、文案、目的地
   const accountTrigger = loggedIn
@@ -76,7 +94,9 @@ export default function MobileDock({
   return (
     <nav
       data-mobile-dock
-      className="fixed left-3 right-3 z-50 rounded-2xl border border-line bg-surface shadow-sm can-hover:lg:hidden"
+      className={`fixed left-3 right-3 z-50 rounded-2xl border border-line bg-surface shadow-sm transition-transform duration-300 ease-out can-hover:lg:hidden ${
+        atBottom ? 'translate-y-[calc(100%+1rem)]' : 'translate-y-0'
+      }`}
       style={{ bottom: 'max(1rem, calc(env(safe-area-inset-bottom) + 0.5rem))' }}
     >
       <div className="flex h-16 items-stretch">

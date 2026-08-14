@@ -18,11 +18,10 @@ const PHASE_BADGES = {
 }
 
 // 身份切換：兩顆各自獨立的圓角按鈕（不是共用背景的 Segmented Control），中間留適度
-// 間距，讓兩個選項感覺是分開的選擇，但又不會離太遠。手機版跟標題擠在同一列，按鈕
-// 縮小一號（窄寬度/小字/小間距）才塞得下，桌機（sm 以上）維持原本大小
+// 間距，讓兩個選項感覺是分開的選擇，但又不會離太遠
 function RoleToggle({ activeValue, onChange }) {
   return (
-    <div className="flex items-center justify-center gap-2 sm:gap-6">
+    <div className="flex items-center justify-center gap-6">
       {ROLES.map(({ id, label }) => {
         const active = id === activeValue
         return (
@@ -30,7 +29,7 @@ function RoleToggle({ activeValue, onChange }) {
             key={id}
             type="button"
             onClick={() => onChange(id)}
-            className={`flex w-20 items-center justify-center whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-bold transition-colors sm:w-44 sm:px-5 sm:py-2.5 sm:text-sm ${
+            className={`flex w-44 items-center justify-center rounded-full border px-5 py-2.5 text-sm font-bold transition-colors ${
               active
                 ? 'border-brand bg-brand text-white'
                 : 'border-line bg-surface text-ink-3 hover:text-ink'
@@ -187,10 +186,11 @@ export default function IdentityJourney() {
 
   return (
     <section id="identity" className="scroll-mt-24 flex flex-col items-center text-center">
-      <div className="flex items-center justify-center gap-2 sm:gap-4">
-        <h2 className="whitespace-nowrap text-xl font-extrabold text-ink sm:text-3xl">
-          我想成為？
-        </h2>
+      <h2 className="text-3xl font-extrabold text-ink">
+        我想成為？
+      </h2>
+
+      <div className="mt-6 w-full">
         <RoleToggle activeValue={role} onChange={handleRoleChange} />
       </div>
 
