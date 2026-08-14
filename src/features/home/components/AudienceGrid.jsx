@@ -1,6 +1,3 @@
-import { useNavigate } from 'react-router-dom'
-import { ChevronRight } from 'lucide-react'
-import { Button } from '../../../components/ui/button'
 import { HOME_AUDIENCES } from '../data/homeContent'
 
 // 「適合每一種共享生活」區塊；photo 有素材的用 assets 裡的實際照片，沒有的才 fallback
@@ -26,8 +23,6 @@ function AudienceCard({ photo, photoSeed, title, desc, tall }) {
 }
 
 export default function AudienceGrid() {
-  const navigate = useNavigate()
-
   return (
     <section className="flex flex-col items-center gap-10">
       <div className="flex flex-col items-center text-center">
@@ -37,10 +32,6 @@ export default function AudienceGrid() {
         <p className="mt-3 max-w-xs text-base leading-relaxed text-ink-3">
           不論是學生、情侶、家庭或工作夥伴
         </p>
-        <Button size="lg" className="mt-5 rounded-full px-8" onClick={() => navigate('/explore')}>
-          探索所有群組
-          <ChevronRight size={14} strokeWidth={1.5} />
-        </Button>
       </div>
 
       <div className="grid w-full grid-cols-2 grid-rows-2 gap-3 sm:grid-cols-3 sm:gap-4">

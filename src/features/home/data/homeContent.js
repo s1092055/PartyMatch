@@ -1,10 +1,14 @@
 import {
   Wallet,
   Bell,
-  Lock,
   BadgeCheck,
   MessageCircleQuestion,
+  MessageCircle,
+  LayoutGrid,
+  Heart,
 } from 'lucide-react'
+import securityPhoto from '../../../assets/Security.png'
+import creditPhoto from '../../../assets/Credit.png'
 import studentsPhoto from '../../../assets/Students.png'
 import couplesPhoto from '../../../assets/Couples.png'
 import friendsPhoto from '../../../assets/Friends.png'
@@ -33,24 +37,39 @@ export const HOME_BENEFITS = [
 // 「為什麼選擇 PartyMatch？」區塊
 export const HOME_WHY_US = [
   {
-    icon: Lock,
+    image: securityPhoto,
     title: '安全可靠',
-    desc: '交易由平台代管，保障雙方權益。',
+    desc: '交易由平台代管。',
   },
   {
-    icon: BadgeCheck,
+    image: creditPhoto,
     title: '真實信用機制',
-    desc: '信用評分與群組紀錄系統，打造可信任的環境。',
+    desc: '信用評分打造可信環境。',
   },
   {
     icon: Wallet,
     title: 'PM 幣支付',
-    desc: '使用 PM 幣付款，更安全、更方便。',
+    desc: '安全又方便的付款方式。',
   },
   {
     icon: MessageCircleQuestion,
     title: '問題回報機制',
-    desc: '遇到問題隨時回報，48 小時內完成處理。',
+    desc: '48 小時內完成處理。',
+  },
+  {
+    icon: MessageCircle,
+    title: '站內即時溝通',
+    desc: '免交換聯絡方式，直接傳訊。',
+  },
+  {
+    icon: LayoutGrid,
+    title: '多元服務類型',
+    desc: '28 種訂閱服務一站找齊。',
+  },
+  {
+    icon: Heart,
+    title: '收藏與追蹤',
+    desc: '先收藏，回頭再慢慢比較。',
   },
 ]
 

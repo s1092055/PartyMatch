@@ -1,6 +1,9 @@
 import { useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { ChevronRight } from 'lucide-react'
 import { useGroupStore } from '../../../common/stores/useGroupStore'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
+import { Button } from '../../../components/ui/button'
 import ExploreGroupCard from '../../explore/components/ExploreGroupCard'
 
 // 精選幾個「快額滿」（剩餘名額比例低）或「熱門」（已加入人數多）的招募中群組，
@@ -23,6 +26,7 @@ function selectFeaturedGroups(groups, excludeHostId, limit = 8) {
 // 用 rotateY 做立體透視，可無限循環（用 modulo 算出相對中心的最短偏移量），
 // 點擊側邊卡片或左右箭頭都能切換焦點
 export default function FeaturedGroupsCarousel() {
+  const navigate = useNavigate()
   const groups = useGroupStore(s => s.groups)
   const activeUserId = useAuthStore(s => s.user?.id)
   const [focusIndex, setFocusIndex] = useState(0)
@@ -97,6 +101,13 @@ export default function FeaturedGroupsCarousel() {
             )
           })}
         </div>
+      </div>
+
+      <div className="mt-10 flex justify-center">
+        <Button size="lg" className="rounded-full px-8" onClick={() => navigate('/explore')}>
+          探索所有群組
+          <ChevronRight size={14} strokeWidth={1.5} />
+        </Button>
       </div>
     </div>
   )

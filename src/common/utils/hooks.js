@@ -94,21 +94,6 @@ export function useScrollY() {
   return y
 }
 
-// 往下捲動時隱藏、往上捲動或接近頁面頂端時顯示（用於行動版底部 Dock 等固定元素）
-export function useHideOnScroll() {
-  const [visible, setVisible] = useState(true)
-  const lastY = useRef(window.scrollY)
-
-  useEffect(() => subscribeScroll(y => {
-    const delta = y - lastY.current
-    if (y < 50 || delta < -4) setVisible(true)
-    else if (delta > 4) setVisible(false)
-    lastY.current = y
-  }), [])
-
-  return visible
-}
-
 // 捲動邊界偵測：回報是否可捲動、是否已到底部，並提供捲到頂/往下捲的控制函式
 // （多個翻頁式流程頁面與步驟卡片共用同一套邏輯，避免各自重複實作 ResizeObserver 監聽）
 // forwardWheel：讓滑鼠在頁面任何位置（含固定 header／底部導覽列）滾動滾輪時，都轉發捲動量給內容容器，

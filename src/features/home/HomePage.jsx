@@ -80,7 +80,7 @@ export default function HomePage() {
         <ScrollCue />
       </section>
 
-      <section className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-20">
+      <section className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-20 can-hover:lg:pb-16 can-hover:lg:pt-16">
         <RevealSection className="mx-auto w-full max-w-3xl">
           <WhyUs />
         </RevealSection>
@@ -154,7 +154,12 @@ export default function HomePage() {
         </RevealSection>
       </section>
 
-      <AppFooter />
+      {/* Footer 本身沒有 min-h-dvh，若不給 snap 對齊點，html 的 snap-mandatory 在滑動手勢
+          沒有整個滑過 Footer 高度時會判定「沒有到達下一個 snap point」而彈回 FAQ 區塊，
+          導致使用者滑不到最底部；補上 snap-end 讓 Footer 底部本身成為合法的吸附點 */}
+      <div className="snap-end">
+        <AppFooter />
+      </div>
     </div>
   )
 }

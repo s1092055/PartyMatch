@@ -7,7 +7,7 @@ import { Drawer, DrawerContent, DrawerTitle } from '../../../components/ui/drawe
 import { useTheme } from '../../../components/theme-provider'
 import { LockBadge, PresenceDot } from './navShared'
 import { PROTECTED_NAV_ROUTES } from './navConstants'
-import { useHideOnScroll, useLogout } from '../../utils/hooks'
+import { useLogout } from '../../utils/hooks'
 
 // 「我的」跟「我的帳號」都用同一套底部 Drawer（bottom sheet）骨架呈現選單內容，
 // 不再用貼在觸發點上方的小 popup——手機上滑出式比固定定位的小選單好操作、也不用
@@ -56,7 +56,6 @@ export default function MobileDock({
   accountMenuOpen,
   setAccountMenuOpen,
 }) {
-  const visible = useHideOnScroll()
   const { loggingOut, logout } = useLogout()
   const { theme, toggleTheme } = useTheme()
 
@@ -76,7 +75,7 @@ export default function MobileDock({
 
   return (
     <nav
-      className={`fixed left-3 right-3 z-50 rounded-2xl border border-line bg-surface shadow-sm transition-transform duration-300 ease-in-out can-hover:lg:hidden ${visible ? 'translate-y-0' : 'translate-y-[calc(100%+1rem)]'}`}
+      className="fixed left-3 right-3 z-50 rounded-2xl border border-line bg-surface shadow-sm can-hover:lg:hidden"
       style={{ bottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
     >
       <div className="flex h-16 items-stretch">
