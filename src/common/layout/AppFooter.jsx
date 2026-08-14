@@ -14,7 +14,10 @@ export default function AppFooter() {
     // 要直接複製出跟頁面內容一樣的巢狀 wrapper（AppLayout 那層 + 頁面自己那層，兩層都只用
     // padding 讓子層的起始位置跟著內縮），border-t 畫在最內層、自己不再帶任何水平 padding，
     // 這樣它的邊緣位置才會跟被兩層 padding 往內推過的群組卡片列表完全一樣
-    <footer className="bg-canvas pb-20 pt-10 md:pb-10">
+    // pb-24 對齊 ScrollCue 同一套「避開 MobileDock」的留白值，用 can-hover:lg: 而不是
+    // md: 判斷要不要收回來——MobileDock 是 can-hover:lg:hidden 才會消失，平板寬度
+    // （md~lg 之間）Dock 還在顯示，用 md 斷點會太早把留白收窄，導致 Footer 被 Dock 蓋到
+    <footer className="bg-canvas pb-24 pt-10 can-hover:lg:pb-10">
       <div className="mx-auto w-full max-w-7xl px-4 lg:max-w-[clamp(80rem,100vw,90rem)] lg:px-2">
         <div className="px-2 md:px-4">
           <div className="border-t border-line pt-10">

@@ -24,7 +24,7 @@ function AudienceCard({ photo, photoSeed, title, desc, tall }) {
 
 export default function AudienceGrid() {
   return (
-    <section className="flex flex-col items-center gap-10">
+    <section className="flex w-full flex-col items-center gap-10">
       <div className="flex flex-col items-center text-center">
         <h2 className="text-3xl font-extrabold text-ink">
           適合每一種共享生活

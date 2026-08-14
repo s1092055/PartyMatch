@@ -75,8 +75,9 @@ export default function MobileDock({
 
   return (
     <nav
+      data-mobile-dock
       className="fixed left-3 right-3 z-50 rounded-2xl border border-line bg-surface shadow-sm can-hover:lg:hidden"
-      style={{ bottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
+      style={{ bottom: 'max(1rem, calc(env(safe-area-inset-bottom) + 0.5rem))' }}
     >
       <div className="flex h-16 items-stretch">
 

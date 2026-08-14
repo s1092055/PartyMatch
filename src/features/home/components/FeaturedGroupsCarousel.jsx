@@ -56,9 +56,9 @@ export default function FeaturedGroupsCarousel() {
   return (
     <div>
       <div className="flex flex-col items-center text-center">
-        <h2 className="text-3xl font-extrabold text-ink">熱門與快額滿群組</h2>
+        <h2 className="text-3xl font-extrabold text-ink">探索適合你的共享群組</h2>
         <p className="mt-3 max-w-sm text-base leading-relaxed text-ink-3">
-          精選熱門招募、名額所剩不多，手刀加入不再錯過！
+          依照需求搜尋、篩選條件，快速找到適合的群組。
         </p>
       </div>
 

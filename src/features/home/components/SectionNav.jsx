@@ -8,9 +8,10 @@ const SECTIONS = [
   { id: 'section-hero', label: 'PartyMatch' },
   { id: 'section-why-us', label: '為什麼選擇 PartyMatch？' },
   { id: 'section-audience', label: '適合每一種共享生活' },
-  { id: 'section-featured-groups', label: '熱門與快額滿群組' },
-  { id: 'section-benefits', label: '自己開團，一切變得更簡單' },
-  { id: 'section-cta', label: '立即開始你的共享訂閱之旅' },
+  { id: 'section-featured-groups', label: '探索適合你的共享群組' },
+  { id: 'section-benefits', label: '自己開團，輕鬆管理' },
+  { id: 'section-identity', label: '我想成為？' },
+  { id: 'section-cta', label: '立即開始共享訂閱之旅' },
   { id: 'section-faq', label: '常見問題' },
 ]
 

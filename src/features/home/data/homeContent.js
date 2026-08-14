@@ -4,9 +4,6 @@ import {
   MessageCircle,
   LayoutGrid,
   Heart,
-  ClipboardList,
-  Users,
-  RefreshCw,
 } from 'lucide-react'
 import securityPhoto from '../../../assets/Security.png'
 import creditPhoto from '../../../assets/Credit.png'
@@ -16,66 +13,156 @@ import friendsPhoto from '../../../assets/Friends.png'
 import familyPhoto from '../../../assets/Family.png'
 import freelancerPhoto from '../../../assets/freelance worker.png'
 
-// 「自己開團，一切變得更簡單」區塊：團主視角的完整流程，分成三個大階段（頂層底線 Tab），
-// 每個階段底下再列出更細的子流程（垂直 Tab）。順序對應 Group 狀態機：
-// 建立群組 → recruiting；群組管理涵蓋 recruiting → full → pending_confirmation →
-// pending_activation → confirming → active；續訂管理對應 active → pending_confirmation
-// 的續約流程（重新走一輪填服務資訊 → 啟用 → 確認），細節見 CLAUDE.md「重要慣例」
+// 「不同身份，各有各的任務」區塊：團主／成員各自的完整流程，分成四個大階段（頂層底線
+// Tab，id 兩邊一一對應方便切換身份時 Tab 位置不跳動），每個階段底下再列出更細的子流程
+// （垂直 Tab）。前三個順序對應 Group 狀態機：建立/加入群組 → recruiting；群組管理涵蓋
+// recruiting → full → pending_confirmation → pending_activation → confirming → active；
+// 續訂管理對應 active → pending_confirmation 的續約流程（重新走一輪填服務資訊 → 啟用 →
+// 確認），細節見 CLAUDE.md「重要慣例」；最後的「其他」不屬於狀態機流程，是平時會用到的
+// 其他功能（站內溝通／PM 幣／信用評價／收藏）
 export const HOME_HOST_JOURNEY = [
   {
     id: 'create',
     title: '建立群組',
-    icon: ClipboardList,
     steps: [
       {
         title: '選服務、挑方案',
-        desc: '從 28 種訂閱服務裡選一個，方案價格系統會自動核實，不用自己上網查。',
+        desc: '方案價格系統自動核實，免自己上網查。',
       },
       {
         title: '設定名額，開放申請',
-        desc: '填好名額跟簡介就能送出，馬上開放其他人申請加入，不用手動找人湊團。',
+        desc: '填好名額即可送出，開放申請免找人湊團。',
       },
     ],
   },
   {
     id: 'manage',
     title: '群組管理',
-    icon: Users,
     steps: [
       {
         title: '審核申請，信用把關',
-        desc: '看得到每位申請者的信用評價，篩選放心的夥伴，不用自己一個個私訊確認。',
+        desc: '看信用評價篩選夥伴，免逐一私訊確認。',
       },
       {
         title: '額滿鎖定，共用帳密',
-        desc: '人數到齊後鎖定群組，共用帳密加密保存，只有團主跟成員本人看得到。',
+        desc: '鎖定後加密保存帳密，只有成員看得到。',
       },
       {
         title: '成員確認，正式啟用',
-        desc: '等成員一一回報服務可正常使用，確認期一過群組就會正式啟用、開始收費。',
+        desc: '成員確認可用後正式啟用、開始收費。',
       },
       {
         title: '有問題，一鍵回報',
-        desc: '服務出狀況時成員可以直接回報，不用私訊團主吵成一團，由平台介入處理。',
+        desc: '成員能直接回報問題，平台介入處理。',
       },
     ],
   },
   {
     id: 'renew',
     title: '續訂管理',
-    icon: RefreshCw,
     steps: [
       {
         title: '到期前主動提醒',
-        desc: '快到期時系統會通知團主跟成員，不用自己在行事曆上排提醒。',
+        desc: '快到期時系統主動通知，免自己排提醒。',
       },
       {
         title: '重新確認服務資訊',
-        desc: '團主重新填一次服務資訊，流程跟當初開團一樣簡單，不用重新招募一輪。',
+        desc: '重新填寫服務資訊，跟開團一樣簡單。',
       },
       {
         title: '成員確認，正式續約',
-        desc: '成員逐一確認服務仍可使用後，群組直接續約啟用，原班人馬接著用下去。',
+        desc: '成員確認後直接續約，原班人馬續用。',
+      },
+    ],
+  },
+  {
+    id: 'other',
+    title: '其他情境',
+    steps: [
+      {
+        title: '站內溝通',
+        desc: '站內直接傳訊，免交換聯絡方式。',
+      },
+      {
+        title: 'PM 幣管理',
+        desc: '收款、儲值、消費紀錄一次查看。',
+      },
+      {
+        title: '信用評價',
+        desc: '交易結束雙方互評，累積信用紀錄。',
+      },
+    ],
+  },
+]
+
+// 成員視角的完整流程，id 對應 HOME_HOST_JOURNEY，同一個階段徽章（CREATE／MANAGE／
+// RENEWAL／OTHERS）在切換身份時位置不變，只換底下的標題跟內容
+export const HOME_MEMBER_JOURNEY = [
+  {
+    id: 'create',
+    title: '加入群組',
+    steps: [
+      {
+        title: '搜尋或快速配對',
+        desc: '設定預算條件，系統自動配對推薦群組。',
+      },
+      {
+        title: '送出申請，等待審核',
+        desc: '送出申請等審核，免私訊團主喬時間。',
+      },
+    ],
+  },
+  {
+    id: 'manage',
+    title: '使用與確認',
+    steps: [
+      {
+        title: '費用自動代管',
+        desc: '費用自動代管，安心不怕收錢不出貨。',
+      },
+      {
+        title: '確認服務可用',
+        desc: '48 小時內確認服務可用，即可啟用。',
+      },
+      {
+        title: '有問題，一鍵回報',
+        desc: '直接向平台回報，代管款項全程凍結。',
+      },
+    ],
+  },
+  {
+    id: 'renew',
+    title: '續約確認',
+    steps: [
+      {
+        title: '到期前收到提醒',
+        desc: '快到期時主動通知，決定要不要續約。',
+      },
+      {
+        title: '確認服務仍可用',
+        desc: '確認服務狀態沒問題，即完成續約。',
+      },
+      {
+        title: '也能隨時退出',
+        desc: '不想續約可直接申請退出，免勉強續用。',
+      },
+    ],
+  },
+  {
+    id: 'other',
+    title: '其他情境',
+    steps: [
+      {
+        title: '站內溝通',
+        desc: '站內直接傳訊，免交換聯絡方式。',
+      },
+      {
+        title: '收藏與追蹤',
+        desc: '先收藏心動群組，之後再慢慢比較。',
+      },
+      {
+        title: '信用評價',
+        desc: '交易結束雙方互評，累積信用紀錄。',
       },
     ],
   },

@@ -14,11 +14,13 @@ import BubbleField from './components/BubbleField'
 import ScrollCue from './components/ScrollCue'
 import FeaturedGroupsCarousel from './components/FeaturedGroupsCarousel'
 import BenefitsList from './components/BenefitsList'
+import IdentityJourney from './components/IdentityJourney'
 import AudienceGrid from './components/AudienceGrid'
 import WhyUs from './components/WhyUs'
 import FAQ from './components/FAQ'
 import SectionNav from './components/SectionNav'
 import RevealSection from '../../components/ui/primitives/RevealSection'
+import { RevealSectionScaleProvider } from '../../components/ui/primitives/RevealSectionScaleContext'
 import { ADMIN_HOME_PATH } from '../../app/AdminRoute'
 
 const ALL_SERVICES = listServiceTypes()
@@ -58,95 +60,107 @@ export default function HomePage() {
       <FloatingMessages />
       <SectionNav />
 
-      <section id="section-hero" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center overflow-hidden pb-32 pt-28 text-center lg:pt-16">
-        <BubbleField count={9} size={46} />
+      {/* 所有 min-h-dvh Section 包在同一個 RevealSectionScaleProvider 底下，讓每個
+          RevealSection 共用同一個全域縮放比例，不會有的 Section 縮小、有的沒縮到，
+          切換 Section 時文字忽大忽小 */}
+      <RevealSectionScaleProvider>
+        <section id="section-hero" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center overflow-hidden pb-32 pt-28 text-center lg:pt-16">
+          <BubbleField count={9} size={46} />
 
-        <RevealSection className="relative mx-auto w-full max-w-3xl px-5">
-          <img src={logoUrl} alt="PartyMatch" className="mx-auto mb-5 h-14 w-auto" />
-          <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-ink md:text-5xl">
-            Party<span className="text-brand">Match</span>
-          </h1>
-          <p className="mx-auto mt-5 max-w-md text-base leading-relaxed text-ink-3">
-            共享訂閱服務平台
-          </p>
+          <RevealSection className="relative mx-auto w-full max-w-3xl px-5">
+            <img src={logoUrl} alt="PartyMatch" className="mx-auto mb-5 h-14 w-auto" />
+            <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-ink md:text-5xl">
+              Party<span className="text-brand">Match</span>
+            </h1>
+            <p className="mx-auto mt-5 max-w-md text-base leading-relaxed text-ink-3">
+              共享訂閱服務平台
+            </p>
 
-          <div className="mt-8 flex items-center justify-center">
-            <Button size="lg" className="rounded-full px-8" onClick={() => navigate('/explore')}>
-              <Compass size={16} strokeWidth={1.5} />
-              探索群組
-            </Button>
-          </div>
-        </RevealSection>
-
-        <ScrollCue />
-      </section>
-
-      <section id="section-why-us" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-20 can-hover:lg:pb-16 can-hover:lg:pt-16">
-        <RevealSection className="mx-auto w-full max-w-3xl">
-          <WhyUs />
-        </RevealSection>
-        <ScrollCue />
-      </section>
-
-      <section id="section-audience" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-24 sm:pb-32 sm:pt-20">
-        <RevealSection className="mx-auto w-full max-w-3xl">
-          <AudienceGrid />
-        </RevealSection>
-        <ScrollCue />
-      </section>
-
-      <section id="section-featured-groups" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 sm:pb-32 sm:pt-20">
-        <RevealSection className="mx-auto w-full max-w-3xl">
-          <FeaturedGroupsCarousel />
-        </RevealSection>
-        <ScrollCue />
-      </section>
-
-      <section id="section-benefits" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-20">
-        <RevealSection className="mx-auto w-full max-w-3xl">
-          <BenefitsList />
-        </RevealSection>
-        <ScrollCue />
-      </section>
-
-      <section id="section-cta" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-20">
-        <RevealSection className="mx-auto w-full max-w-3xl text-center">
-          <div className="rounded-card border border-line bg-surface px-5 py-10 sm:px-8 sm:py-12">
-            <h2 className="text-2xl font-extrabold text-ink md:text-3xl">立即開始你的共享訂閱之旅</h2>
-            <p className="mt-3 text-base text-ink-3">加入 PartyMatch，享受更聰明的訂閱生活！</p>
-
-            <div className="mt-7 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <div className="mt-8 flex items-center justify-center">
               <Button size="lg" className="rounded-full px-8" onClick={() => navigate('/explore')}>
                 <Compass size={16} strokeWidth={1.5} />
                 探索群組
               </Button>
-              <Button
-                size="lg"
-                variant="secondary"
-                className="rounded-full px-8"
-                onClick={() => navigate(loggedIn ? '/create-group' : '/register')}
-              >
-                建立群組
-                <ChevronRight size={15} strokeWidth={1.5} />
-              </Button>
             </div>
+          </RevealSection>
 
-            <div className="mt-8 flex items-center justify-center gap-3">
-              {ALL_SERVICES.slice(0, 5).map(s => (
-                <ServiceLogo key={s.id} serviceId={s.id} size={32} />
-              ))}
+          <ScrollCue />
+        </section>
+
+        <section id="section-why-us" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-20 can-hover:lg:pb-16 can-hover:lg:pt-16">
+          <RevealSection className="mx-auto w-full max-w-3xl">
+            <WhyUs />
+          </RevealSection>
+          <ScrollCue />
+        </section>
+
+        <section id="section-audience" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-24 sm:pb-32 sm:pt-20">
+          <RevealSection className="mx-auto w-full max-w-3xl">
+            <AudienceGrid />
+          </RevealSection>
+          <ScrollCue />
+        </section>
+
+        <section id="section-featured-groups" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 sm:pb-32 sm:pt-20">
+          <RevealSection className="mx-auto w-full max-w-3xl">
+            <FeaturedGroupsCarousel />
+          </RevealSection>
+          <ScrollCue />
+        </section>
+
+        <section id="section-benefits" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-20">
+          <RevealSection className="mx-auto w-full max-w-3xl">
+            <BenefitsList />
+          </RevealSection>
+          <ScrollCue />
+        </section>
+
+        <section id="section-identity" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-20">
+          <RevealSection className="mx-auto w-full max-w-3xl">
+            <IdentityJourney />
+          </RevealSection>
+          <ScrollCue />
+        </section>
+
+        <section id="section-cta" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-20">
+          <RevealSection className="mx-auto w-full max-w-3xl text-center">
+            <div className="rounded-card border border-line bg-surface px-5 py-10 sm:px-8 sm:py-12">
+              <h2 className="text-2xl font-extrabold text-ink md:text-3xl">立即開始共享訂閱之旅</h2>
+              <p className="mt-3 text-base text-ink-3">加入 PartyMatch，享受更聰明的訂閱生活！</p>
+
+              <div className="mt-7 flex flex-col items-center justify-center gap-4 sm:flex-row">
+                <Button size="lg" className="rounded-full px-8" onClick={() => navigate('/explore')}>
+                  <Compass size={16} strokeWidth={1.5} />
+                  探索群組
+                </Button>
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  className="rounded-full px-8"
+                  onClick={() => navigate(loggedIn ? '/create-group' : '/register')}
+                >
+                  建立群組
+                  <ChevronRight size={15} strokeWidth={1.5} />
+                </Button>
+              </div>
+
+              <div className="mt-8 flex items-center justify-center gap-3">
+                {ALL_SERVICES.slice(0, 5).map(s => (
+                  <ServiceLogo key={s.id} serviceId={s.id} size={32} />
+                ))}
+              </div>
             </div>
-          </div>
-        </RevealSection>
-        <ScrollCue />
-      </section>
+          </RevealSection>
+          <ScrollCue />
+        </section>
 
-      {/* 常見問題是最後一個 Section，底下只剩 Footer，不需要再顯示「下滑查看更多」 */}
-      <section id="section-faq" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 py-20">
-        <RevealSection className="mx-auto w-full max-w-3xl">
-          <FAQ />
-        </RevealSection>
-      </section>
+        {/* 常見問題是最後一個 Section，底下只剩 Footer，不需要再顯示「下滑查看更多」 */}
+        <section id="section-faq" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 py-20">
+          <RevealSection className="mx-auto w-full max-w-3xl">
+            <FAQ />
+          </RevealSection>
+        </section>
+      </RevealSectionScaleProvider>
 
       {/* Footer 本身沒有 min-h-dvh，若不給 snap 對齊點，html 的 snap-mandatory 在滑動手勢
           沒有整個滑過 Footer 高度時會判定「沒有到達下一個 snap point」而彈回 FAQ 區塊，
