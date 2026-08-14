@@ -111,7 +111,7 @@ export default function WhyUs() {
 
       {!loggedIn && (
         <Button size="lg" className="rounded-full px-8" onClick={() => navigate('/login')}>
-          登入會員了解更多
+          登入會員，瞭解更多
           <ChevronRight size={14} strokeWidth={1.5} />
         </Button>
       )}
