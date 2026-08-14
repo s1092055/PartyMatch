@@ -102,7 +102,7 @@ export default function GroupDetailModal() {
 
   // 未登入點「登入以加入群組」導去 /login，登入/註冊成功後導回原本頁面時直接帶著
   // { reopenGroupModalId } 一起 navigate；比起再送一次 pm:open-group 事件更可靠——這個元件常常是透過
-  // lazy() 動態載入（見 AppLayout／QuickMatchPage），剛掛載回來的當下監聽器不一定已經接上，
+  // lazy() 動態載入（見 AppLayout／HomePage），剛掛載回來的當下監聽器不一定已經接上，
   // 用 location.state 才能保證掛載當下就讀得到，不會有時機競爭問題。讀取後立刻用 replace 清掉
   // state，避免使用者之後在同一頁面內部導頁時又被重複觸發打開。
   // 這個元件是全域掛載（AppLayout），不限頁面地監聽這個 state，欄位名稱不能跟 FloatingMessages.jsx

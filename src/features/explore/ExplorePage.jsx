@@ -15,10 +15,15 @@ import ExploreGroupCard from './components/ExploreGroupCard'
 const DEFAULT_FILTERS = { category: 'all', service: 'all', maxPrice: 'any', sortBy: 'recommended', q: '' }
 
 export default function ExplorePage() {
-  // 從首頁搜尋框帶關鍵字過來時（navigate('/explore', { state: { q } })）用它當初始篩選值，
-  // 沒有帶的話（一般進站或瀏覽器上一頁/下一頁）就用預設空篩選，不會覆蓋使用者手動清空的關鍵字
+  // 從首頁搜尋卡帶關鍵字／服務篩選過來時（navigate('/explore', { state: { q, service } })）
+  // 用它當初始篩選值，沒有帶的話（一般進站或瀏覽器上一頁/下一頁）就用預設空篩選，
+  // 不會覆蓋使用者手動清空的關鍵字
   const location = useLocation()
-  const [filters, setFilters] = useState(() => ({ ...DEFAULT_FILTERS, q: location.state?.q?.trim() ?? '' }))
+  const [filters, setFilters] = useState(() => ({
+    ...DEFAULT_FILTERS,
+    q:       location.state?.q?.trim() ?? '',
+    service: location.state?.service ?? DEFAULT_FILTERS.service,
+  }))
   const activeUserId = useAuthStore(s => s.user?.id)
   const groups = useGroupStore(s => s.groups)
   const applications = useApplicationStore(s => s.applications)

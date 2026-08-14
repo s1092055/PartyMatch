@@ -24,3 +24,16 @@ export function GroupRedirect() {
   }, [navigate, groupId])
   return null
 }
+
+// 舊版 /quick-match 獨立全螢幕頁面的相容路由，快速搜尋改成全站共用的 QuickMatchModal，
+// 導回首頁後觸發同一個 pm:open-quick-match event 開啟
+export function QuickMatchRedirect() {
+  const navigate = useNavigate()
+  useEffect(() => {
+    navigate('/', { replace: true })
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('pm:open-quick-match'))
+    }, 0)
+  }, [navigate])
+  return null
+}

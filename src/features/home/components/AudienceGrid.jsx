@@ -34,7 +34,7 @@ export default function AudienceGrid() {
           適合每一種共享生活
         </h2>
         <p className="mt-3 max-w-xs text-base leading-relaxed text-ink-3">
-          不論是學生、情侶、家庭或工作夥伴，找到最適合的共享方式。
+          不論是學生、情侶、家庭或工作夥伴，都能找到最適合的共享方式。
         </p>
         <button
           type="button"

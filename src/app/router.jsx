@@ -3,7 +3,7 @@ import { createBrowserRouter } from 'react-router-dom'
 import ProtectedRoute from './ProtectedRoute'
 import PublicOnlyRoute from './PublicOnlyRoute'
 import AdminRoute, { ADMIN_HOME_PATH } from './AdminRoute'
-import { GroupRedirect, MyGroupsLegacyRedirect } from './redirects'
+import { GroupRedirect, MyGroupsLegacyRedirect, QuickMatchRedirect } from './redirects'
 
 function routeElement(loader) {
   const Component = lazy(loader)
@@ -45,7 +45,7 @@ const router = createBrowserRouter([
       },
     ],
   },
-  { path: '/quick-match', element: routeElement(() => import('../features/match/QuickMatchPage')) },
+  { path: '/quick-match', element: <QuickMatchRedirect /> },
   {
     element: <ProtectedRoute />,
     children: [

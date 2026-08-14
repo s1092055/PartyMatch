@@ -1,6 +1,6 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
-import { ChevronDown, ChevronRight, Compass } from 'lucide-react'
+import { ChevronRight, Compass } from 'lucide-react'
 import { Button } from '../../components/ui/button'
 import logoUrl from '../../assets/Logo.svg'
 import { useAuthStore } from '../../common/stores/useAuthStore'
@@ -11,6 +11,8 @@ import AppFooter from '../../common/layout/AppFooter'
 import FloatingMessages from '../../common/layout/FloatingMessages'
 import ServiceLogo from '../../components/ui/ServiceLogo'
 import BubbleField from './components/BubbleField'
+import ScrollCue from './components/ScrollCue'
+import FeaturedGroupsCarousel from './components/FeaturedGroupsCarousel'
 import ExploreHighlight from './components/ExploreHighlight'
 import BenefitsList from './components/BenefitsList'
 import AudienceGrid from './components/AudienceGrid'
@@ -21,28 +23,23 @@ import { ADMIN_HOME_PATH } from '../../app/AdminRoute'
 
 const ALL_SERVICES = listServiceTypes()
 const MessagesModal = lazy(() => import('../messages/MessagesModal'))
-// HomePage 獨立於 AppLayout 之外（AppLayout 平常才會掛一份 GroupDetailModal），
-// Hero 區塊直接嵌入真實的 ExploreGroupCard，點擊要能開啟群組詳情，這裡要自己掛一份
+// HomePage 獨立於 AppLayout 之外（AppLayout 平常才會掛一份 GroupDetailModal／QuickMatchModal），
+// Hero 區塊直接嵌入真實的 ExploreGroupCard，點擊要能開啟群組詳情，快速搜尋按鈕也要能開啟
+// 快速搜尋 Modal，這裡都要自己掛一份
 const GroupDetailModal = lazy(() => import('../group/GroupDetailModal'))
+const QuickMatchModal = lazy(() => import('../match/QuickMatchModal'))
 
 export default function HomePage() {
   const navigate = useNavigate()
   const loggedIn = useAuthStore(s => s.loggedIn)
   const isAdmin = useAuthStore(s => s.user?.isAdmin ?? false)
-  const heroRef = useRef(null)
-  const [showScrollCue, setShowScrollCue] = useState(true)
 
-  // Hero 還有大部分在視窗內才顯示「查看更多」，使用者捲到下方內容或直接點擊後就收起來，
-  // 不要停留在已經看過的地方
+  // 每個 Section 都做成整頁吸附（像 Hero 一樣固定高度、滑一下跳到下一段）：只在首頁掛載期間
+  // 幫 <html> 開 scroll-snap，卸載時要記得關掉，不然會影響其他頁面的一般捲動行為
   useEffect(() => {
-    const el = heroRef.current
-    if (!el) return
-    const observer = new IntersectionObserver(
-      ([entry]) => setShowScrollCue(entry.isIntersecting),
-      { threshold: 0.6 }
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
+    const root = document.documentElement
+    root.classList.add('snap-y', 'snap-mandatory')
+    return () => root.classList.remove('snap-y', 'snap-mandatory')
   }, [])
 
   // 管理員帳號不參與一般使用者流程（探索/建立/加入群組），登入後一律停在管理員後台，
@@ -56,10 +53,11 @@ export default function HomePage() {
       <Suspense fallback={null}>
         <MessagesModal />
         <GroupDetailModal />
+        <QuickMatchModal />
       </Suspense>
       <FloatingMessages />
 
-      <section ref={heroRef} className="relative flex min-h-dvh w-full flex-col items-center justify-center overflow-hidden pb-10 pt-28 text-center lg:pt-16">
+      <section className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center overflow-hidden pb-32 pt-28 text-center lg:pt-16">
         <BubbleField count={9} size={46} />
 
         <div className="relative mx-auto w-full max-w-3xl px-5">
@@ -72,34 +70,53 @@ export default function HomePage() {
           </p>
 
           <div className="mt-8 flex items-center justify-center">
-            <Button size="lg" className="rounded-card px-8" onClick={() => navigate('/explore')}>
+            <Button size="lg" className="rounded-full px-8" onClick={() => navigate('/explore')}>
               <Compass size={16} strokeWidth={1.5} />
               探索群組
             </Button>
           </div>
         </div>
 
-        <span
-          className={`pointer-events-none absolute bottom-28 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 text-sm font-bold text-ink-2 transition-opacity duration-300 can-hover:lg:bottom-16 ${
-            showScrollCue ? 'opacity-100' : 'opacity-0'
-          }`}
-        >
-          查看更多
-          <ChevronDown size={16} strokeWidth={1.5} />
-        </span>
+        <ScrollCue />
       </section>
 
-      <div className="mx-auto w-full min-w-0 max-w-3xl px-5">
-        <div className="space-y-24 pb-24 pt-16">
-          <RevealSection><ExploreHighlight /></RevealSection>
-          <RevealSection><BenefitsList /></RevealSection>
-          <RevealSection><AudienceGrid /></RevealSection>
-          <RevealSection><WhyUs /></RevealSection>
-        </div>
-      </div>
+      <section className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-20">
+        <RevealSection className="mx-auto w-full max-w-3xl">
+          <WhyUs />
+        </RevealSection>
+        <ScrollCue />
+      </section>
 
-      <RevealSection>
-        <section className="mx-auto max-w-3xl px-5 pb-24 text-center">
+      <section className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-20">
+        <RevealSection className="mx-auto w-full max-w-3xl">
+          <BenefitsList />
+        </RevealSection>
+        <ScrollCue />
+      </section>
+
+      <section className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-20">
+        <RevealSection className="mx-auto w-full max-w-3xl">
+          <AudienceGrid />
+        </RevealSection>
+        <ScrollCue />
+      </section>
+
+      <section className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-20">
+        <RevealSection className="mx-auto w-full max-w-3xl">
+          <FeaturedGroupsCarousel />
+        </RevealSection>
+        <ScrollCue />
+      </section>
+
+      <section className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-20">
+        <RevealSection className="mx-auto w-full max-w-3xl">
+          <ExploreHighlight />
+        </RevealSection>
+        <ScrollCue />
+      </section>
+
+      <section className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-20">
+        <RevealSection className="mx-auto w-full max-w-3xl text-center">
           <div className="rounded-card border border-line bg-surface px-5 py-10 sm:px-8 sm:py-12">
             <h2 className="text-2xl font-extrabold text-ink md:text-3xl">立即開始你的共享訂閱之旅</h2>
             <p className="mt-3 text-base text-ink-3">加入 PartyMatch，享受更聰明的訂閱生活！</p>
@@ -126,12 +143,16 @@ export default function HomePage() {
               ))}
             </div>
           </div>
-        </section>
-      </RevealSection>
+        </RevealSection>
+        <ScrollCue />
+      </section>
 
-      <div className="mx-auto max-w-3xl px-5 pb-16">
-        <RevealSection><FAQ /></RevealSection>
-      </div>
+      {/* 常見問題是最後一個 Section，底下只剩 Footer，不需要再顯示「下滑查看更多」 */}
+      <section className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 py-20">
+        <RevealSection className="mx-auto w-full max-w-3xl">
+          <FAQ />
+        </RevealSection>
+      </section>
 
       <AppFooter />
     </div>

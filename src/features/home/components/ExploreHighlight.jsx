@@ -1,12 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, ChevronRight } from 'lucide-react'
+import { Search, SlidersHorizontal } from 'lucide-react'
 import ServiceLogo from '../../../components/ui/ServiceLogo'
 import { Button } from '../../../components/ui/button'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../../components/ui/select'
 import { calcPricePerSeat } from '../../../common/utils/pricingUtils'
 import { getServiceById, listServiceTypes } from '../../../common/utils/serviceUtils'
-import { useGroupStore } from '../../../common/stores/useGroupStore'
-import ExploreGroupCard from '../../explore/components/ExploreGroupCard'
 
 const POPULAR_SERVICE_IDS = ['netflix', 'spotify', 'disney', 'youtube', 'chatgpt']
 const HIGHLIGHT_SERVICE_IDS = ['netflix', 'spotify', 'disney']
@@ -21,30 +20,14 @@ function buildHighlightPlans() {
   }).filter(Boolean)
 }
 
-// 左側視覺：真實存在的群組卡片，直接沿用 /explore 頁面同一個 ExploreGroupCard 元件與
-// 真實的 useGroupStore 資料（招募中且還有名額的群組），不是模擬圖片或編造的資料。
-// h-full：跟右側搜尋卡片一樣高（由外層 grid 的 items-stretch 決定）
-function ShowcaseColumn() {
-  const groups = useGroupStore(s => s.groups)
-  const featuredGroup = groups.find(g => g.status === 'recruiting' && g.openSeats > 0) ?? groups[0] ?? null
-
-  if (!featuredGroup) return null
-
-  return (
-    <div className="hidden h-full min-h-80 items-center justify-center lg:flex">
-      <div className="w-72 sm:w-80">
-        <ExploreGroupCard group={featuredGroup} />
-      </div>
-    </div>
-  )
-}
-
-// 「探索適合你的共享群組」區塊：標題／說明／連結置中在最上方，底下左側是真實群組卡片，
-// 右側是搜尋框（送出後帶關鍵字跳到探索頁）、熱門服務 icon 列，以及依真實 serviceCatalog
-// 資料算出來的 3 個熱門方案；左右兩欄用 items-stretch 讓兩欄一樣高
+// 「探索適合你的共享群組」區塊：標題／說明置中在最上方，底下是搜尋卡片（關鍵字 + 服務篩選
+// Select + 一般搜尋／快速搜尋兩顆按鈕，快速搜尋會開啟 QuickMatchModal，取代原本獨立的
+// /quick-match 頁面）。跟「熱門與快額滿群組」幻燈片（FeaturedGroupsCarousel）是首頁上
+// 各自獨立的 Section，見 HomePage.jsx
 export default function ExploreHighlight() {
   const navigate = useNavigate()
   const [keyword, setKeyword] = useState('')
+  const [serviceId, setServiceId] = useState('all')
   const popularServices = POPULAR_SERVICE_IDS
     .map(id => ALL_SERVICES.find(s => s.id === id))
     .filter(Boolean)
@@ -52,7 +35,11 @@ export default function ExploreHighlight() {
 
   function handleSearchSubmit(e) {
     e.preventDefault()
-    navigate('/explore', { state: { q: keyword } })
+    navigate('/explore', { state: { q: keyword, service: serviceId } })
+  }
+
+  function openQuickMatch() {
+    window.dispatchEvent(new CustomEvent('pm:open-quick-match'))
   }
 
   return (
@@ -62,21 +49,11 @@ export default function ExploreHighlight() {
         <p className="mt-3 max-w-sm text-base leading-relaxed text-ink-3">
           依照需求搜尋、篩選條件，快速找到適合的群組。
         </p>
-        <button
-          type="button"
-          onClick={() => navigate('/explore')}
-          className="mt-5 flex w-fit items-center gap-1 text-sm font-bold text-brand transition-colors hover:text-brand-hover"
-        >
-          探索群組
-          <ChevronRight size={14} strokeWidth={1.5} />
-        </button>
       </div>
 
-      <div className="mt-10 grid grid-cols-1 items-stretch gap-10 lg:grid-cols-2 lg:gap-12">
-        <ShowcaseColumn />
-
-        <div className="mx-auto flex w-full max-w-lg flex-col justify-center rounded-2xl border border-line bg-surface p-5">
-          <form onSubmit={handleSearchSubmit} className="flex h-11 items-center gap-2 rounded-control border border-line bg-canvas px-3.5 focus-within:ring-4 focus-within:ring-brand-subtle">
+      <div className="mx-auto mt-10 w-full max-w-lg rounded-2xl border border-line bg-surface p-5">
+        <form onSubmit={handleSearchSubmit} className="space-y-3">
+          <div className="flex h-11 items-center gap-2 rounded-control border border-line bg-canvas px-3.5 focus-within:ring-4 focus-within:ring-brand-subtle">
             <Search size={16} strokeWidth={1.5} className="shrink-0 text-ink-4" />
             <input
               type="text"
@@ -86,30 +63,58 @@ export default function ExploreHighlight() {
               aria-label="搜尋服務或關鍵字"
               className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-ink-4"
             />
-          </form>
-
-          <p className="mb-2 mt-4 text-center text-xs font-bold text-ink-4">熱門服務</p>
-          <div className="flex flex-wrap justify-center gap-2">
-            {popularServices.map(s => (
-              <ServiceLogo key={s.id} serviceId={s.id} size={36} />
-            ))}
           </div>
 
-          <p className="mb-2 mt-4 text-center text-xs font-bold text-ink-4">推薦方案</p>
-          <div className="space-y-2">
-            {highlightPlans.map(({ service, plan, pricePerSeat }) => (
-              <div key={service.id} className="flex items-center gap-3 rounded-inner p-2 transition-colors hover:bg-raised">
-                <ServiceLogo serviceId={service.id} size={36} />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-extrabold text-ink">{service.fullName} {plan.name}</p>
-                  <p className="text-xs text-ink-3">NT${pricePerSeat} / 位</p>
-                </div>
-                <Button size="sm" variant="secondary" className="shrink-0" onClick={() => navigate('/explore')}>
-                  查看
-                </Button>
+          <Select value={serviceId} onValueChange={setServiceId}>
+            <SelectTrigger aria-label="篩選服務" className="h-11 w-full font-bold">
+              <SelectValue placeholder="不限服務" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">不限服務</SelectItem>
+              {ALL_SERVICES.map(s => (
+                <SelectItem key={s.id} value={s.id}>
+                  <span className="flex items-center gap-1.5">
+                    <ServiceLogo serviceId={s.id} size={18} className="shrink-0" />
+                    {s.name}
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <div className="flex gap-2">
+            <Button type="submit" className="min-w-0 flex-1">
+              <Search size={15} strokeWidth={1.5} />
+              搜尋
+            </Button>
+            <Button type="button" variant="secondary" onClick={openQuickMatch} className="min-w-0 flex-1">
+              <SlidersHorizontal size={15} strokeWidth={1.5} />
+              快速搜尋
+            </Button>
+          </div>
+        </form>
+
+        <p className="mb-2 mt-5 text-center text-xs font-bold text-ink-4">熱門服務</p>
+        <div className="flex flex-wrap justify-center gap-2">
+          {popularServices.map(s => (
+            <ServiceLogo key={s.id} serviceId={s.id} size={36} />
+          ))}
+        </div>
+
+        <p className="mb-2 mt-4 text-center text-xs font-bold text-ink-4">推薦方案</p>
+        <div className="space-y-2">
+          {highlightPlans.map(({ service, plan, pricePerSeat }) => (
+            <div key={service.id} className="flex items-center gap-3 rounded-inner p-2 transition-colors hover:bg-raised">
+              <ServiceLogo serviceId={service.id} size={36} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-extrabold text-ink">{service.fullName} {plan.name}</p>
+                <p className="text-xs text-ink-3">NT${pricePerSeat} / 位</p>
               </div>
-            ))}
-          </div>
+              <Button size="sm" variant="secondary" className="shrink-0" onClick={() => navigate('/explore')}>
+                查看
+              </Button>
+            </div>
+          ))}
         </div>
       </div>
     </section>

@@ -71,7 +71,7 @@ export default function AppNav() {
 
   function openMatch() {
     closeAll()
-    navigate('/quick-match')
+    window.dispatchEvent(new CustomEvent('pm:open-quick-match'))
   }
 
   function preventLockedAction(e) {

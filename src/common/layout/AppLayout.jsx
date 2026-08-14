@@ -7,6 +7,7 @@ import BackToTopButton from './ScrollToTop'
 
 const GroupDetailModal = lazy(() => import('../../features/group/GroupDetailModal'))
 const MessagesModal = lazy(() => import('../../features/messages/MessagesModal'))
+const QuickMatchModal = lazy(() => import('../../features/match/QuickMatchModal'))
 
 function RouteScrollReset() {
   const { pathname } = useLocation()
@@ -34,6 +35,7 @@ export default function AppLayout() {
       <Suspense fallback={null}>
         <MessagesModal />
         <GroupDetailModal />
+        <QuickMatchModal />
       </Suspense>
     </div>
   )
