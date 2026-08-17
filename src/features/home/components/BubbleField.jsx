@@ -1,7 +1,5 @@
-import { listServiceTypes } from '../../../common/utils/serviceUtils'
 import ServiceLogo from '../../../components/ui/ServiceLogo'
-
-const ALL_SERVICES = listServiceTypes()
+import { ALL_SERVICES } from '../data/allServices'
 
 // 上下邊界用漸層遮罩淡出，避免泡泡飄到容器邊緣被 overflow-hidden 硬生生切一半
 const EDGE_MASK = 'linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%)'

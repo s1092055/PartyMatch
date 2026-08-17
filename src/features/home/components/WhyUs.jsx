@@ -1,45 +1,31 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '../../../components/ui/button'
 import { Card } from '../../../components/ui/card'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
 import { HOME_WHY_US } from '../data/homeContent'
+import { useSwipeCarousel, resolveCarouselOffset } from '../hooks/useSwipeCarousel'
 
 // 平面（非 3D）幻燈片：中央卡片正常大小，左右各露出一張縮小/半透明的卡片當作提示，
-// 用 modulo 算相對中心的最短偏移量做到可無限循環；拖拽（滑鼠/觸控共用 Pointer Events）
-// 跟左右箭頭都能切換，箭頭只在有 hover 能力的裝置顯示，觸控裝置靠拖拽即可
+// 可無限循環；拖拽跟左右箭頭都能切換，箭頭只在有 hover 能力的裝置顯示，觸控裝置靠拖拽即可
 function WhyUsCarousel({ items }) {
   const [index, setIndex] = useState(0)
-  const dragRef = useRef({ startX: 0, dragging: false })
   const count = items.length
+  const { onPointerDown, onPointerUp } = useSwipeCarousel(count, setIndex)
 
   function go(delta) {
     setIndex(i => (i + delta + count) % count)
   }
 
-  function handlePointerDown(e) {
-    dragRef.current = { startX: e.clientX, dragging: true }
-  }
-  function handlePointerUp(e) {
-    if (!dragRef.current.dragging) return
-    dragRef.current.dragging = false
-    const deltaX = e.clientX - dragRef.current.startX
-    const threshold = 40
-    if (deltaX > threshold) go(-1)
-    else if (deltaX < -threshold) go(1)
-  }
-
   return (
     <div
       className="relative isolate h-[28rem] touch-pan-y select-none overflow-x-clip"
-      onPointerDown={handlePointerDown}
-      onPointerUp={handlePointerUp}
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
     >
       {items.map(({ icon: Icon, image, title, desc }, i) => {
-        let offset = i - index
-        if (offset > count / 2) offset -= count
-        if (offset < -count / 2) offset += count
+        const offset = resolveCarouselOffset(i, index, count)
         const abs = Math.abs(offset)
         if (abs > 1) return null
 

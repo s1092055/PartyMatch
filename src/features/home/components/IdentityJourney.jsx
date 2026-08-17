@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Maximize2, Minimize2, Play } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select'
 import { HOME_HOST_JOURNEY, HOME_MEMBER_JOURNEY } from '../data/homeContent'
@@ -9,13 +9,6 @@ const ROLES = [
   { id: 'host', label: '團主', journey: HOME_HOST_JOURNEY },
   { id: 'member', label: '成員', journey: HOME_MEMBER_JOURNEY },
 ]
-
-const PHASE_BADGES = {
-  create: 'CREATE',
-  manage: 'MANAGE',
-  renew: 'RENEWAL',
-  other: 'OTHERS',
-}
 
 // 身份切換：兩顆各自獨立的圓角按鈕（不是共用背景的 Segmented Control），中間留適度
 // 間距，讓兩個選項感覺是分開的選擇，但又不會離太遠
@@ -149,20 +142,29 @@ export default function IdentityJourney() {
   const [activePhaseId, setActivePhaseId] = useState(journey[0].id)
   const activePhase = journey.find(p => p.id === activePhaseId)
   const [activeStepTitle, setActiveStepTitle] = useState(activePhase.steps[0].title)
-  const activeStep = activePhase.steps.find(s => s.title === activeStepTitle) ?? activePhase.steps[0]
+  const activeStep = activePhase.steps.find(s => s.title === activeStepTitle)
   const videoBoxRef = useRef(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
+
+  const phaseTabItems = useMemo(
+    () => journey.map(({ id, title, badge }) => ({ value: id, title, badge })),
+    [journey]
+  )
+
+  // 切到新 journey/phase 後都要把子流程重置回第一步，避免停留在不存在的子流程
+  function resetToPhase(phase) {
+    setActivePhaseId(phase.id)
+    setActiveStepTitle(phase.steps[0].title)
+  }
 
   function handleRoleChange(nextRole) {
     setRole(nextRole)
     const nextJourney = ROLES.find(r => r.id === nextRole).journey
-    setActivePhaseId(nextJourney[0].id)
-    setActiveStepTitle(nextJourney[0].steps[0].title)
+    resetToPhase(nextJourney[0])
   }
 
   function handlePhaseChange(id) {
-    setActivePhaseId(id)
-    setActiveStepTitle(journey.find(p => p.id === id).steps[0].title)
+    resetToPhase(journey.find(p => p.id === id))
   }
 
   // 先讓佔位區塊就能進全螢幕，之後換成實際 <video> 時容器不用動，直接沿用同一顆按鈕跟
@@ -200,11 +202,7 @@ export default function IdentityJourney() {
         <div className="relative overflow-hidden rounded-2xl border border-line bg-surface">
           <div className="border-b border-line px-2 pt-1">
             <UnderlineTabs
-              items={journey.map(({ id, title }) => ({
-                value: id,
-                title,
-                badge: PHASE_BADGES[id],
-              }))}
+              items={phaseTabItems}
               activeValue={activePhaseId}
               onChange={handlePhaseChange}
             />

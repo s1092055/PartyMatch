@@ -24,6 +24,7 @@ export const HOME_HOST_JOURNEY = [
   {
     id: 'create',
     title: '建立群組',
+    badge: 'CREATE',
     steps: [
       {
         title: '選服務、挑方案',
@@ -38,6 +39,7 @@ export const HOME_HOST_JOURNEY = [
   {
     id: 'manage',
     title: '群組管理',
+    badge: 'MANAGE',
     steps: [
       {
         title: '審核申請，信用把關',
@@ -60,6 +62,7 @@ export const HOME_HOST_JOURNEY = [
   {
     id: 'renew',
     title: '續訂管理',
+    badge: 'RENEWAL',
     steps: [
       {
         title: '到期前主動提醒',
@@ -78,6 +81,7 @@ export const HOME_HOST_JOURNEY = [
   {
     id: 'other',
     title: '其他情境',
+    badge: 'OTHERS',
     steps: [
       {
         title: '站內溝通',
@@ -101,6 +105,7 @@ export const HOME_MEMBER_JOURNEY = [
   {
     id: 'create',
     title: '加入群組',
+    badge: 'CREATE',
     steps: [
       {
         title: '搜尋或快速配對',
@@ -115,6 +120,7 @@ export const HOME_MEMBER_JOURNEY = [
   {
     id: 'manage',
     title: '使用與確認',
+    badge: 'MANAGE',
     steps: [
       {
         title: '費用自動代管',
@@ -133,6 +139,7 @@ export const HOME_MEMBER_JOURNEY = [
   {
     id: 'renew',
     title: '續約確認',
+    badge: 'RENEWAL',
     steps: [
       {
         title: '到期前收到提醒',
@@ -151,6 +158,7 @@ export const HOME_MEMBER_JOURNEY = [
   {
     id: 'other',
     title: '其他情境',
+    badge: 'OTHERS',
     steps: [
       {
         title: '站內溝通',

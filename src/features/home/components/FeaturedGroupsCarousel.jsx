@@ -1,10 +1,11 @@
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Compass, Search } from 'lucide-react'
 import { useGroupStore } from '../../../common/stores/useGroupStore'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
 import { Button } from '../../../components/ui/button'
 import ExploreGroupCard from '../../explore/components/ExploreGroupCard'
+import { useSwipeCarousel, resolveCarouselOffset } from '../hooks/useSwipeCarousel'
 
 // 精選幾個「快額滿」（剩餘名額比例低）或「熱門」（已加入人數多）的招募中群組，
 // 不是把探索頁全部群組都塞進來
@@ -30,26 +31,14 @@ export default function FeaturedGroupsCarousel() {
   const groups = useGroupStore(s => s.groups)
   const activeUserId = useAuthStore(s => s.user?.id)
   const [focusIndex, setFocusIndex] = useState(0)
-  const dragRef = useRef({ startX: 0, dragging: false })
 
   const featured = useMemo(() => selectFeaturedGroups(groups, activeUserId), [groups, activeUserId])
   const count = featured.length
   // 卡片數很少時（例如只有 2、3 張）縮小可視深度，避免同一張卡在左右兩側各出現一次
   const depth = Math.min(2, Math.floor((count - 1) / 2))
 
-  // 手機版沒有左右箭頭，改用拖拽切換：只在放開時判斷位移量是否超過門檻，
-  // 沒超過門檻就當一般點擊處理（不攔截，讓側邊卡片自己的 onClick 正常觸發切換焦點）
-  function handlePointerDown(e) {
-    dragRef.current = { startX: e.clientX, dragging: true }
-  }
-  function handlePointerUp(e) {
-    if (!dragRef.current.dragging || count < 2) return
-    dragRef.current.dragging = false
-    const deltaX = e.clientX - dragRef.current.startX
-    const threshold = 40
-    if (deltaX > threshold) setFocusIndex(i => (i - 1 + count) % count)
-    else if (deltaX < -threshold) setFocusIndex(i => (i + 1) % count)
-  }
+  // 手機版沒有左右箭頭，改用拖拽切換
+  const { onPointerDown, onPointerUp } = useSwipeCarousel(count, setFocusIndex)
 
   if (count === 0) return null
 
@@ -65,13 +54,11 @@ export default function FeaturedGroupsCarousel() {
       <div className="relative mt-4 overflow-x-clip sm:mt-10">
         <div
           className="relative h-[420px] touch-pan-y select-none [perspective:1400px]"
-          onPointerDown={handlePointerDown}
-          onPointerUp={handlePointerUp}
+          onPointerDown={onPointerDown}
+          onPointerUp={onPointerUp}
         >
           {featured.map((g, i) => {
-            let offset = i - focusIndex
-            if (offset > count / 2) offset -= count
-            if (offset < -count / 2) offset += count
+            const offset = resolveCarouselOffset(i, focusIndex, count)
             const abs = Math.abs(offset)
             if (abs > depth) return null
 

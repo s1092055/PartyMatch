@@ -4,7 +4,6 @@ import { ChevronRight, Compass } from 'lucide-react'
 import { Button } from '../../components/ui/button'
 import logoUrl from '../../assets/Logo.svg'
 import { useAuthStore } from '../../common/stores/useAuthStore'
-import { listServiceTypes } from '../../common/utils/serviceUtils'
 import AppNav from '../../common/layout/AppNav'
 import ScrollToTop from '../../common/layout/ScrollToTop'
 import AppFooter from '../../common/layout/AppFooter'
@@ -22,8 +21,8 @@ import SectionNav from './components/SectionNav'
 import RevealSection from '../../components/ui/primitives/RevealSection'
 import { RevealSectionScaleProvider } from '../../components/ui/primitives/RevealSectionScaleContext'
 import { ADMIN_HOME_PATH } from '../../app/AdminRoute'
+import { ALL_SERVICES } from './data/allServices'
 
-const ALL_SERVICES = listServiceTypes()
 const MessagesModal = lazy(() => import('../messages/MessagesModal'))
 // HomePage 獨立於 AppLayout 之外（AppLayout 平常才會掛一份 GroupDetailModal／QuickMatchModal），
 // Hero 區塊直接嵌入真實的 ExploreGroupCard，點擊要能開啟群組詳情，快速搜尋按鈕也要能開啟
