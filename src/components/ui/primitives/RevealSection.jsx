@@ -1,5 +1,4 @@
-import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
-import { useRevealSectionScale } from './RevealSectionScaleContext'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { getStableViewportHeight, getMobileHeaderReserve, getMobileDockReserve } from '../../../common/utils/viewport'
 
 export default function RevealSection({ children, delay = 0, className = '' }) {
@@ -7,13 +6,7 @@ export default function RevealSection({ children, delay = 0, className = '' }) {
   const innerRef = useRef(null)
   const [visible, setVisible] = useState(false)
   const [naturalHeight, setNaturalHeight] = useState(null)
-  const [localScale, setLocalScale] = useState(1)
-  const id = useId()
-  const scaleCtx = useRevealSectionScale()
-  const scaleCtxRef = useRef(scaleCtx)
-  useLayoutEffect(() => {
-    scaleCtxRef.current = scaleCtx
-  })
+  const [scale, setScale] = useState(1)
 
   useEffect(() => {
     const el = outerRef.current
@@ -42,11 +35,7 @@ export default function RevealSection({ children, delay = 0, className = '' }) {
       const verticalPadding = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom)
       const available = getStableViewportHeight() - verticalPadding - getMobileHeaderReserve() - getMobileDockReserve()
       const required = available > 0 && natural > available ? available / natural : 1
-      if (scaleCtxRef.current) {
-        scaleCtxRef.current.reportScale(id, required)
-      } else {
-        setLocalScale(prev => (prev === required ? prev : required))
-      }
+      setScale(prev => (prev === required ? prev : required))
     }
 
     recalc()
@@ -56,16 +45,14 @@ export default function RevealSection({ children, delay = 0, className = '' }) {
     return () => {
       resizeObserver.disconnect()
       window.removeEventListener('resize', recalc)
-      scaleCtxRef.current?.unregister(id)
     }
-  }, [id])
+  }, [])
 
-  const appliedScale = scaleCtx ? scaleCtx.globalScale : localScale
-  const height = appliedScale < 1 && naturalHeight != null ? naturalHeight * appliedScale : null
+  const height = scale < 1 && naturalHeight != null ? naturalHeight * scale : null
 
   return (
     <div ref={outerRef} className={className} style={{ height: height ?? undefined }}>
-      <div ref={innerRef} style={{ transform: `scale(${appliedScale})`, transformOrigin: 'top center' }}>
+      <div ref={innerRef} style={{ transform: `scale(${scale})`, transformOrigin: 'top center' }}>
         <div
           style={{
             opacity: visible ? 1 : 0,

@@ -14,7 +14,7 @@ const ROLES = [
 // 間距，讓兩個選項感覺是分開的選擇，但又不會離太遠
 function RoleToggle({ activeValue, onChange }) {
   return (
-    <div className="flex items-center justify-center gap-6">
+    <div className="flex shrink-0 items-center gap-2 sm:justify-center sm:gap-6">
       {ROLES.map(({ id, label }) => {
         const active = id === activeValue
         return (
@@ -22,7 +22,7 @@ function RoleToggle({ activeValue, onChange }) {
             key={id}
             type="button"
             onClick={() => onChange(id)}
-            className={`flex w-44 items-center justify-center rounded-full border px-5 py-2.5 text-sm font-bold transition-colors ${
+            className={`flex h-9 items-center justify-center rounded-full border px-4 text-sm font-bold transition-colors sm:h-auto sm:w-44 sm:px-5 sm:py-2.5 ${
               active
                 ? 'border-brand bg-brand text-white'
                 : 'border-line bg-surface text-ink-3 hover:text-ink'
@@ -42,22 +42,27 @@ function RoleToggle({ activeValue, onChange }) {
 // transition 讓底線滑過去，而不是瞬間跳位
 function UnderlineTabs({ items, activeValue, onChange }) {
   const containerRef = useRef(null)
-  const [indicator, setIndicator] = useState({ left: 0, width: 0 })
+  const [indicator, setIndicator] = useState({ left: 0, width: 0, top: 0, height: 0 })
 
   useEffect(() => {
     const activeLabel = containerRef.current?.querySelector(`[data-value="${activeValue}"]`)
     if (!activeLabel) return
-    setIndicator({ left: activeLabel.offsetLeft, width: activeLabel.offsetWidth })
+    setIndicator({
+      left: activeLabel.offsetLeft,
+      width: activeLabel.offsetWidth,
+      top: activeLabel.offsetTop,
+      height: activeLabel.offsetHeight,
+    })
   }, [activeValue, items])
 
   return (
-    <div ref={containerRef} className="relative flex w-full gap-2">
+    <div ref={containerRef} className="relative flex w-full flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
       {items.map(({ value, title, badge }) => (
         <button
           key={value}
           type="button"
           onClick={() => onChange(value)}
-          className={`flex flex-1 flex-col items-center gap-1 px-2 py-3 text-sm font-bold outline-none transition-colors ${
+          className={`flex flex-col items-start gap-1 px-2 py-3 text-left text-sm font-bold outline-none transition-colors sm:flex-1 sm:items-center sm:text-center ${
             value === activeValue ? 'text-brand' : 'text-ink-3 hover:text-ink'
           }`}
         >
@@ -69,8 +74,14 @@ function UnderlineTabs({ items, activeValue, onChange }) {
           <span data-value={value} className="truncate">{title}</span>
         </button>
       ))}
+      {/* 手機版直式側邊選單用左側縱向 bar 標示目前頁籤，桌機版沿用原本貼底的橫向底線；
+          兩種各自對應垂直/水平量測出來的 top/height 或 left/width，同時只會顯示一個 */}
       <span
-        className="absolute bottom-0 h-0.5 rounded-full bg-brand transition-all duration-300 ease-out"
+        className="absolute left-0 w-0.5 rounded-full bg-brand transition-all duration-300 ease-out sm:hidden"
+        style={{ top: indicator.top, height: indicator.height }}
+      />
+      <span
+        className="absolute bottom-0 hidden h-0.5 rounded-full bg-brand transition-all duration-300 ease-out sm:block"
         style={{ left: indicator.left, width: indicator.width }}
       />
     </div>
@@ -113,12 +124,12 @@ function StepDots({ items, activeValue, onChange }) {
 }
 
 // 手機版子流程選單：桌機那套「收合成點、hover 才展開」在觸控裝置上沒有 hover，改放一顆
-// Select 疊在影片下緣，圓角比照上方團主／成員身份切換按鈕用 rounded-full，維持同一套圓角語彙
+// Select 疊在影片上緣，圓角比照上方團主／成員身份切換按鈕用 rounded-full，維持同一套圓角語彙
 function StepSelect({ items, activeValue, onChange }) {
   return (
-    <div className="absolute bottom-2 left-2 z-10 sm:hidden">
+    <div className="absolute inset-x-2 top-2 z-10 sm:hidden">
       <Select value={activeValue} onValueChange={onChange}>
-        <SelectTrigger className="h-9 w-44 rounded-full border-line bg-canvas/80 backdrop-blur">
+        <SelectTrigger className="h-9 w-full rounded-full border-line bg-canvas/80 backdrop-blur">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -188,19 +199,22 @@ export default function IdentityJourney() {
 
   return (
     <section id="identity" className="scroll-mt-24 flex flex-col items-center text-center">
-      <h2 className="text-3xl font-extrabold text-ink">
-        我想成為？
-      </h2>
-
-      <div className="mt-4 w-full">
+      {/* 手機版寬度有限，團主／成員切換按鈕改縮小尺寸貼著標題放同一排、整組置中，不用另外
+          佔一整排；桌機/平板維持原本標題置中、按鈕另起一排置中的排版 */}
+      <div className="flex w-full items-center justify-center gap-2 sm:flex-col sm:gap-4">
+        <h2 className="text-3xl font-extrabold text-ink">
+          我想成為？
+        </h2>
         <RoleToggle activeValue={role} onChange={handleRoleChange} />
       </div>
 
       <div className="-mx-3 mt-6 w-[calc(100%+1.5rem)] sm:mx-0 sm:w-full">
-        {/* 底線 Tab 收進影片容器內當作頂部頁籤列，跟下面的影片共用同一個外框/圓角，
-            視覺上像一張完整的播放卡片，而不是「Tab 列 + 另一個獨立的影片框」兩塊拼接 */}
-        <div className="relative overflow-hidden rounded-2xl border border-line bg-surface">
-          <div className="border-b border-line px-2 pt-1">
+        {/* 底線 Tab 收進影片容器內當作頁籤列，跟下面的影片共用同一個外框/圓角，視覺上像
+            一張完整的播放卡片，而不是「Tab 列 + 另一個獨立的影片框」兩塊拼接。手機版影片
+            改直式 9:16 後右側空間變窄、上方反而空出橫幅寬度，頁籤列改貼在影片左側排成直式
+            選單比較不浪費空間；桌機/平板影片維持橫式 16:9，頁籤列也維持原本貼頂的橫向排列 */}
+        <div className="relative flex overflow-hidden rounded-2xl border border-line bg-surface sm:block">
+          <div className="w-24 shrink-0 border-r border-line px-1.5 py-2 sm:w-auto sm:border-r-0 sm:border-b sm:px-2 sm:py-0 sm:pt-1">
             <UnderlineTabs
               items={phaseTabItems}
               activeValue={activePhaseId}
@@ -208,7 +222,7 @@ export default function IdentityJourney() {
             />
           </div>
 
-          <div key={`${activePhaseId}-${activeStepTitle}`} className="animate-fade-in-up">
+          <div key={`${activePhaseId}-${activeStepTitle}`} className="min-w-0 flex-1 animate-fade-in-up">
             <div
               ref={videoBoxRef}
               className="relative flex aspect-[9/16] w-full items-center justify-center bg-raised text-ink-4 sm:aspect-video"
