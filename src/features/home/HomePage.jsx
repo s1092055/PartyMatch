@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useLayoutEffect } from 'react'
+import { lazy, Suspense, useEffect, useLayoutEffect, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { ChevronRight, Compass } from 'lucide-react'
 import { Button } from '../../components/ui/button'
@@ -19,7 +19,7 @@ import WhyUs from './components/WhyUs'
 import FAQ from './components/FAQ'
 import SectionNav from './components/SectionNav'
 import RevealSection from '../../components/ui/primitives/RevealSection'
-import { RevealSectionScaleProvider } from '../../components/ui/primitives/RevealSectionScaleContext'
+import { RevealSectionScaleProvider, useRevealSectionScale } from '../../components/ui/primitives/RevealSectionScaleContext'
 import { ADMIN_HOME_PATH } from '../../app/AdminRoute'
 import { ALL_SERVICES } from './data/allServices'
 
@@ -29,6 +29,49 @@ const MessagesModal = lazy(() => import('../messages/MessagesModal'))
 // 快速搜尋 Modal，這裡都要自己掛一份
 const GroupDetailModal = lazy(() => import('../group/GroupDetailModal'))
 const QuickMatchModal = lazy(() => import('../match/QuickMatchModal'))
+
+// 臨時偵錯用：畫面左下角顯示目前的縮放狀態，排查「iPhone Safari 上滑到上一個 Section
+// 時 RWD 沒套用」的問題用，確認根因後要移除，不是要留下來的正式功能
+function ScaleDebugBadge() {
+  const scaleCtx = useRevealSectionScale()
+  const [domInfo, setDomInfo] = useState('')
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const visibleTransforms = [...document.querySelectorAll('section[id^="section-"]')]
+        .map(section => {
+          const scaledEl = section.querySelector('[style*="scale("]')
+          if (!scaledEl) return null
+          const rect = section.getBoundingClientRect()
+          const onScreen = rect.bottom > 0 && rect.top < window.innerHeight
+          return onScreen ? `${section.id.replace('section-', '')}:${scaledEl.style.transform}` : null
+        })
+        .filter(Boolean)
+      setDomInfo(visibleTransforms.join(' '))
+    }, 150)
+    return () => clearInterval(timer)
+  }, [])
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        zIndex: 99999,
+        background: 'black',
+        color: '#0f0',
+        font: '10px/1.4 monospace',
+        padding: '4px 6px',
+        pointerEvents: 'none',
+        maxWidth: '100vw',
+        wordBreak: 'break-all',
+      }}
+    >
+      state:{scaleCtx?.globalScale?.toFixed(4)} | dom:{domInfo}
+    </div>
+  )
+}
 
 export default function HomePage() {
   const navigate = useNavigate()
@@ -65,19 +108,12 @@ export default function HomePage() {
       <FloatingMessages />
       <SectionNav />
 
-      {/* 所有 Section 包在同一個 RevealSectionScaleProvider 底下，讓每個 RevealSection
-          共用同一個全域縮放比例，不會有的 Section 縮小、有的沒縮到，切換 Section 時文字
-          忽大忽小。Section 高度故意用 min-h-svh 不是 min-h-dvh：iPhone Safari／WKWebView
-          （包含 Google App 內建瀏覽器，同樣是 WKWebView）捲動時網址列收合/展開會讓 dvh
-          即時變動，這裡的內容是用 flex items-center 置中、ScrollCue 是貼齊 Section 底部的
-          絕對定位——如果 Section 高度用 dvh 跟著網址列即時伸縮，置中內容的位置會跟著上下
-          浮動、ScrollCue 也會跟著貼近或蓋到內容，看起來像「往上滑到上一個 Section 內容沒
-          套用 RWD、跑位」，但其實 RevealSection 算出來的縮放比例本身從頭到尾沒有變過（已用
-          偵錯輸出實測確認）。svh 是規格保證的「網址列固定展開時」最保守高度，不受網址列收合
-          即時影響，Section 高度用它才能跟 RevealSection.jsx 裡用來算縮放比例的
-          getStableViewportHeight()（也是量 100svh）維持同一個基準，兩邊才不會對不上 */}
+      {/* 所有 min-h-dvh Section 包在同一個 RevealSectionScaleProvider 底下，讓每個
+          RevealSection 共用同一個全域縮放比例，不會有的 Section 縮小、有的沒縮到，
+          切換 Section 時文字忽大忽小 */}
       <RevealSectionScaleProvider>
-        <section id="section-hero" className="relative flex min-h-svh w-full snap-start flex-col items-center justify-center overflow-hidden pb-32 pt-28 text-center lg:pb-20 lg:pt-16">
+        <ScaleDebugBadge />
+        <section id="section-hero" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center overflow-hidden pb-32 pt-28 text-center lg:pb-20 lg:pt-16">
           <BubbleField count={9} size={46} />
 
           <RevealSection className="relative mx-auto w-full max-w-3xl px-5">
@@ -100,28 +136,28 @@ export default function HomePage() {
           <ScrollCue />
         </section>
 
-        <section id="section-why-us" className="relative flex min-h-svh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 sm:pb-32 sm:pt-20 can-hover:lg:pb-16 can-hover:lg:pt-16">
+        <section id="section-why-us" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 sm:pb-32 sm:pt-20 can-hover:lg:pb-16 can-hover:lg:pt-16">
           <RevealSection className="mx-auto w-full max-w-3xl">
             <WhyUs />
           </RevealSection>
           <ScrollCue />
         </section>
 
-        <section id="section-audience" className="relative flex min-h-svh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 sm:pb-32 sm:pt-20 lg:pb-20 lg:pt-12">
+        <section id="section-audience" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 sm:pb-32 sm:pt-20 lg:pb-20 lg:pt-12">
           <RevealSection className="mx-auto w-full max-w-3xl">
             <AudienceGrid />
           </RevealSection>
           <ScrollCue />
         </section>
 
-        <section id="section-featured-groups" className="relative flex min-h-svh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 sm:pb-32 sm:pt-20 lg:pb-20 lg:pt-12">
+        <section id="section-featured-groups" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 sm:pb-32 sm:pt-20 lg:pb-20 lg:pt-12">
           <RevealSection className="mx-auto w-full max-w-3xl">
             <FeaturedGroupsCarousel />
           </RevealSection>
           <ScrollCue />
         </section>
 
-        <section id="section-benefits" className="relative flex min-h-svh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 sm:pb-32 sm:pt-20 lg:pb-20 lg:pt-12">
+        <section id="section-benefits" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 sm:pb-32 sm:pt-20 lg:pb-20 lg:pt-12">
           <RevealSection className="mx-auto w-full max-w-3xl">
             <BenefitsList />
           </RevealSection>
@@ -134,14 +170,14 @@ export default function HomePage() {
             Section 底部一段距離，跟內容本身怎麼排列無關；曾經在這裡試過 justify-start
             把內容整塊往上頂，結果內容變高、ScrollCue 沒有跟著往上移，兩者之間反而多出一大塊
             空白，比原本的置中還醜，已改回跟其他 Section 一致的 justify-center + 一般留白量 */}
-        <section id="section-identity" className="relative flex min-h-svh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 sm:pb-32 sm:pt-20 lg:pb-20 lg:pt-12">
+        <section id="section-identity" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 sm:pb-32 sm:pt-20 lg:pb-20 lg:pt-12">
           <RevealSection className="mx-auto w-full max-w-3xl">
             <IdentityJourney />
           </RevealSection>
           <ScrollCue />
         </section>
 
-        <section id="section-cta" className="relative flex min-h-svh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 sm:pb-32 sm:pt-20 lg:pb-20 lg:pt-12">
+        <section id="section-cta" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 sm:pb-32 sm:pt-20 lg:pb-20 lg:pt-12">
           <RevealSection className="mx-auto w-full max-w-3xl text-center">
             <div className="rounded-card border border-line bg-surface px-5 py-10 sm:px-8 sm:py-12">
               <h2 className="text-2xl font-extrabold text-ink md:text-3xl">立即開始共享訂閱之旅</h2>
@@ -174,14 +210,14 @@ export default function HomePage() {
         </section>
 
         {/* 常見問題是最後一個 Section，底下只剩 Footer，不需要再顯示「下滑查看更多」 */}
-        <section id="section-faq" className="relative flex min-h-svh w-full snap-start flex-col items-center justify-center px-5 py-20 lg:py-12">
+        <section id="section-faq" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 py-20 lg:py-12">
           <RevealSection className="mx-auto w-full max-w-3xl">
             <FAQ />
           </RevealSection>
         </section>
       </RevealSectionScaleProvider>
 
-      {/* Footer 本身沒有 min-h-svh，若不給 snap 對齊點，捲動慣性只滑過 Footer 一部分高度時容易被拉回 FAQ 區塊，導致使用者滑不到最底部；補上 snap-end 讓 Footer 底部本身成為合法的吸附點 */}
+      {/* Footer 本身沒有 min-h-dvh，若不給 snap 對齊點，捲動慣性只滑過 Footer 一部分高度時容易被拉回 FAQ 區塊，導致使用者滑不到最底部；補上 snap-end 讓 Footer 底部本身成為合法的吸附點 */}
       <div className="snap-end">
         <AppFooter />
       </div>
