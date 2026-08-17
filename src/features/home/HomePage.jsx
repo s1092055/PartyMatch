@@ -43,16 +43,11 @@ export default function HomePage() {
     window.scrollTo(0, 0)
   }, [])
 
-  // 每個 Section 都做成整頁吸附（像 Hero 一樣固定高度、滑一下跳到下一段）：只在首頁掛載期間
-  // 幫 <html> 開 scroll-snap，卸載時要記得關掉，不然會影響其他頁面的一般捲動行為。
-  // 這裡曾經試過自己寫 JS 攔截 wheel/touch 判斷滑動方向、力道，整套接管切換邏輯，想做到
-  // 「不管力道大小都固定切一個 Section」，結果一路衍生出好幾個新問題（桌機滾輪完全不吸附、
-  // 動畫中途跳動、切換卡頓、跟原生 scroll-snap 互搶 scrollY），越修越糟。改回單純交給瀏覽器
-  // 原生 CSS scroll-snap 處理，不要自己猜/攔截使用者的滑動意圖
   useEffect(() => {
     const root = document.documentElement
-    root.classList.add('snap-y', 'snap-mandatory')
-    return () => root.classList.remove('snap-y', 'snap-mandatory')
+    const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches
+    root.classList.add('snap-y', isCoarsePointer ? 'snap-proximity' : 'snap-mandatory')
+    return () => root.classList.remove('snap-y', 'snap-mandatory', 'snap-proximity')
   }, [])
 
   // 管理員帳號不參與一般使用者流程（探索/建立/加入群組），登入後一律停在管理員後台，
