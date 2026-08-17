@@ -192,11 +192,11 @@ export default function IdentityJourney() {
         我想成為？
       </h2>
 
-      <div className="mt-6 w-full">
+      <div className="mt-4 w-full">
         <RoleToggle activeValue={role} onChange={handleRoleChange} />
       </div>
 
-      <div className="mt-8 w-full">
+      <div className="mt-6 w-full">
         {/* 底線 Tab 收進影片容器內當作頂部頁籤列，跟下面的影片共用同一個外框/圓角，
             視覺上像一張完整的播放卡片，而不是「Tab 列 + 另一個獨立的影片框」兩塊拼接 */}
         <div className="relative overflow-hidden rounded-2xl border border-line bg-surface">
@@ -209,13 +209,9 @@ export default function IdentityJourney() {
           </div>
 
           <div key={`${activePhaseId}-${activeStepTitle}`} className="animate-fade-in-up">
-            {/* 影片全寬置中顯示（之後放實際示範影片），子流程選單桌機疊在影片內部左邊
-                （StepDots），手機改成疊在影片下緣的 Select（StepSelect）。手機版之後放的
-                是直式影片，容器改用 4:5（比 9:16 溫和，不會因為過高被整頁縮放機制
-                縮得太小）；桌機/平板（sm 以上）維持 16:9 橫式 */}
             <div
               ref={videoBoxRef}
-              className="relative flex aspect-[4/5] w-full items-center justify-center bg-raised text-ink-4 sm:aspect-video"
+              className="relative flex aspect-video w-full items-center justify-center bg-raised text-ink-4"
             >
               <Play size={40} strokeWidth={1.5} />
 
