@@ -34,7 +34,7 @@ export default function AudienceGrid() {
         </p>
       </div>
 
-      <div className="grid w-full grid-cols-2 grid-rows-2 gap-3 sm:grid-cols-3 sm:gap-4">
+      <div className="-mx-3 grid w-[calc(100%+1.5rem)] grid-cols-2 grid-rows-2 gap-3 sm:mx-0 sm:w-full sm:grid-cols-3 sm:gap-4">
         {HOME_AUDIENCES.map((audience, i) => (
           <AudienceCard key={audience.title} {...audience} tall={i === 0} />
         ))}

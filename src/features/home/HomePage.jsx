@@ -43,10 +43,41 @@ export default function HomePage() {
     window.scrollTo(0, 0)
   }, [])
 
+  // 全站預設用 snap-mandatory（曾經全站改 snap-proximity 想避免手機版一滑就整段跳走，
+  // 但 iOS Safari 會出現兩段式吸附頓挫，已 revert）。Hero 這一段例外：Hero 內容比其他
+  // Section 短很多，往下滑一點點的手勢動能就足以讓 mandatory 判定「已離開 Hero」直接
+  // 吸到下一個 Section，體感像被硬拉走。這裡只在 Hero 還有一半以上還在視窗內時暫時放寬成
+  // proximity，讓使用者滑一點點可以先停在 Hero 範圍內；一旦滑超過一半（代表使用者已經
+  // 確實要離開 Hero）才切回 mandatory，其餘 Section 之間的吸附行為不受影響
   useEffect(() => {
     const root = document.documentElement
-    root.classList.add('snap-y', 'snap-mandatory')
-    return () => root.classList.remove('snap-y', 'snap-mandatory')
+    const heroEl = document.getElementById('section-hero')
+    root.classList.add('snap-y')
+
+    if (!heroEl) {
+      root.classList.add('snap-mandatory')
+      return () => root.classList.remove('snap-y', 'snap-mandatory')
+    }
+
+    root.classList.add('snap-proximity')
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.intersectionRatio >= 0.5) {
+          root.classList.remove('snap-mandatory')
+          root.classList.add('snap-proximity')
+        } else {
+          root.classList.remove('snap-proximity')
+          root.classList.add('snap-mandatory')
+        }
+      },
+      { threshold: [0, 0.5, 1] }
+    )
+    observer.observe(heroEl)
+
+    return () => {
+      observer.disconnect()
+      root.classList.remove('snap-y', 'snap-mandatory', 'snap-proximity')
+    }
   }, [])
 
   // 管理員帳號不參與一般使用者流程（探索/建立/加入群組），登入後一律停在管理員後台，

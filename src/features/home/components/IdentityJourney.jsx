@@ -196,7 +196,7 @@ export default function IdentityJourney() {
         <RoleToggle activeValue={role} onChange={handleRoleChange} />
       </div>
 
-      <div className="mt-6 w-full">
+      <div className="-mx-3 mt-6 w-[calc(100%+1.5rem)] sm:mx-0 sm:w-full">
         {/* 底線 Tab 收進影片容器內當作頂部頁籤列，跟下面的影片共用同一個外框/圓角，
             視覺上像一張完整的播放卡片，而不是「Tab 列 + 另一個獨立的影片框」兩塊拼接 */}
         <div className="relative overflow-hidden rounded-2xl border border-line bg-surface">
