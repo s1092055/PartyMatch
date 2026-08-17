@@ -24,7 +24,7 @@ PartyMatch 是一個共享訂閱媒合平台，讓使用者可以探索或建立
 - 前端：https://partymatch.ykk910309.workers.dev
 - 後端 API：https://partymatch-api.onrender.com/api
 
-後端為 Render 免費方案，閒置 15 分鐘會休眠，首次請求可能需要約 1 分鐘喚醒。可自行註冊帳號體驗，或直接使用資料庫已預先灌入的 demo 帳號（密碼皆為 `Demo1234`），涵蓋團主／成員與群組各種狀態，見[測試帳號清單](docs/testing/test-accounts.md)。管理員後台（`/admin`）不開放公開登入體驗，密碼未公開。
+後端為 Render 免費方案，閒置 15 分鐘會休眠，首次請求可能需要約 1 分鐘喚醒；`.github/workflows/keep-alive.yml` 每 10 分鐘排程 ping 一次 `/health` 降低遇到冷啟動的機率（GitHub Actions 排程時間非保證準點，仍可能偶爾遇到）。可自行註冊帳號體驗，或直接使用資料庫已預先灌入的 demo 帳號（密碼皆為 `Demo1234`），涵蓋團主／成員與群組各種狀態，見[測試帳號清單](docs/testing/test-accounts.md)。管理員後台（`/admin`）不開放公開登入體驗，密碼未公開。
 
 ---
 
