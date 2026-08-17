@@ -24,23 +24,10 @@ export default function RevealSection({ children, delay = 0, className = '' }) {
     const el = outerRef.current
     if (!el) return
 
-    // 一般頁面（Explore／ManageGroups 等連續捲動）不 unobserve：離開視窗時把 visible
-    // 收回 false，下次滾回來才會重新播放同一套 slide-up 動畫。但首頁的 Section 是
-    // scroll-snap-mandatory，捲動時視窗會瞬間吸附到下一個 Section 的最終位置，之後
-    // 才播放淡入/位移動畫——如果也跟其他頁面一樣「離開視窗就重置」，從下面的 Section
-    // 往上滑回已經看過的 Section 時，畫面早就吸附到位、內容卻還要重新滑入淡出，看起來
-    // 像版面跑位、RWD 沒套用好。用 scaleCtx 是否存在判斷是不是首頁（只有首頁會包一層
-    // RevealSectionScaleProvider），是的話只播放一次（進場動畫本來就是給第一次出現的
-    // 內容用），其他頁面維持原本「重新捲回來會重播」的效果
+    // 不再 unobserve：離開視窗時把 visible 收回 false，下次滾回來才會重新
+    // 播放同一套 slide-up 動畫，而不是只有第一次進場才有效果
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true)
-          if (scaleCtxRef.current) observer.unobserve(el)
-        } else if (!scaleCtxRef.current) {
-          setVisible(false)
-        }
-      },
+      ([entry]) => setVisible(entry.isIntersecting),
       { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
     )
     observer.observe(el)
@@ -101,16 +88,8 @@ export default function RevealSection({ children, delay = 0, className = '' }) {
     <div ref={outerRef} className={className} style={{ height: height ?? undefined }}>
       {/* 縮放（appliedScale）跟進場動畫（opacity/translateY）分成兩層：縮放要跟著 RWD
           即時反應，不能有 transition，不然拖動視窗調整寬度時畫面會拖著尾巴慢半拍才跟上；
-          進場的 slide-up 效果才需要 transition，兩者用途不同不能套同一個 transform。
-          willChange: transform 是給 iOS Safari 的修正：首頁 Section 用 scroll-snap 時，
-          純捲動（沒有觸發 resize/ResizeObserver）不會改變這裡的 scale 數值，但在 iPhone
-          Safari 實機上，從下面的 Section 往上滑回上一個 Section 時，內容會短暫顯示成未縮放
-          的原始大小，像是 RWD 沒套用到（Chrome／Mac Safari 皆無法重現，判斷是 WebKit
-          已知問題：套用 CSS transform 的元素在
-          scroll-snap 容器裡捲動時，合成層（compositing layer）可能被丟棄又重建，重建前那
-          一幀會先畫出沒有套用 transform 的樣子）。加上 willChange 強制瀏覽器把這層常駐在
-          GPU 合成層，不要在捲動時丟棄，避免這個閃現原始大小的問題 */}
-      <div ref={innerRef} style={{ transform: `scale(${appliedScale})`, transformOrigin: 'top center', willChange: 'transform' }}>
+          進場的 slide-up 效果才需要 transition，兩者用途不同不能套同一個 transform */}
+      <div ref={innerRef} style={{ transform: `scale(${appliedScale})`, transformOrigin: 'top center' }}>
         <div
           style={{
             opacity: visible ? 1 : 0,
