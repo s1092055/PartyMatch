@@ -101,8 +101,16 @@ export default function RevealSection({ children, delay = 0, className = '' }) {
     <div ref={outerRef} className={className} style={{ height: height ?? undefined }}>
       {/* 縮放（appliedScale）跟進場動畫（opacity/translateY）分成兩層：縮放要跟著 RWD
           即時反應，不能有 transition，不然拖動視窗調整寬度時畫面會拖著尾巴慢半拍才跟上；
-          進場的 slide-up 效果才需要 transition，兩者用途不同不能套同一個 transform */}
-      <div ref={innerRef} style={{ transform: `scale(${appliedScale})`, transformOrigin: 'top center' }}>
+          進場的 slide-up 效果才需要 transition，兩者用途不同不能套同一個 transform。
+          willChange: transform 是給 iOS Safari 的修正：首頁 Section 用 scroll-snap 時，
+          純捲動（沒有觸發 resize/ResizeObserver）不會改變這裡的 scale 數值，但在 iPhone
+          Safari 實機上，從下面的 Section 往上滑回上一個 Section 時，內容會短暫顯示成未縮放
+          的原始大小，像是 RWD 沒套用到（Chrome／Mac Safari 皆無法重現，判斷是 WebKit
+          已知問題：套用 CSS transform 的元素在
+          scroll-snap 容器裡捲動時，合成層（compositing layer）可能被丟棄又重建，重建前那
+          一幀會先畫出沒有套用 transform 的樣子）。加上 willChange 強制瀏覽器把這層常駐在
+          GPU 合成層，不要在捲動時丟棄，避免這個閃現原始大小的問題 */}
+      <div ref={innerRef} style={{ transform: `scale(${appliedScale})`, transformOrigin: 'top center', willChange: 'transform' }}>
         <div
           style={{
             opacity: visible ? 1 : 0,
