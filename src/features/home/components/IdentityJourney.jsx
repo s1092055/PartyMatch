@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Maximize2, Minimize2, Play } from 'lucide-react'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select'
+import { List, Maximize2, Minimize2, Play } from 'lucide-react'
+import { Drawer, DrawerContent, DrawerTitle } from '../../../components/ui/drawer'
 import { HOME_HOST_JOURNEY, HOME_MEMBER_JOURNEY } from '../data/homeContent'
 
 // 兩種身份共用同一組階段 id，切換身份時 Tab 位置／徽章不變，只換底下標題跟內容，
@@ -42,27 +42,22 @@ function RoleToggle({ activeValue, onChange }) {
 // transition 讓底線滑過去，而不是瞬間跳位
 function UnderlineTabs({ items, activeValue, onChange }) {
   const containerRef = useRef(null)
-  const [indicator, setIndicator] = useState({ left: 0, width: 0, top: 0, height: 0 })
+  const [indicator, setIndicator] = useState({ left: 0, width: 0 })
 
   useEffect(() => {
     const activeLabel = containerRef.current?.querySelector(`[data-value="${activeValue}"]`)
     if (!activeLabel) return
-    setIndicator({
-      left: activeLabel.offsetLeft,
-      width: activeLabel.offsetWidth,
-      top: activeLabel.offsetTop,
-      height: activeLabel.offsetHeight,
-    })
+    setIndicator({ left: activeLabel.offsetLeft, width: activeLabel.offsetWidth })
   }, [activeValue, items])
 
   return (
-    <div ref={containerRef} className="relative flex w-full flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
+    <div ref={containerRef} className="relative flex w-full gap-2">
       {items.map(({ value, title, badge }) => (
         <button
           key={value}
           type="button"
           onClick={() => onChange(value)}
-          className={`flex flex-col items-start gap-1 px-2 py-3 text-left text-sm font-bold outline-none transition-colors sm:flex-1 sm:items-center sm:text-center ${
+          className={`flex flex-1 flex-col items-center gap-1 px-2 py-3 text-sm font-bold outline-none transition-colors ${
             value === activeValue ? 'text-brand' : 'text-ink-3 hover:text-ink'
           }`}
         >
@@ -74,14 +69,8 @@ function UnderlineTabs({ items, activeValue, onChange }) {
           <span data-value={value} className="truncate">{title}</span>
         </button>
       ))}
-      {/* 手機版直式側邊選單用左側縱向 bar 標示目前頁籤，桌機版沿用原本貼底的橫向底線；
-          兩種各自對應垂直/水平量測出來的 top/height 或 left/width，同時只會顯示一個 */}
       <span
-        className="absolute left-0 w-0.5 rounded-full bg-brand transition-all duration-300 ease-out sm:hidden"
-        style={{ top: indicator.top, height: indicator.height }}
-      />
-      <span
-        className="absolute bottom-0 hidden h-0.5 rounded-full bg-brand transition-all duration-300 ease-out sm:block"
+        className="absolute bottom-0 h-0.5 rounded-full bg-brand transition-all duration-300 ease-out"
         style={{ left: indicator.left, width: indicator.width }}
       />
     </div>
@@ -90,7 +79,7 @@ function UnderlineTabs({ items, activeValue, onChange }) {
 
 // 子流程選單：疊在影片區內部左邊，平常只露出一排小圓點，桌機 hover 時整條展開顯示
 // 子流程標題（跟首頁右側 SectionNav 同一套「收合成點、hover 才展開全名」模式）；
-// 手機版改用 StepSelect（見下方），這裡只留給桌機/平板顯示
+// 手機版沒有 hover，改用下面的 StepTrigger + Drawer，這裡只留給桌機/平板顯示
 function StepDots({ items, activeValue, onChange }) {
   return (
     <nav aria-label="子流程" className="absolute left-2 top-1/2 z-10 hidden -translate-y-1/2 sm:left-3 sm:block">
@@ -124,23 +113,51 @@ function StepDots({ items, activeValue, onChange }) {
 }
 
 // 手機版子流程選單：桌機那套「收合成點、hover 才展開」在觸控裝置上沒有 hover，改放一顆
-// Select 疊在影片上緣，圓角比照上方團主／成員身份切換按鈕用 rounded-full，維持同一套圓角語彙
-function StepSelect({ items, activeValue, onChange }) {
+// 疊在影片上緣的按鈕，點開才叫出底部 Drawer；階段（UnderlineTabs）跟子流程都收進同一個
+// Drawer 裡切換，不用再另外佔一塊側邊欄位置，影片容器可以整個滿版
+function StepTrigger({ activeValue, onClick }) {
   return (
-    <div className="absolute inset-x-2 top-2 z-10 sm:hidden">
-      <Select value={activeValue} onValueChange={onChange}>
-        <SelectTrigger className="h-9 w-full rounded-full border-line bg-canvas/80 backdrop-blur">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {items.map(({ title }) => (
-            <SelectItem key={title} value={title}>
+    <button
+      type="button"
+      onClick={onClick}
+      className="absolute inset-x-2 top-2 z-10 flex h-9 items-center justify-center gap-1.5 rounded-full bg-canvas/80 px-3 text-xs font-bold text-ink-2 shadow-sm backdrop-blur transition-colors hover:bg-raised sm:hidden"
+    >
+      <List size={14} strokeWidth={1.5} className="shrink-0" />
+      <span className="truncate">{activeValue}</span>
+    </button>
+  )
+}
+
+// Drawer 內容：上半段沿用桌機同一顆 UnderlineTabs 切階段（Drawer 夠寬，不需要另外做直式版），
+// 下半段列出該階段底下的子流程，點選子流程直接關閉 Drawer（跟原本 Select 選完就收起同一種
+// 手感），切階段則維持開著讓使用者接著選子流程
+function StepDrawerContent({ phaseTabItems, activePhaseId, onPhaseChange, steps, activeStepTitle, onStepChange }) {
+  return (
+    <>
+      <DrawerTitle className="sr-only">選擇流程階段與步驟</DrawerTitle>
+      <div className="border-b border-line px-2 pt-1">
+        <UnderlineTabs items={phaseTabItems} activeValue={activePhaseId} onChange={onPhaseChange} />
+      </div>
+      <div className="flex flex-col gap-1 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        {steps.map(({ title }) => {
+          const active = title === activeStepTitle
+          return (
+            <button
+              key={title}
+              type="button"
+              onClick={() => onStepChange(title)}
+              aria-current={active ? 'true' : undefined}
+              className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-bold transition-colors ${
+                active ? 'bg-raised text-brand' : 'text-ink-2 hover:bg-raised'
+              }`}
+            >
+              <span className={`h-2 w-2 shrink-0 rounded-full ${active ? 'bg-brand' : 'bg-ink-4'}`} />
               {title}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
+            </button>
+          )
+        })}
+      </div>
+    </>
   )
 }
 
@@ -153,9 +170,9 @@ export default function IdentityJourney() {
   const [activePhaseId, setActivePhaseId] = useState(journey[0].id)
   const activePhase = journey.find(p => p.id === activePhaseId)
   const [activeStepTitle, setActiveStepTitle] = useState(activePhase.steps[0].title)
-  const activeStep = activePhase.steps.find(s => s.title === activeStepTitle)
   const videoBoxRef = useRef(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [stepDrawerOpen, setStepDrawerOpen] = useState(false)
 
   const phaseTabItems = useMemo(
     () => journey.map(({ id, title, badge }) => ({ value: id, title, badge })),
@@ -176,6 +193,11 @@ export default function IdentityJourney() {
 
   function handlePhaseChange(id) {
     resetToPhase(journey.find(p => p.id === id))
+  }
+
+  function handleStepSelect(title) {
+    setActiveStepTitle(title)
+    setStepDrawerOpen(false)
   }
 
   // 先讓佔位區塊就能進全螢幕，之後換成實際 <video> 時容器不用動，直接沿用同一顆按鈕跟
@@ -210,11 +232,12 @@ export default function IdentityJourney() {
 
       <div className="-mx-3 mt-6 w-[calc(100%+1.5rem)] sm:mx-0 sm:w-full">
         {/* 底線 Tab 收進影片容器內當作頁籤列，跟下面的影片共用同一個外框/圓角，視覺上像
-            一張完整的播放卡片，而不是「Tab 列 + 另一個獨立的影片框」兩塊拼接。手機版影片
-            改直式 9:16 後右側空間變窄、上方反而空出橫幅寬度，頁籤列改貼在影片左側排成直式
-            選單比較不浪費空間；桌機/平板影片維持橫式 16:9，頁籤列也維持原本貼頂的橫向排列 */}
-        <div className="relative flex overflow-hidden rounded-2xl border border-line bg-surface sm:block">
-          <div className="w-24 shrink-0 border-r border-line px-1.5 py-2 sm:w-auto sm:border-r-0 sm:border-b sm:px-2 sm:py-0 sm:pt-1">
+            一張完整的播放卡片，而不是「Tab 列 + 另一個獨立的影片框」兩塊拼接。手機版沒有
+            桌機的 hover 展開能力，階段／子流程改收進點擊影片左上角按鈕才叫出的底部 Drawer，
+            影片容器本身可以整個滿版，不用另外切一塊側邊欄位置；桌機/平板維持原本頁籤貼頂
+            橫向排列＋影片右側 hover 展開子流程選單 */}
+        <div className="relative overflow-hidden rounded-2xl border border-line bg-surface">
+          <div className="hidden border-b border-line px-2 pt-1 sm:block">
             <UnderlineTabs
               items={phaseTabItems}
               activeValue={activePhaseId}
@@ -222,7 +245,7 @@ export default function IdentityJourney() {
             />
           </div>
 
-          <div key={`${activePhaseId}-${activeStepTitle}`} className="min-w-0 flex-1 animate-fade-in-up">
+          <div key={`${activePhaseId}-${activeStepTitle}`} className="animate-fade-in-up">
             <div
               ref={videoBoxRef}
               className="relative flex aspect-[9/16] w-full items-center justify-center bg-raised text-ink-4 sm:aspect-video"
@@ -230,7 +253,7 @@ export default function IdentityJourney() {
               <Play size={40} strokeWidth={1.5} />
 
               <StepDots items={activePhase.steps} activeValue={activeStepTitle} onChange={setActiveStepTitle} />
-              <StepSelect items={activePhase.steps} activeValue={activeStepTitle} onChange={setActiveStepTitle} />
+              <StepTrigger activeValue={activeStepTitle} onClick={() => setStepDrawerOpen(true)} />
 
               <button
                 type="button"
@@ -241,13 +264,22 @@ export default function IdentityJourney() {
                 {isFullscreen ? <Minimize2 size={14} strokeWidth={1.5} /> : <Maximize2 size={14} strokeWidth={1.5} />}
               </button>
             </div>
-
-            <p className="truncate border-t border-line px-4 py-3 text-center text-sm leading-relaxed text-ink-3">
-              {activeStep.desc}
-            </p>
           </div>
         </div>
       </div>
+
+      <Drawer open={stepDrawerOpen} onOpenChange={setStepDrawerOpen} swipeDirection="down" showSwipeHandle>
+        <DrawerContent>
+          <StepDrawerContent
+            phaseTabItems={phaseTabItems}
+            activePhaseId={activePhaseId}
+            onPhaseChange={handlePhaseChange}
+            steps={activePhase.steps}
+            activeStepTitle={activeStepTitle}
+            onStepChange={handleStepSelect}
+          />
+        </DrawerContent>
+      </Drawer>
     </section>
   )
 }
