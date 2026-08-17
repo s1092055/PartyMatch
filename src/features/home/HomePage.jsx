@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useLayoutEffect } from 'react'
+import { lazy, Suspense, useEffect, useLayoutEffect, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { ChevronRight, Compass } from 'lucide-react'
 import { Button } from '../../components/ui/button'
@@ -19,7 +19,7 @@ import WhyUs from './components/WhyUs'
 import FAQ from './components/FAQ'
 import SectionNav from './components/SectionNav'
 import RevealSection from '../../components/ui/primitives/RevealSection'
-import { RevealSectionScaleProvider } from '../../components/ui/primitives/RevealSectionScaleContext'
+import { RevealSectionScaleProvider, useRevealSectionScale } from '../../components/ui/primitives/RevealSectionScaleContext'
 import { ADMIN_HOME_PATH } from '../../app/AdminRoute'
 import { ALL_SERVICES } from './data/allServices'
 
@@ -29,6 +29,49 @@ const MessagesModal = lazy(() => import('../messages/MessagesModal'))
 // 快速搜尋 Modal，這裡都要自己掛一份
 const GroupDetailModal = lazy(() => import('../group/GroupDetailModal'))
 const QuickMatchModal = lazy(() => import('../match/QuickMatchModal'))
+
+// 臨時偵錯用：畫面左下角顯示目前的縮放狀態，排查「iPhone Safari 上滑到上一個 Section
+// 時 RWD 沒套用」的問題用，確認根因後要移除，不是要留下來的正式功能
+function ScaleDebugBadge() {
+  const scaleCtx = useRevealSectionScale()
+  const [domInfo, setDomInfo] = useState('')
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const visibleTransforms = [...document.querySelectorAll('section[id^="section-"]')]
+        .map(section => {
+          const scaledEl = section.querySelector('[style*="scale("]')
+          if (!scaledEl) return null
+          const rect = section.getBoundingClientRect()
+          const onScreen = rect.bottom > 0 && rect.top < window.innerHeight
+          return onScreen ? `${section.id.replace('section-', '')}:${scaledEl.style.transform}` : null
+        })
+        .filter(Boolean)
+      setDomInfo(visibleTransforms.join(' '))
+    }, 150)
+    return () => clearInterval(timer)
+  }, [])
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        zIndex: 99999,
+        background: 'black',
+        color: '#0f0',
+        font: '10px/1.4 monospace',
+        padding: '4px 6px',
+        pointerEvents: 'none',
+        maxWidth: '100vw',
+        wordBreak: 'break-all',
+      }}
+    >
+      state:{scaleCtx?.globalScale?.toFixed(4)} | dom:{domInfo}
+    </div>
+  )
+}
 
 export default function HomePage() {
   const navigate = useNavigate()
@@ -69,6 +112,7 @@ export default function HomePage() {
           RevealSection 共用同一個全域縮放比例，不會有的 Section 縮小、有的沒縮到，
           切換 Section 時文字忽大忽小 */}
       <RevealSectionScaleProvider>
+        <ScaleDebugBadge />
         <section id="section-hero" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center overflow-hidden pb-32 pt-28 text-center lg:pb-20 lg:pt-16">
           <BubbleField count={9} size={46} />
 
