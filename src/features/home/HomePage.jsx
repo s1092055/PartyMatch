@@ -92,14 +92,14 @@ export default function HomePage() {
           <ScrollCue />
         </section>
 
-        <section id="section-why-us" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-20 can-hover:lg:pb-16 can-hover:lg:pt-16">
+        <section id="section-why-us" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 sm:pb-32 sm:pt-20 can-hover:lg:pb-16 can-hover:lg:pt-16">
           <RevealSection className="mx-auto w-full max-w-3xl">
             <WhyUs />
           </RevealSection>
           <ScrollCue />
         </section>
 
-        <section id="section-audience" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-24 sm:pb-32 sm:pt-20 lg:pb-20 lg:pt-12">
+        <section id="section-audience" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 sm:pb-32 sm:pt-20 lg:pb-20 lg:pt-12">
           <RevealSection className="mx-auto w-full max-w-3xl">
             <AudienceGrid />
           </RevealSection>
@@ -113,7 +113,7 @@ export default function HomePage() {
           <ScrollCue />
         </section>
 
-        <section id="section-benefits" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-20 lg:pb-20 lg:pt-12">
+        <section id="section-benefits" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 sm:pb-32 sm:pt-20 lg:pb-20 lg:pt-12">
           <RevealSection className="mx-auto w-full max-w-3xl">
             <BenefitsList />
           </RevealSection>
@@ -133,7 +133,7 @@ export default function HomePage() {
           <ScrollCue />
         </section>
 
-        <section id="section-cta" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-32 pt-20 lg:pb-20 lg:pt-12">
+        <section id="section-cta" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 sm:pb-32 sm:pt-20 lg:pb-20 lg:pt-12">
           <RevealSection className="mx-auto w-full max-w-3xl text-center">
             <div className="rounded-card border border-line bg-surface px-5 py-10 sm:px-8 sm:py-12">
               <h2 className="text-2xl font-extrabold text-ink md:text-3xl">立即開始共享訂閱之旅</h2>
