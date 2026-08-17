@@ -211,7 +211,7 @@ export default function IdentityJourney() {
           <div key={`${activePhaseId}-${activeStepTitle}`} className="animate-fade-in-up">
             <div
               ref={videoBoxRef}
-              className="relative flex aspect-video w-full items-center justify-center bg-raised text-ink-4"
+              className="relative flex aspect-[9/16] w-full items-center justify-center bg-raised text-ink-4 sm:aspect-video"
             >
               <Play size={40} strokeWidth={1.5} />
 

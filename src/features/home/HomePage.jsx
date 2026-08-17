@@ -151,10 +151,10 @@ export default function HomePage() {
           <ScrollCue />
         </section>
 
-        {/* 這個 Section 手機版內容量比其他 Section 都多（身份切換＋Tab＋影片＋說明），內容高度
-            主要靠 IdentityJourney.jsx 內部把影片區塊改成較矮的 16:9（原本手機版是更高的
-            4:5）來減少，不是靠這裡的版面對齊方式解決——ScrollCue 是絕對定位、固定貼在
-            Section 底部一段距離，跟內容本身怎麼排列無關；曾經在這裡試過 justify-start
+        {/* 這個 Section 手機版內容量比其他 Section 都多（身份切換＋Tab＋影片＋說明），手機版
+            影片區塊是直式 9:16（之後要放的是手機操作畫面錄影），內容偏高交給 RevealSection
+            的全域自動縮放機制處理，這裡的版面對齊方式不用另外補——ScrollCue 是絕對定位、
+            固定貼在 Section 底部一段距離，跟內容本身怎麼排列無關；曾經在這裡試過 justify-start
             把內容整塊往上頂，結果內容變高、ScrollCue 沒有跟著往上移，兩者之間反而多出一大塊
             空白，比原本的置中還醜，已改回跟其他 Section 一致的 justify-center + 一般留白量 */}
         <section id="section-identity" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 sm:pb-32 sm:pt-20 lg:pb-20 lg:pt-12">
