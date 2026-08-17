@@ -51,7 +51,10 @@ export default function FeaturedGroupsCarousel() {
         </p>
       </div>
 
-      <div className="relative mt-4 overflow-x-clip sm:mt-10">
+      {/* 左右兩側卡片會用 translateX 偏移到中央卡片寬度之外，手機版容器原本被 Section 的
+          px-5 束住，側邊卡片還沒露出多少就先被 overflow-x-clip 切掉；改成貼齊螢幕邊緣的
+          全寬，讓側邊卡片有足夠空間可以完整探出來，clip 邊界退到真正的螢幕邊緣 */}
+      <div className="relative -mx-5 mt-4 w-[calc(100%+2.5rem)] overflow-x-clip sm:mx-0 sm:mt-10 sm:w-full">
         <div
           className="relative h-[420px] touch-pan-y select-none [perspective:1400px]"
           onPointerDown={onPointerDown}

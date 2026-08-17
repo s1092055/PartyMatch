@@ -1,14 +1,32 @@
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { ChevronRight } from 'lucide-react'
+import { Button } from '../../../components/ui/button'
+import ImageLightbox from '../../../components/ui/ImageLightbox'
+import ServiceLogo from '../../../components/ui/ServiceLogo'
+import { useAuthStore } from '../../../common/stores/useAuthStore'
+import { useScrollLock } from '../../../common/utils/hooks'
+import { getServiceById } from '../../../common/utils/serviceUtils'
 import { HOME_AUDIENCES } from '../data/homeContent'
+
+function audiencePhotoUrl({ photo, photoSeed }) {
+  return photo ?? `https://picsum.photos/seed/${photoSeed}/400/500`
+}
 
 // 「適合每一種共享生活」區塊；photo 有素材的用 assets 裡的實際照片，沒有的才 fallback
 // 用 picsum.photos 依情境 seed 頂替（通用生活情境素材，不是宣稱平台的真實使用者）。
 // 卡片用 bento 排版：第一張（學生族群）直向跨兩列，其餘四張兩兩一組排在右側，
-// 圖片滿版、文字疊在底部的漸層遮罩上
-function AudienceCard({ photo, photoSeed, title, desc, tall }) {
+// 圖片滿版、文字疊在底部的漸層遮罩上。點擊整張卡片可以放大看圖，跟附件預覽共用同一顆
+// ImageLightbox
+function AudienceCard({ photo, photoSeed, title, desc, tall, onOpen }) {
   return (
-    <div className={`group relative overflow-hidden rounded-2xl ${tall ? 'row-span-2 min-h-[280px] lg:min-h-0' : 'min-h-[132px]'}`}>
+    <button
+      type="button"
+      onClick={onOpen}
+      className={`group relative overflow-hidden rounded-2xl text-left outline-none ${tall ? 'row-span-2 min-h-[280px] lg:min-h-0' : 'min-h-[132px]'}`}
+    >
       <img
-        src={photo ?? `https://picsum.photos/seed/${photoSeed}/400/500`}
+        src={audiencePhotoUrl({ photo, photoSeed })}
         alt={title}
         loading="lazy"
         className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
@@ -18,27 +36,81 @@ function AudienceCard({ photo, photoSeed, title, desc, tall }) {
         <p className="font-extrabold text-white">{title}</p>
         <p className="mt-1 text-xs leading-relaxed text-white/80">{desc}</p>
       </div>
-    </div>
+    </button>
   )
 }
 
 export default function AudienceGrid() {
+  const navigate = useNavigate()
+  const loggedIn = useAuthStore(s => s.loggedIn)
+  const [openAudience, setOpenAudience] = useState(null)
+  useScrollLock(openAudience != null)
+
   return (
     <section className="flex w-full flex-col items-center gap-10">
-      <div className="flex flex-col items-center text-center">
-        <h2 className="text-3xl font-extrabold text-ink">
-          適合每一種共享生活
-        </h2>
-        <p className="mt-3 max-w-xs text-base leading-relaxed text-ink-3">
-          不論是學生、情侶、家庭或工作夥伴
-        </p>
+      {/* 標題／副標一組（間距較緊，同屬一句話的延伸說明），下面的「自己開團，輕鬆管理」
+          性質不同（呼應底部的建立群組 CTA，不是在形容這個 Section），改用 badge 樣式
+          隔開，避免看起來像第三句被硬接在後面的標語 */}
+      <div className="flex flex-col items-center gap-3 text-center">
+        <div>
+          <h2 className="text-3xl font-extrabold text-ink">
+            適合每一種共享生活
+          </h2>
+          <p className="mt-3 max-w-xs text-base leading-relaxed text-ink-3">
+            不論是學生、情侶、家庭或工作夥伴
+          </p>
+        </div>
+        <span className="rounded-full bg-raised px-3 py-1 text-xs font-bold text-ink-3">
+          自己開團，輕鬆管理
+        </span>
       </div>
 
       <div className="-mx-3 grid w-[calc(100%+1.5rem)] grid-cols-2 grid-rows-2 gap-3 sm:mx-0 sm:w-full sm:grid-cols-3 sm:gap-4">
         {HOME_AUDIENCES.map((audience, i) => (
-          <AudienceCard key={audience.title} {...audience} tall={i === 0} />
+          <AudienceCard key={audience.title} {...audience} tall={i === 0} onOpen={() => setOpenAudience(audience)} />
         ))}
       </div>
+
+      <Button
+        size="lg"
+        className="rounded-full px-8"
+        onClick={() => navigate(loggedIn ? '/create-group' : '/register')}
+      >
+        立即建立群組
+        <ChevronRight size={14} strokeWidth={1.5} />
+      </Button>
+
+      {openAudience && (
+        <ImageLightbox
+          url={audiencePhotoUrl(openAudience)}
+          alt={openAudience.title}
+          onClose={() => setOpenAudience(null)}
+          imageClassName="max-h-[70dvh] max-w-sm sm:max-w-md"
+          caption={
+            <>
+              <p className="font-extrabold text-white">{openAudience.title}</p>
+              <p className="mt-1 text-xs leading-relaxed text-white/80">{openAudience.desc}</p>
+              {openAudience.services?.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {openAudience.services.map(serviceId => {
+                    const service = getServiceById(serviceId)
+                    if (!service) return null
+                    return (
+                      <span
+                        key={serviceId}
+                        className="flex items-center gap-1.5 rounded-full bg-white/15 py-1 pl-1 pr-2.5 text-2xs font-bold text-white backdrop-blur"
+                      >
+                        <ServiceLogo serviceId={serviceId} size={16} />
+                        {service.name}
+                      </span>
+                    )
+                  })}
+                </div>
+              )}
+            </>
+          }
+        />
+      )}
     </section>
   )
 }

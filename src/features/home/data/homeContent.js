@@ -215,32 +215,38 @@ export const HOME_WHY_US = [
   },
 ]
 
-// 「適合每一種共享生活」區塊；photo 是 assets 資料夾裡的實際素材
+// 「適合每一種共享生活」區塊；photo 是 assets 資料夾裡的實際素材，services 是這個族群
+// 常見會揪團共享的服務（對應 serviceCatalog.js 的 id），首頁點開放大圖時底下會列出來
 export const HOME_AUDIENCES = [
   {
     photo: studentsPhoto,
     title: '學生族群',
     desc: '一起分擔娛樂訂閱費用，降低生活開銷。',
+    services: ['spotify', 'netflix', 'chatgpt', 'discord'],
   },
   {
     photo: couplesPhoto,
     title: '情侶伴侶',
     desc: '共享串流服務更划算，讓追劇時光更豐富。',
+    services: ['netflix', 'disney', 'spotify', 'apple-music'],
   },
   {
     photo: familyPhoto,
     title: '家庭使用',
     desc: '家庭方案更划算，讓全家都能享受服務。',
+    services: ['disney', 'netflix', 'apple-one', 'icloud'],
   },
   {
     photo: friendsPhoto,
     title: '朋友同事',
     desc: '揪團一起訂閱，共享更划算。',
+    services: ['nintendo-online', 'discord', 'crunchyroll', 'youtube'],
   },
   {
     photo: freelancerPhoto,
     title: '自由工作者',
     desc: '工作提效訂閱不孤單，一起管理更划算。',
+    services: ['chatgpt', 'notion', 'canva', 'adobe-cc'],
   },
 ]
 

@@ -9,7 +9,10 @@ import { X } from 'lucide-react'
 // 我們這個燈箱是掛在 body 底下的另一個 portal（不在 Dialog 的內容樹裡），沒有明確設
 // auto 的話會整層都吃不到點擊事件，滑鼠點擊會直接穿透到底下的 Dialog Overlay，
 // 造成點擊燈箱背景或關閉鈕時被 Radix 誤判成「點擊 Dialog 外面」而把它也關掉
-export default function ImageLightbox({ url, alt, onClose }) {
+// caption：選填，疊在圖片底部的說明文字（跟卡片本身同一套漸層遮罩樣式），不傳就是原本
+// 純看圖模式；imageClassName：選填，蓋掉預設「盡量撐滿視窗」的尺寸，給不需要放這麼大、
+// 只是想放大看清楚細節的情境用（例如首頁卡片縮圖）
+export default function ImageLightbox({ url, alt, onClose, caption, imageClassName = 'max-h-full max-w-full' }) {
   useEffect(() => {
     // 用 capture 階段攔截並 stopPropagation：Radix Dialog 自己也在 document 上監聽 Escape
     // 準備關閉底下的群組詳情 Modal，capture 階段是由外而內（window 比 document 先收到），
@@ -36,12 +39,19 @@ export default function ImageLightbox({ url, alt, onClose }) {
       >
         <X size={18} strokeWidth={1.5} />
       </button>
-      <img
-        src={url}
-        alt={alt ?? '附件'}
-        className="max-h-full max-w-full object-contain"
-        onClick={e => e.stopPropagation()}
-      />
+      <div className="relative">
+        <img
+          src={url}
+          alt={alt ?? '附件'}
+          className={`block rounded-2xl object-contain ${imageClassName}`}
+          onClick={e => e.stopPropagation()}
+        />
+        {caption && (
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 rounded-b-2xl bg-gradient-to-t from-black/80 via-black/10 to-transparent p-4">
+            {caption}
+          </div>
+        )}
+      </div>
     </div>,
     document.body,
   )
