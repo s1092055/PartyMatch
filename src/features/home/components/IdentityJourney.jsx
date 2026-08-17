@@ -180,6 +180,10 @@ export default function IdentityJourney() {
   const [activeStepTitle, setActiveStepTitle] = useState(activePhase.steps[0].title)
   const videoBoxRef = useRef(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  // iPhone 版 Safari（不含 iPad）完全不支援 Fullscreen API 作用在一般元素上（只有真正的
+  // <video> 元素能透過 webkitEnterFullscreen 進全螢幕），document.fullscreenEnabled 在
+  // iPhone 上一律是 false；這裡先偵測起來，不支援就整顆按鈕不顯示，避免按了沒反應
+  const [fullscreenSupported] = useState(() => typeof document !== 'undefined' && !!document.fullscreenEnabled)
 
   // Drawer 裡切身份／階段只是「草稿」，背景（影片＋觸發按鈕文字）維持開 Drawer 當下的
   // 內容，直到使用者實際點選子流程才一次套用；不然還沒選定就先跳身份／階段，Drawer 底下
@@ -232,7 +236,10 @@ export default function IdentityJourney() {
 
   // 先讓佔位區塊就能進全螢幕，之後換成實際 <video> 時容器不用動，直接沿用同一顆按鈕跟
   // requestFullscreen 邏輯；監聽 fullscreenchange 是因為使用者也可能按 Esc 離開全螢幕
-  // （不是點按鈕），這種情況也要把 icon 切回「進入全螢幕」的箭頭
+  // （不是點按鈕），這種情況也要把 icon 切回「進入全螢幕」的箭頭。iPhone Safari 完全不
+  // 支援一般元素的 Fullscreen API，按鈕本身在上面用 fullscreenSupported 整顆隱藏；
+  // 之後換成真的 <video> 元素時，iPhone 要另外走 video.webkitEnterFullscreen() 這條
+  // iOS 專屬的路徑（只有 <video> 標籤本身支援，容器 div 沒有），不能沿用這裡的邏輯
   useEffect(() => {
     function handleFullscreenChange() {
       setIsFullscreen(document.fullscreenElement === videoBoxRef.current)
@@ -245,7 +252,7 @@ export default function IdentityJourney() {
     if (document.fullscreenElement) {
       document.exitFullscreen()
     } else {
-      videoBoxRef.current?.requestFullscreen()
+      videoBoxRef.current?.requestFullscreen().catch(() => {})
     }
   }
 
@@ -290,14 +297,16 @@ export default function IdentityJourney() {
               <StepDots items={activePhase.steps} activeValue={activeStepTitle} onChange={setActiveStepTitle} />
               <StepTrigger roleLabel={roleLabel} activeValue={activeStepTitle} onClick={openStepDrawer} />
 
-              <button
-                type="button"
-                onClick={toggleFullscreen}
-                aria-label={isFullscreen ? '離開全螢幕' : '全螢幕播放'}
-                className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-canvas/80 text-ink-3 shadow-sm backdrop-blur transition-colors hover:bg-raised hover:text-ink sm:top-auto sm:bottom-2"
-              >
-                {isFullscreen ? <Minimize2 size={14} strokeWidth={1.5} /> : <Maximize2 size={14} strokeWidth={1.5} />}
-              </button>
+              {fullscreenSupported && (
+                <button
+                  type="button"
+                  onClick={toggleFullscreen}
+                  aria-label={isFullscreen ? '離開全螢幕' : '全螢幕播放'}
+                  className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-canvas/80 text-ink-3 shadow-sm backdrop-blur transition-colors hover:bg-raised hover:text-ink sm:top-auto sm:bottom-2"
+                >
+                  {isFullscreen ? <Minimize2 size={14} strokeWidth={1.5} /> : <Maximize2 size={14} strokeWidth={1.5} />}
+                </button>
+              )}
             </div>
           </div>
         </div>
