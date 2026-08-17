@@ -45,9 +45,8 @@ export default function HomePage() {
 
   useEffect(() => {
     const root = document.documentElement
-    const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches
-    root.classList.add('snap-y', isCoarsePointer ? 'snap-proximity' : 'snap-mandatory')
-    return () => root.classList.remove('snap-y', 'snap-mandatory', 'snap-proximity')
+    root.classList.add('snap-y', 'snap-mandatory')
+    return () => root.classList.remove('snap-y', 'snap-mandatory')
   }, [])
 
   // 管理員帳號不參與一般使用者流程（探索/建立/加入群組），登入後一律停在管理員後台，
