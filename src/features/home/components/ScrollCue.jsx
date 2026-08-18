@@ -4,9 +4,7 @@ import { ChevronsDown } from 'lucide-react'
 const IDLE_DELAY = 2000
 
 // 首頁「下滑查看更多」視覺提示，純裝飾用（不可點擊、不會捲動頁面）。只掛在 HomePage 一份、
-// fixed 定位貼在視窗底部，不再是每個 Section 各自 absolute 一份——因為每個 Section 都是
-// min-h-dvh（剛好一個視窗高），fixed 相對視窗的位置跟原本 absolute 相對各自 Section 的
-// 位置視覺上完全一樣，但不用再逐一插入到每個 Section 裡面。手機版導覽已經改成跟 iPad
+// fixed 定位貼在視窗底部，不需要逐一插入到每個 Section 裡面。手機版導覽已經改成跟 iPad
 // 共用 TabletSidebarDrawer（觸發鈕在左上角）＋ DesktopSidebar 的浮動按鈕（bottom-right），
 // 底部中央不再有 MobileDock 這種橫跨全寬的固定元素要避開，貼近底部一律用 bottom-4，
 // 對齊 DesktopSidebar（fixed bottom-4）的底部邊緣。

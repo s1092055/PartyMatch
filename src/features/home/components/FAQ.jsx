@@ -30,7 +30,7 @@ export default function FAQ() {
   return (
     <section id="faq" className="scroll-mt-24 flex flex-col items-center gap-10">
       <div className="text-center">
-        <h2 className="text-3xl font-extrabold text-ink">常見問題</h2>
+        <h2 className="text-3xl font-extrabold text-ink">FAQ 常見問題</h2>
       </div>
 
       <div className="w-full max-w-2xl space-y-3">

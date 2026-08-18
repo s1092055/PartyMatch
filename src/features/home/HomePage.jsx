@@ -21,9 +21,9 @@ import { ADMIN_HOME_PATH } from '../../app/AdminRoute'
 import { ALL_SERVICES } from './data/allServices'
 import { useSettledViewportHeightVar } from '../../common/utils/viewport'
 
-// 逐 Section 滿版高度的計算基準，只在捲動真正結束或寬度真的改變時更新，見 viewport.js
-// useSettledViewportHeightVar 的說明；className 裡對應寫死同一個變數名 --pm-home-vh
-const HOME_VH_VAR = '--pm-home-vh'
+// Hero 維持滿版高度的計算基準，只在捲動真正結束或寬度真的改變時更新，見 viewport.js
+// useSettledViewportHeightVar 的說明；className 裡對應寫死同一個變數名 --pm-home-hero-vh
+const HERO_VH_VAR = '--pm-home-hero-vh'
 
 const MessagesModal = lazy(() => import('../messages/MessagesModal'))
 // HomePage 獨立於 AppLayout 之外（AppLayout 平常才會掛一份 GroupDetailModal／QuickMatchModal），
@@ -36,7 +36,7 @@ export default function HomePage() {
   const navigate = useNavigate()
   const loggedIn = useAuthStore(s => s.loggedIn)
   const isAdmin = useAuthStore(s => s.user?.isAdmin ?? false)
-  useSettledViewportHeightVar(HOME_VH_VAR)
+  useSettledViewportHeightVar(HERO_VH_VAR)
 
   // 從別的頁面導回首頁時（例如點導覽列 logo），SPA 的 client-side 導頁不會像整頁重新載入
   // 那樣自動把捲動位置歸零，會直接沿用上一頁當下的 scrollY，導致回首頁時卡在某個 Section
@@ -62,13 +62,7 @@ export default function HomePage() {
       <SectionNav />
       <ScrollCue />
 
-      {/* 640px～1024px（平板寬度，can-hover:lg: 判斷仍會給觸控平板套用手機版 nav）這個
-          Section 系列原本在 sm: 斷點把上下留白調得比手機版跟桌機版都大（sm:pb-32 sm:pt-20，
-          208px，比手機版 80px、桌機版 128px 都多），跟 RevealSection 的自動縮放機制正面
-          衝突——留白越多，可用高度預算越少，越容易觸發縮小；平板的螢幕高度本來就常常比手機
-          矮（尤其橫向），疊加起來讓平板這個級距的內容縮得特別小、比例明顯不對，已拿掉這個
-          sm: 留白，讓留白量從手機到桌機單調遞增，不要中間平板這一段反而最大 */}
-      <section id="section-hero" className="relative flex min-h-[var(--pm-home-vh,100dvh)] w-full flex-col items-center justify-center overflow-hidden pb-32 pt-28 text-center lg:pb-20 lg:pt-16">
+      <section id="section-hero" className="relative flex min-h-[var(--pm-home-hero-vh,100dvh)] w-full flex-col items-center justify-center overflow-hidden pb-32 pt-28 text-center lg:pb-20 lg:pt-16">
         <BubbleField count={9} size={46} />
 
         <RevealSection className="relative mx-auto w-full max-w-3xl px-5">
@@ -89,36 +83,31 @@ export default function HomePage() {
         </RevealSection>
       </section>
 
-      <section id="section-why-us" className="relative flex min-h-[var(--pm-home-vh,100dvh)] w-full flex-col items-center justify-center px-5 pb-14 pt-6 can-hover:lg:pb-16 can-hover:lg:pt-16">
+      <section id="section-why-us" className="relative flex w-full flex-col items-center px-5 py-14 can-hover:lg:py-20">
         <RevealSection className="mx-auto w-full max-w-3xl">
           <WhyUs />
         </RevealSection>
       </section>
 
-      <section id="section-audience" className="relative flex min-h-[var(--pm-home-vh,100dvh)] w-full flex-col items-center justify-center px-5 pb-14 pt-6 lg:pb-20 lg:pt-12">
+      <section id="section-audience" className="relative flex w-full flex-col items-center px-5 py-14 can-hover:lg:py-20">
         <RevealSection className="mx-auto w-full max-w-3xl">
           <AudienceGrid />
         </RevealSection>
       </section>
 
-      <section id="section-featured-groups" className="relative flex min-h-[var(--pm-home-vh,100dvh)] w-full flex-col items-center justify-center px-5 pb-14 pt-6 lg:pb-20 lg:pt-12">
+      <section id="section-featured-groups" className="relative flex w-full flex-col items-center px-5 py-14 can-hover:lg:py-20">
         <RevealSection className="mx-auto w-full max-w-3xl">
           <FeaturedGroupsCarousel />
         </RevealSection>
       </section>
 
-      {/* 這個 Section 手機版內容量比其他 Section 都多（身份切換＋Tab＋影片＋說明），手機版
-          影片區塊是直式 9:16（之後要放的是手機操作畫面錄影），內容偏高交給 RevealSection
-          的全域自動縮放機制處理，這裡的版面對齊方式不用另外補；曾經在這裡試過 justify-start
-          把內容整塊往上頂，結果內容變高，比原本的置中還醜，已改回跟其他 Section 一致的
-          justify-center + 一般留白量 */}
-      <section id="section-identity" className="relative flex min-h-[var(--pm-home-vh,100dvh)] w-full flex-col items-center justify-center px-5 pb-14 pt-6 lg:pb-20 lg:pt-12">
+      <section id="section-identity" className="relative flex w-full flex-col items-center px-5 py-14 can-hover:lg:py-20">
         <RevealSection className="mx-auto w-full max-w-3xl">
           <IdentityJourney />
         </RevealSection>
       </section>
 
-      <section id="section-cta" className="relative flex min-h-[var(--pm-home-vh,100dvh)] w-full flex-col items-center justify-center px-5 pb-14 pt-6 lg:pb-20 lg:pt-12">
+      <section id="section-cta" className="relative flex w-full flex-col items-center px-5 py-14 can-hover:lg:py-20">
         <RevealSection className="mx-auto w-full max-w-3xl text-center">
           <div className="rounded-card border border-line bg-surface px-5 py-10 sm:px-8 sm:py-12">
             <h2 className="text-2xl font-extrabold text-ink md:text-3xl">立即開始共享訂閱之旅</h2>
@@ -149,7 +138,7 @@ export default function HomePage() {
         </RevealSection>
       </section>
 
-      <section id="section-faq" className="relative flex min-h-[var(--pm-home-vh,100dvh)] w-full flex-col items-center justify-center px-5 py-14 lg:py-12">
+      <section id="section-faq" className="relative flex w-full flex-col items-center px-5 py-14 can-hover:lg:py-20">
         <RevealSection className="mx-auto w-full max-w-3xl">
           <FAQ />
         </RevealSection>

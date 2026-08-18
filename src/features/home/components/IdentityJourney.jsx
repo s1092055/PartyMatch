@@ -286,11 +286,12 @@ export default function IdentityJourney() {
           <div key={`${activePhaseId}-${activeStepTitle}`} className="animate-fade-in-up">
             {/* 手機版拿掉 aspect-[9/16]，改成固定高度＋w-full：容器寬度是 aspect-ratio
                 鎖住寬高比，之前想把容器加寬，寬度一變高度也跟著等比拉高，反而讓整體內容
-                變更高、被 RevealSection 的自動縮放機制縮得更小，寬度看起來又變窄了，
-                兩者互相抵銷；改成固定高度後寬度可以單獨調寬，不會牽動高度 */}
+                變更高，寬度看起來又變窄了，兩者互相抵銷；改成固定高度後寬度可以單獨調寬，
+                不會牽動高度。首頁 Section 已經是自然高度（不用塞進一個螢幕），這裡的高度
+                純粹依內容需求調整即可 */}
             <div
               ref={videoBoxRef}
-              className="relative flex h-[28rem] w-full items-center justify-center bg-raised text-ink-4 sm:aspect-video sm:h-auto"
+              className="relative flex h-[34rem] w-full items-center justify-center bg-raised text-ink-4 sm:aspect-video sm:h-auto"
             >
               <Play size={40} strokeWidth={1.5} />
 

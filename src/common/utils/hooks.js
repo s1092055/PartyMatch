@@ -21,22 +21,37 @@ export function useIsDesktop() {
 // Reference counter so nested modals don't re-measure or prematurely release the lock.
 let _lockCount = 0
 
+// 只對 <html> 設 overflowY:hidden 在 iOS Safari 上鎖不住背景捲動——那只擋得住滑鼠滾輪，
+// 觸控的 touchmove 手勢照樣會捲動 body（這是 iOS Safari 已知的行為，不是這裡漏寫）。
+// 改用「把 body 固定成 position:fixed，用負的 top 位移抵銷原本的捲動位置」這個作法：
+// 視覺上畫面完全不動，但因為 body 已經不是可捲動的狀態，觸控手勢再怎麼滑都沒有內容可以
+// 捲，解鎖時再用同一個位移呼叫 window.scrollTo 把捲動位置還原回去
+let _lockedScrollY = 0
+
 export function useScrollLock(enabled) {
   useEffect(() => {
     if (!enabled) return
     _lockCount++
     if (_lockCount === 1) {
+      _lockedScrollY = window.scrollY
       const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
-      document.documentElement.style.overflowY = 'hidden'
-      document.documentElement.style.paddingRight = `${scrollbarWidth}px`
       document.documentElement.style.setProperty('--scrollbar-compensation', `${scrollbarWidth}px`)
+      document.body.style.position = 'fixed'
+      document.body.style.top = `-${_lockedScrollY}px`
+      document.body.style.left = '0'
+      document.body.style.right = '0'
+      document.body.style.paddingRight = `${scrollbarWidth}px`
     }
     return () => {
       _lockCount--
       if (_lockCount === 0) {
-        document.documentElement.style.overflowY = ''
-        document.documentElement.style.paddingRight = ''
+        document.body.style.position = ''
+        document.body.style.top = ''
+        document.body.style.left = ''
+        document.body.style.right = ''
+        document.body.style.paddingRight = ''
         document.documentElement.style.setProperty('--scrollbar-compensation', '0px')
+        window.scrollTo(0, _lockedScrollY)
       }
     }
   }, [enabled])

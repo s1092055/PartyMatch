@@ -4,8 +4,8 @@ import { HOME_SECTION_IDS } from '../data/sectionIds'
 // 首頁右側垂直置中的分段導覽：平常收合成一排小圓點，滑鼠 hover 整條展開顯示各 Section 標題，
 // 點擊直接捲動到對應區塊。跟 DesktopSidebar 同一套「收合成 icon、hover 才展開全名」模式，
 // 只在有真正 hover 能力的桌機顯示（can-hover:lg:block），iPad 版不顯示這個選單
-// label 一律照抄各 Section 實際的標題文字（h1/h2），不要另外改寫；id 跟 HomePage.jsx
-// 的捲動吸附共用同一份 HOME_SECTION_IDS，這裡另外配上顯示用的 label
+// label 一律照抄各 Section 實際的標題文字（h1/h2），不要另外改寫；id 跟 ScrollCue.jsx
+// 共用同一份 HOME_SECTION_IDS，這裡另外配上顯示用的 label
 const SECTION_LABELS = {
   'section-hero': 'PartyMatch',
   'section-why-us': '為什麼選擇 PartyMatch？',
