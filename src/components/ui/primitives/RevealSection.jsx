@@ -1,6 +1,13 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { getStableViewportHeight } from '../../../common/utils/viewport'
 
+// 縮放比例下限：手機橫向這類矮螢幕（可用高度很小、內容卻沒變矮）算出來的 available/natural
+// 會逼近甚至低於 0.5，內容整個縮得非常小。這個自動縮放機制原本是搭配首頁「一個 Section
+// 剛好一個畫面高」的捲動吸附設計，吸附拿掉之後（見 HomePage.jsx 的異動紀錄），Section
+// 高度不用再硬擠進一個畫面，超出可用高度就讓它自然往下延伸、多捲一點即可，不需要無下限地
+// 縮小犧牲可讀性
+const MIN_SCALE = 0.85
+
 export default function RevealSection({ children, delay = 0, className = '' }) {
   const outerRef = useRef(null)
   const innerRef = useRef(null)
@@ -45,7 +52,8 @@ export default function RevealSection({ children, delay = 0, className = '' }) {
       const style = getComputedStyle(section)
       const verticalPadding = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom)
       const available = getStableViewportHeight() - verticalPadding
-      const required = available > 0 && natural > available ? available / natural : 1
+      const raw = available > 0 && natural > available ? available / natural : 1
+      const required = Math.max(raw, MIN_SCALE)
       setScale(prev => (prev === required ? prev : required))
     }
 
