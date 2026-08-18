@@ -393,13 +393,12 @@
   max-width: min(24rem, calc(100vw - 2rem)) !important;
 }
 
-/* sonner 自己的手機/桌機兩種頂部留白（offset／mobileOffset）切換點固定在 600px，
-   但本站手機版導覽列（MobileHeader.jsx，fixed top-3 h-14）一路顯示到 1280px（lg
-   斷點）才切成桌機版側邊欄，600～1279px 這段會誤用桌機版的 1.5rem 留白，蓋到導覽列。
-   統一在 lg 斷點以下都用跟手機版一樣寬的頂部留白，跟實際導覽列高度對齊 */
+/* 手機／iPad（沒有 hover 能力）左上角都有 TabletSidebarDrawer 的觸發鈕
+   （fixed top-4 h-12）、右上角有 DesktopSidebar 的浮動通知按鈕，這裡統一留一點
+   頂部留白避免 toast 貼齊畫面最頂端跟這兩顆按鈕擠在一起 */
 @media (max-width: 1279px) {
   [data-sonner-toaster] {
-    --offset-top: 5rem !important;
+    --offset-top: 4.5rem !important;
   }
 }
 

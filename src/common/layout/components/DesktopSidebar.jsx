@@ -117,8 +117,11 @@ export default function DesktopSidebar({
         document.body
       )}
 
-      {/* Desktop 通知按鈕 + PM幣顯示 — fixed top-right，PM幣寬度貼齊通知按鈕 */}
-      <div className="fixed top-6 z-50 hidden flex-col items-stretch gap-2 lg:flex lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
+      {/* 通知按鈕 + PM幣顯示 — fixed top-right，PM幣寬度貼齊通知按鈕。跟下面收合式
+          <aside> 側邊欄不同，這組浮動按鈕不分真桌機/iPad/手機一律顯示——手機版導覽
+          已經改成跟 iPad 共用同一套 TabletSidebarDrawer 觸發鈕 + Drawer，不再有
+          MobileHeader 自己的通知/訊息按鈕，所以這裡要接手手機版的入口 */}
+      <div className="fixed top-6 z-50 flex flex-col items-stretch gap-2 lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
         <button
           onClick={openNotify}
           className="relative flex h-10 items-center gap-2 rounded-full border border-line bg-surface px-4 text-sm font-bold text-ink-2 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
@@ -143,8 +146,9 @@ export default function DesktopSidebar({
         )}
       </div>
 
-      {/* Desktop 訊息按鈕 — fixed bottom-right，對齊 sidebar 頭像 */}
-      <div className="fixed z-50 hidden lg:block" style={{ bottom: '2.25rem', right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
+      {/* 訊息按鈕 — fixed bottom-right，桌機對齊 sidebar 頭像；跟上面通知/PM幣同一組，
+          不分寬度一律顯示 */}
+      <div className="fixed z-50 block" style={{ bottom: '2.25rem', right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
         {loggedIn ? (
           <button
             onClick={openMessages}

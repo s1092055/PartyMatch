@@ -8,11 +8,14 @@ import { PresenceDot, LockBadge } from './navShared'
 import { LOCKED_MESSAGE, getNavItemKey, isProtectedNavItem } from './navConstants'
 import { useTheme } from '../../../components/theme-provider'
 
-// iPad 這類沒有滑鼠 hover 能力、但螢幕寬度又到 lg 以上的裝置，沒辦法用桌機 DesktopSidebar
-// 那套「hover 才展開顯示文字」的收合側邊欄互動，改成左上角一顆按鈕，點開從左側滑出的
-// Drawer，內容跟 DesktopSidebar 共用同一份 NAV_SECTIONS，只是一律展開顯示文字（不需要
-// hover 收合這層邏輯）。只在「lg 以上寬度」且「沒有 hover 能力」時顯示觸發按鈕，真正的
-// 桌機（can-hover:lg:）維持原本的 DesktopSidebar，兩者互斥不會同時出現
+// 沒有滑鼠 hover 能力的裝置（iPad、手機）都沒辦法用桌機 DesktopSidebar 那套「hover 才
+// 展開顯示文字」的收合側邊欄互動，一律改成左上角一顆按鈕，點開從左側滑出的 Drawer，內容跟
+// DesktopSidebar 共用同一份 NAV_SECTIONS，只是一律展開顯示文字（不需要 hover 收合這層
+// 邏輯）。手機版原本另外有 MobileHeader（頂部品牌列＋通知/訊息）＋ MobileDock（底部
+// 快速搜尋/建立群組/探索/我的/帳號 Tab 列），兩者都已移除，改成跟 iPad 共用同一套
+// 「觸發鈕 + Drawer」，通知/PM幣/訊息改由 DesktopSidebar 的浮動按鈕接手（那組按鈕
+// 已經改成不分寬度一律顯示）。觸發按鈕只在「沒有 hover 能力」時顯示，真正的桌機
+// （can-hover:lg:）維持原本的 DesktopSidebar，兩者互斥不會同時出現
 export default function TabletSidebarDrawer({
   loggedIn,
   pathname,
@@ -103,7 +106,7 @@ export default function TabletSidebarDrawer({
         type="button"
         onClick={() => setOpen(true)}
         aria-label="開啟導覽選單"
-        className="fixed left-4 top-4 z-50 hidden h-12 w-12 place-items-center rounded-2xl border border-line bg-surface text-ink-2 shadow-sm transition-colors hover:bg-raised no-hover:lg:grid"
+        className="fixed left-4 top-4 z-50 grid h-12 w-12 place-items-center rounded-2xl border border-line bg-surface text-ink-2 shadow-sm transition-colors hover:bg-raised can-hover:lg:hidden"
       >
         <Menu size={20} strokeWidth={2} />
       </button>

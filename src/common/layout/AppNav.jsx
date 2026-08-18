@@ -8,25 +8,10 @@ import TopupModal from '../../components/ui/TopupModal'
 import { LOCKED_MESSAGE } from './components/navConstants'
 import DesktopSidebar from './components/DesktopSidebar'
 import TabletSidebarDrawer from './components/TabletSidebarDrawer'
-import MobileHeader from './components/MobileHeader'
-import MobileDock from './components/MobileDock'
 
 export default function AppNav() {
   const navigate = useNavigate()
   const { pathname } = useLocation()
-  // 「我的」跟帳號選單都是底部 Drawer（bottom sheet），Base UI Drawer 本身的 backdrop
-  // 點擊／Esc 已經會處理「點外面關閉」，不需要再額外用 useClickOutside 偵測
-  const [myMenuOpen, setMyMenuOpen] = useState(false)
-  const [accountMenuOpen, setAccountMenuOpen] = useState(false)
-
-  // 路由切換時關閉所有選單：於 render 期間比對前一次 pathname 並直接呼叫 setState，
-  // 避免用 useEffect（會多觸發一次無謂的 render-commit-effect 循環）
-  const [prevPathname, setPrevPathname] = useState(pathname)
-  if (pathname !== prevPathname) {
-    setPrevPathname(pathname)
-    setMyMenuOpen(false)
-    setAccountMenuOpen(false)
-  }
 
   const loggedIn = useAuthStore(s => s.loggedIn)
   const currentUser = useAuthStore(s => s.user)
@@ -49,8 +34,6 @@ export default function AppNav() {
 
   function closeAll() {
     document.activeElement?.blur()
-    setMyMenuOpen(false)
-    setAccountMenuOpen(false)
   }
 
   function openCreate() {
@@ -121,34 +104,7 @@ export default function AppNav() {
         preventLockedAction={preventLockedAction}
       />
 
-      <MobileHeader
-        loggedIn={loggedIn}
-        unreadNotifs={unreadNotifs}
-        unreadMsgs={unreadMsgs}
-        openNotify={openNotify}
-        openMessages={openMessages}
-      />
-
       <TopupModal isOpen={topupOpen} onClose={() => setTopupOpen(false)} />
-
-      <MobileDock
-        pathname={pathname}
-        loggedIn={loggedIn}
-        userName={userName}
-        avatarInitial={avatarInitial}
-        avatarColor={avatarColor}
-        presenceStatus={presenceStatus}
-        tokenBalance={tokenBalance}
-        setTopupOpen={setTopupOpen}
-        closeAll={closeAll}
-        openMatch={openMatch}
-        openCreate={openCreate}
-        preventLockedAction={preventLockedAction}
-        myMenuOpen={myMenuOpen}
-        setMyMenuOpen={setMyMenuOpen}
-        accountMenuOpen={accountMenuOpen}
-        setAccountMenuOpen={setAccountMenuOpen}
-      />
     </>
   )
 }

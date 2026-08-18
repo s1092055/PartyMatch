@@ -140,10 +140,8 @@ export default function AccountPage() {
         </div>
       </div>
 
-      {/* 手機版／平板：Accordion。外層容器留的 pb-28 是給固定在畫面底部的 MobileDock
-          預留淨空，但這個頁面登入按鈕後面緊接著就是 Footer，兩者疊加會讓按鈕跟 Footer
-          之間留一大截空白，用負 margin 把這段多出來的間距收回來 */}
-      <div className="lg:hidden -mb-20">
+      {/* 手機版／平板：Accordion */}
+      <div className="lg:hidden">
         <div className="space-y-2">
         {BASE_TABS.map(tab => {
           const isOpen = openAccordion === tab.value

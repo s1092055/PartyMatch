@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { getStableViewportHeight, getMobileHeaderReserve, getMobileDockReserve } from '../../../common/utils/viewport'
+import { getStableViewportHeight } from '../../../common/utils/viewport'
 
 export default function RevealSection({ children, delay = 0, className = '' }) {
   const outerRef = useRef(null)
@@ -44,7 +44,7 @@ export default function RevealSection({ children, delay = 0, className = '' }) {
       if (!section) return
       const style = getComputedStyle(section)
       const verticalPadding = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom)
-      const available = getStableViewportHeight() - verticalPadding - getMobileHeaderReserve() - getMobileDockReserve()
+      const available = getStableViewportHeight() - verticalPadding
       const required = available > 0 && natural > available ? available / natural : 1
       setScale(prev => (prev === required ? prev : required))
     }

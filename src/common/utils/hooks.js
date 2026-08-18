@@ -268,7 +268,7 @@ export function useClickOutside(enabled, refs, onClose) {
   }, [enabled])
 }
 
-// 登出共用邏輯（清除 auth store + 導回登入頁），AccountPage／MobileDock／AdminDashboardLayout
+// 登出共用邏輯（清除 auth store + 導回登入頁），AccountPage／AdminDashboardLayout
 // 都是同一套流程，呼叫端可以在 logout() 前後加自己的額外步驟（例如先關掉選單）
 export function useLogout() {
   const navigate = useNavigate()
