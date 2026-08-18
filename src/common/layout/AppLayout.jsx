@@ -3,7 +3,6 @@ import { Outlet, useLocation } from 'react-router-dom'
 import AppNav from './AppNav'
 import AppFooter from './AppFooter'
 import FloatingMessages from './FloatingMessages'
-import BackToTopButton from './ScrollToTop'
 
 const GroupDetailModal = lazy(() => import('../../features/group/GroupDetailModal'))
 const MessagesModal = lazy(() => import('../../features/messages/MessagesModal'))
@@ -31,7 +30,6 @@ export default function AppLayout() {
         <AppFooter />
       </main>
       <FloatingMessages />
-      <BackToTopButton />
       <Suspense fallback={null}>
         <MessagesModal />
         <GroupDetailModal />

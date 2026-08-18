@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 
 // 首頁右側垂直置中的分段導覽：平常收合成一排小圓點，滑鼠 hover 整條展開顯示各 Section 標題，
-// 點擊直接捲動到對應區塊。跟 DesktopSidebar 同一套「收合成 icon、hover 才展開全名」模式，
-// 只在有真正 hover 能力的桌機顯示（can-hover:lg:flex），避免手機/平板誤判成桌機
+// 點擊直接捲動到對應區塊。跟 DesktopSidebar 不同的地方：外層顯示與否只看寬度（lg:），
+// 不疊 can-hover:——收合狀態的圓點本身不需要 hover 就能點擊導覽，iPad 這類沒有 hover
+// 能力但螢幕夠寬的裝置也看得到、用得到；只有「hover 才展開顯示完整標題文字」這個互動
+// 細節（見下面 ul／span 的 can-hover:hover:）維持只在真的有 hover 能力的裝置上觸發，
+// 觸控裝置永遠停在收合狀態，直接點圓點導覽即可
 // label 一律照抄各 Section 實際的標題文字（h1/h2），不要另外改寫
 const SECTIONS = [
   { id: 'section-hero', label: 'PartyMatch' },
@@ -55,7 +58,7 @@ export default function SectionNav() {
   return (
     <nav
       aria-label="區塊導覽"
-      className="fixed right-6 top-1/2 z-40 hidden -translate-y-1/2 can-hover:lg:block"
+      className="fixed right-6 top-1/2 z-40 hidden -translate-y-1/2 lg:block"
     >
       {/* 收合時只露出方塊寬度，hover 整條展開成固定寬度，讓每個項目的 hover:bg-raised
           能撐滿整排寬度，而不是只包住文字本身 */}

@@ -43,31 +43,33 @@ function AudienceCard({ photo, photoSeed, title, desc, tall, onOpen }) {
 export default function AudienceGrid() {
   const navigate = useNavigate()
   const loggedIn = useAuthStore(s => s.loggedIn)
-  const [openAudience, setOpenAudience] = useState(null)
+  const [openIndex, setOpenIndex] = useState(null)
+  const openAudience = openIndex != null ? HOME_AUDIENCES[openIndex] : null
   useScrollLock(openAudience != null)
+
+  function showPrev() {
+    setOpenIndex(i => (i - 1 + HOME_AUDIENCES.length) % HOME_AUDIENCES.length)
+  }
+  function showNext() {
+    setOpenIndex(i => (i + 1) % HOME_AUDIENCES.length)
+  }
 
   return (
     <section className="flex w-full flex-col items-center gap-10">
-      {/* 標題／副標一組（間距較緊，同屬一句話的延伸說明），下面的「自己開團，輕鬆管理」
-          性質不同（呼應底部的建立群組 CTA，不是在形容這個 Section），改用 badge 樣式
-          隔開，避免看起來像第三句被硬接在後面的標語 */}
-      <div className="flex flex-col items-center gap-3 text-center">
-        <div>
-          <h2 className="text-3xl font-extrabold text-ink">
-            適合每一種共享生活
-          </h2>
-          <p className="mt-3 max-w-xs text-base leading-relaxed text-ink-3">
-            不論是學生、情侶、家庭或工作夥伴
-          </p>
-        </div>
-        <span className="rounded-full bg-raised px-3 py-1 text-xs font-bold text-ink-3">
+      <div className="flex flex-col items-center text-center">
+        <h2 className="text-3xl font-extrabold text-ink">
+          適合每一種共享生活
+        </h2>
+        <p className="mt-3 max-w-xs text-base leading-relaxed text-ink-3">
+          不論是學生、情侶、家庭或工作夥伴
+          <br />
           自己開團，輕鬆管理
-        </span>
+        </p>
       </div>
 
       <div className="-mx-3 grid w-[calc(100%+1.5rem)] grid-cols-2 grid-rows-2 gap-3 sm:mx-0 sm:w-full sm:grid-cols-3 sm:gap-4">
         {HOME_AUDIENCES.map((audience, i) => (
-          <AudienceCard key={audience.title} {...audience} tall={i === 0} onOpen={() => setOpenAudience(audience)} />
+          <AudienceCard key={audience.title} {...audience} tall={i === 0} onOpen={() => setOpenIndex(i)} />
         ))}
       </div>
 
@@ -84,8 +86,10 @@ export default function AudienceGrid() {
         <ImageLightbox
           url={audiencePhotoUrl(openAudience)}
           alt={openAudience.title}
-          onClose={() => setOpenAudience(null)}
-          imageClassName="max-h-[70dvh] max-w-sm sm:max-w-md"
+          onClose={() => setOpenIndex(null)}
+          onPrev={showPrev}
+          onNext={showNext}
+          imageClassName="aspect-[4/3] w-[85vw] max-w-sm object-cover sm:max-w-md"
           caption={
             <>
               <p className="font-extrabold text-white">{openAudience.title}</p>

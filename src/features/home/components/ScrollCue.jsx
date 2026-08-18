@@ -1,14 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { ChevronsDown } from 'lucide-react'
 
 const IDLE_DELAY = 2000
 
-// 跟 Hero 底部同一套「下滑查看更多」視覺提示，純裝飾用（不可點擊、不會捲動頁面），
-// 手機版避開 MobileDock（約佔 76px 高）用 bottom-24；桌機／可 hover 裝置用 bottom-4，
-// 對齊 DesktopSidebar（fixed bottom-4）的底部邊緣。頁面沒有捲動超過 2 秒才淡入顯示，
-// 一偵測到捲動（含滑鼠滾輪／觸控滑動）就立刻淡出並重新倒數，避免一直佔著畫面
+// 首頁「下滑查看更多」視覺提示，純裝飾用（不可點擊、不會捲動頁面）。只掛在 HomePage 一份、
+// fixed 定位貼在視窗底部，不再是每個 Section 各自 absolute 一份——因為每個 Section 都是
+// min-h-dvh（剛好一個視窗高），fixed 相對視窗的位置跟原本 absolute 相對各自 Section 的
+// 位置視覺上完全一樣，但不用再逐一插入到每個 Section 裡面。手機版避開 MobileDock（約佔
+// 76px 高）用 bottom-24；桌機／可 hover 裝置用 bottom-4，對齊 DesktopSidebar
+// （fixed bottom-4）的底部邊緣。頁面沒有捲動超過 2 秒才淡入顯示，一偵測到捲動（含滑鼠
+// 滾輪／觸控滑動）就立刻淡出並重新倒數，避免一直佔著畫面；捲到最後一個 Section（常見
+// 問題，底下只剩 Footer）時直接隱藏，不需要再提示「下滑查看更多」
 export default function ScrollCue() {
   const [idle, setIdle] = useState(false)
+  const [nearEnd, setNearEnd] = useState(false)
   const timerRef = useRef(null)
 
   useEffect(() => {
@@ -27,14 +32,23 @@ export default function ScrollCue() {
     }
   }, [])
 
+  useEffect(() => {
+    const lastSection = document.getElementById('section-faq')
+    if (!lastSection) return
+    const observer = new IntersectionObserver(([entry]) => setNearEnd(entry.isIntersecting))
+    observer.observe(lastSection)
+    return () => observer.disconnect()
+  }, [])
+
   return (
     <span
-      className={`pointer-events-none absolute bottom-24 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 text-sm font-bold text-ink-2 transition-opacity duration-500 can-hover:lg:bottom-4 ${
-        idle ? 'opacity-100' : 'opacity-0'
+      className={`pointer-events-none fixed bottom-24 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 text-sm font-bold text-ink-2 transition-opacity duration-500 can-hover:lg:bottom-4 ${
+        idle && !nearEnd ? 'opacity-100' : 'opacity-0'
       }`}
     >
+      <ChevronsDown size={16} strokeWidth={1.5} />
       下滑查看更多
-      <ChevronDown size={16} strokeWidth={1.5} />
+      <ChevronsDown size={16} strokeWidth={1.5} />
     </span>
   )
 }

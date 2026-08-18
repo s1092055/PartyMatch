@@ -5,7 +5,6 @@ import { Button } from '../../components/ui/button'
 import logoUrl from '../../assets/Logo.svg'
 import { useAuthStore } from '../../common/stores/useAuthStore'
 import AppNav from '../../common/layout/AppNav'
-import ScrollToTop from '../../common/layout/ScrollToTop'
 import AppFooter from '../../common/layout/AppFooter'
 import FloatingMessages from '../../common/layout/FloatingMessages'
 import ServiceLogo from '../../components/ui/ServiceLogo'
@@ -84,9 +83,11 @@ export default function HomePage() {
   if (loggedIn && isAdmin) return <Navigate to={ADMIN_HOME_PATH} replace />
 
   return (
-    <div className="flex min-h-screen flex-col bg-canvas text-ink can-hover:lg:ml-20 can-hover:lg:mr-24">
+    // 左邊 ml-20 留給 DesktopSidebar（仍然只在真的有 hover 能力的裝置顯示），跟右邊
+    // mr-24 留給 SectionNav 分開判斷——SectionNav 現在只看寬度（lg:）就會顯示，觸控平板
+    // 也看得到，這裡的留白要跟著同一個條件，不然 iPad 版右邊會被 SectionNav 蓋到內容
+    <div className="flex min-h-screen flex-col bg-canvas text-ink can-hover:lg:ml-20 lg:mr-24">
       <AppNav />
-      <ScrollToTop />
       <Suspense fallback={null}>
         <MessagesModal />
         <GroupDetailModal />
@@ -94,7 +95,14 @@ export default function HomePage() {
       </Suspense>
       <FloatingMessages />
       <SectionNav />
+      <ScrollCue />
 
+      {/* 640px～1024px（平板寬度，can-hover:lg: 判斷仍會給觸控平板套用手機版 nav）這個
+          Section 系列原本在 sm: 斷點把上下留白調得比手機版跟桌機版都大（sm:pb-32 sm:pt-20，
+          208px，比手機版 112px、桌機版 128px 都多），跟 RevealSection 的自動縮放機制正面
+          衝突——留白越多，可用高度預算越少，越容易觸發縮小；平板的螢幕高度本來就常常比手機
+          矮（尤其橫向），疊加起來讓平板這個級距的內容縮得特別小、比例明顯不對，已拿掉這個
+          sm: 留白，讓留白量從手機到桌機單調遞增，不要中間平板這一段反而最大 */}
       <section id="section-hero" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center overflow-hidden pb-32 pt-28 text-center lg:pb-20 lg:pt-16">
         <BubbleField count={9} size={46} />
 
@@ -114,52 +122,44 @@ export default function HomePage() {
             </Button>
           </div>
         </RevealSection>
-
-        <ScrollCue />
       </section>
 
-      <section id="section-why-us" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 sm:pb-32 sm:pt-20 can-hover:lg:pb-16 can-hover:lg:pt-16">
+      <section id="section-why-us" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 can-hover:lg:pb-16 can-hover:lg:pt-16">
         <RevealSection className="mx-auto w-full max-w-3xl">
           <WhyUs />
         </RevealSection>
-        <ScrollCue />
       </section>
 
-      <section id="section-audience" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 sm:pb-32 sm:pt-20 lg:pb-20 lg:pt-12">
+      <section id="section-audience" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 lg:pb-20 lg:pt-12">
         <RevealSection className="mx-auto w-full max-w-3xl">
           <AudienceGrid />
         </RevealSection>
-        <ScrollCue />
       </section>
 
-      <section id="section-featured-groups" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 sm:pb-32 sm:pt-20 lg:pb-20 lg:pt-12">
+      <section id="section-featured-groups" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 lg:pb-20 lg:pt-12">
         <RevealSection className="mx-auto w-full max-w-3xl">
           <FeaturedGroupsCarousel />
         </RevealSection>
-        <ScrollCue />
       </section>
 
-      <section id="section-benefits" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 sm:pb-32 sm:pt-20 lg:pb-20 lg:pt-12">
+      <section id="section-benefits" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 lg:pb-20 lg:pt-12">
         <RevealSection className="mx-auto w-full max-w-3xl">
           <BenefitsList />
         </RevealSection>
-        <ScrollCue />
       </section>
 
       {/* 這個 Section 手機版內容量比其他 Section 都多（身份切換＋Tab＋影片＋說明），手機版
           影片區塊是直式 9:16（之後要放的是手機操作畫面錄影），內容偏高交給 RevealSection
-          的全域自動縮放機制處理，這裡的版面對齊方式不用另外補——ScrollCue 是絕對定位、
-          固定貼在 Section 底部一段距離，跟內容本身怎麼排列無關；曾經在這裡試過 justify-start
-          把內容整塊往上頂，結果內容變高、ScrollCue 沒有跟著往上移，兩者之間反而多出一大塊
-          空白，比原本的置中還醜，已改回跟其他 Section 一致的 justify-center + 一般留白量 */}
-      <section id="section-identity" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 sm:pb-32 sm:pt-20 lg:pb-20 lg:pt-12">
+          的全域自動縮放機制處理，這裡的版面對齊方式不用另外補；曾經在這裡試過 justify-start
+          把內容整塊往上頂，結果內容變高，比原本的置中還醜，已改回跟其他 Section 一致的
+          justify-center + 一般留白量 */}
+      <section id="section-identity" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 lg:pb-20 lg:pt-12">
         <RevealSection className="mx-auto w-full max-w-3xl">
           <IdentityJourney />
         </RevealSection>
-        <ScrollCue />
       </section>
 
-      <section id="section-cta" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 sm:pb-32 sm:pt-20 lg:pb-20 lg:pt-12">
+      <section id="section-cta" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 lg:pb-20 lg:pt-12">
         <RevealSection className="mx-auto w-full max-w-3xl text-center">
           <div className="rounded-card border border-line bg-surface px-5 py-10 sm:px-8 sm:py-12">
             <h2 className="text-2xl font-extrabold text-ink md:text-3xl">立即開始共享訂閱之旅</h2>
@@ -188,10 +188,8 @@ export default function HomePage() {
             </div>
           </div>
         </RevealSection>
-        <ScrollCue />
       </section>
 
-      {/* 常見問題是最後一個 Section，底下只剩 Footer，不需要再顯示「下滑查看更多」 */}
       <section id="section-faq" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 py-20 lg:py-12">
         <RevealSection className="mx-auto w-full max-w-3xl">
           <FAQ />
