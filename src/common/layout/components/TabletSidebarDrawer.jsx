@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { LogIn, Menu } from 'lucide-react'
+import { LogIn, Menu, Moon, Sun } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
 import { NAV_SECTIONS } from '../nav'
 import { Avatar } from '../../../components/ui/avatar'
@@ -7,6 +7,7 @@ import { TokenBadge } from '../../../components/ui/TokenAmount'
 import { Drawer, DrawerContent, DrawerTitle } from '../../../components/ui/drawer'
 import { PresenceDot, LockBadge } from './navShared'
 import { LOCKED_MESSAGE, getNavItemKey, isProtectedNavItem } from './navConstants'
+import { useTheme } from '../../../components/theme-provider'
 
 // 沒有滑鼠 hover 能力的裝置（iPad、手機）都沒辦法用桌機 DesktopSidebar 那套「hover 才
 // 展開顯示文字」的收合側邊欄互動，一律改成左上角一顆按鈕，點開從左側滑出的 Drawer，內容跟
@@ -15,8 +16,8 @@ import { LOCKED_MESSAGE, getNavItemKey, isProtectedNavItem } from './navConstant
 // 快速搜尋/建立群組/探索/我的/帳號 Tab 列），兩者都已移除，改成跟 iPad 共用同一套
 // 「觸發鈕 + Drawer」，通知/訊息改由 DesktopSidebar 的浮動按鈕接手（不分寬度一律
 // 顯示）。觸發按鈕只在「沒有 hover 能力」時顯示，真正的桌機（can-hover:lg:）維持原本的
-// DesktopSidebar，兩者互斥不會同時出現。PM幣入口放在 Drawer 底部，取代原本的深淺色
-// 模式切換按鈕（深淺色切換仍可在帳號設定頁使用），未登入不顯示這格
+// DesktopSidebar，兩者互斥不會同時出現。PM幣入口放在 Drawer 底部（未登入不顯示這格），
+// 深淺色模式切換是純 icon 圓形鈕，放在最底部帳號/登入列的右邊
 export default function TabletSidebarDrawer({
   loggedIn,
   pathname,
@@ -32,6 +33,7 @@ export default function TabletSidebarDrawer({
   preventLockedAction,
 }) {
   const [open, setOpen] = useState(false)
+  const { theme, toggleTheme } = useTheme()
 
   function isGuestLocked(item) {
     return !loggedIn && isProtectedNavItem(item)
@@ -157,26 +159,37 @@ export default function TabletSidebarDrawer({
               </button>
             )}
 
-            {loggedIn ? (
-              <a href="/account" onClick={handleNavigate} className="flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left transition-all hover:bg-raised">
-                <span className="relative shrink-0 shadow-md rounded-full">
-                  <Avatar initial={avatarInitial} color={avatarColor} size="md" />
-                  <PresenceDot status={presenceStatus} className="absolute bottom-0 right-0 h-3 w-3" />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-extrabold text-ink">{userName}</span>
-                </span>
-              </a>
-            ) : (
-              <a href="/login" onClick={handleNavigate} className="flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand">
-                <span className="grid h-10 w-10 shrink-0 place-items-center">
-                  <LogIn size={22} strokeWidth={2.1} />
-                </span>
-                <span className="min-w-0 flex-1 whitespace-nowrap">
-                  <span className="block truncate text-sm font-extrabold">登入</span>
-                </span>
-              </a>
-            )}
+            <div className="flex items-center gap-2">
+              {loggedIn ? (
+                <a href="/account" onClick={handleNavigate} className="flex h-14 min-w-0 flex-1 items-center gap-3 rounded-2xl px-1 text-left transition-all hover:bg-raised">
+                  <span className="relative shrink-0 shadow-md rounded-full">
+                    <Avatar initial={avatarInitial} color={avatarColor} size="md" />
+                    <PresenceDot status={presenceStatus} className="absolute bottom-0 right-0 h-3 w-3" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-extrabold text-ink">{userName}</span>
+                  </span>
+                </a>
+              ) : (
+                <a href="/login" onClick={handleNavigate} className="flex h-14 min-w-0 flex-1 items-center gap-3 rounded-2xl px-1 text-left text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center">
+                    <LogIn size={22} strokeWidth={2.1} />
+                  </span>
+                  <span className="min-w-0 flex-1 whitespace-nowrap">
+                    <span className="block truncate text-sm font-extrabold">登入</span>
+                  </span>
+                </a>
+              )}
+
+              <button
+                type="button"
+                onClick={toggleTheme}
+                aria-label={theme === 'dark' ? '切換淺色模式' : '切換深色模式'}
+                className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
+              >
+                {theme === 'dark' ? <Sun size={20} strokeWidth={2.1} /> : <Moon size={20} strokeWidth={2.1} />}
+              </button>
+            </div>
           </div>
         </DrawerContent>
       </Drawer>
