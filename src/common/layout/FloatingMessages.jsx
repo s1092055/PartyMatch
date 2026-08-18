@@ -509,10 +509,11 @@ export default function FloatingMessages() {
 
   return (
     <Drawer open={open} onOpenChange={setOpen} swipeDirection="right">
-      <DrawerContent
-        className="rounded-2xl border border-line"
-        style={{ '--drawer-inset': '0.75rem', '--drawer-bleed-background': 'transparent' }}
-      >
+      {/* 手機/平板（max-lg）跟左側選單 Drawer（TabletSidebarDrawer）統一用同一種容器：
+          貼齊螢幕邊緣、固定 18rem 寬、只有內側轉角圓（swipeDirection=right 預設就是
+          rounded-l-2xl，這裡不用另外設）、不帶邊框。桌機（lg 以上）維持原本從按鈕位置
+          浮出的內縮卡片樣式（--drawer-inset 留白 + 四角全圓 + 邊框） */}
+      <DrawerContent className="max-lg:[--drawer-content-width:18rem] max-lg:data-[swipe-direction=right]:border-l-0 lg:rounded-2xl lg:border lg:[--drawer-inset:0.75rem] lg:[--drawer-bleed-background:transparent]">
         <DrawerHeader>
           <div className="flex items-center gap-2">
             <Bell size={18} className="text-ink-3" />
