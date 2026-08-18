@@ -49,11 +49,6 @@ export default function RevealSection({ children, delay = 0, className = '' }) {
       setScale(prev => (prev === required ? prev : required))
     }
 
-    // iOS Safari 工具列收合/展開的過程中會連續觸發多次 window resize 事件（同一個工具列
-    // 動畫可能對到好幾個 resize），每次 recalc 都要做 getComputedStyle／scrollHeight 這類
-    // 強制同步 layout 的量測，8 個 Section 同時掛這個 listener 疊加起來就是明顯的捲動卡頓。
-    // 用 requestAnimationFrame 把同一畫面內的多次觸發合併成一次量測，數值算出來通常沒變
-    // （已有下面的 prev === 判斷擋掉不必要的 re-render），但省下重複量測本身的成本
     let frame = null
     function scheduleRecalc() {
       if (frame != null) return
@@ -63,14 +58,28 @@ export default function RevealSection({ children, delay = 0, className = '' }) {
       })
     }
 
+    // iOS Safari 工具列收合/展開的過程中只會改變 window.innerHeight，不會動到 innerWidth，
+    // 但會連續觸發好幾次 window resize 事件；而 100svh 探測元素（getStableViewportHeight）
+    // 在工具列動畫進行中量到的值並不是每次都穩定，等於 available 高度在這段期間會連續
+    // 跳動，害這裡算出來的 scale 也跟著連續變化，畫面上看起來像內容在原地放大縮小
+    // （不是前面那個淡入動畫誤觸發的問題，是這裡）。只有寬度真的改變（旋轉螢幕、真正
+    // 調整視窗大小）才需要重新量測，純高度變化（工具列）直接略過，從源頭不讓 scale
+    // 有機會被工具列動畫影響
+    let lastWidth = window.innerWidth
+    function handleResize() {
+      if (window.innerWidth === lastWidth) return
+      lastWidth = window.innerWidth
+      scheduleRecalc()
+    }
+
     recalc()
     const resizeObserver = new ResizeObserver(scheduleRecalc)
     resizeObserver.observe(inner)
-    window.addEventListener('resize', scheduleRecalc)
+    window.addEventListener('resize', handleResize)
     return () => {
       if (frame != null) cancelAnimationFrame(frame)
       resizeObserver.disconnect()
-      window.removeEventListener('resize', scheduleRecalc)
+      window.removeEventListener('resize', handleResize)
     }
   }, [])
 

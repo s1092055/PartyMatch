@@ -1,11 +1,14 @@
 import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { useScrollLock } from '../../common/utils/hooks'
 
 const SWIPE_THRESHOLD = 40
 
-// 附件預覽用的輕量燈箱，不走 Radix Dialog——這個元件是從已經開著的群組詳情 Modal
-// 裡面再疊一層，背景捲動早就被最外層的 Dialog 鎖住了，不需要自己管 scroll lock。
+// 附件預覽用的輕量燈箱，不走 Radix Dialog——大部分用法是從已經開著的群組詳情 Modal
+// 裡面再疊一層，但首頁 AudienceGrid 這類用法沒有外層 Dialog，背景捲動不會被鎖住，
+// 所以這裡自己呼叫 useScrollLock；hooks.js 的鎖是用 _lockCount 疊加計數，巢狀在
+// 已鎖定的 Dialog 裡面再鎖一次也不會衝突，只是計數多加一再多減一
 // 但 Radix Dialog 開啟時會把 body 設成 pointer-events: none，只把它自己的 Overlay／
 // Content 明確設回 auto，藉此把所有互動鎖在 Dialog 裡面；pointer-events 會繼承，
 // 我們這個燈箱是掛在 body 底下的另一個 portal（不在 Dialog 的內容樹裡），沒有明確設
@@ -21,6 +24,8 @@ export default function ImageLightbox({ url, alt, onClose, caption, imageClassNa
   // 螢幕兩側的箭頭按鈕，滑鼠拖拽圖片容易跟瀏覽器原生的「拖曳圖片」手勢打架，不需要
   // 再疊加這個互動；放開時才判斷位移量有沒有超過門檻，沒超過就當一般點擊處理
   const dragRef = useRef({ startX: 0, dragging: false })
+
+  useScrollLock(true)
 
   function handlePointerDown(e) {
     if (e.pointerType !== 'touch' || (!onPrev && !onNext)) return
