@@ -50,7 +50,7 @@ export default function ScrollCue() {
         idle && !nearEnd ? 'opacity-100' : 'opacity-0'
       }`}
     >
-      <span className="flex items-center gap-2 text-sm font-bold text-ink-2">
+      <span className="flex items-center gap-2 rounded-full bg-neutral-900/80 px-4 py-2 text-sm font-bold text-white shadow-sm backdrop-blur">
         <ChevronsDown size={16} strokeWidth={1.5} />
         下滑查看更多
         <ChevronsDown size={16} strokeWidth={1.5} />
