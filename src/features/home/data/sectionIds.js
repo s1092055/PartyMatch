@@ -6,7 +6,6 @@ export const HOME_SECTION_IDS = [
   'section-why-us',
   'section-audience',
   'section-featured-groups',
-  'section-benefits',
   'section-identity',
   'section-cta',
   'section-faq',

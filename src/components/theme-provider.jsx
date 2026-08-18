@@ -28,8 +28,8 @@ export function ThemeProvider({ children }) {
     localStorage.setItem(THEME_STORAGE_KEY, next)
   }, [])
 
-  // 深/淺色互轉的翻轉規則只在這裡寫一次，DesktopSidebar／TabletSidebarDrawer／SettingsTab
-  // 都呼叫這支，不用各自重複 theme === 'dark' ? 'light' : 'dark'
+  // 深/淺色互轉的翻轉規則只在這裡寫一次，呼叫端（目前是帳號設定頁的 SettingsTab）
+  // 不用自己重複 theme === 'dark' ? 'light' : 'dark'
   const toggleTheme = useCallback(() => {
     setTheme(theme === 'dark' ? 'light' : 'dark')
   }, [theme, setTheme])

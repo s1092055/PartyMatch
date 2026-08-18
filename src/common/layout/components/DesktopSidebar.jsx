@@ -1,13 +1,12 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Bell, Lock, LogIn, MessageSquare, Moon, Sun } from 'lucide-react'
+import { Bell, Lock, LogIn, MessageSquare } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
 import { NAV_SECTIONS } from '../nav'
 import { Avatar } from '../../../components/ui/avatar'
 import { TokenBadge } from '../../../components/ui/TokenAmount'
 import { CountBadge, LockBadge, LockedHint, PresenceDot } from './navShared'
 import { LOCKED_MESSAGE, getNavItemKey, isProtectedNavItem } from './navConstants'
-import { useTheme } from '../../../components/theme-provider'
 
 export default function DesktopSidebar({
   loggedIn,
@@ -28,17 +27,9 @@ export default function DesktopSidebar({
   preventLockedAction,
 }) {
   const [lockedTip, setLockedTip] = useState(null)
-  const { theme, toggleTheme } = useTheme()
 
   function isGuestLocked(item) {
     return !loggedIn && isProtectedNavItem(item)
-  }
-
-  // 展開/收合的側邊欄靠 hover/focus-within 撐開，按鈕點擊後若沒有主動 blur，
-  // focus-within 會在滑鼠移開後繼續生效，讓側邊欄卡在展開狀態收不回去
-  function handleThemeToggle(e) {
-    toggleTheme()
-    e.currentTarget.blur()
   }
 
   function renderSideItem(item) {
@@ -117,46 +108,37 @@ export default function DesktopSidebar({
         document.body
       )}
 
-      {/* 通知按鈕 + PM幣顯示 — fixed top-right，PM幣寬度貼齊通知按鈕。跟下面收合式
-          <aside> 側邊欄不同，這組浮動按鈕不分真桌機/iPad/手機一律顯示——手機版導覽
-          已經改成跟 iPad 共用同一套 TabletSidebarDrawer 觸發鈕 + Drawer，不再有
-          MobileHeader 自己的通知/訊息按鈕，所以這裡要接手手機版的入口 */}
-      <div className="fixed top-6 z-50 flex flex-col items-stretch gap-2 lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
+      {/* 通知按鈕 — fixed top-right。跟下面收合式 <aside> 側邊欄不同，這顆浮動按鈕不分
+          真桌機/iPad/手機一律顯示——手機版導覽已經改成跟 iPad 共用同一套
+          TabletSidebarDrawer 觸發鈕 + Drawer，不再有 MobileHeader 自己的通知按鈕，
+          所以這裡要接手手機版的入口。手機/iPad（lg 以下）縮成純 icon 圓形鈕，跟
+          左上角 Drawer 觸發鈕（TabletSidebarDrawer 的 h-12 w-12 rounded-full）、首頁
+          Hero 區「探索群組」CTA 同一套 rounded-full 圓角語彙；lg 以上（含真桌機）
+          才展開回原本帶文字的長條 pill。PM幣改移進下面 <aside> 跟 TabletSidebarDrawer 裡面，取代原本的
+          深淺色模式切換按鈕（深淺色切換仍可在帳號設定頁使用） */}
+      <div className="fixed top-6 z-50 flex lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
         <button
           onClick={openNotify}
-          className="relative flex h-10 items-center gap-2 rounded-full border border-line bg-surface px-4 text-sm font-bold text-ink-2 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
+          className="relative flex h-12 w-12 items-center justify-center gap-2 rounded-full border border-line bg-surface text-sm font-bold text-ink-2 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-10 lg:w-auto lg:justify-start lg:px-4"
           aria-label="通知"
         >
           <Bell size={16} strokeWidth={2} />
-          通知
+          <span className="hidden lg:inline">通知</span>
           <CountBadge count={unreadNotifs} />
         </button>
-
-        {loggedIn && (
-          <button
-            onClick={() => setTopupOpen(true)}
-            aria-label="PM幣儲值"
-            className="flex h-10 items-center gap-2 rounded-lg border border-line bg-surface px-3 text-left text-ink-2 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
-          >
-            <TokenBadge className="shrink-0" />
-            <span className="min-w-0 flex-1 truncate text-xs font-bold leading-none">
-              {tokenBalance.toLocaleString()}
-            </span>
-          </button>
-        )}
       </div>
 
       {/* 訊息按鈕 — fixed bottom-right，桌機對齊 sidebar 頭像；跟上面通知/PM幣同一組，
-          不分寬度一律顯示 */}
+          不分寬度一律顯示，手機/iPad 同樣縮成 icon 方形鈕 */}
       <div className="fixed z-50 block" style={{ bottom: '2.25rem', right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
         {loggedIn ? (
           <button
             onClick={openMessages}
-            className="relative flex h-10 items-center gap-2 rounded-full border border-line bg-surface px-4 text-sm font-bold text-ink-2 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
+            className="relative flex h-12 w-12 items-center justify-center gap-2 rounded-full border border-line bg-surface text-sm font-bold text-ink-2 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-10 lg:w-auto lg:justify-start lg:px-4"
             aria-label="訊息"
           >
             <MessageSquare size={16} strokeWidth={2} />
-            訊息
+            <span className="hidden lg:inline">訊息</span>
             <CountBadge count={unreadMsgs} className="-right-1.5 -top-1.5" />
           </button>
         ) : (
@@ -165,10 +147,10 @@ export default function DesktopSidebar({
             aria-disabled="true"
             aria-label={`訊息，${LOCKED_MESSAGE}`}
             onClick={e => preventLockedAction(e)}
-            className="group/locked relative flex h-10 cursor-not-allowed items-center gap-2 rounded-full border border-line bg-surface px-4 text-sm font-bold text-ink-2 opacity-40 shadow-sm"
+            className="group/locked relative flex h-12 w-12 cursor-not-allowed items-center justify-center gap-2 rounded-full border border-line bg-surface text-sm font-bold text-ink-2 opacity-40 shadow-sm lg:h-10 lg:w-auto lg:justify-start lg:px-4"
           >
             <MessageSquare size={16} strokeWidth={2} />
-            訊息
+            <span className="hidden lg:inline">訊息</span>
             <LockBadge className="right-1 top-1" />
             <LockedHint className="right-full top-1/2 mr-2 -translate-y-1/2" />
           </button>
@@ -198,19 +180,21 @@ export default function DesktopSidebar({
         </nav>
 
         <div className="px-2 pb-4">
-          <button
-            type="button"
-            onClick={handleThemeToggle}
-            aria-label={theme === 'dark' ? '切換淺色模式' : '切換深色模式'}
-            className="mb-1 flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
-          >
-            <span className="grid h-9 w-9 shrink-0 place-items-center">
-              {theme === 'dark' ? <Sun size={22} strokeWidth={2.1} /> : <Moon size={22} strokeWidth={2.1} />}
-            </span>
-            <span className="whitespace-nowrap font-bold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
-              {theme === 'dark' ? '淺色模式' : '深色模式'}
-            </span>
-          </button>
+          {loggedIn && (
+            <button
+              type="button"
+              onClick={() => setTopupOpen(true)}
+              aria-label="PM幣儲值"
+              className="mb-1 flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
+            >
+              <span className="grid h-9 w-9 shrink-0 place-items-center">
+                <TokenBadge className="shrink-0" />
+              </span>
+              <span className="whitespace-nowrap font-bold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
+                {tokenBalance.toLocaleString()} PM
+              </span>
+            </button>
+          )}
           {loggedIn ? (
             <a
               href="/account"

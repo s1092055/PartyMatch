@@ -11,7 +11,6 @@ import ServiceLogo from '../../components/ui/ServiceLogo'
 import BubbleField from './components/BubbleField'
 import ScrollCue from './components/ScrollCue'
 import FeaturedGroupsCarousel from './components/FeaturedGroupsCarousel'
-import BenefitsList from './components/BenefitsList'
 import IdentityJourney from './components/IdentityJourney'
 import AudienceGrid from './components/AudienceGrid'
 import WhyUs from './components/WhyUs'
@@ -99,12 +98,6 @@ export default function HomePage() {
       <section id="section-featured-groups" className="relative flex min-h-dvh w-full flex-col items-center justify-center px-5 pb-20 pt-8 lg:pb-20 lg:pt-12">
         <RevealSection className="mx-auto w-full max-w-3xl">
           <FeaturedGroupsCarousel />
-        </RevealSection>
-      </section>
-
-      <section id="section-benefits" className="relative flex min-h-dvh w-full flex-col items-center justify-center px-5 pb-20 pt-8 lg:pb-20 lg:pt-12">
-        <RevealSection className="mx-auto w-full max-w-3xl">
-          <BenefitsList />
         </RevealSection>
       </section>
 

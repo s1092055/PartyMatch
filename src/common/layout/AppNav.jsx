@@ -98,6 +98,8 @@ export default function AppNav() {
         avatarInitial={avatarInitial}
         avatarColor={avatarColor}
         presenceStatus={presenceStatus}
+        tokenBalance={tokenBalance}
+        setTopupOpen={setTopupOpen}
         closeAll={closeAll}
         openCreate={openCreate}
         openMatch={openMatch}

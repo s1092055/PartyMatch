@@ -1,21 +1,22 @@
 import { useState } from 'react'
-import { LogIn, Menu, Moon, Sun } from 'lucide-react'
+import { LogIn, Menu } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
 import { NAV_SECTIONS } from '../nav'
 import { Avatar } from '../../../components/ui/avatar'
+import { TokenBadge } from '../../../components/ui/TokenAmount'
 import { Drawer, DrawerContent, DrawerTitle } from '../../../components/ui/drawer'
 import { PresenceDot, LockBadge } from './navShared'
 import { LOCKED_MESSAGE, getNavItemKey, isProtectedNavItem } from './navConstants'
-import { useTheme } from '../../../components/theme-provider'
 
 // 沒有滑鼠 hover 能力的裝置（iPad、手機）都沒辦法用桌機 DesktopSidebar 那套「hover 才
 // 展開顯示文字」的收合側邊欄互動，一律改成左上角一顆按鈕，點開從左側滑出的 Drawer，內容跟
 // DesktopSidebar 共用同一份 NAV_SECTIONS，只是一律展開顯示文字（不需要 hover 收合這層
 // 邏輯）。手機版原本另外有 MobileHeader（頂部品牌列＋通知/訊息）＋ MobileDock（底部
 // 快速搜尋/建立群組/探索/我的/帳號 Tab 列），兩者都已移除，改成跟 iPad 共用同一套
-// 「觸發鈕 + Drawer」，通知/PM幣/訊息改由 DesktopSidebar 的浮動按鈕接手（那組按鈕
-// 已經改成不分寬度一律顯示）。觸發按鈕只在「沒有 hover 能力」時顯示，真正的桌機
-// （can-hover:lg:）維持原本的 DesktopSidebar，兩者互斥不會同時出現
+// 「觸發鈕 + Drawer」，通知/訊息改由 DesktopSidebar 的浮動按鈕接手（不分寬度一律
+// 顯示）。觸發按鈕只在「沒有 hover 能力」時顯示，真正的桌機（can-hover:lg:）維持原本的
+// DesktopSidebar，兩者互斥不會同時出現。PM幣入口放在 Drawer 底部，取代原本的深淺色
+// 模式切換按鈕（深淺色切換仍可在帳號設定頁使用），未登入不顯示這格
 export default function TabletSidebarDrawer({
   loggedIn,
   pathname,
@@ -23,13 +24,14 @@ export default function TabletSidebarDrawer({
   avatarInitial,
   avatarColor,
   presenceStatus,
+  tokenBalance,
+  setTopupOpen,
   closeAll,
   openCreate,
   openMatch,
   preventLockedAction,
 }) {
   const [open, setOpen] = useState(false)
-  const { theme, toggleTheme } = useTheme()
 
   function isGuestLocked(item) {
     return !loggedIn && isProtectedNavItem(item)
@@ -106,13 +108,22 @@ export default function TabletSidebarDrawer({
         type="button"
         onClick={() => setOpen(true)}
         aria-label="開啟導覽選單"
-        className="fixed left-4 top-4 z-50 grid h-12 w-12 place-items-center rounded-2xl border border-line bg-surface text-ink-2 shadow-sm transition-colors hover:bg-raised can-hover:lg:hidden"
+        className="fixed left-4 top-4 z-50 grid h-12 w-12 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-sm transition-colors hover:bg-raised can-hover:lg:hidden"
       >
         <Menu size={20} strokeWidth={2} />
       </button>
 
       <Drawer open={open} onOpenChange={setOpen} swipeDirection="left" showSwipeHandle>
-        <DrawerContent>
+        {/* 內容只是一份 icon + 文字的攤平導覽清單，用不到 Drawer 元件預設的 85%／24rem
+            寬度（那是給 FloatingMessages 這類訊息面板用的），這裡固定縮窄一點。
+            data-[swipe-direction=left]:border-r-0 蓋掉 Drawer 元件預設會幫每個方向補上
+            的邊框（drawer.jsx 裡用同一個 data 屬性 selector 才蓋得掉，寫成一般的
+            border-r-0 因為 variant 不同不會生效），只針對這個 Drawer 個別關掉，不影響
+            FloatingMessages 等其他方向的 Drawer */}
+        <DrawerContent
+          style={{ '--drawer-content-width': '18rem' }}
+          className="data-[swipe-direction=left]:border-r-0"
+        >
           <DrawerTitle className="sr-only">導覽選單</DrawerTitle>
 
           <a href="/" onClick={handleNavigate} className="flex h-16 shrink-0 items-center gap-3 px-4" aria-label="回首頁">
@@ -132,17 +143,19 @@ export default function TabletSidebarDrawer({
           </nav>
 
           <div className="px-2 pb-4">
-            <button
-              type="button"
-              onClick={toggleTheme}
-              aria-label={theme === 'dark' ? '切換淺色模式' : '切換深色模式'}
-              className="mb-1 flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
-            >
-              <span className="grid h-9 w-9 shrink-0 place-items-center">
-                {theme === 'dark' ? <Sun size={22} strokeWidth={2.1} /> : <Moon size={22} strokeWidth={2.1} />}
-              </span>
-              <span className="whitespace-nowrap font-bold">{theme === 'dark' ? '淺色模式' : '深色模式'}</span>
-            </button>
+            {loggedIn && (
+              <button
+                type="button"
+                onClick={() => { setOpen(false); setTopupOpen(true) }}
+                aria-label="PM幣儲值"
+                className="mb-1 flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
+              >
+                <span className="grid h-9 w-9 shrink-0 place-items-center">
+                  <TokenBadge className="shrink-0" />
+                </span>
+                <span className="whitespace-nowrap font-bold">{tokenBalance.toLocaleString()} PM</span>
+              </button>
+            )}
 
             {loggedIn ? (
               <a href="/account" onClick={handleNavigate} className="flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left transition-all hover:bg-raised">

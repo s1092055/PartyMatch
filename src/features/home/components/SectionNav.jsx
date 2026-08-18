@@ -11,7 +11,6 @@ const SECTION_LABELS = {
   'section-why-us': '為什麼選擇 PartyMatch？',
   'section-audience': '適合每一種共享生活',
   'section-featured-groups': '探索適合你的共享群組',
-  'section-benefits': '自己開團，輕鬆管理',
   'section-identity': '我想成為？',
   'section-cta': '立即開始共享訂閱之旅',
   'section-faq': '常見問題',
