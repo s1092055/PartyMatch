@@ -113,7 +113,7 @@ export default function TabletSidebarDrawer({
         <Menu size={20} strokeWidth={2} />
       </button>
 
-      <Drawer open={open} onOpenChange={setOpen} swipeDirection="left" showSwipeHandle>
+      <Drawer open={open} onOpenChange={setOpen} swipeDirection="left">
         {/* 內容只是一份 icon + 文字的攤平導覽清單，用不到 Drawer 元件預設的 85%／24rem
             寬度（那是給 FloatingMessages 這類訊息面板用的），這裡固定縮窄一點。
             data-[swipe-direction=left]:border-r-0 蓋掉 Drawer 元件預設會幫每個方向補上
