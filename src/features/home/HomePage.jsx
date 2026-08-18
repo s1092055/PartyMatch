@@ -19,11 +19,6 @@ import SectionNav from './components/SectionNav'
 import RevealSection from '../../components/ui/primitives/RevealSection'
 import { ADMIN_HOME_PATH } from '../../app/AdminRoute'
 import { ALL_SERVICES } from './data/allServices'
-import { useSettledViewportHeightVar } from '../../common/utils/viewport'
-
-// Hero 維持滿版高度的計算基準，只在捲動真正結束或寬度真的改變時更新，見 viewport.js
-// useSettledViewportHeightVar 的說明；className 裡對應寫死同一個變數名 --pm-home-hero-vh
-const HERO_VH_VAR = '--pm-home-hero-vh'
 
 const MessagesModal = lazy(() => import('../messages/MessagesModal'))
 // HomePage 獨立於 AppLayout 之外（AppLayout 平常才會掛一份 GroupDetailModal／QuickMatchModal），
@@ -36,7 +31,6 @@ export default function HomePage() {
   const navigate = useNavigate()
   const loggedIn = useAuthStore(s => s.loggedIn)
   const isAdmin = useAuthStore(s => s.user?.isAdmin ?? false)
-  useSettledViewportHeightVar(HERO_VH_VAR)
 
   // 從別的頁面導回首頁時（例如點導覽列 logo），SPA 的 client-side 導頁不會像整頁重新載入
   // 那樣自動把捲動位置歸零，會直接沿用上一頁當下的 scrollY，導致回首頁時卡在某個 Section
@@ -62,7 +56,7 @@ export default function HomePage() {
       <SectionNav />
       <ScrollCue />
 
-      <section id="section-hero" className="relative flex min-h-[var(--pm-home-hero-vh,100dvh)] w-full flex-col items-center justify-center overflow-hidden pb-32 pt-28 text-center lg:pb-20 lg:pt-16">
+      <section id="section-hero" className="relative flex min-h-[100svh] w-full flex-col items-center justify-center overflow-hidden pb-32 pt-28 text-center lg:pb-20 lg:pt-16">
         <BubbleField count={9} size={46} />
 
         <RevealSection className="relative mx-auto w-full max-w-3xl px-5">
