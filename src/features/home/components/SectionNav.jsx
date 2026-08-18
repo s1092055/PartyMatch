@@ -1,22 +1,22 @@
 import { useEffect, useRef, useState } from 'react'
+import { HOME_SECTION_IDS } from '../data/sectionIds'
 
 // 首頁右側垂直置中的分段導覽：平常收合成一排小圓點，滑鼠 hover 整條展開顯示各 Section 標題，
-// 點擊直接捲動到對應區塊。跟 DesktopSidebar 不同的地方：外層顯示與否只看寬度（lg:），
-// 不疊 can-hover:——收合狀態的圓點本身不需要 hover 就能點擊導覽，iPad 這類沒有 hover
-// 能力但螢幕夠寬的裝置也看得到、用得到；只有「hover 才展開顯示完整標題文字」這個互動
-// 細節（見下面 ul／span 的 can-hover:hover:）維持只在真的有 hover 能力的裝置上觸發，
-// 觸控裝置永遠停在收合狀態，直接點圓點導覽即可
-// label 一律照抄各 Section 實際的標題文字（h1/h2），不要另外改寫
-const SECTIONS = [
-  { id: 'section-hero', label: 'PartyMatch' },
-  { id: 'section-why-us', label: '為什麼選擇 PartyMatch？' },
-  { id: 'section-audience', label: '適合每一種共享生活' },
-  { id: 'section-featured-groups', label: '探索適合你的共享群組' },
-  { id: 'section-benefits', label: '自己開團，輕鬆管理' },
-  { id: 'section-identity', label: '我想成為？' },
-  { id: 'section-cta', label: '立即開始共享訂閱之旅' },
-  { id: 'section-faq', label: '常見問題' },
-]
+// 點擊直接捲動到對應區塊。跟 DesktopSidebar 同一套「收合成 icon、hover 才展開全名」模式，
+// 只在有真正 hover 能力的桌機顯示（can-hover:lg:block），iPad 版不顯示這個選單
+// label 一律照抄各 Section 實際的標題文字（h1/h2），不要另外改寫；id 跟 HomePage.jsx
+// 的捲動吸附共用同一份 HOME_SECTION_IDS，這裡另外配上顯示用的 label
+const SECTION_LABELS = {
+  'section-hero': 'PartyMatch',
+  'section-why-us': '為什麼選擇 PartyMatch？',
+  'section-audience': '適合每一種共享生活',
+  'section-featured-groups': '探索適合你的共享群組',
+  'section-benefits': '自己開團，輕鬆管理',
+  'section-identity': '我想成為？',
+  'section-cta': '立即開始共享訂閱之旅',
+  'section-faq': '常見問題',
+}
+const SECTIONS = HOME_SECTION_IDS.map(id => ({ id, label: SECTION_LABELS[id] }))
 
 export default function SectionNav() {
   const [activeId, setActiveId] = useState(SECTIONS[0].id)
@@ -58,7 +58,7 @@ export default function SectionNav() {
   return (
     <nav
       aria-label="區塊導覽"
-      className="fixed right-6 top-1/2 z-40 hidden -translate-y-1/2 lg:block"
+      className="fixed right-6 top-1/2 z-40 hidden -translate-y-1/2 can-hover:lg:block"
     >
       {/* 收合時只露出方塊寬度，hover 整條展開成固定寬度，讓每個項目的 hover:bg-raised
           能撐滿整排寬度，而不是只包住文字本身 */}

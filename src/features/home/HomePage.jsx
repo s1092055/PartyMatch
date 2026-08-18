@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useLayoutEffect } from 'react'
+import { lazy, Suspense, useLayoutEffect } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { ChevronRight, Compass } from 'lucide-react'
 import { Button } from '../../components/ui/button'
@@ -41,52 +41,12 @@ export default function HomePage() {
     window.scrollTo(0, 0)
   }, [])
 
-  // 全站預設用 snap-mandatory（曾經全站改 snap-proximity 想避免手機版一滑就整段跳走，
-  // 但 iOS Safari 會出現兩段式吸附頓挫，已 revert）。Hero 這一段例外：Hero 內容比其他
-  // Section 短很多，往下滑一點點的手勢動能就足以讓 mandatory 判定「已離開 Hero」直接
-  // 吸到下一個 Section，體感像被硬拉走。這裡只在 Hero 還有一半以上還在視窗內時暫時放寬成
-  // proximity，讓使用者滑一點點可以先停在 Hero 範圍內；一旦滑超過一半（代表使用者已經
-  // 確實要離開 Hero）才切回 mandatory，其餘 Section 之間的吸附行為不受影響
-  useEffect(() => {
-    const root = document.documentElement
-    const heroEl = document.getElementById('section-hero')
-    root.classList.add('snap-y')
-
-    if (!heroEl) {
-      root.classList.add('snap-mandatory')
-      return () => root.classList.remove('snap-y', 'snap-mandatory')
-    }
-
-    root.classList.add('snap-proximity')
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.intersectionRatio >= 0.5) {
-          root.classList.remove('snap-mandatory')
-          root.classList.add('snap-proximity')
-        } else {
-          root.classList.remove('snap-proximity')
-          root.classList.add('snap-mandatory')
-        }
-      },
-      { threshold: [0, 0.5, 1] }
-    )
-    observer.observe(heroEl)
-
-    return () => {
-      observer.disconnect()
-      root.classList.remove('snap-y', 'snap-mandatory', 'snap-proximity')
-    }
-  }, [])
-
   // 管理員帳號不參與一般使用者流程（探索/建立/加入群組），登入後一律停在管理員後台，
   // 這裡額外攔一次是為了「已登入的管理員直接輸入網址回到首頁」的情境，不只靠登入當下的導頁
   if (loggedIn && isAdmin) return <Navigate to={ADMIN_HOME_PATH} replace />
 
   return (
-    // 左邊 ml-20 留給 DesktopSidebar（仍然只在真的有 hover 能力的裝置顯示），跟右邊
-    // mr-24 留給 SectionNav 分開判斷——SectionNav 現在只看寬度（lg:）就會顯示，觸控平板
-    // 也看得到，這裡的留白要跟著同一個條件，不然 iPad 版右邊會被 SectionNav 蓋到內容
-    <div className="flex min-h-screen flex-col bg-canvas text-ink can-hover:lg:ml-20 lg:mr-24">
+    <div className="flex min-h-screen flex-col bg-canvas text-ink can-hover:lg:ml-20 can-hover:lg:mr-24">
       <AppNav />
       <Suspense fallback={null}>
         <MessagesModal />
@@ -103,7 +63,7 @@ export default function HomePage() {
           衝突——留白越多，可用高度預算越少，越容易觸發縮小；平板的螢幕高度本來就常常比手機
           矮（尤其橫向），疊加起來讓平板這個級距的內容縮得特別小、比例明顯不對，已拿掉這個
           sm: 留白，讓留白量從手機到桌機單調遞增，不要中間平板這一段反而最大 */}
-      <section id="section-hero" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center overflow-hidden pb-32 pt-28 text-center lg:pb-20 lg:pt-16">
+      <section id="section-hero" className="relative flex min-h-dvh w-full flex-col items-center justify-center overflow-hidden pb-32 pt-28 text-center lg:pb-20 lg:pt-16">
         <BubbleField count={9} size={46} />
 
         <RevealSection className="relative mx-auto w-full max-w-3xl px-5">
@@ -124,25 +84,25 @@ export default function HomePage() {
         </RevealSection>
       </section>
 
-      <section id="section-why-us" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 can-hover:lg:pb-16 can-hover:lg:pt-16">
+      <section id="section-why-us" className="relative flex min-h-dvh w-full flex-col items-center justify-center px-5 pb-20 pt-8 can-hover:lg:pb-16 can-hover:lg:pt-16">
         <RevealSection className="mx-auto w-full max-w-3xl">
           <WhyUs />
         </RevealSection>
       </section>
 
-      <section id="section-audience" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 lg:pb-20 lg:pt-12">
+      <section id="section-audience" className="relative flex min-h-dvh w-full flex-col items-center justify-center px-5 pb-20 pt-8 lg:pb-20 lg:pt-12">
         <RevealSection className="mx-auto w-full max-w-3xl">
           <AudienceGrid />
         </RevealSection>
       </section>
 
-      <section id="section-featured-groups" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 lg:pb-20 lg:pt-12">
+      <section id="section-featured-groups" className="relative flex min-h-dvh w-full flex-col items-center justify-center px-5 pb-20 pt-8 lg:pb-20 lg:pt-12">
         <RevealSection className="mx-auto w-full max-w-3xl">
           <FeaturedGroupsCarousel />
         </RevealSection>
       </section>
 
-      <section id="section-benefits" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 lg:pb-20 lg:pt-12">
+      <section id="section-benefits" className="relative flex min-h-dvh w-full flex-col items-center justify-center px-5 pb-20 pt-8 lg:pb-20 lg:pt-12">
         <RevealSection className="mx-auto w-full max-w-3xl">
           <BenefitsList />
         </RevealSection>
@@ -153,13 +113,13 @@ export default function HomePage() {
           的全域自動縮放機制處理，這裡的版面對齊方式不用另外補；曾經在這裡試過 justify-start
           把內容整塊往上頂，結果內容變高，比原本的置中還醜，已改回跟其他 Section 一致的
           justify-center + 一般留白量 */}
-      <section id="section-identity" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 lg:pb-20 lg:pt-12">
+      <section id="section-identity" className="relative flex min-h-dvh w-full flex-col items-center justify-center px-5 pb-20 pt-8 lg:pb-20 lg:pt-12">
         <RevealSection className="mx-auto w-full max-w-3xl">
           <IdentityJourney />
         </RevealSection>
       </section>
 
-      <section id="section-cta" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 pb-20 pt-8 lg:pb-20 lg:pt-12">
+      <section id="section-cta" className="relative flex min-h-dvh w-full flex-col items-center justify-center px-5 pb-20 pt-8 lg:pb-20 lg:pt-12">
         <RevealSection className="mx-auto w-full max-w-3xl text-center">
           <div className="rounded-card border border-line bg-surface px-5 py-10 sm:px-8 sm:py-12">
             <h2 className="text-2xl font-extrabold text-ink md:text-3xl">立即開始共享訂閱之旅</h2>
@@ -190,16 +150,13 @@ export default function HomePage() {
         </RevealSection>
       </section>
 
-      <section id="section-faq" className="relative flex min-h-dvh w-full snap-start flex-col items-center justify-center px-5 py-20 lg:py-12">
+      <section id="section-faq" className="relative flex min-h-dvh w-full flex-col items-center justify-center px-5 py-20 lg:py-12">
         <RevealSection className="mx-auto w-full max-w-3xl">
           <FAQ />
         </RevealSection>
       </section>
 
-      {/* Footer 本身沒有 min-h-dvh，若不給 snap 對齊點，捲動慣性只滑過 Footer 一部分高度時容易被拉回 FAQ 區塊，導致使用者滑不到最底部；補上 snap-end 讓 Footer 底部本身成為合法的吸附點 */}
-      <div className="snap-end">
-        <AppFooter />
-      </div>
+      <AppFooter />
     </div>
   )
 }

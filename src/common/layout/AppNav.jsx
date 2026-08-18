@@ -7,6 +7,7 @@ import { useConversationStore } from '../stores/useConversationStore'
 import TopupModal from '../../components/ui/TopupModal'
 import { LOCKED_MESSAGE } from './components/navConstants'
 import DesktopSidebar from './components/DesktopSidebar'
+import TabletSidebarDrawer from './components/TabletSidebarDrawer'
 import MobileHeader from './components/MobileHeader'
 import MobileDock from './components/MobileDock'
 
@@ -104,6 +105,19 @@ export default function AppNav() {
         openMatch={openMatch}
         openNotify={openNotify}
         openMessages={openMessages}
+        preventLockedAction={preventLockedAction}
+      />
+
+      <TabletSidebarDrawer
+        loggedIn={loggedIn}
+        pathname={pathname}
+        userName={userName}
+        avatarInitial={avatarInitial}
+        avatarColor={avatarColor}
+        presenceStatus={presenceStatus}
+        closeAll={closeAll}
+        openCreate={openCreate}
+        openMatch={openMatch}
         preventLockedAction={preventLockedAction}
       />
 

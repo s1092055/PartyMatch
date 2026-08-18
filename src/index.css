@@ -18,6 +18,11 @@
    純粹看「螢幕夠不夠寬」的版面（modal 分欄、grid 欄數）不用疊加，直接用一般斷點即可 */
 @custom-variant can-hover (@media (hover: hover) and (pointer: fine));
 
+/* can-hover 的反面（De Morgan：NOT(hover:hover AND pointer:fine) = hover:none OR
+   pointer:coarse，逗號在 media query 裡就是 OR），給「lg 以上寬度、但沒有 hover 能力」
+   這個 iPad 專屬級距用（例如 TabletSidebarDrawer 的觸發按鈕），要跟 lg: 疊加使用 */
+@custom-variant no-hover (@media (hover: none), (pointer: coarse));
+
 @theme {
   /* ── Breakpoints（標準五段式：sm 640 / md 768 / lg 1024 / xl 1280 / 2xl 1536）──
      裝置類型相關（尤其是靠 hover 展開內容）的版面切換不能只看寬度，要疊加上面的

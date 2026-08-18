@@ -17,7 +17,7 @@ function HeaderIconButton({ onClick, label, icon: Icon, count }) {
 
 export default function MobileHeader({ loggedIn, unreadNotifs, unreadMsgs, openNotify, openMessages }) {
   return (
-    <div data-mobile-header className="fixed left-3 right-3 top-3 z-50 flex items-center gap-2 can-hover:lg:hidden">
+    <div data-mobile-header className="fixed left-3 right-3 top-3 z-50 flex items-center gap-2 lg:hidden">
       <header className="flex h-14 min-w-0 flex-1 items-center rounded-2xl border border-line bg-surface px-4 shadow-sm">
         <a href="/" className="flex items-center gap-2" aria-label="回首頁">
           <img src={logoUrl} alt="PartyMatch" className="h-8 w-8" />

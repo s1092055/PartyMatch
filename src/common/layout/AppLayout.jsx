@@ -19,12 +19,15 @@ export default function AppLayout() {
     <div className="min-h-screen bg-canvas">
       <RouteScrollReset />
       <AppNav />
-      {/* ml/mr/pt 是幫桌機側邊欄／手機底部 Dock 留的版面間距，要跟著 DesktopSidebar／
-          MobileHeader／MobileDock 實際顯示的條件（can-hover:lg:）走，不能只看寬度——
-          不然沒有滑鼠 hover 能力的裝置（例如 iPad 橫向）會兩邊都留白／留空不對，
-          內容不是被 Dock 蓋到就是多留一截用不到的空間 */}
-      <main className="flex flex-col pt-14 can-hover:lg:ml-20 can-hover:lg:mr-24 can-hover:lg:pt-0">
-        <div className="mx-auto min-h-[calc(100dvh-3.5rem)] w-full max-w-7xl px-4 pt-12 pb-28 can-hover:lg:min-h-dvh can-hover:lg:py-12 lg:max-w-[clamp(80rem,100vw,90rem)] lg:px-2">
+      {/* pt/pb 是幫 MobileHeader／MobileDock 留的版面間距，這兩個元件只看寬度就會隱藏
+          （lg:hidden，不疊 can-hover:——iPad 這類沒有 hover 能力的裝置改用
+          TabletSidebarDrawer 的觸發按鈕，不再用 MobileHeader／MobileDock），留白要跟著
+          同一個條件退掉，不然 iPad 版上下會多留一截用不到的空間。ml/mr 則是留給桌機
+          DesktopSidebar 那條「持續佔用版面」的側邊欄，這個仍然只在真的有 hover 能力的
+          裝置顯示（can-hover:lg:）——iPad 版的側邊欄是點開才出現的 Drawer，不會持續佔用
+          版面，不需要另外留白 */}
+      <main className="flex flex-col pt-14 lg:pt-0 can-hover:lg:ml-20 can-hover:lg:mr-24">
+        <div className="mx-auto min-h-[calc(100dvh-3.5rem)] w-full max-w-7xl px-4 pt-12 pb-28 lg:min-h-dvh lg:py-12 lg:max-w-[clamp(80rem,100vw,90rem)] lg:px-2">
           <Outlet />
         </div>
         <AppFooter />

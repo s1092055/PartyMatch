@@ -94,7 +94,7 @@ export default function MobileDock({
   return (
     <nav
       data-mobile-dock
-      className={`fixed left-3 right-3 z-50 rounded-2xl border border-line bg-surface shadow-sm transition-transform duration-300 ease-out can-hover:lg:hidden ${
+      className={`fixed left-3 right-3 z-50 rounded-2xl border border-line bg-surface shadow-sm transition-transform duration-300 ease-out lg:hidden ${
         atBottom ? 'translate-y-[calc(100%+1rem)]' : 'translate-y-0'
       }`}
       style={{ bottom: 'max(1rem, calc(env(safe-area-inset-bottom) + 0.5rem))' }}

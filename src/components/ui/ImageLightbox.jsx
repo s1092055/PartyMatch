@@ -1,6 +1,8 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+
+const SWIPE_THRESHOLD = 40
 
 // 附件預覽用的輕量燈箱，不走 Radix Dialog——這個元件是從已經開著的群組詳情 Modal
 // 裡面再疊一層，背景捲動早就被最外層的 Dialog 鎖住了，不需要自己管 scroll lock。
@@ -15,6 +17,24 @@ import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 // 切換箭頭（多張圖片可切換的情境，例如首頁族群卡片）——桌機/平板貼在螢幕左右兩側，手機版
 // 沒有側邊空間，改成一排按鈕排在圖片下方
 export default function ImageLightbox({ url, alt, onClose, caption, imageClassName = 'max-h-full max-w-full object-contain', onPrev, onNext }) {
+  // 手機／平板可以直接在圖片上左右拖拽切換，只認 touch（e.pointerType）：桌機已經有
+  // 螢幕兩側的箭頭按鈕，滑鼠拖拽圖片容易跟瀏覽器原生的「拖曳圖片」手勢打架，不需要
+  // 再疊加這個互動；放開時才判斷位移量有沒有超過門檻，沒超過就當一般點擊處理
+  const dragRef = useRef({ startX: 0, dragging: false })
+
+  function handlePointerDown(e) {
+    if (e.pointerType !== 'touch' || (!onPrev && !onNext)) return
+    dragRef.current = { startX: e.clientX, dragging: true }
+  }
+
+  function handlePointerUp(e) {
+    if (!dragRef.current.dragging) return
+    dragRef.current.dragging = false
+    const deltaX = e.clientX - dragRef.current.startX
+    if (deltaX > SWIPE_THRESHOLD) onPrev?.()
+    else if (deltaX < -SWIPE_THRESHOLD) onNext?.()
+  }
+
   useEffect(() => {
     // 用 capture 階段攔截並 stopPropagation：Radix Dialog 自己也在 document 上監聽 Escape
     // 準備關閉底下的群組詳情 Modal，capture 階段是由外而內（window 比 document 先收到），
@@ -69,8 +89,10 @@ export default function ImageLightbox({ url, alt, onClose, caption, imageClassNa
           <img
             src={url}
             alt={alt ?? '附件'}
-            className={`block rounded-2xl ${imageClassName}`}
+            className={`block touch-pan-y select-none rounded-2xl ${imageClassName}`}
             onClick={e => e.stopPropagation()}
+            onPointerDown={e => { e.stopPropagation(); handlePointerDown(e) }}
+            onPointerUp={e => { e.stopPropagation(); handlePointerUp(e) }}
           />
           {caption && (
             <div className="pointer-events-none absolute inset-x-0 bottom-0 rounded-b-2xl bg-gradient-to-t from-black/80 via-black/10 to-transparent p-4">
