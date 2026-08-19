@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
-import { MousePointerClick, Play, X } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { ChevronRight, MousePointerClick, Play, RotateCcw, X } from 'lucide-react'
 import { HOME_HOST_JOURNEY, HOME_MEMBER_JOURNEY } from '../data/homeContent'
 
 // 兩種身份共用同一組階段 id，切換身份時 Tab 位置／徽章不變，只換底下標題跟內容，
@@ -46,6 +47,39 @@ function StepTrigger({ onClick }) {
       <MousePointerClick size={14} strokeWidth={1.5} className="shrink-0" />
       選擇流程
     </button>
+  )
+}
+
+// 影片播完疊在畫面上的結束畫面，跟 YouTube 播完問「要不要重播」同款手感：黑色遮罩淡入
+// 蓋住影片（duration-500，比其他按鈕淡入淡出稍慢，讓「播完了」這件事更明顯），問使用者
+// 要重播還是直接去下一步；primaryLabel／onPrimaryAction 由外部依身份決定文案跟目的地
+function VideoEndOverlay({ visible, onReplay, onPrimaryAction, primaryLabel }) {
+  return (
+    <div
+      className={`absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-black/75 text-center transition-opacity duration-500 ${
+        visible ? 'opacity-100' : 'pointer-events-none opacity-0'
+      }`}
+    >
+      <p className="text-sm font-bold text-white">影片播放完畢</p>
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={onReplay}
+          className="flex items-center gap-1.5 rounded-full border border-white/30 bg-white/10 px-4 py-2 text-sm font-bold text-white backdrop-blur transition-[background-color,transform] hover:-translate-y-0.5 hover:bg-white/20"
+        >
+          <RotateCcw size={16} strokeWidth={1.5} />
+          重播
+        </button>
+        <button
+          type="button"
+          onClick={onPrimaryAction}
+          className="flex items-center gap-1.5 rounded-full bg-brand px-4 py-2 text-sm font-bold text-white transition-[background-color,transform] hover:-translate-y-0.5 hover:bg-brand/90"
+        >
+          {primaryLabel}
+          <ChevronRight size={16} strokeWidth={1.5} />
+        </button>
+      </div>
+    </div>
   )
 }
 
@@ -123,12 +157,16 @@ function StepPanel({ open, onClose, items, activeValue, onChange }) {
 // 沒有真正 hover 能力的裝置（手機＋iPad）改成點擊影片左上角「選擇流程」按鈕才叫出、從
 // 影片容器內部滑出的面板
 export default function IdentityJourney() {
+  const navigate = useNavigate()
   const [role, setRole] = useState(ROLES[0].id)
   const journey = ROLES.find(r => r.id === role).journey
   const [activePhaseId, setActivePhaseId] = useState(journey[0].id)
   const activePhase = journey.find(p => p.id === activePhaseId)
   const videoRef = useRef(null)
   const [stepPanelOpen, setStepPanelOpen] = useState(false)
+  // 影片播完後顯示重播／下一步的結束畫面；換身份或換階段都要換一支影片重新播放，
+  // 得跟著重設，不然新影片才剛開始播，結束畫面卻還疊在上面
+  const [videoEnded, setVideoEnded] = useState(false)
   // 播哪一支影片要看裝置本身有沒有真正的滑鼠 hover 能力，不能看視窗寬度：不然真桌機
   // 使用者把視窗縮到 1024px 以下會被誤判成手機，看到直式手機操作影片反而更奇怪；平板
   // 沒有真正 hover 能力，直接併入手機這一組，播手機版影片。裝置的 hover 能力不會在
@@ -147,11 +185,27 @@ export default function IdentityJourney() {
     setRole(nextRole)
     const nextJourney = ROLES.find(r => r.id === nextRole).journey
     setActivePhaseId(nextJourney[0].id)
+    setVideoEnded(false)
   }
 
   function handlePhaseSelect(id) {
     setActivePhaseId(id)
+    setVideoEnded(false)
     closeStepPanel()
+  }
+
+  function handleReplay() {
+    const video = videoRef.current
+    if (!video) return
+    video.currentTime = 0
+    video.play()
+    setVideoEnded(false)
+  }
+
+  // 團主看完影片直接導去建立群組頁；成員情境下「建立群組」不是下一步，改導去探索頁找
+  // 現有群組申請
+  function handlePrimaryAction() {
+    navigate(role === 'host' ? '/create-group' : '/explore')
   }
 
   // 開啟「選擇流程」面板時先暫停目前播放中的影片，避免面板蓋在畫面上時背景還繼續播放；
@@ -207,18 +261,27 @@ export default function IdentityJourney() {
                   問題。桌機影片是橫式錄影，長寬比跟 aspect-video 的容器一致，用
                   object-cover 即可 */}
               {videoSrc ? (
-                // 改用瀏覽器原生 <video controls>：播放/暫停、進度條、全螢幕、音量都交給
-                // 瀏覽器內建控制列，不用再自己刻按鈕跟顯示/收起邏輯
-                <video
-                  ref={videoRef}
-                  controls
-                  className={`absolute inset-0 h-full w-full ${isHoverDevice ? 'object-cover' : 'object-contain'}`}
-                  src={videoSrc}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                />
+                <>
+                  {/* 改用瀏覽器原生 <video controls>：播放/暫停、進度條、全螢幕、音量都
+                      交給瀏覽器內建控制列，不用再自己刻按鈕跟顯示/收起邏輯。不再加 loop——
+                      播完要停下來讓 onEnded 觸發下面的結束畫面，不是無限循環播放 */}
+                  <video
+                    ref={videoRef}
+                    controls
+                    onEnded={() => setVideoEnded(true)}
+                    className={`absolute inset-0 h-full w-full ${isHoverDevice ? 'object-cover' : 'object-contain'}`}
+                    src={videoSrc}
+                    autoPlay
+                    muted
+                    playsInline
+                  />
+                  <VideoEndOverlay
+                    visible={videoEnded}
+                    onReplay={handleReplay}
+                    onPrimaryAction={handlePrimaryAction}
+                    primaryLabel={role === 'host' ? '建立群組' : '探索群組'}
+                  />
+                </>
               ) : (
                 <Play size={40} strokeWidth={1.5} />
               )}
