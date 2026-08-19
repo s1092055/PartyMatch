@@ -12,8 +12,8 @@ import couplesPhoto from '../../../assets/Couples.png'
 import friendsPhoto from '../../../assets/Friends.png'
 import familyPhoto from '../../../assets/Family.png'
 import freelancerPhoto from '../../../assets/freelance worker.png'
-import createGroupFlowVideo from '../../../assets/flow-videos/create-group-m.mov'
-import createGroupFlowVideoDesktop from '../../../assets/flow-videos/create-group-d.mov'
+import createGroupFlowVideo from '../../../assets/flow-videos/create-group-m.mp4'
+import createGroupFlowVideoDesktop from '../../../assets/flow-videos/create-group-d.mp4'
 
 // 「PartyMatch 是什麼？」區塊：首頁第一個內容區塊（Hero 之後），讓還不認識 PartyMatch 的
 // 使用者快速看懂服務內容，走編號列表呈現三個核心環節，跟「為什麼選擇 PartyMatch？」的
