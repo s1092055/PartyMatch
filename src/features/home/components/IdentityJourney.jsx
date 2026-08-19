@@ -77,13 +77,17 @@ function UnderlineTabs({ items, activeValue, onChange }) {
 }
 
 // 沒有真正 hover 能力的裝置（手機＋iPad）用來開啟階段選單的觸發按鈕，疊在影片左上角
-// （跟右下角的全螢幕按鈕分開兩角，不會互相搶位置）
-function StepTrigger({ onClick }) {
+// （跟右下角的全螢幕按鈕分開兩角，不會互相搶位置）；播放中的影片跟 YouTube 一樣預設收起
+// 工具列，這裡的 visible 是外部算好的「現在該不該顯示」，只負責淡入淡出＋停用點擊，
+// can-hover:lg:hidden 維持不變（真桌機沒有影片可播放，這顆按鈕本來就整個不出現）
+function StepTrigger({ onClick, visible }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="absolute left-2 top-2 z-10 flex h-9 items-center justify-center gap-1.5 rounded-full bg-canvas/80 px-3 text-xs font-bold text-ink-2 shadow-sm backdrop-blur transition-colors hover:bg-raised can-hover:lg:hidden"
+      className={`absolute left-2 top-2 z-10 flex h-9 items-center justify-center gap-1.5 rounded-full bg-canvas/80 px-3 text-xs font-bold text-ink-2 shadow-sm backdrop-blur transition-opacity duration-300 hover:bg-raised can-hover:lg:hidden ${
+        visible ? 'opacity-100' : 'pointer-events-none opacity-0'
+      }`}
     >
       <MousePointerClick size={14} strokeWidth={1.5} className="shrink-0" />
       選擇流程
@@ -181,20 +185,35 @@ export default function IdentityJourney() {
   )
   const [stepPanelOpen, setStepPanelOpen] = useState(false)
   const [isPlaying, setIsPlaying] = useState(true)
-  // 手機版影片是自動播放的，說明文字疊在畫面上會擋到內容，所以改成預設收起、點擊影片
-  // 才顯示；沒有影片可播放的階段（還沒補拍）維持一直顯示，因為底下只是靜態 Play icon
-  // 佔位，不會有「說明擋住內容」的問題
-  const [showDesc, setShowDesc] = useState(false)
-  // 切換階段時，影片會換一支重新自動播放，說明文字也要重新收起，避免沿用上一個階段的
+  // 手機版影片自動播放時，說明文字＋工具列（選擇流程／播放暫停／全螢幕按鈕）跟 YouTube
+  // 一樣預設收起、點擊影片容器才顯示，避免疊在畫面上擋住內容；沒有影片可播放的階段
+  // （還沒補拍）或影片被暫停時維持一直顯示——沒有東西在播放就不需要「隱藏工具列」，
+  // 這兩種情況的顯示條件併入下面的 controlsVisible 一起算，不是只看這個旗標本身
+  const [showControls, setShowControls] = useState(false)
+  // 切換階段時，影片會換一支重新自動播放，工具列也要重新收起，避免沿用上一個階段的
   // 顯示/播放狀態；用「渲染期間比對前一次的 activePhaseId」這個 React 官方建議的作法
   // 調整 state（見 https://react.dev/learn/you-might-not-need-an-effect），不要放進
   // useEffect 裡呼叫 setState，否則會多一次不必要的重新渲染
   const [prevPhaseId, setPrevPhaseId] = useState(activePhaseId)
   if (activePhaseId !== prevPhaseId) {
     setPrevPhaseId(activePhaseId)
-    setShowDesc(false)
+    setShowControls(false)
     setIsPlaying(true)
   }
+
+  // 影片播放中、工具列被點出來顯示時，跟 YouTube 一樣過幾秒沒有動作就自動收回去，
+  // 不然工具列會一直蓋在畫面上；暫停或沒有影片時 controlsVisible 本來就一直是
+  // true（見下面），不會進到這個 effect 的收回邏輯
+  useEffect(() => {
+    if (!showControls || !isPlaying) return
+    const timer = setTimeout(() => setShowControls(false), 3000)
+    return () => clearTimeout(timer)
+  }, [showControls, isPlaying, activePhaseId])
+
+  // 工具列／說明文字實際該不該顯示：使用者手動叫出來、影片暫停中、或這個階段根本沒有
+  // 影片在播放（只是 Play icon 佔位）三種情況都要顯示，只有「影片正在播放且使用者沒有
+  // 點出來」才收起
+  const controlsVisible = showControls || !isPlaying || !activePhase.video
 
   const phaseTabItems = journey.map(({ id, title, badge }) => ({ value: id, title, badge }))
 
@@ -333,11 +352,12 @@ export default function IdentityJourney() {
                   全部可見，上下或左右可能會留一點空白，但不會有內容被放大裁切的問題 */}
               {activePhase.video ? (
                 <>
-                  {/* 點擊影片本身切換說明文字的顯示/隱藏，不是控制播放——播放/暫停另外
-                      交給下面獨立的按鈕，兩者分開才不會「想看說明」跟「想暫停」互相干擾 */}
+                  {/* 點擊影片本身叫出／收回工具列，跟 YouTube 手機版同一套手感：工具列
+                      隱藏時這裡直接接住點擊；工具列顯示時，蓋在上面的置中播放/暫停按鈕、
+                      左上角選擇流程、右下角全螢幕按鈕會各自攔截點擊，不會穿透到這裡 */}
                   <video
                     ref={videoRef}
-                    onClick={() => setShowDesc(v => !v)}
+                    onClick={() => setShowControls(v => !v)}
                     className="absolute inset-0 h-full w-full object-contain can-hover:lg:hidden"
                     src={activePhase.video}
                     autoPlay
@@ -347,45 +367,50 @@ export default function IdentityJourney() {
                   />
                   <Play size={40} strokeWidth={1.5} className="hidden can-hover:lg:block" />
 
+                  {/* 播放/暫停按鈕置中疊在影片正中央（YouTube 同款位置），用 inset-0 +
+                      m-auto 讓固定尺寸的圓形按鈕在 relative 容器內置中，不用另外算座標；
+                      隱藏時 pointer-events-none 讓點擊穿透到底下的 video，才能點影片任意
+                      位置（含正中央）重新叫出工具列 */}
                   <button
                     type="button"
                     onClick={togglePlayback}
                     aria-label={isPlaying ? '暫停播放' : '繼續播放'}
-                    className="absolute bottom-2 left-2 z-10 grid h-8 w-8 place-items-center rounded-full bg-canvas/80 text-ink-3 shadow-sm backdrop-blur transition-colors hover:bg-raised hover:text-ink can-hover:lg:hidden"
+                    className={`absolute inset-0 z-10 m-auto grid h-14 w-14 place-items-center rounded-full bg-canvas/80 text-ink-3 shadow-sm backdrop-blur transition-opacity duration-300 hover:bg-raised hover:text-ink can-hover:lg:hidden ${
+                      controlsVisible ? 'opacity-100' : 'pointer-events-none opacity-0'
+                    }`}
                   >
-                    {isPlaying ? <Pause size={14} strokeWidth={1.5} /> : <Play size={14} strokeWidth={1.5} />}
+                    {isPlaying ? <Pause size={24} strokeWidth={1.5} /> : <Play size={24} strokeWidth={1.5} />}
                   </button>
                 </>
               ) : (
                 <Play size={40} strokeWidth={1.5} />
               )}
 
-              <StepTrigger onClick={openStepPanel} />
+              <StepTrigger onClick={openStepPanel} visible={controlsVisible} />
 
               {(fullscreenSupported || (iosVideoFullscreenSupported && activePhase.video)) && (
                 <button
                   type="button"
                   onClick={toggleFullscreen}
                   aria-label={isFullscreen ? '離開全螢幕' : '全螢幕播放'}
-                  className="absolute bottom-2 right-2 z-10 grid h-8 w-8 place-items-center rounded-full bg-canvas/80 text-ink-3 shadow-sm backdrop-blur transition-colors hover:bg-raised hover:text-ink"
+                  className={`absolute bottom-2 right-2 z-10 grid h-8 w-8 place-items-center rounded-full bg-canvas/80 text-ink-3 shadow-sm backdrop-blur transition-opacity duration-300 hover:bg-raised hover:text-ink can-hover:lg:opacity-100 can-hover:lg:pointer-events-auto ${
+                    controlsVisible ? 'opacity-100' : 'pointer-events-none opacity-0'
+                  }`}
                 >
                   {isFullscreen ? <Minimize2 size={14} strokeWidth={1.5} /> : <Maximize2 size={14} strokeWidth={1.5} />}
                 </button>
               )}
 
               {/* 目前選中階段的說明文字，疊在影片容器內部底部置中；key 帶入 activePhaseId
-                  讓切換階段時重播一次淡入效果。外層 pl／pr 留出左下角播放/暫停跟右下角
-                  全螢幕按鈕的位置，避免文字卡片跟按鈕疊在一起（真桌機沒有播放/暫停按鈕，
-                  can-hover:lg:pl-0 拿掉左邊留白）；外層 inset-x-0 撐滿整個寬度，pl／pr
-                  只是內距不是實際留白，那塊 padding 區域仍然是這個 div 的範圍，沒有
-                  pointer-events-none 的話會蓋住並吃掉按鈕的點擊。有播放中的影片時說明
-                  文字預設收起（避免疊在畫面上擋住內容），點擊影片本身才顯示／隱藏；
-                  真桌機沒有播放中的影片（只有 Play icon 佔位），維持一直顯示，can-hover:
-                  lg:opacity-100 強制蓋過 showDesc 的判斷 */}
+                  讓切換階段時重播一次淡入效果。外層 inset-x-0 撐滿整個寬度，pointer-events-
+                  none 避免蓋住底下的 video／置中播放鈕。顯示/隱藏跟其餘工具列共用同一個
+                  controlsVisible：播放中且使用者沒叫出來時收起，暫停中／沒有影片可播放
+                  （只是 Play icon 佔位）／使用者點出來時顯示；can-hover:lg:opacity-100
+                  讓真桌機（沒有播放中的影片）強制蓋過這個判斷、維持一直顯示 */}
               <div
                 key={activePhaseId}
-                className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 animate-fade-in-up px-4 pb-3 pl-14 pr-14 text-center transition-opacity duration-300 can-hover:lg:pl-0 can-hover:lg:pr-16 can-hover:lg:opacity-100 ${
-                  showDesc || !activePhase.video ? 'opacity-100' : 'opacity-0'
+                className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 animate-fade-in-up px-4 pb-3 text-center transition-opacity duration-300 can-hover:lg:opacity-100 ${
+                  controlsVisible ? 'opacity-100' : 'opacity-0'
                 }`}
               >
                 <div className="mx-auto max-w-md rounded-2xl bg-canvas/85 px-4 py-3 shadow-sm backdrop-blur-md">
