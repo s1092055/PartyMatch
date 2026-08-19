@@ -35,7 +35,7 @@ function RoleToggle({ activeValue, onChange }) {
   )
 }
 
-// 開啟階段選單的觸發按鈕，不分裝置都疊在影片內部正上方置中（跟右下角的全螢幕按鈕分開，
+// 開啟階段選單的觸發按鈕，不分裝置都疊在影片內部左下角（跟右下角的全螢幕按鈕左右對稱，
 // 不會互相搶位置）；播放中的影片跟 YouTube 一樣預設收起工具列，這裡的 visible 是外部
 // 算好的「現在該不該顯示」，只負責淡入淡出＋停用點擊
 function StepTrigger({ onClick, visible }) {
@@ -43,7 +43,7 @@ function StepTrigger({ onClick, visible }) {
     <button
       type="button"
       onClick={onClick}
-      className={`absolute left-1/2 top-2 z-10 flex h-9 -translate-x-1/2 items-center justify-center gap-1.5 rounded-full bg-canvas/80 px-3 text-xs font-bold text-ink-2 shadow-sm backdrop-blur transition-opacity duration-300 hover:bg-raised ${
+      className={`absolute left-2 bottom-2 z-10 flex h-9 items-center justify-center gap-1.5 rounded-full bg-canvas/80 px-3 text-xs font-bold text-ink-2 shadow-sm backdrop-blur transition-opacity duration-300 hover:bg-raised ${
         visible ? 'opacity-100' : 'pointer-events-none opacity-0'
       }`}
     >
@@ -377,28 +377,6 @@ export default function IdentityJourney() {
                 </button>
               )}
 
-              {/* 目前選中階段的說明文字，疊在影片容器內部底部置中。外層 inset-x-0 撐滿
-                  整個寬度，pointer-events-none 避免蓋住底下的 video／置中播放鈕。顯示/
-                  隱藏跟其餘工具列共用同一個 controlsVisible：播放中且使用者沒叫出來時
-                  收起，暫停中／沒有影片可播放（只是 Play icon 佔位）／使用者叫出來時
-                  顯示。這裡故意不用 animate-fade-in-up：那個 class 的 animation 帶
-                  fill-mode both，動畫結束後會把 opacity 鎖在 1，之後 controlsVisible
-                  切到 false 時 opacity-0 這個 utility class 完全蓋不過 animation 鎖住的
-                  值，說明文字會變成永遠顯示、按鈕收不起來 */}
-              <div
-                className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 px-4 pb-3 text-center transition-opacity duration-300 ${
-                  controlsVisible ? 'opacity-100' : 'opacity-0'
-                }`}
-              >
-                {/* w-fit + max-w-full：卡片寬度跟著文字內容的實際寬度縮放，塞得下就單行
-                    顯示，不會被固定寬度（原本 max-w-md）硬性截斷成兩行；螢幕太窄放不下
-                    完整內容寬度時，max-w-full 頂住到容器可用寬度，文字才自然換行 */}
-                <div className="mx-auto w-fit max-w-full rounded-2xl bg-canvas/85 px-4 py-3 text-left shadow-sm backdrop-blur-md">
-                  <p className="text-sm font-extrabold text-ink sm:text-base">{activePhase.title}</p>
-                  <p className="mt-1 text-xs leading-relaxed text-ink-3 sm:text-sm">{activePhase.desc}</p>
-                </div>
-              </div>
-
               <StepPanel
                 open={stepPanelOpen}
                 onClose={closeStepPanel}
@@ -408,6 +386,14 @@ export default function IdentityJourney() {
               />
             </div>
           </div>
+        </div>
+
+        {/* 目前選中階段的說明文字，獨立顯示在影片容器下方，跟容器分開兩個區塊，不再疊在
+            影片畫面上——搬出來之後就不用再跟工具列共用 controlsVisible 收放，一律直接
+            顯示；key 帶入 activePhaseId 讓切換階段時重播一次淡入效果 */}
+        <div key={activePhaseId} className="animate-fade-in-up mt-4 rounded-2xl border border-line/70 bg-surface px-4 py-4 text-center">
+          <p className="text-sm font-extrabold text-ink sm:text-base">{activePhase.title}</p>
+          <p className="mt-1 text-xs leading-relaxed text-ink-3 sm:text-sm">{activePhase.desc}</p>
         </div>
       </div>
     </section>
