@@ -8,7 +8,7 @@ import { HOME_SECTION_IDS } from '../data/sectionIds'
 // 共用同一份 HOME_SECTION_IDS，這裡另外配上顯示用的 label
 const SECTION_LABELS = {
   'section-hero': 'PartyMatch',
-  'section-intro': '什麼是 PartyMatch？',
+  'section-intro': 'PartyMatch 是什麼？',
   'section-audience': '適合每一種共享生活',
   'section-identity': '我想成為？',
   'section-why-us': '為什麼選擇 PartyMatch？',

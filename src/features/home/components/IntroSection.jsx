@@ -1,11 +1,11 @@
 import { HOME_INTRO_PILLARS } from '../data/homeContent'
 
-// 「什麼是 PartyMatch？」區塊：首頁第一個內容區塊，讓還不認識 PartyMatch 的使用者快速看懂
+// 「PartyMatch 是什麼？」區塊：首頁第一個內容區塊，讓還不認識 PartyMatch 的使用者快速看懂
 // 服務內容，走高層次的一句話定位＋三個核心環節，後面「我想成為？」再接細節流程
 export default function IntroSection() {
   return (
     <section className="text-center">
-      <h2 className="text-3xl font-extrabold text-ink">什麼是 PartyMatch？</h2>
+      <h2 className="text-3xl font-extrabold text-ink">PartyMatch 是什麼？</h2>
       <p className="mx-auto mt-3 max-w-lg text-left text-base leading-relaxed text-ink-3">
         PartyMatch 是訂閱共享媒合平台，協助你找到願意一起分攤 Netflix、Spotify、ChatGPT 等熱門訂閱服務的夥伴。從尋找或建立群組、送出申請，到金流代管與成員溝通，都能在同一個平台完成，讓多人合購訂閱更簡單、也更安心。
       </p>

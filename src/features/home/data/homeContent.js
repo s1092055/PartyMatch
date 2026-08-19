@@ -13,7 +13,7 @@ import friendsPhoto from '../../../assets/Friends.png'
 import familyPhoto from '../../../assets/Family.png'
 import freelancerPhoto from '../../../assets/freelance worker.png'
 
-// 「什麼是 PartyMatch？」區塊：首頁第一個內容區塊（Hero 之後），讓還不認識 PartyMatch 的
+// 「PartyMatch 是什麼？」區塊：首頁第一個內容區塊（Hero 之後），讓還不認識 PartyMatch 的
 // 使用者快速看懂服務內容，走編號列表呈現三個核心環節，跟「為什麼選擇 PartyMatch？」的
 // Tab 卡片版面刻意做出區隔；不重複「我想成為？」的細節流程跟「為什麼選擇 PartyMatch？」
 // 的信任機制說明
