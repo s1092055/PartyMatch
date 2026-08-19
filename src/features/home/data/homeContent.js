@@ -19,15 +19,15 @@ import freelancerPhoto from '../../../assets/freelance worker.png'
 // 的信任機制說明
 export const HOME_INTRO_PILLARS = [
   {
-    title: '尋找或建立群組',
+    title: '尋找 & 建立群組',
     desc: '瀏覽現有群組直接申請，或自己開團設定服務、方案與名額。',
   },
   {
-    title: '安全加入，安心分攤',
+    title: '安全加入 x 安心共享',
     desc: '費用由平台代管，服務啟用後仍有確認期，不怕收錢不出貨。',
   },
   {
-    title: '一站管理你的訂閱',
+    title: '所有流程一站管理',
     desc: '續約提醒、站內溝通、信用評價，所有都在同一個平台完成。',
   },
 ]

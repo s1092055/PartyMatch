@@ -56,16 +56,16 @@ function UnderlineTabs({ items, activeValue, onChange }) {
           key={value}
           type="button"
           onClick={() => onChange(value)}
-          className={`flex flex-1 flex-col items-center gap-1 px-2 py-3 text-sm font-bold outline-none transition-colors ${
+          className={`flex min-w-0 flex-1 flex-col items-center gap-1 px-2 py-3 text-sm font-bold outline-none transition-colors ${
             value === activeValue ? 'text-brand' : 'text-ink-3 hover:text-ink'
           }`}
         >
           <span
-            className={`text-[0.65rem] font-extrabold tracking-wider ${value === activeValue ? 'text-brand' : 'text-ink-4'}`}
+            className={`w-full truncate text-center text-[0.65rem] font-extrabold tracking-wider ${value === activeValue ? 'text-brand' : 'text-ink-4'}`}
           >
             {badge}
           </span>
-          <span data-value={value} className="truncate">{title}</span>
+          <span data-value={value} className="w-full truncate text-center">{title}</span>
         </button>
       ))}
       <span
@@ -135,47 +135,53 @@ function StepTrigger({ onClick }) {
 // 影片容器本身（inset-y-0 left-0 對齊的是最近的 relative 祖先，也就是影片容器，不是
 // 整個視窗），視覺上是「從影片容器打開的面板」而不是蓋住整個畫面的獨立 Drawer；外層
 // 卡片本來就有 overflow-hidden + rounded-2xl，面板滑出時邊角會自然被裁成一致的圓角。
-// 從左側滑入，寬度只佔容器局部（不是全寬，太寬會蓋掉太多內容），背景用半透明＋模糊
-// （不是純色），底下的影片畫面隱約透出來；右側沒被面板蓋住的部分疊一層可點擊關閉的
-// 半透明遮罩，維持「點外面關閉」的手感。依序是階段（沿用桌機同一顆 UnderlineTabs 切
-// 階段）、子流程清單；點選子流程直接關閉面板（跟原本 Select 選完就收起同一種手感），
-// 切階段則維持開著讓使用者接著往下選
+// 從左側滑入，寬度依裝置不同：手機全寬（沒有多餘影片可露出），sm 以上（iPad）只顯示
+// 一半寬度，右側留一半露出影片內容。背景用半透明＋模糊（不是純色），底下的影片畫面
+// 隱約透出來；iPad 版右側沒被面板蓋住的部分疊一層可點擊關閉的半透明遮罩，維持「點外面
+// 關閉」的手感（手機全寬時沒有露出區域，遮罩收成 0 寬度不顯示）。依序是階段（沿用桌機
+// 同一顆 UnderlineTabs 切階段）、子流程清單；點選子流程直接關閉面板（跟原本 Select
+// 選完就收起同一種手感），切階段則維持開著讓使用者接著往下選
 function StepPanel({ open, onClose, phaseTabItems, activePhaseId, onPhaseChange, steps, activeStepTitle, onStepChange }) {
   return (
     <>
-      {/* 面板寬度縮小成局部（不是全寬）之後，右側會露出一部分影片內容，這裡疊一層可點擊
-          關閉的半透明遮罩，維持「點外面關閉」的手感；left 用 min() 對齊面板實際寬度
-          （w-[80%] max-w-xs 換算成同一個 min(80%, 20rem)），確保遮罩跟面板剛好接壤、
-          不重疊——面板本身有 backdrop-blur，如果遮罩蓋到面板底下，blur 會把遮罩的黑色
-          一起取樣進去，讓面板背景看起來混濁變色，不是乾淨的半透明卡片色 */}
+      {/* 手機版面板全寬，沒有露出的影片區域，不需要遮罩；sm 以上（iPad）面板改成只顯示
+          一半寬度，右側會露出一部分影片內容，這裡疊一層可點擊關閉的半透明遮罩，維持「點
+          外面關閉」的手感。left-1/2 對齊面板實際寬度（sm:w-1/2），確保遮罩跟面板剛好
+          接壤、不重疊——面板本身有 backdrop-blur，如果遮罩蓋到面板底下，blur 會把遮罩的
+          黑色一起取樣進去，讓面板背景看起來混濁變色，不是乾淨的半透明卡片色。手機版用
+          left-full 讓遮罩寬度收成 0（完全不可見），呼應面板全寬時沒有遮罩的設計 */}
       <div
         aria-hidden="true"
         onClick={onClose}
-        style={{ left: 'min(80%, 20rem)' }}
-        className={`absolute inset-y-0 right-0 z-10 bg-black/40 transition-opacity duration-300 ${
+        className={`absolute inset-y-0 right-0 left-full z-10 bg-black/40 transition-opacity duration-300 sm:left-1/2 ${
           open ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
       />
       <div
         role="dialog"
         aria-label="選擇流程階段與步驟"
-        aria-hidden={!open}
-        className={`absolute inset-y-0 left-0 z-20 flex w-[80%] max-w-xs flex-col overflow-hidden border-r border-line/70 bg-surface/85 backdrop-blur-md transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+        // 用 inert 取代 aria-hidden：面板關閉時使用者仍可能停留在裡面的關閉按鈕上
+        // （例如剛點完關閉），aria-hidden 只隱藏語意卻不會主動移除焦點，瀏覽器會噴
+        // 「aria-hidden 蓋到還有焦點的元素」的警告；inert 會連同焦點一起處理掉，
+        // 瀏覽器自動把焦點移出去，不會有這個警告，也一併阻擋隱藏狀態下的鍵盤操作
+        inert={!open}
+        className={`absolute inset-y-0 left-0 z-20 flex w-full flex-col overflow-hidden bg-surface/85 backdrop-blur-md transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] sm:w-1/2 sm:border-r sm:border-line/70 ${
           open ? 'translate-x-0' : 'pointer-events-none -translate-x-full'
         }`}
       >
-        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-line/70 px-3 py-2.5">
-          <span className="ml-1.5 text-sm font-extrabold text-ink sm:text-base">選擇流程</span>
+        <div className="grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 border-b border-line/70 px-3 py-2.5">
+          <span />
+          <span className="text-center text-sm font-extrabold text-ink sm:text-base">選擇流程</span>
           <button
             type="button"
             onClick={onClose}
             aria-label="關閉"
-            className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+            className="grid h-7 w-7 shrink-0 place-items-center justify-self-end rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
           >
             <X size={16} strokeWidth={1.5} />
           </button>
         </div>
-        <div className="shrink-0 border-b border-line/70 px-2 pt-1">
+        <div className="shrink-0 border-b border-line/70 px-3 pt-1">
           <UnderlineTabs items={phaseTabItems} activeValue={activePhaseId} onChange={onPhaseChange} />
         </div>
         <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
@@ -341,10 +347,13 @@ export default function IdentityJourney() {
 
               {/* 目前選中子流程的說明文字，疊在影片容器內部底部置中；key 帶入
                   activeStepTitle 讓切換子流程時重播一次淡入效果。外層 pr 留出右下角
-                  全螢幕按鈕的位置，避免文字卡片跟按鈕疊在一起 */}
+                  全螢幕按鈕的位置，避免文字卡片跟按鈕疊在一起；外層 inset-x-0 撐滿整個
+                  寬度，pr 只是內距不是實際留白，右側 padding 區域仍然是這個 div 的範圍，
+                  沒有 pointer-events-none 的話會蓋住並吃掉全螢幕按鈕的點擊，因為這個
+                  說明區塊在 DOM 順序上排在按鈕後面、同樣是 z-10，後面的元素蓋在上面 */}
               <div
                 key={activeStepTitle}
-                className="absolute inset-x-0 bottom-0 z-10 animate-fade-in-up px-4 pb-3 pr-14 text-center can-hover:lg:pr-16"
+                className="pointer-events-none absolute inset-x-0 bottom-0 z-10 animate-fade-in-up px-4 pb-3 pr-14 text-center can-hover:lg:pr-16"
               >
                 <div className="mx-auto max-w-md rounded-2xl bg-canvas/85 px-4 py-3 shadow-sm backdrop-blur-md">
                   <p className="text-sm font-extrabold text-ink sm:text-base">{activeStep.title}</p>
