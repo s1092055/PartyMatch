@@ -388,12 +388,15 @@ export default function IdentityJourney() {
 
               <StepTrigger onClick={openStepPanel} visible={controlsVisible} />
 
+              {/* 沒有真正 hover 能力的裝置（手機＋iPad）全螢幕按鈕放右上角，跟左上角的
+                  「選擇流程」左右對稱；真桌機維持原本右下角（can-hover:lg:bottom-2
+                  can-hover:lg:top-auto 蓋回去） */}
               {(fullscreenSupported || (iosVideoFullscreenSupported && activePhase.video)) && (
                 <button
                   type="button"
                   onClick={toggleFullscreen}
                   aria-label={isFullscreen ? '離開全螢幕' : '全螢幕播放'}
-                  className={`absolute bottom-2 right-2 z-10 grid h-8 w-8 place-items-center rounded-full bg-canvas/80 text-ink-3 shadow-sm backdrop-blur transition-opacity duration-300 hover:bg-raised hover:text-ink can-hover:lg:opacity-100 can-hover:lg:pointer-events-auto ${
+                  className={`absolute top-2 right-2 z-10 grid h-8 w-8 place-items-center rounded-full bg-canvas/80 text-ink-3 shadow-sm backdrop-blur transition-opacity duration-300 hover:bg-raised hover:text-ink can-hover:lg:top-auto can-hover:lg:bottom-2 can-hover:lg:opacity-100 can-hover:lg:pointer-events-auto ${
                     controlsVisible ? 'opacity-100' : 'pointer-events-none opacity-0'
                   }`}
                 >
