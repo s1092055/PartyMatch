@@ -35,57 +35,15 @@ function RoleToggle({ activeValue, onChange }) {
   )
 }
 
-// 底線 Tab：用一條會滑動的底線 indicator 標示目前選到哪個項目，取代制式的
-// 藥丸背景切換樣式。indicator 的 left/width 量測目前 active 按鈕的實際版位
-// （offsetLeft/offsetWidth 相對於有 position:relative 的容器），切換時用
-// transition 讓底線滑過去，而不是瞬間跳位
-function UnderlineTabs({ items, activeValue, onChange }) {
-  const containerRef = useRef(null)
-  const [indicator, setIndicator] = useState({ left: 0, width: 0 })
-
-  useEffect(() => {
-    const activeLabel = containerRef.current?.querySelector(`[data-value="${activeValue}"]`)
-    if (!activeLabel) return
-    setIndicator({ left: activeLabel.offsetLeft, width: activeLabel.offsetWidth })
-  }, [activeValue, items])
-
-  return (
-    <div ref={containerRef} className="relative flex w-full gap-2">
-      {items.map(({ value, title, badge }) => (
-        <button
-          key={value}
-          type="button"
-          onClick={() => onChange(value)}
-          className={`flex min-w-0 flex-1 flex-col items-center gap-1 px-2 py-3 text-sm font-bold outline-none transition-colors ${
-            value === activeValue ? 'text-brand' : 'text-ink-3 hover:text-ink'
-          }`}
-        >
-          <span
-            className={`w-full truncate text-center text-[0.65rem] font-extrabold tracking-wider ${value === activeValue ? 'text-brand' : 'text-ink-4'}`}
-          >
-            {badge}
-          </span>
-          <span data-value={value} className="w-full truncate text-center">{title}</span>
-        </button>
-      ))}
-      <span
-        className="absolute bottom-0 h-0.5 rounded-full bg-brand transition-all duration-300 ease-out"
-        style={{ left: indicator.left, width: indicator.width }}
-      />
-    </div>
-  )
-}
-
-// 沒有真正 hover 能力的裝置（手機＋iPad）用來開啟階段選單的觸發按鈕，疊在影片左上角
-// （跟右下角的全螢幕按鈕分開兩角，不會互相搶位置）；播放中的影片跟 YouTube 一樣預設收起
-// 工具列，這裡的 visible 是外部算好的「現在該不該顯示」，只負責淡入淡出＋停用點擊，
-// can-hover:lg:hidden 維持不變（真桌機沒有影片可播放，這顆按鈕本來就整個不出現）
+// 開啟階段選單的觸發按鈕，不分裝置都疊在影片左上角（跟右下角的全螢幕按鈕分開兩角，
+// 不會互相搶位置）；播放中的影片跟 YouTube 一樣預設收起工具列，這裡的 visible 是外部
+// 算好的「現在該不該顯示」，只負責淡入淡出＋停用點擊
 function StepTrigger({ onClick, visible }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`absolute left-2 top-2 z-10 flex h-9 items-center justify-center gap-1.5 rounded-full bg-canvas/80 px-3 text-xs font-bold text-ink-2 shadow-sm backdrop-blur transition-opacity duration-300 hover:bg-raised can-hover:lg:hidden ${
+      className={`absolute left-2 top-2 z-10 flex h-9 items-center justify-center gap-1.5 rounded-full bg-canvas/80 px-3 text-xs font-bold text-ink-2 shadow-sm backdrop-blur transition-opacity duration-300 hover:bg-raised ${
         visible ? 'opacity-100' : 'pointer-events-none opacity-0'
       }`}
     >
@@ -346,19 +304,10 @@ export default function IdentityJourney() {
       </div>
 
       <div className="-mx-3 mt-6 w-[calc(100%+1.5rem)] can-hover:lg:mx-0 can-hover:lg:w-full">
-        {/* 底線 Tab 收進影片容器內當作頁籤列，跟下面的影片共用同一個外框/圓角，視覺上像
-            一張完整的播放卡片，而不是「Tab 列 + 另一個獨立的影片框」兩塊拼接。沒有真正
-            hover 能力的裝置（手機＋iPad）四個階段改收進點擊影片左上角「選擇流程」按鈕
-            才叫出的面板，真桌機維持原本頁籤貼頂橫向排列 */}
+        {/* 四個階段的切換不分裝置都收進點擊影片左上角「選擇流程」按鈕才叫出的面板，
+            不再另外用貼頂頁籤列——影片容器可以整個維持完整的播放卡片版面，不用另外切一塊
+            頁籤區域 */}
         <div className="relative overflow-hidden rounded-2xl">
-          <div className="hidden border-b border-line px-2 pt-1 can-hover:lg:block">
-            <UnderlineTabs
-              items={phaseTabItems}
-              activeValue={activePhaseId}
-              onChange={setActivePhaseId}
-            />
-          </div>
-
           <div key={activePhaseId} className="animate-fade-in-up">
             {/* 容器高寬比／高度依裝置切換，跟上面 videoSrc 同一個 isHoverDevice 判斷，
                 不是看視窗寬度：真桌機播的是橫式桌機錄影，用 aspect-video + h-auto 維持
@@ -421,12 +370,6 @@ export default function IdentityJourney() {
                 <Play size={40} strokeWidth={1.5} />
               )}
 
-              {/* 這顆按鈕的顯示邏輯刻意維持原本的 can-hover:lg（見 StepTrigger 內部
-                  className），跟上面貼頂 UnderlineTabs 頁籤列（can-hover:lg:block）互補：
-                  兩者合起來要涵蓋所有裝置＋視窗寬度組合，任何時候剛好只有其中一個顯示，
-                  不能改成跟 videoSrc 一樣單純看 isHoverDevice——否則真桌機把視窗縮到
-                  lg 斷點以下時，頁籤列跟這顆按鈕會同時消失，變成沒有任何介面可以切換
-                  階段 */}
               <StepTrigger onClick={openStepPanel} visible={controlsVisible} />
 
               {/* 沒有真正 hover 能力的裝置（手機＋iPad）全螢幕按鈕放右上角，跟左上角的
