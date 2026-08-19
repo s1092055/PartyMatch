@@ -401,15 +401,17 @@ export default function IdentityJourney() {
                 </button>
               )}
 
-              {/* 目前選中階段的說明文字，疊在影片容器內部底部置中；key 帶入 activePhaseId
-                  讓切換階段時重播一次淡入效果。外層 inset-x-0 撐滿整個寬度，pointer-events-
-                  none 避免蓋住底下的 video／置中播放鈕。顯示/隱藏跟其餘工具列共用同一個
-                  controlsVisible：播放中且使用者沒叫出來時收起，暫停中／沒有影片可播放
-                  （只是 Play icon 佔位）／使用者點出來時顯示；can-hover:lg:opacity-100
-                  讓真桌機（沒有播放中的影片）強制蓋過這個判斷、維持一直顯示 */}
+              {/* 目前選中階段的說明文字，疊在影片容器內部底部置中。外層 inset-x-0 撐滿
+                  整個寬度，pointer-events-none 避免蓋住底下的 video／置中播放鈕。顯示/
+                  隱藏跟其餘工具列共用同一個 controlsVisible：播放中且使用者沒叫出來時
+                  收起，暫停中／沒有影片可播放（只是 Play icon 佔位）／使用者點出來時
+                  顯示；can-hover:lg:opacity-100 讓真桌機（沒有播放中的影片）強制蓋過這個
+                  判斷、維持一直顯示。這裡故意不用 animate-fade-in-up：那個 class 的
+                  animation 帶 fill-mode both，動畫結束後會把 opacity 鎖在 1，之後
+                  controlsVisible 切到 false 時 opacity-0 這個 utility class 完全蓋不過
+                  animation 鎖住的值，說明文字會變成永遠顯示、按鈕收不起來 */}
               <div
-                key={activePhaseId}
-                className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 animate-fade-in-up px-4 pb-3 text-center transition-opacity duration-300 can-hover:lg:opacity-100 ${
+                className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 px-4 pb-3 text-center transition-opacity duration-300 can-hover:lg:opacity-100 ${
                   controlsVisible ? 'opacity-100' : 'opacity-0'
                 }`}
               >
