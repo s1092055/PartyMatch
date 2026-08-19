@@ -12,6 +12,7 @@ import couplesPhoto from '../../../assets/Couples.png'
 import friendsPhoto from '../../../assets/Friends.png'
 import familyPhoto from '../../../assets/Family.png'
 import freelancerPhoto from '../../../assets/freelance worker.png'
+import createGroupFlowVideo from '../../../assets/flow-videos/create-group.mov'
 
 // 「PartyMatch 是什麼？」區塊：首頁第一個內容區塊（Hero 之後），讓還不認識 PartyMatch 的
 // 使用者快速看懂服務內容，走編號列表呈現三個核心環節，跟「為什麼選擇 PartyMatch？」的
@@ -48,6 +49,9 @@ export const HOME_HOST_JOURNEY = [
       {
         title: '選服務、挑方案',
         desc: '方案價格系統自動核實，免自己上網查。',
+        // 手機版實拍畫面（直式螢幕錄影），桌機沒有 hover 能力的裝置一起共用；其餘步驟
+        // 還沒有對應影片，維持原本的 Play icon 佔位
+        video: createGroupFlowVideo,
       },
       {
         title: '設定名額，開放申請',

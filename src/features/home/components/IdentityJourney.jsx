@@ -327,9 +327,27 @@ export default function IdentityJourney() {
                 螢幕），這裡的高度純粹依內容需求調整即可 */}
             <div
               ref={videoBoxRef}
-              className="relative flex h-[34rem] w-full items-center justify-center bg-raised text-ink-4 can-hover:lg:aspect-video can-hover:lg:h-auto"
+              className="relative flex h-[34rem] w-full items-center justify-center overflow-hidden bg-raised text-ink-4 can-hover:lg:aspect-video can-hover:lg:h-auto"
             >
-              <Play size={40} strokeWidth={1.5} />
+              {/* 「選服務、挑方案」這個子流程已經有手機版實拍畫面，沒有真正 hover 能力的
+                  裝置（手機＋iPad）直接播放；真桌機跟其餘還沒補拍的子流程一樣維持 Play
+                  icon 佔位。之後每個子流程都補上對應影片時，這裡改成不分裝置直接播放
+                  即可，不用再判斷 activeStep.video 存不存在 */}
+              {activeStep.video ? (
+                <>
+                  <video
+                    className="absolute inset-0 h-full w-full object-cover can-hover:lg:hidden"
+                    src={activeStep.video}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                  />
+                  <Play size={40} strokeWidth={1.5} className="hidden can-hover:lg:block" />
+                </>
+              ) : (
+                <Play size={40} strokeWidth={1.5} />
+              )}
 
               <StepDots items={activePhase.steps} activeValue={activeStepTitle} onChange={setActiveStepTitle} />
               <StepTrigger onClick={openStepPanel} />
