@@ -82,38 +82,48 @@ export default function App() {
         useNotificationStore.getState().init(),
       ])
 
+      const failedPublicStores = [
+        useGroupStore.getState().error,
+        useNotificationStore.getState().error,
+      ].filter(Boolean)
+      if (failedPublicStores.length > 0) {
+        toast('部分資料載入失敗，請重新整理頁面', 'error', { persistent: true })
+      }
+
+      // 首頁/探索頁只需要第一階段的公開資料，不用再等私人資料才渲染——
+      // 私人資料改成不 await，各自的 store 完成後靠 zustand 訂閱自動更新畫面，
+      // 已登入使用者不會被拖著多等一輪 applications/subscriptions/members/favorites
+      setReady(true)
+
       // 第二階段：只有已登入才載入私人資料
       const user = useAuthStore.getState().getProfile()
       if (user) {
         // 已登入：重新拉所有狀態的群組，覆蓋第一階段的 recruiting-only 資料
-        await Promise.all([
+        Promise.all([
           useGroupStore.getState().init({ all: true }),
           useApplicationStore.getState().init(),
           useSubscriptionStore.getState().init(),
           useMemberStore.getState().init(),
           useFavoriteStore.getState().init(),
-        ])
-        // initConversations 必須在 notifications init 完成後才執行
-        useConversationStore.getState().init(user.id)
-        useNotificationStore.getState().startPolling(user.id)
+        ]).then(() => {
+          // 各 store 的 init() 內部已自行 catch 錯誤（記錄在各自的 error 欄位，不會讓這裡的
+          // Promise.all reject），所以要在這裡統一檢查一次，失敗時跳一個彙總 Toast，
+          // 避免資料載入失敗時畫面看起來只是「空的」，使用者不知道其實是連線出了問題
+          const failedPrivateStores = [
+            useGroupStore.getState().error,
+            useApplicationStore.getState().error,
+            useSubscriptionStore.getState().error,
+            useMemberStore.getState().error,
+            useFavoriteStore.getState().error,
+          ].filter(Boolean)
+          if (failedPrivateStores.length > 0) {
+            toast('部分資料載入失敗，請重新整理頁面', 'error', { persistent: true })
+          }
+          // initConversations 必須在 notifications init 完成後才執行
+          useConversationStore.getState().init(user.id)
+          useNotificationStore.getState().startPolling(user.id)
+        })
       }
-
-      // 各 store 的 init() 內部已自行 catch 錯誤（記錄在各自的 error 欄位，不會讓這裡的
-      // Promise.all reject），所以要在這裡統一檢查一次，失敗時跳一個彙總 Toast，
-      // 避免資料載入失敗時畫面看起來只是「空的」，使用者不知道其實是連線出了問題
-      const failedStores = [
-        useGroupStore.getState().error,
-        useApplicationStore.getState().error,
-        useSubscriptionStore.getState().error,
-        useMemberStore.getState().error,
-        useFavoriteStore.getState().error,
-        useNotificationStore.getState().error,
-      ].filter(Boolean)
-      if (failedStores.length > 0) {
-        toast('部分資料載入失敗，請重新整理頁面', 'error', { persistent: true })
-      }
-
-      setReady(true)
     }
 
     bootApp().catch(err => {

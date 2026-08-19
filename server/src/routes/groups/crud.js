@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { z } from 'zod'
 import prisma from '../../lib/prisma.js'
+import redis from '../../lib/redis.js'
 import { requireAuth, optionalAuth } from '../../middleware/auth.js'
 import { validate } from '../../middleware/validate.js'
 import { notify } from './shared.js'
@@ -44,10 +45,27 @@ const updateGroupSchema = z.object({
   nextBillingDate: z.string().optional(),
 })
 
+// 群組清單本來就不需要 service.plans（每個服務的完整方案 JSON）——方案定價已經在建立群組時
+// 由 resolvePlanPricing() 算好、存回 Group.monthlyFee/currency/billingCycle，前端清單卡片
+// 只用 group.service 的 id/name，select 精簡欄位可以大幅縮小這支高流量端點的 payload
+const GROUP_LIST_SERVICE_SELECT = { id: true, name: true, category: true, logoUrl: true }
+
+// 探索頁清單是高流量、資料變動不頻繁的公開端點，用短 TTL 快取整包回應（依查詢條件分 key），
+// 換取「幾乎每次都直接查 DB」的成本；20 秒的過期時間讓新建立/狀態變更的群組最多延遲這麼久
+// 才會出現在清單上，不需要在每個會異動群組的地方額外插入快取清除邏輯
+const GROUP_LIST_CACHE_TTL_SECONDS = 20
+
 // GET /groups — 探索群組（公開）
 router.get('/', optionalAuth, async (req, res, next) => {
   try {
     const { serviceId, category, status = 'recruiting', q } = req.query
+    const cacheKey = `groups:list:${JSON.stringify({ serviceId: serviceId ?? '', category: category ?? '', status, q: q ?? '' })}`
+
+    const cached = await redis.get(cacheKey).catch(() => null)
+    if (cached) {
+      res.json(JSON.parse(cached))
+      return
+    }
 
     const groups = await prisma.group.findMany({
       where: {
@@ -66,13 +84,15 @@ router.get('/', optionalAuth, async (req, res, next) => {
       },
       include: {
         host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true } },
-        service: true,
+        service: { select: GROUP_LIST_SERVICE_SELECT },
         _count:  { select: { members: true } },
       },
       orderBy: { createdAt: 'desc' },
     })
 
-    res.json(maskGroupListSensitiveFields(groups.map(maskGroupAvatars)))
+    const payload = maskGroupListSensitiveFields(groups.map(maskGroupAvatars))
+    redis.setex(cacheKey, GROUP_LIST_CACHE_TTL_SECONDS, JSON.stringify(payload)).catch(() => {})
+    res.json(payload)
   } catch (err) { next(err) }
 })
 

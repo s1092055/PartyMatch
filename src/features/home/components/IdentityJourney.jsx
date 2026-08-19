@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
-import { Maximize2, Minimize2, MousePointerClick, Pause, Play, X } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { MousePointerClick, Play, X } from 'lucide-react'
 import { HOME_HOST_JOURNEY, HOME_MEMBER_JOURNEY } from '../data/homeContent'
 
 // 兩種身份共用同一組階段 id，切換身份時 Tab 位置／徽章不變，只換底下標題跟內容，
@@ -35,17 +35,13 @@ function RoleToggle({ activeValue, onChange }) {
   )
 }
 
-// 開啟階段選單的觸發按鈕，不分裝置都疊在影片內部左下角（跟右下角的全螢幕按鈕左右對稱，
-// 不會互相搶位置）；播放中的影片跟 YouTube 一樣預設收起工具列，這裡的 visible 是外部
-// 算好的「現在該不該顯示」，只負責淡入淡出＋停用點擊
-function StepTrigger({ onClick, visible }) {
+// 開啟階段選單的觸發按鈕，放在影片說明文字卡片右側，不疊在影片畫面上
+function StepTrigger({ onClick }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`absolute left-2 bottom-2 z-10 flex h-9 items-center justify-center gap-1.5 rounded-full bg-canvas/80 px-3 text-xs font-bold text-ink-2 shadow-sm backdrop-blur transition-opacity duration-300 hover:bg-raised ${
-        visible ? 'opacity-100' : 'pointer-events-none opacity-0'
-      }`}
+      className="flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full border border-line/70 bg-canvas px-3 text-xs font-bold text-ink-2 shadow-sm transition-colors hover:bg-raised"
     >
       <MousePointerClick size={14} strokeWidth={1.5} className="shrink-0" />
       選擇流程
@@ -131,94 +127,21 @@ export default function IdentityJourney() {
   const journey = ROLES.find(r => r.id === role).journey
   const [activePhaseId, setActivePhaseId] = useState(journey[0].id)
   const activePhase = journey.find(p => p.id === activePhaseId)
-  const videoBoxRef = useRef(null)
   const videoRef = useRef(null)
-  const [isFullscreen, setIsFullscreen] = useState(false)
-  // iPhone 版 Safari（不含 iPad）完全不支援 Fullscreen API 作用在一般元素上，
-  // document.fullscreenEnabled 在 iPhone 上一律是 false；這裡先偵測起來，容器層級的
-  // 全螢幕在 iPhone 上要整個換成下面 iosVideoFullscreenSupported 那條路
-  const [fullscreenSupported] = useState(() => typeof document !== 'undefined' && !!document.fullscreenEnabled)
-  // iPhone Safari 只有真正的 <video> 元素本身能透過 webkitEnterFullscreen 進全螢幕
-  // （容器 div 不行），這裡做 feature detect，不支援就不顯示按鈕，避免按了沒反應
-  const [iosVideoFullscreenSupported] = useState(
-    () => typeof window !== 'undefined' && typeof window.HTMLVideoElement?.prototype.webkitEnterFullscreen === 'function'
-  )
   const [stepPanelOpen, setStepPanelOpen] = useState(false)
-  const [isPlaying, setIsPlaying] = useState(true)
-  // 播哪一支影片、工具列用點擊還是 hover 叫出來，都要看裝置本身有沒有真正的滑鼠 hover
-  // 能力，不能看視窗寬度：不然真桌機使用者把視窗縮到 1024px 以下會被誤判成手機，看到
-  // 直式手機操作影片反而更奇怪；平板沒有真正 hover 能力，直接併入手機這一組，播手機版
-  // 影片。裝置的 hover 能力不會在使用中途改變，只偵測一次即可，跟下面 fullscreenSupported
-  // 同一套 useState(() => ...) 模式
+  // 播哪一支影片要看裝置本身有沒有真正的滑鼠 hover 能力，不能看視窗寬度：不然真桌機
+  // 使用者把視窗縮到 1024px 以下會被誤判成手機，看到直式手機操作影片反而更奇怪；平板
+  // 沒有真正 hover 能力，直接併入手機這一組，播手機版影片。裝置的 hover 能力不會在
+  // 使用中途改變，只偵測一次即可
   const [isHoverDevice] = useState(
     () => typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches
   )
-  // 影片自動播放時，說明文字＋工具列（選擇流程／播放暫停／全螢幕按鈕）跟 YouTube 一樣
-  // 預設收起，避免疊在畫面上擋住內容；沒有影片可播放的階段（還沒補拍）或影片被暫停時
-  // 維持一直顯示——沒有東西在播放就不需要「隱藏工具列」，這些情況的顯示條件併入下面的
-  // controlsVisible 一起算，不是只看這個旗標本身。不分裝置都用點擊影片容器切換（見
-  // handleVideoClick）；桌機版原本試過改用滑鼠 hover 進出容器顯示/收起，但工具列彈出
-  // 的位置常常剛好是滑鼠停留的地方，按鈕蓋住底下的 video 元素後，遊標其實已經離開
-  // video、進到按鈕上，會觸發 mouseleave 收起工具列，工具列一收起遊標又落回 video 上
-  // 觸發 mouseenter 重新顯示，兩者來回打架造成閃爍，所以改回跟其餘裝置一致的點擊切換
-  const [showControls, setShowControls] = useState(false)
-  // 切換階段時，影片會換一支重新自動播放，工具列也要重新收起，避免沿用上一個階段的
-  // 顯示/播放狀態；用「渲染期間比對前一次的 activePhaseId」這個 React 官方建議的作法
-  // 調整 state（見 https://react.dev/learn/you-might-not-need-an-effect），不要放進
-  // useEffect 裡呼叫 setState，否則會多一次不必要的重新渲染
-  const [prevPhaseId, setPrevPhaseId] = useState(activePhaseId)
-  if (activePhaseId !== prevPhaseId) {
-    setPrevPhaseId(activePhaseId)
-    setShowControls(false)
-    setIsPlaying(true)
-  }
-
-  // 點擊叫出工具列後，跟 YouTube 一樣過幾秒沒有動作就自動收回去，不然工具列會一直
-  // 蓋在畫面上；暫停或沒有影片時 controlsVisible 本來就一直是 true（見下面），不會
-  // 進到這段收回邏輯
-  useEffect(() => {
-    if (!showControls || !isPlaying) return
-    const timer = setTimeout(() => setShowControls(false), 3000)
-    return () => clearTimeout(timer)
-  }, [showControls, isPlaying, activePhaseId])
 
   // 目前這個裝置實際會播放的影片：真桌機播橫式的 videoDesktop，其餘裝置播直式的
   // video；兩邊各自獨立判斷有沒有對應影片，還沒補拍的那一邊 fallback 成 Play icon 佔位
   const videoSrc = isHoverDevice ? activePhase.videoDesktop : activePhase.video
 
-  // 工具列／說明文字實際該不該顯示：使用者手動點出來、影片暫停中、或這個階段根本沒有
-  // 影片在播放（只是 Play icon 佔位）三種情況都要顯示，只有「影片正在播放且使用者沒有
-  // 點出來」才收起
-  const controlsVisible = showControls || !isPlaying || !videoSrc
-
-  function handleVideoClick() {
-    setShowControls(v => !v)
-  }
-
   const phaseTabItems = journey.map(({ id, title, badge }) => ({ value: id, title, badge }))
-
-  // 影片可能被使用者點按鈕暫停、或開啟「選擇流程」面板時被程式呼叫 pause()，這裡監聽
-  // 原生的 play/pause 事件，讓按鈕圖示永遠反映影片實際播放狀態，而不是自己維護一份
-  // 可能失準的旗標
-  useEffect(() => {
-    const video = videoRef.current
-    if (!video) return
-    function handlePlay() { setIsPlaying(true) }
-    function handlePause() { setIsPlaying(false) }
-    video.addEventListener('play', handlePlay)
-    video.addEventListener('pause', handlePause)
-    return () => {
-      video.removeEventListener('play', handlePlay)
-      video.removeEventListener('pause', handlePause)
-    }
-  }, [activePhaseId])
-
-  function togglePlayback() {
-    const video = videoRef.current
-    if (!video) return
-    if (video.paused) video.play()
-    else video.pause()
-  }
 
   function handleRoleChange(nextRole) {
     setRole(nextRole)
@@ -244,47 +167,6 @@ export default function IdentityJourney() {
     videoRef.current?.play()
   }
 
-  // 佔位區塊／其餘裝置走容器層級的 Fullscreen API；監聽 fullscreenchange 是因為使用者
-  // 也可能按 Esc 離開全螢幕（不是點按鈕），這種情況也要把 icon 切回「進入全螢幕」的箭頭
-  useEffect(() => {
-    function handleFullscreenChange() {
-      setIsFullscreen(document.fullscreenElement === videoBoxRef.current)
-    }
-    document.addEventListener('fullscreenchange', handleFullscreenChange)
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange)
-  }, [])
-
-  // iPhone Safari 進出全螢幕不會觸發上面的 fullscreenchange，是走 <video> 元素自己的
-  // webkitbeginfullscreen／webkitendfullscreen 事件（含使用者用系統手勢滑掉全螢幕的
-  // 情況），要另外監聽才能讓 icon 正確反映狀態
-  useEffect(() => {
-    const video = videoRef.current
-    if (!video) return
-    function handleBegin() { setIsFullscreen(true) }
-    function handleEnd() { setIsFullscreen(false) }
-    video.addEventListener('webkitbeginfullscreen', handleBegin)
-    video.addEventListener('webkitendfullscreen', handleEnd)
-    return () => {
-      video.removeEventListener('webkitbeginfullscreen', handleBegin)
-      video.removeEventListener('webkitendfullscreen', handleEnd)
-    }
-  }, [activePhaseId])
-
-  // iPhone Safari 沒有容器層級的 Fullscreen API，要改叫 <video> 元素本身的
-  // webkitEnterFullscreen()；其餘支援一般元素全螢幕的裝置（含 iPad）維持原本容器層級的
-  // requestFullscreen，這樣影片上疊的說明文字／按鈕能一起被含進全螢幕畫面
-  function toggleFullscreen() {
-    if (!fullscreenSupported && iosVideoFullscreenSupported) {
-      videoRef.current?.webkitEnterFullscreen()
-      return
-    }
-    if (document.fullscreenElement) {
-      document.exitFullscreen()
-    } else {
-      videoBoxRef.current?.requestFullscreen().catch(() => {})
-    }
-  }
-
   return (
     <section id="identity" className="scroll-mt-24 flex flex-col items-center text-center">
       <h2 className="text-3xl font-extrabold text-ink">
@@ -297,7 +179,7 @@ export default function IdentityJourney() {
       </div>
 
       <div className="-mx-3 mt-6 w-[calc(100%+1.5rem)] can-hover:lg:mx-0 can-hover:lg:w-full">
-        {/* 四個階段的切換不分裝置都收進點擊影片左上角「選擇流程」按鈕才叫出的面板，
+        {/* 四個階段的切換不分裝置都收進點擊影片說明卡片右側「選擇流程」按鈕才叫出的面板，
             不再另外用貼頂頁籤列——影片容器可以整個維持完整的播放卡片版面，不用另外切一塊
             頁籤區域 */}
         <div className="relative overflow-hidden rounded-lg">
@@ -309,7 +191,6 @@ export default function IdentityJourney() {
                 等比拉高，反而讓整體內容變更高，寬度看起來又變窄了，兩者互相抵銷；改成
                 固定高度後寬度可以單獨調寬，不會牽動高度 */}
             <div
-              ref={videoBoxRef}
               className={`relative flex w-full items-center justify-center overflow-hidden text-ink-4 ${
                 isHoverDevice ? 'aspect-video h-auto' : 'h-[44rem]'
               }`}
@@ -326,55 +207,20 @@ export default function IdentityJourney() {
                   問題。桌機影片是橫式錄影，長寬比跟 aspect-video 的容器一致，用
                   object-cover 即可 */}
               {videoSrc ? (
-                <>
-                  {/* 點擊影片本身叫出／收回工具列，不分裝置都一樣，跟 YouTube 手機版
-                      同一套手感。工具列顯示時，蓋在上面的置中播放/暫停按鈕、左上角選擇
-                      流程、右下角全螢幕按鈕會各自攔截點擊，不會穿透到這裡 */}
-                  <video
-                    ref={videoRef}
-                    onClick={handleVideoClick}
-                    className={`absolute inset-0 h-full w-full ${isHoverDevice ? 'object-cover' : 'object-contain'}`}
-                    src={videoSrc}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                  />
-
-                  {/* 播放/暫停按鈕置中疊在影片正中央（YouTube 同款位置），用 inset-0 +
-                      m-auto 讓固定尺寸的圓形按鈕在 relative 容器內置中，不用另外算座標；
-                      隱藏時 pointer-events-none 讓點擊穿透到底下的 video，才能點影片任意
-                      位置（含正中央）重新叫出工具列 */}
-                  <button
-                    type="button"
-                    onClick={togglePlayback}
-                    aria-label={isPlaying ? '暫停播放' : '繼續播放'}
-                    className={`absolute inset-0 z-10 m-auto grid h-14 w-14 place-items-center rounded-full bg-canvas/80 text-ink-3 shadow-sm backdrop-blur transition-opacity duration-300 hover:bg-raised hover:text-ink ${
-                      controlsVisible ? 'opacity-100' : 'pointer-events-none opacity-0'
-                    }`}
-                  >
-                    {isPlaying ? <Pause size={24} strokeWidth={1.5} /> : <Play size={24} strokeWidth={1.5} />}
-                  </button>
-                </>
+                // 改用瀏覽器原生 <video controls>：播放/暫停、進度條、全螢幕、音量都交給
+                // 瀏覽器內建控制列，不用再自己刻按鈕跟顯示/收起邏輯
+                <video
+                  ref={videoRef}
+                  controls
+                  className={`absolute inset-0 h-full w-full ${isHoverDevice ? 'object-cover' : 'object-contain'}`}
+                  src={videoSrc}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                />
               ) : (
                 <Play size={40} strokeWidth={1.5} />
-              )}
-
-              <StepTrigger onClick={openStepPanel} visible={controlsVisible} />
-
-              {/* 沒有真正 hover 能力的裝置（手機＋iPad）全螢幕按鈕放右上角，跟左上角的
-                  「選擇流程」左右對稱；真桌機放回原本右下角 */}
-              {(fullscreenSupported || (iosVideoFullscreenSupported && videoSrc)) && (
-                <button
-                  type="button"
-                  onClick={toggleFullscreen}
-                  aria-label={isFullscreen ? '離開全螢幕' : '全螢幕播放'}
-                  className={`absolute right-2 z-10 grid h-8 w-8 place-items-center rounded-full bg-canvas/80 text-ink-3 shadow-sm backdrop-blur transition-opacity duration-300 hover:bg-raised hover:text-ink ${
-                    isHoverDevice ? 'bottom-2' : 'top-2'
-                  } ${controlsVisible ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
-                >
-                  {isFullscreen ? <Minimize2 size={14} strokeWidth={1.5} /> : <Maximize2 size={14} strokeWidth={1.5} />}
-                </button>
               )}
 
               <StepPanel
@@ -388,12 +234,15 @@ export default function IdentityJourney() {
           </div>
         </div>
 
-        {/* 目前選中階段的說明文字，獨立顯示在影片容器下方，跟容器分開兩個區塊，不再疊在
-            影片畫面上——搬出來之後就不用再跟工具列共用 controlsVisible 收放，一律直接
-            顯示；key 帶入 activePhaseId 讓切換階段時重播一次淡入效果 */}
-        <div key={activePhaseId} className="animate-fade-in-up mt-4 rounded-2xl border border-line/70 bg-surface px-4 py-4 text-center">
-          <p className="text-sm font-extrabold text-ink sm:text-base">{activePhase.title}</p>
-          <p className="mt-1 text-xs leading-relaxed text-ink-3 sm:text-sm">{activePhase.desc}</p>
+        {/* 目前選中階段的說明文字，獨立顯示在影片容器下方，跟容器分開兩個區塊；key 帶入
+            activePhaseId 讓切換階段時重播一次淡入效果。「選擇流程」按鈕放在右側，文字
+            跟著改成靠左對齊，呼應橫向排列的版面 */}
+        <div key={activePhaseId} className="animate-fade-in-up mt-4 flex items-center gap-3 rounded-2xl border border-line/70 bg-surface px-4 py-4">
+          <div className="min-w-0 flex-1 text-left">
+            <p className="text-sm font-extrabold text-ink sm:text-base">{activePhase.title}</p>
+            <p className="mt-1 text-xs leading-relaxed text-ink-3 sm:text-sm">{activePhase.desc}</p>
+          </div>
+          <StepTrigger onClick={openStepPanel} />
         </div>
       </div>
     </section>
