@@ -418,7 +418,10 @@ export default function IdentityJourney() {
                   controlsVisible ? 'opacity-100' : 'opacity-0'
                 }`}
               >
-                <div className="mx-auto max-w-md rounded-2xl bg-canvas/85 px-4 py-3 text-left shadow-sm backdrop-blur-md">
+                {/* w-fit + max-w-full：卡片寬度跟著文字內容的實際寬度縮放，塞得下就單行
+                    顯示，不會被固定寬度（原本 max-w-md）硬性截斷成兩行；螢幕太窄放不下
+                    完整內容寬度時，max-w-full 頂住到容器可用寬度，文字才自然換行 */}
+                <div className="mx-auto w-fit max-w-full rounded-2xl bg-canvas/85 px-4 py-3 text-left shadow-sm backdrop-blur-md">
                   <p className="text-sm font-extrabold text-ink sm:text-base">{activePhase.title}</p>
                   <p className="mt-1 text-xs leading-relaxed text-ink-3 sm:text-sm">{activePhase.desc}</p>
                 </div>
