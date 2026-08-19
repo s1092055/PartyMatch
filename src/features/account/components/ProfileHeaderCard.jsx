@@ -4,13 +4,13 @@ import { Badge } from '../../../components/ui/badge'
 import { PresenceDot } from '../../../common/layout/components/navShared'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
 
-// icon 大在上、文字小在下的方形按鈕；手機版左右平均分佈（flex-1），電腦版固定寬度靠右
+// icon 大在上、文字小在下的圓角按鈕；手機版左右平均分佈（flex-1），電腦版固定寬度靠右
 function HeroStatTile({ icon: Icon, iconClassName, label, onClick }) {
   return (
     <button
       onClick={onClick}
       aria-label={label}
-      className="flex flex-1 flex-col items-center justify-center gap-1.5 rounded-lg border border-line-subtle py-3 transition-all hover:-translate-y-0.5 hover:bg-raised md:w-24 md:flex-none"
+      className="flex flex-1 flex-col items-center justify-center gap-1.5 rounded-full border border-line-subtle py-3 transition-all hover:-translate-y-0.5 hover:bg-raised md:w-24 md:flex-none"
     >
       <Icon size={22} strokeWidth={1.5} className={iconClassName ?? 'text-ink-3'} />
       <span className="text-xs font-bold text-ink-3">{label}</span>
@@ -23,7 +23,7 @@ export default function ProfileHeaderCard({ user, onOpenCreditScore, onOpenRevie
   // 不吃 user prop 裡那份只在 AccountPage 掛載當下取一次快照的舊值，才會即時反映
   const presenceStatus = useAuthStore(s => s.user?.presenceStatus ?? 'online')
   return (
-    <div className="mb-5 flex flex-col items-center gap-4 rounded-inner border border-line bg-surface p-5 shadow-card md:flex-row">
+    <div className="mb-5 flex flex-col items-center gap-4 p-5 md:flex-row">
       <div className="relative shrink-0">
         <Avatar initial={user.avatarInitial} color={user.avatarColor} size="xl" />
         {user.isVerified && (

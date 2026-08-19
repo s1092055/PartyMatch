@@ -122,7 +122,7 @@ export default function DesktopSidebar({
           className="relative flex h-12 w-12 items-center justify-center gap-2 rounded-full border border-line bg-surface text-sm font-bold text-ink-2 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-10 lg:w-auto lg:justify-start lg:px-4"
           aria-label="通知"
         >
-          <Bell size={16} strokeWidth={2} />
+          <Bell className="size-5 lg:size-4" strokeWidth={2} />
           <span className="hidden lg:inline">通知</span>
           <CountBadge count={unreadNotifs} />
         </button>
@@ -137,7 +137,7 @@ export default function DesktopSidebar({
             className="relative flex h-12 w-12 items-center justify-center gap-2 rounded-full border border-line bg-surface text-sm font-bold text-ink-2 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-10 lg:w-auto lg:justify-start lg:px-4"
             aria-label="訊息"
           >
-            <MessageSquare size={16} strokeWidth={2} />
+            <MessageSquare className="size-5 lg:size-4" strokeWidth={2} />
             <span className="hidden lg:inline">訊息</span>
             <CountBadge count={unreadMsgs} className="-right-1.5 -top-1.5" />
           </button>
@@ -149,7 +149,7 @@ export default function DesktopSidebar({
             onClick={e => preventLockedAction(e)}
             className="group/locked relative flex h-12 w-12 cursor-not-allowed items-center justify-center gap-2 rounded-full border border-line bg-surface text-sm font-bold text-ink-2 opacity-40 shadow-sm lg:h-10 lg:w-auto lg:justify-start lg:px-4"
           >
-            <MessageSquare size={16} strokeWidth={2} />
+            <MessageSquare className="size-5 lg:size-4" strokeWidth={2} />
             <span className="hidden lg:inline">訊息</span>
             <LockBadge className="right-1 top-1" />
             <LockedHint className="right-full top-1/2 mr-2 -translate-y-1/2" />

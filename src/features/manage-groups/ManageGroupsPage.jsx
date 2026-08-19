@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Archive } from 'lucide-react'
-import { Button } from '../../components/ui/button'
 import { useAuthStore } from '../../common/stores/useAuthStore'
 import EmptyState from '../../components/ui/primitives/EmptyState'
 import GroupViewModal from '../../components/ui/group/GroupViewModal'
@@ -48,18 +47,21 @@ export default function ManageGroupsPage() {
 
   return (
     <div className="px-2 md:px-4">
-      <div className="mb-6 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-        <div />
-        <h1 className="page-title mb-0 text-center">群組管理</h1>
-        <Button
-          variant="ghost"
+      <h1 className="page-title mb-6 text-center">群組管理</h1>
+
+      {/* 群組紀錄入口改成固定在左下角的浮動按鈕，跟 DesktopSidebar 的訊息按鈕（fixed
+          bottom-right）同一套高度／圓角／樣式，只是鏡射到左側；can-hover:lg: 才需要額外
+          往右推開，避開真桌機 DesktopSidebar 那條 fixed 側邊欄（left-4 起、w-16 寬） */}
+      <div className="fixed bottom-9 left-6 z-40 can-hover:lg:left-24">
+        <button
+          type="button"
           onClick={() => setHistoryOpen(true)}
           aria-label="群組紀錄"
-          className="h-9 shrink-0 justify-self-end rounded-lg border border-line px-3"
+          className="relative flex h-12 w-12 items-center justify-center gap-2 rounded-full border border-line bg-surface text-sm font-bold text-ink-2 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-10 lg:w-auto lg:justify-start lg:px-4"
         >
-          <Archive size={14} strokeWidth={1.5} />
-          群組紀錄
-        </Button>
+          <Archive className="size-5 lg:size-4" strokeWidth={2} />
+          <span className="hidden lg:inline">群組紀錄</span>
+        </button>
       </div>
 
       <FilterTabsBar

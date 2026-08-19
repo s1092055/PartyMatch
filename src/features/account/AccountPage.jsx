@@ -82,7 +82,7 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="px-2 md:mx-auto md:max-w-2xl md:px-4 lg:max-w-3xl">
+    <div className="px-2 pt-6 md:mx-auto md:max-w-2xl md:px-4 md:pt-0 lg:max-w-3xl">
       <ProfileHeaderCard
         user={user}
         onOpenCreditScore={() => setCreditScoreOpen(true)}
