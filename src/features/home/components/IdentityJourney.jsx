@@ -154,9 +154,11 @@ export default function IdentityJourney() {
   // 影片自動播放時，說明文字＋工具列（選擇流程／播放暫停／全螢幕按鈕）跟 YouTube 一樣
   // 預設收起，避免疊在畫面上擋住內容；沒有影片可播放的階段（還沒補拍）或影片被暫停時
   // 維持一直顯示——沒有東西在播放就不需要「隱藏工具列」，這些情況的顯示條件併入下面的
-  // controlsVisible 一起算，不是只看這個旗標本身。真桌機用滑鼠 hover 進出容器顯示/收起
-  // （見下面 handleVideoMouseEnter/Leave），沒有真正 hover 能力的裝置改成點擊影片容器
-  // 切換（見 handleVideoClick）
+  // controlsVisible 一起算，不是只看這個旗標本身。不分裝置都用點擊影片容器切換（見
+  // handleVideoClick）；桌機版原本試過改用滑鼠 hover 進出容器顯示/收起，但工具列彈出
+  // 的位置常常剛好是滑鼠停留的地方，按鈕蓋住底下的 video 元素後，遊標其實已經離開
+  // video、進到按鈕上，會觸發 mouseleave 收起工具列，工具列一收起遊標又落回 video 上
+  // 觸發 mouseenter 重新顯示，兩者來回打架造成閃爍，所以改回跟其餘裝置一致的點擊切換
   const [showControls, setShowControls] = useState(false)
   // 切換階段時，影片會換一支重新自動播放，工具列也要重新收起，避免沿用上一個階段的
   // 顯示/播放狀態；用「渲染期間比對前一次的 activePhaseId」這個 React 官方建議的作法
@@ -169,37 +171,26 @@ export default function IdentityJourney() {
     setIsPlaying(true)
   }
 
-  // 沒有真正 hover 能力的裝置點擊叫出工具列後，跟 YouTube 一樣過幾秒沒有動作就自動收
-  // 回去；真桌機用 hover 進出直接控制顯示/收起（見 handleVideoMouseEnter/Leave），
-  // hover 中途不需要、也不應該被這個計時器打斷收起，所以只在非 hover 裝置時跑這段
+  // 點擊叫出工具列後，跟 YouTube 一樣過幾秒沒有動作就自動收回去，不然工具列會一直
+  // 蓋在畫面上；暫停或沒有影片時 controlsVisible 本來就一直是 true（見下面），不會
+  // 進到這段收回邏輯
   useEffect(() => {
-    if (isHoverDevice || !showControls || !isPlaying) return
+    if (!showControls || !isPlaying) return
     const timer = setTimeout(() => setShowControls(false), 3000)
     return () => clearTimeout(timer)
-  }, [isHoverDevice, showControls, isPlaying, activePhaseId])
+  }, [showControls, isPlaying, activePhaseId])
 
   // 目前這個裝置實際會播放的影片：真桌機播橫式的 videoDesktop，其餘裝置播直式的
   // video；兩邊各自獨立判斷有沒有對應影片，還沒補拍的那一邊 fallback 成 Play icon 佔位
   const videoSrc = isHoverDevice ? activePhase.videoDesktop : activePhase.video
 
-  // 工具列／說明文字實際該不該顯示：使用者手動叫出來（點擊或 hover 中）、影片暫停中、
-  // 或這個階段根本沒有影片在播放（只是 Play icon 佔位）三種情況都要顯示，只有「影片正在
-  // 播放且使用者沒有叫出來」才收起
+  // 工具列／說明文字實際該不該顯示：使用者手動點出來、影片暫停中、或這個階段根本沒有
+  // 影片在播放（只是 Play icon 佔位）三種情況都要顯示，只有「影片正在播放且使用者沒有
+  // 點出來」才收起
   const controlsVisible = showControls || !isPlaying || !videoSrc
 
   function handleVideoClick() {
-    if (isHoverDevice) return
     setShowControls(v => !v)
-  }
-
-  function handleVideoMouseEnter() {
-    if (!isHoverDevice) return
-    setShowControls(true)
-  }
-
-  function handleVideoMouseLeave() {
-    if (!isHoverDevice) return
-    setShowControls(false)
   }
 
   const phaseTabItems = journey.map(({ id, title, badge }) => ({ value: id, title, badge }))
@@ -334,15 +325,12 @@ export default function IdentityJourney() {
                   object-cover 即可 */}
               {videoSrc ? (
                 <>
-                  {/* 工具列叫出/收回：真桌機用滑鼠 hover 進出容器直接控制（懸停時顯示，
-                      移開收起），沒有真正 hover 能力的裝置改成點擊切換，跟 YouTube 手機版
+                  {/* 點擊影片本身叫出／收回工具列，不分裝置都一樣，跟 YouTube 手機版
                       同一套手感。工具列顯示時，蓋在上面的置中播放/暫停按鈕、左上角選擇
-                      流程、右下角全螢幕按鈕會各自攔截點擊/hover，不會穿透到這裡 */}
+                      流程、右下角全螢幕按鈕會各自攔截點擊，不會穿透到這裡 */}
                   <video
                     ref={videoRef}
                     onClick={handleVideoClick}
-                    onMouseEnter={handleVideoMouseEnter}
-                    onMouseLeave={handleVideoMouseLeave}
                     className={`absolute inset-0 h-full w-full ${isHoverDevice ? 'object-cover' : 'object-contain'}`}
                     src={videoSrc}
                     autoPlay
@@ -353,8 +341,8 @@ export default function IdentityJourney() {
 
                   {/* 播放/暫停按鈕置中疊在影片正中央（YouTube 同款位置），用 inset-0 +
                       m-auto 讓固定尺寸的圓形按鈕在 relative 容器內置中，不用另外算座標；
-                      隱藏時 pointer-events-none 讓點擊/hover 穿透到底下的 video，才能在
-                      影片任意位置（含正中央）重新叫出工具列 */}
+                      隱藏時 pointer-events-none 讓點擊穿透到底下的 video，才能點影片任意
+                      位置（含正中央）重新叫出工具列 */}
                   <button
                     type="button"
                     onClick={togglePlayback}
