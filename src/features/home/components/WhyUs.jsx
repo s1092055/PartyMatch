@@ -1,90 +1,53 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import { Button } from '../../../components/ui/button'
-import { Card } from '../../../components/ui/card'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
-import { HOME_WHY_US } from '../data/homeContent'
-import { useSwipeCarousel, resolveCarouselOffset } from '../hooks/useSwipeCarousel'
+import { HOME_WHY_US_TABS, HOME_WHY_US_EXTRAS } from '../data/homeContent'
 
-// 平面（非 3D）幻燈片：中央卡片正常大小，左右各露出一張縮小/半透明的卡片當作提示，
-// 可無限循環；拖拽跟左右箭頭都能切換，箭頭只在有 hover 能力的裝置顯示，觸控裝置靠拖拽即可
-function WhyUsCarousel({ items }) {
-  const [index, setIndex] = useState(0)
-  const count = items.length
-  const { onPointerDown, onPointerUp } = useSwipeCarousel(count, setIndex)
+// 底線 Tab：跟 IdentityJourney 的 UnderlineTabs 同一套「量測 active 按鈕版位、底線用
+// transition 滑過去」手感，這裡只有單層純文字（不需要 IdentityJourney 那層 badge）
+function WhyUsTabs({ items, activeId, onChange }) {
+  const containerRef = useRef(null)
+  const [indicator, setIndicator] = useState({ left: 0, width: 0 })
 
-  function go(delta) {
-    setIndex(i => (i + delta + count) % count)
-  }
+  useEffect(() => {
+    const activeLabel = containerRef.current?.querySelector(`[data-value="${activeId}"]`)
+    if (!activeLabel) return
+    setIndicator({ left: activeLabel.offsetLeft, width: activeLabel.offsetWidth })
+  }, [activeId, items])
 
   return (
-    <div
-      className="relative isolate h-[28rem] touch-pan-y select-none overflow-x-clip"
-      onPointerDown={onPointerDown}
-      onPointerUp={onPointerUp}
-    >
-      {items.map(({ icon: Icon, image, title, desc }, i) => {
-        const offset = resolveCarouselOffset(i, index, count)
-        const abs = Math.abs(offset)
-        if (abs > 1) return null
-
-        const isFocused = offset === 0
-
-        return (
-          <div
-            key={title}
-            onClick={!isFocused ? () => setIndex(i) : undefined}
-            className={`absolute left-1/2 top-1/2 w-64 transition-all duration-500 ease-out sm:w-72 ${!isFocused ? 'cursor-pointer' : ''}`}
-            style={{
-              transform: `translate(-50%, -50%) translateX(${offset * 68}%) scale(${isFocused ? 1 : 0.88})`,
-              opacity: isFocused ? 1 : 0.45,
-              zIndex: isFocused ? 10 : 5,
-            }}
-          >
-            <div className={!isFocused ? 'pointer-events-none' : ''}>
-              <Card className={`flex w-full flex-col items-center overflow-hidden text-center shadow-none ${image ? 'gap-3' : 'gap-3 p-7'}`}>
-                {image ? (
-                  <img src={image} alt="" className="h-72 w-full object-cover" />
-                ) : (
-                  <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-brand-subtle text-brand">
-                    <Icon size={20} strokeWidth={1.5} />
-                  </div>
-                )}
-                <div className={image ? 'px-7 pb-7' : ''}>
-                  <p className="font-extrabold text-ink">{title}</p>
-                  <p className="mt-1 whitespace-nowrap text-sm text-ink-3">{desc}</p>
-                </div>
-              </Card>
-            </div>
-          </div>
-        )
-      })}
-
-      <button
-        type="button"
-        onClick={() => go(-1)}
-        aria-label="上一則"
-        className="absolute left-0 top-1/2 z-20 hidden h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-line bg-canvas text-ink-3 shadow-md transition-colors hover:bg-raised hover:text-ink can-hover:grid"
-      >
-        <ChevronLeft size={16} strokeWidth={1.5} />
-      </button>
-      <button
-        type="button"
-        onClick={() => go(1)}
-        aria-label="下一則"
-        className="absolute right-0 top-1/2 z-20 hidden h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-line bg-canvas text-ink-3 shadow-md transition-colors hover:bg-raised hover:text-ink can-hover:grid"
-      >
-        <ChevronRight size={16} strokeWidth={1.5} />
-      </button>
+    <div ref={containerRef} className="relative mx-auto flex w-full max-w-md items-center justify-between">
+      {items.map(({ id, tab }) => (
+        <button
+          key={id}
+          type="button"
+          data-value={id}
+          onClick={() => onChange(id)}
+          className={`py-3 text-sm font-bold transition-colors sm:text-base ${
+            id === activeId ? 'text-brand' : 'text-ink-3 hover:text-ink'
+          }`}
+        >
+          {tab}
+        </button>
+      ))}
+      <span
+        className="absolute bottom-0 h-0.5 rounded-full bg-brand transition-all duration-300 ease-out"
+        style={{ left: indicator.left, width: indicator.width }}
+      />
     </div>
   )
 }
 
-// 「為什麼選擇 PartyMatch？」區塊
+// 「為什麼選擇 PartyMatch？」區塊：四個核心機制改成 Tab 切換（不再是 Carousel），點 Tab
+// 才換中央插畫跟文案，讓使用者主動挑自己在意的機制看，不用像 Carousel 一樣「不知道還有
+// 什麼、要不要繼續滑」；份量較輕的三項（站內溝通/服務類型/收藏）維持在下方小條列
 export default function WhyUs() {
   const navigate = useNavigate()
   const loggedIn = useAuthStore(s => s.loggedIn)
+  const [activeId, setActiveId] = useState(HOME_WHY_US_TABS[0].id)
+  const active = HOME_WHY_US_TABS.find(t => t.id === activeId)
 
   return (
     <section className="text-center">
@@ -93,10 +56,39 @@ export default function WhyUs() {
         打造安全又完善機制，安心共享每一次的訂閱體驗。
       </p>
 
-      <WhyUsCarousel items={HOME_WHY_US} />
+      <div className="mt-8">
+        <WhyUsTabs items={HOME_WHY_US_TABS} activeId={activeId} onChange={setActiveId} />
+
+        <div key={activeId} className="animate-fade-in-up pt-10">
+          <div className="mx-auto flex h-56 w-56 items-center justify-center sm:h-64 sm:w-64">
+            {active.image ? (
+              <img src={active.image} alt="" className="h-full w-full object-contain" />
+            ) : (
+              <div className="grid h-full w-full place-items-center rounded-full bg-brand-subtle text-brand">
+                <active.icon size={64} strokeWidth={1.5} />
+              </div>
+            )}
+          </div>
+
+          <p className="mx-auto mt-6 max-w-md text-center font-extrabold text-ink">{active.title}</p>
+          <p className="mx-auto mt-2 max-w-md text-left text-sm leading-relaxed text-ink-3">{active.desc}</p>
+        </div>
+      </div>
+
+      <div className="mt-10 grid grid-cols-3 divide-x divide-line">
+        {HOME_WHY_US_EXTRAS.map(({ icon: Icon, title, desc }) => (
+          <div key={title} className="flex flex-col items-center gap-2 px-2 sm:px-4">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand-subtle text-brand">
+              <Icon size={18} strokeWidth={1.5} />
+            </div>
+            <p className="w-full text-center text-sm font-extrabold text-ink sm:text-base">{title}</p>
+            <p className="w-full text-center text-xs text-ink-3 sm:text-sm">{desc}</p>
+          </div>
+        ))}
+      </div>
 
       {!loggedIn && (
-        <Button size="lg" className="rounded-full px-8" onClick={() => navigate('/login')}>
+        <Button size="lg" className="mt-8 rounded-full px-8" onClick={() => navigate('/login')}>
           登入會員，瞭解更多
           <ChevronRight size={14} strokeWidth={1.5} />
         </Button>

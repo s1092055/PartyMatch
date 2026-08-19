@@ -13,6 +13,7 @@ import ScrollCue from './components/ScrollCue'
 import FeaturedGroupsCarousel from './components/FeaturedGroupsCarousel'
 import IdentityJourney from './components/IdentityJourney'
 import AudienceGrid from './components/AudienceGrid'
+import IntroSection from './components/IntroSection'
 import WhyUs from './components/WhyUs'
 import FAQ from './components/FAQ'
 import SectionNav from './components/SectionNav'
@@ -77,45 +78,57 @@ export default function HomePage() {
         </RevealSection>
       </section>
 
-      <section id="section-why-us" className="relative flex w-full flex-col items-center px-5 py-14 can-hover:lg:py-20">
+      <section id="section-intro" className="relative flex w-full min-h-[60svh] flex-col items-center justify-center px-5 py-20 can-hover:lg:py-28">
         <RevealSection className="mx-auto w-full max-w-3xl">
-          <WhyUs />
+          <IntroSection />
         </RevealSection>
       </section>
 
-      <section id="section-audience" className="relative flex w-full flex-col items-center px-5 py-14 can-hover:lg:py-20">
+      <section id="section-audience" className="relative flex w-full min-h-[60svh] flex-col items-center justify-center px-5 py-20 can-hover:lg:py-28">
         <RevealSection className="mx-auto w-full max-w-3xl">
           <AudienceGrid />
         </RevealSection>
       </section>
 
-      <section id="section-featured-groups" className="relative flex w-full flex-col items-center px-5 py-14 can-hover:lg:py-20">
-        <RevealSection className="mx-auto w-full max-w-3xl">
-          <FeaturedGroupsCarousel />
-        </RevealSection>
-      </section>
-
-      <section id="section-identity" className="relative flex w-full flex-col items-center px-5 py-14 can-hover:lg:py-20">
+      <section id="section-identity" className="relative flex w-full min-h-[60svh] flex-col items-center justify-center px-5 py-20 can-hover:lg:py-28">
         <RevealSection className="mx-auto w-full max-w-3xl">
           <IdentityJourney />
         </RevealSection>
       </section>
 
-      <section id="section-cta" className="relative flex w-full flex-col items-center px-5 py-14 can-hover:lg:py-20">
+      <section id="section-why-us" className="relative flex w-full min-h-[60svh] flex-col items-center justify-center px-5 py-20 can-hover:lg:py-28">
+        <RevealSection className="mx-auto w-full max-w-3xl">
+          <WhyUs />
+        </RevealSection>
+      </section>
+
+      <section id="section-featured-groups" className="relative flex w-full min-h-[60svh] flex-col items-center justify-center px-5 py-20 can-hover:lg:py-28">
+        <RevealSection className="mx-auto w-full max-w-3xl">
+          <FeaturedGroupsCarousel />
+        </RevealSection>
+      </section>
+
+      <section id="section-faq" className="relative flex w-full min-h-[60svh] flex-col items-center justify-center px-5 py-20 can-hover:lg:py-28">
+        <RevealSection className="mx-auto w-full max-w-3xl">
+          <FAQ />
+        </RevealSection>
+      </section>
+
+      <section id="section-cta" className="relative flex w-full min-h-[60svh] flex-col items-center justify-center px-5 py-20 can-hover:lg:py-28">
         <RevealSection className="mx-auto w-full max-w-3xl text-center">
-          <div className="rounded-card border border-line bg-surface px-5 py-10 sm:px-8 sm:py-12">
+          <div className="px-5 py-10 sm:px-8 sm:py-12">
             <h2 className="text-2xl font-extrabold text-ink md:text-3xl">立即開始共享訂閱之旅</h2>
             <p className="mt-3 text-base text-ink-3">加入 PartyMatch，享受更聰明的訂閱生活！</p>
 
-            <div className="mt-7 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Button size="lg" className="rounded-full px-8" onClick={() => navigate('/explore')}>
+            <div className="mt-7 flex items-center justify-center gap-3 sm:gap-4">
+              <Button size="lg" className="rounded-full px-5 sm:px-8" onClick={() => navigate('/explore')}>
                 <Compass size={16} strokeWidth={1.5} />
                 探索群組
               </Button>
               <Button
                 size="lg"
                 variant="secondary"
-                className="rounded-full px-8"
+                className="rounded-full px-5 sm:px-8"
                 onClick={() => navigate(loggedIn ? '/create-group' : '/register')}
               >
                 建立群組
@@ -129,12 +142,6 @@ export default function HomePage() {
               ))}
             </div>
           </div>
-        </RevealSection>
-      </section>
-
-      <section id="section-faq" className="relative flex w-full flex-col items-center px-5 py-14 can-hover:lg:py-20">
-        <RevealSection className="mx-auto w-full max-w-3xl">
-          <FAQ />
         </RevealSection>
       </section>
 

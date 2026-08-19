@@ -3,10 +3,11 @@
 // 各自維護一份、之後新增/刪除 Section 忘記同步更新
 export const HOME_SECTION_IDS = [
   'section-hero',
-  'section-why-us',
+  'section-intro',
   'section-audience',
-  'section-featured-groups',
   'section-identity',
-  'section-cta',
+  'section-why-us',
+  'section-featured-groups',
   'section-faq',
+  'section-cta',
 ]

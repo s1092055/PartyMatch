@@ -1,5 +1,4 @@
 import {
-  Wallet,
   MessageCircleQuestion,
   MessageCircle,
   LayoutGrid,
@@ -7,11 +6,31 @@ import {
 } from 'lucide-react'
 import securityPhoto from '../../../assets/Security.png'
 import creditPhoto from '../../../assets/Credit.png'
+import pmCoinPhoto from '../../../assets/PMCoin.svg'
 import studentsPhoto from '../../../assets/Students.png'
 import couplesPhoto from '../../../assets/Couples.png'
 import friendsPhoto from '../../../assets/Friends.png'
 import familyPhoto from '../../../assets/Family.png'
 import freelancerPhoto from '../../../assets/freelance worker.png'
+
+// 「什麼是 PartyMatch？」區塊：首頁第一個內容區塊（Hero 之後），讓還不認識 PartyMatch 的
+// 使用者快速看懂服務內容，走編號列表呈現三個核心環節，跟「為什麼選擇 PartyMatch？」的
+// Tab 卡片版面刻意做出區隔；不重複「我想成為？」的細節流程跟「為什麼選擇 PartyMatch？」
+// 的信任機制說明
+export const HOME_INTRO_PILLARS = [
+  {
+    title: '尋找或建立群組',
+    desc: '瀏覽現有群組直接申請，或自己開團設定服務、方案與名額。',
+  },
+  {
+    title: '安全加入，安心分攤',
+    desc: '費用由平台代管，服務啟用後仍有確認期，不怕收錢不出貨。',
+  },
+  {
+    title: '一站管理你的訂閱',
+    desc: '續約提醒、站內溝通、信用評價，所有都在同一個平台完成。',
+  },
+]
 
 // 「不同身份，各有各的任務」區塊：團主／成員各自的完整流程，分成四個大階段（頂層底線
 // Tab，id 兩邊一一對應方便切換身份時 Tab 位置不跳動），每個階段底下再列出更細的子流程
@@ -176,28 +195,42 @@ export const HOME_MEMBER_JOURNEY = [
   },
 ]
 
-// 「為什麼選擇 PartyMatch？」區塊
-export const HOME_WHY_US = [
+// 「為什麼選擇 PartyMatch？」區塊：主要機制走 Tab 切換（中央放大插畫 + 完整說明文案），
+// image 沒有的項目（問題回報機制）先用 icon 佔位，之後補上對應插畫時直接補 image 欄位即可，
+// 元件端已經有處理 icon/image 兩種呈現方式
+export const HOME_WHY_US_TABS = [
   {
+    id: 'security',
+    tab: '安全可靠',
     image: securityPhoto,
     title: '安全可靠',
-    desc: '交易由平台代管。',
+    desc: '合購款項由平台代管，服務啟用後另設有 48 小時確認期，交易過程全程留有紀錄可查，保障雙方權益。',
   },
   {
+    id: 'credit',
+    tab: '信用機制',
     image: creditPhoto,
     title: '真實信用機制',
-    desc: '信用評分打造可信環境。',
+    desc: '每次合作結束後，雙方將互相評價並累積為個人信用紀錄；申請加入前即可參考對方過往表現，降低合作風險。',
   },
   {
-    icon: Wallet,
+    id: 'pm-coin',
+    tab: 'PM 幣支付',
+    image: pmCoinPhoto,
     title: 'PM 幣支付',
-    desc: '安全又方便的付款方式。',
+    desc: '站內交易統一以 PM 幣完成，儲值、扣款與退款皆留有完整紀錄；如遇爭議，亦有明確依據可供查核與處理。',
   },
   {
+    id: 'issue-report',
+    tab: '問題回報',
     icon: MessageCircleQuestion,
     title: '問題回報機制',
-    desc: '48 小時內完成處理。',
+    desc: '服務使用期間如有疑慮，可直接向平台提出回報；代管款項將於處理期間全數凍結，並於 48 小時內完成處理。',
   },
+]
+
+// 次要補充項目：跟主要機制 Tab 相關但份量較輕，維持小條列呈現在 Tab 內容下方
+export const HOME_WHY_US_EXTRAS = [
   {
     icon: MessageCircle,
     title: '站內即時溝通',

@@ -9,8 +9,8 @@ const IDLE_DELAY = 2000
 // 底部中央不再有 MobileDock 這種橫跨全寬的固定元素要避開，貼近底部一律用 bottom-4，
 // 對齊 DesktopSidebar（fixed bottom-4）的底部邊緣。
 // 頁面沒有捲動超過 2 秒才淡入顯示，一偵測到捲動（含滑鼠
-// 滾輪／觸控滑動）就立刻淡出並重新倒數，避免一直佔著畫面；捲到最後一個 Section（常見
-// 問題，底下只剩 Footer）時直接隱藏，不需要再提示「下滑查看更多」。水平置中不能只用單純
+// 滾輪／觸控滑動）就立刻淡出並重新倒數，避免一直佔著畫面；捲到最後一個 Section（立即開始
+// 共享訂閱之旅，底下只剩 Footer）時直接隱藏，不需要再提示「下滑查看更多」。水平置中不能只用單純
 // 的 left-1/2，要跟 HomePage.jsx 那層 can-hover:lg:ml-20／can-hover:lg:mr-24 的版面
 // 留白疊同一套 class——桌機有 DesktopSidebar 佔掉左邊、SectionNav 佔掉右邊，可視內容
 // 區域本身就不是整個視窗置中，用 inset-x-0 + 同樣的 ml/mr + flex justify-center，才會
@@ -37,7 +37,7 @@ export default function ScrollCue() {
   }, [])
 
   useEffect(() => {
-    const lastSection = document.getElementById('section-faq')
+    const lastSection = document.getElementById('section-cta')
     if (!lastSection) return
     const observer = new IntersectionObserver(([entry]) => setNearEnd(entry.isIntersecting))
     observer.observe(lastSection)

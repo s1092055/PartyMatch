@@ -8,12 +8,13 @@ import { HOME_SECTION_IDS } from '../data/sectionIds'
 // 共用同一份 HOME_SECTION_IDS，這裡另外配上顯示用的 label
 const SECTION_LABELS = {
   'section-hero': 'PartyMatch',
-  'section-why-us': '為什麼選擇 PartyMatch？',
+  'section-intro': '什麼是 PartyMatch？',
   'section-audience': '適合每一種共享生活',
-  'section-featured-groups': '探索適合你的共享群組',
   'section-identity': '我想成為？',
-  'section-cta': '立即開始共享訂閱之旅',
+  'section-why-us': '為什麼選擇 PartyMatch？',
+  'section-featured-groups': '探索適合你的共享群組',
   'section-faq': '常見問題',
+  'section-cta': '立即開始共享訂閱之旅',
 }
 const SECTIONS = HOME_SECTION_IDS.map(id => ({ id, label: SECTION_LABELS[id] }))
 

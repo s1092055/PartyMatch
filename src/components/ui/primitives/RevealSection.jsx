@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 
-// 只觸發一次淡入，觸發後立刻 unobserve：捲動途中如果 visible 被設回 false，會讓已經看過
-// 的內容重新播放一次 opacity/translateY transition，使用者會在捲動途中看到內容突然「跳」一下
+// 每次進入畫面都重播淡入效果：離開視窗時 visible 重設回 false，下次再捲入視窗時
+// opacity/translateY transition 會重新播放一次，不是只在第一次看到時播放
 export default function RevealSection({ children, delay = 0, className = '' }) {
   const outerRef = useRef(null)
   const [visible, setVisible] = useState(false)
@@ -11,12 +11,7 @@ export default function RevealSection({ children, delay = 0, className = '' }) {
     if (!el) return
 
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true)
-          observer.disconnect()
-        }
-      },
+      ([entry]) => setVisible(entry.isIntersecting),
       { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
     )
     observer.observe(el)
