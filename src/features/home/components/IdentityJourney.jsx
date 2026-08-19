@@ -59,7 +59,11 @@ function StepTrigger({ onClick, visible }) {
 // 續訂管理／其他情境）縱向排列，點選其中一個直接切換並關閉面板
 function StepPanel({ open, onClose, items, activeValue, onChange }) {
   return (
-    <div className="absolute inset-0 z-20 flex items-center justify-center p-4">
+    // 這層外層 wrapper 蓋滿整個影片容器（inset-0）方便置中疊面板，但它本身也是一個
+    // 有版面範圍的 div：即使沒有背景色，只要 pointer-events 沒關掉，瀏覽器 hit-test
+    // 還是會先打到這層、擋住底下的 video，導致面板關閉時點影片完全沒反應。面板關閉時
+    // 一定要整層 pointer-events-none，只留開啟時給裡面的遮罩／面板各自接手點擊
+    <div className={`absolute inset-0 z-20 flex items-center justify-center p-4 ${open ? '' : 'pointer-events-none'}`}>
       <div
         aria-hidden="true"
         onClick={onClose}
