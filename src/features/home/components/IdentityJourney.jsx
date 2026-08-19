@@ -418,7 +418,7 @@ export default function IdentityJourney() {
                   controlsVisible ? 'opacity-100' : 'opacity-0'
                 }`}
               >
-                <div className="mx-auto max-w-md rounded-2xl bg-canvas/85 px-4 py-3 shadow-sm backdrop-blur-md">
+                <div className="mx-auto max-w-md rounded-2xl bg-canvas/85 px-4 py-3 text-left shadow-sm backdrop-blur-md">
                   <p className="text-sm font-extrabold text-ink sm:text-base">{activePhase.title}</p>
                   <p className="mt-1 text-xs leading-relaxed text-ink-3 sm:text-sm">{activePhase.desc}</p>
                 </div>
