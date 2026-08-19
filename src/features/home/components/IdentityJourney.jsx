@@ -321,7 +321,7 @@ export default function IdentityJourney() {
             一張完整的播放卡片，而不是「Tab 列 + 另一個獨立的影片框」兩塊拼接。沒有真正
             hover 能力的裝置（手機＋iPad）四個階段改收進點擊影片左上角「選擇流程」按鈕
             才叫出的面板，真桌機維持原本頁籤貼頂橫向排列 */}
-        <div className="relative overflow-hidden rounded-2xl border border-line bg-surface">
+        <div className="relative overflow-hidden rounded-2xl">
           <div className="hidden border-b border-line px-2 pt-1 can-hover:lg:block">
             <UnderlineTabs
               items={phaseTabItems}
@@ -340,7 +340,7 @@ export default function IdentityJourney() {
                 所以把固定高度加高，縮小空白比例，讓影片視覺上更接近全高顯示 */}
             <div
               ref={videoBoxRef}
-              className="relative flex h-[44rem] w-full items-center justify-center overflow-hidden bg-raised text-ink-4 can-hover:lg:aspect-video can-hover:lg:h-auto"
+              className="relative flex h-[44rem] w-full items-center justify-center overflow-hidden text-ink-4 can-hover:lg:aspect-video can-hover:lg:h-auto"
             >
               {/* 每個階段各自對應一支完整的流程影片（尚未全部補齊拍攝），沒有真正 hover
                   能力的裝置（手機＋iPad）直接播放；真桌機跟其餘還沒補拍的階段一樣維持
