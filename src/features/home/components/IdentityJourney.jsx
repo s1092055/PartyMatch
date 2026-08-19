@@ -300,7 +300,7 @@ export default function IdentityJourney() {
         {/* 四個階段的切換不分裝置都收進點擊影片左上角「選擇流程」按鈕才叫出的面板，
             不再另外用貼頂頁籤列——影片容器可以整個維持完整的播放卡片版面，不用另外切一塊
             頁籤區域 */}
-        <div className="relative overflow-hidden">
+        <div className="relative overflow-hidden rounded-lg">
           <div key={activePhaseId} className="animate-fade-in-up">
             {/* 容器高寬比／高度依裝置切換，跟上面 videoSrc 同一個 isHoverDevice 判斷，
                 不是看視窗寬度：真桌機播的是橫式桌機錄影，用 aspect-video + h-auto 維持
