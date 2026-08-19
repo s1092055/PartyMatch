@@ -35,7 +35,7 @@ function RoleToggle({ activeValue, onChange }) {
   )
 }
 
-// 開啟階段選單的觸發按鈕，不分裝置都疊在影片左上角（跟右下角的全螢幕按鈕分開兩角，
+// 開啟階段選單的觸發按鈕，不分裝置都疊在影片內部正上方置中（跟右下角的全螢幕按鈕分開，
 // 不會互相搶位置）；播放中的影片跟 YouTube 一樣預設收起工具列，這裡的 visible 是外部
 // 算好的「現在該不該顯示」，只負責淡入淡出＋停用點擊
 function StepTrigger({ onClick, visible }) {
@@ -43,7 +43,7 @@ function StepTrigger({ onClick, visible }) {
     <button
       type="button"
       onClick={onClick}
-      className={`absolute left-2 top-2 z-10 flex h-9 items-center justify-center gap-1.5 rounded-full bg-canvas/80 px-3 text-xs font-bold text-ink-2 shadow-sm backdrop-blur transition-opacity duration-300 hover:bg-raised ${
+      className={`absolute left-1/2 top-2 z-10 flex h-9 -translate-x-1/2 items-center justify-center gap-1.5 rounded-full bg-canvas/80 px-3 text-xs font-bold text-ink-2 shadow-sm backdrop-blur transition-opacity duration-300 hover:bg-raised ${
         visible ? 'opacity-100' : 'pointer-events-none opacity-0'
       }`}
     >
@@ -53,19 +53,17 @@ function StepTrigger({ onClick, visible }) {
   )
 }
 
-// 從影片容器內部滑出的面板：一般的 absolute 定位元素，直接掛在有 position:relative 的
-// videoBoxRef 底下，範圍侷限在影片容器本身，不是蓋住整個畫面的獨立 Drawer。從左側滑入，
-// 寬度依裝置不同：手機全寬（沒有多餘影片可露出，遮罩收成 0 寬度不顯示），sm 以上（iPad）
-// 只顯示一半寬度，右側露出的影片部分疊一層可點擊關閉的半透明遮罩。內容只有四個階段
-// （建立群組／群組管理／續訂管理／其他情境），置中顯示在標題列底下的區域，點選其中一個
-// 直接切換並關閉面板
+// 從影片容器正中央開啟的面板，手感跟一般 Modal 一樣（淡入＋輕微縮放，不是從邊緣滑入）：
+// 背景遮罩蓋住整個影片容器（inset-0），點遮罩關閉；面板本身用 flex items-center
+// justify-center 置中疊在遮罩上，寬度固定不吃滿容器，四個階段（建立群組／群組管理／
+// 續訂管理／其他情境）縱向排列，點選其中一個直接切換並關閉面板
 function StepPanel({ open, onClose, items, activeValue, onChange }) {
   return (
-    <>
+    <div className="absolute inset-0 z-20 flex items-center justify-center p-4">
       <div
         aria-hidden="true"
         onClick={onClose}
-        className={`absolute inset-y-0 right-0 left-full z-10 bg-black/40 transition-opacity duration-300 sm:left-1/2 ${
+        className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${
           open ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
       />
@@ -76,8 +74,8 @@ function StepPanel({ open, onClose, items, activeValue, onChange }) {
         // aria-hidden 只隱藏語意卻不會主動移除焦點，瀏覽器會噴警告；inert 會連同焦點
         // 一起處理掉，瀏覽器自動把焦點移出去
         inert={!open}
-        className={`absolute inset-y-0 left-0 z-20 flex w-full flex-col overflow-hidden bg-surface/85 backdrop-blur-md transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] sm:w-1/2 sm:border-r sm:border-line/70 ${
-          open ? 'translate-x-0' : 'pointer-events-none -translate-x-full'
+        className={`relative flex w-full max-w-xs flex-col overflow-hidden rounded-2xl border border-line/70 bg-surface/95 shadow-lg backdrop-blur-md transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          open ? 'scale-100 opacity-100' : 'pointer-events-none scale-95 opacity-0'
         }`}
       >
         <div className="grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 border-b border-line/70 px-3 py-2.5">
@@ -92,7 +90,7 @@ function StepPanel({ open, onClose, items, activeValue, onChange }) {
             <X size={16} strokeWidth={1.5} />
           </button>
         </div>
-        <div className="flex min-h-0 flex-1 flex-col justify-center gap-1 overflow-y-auto p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <div className="flex flex-col gap-1 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           {items.map(({ value, title, badge }) => {
             const active = value === activeValue
             return (
@@ -114,7 +112,7 @@ function StepPanel({ open, onClose, items, activeValue, onChange }) {
           })}
         </div>
       </div>
-    </>
+    </div>
   )
 }
 
