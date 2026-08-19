@@ -170,10 +170,15 @@ export default function IdentityJourney() {
   const videoBoxRef = useRef(null)
   const videoRef = useRef(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
-  // iPhone 版 Safari（不含 iPad）完全不支援 Fullscreen API 作用在一般元素上（只有真正的
-  // <video> 元素能透過 webkitEnterFullscreen 進全螢幕），document.fullscreenEnabled 在
-  // iPhone 上一律是 false；這裡先偵測起來，不支援就整顆按鈕不顯示，避免按了沒反應
+  // iPhone 版 Safari（不含 iPad）完全不支援 Fullscreen API 作用在一般元素上，
+  // document.fullscreenEnabled 在 iPhone 上一律是 false；這裡先偵測起來，容器層級的
+  // 全螢幕在 iPhone 上要整個換成下面 iosVideoFullscreenSupported 那條路
   const [fullscreenSupported] = useState(() => typeof document !== 'undefined' && !!document.fullscreenEnabled)
+  // iPhone Safari 只有真正的 <video> 元素本身能透過 webkitEnterFullscreen 進全螢幕
+  // （容器 div 不行），這裡做 feature detect，不支援就不顯示按鈕，避免按了沒反應
+  const [iosVideoFullscreenSupported] = useState(
+    () => typeof window !== 'undefined' && typeof window.HTMLVideoElement?.prototype.webkitEnterFullscreen === 'function'
+  )
   const [stepPanelOpen, setStepPanelOpen] = useState(false)
   const [isPlaying, setIsPlaying] = useState(true)
   // 手機版影片是自動播放的，說明文字疊在畫面上會擋到內容，所以改成預設收起、點擊影片
@@ -240,12 +245,8 @@ export default function IdentityJourney() {
     videoRef.current?.play()
   }
 
-  // 先讓佔位區塊就能進全螢幕，之後換成實際 <video> 時容器不用動，直接沿用同一顆按鈕跟
-  // requestFullscreen 邏輯；監聽 fullscreenchange 是因為使用者也可能按 Esc 離開全螢幕
-  // （不是點按鈕），這種情況也要把 icon 切回「進入全螢幕」的箭頭。iPhone Safari 完全不
-  // 支援一般元素的 Fullscreen API，按鈕本身在上面用 fullscreenSupported 整顆隱藏；
-  // 之後換成真的 <video> 元素時，iPhone 要另外走 video.webkitEnterFullscreen() 這條
-  // iOS 專屬的路徑（只有 <video> 標籤本身支援，容器 div 沒有），不能沿用這裡的邏輯
+  // 佔位區塊／其餘裝置走容器層級的 Fullscreen API；監聽 fullscreenchange 是因為使用者
+  // 也可能按 Esc 離開全螢幕（不是點按鈕），這種情況也要把 icon 切回「進入全螢幕」的箭頭
   useEffect(() => {
     function handleFullscreenChange() {
       setIsFullscreen(document.fullscreenElement === videoBoxRef.current)
@@ -254,7 +255,30 @@ export default function IdentityJourney() {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange)
   }, [])
 
+  // iPhone Safari 進出全螢幕不會觸發上面的 fullscreenchange，是走 <video> 元素自己的
+  // webkitbeginfullscreen／webkitendfullscreen 事件（含使用者用系統手勢滑掉全螢幕的
+  // 情況），要另外監聽才能讓 icon 正確反映狀態
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+    function handleBegin() { setIsFullscreen(true) }
+    function handleEnd() { setIsFullscreen(false) }
+    video.addEventListener('webkitbeginfullscreen', handleBegin)
+    video.addEventListener('webkitendfullscreen', handleEnd)
+    return () => {
+      video.removeEventListener('webkitbeginfullscreen', handleBegin)
+      video.removeEventListener('webkitendfullscreen', handleEnd)
+    }
+  }, [activePhaseId])
+
+  // iPhone Safari 沒有容器層級的 Fullscreen API，要改叫 <video> 元素本身的
+  // webkitEnterFullscreen()；其餘支援一般元素全螢幕的裝置（含 iPad）維持原本容器層級的
+  // requestFullscreen，這樣影片上疊的說明文字／按鈕能一起被含進全螢幕畫面
   function toggleFullscreen() {
+    if (!fullscreenSupported && iosVideoFullscreenSupported) {
+      videoRef.current?.webkitEnterFullscreen()
+      return
+    }
     if (document.fullscreenElement) {
       document.exitFullscreen()
     } else {
@@ -338,7 +362,7 @@ export default function IdentityJourney() {
 
               <StepTrigger onClick={openStepPanel} />
 
-              {fullscreenSupported && (
+              {(fullscreenSupported || (iosVideoFullscreenSupported && activePhase.video)) && (
                 <button
                   type="button"
                   onClick={toggleFullscreen}
