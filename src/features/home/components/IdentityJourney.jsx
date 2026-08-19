@@ -185,10 +185,20 @@ export default function IdentityJourney() {
   )
   const [stepPanelOpen, setStepPanelOpen] = useState(false)
   const [isPlaying, setIsPlaying] = useState(true)
-  // 手機版影片自動播放時，說明文字＋工具列（選擇流程／播放暫停／全螢幕按鈕）跟 YouTube
-  // 一樣預設收起、點擊影片容器才顯示，避免疊在畫面上擋住內容；沒有影片可播放的階段
-  // （還沒補拍）或影片被暫停時維持一直顯示——沒有東西在播放就不需要「隱藏工具列」，
-  // 這兩種情況的顯示條件併入下面的 controlsVisible 一起算，不是只看這個旗標本身
+  // 播哪一支影片、工具列用點擊還是 hover 叫出來，都要看裝置本身有沒有真正的滑鼠 hover
+  // 能力，不能看視窗寬度：不然真桌機使用者把視窗縮到 1024px 以下會被誤判成手機，看到
+  // 直式手機操作影片反而更奇怪；平板沒有真正 hover 能力，直接併入手機這一組，播手機版
+  // 影片。裝置的 hover 能力不會在使用中途改變，只偵測一次即可，跟下面 fullscreenSupported
+  // 同一套 useState(() => ...) 模式
+  const [isHoverDevice] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches
+  )
+  // 影片自動播放時，說明文字＋工具列（選擇流程／播放暫停／全螢幕按鈕）跟 YouTube 一樣
+  // 預設收起，避免疊在畫面上擋住內容；沒有影片可播放的階段（還沒補拍）或影片被暫停時
+  // 維持一直顯示——沒有東西在播放就不需要「隱藏工具列」，這些情況的顯示條件併入下面的
+  // controlsVisible 一起算，不是只看這個旗標本身。真桌機用滑鼠 hover 進出容器顯示/收起
+  // （見下面 handleVideoMouseEnter/Leave），沒有真正 hover 能力的裝置改成點擊影片容器
+  // 切換（見 handleVideoClick）
   const [showControls, setShowControls] = useState(false)
   // 切換階段時，影片會換一支重新自動播放，工具列也要重新收起，避免沿用上一個階段的
   // 顯示/播放狀態；用「渲染期間比對前一次的 activePhaseId」這個 React 官方建議的作法
@@ -201,19 +211,38 @@ export default function IdentityJourney() {
     setIsPlaying(true)
   }
 
-  // 影片播放中、工具列被點出來顯示時，跟 YouTube 一樣過幾秒沒有動作就自動收回去，
-  // 不然工具列會一直蓋在畫面上；暫停或沒有影片時 controlsVisible 本來就一直是
-  // true（見下面），不會進到這個 effect 的收回邏輯
+  // 沒有真正 hover 能力的裝置點擊叫出工具列後，跟 YouTube 一樣過幾秒沒有動作就自動收
+  // 回去；真桌機用 hover 進出直接控制顯示/收起（見 handleVideoMouseEnter/Leave），
+  // hover 中途不需要、也不應該被這個計時器打斷收起，所以只在非 hover 裝置時跑這段
   useEffect(() => {
-    if (!showControls || !isPlaying) return
+    if (isHoverDevice || !showControls || !isPlaying) return
     const timer = setTimeout(() => setShowControls(false), 3000)
     return () => clearTimeout(timer)
-  }, [showControls, isPlaying, activePhaseId])
+  }, [isHoverDevice, showControls, isPlaying, activePhaseId])
 
-  // 工具列／說明文字實際該不該顯示：使用者手動叫出來、影片暫停中、或這個階段根本沒有
-  // 影片在播放（只是 Play icon 佔位）三種情況都要顯示，只有「影片正在播放且使用者沒有
-  // 點出來」才收起
-  const controlsVisible = showControls || !isPlaying || !activePhase.video
+  // 目前這個裝置實際會播放的影片：真桌機播橫式的 videoDesktop，其餘裝置播直式的
+  // video；兩邊各自獨立判斷有沒有對應影片，還沒補拍的那一邊 fallback 成 Play icon 佔位
+  const videoSrc = isHoverDevice ? activePhase.videoDesktop : activePhase.video
+
+  // 工具列／說明文字實際該不該顯示：使用者手動叫出來（點擊或 hover 中）、影片暫停中、
+  // 或這個階段根本沒有影片在播放（只是 Play icon 佔位）三種情況都要顯示，只有「影片正在
+  // 播放且使用者沒有叫出來」才收起
+  const controlsVisible = showControls || !isPlaying || !videoSrc
+
+  function handleVideoClick() {
+    if (isHoverDevice) return
+    setShowControls(v => !v)
+  }
+
+  function handleVideoMouseEnter() {
+    if (!isHoverDevice) return
+    setShowControls(true)
+  }
+
+  function handleVideoMouseLeave() {
+    if (!isHoverDevice) return
+    setShowControls(false)
+  }
 
   const phaseTabItems = journey.map(({ id, title, badge }) => ({ value: id, title, badge }))
 
@@ -331,51 +360,57 @@ export default function IdentityJourney() {
           </div>
 
           <div key={activePhaseId} className="animate-fade-in-up">
-            {/* 沒有真正 hover 能力的裝置拿掉 aspect-video，改成固定高度＋w-full：容器寬度
-                是 aspect-ratio 鎖住寬高比，之前想把容器加寬，寬度一變高度也跟著等比拉高，
-                反而讓整體內容變更高，寬度看起來又變窄了，兩者互相抵銷；改成固定高度後
-                寬度可以單獨調寬，不會牽動高度。首頁 Section 已經是自然高度（不用塞進一個
-                螢幕），這裡的高度純粹依內容需求調整即可。手機版影片是直式錄影（長寬比
-                遠比這個容器窄高），改用 object-contain 後高度不夠會讓影片上下留白很多，
-                所以把固定高度加高，縮小空白比例，讓影片視覺上更接近全高顯示 */}
+            {/* 容器高寬比／高度依裝置切換，跟上面 videoSrc 同一個 isHoverDevice 判斷，
+                不是看視窗寬度：真桌機播的是橫式桌機錄影，用 aspect-video + h-auto 維持
+                16:9；其餘裝置（手機＋iPad）播直式手機錄影，改用固定高度＋w-full——容器
+                寬度是 aspect-ratio 鎖住寬高比的話，之前想把容器加寬，寬度一變高度也跟著
+                等比拉高，反而讓整體內容變更高，寬度看起來又變窄了，兩者互相抵銷；改成
+                固定高度後寬度可以單獨調寬，不會牽動高度 */}
             <div
               ref={videoBoxRef}
-              className="relative flex h-[44rem] w-full items-center justify-center overflow-hidden text-ink-4 can-hover:lg:aspect-video can-hover:lg:h-auto"
+              className={`relative flex w-full items-center justify-center overflow-hidden text-ink-4 ${
+                isHoverDevice ? 'aspect-video h-auto' : 'h-[44rem]'
+              }`}
             >
-              {/* 每個階段各自對應一支完整的流程影片（尚未全部補齊拍攝），沒有真正 hover
-                  能力的裝置（手機＋iPad）直接播放；真桌機跟其餘還沒補拍的階段一樣維持
-                  Play icon 佔位。之後每個階段都補上對應影片時，這裡改成不分裝置直接播放
-                  即可，不用再判斷 activePhase.video 存不存在。影片本身是直式手機錄影
-                  （長寬比跟這裡固定高度＋滿版寬度的容器不同），用 object-contain 而不是
-                  object-cover：cover 會裁切掉超出容器寬高比的部分，把直式影片放大再裁邊，
-                  等於局部放大又內容被裁掉；contain 讓整支影片完整縮放進容器，維持原始比例
-                  全部可見，上下或左右可能會留一點空白，但不會有內容被放大裁切的問題 */}
-              {activePhase.video ? (
+              {/* 每個階段各自對應手機／桌機兩支完整的流程影片（尚未全部補齊拍攝），
+                  isHoverDevice 決定這個裝置實際要播哪一支、還沒補拍的那一邊 fallback 成
+                  Play icon 佔位；同一時間只會掛載其中一個 <video> 元素，不是兩支都放進
+                  DOM 用 CSS 互相隱藏——不然沒在播放的那一支也會被瀏覽器一起下載，白白
+                  浪費流量（桌機那支是原始桌機錄影檔，體積比手機那支大上一截）。手機影片是
+                  直式錄影（長寬比跟這裡固定高度＋滿版寬度的容器不同），用 object-contain
+                  而不是 object-cover：cover 會裁切掉超出容器寬高比的部分，把直式影片放大
+                  再裁邊，等於局部放大又內容被裁掉；contain 讓整支影片完整縮放進容器，維持
+                  原始比例全部可見，上下或左右可能會留一點空白，但不會有內容被放大裁切的
+                  問題。桌機影片是橫式錄影，長寬比跟 aspect-video 的容器一致，用
+                  object-cover 即可 */}
+              {videoSrc ? (
                 <>
-                  {/* 點擊影片本身叫出／收回工具列，跟 YouTube 手機版同一套手感：工具列
-                      隱藏時這裡直接接住點擊；工具列顯示時，蓋在上面的置中播放/暫停按鈕、
-                      左上角選擇流程、右下角全螢幕按鈕會各自攔截點擊，不會穿透到這裡 */}
+                  {/* 工具列叫出/收回：真桌機用滑鼠 hover 進出容器直接控制（懸停時顯示，
+                      移開收起），沒有真正 hover 能力的裝置改成點擊切換，跟 YouTube 手機版
+                      同一套手感。工具列顯示時，蓋在上面的置中播放/暫停按鈕、左上角選擇
+                      流程、右下角全螢幕按鈕會各自攔截點擊/hover，不會穿透到這裡 */}
                   <video
                     ref={videoRef}
-                    onClick={() => setShowControls(v => !v)}
-                    className="absolute inset-0 h-full w-full object-contain can-hover:lg:hidden"
-                    src={activePhase.video}
+                    onClick={handleVideoClick}
+                    onMouseEnter={handleVideoMouseEnter}
+                    onMouseLeave={handleVideoMouseLeave}
+                    className={`absolute inset-0 h-full w-full ${isHoverDevice ? 'object-cover' : 'object-contain'}`}
+                    src={videoSrc}
                     autoPlay
                     loop
                     muted
                     playsInline
                   />
-                  <Play size={40} strokeWidth={1.5} className="hidden can-hover:lg:block" />
 
                   {/* 播放/暫停按鈕置中疊在影片正中央（YouTube 同款位置），用 inset-0 +
                       m-auto 讓固定尺寸的圓形按鈕在 relative 容器內置中，不用另外算座標；
-                      隱藏時 pointer-events-none 讓點擊穿透到底下的 video，才能點影片任意
-                      位置（含正中央）重新叫出工具列 */}
+                      隱藏時 pointer-events-none 讓點擊/hover 穿透到底下的 video，才能在
+                      影片任意位置（含正中央）重新叫出工具列 */}
                   <button
                     type="button"
                     onClick={togglePlayback}
                     aria-label={isPlaying ? '暫停播放' : '繼續播放'}
-                    className={`absolute inset-0 z-10 m-auto grid h-14 w-14 place-items-center rounded-full bg-canvas/80 text-ink-3 shadow-sm backdrop-blur transition-opacity duration-300 hover:bg-raised hover:text-ink can-hover:lg:hidden ${
+                    className={`absolute inset-0 z-10 m-auto grid h-14 w-14 place-items-center rounded-full bg-canvas/80 text-ink-3 shadow-sm backdrop-blur transition-opacity duration-300 hover:bg-raised hover:text-ink ${
                       controlsVisible ? 'opacity-100' : 'pointer-events-none opacity-0'
                     }`}
                   >
@@ -386,19 +421,24 @@ export default function IdentityJourney() {
                 <Play size={40} strokeWidth={1.5} />
               )}
 
+              {/* 這顆按鈕的顯示邏輯刻意維持原本的 can-hover:lg（見 StepTrigger 內部
+                  className），跟上面貼頂 UnderlineTabs 頁籤列（can-hover:lg:block）互補：
+                  兩者合起來要涵蓋所有裝置＋視窗寬度組合，任何時候剛好只有其中一個顯示，
+                  不能改成跟 videoSrc 一樣單純看 isHoverDevice——否則真桌機把視窗縮到
+                  lg 斷點以下時，頁籤列跟這顆按鈕會同時消失，變成沒有任何介面可以切換
+                  階段 */}
               <StepTrigger onClick={openStepPanel} visible={controlsVisible} />
 
               {/* 沒有真正 hover 能力的裝置（手機＋iPad）全螢幕按鈕放右上角，跟左上角的
-                  「選擇流程」左右對稱；真桌機維持原本右下角（can-hover:lg:bottom-2
-                  can-hover:lg:top-auto 蓋回去） */}
-              {(fullscreenSupported || (iosVideoFullscreenSupported && activePhase.video)) && (
+                  「選擇流程」左右對稱；真桌機放回原本右下角 */}
+              {(fullscreenSupported || (iosVideoFullscreenSupported && videoSrc)) && (
                 <button
                   type="button"
                   onClick={toggleFullscreen}
                   aria-label={isFullscreen ? '離開全螢幕' : '全螢幕播放'}
-                  className={`absolute top-2 right-2 z-10 grid h-8 w-8 place-items-center rounded-full bg-canvas/80 text-ink-3 shadow-sm backdrop-blur transition-opacity duration-300 hover:bg-raised hover:text-ink can-hover:lg:top-auto can-hover:lg:bottom-2 can-hover:lg:opacity-100 can-hover:lg:pointer-events-auto ${
-                    controlsVisible ? 'opacity-100' : 'pointer-events-none opacity-0'
-                  }`}
+                  className={`absolute right-2 z-10 grid h-8 w-8 place-items-center rounded-full bg-canvas/80 text-ink-3 shadow-sm backdrop-blur transition-opacity duration-300 hover:bg-raised hover:text-ink ${
+                    isHoverDevice ? 'bottom-2' : 'top-2'
+                  } ${controlsVisible ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
                 >
                   {isFullscreen ? <Minimize2 size={14} strokeWidth={1.5} /> : <Maximize2 size={14} strokeWidth={1.5} />}
                 </button>
@@ -407,14 +447,13 @@ export default function IdentityJourney() {
               {/* 目前選中階段的說明文字，疊在影片容器內部底部置中。外層 inset-x-0 撐滿
                   整個寬度，pointer-events-none 避免蓋住底下的 video／置中播放鈕。顯示/
                   隱藏跟其餘工具列共用同一個 controlsVisible：播放中且使用者沒叫出來時
-                  收起，暫停中／沒有影片可播放（只是 Play icon 佔位）／使用者點出來時
-                  顯示；can-hover:lg:opacity-100 讓真桌機（沒有播放中的影片）強制蓋過這個
-                  判斷、維持一直顯示。這裡故意不用 animate-fade-in-up：那個 class 的
-                  animation 帶 fill-mode both，動畫結束後會把 opacity 鎖在 1，之後
-                  controlsVisible 切到 false 時 opacity-0 這個 utility class 完全蓋不過
-                  animation 鎖住的值，說明文字會變成永遠顯示、按鈕收不起來 */}
+                  收起，暫停中／沒有影片可播放（只是 Play icon 佔位）／使用者叫出來時
+                  顯示。這裡故意不用 animate-fade-in-up：那個 class 的 animation 帶
+                  fill-mode both，動畫結束後會把 opacity 鎖在 1，之後 controlsVisible
+                  切到 false 時 opacity-0 這個 utility class 完全蓋不過 animation 鎖住的
+                  值，說明文字會變成永遠顯示、按鈕收不起來 */}
               <div
-                className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 px-4 pb-3 text-center transition-opacity duration-300 can-hover:lg:opacity-100 ${
+                className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 px-4 pb-3 text-center transition-opacity duration-300 ${
                   controlsVisible ? 'opacity-100' : 'opacity-0'
                 }`}
               >

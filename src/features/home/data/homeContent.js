@@ -12,7 +12,8 @@ import couplesPhoto from '../../../assets/Couples.png'
 import friendsPhoto from '../../../assets/Friends.png'
 import familyPhoto from '../../../assets/Family.png'
 import freelancerPhoto from '../../../assets/freelance worker.png'
-import createGroupFlowVideo from '../../../assets/flow-videos/create-group.mov'
+import createGroupFlowVideo from '../../../assets/flow-videos/create-group-m.mov'
+import createGroupFlowVideoDesktop from '../../../assets/flow-videos/create-group-d.mov'
 
 // 「PartyMatch 是什麼？」區塊：首頁第一個內容區塊（Hero 之後），讓還不認識 PartyMatch 的
 // 使用者快速看懂服務內容，走編號列表呈現三個核心環節，跟「為什麼選擇 PartyMatch？」的
@@ -49,9 +50,11 @@ export const HOME_HOST_JOURNEY = [
     title: '建立群組',
     badge: 'CREATE',
     desc: '選服務、設定方案與名額即可開放申請，方案價格系統自動核實，免自己找人湊團。',
-    // 手機版實拍畫面（直式螢幕錄影），沒有真正 hover 能力的裝置（手機＋iPad）共用；
-    // 其餘階段還沒有對應影片，維持原本的 Play icon 佔位
+    // 手機／桌機分開錄製兩支畫面（手機是直式螢幕錄影，桌機是橫式），沒有真正 hover
+    // 能力的裝置（手機＋iPad）播 video，真桌機播 videoDesktop；其餘階段兩邊都還沒有
+    // 對應影片，維持原本的 Play icon 佔位
     video: createGroupFlowVideo,
+    videoDesktop: createGroupFlowVideoDesktop,
   },
   {
     id: 'manage',
