@@ -1,0 +1,55 @@
+# 認證機制
+
+## 概覽
+
+採用 JWT accessToken + refreshToken 雙 token 設計：
+
+- **accessToken**：存於前端 `localStorage`，有效期較短，隨每次請求以 `Authorization: Bearer` header 帶入
+- **refreshToken**：存於後端簽發的 HttpOnly Cookie（前端完全碰不到內容），有效期較長，後端另存一份於 Redis 供驗證比對與主動失效控制
+
+正式環境前後端透過同一個反向代理變成同一個 origin，Cookie 用一般的 `SameSite=Lax` 即可，不需處理跨站 Cookie 的相容性問題。
+
+## 流程圖
+
+```mermaid
+flowchart TD
+  A[使用者輸入帳密登入] --> B[後端驗證密碼]
+  B --> C[簽發 accessToken 與 refreshToken]
+  C --> D[accessToken 存 localStorage]
+  C --> E[refreshToken 存 HttpOnly Cookie]
+  D --> F[請求時帶上 accessToken]
+  F --> G{accessToken 是否有效}
+  G -->|有效| H[正常回應]
+  G -->|過期| I[用 refreshToken 換發新 token]
+  I --> J[Rotation：作廢舊 refreshToken，簽發新的一組]
+  J --> F
+  I -->|換發也失敗| K[清除本地憑證，導向登入頁]
+```
+
+## 登入 / 註冊 / 登出
+
+註冊與登入流程一致：驗證輸入 → 密碼雜湊比對 → 簽發一組 accessToken 與 refreshToken → 寫入 Redis session → 回傳給前端。登入時會檢查帳號是否已被軟刪除停用。登出只會讓「目前這台裝置」的 session 失效，其他裝置不受影響。
+
+> Google OAuth 目前僅為前端預留位置，尚未串接。
+
+## 多裝置 session 與 refresh 機制
+
+每次登入會產生一個獨立的 session 識別碼，讓同一使用者可以在多台裝置各自維持獨立登入狀態；登出或換發新 token 只影響當下這個 session。換發新 token（refresh）採 rotation 機制：每次都會產生新的一組 token 並讓舊的 refreshToken 失效。帳號被停用時，後端會一次性清除該使用者在所有裝置的 session，讓所有裝置立即登出。
+
+## 前端自動處理
+
+前端的 API 呼叫層會自動附加 token，並在收到「登入已過期」的回應時嘗試自動換發新 token 後重放原請求；多個並發請求同時過期時會排隊處理，避免重複換發。若換發也失敗，則清除本地憑證並導向登入頁。
+
+## 路由守衛
+
+需登入頁面在未登入時不會直接跳轉，而是顯示「需要登入才能繼續」的提示，讓使用者選擇取消或前往登入；登入/註冊等公開頁面則在已登入時自動導回首頁。管理員後台則是第三種守衛：非管理員一律靜默導回首頁；管理員登入成功後會直接導向後台而非首頁。
+
+App 啟動與登入成功後都遵循「先公開資料、後私人資料」的順序初始化前端狀態，避免未登入狀態呼叫受保護端點，詳見 [前端架構](./frontend.md)。
+
+## 設計考量
+
+雙 token 設計的用意是把「攻擊面」與「損害範圍」分開處理：accessToken 存活期短、隨請求帶著走，即使外洩可造成的影響時間有限；refreshToken 走 HttpOnly Cookie，前端 JavaScript 完全讀不到內容，並採 rotation 機制（每次換發都作廢舊的），搭配同源反向代理架構降低跨站請求偽造的風險。整體採業界標準的雙 token + HttpOnly Cookie 作法，細節防護持續依需求強化。
+
+## 帳號軟刪除停用
+
+使用者可在確認密碼後停用自己的帳號，此為軟刪除（不刪除任何實體資料），並會清除該帳號所有裝置的登入 session。停用後的帳號無法登入，目前僅能聯絡客服人工恢復。
