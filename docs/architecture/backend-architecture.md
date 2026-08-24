@@ -20,13 +20,9 @@ Node.js + Express，標準 middleware 鏈（安全性 headers、CORS、日誌、
 
 Schema 定義於單一 `schema.prisma`，所有 route 透過共用的 Prisma client 存取資料庫。涉及「多個資料表需一起成功或一起失敗」的業務流程（例如申請送出時的代管扣款、申請審核、成員移除退款）一律包在 transaction 內，確保原子性；純查詢不包 transaction。
 
-## JWT 認證機制（概述）
+## 認證與 Redis
 
-accessToken + refreshToken 雙 token 設計，refreshToken 存於 Redis，支援同一帳號多裝置各自維護獨立 session。詳見 [認證機制](./authentication.md)。
-
-## Redis 用途
-
-目前唯一用途是儲存 refreshToken session，支援單一裝置登出與帳號停用時的全裝置登出。尚未用於一般資料快取。
+JWT 雙 token 設計，refreshToken 存於 Redis 以支援同一帳號多裝置各自維護獨立 session（單一裝置登出、帳號停用全裝置登出）；這是 Redis 目前唯一的用途，尚未用於一般資料快取。詳見 [認證機制](./authentication.md)。
 
 ## 檔案上傳
 

@@ -1,73 +1,40 @@
 # PartyMatch
 
-## 專案介紹
+共享訂閱媒合平台，讓使用者安心跟陌生人合購 Netflix、Spotify 等訂閱服務——找夥伴、審核、付款代管、續訂都在同一個平台完成，不用再靠社團私訊跟 Google 表單對帳。
 
-PartyMatch 是一個共享訂閱媒合平台，讓使用者可以探索或建立 Netflix、Spotify、YouTube Premium、Disney+ 等共享訂閱群組，從找夥伴、申請審核、付款代管到續訂都在同一個平台完成。
-
-完整的產品定位、解決的問題與功能說明見下方[技術內容](#技術內容)。
-
----
-
-## 技術內容
-
-完整技術文件在 [`docs/`](docs/README.md)，依 Product／Architecture／Flows 分類。
-
-1. **先懂產品在做什麼** → [產品總覽](docs/product/product-overview.md)
-2. **再懂整體是怎麼組出來的** → [架構總覽](docs/architecture/architecture.md)
-3. **想知道某個功能實際怎麼運作** → [使用者流程總覽](docs/flows/user-flows.md)
-
-| 類別 | 技術 |
-|------|------|
-| Frontend | React 19、Vite、React Router v7、Zustand |
-| UI | Tailwind CSS v4、shadcn/ui、Radix UI、lucide-react |
-| Backend | Node.js、Express |
-| 資料庫 | MySQL + Prisma ORM |
-| 快取 | Redis |
-| 認證 | JWT（雙 token） |
-| 檔案儲存 | Cloudflare R2 |
-| Architecture | Feature-based、Store + API 雙層分離、事件驅動跨元件通訊 |
-
-技術選型理由與各項實作細節（深色模式、認證機制、圖片上傳、匯率查詢等）見[架構總覽](docs/architecture/architecture.md)。
-
----
-
-## 核心功能
-
-- **狀態機驅動的群組生命週期**：招募到結束共 6 個階段，各階段可執行動作皆由狀態機決定
-- **PM幣代管系統**：申請即扣款代管，團主啟用服務後才撥款
-- **信用分數系統**：依成員與團主的行為即時增減分數，作為群組申請門檻
-- **28 種訂閱服務、6 種真實共享機制**：依服務動態顯示要填寫的帳號資訊欄位
-- **申訴與裁定機制**：糾紛可自行協調，協調不成由管理員裁定
-- **訊息與通知系統**：聊天室、私訊、系統通知整合成單一訊息中心
-- **管理員後台**：獨立 Dashboard，管理平台數據並裁定申訴
-- **敏感資料保護**：敏感欄位動態遮罩，機密資料加密儲存，附件皆私有化
-
-各項功能詳細說明見[產品總覽](docs/product/product-overview.md)。
-
----
-
-## 線上 Demo
-
-- 前端：https://partymatch.ykk910309.workers.dev
-- 後端 API：https://partymatch-api.onrender.com/api
-
----
-
-## 畫面展示
+**Demo**：[前端](https://partymatch.ykk910309.workers.dev) ・ [後端 API](https://partymatch-api.onrender.com/api)
 
 | 首頁 | 探索群組 | 群組管理 | 訊息中心 |
 |------|----------|----------|----------|
 | ![首頁](docs/images/screenshot-home.jpg) | ![探索群組](docs/images/screenshot-explore.jpg) | ![群組管理](docs/images/screenshot-manage-groups.jpg) | ![訊息中心](docs/images/screenshot-messages.jpg) |
 
----
+## 核心功能
+
+群組有完整的**狀態機**：招募 → 額滿 → 填寫帳號資訊 → 啟用 → 服務中 → 續訂／結束，每個階段能做什麼都由狀態決定，不會跳步驟。
+
+錢的部分用 **PM 幣代管**處理：申請當下就先扣款代管，不是直接進團主口袋，等團主啟用服務、成員確認後才撥款；退出、移除、解散、申訴都各自對應退款規則。
+
+其他重點：
+
+- **信用分數**依行為即時增減，可作群組申請門檻
+- **申訴機制**，糾紛先自行協調，協調不成由管理員裁定
+- 群組敏感資料（共用帳密、成員服務帳號）依角色動態遮罩，帳密另外加密落地儲存
+- 訊息中心整合群組聊天室、私訊、系統通知
+- 獨立的管理員後台
+
+## 技術棧
+
+- **Frontend** React 19、Vite、React Router v7、Zustand、Tailwind CSS v4
+- **Backend** Node.js、Express、Prisma、MySQL、Redis
+- **Infra** Cloudflare（Workers／Pages／R2）、Render
+
+## 文件
+
+產品設計、架構決策、各功能流程說明都在 [`docs/`](docs/README.md)。
 
 ## 注意事項
 
-儲值、付款、代管撥款等流程皆為模擬邏輯，未串接正式金流。正式環境所需的 API key、JWT secret、資料庫連線資訊與第三方服務設定皆未包含於此 repository。
-
-目前刻意未實作的部分：Google 登入、忘記密碼寄信、帳號中心的「通知偏好」「安全驗證」皆尚未串接後端，畫面上不會露出這些入口（而非顯示 disabled 按鈕或開發中佔位），避免半成品入口影響展示觀感。
-
----
+儲值、付款、代管撥款皆為平台內模擬邏輯，未接正式金流；Google 登入、忘記密碼寄信尚未實作。
 
 ## 聯絡我
 
