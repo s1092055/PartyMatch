@@ -2,6 +2,81 @@
 
 資料庫使用 **MySQL 8**，以 **Prisma ORM** 管理 schema。
 
+## 核心領域 ERD
+
+只畫交易流程真正會用到的 7 張表；`Notification`／`Favorite`／`Conversation`／`Message`／`Review`／`CredentialComment`／`CreditScoreLog` 等次要表未列入（各自只跟 `User`／`Group` 有一對多關聯，不影響核心交易邏輯）。
+
+```mermaid
+erDiagram
+  USER ||--o{ GROUP : hosts
+  USER ||--o{ APPLICATION : submits
+  USER ||--o{ MEMBER : "is member as"
+  USER ||--o{ SUBSCRIPTION : has
+  USER ||--o{ TOKEN_TRANSACTION : owns
+  SERVICE ||--o{ GROUP : "offered as"
+  GROUP ||--o{ APPLICATION : receives
+  GROUP ||--o{ MEMBER : contains
+  GROUP ||--o{ SUBSCRIPTION : has
+  GROUP ||--o{ TOKEN_TRANSACTION : "relates to"
+
+  USER {
+    string id PK
+    string email UK
+    string name
+    int creditScore
+    int tokenBalance
+    boolean isAdmin
+  }
+  SERVICE {
+    string id PK
+    string name
+    string category
+    json plans
+  }
+  GROUP {
+    string id PK
+    string hostId FK
+    string serviceId FK
+    string planId
+    enum status
+    int maxMembers
+    int currentMembers
+    decimal monthlyFee
+    int escrowTokens
+    string sharedCredentials "AES-256-GCM 加密"
+  }
+  APPLICATION {
+    string id PK
+    string groupId FK
+    string userId FK
+    enum status
+    int escrowAmount
+  }
+  MEMBER {
+    string id PK
+    string groupId FK
+    string userId FK
+    json serviceInfo
+    datetime confirmedAt
+  }
+  SUBSCRIPTION {
+    string id PK
+    string groupId FK
+    string userId FK
+    enum status
+    datetime nextBillingDate
+  }
+  TOKEN_TRANSACTION {
+    string id PK
+    string userId FK
+    string relatedGroupId FK
+    enum type
+    int amount
+  }
+```
+
+`Group.status` 即群組狀態機（見下方「群組狀態機」）；`escrowTokens` 是目前代管在群組裡、尚未撥款的 PM 幣總額，跟 `TokenTransaction` 的逐筆流水互為對帳依據。
+
 ## 主要資料模型
 
 - **User**：帳號、個人資料、信用分數、平台PM幣餘額、隱私與線上狀態設定

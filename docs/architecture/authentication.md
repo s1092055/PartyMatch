@@ -22,7 +22,17 @@
 
 需登入頁面在未登入時不會直接跳轉，而是顯示「需要登入才能繼續」的提示，讓使用者選擇取消或前往登入；登入/註冊等公開頁面則在已登入時自動導回首頁。管理員後台則是第三種守衛：條件不符時直接靜默導回首頁，不顯示登入提示，避免透露這個路由的存在；管理員登入成功後會直接導向後台而非首頁。
 
-App 啟動與登入成功後都遵循「先公開資料、後私人資料」的順序初始化前端狀態，避免未登入狀態呼叫受保護端點，詳見 [前端架構](./frontend-architecture.md)。
+App 啟動與登入成功後都遵循「先公開資料、後私人資料」的順序初始化前端狀態，避免未登入狀態呼叫受保護端點，詳見 [前端架構](./frontend.md)。
+
+## Security Consideration
+
+**accessToken 存 localStorage 的 XSS 風險**：只要頁面被注入惡意 script，就能直接讀走 `localStorage` 裡的 accessToken。目前的取捨是靠**短效期（15 分鐘）**限制風險範圍——即使 token 外洩，能用的時間也有限；後端 API 本身有設 `helmet()`（含預設 CSP），但那組標頭只保護 API 回應本身，前端 SPA 的 HTML 是由 Cloudflare 的靜態資源服務直接回傳，目前**沒有另外設定 CSP**，這是已知、尚未補強的限制。
+
+**refreshToken 用 HttpOnly Cookie**：即使前端被 XSS，攻擊者能偷到的 accessToken 有效期短，但完全碰不到 refreshToken 內容（`HttpOnly` 讓它對 `document.cookie` 不可見），無法用它換發新 token 延長攻擊窗口。
+
+**CSRF 與 SameSite**：refreshToken Cookie 設 `SameSite=Lax`，這個防護前提是「前後端同源」（Cloudflare Worker 反向代理 `/api/*`，瀏覽器看到的是同一個 origin）。`SameSite=Lax` 會擋掉跨站的 POST 請求帶上這顆 Cookie（只有頂層導覽的 GET 才會帶），`/auth/refresh` 是 POST，因此第三方網站沒辦法用簡單的 CSRF 手法偷偷觸發換發 token。目前沒有額外實作 CSRF token 機制，完全依賴這個同源 + `SameSite=Lax` 的組合。
+
+**Token 生命週期**：accessToken 15 分鐘、refreshToken 較長效但採 rotation（每次換發都作廢舊的），單一 refreshToken 洩漏的可用時間也有上限。
 
 ## 帳號軟刪除停用
 

@@ -13,4 +13,4 @@
 - 頭像狀態點（線上/忙碌/離線）在訊息列表與成員面板的顯示與同步
 - 退款/撥款相關通知連動即時刷新 PM 幣餘額
 
-測試帳號規劃僅供開發測試使用，不對外公開。相關流程細節見 [訊息流程](../flows/messages-flow.md)、[通知流程](../flows/notification-flow.md)。
+測試帳號規劃僅供開發測試使用，不對外公開。相關流程細節見 [訊息流程](../../flows/messages-flow.md)、[通知流程](../../flows/notification-flow.md)。

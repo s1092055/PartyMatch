@@ -28,6 +28,25 @@
 - **Backend** Node.js、Express、Prisma、MySQL、Redis
 - **Infra** Cloudflare（Workers／Pages／R2）、Render
 
+## Quick Start
+
+需求：Node.js 22+、MySQL 8+、Redis 7+
+
+```bash
+# 前端
+npm install
+cp .env.example .env
+npm run dev
+
+# 後端
+cd server
+npm install
+cp .env.example .env
+npm run dev
+```
+
+完整環境設定、測試方式、seed demo 資料見[開發指南](docs/development.md)。
+
 ## 文件
 
 產品設計、架構決策、各功能流程說明都在 [`docs/`](docs/README.md)。
