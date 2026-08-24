@@ -34,7 +34,8 @@ flowchart LR
 
 ## 相關文件
 
-- 探索與配對：探索群組、快速搜尋
-- 成員端：申請加入、我的訂閱、申訴
-- 團主端：建立群組、審核申請、群組管理、續訂
-- 共用機制：PM幣代管與付款、訊息、通知
+- 探索與配對：[探索群組](explore-flow.md)、[快速搜尋](quick-match-flow.md)
+- 成員端：[申請加入](apply-join-flow.md)、[我的訂閱](subscriptions-flow.md)、[申訴](dispute-flow.md)
+- 團主端：[建立群組](create-group-flow.md)、[審核申請](approval-flow.md)、[群組管理](manage-groups-flow.md)、[續訂](renewal-flow.md)
+- 共用機制：[PM幣代管與付款](payment-token-flow.md)、[訊息](messages-flow.md)、[通知](notification-flow.md)
+- 群組狀態機完整定義：[群組生命週期狀態機](group-state-machine.md)
