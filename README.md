@@ -4,11 +4,17 @@
 
 PartyMatch 是一個共享訂閱媒合平台，讓使用者可以探索或建立 Netflix、Spotify、YouTube Premium、Disney+ 等共享訂閱群組，從找夥伴、申請審核、付款代管到續訂都在同一個平台完成。
 
-完整的產品定位、解決的問題與功能說明見下方[技術文件](#技術文件)。
+完整的產品定位、解決的問題與功能說明見下方[技術內容](#技術內容)。
 
 ---
 
 ## 技術內容
+
+完整技術文件在 [`docs/`](docs/README.md)，依 Product／Architecture／Flows 分類。
+
+1. **先懂產品在做什麼** → [產品總覽](docs/product/product-overview.md)
+2. **再懂整體是怎麼組出來的** → [架構總覽](docs/architecture/architecture.md)
+3. **想知道某個功能實際怎麼運作** → [使用者流程總覽](docs/flows/user-flows.md)
 
 | 類別 | 技術 |
 |------|------|
@@ -22,16 +28,6 @@ PartyMatch 是一個共享訂閱媒合平台，讓使用者可以探索或建立
 | Architecture | Feature-based、Store + API 雙層分離、事件驅動跨元件通訊 |
 
 技術選型理由與各項實作細節（深色模式、認證機制、圖片上傳、匯率查詢等）見[架構總覽](docs/architecture/architecture.md)。
-
----
-
-## 技術文件
-
-完整技術文件在 [`docs/`](docs/README.md)，依 Product／Architecture／Flows 分類。
-
-1. **先懂產品在做什麼** → [產品總覽](docs/product/product-overview.md)
-2. **再懂整體是怎麼組出來的** → [架構總覽](docs/architecture/architecture.md)
-3. **想知道某個功能實際怎麼運作** → [使用者流程總覽](docs/flows/user-flows.md)
 
 ---
 
