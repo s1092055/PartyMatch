@@ -16,8 +16,7 @@ export function GroupRedirect() {
   const { groupId } = useParams()
   useEffect(() => {
     navigate('/explore', { replace: true })
-    // Delay dispatch until after navigation re-render so GroupDetailModal's
-    // event listener is guaranteed to be mounted before the event fires.
+    // 延後到導覽重新渲染後才觸發，確保 GroupDetailModal 的 event listener 已掛載
     setTimeout(() => {
       window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId } }))
     }, 0)

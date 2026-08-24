@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "eslint .",
+    "lint": "eslint . && npm run check:catalog",
+    "check:catalog": "node scripts/check-catalog-sync.js",
     "preview": "vite preview",
     "test": "vitest run"
   },

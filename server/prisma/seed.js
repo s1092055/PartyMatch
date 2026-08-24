@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import prisma from '../src/lib/prisma.js'
 
-const SERVICES = [
+export const SERVICES = [
   { id: 'spotify',          name: 'Spotify',        category: '音樂', plans: [{ id: 'spotify-family', name: '家庭方案（月繳）', maxMembers: 6, monthlyFee: 298, currency: 'TWD' }, { id: 'spotify-duo', name: 'Duo（月繳）', maxMembers: 2, monthlyFee: 228, currency: 'TWD' }] },
   { id: 'youtube',          name: 'YouTube',        category: '影音', plans: [{ id: 'youtube-family', name: '家庭方案（月繳）', maxMembers: 6, monthlyFee: 479, currency: 'TWD' }] },
   { id: 'netflix',          name: 'Netflix',        category: '影音', plans: [{ id: 'netflix-std', name: '標準（月繳）', maxMembers: 2, monthlyFee: 380, currency: 'TWD' }, { id: 'netflix-4k', name: '高級（4K）（月繳）', maxMembers: 4, monthlyFee: 460, currency: 'TWD' }] },

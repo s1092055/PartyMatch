@@ -194,7 +194,7 @@ export const useGroupStore = create((set, get) => ({
   // ── 裁定申訴（管理員）──────────────────────────────────────────────────────
   adjudicateGroup: async (id, payload) => {
     const res = await adjudicateGroupApi(id, payload)
-    // 裁定會連動變更成員名單／代管餘額／訂閱狀態（見 server/src/routes/groups.js 的 winner 分支），
+    // 裁定會連動變更成員名單／代管餘額／訂閱狀態（見 server/src/services/groupLifecycle.service.js 的 winner 分支），
     // 不能只靠本地假設把 status 設回 active；直接重新 init 換回真實狀態，
     // 避免依賴呼叫端（管理後台）記得手動刷新
     const [{ useMemberStore }, { useSubscriptionStore }] = await Promise.all([

@@ -93,7 +93,7 @@ npm test
 ## 10. Lint / Build
 
 ```bash
-npm run lint    # ESLint
+npm run lint    # ESLint，並比對前後端服務目錄（serviceCatalog.js／server/prisma/seed.js）是否同步
 npm run build   # 前端 production 建置
 ```
 

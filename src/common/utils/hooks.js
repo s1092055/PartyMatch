@@ -57,21 +57,6 @@ export function useScrollLock(enabled) {
   }, [enabled])
 }
 
-// 共用捲動監聽：無論幾個元件訂閱，window 上只掛一個真正的 'scroll' listener（ref-count 釋放）
-const _scrollSubs = new Set()
-function _notifyScroll() {
-  const y = window.scrollY
-  _scrollSubs.forEach(fn => fn(y))
-}
-function subscribeScroll(fn) {
-  _scrollSubs.add(fn)
-  if (_scrollSubs.size === 1) window.addEventListener('scroll', _notifyScroll, { passive: true })
-  return () => {
-    _scrollSubs.delete(fn)
-    if (_scrollSubs.size === 0) window.removeEventListener('scroll', _notifyScroll)
-  }
-}
-
 // 由觸發滾輪事件的節點往上找，是否已經位在「本來就能自己垂直捲動」的祖先元素內
 // （例如頁面裡獨立的側邊摘要面板）——如果是，交給該元素自己處理，不應該被轉發搶走
 function hasScrollableAncestor(node, stopAt) {
@@ -101,12 +86,6 @@ function subscribeWheel(fn) {
     _wheelSubs.delete(fn)
     if (_wheelSubs.size === 0) window.removeEventListener('wheel', _notifyWheel)
   }
-}
-
-export function useScrollY() {
-  const [y, setY] = useState(() => window.scrollY)
-  useEffect(() => subscribeScroll(setY), [])
-  return y
 }
 
 // 捲動邊界偵測：回報是否可捲動、是否已到底部，並提供捲到頂/往下捲的控制函式
