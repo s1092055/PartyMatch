@@ -53,7 +53,7 @@ PartyMatch 是一個共享訂閱媒合平台，讓使用者可以探索或建立
 
 ## 技術文件
 
-完整技術文件在 [`docs/`](docs/README.md)，依 Product／Flows／Architecture 分類。建議先看這幾篇：
+完整技術文件在 [`docs/`](docs/README.md)，依 Product／Architecture／Flows 分類。
 
 1. **先懂產品在做什麼** → [產品總覽](docs/product/product-overview.md)
 2. **再懂整體是怎麼組出來的** → [架構總覽](docs/architecture/architecture.md)
