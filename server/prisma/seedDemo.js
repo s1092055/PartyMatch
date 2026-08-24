@@ -152,25 +152,28 @@ async function main() {
 
   // PM幣餘額：demo6（D4）一開始刻意維持低額，先用來示範「餘額不足擋下申請」，示範完再儲值到
   // 跟其他成員一樣的水準，避免後面其他情境的申請/續訂扣款也一併被擋下
-  // demo3（D1）比其他成員多留一些餘額：G1 的 Netflix 年繳申請故意一直卡在 pending 沒有審核
+  // demo3（D1）比其他成員多留一些餘額：G1 的 Netflix 申請故意一直卡在 pending 沒有審核
   // （示範用），代管費用會整支腳本期間都鎖住拿不回來，是唯一一個「有一筆錢永遠回不來」的帳號
-  await topup(H1, 6000); await topup(H2, 6000)
-  await topup(D1, 6500); await topup(D2, 4500); await topup(D3, 4500)
-  await topup(D4, 500)
+  // 後面的場景陸續加入更多真實方案（部分為年繳，一次代管金額較高），儲值額度預留較大緩衝，
+  // 避免劇本跑到後段才因為餘額不足而中斷
+  await topup(H1, 40000); await topup(H2, 40000)
+  await topup(D1, 40000); await topup(D2, 40000); await topup(D3, 40000)
+  await topup(D4, 100)
   console.log('已完成PM幣儲值\n')
 
-  // ── G1 recruiting：demo1 主揪 Netflix（年繳），demo3 送出 1 筆待審申請 ──
-  const g1 = await createGroup(H1, { serviceId: 'netflix', planId: 'netflix-std', maxMembers: 2, billingCycle: 'yearly' })
+  // ── G1 recruiting：demo1 主揪 Netflix，demo3 送出 1 筆待審申請 ──
+  // Netflix 只有月繳方案，故意不指定 billingCycle 走預設月繳
+  const g1 = await createGroup(H1, { serviceId: 'netflix', planId: 'netflix-std', maxMembers: 2 })
   await api('POST', '/applications', D1.token, { groupId: g1.id, message: '想加入！平常都用 Netflix 追劇，穩定準時繳費 🙏' })
-  // 示範「PM幣餘額不足擋下申請」：demo6 此時只有 500 PM，申請年繳 Netflix 需要的席位費用遠超過這個數字
+  // 示範「PM幣餘額不足擋下申請」：demo6 此時只有 100 PM，低於這個方案每人應付的席位費用
   try {
     await api('POST', '/applications', D4.token, { groupId: g1.id, message: '也想加入！' })
     throw new Error('預期應該要因為 PM幣餘額不足被擋下，但沒有')
   } catch (err) {
     if (!String(err.message).includes('INSUFFICIENT_BALANCE')) throw err
   }
-  await topup(D4, 4000) // 示範完畢，補足到跟其他成員一樣的 4500 水準
-  console.log('G1 recruiting（Netflix，年繳，1 筆待審申請 + demo6 示範餘額不足被擋下）')
+  await topup(D4, 39900) // 示範完畢，補足到跟其他成員一樣的 40000 水準
+  console.log('G1 recruiting（Netflix，1 筆待審申請 + demo6 示範餘額不足被擋下）')
 
   // ── G2 recruiting：demo2 主揪 Notion，1 位接受成員 + 1 筆拒絕 ──────────
   const g2 = await createGroup(H2, { serviceId: 'notion', planId: 'notion-business-monthly', maxMembers: 3 })
@@ -216,12 +219,15 @@ async function main() {
   await activateGroup(H2, g6.id, g6ConvId, 'ChatGPT Team')
   console.log('G6 confirming（ChatGPT Team，demo1 身兼團主與成員兩種身分，尚無人確認）')
 
-  // ── G7 disputed：demo1 主揪 ExpressVPN，demo5 申訴中，尚未處理（留給現場示範）──
-  const g7 = await createGroup(H1, { serviceId: 'expressvpn', planId: 'expressvpn-monthly', maxMembers: 2 })
-  await applyAndApprove(H1, g7.id, D3, 'ExpressVPN')
+  // ── G7 disputed：demo1 主揪 ExpressVPN（實際方案 5 人滿額），demo5 申訴中，尚未處理（留給現場示範）──
+  const g7 = await createGroup(H1, { serviceId: 'expressvpn', planId: 'expressvpn-monthly', maxMembers: 5 })
+  const g7Members = [D1, D2, D3, D4]
+  for (const u of g7Members) await applyAndApprove(H1, g7.id, u, 'ExpressVPN')
   const g7ConvId = await lockGroup(H1, g7.id)
-  const g7MemberId = await getMemberId(H1, g7.id, D3.id)
-  await fillInfo(D3, g7MemberId, { acknowledged: true })
+  for (const u of g7Members) {
+    const memberId = await getMemberId(H1, g7.id, u.id)
+    await fillInfo(u, memberId, { acknowledged: true })
+  }
   await activateGroup(H1, g7.id, g7ConvId, 'ExpressVPN')
   await api('POST', `/groups/${g7.id}/dispute`, D3.token, {
     reason: '帳號一直登入不進去，密碼好像被改過了', evidenceUrl: 'https://picsum.photos/seed/dispute1/600/400',
@@ -229,9 +235,9 @@ async function main() {
   await sendMessage(D3, g7ConvId, '帳號登入不進去，我已經回報問題了')
   console.log('G7 disputed（ExpressVPN，demo5 申訴中，尚未處理——留給測試者現場示範自行解決或管理員裁定）')
 
-  // ── G8 active：demo2 主揪 Google One（AI Plus），全員確認後已撥款 + 2 則評價 ──
-  const g8 = await createGroup(H2, { serviceId: 'google-one', planId: 'google-one-ai-plus-monthly', maxMembers: 3 })
-  const g8Members = [D1, D2]
+  // ── G8 active：demo2 主揪 Google One（AI Plus，實際方案 5 人滿額），全員確認後已撥款 + 2 則評價 ──
+  const g8 = await createGroup(H2, { serviceId: 'google-one', planId: 'google-one-ai-plus-monthly', maxMembers: 5 })
+  const g8Members = [D1, D2, D3, D4]
   for (const u of g8Members) await applyAndApprove(H2, g8.id, u, 'Google One')
   const g8ConvId = await lockGroup(H2, g8.id)
   for (const u of g8Members) {
@@ -262,7 +268,7 @@ async function main() {
   console.log('G9 active（KKBOX，demo5 曾在招募期間退出，demo4 遞補後正式啟用）')
 
   // ── G10 cancelled：demo2 主揪 Discord，招募中就解散（部分成員退款）─────
-  const g10 = await createGroup(H2, { serviceId: 'discord', planId: 'discord-family-monthly', maxMembers: 2 })
+  const g10 = await createGroup(H2, { serviceId: 'discord', planId: 'discord-family-monthly', maxMembers: 5 })
   await applyAndApprove(H2, g10.id, D4, 'Discord')
   await api('POST', `/groups/${g10.id}/cancel`, H2.token)
   console.log('G10 cancelled（Discord，招募中解散，demo6 全額退款）')
@@ -275,17 +281,17 @@ async function main() {
   await api('POST', `/groups/${g11.id}/cancel`, H1.token)
   console.log('G11 cancelled（Crunchyroll，滿員後解散，demo3/demo4/demo5 全額退款）')
 
-  // ── G12 ended：demo2 主揪 Duolingo，完整跑完一輪後主動結束服務 + 2 則評價 ──
-  const g12 = await createGroup(H2, { serviceId: 'duolingo', planId: 'duolingo-family', maxMembers: 3 })
-  await applyAndApprove(H2, g12.id, D1, 'Duolingo')
-  await applyAndApprove(H2, g12.id, D3, 'Duolingo')
+  // ── G12 ended：demo2 主揪 Duolingo（實際方案 6 人滿額），完整跑完一輪後主動結束服務 + 2 則評價 ──
+  const g12 = await createGroup(H2, { serviceId: 'duolingo', planId: 'duolingo-family', maxMembers: 6 })
+  const g12Members = [D1, D2, D3, D4, H1]
+  for (const u of g12Members) await applyAndApprove(H2, g12.id, u, 'Duolingo')
   const g12ConvId = await lockGroup(H2, g12.id)
-  for (const u of [D1, D3]) {
+  for (const u of g12Members) {
     const memberId = await getMemberId(H2, g12.id, u.id)
     await fillInfo(u, memberId, { email: u.email })
   }
   await activateGroup(H2, g12.id, g12ConvId, 'Duolingo')
-  for (const u of [D1, D3]) await api('POST', `/groups/${g12.id}/confirm`, u.token)
+  for (const u of g12Members) await api('POST', `/groups/${g12.id}/confirm`, u.token)
   await api('PATCH', `/groups/${g12.id}`, H2.token, { status: 'ended' })
   await sendMessage(H2, g12ConvId, '這期服務即將到期，之後不續訂了，謝謝大家一起共享')
   await api('POST', '/reviews', D1.token, { groupId: g12.id, rating: 5, comment: '整體使用很順暢，團主人很好，有問題都馬上回覆。' })
@@ -305,18 +311,18 @@ async function main() {
   await createGroup(H2, { serviceId: 'canva', planId: 'canva-team-monthly', maxMembers: 5, minCreditScore: 70 })
   console.log('G13 recruiting（Canva，minCreditScore: 70，尚無人申請）')
 
-  // ── G14 confirming：demo1 主揪 Cursor，一人已確認、一人尚未（測試部分確認顯示）──
-  const g14 = await createGroup(H1, { serviceId: 'cursor', planId: 'cursor-business-monthly', maxMembers: 3 })
-  await applyAndApprove(H1, g14.id, D1, 'Cursor')
-  await applyAndApprove(H1, g14.id, D4, 'Cursor')
+  // ── G14 confirming：demo1 主揪 Cursor（實際方案 4 人滿額），部分成員已確認、demo6 尚未（測試部分確認顯示）──
+  const g14 = await createGroup(H1, { serviceId: 'cursor', planId: 'cursor-business-monthly', maxMembers: 4 })
+  const g14Members = [D1, D2, D4]
+  for (const u of g14Members) await applyAndApprove(H1, g14.id, u, 'Cursor')
   const g14ConvId = await lockGroup(H1, g14.id)
-  for (const u of [D1, D4]) {
+  for (const u of g14Members) {
     const memberId = await getMemberId(H1, g14.id, u.id)
     await fillInfo(u, memberId, { email: u.email })
   }
   await activateGroup(H1, g14.id, g14ConvId, 'Cursor')
-  await api('POST', `/groups/${g14.id}/confirm`, D1.token) // 只有 demo3 確認，demo6 尚未確認
-  console.log('G14 confirming（Cursor，demo3 已確認、demo6 尚未確認）')
+  for (const u of [D1, D2]) await api('POST', `/groups/${g14.id}/confirm`, u.token) // demo6 尚未確認
+  console.log('G14 confirming（Cursor，demo3、demo4 已確認、demo6 尚未確認）')
 
   // ── G15 pending_confirmation：demo2 主揪 Apple Music（家庭方案 6 人），全新鎖定尚未填寫（apple_family）──
   const g15 = await createGroup(H2, { serviceId: 'apple-music', planId: 'apple-music-family-monthly', maxMembers: 6 })
@@ -324,9 +330,9 @@ async function main() {
   await lockGroup(H2, g15.id)
   console.log('G15 pending_confirmation（Apple Music，apple_family，6 人全新鎖定尚未填寫）')
 
-  // ── G16 pending_confirmation：demo1 主揪 Google One（100GB），全新鎖定尚未填寫（google_family）──
-  const g16 = await createGroup(H1, { serviceId: 'google-one', planId: 'google-one-100-monthly', maxMembers: 2 })
-  await applyAndApprove(H1, g16.id, D2, 'Google One')
+  // ── G16 pending_confirmation：demo1 主揪 Google One（100GB，實際方案 5 人滿額），全新鎖定尚未填寫（google_family）──
+  const g16 = await createGroup(H1, { serviceId: 'google-one', planId: 'google-one-100-monthly', maxMembers: 5 })
+  for (const u of [D1, D2, D3, D4]) await applyAndApprove(H1, g16.id, u, 'Google One')
   await lockGroup(H1, g16.id)
   console.log('G16 pending_confirmation（Google One，google_family，全新鎖定尚未填寫）')
 
@@ -336,10 +342,10 @@ async function main() {
   await lockGroup(H2, g17.id)
   console.log('G17 pending_confirmation（friDay影音，invite_code，全新鎖定尚未填寫）')
 
-  // ── G18 recruiting：demo1 主揪 iCloud+，示範團主手動加入成員（略過申請流程）──
-  const g18 = await createGroup(H1, { serviceId: 'icloud', planId: 'icloud-200', maxMembers: 3 })
+  // ── G18 recruiting：demo1 主揪 iCloud+（實際方案 5 人滿額），示範團主手動加入成員（略過申請流程）──
+  const g18 = await createGroup(H1, { serviceId: 'icloud', planId: 'icloud-200', maxMembers: 5 })
   await api('POST', '/members', H1.token, { groupId: g18.id, userId: D4.id })
-  console.log('G18 recruiting（iCloud+，demo1 手動加入 demo6，仍有 1 個空位開放申請）')
+  console.log('G18 recruiting（iCloud+，demo1 手動加入 demo6，仍有空位開放申請）')
 
   // ── G19 pending_confirmation（第 2 期）：demo2 主揪 Microsoft 365（家庭 6 人），跑完一輪後續訂 ──
   const g19 = await createGroup(H2, { serviceId: 'microsoft-365', planId: 'microsoft-365-family-monthly', maxMembers: 6 })
@@ -371,12 +377,12 @@ async function main() {
   await api('POST', '/reviews', D3.token, { groupId: g20.id, rating: 5, comment: '我這邊都沒遇到問題，運作正常。' })
   console.log('G20 active（Dropbox，申訴後管理員裁定成員獲勝，demo4 已退款離開）')
 
-  // ── G21 active：demo2 主揪 NordVPN，申訴後管理員裁定「團主獲勝」+ 2 則評價 ──
-  const g21 = await createGroup(H2, { serviceId: 'nordvpn', planId: 'nordvpn-basic', maxMembers: 3 })
-  await applyAndApprove(H2, g21.id, D3, 'NordVPN')
-  await applyAndApprove(H2, g21.id, D4, 'NordVPN')
+  // ── G21 active：demo2 主揪 NordVPN（實際方案 6 人滿額），申訴後管理員裁定「團主獲勝」+ 2 則評價 ──
+  const g21 = await createGroup(H2, { serviceId: 'nordvpn', planId: 'nordvpn-basic', maxMembers: 6 })
+  const g21Members = [D1, D2, D3, D4, H1]
+  for (const u of g21Members) await applyAndApprove(H2, g21.id, u, 'NordVPN')
   const g21ConvId = await lockGroup(H2, g21.id)
-  for (const u of [D3, D4]) {
+  for (const u of g21Members) {
     const memberId = await getMemberId(H2, g21.id, u.id)
     await fillInfo(u, memberId, { acknowledged: true })
   }
