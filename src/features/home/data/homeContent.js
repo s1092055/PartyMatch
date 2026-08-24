@@ -21,7 +21,7 @@ import createGroupFlowVideoDesktop from '../../../assets/flow-videos/create-grou
 // 的信任機制說明
 export const HOME_INTRO_PILLARS = [
   {
-    title: '尋找 & 建立群組',
+    title: '尋找群組 & 建立群組',
     desc: '瀏覽現有群組直接申請，或自己開團設定服務、方案與名額。',
   },
   {

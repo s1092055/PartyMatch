@@ -177,7 +177,7 @@ export default function FloatingMessages() {
   function handleClick(notification) {
     if (!userId) {
       const link = getMeta(notification.type).link
-      if (link && !['/my-subscriptions', '/manage-groups', '/account', '/favorites'].includes(link)) {
+      if (link && !['/my-subscriptions', '/manage-groups', '/favorites'].includes(link)) {
         setOpen(false)
         // 系統歡迎通知導回首頁時順便整頁刷新，讓訪客回到最乾淨的初始畫面（不只是換路由）
         if (link === '/') {

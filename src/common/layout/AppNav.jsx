@@ -4,7 +4,12 @@ import { toast } from '../utils/toast'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useNotificationStore } from '../stores/useNotificationStore'
 import { useConversationStore } from '../stores/useConversationStore'
+import { useLogout } from '../utils/hooks'
 import TopupModal from '../../components/ui/TopupModal'
+import SettingsModal from '../../components/ui/SettingsModal'
+import ProfileModal from '../../components/ui/ProfileModal'
+import CreditScoreModal from '../../components/ui/CreditScoreModal'
+import HostReviewsModal from '../../features/manage-groups/components/HostReviewsModal'
 import { LOCKED_MESSAGE } from './components/navConstants'
 import DesktopSidebar from './components/DesktopSidebar'
 import TabletSidebarDrawer from './components/TabletSidebarDrawer'
@@ -21,12 +26,23 @@ export default function AppNav() {
   const presenceStatus = currentUser?.presenceStatus ?? 'online'
 
   const tokenBalance = useAuthStore(s => s.user?.tokenBalance ?? 0)
+  const { loggingOut, logout } = useLogout()
   const [topupOpen, setTopupOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
+  const [creditScoreOpen, setCreditScoreOpen] = useState(false)
+  const [reviewsOpen, setReviewsOpen] = useState(false)
 
   useEffect(() => {
     function openTopup() { setTopupOpen(true) }
     window.addEventListener('pm:open-topup', openTopup)
     return () => window.removeEventListener('pm:open-topup', openTopup)
+  }, [])
+
+  useEffect(() => {
+    function openProfileEvent() { setProfileOpen(true) }
+    window.addEventListener('pm:open-profile', openProfileEvent)
+    return () => window.removeEventListener('pm:open-profile', openProfileEvent)
   }, [])
 
   const unreadNotifs = useNotificationStore(s => loggedIn && currentUser?.id ? s.getUnreadCount(currentUser.id) : 0)
@@ -56,6 +72,29 @@ export default function AppNav() {
   function openMatch() {
     closeAll()
     window.dispatchEvent(new CustomEvent('pm:open-quick-match'))
+  }
+
+  function openSettings() {
+    closeAll()
+    setSettingsOpen(true)
+  }
+
+  // 個人資料／信用分數／我的評價都是使用者資訊 dropdown-menu 裡的項目，這個 dropdown
+  // 本身只在已登入時才會出現（未登入顯示的是直接連到 /login 的連結），不需要再各自檢查
+  // loggedIn／套鎖定提示
+  function openProfile() {
+    closeAll()
+    setProfileOpen(true)
+  }
+
+  function openCreditScore() {
+    closeAll()
+    setCreditScoreOpen(true)
+  }
+
+  function openReviews() {
+    closeAll()
+    setReviewsOpen(true)
   }
 
   function preventLockedAction(e) {
@@ -88,7 +127,13 @@ export default function AppNav() {
         openMatch={openMatch}
         openNotify={openNotify}
         openMessages={openMessages}
+        openSettings={openSettings}
+        openProfile={openProfile}
+        openCreditScore={openCreditScore}
+        openReviews={openReviews}
         preventLockedAction={preventLockedAction}
+        logout={logout}
+        loggingOut={loggingOut}
       />
 
       <TabletSidebarDrawer
@@ -103,10 +148,24 @@ export default function AppNav() {
         closeAll={closeAll}
         openCreate={openCreate}
         openMatch={openMatch}
+        openSettings={openSettings}
+        openProfile={openProfile}
+        openCreditScore={openCreditScore}
+        openReviews={openReviews}
         preventLockedAction={preventLockedAction}
+        logout={logout}
+        loggingOut={loggingOut}
       />
 
       <TopupModal isOpen={topupOpen} onClose={() => setTopupOpen(false)} />
+      <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <ProfileModal isOpen={profileOpen} onClose={() => setProfileOpen(false)} />
+      <CreditScoreModal isOpen={creditScoreOpen} onClose={() => setCreditScoreOpen(false)} />
+      <HostReviewsModal
+        isOpen={reviewsOpen}
+        onClose={() => setReviewsOpen(false)}
+        host={{ id: currentUser?.id, displayName: userName, avatarInitial, avatarColor }}
+      />
     </>
   )
 }

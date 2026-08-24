@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronRight, MousePointerClick, Play, RotateCcw, X } from 'lucide-react'
+import { useAuthStore } from '../../../common/stores/useAuthStore'
 import { HOME_HOST_JOURNEY, HOME_MEMBER_JOURNEY } from '../data/homeContent'
 
 // 兩種身份共用同一組階段 id，切換身份時 Tab 位置／徽章不變，只換底下標題跟內容，
@@ -158,6 +159,7 @@ function StepPanel({ open, onClose, items, activeValue, onChange }) {
 // 影片容器內部滑出的面板
 export default function IdentityJourney() {
   const navigate = useNavigate()
+  const loggedIn = useAuthStore(s => s.loggedIn)
   const [role, setRole] = useState(ROLES[0].id)
   const journey = ROLES.find(r => r.id === role).journey
   const [activePhaseId, setActivePhaseId] = useState(journey[0].id)
@@ -203,9 +205,14 @@ export default function IdentityJourney() {
   }
 
   // 團主看完影片直接導去建立群組頁；成員情境下「建立群組」不是下一步，改導去探索頁找
-  // 現有群組申請
+  // 現有群組申請。未登入時比照本頁其餘按鈕改導去註冊頁，避免先閃一下 /create-group
+  // 才被 ProtectedRoute 鎖定
   function handlePrimaryAction() {
-    navigate(role === 'host' ? '/create-group' : '/explore')
+    if (role === 'host') {
+      navigate(loggedIn ? '/create-group' : '/register')
+    } else {
+      navigate('/explore')
+    }
   }
 
   // 開啟「選擇流程」面板時先暫停目前播放中的影片，避免面板蓋在畫面上時背景還繼續播放；

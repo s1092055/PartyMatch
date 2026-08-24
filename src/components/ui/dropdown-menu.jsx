@@ -54,6 +54,18 @@ export function DropdownMenuLabel({ className, ...props }) {
   return <DropdownMenuPrimitive.Label className={cn('px-2 py-1 text-xs font-semibold text-ink-4', className)} {...props} />
 }
 
+export function DropdownMenuItem({ className, ...props }) {
+  return (
+    <DropdownMenuPrimitive.Item
+      className={cn(
+        'flex cursor-pointer select-none items-center gap-2 rounded-md px-2 py-1.5 text-sm font-semibold text-ink-2 outline-none data-[highlighted]:bg-raised data-[highlighted]:text-ink',
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
 export function DropdownMenuSeparator({ className, ...props }) {
   return <DropdownMenuPrimitive.Separator className={cn('my-1 h-px bg-line-subtle', className)} {...props} />
 }

@@ -12,7 +12,7 @@ React 19 + Vite，React Router v7 集中管理路由，頁面元件皆以 `lazy(
 
 ## 深色模式
 
-`ThemeProvider` 預設跟隨系統偏好，使用者可在帳號中心手動切換並持久化。切換機制以 class 掛在根節點（而非純 CSS media query），並在畫面掛載前同步套用，避免閃爍。色彩系統建立在 CSS 變數 token 上，深色模式只需重新宣告變數即可讓全站樣式自動套用。
+`ThemeProvider` 預設跟隨系統偏好，登入後可在側邊欄/導覽選單使用者選單裡的「偏好設定」Modal 手動切換並持久化。切換機制以 class 掛在根節點（而非純 CSS media query），並在畫面掛載前同步套用，避免閃爍。色彩系統建立在 CSS 變數 token 上，深色模式只需重新宣告變數即可讓全站樣式自動套用。
 
 ## Store 層
 

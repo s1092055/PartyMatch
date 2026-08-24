@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { LogIn, Menu } from 'lucide-react'
+import { LogIn, LogOut, Menu, Settings, ShieldCheck, Star, User } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
 import { NAV_SECTIONS } from '../nav'
 import { Avatar } from '../../../components/ui/avatar'
 import { TokenBadge } from '../../../components/ui/TokenAmount'
 import { Drawer, DrawerContent, DrawerTitle } from '../../../components/ui/drawer'
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '../../../components/ui/dropdown-menu'
 import { PresenceDot, LockBadge } from './navShared'
 import { LOCKED_MESSAGE, getNavItemKey, isProtectedNavItem } from './navConstants'
 
@@ -15,7 +16,9 @@ import { LOCKED_MESSAGE, getNavItemKey, isProtectedNavItem } from './navConstant
 // 快速搜尋/建立群組/探索/我的/帳號 Tab 列），兩者都已移除，改成跟 iPad 共用同一套
 // 「觸發鈕 + Drawer」，通知/訊息改由 DesktopSidebar 的浮動按鈕接手（不分寬度一律
 // 顯示）。觸發按鈕只在「沒有 hover 能力」時顯示，真正的桌機（can-hover:lg:）維持原本的
-// DesktopSidebar，兩者互斥不會同時出現。PM幣入口放在 Drawer 底部（未登入不顯示這格）
+// DesktopSidebar，兩者互斥不會同時出現。PM幣入口放在 Drawer 底部（未登入不顯示這格）；
+// 個人資料／信用分數／我的評價／偏好設定／登出都收進使用者選單 dropdown-menu，
+// 跟 DesktopSidebar 同步，僅登入可開啟
 export default function TabletSidebarDrawer({
   loggedIn,
   pathname,
@@ -28,7 +31,13 @@ export default function TabletSidebarDrawer({
   closeAll,
   openCreate,
   openMatch,
+  openSettings,
+  openProfile,
+  openCreditScore,
+  openReviews,
   preventLockedAction,
+  logout,
+  loggingOut,
 }) {
   const [open, setOpen] = useState(false)
 
@@ -107,7 +116,7 @@ export default function TabletSidebarDrawer({
         type="button"
         onClick={() => setOpen(true)}
         aria-label="開啟導覽選單"
-        className="fixed left-4 top-4 z-50 grid h-12 w-12 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-sm transition-colors hover:bg-raised can-hover:lg:hidden"
+        className="fixed left-4 top-6 z-50 grid h-12 w-12 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-sm transition-colors hover:bg-raised can-hover:lg:hidden"
       >
         <Menu size={20} strokeWidth={2} />
       </button>
@@ -157,15 +166,50 @@ export default function TabletSidebarDrawer({
             )}
 
             {loggedIn ? (
-              <a href="/account" onClick={handleNavigate} className="flex h-14 min-w-0 w-full items-center gap-3 rounded-2xl px-1 text-left transition-all hover:bg-raised">
-                <span className="relative shrink-0 shadow-md rounded-full">
-                  <Avatar initial={avatarInitial} color={avatarColor} size="md" />
-                  <PresenceDot status={presenceStatus} className="absolute bottom-0 right-0 h-3 w-3" />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-base font-extrabold text-ink">{userName}</span>
-                </span>
-              </a>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label="使用者選單"
+                    className="flex h-14 min-w-0 w-full items-center gap-3 rounded-2xl px-1 text-left transition-all hover:bg-raised"
+                  >
+                    <span className="relative shrink-0 shadow-md rounded-full">
+                      <Avatar initial={avatarInitial} color={avatarColor} size="md" />
+                      <PresenceDot status={presenceStatus} className="absolute bottom-0 right-0 h-3 w-3" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-base font-extrabold text-ink">{userName}</span>
+                    </span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent side="right" align="end" alignOffset={16} sideOffset={10} className="w-40">
+                  <DropdownMenuItem onClick={() => { setOpen(false); openProfile() }}>
+                    <User size={16} strokeWidth={2} className="shrink-0" />
+                    個人資料
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => { setOpen(false); openCreditScore() }}>
+                    <ShieldCheck size={16} strokeWidth={2} className="shrink-0" />
+                    信用分數
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => { setOpen(false); openReviews() }}>
+                    <Star size={16} strokeWidth={2} className="shrink-0" />
+                    我的評價
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => { setOpen(false); openSettings() }}>
+                    <Settings size={16} strokeWidth={2} className="shrink-0" />
+                    偏好設定
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => { setOpen(false); logout() }}
+                    disabled={loggingOut}
+                    className="text-danger data-[highlighted]:bg-danger/10 data-[highlighted]:text-danger"
+                  >
+                    <LogOut size={16} strokeWidth={2} className="shrink-0" />
+                    {loggingOut ? '登出中…' : '登出'}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <a href="/login" onClick={handleNavigate} className="flex h-14 min-w-0 w-full items-center gap-3 rounded-2xl px-1 text-left text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand">
                 <span className="grid h-10 w-10 shrink-0 place-items-center">

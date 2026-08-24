@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Bell, Lock, LogIn, MessageSquare } from 'lucide-react'
+import { Bell, Lock, LogIn, LogOut, MessageSquare, Settings, ShieldCheck, Star, User } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
 import { NAV_SECTIONS } from '../nav'
 import { Avatar } from '../../../components/ui/avatar'
 import { TokenBadge } from '../../../components/ui/TokenAmount'
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '../../../components/ui/dropdown-menu'
 import { CountBadge, LockBadge, LockedHint, PresenceDot } from './navShared'
 import { LOCKED_MESSAGE, getNavItemKey, isProtectedNavItem } from './navConstants'
 
@@ -24,9 +25,16 @@ export default function DesktopSidebar({
   openMatch,
   openNotify,
   openMessages,
+  openSettings,
+  openProfile,
+  openCreditScore,
+  openReviews,
   preventLockedAction,
+  logout,
+  loggingOut,
 }) {
   const [lockedTip, setLockedTip] = useState(null)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
 
   function isGuestLocked(item) {
     return !loggedIn && isProtectedNavItem(item)
@@ -51,7 +59,7 @@ export default function DesktopSidebar({
             <Icon size={22} strokeWidth={2.1} />
             <LockBadge className="right-0 top-0" />
           </span>
-          <span className="whitespace-nowrap font-bold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
+          <span className="whitespace-nowrap font-bold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
             {item.label}
           </span>
         </button>
@@ -66,7 +74,7 @@ export default function DesktopSidebar({
           <span className="grid h-9 w-9 shrink-0 place-items-center">
             <item.icon size={22} strokeWidth={2.1} />
           </span>
-          <span className="whitespace-nowrap font-bold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
+          <span className="whitespace-nowrap font-bold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
             {item.label}
           </span>
         </button>
@@ -88,7 +96,7 @@ export default function DesktopSidebar({
         <span className="grid h-9 w-9 shrink-0 place-items-center">
           <item.icon size={22} strokeWidth={2.1} />
         </span>
-        <span className="whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
+        <span className="whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
           {item.label}
         </span>
       </a>
@@ -114,8 +122,7 @@ export default function DesktopSidebar({
           所以這裡要接手手機版的入口。手機/iPad（lg 以下）縮成純 icon 圓形鈕，跟
           左上角 Drawer 觸發鈕（TabletSidebarDrawer 的 h-12 w-12 rounded-full）、首頁
           Hero 區「探索群組」CTA 同一套 rounded-full 圓角語彙；lg 以上（含真桌機）
-          才展開回原本帶文字的長條 pill。PM幣改移進下面 <aside> 跟 TabletSidebarDrawer 裡面，取代原本的
-          深淺色模式切換按鈕（深淺色切換仍可在帳號設定頁使用） */}
+          才展開回原本帶文字的長條 pill。PM幣移進下面 <aside> 跟 TabletSidebarDrawer 裡面 */}
       <div className="fixed top-6 z-50 flex lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
         <button
           onClick={openNotify}
@@ -157,9 +164,13 @@ export default function DesktopSidebar({
         )}
       </div>
 
-      {/* Desktop floating sidebar */}
+      {/* Desktop floating sidebar。data-force-open：使用者選單開啟時 DropdownMenuContent
+          會 portal 到 <aside> 外面（document.body），focus 移到選單內容後 hover／
+          focus-within 都不再命中，靠這個 data 屬性強制維持展開（寬度＋內部文字標籤
+          opacity 都要跟著這個屬性，不能只顧寬度） */}
       <aside
-        className="group/nav fixed bottom-4 left-4 top-4 z-50 hidden w-16 flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-sm transition-[width] duration-300 ease-out hover:w-64 focus-within:w-64 can-hover:lg:flex"
+        data-force-open={userMenuOpen ? 'true' : undefined}
+        className="group/nav fixed bottom-4 left-4 top-4 z-50 hidden w-16 flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-sm transition-[width] duration-300 ease-out hover:w-64 focus-within:w-64 data-[force-open=true]:w-64 can-hover:lg:flex"
       >
         <a
           href="/"
@@ -168,7 +179,7 @@ export default function DesktopSidebar({
           aria-label="回首頁"
         >
           <img src={logoUrl} alt="PartyMatch" className="h-8 w-8 shrink-0" />
-          <span className="whitespace-nowrap text-[1.1rem] font-extrabold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
+          <span className="whitespace-nowrap text-[1.1rem] font-extrabold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
             <span className="text-brand">Party</span><span className="text-ink">Match</span>
           </span>
         </a>
@@ -190,26 +201,63 @@ export default function DesktopSidebar({
               <span className="grid h-9 w-9 shrink-0 place-items-center">
                 <TokenBadge className="shrink-0" />
               </span>
-              <span className="whitespace-nowrap font-bold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
+              <span className="whitespace-nowrap font-bold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
                 {tokenBalance.toLocaleString()} PM
               </span>
             </button>
           )}
           {loggedIn ? (
-            <a
-              href="/account"
-              onClick={closeAll}
-              aria-label="我的帳號"
-              className="flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left transition-all hover:bg-raised"
-            >
-              <span className="relative shrink-0 shadow-md rounded-full">
-                <Avatar initial={avatarInitial} color={avatarColor} size="md" />
-                <PresenceDot status={presenceStatus} className="absolute bottom-0 right-0 h-3 w-3" />
-              </span>
-              <span className="min-w-0 flex-1 opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
-                <span className="block truncate text-sm font-extrabold text-ink">{userName}</span>
-              </span>
-            </a>
+            <DropdownMenu onOpenChange={setUserMenuOpen}>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="使用者選單"
+                  className="flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left transition-all hover:bg-raised"
+                >
+                  <span className="relative shrink-0 shadow-md rounded-full">
+                    <Avatar initial={avatarInitial} color={avatarColor} size="md" />
+                    <PresenceDot status={presenceStatus} className="absolute bottom-0 right-0 h-3 w-3" />
+                  </span>
+                  <span className="min-w-0 flex-1 opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
+                    <span className="block truncate text-sm font-extrabold text-ink">{userName}</span>
+                  </span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                side="right"
+                align="end"
+                alignOffset={16}
+                sideOffset={10}
+                className="w-40"
+                onCloseAutoFocus={e => e.preventDefault()}
+              >
+                <DropdownMenuItem onClick={openProfile}>
+                  <User size={16} strokeWidth={2} className="shrink-0" />
+                  個人資料
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={openCreditScore}>
+                  <ShieldCheck size={16} strokeWidth={2} className="shrink-0" />
+                  信用分數
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={openReviews}>
+                  <Star size={16} strokeWidth={2} className="shrink-0" />
+                  我的評價
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={openSettings}>
+                  <Settings size={16} strokeWidth={2} className="shrink-0" />
+                  偏好設定
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={logout}
+                  disabled={loggingOut}
+                  className="text-danger data-[highlighted]:bg-danger/10 data-[highlighted]:text-danger"
+                >
+                  <LogOut size={16} strokeWidth={2} className="shrink-0" />
+                  {loggingOut ? '登出中…' : '登出'}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <a
               href="/login"
@@ -220,7 +268,7 @@ export default function DesktopSidebar({
               <span className="grid h-10 w-10 shrink-0 place-items-center">
                 <LogIn size={22} strokeWidth={2.1} />
               </span>
-              <span className="min-w-0 flex-1 whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100">
+              <span className="min-w-0 flex-1 whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
                 <span className="block truncate text-sm font-extrabold">登入</span>
               </span>
             </a>

@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { Pencil, Check, X } from 'lucide-react'
-import { Button } from '../../../../components/ui/button'
-import { Input, Textarea } from '../../../../components/ui/input'
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../../../components/ui/select'
-import { COUNTRY_CODES, parsePhone, toE164, formatPhoneDisplay } from '../../../../common/utils/phone'
+import { Button } from './button'
+import { Input, Textarea } from './input'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './select'
+import { COUNTRY_CODES, parsePhone, toE164, formatPhoneDisplay } from '../../common/utils/phone'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 

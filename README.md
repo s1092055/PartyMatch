@@ -42,7 +42,7 @@ PartyMatch 是一個共享訂閱媒合平台，讓使用者可以探索或建立
 |------|------|
 | Frontend | React 19、Vite、React Router v7、Zustand |
 | UI | Tailwind CSS v4（token 定義於 `index.css`）、shadcn/ui、Radix UI、class-variance-authority、lucide-react |
-| 深色模式 | 預設跟隨系統 `prefers-color-scheme`，帳號中心可手動切換並記住選擇（`localStorage`），只翻轉中性色階與淺底 chip 色以確保可讀性，見[前端架構](docs/architecture/frontend-architecture.md) |
+| 深色模式 | 預設跟隨系統 `prefers-color-scheme`，登入後點側邊欄/導覽選單使用者選單裡的「偏好設定」手動切換並記住選擇（`localStorage`），只翻轉中性色階與淺底 chip 色以確保可讀性，見[前端架構](docs/architecture/frontend-architecture.md) |
 | Backend | Node.js、Express |
 | 資料庫 | MySQL + Prisma ORM |
 | 快取 | Redis |

@@ -37,3 +37,17 @@ export function QuickMatchRedirect() {
   }, [navigate])
   return null
 }
+
+// 舊版 /account 獨立頁面的相容路由，帳號頁面改成 AppNav 裡的 ProfileModal，
+// 導回首頁後觸發同一個 pm:open-profile event 開啟；此路由掛在 ProtectedRoute 底下，
+// 登入狀態已由外層保證
+export function AccountRedirect() {
+  const navigate = useNavigate()
+  useEffect(() => {
+    navigate('/', { replace: true })
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('pm:open-profile'))
+    }, 0)
+  }, [navigate])
+  return null
+}
