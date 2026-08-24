@@ -79,7 +79,7 @@ describe('useGroupStore', () => {
     const created = useGroupStore.getState().create({ serviceId: 'netflix', totalSeats: 4 }, host)
 
     expect(useGroupStore.getState().groups).toHaveLength(1)
-    expect(useGroupStore.getState().groups[0].id).toBe(created.id) // 樂觀 ID，跟後端真正的 id 不同
+    expect(useGroupStore.getState().groups[0].id).toBe(created.id);
 
     await vi.waitFor(() => {
       expect(useGroupStore.getState().groups[0].id).toBe('server-id')

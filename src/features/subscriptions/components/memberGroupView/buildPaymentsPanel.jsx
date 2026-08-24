@@ -6,12 +6,9 @@ import { formatDateTime } from '../../../../common/utils/date'
 const RELEASED_STATUSES = ['active', 'ended']
 
 export function buildPaymentsPanel({ group, member, transactions, transactionsLoading }) {
-  // 只顯示「最新一筆」代管紀錄，跟團主端收款管理的邏輯對齊；退款等歷史紀錄改到（未來的）PM幣交易紀錄查詢
-  const latestEscrow = transactions.find(tx => tx.type === 'escrow') ?? null
+  const latestEscrow = transactions.find(tx => tx.type === 'escrow') ?? null;
   const isReleased   = RELEASED_STATUSES.includes(group.status)
-  // 顯示團主按下「接受」的時間（Member.joinedAt），不是申請送出當下實際扣款的時間（tx.createdAt）——
-  // 代管扣款雖然在申請當下就發生，但對成員來說「入帳」的認知時間點是團主接受申請的那一刻
-  const escrowTime = member?.joinedAtTime ?? latestEscrow?.createdAt
+  const escrowTime = member?.joinedAtTime ?? latestEscrow?.createdAt;
 
   return {
     content: (

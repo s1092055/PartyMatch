@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Star } from 'lucide-react'
 
-// readOnly：純顯示（評價列表用）；否則為可點擊選星（送出評價表單用）
 export default function StarRating({ value, onChange, readOnly = false, size = 11 }) {
   const [hoverValue, setHoverValue] = useState(0)
 

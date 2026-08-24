@@ -8,8 +8,6 @@ export async function insertGroup(data) {
   return client.post('/groups', data)
 }
 
-// 查詢單一群組最新狀態；後端在這裡順帶處理「確認期已逾期就自動撥款」的惰性檢查，
-// 所以開啟群組詳情時應該打這支，不能只讀本地快取
 export async function fetchGroupById(id) {
   return client.get(`/groups/${id}`)
 }

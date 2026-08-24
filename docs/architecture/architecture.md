@@ -59,7 +59,7 @@ React 19 + React Router v7
 | 後端框架 | Node.js + Express | Middleware 模式與 REST 資源路由對應直觀 |
 | ORM | Prisma | 型別安全的 schema-first 開發，transaction API 好用 |
 | 資料庫 | MySQL 8 | 關聯式資料最符合群組/成員/申請的強關聯業務模型 |
-| 快取 | Redis | 作為 refreshToken session store |
+| 快取 | Redis | refreshToken session store，並為高流量公開端點（`GET /groups`、`GET /services`）加短 TTL 回應快取 |
 | 認證 | JWT（雙 token） | accessToken 短效 + refreshToken 長效，支援個別裝置登出 |
 | 檔案儲存 | Cloudflare R2 | 申訴佐證、聊天室與留言附件的圖片上傳目的地 |
 

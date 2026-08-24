@@ -23,8 +23,7 @@ export default function ChatWindow({
   isComposingRef, lastCompositionEndRef,
   onMembersToggle, onSend, onKeyDown, onInputChange,
 }) {
-  // 訂閱 store 切片，群組/成員更新時自動重新渲染
-  const allGroups = useGroupStore(s => s.groups)
+  const allGroups = useGroupStore(s => s.groups);
   const allMembers = useMemberStore(s => s.members)
 
   const userId = user?.id
@@ -63,7 +62,6 @@ export default function ChatWindow({
   return (
     <>
 
-      {/* 桌機標題列（手機由 modal header 取代） */}
       <div className="hidden md:flex shrink-0 items-center gap-3 border-b border-line px-5 py-3">
         <ConversationAvatar conversation={selected} size={32} />
         <span className="flex-1 truncate font-extrabold text-ink">{selected.name}</span>
@@ -74,8 +72,6 @@ export default function ChatWindow({
         />
       </div>
 
-      {/* 成員面板：跟通知中心同一套「本來就掛載、用 translate-x 滑入/滑出」的動畫模式，
-          不是掛載/卸載才看得到，不然沒有進場動畫可以播 */}
       {selected.type === 'group' && (
         <ChatMembersPanel
           open={showMembers}
@@ -87,48 +83,44 @@ export default function ChatWindow({
         />
       )}
 
-      {/* 訊息區 */}
       <div className="relative flex flex-col flex-1 min-h-0 overflow-hidden">
-      {/* overscroll-contain：避免 Safari/WebKit 在送出訊息觸發 scrollIntoView smooth 時，
-          捲動容器產生 rubber-band 回彈，短暫露出底部空白區域 */}
-      <div
-        ref={scrollContainerRef}
-        onScroll={handleMessagesScroll}
-        className="flex-1 min-h-0 overflow-y-auto overscroll-contain bg-canvas [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      >
-        <div className="space-y-3 px-4 py-4">
-            {loadingOlder && (
-              <div className="flex justify-center py-2">
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-line border-t-ink-3" />
-              </div>
-            )}
-            {allMessages.map(msg => (
-              <MessageBubble
-                key={msg.id}
-                msg={msg}
-                userId={userId}
-                hostId={hostId}
-                groupMembers={groupMembers}
-                conversationGroupId={conversationGroupId}
-                getMessageSenderName={getMessageSenderName}
-                getReadReceiptNames={getReadReceiptNames}
-              />
-            ))}
-          </div>
-      </div>
 
-      {showScrollToBottom && (
-        <button
-          onClick={() => scrollToBottom()}
-          aria-label="回到最新訊息"
-          className="absolute bottom-4 right-4 z-20 grid h-10 w-10 place-items-center rounded-full border border-line bg-surface text-ink-3 shadow-popover transition-colors hover:bg-raised hover:text-ink"
+        <div
+          ref={scrollContainerRef}
+          onScroll={handleMessagesScroll}
+          className="flex-1 min-h-0 overflow-y-auto overscroll-contain bg-canvas [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
-          <ChevronDown size={18} strokeWidth={1.5} />
-        </button>
-      )}
+          <div className="space-y-3 px-4 py-4">
+              {loadingOlder && (
+                <div className="flex justify-center py-2">
+                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-line border-t-ink-3" />
+                </div>
+              )}
+              {allMessages.map(msg => (
+                <MessageBubble
+                  key={msg.id}
+                  msg={msg}
+                  userId={userId}
+                  hostId={hostId}
+                  groupMembers={groupMembers}
+                  conversationGroupId={conversationGroupId}
+                  getMessageSenderName={getMessageSenderName}
+                  getReadReceiptNames={getReadReceiptNames}
+                />
+              ))}
+            </div>
+        </div>
+        {showScrollToBottom && (
+          <button
+            onClick={() => scrollToBottom()}
+            aria-label="回到最新訊息"
+            className="absolute bottom-4 right-4 z-20 grid h-10 w-10 place-items-center rounded-full border border-line bg-surface text-ink-3 shadow-popover transition-colors hover:bg-raised hover:text-ink"
+          >
+            <ChevronDown size={18} strokeWidth={1.5} />
+          </button>
+        )}
       </div>
 
-      {/* 輸入區 */}
       <div className="shrink-0 border-t border-line bg-surface px-6 py-4">
         {isSystemConversation(selected) ? (
           <p className="text-center text-xs text-ink-4">此為系統通知，無法回覆</p>
@@ -176,7 +168,6 @@ export default function ChatWindow({
         </>
         )}
       </div>
-
     </>
-  )
+  );
 }

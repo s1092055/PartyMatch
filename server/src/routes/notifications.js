@@ -4,7 +4,6 @@ import { requireAuth, optionalAuth } from '../middleware/auth.js'
 
 const router = Router()
 
-// GET /notifications — 個人通知 + 系統公告
 router.get('/', optionalAuth, async (req, res, next) => {
   try {
     const where = req.user
@@ -18,9 +17,8 @@ router.get('/', optionalAuth, async (req, res, next) => {
     })
     res.json(notifications)
   } catch (err) { next(err) }
-})
+});
 
-// PATCH /notifications/read-all — 必須在 /:id/read 前面，否則會被攔截
 router.patch('/read-all', requireAuth, async (req, res, next) => {
   try {
     await prisma.notification.updateMany({
@@ -29,9 +27,8 @@ router.patch('/read-all', requireAuth, async (req, res, next) => {
     })
     res.json({ success: true })
   } catch (err) { next(err) }
-})
+});
 
-// PATCH /notifications/:id/read
 router.patch('/:id/read', requireAuth, async (req, res, next) => {
   try {
     const notif = await prisma.notification.findUnique({ where: { id: req.params.id } })
@@ -41,6 +38,6 @@ router.patch('/:id/read', requireAuth, async (req, res, next) => {
     await prisma.notification.update({ where: { id: req.params.id }, data: { isRead: true } })
     res.json({ success: true })
   } catch (err) { next(err) }
-})
+});
 
 export default router

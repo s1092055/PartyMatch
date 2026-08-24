@@ -28,7 +28,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const [emailVerified, setEmailVerified] = useState(false)
   const [phoneVerified, setPhoneVerified] = useState(false)
-  const [verifyingType, setVerifyingType] = useState(null) // 'email' | 'phone' | null
+  const [verifyingType, setVerifyingType] = useState(null);
 
   const validationError = getValidationError(form, accepted, emailVerified, phoneVerified)
   const canSubmit = !validationError && !loading
@@ -36,8 +36,8 @@ export default function RegisterPage() {
   function updateField(key, value) {
     setForm(prev => ({ ...prev, [key]: value }))
     setError('')
-    // 驗證過的信箱/手機被改動，先前的驗證結果就不算數了，避免使用者驗證完再偷改內容
-    if (key === 'email') setEmailVerified(false)
+    if (key === 'email')
+      setEmailVerified(false);
     if (key === 'phoneLocal' || key === 'phoneCountryCode') setPhoneVerified(false)
   }
 

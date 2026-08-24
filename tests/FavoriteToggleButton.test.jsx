@@ -2,11 +2,6 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import FavoriteToggleButton from '../src/components/ui/FavoriteToggleButton'
 
-// 這份測試特別針對之前踩過的一個真的壞掉的問題：呼叫端傳一個固定的 bg-* class（例如
-// ExploreGroupCard.jsx 曾經傳 bg-surface）跟元件內部 isFav 為 true 時的 bg-danger 是同樣特異度的
-// Tailwind class，兩者衝突時哪個生效由編譯後樣式表順序決定、不是看 class 字串裡的先後，
-// 導致已收藏狀態的紅底背景一直被外部傳入的 bg-surface 蓋掉。這裡直接斷言 class 清單，
-// 確保未來不會有呼叫端又意外傳一個 bg-* 進來重蹈覆轍
 describe('FavoriteToggleButton', () => {
   it('已收藏：紅底、白色愛心，且不含未收藏狀態的 bg-surface', () => {
     render(<FavoriteToggleButton isFav onClick={() => {}} />)
@@ -42,4 +37,4 @@ describe('FavoriteToggleButton', () => {
     rerender(<FavoriteToggleButton isFav={false} onClick={() => {}} square />)
     expect(screen.getByRole('button').className).toContain('rounded-xl')
   })
-})
+});

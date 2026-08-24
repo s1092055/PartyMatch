@@ -68,8 +68,8 @@ export function buildMobileFooter({
   isMember, isPendingApp, isFull, canApply, isFav,
   cancelConfirm, setCancelConfirm, cancelling, handleCancel,
   setShowMembers, setLeaveConfirm, onApplyClick, toggleFav,
-  padded = true,        // 桌機右欄已由外層容器提供左右留白，這裡不用再疊加一層，避免按鈕跟著往內縮、跟價格區塊的進度條對不齊
-  redirectAfterLogin,   // 未登入點「登入以加入群組」時帶去 /login，登入成功後導回這裡並重新打開這個群組詳情 modal
+  padded = true,
+  redirectAfterLogin,
 }) {
   return (
     <div className={padded ? 'px-6 py-3' : 'py-3'}>

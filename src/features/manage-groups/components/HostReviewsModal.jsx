@@ -2,7 +2,6 @@ import { Star } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogCloseButton } from '../../../components/ui/dialog'
 import HostReviews from '../../group/components/HostReviews'
 
-// 「我的評價」：彙總團主名下所有群組的評價，跟群組詳情裡「成員評價」分頁（只看單一群組）分開
 export default function HostReviewsModal({ isOpen, onClose, host }) {
   return (
     <Dialog open={isOpen} onOpenChange={v => { if (!v) onClose() }}>

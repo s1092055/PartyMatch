@@ -3,14 +3,10 @@ import { X } from 'lucide-react'
 import { cn } from "../../lib/utils"
 import { Button } from "./button"
 
-// 本專案有兩種 Dialog 視覺：
-// - default：一般置中對話框（rounded-2xl、z-56、右上角 X）
-// - panel：次層對話框（card 樣式、z-65、左上角返回箭頭或 X，用在「從另一個
-//   Dialog 換頁」的情境，例如群組詳情 → 啟用服務）
 const VARIANT_CONTENT = {
   default: 'max-w-5xl rounded-2xl border border-line bg-canvas shadow-2xl',
   panel:   'max-w-md rounded-card border border-line bg-surface shadow-card p-0',
-}
+};
 const VARIANT_Z = { default: 'z-[56]', panel: 'z-[65]' }
 
 export function Dialog(props) {
@@ -35,10 +31,6 @@ function DialogOverlay({ className, variant = 'default', instant, ...props }) {
 }
 
 export function DialogContent({ className, variant = 'default', maxWidth, height, outerPadding = 'p-4 md:p-8', instant, onInteractOutside, ...props }) {
-  // Sonner 的 toast、附件圖片燈箱（ImageLightbox）都是另外掛在 document.body 底下的獨立
-  // portal，不在 Dialog 自己的內容樹裡；Radix 判斷「點擊外部」只看有沒有在 Dialog content
-  // 範圍內，不知道這些浮層其實也是應該被允許互動的，點擊會被誤判成「點外面」，導致 Dialog
-  // 也跟著關閉。這裡統一排除掉這些浮層內的互動，讓 Dialog 底下所有 Modal 都不會有這個問題
   function handleInteractOutside(event) {
     if (event.target.closest?.('[data-sonner-toaster], [data-image-lightbox]')) {
       event.preventDefault()

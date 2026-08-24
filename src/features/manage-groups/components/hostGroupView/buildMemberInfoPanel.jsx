@@ -7,11 +7,9 @@ import MemberIssueCard from './MemberIssueCard'
 import { hasFilledServiceInfo, isSharedCredentialsMethod } from '../../../../common/utils/serviceInfoFields'
 import { parseHostCredentials } from '../../../../common/utils/hostCredentialFields'
 
-// 團主查看成員填寫的服務帳號資訊；跟 ActivateServiceModal 裡的成員清單同一套判斷邏輯，
-// 差別是這裡不限「待啟用」階段才看得到，鎖定群組後任何時候都可以來確認填寫進度。
-// 「帳號問題」回報按鈕則限縮在 canReportServiceIssue（啟用服務之前）才顯示——
-// 一旦服務啟用，成員已經確認帳號能正常使用，「帳號資訊有誤」這個理由就不成立了
-export function buildMemberInfoPanel({ groupId, hostId, groupStatus, members, sharingMethod, sharedCredentials, serviceId, canReportServiceIssue, onOpenServiceIssue, onResolveDispute, showPassword, onTogglePassword }) {
+export function buildMemberInfoPanel(
+  { groupId, hostId, groupStatus, members, sharingMethod, sharedCredentials, serviceId, canReportServiceIssue, onOpenServiceIssue, onResolveDispute, showPassword, onTogglePassword }
+) {
   const parsedCredentials = parseHostCredentials(sharedCredentials, serviceId)
   const isSharedCredentials = isSharedCredentialsMethod(sharingMethod)
   return {

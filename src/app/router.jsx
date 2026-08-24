@@ -17,8 +17,6 @@ function routeElement(loader) {
 
 const router = createBrowserRouter([
   {
-    // 掛在最外層，接住整棵路由樹（含每個 lazy() 路由）拋出的錯誤；
-    // 部署新版本後舊分頁的 chunk-load 失敗就是靠這層自動偵測並重整，見 RouteErrorBoundary.jsx
     errorElement: <RouteErrorBoundary />,
     children: [
       { path: '/', element: routeElement(() => import('../features/home/HomePage')) },

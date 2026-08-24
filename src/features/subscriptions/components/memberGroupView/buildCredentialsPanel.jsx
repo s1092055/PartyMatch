@@ -5,13 +5,9 @@ import EmptyState from '../../../../components/ui/primitives/EmptyState'
 import MemberIssueCard from './MemberIssueCard'
 import { parseHostCredentials } from '../../../../common/utils/hostCredentialFields'
 
-// 團主提供帳密的服務（shared_credentials），這個分頁鎖定後就會出現在側邊欄，但不會直接把帳密
-// 顯示出來——真正的內容一開始就渲染在背後，只是套模糊＋半透明遮罩，讓人感覺得到「後面有東西」；
-// 要先按下正中間的「提取帳號資訊」按鈕（呼叫跟成員自行填寫服務帳號同一套 fillServiceInfo，
-// 只是 payload 是固定的 { acknowledged: true }）遮罩才會消失、露出清楚內容，之後每次回來看都會
-// 直接顯示，不用重新提取；密碼欄位另外還有預設遮罩，跟團主端 buildMemberInfoPanel.jsx 的做法
-// 一致，眼睛 icon 切換顯示
-export function buildCredentialsPanel({ group, viewerName, viewerAvatarInitial, viewerAvatarColor, viewerPresenceStatus, showPassword, onTogglePassword, issueNote, evidenceUrl, hasServiceInfo, onExtract, extractLoading }) {
+export function buildCredentialsPanel(
+  { group, viewerName, viewerAvatarInitial, viewerAvatarColor, viewerPresenceStatus, showPassword, onTogglePassword, issueNote, evidenceUrl, hasServiceInfo, onExtract, extractLoading }
+) {
   const parsedCredentials = parseHostCredentials(group.sharedCredentials, group.serviceId)
 
   const credentialsBody = (

@@ -1,8 +1,4 @@
-/**
- * 清空正式版資料，保留 users 與 services
- * 執行：cd server && npm run db:clear-data
- */
-import 'dotenv/config'
+import 'dotenv/config';
 import prisma from '../src/lib/prisma.js'
 
 async function main() {

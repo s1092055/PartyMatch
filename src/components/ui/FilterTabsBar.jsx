@@ -1,5 +1,3 @@
-// 狀態篩選一律用橫向 tabs，手機/桌機同一套邏輯（不再用下拉選單，目前只有 3 個分類，
-// 手機寬度也放得下）——「群組紀錄」按鈕放在頁面最上方的標題列，這裡不再處理
 export default function FilterTabsBar({ tabs, value, onChange, counts = {} }) {
   return (
     <div className="mb-4 flex items-center gap-2">
@@ -22,8 +20,7 @@ export default function FilterTabsBar({ tabs, value, onChange, counts = {} }) {
                   {counts[tab.key]}
                 </span>
               )}
-              {/* 底線：當前分類固定顯示（切走時直接消失，不做退場動畫）；
-                  其他分類只有 hover 進入時才有滑入動畫，滑出/切換不animate */}
+
               <span
                 className={`absolute inset-x-0 -bottom-px h-0.5 origin-left bg-brand ${
                   active
@@ -32,9 +29,9 @@ export default function FilterTabsBar({ tabs, value, onChange, counts = {} }) {
                 }`}
               />
             </button>
-          )
+          );
         })}
       </div>
     </div>
-  )
+  );
 }

@@ -13,24 +13,23 @@ const DISPUTE_REASON_OPTIONS = [
   '其他',
 ]
 
-// 回報問題（文案上不強調「向平台申訴」，改成更平易近人的「回報給團主」框架，機制不變：
-// 後端還是走原本的申訴/裁定流程，只是還沒有正式服務中心可以受理，先用這個說法）改成堆疊在
-// 群組詳情 Modal 上方的 sub-modal，跟「填寫服務帳號」同一套模式——開啟時底下的群組詳情完全隱藏，關閉才恢復顯示
-export default function DisputeModal({
-  isOpen,
-  onClose,
-  onSubmit,
-  disputeReasons,
-  onToggleReason,
-  disputeDetail,
-  setDisputeDetail,
-  disputeLoading,
-  evidenceUrl,
-  evidenceName,
-  evidenceUploading,
-  onEvidenceSelect,
-  onRemoveEvidence,
-}) {
+export default function DisputeModal(
+  {
+    isOpen,
+    onClose,
+    onSubmit,
+    disputeReasons,
+    onToggleReason,
+    disputeDetail,
+    setDisputeDetail,
+    disputeLoading,
+    evidenceUrl,
+    evidenceName,
+    evidenceUploading,
+    onEvidenceSelect,
+    onRemoveEvidence,
+  }
+) {
   return (
     <Dialog open={isOpen} onOpenChange={v => { if (!v) onClose() }}>
       <DialogContent variant="panel" maxWidth="max-w-lg" instant>

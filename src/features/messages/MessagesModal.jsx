@@ -26,9 +26,6 @@ import ConversationList, { CONV_TABS } from './components/ConversationList'
 import ChatWindow from './components/ChatWindow'
 import { isSystemConversation, markConversationReadLocal } from './utils'
 
-// Safari/Firefox 在輸入法選字確認時，compositionend 會在 Enter 的 keydown 之前（或極短時間內）觸發，
-// 導致 isComposingRef 已被設回 false——額外用時間窗與 e.isComposing/keyCode 229 雙重判斷，
-// 避免選字確認的 Enter 被誤判成送出訊息（Chrome 較少出現此問題，但保留判斷不影響其行為）。
 function isImeConfirmEnter(e, isComposingRef, lastCompositionEndRef) {
   if (isComposingRef.current || e.nativeEvent?.isComposing || e.keyCode === 229) return true
   return Date.now() - lastCompositionEndRef.current < 50
@@ -40,9 +37,9 @@ export default function MessagesModal() {
   const [selectedId, setSelectedId] = useState(null)
   const [activeTab, setActiveTab] = useState('all')
   const [unreadOnly, setUnreadOnly] = useState(false)
-  const [roleFilter, setRoleFilter] = useState('all') // 'all' | 'host' | 'member'
-  const [statusFilter, setStatusFilter] = useState('all') // 'all' | 'processing' | 'active' | 'history'
-  const [sortOrder, setSortOrder] = useState('newest') // 'newest' | 'oldest'
+  const [roleFilter, setRoleFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [sortOrder, setSortOrder] = useState('newest');
   const [searchQuery, setSearchQuery] = useState('')
   const [canSend, setCanSend] = useState(false)
   const conversations = useConversationStore(s => s.conversations)
@@ -78,7 +75,6 @@ export default function MessagesModal() {
       if (!groupId) return
       let conv = useConversationStore.getState().getByGroupId(groupId)
       if (!conv) {
-        // 對話尚未進 store（成員端剛收到通知），主動 fetch 一次再查
         try {
           const convs = await fetchConversations()
           const fetched = convs.map(normalizeConversation)
@@ -90,7 +86,7 @@ export default function MessagesModal() {
             ],
           }))
           conv = useConversationStore.getState().getByGroupId(groupId)
-        } catch { /* ignore */ }
+        } catch {}
       }
       if (conv) setSelectedId(conv.id)
     }
@@ -114,13 +110,10 @@ export default function MessagesModal() {
       try {
         const conv = await getOrCreateDmConversation(hostId)
         const normalized = normalizeConversation(conv)
-        // POST /conversations/dm 回傳的物件沒有 participantMeta（那是 GET /conversations 才會補上的欄位），
-        // 這筆對話在還沒送出訊息前又不會出現在 GET /conversations 的清單裡（延遲曝光），
-        // 樂觀加入時要用開啟 DM 當下事件帶的對方名稱/頭像自己補上，不然清單會顯示成「私訊」+ 灰色問號頭像
         normalized.participantMeta = {
           ...normalized.participantMeta,
           [hostId]: { name: hostName, avatarInitial: hostAvatarInitial, avatarColor: hostAvatarColor },
-        }
+        };
         useConversationStore.getState().addConversationOptimistic(normalized)
         useConversationStore.getState().refresh(user.id)
         setSelectedId(conv.id)
@@ -165,9 +158,7 @@ export default function MessagesModal() {
 
   async function handleSend() {
     const text = inputRef.current?.value.trim() ?? ''
-    // attachmentKey 是要送給後端存進資料庫的永久識別碼；attachmentPreviewUrl 只是這次上傳當下
-    // 順便簽的短效網址，拿來畫本地樂觀訊息泡泡，真正顯示的網址等伺服器回應回來後就會換掉
-    const attachmentKey = attachment.key
+    const attachmentKey = attachment.key;
     const attachmentPreviewUrl = attachment.url
     if ((!text && !attachmentKey) || !selectedId || attachment.uploading) return
     const user = getCurrentUser()
@@ -236,16 +227,13 @@ export default function MessagesModal() {
     if (c.type === 'dm') {
       const otherId = c.participants?.find(p => p !== user?.id)
       const meta = c.participantMeta?.[otherId] ?? {}
-      // avatarInitial 為 null 代表對方關閉了大頭照顯示（後端已遮罩），不能 fallback 成 '?' 這種
-      // 看起來像是「有頭像」的字元，交給 ConversationAvatar 判斷是否要改顯示 PartyMatch logo
-      return { ...c, name: meta.name ?? '私訊', avatarInitial: meta.avatarInitial ?? '', avatarColor: meta.avatarColor ?? '#64748b', presenceStatus: meta.presenceStatus ?? 'offline' }
+      return { ...c, name: meta.name ?? '私訊', avatarInitial: meta.avatarInitial ?? '', avatarColor: meta.avatarColor ?? '#64748b', presenceStatus: meta.presenceStatus ?? 'offline' };
     }
     if (isSystemConversation(c)) {
       return { ...c, name: 'PartyMatch 系統訊息', avatarInitial: 'P', avatarColor: 'linear-gradient(135deg,#667eea,#764ba2)' }
     }
     if (c.type === 'group' && c.groupId) {
-      // 左側列表要能快速看出「我在這個群組是團主還是成員」、目前是什麼狀態，跟 groupStore 對一下
-      const group = groups.find(g => g.id === c.groupId)
+      const group = groups.find(g => g.id === c.groupId);
       if (group) return { ...c, memberRole: group.hostId === user?.id ? 'host' : 'member', groupStatus: group.status }
     }
     return c
@@ -257,15 +245,10 @@ export default function MessagesModal() {
     .filter(tabFilter)
     .filter(c => !searchQuery || c.name?.includes(searchQuery))
     .filter(c => !unreadOnly || (c.unreadCounts?.[user?.id] ?? 0) > 0)
-    // 身分/狀態篩選只對群組類型的對話有意義（DM 沒有 memberRole/groupStatus），
-    // 篩選條件不是「全部」時，DM 對話自然會被排除
     .filter(c => roleFilter === 'all' || c.memberRole === roleFilter)
-    .filter(c => statusFilter === 'all' || (c.type === 'group' && getGroupStatusBucket(c.groupStatus) === statusFilter))
-    // 一律用「最後一則訊息的時間」排序，不能用 conversation.updatedAt——標記已讀（PATCH
-    // .../read）也會更新 updatedAt，如果拿它排序，使用者點開一個對話看完，列表順序就會
-    // 因為這次「已讀」的寫入被打亂，不是因為真的有新訊息；跟其他 store 共用同一個 byNewest
-    // 比較器，只是排序鍵換成 lastMessage.createdAt，最舊優先時交換參數順序即可，不用另外
-    // 重寫一次字串比較邏輯
+    .filter(
+    c => statusFilter === 'all' || (c.type === 'group' && getGroupStatusBucket(c.groupStatus) === statusFilter)
+  )
     .sort((a, b) => {
       const ka = { createdAt: a.lastMessage?.createdAt ?? a.createdAt }
       const kb = { createdAt: b.lastMessage?.createdAt ?? b.createdAt }
@@ -309,75 +292,75 @@ export default function MessagesModal() {
         </DialogHeader>
         <DialogDescription>訊息</DialogDescription>
         <DialogBody>
-        {/* 手機：200% slide 軌道；桌機：兩欄並排 */}
-        <div className="relative flex-1 overflow-hidden" style={{ minHeight: 0 }}>
-          {/* track 用 absolute top/bottom 取得確定高度，不依賴 flex-1 層層傳遞 */}
-          <div
-            className="absolute top-0 left-0 bottom-0 flex transition-transform duration-300 ease-in-out"
-            style={{
-              width: isMobile ? '200%' : '100%',
-              transform: isMobile && selectedId ? 'translateX(-50%)' : 'translateX(0)',
-            }}
-          >
-            {/* 左欄：對話列表 */}
+
+          <div className="relative flex-1 overflow-hidden" style={{ minHeight: 0 }}>
+
             <div
-              className="flex flex-col overflow-hidden"
-              style={isMobile
-                ? { width: '50%', flexShrink: 0 }
-                : { width: '288px', flexShrink: 0, borderRight: '1px solid var(--color-line)' }
-              }
+              className="absolute top-0 left-0 bottom-0 flex transition-transform duration-300 ease-in-out"
+              style={{
+                width: isMobile ? '200%' : '100%',
+                transform: isMobile && selectedId ? 'translateX(-50%)' : 'translateX(0)',
+              }}
             >
-              <ConversationList
-                filteredConvs={filteredConvs}
-                activeTab={activeTab}
-                selectedId={selectedId}
-                user={user}
-                searchQuery={searchQuery}
-                unreadOnly={unreadOnly}
-                roleFilter={roleFilter}
-                statusFilter={statusFilter}
-                sortOrder={sortOrder}
-                onSelectConversation={setSelectedId}
-                onTabChange={setActiveTab}
-                onSearchChange={setSearchQuery}
-                onUnreadOnlyChange={setUnreadOnly}
-                onRoleFilterChange={setRoleFilter}
-                onStatusFilterChange={setStatusFilter}
-                onSortOrderChange={setSortOrder}
-              />
-            </div>
-            {/* 右欄：聊天視窗 */}
-            <div
-              className="relative flex flex-col overflow-hidden"
-              style={isMobile
-                ? { width: '50%', flexShrink: 0 }
-                : { flex: '1 1 0%' }
-              }
-            >
-              <ChatWindow
-                selected={selected}
-                selectedId={selectedId}
-                messages={messages}
-                user={user}
-                sending={sending}
-                sendError={sendError}
-                canSend={canSend}
-                attachment={attachment}
-                inputRef={inputRef}
-                showMembers={showMembers}
-                isComposingRef={isComposingRef}
-                lastCompositionEndRef={lastCompositionEndRef}
-                onMembersToggle={setShowMembers}
-                onSend={handleSend}
-                onKeyDown={handleKeyDown}
-                onInputChange={v => { setCanSend(v.trim().length > 0); setSendError(false) }}
-              />
+
+              <div
+                className="flex flex-col overflow-hidden"
+                style={isMobile
+                  ? { width: '50%', flexShrink: 0 }
+                  : { width: '288px', flexShrink: 0, borderRight: '1px solid var(--color-line)' }
+                }
+              >
+                <ConversationList
+                  filteredConvs={filteredConvs}
+                  activeTab={activeTab}
+                  selectedId={selectedId}
+                  user={user}
+                  searchQuery={searchQuery}
+                  unreadOnly={unreadOnly}
+                  roleFilter={roleFilter}
+                  statusFilter={statusFilter}
+                  sortOrder={sortOrder}
+                  onSelectConversation={setSelectedId}
+                  onTabChange={setActiveTab}
+                  onSearchChange={setSearchQuery}
+                  onUnreadOnlyChange={setUnreadOnly}
+                  onRoleFilterChange={setRoleFilter}
+                  onStatusFilterChange={setStatusFilter}
+                  onSortOrderChange={setSortOrder}
+                />
+              </div>
+
+              <div
+                className="relative flex flex-col overflow-hidden"
+                style={isMobile
+                  ? { width: '50%', flexShrink: 0 }
+                  : { flex: '1 1 0%' }
+                }
+              >
+                <ChatWindow
+                  selected={selected}
+                  selectedId={selectedId}
+                  messages={messages}
+                  user={user}
+                  sending={sending}
+                  sendError={sendError}
+                  canSend={canSend}
+                  attachment={attachment}
+                  inputRef={inputRef}
+                  showMembers={showMembers}
+                  isComposingRef={isComposingRef}
+                  lastCompositionEndRef={lastCompositionEndRef}
+                  onMembersToggle={setShowMembers}
+                  onSend={handleSend}
+                  onKeyDown={handleKeyDown}
+                  onInputChange={v => { setCanSend(v.trim().length > 0); setSendError(false) }}
+                />
+              </div>
             </div>
           </div>
-        </div>
         </DialogBody>
       </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }

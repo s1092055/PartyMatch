@@ -1,7 +1,5 @@
 import { X } from 'lucide-react'
 
-// 送出前的附件縮圖預覽（縮圖＋檔名＋移除鈕），跟 useEvidenceUpload 搭配使用；
-// 留言區／聊天室輸入列共用
 export default function AttachmentPreviewChip({ attachment }) {
   if (!attachment.url) return null
   return (

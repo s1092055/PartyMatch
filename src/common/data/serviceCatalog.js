@@ -171,7 +171,7 @@ export const SERVICES = [
         billingCycle: 'yearly',
         description: '1080p 畫質，2 台裝置同時觀看，最多可加入 7 位成員。',
         monthlyPrice: 233,
-        yearlyPrice: 2790, // 官網公告年繳總價（多方媒體報導交叉核對一致）
+        yearlyPrice: 2790,
         maxSeats: 2,
         tags: ['影音', '含廣告', 'Disney', 'Marvel', 'Star Wars'],
         features: [
@@ -203,7 +203,7 @@ export const SERVICES = [
         billingCycle: 'yearly',
         description: '4K+HDR 畫質，4 台裝置同時觀看，支援 Dolby Atmos 音效。',
         monthlyPrice: 273,
-        yearlyPrice: 3280, // 官網公告年繳總價（多方媒體報導交叉核對一致）
+        yearlyPrice: 3280,
         maxSeats: 4,
         tags: ['影音', '4K', '無廣告', 'Dolby Atmos', '離線下載'],
         features: [
@@ -249,7 +249,6 @@ export const SERVICES = [
         ],
       },
       {
-        // TODO: 官網未列出具體年繳總價（僅文字說明「最高可省16%」），monthlyPrice×12 為約略估算，需人工登入官網核對
         name: '100 GB（年繳）',
         billingCycle: 'yearly',
         description: '100GB 雲端儲存，適合輕度使用者，最多 5 位家庭成員共享空間。',
@@ -266,7 +265,6 @@ export const SERVICES = [
         ],
       },
       {
-        // TODO: 官網目前方案列表已找不到這個 400GB 層級（可能已下架/整併成 2TB 起跳），需人工核對此方案是否仍存在
         name: 'AI Plus（400GB）（月繳）',
         billingCycle: 'monthly',
         description: '400GB 儲存空間 + Gemini AI 功能，最多 5 位家庭成員共享儲存。',
@@ -283,7 +281,6 @@ export const SERVICES = [
         ],
       },
       {
-        // TODO: 官網目前方案列表已找不到這個 400GB 層級（可能已下架/整併），且無官方年繳總價，monthlyPrice×12 僅為約略估算，需人工核對此方案是否仍存在
         name: 'AI Plus（400GB）（年繳）',
         billingCycle: 'yearly',
         description: '400GB 儲存空間 + Gemini AI 功能，最多 5 位家庭成員共享儲存。',
@@ -316,7 +313,6 @@ export const SERVICES = [
         ],
       },
       {
-        // TODO: 官網未列出具體年繳總價（僅文字說明「最高可省16%」），monthlyPrice×12 為約略估算，需人工登入官網核對
         name: 'AI Plus（2 TB）（年繳）',
         billingCycle: 'yearly',
         description: '2TB 儲存空間 + Gemini AI 功能，最多 5 位家庭成員共享儲存，適合儲存需求較大的用戶。',
@@ -350,7 +346,6 @@ export const SERVICES = [
         ],
       },
       {
-        // TODO: 官網未列出具體年繳總價（僅文字說明「最高可省16%」），monthlyPrice×12 為約略估算，需人工登入官網核對
         name: 'AI Pro（5 TB）（年繳）',
         billingCycle: 'yearly',
         description: '5TB 儲存空間 + Gemini Pro AI 功能，適合重度使用者與創作者。',
@@ -402,8 +397,6 @@ export const SERVICES = [
         ],
       },
       {
-        // TODO: 官方為美金計價（openai.com 現行 $20/user/month 年繳），無新台幣定價，且與這裡的
-        // monthlyPrice 換算後量級差異很大，懷疑原始資料誤把其他方案金額當成這筆，需人工重新核對幣別與方案定義
         name: 'Business（年繳）',
         billingCycle: 'yearly',
         description: '最少 2 人共享工作區，含 GPT-4o、進階資料分析、圖像生成及自訂 GPT 功能。',
@@ -454,7 +447,6 @@ export const SERVICES = [
         ],
       },
       {
-        // TODO: 官網（tv.apple.com/tw）目前只有月繳，查無官方年繳方案，這筆資料可能整個都不該存在，需人工核對
         name: '家庭共享（年繳）',
         billingCycle: 'yearly',
         description: '最多 6 位家庭成員共享，各自擁有獨立觀看紀錄與推薦。',
@@ -508,7 +500,7 @@ export const SERVICES = [
         billingCycle: 'yearly',
         description: '1080p 畫質，3 台裝置同時觀看，含所有 HBO 及 Max 內容。',
         monthlyPrice: 183,
-        yearlyPrice: 2190, // 官網 hbomax.com/tw 直接確認
+        yearlyPrice: 2190,
         maxSeats: 3,
         tags: ['影音', '無廣告', '1080p', '離線下載'],
         features: [
@@ -541,7 +533,7 @@ export const SERVICES = [
         billingCycle: 'yearly',
         description: '4K 畫質，4 台裝置同時觀看，支援 Dolby Vision 與離線下載。',
         monthlyPrice: 249,
-        yearlyPrice: 2990, // 官網 hbomax.com/tw 直接確認
+        yearlyPrice: 2990,
         maxSeats: 4,
         tags: ['影音', '4K', '無廣告', 'Dolby Atmos', '離線下載'],
         features: [
@@ -587,8 +579,6 @@ export const SERVICES = [
         ],
       },
       {
-        // 官方為美金計價（discord.com/nitro，年繳 $99.99 USD），無新台幣定價，
-        // yearlyPriceUsd 用即時匯率換算顯示金額，不用手動維護台幣數字
         name: '個人方案（帳號共享）（年繳）',
         billingCycle: 'yearly',
         description: 'Discord 官方僅提供單人 Nitro 訂閱，並無多席位家庭方案；此方案為多人共用同一組帳號登入資訊分攤費用。',
@@ -706,7 +696,7 @@ export const SERVICES = [
         name: '家庭方案（6人）（月繳）',
         billingCycle: 'monthly',
         description: '最多 6 位家庭成員，各自獨立音樂庫與個人化推薦，共享訂閱費用。',
-        monthlyPrice: 295, // 官網 apple.com/tw/apple-music 現行價格（近期由 265 調漲）
+        monthlyPrice: 295,
         maxSeats: 6,
         tags: ['音樂', '家庭共享', '無損音質', '離線下載', 'Dolby Atmos'],
         features: [
@@ -720,8 +710,6 @@ export const SERVICES = [
         ],
       },
       {
-        // TODO: 官網（apple.com/tw/apple-music）目前只有月繳（且已漲價至 NT$295/月），查無官方年繳方案，
-        // 這筆資料可能整個都不該存在，需人工核對；月繳金額也需要更新（下方月繳方案同步需要核對漲價後金額）
         name: '家庭方案（6人）（年繳）',
         billingCycle: 'yearly',
         description: '最多 6 位家庭成員，各自獨立音樂庫與個人化推薦，共享訂閱費用。',
@@ -854,8 +842,6 @@ export const SERVICES = [
         ],
       },
       {
-        // 官方為美金計價（docs.midjourney.com 年繳 $288 USD），無新台幣定價，
-        // yearlyPriceUsd 用即時匯率換算顯示金額，不用手動維護台幣數字
         name: 'Standard（年繳）',
         billingCycle: 'yearly',
         description: '最多 3 人共享，每月 15 小時快速生成時數，無限放鬆模式生成。',
@@ -891,8 +877,6 @@ export const SERVICES = [
         ],
       },
       {
-        // 官方為美金計價（docs.midjourney.com 年繳 $576 USD），無新台幣定價，
-        // yearlyPriceUsd 用即時匯率換算顯示金額，不用手動維護台幣數字
         name: 'Pro（年繳）',
         billingCycle: 'yearly',
         description: '最多 4 人共享，每月 30 小時快速生成時數，支援隱私模式保護作品。',
@@ -944,8 +928,6 @@ export const SERVICES = [
         ],
       },
       {
-        // TODO: 官方為美金計價（cursor.com/blog/teams-pricing-june-2026，2026/7/1 起 Standard $384/年、Premium $1,152/年），
-        // 跟這裡的 monthlyPrice 換算後量級差異很大，懷疑原始資料誤把整組多人方案總額當成單一數字，需人工重新核對幣別與方案定義
         name: 'Teams（年繳）',
         billingCycle: 'yearly',
         description: '最多 4 人共享，含集中管理、強制隱私模式與 SAML SSO 企業功能。',
@@ -1000,7 +982,7 @@ export const SERVICES = [
         billingCycle: 'yearly',
         description: '最多 6 人，每人各獲 1TB OneDrive 儲存，可在最多 5 台裝置同時使用。',
         monthlyPrice: 349,
-        yearlyPrice: 4190, // 官網 microsoft.com/zh-tw 直接確認
+        yearlyPrice: 4190,
         maxSeats: 6,
         tags: ['辦公', '家庭共享', '1TB儲存', 'Office全套'],
         features: [
@@ -1047,8 +1029,6 @@ export const SERVICES = [
         ],
       },
       {
-        // TODO: 官網（adobe.com/tw/creativecloud/plans.html）本次抓取失敗（403/逾時），未能直接確認最終頁面文字，
-        // monthlyPrice×12 為約略估算，需人工核對官方年繳合約總價
         name: '全應用程式（年繳）',
         billingCycle: 'yearly',
         description: '包含所有 Adobe CC 應用程式，含 100GB 雲端儲存，適合全方位創作者。官方現已更名為 Creative Cloud Pro。',
@@ -1099,8 +1079,6 @@ export const SERVICES = [
         ],
       },
       {
-        // TODO: 官方為美金計價（$10/user/month 或年繳 $100/user/年，第三方彙整資料，canva.com/pricing 本次抓取失敗未直接確認，
-        // 且該方案已改稱 Canva Business，舊版 Teams 可能不再開放新申請），需人工核對方案名稱與匯率換算後的正確金額
         name: '團隊版（年繳）',
         billingCycle: 'yearly',
         description: '最多 5 人共享品牌素材庫、Logo 套件與統一視覺設定，適合行銷或設計小組。',
@@ -1152,8 +1130,6 @@ export const SERVICES = [
         ],
       },
       {
-        // TODO: 官方為美金計價（notion.com/pricing 月繳 $20/member，頁面標示年繳最高省 20%，換算約 $192/年，
-        // 但未能直接看到官網「年繳」頁籤顯示的最終數字），無新台幣定價，需人工核對匯率換算後的正確金額
         name: 'Business（年繳）',
         billingCycle: 'yearly',
         description: '最多 3 人，含無限版本歷史、進階分析、SAML SSO 與私人團隊空間。',
@@ -1374,7 +1350,7 @@ export const SERVICES = [
         billingCycle: 'yearly',
         description: '最多 8 人共享線上對戰功能，含 NES、SNES 經典遊戲庫與雲端存檔。',
         monthlyPrice: 98,
-        yearlyPrice: 1179, // 台灣任天堂官方定價，多方交叉核對一致
+        yearlyPrice: 1179,
         maxSeats: 8,
         tags: ['遊戲', '家庭共享', '線上對戰', '經典遊戲庫'],
         features: [
@@ -1408,7 +1384,7 @@ export const SERVICES = [
         billingCycle: 'yearly',
         description: '最多 8 人，額外加入 N64、Mega Drive、GBA 擴充遊戲庫與部分 DLC 內容。',
         monthlyPrice: 200,
-        yearlyPrice: 2399, // 台灣任天堂官方定價，多方交叉核對一致
+        yearlyPrice: 2399,
         maxSeats: 8,
         tags: ['遊戲', '家庭共享', '線上對戰', 'N64', 'DLC內容'],
         features: [
@@ -1520,9 +1496,6 @@ export const SERVICES = [
         ],
       },
       {
-        // TODO: 官方為美金計價（expressvpn.com/pricing 本次抓取失敗，第三方資料顯示現行為三層定價
-        // Basic/Advanced/Pro，12個月方案 $59.85～$199.95/年，均為首年優惠價），且無法確認這裡對應哪一層，
-        // 需人工到官網確認方案層級與正確金額
         name: '年繳',
         billingCycle: 'yearly',
         description: '5 台裝置同時連線，年繳享優惠，費用約為月繳的 67%。',

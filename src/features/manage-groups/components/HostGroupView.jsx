@@ -26,12 +26,12 @@ import { buildReviewHistoryPanel } from './hostGroupView/buildReviewHistoryPanel
 import { buildBillingPanel } from './hostGroupView/buildBillingPanel'
 import { buildMemberInfoPanel } from './hostGroupView/buildMemberInfoPanel'
 
-// ── 團主視角 ──────────────────────────────────────────────────────────────────
-
-export default function HostGroupView({ group, members, applications, onReportServiceInfoIssue, onResolveDispute, onRemoveMember, onActivate, onLockGroup, onCancelGroup, onApprove, onReject, onAdjustBillingDate, errors, onClose, autoOpenLockGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling, autoOpenMemberInfo, onOpenRenewal }) {
+export default function HostGroupView(
+  { group, members, applications, onReportServiceInfoIssue, onResolveDispute, onRemoveMember, onActivate, onLockGroup, onCancelGroup, onApprove, onReject, onAdjustBillingDate, errors, onClose, autoOpenLockGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling, autoOpenMemberInfo, onOpenRenewal }
+) {
   const [showActivate, setShowActivate]                   = useState(false)
   const [removingMember, setRemovingMember]               = useState(null)
-  const [activePanel, setActivePanel]                     = useState(null) // 'members' | 'applications' | 'billing' | 'reviews' | null
+  const [activePanel, setActivePanel]                     = useState(null);
   const [showReviewHistory, setShowReviewHistory]         = useState(false)
   const [showMemberReviews, setShowMemberReviews]         = useState(false)
   const [showLockGroupConfirm, setShowLockGroupConfirm] = useState(false)
@@ -74,8 +74,6 @@ export default function HostGroupView({ group, members, applications, onReportSe
     if (autoOpenMemberInfo) setActivePanel('memberInfo')
   }, [autoOpenMemberInfo])
 
-  // 側邊欄分頁自帶未讀 badge 的兩個分頁（申請管理／成員資料）共用同一套「開啟時標記已讀」邏輯，
-  // 差別只在通知類型跟 group.id 篩選條件，抽成小函式避免同一段邏輯抄第二次
   function markGroupNotifsRead(type) {
     const user = useAuthStore.getState().getProfile()
     if (!user) return
@@ -92,8 +90,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
 
   useEffect(() => {
     if (activePanel !== 'memberInfo') return
-    // 每次打開「帳號資訊」都重新拉一次，避免看到的是成員填寫當下、輪詢還沒同步到的舊快取
-    useMemberStore.getState().init()
+    useMemberStore.getState().init();
     markGroupNotifsRead('service_info_filled')
   }, [activePanel, group.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -111,9 +108,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
   const pendingApps   = applications.filter(a => a.status === 'pending')
   const groupFull     = group.openSeats <= 0
 
-  // 成員資料分頁的數字 badge：跟「申請管理」同一套樣式，顯示有幾筆未讀的 service_info_filled 通知
-  // （成員填寫服務帳號、團主還沒點開看過）
-  const currentUserId = useAuthStore(s => s.user?.id)
+  const currentUserId = useAuthStore(s => s.user?.id);
   const notifications = useNotificationStore(s => s.notifications)
   const unseenMemberInfoCount = useMemo(
     () => notifications.filter(
@@ -130,16 +125,12 @@ export default function HostGroupView({ group, members, applications, onReportSe
   const [serviceIssueNote, setServiceIssueNote]     = useState('')
   const serviceIssueEvidence = useEvidenceUpload(uploadServiceIssueEvidence)
 
-  // 勾選狀態現在會跨越「關閉啟用服務→去成員資料回報問題→重新打開」保留，
-  // 光看 memberChecks 會漏掉「勾選之後才回報的問題」，一定要一起檢查 serviceInfoIssueNote
-  // 才能擋下帶著未解決問題的成員被算進「全員已確認」
-  const allMembersChecked = members.length > 0 && members.every(m => memberChecks[m.id] && !m.serviceInfoIssueNote)
+  const allMembersChecked = members.length > 0 && members.every(m => memberChecks[m.id] && !m.serviceInfoIssueNote);
 
   function openActivate() {
     setShowActivate(true)
   }
 
-  // 關閉 modal 視同放棄本次確認進度，重新打開要整輪重新勾選
   function closeActivate() {
     setShowActivate(false)
     setFinalConfirmed(false)
@@ -160,9 +151,7 @@ export default function HostGroupView({ group, members, applications, onReportSe
     </div>
   )
 
-  // 無官方多人邀請機制的服務，鎖定群組當下順便讓團主提供帳號密碼，成員填寫帳號時就能直接看到，
-  // 不用回頭翻聊天室訊息
-  const needsCredentialsOnLock = isSharedCredentialsMethod(serviceDef?.sharingMethod)
+  const needsCredentialsOnLock = isSharedCredentialsMethod(serviceDef?.sharingMethod);
 
   function openLockFlow() {
     if (needsCredentialsOnLock) {
@@ -237,12 +226,11 @@ export default function HostGroupView({ group, members, applications, onReportSe
 
   const confirmingBanner = group.status === 'confirming' && (
     <div className="flex items-center justify-center gap-2 bg-info-subtle px-6 py-3 text-sm font-extrabold text-info-text">
-      <Clock size={15} strokeWidth={1.5} />
-      確認期進行中
-      {group.confirmDeadline && (
+      <Clock size={15} strokeWidth={1.5} />確認期進行中
+            {group.confirmDeadline && (
         <>，剩餘 <CountdownText deadline={group.confirmDeadline} /></>
       )}
-      {/* 每期只能調整一次，已經用掉額度就不再顯示按鈕，避免點了才發現後端擋掉 */}
+
       {!group.billingDateAdjustedAt && (
         <button
           onClick={() => { setNewBillingDate(''); setBillingDateNote(''); setShowAdjustBillingDate(true) }}
@@ -284,11 +272,9 @@ export default function HostGroupView({ group, members, applications, onReportSe
 
   const isRecruiting = ['recruiting', 'full'].includes(group.status)
   const isCancelled = group.status === 'cancelled'
-  // 成員評價要群組真的啟用過才會有資料，招募/處理中階段成員根本還沒用服務、不可能有評價
-  const hasBeenActive = ['active', 'ended'].includes(group.status)
+  const hasBeenActive = ['active', 'ended'].includes(group.status);
   const showRenewal = group.status === 'active'
 
-  // 審核紀錄要看得到成員最新的退出/移除狀態，點開當下重新拉一次申請資料，避免顯示舊快取
   function openReviewHistory() {
     setShowReviewHistory(true)
     useApplicationStore.getState().init()
@@ -307,14 +293,12 @@ export default function HostGroupView({ group, members, applications, onReportSe
         sharingMethod: serviceDef?.sharingMethod,
         sharedCredentials: group.sharedCredentials,
         serviceId: group.serviceId,
-        // 服務啟用後成員已經確認帳號能正常使用，「帳號資訊有誤」這個理由就不成立了，
-        // 回報帳號問題只開放在啟用服務之前（還在填寫/等待啟用階段）
         canReportServiceIssue: canReportServiceIssue(group.status),
         onOpenServiceIssue: m => { setServiceIssueMember(m); setServiceIssueNote(m.serviceInfoIssueNote ?? '') },
         onResolveDispute: () => onResolveDispute?.(group.id),
         showPassword,
         onTogglePassword: () => setShowPassword(v => !v),
-      })
+      });
     }
     return null
   }
@@ -322,7 +306,6 @@ export default function HostGroupView({ group, members, applications, onReportSe
   const isReviewHistory = showReviewHistory && activePanel === 'applications'
   const isMemberReviews = showMemberReviews && activePanel === 'members'
 
-  // 側邊欄一律視為「換到別的分頁」，一併離開審核紀錄／成員評價，避免之後再點回申請管理時卡在裡面出不去
   function goToPanel(panel) {
     setActivePanel(panel)
     setShowReviewHistory(false)
@@ -397,124 +380,117 @@ export default function HostGroupView({ group, members, applications, onReportSe
 
   return (
     <>
-    {/* 啟用服務／回報帳號問題這兩個 sub-modal 開啟時，完全隱藏底下的群組詳情 modal，不是疊加半透明遮罩；
-        關閉 sub-modal 才重新顯示群組詳情，跟成員端「填寫服務帳號」sub-modal 同一套模式 */}
-    {!showActivate && !serviceIssueMember && !showCredentialsModal && (
-    <GroupModalShell
-      onClose={onClose}
-      group={group}
-      service={serviceDef}
-      plan={planDef}
-      hideRecruitBar={group.status !== 'recruiting'}
-      headerBanner={lockGroupBanner || activateBanner || pendingConfirmationBanner || confirmingBanner || disputedBanner || undefined}
-      centeredCta={lockGroupCta || activateCta || undefined}
-      extraInfoRows={[]}
-      statusBadgeOverride={
-        group.status === 'full' ? { variant: 'full', label: '等待鎖定' } :
-        group.status === 'pending_confirmation' && needsCredentialsOnLock ? { variant: 'warning', label: '成員提取中' } :
-        undefined
-      }
-      pendingBadge={
-        group.status === 'pending_confirmation' ? (needsCredentialsOnLock ? '成員提取中' : '成員填寫中') :
-        group.status === 'disputed' ? '收到問題回報，處理中' :
-        undefined
-      }
-      pendingBadgeColor={group.status === 'disputed' ? 'danger' : undefined}
-      subPanel={activePanel ? buildSubPanel() : null}
-      onSubPanelBack={() => { setActivePanel(null); setShowReviewHistory(false); setShowMemberReviews(false) }}
-      subSubPanel={
-        isReviewHistory ? buildReviewHistoryPanel({ applications, groupFull, errors }) :
-        isMemberReviews ? { floatingBack: true, content: <div className="flex min-h-full flex-col"><HostReviews group={group} groupId={group.id} title="" centerEmpty /></div> } :
-        null
-      }
-      onSubSubPanelBack={() => { setShowReviewHistory(false); setShowMemberReviews(false) }}
-      panelKey={isReviewHistory ? 'reviewHistory' : isMemberReviews ? 'memberReviews' : activePanel ?? 'overview'}
-      sideBar={renderSideBar()}
-    />
-    )}
 
-    <LockGroupCredentialsModal
-      isOpen={showCredentialsModal}
-      onClose={() => { setShowCredentialsModal(false); setCredentialValues({}) }}
-      serviceId={group.serviceId}
-      serviceName={group.serviceName}
-      values={credentialValues}
-      setValues={setCredentialValues}
-      onSubmit={handleCredentialsSubmit}
-      loading={lockLoading}
-    />
-
-    <ActivateServiceModal
-      isOpen={showActivate}
-      onClose={closeActivate}
-      onConfirm={handleActivateConfirm}
-      group={group}
-      members={members}
-      memberChecks={memberChecks}
-      setMemberChecks={setMemberChecks}
-      finalConfirmed={finalConfirmed}
-      setFinalConfirmed={setFinalConfirmed}
-      allMembersChecked={allMembersChecked}
-    />
-
-    <ReportServiceIssueModal
-      member={serviceIssueMember}
-      sharingMethod={serviceDef?.sharingMethod}
-      onClose={() => {
-        setServiceIssueMember(null)
-        setServiceIssueNote('')
-        serviceIssueEvidence.reset()
-      }}
-      note={serviceIssueNote}
-      setNote={setServiceIssueNote}
-      evidenceUrl={serviceIssueEvidence.url}
-      evidenceName={serviceIssueEvidence.name}
-      evidenceUploading={serviceIssueEvidence.uploading}
-      onEvidenceSelect={serviceIssueEvidence.onSelect}
-      onRemoveEvidence={serviceIssueEvidence.onRemove}
-      onSubmit={() => {
-        if (!serviceIssueNote.trim() || !serviceIssueMember) return
-        onReportServiceInfoIssue?.(serviceIssueMember, serviceIssueNote.trim(), serviceIssueEvidence.key || undefined)
-        setServiceIssueMember(null)
-        setServiceIssueNote('')
-        serviceIssueEvidence.reset()
-      }}
-    />
-
-    <AdjustBillingDateModal
-      open={showAdjustBillingDate}
-      currentDate={group.nextBillingDate}
-      newDate={newBillingDate}
-      setNewDate={setNewBillingDate}
-      note={billingDateNote}
-      setNote={setBillingDateNote}
-      saving={adjustingBillingDate}
-      onClose={() => { setShowAdjustBillingDate(false); setNewBillingDate(''); setBillingDateNote('') }}
-      onSubmit={handleAdjustBillingDateSubmit}
-    />
-
-    {showCancelConfirm && (
-      <ConfirmActionDialog
-        title="解散群組"
-        message={`確定要解散「${group.serviceName}」群組嗎？所有代管費用將退還給成員，此操作無法撤回。`}
-        confirmLabel="解散群組"
-        danger
-        onConfirm={() => { setShowCancelConfirm(false); onCancelGroup?.() }}
-        onCancel={() => setShowCancelConfirm(false)}
+      {!showActivate && !serviceIssueMember && !showCredentialsModal && (
+      <GroupModalShell
+        onClose={onClose}
+        group={group}
+        service={serviceDef}
+        plan={planDef}
+        hideRecruitBar={group.status !== 'recruiting'}
+        headerBanner={lockGroupBanner || activateBanner || pendingConfirmationBanner || confirmingBanner || disputedBanner || undefined}
+        centeredCta={lockGroupCta || activateCta || undefined}
+        extraInfoRows={[]}
+        statusBadgeOverride={
+          group.status === 'full' ? { variant: 'full', label: '等待鎖定' } :
+          group.status === 'pending_confirmation' && needsCredentialsOnLock ? { variant: 'warning', label: '成員提取中' } :
+          undefined
+        }
+        pendingBadge={
+          group.status === 'pending_confirmation' ? (needsCredentialsOnLock ? '成員提取中' : '成員填寫中') :
+          group.status === 'disputed' ? '收到問題回報，處理中' :
+          undefined
+        }
+        pendingBadgeColor={group.status === 'disputed' ? 'danger' : undefined}
+        subPanel={activePanel ? buildSubPanel() : null}
+        onSubPanelBack={() => { setActivePanel(null); setShowReviewHistory(false); setShowMemberReviews(false) }}
+        subSubPanel={
+          isReviewHistory ? buildReviewHistoryPanel({ applications, groupFull, errors }) :
+          isMemberReviews ? { floatingBack: true, content: <div className="flex min-h-full flex-col"><HostReviews group={group} groupId={group.id} title="" centerEmpty /></div> } :
+          null
+        }
+        onSubSubPanelBack={() => { setShowReviewHistory(false); setShowMemberReviews(false) }}
+        panelKey={isReviewHistory ? 'reviewHistory' : isMemberReviews ? 'memberReviews' : activePanel ?? 'overview'}
+        sideBar={renderSideBar()}
       />
-    )}
-
-    {/* 移除成員確認（倒數 5 秒才可確認） */}
-    {removingMember && (
-      <ConfirmActionDialog
-        title="移除成員"
-        message={`確定要將「${removingMember.userName}」移出群組嗎？`}
-        confirmLabel="移除"
-        danger
-        onConfirm={() => { onRemoveMember?.(removingMember); setRemovingMember(null) }}
-        onCancel={() => setRemovingMember(null)}
+      )}
+      <LockGroupCredentialsModal
+        isOpen={showCredentialsModal}
+        onClose={() => { setShowCredentialsModal(false); setCredentialValues({}) }}
+        serviceId={group.serviceId}
+        serviceName={group.serviceName}
+        values={credentialValues}
+        setValues={setCredentialValues}
+        onSubmit={handleCredentialsSubmit}
+        loading={lockLoading}
       />
-    )}
-  </>
-  )
+      <ActivateServiceModal
+        isOpen={showActivate}
+        onClose={closeActivate}
+        onConfirm={handleActivateConfirm}
+        group={group}
+        members={members}
+        memberChecks={memberChecks}
+        setMemberChecks={setMemberChecks}
+        finalConfirmed={finalConfirmed}
+        setFinalConfirmed={setFinalConfirmed}
+        allMembersChecked={allMembersChecked}
+      />
+      <ReportServiceIssueModal
+        member={serviceIssueMember}
+        sharingMethod={serviceDef?.sharingMethod}
+        onClose={() => {
+          setServiceIssueMember(null)
+          setServiceIssueNote('')
+          serviceIssueEvidence.reset()
+        }}
+        note={serviceIssueNote}
+        setNote={setServiceIssueNote}
+        evidenceUrl={serviceIssueEvidence.url}
+        evidenceName={serviceIssueEvidence.name}
+        evidenceUploading={serviceIssueEvidence.uploading}
+        onEvidenceSelect={serviceIssueEvidence.onSelect}
+        onRemoveEvidence={serviceIssueEvidence.onRemove}
+        onSubmit={() => {
+          if (!serviceIssueNote.trim() || !serviceIssueMember) return
+          onReportServiceInfoIssue?.(serviceIssueMember, serviceIssueNote.trim(), serviceIssueEvidence.key || undefined)
+          setServiceIssueMember(null)
+          setServiceIssueNote('')
+          serviceIssueEvidence.reset()
+        }}
+      />
+      <AdjustBillingDateModal
+        open={showAdjustBillingDate}
+        currentDate={group.nextBillingDate}
+        newDate={newBillingDate}
+        setNewDate={setNewBillingDate}
+        note={billingDateNote}
+        setNote={setBillingDateNote}
+        saving={adjustingBillingDate}
+        onClose={() => { setShowAdjustBillingDate(false); setNewBillingDate(''); setBillingDateNote('') }}
+        onSubmit={handleAdjustBillingDateSubmit}
+      />
+      {showCancelConfirm && (
+        <ConfirmActionDialog
+          title="解散群組"
+          message={`確定要解散「${group.serviceName}」群組嗎？所有代管費用將退還給成員，此操作無法撤回。`}
+          confirmLabel="解散群組"
+          danger
+          onConfirm={() => { setShowCancelConfirm(false); onCancelGroup?.() }}
+          onCancel={() => setShowCancelConfirm(false)}
+        />
+      )}
+
+      {removingMember && (
+        <ConfirmActionDialog
+          title="移除成員"
+          message={`確定要將「${removingMember.userName}」移出群組嗎？`}
+          confirmLabel="移除"
+          danger
+          onConfirm={() => { onRemoveMember?.(removingMember); setRemovingMember(null) }}
+          onCancel={() => setRemovingMember(null)}
+        />
+      )}
+    </>
+  );
 }

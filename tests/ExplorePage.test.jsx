@@ -8,9 +8,6 @@ import { useApplicationStore } from '../src/common/stores/useApplicationStore'
 import { useMemberStore } from '../src/common/stores/useMemberStore'
 import { useFavoriteStore } from '../src/common/stores/useFavoriteStore'
 
-// ExplorePage 直接從 Zustand store 讀資料（module-level singleton，不用 Provider），
-// render 前用 setState 灌好測試資料即可，不用 mock API——這頁本身不會主動打 API（
-// 資料已經在 store 裡了），init() 是 App 啟動時另外呼叫的
 function renderExplorePage() {
   return render(
     <MemoryRouter>

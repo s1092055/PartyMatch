@@ -24,18 +24,14 @@ const loginSchema = z.object({
   password: z.string().min(1),
 })
 
-// refresh token 改存 HttpOnly Cookie（不再放進 response body 讓前端存 localStorage），
-// path 限縮在 /api/auth，Cookie 不會隨其他 API 請求一起送出，縮小暴露面
-const REFRESH_COOKIE_NAME    = 'pm_refresh_token'
+const REFRESH_COOKIE_NAME    = 'pm_refresh_token';
 const REFRESH_COOKIE_PATH    = '/api/auth'
-const REFRESH_COOKIE_MAX_AGE = 1000 * 60 * 60 * 24 * 7 // 7 天，跟 Redis TTL 一致
+const REFRESH_COOKIE_MAX_AGE = 1000 * 60 * 60 * 24 * 7;
 
 function setRefreshCookie(res, token) {
   res.cookie(REFRESH_COOKIE_NAME, token, {
     httpOnly: true,
-    // 本機開發是 http://localhost，並非所有瀏覽器都把 localhost 視為 Secure cookie 的例外，
-    // 開發模式仍用 Secure 的話該 Cookie 會被靜默丟棄，導致每 15 分鐘（access token 效期）強制登出一次
-    secure:   process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path:     REFRESH_COOKIE_PATH,
     maxAge:   REFRESH_COOKIE_MAX_AGE,
@@ -46,7 +42,6 @@ export function clearRefreshCookie(res) {
   res.clearCookie(REFRESH_COOKIE_NAME, { path: REFRESH_COOKIE_PATH })
 }
 
-// POST /auth/register
 router.post('/register', authLimiter, validate(registerSchema), async (req, res, next) => {
   try {
     const { email, password, name, phone } = req.body
@@ -64,11 +59,9 @@ router.post('/register', authLimiter, validate(registerSchema), async (req, res,
       select: { id: true, email: true, name: true, phone: true, creditScore: true, tokenBalance: true, isAdmin: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, bio: true },
     })
 
-    // 系統聊天室建立失敗不應阻擋註冊流程
-    ensureSystemConversation(user.id).catch(err => console.error('[auth] 建立系統聊天室失敗:', err))
+    ensureSystemConversation(user.id).catch(err => console.error('[auth] 建立系統聊天室失敗:', err));
 
-    // sessionId 讓同一帳號能在多裝置分別維護各自的 refresh token，不會互相覆蓋踢出
-    const sessionId    = randomUUID()
+    const sessionId    = randomUUID();
     const accessToken  = signAccessToken({ id: user.id, email: user.email, sessionId })
     const refreshToken = signRefreshToken({ id: user.id, sessionId })
     await saveRefreshToken(user.id, sessionId, refreshToken)
@@ -76,9 +69,8 @@ router.post('/register', authLimiter, validate(registerSchema), async (req, res,
     setRefreshCookie(res, refreshToken)
     res.status(201).json({ user, accessToken })
   } catch (err) { next(err) }
-})
+});
 
-// POST /auth/login
 router.post('/login', authLimiter, validate(loginSchema), async (req, res, next) => {
   try {
     const { email, password } = req.body
@@ -94,11 +86,9 @@ router.post('/login', authLimiter, validate(loginSchema), async (req, res, next)
       return res.status(403).json({ message: '此帳號已停用，如需恢復請聯絡客服', code: 'ACCOUNT_DEACTIVATED' })
     }
 
-    // 系統聊天室若因故被清空（例如測試環境清過資料），登入時補回來，不必重新註冊帳號
-    ensureSystemConversation(user.id).catch(err => console.error('[auth] 確保系統聊天室失敗:', err))
+    ensureSystemConversation(user.id).catch(err => console.error('[auth] 確保系統聊天室失敗:', err));
 
-    // sessionId 讓同一帳號能在多裝置分別維護各自的 refresh token，不會互相覆蓋踢出
-    const sessionId    = randomUUID()
+    const sessionId    = randomUUID();
     const accessToken  = signAccessToken({ id: user.id, email: user.email, sessionId })
     const refreshToken = signRefreshToken({ id: user.id, sessionId })
     await saveRefreshToken(user.id, sessionId, refreshToken)
@@ -107,18 +97,15 @@ router.post('/login', authLimiter, validate(loginSchema), async (req, res, next)
     setRefreshCookie(res, refreshToken)
     res.json({ user: safeUser, accessToken })
   } catch (err) { next(err) }
-})
+});
 
-// POST /auth/refresh
 router.post('/refresh', refreshLimiter, async (req, res) => {
   try {
     const refreshToken = req.cookies?.[REFRESH_COOKIE_NAME]
     if (!refreshToken) return res.status(401).json({ message: '缺少 refresh token' })
 
     const payload = verifyRefreshToken(refreshToken)
-    // 改版前簽發、payload 沒有 sessionId 的 token，查舊版沒有 session 後綴的 key；
-    // 找不到才視為無效，讓這批舊 token 過期前仍能正常運作，不必強制所有人重新登入
-    const isLegacyToken = !payload.sessionId
+    const isLegacyToken = !payload.sessionId;
     const stored = await redis.get(sessionRefreshKey(payload.id, payload.sessionId))
     if (stored !== refreshToken) return res.status(401).json({ message: 'Refresh token 無效' })
 
@@ -128,13 +115,10 @@ router.post('/refresh', refreshLimiter, async (req, res) => {
     })
     if (!user) return res.status(401).json({ message: '使用者不存在' })
     if (user.deactivatedAt) {
-      // 帳號停用當下已清過所有 session，這裡是保險判斷（例如清除時 Redis 短暫失聯）
-      return res.status(403).json({ message: '此帳號已停用，如需恢復請聯絡客服', code: 'ACCOUNT_DEACTIVATED' })
+      return res.status(403).json({ message: '此帳號已停用，如需恢復請聯絡客服', code: 'ACCOUNT_DEACTIVATED' });
     }
 
-    // rotate 時延用同一個 sessionId 代表同一台裝置的續期；舊 token 沒有 sessionId，
-    // 藉這次 refresh 順便升級成新機制，並清掉舊版沒有 session 後綴的 key
-    const sessionId  = payload.sessionId ?? randomUUID()
+    const sessionId  = payload.sessionId ?? randomUUID();
     const newAccess  = signAccessToken({ id: user.id, email: user.email, sessionId })
     const newRefresh = signRefreshToken({ id: user.id, sessionId })
     await saveRefreshToken(user.id, sessionId, newRefresh)
@@ -145,18 +129,16 @@ router.post('/refresh', refreshLimiter, async (req, res) => {
   } catch {
     res.status(401).json({ message: 'Refresh token 無效或已過期' })
   }
-})
+});
 
-// POST /auth/logout — 只登出目前這台裝置的 session，其他裝置的登入狀態不受影響
 router.post('/logout', requireAuth, async (req, res, next) => {
   try {
     await redis.del(sessionRefreshKey(req.user.id, req.user.sessionId))
     clearRefreshCookie(res)
     res.json({ message: '已登出' })
   } catch (err) { next(err) }
-})
+});
 
-// GET /auth/me
 router.get('/me', requireAuth, async (req, res, next) => {
   try {
     const user = await prisma.user.findUnique({
@@ -166,23 +148,16 @@ router.get('/me', requireAuth, async (req, res, next) => {
     if (!user) return res.status(404).json({ message: '使用者不存在' })
     res.json(user)
   } catch (err) { next(err) }
-})
+});
 
-// ── Helpers ────────────────────────────────────────────────────────────────────
-
-// 改版前簽發的 token 沒有 sessionId，統一在這裡處理新舊兩種 key 格式，
-// 避免 /refresh、/logout、deleteAllUserSessions 各自重新判斷一次
 function sessionRefreshKey(userId, sessionId) {
   return sessionId ? `refresh:${userId}:${sessionId}` : `refresh:${userId}`
 }
 
 async function saveRefreshToken(userId, sessionId, token) {
-  // 7 天 = 604800 秒；key 帶 sessionId，讓同一使用者可以同時有多台裝置各自的 refresh token
-  await redis.set(sessionRefreshKey(userId, sessionId), token, 'EX', 60 * 60 * 24 * 7)
+  await redis.set(sessionRefreshKey(userId, sessionId), token, 'EX', 60 * 60 * 24 * 7);
 }
 
-// 停用帳號等場景需要立即讓「所有裝置」的登入失效，掃描該使用者的全部 session key 一次刪除
-// 用 SCAN 而非 KEYS，避免阻塞整個 Redis（KEYS 是 O(N) 全 keyspace 遍歷）
 export async function deleteAllUserSessions(userId) {
   const keys = []
   let cursor = '0'
@@ -191,7 +166,7 @@ export async function deleteAllUserSessions(userId) {
     cursor = nextCursor
     keys.push(...batch)
   } while (cursor !== '0')
-  keys.push(sessionRefreshKey(userId, null)) // 相容改版前沒有 session 後綴的舊 key
+  keys.push(sessionRefreshKey(userId, null));
   if (keys.length > 0) await redis.del(keys)
 }
 

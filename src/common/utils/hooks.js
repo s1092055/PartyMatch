@@ -3,10 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from './toast'
 import { useAuthStore } from '../stores/useAuthStore'
 
-// lg 斷點（見 src/index.css 的 --breakpoint-lg）；純粹看「螢幕夠不夠寬」的版面判斷可以用這個
-// （例如 modal 要不要分成左右欄），不用管有沒有滑鼠 hover 能力，觸控裝置只要夠寬一樣適用。
-// 如果是「靠 hover 展開/顯示」的元件（側邊欄展開、hover 才出現的箭頭…）不要用這個 hook，
-// 直接在 className 疊加 can-hover:lg: 這個 custom variant（見 index.css 的說明）
 export function useIsDesktop() {
   const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024)
   useEffect(() => {
@@ -18,15 +14,9 @@ export function useIsDesktop() {
   return isDesktop
 }
 
-// Reference counter so nested modals don't re-measure or prematurely release the lock.
-let _lockCount = 0
+let _lockCount = 0;
 
-// 只對 <html> 設 overflowY:hidden 在 iOS Safari 上鎖不住背景捲動——那只擋得住滑鼠滾輪，
-// 觸控的 touchmove 手勢照樣會捲動 body（這是 iOS Safari 已知的行為，不是這裡漏寫）。
-// 改用「把 body 固定成 position:fixed，用負的 top 位移抵銷原本的捲動位置」這個作法：
-// 視覺上畫面完全不動，但因為 body 已經不是可捲動的狀態，觸控手勢再怎麼滑都沒有內容可以
-// 捲，解鎖時再用同一個位移呼叫 window.scrollTo 把捲動位置還原回去
-let _lockedScrollY = 0
+let _lockedScrollY = 0;
 
 export function useScrollLock(enabled) {
   useEffect(() => {
@@ -57,8 +47,6 @@ export function useScrollLock(enabled) {
   }, [enabled])
 }
 
-// 由觸發滾輪事件的節點往上找，是否已經位在「本來就能自己垂直捲動」的祖先元素內
-// （例如頁面裡獨立的側邊摘要面板）——如果是，交給該元素自己處理，不應該被轉發搶走
 function hasScrollableAncestor(node, stopAt) {
   let cur = node
   while (cur && cur !== stopAt && cur !== document.body) {
@@ -72,9 +60,7 @@ function hasScrollableAncestor(node, stopAt) {
   return false
 }
 
-// 共用滾輪轉發：無論幾個元件訂閱，window 上只掛一個真正的 'wheel' listener（ref-count 釋放）
-// Modal 開啟（scroll lock 中）時不轉發，避免滾動背景頁面而非 Modal 本身內容
-const _wheelSubs = new Set()
+const _wheelSubs = new Set();
 function _notifyWheel(e) {
   if (_lockCount > 0) return
   _wheelSubs.forEach(fn => fn(e))
@@ -88,10 +74,6 @@ function subscribeWheel(fn) {
   }
 }
 
-// 捲動邊界偵測：回報是否可捲動、是否已到底部，並提供捲到頂/往下捲的控制函式
-// （多個翻頁式流程頁面與步驟卡片共用同一套邏輯，避免各自重複實作 ResizeObserver 監聽）
-// forwardWheel：讓滑鼠在頁面任何位置（含固定 header／底部導覽列）滾動滾輪時，都轉發捲動量給內容容器，
-// 屬於「整頁式流程」才需要的選配行為，預設關閉，避免非全頁情境的呼叫端被動繼承這個副作用
 export function useScrollEdge({ withMutationObserver = false, forwardWheel = false } = {}) {
   const [atBottom, setAtBottom] = useState(false)
   const [canScroll, setCanScroll] = useState(false)
@@ -145,8 +127,7 @@ export function useScrollEdge({ withMutationObserver = false, forwardWheel = fal
   return { scrollRef, elRef, atBottom, canScroll, isScrolling, handleScroll }
 }
 
-// 共用點擊外部偵測：無論幾個元件訂閱，document 上只掛一個真正的 'pointerdown' listener（ref-count 釋放）
-const _pointerDownSubs = new Set()
+const _pointerDownSubs = new Set();
 function _notifyPointerDown(e) {
   _pointerDownSubs.forEach(fn => fn(e))
 }
@@ -159,8 +140,6 @@ function subscribePointerDown(fn) {
   }
 }
 
-// 倒數計時：回傳距離 deadline 的剩餘時間（格式化字串）跟是否已逾期，每秒重新計算一次
-// 逾期不會觸發任何副作用，純粹給 UI 顯示用
 export function useCountdown(deadline) {
   const [now, setNow] = useState(() => Date.now())
 
@@ -185,8 +164,6 @@ export function useCountdown(deadline) {
   return { label, expired: false }
 }
 
-// 重要操作（解散群組、移除成員等）的確認按鈕倒數幾秒才能點擊，避免使用者誤觸；
-// 跟上面的 useCountdown 不同，這裡是單純從整數秒數倒數到 0，不是算到某個 deadline
 export function useConfirmCountdown(seconds) {
   const [remaining, setRemaining] = useState(seconds)
 
@@ -199,16 +176,9 @@ export function useConfirmCountdown(seconds) {
   return { remaining, ready: remaining <= 0 }
 }
 
-// 附件限制：只收截圖用的圖片格式，跟後端 r2Storage.js 的 ALLOWED_MIME_TYPES／
-// MAX_FILE_SIZE_BYTES 同一份規則，前端先擋一次給即時回饋，後端才是真正擋得住的那一關
-// （前端這層可以被繞過，不能只靠這裡）
-const EVIDENCE_MIME_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp', 'image/heic']
-const EVIDENCE_MAX_SIZE_BYTES = 5 * 1024 * 1024 // 5MB
+const EVIDENCE_MIME_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp', 'image/heic'];
+const EVIDENCE_MAX_SIZE_BYTES = 5 * 1024 * 1024;
 
-// 附件上傳共用邏輯：申訴附件、團主回報帳號問題的附件都是同一套「選檔→上傳→存 key/url/name→
-// 失敗跳 toast→清空重選」流程，差別只在呼叫哪支 upload API（uploadFn）。
-// key 是要送給後端存進資料庫的永久識別碼；url 是上傳當下順便簽的短效網址，只給這裡的本地
-// 預覽用（提交表單前使用者可能還要等一下），不能拿去長期顯示或存到別的地方。
 export function useEvidenceUpload(uploadFn) {
   const [key, setKey]             = useState('')
   const [url, setUrl]             = useState('')
@@ -262,8 +232,6 @@ export function useClickOutside(enabled, refs, onClose) {
   }, [enabled])
 }
 
-// 登出共用邏輯（清除 auth store + 導回登入頁），AppNav（使用者選單 dropdown）／
-// AdminDashboardLayout 都是同一套流程，呼叫端可以在 logout() 前後加自己的額外步驟（例如先關掉選單）
 export function useLogout() {
   const navigate = useNavigate()
   const [loggingOut, setLoggingOut] = useState(false)

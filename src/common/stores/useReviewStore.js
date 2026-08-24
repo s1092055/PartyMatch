@@ -1,9 +1,8 @@
 import { create } from 'zustand'
 import { fetchHostReviews, createReview } from '../api/reviewsApi'
 
-// 團主評價：以 hostId 為單位快取（跨群組彙總的整體評價，不是單一群組的評價）
 export const useReviewStore = create((set, get) => ({
-  byHostId: {}, // { [hostId]: { average, count, reviews, loading } }
+  byHostId: {},
 
   fetchForHost: async (hostId) => {
     if (!hostId || get().byHostId[hostId]?.loading) return
@@ -22,4 +21,4 @@ export const useReviewStore = create((set, get) => ({
     await createReview({ groupId, rating, comment })
     await get().fetchForHost(hostId)
   },
-}))
+}));

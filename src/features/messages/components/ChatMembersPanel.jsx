@@ -24,8 +24,7 @@ export default function ChatMembersPanel({ open, selected, memberMap, userId, ge
           const meta = selected.participantMeta?.[pid]
           const member = memberMap[pid]
           const cached = userProfileCache.get(pid)
-          // meta/member/cached 任何一層明確給了 null 都代表對方關閉了大頭照顯示，不能再 fallback 到姓名首字
-          const avatarInitial = meta?.avatarInitial ?? member?.userAvatarInitial ?? cached?.avatarInitial ?? ''
+          const avatarInitial = meta?.avatarInitial ?? member?.userAvatarInitial ?? cached?.avatarInitial ?? '';
           const avatarColor   = meta?.avatarColor   ?? member?.userAvatarColor   ?? cached?.avatarColor   ?? '#64748b'
           const presenceStatus = meta?.presenceStatus ?? member?.userPresenceStatus ?? cached?.presenceStatus ?? 'offline'
           return (
@@ -43,5 +42,5 @@ export default function ChatMembersPanel({ open, selected, memberMap, userId, ge
         })}
       </div>
     </div>
-  )
+  );
 }

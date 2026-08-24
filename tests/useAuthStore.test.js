@@ -9,16 +9,12 @@ vi.mock('../src/common/api/tokensApi', () => ({
   topupTokens:       vi.fn(),
 }))
 
-// login()/register()/logout()/deactivateAccount() 動態 import 另外 7 個 store，各自呼叫
-// init()/setState()/teardown()/startPolling()，跟這個檔案本身要測的 useAuthStore 邏輯無關，
-// 直接把這 7 個 store 整個 mock 掉（不用真的跑各自的 API 請求跟 polling），只驗證
-// useAuthStore 有沒有正確呼叫到它們，不驗證它們各自內部邏輯（那些各自有自己的測試檔案）
 const privateStoreMock = () => ({
   init:         vi.fn().mockResolvedValue(undefined),
   setState:     vi.fn(),
   teardown:     vi.fn(),
   startPolling: vi.fn(),
-})
+});
 const mockApplicationStore  = privateStoreMock()
 const mockSubscriptionStore = privateStoreMock()
 const mockMemberStore       = privateStoreMock()
@@ -97,7 +93,7 @@ describe('useAuthStore', () => {
 
     fetchTokenBalance.mockRejectedValue(new Error('網路錯誤'))
     await expect(useAuthStore.getState().refreshTokenBalance()).resolves.toBeUndefined()
-    expect(useAuthStore.getState().user.tokenBalance).toBe(500) // 維持原值，沒有被清掉
+    expect(useAuthStore.getState().user.tokenBalance).toBe(500);
   })
 
   it('topup()：成功時更新餘額並回傳新餘額', async () => {
@@ -121,10 +117,9 @@ describe('useAuthStore', () => {
     const result = await useAuthStore.getState().updateProfile({ displayName: '新名字' })
     expect(result.ok).toBe(true)
     expect(useAuthStore.getState().user.displayName).toBe('新名字')
-    expect(useAuthStore.getState().user.tokenBalance).toBe(100) // 沒被覆蓋掉
+    expect(useAuthStore.getState().user.tokenBalance).toBe(100);
 
-    // displayName/id 不該被原樣送進 PATCH body
-    const sentBody = client.patch.mock.calls[0][1]
+    const sentBody = client.patch.mock.calls[0][1];
     expect(sentBody).not.toHaveProperty('displayName')
     expect(sentBody).not.toHaveProperty('id')
   })
@@ -144,8 +139,7 @@ describe('useAuthStore', () => {
     expect(tokenManager.set).toHaveBeenCalledWith('token-abc')
     expect(useAuthStore.getState().loggedIn).toBe(true)
     expect(useAuthStore.getState().user.id).toBe('u1')
-    // initPrivateStores()：私人 store 全部 init 過，通知 store 也開始 polling
-    expect(mockGroupStore.init).toHaveBeenCalledWith({ all: true })
+    expect(mockGroupStore.init).toHaveBeenCalledWith({ all: true });
     expect(mockApplicationStore.init).toHaveBeenCalled()
     expect(mockNotificationStore.startPolling).toHaveBeenCalledWith('u1')
     expect(mockConversationStore.init).toHaveBeenCalledWith('u1')
@@ -180,11 +174,9 @@ describe('useAuthStore', () => {
     expect(tokenManager.remove).toHaveBeenCalled()
     expect(useAuthStore.getState().loggedIn).toBe(false)
     expect(useAuthStore.getState().user).toBeNull()
-    // clearPrivateStores() 是 logout() 內部 .catch(console.error) 的 fire-and-forget，
-    // 不會被 await，動態 import 本身就是非同步的，要等一輪才會真的執行到裡面的呼叫
     await vi.waitFor(() => {
       expect(mockNotificationStore.teardown).toHaveBeenCalled()
-    })
+    });
     expect(mockConversationStore.teardown).toHaveBeenCalled()
     expect(mockApplicationStore.setState).toHaveBeenCalledWith({ applications: [] })
   })
@@ -201,6 +193,6 @@ describe('useAuthStore', () => {
     client.post.mockRejectedValue(new Error('密碼錯誤'))
     const failResult = await useAuthStore.getState().deactivateAccount('wrong-password')
     expect(failResult.ok).toBe(false)
-    expect(useAuthStore.getState().loggedIn).toBe(true) // 維持原狀，沒有被清掉
+    expect(useAuthStore.getState().loggedIn).toBe(true);
   })
 })

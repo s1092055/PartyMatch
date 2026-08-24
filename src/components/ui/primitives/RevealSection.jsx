@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 
-// 每次進入畫面都重播淡入效果：離開視窗時 visible 重設回 false，下次再捲入視窗時
-// opacity/translateY transition 會重新播放一次，不是只在第一次看到時播放
 export default function RevealSection({ children, delay = 0, className = '' }) {
   const outerRef = useRef(null)
   const [visible, setVisible] = useState(false)

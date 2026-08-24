@@ -1,9 +1,6 @@
 import crypto from 'crypto'
 
-// Group.sharedCredentials（團主提供的共用帳密，見 groupPrivacy.js）在資料庫內以
-// AES-256-GCM 加密儲存，避免資料庫外洩時帳密以明文外流。金鑰放在環境變數
-// CREDENTIAL_ENCRYPTION_KEY（64 字元 hex，對應 32 bytes），不使用外部 KMS。
-const ALGORITHM = 'aes-256-gcm'
+const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 12
 const AUTH_TAG_LENGTH = 16
 
@@ -15,7 +12,6 @@ function getKey() {
   return key
 }
 
-// 回傳格式：base64(iv || authTag || ciphertext)，單一字串方便直接存進 sharedCredentials 這個既有欄位
 export function encryptCredential(plaintext) {
   if (plaintext == null) return plaintext
   const iv = crypto.randomBytes(IV_LENGTH)

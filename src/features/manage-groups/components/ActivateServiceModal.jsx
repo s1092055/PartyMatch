@@ -40,7 +40,7 @@ export default function ActivateServiceModal({
         <DialogDescription>啟用服務</DialogDescription>
         <DialogBody>
       <div className="animate-step-slide-up flex-1 min-h-0 overflow-y-auto">
-        {/* 服務摘要 */}
+
         <div className="flex items-center gap-3 border-b border-line-subtle px-5 py-4">
           <ServiceLogo serviceId={group.serviceId} size={40} />
           <div className="min-w-0 flex-1">
@@ -53,7 +53,6 @@ export default function ActivateServiceModal({
           </div>
         </div>
 
-        {/* 群組資訊／群組規則／服務說明／方案說明／逐一確認成員 */}
         <div className="px-5 pt-5">
           <GroupOverviewContent
             group={group}
@@ -115,7 +114,6 @@ export default function ActivateServiceModal({
           />
         </div>
 
-        {/* 最終確認 */}
         <div className="space-y-3 p-5">
           <label className={`flex cursor-pointer items-start gap-3 ${allMembersChecked ? '' : 'pointer-events-none opacity-40'}`}>
             <input
@@ -141,5 +139,5 @@ export default function ActivateServiceModal({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

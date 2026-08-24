@@ -24,13 +24,9 @@ import adminRoutes         from './routes/admin.js'
 
 const app = express()
 
-// 正式環境部署在 Render（自己前面還有一層 Cloudflare Worker 反向代理），Express 收到的
-// req.ip 預設是代理伺服器的 IP，不是真正的使用者 IP；設 trust proxy 讓 Express 改讀
-// X-Forwarded-For 最後一段，rate limit 才能真正依「使用者」而不是依「代理伺服器」計數
-app.set('trust proxy', 1)
+app.set('trust proxy', 1);
 
-// ── 基礎 middleware ────────────────────────────────────────────────────────────
-app.use(helmet())
+app.use(helmet());
 app.use(cors({
   origin:      process.env.CLIENT_ORIGIN ?? 'http://localhost:5173',
   credentials: true,
@@ -39,8 +35,7 @@ app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'))
 app.use(express.json({ limit: '10mb' }))
 app.use(cookieParser())
 
-// ── Routes ─────────────────────────────────────────────────────────────────────
-app.use('/api/auth',          authRoutes)
+app.use('/api/auth',          authRoutes);
 app.use('/api/groups',        groupRoutes)
 app.use('/api/applications',  applicationRoutes)
 app.use('/api/subscriptions', subscriptionRoutes)
@@ -57,10 +52,8 @@ app.use('/api/system-messages', systemMessageRoutes)
 app.use('/api/credential-comments', credentialCommentRoutes)
 app.use('/api/admin',         adminRoutes)
 
-// ── Health check ───────────────────────────────────────────────────────────────
-app.get('/health', (req, res) => res.json({ status: 'ok', ts: new Date() }))
+app.get('/health', (req, res) => res.json({ status: 'ok', ts: new Date() }));
 
-// ── 全域錯誤處理 ──────────────────────────────────────────────────────────────
-app.use(errorHandler)
+app.use(errorHandler);
 
 export default app

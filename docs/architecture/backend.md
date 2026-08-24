@@ -32,7 +32,9 @@ Schema 定義於單一 `schema.prisma`，所有 route 透過共用的 Prisma cli
 
 ## 認證與 Redis
 
-JWT 雙 token 設計，refreshToken 存於 Redis 以支援同一帳號多裝置各自維護獨立 session（單一裝置登出、帳號停用全裝置登出）——這是 Redis 目前唯一的用途，尚未用於一般資料快取。詳見 [認證機制](./authentication.md)。
+JWT 雙 token 設計，refreshToken 存於 Redis 以支援同一帳號多裝置各自維護獨立 session（單一裝置登出、帳號停用全裝置登出）。詳見 [認證機制](./authentication.md)。
+
+Redis 另外用於高流量、資料變動不頻繁的公開端點短 TTL 快取（`GET /groups`、`GET /services`），換取「幾乎每次都直接查 DB」的成本；沒有寫入時主動失效機制，接受最多一個 TTL 週期的資料延遲。
 
 ## 檔案上傳
 

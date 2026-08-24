@@ -1,8 +1,6 @@
 import { FileText, Paperclip, X } from 'lucide-react'
 import { isImageUrl } from '../../common/utils/fileUtils'
 
-// 附件選擇/預覽欄位：回報問題（DisputeModal）、回報帳號問題（ReportServiceIssueModal）
-// 兩邊的「附件說明」區塊是同一套 UI，抽出來避免重複維護
 export default function EvidenceAttachmentField({ label = '附件說明（選填）', url, name, uploading, onSelect, onRemove }) {
   return (
     <div>

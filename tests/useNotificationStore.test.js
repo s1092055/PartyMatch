@@ -24,7 +24,10 @@ describe('useNotificationStore', () => {
   it('init() 成功時去重（同 id 只留第一筆）', async () => {
     readAllNotifications.mockResolvedValue([
       { id: 'n1', userId: USER_ID },
-      { id: 'n1', userId: USER_ID }, // 重複
+      {
+        id: 'n1',
+        userId: USER_ID
+      },
       { id: 'n2', userId: USER_ID },
     ])
     await useNotificationStore.getState().init()

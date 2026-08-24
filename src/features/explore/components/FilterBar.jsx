@@ -65,15 +65,12 @@ function findOption(options, value) {
 }
 
 export default function FilterBar({ filters, onChange }) {
-  // 關鍵字輸入用本地 state + debounce，避免每個按鍵都觸發 URL replace；
-  // filters.q 变動時（例如瀏覽器上一頁/下一頁）於 render 期間同步回本地 state
-  const [keyword, setKeyword] = useState(filters.q)
+  const [keyword, setKeyword] = useState(filters.q);
   const [syncedQ, setSyncedQ] = useState(filters.q)
   if (filters.q !== syncedQ) {
     setSyncedQ(filters.q)
-    // filters.q 是送出時 trim 過的值；若跟目前輸入內容 trim 後相同，代表這只是自己剛送出的 echo，
-    // 不要覆寫本地輸入（否則使用者打到一半的尾隨空白會被吃掉）
-    if (filters.q !== keyword.trim()) setKeyword(filters.q)
+    if (filters.q !== keyword.trim())
+      setKeyword(filters.q);
   }
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -128,7 +125,6 @@ export default function FilterBar({ filters, onChange }) {
       onChange({ maxPrice: String(n) })
       setCustomEditing(false)
     }
-    // 輸入非正數或非數字時保留編輯狀態，讓使用者修正，不靜默捨棄
   }
 
   return (

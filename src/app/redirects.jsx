@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
-// 舊版 /my-groups?view=host|member 合併頁的相容路由，依 view 參數導向對應的獨立頁面
 export function MyGroupsLegacyRedirect() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -16,16 +15,13 @@ export function GroupRedirect() {
   const { groupId } = useParams()
   useEffect(() => {
     navigate('/explore', { replace: true })
-    // 延後到導覽重新渲染後才觸發，確保 GroupDetailModal 的 event listener 已掛載
     setTimeout(() => {
       window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId } }))
-    }, 0)
+    }, 0);
   }, [navigate, groupId])
   return null
 }
 
-// 舊版 /quick-match 獨立全螢幕頁面的相容路由，快速搜尋改成全站共用的 QuickMatchModal，
-// 導回首頁後觸發同一個 pm:open-quick-match event 開啟
 export function QuickMatchRedirect() {
   const navigate = useNavigate()
   useEffect(() => {
@@ -37,9 +33,6 @@ export function QuickMatchRedirect() {
   return null
 }
 
-// 舊版 /account 獨立頁面的相容路由，帳號頁面改成 AppNav 裡的 ProfileModal，
-// 導回首頁後觸發同一個 pm:open-profile event 開啟；此路由掛在 ProtectedRoute 底下，
-// 登入狀態已由外層保證
 export function AccountRedirect() {
   const navigate = useNavigate()
   useEffect(() => {

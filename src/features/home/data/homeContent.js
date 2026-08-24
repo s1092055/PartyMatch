@@ -15,10 +15,6 @@ import freelancerPhoto from '../../../assets/freelance worker.png'
 import createGroupFlowVideo from '../../../assets/flow-videos/create-group-m.mp4'
 import createGroupFlowVideoDesktop from '../../../assets/flow-videos/create-group-d.mp4'
 
-// 「PartyMatch 是什麼？」區塊：首頁第一個內容區塊（Hero 之後），讓還不認識 PartyMatch 的
-// 使用者快速看懂服務內容，走編號列表呈現三個核心環節，跟「為什麼選擇 PartyMatch？」的
-// Tab 卡片版面刻意做出區隔；不重複「我想成為？」的細節流程跟「為什麼選擇 PartyMatch？」
-// 的信任機制說明
 export const HOME_INTRO_PILLARS = [
   {
     title: '尋找群組 & 建立群組',
@@ -32,27 +28,14 @@ export const HOME_INTRO_PILLARS = [
     title: '所有流程一站管理',
     desc: '續約提醒、站內溝通、信用評價，所有都在同一個平台完成。',
   },
-]
+];
 
-// 「不同身份，各有各的任務」區塊：團主／成員各自的完整流程，分成四個大階段（底線 Tab，
-// id 兩邊一一對應方便切換身份時 Tab 位置不跳動）。過去這裡曾經在每個階段底下再拆出更細的
-// 子流程（垂直 Tab／子選單），但那個顆粒度應該交給對應的流程影片本身去分段呈現，不需要
-// 網站互動上重複拆一次，因此簡化成每個階段只有一段 desc，對應到未來會拍攝的一支完整影片
-// （video 欄位，還沒拍的階段先不填，元件端會自動 fallback 成 Play icon 佔位）。前三個
-// 順序對應 Group 狀態機：建立/加入群組 → recruiting；群組管理涵蓋 recruiting → full →
-// pending_confirmation → pending_activation → confirming → active；續訂管理對應
-// active → pending_confirmation 的續約流程（重新走一輪填服務資訊 → 啟用 → 確認），細節見
-// CLAUDE.md「重要慣例」；最後的「其他」不屬於狀態機流程，是平時會用到的其他功能
-// （站內溝通／PM 幣／信用評價／收藏）
 export const HOME_HOST_JOURNEY = [
   {
     id: 'create',
     title: '建立群組',
     badge: 'CREATE',
     desc: '選服務、設定方案與名額即可開放申請，方案價格系統自動核實，免自己找人湊團。',
-    // 手機／桌機分開錄製兩支畫面（手機是直式螢幕錄影，桌機是橫式），沒有真正 hover
-    // 能力的裝置（手機＋iPad）播 video，真桌機播 videoDesktop；其餘階段兩邊都還沒有
-    // 對應影片，維持原本的 Play icon 佔位
     video: createGroupFlowVideo,
     videoDesktop: createGroupFlowVideoDesktop,
   },
@@ -74,10 +57,8 @@ export const HOME_HOST_JOURNEY = [
     badge: 'OTHERS',
     desc: '站內直接溝通免交換聯絡方式，PM 幣收款/儲值/消費紀錄一次查看，交易結束雙方互評累積信用。',
   },
-]
+];
 
-// 成員視角的完整流程，id 對應 HOME_HOST_JOURNEY，同一個階段徽章（CREATE／MANAGE／
-// RENEWAL／OTHERS）在切換身份時位置不變，只換底下的標題跟內容
 export const HOME_MEMBER_JOURNEY = [
   {
     id: 'create',
@@ -103,11 +84,8 @@ export const HOME_MEMBER_JOURNEY = [
     badge: 'OTHERS',
     desc: '站內直接溝通免交換聯絡方式，先收藏心動群組之後再比較，交易結束雙方互評累積信用。',
   },
-]
+];
 
-// 「為什麼選擇 PartyMatch？」區塊：主要機制走 Tab 切換（中央放大插畫 + 完整說明文案），
-// image 沒有的項目（問題回報機制）先用 icon 佔位，之後補上對應插畫時直接補 image 欄位即可，
-// 元件端已經有處理 icon/image 兩種呈現方式
 export const HOME_WHY_US_TABS = [
   {
     id: 'security',
@@ -137,9 +115,8 @@ export const HOME_WHY_US_TABS = [
     title: '問題回報機制',
     desc: '服務使用期間如有疑慮，可直接向平台提出回報；代管款項將於處理期間全數凍結，並於 48 小時內完成處理。',
   },
-]
+];
 
-// 次要補充項目：跟主要機制 Tab 相關但份量較輕，維持小條列呈現在 Tab 內容下方
 export const HOME_WHY_US_EXTRAS = [
   {
     icon: MessageCircle,
@@ -156,10 +133,8 @@ export const HOME_WHY_US_EXTRAS = [
     title: '收藏與追蹤',
     desc: '先收藏，回頭再慢慢比較。',
   },
-]
+];
 
-// 「適合每一種共享生活」區塊；photo 是 assets 資料夾裡的實際素材，services 是這個族群
-// 常見會揪團共享的服務（對應 serviceCatalog.js 的 id），首頁點開放大圖時底下會列出來
 export const HOME_AUDIENCES = [
   {
     photo: studentsPhoto,
@@ -191,9 +166,8 @@ export const HOME_AUDIENCES = [
     desc: '工作提效訂閱不孤單，一起管理更划算。',
     services: ['chatgpt', 'notion', 'canva', 'adobe-cc'],
   },
-]
+];
 
-// 首頁常見問題預覽，涵蓋成員與團主都會遇到的一般性問題
 export const HOME_FAQS = [
   {
     q: 'PartyMatch 是什麼服務？',
@@ -215,4 +189,4 @@ export const HOME_FAQS = [
     q: '如何退出共享群組？',
     a: '可於「我的訂閱」查看目前加入的群組並提出退出申請；若服務有問題，也可以在確認期內向平台回報，由客服協助處理。',
   },
-]
+];

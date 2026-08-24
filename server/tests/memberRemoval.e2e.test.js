@@ -7,7 +7,6 @@ import { createUser, createGroup, authHeader } from './helpers/factories.js'
 
 const MONTHLY_FEE = 300
 
-// DELETE /members/:id 只在群組還沒鎖定（recruiting/full）時可用，測試都停在 approve 之後、lock 之前
 async function setupApprovedMember({ maxMembers = 3 } = {}) {
   const host   = await createUser({ tokenBalance: 0, name: '團主' })
   const member = await createUser({ tokenBalance: 1000, name: '成員' })
@@ -33,8 +32,7 @@ describe('成員移除／自行退出', () => {
   })
 
   it('團主移除成員：退款、扣信用分數、群組狀態從 full 退回 recruiting', async () => {
-    // maxMembers 2：核准後會自動變 full，移除後要驗證退回 recruiting
-    const { host, member, group, memberRecord } = await setupApprovedMember({ maxMembers: 2 })
+    const { host, member, group, memberRecord } = await setupApprovedMember({ maxMembers: 2 });
     expect((await prisma.group.findUnique({ where: { id: group.id } })).status).toBe('full')
 
     const res = await request(app)
@@ -47,8 +45,7 @@ describe('成員移除／自行退出', () => {
     expect((await prisma.group.findUnique({ where: { id: group.id } })).status).toBe('recruiting')
     expect((await prisma.group.findUnique({ where: { id: group.id } })).escrowTokens).toBe(0)
     expect((await prisma.user.findUnique({ where: { id: member.id } })).tokenBalance).toBe(1000)
-    // 被團主移除才扣信用分數（預設 100 分 -10）
-    expect((await prisma.user.findUnique({ where: { id: member.id } })).creditScore).toBe(90)
+    expect((await prisma.user.findUnique({ where: { id: member.id } })).creditScore).toBe(90);
 
     const application = await prisma.application.findFirst({ where: { groupId: group.id, userId: member.id } })
     expect(application.status).toBe('removed')
@@ -68,7 +65,7 @@ describe('成員移除／自行退出', () => {
     expect(res.status).toBe(200)
 
     expect((await prisma.user.findUnique({ where: { id: member.id } })).tokenBalance).toBe(1000)
-    expect((await prisma.user.findUnique({ where: { id: member.id } })).creditScore).toBe(100) // 沒被扣分
+    expect((await prisma.user.findUnique({ where: { id: member.id } })).creditScore).toBe(100);
 
     const application = await prisma.application.findFirst({ where: { groupId: group.id, userId: member.id } })
     expect(application.status).toBe('left')

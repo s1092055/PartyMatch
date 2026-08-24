@@ -4,8 +4,6 @@ import logoUrl from '../../assets/Logo.svg'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useLogout } from '../utils/hooks'
 
-// 管理員後台獨立的極簡版 layout，不共用一般使用者那套探索/建立群組/訊息中心的 nav——
-// 管理員不參與一般群組流程，塞那些功能進來只會是雜訊
 export default function AdminDashboardLayout() {
   const user = useAuthStore(s => s.user)
   const { loggingOut, logout } = useLogout()

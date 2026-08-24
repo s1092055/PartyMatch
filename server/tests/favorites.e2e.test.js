@@ -53,7 +53,7 @@ describe('收藏（GET /favorites, POST /favorites/:groupId toggle）', () => {
     const res = await request(app).get('/api/favorites').set('Authorization', authHeader(user))
     expect(res.status).toBe(200)
     expect(res.body).toHaveLength(2)
-    expect(res.body[0].groupId).toBe(groupB.id) // 最後收藏的排最前面
+    expect(res.body[0].groupId).toBe(groupB.id);
   })
 
   it('未登入無法查詢或收藏', async () => {

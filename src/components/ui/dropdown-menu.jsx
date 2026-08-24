@@ -10,8 +10,6 @@ export function DropdownMenuTrigger(props) {
   return <DropdownMenuPrimitive.Trigger {...props} />
 }
 
-// 訊息中心／通知中心的篩選按鈕共用同一顆「三個點」觸發鈕：有篩選條件生效時亮品牌色，
-// 沒有就是預設灰階，兩邊呼叫端只要算好自己的 active 布林值丟進來，不用各自重寫一次樣式
 export function DropdownMenuFilterTrigger({ active, ariaLabel = '篩選' }) {
   return (
     <DropdownMenuTrigger asChild>
@@ -38,16 +36,13 @@ export function DropdownMenuContent({ className, sideOffset = 6, align = 'end', 
         sideOffset={sideOffset}
         align={align}
         className={cn(
-          // Dialog（panel 版）是 z-[65]，這個選單常常從 Dialog 內部的觸發點開，
-          // 要比所有現有 Dialog variant 都高才不會被蓋住；max-h-72 跟 FilterSelect 的下拉
-          // 清單同一個高度慣例，選項一多就用捲動而不是把選單整個拉得很長
-          'z-[80] min-w-40 max-h-72 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden animate-select-in rounded-lg border border-line bg-surface p-1 outline-none',
+          "z-[80] min-w-40 max-h-72 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden animate-select-in rounded-lg border border-line bg-surface p-1 outline-none",
           className
         )}
         {...props}
       />
     </DropdownMenuPrimitive.Portal>
-  )
+  );
 }
 
 export function DropdownMenuLabel({ className, ...props }) {
@@ -91,8 +86,6 @@ export function DropdownMenuRadioItem({ className, children, ...props }) {
   )
 }
 
-// 「標題 + 一組單選項 + 分隔線」是訊息/通知篩選選單裡重複最多次的結構（顯示範圍／身分／
-// 群組狀態／排序都是同一個形狀），包成一個小元件讓呼叫端一行搞定一個篩選區塊
 export function DropdownMenuRadioSection({ label, options, value, onValueChange }) {
   return (
     <>

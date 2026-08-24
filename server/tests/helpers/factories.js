@@ -26,7 +26,6 @@ export function authHeader(user) {
   return `Bearer ${token}`
 }
 
-// maxMembers 預設 2（含團主），一個成員通過申請就會滿，golden path 測試不用建一堆測試帳號
 export async function createGroup({ host, monthlyFee = 300, maxMembers = 2, billingCycle = 'monthly' } = {}) {
   const service = await prisma.service.create({
     data: {

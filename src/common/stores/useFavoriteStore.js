@@ -19,20 +19,17 @@ export const useFavoriteStore = create((set, get) => ({
     }
   },
 
-  // ── 選取器 ──────────────────────────────────────────────────────────────────
   getByUserId: (userId) => get().favorites.filter(f => f.userId === userId),
 
   isFavorited: (userId, groupId) =>
     get().favorites.some(f => f.userId === userId && f.groupId === groupId),
 
-  // ── Toggle 收藏（回傳新的收藏狀態）──────────────────────────────────────────
   toggle: (userId, groupId) => {
     const existing = get().favorites.find(f => f.userId === userId && f.groupId === groupId)
     if (existing) {
       set(s => ({ favorites: s.favorites.filter(f => f.id !== existing.id) }))
       toggleFavorite(groupId).catch(err => {
-        // 回滾：後端同步失敗時把收藏加回來，避免愛心圖示顯示跟實際收藏狀態不一致
-        set(s => ({ favorites: [...s.favorites, existing] }))
+        set(s => ({ favorites: [...s.favorites, existing] }));
         notifyError(err, '收藏失敗，請稍後再試')
       })
       return false

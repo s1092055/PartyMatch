@@ -3,7 +3,7 @@ import Step2Plans from './Step2Plans'
 import Step3Filters from './Step3Filters'
 import { smoothScrollTo } from '../../../../common/utils/scroll'
 
-const SCROLL_MARGIN = 24 // 對應 scroll-mt-6
+const SCROLL_MARGIN = 24;
 
 const ANCHOR_LABELS = [
   { key: 'plans',   label: '選擇方案' },

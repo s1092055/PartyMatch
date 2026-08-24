@@ -57,15 +57,15 @@ describe('SubscriptionsPage', () => {
       groups: [
         group({ id: 'g1', serviceId: 'netflix', serviceName: 'Netflix', planName: '標準（月繳）', status: 'recruiting' }),
         group({ id: 'g2', serviceId: 'spotify', serviceName: 'Spotify', planName: 'Duo（月繳）', status: 'confirming' }),
-        // ApplicationCard 拿 group.pricePerSeat/billingCycle 顯示金額，找不到對應的群組會直接
-        // 整張卡 return null（見 SubscriptionsPage.jsx 的 ApplicationCard 內部邏輯）
-        group({ id: 'g3', serviceId: 'disney', serviceName: 'Disney+', planName: '標準（月繳）', status: 'recruiting' }),
+        group(
+          { id: 'g3', serviceId: 'disney', serviceName: 'Disney+', planName: '標準（月繳）', status: 'recruiting' }
+        ),
       ],
     })
     useSubscriptionStore.setState({
       subscriptions: [
         sub({ id: 's1', groupId: 'g1' }),
-        sub({ id: 's2', groupId: 'g2' }), // confirming 且未確認 → processing
+        sub({ id: 's2', groupId: 'g2' }),
       ],
     })
     useApplicationStore.setState({
@@ -76,8 +76,8 @@ describe('SubscriptionsPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /處理中/ }))
 
     expect(screen.getByText('Spotify')).toBeInTheDocument()
-    expect(screen.getByText('團主審核中')).toBeInTheDocument() // ApplicationCard 的狀態徽章
-    expect(screen.queryByText('Netflix')).not.toBeInTheDocument() // 招募中的不該出現在處理中分頁
+    expect(screen.getByText('團主審核中')).toBeInTheDocument();
+    expect(screen.queryByText('Netflix')).not.toBeInTheDocument();
   })
 
   it('切到「服務中」分頁：active 狀態、以及自己已確認的 confirming 訂閱都算服務中', () => {
@@ -101,7 +101,7 @@ describe('SubscriptionsPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /服務中/ }))
 
     expect(screen.getByText('Netflix')).toBeInTheDocument()
-    expect(screen.getByText('Spotify')).toBeInTheDocument() // 自己已確認，提前算服務中
+    expect(screen.getByText('Spotify')).toBeInTheDocument();
   })
 
   it('已加入群組但當前分頁沒有項目時，顯示「此分類目前沒有項目」而不是「還沒加入任何群組」', () => {

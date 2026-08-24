@@ -14,12 +14,8 @@ import { useAuthStore } from '../../common/stores/useAuthStore'
 import { toast } from '../../common/utils/toast'
 
 export default function ProfileHeaderCard({ user }) {
-  // 頭像旁的狀態點改的是全域 authStore，這裡另外用 hook 直接訂閱，
-  // 不吃 user prop 裡那份只在 Modal 開啟當下取一次快照的舊值，才會即時反映
-  const presenceStatus = useAuthStore(s => s.user?.presenceStatus ?? 'online')
+  const presenceStatus = useAuthStore(s => s.user?.presenceStatus ?? 'online');
 
-  // 狀態是手動選擇的，不是自動偵測上下線，要打 API 存到帳號，其他使用者才看得到
-  // （群組成員列表、聊天室等）
   async function changePresence(next) {
     if (next === presenceStatus) return
     const result = await useAuthStore.getState().updateProfile({ presenceStatus: next })

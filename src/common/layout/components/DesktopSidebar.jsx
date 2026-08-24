@@ -105,7 +105,7 @@ export default function DesktopSidebar({
 
   return (
     <>
-      {/* Sidebar locked tooltip portal */}
+
       {lockedTip && createPortal(
         <span
           className="pointer-events-none fixed z-[200] whitespace-nowrap rounded-lg bg-neutral-900 px-2.5 py-1.5 text-xs font-bold text-white shadow-popover"
@@ -116,13 +116,6 @@ export default function DesktopSidebar({
         document.body
       )}
 
-      {/* 通知按鈕 — fixed top-right。跟下面收合式 <aside> 側邊欄不同，這顆浮動按鈕不分
-          真桌機/iPad/手機一律顯示——手機版導覽已經改成跟 iPad 共用同一套
-          TabletSidebarDrawer 觸發鈕 + Drawer，不再有 MobileHeader 自己的通知按鈕，
-          所以這裡要接手手機版的入口。手機/iPad（lg 以下）縮成純 icon 圓形鈕，跟
-          左上角 Drawer 觸發鈕（TabletSidebarDrawer 的 h-12 w-12 rounded-full）、首頁
-          Hero 區「探索群組」CTA 同一套 rounded-full 圓角語彙；lg 以上（含真桌機）
-          才展開回原本帶文字的長條 pill。PM幣移進下面 <aside> 跟 TabletSidebarDrawer 裡面 */}
       <div className="fixed top-6 z-50 flex lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
         <button
           onClick={openNotify}
@@ -135,8 +128,6 @@ export default function DesktopSidebar({
         </button>
       </div>
 
-      {/* 訊息按鈕 — fixed bottom-right，桌機對齊 sidebar 頭像；跟上面通知/PM幣同一組，
-          不分寬度一律顯示，手機/iPad 同樣縮成 icon 方形鈕 */}
       <div className="fixed z-50 block" style={{ bottom: '2.25rem', right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
         {loggedIn ? (
           <button
@@ -164,10 +155,6 @@ export default function DesktopSidebar({
         )}
       </div>
 
-      {/* Desktop floating sidebar。data-force-open：使用者選單開啟時 DropdownMenuContent
-          會 portal 到 <aside> 外面（document.body），focus 移到選單內容後 hover／
-          focus-within 都不再命中，靠這個 data 屬性強制維持展開（寬度＋內部文字標籤
-          opacity 都要跟著這個屬性，不能只顧寬度） */}
       <aside
         data-force-open={userMenuOpen ? 'true' : undefined}
         className="group/nav fixed bottom-4 left-4 top-4 z-50 hidden w-16 flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-sm transition-[width] duration-300 ease-out hover:w-64 focus-within:w-64 data-[force-open=true]:w-64 can-hover:lg:flex"
@@ -276,5 +263,5 @@ export default function DesktopSidebar({
         </div>
       </aside>
     </>
-  )
+  );
 }

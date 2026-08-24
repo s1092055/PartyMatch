@@ -1,4 +1,3 @@
-// dateLike 可以是 Date、可被 new Date() 解析的字串，或 null/undefined（回傳 fallback）
 export function toISODate(dateLike = new Date(), fallback = '') {
   if (!dateLike) return fallback
   const date = dateLike instanceof Date ? dateLike : new Date(dateLike)
@@ -13,7 +12,6 @@ export function todayISO() {
   return toISODate(new Date())
 }
 
-// 依 createdAt 由新到舊排序（缺值視為最舊），供各 store 的清單排序共用
 export function byNewest(a, b) {
   return String(b.createdAt ?? '').localeCompare(String(a.createdAt ?? ''))
 }
@@ -75,7 +73,6 @@ function extractTime(dateLike) {
   return `${h}:${m}`
 }
 
-// 實際日期＋時間（例：2026-07-20 14:32），供審核紀錄等需要看到確切送出時間的地方使用
 export function formatDateTime(dateLike) {
   const date = toISODate(dateLike)
   const time = extractTime(dateLike)

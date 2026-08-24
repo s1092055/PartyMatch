@@ -1,9 +1,4 @@
-/**
- * 一次性遷移：把資料庫內既有的明文 Group.sharedCredentials 改成 AES-256-GCM 密文。
- * 冪等：已經是密文的資料會解密成功就跳過，只處理解密失敗（代表還是明文）的資料。
- * 執行：cd server && npm run db:encrypt-credentials（正式環境見 db:encrypt-credentials:prod）
- */
-import 'dotenv/config'
+import 'dotenv/config';
 import prisma from '../src/lib/prisma.js'
 import { encryptCredential, decryptCredential } from '../src/lib/credentialEncryption.js'
 

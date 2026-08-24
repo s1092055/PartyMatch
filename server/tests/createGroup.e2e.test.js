@@ -38,15 +38,13 @@ describe('建立群組（POST /groups）', () => {
     expect(res.body.status).toBe('recruiting')
     expect(res.body.currentMembers).toBe(0)
     expect(res.body.maxMembers).toBe(4)
-    expect(res.body.monthlyFee).toBe(400) // 確認 Decimal 有正確轉回 number
+    expect(res.body.monthlyFee).toBe(400);
     expect(res.body.billingCycle).toBe('monthly')
 
     const groupState = await prisma.group.findUnique({ where: { id: res.body.id } })
-    expect(groupState.rules).toBe('準時繳費\n勿分享帳號') // rules 陣列會被轉成換行字串
+    expect(groupState.rules).toBe('準時繳費\n勿分享帳號');
   })
 
-  // 這是針對「建立群組時後端直接信任前端傳的 monthlyFee/maxMembers」這個真的存在過的漏洞
-  // 寫的迴歸測試：不管前端在請求裡塞什麼價格/名額，實際寫入的值都要是服務目錄裡的真實方案價格
   it('無視前端在請求裡夾帶的 monthlyFee/maxMembers/totalSeats/pricePerSeat，一律用服務目錄的權威價格', async () => {
     const host = await createUser({ name: '團主' })
     const service = await createService()
@@ -59,14 +57,14 @@ describe('建立群組（POST /groups）', () => {
         monthlyFee: 1, maxMembers: 10, totalSeats: 3, pricePerSeat: 1, currency: 'USD', billingCycle: 'yearly',
       })
     expect(res.status).toBe(201)
-    expect(res.body.maxMembers).toBe(4)     // 不是請求裡的 10 或 3
-    expect(res.body.monthlyFee).toBe(400)   // 不是請求裡的 1
-    expect(res.body.currency).toBe('TWD')   // 不是請求裡的 USD
-    expect(res.body.billingCycle).toBe('monthly') // 方案名稱沒有「年繳」字樣，不是請求裡的 yearly
+    expect(res.body.maxMembers).toBe(4);
+    expect(res.body.monthlyFee).toBe(400);
+    expect(res.body.currency).toBe('TWD');
+    expect(res.body.billingCycle).toBe('monthly');
 
     const groupState = await prisma.group.findUnique({ where: { id: res.body.id } })
     expect(groupState.monthlyFee.toString()).toBe('400')
-  })
+  });
 
   it('billingCycle 依方案名稱是否含「年繳」判斷，不採信前端傳的值', async () => {
     const host = await createUser({ name: '團主' })

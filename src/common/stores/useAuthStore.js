@@ -2,7 +2,6 @@ import { create } from 'zustand'
 import client, { tokenManager } from '../api/axiosClient'
 import { fetchTokenBalance, topupTokens } from '../api/tokensApi'
 
-// 登入 / 註冊後才初始化需要 auth 的 stores，避免未登入時呼叫受保護端點
 async function initPrivateStores(userId) {
   const [
     { useApplicationStore },
@@ -57,10 +56,7 @@ async function clearPrivateStores() {
   useSubscriptionStore.setState({ subscriptions: [] })
   useMemberStore.setState({ members: [] })
   useFavoriteStore.setState({ favorites: [] })
-  // 登入時 init({ all: true }) 會帶入所有群組（含非招募中的權限資料），登出不會重新整理頁面，
-  // 必須重新 init({ all: false }) 換回訪客可見的招募中群組，避免同分頁下一位訪客／使用者
-  // 在 App 重新掛載前，看到前一位使用者的完整群組列表（含他人非公開的群組狀態）
-  useGroupStore.getState().init({ all: false }).catch(console.error)
+  useGroupStore.getState().init({ all: false }).catch(console.error);
 }
 
 function activeProfile(user) {
@@ -82,7 +78,6 @@ export const useAuthStore = create((set, get) => ({
   user:     null,
   loggedIn: false,
 
-  // ── 初始化（App 啟動時用儲存的 token 還原登入狀態）──────────────────────────
   init: async () => {
     const token = tokenManager.get()
     if (!token) return
@@ -96,12 +91,11 @@ export const useAuthStore = create((set, get) => ({
 
   getProfile: () => activeProfile(get().user),
 
-  // ── PM幣 ────────────────────────────────────────────────────────────────────
   refreshTokenBalance: async () => {
     try {
       const { tokenBalance } = await fetchTokenBalance()
       set(s => ({ user: s.user ? { ...s.user, tokenBalance } : s.user }))
-    } catch { /* silent */ }
+    } catch {}
   },
 
   topup: async (amount) => {
@@ -110,7 +104,6 @@ export const useAuthStore = create((set, get) => ({
     return tokenBalance
   },
 
-  // ── 登入 ────────────────────────────────────────────────────────────────────
   login: async ({ email, password }) => {
     try {
       const { user, accessToken } = await client.post('/auth/login', { email, password })
@@ -123,7 +116,6 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-  // ── 註冊 ────────────────────────────────────────────────────────────────────
   register: async ({ name, email, password, phone }) => {
     try {
       const { user, accessToken } = await client.post('/auth/register', { name, email, password, phone })
@@ -136,16 +128,13 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-  // ── 登出 ────────────────────────────────────────────────────────────────────
   logout: async () => {
-    try { await client.post('/auth/logout') } catch { /* ignore */ }
+    try { await client.post('/auth/logout') } catch {}
     tokenManager.remove()
     set({ user: null, loggedIn: false })
-    // 清空所有私人 store 狀態，避免下一個用戶看到舊資料
-    clearPrivateStores().catch(console.error)
+    clearPrivateStores().catch(console.error);
   },
 
-  // ── 停用帳號（軟刪除，需再次輸入密碼確認）──────────────────────────────────
   deactivateAccount: async (password) => {
     try {
       await client.post('/users/me/deactivate', { password })
@@ -158,7 +147,6 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-  // ── 更新個人資料 ────────────────────────────────────────────────────────────
   updateProfile: async (patch) => {
     const user = get().user
     if (!user) return { ok: false, error: '請先登入' }
@@ -181,11 +169,10 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-  // ── 信用分數（後端業務操作中自動處理，前端只需同步本地狀態）────────────────
   refreshCreditScore: async () => {
     try {
       const user = await client.get('/auth/me')
       set(s => (s.user ? { user: { ...s.user, creditScore: user.creditScore } } : {}))
-    } catch { /* silent */ }
+    } catch {}
   },
 }))

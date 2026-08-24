@@ -22,10 +22,7 @@ import { ADMIN_HOME_PATH } from '../../app/AdminRoute'
 import { ALL_SERVICES } from './data/allServices'
 
 const MessagesModal = lazy(() => import('../messages/MessagesModal'))
-// HomePage 獨立於 AppLayout 之外（AppLayout 平常才會掛一份 GroupDetailModal／QuickMatchModal），
-// Hero 區塊直接嵌入真實的 ExploreGroupCard，點擊要能開啟群組詳情，快速搜尋按鈕也要能開啟
-// 快速搜尋 Modal，這裡都要自己掛一份
-const GroupDetailModal = lazy(() => import('../group/GroupDetailModal'))
+const GroupDetailModal = lazy(() => import('../group/GroupDetailModal'));
 const QuickMatchModal = lazy(() => import('../match/QuickMatchModal'))
 
 export default function HomePage() {
@@ -33,17 +30,12 @@ export default function HomePage() {
   const loggedIn = useAuthStore(s => s.loggedIn)
   const isAdmin = useAuthStore(s => s.user?.isAdmin ?? false)
 
-  // 從別的頁面導回首頁時（例如點導覽列 logo），SPA 的 client-side 導頁不會像整頁重新載入
-  // 那樣自動把捲動位置歸零，會直接沿用上一頁當下的 scrollY，導致回首頁時卡在某個 Section
-  // 中間而不是 Hero。用 useLayoutEffect（在瀏覽器畫出這一幀之前跑）而不是 useEffect，
-  // 避免使用者先看到錯誤位置的畫面閃一下才跳回頂部
   useLayoutEffect(() => {
     window.scrollTo(0, 0)
-  }, [])
+  }, []);
 
-  // 管理員帳號不參與一般使用者流程（探索/建立/加入群組），登入後一律停在管理員後台，
-  // 這裡額外攔一次是為了「已登入的管理員直接輸入網址回到首頁」的情境，不只靠登入當下的導頁
-  if (loggedIn && isAdmin) return <Navigate to={ADMIN_HOME_PATH} replace />
+  if (loggedIn && isAdmin)
+    return <Navigate to={ADMIN_HOME_PATH} replace />;
 
   return (
     <div className="flex min-h-screen flex-col bg-canvas text-ink can-hover:lg:ml-20 can-hover:lg:mr-24">

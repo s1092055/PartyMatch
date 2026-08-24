@@ -12,8 +12,7 @@ import { STATUS_FILTER_TABS, matchesFilter, calcApprovalSeatPatch } from '../uti
 import { getServiceById } from '../../../common/utils/serviceUtils'
 import { isSharedCredentialsMethod } from '../../../common/utils/serviceInfoFields'
 
-// ── store 操作的精簡別名（事件處理器內呼叫，讀取最新 store 狀態）─────────────
-const getGroupById     = (id)      => useGroupStore.getState().getById(id)
+const getGroupById     = (id)      => useGroupStore.getState().getById(id);
 const getGroupsByHostId = (hostId) => useGroupStore.getState().getByHostId(hostId)
 const updateGroup      = (id, p)   => useGroupStore.getState().update(id, p)
 const lockGroup           = (id, sharedCredentials) => useGroupStore.getState().lockGroup(id, sharedCredentials)
@@ -52,8 +51,7 @@ function loadHostData(activeUser) {
 export function useHostActions(activeUser) {
   const location = useLocation()
 
-  // 訂閱 store 切片，群組/申請/成員更新時觸發 hostData 重新載入
-  const groupsState        = useGroupStore(s => s.groups)
+  const groupsState        = useGroupStore(s => s.groups);
   const applicationsState  = useApplicationStore(s => s.applications)
   const membersState       = useMemberStore(s => s.members)
 
@@ -75,10 +73,7 @@ export function useHostActions(activeUser) {
     if (selectedStatusFilter) {
       setStatusFilter(selectedStatusFilter)
     } else {
-      // 沒有明確指定篩選分類時（例如從通知深連結開啟），依群組目前狀態自動切到對應分類，
-      // 不然關閉 modal 後背景列表可能因為篩選條件對不上而讓這個群組憑空消失；直接讀 store
-      // 目前值（而不是閉包捕捉的 allGroups），避免掛載時的 effect 用到過期資料
-      const targetGroup = getGroupById(gId)
+      const targetGroup = getGroupById(gId);
       const matchedTab = targetGroup && STATUS_FILTER_TABS.find(tab => matchesFilter(targetGroup, tab.key))
       if (matchedTab) setStatusFilter(matchedTab.key)
     }
@@ -90,24 +85,21 @@ export function useHostActions(activeUser) {
     setAutoOpenMemberInfo(!!openMemberInfo)
   }
 
-  // 跨頁面：從 location.state 讀（ManageGroupsPage 剛掛載時）
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (location.state?.openGroupId) applyOpenHostGroup(location.state)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 同頁面：custom event（ManageGroupsPage 已掛載，event 直接接到）
   useEffect(() => {
     function onOpenHostGroup(e) { applyOpenHostGroup(e.detail ?? {}) }
     window.addEventListener('pm:open-host-group', onOpenHostGroup)
     return () => window.removeEventListener('pm:open-host-group', onOpenHostGroup)
-  }, [])
+  }, []);
 
-  // store 切片變動時重新載入 hostData（取代舊的 pm:*-changed 事件）
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (activeUser) setHostData(loadHostData(activeUser))
-  }, [activeUser, groupsState, applicationsState, membersState])
+  }, [activeUser, groupsState, applicationsState, membersState]);
 
 
   const { hostedGroups, applications, members, seatMap } = hostData
@@ -166,18 +158,14 @@ async function handleLockGroup(sharedCredentials) {
     const groupMembers = getMembersByGroupId(viewGroupId)
 
     try {
-      // 先建立聊天室（後端 POST /conversations/group 已包含所有成員），再鎖定群組狀態
-      const conv = await createGroupConversation({ groupId: viewGroupId })
+      const conv = await createGroupConversation({ groupId: viewGroupId });
       const convId = conv.id
       await lockGroup(viewGroupId, sharedCredentials)
 
-      // group_chat_opened／fill_service_info 通知（團主與所有成員）已經由後端 POST /:id/lock 建立
-
-      // 樂觀新增聊天室到本地 store
       const participantMeta = {
         [group.hostId]: { name: group.hostName, avatarInitial: group.hostAvatarInitial, avatarColor: group.hostAvatarColor },
         ...Object.fromEntries(groupMembers.map(m => [m.userId, { name: m.userName, avatarInitial: m.userAvatarInitial, avatarColor: m.userAvatarColor }])),
-      }
+      };
       addConversationOptimistic({
         id:           convId,
         type:         'group',
@@ -200,12 +188,9 @@ async function handleLockGroup(sharedCredentials) {
 
 function handleRemoveMember(member) {
     const group = getGroupById(member.groupId)
-    // 代管退款金額是後端算的（Math.min(seatCost, escrowTokens)），這裡的樂觀更新只處理名額，
-    // 不猜測退款金額；成員真的刪除成功後再整筆重新拉一次群組，把 escrowTokens 校正回後端算出的值，
-    // 避免收款管理畫面一直顯示退款前的舊代管金額
     removeMember(member.id)
       .then(() => useGroupStore.getState().refreshGroup(member.groupId))
-      .catch(console.error)
+      .catch(console.error);
     const app = getApplicationByUserAndGroup(member.userId, member.groupId)
     if (app) updateApplicationStatus(app.id, 'removed')
     const sub = getSubscriptionByUserAndGroup(member.userId, member.groupId)
@@ -224,15 +209,12 @@ function handleRemoveMember(member) {
       }),
     }))
 
-    // member_removed 通知已經由後端 DELETE /members/:id 建立
-    const convId = getConvByGroupId(member.groupId)?.id
+    const convId = getConvByGroupId(member.groupId)?.id;
     if (convId) {
       sendSystemMessage(convId, `${member.userName} 已被移出群組`).catch(console.error)
       removeParticipantFromConversation(convId, member.userId).catch(console.error)
     }
 
-    // 帳密共用服務一旦鎖定就已經把帳密交給所有成員看過，被移除的成員手上仍握有帳密，
-    // 提醒團主此時只有「更改密碼」才能真正拿回控制權，平台無法代為處理
     if (group?.sharedCredentials && isSharedCredentialsMethod(getServiceById(group.serviceId)?.sharingMethod)) {
       toast('該成員已看過帳號密碼，建議盡快更改密碼避免帳號被繼續使用', 'warning', { persistent: true })
     }
@@ -256,15 +238,10 @@ async function handleActivate() {
       `${group.serviceName} 服務已啟用！請在 48 小時內確認服務是否正常運作。`
     ).catch(console.error)
 
-    // group_activated 通知（團主與所有成員）已經由後端 POST /:id/activate 建立
-
-    setViewGroupId(null)
+    setViewGroupId(null);
     refreshGroups()
   }
 
-  // 確認期內調整下次扣款日：跟 handleActivate 不同，這裡失敗要讓錯誤往上拋，讓
-  // AdjustBillingDateModal 保持開啟顯示錯誤，不能像 handleActivate 一樣吞掉直接 return
-  // ——後端已經會通知全部成員，這裡不用再自己 insertNotification 一次
   async function handleAdjustBillingDate(nextBillingDate, note) {
     if (!viewGroupId) return
     const group = getGroupById(viewGroupId)
@@ -284,8 +261,6 @@ async function handleActivate() {
     refreshGroups()
   }
 
-  // 團主與成員自行溝通解決申訴，不用等平台裁定——通知/留言/成員欄位重置都在後端一次做完，
-  // 前端只需要呼叫並把最新群組/成員資料換回來
   async function handleResolveDispute(groupId, note) {
     try {
       await useGroupStore.getState().resolveDispute(groupId, { note })
@@ -306,8 +281,6 @@ async function handleActivate() {
       toast(err?.message ?? '解散失敗，請稍後再試', 'error')
       return
     }
-
-    // group_cancelled 通知（所有成員）已經由後端 POST /:id/cancel 建立
 
     if (group?.sharedCredentials && isSharedCredentialsMethod(getServiceById(group.serviceId)?.sharingMethod)) {
       toast('所有成員都已看過帳號密碼，建議盡快更改密碼避免帳號被繼續使用', 'warning', { persistent: true })
@@ -330,8 +303,7 @@ async function handleActivate() {
     if (convId) sendSystemMessage(
       convId, `新一期已開始，請重新填寫訂閱帳號資訊。`
     ).catch(console.error)
-    // group_renewal 通知（所有成員）已經由後端 POST /:id/renew 建立
-    setRenewalModalGroupId(null)
+    setRenewalModalGroupId(null);
     refreshGroups()
   }
 
@@ -342,8 +314,7 @@ async function handleActivate() {
 
     endGroup(renewalModalGroupId)
 
-    // group_ended 通知（所有成員）已經由後端 PATCH /groups/:id（status: 'ended'）建立
-    const endConvId = getConvByGroupId(renewalModalGroupId)?.id
+    const endConvId = getConvByGroupId(renewalModalGroupId)?.id;
     if (endConvId) sendSystemMessage(endConvId, `團主已結束「${groupLabel}」群組`).catch(console.error)
 
     if (group?.sharedCredentials && isSharedCredentialsMethod(getServiceById(group.serviceId)?.sharingMethod)) {
@@ -372,15 +343,11 @@ async function handleApprove(appId) {
       return
     }
 
-    // 等後端 transaction 完成（在 DB 建立 member + subscription）再 init，確保 store 持有真實 DB ID
     try {
       await updateApplicationStatus(appId, 'approved')
     } catch (err) {
       console.error('[handleApprove] failed:', err)
-      // 失敗最常見的原因是申請人剛好搶先一步取消申請：init() 會把這筆申請從 applications 拿掉
-      // （已經不是 pending 了），卡片會直接從清單消失，下面設的 errors[appId] 沒機會被看到，
-      // 所以一定要另外跳 Toast，不能只依賴卡片上的行內錯誤文字
-      toast(err?.response?.data?.message ?? '接受失敗，請重試', 'error')
+      toast(err?.response?.data?.message ?? '接受失敗，請重試', 'error');
       setErrors(prev => ({ ...prev, [appId]: '接受失敗，請重試' }))
       await useApplicationStore.getState().init()
       return
@@ -395,9 +362,6 @@ async function handleApprove(appId) {
     const newOpenSeats = seatPatch?.openSeats ?? seats.openSeats
     if (seatPatch) updateGroup(app.groupId, seatPatch)
 
-    // application_approved（申請人）／group_full（額滿時通知團主自己）通知已經由後端
-    // PATCH /applications/:id 建立
-
     setHostData(prev => {
       const updatedHostedGroups = prev.hostedGroups.map(g =>
         g.id === app.groupId && seatPatch ? { ...g, ...seatPatch } : g
@@ -411,7 +375,7 @@ async function handleApprove(appId) {
           ? { ...prev.seatMap, [app.groupId]: { usedSeats: newUsedSeats, openSeats: newOpenSeats } }
           : prev.seatMap,
       }
-    })
+    });
     removeError(appId)
   }
 
@@ -428,9 +392,7 @@ async function handleApprove(appId) {
       payload: { targetUserId: member.userId, serviceId: group?.serviceId },
     }).catch(console.error)
 
-    // service_info_issue 通知已經由後端 PATCH /members/:id 建立
-
-    refreshGroups()
+    refreshGroups();
   }
 
   async function handleReject(appId) {
@@ -441,25 +403,18 @@ async function handleApprove(appId) {
       await updateApplicationStatus(appId, 'rejected')
     } catch (err) {
       console.error('[handleReject] failed:', err)
-      // updateApplicationStatus 在呼叫 API 前就先樂觀把本地狀態改成 rejected，失敗時如果不 init()
-      // 復原，畫面會一直卡在「已拒絕」但後端其實什麼都沒變的不一致狀態；同樣要跳 Toast，
-      // 不能只依賴卡片上的行內錯誤文字（原因見 handleApprove 的說明）
-      toast(err?.response?.data?.message ?? '拒絕失敗，請重試', 'error')
+      toast(err?.response?.data?.message ?? '拒絕失敗，請重試', 'error');
       setErrors(prev => ({ ...prev, [appId]: '拒絕失敗，請重試' }))
       await useApplicationStore.getState().init()
       return
     }
 
-    // 拒絕會退還申請當下代管的金額（後端算的），重新拉一次群組校正 escrowTokens，
-    // 避免收款管理畫面一直顯示退款前的舊代管金額（跟移除成員同一套修正方式）
-    useGroupStore.getState().refreshGroup(app.groupId).catch(console.error)
-
-    // application_rejected 通知已經由後端 PATCH /applications/:id 建立
+    useGroupStore.getState().refreshGroup(app.groupId).catch(console.error);
 
     setHostData(prev => ({
       ...prev,
       applications: prev.applications.map(a => a.id === appId ? { ...a, status: 'rejected' } : a),
-    }))
+    }));
     removeError(appId)
   }
 

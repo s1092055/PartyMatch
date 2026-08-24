@@ -6,23 +6,22 @@ import CredentialWatermark from '../../../components/ui/primitives/CredentialWat
 import { getServiceInfoSummary, isSharedCredentialsMethod } from '../../../common/utils/serviceInfoFields'
 import { parseHostCredentials } from '../../../common/utils/hostCredentialFields'
 
-// 填寫服務帳號改成堆疊在群組詳情 Modal 上方的 sub-modal（跟團主端 ActivateServiceModal 同一套模式），
-// 而不是側邊欄那種切換內容的 subPanel——關閉時只會回到底下的群組詳情，不會像 subPanel 一樣
-// 需要另外按返回鍵才能回到概覽畫面
-export default function FillServiceInfoModal({
-  isOpen,
-  onClose,
-  group,
-  serviceInfo,
-  sharingMethod,
-  sharingMethodConfig,
-  fillValues,
-  setFillValues,
-  fillValid,
-  fillLoading,
-  onSubmit,
-  viewerName,
-}) {
+export default function FillServiceInfoModal(
+  {
+    isOpen,
+    onClose,
+    group,
+    serviceInfo,
+    sharingMethod,
+    sharingMethodConfig,
+    fillValues,
+    setFillValues,
+    fillValid,
+    fillLoading,
+    onSubmit,
+    viewerName,
+  }
+) {
   const existingSummary = getServiceInfoSummary(serviceInfo, sharingMethod)
   const parsedCredentials = parseHostCredentials(group.sharedCredentials, group.serviceId)
   const isSharedCredentials = isSharedCredentialsMethod(sharingMethod)

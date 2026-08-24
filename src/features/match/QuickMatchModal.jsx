@@ -23,9 +23,6 @@ const DEFAULT_CONDITIONS = {
   groupAge:      'any',
 }
 
-// 快速搜尋改成全站共用的 Modal（原本是獨立的 /quick-match 全螢幕頁面），
-// 用 pm:open-quick-match 這個 window event 觸發開啟，跟 pm:open-group／pm:open-messages
-// 是同一套慣例；掛載點見 AppLayout.jsx（一般頁面）與 HomePage.jsx（首頁獨立於 AppLayout 之外）
 export default function QuickMatchModal() {
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)

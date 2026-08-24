@@ -10,9 +10,6 @@ import { toISODate } from '../../../common/utils/date'
 import { getServiceById } from '../../../common/utils/serviceUtils'
 import { isSharedCredentialsMethod } from '../../../common/utils/serviceInfoFields'
 
-// 這裡的文字刻意跟 Badge.jsx 的 LABELS 分開維護：StatCell 用的是稍微更完整的描述用語
-// （例如「待啟用服務」而非 Badge 的「待啟用」），且這裡多了 Badge 沒有的「追蹤中」「正常」兩種細分狀態，
-// 不是單純複製 Badge 的狀態字典，改動任一邊文字前請先確認另一邊的用語脈絡
 function getCollectionState({ group, paidCount, paymentTarget }) {
   if (['cancelled', 'ended'].includes(group.status)) return '已結束'
   if (group.status === 'recruiting') return '招募中'
@@ -37,8 +34,6 @@ function HostedGroupCard({
 
   const collectionState = getCollectionState({ group, paidCount: 0, paymentTarget: members.length })
 
-  // 確認期中／問題處理中的顏色向 Badge.jsx 拿，避免兩邊各自維護一份對照表而配色跑掉；
-  // 其餘幾種是 getCollectionState 自己組出來的細分狀態，沒有對應的單一 group.status，維持手動指定顏色
   const collectionHighlight = {
     '正常':      'text-success-text',
     '招募中':    'text-success-text',
@@ -46,7 +41,7 @@ function HostedGroupCard({
     '已滿員':    'text-ink-3',
     '確認期中':  getStatusTextColor('confirming'),
     '問題處理中': getStatusTextColor('disputed'),
-  }[collectionState] ?? 'text-warning-text'
+  }[collectionState] ?? 'text-warning-text';
 
   const isActivated    = ['active', 'cancelled', 'ended'].includes(group.status)
 
@@ -73,7 +68,6 @@ function HostedGroupCard({
         pricePerSeat={group.pricePerSeat}
         billingCycle={group.billingCycle}
       />
-
       <StatCellGrid>
         {group.status === 'active' ? (
           <StatCell label="群組狀態" highlight={collectionHighlight}>
@@ -103,27 +97,23 @@ function HostedGroupCard({
             {toISODate(group.nextBillingDate, '—')}
           </StatCell>
         ) : group.status === 'recruiting' || group.status === 'cancelled' || group.status === 'ended' ? (
-          // 已解散／已結束的群組上方已經有對應 badge 了，這裡不重複顯示群組狀態，
-          // 改跟招募中一樣顯示建立日期
-          <StatCell label="建立日期">
+          (<StatCell label="建立日期">
             {group.createdAt ?? '—'}
-          </StatCell>
+          </StatCell>)
         ) : isActivated ? (
           <StatCell label="群組狀態" highlight={collectionHighlight}>
             {collectionState}
           </StatCell>
         ) : group.status === 'pending_confirmation' || group.status === 'pending_activation' ? (
-          // 鎖定當下算出來的日期只是預估，真正定案要等啟用服務那一步重新計算
-          <StatCell label="預估下次扣款">
+          (<StatCell label="預估下次扣款">
             {toISODate(group.nextBillingDate, '—')}
-          </StatCell>
+          </StatCell>)
         ) : (
           <StatCell label="下次扣款">
             {toISODate(group.nextBillingDate, '—')}
           </StatCell>
         )}
       </StatCellGrid>
-
       <div className="mt-auto pt-5">
         <Button
           onClick={e => { e.stopPropagation(); onViewGroup?.() }}
@@ -133,7 +123,7 @@ function HostedGroupCard({
         </Button>
       </div>
     </Card>
-  )
+  );
 }
 
 export default memo(HostedGroupCard, (prev, next) =>

@@ -74,8 +74,7 @@ export default function SubscriptionsPage() {
   const location = useLocation()
   const activeUser = useAuthStore(s => s.user)
   const activeUserId = activeUser?.id ?? null
-  // 訂閱 store 切片，訂閱/群組/申請更新時自動重算
-  const subscriptionsState = useSubscriptionStore(s => s.subscriptions)
+  const subscriptionsState = useSubscriptionStore(s => s.subscriptions);
   const groupsState        = useGroupStore(s => s.groups)
   const applicationsState  = useApplicationStore(s => s.applications)
   const [activeTab, setActiveTab] = useState(() => location.state?.tab ?? 'recruiting')
@@ -84,7 +83,6 @@ export default function SubscriptionsPage() {
     () => activeUserId
       ? enrichSubs(subscriptionsState.filter(s => s.userId === activeUserId), activeUserId)
       : [],
-    // groupsState/membersState 為刻意依賴：enrichSubs 讀取群組狀態與成員確認狀態，兩者更新時需重算
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [activeUserId, subscriptionsState, groupsState, membersState],
   )
@@ -123,11 +121,10 @@ export default function SubscriptionsPage() {
     const member = useMemberStore.getState().getByUserAndGroup(activeUser.id, viewGroupId)
     if (!member) return
 
-    // 與 GroupDetailModal 共用同一套退出流程（含移出聊天室參與者），避免兩處邏輯各自維護、行為不一致
     finalizeLeaveGroup(
       viewGroupId,
       { id: activeUser.id, name: activeUser.displayName ?? activeUser.name ?? '成員' },
-    ).catch(console.error)
+    ).catch(console.error);
 
     setViewGroupId(null)
     setAutoOpenPayment(false)
@@ -155,21 +152,18 @@ export default function SubscriptionsPage() {
           群組紀錄
         </Button>
       </div>
-
       <FilterTabsBar
         tabs={FILTER_TABS}
         value={activeTab}
         onChange={setActiveTab}
         counts={filterCounts}
       />
-
       <div className="min-w-0">
         {(() => {
           const showApplications = activeTab === 'processing'
           const visibleApplications = showApplications ? pendingApplications : []
           const isEmpty = visibleApplications.length === 0 && filtered.length === 0
-          // 沒有「全部」分類了，用「不分分類、使用者整體是否一個群組都沒有」判斷要不要顯示探索 CTA
-          const hasNoGroupsAtAll = subs.filter(s => !isHistorySubscription(s)).length === 0 && pendingApplications.length === 0
+          const hasNoGroupsAtAll = subs.filter(s => !isHistorySubscription(s)).length === 0 && pendingApplications.length === 0;
 
           if (isEmpty) {
             return (
@@ -210,7 +204,6 @@ export default function SubscriptionsPage() {
           )
         })()}
       </div>
-
       <GroupViewModal
         isOpen={!!viewGroupId}
         onClose={() => { setViewGroupId(null); setAutoOpenPayment(false); setAutoOpenCredentials(false) }}
@@ -219,7 +212,6 @@ export default function SubscriptionsPage() {
         autoOpenCredentials={autoOpenCredentials}
         onLeaveGroup={handleLeaveGroup}
       />
-
       <GroupHistoryModal
         isOpen={historyOpen}
         onClose={closeHistory}
@@ -234,9 +226,8 @@ export default function SubscriptionsPage() {
           </RevealSection>
         )}
       />
-
     </div>
-  )
+  );
 }
 
 function ApplicationCard({ app, group, onViewGroup }) {
@@ -283,4 +274,3 @@ function ApplicationCard({ app, group, onViewGroup }) {
     </Card>
   )
 }
-

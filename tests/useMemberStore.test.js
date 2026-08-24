@@ -8,9 +8,7 @@ vi.mock('../src/common/api/membersApi', () => ({
 vi.mock('../src/common/utils/toast', () => ({
   notifyError: vi.fn(),
 }))
-// getState() 每次都要回傳同一個物件參照，不然 store 內部呼叫跟測試斷言各自拿到
-// 不同的 vi.fn() 實例，怎麼樣都不會被記錄成「有呼叫過」
-const setGroupStatusMock = vi.fn()
+const setGroupStatusMock = vi.fn();
 vi.mock('../src/common/stores/useGroupStore', () => ({
   useGroupStore: { getState: () => ({ setGroupStatus: setGroupStatusMock }) },
 }))

@@ -1,8 +1,4 @@
-/**
- * 清空正式版所有使用者資料（保留 services 種子資料）
- * 執行：cd server && npm run db:clear
- */
-import 'dotenv/config'
+import 'dotenv/config';
 import prisma from '../src/lib/prisma.js'
 import readline from 'readline'
 
@@ -25,8 +21,7 @@ async function main() {
 
   console.log('\n開始清空...')
 
-  // 依照外鍵相依順序刪除
-  await prisma.message.deleteMany()
+  await prisma.message.deleteMany();
   console.log('  - messages')
 
   await prisma.conversation.deleteMany()

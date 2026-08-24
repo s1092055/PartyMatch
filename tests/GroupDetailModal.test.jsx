@@ -8,12 +8,10 @@ import { useApplicationStore } from '../src/common/stores/useApplicationStore'
 import { useMemberStore } from '../src/common/stores/useMemberStore'
 import { useFavoriteStore } from '../src/common/stores/useFavoriteStore'
 
-// 固定成手機版位（false），避免測試結果隨 jsdom 預設視窗寬度（跟桌機門檻 1024px 太接近）飄動；
-// 桌機分欄版面是另一組更複雜的排版分支，不在這份測試的範圍內
 vi.mock('../src/common/utils/hooks', async (importOriginal) => ({
   ...(await importOriginal()),
   useIsDesktop: () => false,
-}))
+}));
 
 function renderModal() {
   return render(
@@ -52,9 +50,7 @@ describe('GroupDetailModal', () => {
     useGroupStore.setState({ groups: [GROUP] })
     renderModal()
     openGroup('g1')
-    // 服務名稱在同一個 dialog 裡會出現三次（sr-only 的 title/description + 可見的表頭），
-    // 用 getAllByText 才不會因為「找到多個符合的元素」報錯
-    expect(screen.getAllByText('Netflix').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Netflix').length).toBeGreaterThan(0);
   })
 
   it('未登入訪客看到的是「登入以加入群組」而不是「申請加入」', () => {
@@ -76,8 +72,7 @@ describe('GroupDetailModal', () => {
   it('已經是成員時改渲染 MemberGroupView，不是一般訪客版的群組詳情', () => {
     const user = { id: 'user-1' }
     useAuthStore.setState({ user, loggedIn: true })
-    // 退出群組只在 recruiting/full（還沒鎖定）時可以，用這個狀態同時驗證兩件事
-    useGroupStore.setState({ groups: [{ ...GROUP, status: 'recruiting' }] })
+    useGroupStore.setState({ groups: [{ ...GROUP, status: 'recruiting' }] });
     useMemberStore.setState({ members: [{ id: 'm1', userId: user.id, groupId: 'g1' }] })
 
     renderModal()
@@ -119,9 +114,7 @@ describe('GroupDetailModal', () => {
   })
 
   it('已登入使用者看到額滿的群組時不會顯示「申請加入」', () => {
-    // 未登入訪客一律看到「登入以加入群組」，不管群組滿不滿——這是刻意設計（訪客要先登入
-    // 才會知道實際名額狀態），額滿真正該擋下的是已登入、原本符合資格的使用者
-    useAuthStore.setState({ user: { id: 'user-1', tokenBalance: 1000 }, loggedIn: true })
+    useAuthStore.setState({ user: { id: 'user-1', tokenBalance: 1000 }, loggedIn: true });
     useGroupStore.setState({ groups: [{ ...GROUP, openSeats: 0, status: 'full' }] })
     renderModal()
     openGroup('g1')

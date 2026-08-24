@@ -18,8 +18,6 @@ const avatarVariants = cva(
   }
 )
 
-// initial 為空代表這位使用者關閉了「顯示自己的大頭照」（後端已把 avatarInitial/avatarColor
-// 遮罩成 null），一律 fallback 成 PartyMatch logo，不畫彩色圓圈也不顯示姓名縮寫
 export function Avatar({ initial, color, size, className }) {
   if (!initial) {
     return (

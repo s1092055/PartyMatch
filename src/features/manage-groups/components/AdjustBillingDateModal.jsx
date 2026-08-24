@@ -6,8 +6,6 @@ import { toISODate } from '../../../common/utils/date'
 
 const MAX_ADJUST_DAYS = 7
 
-// 只能延後（不能提前）、最多延後 7 天：跟後端 /billing-date 的規則一致，前端先擋一次
-// 給即時回饋，實際仍以後端驗證為準
 function getAllowedRange(currentDate) {
   const min = new Date(currentDate)
   min.setDate(min.getDate() + 1)

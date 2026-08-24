@@ -4,14 +4,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from '../../../components/ui/button'
 import { Input } from '../../../components/ui/input'
 
-// 後端目前還沒接信箱/簡訊發送服務，先用固定驗證碼模擬完整流程；之後接上真的
-// 發送服務時，只要把「驗證碼固定是 DEMO_CODE」換成呼叫後端寄送/驗證 API，
-// 這個 Modal 的互動流程（倒數重新發送、輸入框、錯誤訊息）不用改
-const DEMO_CODE = '123456'
+const DEMO_CODE = '123456';
 const RESEND_SECONDS = 60
 
-// AuthInput／PhoneInput 的 trailing 插槽用：未驗證顯示可點擊的「驗證」文字按鈕，
-// 已驗證顯示綠色勾勾徽章（不可點擊，不能重複驗證）
 export function VerifyTrailingButton({ verified, disabled, onClick }) {
   if (verified) {
     return (
@@ -41,8 +36,6 @@ export default function VerifyCodeModal({ open, onOpenChange, type, target, onVe
   const label = type === 'email' ? '信箱' : '手機號碼'
   const HeaderIcon = type === 'phone' ? Smartphone : ShieldCheck
 
-  // Modal 每次開啟都視為重新發送一次，倒數重新起算——在 render 期間比對前一次的
-  // open 值做調整，而不是另外開一個 effect 裡 setState，避免多一次不必要的重渲染
   if (open !== prevOpen) {
     setPrevOpen(open)
     if (open) setRemaining(RESEND_SECONDS)

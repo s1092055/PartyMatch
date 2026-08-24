@@ -26,13 +26,8 @@ export default function FlowLayout({ steps, currentStep, title, titleIcon, heade
 
         <div>{headerAction}</div>
       </div>
-
       {headerBanner && <div className="shrink-0">{headerBanner}</div>}
 
-      {/* 底部固定導覽列（步驟進度條 + bottomNav 按鈕）疊起來的高度目前用固定值頂開，
-          130/160 是配合現有 steps + bottomNav 疊加後的實際高度手動調校；
-          若未來有頁面只傳 bottomNav 不傳 steps，或步驟文案變多行導致導覽列變高，
-          這兩個值需要一併調整，否則內容可能被蓋住 */}
       <main
         className={`min-h-0 flex-1 overflow-hidden px-4 md:px-8 ${bottomNav ? 'pb-[130px] md:pb-[160px]' : 'pb-8'}`}
       >
@@ -40,7 +35,6 @@ export default function FlowLayout({ steps, currentStep, title, titleIcon, heade
           {children}
         </div>
       </main>
-
       {bottomNav && (
         <div className="fixed inset-x-0 bottom-0 z-10" style={{ right: 'var(--scrollbar-compensation, 0px)' }}>
           {hasStepBanner && (
@@ -77,5 +71,5 @@ export default function FlowLayout({ steps, currentStep, title, titleIcon, heade
         </div>
       )}
     </div>
-  )
+  );
 }

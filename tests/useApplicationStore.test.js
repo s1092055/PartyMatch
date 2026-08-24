@@ -6,12 +6,10 @@ vi.mock('../src/common/api/applicationsApi', () => ({
   patchApplication:    vi.fn(),
   deleteApplication:   vi.fn(),
 }))
-// create()/cancel() 會順便呼叫 useAuthStore.refreshTokenBalance()（打 PM 幣餘額 API），
-// 跟這個 store 本身要測的行為無關，一併 mock 掉避免測試環境真的打出一個網路請求
 vi.mock('../src/common/api/tokensApi', () => ({
   fetchTokenBalance: vi.fn().mockResolvedValue({ tokenBalance: 0 }),
   topupTokens:       vi.fn(),
-}))
+}));
 
 const { insertApplication, deleteApplication } = await import('../src/common/api/applicationsApi')
 const { useApplicationStore } = await import('../src/common/stores/useApplicationStore')

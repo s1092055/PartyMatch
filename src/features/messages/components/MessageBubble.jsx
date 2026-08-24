@@ -57,8 +57,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
       const isHost = userId === hostId
       const sharingMethod = getServiceById(msg.payload?.serviceId)?.sharingMethod
       const isSharedCredentials = isSharedCredentialsMethod(sharingMethod)
-      // 純粹顯示大家目前的填寫狀態，不是敏感資料，群組裡每個人都看得到同一份，不用分團主/成員兩種版本
-      const myMember = getMemberByUserAndGroup(userId, conversationGroupId)
+      const myMember = getMemberByUserAndGroup(userId, conversationGroupId);
       const iAlreadyFilled = isHost || (hasFilledServiceInfo(myMember?.serviceInfo, sharingMethod) && !myMember?.serviceInfoIssueNote)
       return (
         <div key={msg.id} className="flex justify-center">
@@ -87,12 +86,9 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
               <Button
                 onClick={() => {
                   window.dispatchEvent(new CustomEvent('pm:close-messages'))
-                  // 有帳號問題（serviceInfoIssueNote）時這顆按鈕也會出現，此時要走 fillInfoCta 開啟
-                  // FillServiceInfoModal 讓使用者看到問題原因再重新確認，不能直接跳去帳號資訊分頁
-                  // （分頁的提取按鈕只是單純重新呼叫同一個 API，不會顯示問題原因文字）
                   navigate('/my-subscriptions', {
                     state: { openGroupId: conversationGroupId, openCredentials: isSharedCredentials && !myMember?.serviceInfoIssueNote },
-                  })
+                  });
                 }}
                 className="mt-3 h-auto w-full rounded-lg px-3 py-1.5 text-xs"
               >
@@ -101,7 +97,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
             )}
           </div>
         </div>
-      )
+      );
     }
     if (msg.actionType === 'member_filled_service_info') {
       return (
@@ -168,11 +164,8 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
     return (
       <div key={msg.id} className="flex justify-end">
         <div className="max-w-[70%]">
-          {/* 自己發的訊息不需要再標示自己的名字 */}
-          {/* w-fit + ml-auto：避免 Safari 因已讀名單變長（2 人以上）讓 abs 定位 tooltip
-              撐大 position:relative 祖先的 intrinsic width，連帶把這個 block div
-              的 width:auto 撐寬，在文字後方留下大片空白；ml-auto 確保泡泡縮回文字寬度後
-              仍貼齊右側（跟下方時間/已讀那一列一致），不會整個往左移 */}
+
+
           <div className="ml-auto w-fit rounded-2xl rounded-tr-md bg-brand px-4 py-2.5 text-sm text-white">
             {msg.text}
             <MessageAttachment url={msg.attachmentUrl} />
@@ -183,7 +176,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
           </div>
         </div>
       </div>
-    )
+    );
   }
   return (
     <div key={msg.id} className="flex items-end gap-2">

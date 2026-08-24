@@ -2,12 +2,8 @@ import { useEffect } from 'react'
 import { startPolling } from './poller'
 import { toast } from './toast'
 
-const CHECK_INTERVAL_MS = 5 * 60 * 1000 // 5 分鐘
+const CHECK_INTERVAL_MS = 5 * 60 * 1000;
 
-// 部署新版本後，舊分頁記得的 JS 檔名 hash 會被新版本取代，這時候動態載入某個尚未載入過的
-// 路由（例如切換頁面）會拿到 404 → SPA fallback 的 index.html，觸發「MIME type 不對」的錯誤。
-// 用這支輪詢偵測「目前部署的版本」是否已經跟這個分頁載入當下不同，及早提示使用者重新整理，
-// 而不是等到真的踩到壞掉的動態載入才發現
 export function useVersionCheck() {
   useEffect(() => {
     let notified = false
@@ -25,9 +21,7 @@ export function useVersionCheck() {
             action: { label: '重新整理', onClick: () => window.location.reload() },
           })
         }
-      } catch {
-        // 網路異常或離線時不用特別處理，下次輪詢再試
-      }
+      } catch {}
     }
 
     const stopPolling = startPolling(check, CHECK_INTERVAL_MS)

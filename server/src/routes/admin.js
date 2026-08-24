@@ -10,17 +10,14 @@ function startOfToday() {
   return d
 }
 
-// GET /admin/stats — 管理員 Dashboard 的平台概覽數據
-// 群組相關的統計（狀態分佈、團主數、今日新增、逾期申訴、代管總額）全部從同一次 findMany
-// 在記憶體裡算出來，不用為每個指標各打一次 DB；只有跨資料表的 User／Application 才需要另外查
 router.get('/stats', requireAdmin, async (req, res, next) => {
   try {
     const todayStart = startOfToday()
     const now = new Date()
 
     const [totalUsers, newUsersToday, groups, newApplicationsToday] = await Promise.all([
-      prisma.user.count(),
-      prisma.user.count({ where: { createdAt: { gte: todayStart } } }),
+      prisma.user.count({ where: { isSystem: false } }),
+      prisma.user.count({ where: { isSystem: false, createdAt: { gte: todayStart } } }),
       prisma.group.findMany({ select: { hostId: true, status: true, createdAt: true, disputeDeadline: true, escrowTokens: true } }),
       prisma.application.count({ where: { createdAt: { gte: todayStart } } }),
     ])
@@ -51,6 +48,6 @@ router.get('/stats', requireAdmin, async (req, res, next) => {
       newApplicationsToday,
     })
   } catch (err) { next(err) }
-})
+});
 
 export default router

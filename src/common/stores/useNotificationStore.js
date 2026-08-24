@@ -16,7 +16,6 @@ let _notifUserId = null
 
 const SYSTEM_NOTIFICATION_TYPES = new Set(['system'])
 
-// 保險去重：依 id 保留第一筆，避免 init/poll 交錯的競態情況讓同一筆通知在陣列中出現兩次
 function dedupeById(list) {
   const seen = new Set()
   return list.filter(n => {
@@ -78,20 +77,14 @@ export const useNotificationStore = create((set, get) => ({
       const polledForUserId = _notifUserId
       try {
         const latest = await readAllNotifications()
-        // teardown() 可能在這次 await 期間執行（例如使用者登出），此時不可再寫回 store，
-        // 否則已登出的資料會在下一位使用者的畫面短暫重新出現
-        if (!isActive() || _notifUserId !== polledForUserId) return
+        if (!isActive() || _notifUserId !== polledForUserId)
+          return;
         const currentIds = new Set(useNotificationStore.getState().notifications.map(n => n.id))
         const newNotifs = latest.filter(n => n.userId === _notifUserId && !currentIds.has(n.id))
-        // group_cancelled：團主解散群組後，不管是團主自己的其他分頁還是成員端，都要立刻讓畫面
-        // 不再顯示已經不存在的招募中/額滿群組，不用等使用者點開這則通知才刷新；
-        // dispute_resolved 不在此列——團主標記問題處理完成後，成員端要重新整理頁面才會看到最新狀態，不即時刷新
         if (newNotifs.some(n => n.type === 'member_removed' || n.type === 'member_left' || n.type === 'group_cancelled')) {
           window.dispatchEvent(new CustomEvent('pm:refresh-member-stores'))
         }
-        // 這幾種通知都代表 PM幣餘額剛被後端改動過（退款或撥款），不用等使用者點擊通知才更新，
-        // 避免在點開通知之前，帳號中心/儲值 Modal 顯示的餘額是過期的舊值
-        const BALANCE_AFFECTING_TYPES = new Set(['member_removed', 'application_rejected', 'escrow_released', 'dispute_resolved', 'group_cancelled'])
+        const BALANCE_AFFECTING_TYPES = new Set(['member_removed', 'application_rejected', 'escrow_released', 'dispute_resolved', 'group_cancelled']);
         if (newNotifs.some(n => BALANCE_AFFECTING_TYPES.has(n.type))) {
           useAuthStore.getState().refreshTokenBalance().catch(console.error)
         }
@@ -99,7 +92,7 @@ export const useNotificationStore = create((set, get) => ({
           window.dispatchEvent(new CustomEvent('pm:refresh-application-store'))
         }
         set({ notifications: dedupeById(latest) })
-      } catch { /* silent */ }
+      } catch {}
     }, POLL_INTERVAL_MS)
   },
 
@@ -109,7 +102,6 @@ export const useNotificationStore = create((set, get) => ({
     set({ notifications: [] })
   },
 
-  // ── 選取器 ──────────────────────────────────────────────────────────────────
   getByUserId: (userId) =>
     get().notifications.filter(n => n.userId === userId).sort(byNewest),
 
@@ -126,7 +118,6 @@ export const useNotificationStore = create((set, get) => ({
   },
 
 
-  // ── 標記單則已讀 ────────────────────────────────────────────────────────────
   markRead: (id) => {
     const prior = get().notifications.find(n => n.id === id) ?? null
     set(s => ({
@@ -138,7 +129,6 @@ export const useNotificationStore = create((set, get) => ({
     })
   },
 
-  // ── 全部標記已讀 ────────────────────────────────────────────────────────────
   markAllRead: (userId) => {
     const priors = get().notifications.filter(n => n.userId === userId)
     set(s => ({

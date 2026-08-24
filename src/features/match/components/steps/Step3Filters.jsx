@@ -6,9 +6,6 @@ import { PRICE_MIN, DEFAULT_PRICE_MAX, PRICE_MAX_CAP } from '../../utils/priceRa
 
 const RATING_MARKS = [60, 70, 80, 90]
 
-// 依滑桿目前數值找出對應區間的門檻按鈕（取「不大於目前值」的最大門檻），
-// 而非要求數值完全相等，滑桿拖到 65 分時「60+」按鈕才會跟著亮起；
-// 「不限」代表 minRating 為 0，只有真的點擊「不限」才會亮起，不會因為滑桿拖到 60 以下而誤亮
 function activeRatingMark(minRating) {
   if (minRating <= 0) return null
   return RATING_MARKS.reduce((closest, mark) => (mark <= minRating ? mark : closest), null)
@@ -16,18 +13,13 @@ function activeRatingMark(minRating) {
 
 export default function Step3Filters({ conditions, onChange }) {
   const isUnlimitedPrice = conditions.minPrice == null && conditions.maxPrice == null
-  // 勾選「不限金額」時 conditions 的 min/maxPrice 會變成 null，這裡另外記住取消勾選前的
-  // 區間，讓進度條在勾選期間仍有位置可以顯示，取消勾選時也能還原回原本選的區間，而不是重置成預設值
-  const [rangeMin, setRangeMin] = useState(conditions.minPrice ?? PRICE_MIN)
+  const [rangeMin, setRangeMin] = useState(conditions.minPrice ?? PRICE_MIN);
   const [rangeMax, setRangeMax] = useState(conditions.maxPrice ?? DEFAULT_PRICE_MAX)
   const [priceMax, setPriceMax] = useState(Math.max(DEFAULT_PRICE_MAX, rangeMax))
 
   const curMin = conditions.minPrice ?? rangeMin
   const curMax = conditions.maxPrice ?? rangeMax
-  // 輸入框顯示的文字直接從目前選取的金額推導，不額外存一份文字 state——
-  // 不然拖動滑桿把手或取消勾選「不限」時只會更新 curMin/curMax，忘記同步更新
-  // 輸入框文字的話，畫面上就會看到跟實際選取值兜不起來的舊數字
-  const priceMinInput = String(curMin)
+  const priceMinInput = String(curMin);
   const priceMaxInput = String(curMax)
   const priceLabel = formatPriceRangeLabel(conditions.minPrice, conditions.maxPrice)
 
@@ -53,22 +45,16 @@ export default function Step3Filters({ conditions, onChange }) {
     onChange('maxPrice', clamped)
   }
 
-  // 下方輸入的「最高上限」同時是進度條的刻度範圍，也直接就是目前選取的最高金額——
-  // 兩者必須同步，刻度範圍如果比目前選取的金額還小，滑桿右端把手的 value 會超出它自己的
-  // max 屬性，變成無效狀態，把手會直接消失、無法拖動
   function applyMaxLimit(clamped) {
     setPriceMax(clamped)
     setRangeMax(clamped)
     onChange('maxPrice', clamped)
-    // 最低金額不能比新的最高金額還大
     if ((conditions.minPrice ?? rangeMin) > clamped) {
       setRangeMin(clamped)
       onChange('minPrice', clamped)
     }
   }
 
-  // 打字過程中即時套用（不等失焦/Enter），上方顯示的最高金額跟著即時變動；
-  // 清空時立刻補回預設上限，輸入框不會停留在空白狀態
   function applyPriceScale(raw) {
     if (!raw) { applyMaxLimit(DEFAULT_PRICE_MAX); return }
     const num = Number(raw)
@@ -76,7 +62,6 @@ export default function Step3Filters({ conditions, onChange }) {
     applyMaxLimit(Math.min(PRICE_MAX_CAP, Math.max(PRICE_MIN, Math.round(num))))
   }
 
-  // 失焦時把輸入框顯示的文字正規化成實際生效的上限值
   function commitPriceScaleInput(raw) {
     if (!raw) { applyMaxLimit(DEFAULT_PRICE_MAX); return }
     const num = Number(raw)
@@ -84,7 +69,6 @@ export default function Step3Filters({ conditions, onChange }) {
     applyMaxLimit(Math.min(PRICE_MAX_CAP, Math.max(PRICE_MIN + 10, Math.round(num))))
   }
 
-  // 最低金額不能高於目前的最高金額，超過的話直接夾回最高金額，而不是把最高金額往上推
   function applyMinLimit(clamped) {
     const finalMin = Math.min(clamped, conditions.maxPrice ?? rangeMax)
     setRangeMin(finalMin)
@@ -92,8 +76,6 @@ export default function Step3Filters({ conditions, onChange }) {
     return finalMin
   }
 
-  // 打字過程中即時套用（不等失焦/Enter），上方顯示的最低金額跟著即時變動；
-  // 清空時立刻補回預設下限，輸入框不會停留在空白狀態
   function applyPriceMinInput(raw) {
     if (!raw) { applyMinLimit(PRICE_MIN); return }
     const num = Number(raw)
@@ -101,7 +83,6 @@ export default function Step3Filters({ conditions, onChange }) {
     applyMinLimit(Math.min(PRICE_MAX_CAP, Math.max(PRICE_MIN, Math.round(num))))
   }
 
-  // 失焦時把輸入框顯示的文字正規化成實際生效的最低金額
   function commitPriceMinInput(raw) {
     if (!raw) { applyMinLimit(PRICE_MIN); return }
     const num = Number(raw)
@@ -225,5 +206,5 @@ export default function Step3Filters({ conditions, onChange }) {
         </div>
       </div>
     </div>
-  )
+  );
 }

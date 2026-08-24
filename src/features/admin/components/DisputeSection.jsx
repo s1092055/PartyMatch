@@ -18,10 +18,9 @@ export default function DisputeSection() {
 
   const adjudicateGroup = useGroupStore(s => s.adjudicateGroup)
   const allGroups = useGroupStore(s => s.groups)
-  // 已逾期（超過 disputeDeadline 仍未裁定）排在最前面，提醒優先處理
   const disputedGroups = allGroups
     .filter(g => g.status === 'disputed')
-    .sort((a, b) => Number(isOverdue(b)) - Number(isOverdue(a)))
+    .sort((a, b) => Number(isOverdue(b)) - Number(isOverdue(a)));
   const overdueCount = disputedGroups.filter(isOverdue).length
 
   async function handleAdjudicate(e) {

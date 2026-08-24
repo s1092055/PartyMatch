@@ -4,7 +4,7 @@ import { calcPricePerSeat, calcDisplayPrice, calcDisplayCycle } from '../src/com
 describe('calcPricePerSeat', () => {
   it('無條件進位分攤到每個席位', () => {
     expect(calcPricePerSeat({ monthlyPrice: 300 }, 2)).toBe(150)
-    expect(calcPricePerSeat({ monthlyPrice: 100 }, 3)).toBe(34) // 33.33... 無條件進位
+    expect(calcPricePerSeat({ monthlyPrice: 100 }, 3)).toBe(34);
   })
 })
 

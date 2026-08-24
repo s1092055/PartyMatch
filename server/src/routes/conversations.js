@@ -14,7 +14,6 @@ const sendMessageSchema = z.object({
   type:          z.enum(['text', 'system', 'action']).default('text'),
   actionType:    z.string().optional(),
   payload:       z.record(z.unknown()).optional(),
-  // 存的其實是 R2 物件 key（見 r2Storage.js），不是完整網址，讀取時才即時簽短效網址
   attachmentUrl: z.string().min(1).optional(),
 }).refine(data => data.content.length > 0 || !!data.attachmentUrl, {
   message: '訊息內容或附件至少需要一項',
@@ -24,7 +23,6 @@ const dmSchema = z.object({
   targetUserId: z.string().min(1),
 })
 
-// GET /conversations — 我的所有對話（含群組服務資訊與 DM 參與者資訊）
 router.get('/', requireAuth, async (req, res, next) => {
   try {
     const rawConversations = await prisma.conversation.findMany({
@@ -33,14 +31,9 @@ router.get('/', requireAuth, async (req, res, next) => {
       orderBy: { updatedAt: 'desc' },
     })
 
-    // DM 在雙方都還沒送出過任何訊息前，不列給任何一方看到（lastMessage 為 null 代表還沒有任何訊息）：
-    // 發起人自己按了「聯絡」但反悔沒打字就關掉，下次打開訊息中心不該再看到這個空聊天室；
-    // 對方也要等發起人真的送出第一則訊息才會看到聊天室出現。群組聊天室不受影響（鎖定群組建立聊天室
-    // 當下就會發一則系統訊息，不會有「已建立但沒有任何訊息」的空窗期）
-    const conversations = rawConversations.filter(c => c.type !== 'dm' || c.lastMessage != null)
+    const conversations = rawConversations.filter(c => c.type !== 'dm' || c.lastMessage != null);
 
-    // 為 DM 對話補上參與者 meta（name / avatarInitial / avatarColor）
-    const allParticipantIds = [...new Set(conversations.flatMap(parseParticipants))]
+    const allParticipantIds = [...new Set(conversations.flatMap(parseParticipants))];
     const users = allParticipantIds.length
       ? await prisma.user.findMany({
           where:  { id: { in: allParticipantIds } },
@@ -56,9 +49,8 @@ router.get('/', requireAuth, async (req, res, next) => {
 
     res.json(enriched)
   } catch (err) { next(err) }
-})
+});
 
-// POST /conversations/group — 建立或取得群組聊天室
 router.post('/group', requireAuth, async (req, res, next) => {
   try {
     const { groupId } = req.body
@@ -82,9 +74,8 @@ router.post('/group', requireAuth, async (req, res, next) => {
     })
     res.status(201).json(conversation)
   } catch (err) { next(err) }
-})
+});
 
-// POST /conversations/dm — 建立或取得 DM
 router.post('/dm', requireAuth, validate(dmSchema), async (req, res, next) => {
   try {
     const { targetUserId } = req.body
@@ -102,9 +93,8 @@ router.post('/dm', requireAuth, validate(dmSchema), async (req, res, next) => {
 
     res.json(conversation)
   } catch (err) { next(err) }
-})
+});
 
-// GET /conversations/:id/messages
 router.get('/:id/messages', requireAuth, async (req, res, next) => {
   try {
     const conversation = await prisma.conversation.findUnique({ where: { id: req.params.id } })
@@ -121,17 +111,15 @@ router.get('/:id/messages', requireAuth, async (req, res, next) => {
       orderBy: { createdAt: 'desc' },
       take:    parseInt(limit),
     })
-    // attachmentUrl 存的是 R2 key（見 r2Storage.js），這裡即時簽一個短效網址給前端顯示
     const resolved = await Promise.all(messages.reverse().map(async m => ({
       ...m,
       sender: maskAvatar(m.sender),
       ...(m.attachmentUrl && { attachmentUrl: await getSignedDownloadUrl(m.attachmentUrl) }),
-    })))
+    })));
     res.json(resolved)
   } catch (err) { next(err) }
-})
+});
 
-// POST /conversations/:id/messages
 router.post('/:id/messages', requireAuth, validate(sendMessageSchema), async (req, res, next) => {
   try {
     const conversation = await prisma.conversation.findUnique({ where: { id: req.params.id } })
@@ -154,9 +142,8 @@ router.post('/:id/messages', requireAuth, validate(sendMessageSchema), async (re
       ...(message.attachmentUrl && { attachmentUrl: await getSignedDownloadUrl(message.attachmentUrl) }),
     })
   } catch (err) { next(err) }
-})
+});
 
-// PATCH /conversations/:id/participants — 加入或退出對話
 router.patch('/:id/participants', requireAuth, async (req, res, next) => {
   try {
     const { action, userId } = req.body
@@ -169,8 +156,7 @@ router.patch('/:id/participants', requireAuth, async (req, res, next) => {
     const participants = [...parseParticipants(conversation)]
 
     if (action === 'add') {
-      // 只有已在對話中的人，或該群組對話的團主，可以把人加進來，避免任意使用者把自己塞進不相關的對話
-      const isParticipant = participants.includes(req.user.id)
+      const isParticipant = participants.includes(req.user.id);
       const isGroupHost = conversation.type === 'group' && conversation.groupId
         ? (await prisma.group.findUnique({ where: { id: conversation.groupId }, select: { hostId: true } }))?.hostId === req.user.id
         : false
@@ -183,8 +169,8 @@ router.patch('/:id/participants', requireAuth, async (req, res, next) => {
       const idx = participants.indexOf(req.user.id)
       if (idx !== -1) participants.splice(idx, 1)
     } else if (action === 'remove') {
-      // 僅群組對話的團主可移除特定成員
-      if (conversation.type !== 'group') return res.status(400).json({ message: '僅群組聊天室可移除成員' })
+      if (conversation.type !== 'group')
+        return res.status(400).json({ message: '僅群組聊天室可移除成員' });
       const group = conversation.groupId
         ? await prisma.group.findUnique({ where: { id: conversation.groupId }, select: { hostId: true } })
         : null
@@ -202,9 +188,8 @@ router.patch('/:id/participants', requireAuth, async (req, res, next) => {
     })
     res.json(updated)
   } catch (err) { next(err) }
-})
+});
 
-// PATCH /conversations/:id/read — 標記已讀
 router.patch('/:id/read', requireAuth, async (req, res, next) => {
   try {
     const conversation = await prisma.conversation.findUnique({ where: { id: req.params.id } })
@@ -220,6 +205,6 @@ router.patch('/:id/read', requireAuth, async (req, res, next) => {
     })
     res.json({ success: true })
   } catch (err) { next(err) }
-})
+});
 
 export default router

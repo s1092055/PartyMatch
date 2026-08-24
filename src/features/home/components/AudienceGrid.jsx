@@ -13,11 +13,6 @@ function audiencePhotoUrl({ photo, photoSeed }) {
   return photo ?? `https://picsum.photos/seed/${photoSeed}/400/500`
 }
 
-// 「適合每一種共享生活」區塊；photo 有素材的用 assets 裡的實際照片，沒有的才 fallback
-// 用 picsum.photos 依情境 seed 頂替（通用生活情境素材，不是宣稱平台的真實使用者）。
-// 卡片用 bento 排版：第一張（學生族群）直向跨兩列，其餘四張兩兩一組排在右側，
-// 圖片滿版、文字疊在底部的漸層遮罩上。點擊整張卡片可以放大看圖，跟附件預覽共用同一顆
-// ImageLightbox
 function AudienceCard({ photo, photoSeed, title, desc, tall, onOpen }) {
   return (
     <button

@@ -3,9 +3,6 @@ import request from 'supertest'
 import app from '../src/app.js'
 import { resetDb } from './helpers/db.js'
 
-// 迴歸測試：/auth/login、/auth/register、/auth/refresh、/upload/* 原本完全沒有 rate limit，
-// 任何人可以無限次嘗試登入或濫用上傳端點（真的會產生 R2 storage/bandwidth 成本）。
-// 見 server/src/middleware/rateLimit.js
 describe('Rate limit', () => {
   beforeEach(async () => {
     await resetDb()
@@ -32,4 +29,4 @@ describe('Rate limit', () => {
     }
     expect(lastStatus).toBe(429)
   })
-})
+});

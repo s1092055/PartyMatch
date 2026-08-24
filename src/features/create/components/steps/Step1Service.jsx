@@ -20,7 +20,7 @@ export default function Step1Service({ form, onChange }) {
 
   return (
     <div>
-      {/* 上：分類 */}
+
       <CategoryPills
         variant="grid"
         showAll
@@ -29,7 +29,6 @@ export default function Step1Service({ form, onChange }) {
         className="mb-3 shrink-0"
       />
 
-      {/* 下：服務種類清單，icon 在上、名稱在下，每列三個 */}
       <div className="grid grid-cols-3 gap-3 p-0.5">
         {visible.map((service) => {
           const active = form.serviceId === service.id;
@@ -80,7 +79,6 @@ export default function Step1Service({ form, onChange }) {
           </p>
         )}
       </div>
-
       {infoService && (
         <Dialog open onOpenChange={v => { if (!v) setInfoService(null) }}>
           <DialogContent maxWidth="max-w-xs">

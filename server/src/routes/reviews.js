@@ -14,7 +14,6 @@ const createReviewSchema = z.object({
   comment: z.string().max(500).optional(),
 })
 
-// GET /reviews/host/:hostId — 某位使用者作為團主的整體評價（跨所有群組彙總，公開）
 router.get('/host/:hostId', async (req, res, next) => {
   try {
     const { hostId } = req.params
@@ -29,9 +28,8 @@ router.get('/host/:hostId', async (req, res, next) => {
     ])
     res.json({ average: aggregate._avg.rating, count: aggregate._count, reviews: reviews.map(r => ({ ...r, author: maskAvatar(r.author) })) })
   } catch (err) { next(err) }
-})
+});
 
-// POST /reviews — 成員確認服務後，對該群組團主留下評價（同一群組同一人只能有一筆，重複送出視為更新）
 router.post('/', requireAuth, validate(createReviewSchema), async (req, res, next) => {
   try {
     const { groupId, rating, comment } = req.body
@@ -56,7 +54,6 @@ router.post('/', requireAuth, validate(createReviewSchema), async (req, res, nex
       create: { groupId, hostId: group.hostId, authorId: req.user.id, rating, comment: comment ?? null },
     })
 
-    // 修改已存在的評價不算「新收到一則」，不用重複通知團主
     if (isNewReview) {
       const groupLabel = group.planName ?? group.service?.name ?? ''
       notify({
@@ -70,6 +67,6 @@ router.post('/', requireAuth, validate(createReviewSchema), async (req, res, nex
 
     res.status(201).json(review)
   } catch (err) { next(err) }
-})
+});
 
 export default router

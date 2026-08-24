@@ -13,19 +13,17 @@ describe('群組生命週期：apply → approve → lock → 填寫服務帳號
   })
 
   it('每一步的狀態機轉換與 PM 幣帳務都正確', async () => {
-    // maxMembers: 2（含團主），一位成員通過申請就會滿，不用建一堆測試帳號跑滿團
-    const host   = await createUser({ tokenBalance: 0, name: '團主' })
+    const host   = await createUser({ tokenBalance: 0, name: '團主' });
     const member = await createUser({ tokenBalance: 1000, name: '成員' })
     const { group } = await createGroup({ host, monthlyFee: MONTHLY_FEE, maxMembers: 2 })
 
     const hostAuth   = authHeader(host)
     const memberAuth = authHeader(member)
 
-    // ── 1. apply：送出申請當下就扣款、建代管 ──────────────────────────────
     const applyRes = await request(app)
       .post('/api/applications')
       .set('Authorization', memberAuth)
-      .send({ groupId: group.id })
+      .send({ groupId: group.id });
     expect(applyRes.status).toBe(201)
     const applicationId = applyRes.body.id
     expect(applyRes.body.escrowAmount).toBe(MONTHLY_FEE)
@@ -39,11 +37,10 @@ describe('群組生命週期：apply → approve → lock → 填寫服務帳號
     })
     expect(applyTx?.amount).toBe(-MONTHLY_FEE)
 
-    // ── 2. approve：團主接受，名額滿（maxMembers 2 = 團主 + 1 位成員）自動轉 full ──
     const approveRes = await request(app)
       .patch(`/api/applications/${applicationId}`)
       .set('Authorization', hostAuth)
-      .send({ status: 'approved' })
+      .send({ status: 'approved' });
     expect(approveRes.status).toBe(200)
     expect((await prisma.group.findUnique({ where: { id: group.id } })).status).toBe('full')
 
@@ -51,40 +48,36 @@ describe('群組生命週期：apply → approve → lock → 填寫服務帳號
     expect(memberRecord).toBeTruthy()
     expect((await prisma.subscription.findFirst({ where: { groupId: group.id, userId: member.id } }))).toBeTruthy()
 
-    // ── 3. lock：full → pending_confirmation ─────────────────────────────
     const lockRes = await request(app)
       .post(`/api/groups/${group.id}/lock`)
       .set('Authorization', hostAuth)
-      .send({})
+      .send({});
     expect(lockRes.status).toBe(200)
     let groupState = await prisma.group.findUnique({ where: { id: group.id } })
     expect(groupState.status).toBe('pending_confirmation')
     expect(groupState.nextBillingDate).toBeTruthy()
     expect(groupState.serviceInfoDeadline).toBeTruthy()
 
-    // ── 4. 成員填寫服務帳號資訊：全員填完自動 pending_confirmation → pending_activation ──
     const fillRes = await request(app)
       .patch(`/api/members/${memberRecord.id}`)
       .set('Authorization', memberAuth)
-      .send({ serviceInfo: { account: 'test@example.com', password: 'secret' } })
+      .send({ serviceInfo: { account: 'test@example.com', password: 'secret' } });
     expect(fillRes.status).toBe(200)
     expect((await prisma.group.findUnique({ where: { id: group.id } })).status).toBe('pending_activation')
 
-    // ── 5. activate：pending_activation → confirming ──────────────────────
     const activateRes = await request(app)
       .post(`/api/groups/${group.id}/activate`)
       .set('Authorization', hostAuth)
-      .send({})
+      .send({});
     expect(activateRes.status).toBe(200)
     groupState = await prisma.group.findUnique({ where: { id: group.id } })
     expect(groupState.status).toBe('confirming')
     expect(groupState.confirmDeadline).toBeTruthy()
 
-    // ── 6. confirm：唯一成員確認完成，自動撥款給團主，confirming → active ──────
     const confirmRes = await request(app)
       .post(`/api/groups/${group.id}/confirm`)
       .set('Authorization', memberAuth)
-      .send({})
+      .send({});
     expect(confirmRes.status).toBe(200)
     expect(confirmRes.body.released).toBe(true)
 

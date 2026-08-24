@@ -5,9 +5,9 @@ import { Button } from '../../../components/ui/button'
 import { Input } from '../../../components/ui/input'
 import { getHostCredentialFields, CREDENTIAL_RISK_NOTICE } from '../../../common/utils/hostCredentialFields'
 
-// 鎖定群組時，官方無多人邀請機制的服務改成填這個結構化表單（取代原本的自由文字 textarea），
-// 跟成員端「填寫服務帳號」sub-modal 同一套堆疊模式
-export default function LockGroupCredentialsModal({ isOpen, onClose, serviceId, serviceName, values, setValues, onSubmit, loading }) {
+export default function LockGroupCredentialsModal(
+  { isOpen, onClose, serviceId, serviceName, values, setValues, onSubmit, loading }
+) {
   const config = getHostCredentialFields(serviceId)
   const valid  = config.fields.every(({ key }) => !!values[key]?.trim())
   const [showPassword, setShowPassword] = useState(false)

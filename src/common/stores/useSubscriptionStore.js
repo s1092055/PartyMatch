@@ -22,13 +22,11 @@ export const useSubscriptionStore = create((set, get) => ({
     }
   },
 
-  // ── 選取器 ──────────────────────────────────────────────────────────────────
   getByGroupId: (groupId) => get().subscriptions.filter(s => s.groupId === groupId),
   getByUserId:  (userId)  => get().subscriptions.filter(s => s.userId === userId),
   getByUserAndGroup: (userId, groupId) =>
     get().subscriptions.find(s => s.userId === userId && s.groupId === groupId) ?? null,
 
-  // ── 更新 ────────────────────────────────────────────────────────────────────
   update: (id, patch) => {
     const prior = get().subscriptions.find(sub => sub.id === id) ?? null
     let updated = null
@@ -46,7 +44,6 @@ export const useSubscriptionStore = create((set, get) => ({
     return updated
   },
 
-  // ── 啟用群組所有訂閱 ────────────────────────────────────────────────────────
   activateGroupSubscriptions: (groupId, nextBillingDate) => {
     const patch = { status: 'active', nextBillingDate }
     const priors = get().subscriptions.filter(s => s.groupId === groupId)
@@ -56,15 +53,13 @@ export const useSubscriptionStore = create((set, get) => ({
       ),
     }))
     Promise.all(priors.map(s => patchSubscription(s.id, patch))).catch(err => {
-      // 任一筆同步失敗就整批回滾，避免同一群組內訂閱狀態各自不一致
       set(s => ({
         subscriptions: s.subscriptions.map(sub => priors.find(p => p.id === sub.id) ?? sub),
-      }))
+      }));
       notifyError(err, '訂閱啟用失敗，請稍後再試')
     })
   },
 
-  // ── 移除 ────────────────────────────────────────────────────────────────────
   remove: (id) => {
     const prior = get().subscriptions.find(sub => sub.id === id) ?? null
     set(s => ({ subscriptions: s.subscriptions.filter(sub => sub.id !== id) }))

@@ -15,7 +15,7 @@ export default function SystemMessagesSection() {
 
   const [directEmail, setDirectEmail]     = useState('')
   const [directContent, setDirectContent] = useState('')
-  const [directTarget, setDirectTarget]   = useState(null) // { id, name, email } 查到的對象
+  const [directTarget, setDirectTarget]   = useState(null);
   const [directLookupError, setDirectLookupError] = useState('')
   const [lookingUp, setLookingUp]         = useState(false)
   const [sendingDirect, setSendingDirect] = useState(false)

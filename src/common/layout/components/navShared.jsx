@@ -15,9 +15,6 @@ export function LockBadge({ className }) {
   return <Lock size={11} strokeWidth={2.3} className={cn('absolute -right-1 -top-1 rounded-full', className)} />
 }
 
-// 掛在頭像右下角的狀態點：使用者手動選擇的線上狀態，不是自動偵測（可切換的入口在
-// ProfileHeaderCard.jsx，點擊頭像上的這個點本身開啟選單）。
-// style 保留給需要依頭像實際 px 尺寸動態算點點大小的地方（例如聊天室依 size prop 縮放的頭像）
 export function PresenceDot({ status = 'online', className = '', style }) {
   return <span className={`rounded-full border-2 border-white ${PRESENCE_COLORS[status] ?? PRESENCE_COLORS.online} ${className}`} style={style} />
 }

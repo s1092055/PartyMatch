@@ -42,10 +42,9 @@ async function main() {
     })
   }
 
-  // 清掉不在上面清單裡的舊服務（例如從目錄移除的服務），避免殘留資料跟前端目錄脫節
   const { count: removed } = await prisma.service.deleteMany({
     where: { id: { notIn: SERVICES.map(s => s.id) } },
-  })
+  });
 
   console.log(`完成，共寫入 ${SERVICES.length} 筆服務資料${removed > 0 ? `，移除 ${removed} 筆已下架服務` : ''}`)
 }

@@ -5,7 +5,6 @@ export function isSystemConversation(conversation) {
   return conversation?.type === 'system'
 }
 
-// 標記對話已讀：打 API 之餘同步把本地 store 的未讀數歸零，避免等下次 polling 才更新
 export function markConversationReadLocal(conversationId, userId) {
   if (!conversationId || !userId) return
   const conv = useConversationStore.getState().getById(conversationId)

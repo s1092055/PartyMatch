@@ -17,13 +17,10 @@ export default function HostReviews({ group, headerClassName, onDm, groupId, tit
     if (hostId) fetchForHost(hostId)
   }, [hostId, fetchForHost])
 
-  // groupId 有帶入時（例如群組詳情裡的「成員評價」分頁）只顯示這個群組的評價，
-  // 平均分數／則數也改成只算這個群組的，不是團主全部群組的整體評價；沒有 groupId
-  // 時直接沿用 store 算好的 average/count，不用重新掃一次跟 store 一樣的全部評價
   const reviews = useMemo(() => {
     const all = data?.reviews ?? []
     return groupId ? all.filter(r => r.groupId === groupId) : all
-  }, [data?.reviews, groupId])
+  }, [data?.reviews, groupId]);
   const average = groupId
     ? (reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : null)
     : (data?.average ?? null)
@@ -35,9 +32,7 @@ export default function HostReviews({ group, headerClassName, onDm, groupId, tit
       ? <EmptyState icon={Star} title="尚無評價" description="成員完成服務後留下的評價會顯示在這裡。" className="py-4" />
       : null
 
-  // centerEmpty 且尚無評價時，頭像列跟 EmptyState 標題重複講「尚無評價」，且頭像列會把
-  // 下方置中的空狀態往下推、跟申請管理／審核紀錄的置中位置對不齊，乾脆整列先隱藏
-  const showHeader = !(centerEmpty && emptyOrLoading)
+  const showHeader = !(centerEmpty && emptyOrLoading);
 
   return (
     <div className={centerEmpty ? `flex min-h-0 flex-1 flex-col space-y-4 ${CENTERED_PANEL_BODY_CLASS}` : `space-y-4 pb-5 ${topPadding ? 'pt-5' : 'pt-0'}`}>

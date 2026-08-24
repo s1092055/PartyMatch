@@ -1,8 +1,6 @@
 import { Slider as SliderPrimitive } from "radix-ui"
 import { cn } from "../../lib/utils"
 
-// thumb 數量依 value 陣列長度自動決定（1 個值＝單把手，2 個值＝雙把手區間），
-// 拖動互不交叉、鍵盤操作、focus 管理都交給 Radix 處理，這裡只負責視覺樣式
 export function Slider({ min, max, step, value, onValueChange, disabled, className }) {
   return (
     <SliderPrimitive.Root

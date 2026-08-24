@@ -1,7 +1,5 @@
 import { ChevronDown, ChevronUp } from 'lucide-react'
 
-// 捲動提示：內容可捲動時顯示，捲到底時改提示往上還有內容；桌機滑鼠進入所在的 group 容器時淡出、
-// 離開後恢復，手機沒有 hover 概念，改成捲動中隱藏、停止捲動後才顯示
 export default function ScrollHint({ canScroll, atBottom, isScrolling }) {
   if (!canScroll) return null
   return (

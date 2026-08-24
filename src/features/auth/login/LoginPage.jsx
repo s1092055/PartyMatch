@@ -30,14 +30,10 @@ export default function LoginPage() {
     }
     toast(`登入成功，歡迎${result.user.name ? ` ${result.user.name}` : ''}`)
     const { from, reopenGroupModalId } = location.state ?? {}
-    // 管理員不參與一般使用者流程（探索/建立/加入群組），登入後直接進管理員後台
     if (result.user.isAdmin) {
       navigate(ADMIN_HOME_PATH, { replace: true })
     } else if (reopenGroupModalId) {
-      // 從群組詳情 modal 的「登入以加入群組」進來時，登入後要回到原本那一頁並重新打開該群組的
-      // 詳情 modal，而不是直接落地首頁；帶著 reopenGroupModalId 一起 navigate，GroupDetailModal
-      // 掛載時會自己讀 location.state 打開，比事後再送一次事件更不會有時機競爭問題
-      navigate(from || '/', { replace: true, state: { reopenGroupModalId } })
+      navigate(from || '/', { replace: true, state: { reopenGroupModalId } });
     } else {
       navigate('/', { replace: true })
     }

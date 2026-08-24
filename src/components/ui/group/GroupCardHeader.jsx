@@ -2,13 +2,12 @@ import ServiceLogo from '../ServiceLogo'
 import TokenAmount from '../TokenAmount'
 import { calcDisplayPrice } from '../../../common/utils/pricingUtils'
 
-// 我的訂閱／群組管理／探索群組三個群組卡片共用的外殼上半部：狀態 badge（固定保留一列高度，
-// 不管有沒有內容都佔同樣空間，同一排卡片高度才會整齊）→ 服務 logo → 名稱/方案/價格 → 分隔線。
-// topLeftSlot／topRightSlot 給探索群組卡片放排名徽章／收藏按鈕這類絕對定位的額外裝飾用。
-export default function GroupCardHeader({
-  badge, topLeftSlot, topRightSlot, belowPrice,
-  serviceId, serviceName, planName, pricePerSeat, billingCycle,
-}) {
+export default function GroupCardHeader(
+  {
+    badge, topLeftSlot, topRightSlot, belowPrice,
+    serviceId, serviceName, planName, pricePerSeat, billingCycle,
+  }
+) {
   return (
     <>
       {topLeftSlot}

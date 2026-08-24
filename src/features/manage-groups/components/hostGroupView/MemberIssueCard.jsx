@@ -12,8 +12,7 @@ function renderFilledInfoDetail(serviceInfo, sharingMethod) {
   const textFields = getTextFields(sharingMethod)
 
   if (textFields.length === 0) {
-    // 只有 checkbox 欄位（例如 shared_credentials）沒有實際內容可列，回報已確認
-    return <p className="text-xs text-success-text">已確認取得帳號資訊</p>
+    return <p className="text-xs text-success-text">已確認取得帳號資訊</p>;
   }
 
   return (
@@ -28,11 +27,9 @@ function renderFilledInfoDetail(serviceInfo, sharingMethod) {
   )
 }
 
-// 成員回報問題／申訴的內容預設收合成一行摘要，點該成員的列點了才展開看完整原因跟附件連結；
-// 這個元件只負責卡片本身（頭像／收合列／展開內容），不包含「處理完成」按鈕——那顆按鈕是
-// 獨立於這張卡片之外的另一個box，跟卡片一起放在 buildMemberInfoPanel.jsx 的 flex 列裡，
-// 不是卡片內部的一部分
-export default function MemberIssueCard({ m, filled, sharingMethod, isSharedCredentials, canReportServiceIssue, onOpenServiceIssue }) {
+export default function MemberIssueCard(
+  { m, filled, sharingMethod, isSharedCredentials, canReportServiceIssue, onOpenServiceIssue }
+) {
   const [expanded, setExpanded] = useState(false)
   const cardRef = useRef(null)
   const evidenceUrl = m.disputeEvidenceUrl ?? m.serviceInfoIssueEvidenceUrl

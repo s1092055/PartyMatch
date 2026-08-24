@@ -3,8 +3,6 @@ import { Paperclip } from 'lucide-react'
 import ImageLightbox from './ImageLightbox'
 import { isImageUrl } from '../../common/utils/fileUtils'
 
-// 「查看附件」共用連結：圖片用燈箱在頁面內直接開，不是新分頁；非圖片檔案（例如附件其實
-// 是別種格式）沒辦法內嵌預覽，還是開新分頁交給瀏覽器自己處理
 export default function EvidenceLink({ url, className }) {
   const [open, setOpen] = useState(false)
   if (!url) return null

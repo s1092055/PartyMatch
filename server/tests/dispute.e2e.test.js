@@ -51,8 +51,7 @@ describe('申訴流程', () => {
     expect((await prisma.group.findUnique({ where: { id: group.id } })).status).toBe('confirming')
     const memberRecord = await prisma.member.findFirst({ where: { groupId: group.id, userId: member.id } })
     expect(memberRecord.serviceInfoIssueNote).toBeNull()
-    // 錢完全不動
-    expect((await prisma.group.findUnique({ where: { id: group.id } })).escrowTokens).toBe(MONTHLY_FEE)
+    expect((await prisma.group.findUnique({ where: { id: group.id } })).escrowTokens).toBe(MONTHLY_FEE);
   })
 
   it('管理員裁定成員勝訴：退款給成員、移出群組、群組回 active', async () => {

@@ -21,16 +21,11 @@ function SubscriptionCard({ sub, onViewGroup }) {
   const isActive      = badgeStatus === 'active'
   const memberCount   = sub.usedSeats ?? 0
 
-  // 下次扣款日鎖定群組當下就已經算出來（見鎖定群組流程文件），只是還沒到啟用服務那一步
-  // 定案前都算「預估」；待成員填寫／待啟用／確認期／申訴中這幾個階段都已經過了鎖定，
-  // 顯示這個日期比「加入日期」更有參考價值，招募中/額滿/已解散/已結束則還沒鎖定，維持加入日期
-  const rawStatus        = sub.groupStatus ?? sub.status
+  const rawStatus        = sub.groupStatus ?? sub.status;
   const isPreBillingLock = rawStatus === 'pending_confirmation' || rawStatus === 'pending_activation'
   const showsBillingDate = isPreBillingLock || rawStatus === 'confirming' || rawStatus === 'disputed'
 
-  // 已填完服務帳號、還在等其他成員的話，卡片不能顯示跟「還沒填」一樣的「成員填寫中」，
-  // 不然會讓人誤以為自己還沒填寫；改成綠色「已填寫完成」，跟群組詳情 Modal 的判斷邏輯一致
-  const sharingMethod   = getServiceById(sub.serviceId)?.sharingMethod
+  const sharingMethod   = getServiceById(sub.serviceId)?.sharingMethod;
   const isSharedCredentials = isSharedCredentialsMethod(sharingMethod)
   const waitingForOthers = badgeStatus === 'pending_confirmation' &&
     hasFilledServiceInfo(sub.serviceInfo, sharingMethod) && !sub.serviceInfoIssueNote

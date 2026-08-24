@@ -13,8 +13,7 @@ describe('解散群組', () => {
   })
 
   it('解散時退款給已核准成員，也退款給還在審核中的申請人', async () => {
-    // maxMembers 3：核准一位成員後群組還在 recruiting（未滿），可以再有一筆審核中的申請
-    const host = await createUser({ tokenBalance: 0, name: '團主' })
+    const host = await createUser({ tokenBalance: 0, name: '團主' });
     const approvedMember = await createUser({ tokenBalance: 1000, name: '已核准成員' })
     const pendingApplicant = await createUser({ tokenBalance: 1000, name: '審核中申請人' })
     const { group } = await createGroup({ host, monthlyFee: MONTHLY_FEE, maxMembers: 3 })
@@ -33,8 +32,7 @@ describe('解散群組', () => {
       .set('Authorization', authHeader(pendingApplicant))
       .send({ groupId: group.id })
 
-    // 解散前群組還在 recruiting（3 人團只核准了 1 位，還沒滿）
-    expect((await prisma.group.findUnique({ where: { id: group.id } })).status).toBe('recruiting')
+    expect((await prisma.group.findUnique({ where: { id: group.id } })).status).toBe('recruiting');
 
     const cancelRes = await request(app)
       .post(`/api/groups/${group.id}/cancel`)

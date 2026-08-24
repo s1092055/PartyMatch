@@ -5,25 +5,10 @@ import { useScrollLock } from '../../common/utils/hooks'
 
 const SWIPE_THRESHOLD = 40
 
-// 附件預覽用的輕量燈箱，不走 Radix Dialog——大部分用法是從已經開著的群組詳情 Modal
-// 裡面再疊一層，但首頁 AudienceGrid 這類用法沒有外層 Dialog，背景捲動不會被鎖住，
-// 所以這裡自己呼叫 useScrollLock；hooks.js 的鎖是用 _lockCount 疊加計數，巢狀在
-// 已鎖定的 Dialog 裡面再鎖一次也不會衝突，只是計數多加一再多減一
-// 但 Radix Dialog 開啟時會把 body 設成 pointer-events: none，只把它自己的 Overlay／
-// Content 明確設回 auto，藉此把所有互動鎖在 Dialog 裡面；pointer-events 會繼承，
-// 我們這個燈箱是掛在 body 底下的另一個 portal（不在 Dialog 的內容樹裡），沒有明確設
-// auto 的話會整層都吃不到點擊事件，滑鼠點擊會直接穿透到底下的 Dialog Overlay，
-// 造成點擊燈箱背景或關閉鈕時被 Radix 誤判成「點擊 Dialog 外面」而把它也關掉
-// caption：選填，疊在圖片底部的說明文字（跟卡片本身同一套漸層遮罩樣式），不傳就是原本
-// 純看圖模式；imageClassName：選填，蓋掉預設「盡量撐滿視窗」的尺寸，給不需要放這麼大、
-// 只是想放大看清楚細節的情境用（例如首頁卡片縮圖）；onPrev／onNext：選填，有傳才會顯示
-// 切換箭頭（多張圖片可切換的情境，例如首頁族群卡片）——桌機/平板貼在螢幕左右兩側，手機版
-// 沒有側邊空間，改成一排按鈕排在圖片下方
-export default function ImageLightbox({ url, alt, onClose, caption, imageClassName = 'max-h-full max-w-full object-contain', onPrev, onNext }) {
-  // 手機／平板可以直接在圖片上左右拖拽切換，只認 touch（e.pointerType）：桌機已經有
-  // 螢幕兩側的箭頭按鈕，滑鼠拖拽圖片容易跟瀏覽器原生的「拖曳圖片」手勢打架，不需要
-  // 再疊加這個互動；放開時才判斷位移量有沒有超過門檻，沒超過就當一般點擊處理
-  const dragRef = useRef({ startX: 0, dragging: false })
+export default function ImageLightbox(
+  { url, alt, onClose, caption, imageClassName = 'max-h-full max-w-full object-contain', onPrev, onNext }
+) {
+  const dragRef = useRef({ startX: 0, dragging: false });
 
   useScrollLock(true)
 
@@ -41,9 +26,6 @@ export default function ImageLightbox({ url, alt, onClose, caption, imageClassNa
   }
 
   useEffect(() => {
-    // 用 capture 階段攔截並 stopPropagation：Radix Dialog 自己也在 document 上監聽 Escape
-    // 準備關閉底下的群組詳情 Modal，capture 階段是由外而內（window 比 document 先收到），
-    // 這裡搶在它前面把事件攔下來，才不會一按 Esc 兩層 Modal 一起關掉
     function onKeyDown(e) {
       if (e.key === 'Escape') {
         e.stopPropagation()

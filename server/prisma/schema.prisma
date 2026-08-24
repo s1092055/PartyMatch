@@ -104,6 +104,8 @@ model User {
   creditScore    Int            @default(100)
   tokenBalance   Int            @default(0)
   isAdmin        Boolean        @default(false)
+  // 系統訊息用的假帳號（見 lib/systemUser.js），不是真人，統計使用者人數／廣播收件人清單等地方要排除
+  isSystem       Boolean        @default(false)
   // 軟刪除：非 null 代表帳號已停用，登入/refresh 一律拒絕；保留資料供日後申請恢復
   deactivatedAt  DateTime?
   createdAt      DateTime       @default(now())
@@ -190,6 +192,7 @@ model Group {
   credentialComments CredentialComment[]
 
   @@index([status])
+  @@index([hostId])
   @@map("groups")
 }
 
@@ -263,6 +266,8 @@ model TokenTransaction {
   note           String?
   createdAt      DateTime             @default(now())
 
+  @@index([userId, createdAt])
+  @@index([relatedGroupId])
   @@map("token_transactions")
 }
 
@@ -276,6 +281,7 @@ model CreditScoreLog {
   relatedGroup   Group?   @relation(fields: [relatedGroupId], references: [id], onDelete: SetNull)
   createdAt      DateTime @default(now())
 
+  @@index([userId, createdAt])
   @@map("credit_score_logs")
 }
 
@@ -293,6 +299,7 @@ model Notification {
   isRead    Boolean          @default(false)
   createdAt DateTime         @default(now())
 
+  @@index([userId, isRead])
   @@map("notifications")
 }
 
@@ -323,6 +330,7 @@ model Conversation {
 
   messages Message[]
 
+  @@index([groupId])
   @@map("conversations")
 }
 
@@ -339,6 +347,7 @@ model Message {
   attachmentUrl  String?      @db.VarChar(500)
   createdAt      DateTime     @default(now())
 
+  @@index([conversationId, createdAt])
   @@map("messages")
 }
 
@@ -358,6 +367,7 @@ model Review {
   createdAt DateTime @default(now())
 
   @@unique([groupId, authorId])
+  @@index([hostId])
   @@map("reviews")
 }
 

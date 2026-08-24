@@ -72,8 +72,6 @@ export default function SettingsModal({ isOpen, onClose }) {
     writeStorage(PREFS_KEY, next)
   }
 
-  // 這是會影響其他使用者看到你的方式的帳號設定（後端遮罩 avatarInitial/avatarColor），
-  // 不是本機偏好，要打 API 存到你的帳號，不能跟其他純本機開關一樣寫 localStorage
   async function toggleAvatarVisibility() {
     setSavingAvatarVisibility(true)
     const result = await useAuthStore.getState().updateProfile({ showAvatar: !showAvatar })
@@ -87,9 +85,6 @@ export default function SettingsModal({ isOpen, onClose }) {
     setDeleteError('')
   }
 
-  // AlertDialogAction（Radix）預設點擊後會自動關閉 Dialog，這裡要在密碼錯誤時
-  // 讓 Dialog 留在原地顯示錯誤訊息，所以要先 preventDefault 蓋掉這個預設行為，
-  // 成功後才手動呼叫 resetDeleteFlow() 關閉
   async function handleConfirmDelete(e) {
     e.preventDefault()
     if (!password.trim() || deleting) return

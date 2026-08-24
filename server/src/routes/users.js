@@ -9,8 +9,6 @@ import { maskAvatar } from '../lib/avatarVisibility.js'
 
 const router = Router()
 
-// GET /users?email=xxx — 管理員依 email 查詢單一使用者（單發系統訊息前先確認對象），
-// 僅限管理員：email 對應真實身份，一般使用者不該能拿 email 反查別人是否有帳號、id 是什麼
 router.get('/', requireAdmin, async (req, res, next) => {
   try {
     const email = req.query.email?.trim()
@@ -23,7 +21,7 @@ router.get('/', requireAdmin, async (req, res, next) => {
     if (!user) return res.status(404).json({ message: '查無此使用者' })
     res.json(user)
   } catch (err) { next(err) }
-})
+});
 
 const updateProfileSchema = z.object({
   name:         z.string().min(1).max(50).optional(),
@@ -39,7 +37,6 @@ const deactivateSchema = z.object({
   password: z.string().min(1),
 })
 
-// GET /users/:id — 公開資料
 router.get('/:id', async (req, res, next) => {
   try {
     const user = await prisma.user.findUnique({
@@ -49,9 +46,8 @@ router.get('/:id', async (req, res, next) => {
     if (!user) return res.status(404).json({ message: '使用者不存在' })
     res.json(maskAvatar(user))
   } catch (err) { next(err) }
-})
+});
 
-// PATCH /users/me
 router.patch('/me', requireAuth, validate(updateProfileSchema), async (req, res, next) => {
   try {
     const user = await prisma.user.update({
@@ -61,9 +57,8 @@ router.patch('/me', requireAuth, validate(updateProfileSchema), async (req, res,
     })
     res.json(user)
   } catch (err) { next(err) }
-})
+});
 
-// GET /users/me/credit-history — 信用分數紀錄（CreditScoreModal 歷史頁用）
 router.get('/me/credit-history', requireAuth, async (req, res, next) => {
   try {
     const [user, logs] = await Promise.all([
@@ -77,10 +72,8 @@ router.get('/me/credit-history', requireAuth, async (req, res, next) => {
     ])
     res.json({ creditScore: user?.creditScore ?? null, logs })
   } catch (err) { next(err) }
-})
+});
 
-// POST /users/me/deactivate — 軟刪除帳號：需再次輸入密碼確認，停用後立即清除所有裝置的登入 session，
-// 保留使用者/群組/交易等資料供日後申請恢復，不做實體刪除
 router.post('/me/deactivate', requireAuth, validate(deactivateSchema), async (req, res, next) => {
   try {
     const user = await prisma.user.findUnique({ where: { id: req.user.id } })
@@ -97,6 +90,6 @@ router.post('/me/deactivate', requireAuth, validate(deactivateSchema), async (re
 
     res.json({ message: '帳號已停用' })
   } catch (err) { next(err) }
-})
+});
 
 export default router

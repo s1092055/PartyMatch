@@ -13,14 +13,13 @@ export function ThemeProvider({ children }) {
 
   useEffect(() => { applyTheme(theme) }, [theme])
 
-  // 使用者尚未手動覆蓋過（沒有存在 localStorage 的明確選擇）時，跟隨作業系統設定即時變化
   useEffect(() => {
     if (hasOverride) return
     const mql = window.matchMedia('(prefers-color-scheme: dark)')
     const onChange = e => setThemeState(e.matches ? 'dark' : 'light')
     mql.addEventListener('change', onChange)
     return () => mql.removeEventListener('change', onChange)
-  }, [hasOverride])
+  }, [hasOverride]);
 
   const setTheme = useCallback(next => {
     setThemeState(next)
@@ -28,16 +27,11 @@ export function ThemeProvider({ children }) {
     localStorage.setItem(THEME_STORAGE_KEY, next)
   }, [])
 
-  // 深/淺色互轉的翻轉規則只在這裡寫一次，呼叫端（目前是 SettingsModal）
-  // 不用自己重複 theme === 'dark' ? 'light' : 'dark'
   const toggleTheme = useCallback(() => {
     setTheme(theme === 'dark' ? 'light' : 'dark')
-  }, [theme, setTheme])
+  }, [theme, setTheme]);
 
-  // provider 本身沒有會變動的 props，只在 theme/hasOverride 改變時才重新 render，
-  // 所以這裡的 useMemo 攔不到「provider 沒變但硬是重建 value」的情況；保留它單純是
-  // 讓 value 物件的 identity 只在真的有變化時才換新，維持一般 context 慣例
-  const value = useMemo(() => ({ theme, setTheme, toggleTheme }), [theme, setTheme, toggleTheme])
+  const value = useMemo(() => ({ theme, setTheme, toggleTheme }), [theme, setTheme, toggleTheme]);
 
   return (
     <ThemeContext.Provider value={value}>

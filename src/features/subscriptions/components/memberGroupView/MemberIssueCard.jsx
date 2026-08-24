@@ -5,9 +5,9 @@ import { PresenceDot } from '../../../../common/layout/components/navShared'
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '../../../../components/ui/collapsible'
 import EvidenceLink from '../../../../components/ui/EvidenceLink'
 
-// 成員端自己送出的申訴內容，跟團主端 hostGroupView/MemberIssueCard.jsx 同一套收合模式：
-// 預設收合成一行摘要（頭像／名稱／狀態），點擊展開才看得到完整原因跟附件連結
-export default function MemberIssueCard({ viewerName, viewerAvatarInitial, viewerAvatarColor, viewerPresenceStatus, issueNote, evidenceUrl }) {
+export default function MemberIssueCard(
+  { viewerName, viewerAvatarInitial, viewerAvatarColor, viewerPresenceStatus, issueNote, evidenceUrl }
+) {
   const [expanded, setExpanded] = useState(false)
 
   return (

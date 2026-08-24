@@ -1,5 +1,3 @@
-// 依服務的 sharingMethod 決定「填寫服務帳號資訊」表單要收哪些欄位，
-// 對應 docs/product/service-info-requirements.md 調查的 6 種共享機制分類。
 export const SHARING_METHOD_CONFIG = {
   apple_family: {
     fields: [
@@ -38,7 +36,7 @@ export const SHARING_METHOD_CONFIG = {
     ],
     notice: '此服務官方沒有多人邀請功能，帳號密碼由團主在鎖定群組時統一提供，見下方「團主提供的帳號資訊」；確認可以登入後再勾選下方確認框。',
   },
-}
+};
 
 const DEFAULT_METHOD = 'email_invite'
 
@@ -46,15 +44,10 @@ export function getSharingMethodConfig(sharingMethod) {
   return SHARING_METHOD_CONFIG[sharingMethod] ?? SHARING_METHOD_CONFIG[DEFAULT_METHOD]
 }
 
-// 團主主動提供帳密的服務（shared_credentials）跟其他 5 種要成員自行輸入帳號的機制不同：
-// 成員不用「填寫」，只需要「提取」團主已提供的帳密並勾選確認，UI 文案（按鈕/banner/badge/通知）
-// 因此要跟其他組區分開來；集中成一個判斷式，避免各元件各自比對字串
 export function isSharedCredentialsMethod(sharingMethod) {
   return sharingMethod === 'shared_credentials'
 }
 
-// 判斷 Member.serviceInfo 是否已經算「填寫完成」：只要必填欄位都有值即可，
-// 不同 sharingMethod 的欄位組合不同，不能寫死檢查 .email
 export function hasFilledServiceInfo(serviceInfo, sharingMethod) {
   if (!serviceInfo) return false
   const { fields } = getSharingMethodConfig(sharingMethod)
@@ -64,19 +57,16 @@ export function hasFilledServiceInfo(serviceInfo, sharingMethod) {
   })
 }
 
-// 該 sharingMethod 裡「有文字內容」的欄位（排除 checkbox），給摘要／明細顯示共用
 export function getTextFields(sharingMethod) {
   return getSharingMethodConfig(sharingMethod).fields.filter(({ type }) => type !== 'checkbox')
 }
 
-// 給聊天室訊息卡片、團主審核清單等處顯示用的單行摘要
 export function getServiceInfoSummary(serviceInfo, sharingMethod) {
   if (!serviceInfo) return null
   const parts = getTextFields(sharingMethod)
     .map(({ key, label }) => serviceInfo[key] ? `${label}：${serviceInfo[key]}` : null)
     .filter(Boolean)
   if (parts.length > 0) return parts.join('　')
-  // 只有 checkbox 欄位（例如 shared_credentials）沒有文字可顯示時，回報已確認
-  const { fields } = getSharingMethodConfig(sharingMethod)
+  const { fields } = getSharingMethodConfig(sharingMethod);
   return fields.some(({ key, type }) => type === 'checkbox' && serviceInfo[key]) ? '已確認取得帳號資訊' : null
 }

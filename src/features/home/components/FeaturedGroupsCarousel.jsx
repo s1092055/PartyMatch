@@ -7,8 +7,6 @@ import { Button } from '../../../components/ui/button'
 import ExploreGroupCard from '../../explore/components/ExploreGroupCard'
 import { useSwipeCarousel, resolveCarouselOffset } from '../hooks/useSwipeCarousel'
 
-// 精選幾個「快額滿」（剩餘名額比例低）或「熱門」（已加入人數多）的招募中群組，
-// 不是把探索頁全部群組都塞進來
 function selectFeaturedGroups(groups, excludeHostId, limit = 8) {
   const recruiting = groups.filter(g => g.status === 'recruiting' && g.openSeats > 0 && g.hostId !== excludeHostId)
   return [...recruiting]
@@ -23,9 +21,6 @@ function selectFeaturedGroups(groups, excludeHostId, limit = 8) {
     .slice(0, limit)
 }
 
-// 帶 3D coverflow 效果的群組卡幻燈片：中央卡片全清晰置中，左右兩側卡片縮小、模糊、
-// 用 rotateY 做立體透視，可無限循環（用 modulo 算出相對中心的最短偏移量），
-// 點擊側邊卡片或左右箭頭都能切換焦點
 export default function FeaturedGroupsCarousel() {
   const navigate = useNavigate()
   const groups = useGroupStore(s => s.groups)
@@ -34,11 +29,9 @@ export default function FeaturedGroupsCarousel() {
 
   const featured = useMemo(() => selectFeaturedGroups(groups, activeUserId), [groups, activeUserId])
   const count = featured.length
-  // 卡片數很少時（例如只有 2、3 張）縮小可視深度，避免同一張卡在左右兩側各出現一次
-  const depth = Math.min(2, Math.floor((count - 1) / 2))
+  const depth = Math.min(2, Math.floor((count - 1) / 2));
 
-  // 手機版沒有左右箭頭，改用拖拽切換
-  const { onPointerDown, onPointerUp } = useSwipeCarousel(count, setFocusIndex)
+  const { onPointerDown, onPointerUp } = useSwipeCarousel(count, setFocusIndex);
 
   if (count === 0) return null
 
@@ -51,9 +44,6 @@ export default function FeaturedGroupsCarousel() {
         </p>
       </div>
 
-      {/* 左右兩側卡片會用 translateX 偏移到中央卡片寬度之外，手機版容器原本被 Section 的
-          px-5 束住，側邊卡片還沒露出多少就先被 overflow-x-clip 切掉；改成貼齊螢幕邊緣的
-          全寬，讓側邊卡片有足夠空間可以完整探出來，clip 邊界退到真正的螢幕邊緣 */}
       <div className="relative -mx-5 mt-4 w-[calc(100%+2.5rem)] overflow-x-clip sm:mx-0 sm:mt-10 sm:w-full">
         <div
           className="relative h-[420px] touch-pan-y select-none [perspective:1400px]"
@@ -92,7 +82,6 @@ export default function FeaturedGroupsCarousel() {
           })}
         </div>
       </div>
-
       <div className="mt-5 flex flex-wrap items-center justify-center gap-4 sm:mt-10">
         <Button size="lg" className="rounded-full px-8" onClick={() => navigate('/explore')}>
           <Compass size={16} strokeWidth={1.5} />
@@ -109,5 +98,5 @@ export default function FeaturedGroupsCarousel() {
         </Button>
       </div>
     </div>
-  )
+  );
 }

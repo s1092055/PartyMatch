@@ -49,9 +49,8 @@ describe('申請加入的邊界情況', () => {
       .send({ groupId: group.id })
     expect(second.status).toBe(409)
 
-    // 第二次沒有真的扣到款：只扣了第一筆申請的錢
     expect((await prisma.user.findUnique({ where: { id: member.id } })).tokenBalance)
-      .toBe(2000 - MONTHLY_FEE)
+      .toBe(2000 - MONTHLY_FEE);
     const applications = await prisma.application.findMany({ where: { groupId: group.id, userId: member.id } })
     expect(applications).toHaveLength(1)
   })

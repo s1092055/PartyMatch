@@ -8,35 +8,22 @@ import TokenAmount from '../../../../components/ui/TokenAmount'
 import { formatDateTime } from '../../../../common/utils/date'
 
 export function buildBillingPanel({ members, transactions, transactionsLoading, showRenewal, onOpenRenewal, escrowTokens }) {
-  // release（撥款給團主本人）不屬於任何成員，獨立加總顯示在頂部摘要
   const releasedTotal = transactions
     .filter(tx => tx.type === 'release')
-    .reduce((sum, tx) => sum + tx.amount, 0)
+    .reduce((sum, tx) => sum + tx.amount, 0);
 
-  // 收款管理只需要呈現每位成員「目前」的代管狀態：最新一筆代管入帳即可；
-  // 取消重新申請等留下的舊代管/退款歷史紀錄不在這裡處理，改到（使用者端）PM幣交易紀錄查詢
-  const latestEscrowByUserId = {}
+  const latestEscrowByUserId = {};
   for (const tx of transactions) {
     if (tx.type !== 'escrow') continue
-    // transactions 已依 createdAt 由新到舊排序，每位成員第一次出現的就是最新一筆
-    latestEscrowByUserId[tx.userId] ??= tx
+    latestEscrowByUserId[tx.userId] ??= tx;
   }
 
-  // group.escrowTokens 是後端的技術性總帳，申請一送出（團主都還沒審核）當下就已經扣款代管，
-  // 所以會連還在 pending、團主根本還沒按下「接受」的申請人代管金額都算進去。但「本期費用由平台
-  // 代管中」這張卡片對團主來說的語意是「已經確定會加入、之後會撥款給我的錢」，只該算
-  // 已經是成員的人，不然團主會看到一筆連自己都還沒審核完的申請金額，誤以為系統算錯
-  //
-  // 但這裡只靠交易紀錄算不出「這筆代管有沒有已經撥款過」——撥款當下只會多一筆團主自己的
-  // release 交易，成員自己的那筆 escrow 紀錄會永遠留在歷史裡，導致撥款後這張卡片還是會照樣
-  // 顯示出來，跟下面「已撥款給你的代管總額」同時出現、自相矛盾。escrowTokens 是後端在撥款/退款
-  // 當下就會歸零的即時餘額，用它當總開關：本期真的還有錢卡在代管才顯示這張卡片
   const memberEscrowTotal = escrowTokens > 0
     ? members.reduce((sum, m) => {
         const tx = latestEscrowByUserId[m.userId]
         return sum + (tx ? Math.abs(tx.amount) : 0)
       }, 0)
-    : 0
+    : 0;
 
   return {
     content: (
@@ -64,13 +51,12 @@ export function buildBillingPanel({ members, transactions, transactionsLoading, 
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold text-ink">{m.userName}</p>
-                      {/* 顯示團主按下「接受」的時間（Member.joinedAt），不是申請送出當下實際扣款的時間（tx.createdAt）——
-                          代管扣款雖然在申請當下就發生，但對團主來說「入帳」的認知時間點是自己接受申請的那一刻 */}
+
                       <p className="text-xs text-ink-3">{tx ? `${formatDateTime(m.joinedAtTime)} 平台代管` : '尚無代管紀錄'}</p>
                     </div>
                     {tx && <span className="shrink-0 text-sm font-bold text-info"><TokenAmount amount={Math.abs(tx.amount)} /></span>}
                   </div>
-                )
+                );
               })}
             </div>
           </div>
@@ -87,5 +73,5 @@ export function buildBillingPanel({ members, transactions, transactionsLoading, 
         )}
       </div>
     ),
-  }
+  };
 }

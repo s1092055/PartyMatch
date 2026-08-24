@@ -11,9 +11,10 @@ export function parseParticipants(conversation) {
     : JSON.parse(conversation.participants ?? '[]')
 }
 
-// 建立訊息並更新對話的 lastMessage / 未讀數，供一般聊天室與系統聊天室共用
-// participants 可由呼叫端傳入已解析好的陣列，避免重複 JSON.parse
-export async function appendMessage(conversation, { senderId, content, type = 'text', actionType, payload, attachmentUrl, participants }) {
+export async function appendMessage(
+  conversation,
+  { senderId, content, type = 'text', actionType, payload, attachmentUrl, participants }
+) {
   const message = await prisma.message.create({
     data: {
       conversationId: conversation.id,

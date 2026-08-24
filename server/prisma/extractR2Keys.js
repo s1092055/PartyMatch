@@ -1,12 +1,4 @@
-/**
- * 一次性遷移：把附件/證據欄位裡存的完整 R2 公開網址轉成純物件 key。
- * 這幾個欄位（Member.disputeEvidenceUrl／serviceInfoIssueEvidenceUrl、
- * CredentialComment.attachmentUrl、Message.attachmentUrl）原本存 `${R2_PUBLIC_URL}/${key}`
- * 這種完整網址，改成 signed URL 機制後一律只存 key，讀取時才即時簽短效網址（見 r2Storage.js）。
- * 冪等：不是以 R2_PUBLIC_URL 開頭的值視為已經是 key，跳過不動。
- * 執行：cd server && npm run db:extract-r2-keys（正式環境見 db:extract-r2-keys:prod）
- */
-import 'dotenv/config'
+import 'dotenv/config';
 import prisma from '../src/lib/prisma.js'
 
 function toKey(value) {

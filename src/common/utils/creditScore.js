@@ -1,9 +1,9 @@
 export const DEFAULT_CREDIT_SCORE = 100
 
 export const CREDIT_RULES = {
-  PAYMENT_CONFIRMED: +2,   // 付款被團主確認
-  MEMBER_REMOVED:   -10,   // 被移除出群組
-  GROUP_ACTIVATED:  +5,    // 團主成功啟用群組
+  PAYMENT_CONFIRMED: +2,
+  MEMBER_REMOVED: -10,
+  GROUP_ACTIVATED: +5,
 }
 
 export function getCreditDisplay(score) {

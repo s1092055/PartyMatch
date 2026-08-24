@@ -14,19 +14,15 @@ export default defineConfig([
       reactRefresh.configs.vite,
     ],
     languageOptions: {
-      // __APP_BUILD_ID__ 由 vite.config.js 的 define 在 build 時注入，用來偵測是否有新版本部署
       globals: { ...globals.browser, __APP_BUILD_ID__: 'readonly' },
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
     rules: {
       'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      'no-empty': ['error', { allowEmptyCatch: true }],
     },
   },
   {
-    // shadcn CLI 生成/更新的元件：慣例把 cva variants 常數跟元件放同一檔，
-    // 且不用新版 JSX transform 也會保留 `import * as React`，跟本專案其他
-    // 檔案的慣例不同，但這個目錄之後會持續用 `npx shadcn add` 覆寫更新，
-    // 不適合每次手動加 eslint-disable 註解，改用目錄層級的規則覆蓋
     files: ['src/components/ui/**/*.{js,jsx}'],
     rules: {
       'react-refresh/only-export-components': 'off',
@@ -41,6 +37,7 @@ export default defineConfig([
     },
     rules: {
       'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      'no-empty': ['error', { allowEmptyCatch: true }],
     },
   },
 ])

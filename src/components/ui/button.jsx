@@ -1,10 +1,6 @@
 import { cva } from "class-variance-authority"
 import { cn } from "../../lib/utils"
 
-// 圖示工具鈕（Modal 關閉、翻頁箭頭等）維持 CLAUDE.md 訂的慣例：只有背景色
-// 變化、不加 hover 位移，避免密集排列的小圖示鈕一起跳動；hover:-translate-y-0.5
-// 因此不放進共用的 base class，只掛在有文字內容的 sm/md/lg 三個尺寸上，icon
-// 尺寸不掛
 const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 font-bold rounded-inner cursor-pointer transition-all duration-150 focus:outline-none disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed",
   {
@@ -15,10 +11,7 @@ const buttonVariants = cva(
         ghost:       "text-ink-2 hover:bg-raised",
         destructive: "bg-danger text-white hover:bg-danger-text",
         success:     "bg-success text-white hover:bg-success-text",
-        // 用 --color-brand（深色模式下設計成淺藍色，見 index.css 的 :root.dark）而不是
-        // bg-neutral-900：這顆按鈕要跟著主題走──淺色模式維持深色實心，深色模式換成淺藍色，
-        // 不能用不會反轉的固定色階
-        ink:         "bg-brand text-white hover:bg-brand-hover",
+        ink: "bg-brand text-white hover:bg-brand-hover",
       },
       size: {
         sm:   "text-xs px-4 h-8 hover:-translate-y-0.5",
@@ -32,7 +25,7 @@ const buttonVariants = cva(
       size: "md",
     },
   }
-)
+);
 
 export function Button({ variant, size, loading = false, className, children, ...props }) {
   return (

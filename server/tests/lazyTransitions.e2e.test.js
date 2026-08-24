@@ -8,8 +8,6 @@ import { advanceToConfirming } from './helpers/flows.js'
 
 const MONTHLY_FEE = 300
 
-// GET /groups/:id 本身帶有兩段惰性狀態轉換（逾期自動撥款、逾期自動踢除），
-// 不是靠排程器主動觸發，而是「剛好有人在期限過後打開這個群組」時順便處理掉
 describe('GET /groups/:id 的惰性自動狀態轉換', () => {
   beforeEach(async () => {
     await resetDb()
@@ -21,11 +19,10 @@ describe('GET /groups/:id 的惰性自動狀態轉換', () => {
     const { group } = await createGroup({ host, monthlyFee: MONTHLY_FEE, maxMembers: 2 })
     await advanceToConfirming({ host, member, group })
 
-    // 把 confirmDeadline 改到過去，模擬「48 小時確認期已經過了，沒有人手動確認」
     await prisma.group.update({
       where: { id: group.id },
       data:  { confirmDeadline: new Date(Date.now() - 1000) },
-    })
+    });
 
     const res = await request(app)
       .get(`/api/groups/${group.id}`)
@@ -62,11 +59,10 @@ describe('GET /groups/:id 的惰性自動狀態轉換', () => {
       .set('Authorization', authHeader(host))
       .send({})
 
-    // 故意不填服務帳號資訊，直接把 serviceInfoDeadline 改到過去，模擬 24 小時填寫期限已過
     await prisma.group.update({
       where: { id: group.id },
       data:  { serviceInfoDeadline: new Date(Date.now() - 1000) },
-    })
+    });
 
     const res = await request(app)
       .get(`/api/groups/${group.id}`)
@@ -90,4 +86,4 @@ describe('GET /groups/:id 的惰性自動狀態轉換', () => {
     })
     expect(refundTx?.amount).toBe(MONTHLY_FEE)
   })
-})
+});

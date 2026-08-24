@@ -79,9 +79,6 @@ export default function AppNav() {
     setSettingsOpen(true)
   }
 
-  // 個人資料／信用分數／我的評價都是使用者資訊 dropdown-menu 裡的項目，這個 dropdown
-  // 本身只在已登入時才會出現（未登入顯示的是直接連到 /login 的連結），不需要再各自檢查
-  // loggedIn／套鎖定提示
   function openProfile() {
     closeAll()
     setProfileOpen(true)

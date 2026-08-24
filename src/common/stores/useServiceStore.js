@@ -3,7 +3,6 @@ import { SERVICES } from '../data/serviceCatalog'
 import { readAllServices } from '../api/servicesApi'
 
 export const useServiceStore = create((set, get) => ({
-  // 先用本地 catalog 作為初始值，API 回應後覆蓋
   services: [...SERVICES],
   loading:  false,
   error:    null,
@@ -13,13 +12,9 @@ export const useServiceStore = create((set, get) => ({
     try {
       const data = await readAllServices()
       if (data.length > 0) {
-        // 將 API 資料與本地 catalog 合併：API 補充後端欄位，local 保留 iconId/color/initial 等圖示欄位
-        const localMap = Object.fromEntries(SERVICES.map(s => [s.id, s]))
+        const localMap = Object.fromEntries(SERVICES.map(s => [s.id, s]));
         const merged = data.map(apiService => {
           const base = { ...(localMap[apiService.id] ?? {}), ...apiService }
-          // 後端 plan 只有 id/name/maxMembers/monthlyFee/currency，沒有 description/features 等文案欄位；
-          // 本地 catalog 的方案沒有 id 欄位，只能用 name 對應回去補回文案，價格/名額仍以後端為準。
-          // name 比對不保證唯一或一定對得上，用 console.warn 讓比對失敗在開發時可被發現，而不是默默漏字。
           if (Array.isArray(base.plans)) {
             const localPlans = localMap[apiService.id]?.plans ?? []
             const localPlanMap = {}

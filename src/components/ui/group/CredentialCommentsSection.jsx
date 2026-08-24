@@ -14,9 +14,6 @@ import { formatRelativeDate } from '../../../common/utils/date'
 import { toast } from '../../../common/utils/toast'
 import { useEvidenceUpload } from '../../../common/utils/hooks'
 
-// 「帳號資訊」分頁底下的留言區（shared_credentials 服務限定），團主與該群組所有成員都看得到、
-// 都能留言，用來針對帳密內容直接溝通（密碼錯誤、詢問 Profile 名稱等），跟群組聊天室分開，
-// 訊息不會混在一起；用輪詢而非即時連線，跟 Conversations 同一套做法（見 CLAUDE.md）
 export default function CredentialCommentsSection({ groupId, hostId }) {
   const [comments, setComments] = useState([])
   const [loading, setLoading] = useState(true)

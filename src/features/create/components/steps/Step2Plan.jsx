@@ -13,14 +13,11 @@ export default function Step2Plan({ form, onChange }) {
   const usdToTwdRate = useUsdToTwdRate()
   const service = getServiceById(form.serviceId)
   const serviceInfoNotice = getSharingMethodConfig(service?.sharingMethod).notice ?? DEFAULT_NOTICE
-  // 每個方案（含拆分出來的月繳／年繳版本）都是獨立可選的一張卡片，切換方案的同時就決定了收費週期
-  const groupPlans = service?.plans.filter(p => p.maxSeats > 1) ?? []
+  const groupPlans = service?.plans.filter(p => p.maxSeats > 1) ?? [];
   const activeIndex = Math.max(0, groupPlans.findIndex(p => p.name === form.planName))
   const currentPlan = groupPlans[activeIndex]
   const isPlanSelected = currentPlan && form.planName === currentPlan.name
-  // 計費週期改用卡片上方的 badge 顯示，方案名稱不用再重複顯示「（月繳）／（年繳）」字樣，
-  // 卡片標題也因此變短，在窄螢幕下比較不會被擠壓截斷
-  const planDisplayName = currentPlan?.name.replace(/（(?:月|年)繳）\s*$/, '').trim()
+  const planDisplayName = currentPlan?.name.replace(/（(?:月|年)繳）\s*$/, '').trim();
   const planPriceAmount = currentPlan ? resolvePlanDisplayPrice(currentPlan, usdToTwdRate).amount : 0
 
   useEffect(() => {
@@ -43,22 +40,15 @@ export default function Step2Plan({ form, onChange }) {
           <p className="text-sm leading-relaxed text-ink-2">{service?.description ?? '尚未選擇服務'}</p>
         </div>
       </Field>
-
       <Field label="填寫服務資訊注意事項" icon={Info}>
         <div className="rounded-lg bg-canvas p-3.5">
           <p className="text-sm leading-relaxed text-ink-2">{serviceInfoNotice}</p>
         </div>
       </Field>
-
       <Field label="選擇方案" icon={Layers}>
-        {/* 左右兩欄用 items-stretch（flex row 預設行為）讓左欄自動撐到跟右欄（方案內容，
-            高度隨內容自然增減、不再內部捲動）一樣高；左欄方案卡用 flex-1 吃滿撐高後多出來
-            的空間，捲動箭頭自然被推到欄位最底部，不用另外用 mt-auto 對齊 */}
+
         <div className="md:flex md:gap-6">
-          {/* 左：切換箭頭在左右兩側、方案卡在中間；上下加跟右側方案內容一樣的 p-3.5
-              內距，讓卡片邊框頂部對齊方案內容第一行文字、底部對齊最後一行文字，而不是
-              直接對齊到整個欄位的最頂端/最底端；卡片用 self-stretch 撐滿這一列的高度，
-              箭頭維持固定大小、垂直置中 */}
+
           <div className="flex min-w-0 flex-1 items-center gap-2 py-3.5">
             <button
               type="button"
@@ -112,7 +102,6 @@ export default function Step2Plan({ form, onChange }) {
             </button>
           </div>
 
-          {/* 右：方案說明，全部內容直接顯示，不內部捲動 */}
           <div className="mt-4 min-w-0 flex-1 rounded-lg bg-canvas p-3.5 md:mt-0">
             {(currentPlan?.features?.length ?? 0) > 0 ? (
               <ul className="space-y-1.5">
@@ -130,5 +119,5 @@ export default function Step2Plan({ form, onChange }) {
         </div>
       </Field>
     </div>
-  )
+  );
 }

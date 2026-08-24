@@ -20,7 +20,7 @@ export default function Step3Settings({ form, onChange }) {
 
   return (
     <div className="pb-3 short-lg:flex short-lg:items-stretch short-lg:gap-8">
-      {/* 左：開放名額、信用分數、帳號需求 */}
+
       <div className="flex min-h-0 min-w-0 flex-1 flex-col space-y-5 px-1 pb-1">
         <Field
           label="開放名額"
@@ -79,7 +79,6 @@ export default function Step3Settings({ form, onChange }) {
         </Field>
       </div>
 
-      {/* 右：群組規則 —— 固定顯示 5 列，允許留白，不用另外新增/移除 */}
       <Field
         label="群組規則"
         icon={ListChecks}
@@ -103,5 +102,5 @@ export default function Step3Settings({ form, onChange }) {
         </div>
       </Field>
     </div>
-  )
+  );
 }

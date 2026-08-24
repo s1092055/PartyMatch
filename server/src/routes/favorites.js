@@ -4,7 +4,6 @@ import { requireAuth } from '../middleware/auth.js'
 
 const router = Router()
 
-// GET /favorites
 router.get('/', requireAuth, async (req, res, next) => {
   try {
     const favorites = await prisma.favorite.findMany({
@@ -14,9 +13,8 @@ router.get('/', requireAuth, async (req, res, next) => {
     })
     res.json(favorites)
   } catch (err) { next(err) }
-})
+});
 
-// POST /favorites/:groupId — toggle
 router.post('/:groupId', requireAuth, async (req, res, next) => {
   try {
     const { groupId } = req.params
@@ -32,6 +30,6 @@ router.post('/:groupId', requireAuth, async (req, res, next) => {
     await prisma.favorite.create({ data: { userId: req.user.id, groupId } })
     res.status(201).json({ favorited: true })
   } catch (err) { next(err) }
-})
+});
 
 export default router

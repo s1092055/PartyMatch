@@ -10,6 +10,8 @@ import { StatCell, StatCellGrid } from '../../../components/ui/group/StatCellGri
 import CreditScoreValue from '../../../components/ui/CreditScoreValue'
 import { useFavoriteStore } from '../../../common/stores/useFavoriteStore'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
+import { toast } from '../../../common/utils/toast'
+import { LOCKED_MESSAGE } from '../../../common/layout/components/navConstants'
 
 const RANK_BADGE_STYLES = [
   'bg-amber-400 text-white',
@@ -32,7 +34,12 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
 
   function handleFav(e) {
     e.stopPropagation()
-    if (!activeUser) { onBeforeNavigate?.(); navigate('/login'); return }
+    if (!activeUser) {
+      toast(LOCKED_MESSAGE, 'info', {
+        action: { label: '前往登入', onClick: () => { onBeforeNavigate?.(); navigate('/login') } },
+      })
+      return
+    }
     const next = useFavoriteStore.getState().toggle(activeUser.id, group.id)
     onFavChange?.(next, group.id)
   }

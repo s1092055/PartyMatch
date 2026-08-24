@@ -5,8 +5,6 @@ import { Button } from '../../../components/ui/button'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
 import { HOME_WHY_US_TABS, HOME_WHY_US_EXTRAS } from '../data/homeContent'
 
-// 底線 Tab：跟 IdentityJourney 的 UnderlineTabs 同一套「量測 active 按鈕版位、底線用
-// transition 滑過去」手感，這裡只有單層純文字（不需要 IdentityJourney 那層 badge）
 function WhyUsTabs({ items, activeId, onChange }) {
   const containerRef = useRef(null)
   const [indicator, setIndicator] = useState({ left: 0, width: 0 })
@@ -40,9 +38,6 @@ function WhyUsTabs({ items, activeId, onChange }) {
   )
 }
 
-// 「為什麼選擇 PartyMatch？」區塊：四個核心機制改成 Tab 切換（不再是 Carousel），點 Tab
-// 才換中央插畫跟文案，讓使用者主動挑自己在意的機制看，不用像 Carousel 一樣「不知道還有
-// 什麼、要不要繼續滑」；份量較輕的三項（站內溝通/服務類型/收藏）維持在下方小條列
 export default function WhyUs() {
   const navigate = useNavigate()
   const loggedIn = useAuthStore(s => s.loggedIn)

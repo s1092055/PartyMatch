@@ -62,15 +62,14 @@ export async function removeParticipantFromConversation(conversationId, userId) 
   return client.patch(`/conversations/${conversationId}/participants`, { action: 'remove', userId })
 }
 
-// 以輪詢取代即時監聽，每 POLL_INTERVAL_MS 毫秒向 REST API 拉取一次
 export function subscribeToConversations(_userId, onUpdate) {
   return startPolling(async (isActive) => {
     if (!tokenManager.get()) return
     try {
       const convs = await fetchConversations()
       if (isActive()) onUpdate(convs.map(normalizeConversation))
-    } catch { /* ignore */ }
-  }, POLL_INTERVAL_MS)
+    } catch {}
+  }, POLL_INTERVAL_MS);
 }
 
 export function subscribeToMessages(conversationId, onUpdate, onError) {

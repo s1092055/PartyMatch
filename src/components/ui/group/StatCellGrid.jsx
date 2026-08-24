@@ -19,8 +19,6 @@ export function StatCell({ label, children, onClick, highlight }) {
   return content
 }
 
-// 群組卡片共用的三格資訊列（我的訂閱／群組管理／探索群組都用同一份），
-// 固定三欄、欄與欄之間用分隔線隔開
 export function StatCellGrid({ children }) {
   return (
     <div className="grid grid-cols-3 divide-x divide-line-subtle rounded-lg border border-line-subtle">

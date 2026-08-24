@@ -60,7 +60,7 @@ describe('useSubscriptionStore', () => {
     const subs = useSubscriptionStore.getState().subscriptions
     expect(subs.find(s => s.id === 's1').status).toBe('active')
     expect(subs.find(s => s.id === 's2').status).toBe('active')
-    expect(subs.find(s => s.id === 's3').status).toBe('pending') // 不同群組不受影響
+    expect(subs.find(s => s.id === 's3').status).toBe('pending');
   })
 
   it('remove() 樂觀移除，失敗時加回來', async () => {

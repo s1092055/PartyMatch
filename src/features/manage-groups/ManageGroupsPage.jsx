@@ -49,9 +49,6 @@ export default function ManageGroupsPage() {
     <div className="px-2 md:px-4">
       <h1 className="page-title mb-6 text-center">群組管理</h1>
 
-      {/* 群組紀錄入口改成固定在左下角的浮動按鈕，跟 DesktopSidebar 的訊息按鈕（fixed
-          bottom-right）同一套高度／圓角／樣式，只是鏡射到左側；can-hover:lg: 才需要額外
-          往右推開，避開真桌機 DesktopSidebar 那條 fixed 側邊欄（left-4 起、w-16 寬） */}
       <div className="fixed bottom-9 left-6 z-40 can-hover:lg:left-24">
         <button
           type="button"
@@ -63,14 +60,12 @@ export default function ManageGroupsPage() {
           <span className="hidden lg:inline">群組紀錄</span>
         </button>
       </div>
-
       <FilterTabsBar
         tabs={STATUS_FILTER_TABS}
         value={statusFilter}
         onChange={setStatusFilter}
         counts={filterCounts}
       />
-
       <div className="min-w-0">
         {allGroups.length === 0 ? (
           <EmptyState
@@ -100,7 +95,6 @@ export default function ManageGroupsPage() {
           </div>
         )}
       </div>
-
       <GroupViewModal
         isOpen={!!viewGroupId}
         onClose={() => { setViewGroupId(null); setAutoOpenLockGroup(false); setAutoOpenActivate(false); setAutoOpenApplications(false); setAutoOpenBilling(false); setAutoOpenMemberInfo(false); refreshGroups() }}
@@ -132,7 +126,6 @@ export default function ManageGroupsPage() {
           onEndGroup={handleEndGroup}
         />
       )}
-
       <GroupHistoryModal
         isOpen={historyOpen}
         onClose={closeHistory}
@@ -151,5 +144,5 @@ export default function ManageGroupsPage() {
         )}
       />
     </div>
-  )
+  );
 }

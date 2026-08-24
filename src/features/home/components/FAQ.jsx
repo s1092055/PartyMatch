@@ -23,7 +23,6 @@ function FAQItem({ q, a, open, onToggle }) {
   )
 }
 
-// 首頁「常見問題」預覽區塊
 export default function FAQ() {
   const [openIndex, setOpenIndex] = useState(null)
 
