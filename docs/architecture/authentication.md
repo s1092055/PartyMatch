@@ -2,7 +2,7 @@
 
 ## 概覽
 
-採用 JWT accessToken + refreshToken 雙 token 設計。accessToken 有效期短，隨每次請求以 `Authorization: Bearer` header 帶入；refreshToken 有效期長，後端另存一份於 Redis 供驗證比對與主動失效控制。
+採用 JWT accessToken + refreshToken 雙 token 設計。accessToken 存於前端 `localStorage`，有效期短，隨每次請求以 `Authorization: Bearer` header 帶入；refreshToken 存於後端簽發的 HttpOnly Cookie（前端完全碰不到內容），有效期長，後端另存一份於 Redis 供驗證比對與主動失效控制。正式環境前後端透過同一個反向代理變成同一個 origin，Cookie 用一般的 `SameSite=Lax` 即可，不需處理跨站 Cookie 的相容性問題。
 
 ## 登入 / 註冊 / 登出
 

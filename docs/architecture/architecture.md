@@ -33,6 +33,8 @@ React 19 + React Router v7
 | 認證 | JWT（雙 token） | accessToken 短效 + refreshToken 長效，支援個別裝置登出 |
 | 檔案儲存 | Cloudflare R2 | 申訴佐證、聊天室與留言附件的圖片上傳目的地 |
 
+美金計價的訂閱方案改用即時匯率換算台幣顯示金額（非寫死換算），詳見[服務定價查證紀錄](../product/service-pricing-audit.md)。
+
 ## 文件導覽
 
 | 文件 | 內容 |

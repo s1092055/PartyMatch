@@ -39,15 +39,15 @@ PartyMatch 是一個共享訂閱媒合平台，讓使用者可以探索或建立
 | 類別 | 技術 |
 |------|------|
 | Frontend | React 19、Vite、React Router v7、Zustand |
-| UI | Tailwind CSS v4（token 定義於 `index.css`）、shadcn/ui、Radix UI、class-variance-authority、lucide-react |
-| 深色模式 | 預設跟隨系統 `prefers-color-scheme`，登入後點側邊欄/導覽選單使用者選單裡的「偏好設定」手動切換並記住選擇（`localStorage`），只翻轉中性色階與淺底 chip 色以確保可讀性，見[前端架構](docs/architecture/frontend-architecture.md) |
+| UI | Tailwind CSS v4、shadcn/ui、Radix UI、lucide-react |
 | Backend | Node.js、Express |
 | 資料庫 | MySQL + Prisma ORM |
 | 快取 | Redis |
-| 認證 | JWT（accessToken 存 `localStorage`，refreshToken 存 HttpOnly Cookie）；正式環境前後端透過 Cloudflare Worker 反向代理變成同一個 origin，Cookie 不需處理跨網域相容性問題 |
-| 圖片上傳 | Cloudflare R2（後端代理上傳，前端不需另外設定 API Key） |
-| 匯率查詢 | 美金計價的訂閱方案改用即時匯率換算台幣顯示金額（非寫死換算），詳見[服務定價查證紀錄](docs/product/service-pricing-audit.md) |
+| 認證 | JWT（雙 token） |
+| 檔案儲存 | Cloudflare R2 |
 | Architecture | Feature-based、Store + API 雙層分離、事件驅動跨元件通訊 |
+
+技術選型理由與各項實作細節（深色模式、認證機制、圖片上傳、匯率查詢等）見[架構總覽](docs/architecture/architecture.md)。
 
 ---
 
