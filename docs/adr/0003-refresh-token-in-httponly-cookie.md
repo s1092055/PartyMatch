@@ -5,7 +5,7 @@
 
 ## 背景
 
-早期版本的 accessToken 與 refreshToken 都存在前端 `localStorage`。這個做法實作簡單，但 refreshToken 有效期長達 7 天，一旦網站存在 XSS 漏洞，攻擊者用惡意腳本讀走 `localStorage` 裡的 refreshToken，就能長期冒充使用者身分，风险遠高於存活期只有 15 分鐘的 accessToken。
+早期版本的 accessToken 與 refreshToken 都存在前端 `localStorage`。這個做法實作簡單，但 refreshToken 有效期長達 7 天，一旦網站存在 XSS 漏洞，攻擊者用惡意腳本讀走 `localStorage` 裡的 refreshToken，就能長期冒充使用者身分，風險遠高於存活期只有 15 分鐘的 accessToken。
 
 ## 決策
 

@@ -31,8 +31,6 @@
 | `PORT` | 伺服器 port（預設 `3001`） |
 | `CLIENT_ORIGIN` | CORS 允許的前端來源（本機預設 `http://localhost:5173`） |
 
-不要把 `.env` commit 到 Git；`CREDENTIAL_ENCRYPTION_KEY` 可用 `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` 產生。
-
 ## 4. 安裝
 
 ```bash
