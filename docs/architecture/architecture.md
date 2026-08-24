@@ -46,7 +46,7 @@ React 19 + React Router v7
     MySQL（Prisma ORM）+ Redis（快取 / Session）
 ```
 
-讀取走 Store（同步取用記憶體快取），寫入走 API（非同步打後端）。
+讀取走 Store（同步取用記憶體快取），寫入走 API（非同步呼叫後端）。
 
 ## 技術棧與選型
 

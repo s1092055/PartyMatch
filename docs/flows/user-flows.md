@@ -5,7 +5,7 @@
 ## 整體流程
 
 1. **找群組**：透過探索頁篩選，或用免登入的快速配對找到合適的合購群組
-2. **送出申請**：對招募中的群組提出加入申請，費用立即交由平台代管，不是直接進團主口袋
+2. **送出申請**：對招募中的群組提出加入申請，費用立即交由平台代管，不會直接撥入團主帳戶
 3. **團主審核**：接受就成為正式成員；拒絕則全額退還代管費用，可重新申請
 4. **鎖定群組**：名額額滿後團主鎖定群組、開通聊天室，成員開始提供訂閱帳號資訊
 5. **啟用服務**：帳號資訊到位後團主啟用服務，進入一段確認期；成員可以主動確認，或在有問題時正式回報
@@ -37,5 +37,5 @@ flowchart LR
 - 探索與配對：[探索群組](explore-flow.md)、[快速搜尋](quick-match-flow.md)
 - 成員端：[申請加入](apply-join-flow.md)、[我的訂閱](subscriptions-flow.md)、[申訴](dispute-flow.md)
 - 團主端：[建立群組](create-group-flow.md)、[審核申請](approval-flow.md)、[群組管理](manage-groups-flow.md)、[續訂](renewal-flow.md)
-- 共用機制：[PM幣代管與付款](payment-token-flow.md)、[訊息](messages-flow.md)、[通知](notification-flow.md)
+- 共用機制：[PM 幣代管與付款](payment-token-flow.md)、[訊息](messages-flow.md)、[通知](notification-flow.md)
 - 群組狀態機完整定義：[群組生命週期狀態機](group-state-machine.md)

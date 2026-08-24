@@ -14,7 +14,7 @@
 
 ### Architecture — 程式碼是怎麼寫、怎麼組織的
 
-- [架構總覽](architecture/architecture.md) — 先看這篇，分層結構與技術棧選型理由
+- [架構總覽](architecture/architecture.md) — 建議先讀，涵蓋分層結構與技術棧選型理由
 - [前端架構](architecture/frontend.md) — React 這邊的程式碼怎麼分資料夾、怎麼管理畫面上的資料
 - [後端架構](architecture/backend.md) — Express 這邊的 API 怎麼寫、怎麼保護資料安全
 - [資料庫 Schema](architecture/database.md) — 資料庫存了哪些表、彼此關係
@@ -28,14 +28,14 @@
 
 ### Flows — 各個功能實際怎麼運作
 
-- [使用者流程總覽](flows/user-flows.md) — 完整使用流程與群組狀態機，看這篇最快抓到全貌
+- [使用者流程總覽](flows/user-flows.md) — 完整使用流程與群組狀態機，涵蓋範圍最廣的一篇
 - [群組狀態機](flows/group-state-machine.md) — 一個群組會經過哪些狀態（招募中 → 額滿 → 啟用 → 結束…）
 - [探索群組流程](flows/explore-flow.md)
 - [快速搜尋流程](flows/quick-match-flow.md)
 - [建立群組流程](flows/create-group-flow.md)
 - [申請加入流程](flows/apply-join-flow.md)
 - [團主審核流程](flows/approval-flow.md)
-- [PM幣代管與付款流程](flows/payment-token-flow.md) — 平台內部貨幣「PM幣」怎麼儲值、代管、撥款、退款
+- [PM 幣代管與付款流程](flows/payment-token-flow.md) — 平台內部貨幣「PM 幣」怎麼儲值、代管、撥款、退款
 - [我的訂閱（成員視角）流程](flows/subscriptions-flow.md)
 - [群組管理（團主視角）流程](flows/manage-groups-flow.md)
 - [續訂流程](flows/renewal-flow.md)
@@ -45,7 +45,7 @@
 
 ### Testing — 手動測試怎麼跑
 
-- [手動測試計畫](testing/test-plan.md) — 測試範圍、優先級分類、建議測試順序，從這篇開始
+- [手動測試計畫](testing/test-plan.md) — 測試範圍、優先級分類、建議測試順序，其餘測試文件由此展開
 - [核心主線測試案例](testing/test-cases/core-flow-test-cases.md) — 建立群組 → 申請 → 審核 → 鎖定 → 填資訊 → 啟用 → 確認
 - [團主視角測試案例](testing/test-cases/host-flow-test-cases.md)
 - [成員視角測試案例](testing/test-cases/member-flow-test-cases.md)
