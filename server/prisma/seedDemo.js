@@ -14,7 +14,7 @@
  * 帳號規劃（7 個，2025-08 從原本 10 個精簡）：2 位團主（H1、H2，互相交錯身兼對方群組的成員，
  * 才能測「同一使用者同時是這個群組的團主、又是另一個群組的一般成員」）＋ 4 位一般成員
  * （D1～D4，其中 D4 一開始刻意維持低額 PM 幣以示範「餘額不足擋下申請」，示範完會補足儲值）＋
- * 1 位管理員。完整的帳號規劃理由與每個帳號適合測什麼情境見 docs-private/testing/test-accounts.md。
+ * 1 位管理員。
  *
  * 執行前提：
  *   1. 後端伺服器要在跑（node --watch src/server.js 或 npm run dev），因為這支腳本會打
@@ -30,10 +30,8 @@ import prisma from '../src/lib/prisma.js'
 import { SERVICES } from '../../src/common/data/serviceCatalog.js'
 
 const BASE = process.env.SEED_API_BASE ?? `http://localhost:${process.env.PORT ?? 3001}/api`
-const DEMO_PASSWORD = 'Demo1234'
-// 管理員帳號密碼可用環境變數覆寫（正式環境用），不設定就 fallback 回跟其他 demo 帳號一樣的密碼
-// （本機開發用）；正式環境的 server/.env.production 有設定專屬密碼，重置 demo 資料時不會被
-// 打回公開文件寫過的預設密碼
+// 一般帳號與管理員帳號密碼皆可用環境變數覆寫（正式環境用），不設定就 fallback 回本機開發用的預設值
+const DEMO_PASSWORD = process.env.DEMO_PASSWORD || 'Demo1234'
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || DEMO_PASSWORD
 
 // ── API 呼叫工具 ──────────────────────────────────────────────────────────

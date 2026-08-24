@@ -36,8 +36,6 @@ references/
 .idea
 .DS_Store
 
-# 私人版技術文件（完整細節，含 API 路徑/資料庫欄位/確切業務邏輯數字），只留在本機參考用，
-# 公開版 docs/ 是精簡過的版本
 docs-private/
 *.suo
 *.ntvs*

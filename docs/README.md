@@ -1,7 +1,5 @@
 # 技術文件索引
 
-精簡版，聚焦重點方向，不含完整實作細節。
-
 ### Development — 怎麼把專案跑起來
 
 - [開發指南](development.md) — 環境需求、環境變數、安裝、資料庫/Redis 設定、跑測試、CI/部署
@@ -13,6 +11,20 @@
 - [功能地圖](product/feature-map.md) — 目前做了哪些功能的完整清單
 - [服務定價查核紀錄](product/service-pricing-audit.md) — 平台內 28 種訂閱服務的價格怎麼查到的、哪些還沒驗證過
 - [各服務填寫帳號資訊需求調查](product/service-info-requirements.md) — 28 種服務真實的共享機制分類（Apple/Google 家庭群組、email 邀請、邀請碼、共用帳密），現有表單只收 email 的落差在哪
+
+### Architecture — 程式碼是怎麼寫、怎麼組織的
+
+- [架構總覽](architecture/architecture.md) — 先看這篇，分層結構與技術棧選型理由
+- [前端架構](architecture/frontend.md) — React 這邊的程式碼怎麼分資料夾、怎麼管理畫面上的資料
+- [後端架構](architecture/backend.md) — Express 這邊的 API 怎麼寫、怎麼保護資料安全
+- [資料庫 Schema](architecture/database.md) — 資料庫存了哪些表、彼此關係
+- [API 總覽](architecture/api.md) — 每一支後端網址在做什麼、需不需要登入
+- [認證機制](architecture/authentication.md) — 使用者怎麼登入、系統怎麼記得你是誰
+- [命名慣例](architecture/naming-conventions.md) — 檔案跟變數的命名規則
+
+### ADR — 重要技術決策為什麼這樣選
+
+- [Architecture Decision Records](adr/README.md) — Zustand vs Redux、Polling vs WebSocket、refreshToken 存放方式等 5 篇決策紀錄
 
 ### Flows — 各個功能實際怎麼運作
 
@@ -41,17 +53,3 @@
 - [探索頁／快速搜尋／收藏／帳號中心測試案例](testing/test-cases/explore-account-test-cases.md)
 - [RWD 測試案例](testing/test-cases/rwd-test-cases.md) — 手機/平板/桌機版面
 - [Bug 紀錄](testing/bug-archive.md) — 手動測試過程中發現並修復的問題
-
-### Architecture — 程式碼是怎麼寫、怎麼組織的
-
-- [架構總覽](architecture/architecture.md) — 先看這篇，分層結構與技術棧選型理由
-- [前端架構](architecture/frontend.md) — React 這邊的程式碼怎麼分資料夾、怎麼管理畫面上的資料
-- [後端架構](architecture/backend.md) — Express 這邊的 API 怎麼寫、怎麼保護資料安全
-- [資料庫 Schema](architecture/database.md) — 資料庫存了哪些表、彼此關係
-- [API 總覽](architecture/api.md) — 每一支後端網址在做什麼、需不需要登入
-- [認證機制](architecture/authentication.md) — 使用者怎麼登入、系統怎麼記得你是誰
-- [命名慣例](architecture/naming-conventions.md) — 檔案跟變數的命名規則
-
-### ADR — 重要技術決策為什麼這樣選
-
-- [Architecture Decision Records](adr/README.md) — Zustand vs Redux、Polling vs WebSocket、refreshToken 存放方式等 5 篇決策紀錄
