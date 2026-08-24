@@ -23,7 +23,8 @@
 | POST | `/groups/:id/lock` | 需登入（團主） | `full → pending_confirmation`，設定扣款日與帳號資訊填寫期限 |
 | POST | `/groups/:id/activate` | 需登入（團主） | `pending_activation → confirming`，開始確認期 |
 | POST | `/groups/:id/confirm` | 需登入（成員） | 成員確認服務，全員確認或期限到才撥款 |
-| POST | `/groups/:id/dispute`／`/adjudicate` | 需登入／需管理員 | 成員申訴、管理員裁定勝方 |
+| POST | `/groups/:id/dispute`／`/adjudicate` | 需登入／需管理員 | 成員申訴、管理員裁定退款比例 |
+| GET | `/admin/disputes`／`/admin/disputes/:id`／`/admin/disputes/history` | 需管理員 | 待裁定清單／單筆詳情（含佐證、對話記錄）／已結案歷史 |
 | POST | `/groups/:id/renew` | 需登入（團主） | `active → pending_confirmation`，開始下一期 |
 | GET | `/applications` | 需登入 | 與自己相關的申請（申請人或團主視角） |
 | POST | `/applications` | 需登入 | 送出加入申請，代管扣款在這裡就發生 |
@@ -80,7 +81,9 @@
 
 ```json
 // Request
-{ "winner": "member", "reason": "團主未能提供有效帳號資訊" }
+{ "memberRefundAmount": 300, "reason": "雙方各有部分責任，酌情部分退款" }
 ```
 
-`winner` 只接受 `member`／`host`，其餘回 `400 winner 必須為 member 或 host`；群組必須是 `disputed` 狀態，否則 `400 群組狀態為 {status}，不在申訴期`。`winner: member` 退款給申訴成員並移出群組，`winner: host` 撥款給團主，皆包在單一 Prisma transaction 內，並用條件式搶佔避免跟團主同時自行協調解決（`resolve-dispute`）互相衝突。
+`memberRefundAmount` 是退還給申訴成員的金額，伺服器驗證範圍須介於 `0` 至該群組席位費用之間，超出範圍回 `400`；團主撥款金額由伺服器以「代管總額 − 成員退款」算出，不採信前端數字。金額等於席位費用視為成員全額退款（移出群組）、等於 0 視為團主全額撥款、介於中間則是部分退款（成員留在群組）。裁定結果會寫入獨立的申訴紀錄，管理員後台可查詢每筆申訴從提出到結案的完整歷史（含申訴內容、佐證、雙方對話記錄），皆包在單一 Prisma transaction 內，並用條件式搶佔避免跟團主同時自行協調解決（`resolve-dispute`）互相衝突。
+
+管理員後台另有 `GET /admin/disputes`（待裁定清單）、`GET /admin/disputes/:id`（單筆詳情，含佐證與對話記錄）、`GET /admin/disputes/history`（已結案歷史查詢）三支查詢端點，皆需管理員權限。

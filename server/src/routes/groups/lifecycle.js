@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { z } from 'zod'
 import { requireAuth, requireAdmin } from '../../middleware/auth.js'
 import { validate } from '../../middleware/validate.js'
+import { adjudicateLimiter } from '../../middleware/rateLimit.js'
 import { toPlainGroup } from '../../utils/pricing.js'
 import { maskAvatar } from '../../lib/avatarVisibility.js'
 import * as groupLifecycleService from '../../services/groupLifecycle.service.js'
@@ -24,6 +25,11 @@ const adjustBillingDateSchema = z.object({
 
 const resolveDisputeSchema = z.object({
   note: z.string().trim().max(500).optional(),
+})
+
+const adjudicateSchema = z.object({
+  memberRefundAmount: z.number().int().min(0),
+  reason:             z.string().trim().min(1).max(500),
 })
 
 router.post('/:id/activate', requireAuth, async (req, res, next) => {
@@ -93,12 +99,13 @@ router.post('/:id/lock', requireAuth, async (req, res, next) => {
   } catch (err) { next(err) }
 });
 
-router.post('/:id/adjudicate', requireAdmin, async (req, res, next) => {
+router.post('/:id/adjudicate', requireAdmin, adjudicateLimiter, validate(adjudicateSchema), async (req, res, next) => {
   try {
     const result = await groupLifecycleService.adjudicateDispute({
-      groupId: req.params.id,
-      winner:  req.body.winner,
-      reason:  req.body.reason,
+      groupId:             req.params.id,
+      adminId:             req.user.id,
+      memberRefundAmount:  req.body.memberRefundAmount,
+      reason:              req.body.reason,
     })
     res.json(result)
   } catch (err) { next(err) }

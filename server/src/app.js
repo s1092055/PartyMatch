@@ -20,7 +20,7 @@ import tokenRoutes         from './routes/tokens.js'
 import reviewRoutes        from './routes/reviews.js'
 import systemMessageRoutes from './routes/systemMessages.js'
 import credentialCommentRoutes from './routes/credentialComments.js'
-import adminRoutes         from './routes/admin.js'
+import adminRoutes         from './routes/admin/index.js'
 
 const app = express()
 

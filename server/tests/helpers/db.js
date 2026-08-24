@@ -2,7 +2,7 @@ import prisma from '../../src/lib/prisma.js'
 import redis from '../../src/lib/redis.js'
 
 const TABLES = [
-  'token_transactions', 'credit_score_logs', 'notifications', 'favorites',
+  'disputes', 'token_transactions', 'credit_score_logs', 'notifications', 'favorites',
   'messages', 'conversations', 'reviews', 'credential_comments',
   'subscriptions', 'members', 'applications', 'groups', 'services',
   'users',

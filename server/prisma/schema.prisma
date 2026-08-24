@@ -55,6 +55,19 @@ enum PresenceStatus {
   offline
 }
 
+enum DisputeStatus {
+  pending
+  resolved_by_host
+  adjudicated
+}
+
+enum DisputeResolutionType {
+  host_private_resolved
+  member_full_refund
+  host_full_release
+  partial_split
+}
+
 enum NotificationType {
   application_sent
   application_approved
@@ -111,18 +124,20 @@ model User {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
-  hostedGroups       Group[]             @relation("HostedGroups")
-  applications       Application[]
-  members            Member[]
-  subscriptions      Subscription[]
-  notifications      Notification[]
-  favorites          Favorite[]
-  sentMessages       Message[]
-  tokenTransactions  TokenTransaction[]
-  creditScoreLogs    CreditScoreLog[]
-  hostReviews        Review[]            @relation("HostReviews")
-  authoredReviews    Review[]            @relation("AuthoredReviews")
-  credentialComments CredentialComment[]
+  hostedGroups        Group[]             @relation("HostedGroups")
+  applications        Application[]
+  members             Member[]
+  subscriptions       Subscription[]
+  notifications       Notification[]
+  favorites           Favorite[]
+  sentMessages        Message[]
+  tokenTransactions   TokenTransaction[]
+  creditScoreLogs     CreditScoreLog[]
+  hostReviews         Review[]            @relation("HostReviews")
+  authoredReviews     Review[]            @relation("AuthoredReviews")
+  credentialComments  CredentialComment[]
+  disputesRaised      Dispute[]           @relation("DisputesRaised")
+  disputesAdjudicated Dispute[]           @relation("DisputesAdjudicated")
 
   @@map("users")
 }
@@ -190,6 +205,7 @@ model Group {
   creditScoreLogs    CreditScoreLog[]
   reviews            Review[]
   credentialComments CredentialComment[]
+  disputes           Dispute[]
 
   @@index([status])
   @@index([hostId])
@@ -234,6 +250,8 @@ model Member {
   joinedAt                    DateTime  @default(now())
   createdAt                   DateTime  @default(now())
   updatedAt                   DateTime  @updatedAt
+
+  disputes Dispute[]
 
   @@unique([groupId, userId])
   @@map("members")
@@ -385,4 +403,43 @@ model CredentialComment {
 
   @@index([groupId])
   @@map("credential_comments")
+}
+
+model Dispute {
+  id       String  @id @default(cuid())
+  groupId  String
+  group    Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  memberId String?
+  member   Member? @relation(fields: [memberId], references: [id], onDelete: SetNull)
+
+  raisedByUserId   String
+  raisedByUser     User   @relation("DisputesRaised", fields: [raisedByUserId], references: [id], onDelete: Cascade)
+  hostId           String
+  planNameSnapshot String
+
+  reason               String  @db.VarChar(500)
+  evidenceUrl          String?
+  seatCostSnapshot     Int
+  escrowTokensSnapshot Int
+
+  status   DisputeStatus @default(pending)
+  deadline DateTime
+  raisedAt DateTime      @default(now())
+
+  resolutionType     DisputeResolutionType?
+  resolvedByAdminId  String?
+  resolvedByAdmin    User?                  @relation("DisputesAdjudicated", fields: [resolvedByAdminId], references: [id], onDelete: SetNull)
+  resolvedByHostAt   DateTime?
+  memberRefundAmount Int?
+  hostReleaseAmount  Int?
+  resolutionNote     String?                @db.VarChar(500)
+  resolvedAt         DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([groupId])
+  @@index([status, deadline])
+  @@index([raisedByUserId])
+  @@map("disputes")
 }
