@@ -30,7 +30,6 @@
 ### Testing — 手動測試怎麼跑
 
 - [手動測試計畫](testing/manual-test-plan.md) — 測試範圍、優先級分類、建議測試順序，從這篇開始
-- [測試帳號清單](testing/test-accounts.md) — demo 帳號/群組怎麼建立、每個帳號適合測什麼情境
 - [核心主線測試案例](testing/core-flow-test-cases.md) — 建立群組 → 申請 → 審核 → 鎖定 → 填資訊 → 啟用 → 確認
 - [團主視角測試案例](testing/host-flow-test-cases.md)
 - [成員視角測試案例](testing/member-flow-test-cases.md)

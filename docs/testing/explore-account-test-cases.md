@@ -11,4 +11,4 @@
 - 未登入訪客瀏覽帳號中心（各分頁鎖定提示）
 - 隱私設定「顯示自己的大頭照」、目前狀態（線上狀態點）的顯示與切換
 
-測試帳號見 [`test-accounts.md`](./test-accounts.md)。RWD 相關細節另見 [`rwd-test-cases.md`](./rwd-test-cases.md)。
+測試帳號規劃僅供開發測試使用，不對外公開。RWD 相關細節另見 [`rwd-test-cases.md`](./rwd-test-cases.md)。
