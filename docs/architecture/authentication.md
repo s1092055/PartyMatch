@@ -2,7 +2,12 @@
 
 ## 概覽
 
-採用 JWT accessToken + refreshToken 雙 token 設計。accessToken 存於前端 `localStorage`，有效期短，隨每次請求以 `Authorization: Bearer` header 帶入；refreshToken 存於後端簽發的 HttpOnly Cookie（前端完全碰不到內容），有效期長，後端另存一份於 Redis 供驗證比對與主動失效控制。正式環境前後端透過同一個反向代理變成同一個 origin，Cookie 用一般的 `SameSite=Lax` 即可，不需處理跨站 Cookie 的相容性問題。
+採用 JWT accessToken + refreshToken 雙 token 設計：
+
+- **accessToken**：存於前端 `localStorage`，有效期短，隨每次請求以 `Authorization: Bearer` header 帶入
+- **refreshToken**：存於後端簽發的 HttpOnly Cookie（前端完全碰不到內容），有效期長，後端另存一份於 Redis 供驗證比對與主動失效控制
+
+正式環境前後端透過同一個反向代理變成同一個 origin，Cookie 用一般的 `SameSite=Lax` 即可，不需處理跨站 Cookie 的相容性問題。
 
 ## 登入 / 註冊 / 登出
 
@@ -26,13 +31,12 @@ App 啟動與登入成功後都遵循「先公開資料、後私人資料」的�
 
 ## Security Consideration
 
-**accessToken 存 localStorage 的 XSS 風險**：只要頁面被注入惡意 script，就能直接讀走 `localStorage` 裡的 accessToken。目前的取捨是靠**短效期（15 分鐘）**限制風險範圍——即使 token 外洩，能用的時間也有限；後端 API 本身有設 `helmet()`（含預設 CSP），但那組標頭只保護 API 回應本身，前端 SPA 的 HTML 是由 Cloudflare 的靜態資源服務直接回傳，目前**沒有另外設定 CSP**，這是已知、尚未補強的限制。
-
-**refreshToken 用 HttpOnly Cookie**：即使前端被 XSS，攻擊者能偷到的 accessToken 有效期短，但完全碰不到 refreshToken 內容（`HttpOnly` 讓它對 `document.cookie` 不可見），無法用它換發新 token 延長攻擊窗口。
-
-**CSRF 與 SameSite**：refreshToken Cookie 設 `SameSite=Lax`，這個防護前提是「前後端同源」（Cloudflare Worker 反向代理 `/api/*`，瀏覽器看到的是同一個 origin）。`SameSite=Lax` 會擋掉跨站的 POST 請求帶上這顆 Cookie（只有頂層導覽的 GET 才會帶），`/auth/refresh` 是 POST，因此第三方網站沒辦法用簡單的 CSRF 手法偷偷觸發換發 token。目前沒有額外實作 CSRF token 機制，完全依賴這個同源 + `SameSite=Lax` 的組合。
-
-**Token 生命週期**：accessToken 15 分鐘、refreshToken 較長效但採 rotation（每次換發都作廢舊的），單一 refreshToken 洩漏的可用時間也有上限。
+| 風險 | 取捨 |
+|------|------|
+| **accessToken 存 localStorage 的 XSS 風險** | 頁面若被注入惡意 script 可直接讀走 accessToken。靠**短效期（15 分鐘）**限制風險範圍；後端 API 有設 `helmet()`（含預設 CSP），但只保護 API 回應本身——前端 SPA 的 HTML 由 Cloudflare 靜態資源服務直接回傳，目前**沒有另外設定 CSP**，這是已知、尚未補強的限制 |
+| **refreshToken 用 HttpOnly Cookie** | 即使前端被 XSS，攻擊者偷到的 accessToken 有效期短，且完全碰不到 refreshToken 內容（`HttpOnly` 讓它對 `document.cookie` 不可見），無法用它換發新 token 延長攻擊窗口 |
+| **CSRF 與 SameSite** | refreshToken Cookie 設 `SameSite=Lax`，前提是前後端同源（Cloudflare Worker 反向代理 `/api/*`）。`SameSite=Lax` 擋掉跨站 POST 請求帶上這顆 Cookie（只有頂層導覽的 GET 才會帶），`/auth/refresh` 是 POST，第三方網站無法用簡單 CSRF 手法觸發換發。目前沒有額外實作 CSRF token 機制，完全依賴同源 + `SameSite=Lax` 這個組合 |
+| **Token 生命週期** | accessToken 15 分鐘；refreshToken 較長效但採 rotation（每次換發都作廢舊的），單一 refreshToken 洩漏的可用時間也有上限 |
 
 ## 帳號軟刪除停用
 
