@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Bell, Lock, LogOut, MessageSquare, Settings, ShieldCheck, Star, User } from 'lucide-react'
+import { Bell, Lock, LogIn, LogOut, MessageSquare, Moon, Settings, ShieldCheck, Star, Sun, User } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
 import { NAV_SECTIONS } from '../nav'
+import { useTheme } from '../../../components/theme-provider'
 import { Avatar } from '../../../components/ui/avatar'
 import { TokenBadge } from '../../../components/ui/TokenAmount'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '../../../components/ui/dropdown-menu'
@@ -33,6 +34,7 @@ export default function DesktopSidebar({
   logout,
   loggingOut,
 }) {
+  const { theme, toggleTheme } = useTheme()
   const [lockedTip, setLockedTip] = useState(null)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
 
@@ -193,19 +195,21 @@ export default function DesktopSidebar({
               </span>
             </button>
           )}
-          <button
-            type="button"
-            onClick={openSettings}
-            aria-label="偏好設定"
-            className="mb-1 flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
-          >
-            <span className="grid h-9 w-9 shrink-0 place-items-center">
-              <Settings size={22} strokeWidth={1.5} />
-            </span>
-            <span className="whitespace-nowrap font-bold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
-              偏好設定
-            </span>
-          </button>
+          {loggedIn && (
+            <button
+              type="button"
+              onClick={openSettings}
+              aria-label="偏好設定"
+              className="mb-1 flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
+            >
+              <span className="grid h-9 w-9 shrink-0 place-items-center">
+                <Settings size={22} strokeWidth={1.5} />
+              </span>
+              <span className="whitespace-nowrap font-bold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
+                偏好設定
+              </span>
+            </button>
+          )}
           {loggedIn ? (
             <DropdownMenu onOpenChange={setUserMenuOpen}>
               <DropdownMenuTrigger asChild>
@@ -255,19 +259,25 @@ export default function DesktopSidebar({
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <a
-              href="/login"
-              onClick={closeAll}
-              aria-label="登入"
-              className="flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
-            >
-              <span className="shrink-0 shadow-md rounded-full">
-                <Avatar initial={null} size="md" />
-              </span>
-              <span className="min-w-0 flex-1 whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
-                <span className="block truncate text-sm font-extrabold">匿名使用者</span>
-              </span>
-            </a>
+            <div className="flex items-stretch gap-2">
+              <button
+                type="button"
+                onClick={toggleTheme}
+                aria-label={theme === 'dark' ? '切換成淺色模式' : '切換成深色模式'}
+                className="grid h-14 flex-1 place-items-center rounded-2xl text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
+              >
+                {theme === 'dark' ? <Sun size={22} strokeWidth={1.5} /> : <Moon size={22} strokeWidth={1.5} />}
+              </button>
+              <a
+                href="/login"
+                onClick={closeAll}
+                aria-label="登入會員"
+                className="flex h-14 flex-1 items-center justify-center gap-2 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
+              >
+                <LogIn size={20} strokeWidth={1.5} className="shrink-0" />
+                <span className="truncate whitespace-nowrap text-sm font-extrabold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">登入會員</span>
+              </a>
+            </div>
           )}
         </div>
       </aside>

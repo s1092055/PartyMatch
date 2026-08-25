@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import AppNav from './AppNav'
 import AppFooter from './AppFooter'
 import FloatingMessages from './FloatingMessages'
+import { useAutoOpenQuickMatch } from '../utils/hooks'
 
 const GroupDetailModal = lazy(() => import('../../features/group/GroupDetailModal'))
 const MessagesModal = lazy(() => import('../../features/messages/MessagesModal'))
@@ -16,6 +17,7 @@ function RouteScrollReset() {
 }
 
 export default function AppLayout() {
+  useAutoOpenQuickMatch()
   return (
     <div className="min-h-screen bg-canvas">
       <RouteScrollReset />

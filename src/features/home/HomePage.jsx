@@ -20,6 +20,7 @@ import SectionNav from './components/SectionNav'
 import RevealSection from '../../components/ui/primitives/RevealSection'
 import { ADMIN_HOME_PATH } from '../../app/AdminRoute'
 import { ALL_SERVICES } from './data/allServices'
+import { useAutoOpenQuickMatch } from '../../common/utils/hooks'
 
 const MessagesModal = lazy(() => import('../messages/MessagesModal'))
 const GroupDetailModal = lazy(() => import('../group/GroupDetailModal'));
@@ -34,6 +35,7 @@ export default function HomePage() {
   useLayoutEffect(() => {
     window.scrollTo(0, 0)
   }, []);
+  useAutoOpenQuickMatch()
 
   if (loggedIn && isAdmin)
     return <Navigate to={ADMIN_HOME_PATH} replace />;

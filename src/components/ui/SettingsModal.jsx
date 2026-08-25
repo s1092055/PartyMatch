@@ -4,7 +4,7 @@ import { Bell, Globe, LogIn, LogOut, Shield, Trash2 } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogCloseButton } from './dialog'
 import { Button } from './button'
 import { useTheme } from '../theme-provider'
-import { readStorage, writeStorage } from '../../common/utils/storage'
+import { loadPrefs, savePrefs } from '../../common/utils/appPrefs'
 import { useAuthStore } from '../../common/stores/useAuthStore'
 import { toast } from '../../common/utils/toast'
 import { Switch } from './switch'
@@ -19,13 +19,6 @@ import {
   AlertDialogCancel,
 } from './alert-dialog'
 
-const PREFS_KEY = 'pm_app_prefs'
-const DEFAULT_PREFS = {
-  autoOpenSearch: false,
-  marketingEmail: false,
-  shareActivity:  false,
-}
-
 const NOTIFICATION_CATEGORIES = [
   { key: 'application', label: '申請審核', desc: '送出申請、審核結果通知' },
   { key: 'group',       label: '群組動態', desc: '群組成立、成員異動、續訂等通知' },
@@ -33,10 +26,6 @@ const NOTIFICATION_CATEGORIES = [
 ]
 
 const EMPTY_MUTED_CATEGORIES = []
-
-function loadPrefs() {
-  return { ...DEFAULT_PREFS, ...readStorage(PREFS_KEY, {}) }
-}
 
 function SettingRow({ label, desc, checked, onChange }) {
   return (
@@ -79,7 +68,7 @@ export function SettingsModalBody({ onClose }) {
   function toggle(key) {
     const next = { ...prefs, [key]: !prefs[key] }
     setPrefs(next)
-    writeStorage(PREFS_KEY, next)
+    savePrefs(next)
   }
 
   async function toggleAvatarVisibility() {
@@ -131,6 +120,18 @@ export function SettingsModalBody({ onClose }) {
           checked={theme === 'dark'}
           onChange={toggleTheme}
         />
+        <SettingRow
+          label="自動開啟快速搜尋"
+          desc="每次造訪時自動彈出快速搜尋"
+          checked={prefs.autoOpenSearch}
+          onChange={() => toggle('autoOpenSearch')}
+        />
+        <SettingRow
+          label="分享使用資料"
+          desc="協助改善平台體驗（匿名）"
+          checked={prefs.shareActivity}
+          onChange={() => toggle('shareActivity')}
+        />
       </SectionGroup>
 
       {loggedIn ? (
@@ -147,12 +148,6 @@ export function SettingsModalBody({ onClose }) {
               desc="優惠活動與新功能消息"
               checked={prefs.marketingEmail}
               onChange={() => toggle('marketingEmail')}
-            />
-            <SettingRow
-              label="分享使用資料"
-              desc="協助改善平台體驗（匿名）"
-              checked={prefs.shareActivity}
-              onChange={() => toggle('shareActivity')}
             />
           </SectionGroup>
 
@@ -217,9 +212,10 @@ export function SettingsModalBody({ onClose }) {
 }
 
 export default function SettingsModal({ isOpen, onClose }) {
+  const loggedIn = useAuthStore(s => s.loggedIn)
   return (
     <Dialog open={isOpen} onOpenChange={v => { if (!v) onClose() }}>
-      <DialogContent maxWidth="max-w-md" height="min(80dvh, 640px)">
+      <DialogContent maxWidth="max-w-md" height={loggedIn ? 'min(80dvh, 640px)' : 'min(50dvh, 360px)'}>
         <DialogHeader>
           <DialogTitle>偏好設定</DialogTitle>
           <DialogCloseButton />
