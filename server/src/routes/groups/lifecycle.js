@@ -28,8 +28,8 @@ const resolveDisputeSchema = z.object({
 })
 
 const adjudicateSchema = z.object({
-  memberRefundAmount: z.number().int().min(0),
-  reason:             z.string().trim().min(1).max(500),
+  winner: z.enum(['member', 'host']),
+  reason: z.string().trim().min(1).max(500),
 })
 
 router.post('/:id/activate', requireAuth, async (req, res, next) => {
@@ -102,10 +102,10 @@ router.post('/:id/lock', requireAuth, async (req, res, next) => {
 router.post('/:id/adjudicate', requireAdmin, adjudicateLimiter, validate(adjudicateSchema), async (req, res, next) => {
   try {
     const result = await groupLifecycleService.adjudicateDispute({
-      groupId:             req.params.id,
-      adminId:             req.user.id,
-      memberRefundAmount:  req.body.memberRefundAmount,
-      reason:              req.body.reason,
+      groupId: req.params.id,
+      adminId: req.user.id,
+      winner:  req.body.winner,
+      reason:  req.body.reason,
     })
     res.json(result)
   } catch (err) { next(err) }

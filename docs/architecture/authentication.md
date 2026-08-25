@@ -9,6 +9,23 @@
 
 正式環境前後端透過同一個反向代理變成同一個 origin，Cookie 用一般的 `SameSite=Lax` 即可，不需處理跨站 Cookie 的相容性問題。
 
+## 流程圖
+
+```mermaid
+flowchart TD
+  A[使用者輸入帳密登入] --> B[後端驗證密碼]
+  B --> C[簽發 accessToken 與 refreshToken]
+  C --> D[accessToken 存 localStorage]
+  C --> E[refreshToken 存 HttpOnly Cookie]
+  D --> F[請求時帶上 accessToken]
+  F --> G{accessToken 是否有效}
+  G -->|有效| H[正常回應]
+  G -->|過期| I[用 refreshToken 換發新 token]
+  I --> J[Rotation：作廢舊 refreshToken，簽發新的一組]
+  J --> F
+  I -->|換發也失敗| K[清除本地憑證，導向登入頁]
+```
+
 ## 登入 / 註冊 / 登出
 
 註冊與登入流程一致：驗證輸入 → 密碼雜湊比對 → 簽發一組 accessToken 與 refreshToken → 寫入 Redis session → 回傳給前端。登入時會檢查帳號是否已被軟刪除停用。登出只會讓「目前這台裝置」的 session 失效，其他裝置不受影響。

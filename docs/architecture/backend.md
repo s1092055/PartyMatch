@@ -4,6 +4,27 @@
 
 Node.js + Express，標準 middleware 鏈（安全性 headers、CORS、日誌、JSON body parser）後掛載各資源 route 與全域錯誤處理。
 
+## 流程圖
+
+```mermaid
+flowchart LR
+  A[收到請求] --> B[安全性 Headers / CORS / 日誌]
+  B --> C{驗證等級}
+  C -->|需登入| D[驗證 accessToken]
+  C -->|需管理員| E[驗證 accessToken 與 isAdmin]
+  C -->|選擇性登入| F[放行，登入才附帶身分]
+  D --> G[驗證 Request Body]
+  E --> G
+  F --> G
+  G --> H[Route Handler 執行業務邏輯]
+  H --> I{是否跨多張表寫入}
+  I -->|是| J[包在 Transaction 內]
+  I -->|否| K[直接查詢]
+  J --> L[回傳結果]
+  K --> L
+  H -->|拋出例外| M[全域錯誤處理，統一序列化]
+```
+
 ## Route 架構
 
 每個後端資源對應一個 route 檔案，掛載到對應的 REST 資源路徑下，內部結構一致：

@@ -6,23 +6,21 @@ import { toast } from '../../../common/utils/toast'
 import { useGroupStore } from '../../../common/stores/useGroupStore'
 
 export default function DisputeAdjudicateForm({ dispute, onResolved }) {
-  const [amount, setAmount] = useState('')
+  const [winner, setWinner] = useState('')
   const [reason, setReason] = useState('')
   const [confirming, setConfirming] = useState(false)
   const [loading, setLoading] = useState(false)
   const adjudicateGroup = useGroupStore(s => s.adjudicateGroup)
 
-  const amountNum = amount === '' ? null : Number(amount)
-  const amountValid = amountNum !== null && Number.isInteger(amountNum) && amountNum >= 0 && amountNum <= dispute.seatCost
-  const hostReleasePreview = amountValid ? dispute.escrowTokens - amountNum : null
+  const hostReleaseAmount = winner === 'member' ? dispute.escrowTokens - dispute.seatCost : dispute.escrowTokens
 
   async function handleConfirm() {
     setConfirming(false)
     setLoading(true)
     try {
-      await adjudicateGroup(dispute.groupId, { memberRefundAmount: amountNum, reason: reason.trim() })
+      await adjudicateGroup(dispute.groupId, { winner, reason: reason.trim() })
       toast('裁定完成', 'success')
-      setAmount('')
+      setWinner('')
       setReason('')
       onResolved()
     } catch (err) {
@@ -37,31 +35,30 @@ export default function DisputeAdjudicateForm({ dispute, onResolved }) {
       <p className="mb-3 text-xs font-semibold text-ink-3">裁定結果</p>
 
       <div className="mb-3 flex gap-2">
-        <Button variant="secondary" size="sm" className="flex-1 rounded-lg text-xs" onClick={() => setAmount(String(dispute.seatCost))}>
-          成員全額退款
+        <Button
+          variant={winner === 'member' ? 'default' : 'secondary'}
+          size="sm"
+          className="flex-1 rounded-lg text-xs"
+          onClick={() => setWinner('member')}
+        >
+          成員獲勝
         </Button>
-        <Button variant="secondary" size="sm" className="flex-1 rounded-lg text-xs" onClick={() => setAmount('0')}>
-          團主全額撥款
+        <Button
+          variant={winner === 'host' ? 'default' : 'secondary'}
+          size="sm"
+          className="flex-1 rounded-lg text-xs"
+          onClick={() => setWinner('host')}
+        >
+          團主獲勝
         </Button>
       </div>
 
-      <div className="mb-3">
-        <label className="mb-1 block text-xs font-semibold text-ink-3">退款給成員的金額（上限 {dispute.seatCost} PM）</label>
-        <input
-          type="text"
-          inputMode="numeric"
-          value={amount}
-          onChange={e => setAmount(e.target.value.replace(/[^0-9]/g, ''))}
-          placeholder={`0 ~ ${dispute.seatCost}`}
-          className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink outline-none focus:ring-4 focus:ring-brand-subtle"
-        />
-        {amount !== '' && !amountValid && (
-          <p className="mt-1 text-xs text-danger">請輸入 0 ~ {dispute.seatCost} 之間的整數</p>
-        )}
-        {amountValid && (
-          <p className="mt-1 text-xs text-ink-4">團主將撥款 {hostReleasePreview} PM</p>
-        )}
-      </div>
+      {winner === 'member' && (
+        <p className="mb-3 text-xs text-ink-4">成員退款 {dispute.seatCost} PM；團主撥款 {hostReleaseAmount} PM</p>
+      )}
+      {winner === 'host' && (
+        <p className="mb-3 text-xs text-ink-4">申訴成員本期費用不予退還；團主撥款 {hostReleaseAmount} PM</p>
+      )}
 
       <div className="mb-3">
         <label className="mb-1 block text-xs font-semibold text-ink-3">裁定說明</label>
@@ -75,7 +72,7 @@ export default function DisputeAdjudicateForm({ dispute, onResolved }) {
 
       <Button
         variant="destructive"
-        disabled={loading || !amountValid || !reason.trim()}
+        disabled={loading || !winner || !reason.trim()}
         onClick={() => setConfirming(true)}
         className="w-full rounded-lg"
       >
@@ -85,7 +82,11 @@ export default function DisputeAdjudicateForm({ dispute, onResolved }) {
       {confirming && (
         <ConfirmActionDialog
           title="確認送出裁定？"
-          message={`成員退款 ${amountNum} PM、團主撥款 ${hostReleasePreview} PM，此操作無法復原。`}
+          message={
+            winner === 'member'
+              ? `成員獲勝：退款 ${dispute.seatCost} PM 給成員，團主撥款 ${hostReleaseAmount} PM，此操作無法復原。`
+              : `團主獲勝：申訴成員本期費用不予退還，團主撥款 ${hostReleaseAmount} PM，此操作無法復原。`
+          }
           confirmLabel="確認裁定"
           danger
           onConfirm={handleConfirm}

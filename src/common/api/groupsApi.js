@@ -40,8 +40,8 @@ export async function disputeGroupApi(id, { reason, evidenceUrl }) {
   return client.post(`/groups/${id}/dispute`, { reason, evidenceUrl })
 }
 
-export async function adjudicateGroupApi(id, { memberRefundAmount, reason }) {
-  return client.post(`/groups/${id}/adjudicate`, { memberRefundAmount, reason })
+export async function adjudicateGroupApi(id, { winner, reason }) {
+  return client.post(`/groups/${id}/adjudicate`, { winner, reason })
 }
 
 export async function resolveDisputeApi(id, { note } = {}) {

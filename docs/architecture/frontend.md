@@ -6,6 +6,25 @@
 - **路由**：React Router v7 集中管理，頁面元件皆以 `lazy()` + `Suspense` 動態載入
 - **狀態**：Zustand 管理跨頁面共享狀態，資料讀取一律走 Store 層模式（見下方「Store 層」）
 
+## 流程圖
+
+```mermaid
+flowchart LR
+  A[App 啟動] --> B[初始化公開資料：服務/招募中群組/通知]
+  B --> C{是否已登入}
+  C -->|是| D[初始化私人資料：申請/訂閱/成員/收藏/對話]
+  C -->|否| E[維持公開資料，等待登入]
+  D --> F[畫面渲染]
+  E --> F
+  F --> G[使用者互動觸發 Store action]
+  G --> H[呼叫 API 層]
+  H --> I[自動附加認證 header]
+  I --> J{回應是否為 401}
+  J -->|是| K[自動換發 token 後重放請求]
+  J -->|否| L[更新記憶體快取]
+  K --> L
+```
+
 ## 資料夾結構：`features/` vs `common/`
 
 - **`features/`**：依「使用者看到的功能」切分，各自擁有 Page/Modal 進入點與專屬 components/hooks/utils

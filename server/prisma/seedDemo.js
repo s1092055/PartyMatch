@@ -299,10 +299,10 @@ async function main() {
   }
   await activateGroup(H1, g20.id, g20ConvId, 'Dropbox')
   await api('POST', `/groups/${g20.id}/dispute`, D2.token, { reason: '帳號被收回，登入不進去', evidenceUrl: 'https://picsum.photos/seed/dispute2/600/400' })
-  await api('POST', `/groups/${g20.id}/adjudicate`, ADMIN.token, { memberRefundAmount: g20.monthlyFee, reason: '經查證團主確實未提供正確帳號，退款給申訴成員' })
+  await api('POST', `/groups/${g20.id}/adjudicate`, ADMIN.token, { winner: 'member', reason: '經查證團主確實未提供正確帳號，退款給申訴成員' })
   await api('POST', '/reviews', D1.token, { groupId: g20.id, rating: 3, comment: '中間有點小狀況，但申訴後平台有妥善處理。' })
   await api('POST', '/reviews', D3.token, { groupId: g20.id, rating: 5, comment: '我這邊都沒遇到問題，運作正常。' })
-  console.log('G20 active（Dropbox，申訴後管理員裁定成員獲勝，demo4 已退款離開）')
+  console.log('G20 active（Dropbox，申訴後管理員裁定成員獲勝，demo4 已退款並留在群組內）')
 
   const g21 = await createGroup(H2, { serviceId: 'nordvpn', planId: 'nordvpn-basic', maxMembers: 6 });
   const g21Members = [D1, D2, D3, D4, H1]
@@ -314,10 +314,10 @@ async function main() {
   }
   await activateGroup(H2, g21.id, g21ConvId, 'NordVPN')
   await api('POST', `/groups/${g21.id}/dispute`, D4.token, { reason: '覺得速度跟描述不符', evidenceUrl: 'https://picsum.photos/seed/dispute3/600/400' })
-  await api('POST', `/groups/${g21.id}/adjudicate`, ADMIN.token, { memberRefundAmount: 0, reason: '經查證服務正常，維持原訂閱' })
+  await api('POST', `/groups/${g21.id}/adjudicate`, ADMIN.token, { winner: 'host', reason: '經查證服務正常，維持原訂閱' })
   await api('POST', '/reviews', D3.token, { groupId: g21.id, rating: 4, comment: '服務穩定，速度也不錯。' })
   await api('POST', '/reviews', D4.token, { groupId: g21.id, rating: 5, comment: '申訴後團主還是很有耐心解釋，後續也沒問題了。' })
-  console.log('G21 active（NordVPN，申訴後管理員裁定團主獲勝）')
+  console.log('G21 active（NordVPN，申訴後管理員裁定團主獲勝，demo6 本期費用不予退還但仍留在群組內）')
 
   const g22 = await createGroup(H1, { serviceId: 'claude', planId: 'claude-pro', maxMembers: 2 });
   await applyAndApprove(H1, g22.id, D3, 'Claude Pro')

@@ -509,7 +509,8 @@ export async function lockGroup({ groupId, hostId, sharedCredentials: sharedCred
   return updated
 }
 
-export async function adjudicateDispute({ groupId, adminId, memberRefundAmount, reason }) {
+export async function adjudicateDispute({ groupId, adminId, winner, reason }) {
+  if (!['member', 'host'].includes(winner)) throw httpError(400, 'winner 必須為 member 或 host')
   if (!reason?.trim()) throw httpError(400, '請填寫裁定說明')
 
   const group = await prisma.group.findUnique({
@@ -526,17 +527,11 @@ export async function adjudicateDispute({ groupId, adminId, memberRefundAmount, 
   if (!dispute) throw httpError(400, '找不到進行中的申訴')
 
   const seatCost = computeSeatCost(group)
-  if (!Number.isInteger(memberRefundAmount) || memberRefundAmount < 0 || memberRefundAmount > seatCost) {
-    throw httpError(400, `退款金額須介於 0 至 ${seatCost} 之間`)
-  }
+  const memberRefundAmount = winner === 'member' ? seatCost : 0
   const hostReleaseAmount = group.escrowTokens - memberRefundAmount
   const groupLabel = group.planName ?? group.service?.name ?? ''
   const trimmedReason = reason.trim()
-
-  const resolutionType =
-    memberRefundAmount === seatCost ? 'member_full_refund'
-    : memberRefundAmount === 0      ? 'host_full_release'
-    :                                  'partial_split'
+  const resolutionType = winner === 'member' ? 'member_wins' : 'host_wins'
 
   await prisma.$transaction(async (tx) => {
     await claimGroupStatus(tx, group.id, {
@@ -564,19 +559,11 @@ export async function adjudicateDispute({ groupId, adminId, memberRefundAmount, 
       })
     }
 
-    if (resolutionType === 'member_full_refund') {
-      await tx.member.delete({ where: { id: disputeMember.id } })
-      await tx.subscription.updateMany({
-        where: { groupId: group.id, userId: disputeMember.userId },
-        data:  { status: 'ended' },
-      })
-    } else {
-      await tx.member.update({
-        where: { id: disputeMember.id },
-        data:  { serviceInfoIssueNote: null, disputeEvidenceUrl: null },
-      })
-      await tx.subscription.updateMany({ where: { groupId: group.id }, data: { status: 'active' } })
-    }
+    await tx.member.update({
+      where: { id: disputeMember.id },
+      data:  { serviceInfoIssueNote: null, disputeEvidenceUrl: null },
+    })
+    await tx.subscription.updateMany({ where: { groupId: group.id }, data: { status: 'active' } })
 
     await tx.dispute.update({
       where: { id: dispute.id },
@@ -592,14 +579,12 @@ export async function adjudicateDispute({ groupId, adminId, memberRefundAmount, 
     })
   });
 
-  const memberMessage =
-    resolutionType === 'member_full_refund' ? `你對「${groupLabel}」回報的問題已確認，本期費用已全額退還至你的PM幣餘額。`
-    : resolutionType === 'host_full_release' ? `你對「${groupLabel}」回報的問題經確認後，本期費用已撥款給團主。`
-    :                                            `你對「${groupLabel}」回報的問題已確認，本期費用已部分退還至你的PM幣餘額（${memberRefundAmount} PM幣）。`
-  const hostMessage =
-    resolutionType === 'member_full_refund' ? `「${groupLabel}」的問題處理結果為退款給成員，該成員本期費用已退還並移出群組。`
-    : resolutionType === 'host_full_release' ? `問題處理結果：「${groupLabel}」代管款項已全額撥入你的PM幣餘額。`
-    :                                            `「${groupLabel}」的問題處理結果為部分退款，你已收到 ${hostReleaseAmount} PM幣。`
+  const memberMessage = winner === 'member'
+    ? `你對「${groupLabel}」回報的問題已確認，本期費用已全額退還至你的PM幣餘額。`
+    : `你對「${groupLabel}」回報的問題經確認後不成立，本期費用已撥款給團主，你仍可留在群組內。`
+  const hostMessage = winner === 'member'
+    ? `「${groupLabel}」的問題處理結果為成員獲勝，該成員本期費用已退還。`
+    : `問題處理結果：「${groupLabel}」代管款項已全額撥入你的PM幣餘額。`
 
   notify({
     userId:  disputeMember.userId,
@@ -610,8 +595,8 @@ export async function adjudicateDispute({ groupId, adminId, memberRefundAmount, 
   })
   notify({
     userId:  group.hostId,
-    type:    resolutionType === 'host_full_release' ? 'escrow_released' : 'dispute_resolved',
-    title:   resolutionType === 'host_full_release' ? '代管款項已撥款' : '問題處理結果',
+    type:    winner === 'host' ? 'escrow_released' : 'dispute_resolved',
+    title:   winner === 'host' ? '代管款項已撥款' : '問題處理結果',
     message: hostMessage,
     meta:    { groupId: group.id },
   })

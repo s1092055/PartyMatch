@@ -63,9 +63,8 @@ enum DisputeStatus {
 
 enum DisputeResolutionType {
   host_private_resolved
-  member_full_refund
-  host_full_release
-  partial_split
+  member_wins
+  host_wins
 }
 
 enum NotificationType {

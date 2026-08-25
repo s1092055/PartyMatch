@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react'
-import { Handshake, ArrowDownLeft, TrendingUp, SplitSquareHorizontal, ShieldCheck } from 'lucide-react'
+import { Handshake, ArrowDownLeft, TrendingUp, ShieldCheck } from 'lucide-react'
 import { Card } from '../../../components/ui/card'
 import { fetchAdminDisputeHistory } from '../../../common/api/adminApi'
 import { formatRelativeDate } from '../../../common/utils/date'
 
 const RESOLUTION_CONFIG = {
-  host_private_resolved: { label: '團主自行解決', icon: Handshake,               color: 'text-ink-3' },
-  member_full_refund:    { label: '成員全額退款', icon: ArrowDownLeft,            color: 'text-success' },
-  host_full_release:     { label: '團主全額撥款', icon: TrendingUp,               color: 'text-info-text' },
-  partial_split:         { label: '部分退款',     icon: SplitSquareHorizontal,    color: 'text-warning-text' },
+  host_private_resolved: { label: '團主自行解決', icon: Handshake,    color: 'text-ink-3' },
+  member_wins:            { label: '成員獲勝',    icon: ArrowDownLeft, color: 'text-success' },
+  host_wins:               { label: '團主獲勝',   icon: TrendingUp,   color: 'text-info-text' },
 }
 
 function getConfig(type) {

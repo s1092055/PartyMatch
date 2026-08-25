@@ -54,26 +54,35 @@ describe('申訴流程', () => {
     expect((await prisma.group.findUnique({ where: { id: group.id } })).escrowTokens).toBe(MONTHLY_FEE);
   })
 
-  it('管理員裁定成員全額退款：退款給成員、移出群組、群組回 active', async () => {
+  it('管理員裁定成員獲勝：退款給成員、成員留在群組內、群組回 active', async () => {
     const { member, group } = await setupConfirming()
     await raiseDispute({ group, member })
     const admin = await createUser({ isAdmin: true, name: '管理員' })
 
+    const beforeGroup = await prisma.group.findUnique({ where: { id: group.id } })
+
     const res = await request(app)
       .post(`/api/groups/${group.id}/adjudicate`)
       .set('Authorization', authHeader(admin))
-      .send({ memberRefundAmount: MONTHLY_FEE, reason: '確認團主提供的帳密有問題' })
+      .send({ winner: 'member', reason: '確認團主提供的帳密有問題' })
     expect(res.status).toBe(200)
-    expect(res.body.resolutionType).toBe('member_full_refund')
+    expect(res.body.resolutionType).toBe('member_wins')
+    expect(res.body.memberRefundAmount).toBe(MONTHLY_FEE)
+    expect(res.body.hostReleaseAmount).toBe(0)
 
     const groupState = await prisma.group.findUnique({ where: { id: group.id } })
     expect(groupState.status).toBe('active')
     expect(groupState.escrowTokens).toBe(0)
+    expect(groupState.currentMembers).toBe(beforeGroup.currentMembers)
     expect((await prisma.user.findUnique({ where: { id: member.id } })).tokenBalance).toBe(1000)
-    expect(await prisma.member.findFirst({ where: { groupId: group.id, userId: member.id } })).toBeNull()
+
+    const memberRecord = await prisma.member.findFirst({ where: { groupId: group.id, userId: member.id } })
+    expect(memberRecord).not.toBeNull()
+    expect(memberRecord.serviceInfoIssueNote).toBeNull()
+    expect(memberRecord.disputeEvidenceUrl).toBeNull()
 
     const subscription = await prisma.subscription.findFirst({ where: { groupId: group.id, userId: member.id } })
-    expect(subscription.status).toBe('ended')
+    expect(subscription.status).toBe('active')
 
     const refundTx = await prisma.tokenTransaction.findFirst({
       where: { userId: member.id, relatedGroupId: group.id, type: 'refund' },
@@ -81,22 +90,33 @@ describe('申訴流程', () => {
     expect(refundTx?.amount).toBe(MONTHLY_FEE)
   })
 
-  it('管理員裁定團主全額撥款：撥款給團主、群組回 active、成員訂閱維持啟用', async () => {
+  it('管理員裁定團主獲勝：撥款給團主、成員留在群組內、群組回 active', async () => {
     const { host, member, group } = await setupConfirming()
     await raiseDispute({ group, member })
     const admin = await createUser({ isAdmin: true, name: '管理員' })
 
+    const beforeGroup = await prisma.group.findUnique({ where: { id: group.id } })
+
     const res = await request(app)
       .post(`/api/groups/${group.id}/adjudicate`)
       .set('Authorization', authHeader(admin))
-      .send({ memberRefundAmount: 0, reason: '成員操作方式有誤，服務本身正常' })
+      .send({ winner: 'host', reason: '成員操作方式有誤，服務本身正常' })
     expect(res.status).toBe(200)
-    expect(res.body.resolutionType).toBe('host_full_release')
+    expect(res.body.resolutionType).toBe('host_wins')
+    expect(res.body.memberRefundAmount).toBe(0)
+    expect(res.body.hostReleaseAmount).toBe(MONTHLY_FEE)
 
     const groupState = await prisma.group.findUnique({ where: { id: group.id } })
     expect(groupState.status).toBe('active')
     expect(groupState.escrowTokens).toBe(0)
+    expect(groupState.currentMembers).toBe(beforeGroup.currentMembers)
     expect((await prisma.user.findUnique({ where: { id: host.id } })).tokenBalance).toBe(MONTHLY_FEE)
+    expect((await prisma.user.findUnique({ where: { id: member.id } })).tokenBalance).toBe(1000 - MONTHLY_FEE)
+
+    const memberRecord = await prisma.member.findFirst({ where: { groupId: group.id, userId: member.id } })
+    expect(memberRecord).not.toBeNull()
+    expect(memberRecord.serviceInfoIssueNote).toBeNull()
+    expect(memberRecord.disputeEvidenceUrl).toBeNull()
 
     const subscription = await prisma.subscription.findFirst({ where: { groupId: group.id, userId: member.id } })
     expect(subscription.status).toBe('active')
@@ -107,36 +127,7 @@ describe('申訴流程', () => {
     expect(releaseTx?.amount).toBe(MONTHLY_FEE)
   })
 
-  it('管理員裁定部分退款：成員留在群組、雙方各拿到部分金額', async () => {
-    const { host, member, group } = await setupConfirming()
-    await raiseDispute({ group, member })
-    const admin = await createUser({ isAdmin: true, name: '管理員' })
-
-    const res = await request(app)
-      .post(`/api/groups/${group.id}/adjudicate`)
-      .set('Authorization', authHeader(admin))
-      .send({ memberRefundAmount: 100, reason: '雙方各有部分責任' })
-    expect(res.status).toBe(200)
-    expect(res.body.resolutionType).toBe('partial_split')
-    expect(res.body.memberRefundAmount).toBe(100)
-    expect(res.body.hostReleaseAmount).toBe(MONTHLY_FEE - 100)
-
-    const groupState = await prisma.group.findUnique({ where: { id: group.id } })
-    expect(groupState.status).toBe('active')
-    expect(groupState.escrowTokens).toBe(0)
-    expect((await prisma.user.findUnique({ where: { id: member.id } })).tokenBalance).toBe(1000 - MONTHLY_FEE + 100)
-    expect((await prisma.user.findUnique({ where: { id: host.id } })).tokenBalance).toBe(MONTHLY_FEE - 100)
-
-    const memberRecord = await prisma.member.findFirst({ where: { groupId: group.id, userId: member.id } })
-    expect(memberRecord).not.toBeNull()
-    expect(memberRecord.serviceInfoIssueNote).toBeNull()
-    expect(memberRecord.disputeEvidenceUrl).toBeNull()
-
-    const subscription = await prisma.subscription.findFirst({ where: { groupId: group.id, userId: member.id } })
-    expect(subscription.status).toBe('active')
-  })
-
-  it('管理員裁定退款金額超過席位費用：拒絕', async () => {
+  it('管理員裁定 winner 傳入無效值：拒絕', async () => {
     const { member, group } = await setupConfirming()
     await raiseDispute({ group, member })
     const admin = await createUser({ isAdmin: true, name: '管理員' })
@@ -144,11 +135,11 @@ describe('申訴流程', () => {
     const res = await request(app)
       .post(`/api/groups/${group.id}/adjudicate`)
       .set('Authorization', authHeader(admin))
-      .send({ memberRefundAmount: MONTHLY_FEE + 1, reason: '超額測試' })
+      .send({ winner: 'nobody', reason: '無效測試' })
     expect(res.status).toBe(400)
   })
 
-  it('裁定紀錄在申訴發起當下就建立，成員全額退款移出群組後歷史仍可查詢', async () => {
+  it('裁定紀錄在申訴發起當下就建立，成員獲勝後歷史仍可查詢', async () => {
     const { member, group } = await setupConfirming()
     await raiseDispute({ group, member })
 
@@ -160,11 +151,11 @@ describe('申訴流程', () => {
     await request(app)
       .post(`/api/groups/${group.id}/adjudicate`)
       .set('Authorization', authHeader(admin))
-      .send({ memberRefundAmount: MONTHLY_FEE, reason: '確認團主提供的帳密有問題' })
+      .send({ winner: 'member', reason: '確認團主提供的帳密有問題' })
 
     const resolved = await prisma.dispute.findUnique({ where: { id: pending.id } })
     expect(resolved.status).toBe('adjudicated')
-    expect(resolved.resolutionType).toBe('member_full_refund')
+    expect(resolved.resolutionType).toBe('member_wins')
     expect(resolved.resolvedByAdminId).toBe(admin.id)
   })
 })
