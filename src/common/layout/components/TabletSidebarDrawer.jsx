@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronLeft, LogIn, LogOut, Menu, Settings, ShieldCheck, Star, User } from 'lucide-react'
+import { ChevronLeft, ChevronRight, LogIn, LogOut, Menu, Settings, ShieldCheck, Star, User } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
 import { NAV_SECTIONS } from '../nav'
 import { Avatar } from '../../../components/ui/avatar'
@@ -255,11 +255,10 @@ export default function TabletSidebarDrawer(
                   className="flex h-full shrink-0 flex-col overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                   style={{ width: '50%' }}
                 >
-                  <div className="flex flex-1 flex-col items-center justify-center gap-3 px-3 py-4">
-                    <div className="flex flex-col items-center gap-3 text-center">
-                      <span className="relative shrink-0 shadow-md rounded-full">
-                        <Avatar initial={avatarInitial} color={avatarColor} size="xl" />
-                        <PresenceDot status={presenceStatus} className="absolute bottom-1 right-1 h-4 w-4" />
+                  <div className="flex flex-1 flex-col items-center justify-center gap-6 px-3 py-4">
+                    <div className="flex flex-col items-center gap-4 text-center">
+                      <span className="shrink-0 shadow-md rounded-full">
+                        <Avatar initial={avatarInitial} color={avatarColor} size="xl" className="h-28 w-28 text-4xl" />
                       </span>
                       <span className="min-w-0 truncate text-lg font-extrabold text-ink">{userName}</span>
                     </div>
@@ -278,38 +277,42 @@ export default function TabletSidebarDrawer(
                         ))}
                       </SelectContent>
                     </Select>
-                    <div className="grid w-full grid-cols-2 gap-3 px-1">
+                    <div className="flex w-full flex-col gap-4 px-1">
                       <button
                         type="button"
                         onClick={() => openUserPanel('profile')}
-                        className="flex h-24 flex-col items-center justify-center gap-2 rounded-2xl border border-line bg-surface text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
+                        className="flex h-12 w-full items-center gap-3 rounded-xl border border-line bg-surface px-4 text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
                       >
-                        <User size={24} strokeWidth={1.5} className="shrink-0" />
-                        個人資料
+                        <User size={20} strokeWidth={1.5} className="shrink-0" />
+                        <span className="flex-1 text-left">個人資料</span>
+                        <ChevronRight size={16} strokeWidth={1.5} className="shrink-0 text-ink-4" />
                       </button>
                       <button
                         type="button"
                         onClick={() => openUserPanel('credit')}
-                        className="flex h-24 flex-col items-center justify-center gap-2 rounded-2xl border border-line bg-surface text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
+                        className="flex h-12 w-full items-center gap-3 rounded-xl border border-line bg-surface px-4 text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
                       >
-                        <ShieldCheck size={24} strokeWidth={1.5} className="shrink-0" />
-                        信用分數
+                        <ShieldCheck size={20} strokeWidth={1.5} className="shrink-0" />
+                        <span className="flex-1 text-left">信用分數</span>
+                        <ChevronRight size={16} strokeWidth={1.5} className="shrink-0 text-ink-4" />
                       </button>
                       <button
                         type="button"
                         onClick={() => openUserPanel('reviews')}
-                        className="flex h-24 flex-col items-center justify-center gap-2 rounded-2xl border border-line bg-surface text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
+                        className="flex h-12 w-full items-center gap-3 rounded-xl border border-line bg-surface px-4 text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
                       >
-                        <Star size={24} strokeWidth={1.5} className="shrink-0" />
-                        我的評價
+                        <Star size={20} strokeWidth={1.5} className="shrink-0" />
+                        <span className="flex-1 text-left">我的評價</span>
+                        <ChevronRight size={16} strokeWidth={1.5} className="shrink-0 text-ink-4" />
                       </button>
                       <button
                         type="button"
                         onClick={() => openUserPanel('settings')}
-                        className="flex h-24 flex-col items-center justify-center gap-2 rounded-2xl border border-line bg-surface text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
+                        className="flex h-12 w-full items-center gap-3 rounded-xl border border-line bg-surface px-4 text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
                       >
-                        <Settings size={24} strokeWidth={1.5} className="shrink-0" />
-                        偏好設定
+                        <Settings size={20} strokeWidth={1.5} className="shrink-0" />
+                        <span className="flex-1 text-left">偏好設定</span>
+                        <ChevronRight size={16} strokeWidth={1.5} className="shrink-0 text-ink-4" />
                       </button>
                     </div>
                   </div>
