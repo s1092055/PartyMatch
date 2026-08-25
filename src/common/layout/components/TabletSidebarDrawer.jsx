@@ -236,7 +236,7 @@ export default function TabletSidebarDrawer(
                     </button>
                     {(() => {
                       const PanelIcon = USER_PANELS[userPanel].icon
-                      return <PanelIcon size={16} strokeWidth={1.5} className="shrink-0 text-brand" />
+                      return <PanelIcon size={16} strokeWidth={1.5} className="shrink-0 text-ink" />
                     })()}
                     <span className="min-w-0 truncate font-extrabold text-ink">{USER_PANELS[userPanel].title}</span>
                   </>
