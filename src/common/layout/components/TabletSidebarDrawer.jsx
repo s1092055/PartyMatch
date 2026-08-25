@@ -252,17 +252,17 @@ export default function TabletSidebarDrawer(
                 onTransitionEnd={handleUserPanelTrackTransitionEnd}
               >
                 <div
-                  className="flex shrink-0 flex-col overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                  className="flex h-full shrink-0 flex-col overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                   style={{ width: '50%' }}
                 >
-                  <div className="flex flex-col items-center gap-3 px-3 pb-4 pt-6 text-center">
-                    <span className="relative shrink-0 shadow-md rounded-full">
-                      <Avatar initial={avatarInitial} color={avatarColor} size="xl" />
-                      <PresenceDot status={presenceStatus} className="absolute bottom-1 right-1 h-4 w-4" />
-                    </span>
-                    <span className="min-w-0 truncate text-lg font-extrabold text-ink">{userName}</span>
-                  </div>
-                  <div className="px-4 pb-3">
+                  <div className="flex flex-1 flex-col items-center justify-center gap-3 px-3 py-4">
+                    <div className="flex flex-col items-center gap-3 text-center">
+                      <span className="relative shrink-0 shadow-md rounded-full">
+                        <Avatar initial={avatarInitial} color={avatarColor} size="xl" />
+                        <PresenceDot status={presenceStatus} className="absolute bottom-1 right-1 h-4 w-4" />
+                      </span>
+                      <span className="min-w-0 truncate text-lg font-extrabold text-ink">{userName}</span>
+                    </div>
                     <Select value={presenceStatus} onValueChange={changePresence}>
                       <SelectTrigger aria-label="設定目前狀態" className="mx-auto w-auto min-w-36 justify-center gap-2 [&>svg]:hidden">
                         <SelectValue />
@@ -278,42 +278,42 @@ export default function TabletSidebarDrawer(
                         ))}
                       </SelectContent>
                     </Select>
+                    <div className="grid w-full grid-cols-2 gap-3 px-1">
+                      <button
+                        type="button"
+                        onClick={() => openUserPanel('profile')}
+                        className="flex h-24 flex-col items-center justify-center gap-2 rounded-2xl border border-line bg-surface text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
+                      >
+                        <User size={24} strokeWidth={1.5} className="shrink-0" />
+                        個人資料
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => openUserPanel('credit')}
+                        className="flex h-24 flex-col items-center justify-center gap-2 rounded-2xl border border-line bg-surface text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
+                      >
+                        <ShieldCheck size={24} strokeWidth={1.5} className="shrink-0" />
+                        信用分數
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => openUserPanel('reviews')}
+                        className="flex h-24 flex-col items-center justify-center gap-2 rounded-2xl border border-line bg-surface text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
+                      >
+                        <Star size={24} strokeWidth={1.5} className="shrink-0" />
+                        我的評價
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => openUserPanel('settings')}
+                        className="flex h-24 flex-col items-center justify-center gap-2 rounded-2xl border border-line bg-surface text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
+                      >
+                        <Settings size={24} strokeWidth={1.5} className="shrink-0" />
+                        偏好設定
+                      </button>
+                    </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-3 px-4 pb-2">
-                    <button
-                      type="button"
-                      onClick={() => openUserPanel('profile')}
-                      className="flex h-24 flex-col items-center justify-center gap-2 rounded-2xl border border-line bg-surface text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
-                    >
-                      <User size={24} strokeWidth={1.5} className="shrink-0" />
-                      個人資料
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => openUserPanel('credit')}
-                      className="flex h-24 flex-col items-center justify-center gap-2 rounded-2xl border border-line bg-surface text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
-                    >
-                      <ShieldCheck size={24} strokeWidth={1.5} className="shrink-0" />
-                      信用分數
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => openUserPanel('reviews')}
-                      className="flex h-24 flex-col items-center justify-center gap-2 rounded-2xl border border-line bg-surface text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
-                    >
-                      <Star size={24} strokeWidth={1.5} className="shrink-0" />
-                      我的評價
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => openUserPanel('settings')}
-                      className="flex h-24 flex-col items-center justify-center gap-2 rounded-2xl border border-line bg-surface text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
-                    >
-                      <Settings size={24} strokeWidth={1.5} className="shrink-0" />
-                      偏好設定
-                    </button>
-                  </div>
-                  <div className="px-4 pb-2 pt-3">
+                  <div className="shrink-0 px-4 pb-4 pt-3">
                     <button
                       type="button"
                       onClick={() => { closeUserMenu(); logout() }}
