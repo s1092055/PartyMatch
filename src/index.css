@@ -1,69 +1,41 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* 建立群組 Step3（群組設定）的左右兩欄版面只在「桌機寬度 + 螢幕不高」時才切成並排，
-   螢幕夠高（例如大螢幕外接顯示器）時改回跟手機/平板一樣的垂直排列。下限 640px：
-   視窗矮到這個程度時（例如筆電視窗沒有最大化、瀏覽器又開了書籤列/DevTools），
-   並排會讓可用高度過於侷促，改回垂直排列靠一般頁面捲動顯示內容 */
 @custom-variant short-lg (@media (min-width: 1024px) and (max-height: 899px) and (min-height: 640px));
-
-/* 深色模式是手動切換 <html class="dark">（見 theme-provider.jsx），不是跟著系統
-   偏好走，所以 dark: 要對應 class 而非預設的 prefers-color-scheme media query */
 @custom-variant dark (&:where(.dark, .dark *));
-
-/* 真正有滑鼠 hover 能力的裝置才會命中（(hover: hover) and (pointer: fine)）。斷點回到
-   正常的寬度分段後，寬度不再能用來猜「這是桌機還是觸控裝置」——iPad 橫向常常比筆電視窗更寬，
-   直接用 lg: 判斷會誤判成桌機。所有「靠 hover 展開/顯示內容」的元件（側邊欄展開、捲動提示、
-   推薦群組的左右箭頭…）都要疊加 can-hover:，跟 lg: 一起用（stack 起來等同 AND）才會排除觸控裝置；
-   純粹看「螢幕夠不夠寬」的版面（modal 分欄、grid 欄數）不用疊加，直接用一般斷點即可 */
 @custom-variant can-hover (@media (hover: hover) and (pointer: fine));
-
-/* can-hover 的反面（De Morgan：NOT(hover:hover AND pointer:fine) = hover:none OR
-   pointer:coarse，逗號在 media query 裡就是 OR），給「lg 以上寬度、但沒有 hover 能力」
-   這個 iPad 專屬級距用（例如 TabletSidebarDrawer 的觸發按鈕），要跟 lg: 疊加使用 */
 @custom-variant no-hover (@media (hover: none), (pointer: coarse));
 
 @theme {
-  /* ── Breakpoints（標準五段式：sm 640 / md 768 / lg 1024 / xl 1280 / 2xl 1536）──
-     裝置類型相關（尤其是靠 hover 展開內容）的版面切換不能只看寬度，要疊加上面的
-     can-hover:，見該 custom-variant 的說明 */
   --breakpoint-sm: 640px;
   --breakpoint-md: 768px;
   --breakpoint-lg: 1024px;
   --breakpoint-xl: 1280px;
   --breakpoint-2xl: 1536px;
 
-  /* ── Font ── */
   --font-sans: "Noto Sans TC", "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 
-  /* ── Brand ── */
   --color-brand:           #023047;
   --color-brand-hover:     #03456a;
-  --color-brand-active:    #01222e;
   --color-brand-subtle:    #eaf2f7;
   --color-brand-muted:     #c3dbe8;
   --color-brand-border:    #7ab3ca;
   --color-brand-strong:    #011e2d;
 
-  /* ── Surface ── */
   --color-canvas:          #FFFFFF;
   --color-surface:         #FFFFFF;
-  --color-surface-soft:    #FAFCFF;
   --color-raised:          #F3F7FE;
   --color-raised-2:        #EAF1FB;
 
-  /* ── Border ── */
   --color-line:            #DCE6F5;
   --color-line-subtle:     #EDF3FB;
   --color-line-strong:     #C7D6EA;
 
-  /* ── Text ── */
   --color-ink:             #081226;
   --color-ink-2:           #36455F;
   --color-ink-3:           #5E6E86;
   --color-ink-4:           #64718A;
 
-  /* ── Slate scale (mapped to project palette) ── */
   --color-slate-50:        #F7FAFF;
   --color-slate-100:       #EEF3FA;
   --color-slate-200:       #DCE6F5;
@@ -75,7 +47,6 @@
   --color-slate-800:       #101B31;
   --color-slate-900:       #081226;
 
-  /* ── Semantic ── */
   --color-success:         #10B26C;
   --color-success-subtle:  #ECFDF5;
   --color-success-text:    #08764A;
@@ -102,10 +73,6 @@
   --color-teal-text:     #0F766E;
   --color-teal-border:   #99F6E4;
 
-  /* ── shadcn/ui 語意 token（遷移用，全部是既有色板的別名，非新色碼）──
-     shadcn/Radix 生態的元件（Button、Dialog、Select…）依賴這組固定命名的
-     CSS 變數才能運作。這裡只做別名，不引入新色碼，確保品牌色/中性色仍只有
-     一份真實來源（--color-brand 等），視覺不會因為換元件庫而跑掉。 */
   --color-background:            var(--color-canvas);
   --color-foreground:            var(--color-ink);
   --color-primary:                var(--color-brand);
@@ -126,28 +93,9 @@
   --color-input:                  var(--color-line-strong);
   --color-ring:                   var(--color-brand-border);
 
-  /* shadcn 生成的元件（如 Button 的 xs/sm 尺寸）用 --radius-sm/--radius-md
-     組 arbitrary value（例如 min(var(--radius-md),10px)）。刻意不引入會連動
-     覆蓋 rounded-lg/2xl 的通用 --radius，只針對這兩個尚未被既有系統佔用
-     的名稱手動指定對應的既有 token。 */
   --radius-sm: var(--radius-control);
   --radius-md: var(--radius-control);
 
-  /* ── Radius ──
-     全站圓角只留 3 種規格＋rounded-full（不算在內，那是形狀而非圓角刻度）：
-     control（小型控制項：按鈕、輸入框、標籤、列表項）／2xl（中型容器：卡片、
-     面板、對話框內容）／card（最大型獨立版面：Dialog 主體、Card 元件）。
-     --radius-control／--radius-inner／--radius-lg 過去是三個數值相近但不同
-     （14px／14px／12px）的 token，現在統一收斂成同一個值，rounded-lg／
-     rounded-control／rounded-inner／rounded-md/sm 這些 class 名稱雖然不同，
-     視覺上都是同一種「小圓角」。
-     注意：--radius-lg/2xl 已經被全站既有元件大量使用（`rounded-lg`／`rounded-2xl`
-     等 Tailwind utility），shadcn 官方 recipe 慣例會另外宣告一個 --radius 基準值，
-     用 calc() 派生出 sm/md/lg/xl 四階並覆蓋這幾個既有名稱——這裡刻意不那樣做，
-     避免全站既有元件的圓角被 shadcn 初始化一次性改掉。之後在階段 3 移植每個
-     shadcn 元件時，改成逐一手動指定該元件該對應哪個既有 --radius-* token
-     （例如 Button 用 --radius-control、Dialog 用 --radius-card），不要引入
-     會連動覆蓋 rounded-lg/2xl 的通用 --radius 變數。 */
   --radius-card:    1.75rem;
   --radius-inner:   0.75rem;
   --radius-control: 0.75rem;
@@ -155,7 +103,6 @@
   --radius-lg:      0.75rem;
   --radius-2xl:     1.25rem;
 
-  /* ── Type scale ── */
   --text-2xs:       0.6875rem;
   --text-2xs--line-height: 1.4;
   --text-xs:        0.75rem;
@@ -175,7 +122,6 @@
   --text-4xl:       2.75rem;
   --text-4xl--line-height: 1.08;
 
-  /* ── Shadow ── */
   --shadow-card:
     0 12px 30px -24px rgb(20 44 91 / 0.58),
     0 2px 10px -8px rgb(20 44 91 / 0.22);
@@ -198,27 +144,16 @@
     0 10px 18px -12px rgb(16 178 108 / 0.75);
 }
 
-/* ── Base ── */
 @layer base {
   :root {
     color-scheme: light;
   }
 
-  /* 深色模式（實用版）：只翻轉中性色階（canvas/surface/line/ink/slate）與各狀態色的
-     pill/chip 淺底色（*-subtle/*-text），確保全站可讀性；danger/success/warning/info
-     等狀態「實色」與陰影大致沿用原色碼，不逐一重新設計。--color-brand 例外重新調過：
-     它同時被當背景色（搭白字按鈕）跟文字色（`text-brand`，112 處用到）用，深色背景下
-     原本的深藏青文字幾乎看不見；第一版直接借用既有「Blue scale」的亮藍色，色相跟品牌色
-     （#023047，藏青偏青色系）完全不同，看起來像換了一個不相干的廠牌色，跟全站其餘沿用
-     原色系的中性色階很不搭。這裡改成保留品牌色原本的色相，只調高明度/微調飽和度做出
-     可讀的淺色版本，維持同一個色彩家族。
-     切換邏輯見 src/components/theme-provider.jsx，class 掛在 <html> 上。 */
   :root.dark {
     color-scheme: dark;
 
     --color-canvas:          #0A121C;
     --color-surface:         #111B29;
-    --color-surface-soft:    #0D1520;
     --color-raised:          #16212F;
     --color-raised-2:        #1C2836;
 
@@ -244,7 +179,6 @@
 
     --color-brand:           #238EC7;
     --color-brand-hover:     #3AA2DA;
-    --color-brand-active:    #1877AA;
     --color-brand-subtle:    #142834;
     --color-brand-muted:     #1C4154;
     --color-brand-border:    #316581;
@@ -273,41 +207,26 @@
 
   html {
     font-family: var(--font-sans);
-    /* 流體字級：375px 視窗 = 15px，1280px 以上 = 17px，中間隨視窗寬度連續縮放；
-       所有 --text-* token 皆為 rem，故全站文字皆隨此根字體大小一起縮放 */
     font-size: clamp(15px, 14.17px + 0.221vw, 17px);
     overflow-y: scroll;
     scrollbar-gutter: stable;
   }
 
-  /* Radix（Select/Dialog 等）開啟時會透過 react-remove-scroll-bar 注入一段
-     <style>，對 body[data-scroll-locked] 加上 margin-right: <捲軸寬度>px
-     !important，想藉此補償「捲軸被暫時藏起來」讓出的空間——但本站的捲軸
-     一直是常駐顯示（上面 html 的 overflow-y: scroll），從頭到尾沒有真的
-     被藏起來過，所以這段補償是多算的，會把 body 往左推、造成內容偏移。
-     用比對方選擇器（body[data-scroll-locked]）更高優先度的寫法蓋掉這個
-     margin-right，不動 overflow: hidden（那部分是真的要鎖背景捲動）。 */
+  /* 捲軸常駐顯示，不需要 react-remove-scroll-bar 補的 margin-right，蓋掉避免內容偏移 */
   html body[data-scroll-locked] {
     margin-right: 0 !important;
   }
 
-  /* react-remove-scroll 只會鎖 body 的 overflow，但本站真正的捲動容器是 html
-     （上面 overflow-y: scroll 那條規則讓 html 變成 document.scrollingElement），
-     鎖 body 對 html 完全沒有作用，導致 Modal/Dialog 開啟時背景頁面依然可以捲動。
-     跟著 body[data-scroll-locked] 一起把 html 也鎖住，桌機/手機都適用（沒有斷點限制） */
+  /* 真正的捲動容器是 html 不是 body，react-remove-scroll 只鎖 body 沒用，這裡補鎖 html */
   html:has(body[data-scroll-locked]) {
     overflow: hidden;
   }
 
   @media (max-width: 767px) {
-    /* iOS Safari 對 font-size < 16px 的 input 會強制縮放整頁 */
     input, select, textarea { font-size: 16px; }
   }
 
-  /* 瀏覽器原生 :focus-visible 判斷對 combobox/自訂互動元件（例如 Radix
-     Select trigger）不準，滑鼠點擊仍可能顯示 focus outline／ring。用
-     main.jsx 偵測到的實際輸入方式（見 .using-mouse class）取代瀏覽器判斷，
-     滑鼠操作一律不顯示，鍵盤 Tab 導覽時焦點框仍保留 */
+  /* 覆蓋瀏覽器對 Radix 等自訂元件不準的 :focus-visible 判斷：滑鼠不顯示、鍵盤才顯示 */
   html.using-mouse *:focus,
   html.using-mouse *:focus-visible {
     outline: none !important;
@@ -357,8 +276,6 @@
     transition: transform 0.15s ease;
   }
 
-  /* [role="button"] 元素（通常是大型可點擊區塊）才套用上浮效果；
-     一般 <button>（icon、tab、圓點等小控件）不上浮，避免跳動感 */
   [role="button"]:not([aria-disabled="true"]):hover {
     transform: translateY(-2px);
   }
@@ -369,29 +286,16 @@
   }
 }
 
-/* Toast 容器水平位置刻意對齊首頁 Logo／標題的視覺中心（= 扣掉桌機側邊欄佔用空間後的內容
-   置中位置），而不是單純視窗置中，全站所有頁面統一套用同一個位置，不隨頁面本身的留白
-   對不對稱而改變。只在跟側邊欄同一個斷點（1280px）生效；sonner 本身的手機版位移邏輯只在
-   max-width:600px 生效，跟這裡的 1280px 斷點不重疊，不會互相影響 */
-/* sonner 的置中定位只置中「容器」本身（寬度固定為 --width，預設 356px），容器裡的
-   個別 toast 因為 unstyled + w-max（寬度依內容縮放）沒有自己置中，預設貼齊容器左緣，
-   內容比容器窄時視覺上就會偏左，看起來完全沒置中。用 left:0/right:0 + margin 自動置中
-   這個經典技巧讓個別 toast 在容器內部也置中，不能用 transform:translateX(-50%)，
-   因為 transform 已經被進場/離場動畫用來做垂直位移（--y），會互相覆蓋打架 */
+/* sonner 只置中容器本身，容器內的 toast 要另外手動置中；不能用 translateX(-50%)，
+   會跟進出場動畫的 transform 打架 */
 [data-sonner-toast] {
   left: 0 !important;
   right: 0 !important;
   margin-inline: auto !important;
-  /* sonner 手機版（max-width:600px）另外會把寬度改成 calc(100% - offset*2)，
-     蓋掉我們自己 w-max（依內容縮放寬度）的設計，這裡一併鎖死寬度不讓它蓋過去，
-     避免內容窄的 toast 在手機上被拉成快滿版寬、置中計算跟著跑掉 */
   width: fit-content !important;
   max-width: min(24rem, calc(100vw - 2rem)) !important;
 }
 
-/* 手機／iPad（沒有 hover 能力）左上角都有 TabletSidebarDrawer 的觸發鈕
-   （fixed top-4 h-12）、右上角有 DesktopSidebar 的浮動通知按鈕，這裡統一留一點
-   頂部留白避免 toast 貼齊畫面最頂端跟這兩顆按鈕擠在一起 */
 @media (max-width: 1279px) {
   [data-sonner-toaster] {
     --offset-top: 4.5rem !important;
@@ -404,13 +308,7 @@
   }
 }
 
-/* ── Component Primitives ── */
 @layer components {
-
-  /* ─ Layout / Cards ─ */
-  /* 群組卡片（探索/我的訂閱/群組管理）hover 時整張卡片微幅放大，取代陰影式 hover：
-     transform-gpu + backface-visibility 避免 scale 過場時文字模糊。基礎卡片樣式已改用
-     components/ui/card.jsx 的 Card 元件，這裡只保留元件沒有的 hover 放大 variant */
   .card-lift {
     box-shadow: none;
     transition: transform 0.2s ease;
@@ -421,7 +319,6 @@
     transform: translateZ(0) scale(1.02);
   }
 
-  /* ─ Typography helpers ─ */
   .page-title {
     color: var(--color-ink);
     font-size: var(--text-2xl);
@@ -437,8 +334,6 @@
   }
 }
 
-/* Hero 服務浮動泡泡：由下往上緩緩飄浮＋左右微幅飄移，中途淡入、快到頂端前淡出，
-   --bubble-drift／--bubble-float 由每個 icon 各自的 inline style 帶入不同數值 */
 @keyframes bubble-float {
   0%   { transform: translate(0, 0); opacity: 0; }
   15%  { opacity: 0.9; }
@@ -471,13 +366,8 @@
   white-space: nowrap;
   vertical-align: bottom;
   border-right: 2px solid var(--color-brand);
-  /* 結束寬度用 LoadingScreen.jsx 量出來的實際像素寬度（--typewriter-width），
-     取代猜的 10ch 或 max-content 關鍵字。曾經改用 max-content 想解決 10ch 跟
-     實際文字寬度對不起來、置中會偏移的問題，但 max-content 是關鍵字，要搭配
-     interpolate-size: allow-keywords 才能讓 width 動畫平滑跑到這個值，這個屬性
-     目前只有 Chrome/Edge 支援，Safari（iOS）不支援時整段動畫直接失效、變成瞬間
-     跳到最終寬度，等於打字效果整個消失。改成量測出來的實際 px 數字（不是關鍵字）
-     動畫全瀏覽器都能正常跑，同時保留精準置中 */
+  /* 用量測出的實際 px 寬度（--typewriter-width）而非 max-content：Safari 不支援
+     interpolate-size，動畫會直接失效變成瞬間跳到最終寬度 */
   animation:
     typewriter 3.5s steps(10, end) forwards,
     typewriterCaret 0.75s step-end infinite;
@@ -526,8 +416,6 @@
   animation: backdropIn 0.25s ease-out both;
 }
 
-/* Radix Collapsible 展開/收合，用它注入的 --radix-collapsible-content-height 變數，
-   吃真實內容高度做過渡，不是寫死的固定高度 */
 @keyframes collapsibleDown {
   from { height: 0; }
   to   { height: var(--radix-collapsible-content-height); }
@@ -546,10 +434,6 @@
   animation: collapsibleUp 0.2s ease-out;
 }
 
-/* Select／FilterSelect 這類浮動選單的進場動畫，只做開啟（Radix Portal 一關閉就直接
-   從 DOM 移除，不會停留播放收合動畫，跟 DialogContent 只有 animate-modal-in 沒有對應
-   的關閉動畫是同一個理由）；從稍微往上 4px 的位置淡入滑下定位，不像 Collapsible 是把
-   下面內容推開，這裡是浮動 Portal，展開/收合不影響周圍版面高度 */
 @keyframes selectContentIn {
   from { opacity: 0; transform: scale(0.96) translateY(-4px); }
   to   { opacity: 1; transform: scale(1) translateY(0); }
@@ -561,7 +445,6 @@
   backface-visibility: hidden;
 }
 
-/* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
