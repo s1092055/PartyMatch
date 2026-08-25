@@ -5,12 +5,12 @@ import TokenAmount from '../TokenAmount'
 import CreditScoreValue from '../CreditScoreValue'
 
 const TAG_CONFIG = {
-  '審核制':    { Icon: Clock,        cls: 'bg-amber-50  border border-amber-200 text-amber-700'   },
+  '審核制':    { Icon: Clock,        cls: 'bg-warning-subtle border border-warning/30 text-warning-text' },
   '每月付款':  { Icon: Calendar,     cls: 'bg-info-subtle border border-info/30 text-info-text'    },
   '年付':      { Icon: Calendar,     cls: 'bg-info-subtle border border-info/30 text-info-text'    },
   '需自備帳號': { Icon: User,        cls: 'bg-success-subtle border border-success/30 text-success-text'   },
-  '共享帳號':  { Icon: Users,        cls: 'bg-purple-50 border border-purple-200 text-purple-700' },
-  '自動加入':  { Icon: CheckCircle2, cls: 'bg-teal-50   border border-teal-200  text-teal-700'    },
+  '共享帳號':  { Icon: Users,        cls: 'bg-purple-subtle border border-purple-border text-purple-text' },
+  '自動加入':  { Icon: CheckCircle2, cls: 'bg-teal-subtle border border-teal-border text-teal-text' },
 }
 const DEFAULT_TAG = { Icon: Info, cls: 'bg-raised border border-line text-ink-2' }
 
