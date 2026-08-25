@@ -186,7 +186,7 @@ export function SettingsModalBody({ onClose }) {
 export default function SettingsModal({ isOpen, onClose }) {
   return (
     <Dialog open={isOpen} onOpenChange={v => { if (!v) onClose() }}>
-      <DialogContent maxWidth="max-w-md" className="max-h-[min(80dvh,640px)]">
+      <DialogContent maxWidth="max-w-md" height="min(80dvh, 640px)">
         <DialogHeader>
           <DialogTitle>偏好設定</DialogTitle>
           <DialogCloseButton />
