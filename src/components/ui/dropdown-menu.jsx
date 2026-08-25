@@ -113,7 +113,7 @@ export function DropdownMenuCheckboxItem({ className, children, checked, ...prop
       {...props}
     >
       <DropdownMenuPrimitive.ItemIndicator className="absolute left-1.5 inline-flex items-center">
-        <Check size={14} strokeWidth={2.5} className="text-brand" />
+        <Check size={14} strokeWidth={1.5} className="text-brand" />
       </DropdownMenuPrimitive.ItemIndicator>
       {children}
     </DropdownMenuPrimitive.CheckboxItem>

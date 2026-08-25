@@ -29,7 +29,7 @@ export function buildMemberInfoPanel(
                         <button
                           type="button"
                           onClick={onTogglePassword}
-                          className="shrink-0 rounded-md p-1 text-ink-4 transition-colors hover:bg-raised hover:text-ink-2"
+                          className="shrink-0 rounded-control p-1 text-ink-4 transition-colors hover:bg-raised hover:text-ink-2"
                         >
                           {showPassword ? <EyeOff size={14} strokeWidth={1.5} /> : <Eye size={14} strokeWidth={1.5} />}
                         </button>
@@ -72,7 +72,7 @@ export function buildMemberInfoPanel(
                       onClick={() => onResolveDispute(m)}
                       className="flex h-16 shrink-0 flex-col items-center justify-center gap-0.5 rounded-lg border border-success/60 bg-transparent px-3 text-xs text-success-text hover:bg-success-subtle"
                     >
-                      <CheckCircle2 size={13} />
+                      <CheckCircle2 strokeWidth={1.5} size={13} />
                       處理完成
                     </Button>
                   )}

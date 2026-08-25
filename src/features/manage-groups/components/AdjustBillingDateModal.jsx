@@ -24,7 +24,7 @@ export default function AdjustBillingDateModal({
       <DialogContent variant="panel" maxWidth="max-w-sm" instant>
         <DialogHeader>
           <div className="flex min-w-0 items-center gap-2.5">
-            <CalendarClock size={18} className="shrink-0 text-brand" />
+            <CalendarClock strokeWidth={1.5} size={18} className="shrink-0 text-brand" />
             <DialogTitle className="truncate text-base">調整下次扣款日</DialogTitle>
           </div>
           <DialogCloseButton />

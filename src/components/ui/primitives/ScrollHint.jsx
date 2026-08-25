@@ -8,7 +8,7 @@ export default function ScrollHint({ canScroll, atBottom, isScrolling }) {
         isScrolling ? 'opacity-0' : 'opacity-100'
       }`}
     >
-      <div className="grid h-8 w-8 place-items-center rounded-full border border-line bg-canvas text-ink-3 shadow-md animate-bounce">
+      <div className="grid h-8 w-8 place-items-center rounded-full border border-line bg-canvas text-ink-3 shadow-floating animate-bounce">
         {atBottom ? <ChevronUp size={16} strokeWidth={1.5} /> : <ChevronDown size={16} strokeWidth={1.5} />}
       </div>
     </div>

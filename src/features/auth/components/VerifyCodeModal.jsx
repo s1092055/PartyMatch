@@ -11,7 +11,7 @@ export function VerifyTrailingButton({ verified, disabled, onClick }) {
   if (verified) {
     return (
       <span className="flex shrink-0 items-center gap-1 text-xs font-bold text-success-text">
-        <CheckCircle2 size={14} /> 已驗證
+        <CheckCircle2 strokeWidth={1.5} size={14} /> 已驗證
       </span>
     )
   }

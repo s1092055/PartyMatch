@@ -29,8 +29,8 @@ export function getServiceTypeIcon(serviceId, { size = 64 } = {}) {
     return {
       src: '',
       alt: '未知服務 icon',
-      surface: '#F3F7FE',
-      color: '#71819B',
+      surface: 'var(--color-raised)',
+      color: '#64718A',
       fallbackText: '?',
     }
   }
@@ -48,7 +48,7 @@ export function getServiceTypeIcon(serviceId, { size = 64 } = {}) {
   return {
     src,
     alt: `${service.name} icon`,
-    surface: '#FFFFFF',
+    surface: 'var(--color-surface)',
     color: service.color,
     fallbackText: service.initial,
   }

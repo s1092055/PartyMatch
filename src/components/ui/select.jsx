@@ -17,7 +17,7 @@ export function SelectTrigger({ className, children, ...props }) {
     >
       {children}
       <SelectPrimitive.Icon asChild>
-        <ChevronDown size={16} className="shrink-0 text-ink-4 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+        <ChevronDown strokeWidth={1.5} size={16} className="shrink-0 text-ink-4 transition-transform duration-200 group-data-[state=open]:rotate-180" />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   )
@@ -59,7 +59,7 @@ export function SelectItem({ className, children, ...props }) {
     >
       <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center text-brand">
         <SelectPrimitive.ItemIndicator>
-          <Check size={14} />
+          <Check strokeWidth={1.5} size={14} />
         </SelectPrimitive.ItemIndicator>
       </span>
       <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>

@@ -30,7 +30,7 @@ export default function DisclaimerPage() {
       <PageHeader title="免責聲明" className="mb-8" />
 
       <div className="mb-6 flex items-center gap-2 rounded-2xl border border-warning/30 bg-warning-subtle px-5 py-4">
-        <AlertTriangle size={16} className="shrink-0 text-warning" />
+        <AlertTriangle strokeWidth={1.5} size={16} className="shrink-0 text-warning" />
         <p className="text-sm font-medium text-warning-text">繼續使用本平台即表示您已閱讀並同意以下聲明。</p>
       </div>
 

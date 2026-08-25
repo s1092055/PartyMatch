@@ -162,7 +162,7 @@ export default function ChatWindow({
             className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand text-white transition-all hover:-translate-y-0.5 hover:bg-brand-hover disabled:opacity-40"
             aria-label="傳送"
           >
-            <Send size={14} />
+            <Send strokeWidth={1.5} size={14} />
           </button>
         </div>
         </>

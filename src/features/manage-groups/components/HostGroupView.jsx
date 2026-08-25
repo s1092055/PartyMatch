@@ -123,6 +123,7 @@ export default function HostGroupView(
   const [memberChecks, setMemberChecks]             = useState({})
   const [serviceIssueMember, setServiceIssueMember] = useState(null)
   const [serviceIssueNote, setServiceIssueNote]     = useState('')
+  const [activating, setActivating]                 = useState(false)
   const serviceIssueEvidence = useEvidenceUpload(uploadServiceIssueEvidence)
 
   const allMembersChecked = members.length > 0 && members.every(m => memberChecks[m.id] && !m.serviceInfoIssueNote);
@@ -137,12 +138,17 @@ export default function HostGroupView(
     setMemberChecks({})
   }
 
-  function handleActivateConfirm() {
-    onActivate?.(null)
-    setShowActivate(false)
-    setFinalConfirmed(false)
-    setMemberChecks({})
-    onClose()
+  async function handleActivateConfirm() {
+    setActivating(true)
+    try {
+      await onActivate?.(null)
+      setShowActivate(false)
+      setFinalConfirmed(false)
+      setMemberChecks({})
+      onClose()
+    } finally {
+      setActivating(false)
+    }
   }
 
   const lockGroupBanner = group.status === 'full' && (
@@ -206,7 +212,7 @@ export default function HostGroupView(
         <Button
           variant="ink"
           onClick={openLockFlow}
-          className="w-full rounded-lg shadow-md"
+          className="w-full rounded-lg shadow-button"
         >
           <LockKeyhole size={15} strokeWidth={1.5} /> 鎖定群組
         </Button>
@@ -254,7 +260,7 @@ export default function HostGroupView(
 
   const activateBanner = canActivateNow && (
     <div className="flex items-center justify-center gap-2 bg-warning-subtle px-6 py-3 text-sm font-extrabold text-warning-text">
-      <CheckCircle2 size={15} />
+      <CheckCircle2 strokeWidth={1.5} size={15} />
       {needsCredentialsOnLock ? '所有成員已完成提取帳號資訊，可以啟用服務了' : '所有成員已完成填寫服務帳號，可以啟用服務了'}
     </div>
   )
@@ -263,9 +269,9 @@ export default function HostGroupView(
     <div className="py-2">
       <Button
         onClick={openActivate}
-        className="w-full rounded-lg shadow-md"
+        className="w-full rounded-lg shadow-button"
       >
-        <PlayCircle size={15} /> 啟用服務
+        <PlayCircle strokeWidth={1.5} size={15} /> 啟用服務
       </Button>
     </div>
   )
@@ -316,10 +322,10 @@ export default function HostGroupView(
     return (
       <>
         <GroupModalSideBarItem active={activePanel === null} onClick={() => goToPanel(null)}>
-          <Info size={17} /> 群組概覽
+          <Info strokeWidth={1.5} size={17} /> 群組概覽
         </GroupModalSideBarItem>
         <GroupModalSideBarItem active={activePanel === 'members'} onClick={() => goToPanel('members')}>
-          <Users size={17} /> 群組名單
+          <Users strokeWidth={1.5} size={17} /> 群組名單
         </GroupModalSideBarItem>
         {isRecruiting && (
           <GroupModalSideBarItem
@@ -328,7 +334,7 @@ export default function HostGroupView(
             className="relative"
           >
             <span className="relative">
-              <ClipboardList size={17} />
+              <ClipboardList strokeWidth={1.5} size={17} />
               {pendingApps.length > 0 && (
                 <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-warning-text px-0.5 text-2xs font-bold text-white">
                   {pendingApps.length}
@@ -340,14 +346,14 @@ export default function HostGroupView(
         )}
         {!isCancelled && (
           <GroupModalSideBarItem active={activePanel === 'billing'} onClick={() => goToPanel('billing')}>
-            <Banknote size={17} />
+            <Banknote strokeWidth={1.5} size={17} />
             收款管理
           </GroupModalSideBarItem>
         )}
         {!isRecruiting && !isCancelled && (
           <GroupModalSideBarItem active={activePanel === 'memberInfo'} onClick={() => goToPanel('memberInfo')} className="relative">
             <span className="relative">
-              <KeyRound size={17} />
+              <KeyRound strokeWidth={1.5} size={17} />
               {unseenMemberInfoCount > 0 && (
                 <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-warning-text px-0.5 text-2xs font-bold text-white">
                   {unseenMemberInfoCount}
@@ -359,7 +365,7 @@ export default function HostGroupView(
         )}
         {isRecruiting ? (
           <GroupModalSideBarItem pinned tone="danger" onClick={() => setShowCancelConfirm(true)}>
-            <Trash2 size={17} /> 解散群組
+            <Trash2 strokeWidth={1.5} size={17} /> 解散群組
           </GroupModalSideBarItem>
         ) : !isCancelled && (
           <>
@@ -370,7 +376,7 @@ export default function HostGroupView(
                 window.dispatchEvent(new CustomEvent('pm:open-messages', { detail: { groupId: group.id } }))
               }}
             >
-              <MessageCircle size={17} /> 群組訊息
+              <MessageCircle strokeWidth={1.5} size={17} /> 群組訊息
             </GroupModalSideBarItem>
           </>
         )}
@@ -435,6 +441,7 @@ export default function HostGroupView(
         finalConfirmed={finalConfirmed}
         setFinalConfirmed={setFinalConfirmed}
         allMembersChecked={allMembersChecked}
+        loading={activating}
       />
       <ReportServiceIssueModal
         member={serviceIssueMember}

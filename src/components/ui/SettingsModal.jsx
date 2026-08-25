@@ -46,7 +46,7 @@ function SectionGroup({ title, icon: Icon, children }) {
   return (
     <div>
       <div className="mb-1 flex items-center gap-2">
-        <Icon size={13} className="text-ink-3" />
+        <Icon size={13} strokeWidth={1.5} className="text-ink-3" />
         <p className="text-xs font-semibold uppercase tracking-wide text-ink-3">{title}</p>
       </div>
       {children}
@@ -149,7 +149,7 @@ export default function SettingsModal({ isOpen, onClose }) {
                     onClick={() => setShowDeleteConfirm(true)}
                     className="flex w-full items-center gap-3 py-1 text-sm font-semibold text-danger transition-all hover:-translate-y-0.5 hover:text-danger/80"
                   >
-                    <Trash2 size={16} className="shrink-0" />
+                    <Trash2 strokeWidth={1.5} size={16} className="shrink-0" />
                     刪除帳號
                   </button>
                 </div>
@@ -159,7 +159,7 @@ export default function SettingsModal({ isOpen, onClose }) {
             <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-line py-8 text-center">
               <p className="text-sm font-medium text-ink-3">登入後可管理更多帳號設定</p>
               <Button onClick={() => { onClose(); navigate('/login') }} className="rounded-2xl">
-                <LogIn size={16} />
+                <LogIn strokeWidth={1.5} size={16} />
                 前往登入
               </Button>
             </div>

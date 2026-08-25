@@ -54,9 +54,9 @@ export default function ManageGroupsPage() {
           type="button"
           onClick={() => setHistoryOpen(true)}
           aria-label="群組紀錄"
-          className="relative flex h-12 w-12 items-center justify-center gap-2 rounded-full border border-line bg-surface text-sm font-bold text-ink-2 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-10 lg:w-auto lg:justify-start lg:px-4"
+          className="relative flex h-12 w-12 items-center justify-center gap-2 rounded-full border border-line bg-surface text-sm font-bold text-ink-2 shadow-floating transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-10 lg:w-auto lg:justify-start lg:px-4"
         >
-          <Archive className="size-5 lg:size-4" strokeWidth={2} />
+          <Archive className="size-5 lg:size-4" strokeWidth={1.5} />
           <span className="hidden lg:inline">群組紀錄</span>
         </button>
       </div>

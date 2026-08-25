@@ -27,7 +27,6 @@ import { buildMobileFooter } from './components/buildMobileFooter'
 export default function GroupDetailModal() {
   const navigate = useNavigate()
   const location = useLocation()
-  const [groupId, setGroupId]               = useState(null)
   const [showApply, setShowApply]           = useState(false)
   const [applyMessage, setApplyMessage]     = useState('')
   const [applyAgreed, setApplyAgreed]       = useState(false)
@@ -68,6 +67,7 @@ export default function GroupDetailModal() {
     measurePicksScroll(e.currentTarget)
   }
 
+  const groupId      = new URLSearchParams(location.search).get('group')
   const isOpen       = !!groupId
   const isDesktop    = useIsDesktop()
   const activeUser   = useAuthStore(s => s.user)
@@ -82,21 +82,35 @@ export default function GroupDetailModal() {
     setShowApply(false); setApplyMessage(''); setApplyAgreed(false); setApplySubmitted(false)
   }
 
+  const locationRef = useRef(location)
+  useEffect(() => { locationRef.current = location })
+
+  function pushGroupUrl(id) {
+    const params = new URLSearchParams(locationRef.current.search)
+    if (params.get('group') === (id ?? null)) return
+    if (id) params.set('group', id)
+    else params.delete('group')
+    navigate({ pathname: locationRef.current.pathname, search: params.toString() ? `?${params}` : '' })
+  }
+
+  // 網址列的 ?group= 參數是唯一真相來源：groupId 直接從 location.search 算出，
+  // 開連結／瀏覽器上一頁下一頁都會自然反映在這裡，不需要另外用 state 同步
   useEffect(() => {
     function onOpen(e) {
-      setGroupId(e.detail?.groupId ?? null)
       resetApply()
+      pushGroupUrl(e.detail?.groupId ?? null)
     }
     window.addEventListener('pm:open-group', onOpen)
     return () => window.removeEventListener('pm:open-group', onOpen)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
     if (location.state?.reopenGroupModalId) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setGroupId(location.state.reopenGroupModalId)
       resetApply()
       navigate(location.pathname + location.search, { replace: true, state: null })
+      pushGroupUrl(location.state.reopenGroupModalId)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.state]);
@@ -149,7 +163,14 @@ export default function GroupDetailModal() {
 
   const canApply = !isHost && !isMember && !hasActiveApp && !isFull && !!activeUserId
 
-  function handleClose() { setGroupId(null); setShowMembers(false); setLeaveConfirm(false); setCancelConfirm(false); resetApply() }
+  function handleClose() {
+    setShowMembers(false); setLeaveConfirm(false); setCancelConfirm(false); resetApply()
+    const params = new URLSearchParams(location.search)
+    if (params.has('group')) {
+      params.delete('group')
+      navigate({ pathname: location.pathname, search: params.toString() ? `?${params}` : '' }, { replace: true })
+    }
+  }
 
   function handleApplyClick() {
     const price = calcDisplayPrice(group.pricePerSeat, group.billingCycle)
@@ -281,7 +302,7 @@ export default function GroupDetailModal() {
             type="button"
             onClick={() => scrollPicks(-1)}
             aria-label="往左看更多"
-            className="absolute left-0 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-line bg-canvas text-ink-3 shadow-md transition-colors hover:bg-raised hover:text-ink can-hover:grid"
+            className="absolute left-0 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-line bg-canvas text-ink-3 shadow-floating transition-colors hover:bg-raised hover:text-ink can-hover:grid"
           >
             <ChevronLeft size={16} strokeWidth={1.5} />
           </button>
@@ -302,7 +323,7 @@ export default function GroupDetailModal() {
             type="button"
             onClick={() => scrollPicks(1)}
             aria-label="往右看更多"
-            className="absolute right-0 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-line bg-canvas text-ink-3 shadow-md transition-colors hover:bg-raised hover:text-ink can-hover:grid"
+            className="absolute right-0 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-line bg-canvas text-ink-3 shadow-floating transition-colors hover:bg-raised hover:text-ink can-hover:grid"
           >
             <ChevronRight size={16} strokeWidth={1.5} />
           </button>
@@ -358,12 +379,12 @@ export default function GroupDetailModal() {
         headerBanner={
           isWaitingMembers ? (
             <div className="flex items-center justify-center gap-2 bg-success-subtle px-6 py-3 text-sm font-medium text-success-text">
-              <CheckCircle2 size={15} />
+              <CheckCircle2 strokeWidth={1.5} size={15} />
               {group.status === 'full' ? '招募完成，等待團主鎖定群組' : '已通過申請，需等待其他人加入'}
             </div>
           ) : isPendingApp ? (
             <div className="flex items-center justify-center gap-2 bg-warning-subtle px-6 py-3 text-sm font-medium text-warning-text">
-              <CheckCircle2 size={15} />已送出申請，等待團主審核
+              <CheckCircle2 strokeWidth={1.5} size={15} />已送出申請，等待團主審核
             </div>
           ) : undefined
         }

@@ -71,7 +71,7 @@ export default function CreditScoreModal({ isOpen, onClose }) {
                           {log.relatedGroup && `．${log.relatedGroup.planName ?? log.relatedGroup.service?.name ?? ''}`}
                         </p>
                       </div>
-                      <span className={`shrink-0 font-bold ${log.delta > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                      <span className={`shrink-0 font-bold ${log.delta > 0 ? 'text-success-text' : 'text-danger-text'}`}>
                         {log.delta > 0 ? `+${log.delta}` : log.delta}
                       </span>
                     </div>
@@ -89,7 +89,7 @@ export default function CreditScoreModal({ isOpen, onClose }) {
                     {RULES.map(rule => (
                       <div key={rule.label} className="flex items-center justify-between px-4 py-3 text-sm">
                         <span className="text-ink-2">{rule.label}</span>
-                        <span className={`font-bold ${rule.delta.startsWith('+') ? 'text-emerald-600' : 'text-red-600'}`}>
+                        <span className={`font-bold ${rule.delta.startsWith('+') ? 'text-success-text' : 'text-danger-text'}`}>
                           {rule.delta}
                         </span>
                       </div>
@@ -107,7 +107,7 @@ export default function CreditScoreModal({ isOpen, onClose }) {
               onClick={() => setShowHistory(true)}
               className="flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium text-ink-4 transition-colors hover:bg-raised hover:text-ink"
             >
-              <Clock size={13} /> 查看信用分數紀錄
+              <Clock strokeWidth={1.5} size={13} /> 查看信用分數紀錄
             </button>
           </DialogFooter>
         )}

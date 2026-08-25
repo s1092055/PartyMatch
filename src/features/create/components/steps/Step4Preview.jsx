@@ -15,10 +15,10 @@ function InfoField({ icon: Icon, label, value }) {
   return (
     <div>
       <div className="flex items-center gap-2 mb-2">
-        <Icon size={15} className="text-slate-400" />
-        <span className="text-sm font-semibold text-slate-700">{label}</span>
+        <Icon size={15} strokeWidth={1.5} className="text-ink-4" />
+        <span className="text-sm font-semibold text-ink-2">{label}</span>
       </div>
-      <p className="pl-6 text-sm text-slate-600">{value}</p>
+      <p className="pl-6 text-sm text-ink-3">{value}</p>
     </div>
   )
 }
@@ -31,8 +31,8 @@ export default function Step4Preview({ form, agreedToTerms, onAgreeChange, onSho
 
   return (
     <div className="flex h-full min-h-0 flex-col lg:flex-row lg:items-start lg:gap-6">
-      <div className="flex h-full min-h-0 flex-1 flex-col bg-surface border border-slate-200 rounded-2xl p-4">
-        <div className="flex shrink-0 items-center gap-3 mb-4 pb-4 border-b border-slate-100">
+      <div className="flex h-full min-h-0 flex-1 flex-col bg-surface border border-line rounded-2xl p-4">
+        <div className="flex shrink-0 items-center gap-3 mb-4 pb-4 border-b border-line-subtle">
           <ServiceLogo serviceId={form.serviceId} size={44} className="shrink-0 border-line-strong" />
           <div className="min-w-0 flex-1">
             <h2 className="truncate text-base font-black text-ink">{service?.fullName ?? '尚未選擇服務'}</h2>
@@ -43,7 +43,7 @@ export default function Step4Preview({ form, agreedToTerms, onAgreeChange, onSho
             onClick={onShowPreview}
             className="h-auto shrink-0 rounded-full border border-line px-4 py-2 lg:hidden"
           >
-            <Eye size={15} />
+            <Eye strokeWidth={1.5} size={15} />
             查看預覽
           </Button>
         </div>
@@ -67,20 +67,20 @@ export default function Step4Preview({ form, agreedToTerms, onAgreeChange, onSho
 
             <div className="lg:col-span-2">
               <div className="flex items-center gap-2 mb-2">
-                <ListChecks size={15} className="text-slate-400" />
-                <span className="text-sm font-semibold text-slate-700">群組規則</span>
+                <ListChecks strokeWidth={1.5} size={15} className="text-ink-4" />
+                <span className="text-sm font-semibold text-ink-2">群組規則</span>
               </div>
               {form.rules.some(r => r.trim()) ? (
                 <ul className="space-y-1.5 pl-6">
                   {form.rules.filter(r => r.trim()).map((r, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm text-slate-600">
-                      <span className="text-slate-400 shrink-0">{i + 1}.</span>
+                    <li key={i} className="flex items-start gap-2 text-sm text-ink-3">
+                      <span className="text-ink-4 shrink-0">{i + 1}.</span>
                       {r}
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="pl-6 text-sm text-slate-600">無</p>
+                <p className="pl-6 text-sm text-ink-3">無</p>
               )}
             </div>
           </div>

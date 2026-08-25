@@ -10,7 +10,7 @@ export default function EvidenceLink({ url, className }) {
   if (!isImageUrl(url)) {
     return (
       <a href={url} target="_blank" rel="noreferrer" className={className}>
-        <Paperclip size={11} /> 查看附件
+        <Paperclip strokeWidth={1.5} size={11} /> 查看附件
       </a>
     )
   }
@@ -18,7 +18,7 @@ export default function EvidenceLink({ url, className }) {
   return (
     <>
       <button type="button" onClick={() => setOpen(true)} className={className}>
-        <Paperclip size={11} /> 查看附件
+        <Paperclip strokeWidth={1.5} size={11} /> 查看附件
       </button>
       {open && <ImageLightbox url={url} onClose={() => setOpen(false)} />}
     </>

@@ -38,7 +38,7 @@ function StepTrigger({ onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full border border-line/70 bg-canvas px-3 text-xs font-bold text-ink-2 shadow-sm transition-colors hover:bg-raised"
+      className="flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full border border-line/70 bg-canvas px-3 text-xs font-bold text-ink-2 shadow-card transition-colors hover:bg-raised"
     >
       <MousePointerClick size={14} strokeWidth={1.5} className="shrink-0" />
       選擇流程
@@ -90,7 +90,7 @@ function StepPanel({ open, onClose, items, activeValue, onChange }) {
         role="dialog"
         aria-label="選擇流程階段"
         inert={!open}
-        className={`relative flex w-full max-w-xs flex-col overflow-hidden rounded-2xl border border-line/70 bg-surface/95 shadow-lg backdrop-blur-md transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+        className={`relative flex w-full max-w-xs flex-col overflow-hidden rounded-2xl border border-line/70 bg-surface/95 shadow-card backdrop-blur-md transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
           open ? 'scale-100 opacity-100' : 'pointer-events-none scale-95 opacity-0'
         }`}
       >
@@ -115,11 +115,11 @@ function StepPanel({ open, onClose, items, activeValue, onChange }) {
                 type="button"
                 onClick={() => onChange(value)}
                 aria-current={active ? 'true' : undefined}
-                className={`flex flex-col items-center gap-1 rounded-xl px-3 py-3 text-center transition-colors ${
+                className={`flex flex-col items-center gap-1 rounded-control px-3 py-3 text-center transition-colors ${
                   active ? 'bg-raised text-brand' : 'text-ink-2 hover:bg-raised'
                 }`}
               >
-                <span className={`text-[0.65rem] font-extrabold tracking-wider ${active ? 'text-brand' : 'text-ink-4'}`}>
+                <span className={`text-2xs font-extrabold tracking-wider ${active ? 'text-brand' : 'text-ink-4'}`}>
                   {badge}
                 </span>
                 <span className="text-sm font-bold sm:text-base">{title}</span>

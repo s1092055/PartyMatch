@@ -15,7 +15,7 @@ import { LOCKED_MESSAGE } from '../../../common/layout/components/navConstants'
 
 const RANK_BADGE_STYLES = [
   'bg-amber-400 text-white',
-  'bg-slate-300 text-slate-700',
+  'bg-line-strong text-ink-2',
   'bg-orange-300 text-white',
 ]
 
@@ -52,7 +52,7 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
     >
       <GroupCardHeader
         topLeftSlot={rank != null && (
-          <span className={`absolute left-4 top-4 z-10 flex h-6 w-6 items-center justify-center rounded-full text-xs font-extrabold shadow-sm ${RANK_BADGE_STYLES[rank - 1] ?? RANK_BADGE_STYLES[2]}`}>
+          <span className={`absolute left-4 top-4 z-10 flex h-6 w-6 items-center justify-center rounded-full text-xs font-extrabold shadow-floating ${RANK_BADGE_STYLES[rank - 1] ?? RANK_BADGE_STYLES[2]}`}>
             {rank}
           </span>
         )}

@@ -15,11 +15,22 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [touched, setTouched] = useState({})
   const canSubmit = email.trim() && password.trim() && !loading
+  const fieldErrors = {
+    email: email.trim() ? '' : '請輸入電子郵件',
+    password: password.trim() ? '' : '請輸入密碼',
+  }
+  function markTouched(key) {
+    setTouched(prev => (prev[key] ? prev : { ...prev, [key]: true }))
+  }
 
   async function handleSubmit(e) {
     e.preventDefault()
-    if (!canSubmit) return
+    if (!canSubmit) {
+      setTouched({ email: true, password: true })
+      return
+    }
     setLoading(true)
     setError('')
     const result = await useAuthStore.getState().login({ email, password })
@@ -54,6 +65,8 @@ export default function LoginPage() {
           placeholder="請輸入電子郵件"
           value={email}
           onChange={setEmail}
+          onBlur={() => markTouched('email')}
+          error={touched.email ? fieldErrors.email : ''}
         />
         <AuthInput
           icon={Lock}
@@ -63,6 +76,8 @@ export default function LoginPage() {
           placeholder="請輸入密碼"
           value={password}
           onChange={setPassword}
+          onBlur={() => markTouched('password')}
+          error={touched.password ? fieldErrors.password : ''}
           trailing={<PasswordToggle visible={showPassword} onClick={() => setShowPassword(v => !v)} />}
         />
 

@@ -45,7 +45,7 @@ export default function Step2PlansAndFilters({ conditions, onChangePlan, onChang
           <h2 className="mb-4 text-lg font-extrabold text-ink">選擇方案</h2>
           <Step2Plans conditions={conditions} onChangePlan={onChangePlan} />
         </div>
-        <div className="border-t border-slate-100 pt-8">
+        <div className="border-t border-line-subtle pt-8">
           <h2 ref={filtersRef} className="mb-4 text-lg font-extrabold text-ink">篩選條件</h2>
           <Step3Filters conditions={conditions} onChange={onChangeFilter} />
         </div>

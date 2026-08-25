@@ -20,7 +20,7 @@ export function AlertDialogContent({ className, ...props }) {
       <AlertDialogOverlay />
       <div className="fixed inset-0 z-[70] flex items-end justify-center p-4 sm:items-center">
         <AlertDialogPrimitive.Content
-          className={cn('w-full max-w-sm animate-fade-in-up rounded-2xl border border-line bg-surface p-6 shadow-2xl', className)}
+          className={cn('w-full max-w-sm animate-fade-in-up rounded-2xl border border-line bg-surface p-6 shadow-popover', className)}
           {...props}
         />
       </div>

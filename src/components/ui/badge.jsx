@@ -9,7 +9,7 @@ export const badgeVariantClasses = {
   success:     'bg-success-subtle text-success-text',
   warning:     'bg-warning-subtle text-warning-text',
   info:        'bg-info-subtle text-info-text',
-  neutral:     'bg-slate-100 text-slate-400',
+  neutral:     'bg-raised text-ink-2',
 };
 
 const badgeVariants = cva(

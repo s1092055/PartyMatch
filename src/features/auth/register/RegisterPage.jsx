@@ -29,9 +29,14 @@ export default function RegisterPage() {
   const [emailVerified, setEmailVerified] = useState(false)
   const [phoneVerified, setPhoneVerified] = useState(false)
   const [verifyingType, setVerifyingType] = useState(null);
+  const [touched, setTouched] = useState({})
 
   const validationError = getValidationError(form, accepted, emailVerified, phoneVerified)
-  const canSubmit = !validationError && !loading
+  const fieldErrors = getFieldErrors(form, emailVerified, phoneVerified, accepted)
+
+  function markTouched(key) {
+    setTouched(prev => (prev[key] ? prev : { ...prev, [key]: true }))
+  }
 
   function updateField(key, value) {
     setForm(prev => ({ ...prev, [key]: value }))
@@ -43,8 +48,8 @@ export default function RegisterPage() {
 
   async function handleSubmit(e) {
     e.preventDefault()
-    if (!canSubmit) {
-      setError(validationError)
+    if (validationError) {
+      setTouched({ name: true, email: true, phoneLocal: true, password: true, confirmPassword: true, accepted: true })
       return
     }
     setLoading(true)
@@ -78,6 +83,8 @@ export default function RegisterPage() {
           placeholder="請輸入顯示名稱"
           value={form.name}
           onChange={value => updateField('name', value)}
+          onBlur={() => markTouched('name')}
+          error={touched.name ? fieldErrors.name : ''}
           hint="1～50 字"
         />
         <AuthInput
@@ -88,6 +95,8 @@ export default function RegisterPage() {
           placeholder="請輸入電子郵件"
           value={form.email}
           onChange={value => updateField('email', value)}
+          onBlur={() => markTouched('email')}
+          error={touched.email ? fieldErrors.email : ''}
           hint="需符合信箱格式，例如 name@example.com"
           trailing={(
             <VerifyTrailingButton
@@ -103,6 +112,8 @@ export default function RegisterPage() {
           onCountryCodeChange={value => updateField('phoneCountryCode', value)}
           value={form.phoneLocal}
           onChange={value => updateField('phoneLocal', value)}
+          onBlur={() => markTouched('phoneLocal')}
+          error={touched.phoneLocal ? fieldErrors.phoneLocal : ''}
           hint="不含國碼、開頭 0，例如 912345678"
           trailing={(
             <VerifyTrailingButton
@@ -120,6 +131,8 @@ export default function RegisterPage() {
           placeholder="請輸入密碼"
           value={form.password}
           onChange={value => updateField('password', value)}
+          onBlur={() => markTouched('password')}
+          error={touched.password ? fieldErrors.password : ''}
           hint="至少 6 碼"
           trailing={<PasswordToggle visible={showPassword} onClick={() => setShowPassword(v => !v)} />}
         />
@@ -131,31 +144,39 @@ export default function RegisterPage() {
           placeholder="請再次輸入密碼"
           value={form.confirmPassword}
           onChange={value => updateField('confirmPassword', value)}
+          onBlur={() => markTouched('confirmPassword')}
+          error={touched.confirmPassword ? fieldErrors.confirmPassword : ''}
           hint="需與上方密碼一致"
           trailing={<PasswordToggle visible={showConfirmPassword} onClick={() => setShowConfirmPassword(v => !v)} />}
         />
 
-        <label className="flex items-start gap-3 text-sm font-medium text-ink-2">
-          <input
-            type="checkbox"
-            checked={accepted}
-            onChange={e => {
-              setAccepted(e.target.checked)
-              setError('')
-            }}
-            className="mt-0.5 h-5 w-5 rounded accent-brand"
-          />
-          <span>
-            我已閱讀並同意{' '}
-            <Link to="/terms" target="_blank" className="font-bold text-brand hover:text-brand-hover">服務條款</Link>
-            {' '}與{' '}
-            <Link to="/privacy" target="_blank" className="font-bold text-brand hover:text-brand-hover">隱私政策</Link>
-          </span>
-        </label>
+        <div>
+          <label className="flex items-start gap-3 text-sm font-medium text-ink-2">
+            <input
+              type="checkbox"
+              checked={accepted}
+              onChange={e => {
+                setAccepted(e.target.checked)
+                markTouched('accepted')
+                setError('')
+              }}
+              className="mt-0.5 h-5 w-5 rounded accent-brand"
+            />
+            <span>
+              我已閱讀並同意{' '}
+              <Link to="/terms" target="_blank" className="font-bold text-brand hover:text-brand-hover">服務條款</Link>
+              {' '}與{' '}
+              <Link to="/privacy" target="_blank" className="font-bold text-brand hover:text-brand-hover">隱私政策</Link>
+            </span>
+          </label>
+          {touched.accepted && fieldErrors.accepted && (
+            <p role="alert" className="mt-1.5 pl-8 text-xs font-semibold text-danger-text">{fieldErrors.accepted}</p>
+          )}
+        </div>
 
         <AuthError message={error} />
 
-        <Button type="submit" size="lg" className="h-[3.75rem] w-full text-lg" disabled={!!validationError} loading={loading}>
+        <Button type="submit" size="lg" className="h-[3.75rem] w-full text-lg" disabled={loading} loading={loading}>
           註冊
         </Button>
       </form>
@@ -179,6 +200,21 @@ export default function RegisterPage() {
       />
     </AuthLayout>
   )
+}
+
+function getFieldErrors(form, emailVerified, phoneVerified, accepted) {
+  return {
+    name: !form.name.trim() ? '請輸入顯示名稱' : '',
+    email: !form.email.trim() ? '請輸入電子郵件'
+      : !EMAIL_REGEX.test(form.email.trim()) ? '請輸入正確的電子郵件格式'
+      : !emailVerified ? '請先完成信箱驗證' : '',
+    phoneLocal: !form.phoneLocal.trim() ? '請輸入手機號碼'
+      : !PHONE_REGEX.test(toE164(form.phoneCountryCode, form.phoneLocal)) ? '請輸入正確的手機號碼格式'
+      : !phoneVerified ? '請先完成手機號碼驗證' : '',
+    password: form.password.length < 6 ? '密碼至少需要 6 碼' : '',
+    confirmPassword: form.confirmPassword !== form.password ? '確認密碼必須和密碼一致' : '',
+    accepted: accepted ? '' : '請先同意服務條款與隱私政策',
+  }
 }
 
 function getValidationError(form, accepted, emailVerified, phoneVerified) {

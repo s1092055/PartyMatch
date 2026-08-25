@@ -76,7 +76,7 @@ export default function SystemMessagesSection() {
     <div className="grid gap-4 lg:grid-cols-2">
       <Card className="p-5">
         <div className="flex items-center gap-2 mb-4">
-          <Megaphone size={16} className="text-brand" />
+          <Megaphone strokeWidth={1.5} size={16} className="text-brand" />
           <span className="text-sm font-bold text-ink">發送系統公告</span>
         </div>
 
@@ -120,7 +120,7 @@ export default function SystemMessagesSection() {
 
       <Card className="p-5">
         <div className="flex items-center gap-2 mb-4">
-          <Send size={16} className="text-brand" />
+          <Send strokeWidth={1.5} size={16} className="text-brand" />
           <span className="text-sm font-bold text-ink">單發系統訊息</span>
         </div>
 
@@ -147,7 +147,7 @@ export default function SystemMessagesSection() {
           <form onSubmit={handleSendDirect} className="space-y-3">
             <div className="flex items-center justify-between gap-2 rounded-lg bg-brand-subtle px-3 py-2">
               <div className="flex items-center gap-2 text-sm text-ink">
-                <CheckCircle2 size={14} className="shrink-0 text-brand" />
+                <CheckCircle2 strokeWidth={1.5} size={14} className="shrink-0 text-brand" />
                 <span className="font-semibold">{directTarget.name}</span>
                 <span className="text-ink-4">{directTarget.email}</span>
               </div>

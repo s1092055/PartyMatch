@@ -56,7 +56,7 @@ export default function DesktopSidebar({
           className="relative flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-4 transition-colors hover:bg-raised"
         >
           <span className="relative grid h-9 w-9 shrink-0 place-items-center">
-            <Icon size={22} strokeWidth={2.1} />
+            <Icon size={22} strokeWidth={1.5} />
             <LockBadge className="right-0 top-0" />
           </span>
           <span className="whitespace-nowrap font-bold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
@@ -72,7 +72,7 @@ export default function DesktopSidebar({
         <button key={item.type} onClick={onClick} aria-label={item.label}
           className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand">
           <span className="grid h-9 w-9 shrink-0 place-items-center">
-            <item.icon size={22} strokeWidth={2.1} />
+            <item.icon size={22} strokeWidth={1.5} />
           </span>
           <span className="whitespace-nowrap font-bold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
             {item.label}
@@ -87,14 +87,14 @@ export default function DesktopSidebar({
         key={item.to}
         href={item.to}
         onClick={closeAll}
-        className={`flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-[0.95rem] transition-all hover:-translate-y-0.5 ${
+        className={`flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-base transition-all hover:-translate-y-0.5 ${
           isActive
             ? 'bg-brand font-extrabold text-white'
             : 'font-bold text-ink-2 hover:bg-brand-subtle hover:text-brand'
         }`}
       >
         <span className="grid h-9 w-9 shrink-0 place-items-center">
-          <item.icon size={22} strokeWidth={2.1} />
+          <item.icon size={22} strokeWidth={1.5} />
         </span>
         <span className="whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
           {item.label}
@@ -108,7 +108,7 @@ export default function DesktopSidebar({
 
       {lockedTip && createPortal(
         <span
-          className="pointer-events-none fixed z-[200] whitespace-nowrap rounded-lg bg-neutral-900 px-2.5 py-1.5 text-xs font-bold text-white shadow-popover"
+          className="pointer-events-none fixed z-[200] whitespace-nowrap rounded-lg bg-ink px-2.5 py-1.5 text-xs font-bold text-canvas shadow-popover"
           style={{ top: lockedTip.top, left: lockedTip.left }}
         >
           {LOCKED_MESSAGE}
@@ -119,10 +119,10 @@ export default function DesktopSidebar({
       <div className="fixed top-6 z-50 flex lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
         <button
           onClick={openNotify}
-          className="relative flex h-12 w-12 items-center justify-center gap-2 rounded-full border border-line bg-surface text-sm font-bold text-ink-2 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-10 lg:w-auto lg:justify-start lg:px-4"
+          className="relative flex h-12 w-12 items-center justify-center gap-2 rounded-full border border-line bg-surface text-sm font-bold text-ink-2 shadow-floating transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-10 lg:w-auto lg:justify-start lg:px-4"
           aria-label="通知"
         >
-          <Bell className="size-5 lg:size-4" strokeWidth={2} />
+          <Bell className="size-5 lg:size-4" strokeWidth={1.5} />
           <span className="hidden lg:inline">通知</span>
           <CountBadge count={unreadNotifs} />
         </button>
@@ -132,10 +132,10 @@ export default function DesktopSidebar({
         {loggedIn ? (
           <button
             onClick={openMessages}
-            className="relative flex h-12 w-12 items-center justify-center gap-2 rounded-full border border-line bg-surface text-sm font-bold text-ink-2 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-10 lg:w-auto lg:justify-start lg:px-4"
+            className="relative flex h-12 w-12 items-center justify-center gap-2 rounded-full border border-line bg-surface text-sm font-bold text-ink-2 shadow-floating transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-10 lg:w-auto lg:justify-start lg:px-4"
             aria-label="訊息"
           >
-            <MessageSquare className="size-5 lg:size-4" strokeWidth={2} />
+            <MessageSquare className="size-5 lg:size-4" strokeWidth={1.5} />
             <span className="hidden lg:inline">訊息</span>
             <CountBadge count={unreadMsgs} className="-right-1.5 -top-1.5" />
           </button>
@@ -145,9 +145,9 @@ export default function DesktopSidebar({
             aria-disabled="true"
             aria-label={`訊息，${LOCKED_MESSAGE}`}
             onClick={e => preventLockedAction(e)}
-            className="group/locked relative flex h-12 w-12 cursor-not-allowed items-center justify-center gap-2 rounded-full border border-line bg-surface text-sm font-bold text-ink-2 opacity-40 shadow-sm lg:h-10 lg:w-auto lg:justify-start lg:px-4"
+            className="group/locked relative flex h-12 w-12 cursor-not-allowed items-center justify-center gap-2 rounded-full border border-line bg-surface text-sm font-bold text-ink-2 opacity-40 shadow-floating lg:h-10 lg:w-auto lg:justify-start lg:px-4"
           >
-            <MessageSquare className="size-5 lg:size-4" strokeWidth={2} />
+            <MessageSquare className="size-5 lg:size-4" strokeWidth={1.5} />
             <span className="hidden lg:inline">訊息</span>
             <LockBadge className="right-1 top-1" />
             <LockedHint className="right-full top-1/2 mr-2 -translate-y-1/2" />
@@ -157,7 +157,7 @@ export default function DesktopSidebar({
 
       <aside
         data-force-open={userMenuOpen ? 'true' : undefined}
-        className="group/nav fixed bottom-4 left-4 top-4 z-50 hidden w-16 flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-sm transition-[width] duration-300 ease-out hover:w-64 focus-within:w-64 data-[force-open=true]:w-64 can-hover:lg:flex"
+        className="group/nav fixed bottom-4 left-4 top-4 z-50 hidden w-16 flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-floating transition-[width] duration-300 ease-out hover:w-64 focus-within:w-64 data-[force-open=true]:w-64 can-hover:lg:flex"
       >
         <a
           href="/"
@@ -166,7 +166,7 @@ export default function DesktopSidebar({
           aria-label="回首頁"
         >
           <img src={logoUrl} alt="PartyMatch" className="h-8 w-8 shrink-0" />
-          <span className="whitespace-nowrap text-[1.1rem] font-extrabold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
+          <span className="whitespace-nowrap text-lg font-extrabold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
             <span className="text-brand">Party</span><span className="text-ink">Match</span>
           </span>
         </a>
@@ -219,19 +219,19 @@ export default function DesktopSidebar({
                 onCloseAutoFocus={e => e.preventDefault()}
               >
                 <DropdownMenuItem onClick={openProfile}>
-                  <User size={16} strokeWidth={2} className="shrink-0" />
+                  <User size={16} strokeWidth={1.5} className="shrink-0" />
                   個人資料
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={openCreditScore}>
-                  <ShieldCheck size={16} strokeWidth={2} className="shrink-0" />
+                  <ShieldCheck size={16} strokeWidth={1.5} className="shrink-0" />
                   信用分數
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={openReviews}>
-                  <Star size={16} strokeWidth={2} className="shrink-0" />
+                  <Star size={16} strokeWidth={1.5} className="shrink-0" />
                   我的評價
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={openSettings}>
-                  <Settings size={16} strokeWidth={2} className="shrink-0" />
+                  <Settings size={16} strokeWidth={1.5} className="shrink-0" />
                   偏好設定
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -240,7 +240,7 @@ export default function DesktopSidebar({
                   disabled={loggingOut}
                   className="text-danger data-[highlighted]:bg-danger/10 data-[highlighted]:text-danger"
                 >
-                  <LogOut size={16} strokeWidth={2} className="shrink-0" />
+                  <LogOut size={16} strokeWidth={1.5} className="shrink-0" />
                   {loggingOut ? '登出中…' : '登出'}
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -253,7 +253,7 @@ export default function DesktopSidebar({
               className="flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
             >
               <span className="grid h-10 w-10 shrink-0 place-items-center">
-                <LogIn size={22} strokeWidth={2.1} />
+                <LogIn size={22} strokeWidth={1.5} />
               </span>
               <span className="min-w-0 flex-1 whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
                 <span className="block truncate text-sm font-extrabold">登入</span>

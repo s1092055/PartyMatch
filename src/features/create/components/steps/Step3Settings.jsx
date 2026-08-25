@@ -27,25 +27,25 @@ export default function Step3Settings({ form, onChange }) {
           icon={Users}
           required
           hint={`最多可開放 ${maxSeats - 1} 位成員加入（不含你自己）`}
-          endAdornment={<span className="text-sm font-normal text-slate-400">最多 {maxSeats} 人共享</span>}
+          endAdornment={<span className="text-sm font-normal text-ink-4">最多 {maxSeats} 人共享</span>}
         >
-          <div className="flex w-full items-center justify-between gap-3 border border-slate-200 rounded-lg p-1">
+          <div className="flex w-full items-center justify-between gap-3 border border-line rounded-lg p-1">
             <button
               onClick={() => onChange('totalSeats', Math.max(2, form.totalSeats - 1))}
-              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-100 transition-colors disabled:opacity-30"
+              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-raised transition-colors disabled:opacity-30"
               disabled={openSeats <= 1}
             >
-              <Minus size={14} className="text-slate-600" />
+              <Minus strokeWidth={1.5} size={14} className="text-ink-3" />
             </button>
-            <span className="text-center text-2xl font-bold text-slate-800">
+            <span className="text-center text-2xl font-bold text-ink">
               {openSeats}
             </span>
             <button
               onClick={() => onChange('totalSeats', Math.min(maxSeats, form.totalSeats + 1))}
-              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-100 transition-colors disabled:opacity-30"
+              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-raised transition-colors disabled:opacity-30"
               disabled={form.totalSeats >= maxSeats}
             >
-              <Plus size={14} className="text-slate-600" />
+              <Plus strokeWidth={1.5} size={14} className="text-ink-3" />
             </button>
           </div>
         </Field>
@@ -59,7 +59,7 @@ export default function Step3Settings({ form, onChange }) {
                 className={`flex-1 py-2.5 rounded-lg border-2 text-sm font-medium transition-colors ${
                   (form.minCreditScore ?? 0) === score
                     ? 'border-brand bg-brand-subtle text-brand'
-                    : 'border-slate-200 bg-surface text-slate-600 hover:border-slate-300'
+                    : 'border-line bg-surface text-ink-3 hover:border-line-strong'
                 }`}
               >
                 <CreditScoreValue score={score} className="justify-center" />
@@ -68,8 +68,9 @@ export default function Step3Settings({ form, onChange }) {
           </div>
         </Field>
 
-        <Field label="帳號需求" icon={FileText} hint="帳號相關條件（選填）" className="flex min-h-0 flex-1 flex-col">
+        <Field label="帳號需求" icon={FileText} hint="帳號相關條件（選填）" className="flex min-h-0 flex-1 flex-col" htmlFor="create-group-requirements">
           <Textarea
+            id="create-group-requirements"
             placeholder="例如：需使用自己的 Google 帳號登入"
             value={form.requirements}
             onChange={e => onChange('requirements', e.target.value)}
@@ -88,7 +89,7 @@ export default function Step3Settings({ form, onChange }) {
         <div className="flex min-h-0 flex-1 flex-col justify-between gap-3">
           {form.rules.map((rule, i) => (
             <div key={i} className="flex items-center gap-2">
-              <span className="text-sm text-slate-400 w-4 shrink-0 text-right">{i + 1}.</span>
+              <span className="text-sm text-ink-4 w-4 shrink-0 text-right">{i + 1}.</span>
               <Input
                 type="text"
                 placeholder="例如：每月 15 日前完成付款"

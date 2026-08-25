@@ -46,7 +46,7 @@ export default function MemberIssueCard(
           onClick={() => onOpenServiceIssue(m)}
           className="absolute right-3 top-3 h-auto rounded-lg border border-warning/60 px-2.5 py-1 text-xs text-warning-text hover:bg-warning-subtle"
         >
-          <AlertTriangle size={11} /> 帳號問題
+          <AlertTriangle strokeWidth={1.5} size={11} /> 帳號問題
         </Button>
       )}
       <Collapsible open={expanded} onOpenChange={setExpanded}>

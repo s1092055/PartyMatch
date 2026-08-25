@@ -34,7 +34,7 @@ export default function ConversationAvatar({ conversation, size = 44 }) {
     <span className="relative inline-block shrink-0" style={{ width: size, height: size }}>
       <span
         className="grid h-full w-full place-items-center rounded-full text-sm font-black text-white"
-        style={{ background: conversation.avatarColor ?? '#64748b' }}
+        style={{ background: conversation.avatarColor ?? '#64718A' }}
       >
         {conversation.avatarInitial}
       </span>

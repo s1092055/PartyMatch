@@ -9,7 +9,7 @@ import { formatDateTime, formatRelativeDate } from '../../../../common/utils/dat
 const APP_STATUS_BADGE = {
   approved: { cls: 'bg-success-subtle text-success-text', label: '已接受' },
   rejected: { cls: 'bg-danger-subtle text-danger-text',   label: '已拒絕' },
-  left:     { cls: 'bg-slate-100 text-slate-500',         label: '已退出' },
+  left:     { cls: 'bg-raised text-ink-3',                label: '已退出' },
   removed:  { cls: 'bg-danger-subtle text-danger-text',   label: '已移除' },
 }
 
@@ -17,7 +17,7 @@ export default function ApplicationCard({ app, groupFull, error, onApprove, onRe
   const [expanded, setExpanded] = useState(false)
   const name    = app.applicantName ?? app.userName ?? '申請者'
   const initial = app.applicantAvatarInitial ?? app.userAvatarInitial ?? name[0]
-  const color   = app.applicantAvatarColor ?? app.userAvatarColor ?? '#94A3B8'
+  const color   = app.applicantAvatarColor ?? app.userAvatarColor ?? '#64718A'
   const presenceStatus = app.applicantPresenceStatus ?? app.userPresenceStatus ?? 'offline'
   const isPending = app.status === 'pending'
   const badge = APP_STATUS_BADGE[app.status]
@@ -68,14 +68,14 @@ export default function ApplicationCard({ app, groupFull, error, onApprove, onRe
                 disabled={groupFull}
                 className="h-auto flex-1 rounded-lg py-2 text-xs"
               >
-                {groupFull ? '已額滿' : <><Check size={12} strokeWidth={3} /> 接受</>}
+                {groupFull ? '已額滿' : <><Check size={12} strokeWidth={1.5} /> 接受</>}
               </Button>
               <Button
                 variant="destructive"
                 onClick={() => onReject(app.id)}
                 className="h-auto flex-1 rounded-lg py-2 text-xs"
               >
-                <X size={12} strokeWidth={3} /> 拒絕
+                <X size={12} strokeWidth={1.5} /> 拒絕
               </Button>
             </div>
           )}

@@ -28,7 +28,7 @@ export default function ProfileHeaderCard({ user }) {
         <Avatar initial={user.avatarInitial} color={user.avatarColor} size="xl" />
         {user.isVerified && (
           <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-surface shadow">
-            <CheckCircle2 size={18} className="text-brand" />
+            <CheckCircle2 strokeWidth={1.5} size={18} className="text-brand" />
           </div>
         )}
         <DropdownMenu>
@@ -61,7 +61,7 @@ export default function ProfileHeaderCard({ user }) {
           <h2 className="text-xl font-bold text-ink">{user.displayName}</h2>
           {user.isVerified && (
             <Badge>
-              <CheckCircle2 size={11} /> 已驗證
+              <CheckCircle2 strokeWidth={1.5} size={11} /> 已驗證
             </Badge>
           )}
         </div>

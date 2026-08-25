@@ -185,7 +185,7 @@ export default function QuickMatchModal() {
                 調整條件
               </Button>
               <Button variant="secondary" size="md" className="min-w-0 flex-1" onClick={handleReset}>
-                <RotateCcw size={15} />
+                <RotateCcw strokeWidth={1.5} size={15} />
                 重新查找
               </Button>
               <Button variant="ghost" size="md" className="min-w-0 flex-1 border border-line" onClick={handleExploreAll}>
@@ -205,7 +205,7 @@ export default function QuickMatchModal() {
                 </Button>
               ) : (
                 <Button variant="success" size="md" className="min-w-0 flex-1" onClick={handleStartMatch}>
-                  <Search size={15} />
+                  <Search strokeWidth={1.5} size={15} />
                   開始搜尋
                 </Button>
               )}

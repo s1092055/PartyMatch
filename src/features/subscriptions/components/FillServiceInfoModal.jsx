@@ -32,7 +32,7 @@ export default function FillServiceInfoModal(
       <DialogContent variant="panel" maxWidth="max-w-lg" instant>
         <DialogHeader>
           <div className="flex min-w-0 items-center gap-2.5">
-            <ClipboardEdit size={18} className="shrink-0 text-brand" />
+            <ClipboardEdit strokeWidth={1.5} size={18} className="shrink-0 text-brand" />
             <DialogTitle className="truncate text-base">{modalTitle}</DialogTitle>
           </div>
           <DialogCloseButton />
@@ -52,7 +52,7 @@ export default function FillServiceInfoModal(
         )}
         {isSharedCredentials && (
           <div>
-            <label className="block text-xs text-ink-3 mb-1.5">團主提供的帳號資訊</label>
+            <p className="mb-1.5 text-xs text-ink-3">團主提供的帳號資訊</p>
             {parsedCredentials ? (
               <CredentialWatermark viewerName={viewerName}>
                 <dl className="space-y-1 rounded-lg border border-line bg-raised px-3 py-2.5">
@@ -82,7 +82,7 @@ export default function FillServiceInfoModal(
         )}
         {existingSummary && (
           <div className="rounded-lg bg-success-subtle px-3 py-2 text-sm text-success-text flex items-center gap-2">
-            <CheckCircle2 size={14} className="shrink-0" /> 目前已填：{existingSummary}
+            <CheckCircle2 strokeWidth={1.5} size={14} className="shrink-0" /> 目前已填：{existingSummary}
           </div>
         )}
         {sharingMethodConfig.fields.map(({ key, label, type, placeholder }) => (
@@ -97,8 +97,8 @@ export default function FillServiceInfoModal(
               {label}
             </label>
           ) : (
-            <div key={key}>
-              <label className="block text-xs text-ink-3 mb-1.5">{label}</label>
+            <label key={key} className="block">
+              <span className="block text-xs text-ink-3 mb-1.5">{label}</span>
               <Input
                 type={type}
                 value={fillValues[key] ?? ''}
@@ -106,7 +106,7 @@ export default function FillServiceInfoModal(
                 placeholder={placeholder}
                 required
               />
-            </div>
+            </label>
           )
         ))}
         <Button

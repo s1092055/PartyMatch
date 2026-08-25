@@ -8,7 +8,7 @@ export default function HostReviewsModal({ isOpen, onClose, host }) {
       <DialogContent maxWidth="max-w-md" height="min(80dvh, 640px)">
         <DialogHeader>
           <div className="flex items-center gap-2">
-            <Star size={16} className="text-brand" />
+            <Star strokeWidth={1.5} size={16} className="text-brand" />
             <DialogTitle>我的評價</DialogTitle>
           </div>
           <DialogCloseButton />

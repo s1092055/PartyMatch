@@ -35,7 +35,7 @@ export default function DisputeModal(
       <DialogContent variant="panel" maxWidth="max-w-lg" instant>
         <DialogHeader>
           <div className="flex min-w-0 items-center gap-2.5">
-            <AlertTriangle size={18} className="shrink-0 text-danger" />
+            <AlertTriangle strokeWidth={1.5} size={18} className="shrink-0 text-danger" />
             <DialogTitle className="truncate text-base">回報問題</DialogTitle>
           </div>
           <DialogCloseButton />
@@ -43,8 +43,8 @@ export default function DisputeModal(
         <DialogDescription>回報問題</DialogDescription>
         <DialogBody>
       <form id="dispute-form" onSubmit={onSubmit} className="animate-step-slide-up p-5 space-y-4">
-        <div>
-          <label className="block text-xs text-ink-3 mb-1.5">回報原因 <span className="text-danger">*</span>（可複選）</label>
+        <fieldset>
+          <legend className="block text-xs text-ink-3 mb-1.5">回報原因 <span className="text-danger">*</span>（可複選）</legend>
           <div className="space-y-1.5">
             {DISPUTE_REASON_OPTIONS.map(option => (
               <label
@@ -61,16 +61,16 @@ export default function DisputeModal(
               </label>
             ))}
           </div>
-        </div>
-        <div>
-          <label className="block text-xs text-ink-3 mb-1.5">補充說明（選填）</label>
+        </fieldset>
+        <label className="block">
+          <span className="block text-xs text-ink-3 mb-1.5">補充說明（選填）</span>
           <Textarea
             value={disputeDetail}
             onChange={e => setDisputeDetail(e.target.value)}
             placeholder="描述服務未正常啟用的情況"
             rows={4}
           />
-        </div>
+        </label>
         <EvidenceAttachmentField
           label={<>附件 <span className="text-danger">*</span>（截圖或其他佐證檔案）</>}
           url={evidenceUrl}

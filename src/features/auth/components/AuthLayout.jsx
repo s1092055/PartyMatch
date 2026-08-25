@@ -34,30 +34,36 @@ export function AuthTitle({ children }) {
   )
 }
 
-export function AuthInput({ icon: Icon, label, value, onChange, trailing, hint, ...props }) {
+export function AuthInput({ icon: Icon, label, value, onChange, trailing, hint, error, onBlur, ...props }) {
   return (
     <label className="block">
       <span className="mb-2 block text-sm font-extrabold text-ink">{label}</span>
-      <span className="flex h-[3.75rem] items-center gap-3 rounded-2xl border border-line bg-surface px-4 transition-[box-shadow] focus-within:ring-4 focus-within:ring-brand-subtle">
-        <Icon size={20} className="shrink-0 text-ink-4" />
+      <span className={`flex h-[3.75rem] items-center gap-3 rounded-2xl border bg-surface px-4 transition-[box-shadow] ${error ? 'border-danger-subtle focus-within:ring-4 focus-within:ring-danger-subtle' : 'border-line focus-within:ring-4 focus-within:ring-brand-subtle'}`}>
+        <Icon size={20} strokeWidth={1.5} className="shrink-0 text-ink-4" />
         <input
           value={value}
           onChange={e => onChange(e.target.value)}
+          onBlur={onBlur}
+          aria-invalid={!!error}
           className="h-full flex-1 bg-transparent text-base font-medium text-ink outline-none placeholder:text-ink-4"
           {...props}
         />
         {trailing}
       </span>
-      {hint && <span className="mt-1.5 block pl-4 text-xs font-medium text-ink-4">{hint}</span>}
+      {error ? (
+        <span role="alert" className="mt-1.5 block pl-4 text-xs font-semibold text-danger-text">{error}</span>
+      ) : hint ? (
+        <span className="mt-1.5 block pl-4 text-xs font-medium text-ink-4">{hint}</span>
+      ) : null}
     </label>
   )
 }
 
-export function PhoneInput({ label, countryCode, onCountryCodeChange, value, onChange, trailing, hint }) {
+export function PhoneInput({ label, countryCode, onCountryCodeChange, value, onChange, trailing, hint, error, onBlur }) {
   return (
     <label className="block">
       <span className="mb-2 block text-sm font-extrabold text-ink">{label}</span>
-      <span className="flex h-[3.75rem] items-center gap-2 rounded-2xl border border-line bg-surface pl-2 pr-4 transition-[box-shadow] focus-within:ring-4 focus-within:ring-brand-subtle">
+      <span className={`flex h-[3.75rem] items-center gap-2 rounded-2xl border bg-surface pl-2 pr-4 transition-[box-shadow] ${error ? 'border-danger-subtle focus-within:ring-4 focus-within:ring-danger-subtle' : 'border-line focus-within:ring-4 focus-within:ring-brand-subtle'}`}>
         <Select value={countryCode} onValueChange={onCountryCodeChange}>
           <SelectTrigger aria-label="國碼" className="h-full w-auto shrink-0 gap-1 border-0 bg-transparent px-2 text-base font-bold focus:border-0 focus:ring-0">
             <SelectValue />
@@ -76,11 +82,17 @@ export function PhoneInput({ label, countryCode, onCountryCodeChange, value, onC
           placeholder="請輸入手機號碼"
           value={value}
           onChange={e => onChange(e.target.value.replace(/[^0-9]/g, ''))}
+          onBlur={onBlur}
+          aria-invalid={!!error}
           className="h-full flex-1 bg-transparent text-base font-medium text-ink outline-none placeholder:text-ink-4"
         />
         {trailing}
       </span>
-      {hint && <span className="mt-1.5 block pl-4 text-xs font-medium text-ink-4">{hint}</span>}
+      {error ? (
+        <span role="alert" className="mt-1.5 block pl-4 text-xs font-semibold text-danger-text">{error}</span>
+      ) : hint ? (
+        <span className="mt-1.5 block pl-4 text-xs font-medium text-ink-4">{hint}</span>
+      ) : null}
     </label>
   )
 }
@@ -95,7 +107,7 @@ export function PasswordToggle({ visible, onClick }) {
       className="text-ink-4 hover:text-ink-2"
       aria-label={visible ? '隱藏密碼' : '顯示密碼'}
     >
-      {visible ? <EyeOff size={18} /> : <Eye size={18} />}
+      {visible ? <EyeOff strokeWidth={1.5} size={18} /> : <Eye strokeWidth={1.5} size={18} />}
     </Button>
   )
 }

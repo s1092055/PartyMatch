@@ -18,7 +18,7 @@ export default function ConfirmServiceModal(
       <DialogContent variant="panel" maxWidth="max-w-lg" height="36rem" instant>
         <DialogHeader>
           <div className="flex min-w-0 items-center gap-2.5">
-            <CheckCircle2 size={18} className="shrink-0 text-brand" />
+            <CheckCircle2 strokeWidth={1.5} size={18} className="shrink-0 text-brand" />
             <DialogTitle className="truncate text-base">確認服務</DialogTitle>
           </div>
           <DialogCloseButton />
@@ -44,15 +44,15 @@ export default function ConfirmServiceModal(
         </div>
 
         {isSharedCredentials && (
-          <div className="px-5 pt-4">
-            <label className="mb-1.5 block text-xs text-ink-3">你使用的 Profile 名稱</label>
+          <label className="block px-5 pt-4">
+            <span className="mb-1.5 block text-xs text-ink-3">你使用的 Profile 名稱</span>
             <Input
               type="text"
               value={profileName}
               onChange={e => setProfileName(e.target.value)}
               placeholder="請填寫自己在這個帳號底下使用的 Profile 名稱"
             />
-          </div>
+          </label>
         )}
 
         <div className="space-y-3 p-5">

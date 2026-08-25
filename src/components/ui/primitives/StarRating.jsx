@@ -8,7 +8,7 @@ export default function StarRating({ value, onChange, readOnly = false, size = 1
     return (
       <div className="flex gap-0.5">
         {Array.from({ length: 5 }, (_, i) => (
-          <Star key={i} size={size} className={i < value ? 'fill-warning text-warning' : 'text-line'} />
+          <Star strokeWidth={1.5} key={i} size={size} className={i < value ? 'fill-warning text-warning' : 'text-line'} />
         ))}
       </div>
     )
@@ -29,7 +29,7 @@ export default function StarRating({ value, onChange, readOnly = false, size = 1
             aria-label={`${starValue} 星`}
             className="p-1"
           >
-            <Star size={size} className={filled ? 'fill-warning text-warning' : 'text-line'} />
+            <Star strokeWidth={1.5} size={size} className={filled ? 'fill-warning text-warning' : 'text-line'} />
           </button>
         )
       })}

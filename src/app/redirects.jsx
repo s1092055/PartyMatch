@@ -14,10 +14,7 @@ export function GroupRedirect() {
   const navigate = useNavigate()
   const { groupId } = useParams()
   useEffect(() => {
-    navigate('/explore', { replace: true })
-    setTimeout(() => {
-      window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId } }))
-    }, 0);
+    navigate(`/explore?group=${encodeURIComponent(groupId)}`, { replace: true })
   }, [navigate, groupId])
   return null
 }

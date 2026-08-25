@@ -54,7 +54,7 @@ export default function TabletSidebarDrawer(
           className="relative flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-4 transition-colors hover:bg-raised"
         >
           <span className="relative grid h-9 w-9 shrink-0 place-items-center">
-            <Icon size={22} strokeWidth={2.1} />
+            <Icon size={22} strokeWidth={1.5} />
             <LockBadge className="right-0 top-0" />
           </span>
           <span className="whitespace-nowrap text-base font-bold">{item.label}</span>
@@ -72,7 +72,7 @@ export default function TabletSidebarDrawer(
           className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
         >
           <span className="grid h-9 w-9 shrink-0 place-items-center">
-            <item.icon size={22} strokeWidth={2.1} />
+            <item.icon size={22} strokeWidth={1.5} />
           </span>
           <span className="whitespace-nowrap text-base font-bold">{item.label}</span>
         </button>
@@ -92,7 +92,7 @@ export default function TabletSidebarDrawer(
         }`}
       >
         <span className="grid h-9 w-9 shrink-0 place-items-center">
-          <item.icon size={22} strokeWidth={2.1} />
+          <item.icon size={22} strokeWidth={1.5} />
         </span>
         <span className="whitespace-nowrap">{item.label}</span>
       </a>
@@ -105,9 +105,9 @@ export default function TabletSidebarDrawer(
         type="button"
         onClick={() => setOpen(true)}
         aria-label="開啟導覽選單"
-        className="fixed left-4 top-6 z-50 grid h-12 w-12 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-sm transition-colors hover:bg-raised can-hover:lg:hidden"
+        className="fixed left-4 top-6 z-50 grid h-12 w-12 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-floating transition-colors hover:bg-raised can-hover:lg:hidden"
       >
-        <Menu size={20} strokeWidth={2} />
+        <Menu size={20} strokeWidth={1.5} />
       </button>
       <Drawer open={open} onOpenChange={setOpen} swipeDirection="left">
 
@@ -118,7 +118,7 @@ export default function TabletSidebarDrawer(
           <DrawerTitle className="sr-only">導覽選單</DrawerTitle>
           <a href="/" onClick={handleNavigate} className="flex h-16 shrink-0 items-center gap-3 px-4" aria-label="回首頁">
             <img src={logoUrl} alt="PartyMatch" className="h-8 w-8 shrink-0" />
-            <span className="text-[1.1rem] font-extrabold">
+            <span className="text-lg font-extrabold">
               <span className="text-brand">Party</span><span className="text-ink">Match</span>
             </span>
           </a>
@@ -162,19 +162,19 @@ export default function TabletSidebarDrawer(
                 </DropdownMenuTrigger>
                 <DropdownMenuContent side="right" align="end" alignOffset={16} sideOffset={10} className="w-40">
                   <DropdownMenuItem onClick={() => { setOpen(false); openProfile() }}>
-                    <User size={16} strokeWidth={2} className="shrink-0" />
+                    <User size={16} strokeWidth={1.5} className="shrink-0" />
                     個人資料
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => { setOpen(false); openCreditScore() }}>
-                    <ShieldCheck size={16} strokeWidth={2} className="shrink-0" />
+                    <ShieldCheck size={16} strokeWidth={1.5} className="shrink-0" />
                     信用分數
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => { setOpen(false); openReviews() }}>
-                    <Star size={16} strokeWidth={2} className="shrink-0" />
+                    <Star size={16} strokeWidth={1.5} className="shrink-0" />
                     我的評價
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => { setOpen(false); openSettings() }}>
-                    <Settings size={16} strokeWidth={2} className="shrink-0" />
+                    <Settings size={16} strokeWidth={1.5} className="shrink-0" />
                     偏好設定
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
@@ -183,7 +183,7 @@ export default function TabletSidebarDrawer(
                     disabled={loggingOut}
                     className="text-danger data-[highlighted]:bg-danger/10 data-[highlighted]:text-danger"
                   >
-                    <LogOut size={16} strokeWidth={2} className="shrink-0" />
+                    <LogOut size={16} strokeWidth={1.5} className="shrink-0" />
                     {loggingOut ? '登出中…' : '登出'}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -191,7 +191,7 @@ export default function TabletSidebarDrawer(
             ) : (
               <a href="/login" onClick={handleNavigate} className="flex h-14 min-w-0 w-full items-center gap-3 rounded-2xl px-1 text-left text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand">
                 <span className="grid h-10 w-10 shrink-0 place-items-center">
-                  <LogIn size={22} strokeWidth={2.1} />
+                  <LogIn size={22} strokeWidth={1.5} />
                 </span>
                 <span className="min-w-0 flex-1 whitespace-nowrap">
                   <span className="block truncate text-base font-extrabold">登入</span>

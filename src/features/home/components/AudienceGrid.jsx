@@ -18,7 +18,7 @@ function AudienceCard({ photo, photoSeed, title, desc, tall, onOpen }) {
     <button
       type="button"
       onClick={onOpen}
-      className={`group relative overflow-hidden rounded-2xl text-left outline-none ${tall ? 'row-span-2 min-h-[280px] lg:min-h-0' : 'min-h-[132px]'}`}
+      className={`group relative overflow-hidden rounded-2xl text-left outline-none focus-visible:ring-4 focus-visible:ring-brand-subtle ${tall ? 'row-span-2 min-h-[280px] lg:min-h-0' : 'min-h-[132px]'}`}
     >
       <img
         src={audiencePhotoUrl({ photo, photoSeed })}

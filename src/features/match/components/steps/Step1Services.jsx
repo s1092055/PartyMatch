@@ -47,22 +47,22 @@ export default function Step1Services({ conditions, onToggle }) {
               }`}
             >
               {active && (
-                <span className="absolute left-2 top-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-brand">
-                  <Check size={12} className="text-white" strokeWidth={3} />
+                <span className="absolute left-2 top-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-control bg-brand">
+                  <Check size={12} className="text-white" strokeWidth={1.5} />
                 </span>
               )}
               <button
                 type="button"
                 onClick={e => { e.stopPropagation(); setInfoService(service) }}
-                className="absolute right-1 top-1 grid h-8 w-8 shrink-0 place-items-center rounded-full text-slate-300 transition-colors hover:bg-brand-subtle hover:text-brand"
+                className="absolute right-1 top-1 grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-4 transition-colors hover:bg-brand-subtle hover:text-brand"
                 aria-label={`${service.name} 服務說明`}
               >
-                <AlertCircle size={20} />
+                <AlertCircle strokeWidth={1.5} size={20} />
               </button>
               <ServiceLogo serviceId={service.id} size={48} />
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-slate-800 truncate">{service.name}</p>
-                <p className="text-xs text-slate-400 truncate">{service.category}</p>
+                <p className="text-sm font-semibold text-ink truncate">{service.name}</p>
+                <p className="text-xs text-ink-4 truncate">{service.category}</p>
               </div>
             </div>
           )

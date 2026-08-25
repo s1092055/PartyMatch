@@ -6,7 +6,7 @@ import { Button } from '../../../components/ui/button'
 export function buildMembersSubPanel({ group, groupId, members, activeUserId, setShowMembers, openDm }) {
   return {
     title: `群組名單（${members.filter(m => m.groupId === groupId && m.userId !== group.hostId).length + 1} 人）`,
-    icon: <Users size={18} className="text-brand" />,
+    icon: <Users strokeWidth={1.5} size={18} className="text-brand" />,
     content: (
       <div className="p-5 space-y-2">
         <div className="rounded-lg border border-line p-3">
@@ -31,7 +31,7 @@ export function buildMembersSubPanel({ group, groupId, members, activeUserId, se
               onClick={() => { setShowMembers(false); openDm() }}
               className="text-ink-3 hover:text-brand"
             >
-              <MessageCircle size={20} />
+              <MessageCircle strokeWidth={1.5} size={20} />
             </Button>
           </div>
           {group.hostBio && <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-ink-3">{group.hostBio}</p>}

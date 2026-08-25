@@ -6,9 +6,9 @@ import CreditScoreValue from '../CreditScoreValue'
 
 const TAG_CONFIG = {
   '審核制':    { Icon: Clock,        cls: 'bg-amber-50  border border-amber-200 text-amber-700'   },
-  '每月付款':  { Icon: Calendar,     cls: 'bg-blue-50   border border-blue-200  text-blue-700'    },
-  '年付':      { Icon: Calendar,     cls: 'bg-blue-50   border border-blue-200  text-blue-700'    },
-  '需自備帳號': { Icon: User,        cls: 'bg-green-50  border border-green-200 text-green-700'   },
+  '每月付款':  { Icon: Calendar,     cls: 'bg-info-subtle border border-info/30 text-info-text'    },
+  '年付':      { Icon: Calendar,     cls: 'bg-info-subtle border border-info/30 text-info-text'    },
+  '需自備帳號': { Icon: User,        cls: 'bg-success-subtle border border-success/30 text-success-text'   },
   '共享帳號':  { Icon: Users,        cls: 'bg-purple-50 border border-purple-200 text-purple-700' },
   '自動加入':  { Icon: CheckCircle2, cls: 'bg-teal-50   border border-teal-200  text-teal-700'    },
 }
@@ -16,12 +16,12 @@ const DEFAULT_TAG = { Icon: Info, cls: 'bg-raised border border-line text-ink-2'
 
 export function TagChip({ label, size = 'md' }) {
   const { Icon, cls } = TAG_CONFIG[label] ?? DEFAULT_TAG
-  const textSize = size === 'sm' ? 'text-[11px]' : 'text-xs'
+  const textSize = size === 'sm' ? 'text-2xs' : 'text-xs'
   const iconSize = size === 'sm' ? 10 : 12
   const px       = size === 'sm' ? 'px-2 py-0.5' : 'px-2.5 py-1'
   return (
     <span className={`inline-flex shrink-0 items-center gap-1 rounded-full font-semibold ${textSize} ${px} ${cls}`}>
-      <Icon size={iconSize} />
+      <Icon size={iconSize} strokeWidth={1.5} />
       {label}
     </span>
   )
@@ -35,7 +35,7 @@ export function ServiceIntro({ service, plan }) {
       )}
       {(plan?.description || (plan?.features?.length ?? 0) > 0) && (
         <div className={`${service?.description ? 'mt-4 border-t border-line-subtle pt-4' : ''}`}>
-          <p className="mb-4 flex items-center gap-2 text-lg font-black text-brand"><Layers size={16} />方案說明</p>
+          <p className="mb-4 flex items-center gap-2 text-lg font-black text-brand"><Layers strokeWidth={1.5} size={16} />方案說明</p>
           {plan?.description && (
             <p className="mb-3 text-sm font-medium text-ink-2">{plan.description}</p>
           )}
@@ -43,7 +43,7 @@ export function ServiceIntro({ service, plan }) {
             <ul className="space-y-2">
               {plan.features.map((feat, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-ink-2">
-                  <CheckCircle2 size={14} className="mt-0.5 shrink-0 text-brand" />
+                  <CheckCircle2 strokeWidth={1.5} size={14} className="mt-0.5 shrink-0 text-brand" />
                   {feat}
                 </li>
               ))}
@@ -85,7 +85,7 @@ export default function GroupOverviewContent({ group, service, plan, reviewsSect
   return (
     <div className="divide-y divide-line-subtle">
       <div className="space-y-4 pb-5 pt-0">
-        <p className="flex items-center gap-2 text-lg font-black text-brand"><Info size={16} />群組資訊</p>
+        <p className="flex items-center gap-2 text-lg font-black text-brand"><Info strokeWidth={1.5} size={16} />群組資訊</p>
         {infoRows.length > 0 && (
           <div className="space-y-2">
             {infoRows.map(row => (
@@ -112,12 +112,12 @@ export default function GroupOverviewContent({ group, service, plan, reviewsSect
       </div>
 
       <div className="space-y-4 py-5">
-        <p className="flex items-center gap-2 text-lg font-black text-brand"><ListChecks size={16} />群組規則</p>
+        <p className="flex items-center gap-2 text-lg font-black text-brand"><ListChecks strokeWidth={1.5} size={16} />群組規則</p>
         <RulesList allRules={allRules} />
       </div>
 
       <div className="py-5">
-        <p className="mb-4 flex items-center gap-2 text-lg font-black text-brand"><Package size={16} />服務說明</p>
+        <p className="mb-4 flex items-center gap-2 text-lg font-black text-brand"><Package strokeWidth={1.5} size={16} />服務說明</p>
         <ServiceIntro service={service} plan={plan} />
       </div>
 

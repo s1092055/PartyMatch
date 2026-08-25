@@ -21,6 +21,7 @@ export default function ActivateServiceModal({
   finalConfirmed,
   setFinalConfirmed,
   allMembersChecked,
+  loading = false,
 }) {
   const nextDate = isOpen ? toISODate(advanceByCycle(new Date(), group.billingCycle)) : ''
   const service  = getServiceById(group.serviceId)
@@ -32,7 +33,7 @@ export default function ActivateServiceModal({
       <DialogContent variant="panel" maxWidth="max-w-lg" height="36rem" instant>
         <DialogHeader>
           <div className="flex min-w-0 items-center gap-2.5">
-            <PlayCircle size={18} className="shrink-0 text-brand" />
+            <PlayCircle strokeWidth={1.5} size={18} className="shrink-0 text-brand" />
             <DialogTitle className="truncate text-base">啟用服務</DialogTitle>
           </div>
           <DialogCloseButton />
@@ -62,7 +63,7 @@ export default function ActivateServiceModal({
             reviewsSection={
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <p className="flex items-center gap-2 text-lg font-black text-brand"><UserCheck size={16} />確認成員已啟用外部服務</p>
+                  <p className="flex items-center gap-2 text-lg font-black text-brand"><UserCheck strokeWidth={1.5} size={16} />確認成員已啟用外部服務</p>
                   <p className="text-xs text-ink-3">
                     {members.filter(m => memberChecks[m.id] && !m.serviceInfoIssueNote).length} / {members.length} 已確認
                   </p>
@@ -134,6 +135,7 @@ export default function ActivateServiceModal({
           <Button
             onClick={onConfirm}
             disabled={!allMembersChecked || !finalConfirmed}
+            loading={loading}
             className="flex-1 rounded-lg"
           >確認啟用</Button>
         </DialogFooter>

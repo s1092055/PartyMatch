@@ -4,7 +4,7 @@ import { cn } from "../../lib/utils"
 import { Button } from "./button"
 
 const VARIANT_CONTENT = {
-  default: 'max-w-5xl rounded-2xl border border-line bg-canvas shadow-2xl',
+  default: 'max-w-5xl rounded-2xl border border-line bg-canvas shadow-popover',
   panel:   'max-w-md rounded-card border border-line bg-surface shadow-card p-0',
 };
 const VARIANT_Z = { default: 'z-[56]', panel: 'z-[65]' }
@@ -103,7 +103,7 @@ export function DialogCloseButton({ className, ...props }) {
         className={cn('text-ink-3 hover:text-ink active:opacity-70', className)}
         {...props}
       >
-        <X size={18} />
+        <X strokeWidth={1.5} size={18} />
       </Button>
     </DialogPrimitive.Close>
   )

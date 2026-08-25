@@ -11,7 +11,7 @@ export default function FavoriteToggleButton({ isFav, onClick, heartSize = 18, s
           : 'border-line-subtle bg-surface text-ink-3 hover:border-danger/30 hover:text-danger'
       } ${className}`}
     >
-      <Heart size={heartSize} className={isFav ? 'fill-white' : ''} />
+      <Heart strokeWidth={1.5} size={heartSize} className={isFav ? 'fill-white' : ''} />
     </button>
   )
 }

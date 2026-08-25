@@ -18,7 +18,7 @@ export default function Step4Results({ results }) {
   if (results.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-14 text-center">
-        <Search size={40} className="mb-4 text-ink-4" />
+        <Search strokeWidth={1.5} size={40} className="mb-4 text-ink-4" />
         <p className="mb-1 text-base font-extrabold text-ink">沒有符合條件的群組</p>
         <p className="max-w-xs text-sm text-ink-3">
           試著調整每人申請費用、放寬團主信用分數要求，或選擇更多服務類型
@@ -28,7 +28,7 @@ export default function Step4Results({ results }) {
           onClick={() => navigate('/explore')}
           className="mt-6 rounded-lg border border-line hover:border-brand/40 hover:text-brand"
         >
-          <Compass size={14} />
+          <Compass strokeWidth={1.5} size={14} />
           探索所有群組
         </Button>
       </div>

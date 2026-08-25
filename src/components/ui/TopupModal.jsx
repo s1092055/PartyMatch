@@ -130,7 +130,7 @@ export default function TopupModal({ isOpen, onClose }) {
                     } : undefined}
                   >
                     <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-raised ${cfg.color}`}>
-                      <Icon size={16} />
+                      <Icon size={16} strokeWidth={1.5} />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
@@ -231,7 +231,7 @@ export default function TopupModal({ isOpen, onClose }) {
               onClick={() => setShowHistory(true)}
               className="flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium text-ink-4 transition-colors hover:bg-raised hover:text-ink"
             >
-              <Clock size={13} />
+              <Clock strokeWidth={1.5} size={13} />
               查看交易紀錄
             </button>
           </DialogFooter>

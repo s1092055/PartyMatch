@@ -19,7 +19,7 @@ function ReadReceipt({ readers }) {
   return (
     <span className="group relative inline-flex text-xs leading-normal text-ink-4" tabIndex={0} title={tooltip}>
       <span className="cursor-default">{label}</span>
-      <span className="pointer-events-none absolute bottom-full right-0 z-20 mb-1 w-max max-w-48 rounded-lg bg-neutral-900 px-2 py-1 text-xs leading-relaxed text-white opacity-0 shadow-popover transition-opacity group-hover:opacity-100 group-focus:opacity-100">
+      <span className="pointer-events-none absolute bottom-full right-0 z-20 mb-1 w-max max-w-48 rounded-lg bg-ink px-2 py-1 text-xs leading-relaxed text-canvas opacity-0 shadow-popover transition-opacity group-hover:opacity-100 group-focus:opacity-100">
         {tooltip}
       </span>
     </span>
@@ -32,7 +32,7 @@ function MessageAttachment({ url }) {
   return (
     <>
       <button type="button" onClick={() => setOpen(true)} className="mt-1.5 block">
-        <img src={url} alt="附件" className="max-h-48 max-w-48 rounded-xl object-cover" />
+        <img src={url} alt="附件" className="max-h-48 max-w-48 rounded-2xl object-cover" />
       </button>
       {open && <ImageLightbox url={url} onClose={() => setOpen(false)} />}
     </>
@@ -61,7 +61,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
       const iAlreadyFilled = isHost || (hasFilledServiceInfo(myMember?.serviceInfo, sharingMethod) && !myMember?.serviceInfoIssueNote)
       return (
         <div key={msg.id} className="flex justify-center">
-          <div className="w-72 rounded-2xl border border-line bg-surface p-4 shadow-sm">
+          <div className="w-72 rounded-2xl border border-line bg-surface p-4 shadow-card">
             <p className="mb-2 text-xs font-semibold text-ink-2">{isSharedCredentials ? '帳號資訊提取進度' : '服務帳號填寫進度'}</p>
             <div className="space-y-2">
               {groupMembers.map(m => (
@@ -78,7 +78,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
                       <p className="text-xs text-ink-4">{isSharedCredentials ? '尚未提取' : '尚未填寫'}</p>
                     )}
                   </div>
-                  {hasFilledServiceInfo(m.serviceInfo, sharingMethod) && <CheckCircle2 size={13} className="shrink-0 text-success" />}
+                  {hasFilledServiceInfo(m.serviceInfo, sharingMethod) && <CheckCircle2 strokeWidth={1.5} size={13} className="shrink-0 text-success" />}
                 </div>
               ))}
             </div>
@@ -114,12 +114,12 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
       const alreadyFixed = hasFilledServiceInfo(svcMember?.serviceInfo, resubmitSharingMethod) && !svcMember?.serviceInfoIssueNote
       return (
         <div key={msg.id} className="flex justify-center">
-          <div className="w-64 rounded-2xl border border-warning/30 bg-warning-subtle px-4 py-3 text-center shadow-sm">
+          <div className="w-64 rounded-2xl border border-warning/30 bg-warning-subtle px-4 py-3 text-center shadow-card">
             <p className="mb-2 text-xs font-semibold text-warning-text">服務帳號需要修正</p>
             {msg.text && <p className="mb-3 rounded-lg bg-surface/60 px-3 py-2 text-left text-xs text-ink-2">{msg.text}</p>}
             {alreadyFixed ? (
               <p className="flex items-center justify-center gap-1 text-xs font-semibold text-ink-3">
-                <CheckCircle2 size={13} /> {resubmitIsSharedCredentials ? '已重新確認' : '已重新填寫'}
+                <CheckCircle2 strokeWidth={1.5} size={13} /> {resubmitIsSharedCredentials ? '已重新確認' : '已重新填寫'}
               </p>
             ) : (
               <Button
@@ -139,7 +139,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
     if (msg.actionType === 'all_service_info_filled') {
       return (
         <div key={msg.id} className="flex justify-center">
-          <div className="w-64 rounded-2xl border border-success/30 bg-success-subtle px-4 py-3 text-center shadow-sm">
+          <div className="w-64 rounded-2xl border border-success/30 bg-success-subtle px-4 py-3 text-center shadow-success">
             <p className="mb-2 text-xs text-ink-2">{msg.text}</p>
             <Button
               variant="success"
@@ -186,7 +186,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
       </span>
       <div className="max-w-[70%]">
         <p className="mb-1 text-xs font-bold text-ink-3">{getMessageSenderName(msg)}</p>
-        <div className="w-fit rounded-2xl rounded-tl-md bg-surface px-4 py-2.5 text-sm text-ink shadow-sm">
+        <div className="w-fit rounded-2xl rounded-tl-md bg-surface px-4 py-2.5 text-sm text-ink shadow-card">
           {msg.text}
           <MessageAttachment url={msg.attachmentUrl} />
         </div>

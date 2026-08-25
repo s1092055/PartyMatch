@@ -52,12 +52,12 @@ function EditableField({ label, value, onSave, type = 'text', placeholder }) {
       <div className="flex items-center gap-1 shrink-0 pt-5">
         {editing ? (
           <>
-            <Button onClick={save} loading={saving} size="icon" aria-label="儲存"><Check size={13} strokeWidth={3} /></Button>
-            <Button onClick={cancel} disabled={saving} variant="ghost" size="icon" aria-label="取消編輯" className="border border-line text-ink-3"><X size={13} /></Button>
+            <Button onClick={save} loading={saving} size="icon" aria-label="儲存"><Check size={13} strokeWidth={1.5} /></Button>
+            <Button onClick={cancel} disabled={saving} variant="ghost" size="icon" aria-label="取消編輯" className="border border-line text-ink-3"><X strokeWidth={1.5} size={13} /></Button>
           </>
         ) : (
           <Button onClick={() => setEditing(true)} variant="ghost" size="icon" aria-label={`編輯${label}`} className="border border-line text-ink-3">
-            <Pencil size={12} />
+            <Pencil strokeWidth={1.5} size={12} />
           </Button>
         )}
       </div>
@@ -117,12 +117,12 @@ function PhoneEditableField({ value, onSave }) {
       <div className="flex items-center gap-1 shrink-0 pt-5">
         {editing ? (
           <>
-            <Button onClick={save} loading={saving} size="icon" aria-label="儲存"><Check size={13} strokeWidth={3} /></Button>
-            <Button onClick={cancel} disabled={saving} variant="ghost" size="icon" aria-label="取消編輯" className="border border-line text-ink-3"><X size={13} /></Button>
+            <Button onClick={save} loading={saving} size="icon" aria-label="儲存"><Check size={13} strokeWidth={1.5} /></Button>
+            <Button onClick={cancel} disabled={saving} variant="ghost" size="icon" aria-label="取消編輯" className="border border-line text-ink-3"><X strokeWidth={1.5} size={13} /></Button>
           </>
         ) : (
           <Button onClick={() => setEditing(true)} variant="ghost" size="icon" aria-label="編輯手機號碼" className="border border-line text-ink-3">
-            <Pencil size={12} />
+            <Pencil strokeWidth={1.5} size={12} />
           </Button>
         )}
       </div>
@@ -166,12 +166,12 @@ function BioEditableField({ value, onSave }) {
       <div className="flex items-center gap-1 shrink-0 pt-5">
         {editing ? (
           <>
-            <Button onClick={save} loading={saving} size="icon" aria-label="儲存"><Check size={13} strokeWidth={3} /></Button>
-            <Button onClick={cancel} disabled={saving} variant="ghost" size="icon" aria-label="取消編輯" className="border border-line text-ink-3"><X size={13} /></Button>
+            <Button onClick={save} loading={saving} size="icon" aria-label="儲存"><Check size={13} strokeWidth={1.5} /></Button>
+            <Button onClick={cancel} disabled={saving} variant="ghost" size="icon" aria-label="取消編輯" className="border border-line text-ink-3"><X strokeWidth={1.5} size={13} /></Button>
           </>
         ) : (
           <Button onClick={() => setEditing(true)} variant="ghost" size="icon" aria-label="編輯個人簡介" className="border border-line text-ink-3">
-            <Pencil size={12} />
+            <Pencil strokeWidth={1.5} size={12} />
           </Button>
         )}
       </div>

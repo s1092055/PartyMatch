@@ -7,9 +7,9 @@ export const PRESENCE_LABELS = {
 }
 
 export const PRESENCE_COLORS = {
-  online:  'bg-emerald-500',
-  busy:    'bg-amber-500',
-  offline: 'bg-red-500',
+  online:  'bg-success',
+  busy:    'bg-warning',
+  offline: 'bg-danger',
 }
 
 export const PROTECTED_NAV_ROUTES = new Set([

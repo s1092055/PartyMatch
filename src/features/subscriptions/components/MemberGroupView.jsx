@@ -211,9 +211,9 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
     <div className="py-2">
       <Button
         onClick={() => { setFillValues(myMember?.serviceInfo ?? {}); setShowFillInfo(true) }}
-        className="w-full rounded-lg shadow-md"
+        className="w-full rounded-lg shadow-button"
       >
-        <ClipboardEdit size={15} /> {isSharedCredentials ? '提取帳號資訊' : '填寫帳號'}
+        <ClipboardEdit strokeWidth={1.5} size={15} /> {isSharedCredentials ? '提取帳號資訊' : '填寫帳號'}
       </Button>
     </div>
   );
@@ -223,16 +223,16 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
       <Button
         onClick={() => { setConfirmProfileName(myMember?.serviceInfo?.memberProfileName ?? ''); setConfirmDialog(true) }}
         disabled={confirmLoading}
-        className="rounded-lg shadow-md"
+        className="rounded-lg shadow-button"
       >
-        <CheckCircle2 size={15} /> 確認服務
+        <CheckCircle2 strokeWidth={1.5} size={15} /> 確認服務
       </Button>
       <Button
         variant="destructive"
         onClick={() => { resetDisputeForm(); setShowDispute(true) }}
-        className="rounded-lg shadow-md"
+        className="rounded-lg shadow-button"
       >
-        <AlertTriangle size={14} /> 回報問題
+        <AlertTriangle strokeWidth={1.5} size={14} /> 回報問題
       </Button>
     </div>
   )
@@ -270,7 +270,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
                   }}
                   className="text-ink-3 hover:text-brand"
                 >
-                  <MessageCircle size={20} />
+                  <MessageCircle strokeWidth={1.5} size={20} />
                 </Button>
               </div>
             </div>
@@ -298,7 +298,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
                     }}
                     className="text-ink-3 hover:text-brand"
                   >
-                    <MessageCircle size={20} />
+                    <MessageCircle strokeWidth={1.5} size={20} />
                   </Button>
                 </div>
               </div>
@@ -424,29 +424,29 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
         sideBar={
           <>
             <GroupModalSideBarItem active={activePanel === null} onClick={() => setActivePanel(null)}>
-              <Info size={17} /> 群組概覽
+              <Info strokeWidth={1.5} size={17} /> 群組概覽
             </GroupModalSideBarItem>
             <GroupModalSideBarItem active={activePanel === 'members'} onClick={() => setActivePanel('members')}>
-              <Users size={17} /> 群組名單
+              <Users strokeWidth={1.5} size={17} /> 群組名單
             </GroupModalSideBarItem>
             {!!sub && (
               <GroupModalSideBarItem active={activePanel === 'payments'} onClick={() => setActivePanel('payments')}>
-                <Banknote size={17} /> 付款管理
+                <Banknote strokeWidth={1.5} size={17} /> 付款管理
               </GroupModalSideBarItem>
             )}
             {canViewCredentials && (
               <GroupModalSideBarItem active={activePanel === 'credentials'} onClick={() => setActivePanel('credentials')}>
-                <KeyRound size={17} /> 帳號資訊
+                <KeyRound strokeWidth={1.5} size={17} /> 帳號資訊
               </GroupModalSideBarItem>
             )}
             {canLeaveGroup && (
               <GroupModalSideBarItem pinned tone="danger" onClick={() => setLeaveConfirm(true)}>
-                <LogOut size={17} /> 退出群組
+                <LogOut strokeWidth={1.5} size={17} /> 退出群組
               </GroupModalSideBarItem>
             )}
             {isPaymentRelevant && (
               <GroupModalSideBarItem pinned onClick={openMessages}>
-                <MessageCircle size={17} /> 群組訊息
+                <MessageCircle strokeWidth={1.5} size={17} /> 群組訊息
               </GroupModalSideBarItem>
             )}
           </>

@@ -452,7 +452,7 @@ export default function FloatingMessages() {
       <DrawerContent className="max-lg:[--drawer-content-width:18rem] max-lg:data-[swipe-direction=right]:border-l-0 lg:rounded-2xl lg:border lg:[--drawer-inset:0.75rem] lg:[--drawer-bleed-background:transparent]">
         <DrawerHeader>
           <div className="flex items-center gap-2">
-            <Bell size={18} className="text-ink-3" />
+            <Bell strokeWidth={1.5} size={18} className="text-ink-3" />
             <DrawerTitle>通知</DrawerTitle>
             {!loggedIn && (
               <span className="rounded-full bg-raised px-2 py-0.5 text-xs font-bold text-ink-3">
@@ -518,7 +518,7 @@ export default function FloatingMessages() {
                     }`}
                   >
                     <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-raised">
-                      <Icon size={16} className={iconColor} />
+                      <Icon size={16} strokeWidth={1.5} className={iconColor} />
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold text-ink">{n.title}</p>

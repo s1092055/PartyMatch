@@ -54,7 +54,7 @@ export default function Step2Plan({ form, onChange }) {
               type="button"
               onClick={() => selectPlanAt(activeIndex - 1)}
               disabled={groupPlans.length <= 1 || activeIndex <= 0}
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-slate-200 bg-surface text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-30"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-line bg-surface text-ink-3 transition-colors hover:bg-raised disabled:opacity-30"
               aria-label="上一個方案"
             >
               <ChevronLeft size={16} strokeWidth={1.5} />
@@ -65,28 +65,28 @@ export default function Step2Plan({ form, onChange }) {
                 type="button"
                 onClick={() => selectPlanAt(activeIndex)}
                 className={`flex min-h-40 min-w-0 flex-1 items-center justify-center self-stretch rounded-lg border-2 px-4 text-base transition-all ${
-                  isPlanSelected ? 'border-brand/40 text-brand' : 'border-slate-200 text-slate-600'
+                  isPlanSelected ? 'border-brand/40 text-brand' : 'border-line text-ink-3'
                 }`}
               >
                 <div className="min-w-0 text-center">
-                  <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-bold ${isPlanSelected ? 'bg-brand text-white' : 'bg-slate-100 text-slate-500'}`}>
+                  <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-bold ${isPlanSelected ? 'bg-brand text-white' : 'bg-raised text-ink-3'}`}>
                     {currentPlan.billingCycle === 'yearly' ? '年繳' : '月繳'}
                   </span>
                   <p className="mt-2 text-xl font-semibold truncate">{planDisplayName}</p>
-                  <p className={`mt-2 flex items-center justify-center gap-1 truncate text-sm ${isPlanSelected ? 'text-brand' : 'text-slate-400'}`}>
+                  <p className={`mt-2 flex items-center justify-center gap-1 truncate text-sm ${isPlanSelected ? 'text-brand' : 'text-ink-3'}`}>
                     <TokenAmount
                       amount={planPriceAmount}
                       badgeSize="!h-4 !w-4"
-                      unitClassName={isPlanSelected ? 'text-brand' : 'text-slate-400'}
+                      unitClassName={isPlanSelected ? 'text-brand' : 'text-ink-3'}
                     />
                   </p>
-                  <p className={`mt-1 truncate text-sm ${isPlanSelected ? 'text-brand' : 'text-slate-400'}`}>
+                  <p className={`mt-1 truncate text-sm ${isPlanSelected ? 'text-brand' : 'text-ink-3'}`}>
                     最多 {currentPlan.maxSeats} 人共享
                   </p>
                 </div>
               </button>
             ) : (
-              <div className="flex min-h-40 flex-1 items-center justify-center self-stretch rounded-lg border-2 border-slate-200 px-4 text-sm text-slate-400">
+              <div className="flex min-h-40 flex-1 items-center justify-center self-stretch rounded-lg border-2 border-line px-4 text-sm text-ink-4">
                 尚無可選方案
               </div>
             )}
@@ -95,7 +95,7 @@ export default function Step2Plan({ form, onChange }) {
               type="button"
               onClick={() => selectPlanAt(activeIndex + 1)}
               disabled={groupPlans.length <= 1 || activeIndex >= groupPlans.length - 1}
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-slate-200 bg-surface text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-30"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-line bg-surface text-ink-3 transition-colors hover:bg-raised disabled:opacity-30"
               aria-label="下一個方案"
             >
               <ChevronRight size={16} strokeWidth={1.5} />
@@ -107,7 +107,7 @@ export default function Step2Plan({ form, onChange }) {
               <ul className="space-y-1.5">
                 {currentPlan.features.map((feat, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-ink-2">
-                    <CheckCircle2 size={14} className="mt-0.5 shrink-0 text-brand" />
+                    <CheckCircle2 strokeWidth={1.5} size={14} className="mt-0.5 shrink-0 text-brand" />
                     {feat}
                   </li>
                 ))}

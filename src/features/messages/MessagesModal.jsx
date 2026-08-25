@@ -227,7 +227,7 @@ export default function MessagesModal() {
     if (c.type === 'dm') {
       const otherId = c.participants?.find(p => p !== user?.id)
       const meta = c.participantMeta?.[otherId] ?? {}
-      return { ...c, name: meta.name ?? '私訊', avatarInitial: meta.avatarInitial ?? '', avatarColor: meta.avatarColor ?? '#64748b', presenceStatus: meta.presenceStatus ?? 'offline' };
+      return { ...c, name: meta.name ?? '私訊', avatarInitial: meta.avatarInitial ?? '', avatarColor: meta.avatarColor ?? '#64718A', presenceStatus: meta.presenceStatus ?? 'offline' };
     }
     if (isSystemConversation(c)) {
       return { ...c, name: 'PartyMatch 系統訊息', avatarInitial: 'P', avatarColor: 'linear-gradient(135deg,#667eea,#764ba2)' }
@@ -275,7 +275,7 @@ export default function MessagesModal() {
                 </div>
               </>
             ) : (
-              <MessageSquare size={20} className="text-brand" />
+              <MessageSquare strokeWidth={1.5} size={20} className="text-brand" />
             )}
             <DialogTitle>{isMobile && selectedId && selected ? selected.name : '訊息'}</DialogTitle>
           </div>

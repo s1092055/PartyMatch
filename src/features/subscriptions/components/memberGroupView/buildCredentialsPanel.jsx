@@ -25,7 +25,7 @@ export function buildCredentialsPanel(
                     <button
                       type="button"
                       onClick={onTogglePassword}
-                      className="shrink-0 rounded-md p-1 text-ink-4 transition-colors hover:bg-surface hover:text-ink-2"
+                      className="shrink-0 rounded-control p-1 text-ink-4 transition-colors hover:bg-surface hover:text-ink-2"
                     >
                       {showPassword ? <EyeOff size={14} strokeWidth={1.5} /> : <Eye size={14} strokeWidth={1.5} />}
                     </button>

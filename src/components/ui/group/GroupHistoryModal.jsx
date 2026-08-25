@@ -8,7 +8,7 @@ export default function GroupHistoryModal({ isOpen, onClose, items, renderItem, 
       <DialogContent maxWidth="max-w-3xl">
         <DialogHeader>
           <div className="flex items-center gap-2">
-            <Archive size={16} className="text-ink-3" />
+            <Archive strokeWidth={1.5} size={16} className="text-ink-3" />
             <DialogTitle>群組紀錄</DialogTitle>
           </div>
           <DialogCloseButton />

@@ -18,7 +18,7 @@ export function Slider({ min, max, step, value, onValueChange, disabled, classNa
       {value.map((_, i) => (
         <SliderPrimitive.Thumb
           key={i}
-          className="block h-4 w-4 shrink-0 cursor-pointer rounded-full border-2 border-brand bg-white shadow focus:outline-none"
+          className="block h-4 w-4 shrink-0 cursor-pointer rounded-full border-2 border-brand bg-white shadow outline-none focus-visible:ring-4 focus-visible:ring-brand-subtle"
         />
       ))}
     </SliderPrimitive.Root>

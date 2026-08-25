@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { AlertCircle, ChevronLeft, ChevronRight, Info, PlusCircle } from 'lucide-react'
 import FlowLayout from '../../common/layout/FlowLayout'
 import Step1Service from './components/steps/Step1Service'
@@ -97,7 +97,18 @@ export default function CreateGroupPage() {
     if (location.key === 'default') navigate('/')
     else navigate(-1)
   }
-  const [step, setStep] = useState(1)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const stepParam = parseInt(searchParams.get('step'), 10)
+  const step = stepParam >= 1 && stepParam <= 4 ? stepParam : 1
+  function setStep(updater) {
+    const next = typeof updater === 'function' ? updater(step) : updater
+    setSearchParams(prev => {
+      const params = new URLSearchParams(prev)
+      if (next <= 1) params.delete('step')
+      else params.set('step', String(next))
+      return params
+    })
+  }
   const [form, setForm] = useState(INITIAL_FORM)
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
@@ -224,7 +235,7 @@ export default function CreateGroupPage() {
         steps={STEP_TITLES}
         currentStep={step}
         title="建立群組"
-        titleIcon={<PlusCircle size={18} className="shrink-0 text-brand" />}
+        titleIcon={<PlusCircle strokeWidth={1.5} size={18} className="shrink-0 text-brand" />}
         headerBanner={banner && (
           <div className="flex items-center justify-center gap-2 bg-brand-subtle px-6 py-3 text-sm font-medium text-brand">
             <banner.Icon size={15} />
@@ -243,7 +254,7 @@ export default function CreateGroupPage() {
             <div key={step} className="h-full animate-step-slide-up p-0.5">
               <div className="flex h-full flex-col">
                 {isPlanOrSettingsStep && (
-                  <div className="mb-6 flex shrink-0 items-center gap-4 rounded-2xl border border-line bg-surface px-6 py-5 shadow-sm">
+                  <div className="mb-6 flex shrink-0 items-center gap-4 rounded-2xl border border-line bg-surface px-6 py-5 shadow-card">
                     <ServiceLogo serviceId={form.serviceId} size={56} className="shrink-0 border-line-strong" />
                     <div className="min-w-0 flex-1">
                       <h2 className="truncate text-lg font-black text-ink">{service?.fullName ?? '尚未選擇服務'}</h2>

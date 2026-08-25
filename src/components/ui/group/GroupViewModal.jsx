@@ -63,7 +63,7 @@ export default function GroupViewModal({
       <AlertDialog open onOpenChange={v => { if (!v) { useNotificationStore.getState().markRead(billingNotice.id); setBillingNoticeDismissed(true) } }}>
         <AlertDialogContent>
           <AlertDialogTitle className="flex items-center gap-2">
-            <CalendarClock size={18} className="shrink-0 text-brand" />
+            <CalendarClock strokeWidth={1.5} size={18} className="shrink-0 text-brand" />
             {billingNotice.title}
           </AlertDialogTitle>
           <AlertDialogDescription>{billingNotice.message}</AlertDialogDescription>

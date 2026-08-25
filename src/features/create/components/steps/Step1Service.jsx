@@ -33,43 +33,37 @@ export default function Step1Service({ form, onChange }) {
         {visible.map((service) => {
           const active = form.serviceId === service.id;
           return (
-            <div
-              key={service.id}
-              role="button"
-              tabIndex={0}
-              onClick={() => onChange("serviceId", service.id)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  onChange("serviceId", service.id);
-                }
-              }}
-              className={`relative flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 p-4 text-center transition-all ${
-                active
-                  ? "border-brand bg-brand-subtle"
-                  : "border-line bg-surface hover:border-brand-border hover:bg-brand-subtle/40"
-              }`}
-            >
-              {active && (
-                <span className="absolute left-2 top-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-brand">
-                  <Check size={12} className="text-white" strokeWidth={3} />
-                </span>
-              )}
+            <div key={service.id} className="relative">
               <button
                 type="button"
-                onClick={(e) => { e.stopPropagation(); setInfoService(service); }}
-                className="absolute right-1 top-1 grid h-8 w-8 shrink-0 place-items-center rounded-full text-slate-300 transition-colors hover:bg-brand-subtle hover:text-brand"
+                onClick={() => onChange("serviceId", service.id)}
+                className={`flex w-full cursor-pointer flex-col items-center gap-2 rounded-lg border-2 p-4 text-center transition-all ${
+                  active
+                    ? "border-brand bg-brand-subtle"
+                    : "border-line bg-surface hover:border-brand-border hover:bg-brand-subtle/40"
+                }`}
+              >
+                {active && (
+                  <span className="absolute left-2 top-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-control bg-brand">
+                    <Check size={12} className="text-white" strokeWidth={1.5} />
+                  </span>
+                )}
+                <ServiceLogo serviceId={service.id} size={48} />
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-ink truncate">
+                    {service.name}
+                  </p>
+                  <p className="text-xs text-ink-3 truncate">{service.category}</p>
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setInfoService(service)}
+                className="absolute right-1 top-1 grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-4 transition-colors hover:bg-brand-subtle hover:text-brand"
                 aria-label={`${service.name} 服務說明`}
               >
-                <AlertCircle size={20} />
+                <AlertCircle size={20} strokeWidth={1.5} />
               </button>
-              <ServiceLogo serviceId={service.id} size={48} />
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-slate-800 truncate">
-                  {service.name}
-                </p>
-                <p className="text-xs text-slate-400 truncate">{service.category}</p>
-              </div>
             </div>
           );
         })}

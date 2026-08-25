@@ -12,12 +12,12 @@ function renderCTA({
   if (!activeUserId) return (
     <Button variant="default" size="lg" className="w-full"
       onClick={() => navigate('/login', { state: redirectAfterLogin })}>
-      <LogIn size={16} />登入以加入群組
+      <LogIn strokeWidth={1.5} size={16} />登入以加入群組
     </Button>
   )
   if (isHost) return (
     <div className="flex items-center justify-center gap-2 rounded-lg bg-brand-subtle px-4 py-3 text-sm font-medium text-brand">
-      <ShieldCheck size={15} />你是此群組的團主
+      <ShieldCheck strokeWidth={1.5} size={15} />你是此群組的團主
     </div>
   )
   if (isWaitingMembers) return null
@@ -38,7 +38,7 @@ function renderCTA({
   )
   if (isMember) return (
     <div className="flex items-center justify-center gap-2 rounded-lg bg-success-subtle px-4 py-3 text-sm font-medium text-success-text">
-      <CheckCircle2 size={15} />已加入此群組
+      <CheckCircle2 strokeWidth={1.5} size={15} />已加入此群組
     </div>
   )
   if (isPendingApp) return (
@@ -81,7 +81,7 @@ export function buildMobileFooter({
             className="h-auto flex-col gap-1 py-2 text-xs"
             onClick={() => setShowMembers(true)}
           >
-            <Users size={17} /> 群組名單
+            <Users strokeWidth={1.5} size={17} /> 群組名單
           </Button>
           <Button
             variant="ghost"
@@ -89,7 +89,7 @@ export function buildMobileFooter({
             className="h-auto flex-col gap-1 py-2 text-xs text-danger hover:bg-danger-subtle"
             onClick={() => setLeaveConfirm(true)}
           >
-            <LogOut size={17} /> 退出群組
+            <LogOut strokeWidth={1.5} size={17} /> 退出群組
           </Button>
         </div>
       ) : canApply ? (

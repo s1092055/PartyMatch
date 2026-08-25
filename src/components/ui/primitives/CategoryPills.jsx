@@ -26,8 +26,8 @@ export default function CategoryPills({ active, onChange, variant = 'pills', sho
                 <img src={logoUrl} alt="全部" className="h-6 w-6 rounded-lg object-contain md:h-8 md:w-8" />
               ) : cat.Icon && (
                 <>
-                  <cat.Icon size={24} className="md:hidden" strokeWidth={1.75} />
-                  <cat.Icon size={28} className="hidden md:block" strokeWidth={1.75} />
+                  <cat.Icon size={24} className="md:hidden" strokeWidth={1.5} />
+                  <cat.Icon size={28} className="hidden md:block" strokeWidth={1.5} />
                 </>
               )}
               <span className="text-2xs md:text-sm">{cat.label}</span>
@@ -57,7 +57,7 @@ export default function CategoryPills({ active, onChange, variant = 'pills', sho
             >
               {cat.value === 'all'
                 ? <img src={logoUrl} alt="全部" className={`${fullHeight ? 'h-5 w-5' : 'h-[13px] w-[13px]'} shrink-0 rounded object-contain`} />
-                : cat.Icon && <cat.Icon size={fullHeight ? 20 : 13} strokeWidth={2} className="shrink-0" />
+                : cat.Icon && <cat.Icon size={fullHeight ? 20 : 13} strokeWidth={1.5} className="shrink-0" />
               }
               <span className="truncate">{cat.label}</span>
             </button>
@@ -83,7 +83,7 @@ export default function CategoryPills({ active, onChange, variant = 'pills', sho
           >
             {cat.value === 'all'
               ? <img src={logoUrl} alt="全部" className="h-[13px] w-[13px] shrink-0 rounded object-contain" />
-              : cat.Icon && <cat.Icon size={13} strokeWidth={2} className="shrink-0" />
+              : cat.Icon && <cat.Icon size={13} strokeWidth={1.5} className="shrink-0" />
             }
             {cat.label}
           </button>

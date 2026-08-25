@@ -141,7 +141,7 @@ export default function Step3Filters({ conditions, onChange }) {
             type="checkbox"
             checked={isUnlimitedPrice}
             onChange={e => toggleUnlimitedPrice(e.target.checked)}
-            className="h-3.5 w-3.5 rounded border-line-strong accent-brand focus:outline-none"
+            className="h-3.5 w-3.5 rounded border-line-strong accent-brand outline-none focus-visible:ring-4 focus-visible:ring-brand-subtle"
           />
           不限
         </label>

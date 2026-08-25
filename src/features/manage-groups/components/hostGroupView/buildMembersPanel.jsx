@@ -54,7 +54,7 @@ export function buildMembersPanel({ group, members, setActivePanel, onClose, set
                       }}
                       className="text-ink-3 hover:text-brand"
                     >
-                      <MessageCircle size={20} />
+                      <MessageCircle strokeWidth={1.5} size={20} />
                     </Button>
                     {removable && (
                       <Button
@@ -64,7 +64,7 @@ export function buildMembersPanel({ group, members, setActivePanel, onClose, set
                         onClick={() => setRemovingMember(m)}
                         className="text-ink-3 hover:text-danger"
                       >
-                        <UserX size={20} />
+                        <UserX strokeWidth={1.5} size={20} />
                       </Button>
                     )}
                   </div>
