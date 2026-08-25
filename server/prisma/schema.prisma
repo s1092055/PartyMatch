@@ -113,6 +113,8 @@ model User {
   showAvatar     Boolean        @default(true)
   presenceStatus PresenceStatus @default(online)
   bio            String?        @db.VarChar(500)
+  // 靜音的通知類別清單（見 lib/notificationCategories.js），空陣列代表全部接收
+  mutedNotificationCategories Json @default("[]")
   creditScore    Int            @default(100)
   tokenBalance   Int            @default(0)
   isAdmin        Boolean        @default(false)

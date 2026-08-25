@@ -3,6 +3,7 @@ import { z } from 'zod'
 import prisma from '../lib/prisma.js'
 import { requireAuth } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
+import { NOTIFICATION_CATEGORIES } from '../lib/notificationCategories.js'
 
 const router = Router()
 
@@ -17,6 +18,9 @@ async function notifyUpcomingRenewals(subscriptions, userId) {
     .map(s => ({ ...s, days: Math.ceil((new Date(s.nextBillingDate).getTime() - Date.now()) / 86400000) }))
     .filter(s => s.days >= 0 && s.days <= 7)
   if (candidates.length === 0) return
+
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { mutedNotificationCategories: true } })
+  if ((user?.mutedNotificationCategories ?? []).includes(NOTIFICATION_CATEGORIES.upcoming_renewal)) return
 
   const alreadySent = await prisma.notification.findMany({
     where: { userId, type: 'upcoming_renewal' },

@@ -216,15 +216,13 @@ export async function confirmService({ groupId, userId }) {
   });
 
   if (released) {
-    prisma.notification.create({
-      data: {
-        userId:  group.host.id,
-        type:    'escrow_released',
-        title:   '代管款項已撥款',
-        message: `「${groupLabel}」群組確認期結束，代管款項已撥入你的PM幣餘額。`,
-        meta:    { groupId },
-      },
-    }).catch(console.error)
+    notify({
+      userId:  group.host.id,
+      type:    'escrow_released',
+      title:   '代管款項已撥款',
+      message: `「${groupLabel}」群組確認期結束，代管款項已撥入你的PM幣餘額。`,
+      meta:    { groupId },
+    })
     notifyGroupConversation(groupId, member.userId, `確認期結束，代管款項已撥款給團主。`).catch(console.error)
   }
 
@@ -283,15 +281,13 @@ export async function raiseDispute({ groupId, userId, reason, evidenceUrl }) {
     return tx.group.findUnique({ where: { id: groupId }, include: HOST_GROUP_INCLUDE })
   })
 
-  prisma.notification.create({
-    data: {
-      userId:  group.hostId,
-      type:    'dispute_raised',
-      title:   '收到成員問題回報',
-      message: `${member.user.name} 針對「${groupLabel}」服務回報問題，將於 48 小時內處理完成。`,
-      meta:    { groupId },
-    },
-  }).catch(console.error)
+  notify({
+    userId:  group.hostId,
+    type:    'dispute_raised',
+    title:   '收到成員問題回報',
+    message: `${member.user.name} 針對「${groupLabel}」服務回報問題，將於 48 小時內處理完成。`,
+    meta:    { groupId },
+  })
   notifyGroupConversation(groupId, member.userId, `${member.user.name} 回報了服務問題，等待處理。`).catch(console.error)
 
   prisma.credentialComment.create({

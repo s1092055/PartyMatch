@@ -6,6 +6,7 @@ import { requireAuth, requireAdmin } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
 import { deleteAllUserSessions, clearRefreshCookie } from './auth.js'
 import { maskAvatar } from '../lib/avatarVisibility.js'
+import { MUTABLE_NOTIFICATION_CATEGORY_KEYS } from '../lib/notificationCategories.js'
 
 const router = Router()
 
@@ -31,6 +32,7 @@ const updateProfileSchema = z.object({
   avatarInitial: z.string().max(2).optional(),
   showAvatar:   z.boolean().optional(),
   presenceStatus: z.enum(['online', 'busy', 'offline']).optional(),
+  mutedNotificationCategories: z.array(z.enum(MUTABLE_NOTIFICATION_CATEGORY_KEYS)).optional(),
 })
 
 const deactivateSchema = z.object({
@@ -53,7 +55,7 @@ router.patch('/me', requireAuth, validate(updateProfileSchema), async (req, res,
     const user = await prisma.user.update({
       where:  { id: req.user.id },
       data:   req.body,
-      select: { id: true, email: true, name: true, phone: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true },
+      select: { id: true, email: true, name: true, phone: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true, mutedNotificationCategories: true },
     })
     res.json(user)
   } catch (err) { next(err) }

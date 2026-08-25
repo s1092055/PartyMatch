@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Globe, LogIn, LogOut, Shield, Trash2 } from 'lucide-react'
+import { Bell, Globe, LogIn, LogOut, Shield, Trash2 } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogCloseButton } from './dialog'
 import { Button } from './button'
 import { useTheme } from '../theme-provider'
@@ -25,6 +25,14 @@ const DEFAULT_PREFS = {
   marketingEmail: false,
   shareActivity:  false,
 }
+
+const NOTIFICATION_CATEGORIES = [
+  { key: 'application', label: '申請審核', desc: '送出申請、審核結果通知' },
+  { key: 'group',       label: '群組動態', desc: '群組成立、成員異動、續訂等通知' },
+  { key: 'billing',     label: '帳單與服務資訊', desc: '填寫服務資訊、扣款提醒、撥款通知' },
+]
+
+const EMPTY_MUTED_CATEGORIES = []
 
 function loadPrefs() {
   return { ...DEFAULT_PREFS, ...readStorage(PREFS_KEY, {}) }
@@ -61,6 +69,8 @@ export function SettingsModalBody({ onClose }) {
   const [prefs, setPrefs] = useState(loadPrefs)
   const showAvatar = useAuthStore(s => s.user?.showAvatar ?? true)
   const [savingAvatarVisibility, setSavingAvatarVisibility] = useState(false)
+  const mutedCategories = useAuthStore(s => s.user?.mutedNotificationCategories ?? EMPTY_MUTED_CATEGORIES)
+  const [savingCategory, setSavingCategory] = useState(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [password, setPassword] = useState('')
   const [deleteError, setDeleteError] = useState('')
@@ -76,6 +86,16 @@ export function SettingsModalBody({ onClose }) {
     setSavingAvatarVisibility(true)
     const result = await useAuthStore.getState().updateProfile({ showAvatar: !showAvatar })
     setSavingAvatarVisibility(false)
+    if (!result.ok) toast(result.error ?? '儲存失敗，請稍後再試', 'error')
+  }
+
+  async function toggleNotificationCategory(category) {
+    setSavingCategory(category)
+    const next = mutedCategories.includes(category)
+      ? mutedCategories.filter(c => c !== category)
+      : [...mutedCategories, category]
+    const result = await useAuthStore.getState().updateProfile({ mutedNotificationCategories: next })
+    setSavingCategory(null)
     if (!result.ok) toast(result.error ?? '儲存失敗，請稍後再試', 'error')
   }
 
@@ -134,6 +154,19 @@ export function SettingsModalBody({ onClose }) {
               checked={prefs.shareActivity}
               onChange={() => toggle('shareActivity')}
             />
+          </SectionGroup>
+
+          <SectionGroup title="通知偏好" icon={Bell}>
+            {NOTIFICATION_CATEGORIES.map(cat => (
+              <SettingRow
+                key={cat.key}
+                label={cat.label}
+                desc={cat.desc}
+                checked={!mutedCategories.includes(cat.key)}
+                onChange={savingCategory ? undefined : () => toggleNotificationCategory(cat.key)}
+              />
+            ))}
+            <p className="pt-2 text-xs text-ink-4">爭議處理與系統安全通知一律會發送，不受此設定影響</p>
           </SectionGroup>
 
           <SectionGroup title="帳號操作" icon={LogOut}>

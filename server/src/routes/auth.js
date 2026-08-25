@@ -56,7 +56,7 @@ router.post('/register', authLimiter, validate(registerSchema), async (req, res,
         name,
         phone,
       },
-      select: { id: true, email: true, name: true, phone: true, creditScore: true, tokenBalance: true, isAdmin: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, bio: true },
+      select: { id: true, email: true, name: true, phone: true, creditScore: true, tokenBalance: true, isAdmin: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, bio: true, mutedNotificationCategories: true },
     })
 
     ensureSystemConversation(user.id).catch(err => console.error('[auth] 建立系統聊天室失敗:', err));
@@ -143,7 +143,7 @@ router.get('/me', requireAuth, async (req, res, next) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
-      select: { id: true, email: true, name: true, phone: true, creditScore: true, tokenBalance: true, isAdmin: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, bio: true, createdAt: true },
+      select: { id: true, email: true, name: true, phone: true, creditScore: true, tokenBalance: true, isAdmin: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, bio: true, mutedNotificationCategories: true, createdAt: true },
     })
     if (!user) return res.status(404).json({ message: '使用者不存在' })
     res.json(user)
