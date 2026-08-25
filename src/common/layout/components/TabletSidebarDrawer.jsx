@@ -95,7 +95,7 @@ export default function TabletSidebarDrawer(
           type="button"
           aria-label={`${item.label}，${LOCKED_MESSAGE}`}
           onClick={e => { setOpen(false); preventLockedAction(e) }}
-          className="relative flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-4 transition-colors hover:bg-raised dark:text-[#238EC7]"
+          className="relative flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-4 transition-colors hover:bg-raised"
         >
           <span className="relative grid h-9 w-9 shrink-0 place-items-center">
             <Icon size={22} strokeWidth={1.5} />
@@ -113,7 +113,7 @@ export default function TabletSidebarDrawer(
           key={item.type}
           type="button"
           onClick={() => { setOpen(false); onClick() }}
-          className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand dark:text-[#238EC7]"
+          className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
         >
           <span className="grid h-9 w-9 shrink-0 place-items-center">
             <item.icon size={22} strokeWidth={1.5} />
@@ -132,7 +132,7 @@ export default function TabletSidebarDrawer(
         className={`flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-base transition-all hover:-translate-y-0.5 ${
           isActive
             ? 'bg-brand font-extrabold text-white'
-            : 'font-bold text-ink-2 hover:bg-brand-subtle hover:text-brand dark:text-[#238EC7]'
+            : 'font-bold text-ink-2 hover:bg-brand-subtle hover:text-brand'
         }`}
       >
         <span className="grid h-9 w-9 shrink-0 place-items-center">
@@ -149,7 +149,7 @@ export default function TabletSidebarDrawer(
         type="button"
         onClick={() => setOpen(true)}
         aria-label="開啟導覽選單"
-        className="fixed left-4 top-6 z-50 grid h-12 w-12 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-floating transition-colors hover:bg-raised can-hover:lg:hidden dark:border-[#238EC7]"
+        className="fixed left-4 top-6 z-50 grid h-12 w-12 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-floating transition-colors hover:bg-raised can-hover:lg:hidden"
       >
         <Menu size={20} strokeWidth={1.5} />
       </button>
@@ -178,7 +178,7 @@ export default function TabletSidebarDrawer(
                 type="button"
                 onClick={() => { setOpen(false); setTopupOpen(true) }}
                 aria-label="PM幣儲值"
-                className="mb-1 flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand dark:text-[#238EC7]"
+                className="mb-1 flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
               >
                 <span className="grid h-9 w-9 shrink-0 place-items-center">
                   <TokenBadge className="shrink-0" />
@@ -199,11 +199,11 @@ export default function TabletSidebarDrawer(
                   <PresenceDot status={presenceStatus} className="absolute bottom-0 right-0 h-3 w-3" />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-base font-extrabold text-ink dark:text-[#238EC7]">{userName}</span>
+                  <span className="block truncate text-base font-extrabold text-ink">{userName}</span>
                 </span>
               </button>
             ) : (
-              <a href="/login" onClick={handleNavigate} className="flex h-14 min-w-0 w-full items-center gap-3 rounded-2xl px-1 text-left text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand dark:text-[#238EC7]">
+              <a href="/login" onClick={handleNavigate} className="flex h-14 min-w-0 w-full items-center gap-3 rounded-2xl px-1 text-left text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand">
                 <span className="grid h-10 w-10 shrink-0 place-items-center">
                   <LogIn size={22} strokeWidth={1.5} />
                 </span>
@@ -260,7 +260,7 @@ export default function TabletSidebarDrawer(
                       <span className="shrink-0 shadow-md rounded-full">
                         <Avatar initial={avatarInitial} color={avatarColor} size="xl" className="h-28 w-28 text-4xl" />
                       </span>
-                      <span className="min-w-0 truncate text-lg font-extrabold text-ink dark:text-[#238EC7]">{userName}</span>
+                      <span className="min-w-0 truncate text-lg font-extrabold text-ink">{userName}</span>
                     </div>
                     <Select value={presenceStatus} onValueChange={changePresence}>
                       <SelectTrigger aria-label="設定目前狀態" className="mx-auto w-auto min-w-36 justify-center gap-2 [&>svg]:hidden">

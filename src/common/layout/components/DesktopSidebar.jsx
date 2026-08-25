@@ -53,7 +53,7 @@ export default function DesktopSidebar({
           onMouseEnter={e => setLockedTip({ top: e.clientY + 14, left: e.clientX + 12 })}
           onMouseMove={e => setLockedTip({ top: e.clientY + 14, left: e.clientX + 12 })}
           onMouseLeave={() => setLockedTip(null)}
-          className="relative flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-4 transition-colors hover:bg-raised dark:text-[#238EC7]"
+          className="relative flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-4 transition-colors hover:bg-raised"
         >
           <span className="relative grid h-9 w-9 shrink-0 place-items-center">
             <Icon size={22} strokeWidth={1.5} />
@@ -70,7 +70,7 @@ export default function DesktopSidebar({
       const onClick = item.type === 'create' ? openCreate : openMatch
       return (
         <button key={item.type} onClick={onClick} aria-label={item.label}
-          className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand dark:text-[#238EC7]">
+          className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand">
           <span className="grid h-9 w-9 shrink-0 place-items-center">
             <item.icon size={22} strokeWidth={1.5} />
           </span>
@@ -90,7 +90,7 @@ export default function DesktopSidebar({
         className={`flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-base transition-all hover:-translate-y-0.5 ${
           isActive
             ? 'bg-brand font-extrabold text-white'
-            : 'font-bold text-ink-2 hover:bg-brand-subtle hover:text-brand dark:text-[#238EC7]'
+            : 'font-bold text-ink-2 hover:bg-brand-subtle hover:text-brand'
         }`}
       >
         <span className="grid h-9 w-9 shrink-0 place-items-center">
@@ -157,7 +157,7 @@ export default function DesktopSidebar({
 
       <aside
         data-force-open={userMenuOpen ? 'true' : undefined}
-        className="group/nav fixed bottom-4 left-4 top-4 z-50 hidden w-16 flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-floating transition-[width] duration-300 ease-out hover:w-64 focus-within:w-64 data-[force-open=true]:w-64 can-hover:lg:flex dark:border-[#238EC7]"
+        className="group/nav fixed bottom-4 left-4 top-4 z-50 hidden w-16 flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-floating transition-[width] duration-300 ease-out hover:w-64 focus-within:w-64 data-[force-open=true]:w-64 can-hover:lg:flex"
       >
         <a
           href="/"
@@ -183,7 +183,7 @@ export default function DesktopSidebar({
               type="button"
               onClick={() => setTopupOpen(true)}
               aria-label="PM幣儲值"
-              className="mb-1 flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand dark:text-[#238EC7]"
+              className="mb-1 flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
             >
               <span className="grid h-9 w-9 shrink-0 place-items-center">
                 <TokenBadge className="shrink-0" />
@@ -206,7 +206,7 @@ export default function DesktopSidebar({
                     <PresenceDot status={presenceStatus} className="absolute bottom-0 right-0 h-3 w-3" />
                   </span>
                   <span className="min-w-0 flex-1 opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
-                    <span className="block truncate text-sm font-extrabold text-ink dark:text-[#238EC7]">{userName}</span>
+                    <span className="block truncate text-sm font-extrabold text-ink">{userName}</span>
                   </span>
                 </button>
               </DropdownMenuTrigger>
@@ -250,7 +250,7 @@ export default function DesktopSidebar({
               href="/login"
               onClick={closeAll}
               aria-label="登入"
-              className="flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand dark:text-[#238EC7]"
+              className="flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
             >
               <span className="grid h-10 w-10 shrink-0 place-items-center">
                 <LogIn size={22} strokeWidth={1.5} />

@@ -4,8 +4,8 @@ import { cn } from "../../lib/utils"
 import { Button } from "./button"
 
 const VARIANT_CONTENT = {
-  default: 'max-w-5xl rounded-2xl border border-line bg-canvas shadow-popover dark:border-[#238EC7]',
-  panel:   'max-w-md rounded-card border border-line bg-surface shadow-card p-0 dark:border-[#238EC7]',
+  default: 'max-w-5xl rounded-2xl border border-line bg-canvas shadow-popover',
+  panel:   'max-w-md rounded-card border border-line bg-surface shadow-card p-0',
 };
 const VARIANT_Z = { default: 'z-[56]', panel: 'z-[65]' }
 

@@ -53,7 +53,7 @@ export default function SectionNav() {
       className="fixed right-6 top-1/2 z-40 hidden -translate-y-1/2 can-hover:lg:block"
     >
 
-      <ul className="group/secnav flex w-11 flex-col items-stretch gap-1 overflow-hidden rounded-2xl border border-transparent px-1.5 py-3 transition-[width,background-color,border-color,box-shadow] duration-300 can-hover:hover:w-64 can-hover:hover:border-line can-hover:hover:bg-surface can-hover:hover:shadow-floating dark:can-hover:hover:border-[#238EC7]">
+      <ul className="group/secnav flex w-11 flex-col items-stretch gap-1 overflow-hidden rounded-2xl border border-transparent px-1.5 py-3 transition-[width,background-color,border-color,box-shadow] duration-300 can-hover:hover:w-64 can-hover:hover:border-line can-hover:hover:bg-surface can-hover:hover:shadow-floating">
         {SECTIONS.map(s => {
           const active = s.id === activeId
           return (
@@ -66,7 +66,7 @@ export default function SectionNav() {
                 className="flex w-full items-center justify-between gap-2.5 rounded-control px-1.5 py-1.5 transition-colors hover:bg-raised"
               >
                 <span
-                  className="min-w-0 flex-1 overflow-hidden truncate text-left text-sm font-bold text-ink-2 opacity-0 transition-opacity duration-200 group-hover/secnav:opacity-100 dark:text-[#238EC7]"
+                  className="min-w-0 flex-1 overflow-hidden truncate text-left text-sm font-bold text-ink-2 opacity-0 transition-opacity duration-200 group-hover/secnav:opacity-100"
                 >
                   {s.label}
                 </span>
