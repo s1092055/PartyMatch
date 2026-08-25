@@ -45,11 +45,26 @@ export default function TabletSidebarDrawer(
   const [open, setOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [userPanel, setUserPanel] = useState('menu')
+  const [activeDetailPanel, setActiveDetailPanel] = useState(null)
 
   function openUserMenu() {
     setOpen(false)
     setUserPanel('menu')
+    setActiveDetailPanel(null)
     setUserMenuOpen(true)
+  }
+
+  function openUserPanel(panel) {
+    setActiveDetailPanel(panel)
+    setUserPanel(panel)
+  }
+
+  function backToUserMenu() {
+    setUserPanel('menu')
+  }
+
+  function handleUserPanelTrackTransitionEnd() {
+    if (userPanel === 'menu') setActiveDetailPanel(null)
   }
 
   async function changePresence(next) {
@@ -203,7 +218,7 @@ export default function TabletSidebarDrawer(
 
       {loggedIn && (
         <Dialog open={userMenuOpen} onOpenChange={setUserMenuOpen}>
-          <DialogContent maxWidth="max-w-md" className="max-h-[min(80dvh,640px)] p-0">
+          <DialogContent maxWidth="max-w-md" height="min(80dvh, 640px)" className="p-0">
             <DialogTitle className="sr-only">{userPanel === 'menu' ? '使用者選單' : USER_PANELS[userPanel].title}</DialogTitle>
             <DialogDescription>{userName} 的使用者選單</DialogDescription>
 
@@ -213,7 +228,7 @@ export default function TabletSidebarDrawer(
                   <>
                     <button
                       type="button"
-                      onClick={() => setUserPanel('menu')}
+                      onClick={backToUserMenu}
                       aria-label="返回使用者選單"
                       className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
                     >
@@ -230,9 +245,16 @@ export default function TabletSidebarDrawer(
               <DialogCloseButton />
             </div>
 
-            <div key={userPanel} className="flex min-h-0 flex-1 flex-col overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden animate-step-slide-up">
-              {userPanel === 'menu' && (
-                <>
+            <div className="relative min-h-0 flex-1 overflow-hidden">
+              <div
+                className="absolute inset-y-0 left-0 flex transition-transform duration-300 ease-in-out"
+                style={{ width: '200%', transform: userPanel !== 'menu' ? 'translateX(-50%)' : 'translateX(0)' }}
+                onTransitionEnd={handleUserPanelTrackTransitionEnd}
+              >
+                <div
+                  className="flex shrink-0 flex-col overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                  style={{ width: '50%' }}
+                >
                   <div className="flex flex-col items-center gap-3 px-3 pb-4 pt-6 text-center">
                     <span className="relative shrink-0 shadow-md rounded-full">
                       <Avatar initial={avatarInitial} color={avatarColor} size="xl" />
@@ -260,7 +282,7 @@ export default function TabletSidebarDrawer(
                   <div className="grid grid-cols-2 gap-3 px-4 pb-2">
                     <button
                       type="button"
-                      onClick={() => setUserPanel('profile')}
+                      onClick={() => openUserPanel('profile')}
                       className="flex h-24 flex-col items-center justify-center gap-2 rounded-2xl border border-line bg-surface text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
                     >
                       <User size={24} strokeWidth={1.5} className="shrink-0" />
@@ -268,7 +290,7 @@ export default function TabletSidebarDrawer(
                     </button>
                     <button
                       type="button"
-                      onClick={() => setUserPanel('credit')}
+                      onClick={() => openUserPanel('credit')}
                       className="flex h-24 flex-col items-center justify-center gap-2 rounded-2xl border border-line bg-surface text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
                     >
                       <ShieldCheck size={24} strokeWidth={1.5} className="shrink-0" />
@@ -276,7 +298,7 @@ export default function TabletSidebarDrawer(
                     </button>
                     <button
                       type="button"
-                      onClick={() => setUserPanel('reviews')}
+                      onClick={() => openUserPanel('reviews')}
                       className="flex h-24 flex-col items-center justify-center gap-2 rounded-2xl border border-line bg-surface text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
                     >
                       <Star size={24} strokeWidth={1.5} className="shrink-0" />
@@ -284,7 +306,7 @@ export default function TabletSidebarDrawer(
                     </button>
                     <button
                       type="button"
-                      onClick={() => setUserPanel('settings')}
+                      onClick={() => openUserPanel('settings')}
                       className="flex h-24 flex-col items-center justify-center gap-2 rounded-2xl border border-line bg-surface text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
                     >
                       <Settings size={24} strokeWidth={1.5} className="shrink-0" />
@@ -302,24 +324,30 @@ export default function TabletSidebarDrawer(
                       {loggingOut ? '登出中…' : '登出'}
                     </button>
                   </div>
-                </>
-              )}
-              {userPanel === 'profile' && (
-                <div className="px-6 py-5">
-                  <ProfileModalBody />
                 </div>
-              )}
-              {userPanel === 'credit' && (
-                <CreditScoreModalBody onClose={closeUserMenu} hideFooter />
-              )}
-              {userPanel === 'reviews' && (
-                <HostReviewsModalBody host={host} />
-              )}
-              {userPanel === 'settings' && (
-                <div className="space-y-6 px-6 py-5">
-                  <SettingsModalBody onClose={closeUserMenu} />
+
+                <div
+                  className="flex shrink-0 flex-col overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                  style={{ width: '50%' }}
+                >
+                  {activeDetailPanel === 'profile' && (
+                    <div className="px-6 py-5">
+                      <ProfileModalBody />
+                    </div>
+                  )}
+                  {activeDetailPanel === 'credit' && (
+                    <CreditScoreModalBody onClose={closeUserMenu} hideFooter />
+                  )}
+                  {activeDetailPanel === 'reviews' && (
+                    <HostReviewsModalBody host={host} />
+                  )}
+                  {activeDetailPanel === 'settings' && (
+                    <div className="space-y-6 px-6 py-5">
+                      <SettingsModalBody onClose={closeUserMenu} />
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           </DialogContent>
         </Dialog>
