@@ -1,5 +1,10 @@
 import { getSignedDownloadUrl } from './r2Storage.js'
 
+// 群組列表/詳情裡的團主公開欄位，Prisma include/select 共用
+export const HOST_PUBLIC_SELECT = {
+  select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true },
+}
+
 export function maskGroupListSensitiveFields(groups) {
   return groups.map(g => ({ ...g, sharedCredentials: undefined }))
 }

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { fetchOlderMessages } from '../../../common/api/messagesApi'
 
 export function useMessageScroll({ selectedId, messages }) {
@@ -9,7 +9,7 @@ export function useMessageScroll({ selectedId, messages }) {
   const [hasMoreOlder, setHasMoreOlder] = useState(true)
   const [loadingOlder, setLoadingOlder] = useState(false)
   const loadingOlderRef = useRef(false)
-  const allMessages = [...olderMessages, ...messages]
+  const allMessages = useMemo(() => [...olderMessages, ...messages], [olderMessages, messages])
 
   const [prevSelectedId, setPrevSelectedId] = useState(selectedId);
   if (selectedId !== prevSelectedId) {

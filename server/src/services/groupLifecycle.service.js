@@ -1,12 +1,13 @@
 import prisma from '../lib/prisma.js'
 import { computeSeatCost } from '../utils/pricing.js'
-import { notify, notifyGroupConversation, claimGroupStatus } from '../routes/groups/shared.js'
+import { notify, notifyBatch, notifyGroupConversation, claimGroupStatus } from '../routes/groups/shared.js'
 import { rejectPendingApplications } from '../utils/membership.js'
 import { adjustCreditScore } from '../utils/creditScore.js'
 import { encryptCredential } from '../lib/credentialEncryption.js'
+import { HOST_PUBLIC_SELECT } from '../lib/groupPrivacy.js'
 
 const HOST_GROUP_INCLUDE = {
-  host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true } },
+  host:    HOST_PUBLIC_SELECT,
   service: true,
   _count:  { select: { members: true } },
 };
@@ -63,15 +64,13 @@ export async function activateGroup({ groupId, hostId }) {
   if (isFirstActivation) {
     const groupLabel = group.planName ?? group.service?.name ?? ''
     const finalDateText = nextBillingDate.toISOString().slice(0, 10).replace(/-/g, '/')
-    ;[group.hostId, ...group.members.map(m => m.userId)].forEach(userId => {
-      notify({
-        userId,
-        type:    'billing_date_confirmed',
-        title:   '下次扣款日已確定',
-        message: `「${groupLabel}」服務已啟用，下次扣款日確定為 ${finalDateText}。`,
-        meta:    { groupId, nextBillingDate: nextBillingDate.toISOString(), estimated: false },
-      })
-    })
+    notifyBatch([group.hostId, ...group.members.map(m => m.userId)].map(userId => ({
+      userId,
+      type:    'billing_date_confirmed',
+      title:   '下次扣款日已確定',
+      message: `「${groupLabel}」服務已啟用，下次扣款日確定為 ${finalDateText}。`,
+      meta:    { groupId, nextBillingDate: nextBillingDate.toISOString(), estimated: false },
+    })))
   }
 
   const groupLabelForActivation = group.planName ?? group.service?.name ?? ''
@@ -465,15 +464,14 @@ export async function lockGroup({ groupId, hostId, sharedCredentials: sharedCred
   const groupLabel = group.planName ?? group.service?.name ?? '';
   notifyGroupConversation(groupId, group.hostId, `「${groupLabel}」聊天室已啟用。`).catch(console.error)
 
-  const estimatedDateText = nextBillingDate.toISOString().slice(0, 10).replace(/-/g, '/');[group.hostId, ...group.members.map(m => m.userId)].forEach(userId => {
-    notify({
-      userId,
-      type:    'billing_date_confirmed',
-      title:   '預估下次扣款日',
-      message: `「${groupLabel}」目前預估下次扣款日為 ${estimatedDateText}，實際日期會在團主啟用服務時重新確認。`,
-      meta:    { groupId, nextBillingDate: nextBillingDate.toISOString(), estimated: true },
-    })
-  })
+  const estimatedDateText = nextBillingDate.toISOString().slice(0, 10).replace(/-/g, '/')
+  notifyBatch([group.hostId, ...group.members.map(m => m.userId)].map(userId => ({
+    userId,
+    type:    'billing_date_confirmed',
+    title:   '預估下次扣款日',
+    message: `「${groupLabel}」目前預估下次扣款日為 ${estimatedDateText}，實際日期會在團主啟用服務時重新確認。`,
+    meta:    { groupId, nextBillingDate: nextBillingDate.toISOString(), estimated: true },
+  })))
 
   const isSharedCredentials = sharedCredentials !== undefined;
   notify({
@@ -683,25 +681,21 @@ export async function renewGroup({ groupId, hostId }) {
 
   const groupLabel = group.planName ?? '';
   const estimatedDateText = base.toISOString().slice(0, 10).replace(/-/g, '/')
-  ;[group.hostId, ...memberIds].forEach(userId => {
-    notify({
-      userId,
-      type:    'billing_date_confirmed',
-      title:   '預估下次扣款日',
-      message: `「${groupLabel}」新一期目前預估下次扣款日為 ${estimatedDateText}，實際日期會在團主啟用服務時重新確認。`,
-      meta:    { groupId, nextBillingDate: base.toISOString(), estimated: true },
-    })
-  })
+  notifyBatch([group.hostId, ...memberIds].map(userId => ({
+    userId,
+    type:    'billing_date_confirmed',
+    title:   '預估下次扣款日',
+    message: `「${groupLabel}」新一期目前預估下次扣款日為 ${estimatedDateText}，實際日期會在團主啟用服務時重新確認。`,
+    meta:    { groupId, nextBillingDate: base.toISOString(), estimated: true },
+  })))
 
-  memberIds.forEach(userId => {
-    notify({
-      userId,
-      type:    'group_renewal',
-      title:   '新一期已開始',
-      message: `「${groupLabel}」群組開始新一期，請前往填寫最新服務帳號資訊。`,
-      meta:    { groupId },
-    })
-  })
+  notifyBatch(memberIds.map(userId => ({
+    userId,
+    type:    'group_renewal',
+    title:   '新一期已開始',
+    message: `「${groupLabel}」群組開始新一期，請前往填寫最新服務帳號資訊。`,
+    meta:    { groupId },
+  })))
 
   return updated
 }

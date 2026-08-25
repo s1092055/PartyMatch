@@ -4,6 +4,15 @@ import { getUserProfile } from '../../../common/api/usersApi'
 export const userProfileCache = new Map();
 const inFlightProfileFetches = new Set()
 
+const PROFILE_CACHE_LIMIT = 500
+
+function cacheProfile(pid, profile) {
+  userProfileCache.set(pid, profile)
+  while (userProfileCache.size > PROFILE_CACHE_LIMIT) {
+    userProfileCache.delete(userProfileCache.keys().next().value)
+  }
+}
+
 const GENERIC_NAMES = new Set(['使用者', '成員', '新成員', '申請者', '匿名', '未知使用者'])
 
 function usableName(name) {
@@ -72,9 +81,9 @@ export function useParticipantNames({ selected, selectedId, memberMap, hostId, g
       inFlightProfileFetches.add(pid)
       getUserProfile(pid)
         .then(profile => {
-          userProfileCache.set(pid, profile)
+          cacheProfile(pid, profile)
         })
-        .catch(err => { console.error('[ChatWindow] getUserProfile failed:', err); userProfileCache.set(pid, null) })
+        .catch(err => { console.error('[ChatWindow] getUserProfile failed:', err); cacheProfile(pid, null) })
         .finally(() => {
           inFlightProfileFetches.delete(pid)
           setProfileResolveTick(t => t + 1)

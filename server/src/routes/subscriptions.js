@@ -3,7 +3,7 @@ import { z } from 'zod'
 import prisma from '../lib/prisma.js'
 import { requireAuth } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
-import { NOTIFICATION_CATEGORIES } from '../lib/notificationCategories.js'
+import { notifyBatch } from './groups/shared.js'
 
 const router = Router()
 
@@ -18,9 +18,6 @@ async function notifyUpcomingRenewals(subscriptions, userId) {
     .map(s => ({ ...s, days: Math.ceil((new Date(s.nextBillingDate).getTime() - Date.now()) / 86400000) }))
     .filter(s => s.days >= 0 && s.days <= 7)
   if (candidates.length === 0) return
-
-  const user = await prisma.user.findUnique({ where: { id: userId }, select: { mutedNotificationCategories: true } })
-  if ((user?.mutedNotificationCategories ?? []).includes(NOTIFICATION_CATEGORIES.upcoming_renewal)) return
 
   const alreadySent = await prisma.notification.findMany({
     where: { userId, type: 'upcoming_renewal' },
@@ -39,15 +36,13 @@ async function notifyUpcomingRenewals(subscriptions, userId) {
   })
   if (toCreate.length === 0) return
 
-  await prisma.notification.createMany({
-    data: toCreate.map(sub => ({
-      userId,
-      type:    'upcoming_renewal',
-      title:   '即將續訂',
-      message: `「${sub.group.service?.name ?? sub.group.planName}」將於 ${sub.days === 0 ? '今天' : `${sub.days} 天後`}扣款，請確認PM幣餘額充足。`,
-      meta:    { groupId: sub.groupId, nextBillingDate: sub.nextBillingDate.toISOString() },
-    })),
-  }).catch(console.error)
+  await notifyBatch(toCreate.map(sub => ({
+    userId,
+    type:    'upcoming_renewal',
+    title:   '即將續訂',
+    message: `「${sub.group.service?.name ?? sub.group.planName}」將於 ${sub.days === 0 ? '今天' : `${sub.days} 天後`}扣款，請確認PM幣餘額充足。`,
+    meta:    { groupId: sub.groupId, nextBillingDate: sub.nextBillingDate.toISOString() },
+  })))
 }
 
 router.get('/', requireAuth, async (req, res, next) => {

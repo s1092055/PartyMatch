@@ -4,9 +4,9 @@ import prisma from '../../lib/prisma.js'
 import redis from '../../lib/redis.js'
 import { requireAuth, optionalAuth } from '../../middleware/auth.js'
 import { validate } from '../../middleware/validate.js'
-import { notify } from './shared.js'
+import { notify, notifyBatch } from './shared.js'
 import { maskAvatar } from '../../lib/avatarVisibility.js'
-import { maskGroupListSensitiveFields, maskGroupDetailSensitiveFields, resolveGroupMemberEvidenceUrls } from '../../lib/groupPrivacy.js'
+import { maskGroupListSensitiveFields, maskGroupDetailSensitiveFields, resolveGroupMemberEvidenceUrls, HOST_PUBLIC_SELECT } from '../../lib/groupPrivacy.js'
 import { computeSeatCost, toPlainGroup } from '../../utils/pricing.js'
 import { refundEscrow } from '../../utils/membership.js'
 import { adjustCreditScore } from '../../utils/creditScore.js'
@@ -68,7 +68,7 @@ router.get('/', optionalAuth, async (req, res, next) => {
         ...(category && { service: { category } }),
       },
       include: {
-        host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true } },
+        host:    HOST_PUBLIC_SELECT,
         service: { select: GROUP_LIST_SERVICE_SELECT },
         _count:  { select: { members: true } },
       },
@@ -86,7 +86,7 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
     const group = await prisma.group.findUnique({
       where: { id: req.params.id },
       include: {
-        host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true } },
+        host:    HOST_PUBLIC_SELECT,
         service: true,
         members: {
           include: { user: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, bio: true } } },
@@ -138,9 +138,10 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
           if (claimed.count === 0)
             return [];
 
+          let remainingEscrow = group.escrowTokens
           for (const m of stalled) {
-            const fresh = await tx.group.findUnique({ where: { id: group.id }, select: { escrowTokens: true } });
-            const refundAmount = Math.min(seatCost, fresh?.escrowTokens ?? 0)
+            const refundAmount = Math.min(seatCost, remainingEscrow)
+            remainingEscrow -= refundAmount
             await tx.member.delete({ where: { id: m.id } })
             await refundEscrow(tx, { userId: m.userId, groupId: group.id, amount: refundAmount, note: '逾期未完成帳號資訊填寫，自動移出群組並退款' })
             await adjustCreditScore(tx, { userId: m.userId, delta: -10, reason: '被移除出群組', groupId: group.id });
@@ -173,7 +174,7 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
           const fresh = await prisma.group.findUnique({
             where: { id: group.id },
             include: {
-              host:    { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true } },
+              host:    HOST_PUBLIC_SELECT,
               service: true,
               members: { include: { user: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, bio: true } } } },
             },
@@ -211,7 +212,7 @@ router.post('/', requireAuth, validate(createGroupSchema), async (req, res, next
     const data = Object.fromEntries(Object.entries(req.body).filter(([k]) => allowed.includes(k)))
     const group = await prisma.group.create({
       data: { ...data, ...pricing, hostId: req.user.id },
-      include: { service: true, host: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true } } },
+      include: { service: true, host: HOST_PUBLIC_SELECT },
     })
 
     notify({
@@ -262,15 +263,13 @@ router.patch('/:id', requireAuth, validate(updateGroupSchema), async (req, res, 
 
     if (status === 'ended' && group.status !== 'ended') {
       const groupLabel = group.planName ?? group.service?.name ?? ''
-      group.members.forEach(m => {
-        notify({
-          userId:  m.userId,
-          type:    'group_ended',
-          title:   '群組已結束',
-          message: `「${groupLabel}」群組已由團主結束，合購服務將不再續訂。`,
-          meta:    { groupId: req.params.id },
-        })
-      })
+      await notifyBatch(group.members.map(m => ({
+        userId:  m.userId,
+        type:    'group_ended',
+        title:   '群組已結束',
+        message: `「${groupLabel}」群組已由團主結束，合購服務將不再續訂。`,
+        meta:    { groupId: req.params.id },
+      })))
     }
 
     res.json(toPlainGroup(updated))

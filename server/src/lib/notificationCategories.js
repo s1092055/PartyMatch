@@ -29,3 +29,14 @@ export const NOTIFICATION_CATEGORIES = {
 }
 
 export const MUTABLE_NOTIFICATION_CATEGORY_KEYS = ['application', 'group', 'billing']
+
+// 刻意排除在 NOTIFICATION_CATEGORIES 之外、一律強制發送的類型。
+// 新增 NotificationType enum 值時記得二選一：加進 NOTIFICATION_CATEGORIES，或加進這裡；
+// 兩邊都沒加會在 notify() 觸發 console.warn，避免靜默變成「使用者無法靜音」。
+export const ALWAYS_SEND_NOTIFICATION_TYPES = [
+  'dispute_raised',
+  'dispute_resolved',
+  'dispute_resolved_by_host',
+  'service_info_issue',
+  'system',
+]

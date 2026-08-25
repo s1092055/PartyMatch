@@ -11,18 +11,16 @@ function httpError(statusCode, message, responsePayload) {
 }
 
 export async function submitApplication({ groupId, message, userId }) {
-  const [group, applicant] = await Promise.all([
+  const [group, applicant, lastRemoved, existing] = await Promise.all([
     prisma.group.findUnique({ where: { id: groupId }, include: { service: { select: { name: true } } } }),
     prisma.user.findUnique({ where: { id: userId }, select: { tokenBalance: true, creditScore: true, name: true } }),
+    prisma.application.findFirst({ where: { groupId, userId, status: 'removed' }, orderBy: { updatedAt: 'desc' } }),
+    prisma.application.findFirst({ where: { groupId, userId }, orderBy: { createdAt: 'desc' } }),
   ])
   if (!group) throw httpError(404, '群組不存在')
   if (group.status !== 'recruiting') throw httpError(400, '此群組目前不開放申請')
   if (group.hostId === userId) throw httpError(400, '團主不能申請自己的群組')
 
-  const lastRemoved = await prisma.application.findFirst({
-    where:   { groupId, userId, status: 'removed' },
-    orderBy: { updatedAt: 'desc' },
-  })
   if (lastRemoved) {
     const cooldownEnds = new Date(lastRemoved.updatedAt)
     cooldownEnds.setHours(cooldownEnds.getHours() + 24)
@@ -49,10 +47,6 @@ export async function submitApplication({ groupId, message, userId }) {
     })
   }
 
-  const existing = await prisma.application.findFirst({
-    where:   { groupId, userId },
-    orderBy: { createdAt: 'desc' },
-  })
   if (existing && !['rejected', 'removed', 'left', 'cancelled'].includes(existing.status)) {
     throw httpError(409, '你已有一筆進行中的申請')
   }
