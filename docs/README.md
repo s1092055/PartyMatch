@@ -28,8 +28,7 @@
 
 ### Flows — 各個功能實際怎麼運作
 
-- [使用者流程總覽](flows/user-flows.md) — 完整使用流程與群組狀態機，涵蓋範圍最廣的一篇
-- [群組狀態機](flows/group-state-machine.md) — 一個群組會經過哪些狀態（招募中 → 額滿 → 啟用 → 結束…）
+- [群組狀態機](flows/group-state-machine.md) — 一個群組會經過哪些狀態（招募中 → 額滿 → 啟用 → 結束…），先讀這篇最快抓到全貌
 - [探索群組流程](flows/explore-flow.md)
 - [快速搜尋流程](flows/quick-match-flow.md)
 - [建立群組流程](flows/create-group-flow.md)
@@ -42,6 +41,12 @@
 - [申訴流程](flows/dispute-flow.md)
 - [訊息流程](flows/messages-flow.md)
 - [通知流程](flows/notification-flow.md)
+
+### Portfolio — 作品集/履歷用素材
+
+- [專案亮點](portfolio/project-highlights.md) — 實作上投入較多心思的幾個部分
+- [AI 協作說明](portfolio/ai-collaboration-note.md) — 誠實揭露協作方式與貢獻範圍
+- [未來規劃](portfolio/future-roadmap.md) — 目前優先方向與待做項目
 
 ### Testing — 手動測試怎麼跑
 
