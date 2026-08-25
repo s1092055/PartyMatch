@@ -176,7 +176,7 @@ export default function RegisterPage() {
 
         <AuthError message={error} />
 
-        <Button type="submit" size="lg" className="h-[3.75rem] w-full text-lg" disabled={loading} loading={loading}>
+        <Button type="submit" size="lg" className="h-[3.75rem] w-full rounded-2xl text-lg" disabled={loading} loading={loading}>
           註冊
         </Button>
       </form>

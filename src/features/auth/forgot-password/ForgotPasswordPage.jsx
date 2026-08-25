@@ -23,7 +23,7 @@ export default function ForgotPasswordPage() {
           onChange={setEmail}
         />
 
-        <Button type="submit" size="lg" className="h-[3.75rem] w-full gap-2 text-lg" disabled>
+        <Button type="submit" size="lg" className="h-[3.75rem] w-full rounded-2xl gap-2 text-lg" disabled>
           送出重設連結
           <span className="rounded-full bg-raised px-2 py-0.5 text-2xs font-bold text-ink-3">即將推出</span>
         </Button>

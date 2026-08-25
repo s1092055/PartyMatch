@@ -83,7 +83,7 @@ export default function LoginPage() {
 
         <AuthError message={error} />
 
-        <Button type="submit" size="lg" className="h-[3.75rem] w-full text-lg" disabled={!email.trim() || !password.trim()} loading={loading}>
+        <Button type="submit" size="lg" className="h-[3.75rem] w-full rounded-2xl text-lg" disabled={!email.trim() || !password.trim()} loading={loading}>
           登入
         </Button>
       </form>
