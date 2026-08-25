@@ -141,14 +141,11 @@ export default function AppNav() {
         avatarColor={avatarColor}
         presenceStatus={presenceStatus}
         tokenBalance={tokenBalance}
+        host={{ id: currentUser?.id, displayName: userName, avatarInitial, avatarColor }}
         setTopupOpen={setTopupOpen}
         closeAll={closeAll}
         openCreate={openCreate}
         openMatch={openMatch}
-        openSettings={openSettings}
-        openProfile={openProfile}
-        openCreditScore={openCreditScore}
-        openReviews={openReviews}
         preventLockedAction={preventLockedAction}
         logout={logout}
         loggingOut={loggingOut}

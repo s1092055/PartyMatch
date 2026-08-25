@@ -1,13 +1,27 @@
 import { useState } from 'react'
-import { LogIn, LogOut, Menu, Settings, ShieldCheck, Star, User } from 'lucide-react'
+import { ChevronLeft, LogIn, LogOut, Menu, Settings, ShieldCheck, Star, User } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
 import { NAV_SECTIONS } from '../nav'
 import { Avatar } from '../../../components/ui/avatar'
 import { TokenBadge } from '../../../components/ui/TokenAmount'
 import { Drawer, DrawerContent, DrawerTitle } from '../../../components/ui/drawer'
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogCloseButton } from '../../../components/ui/dialog'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../../components/ui/select'
+import { ProfileModalBody } from '../../../components/ui/ProfileModal'
+import { CreditScoreModalBody } from '../../../components/ui/CreditScoreModal'
+import { SettingsModalBody } from '../../../components/ui/SettingsModal'
+import { HostReviewsModalBody } from '../../../features/manage-groups/components/HostReviewsModal'
+import { useAuthStore } from '../../stores/useAuthStore'
+import { toast } from '../../utils/toast'
 import { PresenceDot, LockBadge } from './navShared'
-import { LOCKED_MESSAGE, getNavItemKey, isProtectedNavItem } from './navConstants'
+import { LOCKED_MESSAGE, PRESENCE_LABELS, getNavItemKey, isProtectedNavItem } from './navConstants'
+
+const USER_PANELS = {
+  profile:  { title: '個人資料', icon: User },
+  credit:   { title: '信用分數', icon: ShieldCheck },
+  reviews:  { title: '我的評價', icon: Star },
+  settings: { title: '偏好設定', icon: Settings },
+}
 
 export default function TabletSidebarDrawer(
   {
@@ -18,14 +32,11 @@ export default function TabletSidebarDrawer(
     avatarColor,
     presenceStatus,
     tokenBalance,
+    host,
     setTopupOpen,
     closeAll,
     openCreate,
     openMatch,
-    openSettings,
-    openProfile,
-    openCreditScore,
-    openReviews,
     preventLockedAction,
     logout,
     loggingOut,
@@ -33,6 +44,23 @@ export default function TabletSidebarDrawer(
 ) {
   const [open, setOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [userPanel, setUserPanel] = useState('menu')
+
+  function openUserMenu() {
+    setOpen(false)
+    setUserPanel('menu')
+    setUserMenuOpen(true)
+  }
+
+  async function changePresence(next) {
+    if (next === presenceStatus) return
+    const result = await useAuthStore.getState().updateProfile({ presenceStatus: next })
+    if (!result.ok) toast(result.error ?? '儲存失敗，請稍後再試', 'error')
+  }
+
+  function closeUserMenu() {
+    setUserMenuOpen(false)
+  }
 
   function isGuestLocked(item) {
     return !loggedIn && isProtectedNavItem(item)
@@ -147,7 +175,7 @@ export default function TabletSidebarDrawer(
             {loggedIn ? (
               <button
                 type="button"
-                onClick={() => { setOpen(false); setUserMenuOpen(true) }}
+                onClick={openUserMenu}
                 aria-label="使用者選單"
                 className="flex h-14 min-w-0 w-full items-center gap-3 rounded-2xl px-1 text-left transition-all hover:bg-raised"
               >
@@ -175,60 +203,123 @@ export default function TabletSidebarDrawer(
 
       {loggedIn && (
         <Dialog open={userMenuOpen} onOpenChange={setUserMenuOpen}>
-          <DialogContent maxWidth="max-w-xs" className="p-2">
-            <DialogTitle className="sr-only">使用者選單</DialogTitle>
+          <DialogContent maxWidth="max-w-md" className="max-h-[min(80dvh,640px)] p-0">
+            <DialogTitle className="sr-only">{userPanel === 'menu' ? '使用者選單' : USER_PANELS[userPanel].title}</DialogTitle>
             <DialogDescription>{userName} 的使用者選單</DialogDescription>
-            <DialogCloseButton className="absolute right-3 top-3" />
-            <div className="flex flex-col items-center gap-2 px-3 pb-3 pt-2 text-center">
-              <span className="relative shrink-0 shadow-md rounded-full">
-                <Avatar initial={avatarInitial} color={avatarColor} size="md" />
-                <PresenceDot status={presenceStatus} className="absolute bottom-0 right-0 h-3 w-3" />
-              </span>
-              <span className="min-w-0 truncate text-base font-extrabold text-ink">{userName}</span>
+
+            <div className="flex shrink-0 items-center gap-2 px-4 py-4">
+              <div className="flex min-w-0 flex-1 items-center gap-2">
+                {userPanel !== 'menu' && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setUserPanel('menu')}
+                      aria-label="返回使用者選單"
+                      className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+                    >
+                      <ChevronLeft size={18} strokeWidth={1.5} />
+                    </button>
+                    {(() => {
+                      const PanelIcon = USER_PANELS[userPanel].icon
+                      return <PanelIcon size={16} strokeWidth={1.5} className="shrink-0 text-brand" />
+                    })()}
+                    <span className="min-w-0 truncate font-extrabold text-ink">{USER_PANELS[userPanel].title}</span>
+                  </>
+                )}
+              </div>
+              <DialogCloseButton />
             </div>
-            <div className="flex flex-col gap-1 border-t border-line-subtle pt-2">
-              <button
-                type="button"
-                onClick={() => { setUserMenuOpen(false); openProfile() }}
-                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl px-3 text-center text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-ink"
-              >
-                <User size={18} strokeWidth={1.5} className="shrink-0" />
-                個人資料
-              </button>
-              <button
-                type="button"
-                onClick={() => { setUserMenuOpen(false); openCreditScore() }}
-                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl px-3 text-center text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-ink"
-              >
-                <ShieldCheck size={18} strokeWidth={1.5} className="shrink-0" />
-                信用分數
-              </button>
-              <button
-                type="button"
-                onClick={() => { setUserMenuOpen(false); openReviews() }}
-                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl px-3 text-center text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-ink"
-              >
-                <Star size={18} strokeWidth={1.5} className="shrink-0" />
-                我的評價
-              </button>
-              <button
-                type="button"
-                onClick={() => { setUserMenuOpen(false); openSettings() }}
-                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl px-3 text-center text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-ink"
-              >
-                <Settings size={18} strokeWidth={1.5} className="shrink-0" />
-                偏好設定
-              </button>
-              <div className="my-1 h-px bg-line-subtle" />
-              <button
-                type="button"
-                onClick={() => { setUserMenuOpen(false); logout() }}
-                disabled={loggingOut}
-                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl px-3 text-center text-sm font-bold text-danger transition-colors hover:bg-danger/10 disabled:opacity-60"
-              >
-                <LogOut size={18} strokeWidth={1.5} className="shrink-0" />
-                {loggingOut ? '登出中…' : '登出'}
-              </button>
+
+            <div key={userPanel} className="flex min-h-0 flex-1 flex-col overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden animate-step-slide-up">
+              {userPanel === 'menu' && (
+                <>
+                  <div className="flex flex-col items-center gap-3 px-3 pb-4 pt-6 text-center">
+                    <span className="relative shrink-0 shadow-md rounded-full">
+                      <Avatar initial={avatarInitial} color={avatarColor} size="xl" />
+                      <PresenceDot status={presenceStatus} className="absolute bottom-1 right-1 h-4 w-4" />
+                    </span>
+                    <span className="min-w-0 truncate text-lg font-extrabold text-ink">{userName}</span>
+                  </div>
+                  <div className="px-4 pb-3">
+                    <Select value={presenceStatus} onValueChange={changePresence}>
+                      <SelectTrigger aria-label="設定目前狀態" className="mx-auto w-auto min-w-36 justify-center gap-2 [&>svg]:hidden">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="z-[60]">
+                        {Object.entries(PRESENCE_LABELS).map(([value, label]) => (
+                          <SelectItem key={value} value={value} className="pl-2 [&>span:first-child]:hidden">
+                            <span className="flex items-center gap-2">
+                              <PresenceDot status={value} className="h-2.5 w-2.5 shrink-0" />
+                              {label}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 px-4 pb-2">
+                    <button
+                      type="button"
+                      onClick={() => setUserPanel('profile')}
+                      className="flex h-24 flex-col items-center justify-center gap-2 rounded-2xl border border-line bg-surface text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
+                    >
+                      <User size={24} strokeWidth={1.5} className="shrink-0" />
+                      個人資料
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setUserPanel('credit')}
+                      className="flex h-24 flex-col items-center justify-center gap-2 rounded-2xl border border-line bg-surface text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
+                    >
+                      <ShieldCheck size={24} strokeWidth={1.5} className="shrink-0" />
+                      信用分數
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setUserPanel('reviews')}
+                      className="flex h-24 flex-col items-center justify-center gap-2 rounded-2xl border border-line bg-surface text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
+                    >
+                      <Star size={24} strokeWidth={1.5} className="shrink-0" />
+                      我的評價
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setUserPanel('settings')}
+                      className="flex h-24 flex-col items-center justify-center gap-2 rounded-2xl border border-line bg-surface text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
+                    >
+                      <Settings size={24} strokeWidth={1.5} className="shrink-0" />
+                      偏好設定
+                    </button>
+                  </div>
+                  <div className="px-4 pb-2 pt-3">
+                    <button
+                      type="button"
+                      onClick={() => { closeUserMenu(); logout() }}
+                      disabled={loggingOut}
+                      className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-danger/30 px-3 text-center text-sm font-bold text-danger transition-colors hover:bg-danger/10 disabled:opacity-60"
+                    >
+                      <LogOut size={18} strokeWidth={1.5} className="shrink-0" />
+                      {loggingOut ? '登出中…' : '登出'}
+                    </button>
+                  </div>
+                </>
+              )}
+              {userPanel === 'profile' && (
+                <div className="px-6 py-5">
+                  <ProfileModalBody />
+                </div>
+              )}
+              {userPanel === 'credit' && (
+                <CreditScoreModalBody onClose={closeUserMenu} hideFooter />
+              )}
+              {userPanel === 'reviews' && (
+                <HostReviewsModalBody host={host} />
+              )}
+              {userPanel === 'settings' && (
+                <div className="space-y-6 px-6 py-5">
+                  <SettingsModalBody onClose={closeUserMenu} />
+                </div>
+              )}
             </div>
           </DialogContent>
         </Dialog>

@@ -14,14 +14,8 @@ function loadProfile() {
   }
 }
 
-export default function ProfileModal({ isOpen, onClose }) {
+export function ProfileModalBody() {
   const [user, setUser] = useState(loadProfile)
-
-  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
-  if (isOpen !== prevIsOpen) {
-    setPrevIsOpen(isOpen)
-    if (isOpen) setUser(loadProfile())
-  }
 
   async function handleUserChange(key, value) {
     const previousValue = user[key]
@@ -33,6 +27,15 @@ export default function ProfileModal({ isOpen, onClose }) {
   }
 
   return (
+    <>
+      <ProfileHeaderCard user={user} />
+      <PersonalInfoTab user={user} onChange={handleUserChange} />
+    </>
+  )
+}
+
+export default function ProfileModal({ isOpen, onClose }) {
+  return (
     <Dialog open={isOpen} onOpenChange={v => { if (!v) onClose() }}>
       <DialogContent maxWidth="max-w-md" height="min(80dvh, 640px)">
         <DialogHeader>
@@ -41,8 +44,7 @@ export default function ProfileModal({ isOpen, onClose }) {
         </DialogHeader>
         <DialogDescription>個人資料</DialogDescription>
         <DialogBody className="px-6 py-5">
-          <ProfileHeaderCard user={user} />
-          <PersonalInfoTab user={user} onChange={handleUserChange} />
+          {isOpen && <ProfileModalBody />}
         </DialogBody>
       </DialogContent>
     </Dialog>

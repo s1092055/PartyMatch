@@ -54,7 +54,7 @@ function SectionGroup({ title, icon: Icon, children }) {
   )
 }
 
-export default function SettingsModal({ isOpen, onClose }) {
+export function SettingsModalBody({ onClose }) {
   const navigate = useNavigate()
   const { theme, toggleTheme } = useTheme()
   const loggedIn = useAuthStore(s => s.loggedIn)
@@ -103,6 +103,88 @@ export default function SettingsModal({ isOpen, onClose }) {
   }
 
   return (
+    <>
+      <SectionGroup title="一般偏好" icon={Globe}>
+        <SettingRow
+          label="深色模式"
+          desc="切換深色介面"
+          checked={theme === 'dark'}
+          onChange={toggleTheme}
+        />
+      </SectionGroup>
+
+      {loggedIn ? (
+        <>
+          <SectionGroup title="隱私設定" icon={Shield}>
+            <SettingRow
+              label="顯示自己的大頭照"
+              desc="關閉後其他人會看到預設圖示"
+              checked={showAvatar}
+              onChange={savingAvatarVisibility ? undefined : toggleAvatarVisibility}
+            />
+            <SettingRow
+              label="接收行銷郵件"
+              desc="優惠活動與新功能消息"
+              checked={prefs.marketingEmail}
+              onChange={() => toggle('marketingEmail')}
+            />
+            <SettingRow
+              label="分享使用資料"
+              desc="協助改善平台體驗（匿名）"
+              checked={prefs.shareActivity}
+              onChange={() => toggle('shareActivity')}
+            />
+          </SectionGroup>
+
+          <SectionGroup title="帳號操作" icon={LogOut}>
+            <div className="py-3 border-b border-line-subtle last:border-0">
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="flex w-full items-center gap-3 py-1 text-sm font-semibold text-danger transition-all hover:-translate-y-0.5 hover:text-danger/80"
+              >
+                <Trash2 strokeWidth={1.5} size={16} className="shrink-0" />
+                刪除帳號
+              </button>
+            </div>
+          </SectionGroup>
+        </>
+      ) : (
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-line py-8 text-center">
+          <p className="text-sm font-medium text-ink-3">登入後可管理更多帳號設定</p>
+          <Button onClick={() => { onClose(); navigate('/login') }} className="rounded-2xl">
+            <LogIn strokeWidth={1.5} size={16} />
+            前往登入
+          </Button>
+        </div>
+      )}
+
+      <AlertDialog open={showDeleteConfirm} onOpenChange={v => { if (!v) resetDeleteFlow() }}>
+        <AlertDialogContent>
+          <AlertDialogTitle>確定要刪除帳號？</AlertDialogTitle>
+          <AlertDialogDescription>帳號將被停用，無法再登入；資料會保留，如需恢復請聯絡客服。請輸入密碼確認。</AlertDialogDescription>
+          <Input
+            type="password"
+            autoComplete="current-password"
+            placeholder="請輸入密碼"
+            value={password}
+            onChange={e => { setPassword(e.target.value); setDeleteError('') }}
+            className="mt-4"
+          />
+          {deleteError && <p className="mt-2 text-xs font-semibold text-danger">{deleteError}</p>}
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting} onClick={resetDeleteFlow}>取消</AlertDialogCancel>
+            <AlertDialogAction danger disabled={!password.trim() || deleting} onClick={handleConfirmDelete}>
+              {deleting ? '處理中…' : '確認刪除'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  )
+}
+
+export default function SettingsModal({ isOpen, onClose }) {
+  return (
     <Dialog open={isOpen} onOpenChange={v => { if (!v) onClose() }}>
       <DialogContent maxWidth="max-w-md" className="max-h-[min(80dvh,640px)]">
         <DialogHeader>
@@ -111,82 +193,8 @@ export default function SettingsModal({ isOpen, onClose }) {
         </DialogHeader>
         <DialogDescription>偏好設定</DialogDescription>
         <DialogBody className="space-y-6 px-6 py-5">
-          <SectionGroup title="一般偏好" icon={Globe}>
-            <SettingRow
-              label="深色模式"
-              desc="切換深色介面"
-              checked={theme === 'dark'}
-              onChange={toggleTheme}
-            />
-          </SectionGroup>
-
-          {loggedIn ? (
-            <>
-              <SectionGroup title="隱私設定" icon={Shield}>
-                <SettingRow
-                  label="顯示自己的大頭照"
-                  desc="關閉後其他人會看到預設圖示"
-                  checked={showAvatar}
-                  onChange={savingAvatarVisibility ? undefined : toggleAvatarVisibility}
-                />
-                <SettingRow
-                  label="接收行銷郵件"
-                  desc="優惠活動與新功能消息"
-                  checked={prefs.marketingEmail}
-                  onChange={() => toggle('marketingEmail')}
-                />
-                <SettingRow
-                  label="分享使用資料"
-                  desc="協助改善平台體驗（匿名）"
-                  checked={prefs.shareActivity}
-                  onChange={() => toggle('shareActivity')}
-                />
-              </SectionGroup>
-
-              <SectionGroup title="帳號操作" icon={LogOut}>
-                <div className="py-3 border-b border-line-subtle last:border-0">
-                  <button
-                    onClick={() => setShowDeleteConfirm(true)}
-                    className="flex w-full items-center gap-3 py-1 text-sm font-semibold text-danger transition-all hover:-translate-y-0.5 hover:text-danger/80"
-                  >
-                    <Trash2 strokeWidth={1.5} size={16} className="shrink-0" />
-                    刪除帳號
-                  </button>
-                </div>
-              </SectionGroup>
-            </>
-          ) : (
-            <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-line py-8 text-center">
-              <p className="text-sm font-medium text-ink-3">登入後可管理更多帳號設定</p>
-              <Button onClick={() => { onClose(); navigate('/login') }} className="rounded-2xl">
-                <LogIn strokeWidth={1.5} size={16} />
-                前往登入
-              </Button>
-            </div>
-          )}
+          {isOpen && <SettingsModalBody onClose={onClose} />}
         </DialogBody>
-
-        <AlertDialog open={showDeleteConfirm} onOpenChange={v => { if (!v) resetDeleteFlow() }}>
-          <AlertDialogContent>
-            <AlertDialogTitle>確定要刪除帳號？</AlertDialogTitle>
-            <AlertDialogDescription>帳號將被停用，無法再登入；資料會保留，如需恢復請聯絡客服。請輸入密碼確認。</AlertDialogDescription>
-            <Input
-              type="password"
-              autoComplete="current-password"
-              placeholder="請輸入密碼"
-              value={password}
-              onChange={e => { setPassword(e.target.value); setDeleteError('') }}
-              className="mt-4"
-            />
-            {deleteError && <p className="mt-2 text-xs font-semibold text-danger">{deleteError}</p>}
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={deleting} onClick={resetDeleteFlow}>取消</AlertDialogCancel>
-              <AlertDialogAction danger disabled={!password.trim() || deleting} onClick={handleConfirmDelete}>
-                {deleting ? '處理中…' : '確認刪除'}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </DialogContent>
     </Dialog>
   )
