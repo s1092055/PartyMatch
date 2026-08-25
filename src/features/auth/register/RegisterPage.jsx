@@ -150,7 +150,7 @@ export default function RegisterPage() {
           trailing={<PasswordToggle visible={showConfirmPassword} onClick={() => setShowConfirmPassword(v => !v)} />}
         />
 
-        <div>
+        <div className="pl-1">
           <label className="flex items-start gap-3 text-sm font-medium text-ink-2">
             <input
               type="checkbox"
@@ -160,7 +160,7 @@ export default function RegisterPage() {
                 markTouched('accepted')
                 setError('')
               }}
-              className="mt-0.5 h-5 w-5 rounded accent-brand"
+              className="mt-0.5 h-5 w-5 rounded-full accent-brand"
             />
             <span>
               我已閱讀並同意{' '}
@@ -176,7 +176,7 @@ export default function RegisterPage() {
 
         <AuthError message={error} />
 
-        <Button type="submit" size="lg" className="h-[3.75rem] w-full rounded-2xl text-lg" disabled={loading} loading={loading}>
+        <Button type="submit" size="lg" className="mt-3 h-[3.75rem] w-full rounded-2xl text-lg" disabled={loading} loading={loading}>
           註冊
         </Button>
       </form>
