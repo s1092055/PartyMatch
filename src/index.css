@@ -32,8 +32,8 @@
 
   --color-ink:             #081226;
   --color-ink-2:           #36455F;
-  --color-ink-3:           #5E6E86;
-  --color-ink-4:           #64718A;
+  --color-ink-3:           #4A5872;
+  --color-ink-4:           #566080;
 
   --color-slate-50:        #F7FAFF;
   --color-slate-100:       #EEF3FA;
@@ -102,9 +102,9 @@
   --radius-lg:      0.75rem;
   --radius-2xl:     1.25rem;
 
-  --text-2xs:       0.6875rem;
+  --text-2xs:       0.75rem;
   --text-2xs--line-height: 1.4;
-  --text-xs:        0.75rem;
+  --text-xs:        0.8125rem;
   --text-xs--line-height: 1.45;
   --text-sm:        0.875rem;
   --text-sm--line-height: 1.55;
@@ -162,8 +162,8 @@
 
     --color-ink:             #E9EEF5;
     --color-ink-2:           #B8C4D2;
-    --color-ink-3:           #8695A6;
-    --color-ink-4:           #7A8CA2;
+    --color-ink-3:           #99A7BC;
+    --color-ink-4:           #8D9DB5;
 
     --color-slate-50:        #0A121C;
     --color-slate-100:       #111B29;
