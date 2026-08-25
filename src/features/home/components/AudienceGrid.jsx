@@ -71,7 +71,7 @@ export default function AudienceGrid() {
       <Button
         size="lg"
         className="rounded-full px-8"
-        onClick={() => navigate(loggedIn ? '/create-group' : '/register')}
+        onClick={() => loggedIn ? window.dispatchEvent(new CustomEvent('pm:open-create-group')) : navigate('/register')}
       >
         立即建立群組
         <ChevronRight size={14} strokeWidth={1.5} />

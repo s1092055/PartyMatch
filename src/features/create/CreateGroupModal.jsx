@@ -1,7 +1,7 @@
-import { useState } from 'react'
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { AlertCircle, ChevronLeft, ChevronRight, Info, PlusCircle } from 'lucide-react'
-import FlowLayout from '../../common/layout/FlowLayout'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogCloseButton } from '../../components/ui/dialog'
 import Step1Service from './components/steps/Step1Service'
 import Step2Plan from './components/steps/Step2Plan'
 import Step3Settings from './components/steps/Step3Settings'
@@ -9,14 +9,11 @@ import Step4Preview from './components/steps/Step4Preview'
 import { Button } from '../../components/ui/button'
 import ServiceLogo from '../../components/ui/ServiceLogo'
 import TokenAmount from '../../components/ui/TokenAmount'
-import ScrollHint from '../../components/ui/primitives/ScrollHint'
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from '../../components/ui/dialog'
 import LivePreviewPanel from './components/LivePreviewPanel'
 import { useGroupStore } from '../../common/stores/useGroupStore'
 import { getServiceById } from '../../common/utils/serviceUtils'
 import { calcPricePerSeat, calcDisplayPrice } from '../../common/utils/pricingUtils'
 import { useAuthStore } from '../../common/stores/useAuthStore'
-import { useScrollEdge, useScrollLock } from '../../common/utils/hooks'
 import { toast } from '../../common/utils/toast'
 
 const STEP_COMPONENTS = [Step1Service, Step2Plan, Step3Settings, Step4Preview]
@@ -90,35 +87,30 @@ function getFirstInvalidStep(form) {
   return [1, 2, 3].find(step => getStepErrors(step, form).length > 0) ?? null
 }
 
-export default function CreateGroupPage() {
+export default function CreateGroupModal() {
   const navigate = useNavigate()
-  const location = useLocation()
-  function leaveFlow() {
-    if (location.key === 'default') navigate('/')
-    else navigate(-1)
-  }
-  const [searchParams, setSearchParams] = useSearchParams()
-  const stepParam = parseInt(searchParams.get('step'), 10)
-  const step = stepParam >= 1 && stepParam <= 4 ? stepParam : 1
-  function setStep(updater) {
-    const next = typeof updater === 'function' ? updater(step) : updater
-    setSearchParams(prev => {
-      const params = new URLSearchParams(prev)
-      if (next <= 1) params.delete('step')
-      else params.set('step', String(next))
-      return params
-    })
-  }
+  const [open, setOpen] = useState(false)
+  const [step, setStep] = useState(1)
   const [form, setForm] = useState(INITIAL_FORM)
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
-  useScrollLock(showPreview)
+  const bodyRef = useRef(null)
+
+  useEffect(() => {
+    function onOpen() {
+      setStep(1)
+      setForm(INITIAL_FORM)
+      setAgreedToTerms(false)
+      setShowPreview(false)
+      setShowSuccessModal(false)
+      setOpen(true)
+    }
+    window.addEventListener('pm:open-create-group', onOpen)
+    return () => window.removeEventListener('pm:open-create-group', onOpen)
+  }, [])
+
   const isPlanOrSettingsStep = step === 2 || step === 3
-  const {
-    scrollRef, elRef: scrollElRef, atBottom, canScroll, isScrolling,
-    handleScroll: handleContentScroll,
-  } = useScrollEdge({ withMutationObserver: true, forwardWheel: true });
 
   function onChange(key, value) {
     setForm(prev => {
@@ -154,14 +146,17 @@ export default function CreateGroupPage() {
   function handleNext() {
     if (canNext() && step < 4) {
       setStep(s => s + 1)
-      scrollElRef.current?.scrollTo({ top: 0 })
+      bodyRef.current?.scrollTo({ top: 0 })
     }
   }
 
   function handleBack() {
-    if (step <= 1) return
+    if (step <= 1) {
+      setOpen(false)
+      return
+    }
     setStep(s => s - 1)
-    scrollElRef.current?.scrollTo({ top: 0 })
+    bodyRef.current?.scrollTo({ top: 0 })
   }
 
   function handleSubmit() {
@@ -178,31 +173,11 @@ export default function CreateGroupPage() {
     setShowSuccessModal(true)
   }
 
-  const footer = (
-    <>
-      {step === 1 ? (
-        <Button variant="secondary" size="md" className="min-w-0 flex-1" onClick={leaveFlow}>
-          <ChevronLeft size={15} strokeWidth={1.5} />
-          取消
-        </Button>
-      ) : (
-        <Button variant="secondary" size="md" className="min-w-0 flex-1" onClick={handleBack}>
-          <ChevronLeft size={15} strokeWidth={1.5} />
-          上一步
-        </Button>
-      )}
-      {step < 4 ? (
-        <Button variant="default" size="md" className="min-w-0 flex-1" disabled={!canNext()} onClick={handleNext}>
-          下一步
-          <ChevronRight size={15} strokeWidth={1.5} />
-        </Button>
-      ) : (
-        <Button variant="default" size="md" className="min-w-0 flex-1" disabled={!agreedToTerms} onClick={handleSubmit}>
-          確認建立
-        </Button>
-      )}
-    </>
-  )
+  function handleSuccessClose(destination) {
+    setShowSuccessModal(false)
+    setOpen(false)
+    navigate(destination)
+  }
 
   const service = getServiceById(form.serviceId)
   const hasEligiblePlans = (service?.plans ?? []).some(p => p.maxSeats > 1)
@@ -231,79 +206,108 @@ export default function CreateGroupPage() {
 
   return (
     <>
-      <FlowLayout
-        steps={STEP_TITLES}
-        currentStep={step}
-        title="建立群組"
-        titleIcon={<PlusCircle strokeWidth={1.5} size={18} className="shrink-0 text-brand" />}
-        headerBanner={banner && (
-          <div className="flex items-center justify-center gap-2 bg-brand-subtle px-6 py-3 text-sm font-medium text-brand">
-            <banner.Icon size={15} />
-            {banner.text}
-          </div>
-        )}
-        bottomNav={footer}
-        maxWidth="max-w-xl md:max-w-2xl lg:max-w-4xl"
-      >
-        <div className="group relative h-full">
-          <div
-            ref={scrollRef}
-            onScroll={handleContentScroll}
-            className={`h-full overflow-y-auto pt-6 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${step === 4 ? 'overflow-hidden' : ''}`}
-          >
-            <div key={step} className="h-full animate-step-slide-up p-0.5">
-              <div className="flex h-full flex-col">
-                {isPlanOrSettingsStep && (
-                  <div className="mb-6 flex shrink-0 items-center gap-4 rounded-2xl border border-line bg-surface px-6 py-5 shadow-card">
-                    <ServiceLogo serviceId={form.serviceId} size={56} className="shrink-0 border-line-strong" />
-                    <div className="min-w-0 flex-1">
-                      <h2 className="truncate text-lg font-black text-ink">{service?.fullName ?? '尚未選擇服務'}</h2>
-                      <p className="truncate text-sm text-ink-3">{form.planName || '尚未選擇方案'}</p>
-                    </div>
-                    {form.planName && (
-                      <div className="shrink-0 text-right">
-                        <p className="mb-0.5 text-xs font-medium text-ink-4">每位</p>
-                        <TokenAmount
-                          amount={calcDisplayPrice(form.pricePerSeat, form.billingCycle)}
-                          cycle={form.billingCycle}
-                          align="center"
-                          badgeSize="!h-6 !w-6"
-                          unitClassName="!text-xl"
-                          className="text-2xl font-black text-ink"
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
-                {step === 4 ? (
-                  <div className="flex min-h-0 w-full flex-1 flex-col">
-                    <Step4Preview form={form} agreedToTerms={agreedToTerms} onAgreeChange={setAgreedToTerms} onShowPreview={() => setShowPreview(true)} />
-                  </div>
-                ) : isPlanOrSettingsStep ? (
-                  <div className="w-full shrink-0">
-                    <CurrentStep form={form} onChange={onChange} />
-                  </div>
-                ) : (
-                  <CurrentStep form={form} onChange={onChange} />
-                )}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent maxWidth="max-w-4xl" height="min(90dvh, 820px)">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <PlusCircle size={18} className="shrink-0 text-brand" strokeWidth={1.5} />
+              建立群組
+            </DialogTitle>
+            <DialogDescription>選擇服務、方案並設定群組資訊以建立共享群組</DialogDescription>
+            <DialogCloseButton />
+          </DialogHeader>
+
+          <div className="shrink-0 border-b border-line bg-raised/70 px-6 py-3">
+            <div className="mb-2 flex items-center gap-1.5">
+              {STEP_TITLES.map((label, i) => (
+                <div
+                  key={label}
+                  className={`h-1 flex-1 rounded-full transition-colors ${i < step ? 'bg-brand' : 'bg-line'}`}
+                />
+              ))}
+            </div>
+            <div className="mb-2 flex gap-1">
+              {STEP_TITLES.map((label, i) => (
+                <span
+                  key={label}
+                  className={`flex-1 truncate text-center text-xs font-bold ${i + 1 === step ? 'text-brand' : 'text-ink-3'}`}
+                >
+                  {label}
+                </span>
+              ))}
+            </div>
+            {banner && (
+              <div className="flex items-center justify-center gap-2 text-xs font-medium text-brand">
+                <banner.Icon size={14} />
+                {banner.text}
               </div>
-            </div>
+            )}
           </div>
 
-          {(step === 1 || step === 4) && <ScrollHint canScroll={canScroll} atBottom={atBottom} isScrolling={isScrolling} />}
-        </div>
-
-        {showPreview && (
           <div
-            className="fixed inset-0 z-30 flex items-center justify-center bg-black/80 px-4 md:px-8"
-            onClick={() => setShowPreview(false)}
+            ref={bodyRef}
+            className="min-h-0 flex-1 overflow-y-auto px-6 py-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
-            <div className="mx-auto w-full max-w-xs" onClick={e => e.stopPropagation()}>
-              <LivePreviewPanel form={form} />
+            <div key={step} className="animate-step-slide-up">
+              {isPlanOrSettingsStep && (
+                <div className="mb-5 flex shrink-0 items-center gap-4 rounded-2xl border border-line bg-surface px-6 py-5 shadow-card">
+                  <ServiceLogo serviceId={form.serviceId} size={56} className="shrink-0 border-line-strong" />
+                  <div className="min-w-0 flex-1">
+                    <h2 className="truncate text-lg font-black text-ink">{service?.fullName ?? '尚未選擇服務'}</h2>
+                    <p className="truncate text-sm text-ink-3">{form.planName || '尚未選擇方案'}</p>
+                  </div>
+                  {form.planName && (
+                    <div className="shrink-0 text-right">
+                      <p className="mb-0.5 text-xs font-medium text-ink-4">每位</p>
+                      <TokenAmount
+                        amount={calcDisplayPrice(form.pricePerSeat, form.billingCycle)}
+                        cycle={form.billingCycle}
+                        align="center"
+                        badgeSize="!h-6 !w-6"
+                        unitClassName="!text-xl"
+                        className="text-2xl font-black text-ink"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+              {step === 4 ? (
+                <Step4Preview form={form} agreedToTerms={agreedToTerms} onAgreeChange={setAgreedToTerms} onShowPreview={() => setShowPreview(true)} />
+              ) : (
+                <CurrentStep form={form} onChange={onChange} />
+              )}
             </div>
           </div>
-        )}
-      </FlowLayout>
+
+          <DialogFooter className="justify-between">
+            <Button variant="secondary" size="md" className="w-36" onClick={handleBack}>
+              <ChevronLeft size={15} strokeWidth={1.5} />
+              {step === 1 ? '取消' : '上一步'}
+            </Button>
+            {step < 4 ? (
+              <Button variant="default" size="md" className="w-36" disabled={!canNext()} onClick={handleNext}>
+                下一步
+                <ChevronRight size={15} strokeWidth={1.5} />
+              </Button>
+            ) : (
+              <Button variant="default" size="md" className="w-36" disabled={!agreedToTerms} onClick={handleSubmit}>
+                確認建立
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {showPreview && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 px-4 md:px-8"
+          onClick={() => setShowPreview(false)}
+        >
+          <div className="mx-auto w-full max-w-xs" onClick={e => e.stopPropagation()}>
+            <LivePreviewPanel form={form} />
+          </div>
+        </div>
+      )}
 
       <Dialog open={showSuccessModal} onOpenChange={() => {}}>
         <DialogContent maxWidth="max-w-sm">
@@ -315,10 +319,10 @@ export default function CreateGroupPage() {
             <p className="text-sm text-ink-3">{form.planName}</p>
             <h3 className="mt-3 text-lg font-extrabold text-ink">群組已成功上架！</h3>
             <div className="mt-6 flex w-full gap-3">
-              <Button variant="secondary" size="md" className="flex-1" onClick={() => navigate('/')}>
+              <Button variant="secondary" size="md" className="flex-1" onClick={() => handleSuccessClose('/')}>
                 返回首頁
               </Button>
-              <Button variant="default" size="md" className="flex-1" onClick={() => navigate('/manage-groups')}>
+              <Button variant="default" size="md" className="flex-1" onClick={() => handleSuccessClose('/manage-groups')}>
                 前往群組管理
               </Button>
             </div>

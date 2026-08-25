@@ -19,7 +19,7 @@ export default function Step3Settings({ form, onChange }) {
   }
 
   return (
-    <div className="pb-3 short-lg:flex short-lg:items-stretch short-lg:gap-8">
+    <div className="pb-3 lg:flex lg:items-stretch lg:gap-8">
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col space-y-5 px-1 pb-1">
         <Field
@@ -84,7 +84,7 @@ export default function Step3Settings({ form, onChange }) {
         label="群組規則"
         icon={ListChecks}
         hint="最多 5 條，留空即不設定"
-        className="mt-6 flex min-h-0 min-w-0 flex-1 flex-col px-1 pb-1 short-lg:mt-0"
+        className="mt-6 flex min-h-0 min-w-0 flex-1 flex-col px-1 pb-1 lg:mt-0"
       >
         <div className="flex min-h-0 flex-1 flex-col justify-between gap-3">
           {form.rules.map((rule, i) => (

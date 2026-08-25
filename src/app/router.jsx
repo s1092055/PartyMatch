@@ -4,7 +4,7 @@ import ProtectedRoute from './ProtectedRoute'
 import PublicOnlyRoute from './PublicOnlyRoute'
 import AdminRoute, { ADMIN_HOME_PATH } from './AdminRoute'
 import RouteErrorBoundary from './RouteErrorBoundary'
-import { AccountRedirect, GroupRedirect, MyGroupsLegacyRedirect, QuickMatchRedirect } from './redirects'
+import { AccountRedirect, CreateGroupRedirect, GroupRedirect, MyGroupsLegacyRedirect, QuickMatchRedirect } from './redirects'
 
 function routeElement(loader) {
   const Component = lazy(loader)
@@ -53,7 +53,7 @@ const router = createBrowserRouter([
       {
         element: <ProtectedRoute />,
         children: [
-          { path: '/create-group', element: routeElement(() => import('../features/create/CreateGroupPage')) },
+          { path: '/create-group', element: <CreateGroupRedirect /> },
         ],
       },
       {

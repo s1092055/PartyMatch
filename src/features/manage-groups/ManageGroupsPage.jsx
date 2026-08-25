@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Archive } from 'lucide-react'
 import { useAuthStore } from '../../common/stores/useAuthStore'
 import EmptyState from '../../components/ui/primitives/EmptyState'
@@ -13,7 +12,6 @@ import { STATUS_FILTER_TABS } from './utils/hostFilters'
 import { useHostActions } from './hooks/useHostActions'
 
 export default function ManageGroupsPage() {
-  const navigate = useNavigate()
   const activeUser = useAuthStore(s => s.user)
   const [historyOpen, setHistoryOpen] = useState(false)
   const closeHistory = () => setHistoryOpen(false)
@@ -72,7 +70,7 @@ export default function ManageGroupsPage() {
             title="你還沒有建立任何群組"
             description="建立你的第一個共享群組"
             actionLabel="建立第一個群組"
-            onAction={() => navigate('/create-group')}
+            onAction={() => window.dispatchEvent(new CustomEvent('pm:open-create-group'))}
           />
         ) : displayGroups.length === 0 ? (
           <EmptyState

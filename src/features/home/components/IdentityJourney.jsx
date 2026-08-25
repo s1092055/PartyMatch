@@ -173,7 +173,8 @@ export default function IdentityJourney() {
 
   function handlePrimaryAction() {
     if (role === 'host') {
-      navigate(loggedIn ? '/create-group' : '/register')
+      if (loggedIn) window.dispatchEvent(new CustomEvent('pm:open-create-group'))
+      else navigate('/register')
     } else {
       navigate('/explore')
     }

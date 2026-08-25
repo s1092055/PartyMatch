@@ -1,7 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant short-lg (@media (min-width: 1024px) and (max-height: 899px) and (min-height: 640px));
 @custom-variant dark (&:where(.dark, .dark *));
 @custom-variant can-hover (@media (hover: hover) and (pointer: fine));
 @custom-variant no-hover (@media (hover: none), (pointer: coarse));

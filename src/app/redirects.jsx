@@ -30,6 +30,17 @@ export function QuickMatchRedirect() {
   return null
 }
 
+export function CreateGroupRedirect() {
+  const navigate = useNavigate()
+  useEffect(() => {
+    navigate('/', { replace: true })
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('pm:open-create-group'))
+    }, 0)
+  }, [navigate])
+  return null
+}
+
 export function AccountRedirect() {
   const navigate = useNavigate()
   useEffect(() => {

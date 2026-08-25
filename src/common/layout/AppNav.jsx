@@ -55,7 +55,7 @@ export default function AppNav() {
   function openCreate() {
     closeAll()
     if (!loggedIn) return
-    navigate('/create-group')
+    window.dispatchEvent(new CustomEvent('pm:open-create-group'))
   }
 
   function openNotify() {

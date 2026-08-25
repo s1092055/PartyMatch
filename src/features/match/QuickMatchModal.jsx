@@ -177,34 +177,36 @@ export default function QuickMatchModal() {
           )}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="justify-between">
           {isResultStep ? (
             <>
-              <Button variant="secondary" size="md" className="min-w-0 flex-1" onClick={handleBack}>
+              <Button variant="secondary" size="md" onClick={handleBack}>
                 <ChevronLeft size={15} strokeWidth={1.5} />
                 調整條件
               </Button>
-              <Button variant="secondary" size="md" className="min-w-0 flex-1" onClick={handleReset}>
-                <RotateCcw strokeWidth={1.5} size={15} />
-                重新查找
-              </Button>
-              <Button variant="ghost" size="md" className="min-w-0 flex-1 border border-line" onClick={handleExploreAll}>
-                探索所有群組
-              </Button>
+              <div className="flex gap-3">
+                <Button variant="secondary" size="md" onClick={handleReset}>
+                  <RotateCcw strokeWidth={1.5} size={15} />
+                  重新查找
+                </Button>
+                <Button variant="ghost" size="md" className="border border-line" onClick={handleExploreAll}>
+                  探索所有群組
+                </Button>
+              </div>
             </>
           ) : (
             <>
-              <Button variant="secondary" size="md" className="min-w-0 flex-1" onClick={handleBack}>
+              <Button variant="secondary" size="md" onClick={handleBack}>
                 <ChevronLeft size={15} strokeWidth={1.5} />
                 {step === 1 ? '取消' : '上一步'}
               </Button>
               {step < 2 ? (
-                <Button variant="default" size="md" className="min-w-0 flex-1" disabled={!canNext} onClick={handleNext}>
+                <Button variant="default" size="md" disabled={!canNext} onClick={handleNext}>
                   下一步
                   <ChevronRight size={15} strokeWidth={1.5} />
                 </Button>
               ) : (
-                <Button variant="success" size="md" className="min-w-0 flex-1" onClick={handleStartMatch}>
+                <Button variant="success" size="md" onClick={handleStartMatch}>
                   <Search strokeWidth={1.5} size={15} />
                   開始搜尋
                 </Button>

@@ -24,6 +24,7 @@ import { ALL_SERVICES } from './data/allServices'
 const MessagesModal = lazy(() => import('../messages/MessagesModal'))
 const GroupDetailModal = lazy(() => import('../group/GroupDetailModal'));
 const QuickMatchModal = lazy(() => import('../match/QuickMatchModal'))
+const CreateGroupModal = lazy(() => import('../create/CreateGroupModal'))
 
 export default function HomePage() {
   const navigate = useNavigate()
@@ -44,6 +45,7 @@ export default function HomePage() {
         <MessagesModal />
         <GroupDetailModal />
         <QuickMatchModal />
+        <CreateGroupModal />
       </Suspense>
       <FloatingMessages />
       <SectionNav />
@@ -121,7 +123,7 @@ export default function HomePage() {
                 size="lg"
                 variant="secondary"
                 className="rounded-full px-5 sm:px-8"
-                onClick={() => navigate(loggedIn ? '/create-group' : '/register')}
+                onClick={() => loggedIn ? window.dispatchEvent(new CustomEvent('pm:open-create-group')) : navigate('/register')}
               >
                 建立群組
                 <ChevronRight size={15} strokeWidth={1.5} />

@@ -5,7 +5,7 @@ import { NAV_SECTIONS } from '../nav'
 import { Avatar } from '../../../components/ui/avatar'
 import { TokenBadge } from '../../../components/ui/TokenAmount'
 import { Drawer, DrawerContent, DrawerTitle } from '../../../components/ui/drawer'
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '../../../components/ui/dropdown-menu'
+import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogCloseButton } from '../../../components/ui/dialog'
 import { PresenceDot, LockBadge } from './navShared'
 import { LOCKED_MESSAGE, getNavItemKey, isProtectedNavItem } from './navConstants'
 
@@ -32,6 +32,7 @@ export default function TabletSidebarDrawer(
   }
 ) {
   const [open, setOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
 
   function isGuestLocked(item) {
     return !loggedIn && isProtectedNavItem(item)
@@ -144,50 +145,20 @@ export default function TabletSidebarDrawer(
             )}
 
             {loggedIn ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    type="button"
-                    aria-label="使用者選單"
-                    className="flex h-14 min-w-0 w-full items-center gap-3 rounded-2xl px-1 text-left transition-all hover:bg-raised"
-                  >
-                    <span className="relative shrink-0 shadow-md rounded-full">
-                      <Avatar initial={avatarInitial} color={avatarColor} size="md" />
-                      <PresenceDot status={presenceStatus} className="absolute bottom-0 right-0 h-3 w-3" />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-base font-extrabold text-ink">{userName}</span>
-                    </span>
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent side="right" align="end" alignOffset={16} sideOffset={10} className="w-40">
-                  <DropdownMenuItem onClick={() => { setOpen(false); openProfile() }}>
-                    <User size={16} strokeWidth={1.5} className="shrink-0" />
-                    個人資料
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => { setOpen(false); openCreditScore() }}>
-                    <ShieldCheck size={16} strokeWidth={1.5} className="shrink-0" />
-                    信用分數
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => { setOpen(false); openReviews() }}>
-                    <Star size={16} strokeWidth={1.5} className="shrink-0" />
-                    我的評價
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => { setOpen(false); openSettings() }}>
-                    <Settings size={16} strokeWidth={1.5} className="shrink-0" />
-                    偏好設定
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => { setOpen(false); logout() }}
-                    disabled={loggingOut}
-                    className="text-danger data-[highlighted]:bg-danger/10 data-[highlighted]:text-danger"
-                  >
-                    <LogOut size={16} strokeWidth={1.5} className="shrink-0" />
-                    {loggingOut ? '登出中…' : '登出'}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <button
+                type="button"
+                onClick={() => { setOpen(false); setUserMenuOpen(true) }}
+                aria-label="使用者選單"
+                className="flex h-14 min-w-0 w-full items-center gap-3 rounded-2xl px-1 text-left transition-all hover:bg-raised"
+              >
+                <span className="relative shrink-0 shadow-md rounded-full">
+                  <Avatar initial={avatarInitial} color={avatarColor} size="md" />
+                  <PresenceDot status={presenceStatus} className="absolute bottom-0 right-0 h-3 w-3" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-base font-extrabold text-ink">{userName}</span>
+                </span>
+              </button>
             ) : (
               <a href="/login" onClick={handleNavigate} className="flex h-14 min-w-0 w-full items-center gap-3 rounded-2xl px-1 text-left text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand">
                 <span className="grid h-10 w-10 shrink-0 place-items-center">
@@ -201,6 +172,67 @@ export default function TabletSidebarDrawer(
           </div>
         </DrawerContent>
       </Drawer>
+
+      {loggedIn && (
+        <Dialog open={userMenuOpen} onOpenChange={setUserMenuOpen}>
+          <DialogContent maxWidth="max-w-xs" className="p-2">
+            <DialogTitle className="sr-only">使用者選單</DialogTitle>
+            <DialogDescription>{userName} 的使用者選單</DialogDescription>
+            <DialogCloseButton className="absolute right-3 top-3" />
+            <div className="flex flex-col items-center gap-2 px-3 pb-3 pt-2 text-center">
+              <span className="relative shrink-0 shadow-md rounded-full">
+                <Avatar initial={avatarInitial} color={avatarColor} size="md" />
+                <PresenceDot status={presenceStatus} className="absolute bottom-0 right-0 h-3 w-3" />
+              </span>
+              <span className="min-w-0 truncate text-base font-extrabold text-ink">{userName}</span>
+            </div>
+            <div className="flex flex-col gap-1 border-t border-line-subtle pt-2">
+              <button
+                type="button"
+                onClick={() => { setUserMenuOpen(false); openProfile() }}
+                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl px-3 text-center text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-ink"
+              >
+                <User size={18} strokeWidth={1.5} className="shrink-0" />
+                個人資料
+              </button>
+              <button
+                type="button"
+                onClick={() => { setUserMenuOpen(false); openCreditScore() }}
+                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl px-3 text-center text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-ink"
+              >
+                <ShieldCheck size={18} strokeWidth={1.5} className="shrink-0" />
+                信用分數
+              </button>
+              <button
+                type="button"
+                onClick={() => { setUserMenuOpen(false); openReviews() }}
+                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl px-3 text-center text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-ink"
+              >
+                <Star size={18} strokeWidth={1.5} className="shrink-0" />
+                我的評價
+              </button>
+              <button
+                type="button"
+                onClick={() => { setUserMenuOpen(false); openSettings() }}
+                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl px-3 text-center text-sm font-bold text-ink-2 transition-colors hover:bg-raised hover:text-ink"
+              >
+                <Settings size={18} strokeWidth={1.5} className="shrink-0" />
+                偏好設定
+              </button>
+              <div className="my-1 h-px bg-line-subtle" />
+              <button
+                type="button"
+                onClick={() => { setUserMenuOpen(false); logout() }}
+                disabled={loggingOut}
+                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl px-3 text-center text-sm font-bold text-danger transition-colors hover:bg-danger/10 disabled:opacity-60"
+              >
+                <LogOut size={18} strokeWidth={1.5} className="shrink-0" />
+                {loggingOut ? '登出中…' : '登出'}
+              </button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 }
