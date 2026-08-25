@@ -45,7 +45,14 @@ npm run dev
 
 ## 文件
 
-產品設計、架構決策與各項功能流程說明，詳見 [`docs/`](docs/README.md)。
+- **Development**：[開發指南](docs/development.md) — 環境需求、環境變數、安裝、測試
+- **Product**：[產品總覽](docs/product/product-overview.md) — 產品定位、解決的問題、角色設計
+- **Architecture**：[架構總覽](docs/architecture/architecture.md) — 分層結構與技術棧選型理由
+- **ADR**：[Architecture Decision Records](docs/adr/README.md) — 重要技術決策為什麼這樣選
+- **Flows**：[群組狀態機](docs/flows/group-state-machine.md) — 一個群組會經過哪些狀態
+- **Testing**：[手動測試計畫](docs/testing/test-plan.md) — 測試範圍、優先級分類
+
+完整文件索引見 [`docs/README.md`](docs/README.md)。
 
 ## 注意事項
 
