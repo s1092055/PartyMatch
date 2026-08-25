@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Bell, Lock, LogIn, LogOut, MessageSquare, Settings, ShieldCheck, Star, User } from 'lucide-react'
+import { Bell, Lock, LogOut, MessageSquare, Settings, ShieldCheck, Star, User } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
 import { NAV_SECTIONS } from '../nav'
 import { Avatar } from '../../../components/ui/avatar'
@@ -193,6 +193,19 @@ export default function DesktopSidebar({
               </span>
             </button>
           )}
+          <button
+            type="button"
+            onClick={openSettings}
+            aria-label="偏好設定"
+            className="mb-1 flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
+          >
+            <span className="grid h-9 w-9 shrink-0 place-items-center">
+              <Settings size={22} strokeWidth={1.5} />
+            </span>
+            <span className="whitespace-nowrap font-bold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
+              偏好設定
+            </span>
+          </button>
           {loggedIn ? (
             <DropdownMenu onOpenChange={setUserMenuOpen}>
               <DropdownMenuTrigger asChild>
@@ -230,10 +243,6 @@ export default function DesktopSidebar({
                   <Star size={16} strokeWidth={1.5} className="shrink-0" />
                   我的評價
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={openSettings}>
-                  <Settings size={16} strokeWidth={1.5} className="shrink-0" />
-                  偏好設定
-                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={logout}
@@ -252,11 +261,11 @@ export default function DesktopSidebar({
               aria-label="登入"
               className="flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
             >
-              <span className="grid h-10 w-10 shrink-0 place-items-center">
-                <LogIn size={22} strokeWidth={1.5} />
+              <span className="shrink-0 shadow-md rounded-full">
+                <Avatar initial={null} size="md" />
               </span>
               <span className="min-w-0 flex-1 whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
-                <span className="block truncate text-sm font-extrabold">登入</span>
+                <span className="block truncate text-sm font-extrabold">匿名使用者</span>
               </span>
             </a>
           )}

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, LogIn, LogOut, Menu, Settings, ShieldCheck, Star, User } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
 import { NAV_SECTIONS } from '../nav'
@@ -42,6 +43,7 @@ export default function TabletSidebarDrawer(
     loggingOut,
   }
 ) {
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [userPanel, setUserPanel] = useState('menu')
@@ -187,6 +189,18 @@ export default function TabletSidebarDrawer(
               </button>
             )}
 
+            <button
+              type="button"
+              onClick={() => { setOpen(false); setUserPanel('settings'); setActiveDetailPanel('settings'); setUserMenuOpen(true) }}
+              aria-label="偏好設定"
+              className="mb-1 flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
+            >
+              <span className="grid h-9 w-9 shrink-0 place-items-center">
+                <Settings size={22} strokeWidth={1.5} />
+              </span>
+              <span className="whitespace-nowrap text-base font-bold">偏好設定</span>
+            </button>
+
             {loggedIn ? (
               <button
                 type="button"
@@ -203,37 +217,43 @@ export default function TabletSidebarDrawer(
                 </span>
               </button>
             ) : (
-              <a href="/login" onClick={handleNavigate} className="flex h-14 min-w-0 w-full items-center gap-3 rounded-2xl px-1 text-left text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand">
-                <span className="grid h-10 w-10 shrink-0 place-items-center">
-                  <LogIn size={22} strokeWidth={1.5} />
+              <button
+                type="button"
+                onClick={openUserMenu}
+                aria-label="匿名使用者選單"
+                className="flex h-14 min-w-0 w-full items-center gap-3 rounded-2xl px-1 text-left transition-all hover:-translate-y-0.5 hover:bg-brand-subtle"
+              >
+                <span className="shrink-0 shadow-md rounded-full">
+                  <Avatar initial={null} size="md" />
                 </span>
-                <span className="min-w-0 flex-1 whitespace-nowrap">
-                  <span className="block truncate text-base font-extrabold">登入</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-base font-extrabold text-ink">匿名使用者</span>
                 </span>
-              </a>
+              </button>
             )}
           </div>
         </DrawerContent>
       </Drawer>
 
-      {loggedIn && (
-        <Dialog open={userMenuOpen} onOpenChange={setUserMenuOpen}>
+      <Dialog open={userMenuOpen} onOpenChange={setUserMenuOpen}>
           <DialogContent maxWidth="max-w-md" height="min(80dvh, 640px)" className="p-0">
             <DialogTitle className="sr-only">{userPanel === 'menu' ? '使用者選單' : USER_PANELS[userPanel].title}</DialogTitle>
-            <DialogDescription>{userName} 的使用者選單</DialogDescription>
+            <DialogDescription>{loggedIn ? userName : '匿名使用者'} 的使用者選單</DialogDescription>
 
             <div className="flex shrink-0 items-center gap-2 px-4 py-4">
               <div className="flex min-w-0 flex-1 items-center gap-2">
                 {userPanel !== 'menu' && (
                   <>
-                    <button
-                      type="button"
-                      onClick={backToUserMenu}
-                      aria-label="返回使用者選單"
-                      className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
-                    >
-                      <ChevronLeft size={18} strokeWidth={1.5} />
-                    </button>
+                    {userPanel !== 'settings' && (
+                      <button
+                        type="button"
+                        onClick={backToUserMenu}
+                        aria-label="返回使用者選單"
+                        className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+                      >
+                        <ChevronLeft size={18} strokeWidth={1.5} />
+                      </button>
+                    )}
                     {(() => {
                       const PanelIcon = USER_PANELS[userPanel].icon
                       return <PanelIcon size={16} strokeWidth={1.5} className="shrink-0 text-ink" />
@@ -258,74 +278,80 @@ export default function TabletSidebarDrawer(
                   <div className="flex flex-1 flex-col items-center justify-center gap-6 px-3 py-4">
                     <div className="flex flex-col items-center gap-4 text-center">
                       <span className="shrink-0 shadow-md rounded-full">
-                        <Avatar initial={avatarInitial} color={avatarColor} size="xl" className="h-28 w-28 text-4xl" />
+                        <Avatar initial={loggedIn ? avatarInitial : null} color={avatarColor} size="xl" className="h-28 w-28 text-4xl" />
                       </span>
-                      <span className="min-w-0 truncate text-lg font-extrabold text-ink">{userName}</span>
+                      <span className="min-w-0 truncate text-lg font-extrabold text-ink">{loggedIn ? userName : '匿名使用者'}</span>
                     </div>
-                    <Select value={presenceStatus} onValueChange={changePresence}>
-                      <SelectTrigger aria-label="設定目前狀態" className="mx-auto w-auto min-w-36 justify-center gap-2 [&>svg]:hidden">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="z-[60]">
-                        {Object.entries(PRESENCE_LABELS).map(([value, label]) => (
-                          <SelectItem key={value} value={value} className="pl-2 [&>span:first-child]:hidden">
-                            <span className="flex items-center gap-2">
-                              <PresenceDot status={value} className="h-2.5 w-2.5 shrink-0" />
-                              {label}
-                            </span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <div className="flex w-full flex-col gap-4 px-1">
-                      <button
-                        type="button"
-                        onClick={() => openUserPanel('profile')}
-                        className="flex h-12 w-full items-center gap-3 rounded-xl border border-line bg-surface px-4 text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
-                      >
-                        <User size={20} strokeWidth={1.5} className="shrink-0" />
-                        <span className="flex-1 text-left">個人資料</span>
-                        <ChevronRight size={16} strokeWidth={1.5} className="shrink-0 text-ink-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => openUserPanel('credit')}
-                        className="flex h-12 w-full items-center gap-3 rounded-xl border border-line bg-surface px-4 text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
-                      >
-                        <ShieldCheck size={20} strokeWidth={1.5} className="shrink-0" />
-                        <span className="flex-1 text-left">信用分數</span>
-                        <ChevronRight size={16} strokeWidth={1.5} className="shrink-0 text-ink-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => openUserPanel('reviews')}
-                        className="flex h-12 w-full items-center gap-3 rounded-xl border border-line bg-surface px-4 text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
-                      >
-                        <Star size={20} strokeWidth={1.5} className="shrink-0" />
-                        <span className="flex-1 text-left">我的評價</span>
-                        <ChevronRight size={16} strokeWidth={1.5} className="shrink-0 text-ink-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => openUserPanel('settings')}
-                        className="flex h-12 w-full items-center gap-3 rounded-xl border border-line bg-surface px-4 text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
-                      >
-                        <Settings size={20} strokeWidth={1.5} className="shrink-0" />
-                        <span className="flex-1 text-left">偏好設定</span>
-                        <ChevronRight size={16} strokeWidth={1.5} className="shrink-0 text-ink-4" />
-                      </button>
-                    </div>
+                    {loggedIn && (
+                      <Select value={presenceStatus} onValueChange={changePresence}>
+                        <SelectTrigger aria-label="設定目前狀態" className="mx-auto w-auto min-w-36 justify-center gap-2 [&>svg]:hidden">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="z-[60]">
+                          {Object.entries(PRESENCE_LABELS).map(([value, label]) => (
+                            <SelectItem key={value} value={value} className="pl-2 [&>span:first-child]:hidden">
+                              <span className="flex items-center gap-2">
+                                <PresenceDot status={value} className="h-2.5 w-2.5 shrink-0" />
+                                {label}
+                              </span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    {loggedIn && (
+                      <div className="flex w-full flex-col gap-4 px-1">
+                        <button
+                          type="button"
+                          onClick={() => openUserPanel('profile')}
+                          className="flex h-12 w-full items-center gap-3 rounded-xl border border-line bg-surface px-4 text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
+                        >
+                          <User size={20} strokeWidth={1.5} className="shrink-0" />
+                          <span className="flex-1 text-left">個人資料</span>
+                          <ChevronRight size={16} strokeWidth={1.5} className="shrink-0 text-ink-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => openUserPanel('credit')}
+                          className="flex h-12 w-full items-center gap-3 rounded-xl border border-line bg-surface px-4 text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
+                        >
+                          <ShieldCheck size={20} strokeWidth={1.5} className="shrink-0" />
+                          <span className="flex-1 text-left">信用分數</span>
+                          <ChevronRight size={16} strokeWidth={1.5} className="shrink-0 text-ink-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => openUserPanel('reviews')}
+                          className="flex h-12 w-full items-center gap-3 rounded-xl border border-line bg-surface px-4 text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
+                        >
+                          <Star size={20} strokeWidth={1.5} className="shrink-0" />
+                          <span className="flex-1 text-left">我的評價</span>
+                          <ChevronRight size={16} strokeWidth={1.5} className="shrink-0 text-ink-4" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                   <div className="shrink-0 px-4 pb-4 pt-3">
-                    <button
-                      type="button"
-                      onClick={() => { closeUserMenu(); logout() }}
-                      disabled={loggingOut}
-                      className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-danger/30 px-3 text-center text-sm font-bold text-danger transition-colors hover:bg-danger/10 disabled:opacity-60"
-                    >
-                      <LogOut size={18} strokeWidth={1.5} className="shrink-0" />
-                      {loggingOut ? '登出中…' : '登出'}
-                    </button>
+                    {loggedIn ? (
+                      <button
+                        type="button"
+                        onClick={() => { closeUserMenu(); logout() }}
+                        disabled={loggingOut}
+                        className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-danger/30 px-3 text-center text-sm font-bold text-danger transition-colors hover:bg-danger/10 disabled:opacity-60"
+                      >
+                        <LogOut size={18} strokeWidth={1.5} className="shrink-0" />
+                        {loggingOut ? '登出中…' : '登出'}
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => { closeUserMenu(); navigate('/login') }}
+                        className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-brand-border bg-brand-subtle px-3 text-center text-sm font-bold text-brand transition-colors hover:bg-brand-muted"
+                      >
+                        <LogIn size={18} strokeWidth={1.5} className="shrink-0" />
+                        登入會員
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -353,8 +379,7 @@ export default function TabletSidebarDrawer(
               </div>
             </div>
           </DialogContent>
-        </Dialog>
-      )}
+      </Dialog>
     </>
   );
 }
