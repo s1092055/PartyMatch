@@ -221,25 +221,32 @@ export default function TabletSidebarDrawer(
                 </span>
               </button>
             ) : (
-              <div className="flex items-stretch gap-2">
+              <>
                 <button
                   type="button"
-                  onClick={toggleTheme}
+                  onClick={() => { setOpen(false); toggleTheme() }}
                   aria-label={theme === 'dark' ? '切換成淺色模式' : '切換成深色模式'}
-                  className="grid h-14 flex-1 place-items-center rounded-2xl text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
+                  className="mb-1 flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
                 >
-                  {theme === 'dark' ? <Sun size={22} strokeWidth={1.5} /> : <Moon size={22} strokeWidth={1.5} />}
+                  <span className="grid h-9 w-9 shrink-0 place-items-center">
+                    {theme === 'dark' ? <Sun size={22} strokeWidth={1.5} /> : <Moon size={22} strokeWidth={1.5} />}
+                  </span>
+                  <span className="whitespace-nowrap text-base font-bold">{theme === 'dark' ? '切換成淺色模式' : '切換成深色模式'}</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => { setOpen(false); navigate('/login') }}
                   aria-label="登入會員"
-                  className="flex h-14 flex-1 items-center justify-center gap-2 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
+                  className="flex h-14 min-w-0 w-full items-center gap-3 rounded-2xl px-1 text-left transition-all hover:-translate-y-0.5 hover:bg-brand-subtle"
                 >
-                  <LogIn size={20} strokeWidth={1.5} className="shrink-0" />
-                  <span className="truncate text-base font-extrabold">登入會員</span>
+                  <span className="grid h-10 w-10 shrink-0 place-items-center">
+                    <LogIn size={22} strokeWidth={1.5} />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-base font-extrabold text-ink">登入會員</span>
+                  </span>
                 </button>
-              </div>
+              </>
             )}
           </div>
         </DrawerContent>

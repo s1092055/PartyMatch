@@ -259,25 +259,34 @@ export default function DesktopSidebar({
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <div className="flex items-stretch gap-2">
+            <>
               <button
                 type="button"
                 onClick={toggleTheme}
                 aria-label={theme === 'dark' ? '切換成淺色模式' : '切換成深色模式'}
-                className="grid h-14 flex-1 place-items-center rounded-2xl text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
+                className="mb-1 flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
               >
-                {theme === 'dark' ? <Sun size={22} strokeWidth={1.5} /> : <Moon size={22} strokeWidth={1.5} />}
+                <span className="grid h-9 w-9 shrink-0 place-items-center">
+                  {theme === 'dark' ? <Sun size={22} strokeWidth={1.5} /> : <Moon size={22} strokeWidth={1.5} />}
+                </span>
+                <span className="whitespace-nowrap font-bold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
+                  {theme === 'dark' ? '切換成淺色模式' : '切換成深色模式'}
+                </span>
               </button>
               <a
                 href="/login"
                 onClick={closeAll}
                 aria-label="登入會員"
-                className="flex h-14 flex-1 items-center justify-center gap-2 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
+                className="flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
               >
-                <LogIn size={20} strokeWidth={1.5} className="shrink-0" />
-                <span className="truncate whitespace-nowrap text-sm font-extrabold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">登入會員</span>
+                <span className="grid h-10 w-10 shrink-0 place-items-center">
+                  <LogIn size={22} strokeWidth={1.5} />
+                </span>
+                <span className="min-w-0 flex-1 whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
+                  <span className="block truncate text-sm font-extrabold">登入會員</span>
+                </span>
               </a>
-            </div>
+            </>
           )}
         </div>
       </aside>
