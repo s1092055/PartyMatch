@@ -32,7 +32,7 @@ export default function Step3Settings({ form, onChange }) {
           <div className="flex w-full items-center justify-between gap-3 border border-line rounded-lg p-1">
             <button
               onClick={() => onChange('totalSeats', Math.max(2, form.totalSeats - 1))}
-              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-raised transition-colors disabled:opacity-30"
+              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-raised transition-colors disabled:opacity-50"
               disabled={openSeats <= 1}
             >
               <Minus strokeWidth={1.5} size={14} className="text-ink-3" />
@@ -42,7 +42,7 @@ export default function Step3Settings({ form, onChange }) {
             </span>
             <button
               onClick={() => onChange('totalSeats', Math.min(maxSeats, form.totalSeats + 1))}
-              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-raised transition-colors disabled:opacity-30"
+              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-raised transition-colors disabled:opacity-50"
               disabled={form.totalSeats >= maxSeats}
             >
               <Plus strokeWidth={1.5} size={14} className="text-ink-3" />

@@ -59,7 +59,7 @@ export default function Step1Service({ form, onChange }) {
               <button
                 type="button"
                 onClick={() => setInfoService(service)}
-                className="absolute right-1 top-1 grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-4 transition-colors hover:bg-brand-subtle hover:text-brand"
+                className="absolute right-1 top-1 grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-brand-subtle hover:text-brand"
                 aria-label={`${service.name} 服務說明`}
               >
                 <AlertCircle size={20} strokeWidth={1.5} />

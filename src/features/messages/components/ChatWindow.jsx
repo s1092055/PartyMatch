@@ -151,7 +151,7 @@ export default function ChatWindow({
           {attachment && (
             <AttachmentPickerButton
               attachment={attachment}
-              className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-4 transition-colors hover:bg-surface hover:text-ink-2 disabled:opacity-40"
+              className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-surface hover:text-ink disabled:opacity-50"
             />
           )}
           <button
@@ -159,7 +159,7 @@ export default function ChatWindow({
             onClick={onSend}
             disabled={!canSend && !attachment?.url}
             aria-busy={sending}
-            className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand text-white transition-all hover:-translate-y-0.5 hover:bg-brand-hover disabled:opacity-40"
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand text-white transition-all hover:-translate-y-0.5 hover:bg-brand-hover disabled:opacity-50"
             aria-label="傳送"
           >
             <Send strokeWidth={1.5} size={14} />

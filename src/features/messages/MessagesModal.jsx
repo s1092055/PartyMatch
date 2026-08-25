@@ -3,6 +3,7 @@ import { ChevronLeft, MessageSquare } from 'lucide-react'
 import ConversationAvatar from './components/ConversationAvatar'
 import ConversationHeaderActions from './components/ConversationHeaderActions'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogCloseButton } from '../../components/ui/dialog'
+import { Button } from '../../components/ui/button'
 import LoginPromptModal from '../../components/ui/LoginPromptModal'
 import { useAuthStore } from '../../common/stores/useAuthStore'
 import { useConversationStore } from '../../common/stores/useConversationStore'
@@ -263,13 +264,15 @@ export default function MessagesModal() {
           <div className="flex items-center gap-2">
             {isMobile && selectedId && selected ? (
               <>
-                <button
+                <Button
                   onClick={() => setSelectedId(null)}
-                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+                  variant="ghost"
+                  size="icon"
+                  className="shrink-0 text-ink-3 hover:text-ink active:opacity-70"
                   aria-label="返回"
                 >
                   <ChevronLeft size={18} strokeWidth={1.5} />
-                </button>
+                </Button>
                 <div className="shrink-0">
                   <ConversationAvatar conversation={selected} size={28} />
                 </div>

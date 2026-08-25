@@ -40,7 +40,7 @@ export default function MatchSummaryPanel({ conditions, filtersChosen, onRemoveS
                       <button
                         onClick={() => onRemoveService(id)}
                         aria-label={`移除${s.name}`}
-                        className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-4 transition-colors hover:bg-raised hover:text-ink"
+                        className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink active:opacity-70"
                       >
                         <X size={13} strokeWidth={1.5} />
                       </button>

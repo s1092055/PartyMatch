@@ -70,7 +70,7 @@ export default function HostReviews({ group, headerClassName, onDm, groupId, tit
           {onDm && (
             <button
               onClick={onDm}
-              className={`grid h-9 w-9 shrink-0 place-items-center border border-line text-ink-3 transition-colors hover:border-brand hover:text-brand ${squareDmButton ? 'rounded-lg' : 'rounded-full'}`}
+              className={`grid h-10 w-10 shrink-0 place-items-center border border-line text-ink-3 transition-colors hover:border-brand hover:text-brand ${squareDmButton ? 'rounded-lg' : 'rounded-full'}`}
               aria-label="聯絡團主"
             >
               <MessageCircle size={16} strokeWidth={1.5} />

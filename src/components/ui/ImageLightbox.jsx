@@ -93,7 +93,7 @@ export default function ImageLightbox(
               onClick={e => { e.stopPropagation(); onPrev?.() }}
               aria-label="上一張"
               disabled={!onPrev}
-              className="grid h-9 w-9 place-items-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 disabled:opacity-30"
+              className="grid h-9 w-9 place-items-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 disabled:opacity-50"
             >
               <ChevronLeft size={18} strokeWidth={1.5} />
             </button>
@@ -101,7 +101,7 @@ export default function ImageLightbox(
               onClick={e => { e.stopPropagation(); onNext?.() }}
               aria-label="下一張"
               disabled={!onNext}
-              className="grid h-9 w-9 place-items-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 disabled:opacity-30"
+              className="grid h-9 w-9 place-items-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 disabled:opacity-50"
             >
               <ChevronRight size={18} strokeWidth={1.5} />
             </button>

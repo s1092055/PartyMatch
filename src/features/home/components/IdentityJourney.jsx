@@ -101,7 +101,7 @@ function StepPanel({ open, onClose, items, activeValue, onChange }) {
             type="button"
             onClick={onClose}
             aria-label="關閉"
-            className="grid h-7 w-7 shrink-0 place-items-center justify-self-end rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+            className="grid h-8 w-8 shrink-0 place-items-center justify-self-end rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink active:opacity-70"
           >
             <X size={16} strokeWidth={1.5} />
           </button>

@@ -14,10 +14,11 @@ const buttonVariants = cva(
         ink: "bg-brand text-white hover:bg-brand-hover",
       },
       size: {
-        sm:   "text-xs px-4 h-8 hover:-translate-y-0.5",
-        md:   "text-sm px-5 h-11 hover:-translate-y-0.5",
-        lg:   "text-base px-6 h-12 hover:-translate-y-0.5",
-        icon: "h-8 w-8 shrink-0 rounded-full",
+        sm:     "text-xs px-4 h-8 hover:-translate-y-0.5",
+        md:     "text-sm px-5 h-11 hover:-translate-y-0.5",
+        lg:     "text-base px-6 h-12 hover:-translate-y-0.5",
+        icon:   "h-8 w-8 shrink-0 rounded-full",
+        iconLg: "h-10 w-10 shrink-0 rounded-full",
       },
     },
     defaultVariants: {

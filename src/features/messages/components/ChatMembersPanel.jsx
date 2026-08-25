@@ -1,6 +1,7 @@
 import { X } from 'lucide-react'
 import { userProfileCache } from '../hooks/useParticipantNames'
 import { Avatar } from '../../../components/ui/avatar'
+import { Button } from '../../../components/ui/button'
 import { PresenceDot } from '../../../common/layout/components/navShared'
 
 export default function ChatMembersPanel({ open, selected, memberMap, userId, getParticipantName, onClose }) {
@@ -12,13 +13,15 @@ export default function ChatMembersPanel({ open, selected, memberMap, userId, ge
     >
       <div className="flex h-14 shrink-0 items-center justify-between border-b border-line px-4">
         <span className="text-sm font-extrabold text-ink">群組成員</span>
-        <button
+        <Button
           onClick={onClose}
+          variant="ghost"
+          size="icon"
           aria-label="關閉"
-          className="grid h-11 w-11 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+          className="text-ink-3 hover:text-ink active:opacity-70"
         >
-          <X strokeWidth={1.5} size={16} />
-        </button>
+          <X strokeWidth={1.5} size={18} />
+        </Button>
       </div>
       <div className="flex-1 overflow-y-auto p-3">
         {(selected.participants ?? []).map(pid => {
