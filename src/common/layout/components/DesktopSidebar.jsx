@@ -19,7 +19,6 @@ export default function DesktopSidebar({
   presenceStatus,
   unreadNotifs,
   unreadMsgs,
-  tokenBalance,
   setTopupOpen,
   closeAll,
   openCreate,
@@ -124,27 +123,34 @@ export default function DesktopSidebar({
         document.body
       )}
 
-      <div className="fixed top-6 z-50 flex lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
+      <div className="fixed top-6 z-50 flex flex-col gap-3 lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
         <button
           onClick={openNotify}
-          className="relative flex h-12 w-12 items-center justify-center gap-2 rounded-full border border-line bg-surface text-sm font-bold text-ink-2 shadow-floating transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-10 lg:w-auto lg:justify-start lg:px-4 dark:border-[#238EC7] dark:text-[#238EC7]"
+          className="relative grid h-14 w-14 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-floating transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-12 lg:w-12 dark:border-[#238EC7] dark:text-[#238EC7]"
           aria-label="通知"
         >
-          <Bell className="size-5 lg:size-4" strokeWidth={1.5} />
-          <span className="hidden lg:inline">通知</span>
+          <Bell className="size-6 lg:size-5" strokeWidth={1.5} />
           <CountBadge count={unreadNotifs} />
         </button>
+        {loggedIn && (
+          <button
+            onClick={() => setTopupOpen(true)}
+            className="relative grid h-14 w-14 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-floating transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-12 lg:w-12 dark:border-[#238EC7] dark:text-[#238EC7]"
+            aria-label="PM幣儲值"
+          >
+            <TokenBadge className="!h-7 !w-7 lg:!h-6 lg:!w-6" />
+          </button>
+        )}
       </div>
 
       <div className="fixed z-50 block" style={{ bottom: '2.25rem', right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
         {loggedIn ? (
           <button
             onClick={openMessages}
-            className="relative flex h-12 w-12 items-center justify-center gap-2 rounded-full border border-line bg-surface text-sm font-bold text-ink-2 shadow-floating transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-10 lg:w-auto lg:justify-start lg:px-4 dark:border-[#238EC7] dark:text-[#238EC7]"
+            className="relative grid h-14 w-14 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-floating transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-12 lg:w-12 dark:border-[#238EC7] dark:text-[#238EC7]"
             aria-label="訊息"
           >
-            <MessageSquare className="size-5 lg:size-4" strokeWidth={1.5} />
-            <span className="hidden lg:inline">訊息</span>
+            <MessageSquare className="size-6 lg:size-5" strokeWidth={1.5} />
             <CountBadge count={unreadMsgs} className="-right-1.5 -top-1.5" />
           </button>
         ) : (
@@ -153,10 +159,9 @@ export default function DesktopSidebar({
             aria-disabled="true"
             aria-label={`訊息，${LOCKED_MESSAGE}`}
             onClick={e => preventLockedAction(e)}
-            className="group/locked relative flex h-12 w-12 cursor-not-allowed items-center justify-center gap-2 rounded-full border border-line bg-surface text-sm font-bold text-ink-2 opacity-40 shadow-floating lg:h-10 lg:w-auto lg:justify-start lg:px-4 dark:border-[#238EC7] dark:text-[#238EC7]"
+            className="group/locked relative grid h-14 w-14 cursor-not-allowed place-items-center rounded-full border border-line bg-surface text-ink-2 opacity-40 shadow-floating lg:h-12 lg:w-12 dark:border-[#238EC7] dark:text-[#238EC7]"
           >
-            <MessageSquare className="size-5 lg:size-4" strokeWidth={1.5} />
-            <span className="hidden lg:inline">訊息</span>
+            <MessageSquare className="size-6 lg:size-5" strokeWidth={1.5} />
             <LockBadge className="right-1 top-1" />
             <LockedHint className="right-full top-1/2 mr-2 -translate-y-1/2" />
           </button>
@@ -188,36 +193,19 @@ export default function DesktopSidebar({
         </nav>
 
         <div className="px-2 pb-4">
-          {loggedIn && (
-            <button
-              type="button"
-              onClick={() => { collapseSidebar(); setTopupOpen(true) }}
-              aria-label="PM幣儲值"
-              className="mb-1 flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
-            >
-              <span className="grid h-9 w-9 shrink-0 place-items-center">
-                <TokenBadge className="shrink-0" />
-              </span>
-              <span className="whitespace-nowrap font-bold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
-                {tokenBalance.toLocaleString()} PM
-              </span>
-            </button>
-          )}
-          {loggedIn && (
-            <button
-              type="button"
-              onClick={() => { collapseSidebar(); openSettings() }}
-              aria-label="偏好設定"
-              className="mb-1 flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
-            >
-              <span className="grid h-9 w-9 shrink-0 place-items-center">
-                <Settings size={22} strokeWidth={1.5} />
-              </span>
-              <span className="whitespace-nowrap font-bold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
-                偏好設定
-              </span>
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => { collapseSidebar(); toggleTheme() }}
+            aria-label={theme === 'dark' ? '切換成淺色模式' : '切換成深色模式'}
+            className="mb-1 flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
+          >
+            <span className="grid h-9 w-9 shrink-0 place-items-center">
+              {theme === 'dark' ? <Sun size={22} strokeWidth={1.5} /> : <Moon size={22} strokeWidth={1.5} />}
+            </span>
+            <span className="whitespace-nowrap font-bold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
+              {theme === 'dark' ? '淺色模式' : '深色模式'}
+            </span>
+          </button>
           {loggedIn ? (
             <DropdownMenu onOpenChange={setUserMenuOpen}>
               <DropdownMenuTrigger asChild>
@@ -255,6 +243,10 @@ export default function DesktopSidebar({
                   <Star size={16} strokeWidth={1.5} className="shrink-0" />
                   我的評價
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => { collapseSidebar(); openSettings() }}>
+                  <Settings size={16} strokeWidth={1.5} className="shrink-0" />
+                  偏好設定
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => { collapseSidebar(); logout() }}
@@ -267,34 +259,19 @@ export default function DesktopSidebar({
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <>
-              <button
-                type="button"
-                onClick={() => { collapseSidebar(); toggleTheme() }}
-                aria-label={theme === 'dark' ? '切換成淺色模式' : '切換成深色模式'}
-                className="mb-1 flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
-              >
-                <span className="grid h-9 w-9 shrink-0 place-items-center">
-                  {theme === 'dark' ? <Sun size={22} strokeWidth={1.5} /> : <Moon size={22} strokeWidth={1.5} />}
-                </span>
-                <span className="whitespace-nowrap font-bold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
-                  {theme === 'dark' ? '淺色模式' : '深色模式'}
-                </span>
-              </button>
-              <a
-                href="/login"
-                onClick={() => { closeAll(); collapseSidebar() }}
-                aria-label="登入會員"
-                className="flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
-              >
-                <span className="grid h-10 w-10 shrink-0 place-items-center">
-                  <LogIn size={22} strokeWidth={1.5} />
-                </span>
-                <span className="min-w-0 flex-1 whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
-                  <span className="block truncate text-sm font-extrabold">登入會員</span>
-                </span>
-              </a>
-            </>
+            <a
+              href="/login"
+              onClick={() => { closeAll(); collapseSidebar() }}
+              aria-label="登入會員"
+              className="flex h-14 w-full items-center gap-3 rounded-2xl px-1 text-left text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
+            >
+              <span className="grid h-10 w-10 shrink-0 place-items-center">
+                <LogIn size={22} strokeWidth={1.5} />
+              </span>
+              <span className="min-w-0 flex-1 whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
+                <span className="block truncate text-sm font-extrabold">登入會員</span>
+              </span>
+            </a>
           )}
         </div>
       </aside>

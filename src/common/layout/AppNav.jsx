@@ -25,7 +25,6 @@ export default function AppNav() {
   const avatarColor = currentUser?.avatarColor ?? null
   const presenceStatus = currentUser?.presenceStatus ?? 'online'
 
-  const tokenBalance = useAuthStore(s => s.user?.tokenBalance ?? 0)
   const { loggingOut, logout } = useLogout()
   const [topupOpen, setTopupOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -117,7 +116,6 @@ export default function AppNav() {
         presenceStatus={presenceStatus}
         unreadNotifs={unreadNotifs}
         unreadMsgs={unreadMsgs}
-        tokenBalance={tokenBalance}
         setTopupOpen={setTopupOpen}
         closeAll={closeAll}
         openCreate={openCreate}
@@ -140,9 +138,7 @@ export default function AppNav() {
         avatarInitial={avatarInitial}
         avatarColor={avatarColor}
         presenceStatus={presenceStatus}
-        tokenBalance={tokenBalance}
         host={{ id: currentUser?.id, displayName: userName, avatarInitial, avatarColor }}
-        setTopupOpen={setTopupOpen}
         closeAll={closeAll}
         openCreate={openCreate}
         openMatch={openMatch}

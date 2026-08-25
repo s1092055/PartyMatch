@@ -5,7 +5,6 @@ import { useTheme } from '../../../components/theme-provider'
 import logoUrl from '../../../assets/Logo.svg'
 import { NAV_SECTIONS } from '../nav'
 import { Avatar } from '../../../components/ui/avatar'
-import { TokenBadge } from '../../../components/ui/TokenAmount'
 import { Drawer, DrawerContent, DrawerTitle } from '../../../components/ui/drawer'
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogCloseButton } from '../../../components/ui/dialog'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../../components/ui/select'
@@ -33,9 +32,7 @@ export default function TabletSidebarDrawer(
     avatarInitial,
     avatarColor,
     presenceStatus,
-    tokenBalance,
     host,
-    setTopupOpen,
     closeAll,
     openCreate,
     openMatch,
@@ -177,33 +174,17 @@ export default function TabletSidebarDrawer(
             </div>
           </nav>
           <div className="px-2 pb-4">
-            {loggedIn && (
-              <button
-                type="button"
-                onClick={() => { setOpen(false); setTopupOpen(true) }}
-                aria-label="PM幣儲值"
-                className="mb-1 flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
-              >
-                <span className="grid h-9 w-9 shrink-0 place-items-center">
-                  <TokenBadge className="shrink-0" />
-                </span>
-                <span className="whitespace-nowrap text-base font-bold">{tokenBalance.toLocaleString()} PM</span>
-              </button>
-            )}
-
-            {loggedIn && (
-              <button
-                type="button"
-                onClick={() => { setOpen(false); setUserPanel('settings'); setActiveDetailPanel('settings'); setUserMenuOpen(true) }}
-                aria-label="偏好設定"
-                className="mb-1 flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
-              >
-                <span className="grid h-9 w-9 shrink-0 place-items-center">
-                  <Settings size={22} strokeWidth={1.5} />
-                </span>
-                <span className="whitespace-nowrap text-base font-bold">偏好設定</span>
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => { setOpen(false); toggleTheme() }}
+              aria-label={theme === 'dark' ? '切換成淺色模式' : '切換成深色模式'}
+              className="mb-1 flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
+            >
+              <span className="grid h-9 w-9 shrink-0 place-items-center">
+                {theme === 'dark' ? <Sun size={22} strokeWidth={1.5} /> : <Moon size={22} strokeWidth={1.5} />}
+              </span>
+              <span className="whitespace-nowrap text-base font-bold">{theme === 'dark' ? '淺色模式' : '深色模式'}</span>
+            </button>
 
             {loggedIn ? (
               <button
@@ -221,32 +202,19 @@ export default function TabletSidebarDrawer(
                 </span>
               </button>
             ) : (
-              <>
-                <button
-                  type="button"
-                  onClick={() => { setOpen(false); toggleTheme() }}
-                  aria-label={theme === 'dark' ? '切換成淺色模式' : '切換成深色模式'}
-                  className="mb-1 flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
-                >
-                  <span className="grid h-9 w-9 shrink-0 place-items-center">
-                    {theme === 'dark' ? <Sun size={22} strokeWidth={1.5} /> : <Moon size={22} strokeWidth={1.5} />}
-                  </span>
-                  <span className="whitespace-nowrap text-base font-bold">{theme === 'dark' ? '切換成淺色模式' : '切換成深色模式'}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setOpen(false); navigate('/login') }}
-                  aria-label="登入會員"
-                  className="flex h-14 min-w-0 w-full items-center gap-3 rounded-2xl px-1 text-left transition-all hover:-translate-y-0.5 hover:bg-brand-subtle"
-                >
-                  <span className="grid h-10 w-10 shrink-0 place-items-center">
-                    <LogIn size={22} strokeWidth={1.5} />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-base font-extrabold text-ink">登入會員</span>
-                  </span>
-                </button>
-              </>
+              <button
+                type="button"
+                onClick={() => { setOpen(false); navigate('/login') }}
+                aria-label="登入會員"
+                className="flex h-14 min-w-0 w-full items-center gap-3 rounded-2xl px-1 text-left transition-all hover:-translate-y-0.5 hover:bg-brand-subtle"
+              >
+                <span className="grid h-10 w-10 shrink-0 place-items-center">
+                  <LogIn size={22} strokeWidth={1.5} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-base font-extrabold text-ink">登入會員</span>
+                </span>
+              </button>
             )}
           </div>
         </DrawerContent>
@@ -261,16 +229,14 @@ export default function TabletSidebarDrawer(
               <div className="flex min-w-0 flex-1 items-center gap-2">
                 {userPanel !== 'menu' && (
                   <>
-                    {userPanel !== 'settings' && (
-                      <button
-                        type="button"
-                        onClick={backToUserMenu}
-                        aria-label="返回使用者選單"
-                        className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
-                      >
-                        <ChevronLeft size={18} strokeWidth={1.5} />
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={backToUserMenu}
+                      aria-label="返回使用者選單"
+                      className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
+                    >
+                      <ChevronLeft size={18} strokeWidth={1.5} />
+                    </button>
                     {(() => {
                       const PanelIcon = USER_PANELS[userPanel].icon
                       return <PanelIcon size={16} strokeWidth={1.5} className="shrink-0 text-ink" />
@@ -340,6 +306,15 @@ export default function TabletSidebarDrawer(
                       >
                         <Star size={20} strokeWidth={1.5} className="shrink-0" />
                         <span className="flex-1 text-left">我的評價</span>
+                        <ChevronRight size={16} strokeWidth={1.5} className="shrink-0 text-ink-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => openUserPanel('settings')}
+                        className="flex h-12 w-full items-center gap-3 rounded-xl border border-line bg-surface px-4 text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
+                      >
+                        <Settings size={20} strokeWidth={1.5} className="shrink-0" />
+                        <span className="flex-1 text-left">偏好設定</span>
                         <ChevronRight size={16} strokeWidth={1.5} className="shrink-0 text-ink-4" />
                       </button>
                     </div>
