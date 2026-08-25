@@ -449,7 +449,7 @@ export default function FloatingMessages() {
   return (
     <Drawer open={open} onOpenChange={setOpen} swipeDirection="right">
 
-      <DrawerContent className="max-lg:[--drawer-content-width:18rem] max-lg:data-[swipe-direction=right]:border-l-0 lg:rounded-2xl lg:border lg:[--drawer-inset:0.75rem] lg:[--drawer-bleed-background:transparent]">
+      <DrawerContent className="no-hover:[--drawer-content-width:18rem] no-hover:data-[swipe-direction=right]:border-l-0 can-hover:lg:rounded-2xl can-hover:lg:border can-hover:lg:[--drawer-inset:0.75rem] can-hover:lg:[--drawer-bleed-background:transparent]">
         <DrawerHeader>
           <div className="flex items-center gap-2">
             <Bell strokeWidth={1.5} size={18} className="text-ink-3" />
