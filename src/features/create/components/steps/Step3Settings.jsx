@@ -10,7 +10,7 @@ export default function Step3Settings({ form, onChange }) {
   const service = getServiceById(form.serviceId)
   const plan = service?.plans.find(p => p.name === form.planName)
   const maxSeats = plan?.maxSeats ?? 10
-  const openSeats = form.totalSeats - 1
+  const openSeats = form.recruitHeadcount - 1
 
   function updateRule(i, val) {
     const next = [...form.rules]
@@ -31,7 +31,7 @@ export default function Step3Settings({ form, onChange }) {
         >
           <div className="flex w-full items-center justify-between gap-3 border border-line rounded-lg p-1">
             <button
-              onClick={() => onChange('totalSeats', Math.max(2, form.totalSeats - 1))}
+              onClick={() => onChange('recruitHeadcount', Math.max(2, form.recruitHeadcount - 1))}
               className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-raised transition-colors disabled:opacity-50"
               disabled={openSeats <= 1}
             >
@@ -41,9 +41,9 @@ export default function Step3Settings({ form, onChange }) {
               {openSeats}
             </span>
             <button
-              onClick={() => onChange('totalSeats', Math.min(maxSeats, form.totalSeats + 1))}
+              onClick={() => onChange('recruitHeadcount', Math.min(maxSeats, form.recruitHeadcount + 1))}
               className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-raised transition-colors disabled:opacity-50"
-              disabled={form.totalSeats >= maxSeats}
+              disabled={form.recruitHeadcount >= maxSeats}
             >
               <Plus strokeWidth={1.5} size={14} className="text-ink-3" />
             </button>

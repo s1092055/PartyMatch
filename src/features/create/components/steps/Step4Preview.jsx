@@ -58,7 +58,7 @@ export default function Step4Preview({ form, agreedToTerms, onAgreeChange, onSho
                 cycle={form.billingCycle}
               />
             } />
-            <InfoField icon={Users}       label="開放名額" value={`${form.totalSeats - 1} 人`} />
+            <InfoField icon={Users}       label="開放名額" value={`${form.recruitHeadcount - 1} 人`} />
             <InfoField icon={ShieldCheck} label="信用分數" value={<CreditScoreValue score={form.minCreditScore} />} />
             <InfoField icon={CalendarDays} label="建立日期" value={today} />
             <div className="lg:col-span-2">

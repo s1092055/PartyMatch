@@ -24,7 +24,7 @@ const INITIAL_FORM = {
   planName: '',
   pricePerSeat: 0,
   billingCycle: 'monthly',
-  totalSeats: 2,
+  recruitHeadcount: 2,
   minCreditScore: 0,
   requirements: '',
   rules: ['', '', '', '', ''],
@@ -33,7 +33,8 @@ const INITIAL_FORM = {
 function mapFormToGroup(form) {
   const service = getServiceById(form.serviceId)
   const plan = service?.plans.find(p => p.name === form.planName)
-  const totalSeats = form.totalSeats
+  // 總名額固定用方案本身的容量，不是 Step3「開放名額」那個純參考用的招募目標
+  const planCapacity = plan?.maxSeats ?? form.recruitHeadcount
   const rules = form.rules.map(r => r.trim()).filter(Boolean)
   const tags = [...new Set([...(plan?.tags ?? []), service?.category].filter(Boolean))]
 
@@ -43,9 +44,9 @@ function mapFormToGroup(form) {
     planName: form.planName,
     pricePerSeat: form.pricePerSeat || 0,
     billingCycle: form.billingCycle,
-    totalSeats,
+    totalSeats: planCapacity,
     usedSeats: 1,
-    openSeats: totalSeats - 1,
+    openSeats: form.recruitHeadcount - 1,
     joinMode: 'approval',
     minCreditScore: form.minCreditScore || 0,
     requirements: form.requirements.trim(),
@@ -70,8 +71,8 @@ function getStepErrors(step, form) {
       const service = getServiceById(form.serviceId)
       const plan = service?.plans.find(p => p.name === form.planName)
       const maxSeats = plan?.maxSeats ?? 10
-      if (!Number.isInteger(form.totalSeats) || form.totalSeats < 2 || form.totalSeats > maxSeats) {
-        errors.push(`開放名額需介於 1 至 ${maxSeats - 1} 位`)
+      if (!Number.isInteger(form.recruitHeadcount) || form.recruitHeadcount < 2 || form.recruitHeadcount > maxSeats) {
+        errors.push(`開放名額需介於 1 至 ${maxSeats - 1} 人`)
       }
       if (rules.some(rule => rule.length > 80)) errors.push('每條群組規則最多 80 字')
       break
@@ -118,18 +119,18 @@ export default function CreateGroupModal() {
       if (key === 'serviceId') {
         next.planName = ''
         next.pricePerSeat = 0
-        next.totalSeats = 2
+        next.recruitHeadcount = 2
       }
       if (key === 'planName') {
         const service = getServiceById(next.serviceId)
         const plan = service?.plans.find(p => p.name === value)
         if (plan) {
-          next.totalSeats = plan.maxSeats
+          next.recruitHeadcount = plan.maxSeats
           next.billingCycle = plan.billingCycle
           next.pricePerSeat = calcPricePerSeat(plan, plan.maxSeats)
         }
       }
-      if (key === 'totalSeats') {
+      if (key === 'recruitHeadcount') {
         const service = getServiceById(next.serviceId)
         const plan = service?.plans.find(p => p.name === next.planName)
         if (plan) next.pricePerSeat = calcPricePerSeat(plan, value)
