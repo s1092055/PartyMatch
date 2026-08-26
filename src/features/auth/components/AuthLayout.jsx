@@ -45,7 +45,7 @@ export function AuthInput({ icon: Icon, label, value, onChange, trailing, hint, 
           onChange={e => onChange(e.target.value)}
           onBlur={onBlur}
           aria-invalid={!!error}
-          className="h-full flex-1 bg-transparent text-base font-medium text-ink outline-none placeholder:text-ink-4"
+          className="h-full min-w-0 flex-1 bg-transparent text-base font-medium text-ink outline-none placeholder:text-ink-4"
           {...props}
         />
         {trailing}
@@ -84,7 +84,7 @@ export function PhoneInput({ label, countryCode, onCountryCodeChange, value, onC
           onChange={e => onChange(e.target.value.replace(/[^0-9]/g, ''))}
           onBlur={onBlur}
           aria-invalid={!!error}
-          className="h-full flex-1 bg-transparent text-base font-medium text-ink outline-none placeholder:text-ink-4"
+          className="h-full min-w-0 flex-1 bg-transparent text-base font-medium text-ink outline-none placeholder:text-ink-4"
         />
         {trailing}
       </span>
