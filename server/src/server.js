@@ -5,10 +5,26 @@ import redis from './lib/redis.js'
 
 const PORT = process.env.PORT ?? 3001
 
+const MAX_DB_CONNECT_ATTEMPTS = 5
+
+async function connectDbWithRetry() {
+  for (let attempt = 1; attempt <= MAX_DB_CONNECT_ATTEMPTS; attempt += 1) {
+    try {
+      await prisma.$connect()
+      console.log('[DB] MySQL 連線成功')
+      return
+    } catch (err) {
+      if (attempt === MAX_DB_CONNECT_ATTEMPTS) throw err
+      const delayMs = 1000 * 2 ** (attempt - 1)
+      console.error(`[DB] 連線失敗（第 ${attempt}/${MAX_DB_CONNECT_ATTEMPTS} 次），${delayMs}ms 後重試`, err.message)
+      await new Promise(resolve => setTimeout(resolve, delayMs))
+    }
+  }
+}
+
 async function start() {
   try {
-    await prisma.$connect()
-    console.log('[DB] MySQL 連線成功')
+    await connectDbWithRetry()
 
     await redis.ping()
     console.log('[Cache] Redis 連線成功')
