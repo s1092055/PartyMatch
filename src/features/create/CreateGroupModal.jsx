@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AlertCircle, ChevronLeft, ChevronRight, Info, PlusCircle } from 'lucide-react'
+import { AlertCircle, ChevronLeft, ChevronRight, Eye, Info, PlusCircle } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogCloseButton } from '../../components/ui/dialog'
 import Step1Service from './components/steps/Step1Service'
 import Step2Plan from './components/steps/Step2Plan'
@@ -95,7 +95,6 @@ export default function CreateGroupModal() {
   const [form, setForm] = useState(INITIAL_FORM)
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
-  const [showSuccessModal, setShowSuccessModal] = useState(false)
   const bodyRef = useRef(null)
 
   useEffect(() => {
@@ -104,7 +103,6 @@ export default function CreateGroupModal() {
       setForm(INITIAL_FORM)
       setAgreedToTerms(false)
       setShowPreview(false)
-      setShowSuccessModal(false)
       setOpen(true)
     }
     window.addEventListener('pm:open-create-group', onOpen)
@@ -170,14 +168,9 @@ export default function CreateGroupModal() {
     const groupData = mapFormToGroup(form)
     const host = useAuthStore.getState().getProfile()
     useGroupStore.getState().create(groupData, host)
-    toast('群組已成功上架！');
-    setShowSuccessModal(true)
-  }
-
-  function handleSuccessClose(destination) {
-    setShowSuccessModal(false)
     setOpen(false)
-    navigate(destination)
+    navigate('/')
+    toast('群組已成功上架！')
   }
 
   const service = getServiceById(form.serviceId)
@@ -273,61 +266,50 @@ export default function CreateGroupModal() {
                 </div>
               )}
               {step === 4 ? (
-                <Step4Preview form={form} agreedToTerms={agreedToTerms} onAgreeChange={setAgreedToTerms} onShowPreview={() => setShowPreview(true)} />
+                <Step4Preview form={form} agreedToTerms={agreedToTerms} onAgreeChange={setAgreedToTerms} />
               ) : (
                 <CurrentStep form={form} onChange={onChange} />
               )}
             </div>
           </div>
 
-          <DialogFooter className="justify-between">
-            <Button variant="secondary" size="md" className="w-36" onClick={handleBack}>
-              <ChevronLeft size={15} strokeWidth={1.5} />
-              {step === 1 ? '取消' : '上一步'}
-            </Button>
-            {step < 4 ? (
-              <Button variant="default" size="md" className="w-36" disabled={!canNext()} onClick={handleNext}>
-                下一步
-                <ChevronRight size={15} strokeWidth={1.5} />
-              </Button>
-            ) : (
-              <Button variant="default" size="md" className="w-36" disabled={!agreedToTerms} onClick={handleSubmit}>
-                確認建立
+          <DialogFooter className="flex-col items-stretch gap-3">
+            {step === 4 && (
+              <Button
+                variant="ghost"
+                size="md"
+                className="w-full rounded-full border border-line lg:hidden"
+                onClick={() => setShowPreview(true)}
+              >
+                <Eye strokeWidth={1.5} size={15} />
+                查看預覽
               </Button>
             )}
+            <div className="flex justify-between gap-3">
+              <Button variant="secondary" size="md" className="w-36" onClick={handleBack}>
+                <ChevronLeft size={15} strokeWidth={1.5} />
+                {step === 1 ? '取消' : '上一步'}
+              </Button>
+              {step < 4 ? (
+                <Button variant="default" size="md" className="w-36" disabled={!canNext()} onClick={handleNext}>
+                  下一步
+                  <ChevronRight size={15} strokeWidth={1.5} />
+                </Button>
+              ) : (
+                <Button variant="default" size="md" className="w-36" disabled={!agreedToTerms} onClick={handleSubmit}>
+                  確認建立
+                </Button>
+              )}
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {showPreview && (
-        <div
-          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 px-4 md:px-8"
-          onClick={() => setShowPreview(false)}
-        >
-          <div className="mx-auto w-full max-w-xs" onClick={e => e.stopPropagation()}>
-            <LivePreviewPanel form={form} />
-          </div>
-        </div>
-      )}
-
-      <Dialog open={showSuccessModal} onOpenChange={() => {}}>
-        <DialogContent maxWidth="max-w-sm">
-          <DialogTitle className="sr-only">群組已成功上架</DialogTitle>
-          <DialogDescription>群組已成功上架</DialogDescription>
-          <div className="flex flex-col items-center px-6 py-8 text-center">
-            <ServiceLogo serviceId={form.serviceId} size={56} className="mb-4 border-line-strong" />
-            <p className="text-sm font-bold text-ink">{service?.fullName ?? service?.name}</p>
-            <p className="text-sm text-ink-3">{form.planName}</p>
-            <h3 className="mt-3 text-lg font-extrabold text-ink">群組已成功上架！</h3>
-            <div className="mt-6 flex w-full gap-3">
-              <Button variant="secondary" size="md" className="flex-1" onClick={() => handleSuccessClose('/')}>
-                返回首頁
-              </Button>
-              <Button variant="default" size="md" className="flex-1" onClick={() => handleSuccessClose('/manage-groups')}>
-                前往群組管理
-              </Button>
-            </div>
-          </div>
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent variant="panel" maxWidth="max-w-xs" className="border-none bg-transparent p-0 shadow-none">
+          <DialogTitle className="sr-only">群組預覽</DialogTitle>
+          <DialogDescription>群組預覽</DialogDescription>
+          <LivePreviewPanel form={form} />
         </DialogContent>
       </Dialog>
     </>

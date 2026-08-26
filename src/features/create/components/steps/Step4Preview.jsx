@@ -1,4 +1,4 @@
-import { CalendarDays, Eye, FileText, ListChecks, Package, ShieldCheck, User, Users, Wallet } from 'lucide-react'
+import { CalendarDays, FileText, ListChecks, Package, ShieldCheck, User, Users, Wallet } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { getServiceById } from '../../../../common/utils/serviceUtils'
 import { toISODate } from '../../../../common/utils/date'
@@ -8,7 +8,6 @@ import TokenAmount from '../../../../components/ui/TokenAmount'
 import ServiceLogo from '../../../../components/ui/ServiceLogo'
 import LivePreviewPanel from '../LivePreviewPanel'
 import { calcDisplayPrice } from '../../../../common/utils/pricingUtils'
-import { Button } from '../../../../components/ui/button'
 
 
 function InfoField({ icon: Icon, label, value }) {
@@ -23,7 +22,7 @@ function InfoField({ icon: Icon, label, value }) {
   )
 }
 
-export default function Step4Preview({ form, agreedToTerms, onAgreeChange, onShowPreview }) {
+export default function Step4Preview({ form, agreedToTerms, onAgreeChange }) {
   const service = getServiceById(form.serviceId)
   const user = useAuthStore(s => s.user)
   const activeUser = user ? useAuthStore.getState().getProfile() : null
@@ -38,14 +37,6 @@ export default function Step4Preview({ form, agreedToTerms, onAgreeChange, onSho
             <h2 className="truncate text-base font-black text-ink">{service?.fullName ?? '尚未選擇服務'}</h2>
             <p className="truncate text-sm text-ink-3">{form.planName || '尚未選擇方案'}</p>
           </div>
-          <Button
-            variant="ghost"
-            onClick={onShowPreview}
-            className="h-auto shrink-0 rounded-full border border-line px-4 py-2 lg:hidden"
-          >
-            <Eye strokeWidth={1.5} size={15} />
-            查看預覽
-          </Button>
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">

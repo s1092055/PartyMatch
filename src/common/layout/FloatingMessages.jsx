@@ -59,7 +59,7 @@ function getMergedNotifications(userId) {
 }
 
 const NOTIFICATION_META = {
-  application_approved: { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-subscriptions', state: { tab: 'processing' } },
+  application_approved: { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-subscriptions', state: { tab: 'recruiting' } },
   application_rejected: { icon: AlertCircle,   iconColor: 'text-danger',     link: '/explore' },
   application_sent:     { icon: CheckCircle2,  iconColor: 'text-brand',      link: '/my-subscriptions', state: { tab: 'processing' } },
   group_created:        { icon: CheckCircle2,  iconColor: 'text-success',    link: '/manage-groups' },
@@ -265,7 +265,7 @@ export default function FloatingMessages() {
       ]).finally(() => {
         const hasSub = user ? !!getSubscriptionByUserAndGroup(user.id, gId) : false
         if (hasSub) {
-          navigate('/my-subscriptions', { state: { tab: 'processing', openGroupId: gId } });
+          navigate('/my-subscriptions', { state: { tab: 'recruiting', openGroupId: gId } });
         } else {
           navigate('/explore')
           openGroupOrRedirect(gId)
