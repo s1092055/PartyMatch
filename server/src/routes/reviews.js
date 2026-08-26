@@ -5,22 +5,30 @@ import { requireAuth } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
 import { maskAvatar } from '../lib/avatarVisibility.js'
 import { notify } from './groups/shared.js'
+import { adjustCreditScore } from '../utils/creditScore.js'
 
 const router = Router()
 
 const createReviewSchema = z.object({
-  groupId: z.string().min(1),
-  rating:  z.number().int().min(1).max(5),
-  comment: z.string().max(500).optional(),
+  groupId:    z.string().min(1),
+  revieweeId: z.string().min(1),
+  rating:     z.number().int().min(1).max(5),
+  comment:    z.string().max(500).optional(),
 })
 
-router.get('/host/:hostId', async (req, res, next) => {
+function creditDeltaForRating(rating) {
+  if (rating === 5) return 5
+  if (rating <= 2) return -5
+  return 0
+}
+
+router.get('/user/:userId', async (req, res, next) => {
   try {
-    const { hostId } = req.params
+    const { userId } = req.params
     const [aggregate, reviews] = await Promise.all([
-      prisma.review.aggregate({ where: { hostId }, _avg: { rating: true }, _count: true }),
+      prisma.review.aggregate({ where: { revieweeId: userId }, _avg: { rating: true }, _count: true }),
       prisma.review.findMany({
-        where:   { hostId },
+        where:   { revieweeId: userId },
         include: { author: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true } } },
         orderBy: { createdAt: 'desc' },
         take: 50,
@@ -32,35 +40,65 @@ router.get('/host/:hostId', async (req, res, next) => {
 
 router.post('/', requireAuth, validate(createReviewSchema), async (req, res, next) => {
   try {
-    const { groupId, rating, comment } = req.body
+    const { groupId, revieweeId, rating, comment } = req.body
+    const authorId = req.user.id
+    if (authorId === revieweeId) return res.status(400).json({ message: '不能評價自己' })
+
     const group = await prisma.group.findUnique({
       where:  { id: groupId },
       select: { id: true, hostId: true, planName: true, service: { select: { name: true } } },
     })
     if (!group) return res.status(404).json({ message: '群組不存在' })
-    if (group.hostId === req.user.id) return res.status(400).json({ message: '不能評價自己' })
 
-    const [member, author] = await Promise.all([
-      prisma.member.findUnique({ where: { groupId_userId: { groupId, userId: req.user.id } } }),
-      prisma.user.findUnique({ where: { id: req.user.id }, select: { name: true } }),
-    ])
-    if (!member) return res.status(403).json({ message: '僅該群組成員可以留下評價' })
+    const isAuthorHost   = group.hostId === authorId
+    const isRevieweeHost = group.hostId === revieweeId
+    if (isAuthorHost === isRevieweeHost) {
+      return res.status(400).json({ message: '只能與團主互相評價' })
+    }
 
-    const isNewReview = !(await prisma.review.findUnique({ where: { groupId_authorId: { groupId, authorId: req.user.id } } }))
+    if (isAuthorHost) {
+      const revieweeMember = await prisma.member.findUnique({ where: { groupId_userId: { groupId, userId: revieweeId } } })
+      if (!revieweeMember) return res.status(403).json({ message: '對方不是此群組的成員' })
+    } else {
+      const authorMember = await prisma.member.findUnique({ where: { groupId_userId: { groupId, userId: authorId } } })
+      if (!authorMember) return res.status(403).json({ message: '僅該群組成員可以留下評價' })
+    }
 
-    const review = await prisma.review.upsert({
-      where:  { groupId_authorId: { groupId, authorId: req.user.id } },
-      update: { rating, comment: comment ?? null },
-      create: { groupId, hostId: group.hostId, authorId: req.user.id, rating, comment: comment ?? null },
+    const author = await prisma.user.findUnique({ where: { id: authorId }, select: { name: true } })
+
+    const { review, isNew } = await prisma.$transaction(async (tx) => {
+      const [existingRow] = await tx.$queryRawUnsafe(
+        'SELECT rating FROM reviews WHERE groupId = ? AND authorId = ? AND revieweeId = ? FOR UPDATE',
+        groupId, authorId, revieweeId,
+      )
+      const prevDelta = existingRow ? creditDeltaForRating(existingRow.rating) : 0
+      const newDelta  = creditDeltaForRating(rating)
+      const scoreDiff = newDelta - prevDelta
+
+      const saved = await tx.review.upsert({
+        where:  { groupId_authorId_revieweeId: { groupId, authorId, revieweeId } },
+        update: { rating, comment: comment ?? null },
+        create: { groupId, revieweeId, authorId, rating, comment: comment ?? null },
+      })
+      if (scoreDiff !== 0) {
+        await adjustCreditScore(tx, {
+          userId: revieweeId,
+          delta:  scoreDiff,
+          reason: rating === 5 ? '收到 5★ 好評' : `收到 ${rating}★ 差評`,
+          groupId,
+          relatedReviewId: saved.id,
+        })
+      }
+      return { review: saved, isNew: !existingRow }
     })
 
-    if (isNewReview) {
+    if (isNew) {
       const groupLabel = group.planName ?? group.service?.name ?? ''
       notify({
-        userId:  group.hostId,
+        userId:  revieweeId,
         type:    'group_reviewed',
         title:   '收到新的評價',
-        message: `${author?.name ?? '成員'} 對「${groupLabel}」留下了評價。`,
+        message: `${author?.name ?? '對方'} 對「${groupLabel}」留下了評價。`,
         meta:    { groupId },
       })
     }

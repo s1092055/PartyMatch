@@ -69,7 +69,10 @@ router.get('/me/credit-history', requireAuth, async (req, res, next) => {
         where:   { userId: req.user.id },
         orderBy: { createdAt: 'desc' },
         take:    50,
-        include: { relatedGroup: { select: { id: true, planName: true, service: { select: { name: true } } } } },
+        include: {
+          relatedGroup:  { select: { id: true, planName: true, service: { select: { name: true } } } },
+          relatedReview: { select: { rating: true, comment: true } },
+        },
       }),
     ])
     res.json({ creditScore: user?.creditScore ?? null, logs })

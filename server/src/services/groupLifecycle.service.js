@@ -2,7 +2,6 @@ import prisma from '../lib/prisma.js'
 import { computeSeatCost } from '../utils/pricing.js'
 import { notify, notifyBatch, notifyGroupConversation, claimGroupStatus } from '../routes/groups/shared.js'
 import { rejectPendingApplications } from '../utils/membership.js'
-import { adjustCreditScore } from '../utils/creditScore.js'
 import { encryptCredential } from '../lib/credentialEncryption.js'
 import { HOST_PUBLIC_SELECT } from '../lib/groupPrivacy.js'
 
@@ -57,7 +56,6 @@ export async function activateGroup({ groupId, hostId }) {
         data:  { nextBillingDate },
       })
     }
-    await adjustCreditScore(tx, { userId: group.hostId, delta: 5, reason: '團主成功啟用群組', groupId });
     return updatedGroup
   });
 
@@ -166,10 +164,7 @@ export async function confirmService({ groupId, userId }) {
   const now = new Date()
   const groupLabel = group.planName ?? group.service?.name ?? ''
 
-  await prisma.$transaction(async (tx) => {
-    await tx.member.update({ where: { id: member.id }, data: { confirmedAt: now } })
-    await adjustCreditScore(tx, { userId: member.userId, delta: 2, reason: '付款被團主確認', groupId })
-  });
+  await prisma.member.update({ where: { id: member.id }, data: { confirmedAt: now } })
 
   notify({
     userId:  group.hostId,
