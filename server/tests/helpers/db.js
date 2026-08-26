@@ -9,11 +9,16 @@ const TABLES = [
 ];
 
 export async function resetDb() {
-  await prisma.$executeRawUnsafe('SET FOREIGN_KEY_CHECKS = 0')
-  for (const table of TABLES) {
-    await prisma.$executeRawUnsafe(`TRUNCATE TABLE \`${table}\``)
-  }
-  await prisma.$executeRawUnsafe('SET FOREIGN_KEY_CHECKS = 1')
+  await prisma.$transaction(async (tx) => {
+    try {
+      await tx.$executeRawUnsafe('SET FOREIGN_KEY_CHECKS = 0')
+      for (const table of TABLES) {
+        await tx.$executeRawUnsafe(`TRUNCATE TABLE \`${table}\``)
+      }
+    } finally {
+      await tx.$executeRawUnsafe('SET FOREIGN_KEY_CHECKS = 1')
+    }
+  })
 
   const keys = await redis.keys('groups:list:*').catch(() => [])
   keys.push('services:list')

@@ -3,27 +3,40 @@ import { appendMessage } from './conversationMessages.js'
 
 const SYSTEM_USER_EMAIL = 'system@partymatch.internal'
 
-let cachedSystemUserId = null
+let cachedIdPromise = null
+
+async function upsertSystemUser() {
+  try {
+    const user = await prisma.user.upsert({
+      where:  { email: SYSTEM_USER_EMAIL },
+      update: { isSystem: true, isAdmin: false },
+      create: {
+        email:         SYSTEM_USER_EMAIL,
+        name:          'PartyMatch 系統訊息',
+        phone:         '0000000000',
+        avatarInitial: 'P',
+        avatarColor:   'linear-gradient(135deg,#667eea,#764ba2)',
+        isSystem:      true,
+      },
+      select: { id: true },
+    })
+    return user.id
+  } catch (err) {
+    if (err.code !== 'P2002') throw err
+    const existing = await prisma.user.findUniqueOrThrow({ where: { email: SYSTEM_USER_EMAIL }, select: { id: true } })
+    return existing.id
+  }
+}
 
 export async function getSystemUserId() {
-  if (cachedSystemUserId) return cachedSystemUserId
+  if (!cachedIdPromise) {
+    cachedIdPromise = upsertSystemUser().catch(err => { cachedIdPromise = null; throw err })
+  }
+  return cachedIdPromise
+}
 
-  const user = await prisma.user.upsert({
-    where:  { email: SYSTEM_USER_EMAIL },
-    // isSystem 加欄位前就已建立過這筆帳號的環境，第一次呼叫時順便補標記、拿掉誤設的 isAdmin
-    update: { isSystem: true, isAdmin: false },
-    create: {
-      email:         SYSTEM_USER_EMAIL,
-      name:          'PartyMatch 系統訊息',
-      phone:         '0000000000',
-      avatarInitial: 'P',
-      avatarColor:   'linear-gradient(135deg,#667eea,#764ba2)',
-      isSystem:      true,
-    },
-    select: { id: true },
-  })
-  cachedSystemUserId = user.id
-  return cachedSystemUserId
+export function invalidateSystemUserIdCache() {
+  cachedIdPromise = null
 }
 
 export async function getOrCreateSystemConversation(userId) {
@@ -39,7 +52,14 @@ export async function getOrCreateSystemConversation(userId) {
 
 export async function deliverSystemMessage(conversation, content) {
   const senderId = await getSystemUserId()
-  return appendMessage(conversation, { senderId, content })
+  try {
+    return await appendMessage(conversation, { senderId, content })
+  } catch (err) {
+    if (err.code !== 'P2003') throw err
+    invalidateSystemUserIdCache()
+    const freshSenderId = await getSystemUserId()
+    return appendMessage(conversation, { senderId: freshSenderId, content })
+  }
 }
 
 export async function sendSystemMessageToUser(userId, content) {
