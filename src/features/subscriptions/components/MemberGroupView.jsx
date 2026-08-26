@@ -10,8 +10,8 @@ import ConfirmServiceModal from './ConfirmServiceModal'
 import CountdownText from '../../../components/ui/primitives/CountdownText'
 import GroupModalShell from '../../../components/ui/group/GroupModalShell'
 import GroupModalSideBarItem from '../../../components/ui/group/GroupModalSideBarItem'
-import HostReviews from '../../group/components/HostReviews'
-import ReviewHostModal from './ReviewHostModal'
+import UserReviews from '../../group/components/UserReviews'
+import ReviewUserModal from './ReviewUserModal'
 import FillServiceInfoModal from './FillServiceInfoModal'
 import DisputeModal from './DisputeModal'
 import { buildPaymentsPanel } from './memberGroupView/buildPaymentsPanel'
@@ -112,8 +112,14 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
   }
 
   const hostReviews = (
-    <HostReviews
-      group={group}
+    <UserReviews
+      userId={group.hostId}
+      userName={group.hostName}
+      avatarInitial={group.hostAvatarInitial}
+      avatarColor={group.hostAvatarColor}
+      presenceStatus={group.hostPresenceStatus}
+      bio={group.hostBio}
+      roleLabel="團主"
       headerClassName="text-lg font-black text-brand"
       onDm={openDmWithHost}
       scrollable
@@ -514,9 +520,15 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
         />
       )}
       {reviewPrompt && (
-        <ReviewHostModal
-          group={group}
-          onSubmit={({ rating, comment }) => submitReview({ groupId: group.id, hostId: group.hostId, rating, comment })}
+        <ReviewUserModal
+          target={{
+            name: group.hostName,
+            avatarInitial: group.hostAvatarInitial,
+            avatarColor: group.hostAvatarColor,
+            presenceStatus: group.hostPresenceStatus,
+          }}
+          subtitle={`${group.serviceName} · ${group.planName}`}
+          onSubmit={({ rating, comment }) => submitReview({ groupId: group.id, revieweeId: group.hostId, rating, comment })}
           onClose={() => { const { closeOnDone } = reviewPrompt; setReviewPrompt(null); if (closeOnDone) onClose() }}
         />
       )}

@@ -1,21 +1,36 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { MessageCircle, Star } from 'lucide-react'
 import { Avatar } from '../../../components/ui/avatar'
 import { PresenceDot } from '../../../common/layout/components/navShared'
 import StarRating from '../../../components/ui/primitives/StarRating'
+import CreditScoreBadge from '../../../components/ui/CreditScoreBadge'
 import EmptyState from '../../../components/ui/primitives/EmptyState'
 import { CENTERED_PANEL_BODY_CLASS } from '../../../components/ui/group/panelLayout'
 import { useReviewStore } from '../../../common/stores/useReviewStore'
+import { getUserProfile } from '../../../common/api/usersApi'
 import { toISODate } from '../../../common/utils/date'
 
-export default function HostReviews({ group, headerClassName, onDm, groupId, title = '團主評價', scrollable = false, centerEmpty = false, topPadding = true, squareDmButton = false }) {
-  const hostId = group.hostId
-  const data = useReviewStore(s => s.byHostId[hostId])
-  const fetchForHost = useReviewStore(s => s.fetchForHost)
+export default function UserReviews({
+  userId, userName, avatarInitial, avatarColor, presenceStatus, bio, roleLabel,
+  headerClassName, onDm, groupId, title = '評價', scrollable = false, centerEmpty = false, topPadding = true, squareDmButton = false,
+}) {
+  const data = useReviewStore(s => s.byUserId[userId])
+  const fetchForUser = useReviewStore(s => s.fetchForUser)
+  const [creditScore, setCreditScore] = useState(null)
 
   useEffect(() => {
-    if (hostId) fetchForHost(hostId)
-  }, [hostId, fetchForHost])
+    if (userId) fetchForUser(userId)
+  }, [userId, fetchForUser])
+
+  useEffect(() => {
+    let active = true
+    if (userId) {
+      getUserProfile(userId)
+        .then(u => { if (active) setCreditScore(u.creditScore) })
+        .catch(() => { if (active) setCreditScore(null) })
+    }
+    return () => { active = false }
+  }, [userId]);
 
   const reviews = useMemo(() => {
     const all = data?.reviews ?? []
@@ -29,7 +44,7 @@ export default function HostReviews({ group, headerClassName, onDm, groupId, tit
   const emptyOrLoading = data?.loading
     ? <p className="py-4 text-center text-sm text-ink-4">載入中…</p>
     : reviews.length === 0
-      ? <EmptyState icon={Star} title="尚無評價" description="成員完成服務後留下的評價會顯示在這裡。" className="py-4" />
+      ? <EmptyState icon={Star} title="尚無評價" description="評價會顯示在這裡。" className="py-4" />
       : null
 
   const showHeader = !(centerEmpty && emptyOrLoading);
@@ -45,15 +60,17 @@ export default function HostReviews({ group, headerClassName, onDm, groupId, tit
       {showHeader && (
         <div className="flex items-center gap-3 border-b border-line-subtle pb-4">
           <span className="relative inline-block shrink-0">
-            <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="md" />
-            <PresenceDot status={group.hostPresenceStatus} className="absolute -bottom-0.5 -right-0.5 h-3 w-3" />
+            <Avatar initial={avatarInitial} color={avatarColor} size="md" />
+            <PresenceDot status={presenceStatus} className="absolute -bottom-0.5 -right-0.5 h-3 w-3" />
           </span>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <p className="text-sm font-semibold text-ink">{group.hostName}</p>
-              <span className="shrink-0 rounded-full bg-brand-subtle px-2.5 py-0.5 text-xs font-semibold text-brand">
-                團主
-              </span>
+              <p className="text-sm font-semibold text-ink">{userName}</p>
+              {roleLabel && (
+                <span className="shrink-0 rounded-full bg-brand-subtle px-2.5 py-0.5 text-xs font-semibold text-brand">
+                  {roleLabel}
+                </span>
+              )}
             </div>
             <div className="mt-1 flex items-center gap-1.5">
               {average != null ? (
@@ -65,21 +82,22 @@ export default function HostReviews({ group, headerClassName, onDm, groupId, tit
               ) : (
                 <span className="text-xs text-ink-4">尚無評價</span>
               )}
+              {creditScore != null && <CreditScoreBadge score={creditScore} />}
             </div>
           </div>
           {onDm && (
             <button
               onClick={onDm}
               className={`grid h-10 w-10 shrink-0 place-items-center border border-line text-ink-3 transition-colors hover:border-brand hover:text-brand ${squareDmButton ? 'rounded-lg' : 'rounded-full'}`}
-              aria-label="聯絡團主"
+              aria-label={`聯絡${userName}`}
             >
               <MessageCircle size={16} strokeWidth={1.5} />
             </button>
           )}
         </div>
       )}
-      {showHeader && group.hostBio && (
-        <p className="whitespace-pre-wrap border-b border-line-subtle pb-4 text-sm leading-relaxed text-ink-3">{group.hostBio}</p>
+      {showHeader && bio && (
+        <p className="whitespace-pre-wrap border-b border-line-subtle pb-4 text-sm leading-relaxed text-ink-3">{bio}</p>
       )}
       {emptyOrLoading ? (
         centerEmpty ? <div className="flex flex-1 items-center justify-center">{emptyOrLoading}</div> : emptyOrLoading
@@ -90,7 +108,7 @@ export default function HostReviews({ group, headerClassName, onDm, groupId, tit
               <Avatar initial={review.author?.avatarInitial} color={review.author?.avatarColor} size="sm" />
               <div className="min-w-0 flex-1">
                 <div className="mb-1 flex items-center justify-between">
-                  <span className="text-sm font-semibold text-ink">{review.author?.name ?? '匿名成員'}</span>
+                  <span className="text-sm font-semibold text-ink">{review.author?.name ?? '匿名使用者'}</span>
                   <span className="text-xs text-ink-4">{toISODate(review.createdAt)}</span>
                 </div>
                 <div className="mb-1">

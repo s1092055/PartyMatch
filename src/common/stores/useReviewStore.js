@@ -1,24 +1,24 @@
 import { create } from 'zustand'
-import { fetchHostReviews, createReview } from '../api/reviewsApi'
+import { fetchUserReviews, createReview } from '../api/reviewsApi'
 
 export const useReviewStore = create((set, get) => ({
-  byHostId: {},
+  byUserId: {},
 
-  fetchForHost: async (hostId) => {
-    if (!hostId || get().byHostId[hostId]?.loading) return
-    set(s => ({ byHostId: { ...s.byHostId, [hostId]: { ...(s.byHostId[hostId] ?? {}), loading: true } } }))
+  fetchForUser: async (userId) => {
+    if (!userId || get().byUserId[userId]?.loading) return
+    set(s => ({ byUserId: { ...s.byUserId, [userId]: { ...(s.byUserId[userId] ?? {}), loading: true } } }))
     try {
-      const data = await fetchHostReviews(hostId)
-      set(s => ({ byHostId: { ...s.byHostId, [hostId]: { ...data, loading: false } } }))
+      const data = await fetchUserReviews(userId)
+      set(s => ({ byUserId: { ...s.byUserId, [userId]: { ...data, loading: false } } }))
     } catch (err) {
-      set(s => ({ byHostId: { ...s.byHostId, [hostId]: { average: null, count: 0, reviews: [], loading: false, error: err.message } } }))
+      set(s => ({ byUserId: { ...s.byUserId, [userId]: { average: null, count: 0, reviews: [], loading: false, error: err.message } } }))
     }
   },
 
-  getForHost: (hostId) => get().byHostId[hostId] ?? null,
+  getForUser: (userId) => get().byUserId[userId] ?? null,
 
-  submit: async ({ groupId, hostId, rating, comment }) => {
-    await createReview({ groupId, rating, comment })
-    await get().fetchForHost(hostId)
+  submit: async ({ groupId, revieweeId, rating, comment }) => {
+    await createReview({ groupId, revieweeId, rating, comment })
+    await get().fetchForUser(revieweeId)
   },
 }));

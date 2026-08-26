@@ -1,24 +1,22 @@
 import { Star } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogCloseButton } from '../../../components/ui/dialog'
-import HostReviews from '../../group/components/HostReviews'
+import UserReviews from '../../group/components/UserReviews'
 
-export function HostReviewsModalBody({ host }) {
+export function UserReviewsModalBody({ user }) {
   return (
     <div className="px-5">
-      <HostReviews
-        group={{
-          hostId:            host.id,
-          hostName:          host.displayName,
-          hostAvatarInitial: host.avatarInitial,
-          hostAvatarColor:   host.avatarColor,
-        }}
+      <UserReviews
+        userId={user.id}
+        userName={user.displayName}
+        avatarInitial={user.avatarInitial}
+        avatarColor={user.avatarColor}
         title=""
       />
     </div>
   )
 }
 
-export default function HostReviewsModal({ isOpen, onClose, host }) {
+export default function UserReviewsModal({ isOpen, onClose, user }) {
   return (
     <Dialog open={isOpen} onOpenChange={v => { if (!v) onClose() }}>
       <DialogContent maxWidth="max-w-md" height="min(80dvh, 640px)">
@@ -31,7 +29,7 @@ export default function HostReviewsModal({ isOpen, onClose, host }) {
         </DialogHeader>
         <DialogDescription>我的評價</DialogDescription>
         <DialogBody>
-          {isOpen && <HostReviewsModalBody host={host} />}
+          {isOpen && <UserReviewsModalBody user={user} />}
         </DialogBody>
       </DialogContent>
     </Dialog>

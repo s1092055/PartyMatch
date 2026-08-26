@@ -11,7 +11,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '.
 import { ProfileModalBody } from '../../../components/ui/ProfileModal'
 import { CreditScoreModalBody } from '../../../components/ui/CreditScoreModal'
 import { SettingsModalBody } from '../../../components/ui/SettingsModal'
-import { HostReviewsModalBody } from '../../../features/manage-groups/components/HostReviewsModal'
+import { UserReviewsModalBody } from '../../../features/manage-groups/components/UserReviewsModal'
 import { useAuthStore } from '../../stores/useAuthStore'
 import { toast } from '../../utils/toast'
 import { PresenceDot, LockBadge } from './navShared'
@@ -345,7 +345,7 @@ export default function TabletSidebarDrawer(
                     <CreditScoreModalBody onClose={closeUserMenu} hideFooter />
                   )}
                   {activeDetailPanel === 'reviews' && (
-                    <HostReviewsModalBody host={host} />
+                    <UserReviewsModalBody user={host} />
                   )}
                   {activeDetailPanel === 'settings' && (
                     <div className="space-y-6 px-6 py-5">

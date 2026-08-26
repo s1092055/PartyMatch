@@ -7,7 +7,7 @@ import { Textarea } from '../../../components/ui/input'
 import StarRating from '../../../components/ui/primitives/StarRating'
 import { toast } from '../../../common/utils/toast'
 
-export default function ReviewHostModal({ group, onSubmit, onClose }) {
+export default function ReviewUserModal({ target, subtitle, onSubmit, onClose }) {
   const [rating, setRating] = useState(0)
   const [comment, setComment] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -30,20 +30,20 @@ export default function ReviewHostModal({ group, onSubmit, onClose }) {
     <Dialog open onOpenChange={v => { if (!v) onClose() }}>
       <DialogContent variant="panel" maxWidth="max-w-sm">
         <DialogHeader>
-          <DialogTitle className="truncate text-base">給團主一個評價</DialogTitle>
+          <DialogTitle className="truncate text-base">給{target.name}一個評價</DialogTitle>
           <DialogCloseButton />
         </DialogHeader>
-        <DialogDescription>給團主一個評價</DialogDescription>
+        <DialogDescription>給{target.name}一個評價</DialogDescription>
         <DialogBody>
       <div className="space-y-4 p-5">
         <div className="flex items-center gap-3">
           <span className="relative inline-block shrink-0">
-            <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="md" />
-            <PresenceDot status={group.hostPresenceStatus} className="absolute -bottom-0.5 -right-0.5 h-3 w-3" />
+            <Avatar initial={target.avatarInitial} color={target.avatarColor} size="md" />
+            <PresenceDot status={target.presenceStatus} className="absolute -bottom-0.5 -right-0.5 h-3 w-3" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink">{group.hostName}</p>
-            <p className="text-xs text-ink-3">{group.serviceName} · {group.planName}</p>
+            <p className="text-sm font-semibold text-ink">{target.name}</p>
+            {subtitle && <p className="text-xs text-ink-3">{subtitle}</p>}
           </div>
         </div>
 

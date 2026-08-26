@@ -9,7 +9,7 @@ import TopupModal from '../../components/ui/TopupModal'
 import SettingsModal from '../../components/ui/SettingsModal'
 import ProfileModal from '../../components/ui/ProfileModal'
 import CreditScoreModal from '../../components/ui/CreditScoreModal'
-import HostReviewsModal from '../../features/manage-groups/components/HostReviewsModal'
+import UserReviewsModal from '../../features/manage-groups/components/UserReviewsModal'
 import { LOCKED_MESSAGE } from './components/navConstants'
 import DesktopSidebar from './components/DesktopSidebar'
 import TabletSidebarDrawer from './components/TabletSidebarDrawer'
@@ -151,10 +151,10 @@ export default function AppNav() {
       <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <ProfileModal isOpen={profileOpen} onClose={() => setProfileOpen(false)} />
       <CreditScoreModal isOpen={creditScoreOpen} onClose={() => setCreditScoreOpen(false)} />
-      <HostReviewsModal
+      <UserReviewsModal
         isOpen={reviewsOpen}
         onClose={() => setReviewsOpen(false)}
-        host={{ id: currentUser?.id, displayName: userName, avatarInitial, avatarColor }}
+        user={{ id: currentUser?.id, displayName: userName, avatarInitial, avatarColor }}
       />
     </>
   )

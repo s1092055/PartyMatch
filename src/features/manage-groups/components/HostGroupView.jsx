@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Banknote, CheckCircle2, ClipboardList, Clock, Info, KeyRound, LockKeyhole, MessageCircle, PlayCircle, Trash2, Users } from 'lucide-react'
+import { Banknote, ChevronLeft, CheckCircle2, ClipboardList, Clock, Info, KeyRound, LockKeyhole, MessageCircle, PlayCircle, Trash2, Users } from 'lucide-react'
+import { Avatar } from '../../../components/ui/avatar'
+import { PresenceDot } from '../../../common/layout/components/navShared'
 import { Button } from '../../../components/ui/button'
 import ConfirmActionDialog from '../../../components/ui/ConfirmActionDialog'
 import CountdownText from '../../../components/ui/primitives/CountdownText'
 import GroupModalShell from '../../../components/ui/group/GroupModalShell'
 import GroupModalSideBarItem from '../../../components/ui/group/GroupModalSideBarItem'
-import HostReviews from '../../group/components/HostReviews'
+import UserReviews from '../../group/components/UserReviews'
+import ReviewUserModal from '../../subscriptions/components/ReviewUserModal'
 import { getServiceById } from '../../../common/utils/serviceUtils'
 import { isSharedCredentialsMethod } from '../../../common/utils/serviceInfoFields'
 import { canReportServiceIssue } from '../../../common/utils/groupStatus'
@@ -13,6 +16,7 @@ import { useAuthStore } from '../../../common/stores/useAuthStore'
 import { useApplicationStore } from '../../../common/stores/useApplicationStore'
 import { useMemberStore } from '../../../common/stores/useMemberStore'
 import { useNotificationStore } from '../../../common/stores/useNotificationStore'
+import { useReviewStore } from '../../../common/stores/useReviewStore'
 import { fetchGroupTransactions } from '../../../common/api/groupsApi'
 import { uploadServiceIssueEvidence } from '../../../common/api/storageApi'
 import { useEvidenceUpload } from '../../../common/utils/hooks'
@@ -34,6 +38,8 @@ export default function HostGroupView(
   const [activePanel, setActivePanel]                     = useState(null);
   const [showReviewHistory, setShowReviewHistory]         = useState(false)
   const [showMemberReviews, setShowMemberReviews]         = useState(false)
+  const [reviewingMember, setReviewingMember]              = useState(null)
+  const [reviewTargetMember, setReviewTargetMember]        = useState(null)
   const [showLockGroupConfirm, setShowLockGroupConfirm] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm]         = useState(false)
   const [transactions, setTransactions]                     = useState([])
@@ -109,6 +115,7 @@ export default function HostGroupView(
   const groupFull     = group.openSeats <= 0
 
   const currentUserId = useAuthStore(s => s.user?.id);
+  const submitReview  = useReviewStore(s => s.submit)
   const notifications = useNotificationStore(s => s.notifications)
   const unseenMemberInfoCount = useMemo(
     () => notifications.filter(
@@ -287,7 +294,15 @@ export default function HostGroupView(
   }
 
   function buildSubPanel() {
-    if (activePanel === 'members') return buildMembersPanel({ group, members, setActivePanel, onClose, setRemovingMember, setShowMemberReviews: () => setShowMemberReviews(true), showMemberReviewsButton: hasBeenActive })
+    if (activePanel === 'members') {
+      return buildMembersPanel({
+        group, members, setActivePanel, onClose, setRemovingMember,
+        setShowMemberReviews: () => { setReviewingMember(null); setShowMemberReviews(true) },
+        showMemberReviewsButton: hasBeenActive,
+        onReviewMember: m => setReviewTargetMember(m),
+        showReviewButton: hasBeenActive,
+      })
+    }
     if (activePanel === 'applications') return buildApplicationsPanel({ pendingApps, groupFull, errors, onApprove, onReject, setActivePanel, setShowReviewHistory: openReviewHistory })
     if (activePanel === 'billing') return buildBillingPanel({ members, transactions, transactionsLoading, showRenewal, onOpenRenewal, escrowTokens: group.escrowTokens })
     if (activePanel === 'memberInfo') {
@@ -316,6 +331,50 @@ export default function HostGroupView(
     setActivePanel(panel)
     setShowReviewHistory(false)
     setShowMemberReviews(false)
+    setReviewingMember(null)
+  }
+
+  function buildMemberReviewsContent() {
+    if (reviewingMember) {
+      return (
+        <div className="flex min-h-full flex-col">
+          <button
+            onClick={() => setReviewingMember(null)}
+            className="flex shrink-0 items-center gap-1.5 px-5 pt-5 text-xs font-medium text-ink-4 transition-colors hover:text-ink"
+          >
+            <ChevronLeft size={14} strokeWidth={1.5} /> 返回成員列表
+          </button>
+          <UserReviews
+            userId={reviewingMember.userId}
+            userName={reviewingMember.userName}
+            avatarInitial={reviewingMember.userAvatarInitial}
+            avatarColor={reviewingMember.userAvatarColor}
+            presenceStatus={reviewingMember.userPresenceStatus}
+            roleLabel="成員"
+            groupId={group.id}
+            title=""
+            centerEmpty
+          />
+        </div>
+      )
+    }
+    return (
+      <div className="space-y-2 p-5">
+        {members.map(m => (
+          <button
+            key={m.id}
+            onClick={() => setReviewingMember(m)}
+            className="flex w-full items-center gap-3 rounded-lg border border-line p-3 text-left transition-colors hover:border-brand"
+          >
+            <span className="relative inline-block shrink-0">
+              <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
+              <PresenceDot status={m.userPresenceStatus} className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5" />
+            </span>
+            <p className="min-w-0 flex-1 truncate text-sm font-semibold text-ink">{m.userName}</p>
+          </button>
+        ))}
+      </div>
+    )
   }
 
   function renderSideBar() {
@@ -409,13 +468,13 @@ export default function HostGroupView(
         }
         pendingBadgeColor={group.status === 'disputed' ? 'danger' : undefined}
         subPanel={activePanel ? buildSubPanel() : null}
-        onSubPanelBack={() => { setActivePanel(null); setShowReviewHistory(false); setShowMemberReviews(false) }}
+        onSubPanelBack={() => { setActivePanel(null); setShowReviewHistory(false); setShowMemberReviews(false); setReviewingMember(null) }}
         subSubPanel={
           isReviewHistory ? buildReviewHistoryPanel({ applications, groupFull, errors }) :
-          isMemberReviews ? { floatingBack: true, content: <div className="flex min-h-full flex-col"><HostReviews group={group} groupId={group.id} title="" centerEmpty /></div> } :
+          isMemberReviews ? { floatingBack: true, content: buildMemberReviewsContent() } :
           null
         }
-        onSubSubPanelBack={() => { setShowReviewHistory(false); setShowMemberReviews(false) }}
+        onSubSubPanelBack={() => { setShowReviewHistory(false); setShowMemberReviews(false); setReviewingMember(null) }}
         panelKey={isReviewHistory ? 'reviewHistory' : isMemberReviews ? 'memberReviews' : activePanel ?? 'overview'}
         sideBar={renderSideBar()}
       />
@@ -466,6 +525,19 @@ export default function HostGroupView(
           serviceIssueEvidence.reset()
         }}
       />
+      {reviewTargetMember && (
+        <ReviewUserModal
+          target={{
+            name: reviewTargetMember.userName,
+            avatarInitial: reviewTargetMember.userAvatarInitial,
+            avatarColor: reviewTargetMember.userAvatarColor,
+            presenceStatus: reviewTargetMember.userPresenceStatus,
+          }}
+          subtitle={`${group.serviceName} · ${group.planName}`}
+          onSubmit={({ rating, comment }) => submitReview({ groupId: group.id, revieweeId: reviewTargetMember.userId, rating, comment })}
+          onClose={() => setReviewTargetMember(null)}
+        />
+      )}
       <AdjustBillingDateModal
         open={showAdjustBillingDate}
         currentDate={group.nextBillingDate}

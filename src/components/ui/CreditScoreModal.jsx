@@ -5,11 +5,12 @@ import { Button } from './button'
 import { useAuthStore } from '../../common/stores/useAuthStore'
 import { fetchCreditHistory } from '../../common/api/usersApi'
 import CreditScoreBadge from './CreditScoreBadge'
+import StarRating from './primitives/StarRating'
 import EmptyState from './primitives/EmptyState'
 
 const RULES = [
-  { label: '付款被團主確認', delta: '+2' },
-  { label: '團主成功啟用群組', delta: '+5' },
+  { label: '收到 5★ 好評', delta: '+5' },
+  { label: '收到 1-2★ 差評', delta: '-5' },
   { label: '被移除出群組', delta: '-10' },
 ]
 
@@ -59,6 +60,14 @@ export function CreditScoreModalBody({ onClose, hideFooter = false }) {
                         {new Date(log.createdAt).toLocaleString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
                         {log.relatedGroup && `．${log.relatedGroup.planName ?? log.relatedGroup.service?.name ?? ''}`}
                       </p>
+                      {log.relatedReview && (
+                        <div className="mt-1 flex items-center gap-1.5">
+                          <StarRating value={log.relatedReview.rating} readOnly size={10} />
+                          {log.relatedReview.comment && (
+                            <span className="truncate text-xs text-ink-4">「{log.relatedReview.comment}」</span>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <span className={`shrink-0 font-bold ${log.delta > 0 ? 'text-success-text' : 'text-danger-text'}`}>
                       {log.delta > 0 ? `+${log.delta}` : log.delta}

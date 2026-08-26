@@ -19,7 +19,7 @@ import GroupModalShell from '../../components/ui/group/GroupModalShell'
 import GroupPriceSeatSummary from '../../components/ui/group/GroupPriceSeatSummary'
 import MemberGroupView from '../subscriptions/components/MemberGroupView'
 import ExploreGroupCard from '../explore/components/ExploreGroupCard'
-import HostReviews from './components/HostReviews'
+import UserReviews from './components/UserReviews'
 import ApplyModal from './components/ApplyModal'
 import { buildMembersSubPanel } from './components/buildMembersSubPanel'
 import { buildMobileFooter } from './components/buildMobileFooter'
@@ -280,8 +280,14 @@ export default function GroupDetailModal() {
   }
 
   const reviews = (
-    <HostReviews
-      group={group}
+    <UserReviews
+      userId={group.hostId}
+      userName={group.hostName}
+      avatarInitial={group.hostAvatarInitial}
+      avatarColor={group.hostAvatarColor}
+      presenceStatus={group.hostPresenceStatus}
+      bio={group.hostBio}
+      roleLabel="團主"
       headerClassName="text-lg font-black text-brand"
       onDm={activeUserId && !isHost ? openDm : undefined}
       scrollable

@@ -3,7 +3,7 @@ import { Avatar } from '../../../../components/ui/avatar'
 import { PresenceDot } from '../../../../common/layout/components/navShared'
 import { Button } from '../../../../components/ui/button'
 
-export function buildMembersPanel({ group, members, setActivePanel, onClose, setRemovingMember, setShowMemberReviews, showMemberReviewsButton }) {
+export function buildMembersPanel({ group, members, setActivePanel, onClose, setRemovingMember, setShowMemberReviews, showMemberReviewsButton, onReviewMember, showReviewButton }) {
   return {
     content: (
       <div className="relative min-h-full p-5 pb-16">
@@ -56,6 +56,17 @@ export function buildMembersPanel({ group, members, setActivePanel, onClose, set
                     >
                       <MessageCircle strokeWidth={1.5} size={20} />
                     </Button>
+                    {showReviewButton && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`評價${m.userName}`}
+                        onClick={() => onReviewMember?.(m)}
+                        className="text-ink-3 hover:text-warning"
+                      >
+                        <Star strokeWidth={1.5} size={20} />
+                      </Button>
+                    )}
                     {removable && (
                       <Button
                         variant="ghost"
