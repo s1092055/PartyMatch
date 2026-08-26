@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { ChevronRight } from 'lucide-react'
 import { Button } from '../../../components/ui/button'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
-import { HOME_WHY_US_TABS, HOME_WHY_US_EXTRAS } from '../data/homeContent'
+import { HOME_WHY_US_HIGHLIGHTS } from '../data/homeContent'
 
 function WhyUsTabs({ items, activeId, onChange }) {
   const containerRef = useRef(null)
@@ -41,8 +41,8 @@ function WhyUsTabs({ items, activeId, onChange }) {
 export default function WhyUs() {
   const navigate = useNavigate()
   const loggedIn = useAuthStore(s => s.loggedIn)
-  const [activeId, setActiveId] = useState(HOME_WHY_US_TABS[0].id)
-  const active = HOME_WHY_US_TABS.find(t => t.id === activeId)
+  const [activeId, setActiveId] = useState(HOME_WHY_US_HIGHLIGHTS[0].id)
+  const active = HOME_WHY_US_HIGHLIGHTS.find(t => t.id === activeId)
 
   return (
     <section className="text-center">
@@ -52,7 +52,7 @@ export default function WhyUs() {
       </p>
 
       <div className="mt-8">
-        <WhyUsTabs items={HOME_WHY_US_TABS} activeId={activeId} onChange={setActiveId} />
+        <WhyUsTabs items={HOME_WHY_US_HIGHLIGHTS} activeId={activeId} onChange={setActiveId} />
 
         <div key={activeId} className="animate-fade-in-up pt-10">
           <div className="mx-auto flex h-56 w-56 items-center justify-center sm:h-64 sm:w-64">
@@ -68,18 +68,6 @@ export default function WhyUs() {
           <p className="mx-auto mt-6 max-w-md text-center font-extrabold text-ink">{active.title}</p>
           <p className="mx-auto mt-2 max-w-md text-left text-sm leading-relaxed text-ink-3">{active.desc}</p>
         </div>
-      </div>
-
-      <div className="mt-10 grid grid-cols-3 divide-x divide-line">
-        {HOME_WHY_US_EXTRAS.map(({ icon: Icon, title, desc }) => (
-          <div key={title} className="flex flex-col items-center gap-2 px-2 sm:px-4">
-            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand-subtle text-brand">
-              <Icon size={18} strokeWidth={1.5} />
-            </div>
-            <p className="w-full text-center text-sm font-extrabold text-ink sm:text-base">{title}</p>
-            <p className="w-full text-center text-xs text-ink-3 sm:text-sm">{desc}</p>
-          </div>
-        ))}
       </div>
 
       {!loggedIn && (

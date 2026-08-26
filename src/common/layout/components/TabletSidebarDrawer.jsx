@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, LogIn, LogOut, Moon, Settings, ShieldCheck, Star, Sun, User } from 'lucide-react'
-import { useTheme } from '../../../components/theme-provider'
+import { ChevronLeft, ChevronRight, LogIn, LogOut, Settings, ShieldCheck, Star, User } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
 import { NAV_SECTIONS } from '../nav'
 import { Avatar } from '../../../components/ui/avatar'
@@ -42,7 +41,6 @@ export default function TabletSidebarDrawer(
   }
 ) {
   const navigate = useNavigate()
-  const { theme, toggleTheme } = useTheme()
   const [open, setOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [userPanel, setUserPanel] = useState('menu')
@@ -174,18 +172,6 @@ export default function TabletSidebarDrawer(
             </div>
           </nav>
           <div className="px-2 pb-4">
-            <button
-              type="button"
-              onClick={() => { setOpen(false); toggleTheme() }}
-              aria-label={theme === 'dark' ? '切換成淺色模式' : '切換成深色模式'}
-              className="mb-1 flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
-            >
-              <span className="grid h-9 w-9 shrink-0 place-items-center">
-                {theme === 'dark' ? <Sun size={22} strokeWidth={1.5} /> : <Moon size={22} strokeWidth={1.5} />}
-              </span>
-              <span className="whitespace-nowrap text-base font-bold">{theme === 'dark' ? '淺色模式' : '深色模式'}</span>
-            </button>
-
             {loggedIn ? (
               <button
                 type="button"

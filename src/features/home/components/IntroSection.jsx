@@ -10,7 +10,7 @@ export default function IntroSection() {
         <span className="rotate-12">？</span>
       </div>
       <h2 className="mt-2 text-3xl font-extrabold text-ink">PartyMatch 是什麼？</h2>
-      <p className="mx-auto mt-3 max-w-lg text-left text-base leading-relaxed text-ink-3">
+      <p className="mx-auto mt-3 max-w-lg text-left text-base leading-relaxed text-ink-3 lg:max-w-4xl">
         PartyMatch 是訂閱共享媒合平台，協助你找到願意一起分攤 Netflix、Spotify、ChatGPT 等熱門訂閱服務的夥伴。從尋找或建立群組、送出申請，到金流代管與成員溝通，都能在同一個平台完成，讓多人合購訂閱更簡單、也更安心。
       </p>
 

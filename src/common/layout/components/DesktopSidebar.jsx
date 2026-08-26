@@ -147,6 +147,18 @@ export default function DesktopSidebar({
     )
   }
 
+  function renderThemeButton() {
+    return (
+      <button
+        onClick={toggleTheme}
+        className="relative grid h-14 w-14 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-floating transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-12 lg:w-12 dark:border-[#238EC7] dark:text-[#238EC7]"
+        aria-label={theme === 'dark' ? '切換成淺色模式' : '切換成深色模式'}
+      >
+        {theme === 'dark' ? <Sun className="size-6 lg:size-5" strokeWidth={1.5} /> : <Moon className="size-6 lg:size-5" strokeWidth={1.5} />}
+      </button>
+    )
+  }
+
   function renderMessageButton() {
     if (loggedIn) {
       return (
@@ -213,6 +225,7 @@ export default function DesktopSidebar({
             {renderNotifyButton()}
             {renderTopupButton()}
             {renderMessageButton()}
+            {renderThemeButton()}
           </>
         )}
       </div>

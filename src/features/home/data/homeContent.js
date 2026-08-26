@@ -1,10 +1,6 @@
 import {
-  MessageCircleQuestion,
   MessageCircle,
-  LayoutGrid,
-  Heart,
 } from 'lucide-react'
-import securityPhoto from '../../../assets/Security.png'
 import creditPhoto from '../../../assets/Credit.png'
 import pmCoinPhoto from '../../../assets/PMCoin.svg'
 import studentsPhoto from '../../../assets/Students.png'
@@ -86,52 +82,27 @@ export const HOME_MEMBER_JOURNEY = [
   },
 ];
 
-export const HOME_WHY_US_TABS = [
-  {
-    id: 'security',
-    tab: '安全可靠',
-    image: securityPhoto,
-    title: '安全可靠',
-    desc: '合購款項由平台代管，服務啟用後另設有 48 小時確認期，交易過程全程留有紀錄可查，保障雙方權益。',
-  },
+export const HOME_WHY_US_HIGHLIGHTS = [
   {
     id: 'credit',
-    tab: '信用機制',
+    tab: '真實信用機制',
     image: creditPhoto,
     title: '真實信用機制',
-    desc: '每次合作結束後，雙方將互相評價並累積為個人信用紀錄；申請加入前即可參考對方過往表現，降低合作風險。',
+    desc: '每次合作結束後，團主與成員將互相評價：五星好評加分、一至二星差評扣分，累積成個人信用紀錄；申請加入前即可參考對方過往表現，團主也能設定最低信用分數門檻，過濾不良合作對象，降低雙方合作風險。',
   },
   {
     id: 'pm-coin',
-    tab: 'PM 幣支付',
+    tab: '專屬PM幣支付',
     image: pmCoinPhoto,
-    title: 'PM 幣支付',
-    desc: '站內交易統一以 PM 幣完成，儲值、扣款與退款皆留有完整紀錄；如遇爭議，亦有明確依據可供查核與處理。',
+    title: '專屬PM幣支付',
+    desc: '站內交易統一以 PM 幣完成：申請加入時費用即由平台代管，服務啟用後仍有確認期，確認無誤才會撥款給團主；取消申請或審核未通過則全額退款，儲值、扣款與退款皆留有完整紀錄，如遇爭議也有明確依據可供查核與處理。',
   },
   {
-    id: 'issue-report',
-    tab: '問題回報',
-    icon: MessageCircleQuestion,
-    title: '問題回報機制',
-    desc: '服務使用期間如有疑慮，可直接向平台提出回報；代管款項將於處理期間全數凍結，並於 48 小時內完成處理。',
-  },
-];
-
-export const HOME_WHY_US_EXTRAS = [
-  {
+    id: 'messaging',
+    tab: '站內即時通訊',
     icon: MessageCircle,
-    title: '站內即時溝通',
-    desc: '免交換聯絡方式，直接傳訊。',
-  },
-  {
-    icon: LayoutGrid,
-    title: '多元服務類型',
-    desc: '28 種訂閱服務一站找齊。',
-  },
-  {
-    icon: Heart,
-    title: '收藏與追蹤',
-    desc: '先收藏，回頭再慢慢比較。',
+    title: '站內即時通訊',
+    desc: '免交換聯絡方式即可直接傳訊：申請加入前可先私訊團主提問，合購成立後系統自動建立群組聊天室，方案協調、帳號資訊、問題回報都能在同一個地方溝通，通知中心也會即時提醒最新進度，所有紀錄完整留在站內不遺失。',
   },
 ];
 
