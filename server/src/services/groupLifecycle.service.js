@@ -79,15 +79,13 @@ export async function activateGroup({ groupId, hostId }) {
     message: `「${groupLabelForActivation}」群組服務已啟用，成員有 48 小時確認期。`,
     meta:    { groupId },
   })
-  group.members.forEach(m => {
-    notify({
-      userId:  m.userId,
-      type:    'group_activated',
-      title:   '服務已啟用，請確認',
-      message: `「${groupLabelForActivation}」服務已啟用！請在 48 小時內確認服務是否正常，否則將自動完成。`,
-      meta:    { groupId },
-    })
-  })
+  notifyBatch(group.members.map(m => ({
+    userId:  m.userId,
+    type:    'group_activated',
+    title:   '服務已啟用，請確認',
+    message: `「${groupLabelForActivation}」服務已啟用！請在 48 小時內確認服務是否正常，否則將自動完成。`,
+    meta:    { groupId },
+  })))
 
   return updated
 }
@@ -133,15 +131,13 @@ export async function adjustBillingDate({ groupId, hostId, nextBillingDate: requ
   const groupLabel = group.planName ?? group.service?.name ?? '';
   const oldDateText = current.toISOString().slice(0, 10).replace(/-/g, '/')
   const newDateText = requested.toISOString().slice(0, 10).replace(/-/g, '/')
-  group.members.forEach(m => {
-    notify({
-      userId:  m.userId,
-      type:    'billing_date_adjusted',
-      title:   '下次扣款日已調整',
-      message: `「${groupLabel}」的下次扣款日由 ${oldDateText} 調整為 ${newDateText}，原因：${note}`,
-      meta:    { groupId, oldDate: current.toISOString(), nextBillingDate: requested.toISOString(), note },
-    })
-  })
+  notifyBatch(group.members.map(m => ({
+    userId:  m.userId,
+    type:    'billing_date_adjusted',
+    title:   '下次扣款日已調整',
+    message: `「${groupLabel}」的下次扣款日由 ${oldDateText} 調整為 ${newDateText}，原因：${note}`,
+    meta:    { groupId, oldDate: current.toISOString(), nextBillingDate: requested.toISOString(), note },
+  })))
 
   return updated
 }
@@ -404,15 +400,13 @@ export async function cancelGroup({ groupId, hostId }) {
     return currentMembers
   })
 
-  currentMembers.forEach(m => {
-    notify({
-      userId:  m.userId,
-      type:    'group_cancelled',
-      title:   '群組已解散',
-      message: `「${groupLabelForCancel}」群組已被團主解散，代管費用已退還至你的PM幣餘額。`,
-      meta:    { groupId },
-    })
-  })
+  notifyBatch(currentMembers.map(m => ({
+    userId:  m.userId,
+    type:    'group_cancelled',
+    title:   '群組已解散',
+    message: `「${groupLabelForCancel}」群組已被團主解散，代管費用已退還至你的PM幣餘額。`,
+    meta:    { groupId },
+  })))
 
   return { status: 'cancelled' }
 }
@@ -476,15 +470,15 @@ export async function lockGroup({ groupId, hostId, sharedCredentials: sharedCred
     message: `「${groupLabel}」群組已鎖定，聊天室已建立，點擊查看。`,
     meta:    { groupId },
   })
-  group.members.forEach(m => {
-    notify({
+  notifyBatch(group.members.flatMap(m => [
+    {
       userId:  m.userId,
       type:    'group_chat_opened',
       title:   '群組聊天室已啟用',
       message: `「${groupLabel}」群組已鎖定，聊天室已建立，點擊查看。`,
       meta:    { groupId },
-    })
-    notify({
+    },
+    {
       userId:  m.userId,
       type:    'fill_service_info',
       title:   isSharedCredentials ? '請提取帳號資訊' : '請填寫服務帳號資訊',
@@ -492,8 +486,8 @@ export async function lockGroup({ groupId, hostId, sharedCredentials: sharedCred
         ? `「${groupLabel}」群組已鎖定，請進入提取帳號資訊並完成付款。`
         : `「${groupLabel}」群組已鎖定，請進入填寫服務帳號並完成付款。`,
       meta:    { groupId },
-    })
-  })
+    },
+  ]))
 
   return updated
 }

@@ -1,6 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Check, ChevronDown } from 'lucide-react'
 import { cn } from '../../../lib/utils'
+import { useClickOutside } from '../../../common/utils/hooks'
 
 export default function FilterSelect({ id, group, value, onChange, groups, triggerContent, className = '', listClassName = '', ariaLabel }) {
   const open = group.openKey === id
@@ -46,15 +47,7 @@ export default function FilterSelect({ id, group, value, onChange, groups, trigg
     group.setOpenKey(id)
   }
 
-  useEffect(() => {
-    if (!open) return
-    function onDocMouseDown(e) {
-      if (rootRef.current && !rootRef.current.contains(e.target)) close()
-    }
-    document.addEventListener('mousedown', onDocMouseDown)
-    return () => document.removeEventListener('mousedown', onDocMouseDown)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open])
+  useClickOutside(open, [rootRef], close)
 
   useEffect(() => {
     if (open && activeIndex >= 0) {

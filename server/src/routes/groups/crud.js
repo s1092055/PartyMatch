@@ -156,15 +156,13 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
 
         if (removed.length > 0) {
           const groupLabel = group.planName ?? group.service?.name ?? ''
-          removed.forEach(m => {
-            notify({
-              userId:  m.userId,
-              type:    'member_removed',
-              title:   '已被移出群組',
-              message: `「${groupLabel}」群組因你逾期未完成帳號資訊填寫，已被自動移出，代管費用已退還至你的PM幣餘額，可以重新申請或選擇其他群組。`,
-              meta:    { groupId: group.id },
-            })
-          })
+          notifyBatch(removed.map(m => ({
+            userId:  m.userId,
+            type:    'member_removed',
+            title:   '已被移出群組',
+            message: `「${groupLabel}」群組因你逾期未完成帳號資訊填寫，已被自動移出，代管費用已退還至你的PM幣餘額，可以重新申請或選擇其他群組。`,
+            meta:    { groupId: group.id },
+          })))
           notify({
             userId:  group.hostId,
             type:    'service_info_deadline_passed',

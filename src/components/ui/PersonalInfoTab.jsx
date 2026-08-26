@@ -4,8 +4,7 @@ import { Button } from './button'
 import { Input, Textarea } from './input'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './select'
 import { COUNTRY_CODES, parsePhone, toE164, formatPhoneDisplay } from '../../common/utils/phone'
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+import { isValidEmail } from '../../common/utils/validation'
 
 function EditableField({ label, value, onSave, type = 'text', placeholder }) {
   const [editing, setEditing] = useState(false)
@@ -14,7 +13,7 @@ function EditableField({ label, value, onSave, type = 'text', placeholder }) {
   const [error, setError] = useState('')
 
   function validate(v) {
-    if (type === 'email' && v && !EMAIL_PATTERN.test(v)) return '請輸入正確的電子信箱格式'
+    if (type === 'email' && v && !isValidEmail(v)) return '請輸入正確的電子信箱格式'
     return ''
   }
 

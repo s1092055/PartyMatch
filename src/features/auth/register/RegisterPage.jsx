@@ -6,8 +6,8 @@ import VerifyCodeModal, { VerifyTrailingButton } from '../components/VerifyCodeM
 import { Button } from '../../../components/ui/button'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
 import { DEFAULT_COUNTRY_CODE, toE164 } from '../../../common/utils/phone'
+import { isValidEmail } from '../../../common/utils/validation'
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const PHONE_REGEX = /^\+[1-9]\d{6,14}$/
 
 export default function RegisterPage() {
@@ -101,7 +101,7 @@ export default function RegisterPage() {
           trailing={(
             <VerifyTrailingButton
               verified={emailVerified}
-              disabled={!EMAIL_REGEX.test(form.email.trim())}
+              disabled={!isValidEmail(form.email.trim())}
               onClick={() => setVerifyingType('email')}
             />
           )}
@@ -206,7 +206,7 @@ function getFieldErrors(form, emailVerified, phoneVerified, accepted) {
   return {
     name: !form.name.trim() ? '請輸入顯示名稱' : '',
     email: !form.email.trim() ? '請輸入電子郵件'
-      : !EMAIL_REGEX.test(form.email.trim()) ? '請輸入正確的電子郵件格式'
+      : !isValidEmail(form.email.trim()) ? '請輸入正確的電子郵件格式'
       : !emailVerified ? '請先完成信箱驗證' : '',
     phoneLocal: !form.phoneLocal.trim() ? '請輸入手機號碼'
       : !PHONE_REGEX.test(toE164(form.phoneCountryCode, form.phoneLocal)) ? '請輸入正確的手機號碼格式'
@@ -220,7 +220,7 @@ function getFieldErrors(form, emailVerified, phoneVerified, accepted) {
 function getValidationError(form, accepted, emailVerified, phoneVerified) {
   if (!form.name.trim()) return '請輸入顯示名稱'
   if (!form.email.trim()) return '請輸入電子郵件'
-  if (!EMAIL_REGEX.test(form.email.trim())) return '請輸入正確的電子郵件格式'
+  if (!isValidEmail(form.email.trim())) return '請輸入正確的電子郵件格式'
   if (!form.phoneLocal.trim()) return '請輸入手機號碼'
   if (!PHONE_REGEX.test(toE164(form.phoneCountryCode, form.phoneLocal))) return '請輸入正確的手機號碼格式'
   if (!emailVerified) return '請先完成信箱驗證'

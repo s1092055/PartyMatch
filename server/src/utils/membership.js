@@ -1,5 +1,5 @@
 import { computeSeatCost } from './pricing.js'
-import { notify } from '../routes/groups/shared.js'
+import { notify, notifyBatch } from '../routes/groups/shared.js'
 
 export async function admitMemberIntoGroup(tx, { groupId, userId, seatCost, maxMembers, note }) {
   const applicant = await tx.user.findUnique({ where: { id: userId }, select: { tokenBalance: true } })
@@ -108,15 +108,15 @@ export async function rejectPendingApplications(tx, groupId, { refundNote, build
 
     await tx.application.update({ where: { id: app.id }, data: { status: 'rejected', activeKey: null } })
     await refundEscrow(tx, { userId: app.userId, groupId, amount: refundAmount, note: refundNote })
-
-    notify({
-      userId:  app.userId,
-      type:    'application_rejected',
-      title:   '申請未通過',
-      message: buildMessage(groupLabel),
-      meta:    { groupId, applicationId: app.id },
-    })
   }
+
+  notifyBatch(pendingApps.map(app => ({
+    userId:  app.userId,
+    type:    'application_rejected',
+    title:   '申請未通過',
+    message: buildMessage(groupLabel),
+    meta:    { groupId, applicationId: app.id },
+  })))
 }
 
 export async function refundEscrow(tx, { userId, groupId, amount, note }) {

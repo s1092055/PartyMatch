@@ -23,6 +23,11 @@ import {
 const getGroupById = (id) => useGroupStore.getState().getById(id)
 const getCurrentUser = () => useAuthStore.getState().user
 const getSubscriptionByUserAndGroup = (uid, gid) => useSubscriptionStore.getState().getByUserAndGroup(uid, gid)
+const defaultNotifyTab = (loggedIn) => loggedIn ? 'all' : 'system'
+
+function openHostGroup(groupId, extra) {
+  window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId, ...extra } }))
+}
 
 async function openGroupOrRedirect(groupId) {
   await useGroupStore.getState().init({ all: true })
@@ -117,7 +122,7 @@ export default function FloatingMessages() {
   const notificationsState = useNotificationStore(s => s.notifications);
 
   const [open, setOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState(() => loggedIn ? 'all' : 'system')
+  const [activeTab, setActiveTab] = useState(() => defaultNotifyTab(loggedIn))
   const [unreadOnly, setUnreadOnly] = useState(false)
   const [sortOrder, setSortOrder] = useState('newest');
   const [searchQuery, setSearchQuery] = useState('')
@@ -132,7 +137,7 @@ export default function FloatingMessages() {
 
   useEffect(() => {
     function onOpen() {
-      setActiveTab(useAuthStore.getState().loggedIn ? 'all' : 'system')
+      setActiveTab(defaultNotifyTab(useAuthStore.getState().loggedIn))
       setOpen(true)
     }
     window.addEventListener('pm:open-notify', onOpen)
@@ -195,7 +200,7 @@ export default function FloatingMessages() {
 
     if (notification.type === 'group_created' && notification.meta?.groupId) {
       navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId } })
-      window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: notification.meta.groupId } }))
+      openHostGroup(notification.meta.groupId)
       return
     }
 
@@ -238,7 +243,7 @@ export default function FloatingMessages() {
       if (notification.meta?.groupId) {
         window.dispatchEvent(new CustomEvent('pm:refresh-member-stores'));
         navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId } })
-        window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: notification.meta.groupId } }))
+        openHostGroup(notification.meta.groupId)
       } else {
         navigate('/my-subscriptions');
       }
@@ -277,7 +282,7 @@ export default function FloatingMessages() {
     if (notification.type === 'new_application' && notification.meta?.groupId) {
       navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId, statusFilter: 'recruiting', openApplications: true } })
       useApplicationStore.getState().init().finally(() => {
-        window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: notification.meta.groupId, statusFilter: 'recruiting', openApplications: true } }))
+        openHostGroup(notification.meta.groupId, { statusFilter: 'recruiting', openApplications: true })
       })
       return
     }
@@ -285,7 +290,7 @@ export default function FloatingMessages() {
     if (notification.type === 'service_info_filled' && notification.meta?.groupId) {
       navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId, openMemberInfo: true } })
       useMemberStore.getState().init().finally(() => {
-        window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: notification.meta.groupId, openMemberInfo: true } }))
+        openHostGroup(notification.meta.groupId, { openMemberInfo: true })
       });
       return
     }
@@ -293,7 +298,7 @@ export default function FloatingMessages() {
     if (notification.type === 'application_cancelled' && notification.meta?.groupId) {
       navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId, statusFilter: 'recruiting', openApplications: true } })
       useApplicationStore.getState().init().finally(() => {
-        window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: notification.meta.groupId, statusFilter: 'recruiting', openApplications: true } }))
+        openHostGroup(notification.meta.groupId, { statusFilter: 'recruiting', openApplications: true })
       })
       return
     }
@@ -305,7 +310,7 @@ export default function FloatingMessages() {
         useGroupStore.getState().init({ all: true }),
         useMemberStore.getState().init(),
       ]).finally(() => {
-        window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: gId } }))
+        openHostGroup(gId)
       });
       return
     }
@@ -317,7 +322,7 @@ export default function FloatingMessages() {
         useGroupStore.getState().init({ all: true }),
         useMemberStore.getState().init(),
       ]).finally(() => {
-        window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: gId } }))
+        openHostGroup(gId)
       });
       return
     }
@@ -326,7 +331,7 @@ export default function FloatingMessages() {
       const gId = notification.meta.groupId
       navigate('/manage-groups', { state: { openGroupId: gId } })
       useMemberStore.getState().init().finally(() => {
-        window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: gId } }))
+        openHostGroup(gId)
       });
       return
     }
@@ -334,7 +339,7 @@ export default function FloatingMessages() {
     if (notification.type === 'group_reviewed' && notification.meta?.groupId) {
       const gId = notification.meta.groupId
       navigate('/manage-groups', { state: { openGroupId: gId } })
-      window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: gId } }))
+      openHostGroup(gId)
       return
     }
 
@@ -346,7 +351,7 @@ export default function FloatingMessages() {
         useMemberStore.getState().init(),
         useApplicationStore.getState().init(),
       ]).finally(() => {
-        window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: gId } }))
+        openHostGroup(gId)
       });
       return
     }
@@ -356,7 +361,7 @@ export default function FloatingMessages() {
       useAuthStore.getState().refreshTokenBalance().catch(console.error);
       navigate('/manage-groups', { state: { openGroupId: gId } })
       useGroupStore.getState().init({ all: true }).finally(() => {
-        window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: gId } }))
+        openHostGroup(gId)
       });
       return
     }
@@ -368,7 +373,7 @@ export default function FloatingMessages() {
         useGroupStore.getState().init({ all: true }),
         useMemberStore.getState().init(),
       ]).finally(() => {
-        window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: gId, openMemberInfo: true } }))
+        openHostGroup(gId, { openMemberInfo: true })
       })
       return
     }
@@ -388,7 +393,7 @@ export default function FloatingMessages() {
           useGroupStore.getState().init({ all: true }),
           useMemberStore.getState().init(),
         ]).finally(() => {
-          window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: gId } }))
+          openHostGroup(gId)
         })
       } else {
         navigateToMemberGroupOrExplore(navigate, userId, gId);
@@ -402,7 +407,7 @@ export default function FloatingMessages() {
       if (grp && grp.hostId === userId) {
         navigate('/manage-groups', { state: { openGroupId: gId } })
         useGroupStore.getState().init({ all: true }).finally(() => {
-          window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: gId } }))
+          openHostGroup(gId)
         });
       } else {
         navigateToMemberGroupOrExplore(navigate, userId, gId)
@@ -416,7 +421,7 @@ export default function FloatingMessages() {
       if (grp && grp.hostId === userId) {
         navigate('/manage-groups', { state: { openGroupId: gId } })
         useGroupStore.getState().init({ all: true }).finally(() => {
-          window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: gId } }))
+          openHostGroup(gId)
         })
       } else {
         navigateToMemberGroupOrExplore(navigate, userId, gId)

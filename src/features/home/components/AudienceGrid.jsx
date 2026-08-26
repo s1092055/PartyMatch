@@ -11,7 +11,7 @@ function audiencePhotoUrl({ photo, photoSeed }) {
 function AudienceCard({ photo, photoSeed, title, desc, tall }) {
   return (
     <div
-      className={`group relative overflow-hidden rounded-2xl text-left ${tall ? 'row-span-2 min-h-[280px] lg:min-h-0' : 'min-h-[132px]'}`}
+      className={`relative overflow-hidden rounded-2xl text-left ${tall ? 'row-span-2 min-h-[280px] lg:min-h-0' : 'min-h-[132px]'}`}
     >
       <img
         src={audiencePhotoUrl({ photo, photoSeed })}
