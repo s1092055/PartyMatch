@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, LogIn, LogOut, Menu, Moon, Settings, ShieldCheck, Star, Sun, User } from 'lucide-react'
+import { ChevronLeft, ChevronRight, LogIn, LogOut, Moon, Settings, ShieldCheck, Star, Sun, User } from 'lucide-react'
 import { useTheme } from '../../../components/theme-provider'
 import logoUrl from '../../../assets/Logo.svg'
 import { NAV_SECTIONS } from '../nav'
@@ -150,9 +150,9 @@ export default function TabletSidebarDrawer(
         type="button"
         onClick={() => setOpen(true)}
         aria-label="開啟導覽選單"
-        className="fixed left-4 top-6 z-50 grid h-12 w-12 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-floating transition-colors hover:bg-raised can-hover:lg:hidden dark:border-[#238EC7] dark:text-[#238EC7]"
+        className="fixed left-4 top-6 z-50 grid h-14 w-14 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-floating transition-colors hover:bg-raised can-hover:lg:hidden lg:h-12 lg:w-12 dark:border-[#238EC7] dark:text-[#238EC7]"
       >
-        <Menu size={20} strokeWidth={1.5} />
+        <img src={logoUrl} alt="PartyMatch" className="h-8 w-8 shrink-0 lg:h-7 lg:w-7" />
       </button>
       <Drawer open={open} onOpenChange={setOpen} swipeDirection="left">
 

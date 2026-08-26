@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Bell, Lock, LogIn, LogOut, MessageSquare, Moon, Settings, ShieldCheck, Star, Sun, User } from 'lucide-react'
+import { Bell, Lock, LogIn, LogOut, Menu, MessageSquare, Moon, Settings, ShieldCheck, Star, Sun, User, X } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
 import { NAV_SECTIONS } from '../nav'
 import { useTheme } from '../../../components/theme-provider'
@@ -37,6 +37,17 @@ export default function DesktopSidebar({
   const [lockedTip, setLockedTip] = useState(null)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [forceCollapsed, setForceCollapsed] = useState(false)
+  const [dockOpen, setDockOpen] = useState(false)
+  const dockRef = useRef(null)
+
+  useEffect(() => {
+    if (!dockOpen) return
+    function onPointerDown(e) {
+      if (!dockRef.current?.contains(e.target)) setDockOpen(false)
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    return () => document.removeEventListener('pointerdown', onPointerDown)
+  }, [dockOpen])
 
   function collapseSidebar() {
     document.activeElement?.blur()
@@ -110,6 +121,60 @@ export default function DesktopSidebar({
     )
   }
 
+  function renderNotifyButton() {
+    return (
+      <button
+        onClick={openNotify}
+        className="relative grid h-14 w-14 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-floating transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-12 lg:w-12 dark:border-[#238EC7] dark:text-[#238EC7]"
+        aria-label="通知"
+      >
+        <Bell className="size-6 lg:size-5" strokeWidth={1.5} />
+        <CountBadge count={unreadNotifs} />
+      </button>
+    )
+  }
+
+  function renderTopupButton() {
+    if (!loggedIn) return null
+    return (
+      <button
+        onClick={() => setTopupOpen(true)}
+        className="relative grid h-14 w-14 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-floating transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-12 lg:w-12 dark:border-[#238EC7] dark:text-[#238EC7]"
+        aria-label="PM幣儲值"
+      >
+        <TokenBadge className="!h-7 !w-7 lg:!h-6 lg:!w-6" />
+      </button>
+    )
+  }
+
+  function renderMessageButton() {
+    if (loggedIn) {
+      return (
+        <button
+          onClick={openMessages}
+          className="relative grid h-14 w-14 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-floating transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-12 lg:w-12 dark:border-[#238EC7] dark:text-[#238EC7]"
+          aria-label="訊息"
+        >
+          <MessageSquare className="size-6 lg:size-5" strokeWidth={1.5} />
+          <CountBadge count={unreadMsgs} className="-right-1.5 -top-1.5" />
+        </button>
+      )
+    }
+    return (
+      <button
+        type="button"
+        aria-disabled="true"
+        aria-label={`訊息，${LOCKED_MESSAGE}`}
+        onClick={e => preventLockedAction(e)}
+        className="group/locked relative grid h-14 w-14 cursor-not-allowed place-items-center rounded-full border border-line bg-surface text-ink-2 opacity-40 shadow-floating lg:h-12 lg:w-12 dark:border-[#238EC7] dark:text-[#238EC7]"
+      >
+        <MessageSquare className="size-6 lg:size-5" strokeWidth={1.5} />
+        <LockBadge className="right-1 top-1" />
+        <LockedHint className="right-full top-1/2 mr-2 -translate-y-1/2" />
+      </button>
+    )
+  }
+
   return (
     <>
 
@@ -123,48 +188,32 @@ export default function DesktopSidebar({
         document.body
       )}
 
-      <div className="fixed top-6 z-50 flex flex-col gap-3 lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
-        <button
-          onClick={openNotify}
-          className="relative grid h-14 w-14 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-floating transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-12 lg:w-12 dark:border-[#238EC7] dark:text-[#238EC7]"
-          aria-label="通知"
-        >
-          <Bell className="size-6 lg:size-5" strokeWidth={1.5} />
-          <CountBadge count={unreadNotifs} />
-        </button>
-        {loggedIn && (
-          <button
-            onClick={() => setTopupOpen(true)}
-            className="relative grid h-14 w-14 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-floating transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-12 lg:w-12 dark:border-[#238EC7] dark:text-[#238EC7]"
-            aria-label="PM幣儲值"
-          >
-            <TokenBadge className="!h-7 !w-7 lg:!h-6 lg:!w-6" />
-          </button>
-        )}
+      {/* 真桌機（有 hover 能力）：維持原本兩組固定位置，一律展開顯示 */}
+      <div className="fixed top-6 z-50 hidden flex-col gap-3 can-hover:lg:flex lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
+        {renderNotifyButton()}
+        {renderTopupButton()}
       </div>
 
-      <div className="fixed z-50 block" style={{ bottom: '2.25rem', right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
-        {loggedIn ? (
-          <button
-            onClick={openMessages}
-            className="relative grid h-14 w-14 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-floating transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-12 lg:w-12 dark:border-[#238EC7] dark:text-[#238EC7]"
-            aria-label="訊息"
-          >
-            <MessageSquare className="size-6 lg:size-5" strokeWidth={1.5} />
-            <CountBadge count={unreadMsgs} className="-right-1.5 -top-1.5" />
-          </button>
-        ) : (
-          <button
-            type="button"
-            aria-disabled="true"
-            aria-label={`訊息，${LOCKED_MESSAGE}`}
-            onClick={e => preventLockedAction(e)}
-            className="group/locked relative grid h-14 w-14 cursor-not-allowed place-items-center rounded-full border border-line bg-surface text-ink-2 opacity-40 shadow-floating lg:h-12 lg:w-12 dark:border-[#238EC7] dark:text-[#238EC7]"
-          >
-            <MessageSquare className="size-6 lg:size-5" strokeWidth={1.5} />
-            <LockBadge className="right-1 top-1" />
-            <LockedHint className="right-full top-1/2 mr-2 -translate-y-1/2" />
-          </button>
+      <div className="fixed z-50 hidden can-hover:lg:block" style={{ bottom: '2.25rem', right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
+        {renderMessageButton()}
+      </div>
+
+      {/* 手機／iPad（沒有 hover 能力）：三顆按鈕收進可收合的下拉堆疊 */}
+      <div ref={dockRef} className="fixed top-6 z-50 flex flex-col items-center gap-3 can-hover:lg:hidden" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
+        <button
+          onClick={() => setDockOpen(o => !o)}
+          className="relative grid h-14 w-14 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-floating transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-12 lg:w-12 dark:border-[#238EC7] dark:text-[#238EC7]"
+          aria-label={dockOpen ? '收合功能按鈕' : '展開功能按鈕'}
+          aria-expanded={dockOpen}
+        >
+          {dockOpen ? <X className="size-6 lg:size-5" strokeWidth={1.5} /> : <Menu className="size-6 lg:size-5" strokeWidth={1.5} />}
+        </button>
+        {dockOpen && (
+          <>
+            {renderNotifyButton()}
+            {renderTopupButton()}
+            {renderMessageButton()}
+          </>
         )}
       </div>
 
