@@ -10,6 +10,7 @@ export const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders:   false,
   handler,
+  skip: () => process.env.NODE_ENV === 'development',
 });
 
 export const refreshLimiter = rateLimit({

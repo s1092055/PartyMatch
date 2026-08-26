@@ -98,257 +98,150 @@ async function createGroup(hostUser, { serviceId, planId, maxMembers, billingCyc
 async function main() {
   console.log(`開始建立 demo 資料（透過 ${BASE} 的真實 API）...\n`)
 
-  const H1 = await registerUser({ email: 'demo1@partymatch.test', name: '吳志豪', phone: '+886911000001' });
-  const H2 = await registerUser({ email: 'demo2@partymatch.test', name: '許雅涵', phone: '+886911000002' })
-  const D1 = await registerUser({ email: 'demo3@partymatch.test', name: '王小明', phone: '+886911000003' })
-  const D2 = await registerUser({ email: 'demo4@partymatch.test', name: '林小美', phone: '+886911000004' })
-  const D3 = await registerUser({ email: 'demo5@partymatch.test', name: '陳大文', phone: '+886911000005' })
-  const D4 = await registerUser({ email: 'demo6@partymatch.test', name: '李冠宇', phone: '+886911000006' })
+  // 每個團主帳號只對應一個群組/一個流程情境，帳號名稱本身就講清楚用途——
+  // 登入哪個帳號就只看到那一個情境，不會被其他無關群組混淆
+  const H_recruiting  = await registerUser({ email: 'demo-recruiting@partymatch.test',  name: '團主·招募中',   phone: '+886911000011' });
+  const H_full        = await registerUser({ email: 'demo-full@partymatch.test',        name: '團主·已滿員',   phone: '+886911000012' });
+  const H_fillinfo    = await registerUser({ email: 'demo-fillinfo@partymatch.test',    name: '團主·待填資訊', phone: '+886911000013' });
+  const H_confirming  = await registerUser({ email: 'demo-confirming@partymatch.test',  name: '團主·確認期中', phone: '+886911000014' });
+  const H_removed     = await registerUser({ email: 'demo-removed@partymatch.test',     name: '團主·曾移除成員', phone: '+886911000015' });
+  const H_activation  = await registerUser({ email: 'demo-activation@partymatch.test',  name: '團主·待啟用',   phone: '+886911000016' });
+  const H_dispute     = await registerUser({ email: 'demo-dispute@partymatch.test',     name: '團主·申訴中',   phone: '+886911000017' });
+  const H_active      = await registerUser({ email: 'demo-active@partymatch.test',      name: '團主·服務中',   phone: '+886911000018' });
+  const H_cancelled   = await registerUser({ email: 'demo-cancelled@partymatch.test',   name: '團主·已解散',   phone: '+886911000019' });
+  const H_renewal     = await registerUser({ email: 'demo-renewal@partymatch.test',     name: '團主·續訂中',   phone: '+886911000020' });
+
+  const M1 = await registerUser({ email: 'demo-member1@partymatch.test', name: '成員·王小明', phone: '+886911000021' })
+  const M2 = await registerUser({ email: 'demo-member2@partymatch.test', name: '成員·林小美', phone: '+886911000022' })
+  const M3 = await registerUser({ email: 'demo-member3@partymatch.test', name: '成員·陳大文', phone: '+886911000023' })
+
   const ADMIN = await registerUser({ email: 'demo-admin@partymatch.test', name: '平台管理員', phone: '+886911000099', password: ADMIN_PASSWORD })
   await prisma.user.update({ where: { id: ADMIN.id }, data: { isAdmin: true } });
-  console.log('已註冊 7 個帳號（demo1~demo2 團主、demo3~demo6 成員、demo-admin 管理員）')
+  console.log('已註冊 14 個帳號（10 個團主，各自對應一個流程情境；3 個共用成員；1 個管理員）')
 
-  await topup(H1, 40000); await topup(H2, 40000)
-  await topup(D1, 40000); await topup(D2, 40000); await topup(D3, 40000)
-  await topup(D4, 100)
+  const hosts = [H_recruiting, H_full, H_fillinfo, H_confirming, H_removed, H_activation, H_dispute, H_active, H_cancelled, H_renewal]
+  for (const h of hosts) await topup(h, 500)
+  for (const m of [M1, M2, M3]) await topup(m, 5000)
   console.log('已完成PM幣儲值\n')
 
-  const g1 = await createGroup(H1, { serviceId: 'netflix', planId: 'netflix-std', maxMembers: 2 });
-  await api('POST', '/applications', D1.token, { groupId: g1.id, message: '想加入！平常都用 Netflix 追劇，穩定準時繳費 🙏' })
-  try {
-    await api('POST', '/applications', D4.token, { groupId: g1.id, message: '也想加入！' })
-    throw new Error('預期應該要因為 PM幣餘額不足被擋下，但沒有')
-  } catch (err) {
-    if (!String(err.message).includes('INSUFFICIENT_BALANCE')) throw err
-  }
-  await topup(D4, 39900);
-  console.log('G1 recruiting（Netflix，1 筆待審申請 + demo6 示範餘額不足被擋下）')
+  // demo-recruiting：招募中，含待審/已拒絕申請、信用分數門檻、團主手動加入成員
+  const gRecruiting = await createGroup(H_recruiting, { serviceId: 'netflix', planId: 'netflix-4k', maxMembers: 4, minCreditScore: 60 });
+  await api('POST', '/applications', M1.token, { groupId: gRecruiting.id, message: '想加入！平常都用 Netflix 追劇，穩定準時繳費 🙏' })
+  const rejectedApp = await api('POST', '/applications', M2.token, { groupId: gRecruiting.id, message: '可以加入嗎？' })
+  await api('PATCH', `/applications/${rejectedApp.id}`, H_recruiting.token, { status: 'rejected' })
+  await api('POST', '/members', H_recruiting.token, { groupId: gRecruiting.id, userId: M3.id })
+  console.log('demo-recruiting：recruiting（Netflix 4K，1 筆待審＋1 筆已拒絕申請、minCreditScore 門檻、團主已手動加入 1 位成員，仍有空位）')
 
-  const g2 = await createGroup(H2, { serviceId: 'notion', planId: 'notion-business-monthly', maxMembers: 3 });
-  await applyAndApprove(H2, g2.id, D1, 'Notion，長期需要團隊協作空間')
-  const g2App2 = await api('POST', '/applications', D2.token, { groupId: g2.id, message: '可以加入嗎？' })
-  await api('PATCH', `/applications/${g2App2.id}`, H2.token, { status: 'rejected' })
-  await api('POST', `/favorites/${g2.id}`, H1.token)
-  console.log('G2 recruiting（Notion，1 位接受 + 1 位拒絕，demo1 已收藏）')
+  // demo-full：滿員，示範「申請→核准→中途退出→遞補回滿員」
+  const gFull = await createGroup(H_full, { serviceId: 'spotify', planId: 'spotify-duo', maxMembers: 2 });
+  const leftAppId = await applyAndApprove(H_full, gFull.id, M1, 'Spotify Duo，跟室友分攤')
+  const leftMemberId = await getMemberId(H_full, gFull.id, M1.id)
+  await api('DELETE', `/members/${leftMemberId}`, M1.token);
+  await applyAndApprove(H_full, gFull.id, M2, 'Spotify Duo，想找人一起訂閱')
+  console.log('demo-full：full（Spotify Duo，M1 申請核准後中途自行退出，M2 遞補回滿員）')
+  void leftAppId
 
-  const g3 = await createGroup(H1, { serviceId: 'spotify', planId: 'spotify-duo', maxMembers: 2 });
-  const g3AppCancel = await api('POST', '/applications', D2.token, { groupId: g3.id, message: '手滑申請到了，抱歉' })
-  await api('DELETE', `/applications/${g3AppCancel.id}`, D2.token);
-  await applyAndApprove(H1, g3.id, D1, 'Spotify Duo，跟室友分攤')
-  console.log('G3 full（Spotify Duo，1 位成員＋團主共 2 人滿員 + 1 筆取消）')
+  // demo-fillinfo：待填服務資訊，shared_credentials 方式，含帳號資訊留言區圖片附件
+  const gFillInfo = await createGroup(H_fillinfo, { serviceId: 'disney', planId: 'disney-std-monthly', maxMembers: 2 });
+  await applyAndApprove(H_fillinfo, gFillInfo.id, M1, 'Disney+，想看漫威跟皮克斯')
+  await lockGroup(H_fillinfo, gFillInfo.id)
+  await addCredentialComment(H_fillinfo, gFillInfo.id, '帳號密碼正在設定中，晚點補上，先附上訂閱成立的截圖給大家確認', 'https://picsum.photos/seed/credential-attachment/600/400');
+  console.log('demo-fillinfo：pending_confirmation（Disney+，shared_credentials，剛鎖定成員尚未填寫；帳號資訊留言區已示範圖片附件）')
 
-  const g4 = await createGroup(H2, { serviceId: 'disney', planId: 'disney-std-monthly', maxMembers: 2 });
-  await applyAndApprove(H2, g4.id, D1, 'Disney+，想看漫威跟皮克斯')
-  await lockGroup(H2, g4.id)
-  await addCredentialComment(H2, g4.id, '帳號密碼正在設定中，晚點補上，先附上訂閱成立的截圖給大家確認', 'https://picsum.photos/seed/credential-attachment/600/400');
-  console.log('G4 pending_confirmation（Disney+，剛鎖定，成員尚未填寫；帳號資訊留言區已示範圖片附件）')
-
-  const g5 = await createGroup(H1, { serviceId: 'hbo', planId: 'hbo-std-monthly', maxMembers: 3 });
-  const g5Members = [D1, D2]
-  for (const u of g5Members) await applyAndApprove(H1, g5.id, u, 'HBO Max')
-  const g5ConvId = await lockGroup(H1, g5.id)
-  for (const u of g5Members) {
-    const memberId = await getMemberId(H1, g5.id, u.id)
+  // demo-confirming：確認期中，部分成員已確認
+  const gConfirming = await createGroup(H_confirming, { serviceId: 'hbo', planId: 'hbo-std-monthly', maxMembers: 3 });
+  const confirmingMembers = [M1, M2]
+  for (const u of confirmingMembers) await applyAndApprove(H_confirming, gConfirming.id, u, 'HBO Max')
+  const gConfirmingConvId = await lockGroup(H_confirming, gConfirming.id)
+  for (const u of confirmingMembers) {
+    const memberId = await getMemberId(H_confirming, gConfirming.id, u.id)
     await fillInfo(u, memberId, { email: u.email })
   }
-  await sendMessage(H1, g5ConvId, '帳號資訊都填好了嘛？麻煩填完跟我說一聲')
-  console.log('G5 pending_activation（HBO Max，全員已填完，待啟用）')
+  await activateGroup(H_confirming, gConfirming.id, gConfirmingConvId, 'HBO Max')
+  await api('POST', `/groups/${gConfirming.id}/confirm`, M1.token)
+  console.log('demo-confirming：confirming（HBO Max，M1 已確認、M2 尚未確認）')
 
-  const g6 = await createGroup(H2, { serviceId: 'chatgpt', planId: 'chatgpt-team-monthly', maxMembers: 2 });
-  await applyAndApprove(H2, g6.id, H1, 'ChatGPT Team，另一個團主身兼成員的示範帳號')
-  const g6ConvId = await lockGroup(H2, g6.id)
-  const g6MemberId = await getMemberId(H2, g6.id, H1.id)
-  await fillInfo(H1, g6MemberId, { email: H1.email })
-  await activateGroup(H2, g6.id, g6ConvId, 'ChatGPT Team')
-  console.log('G6 confirming（ChatGPT Team，demo1 身兼團主與成員兩種身分，尚無人確認）')
+  // demo-removed：成員曾被移除，示範信用分數 -10
+  const gRemoved = await createGroup(H_removed, { serviceId: 'kkbox', planId: 'kkbox-3', maxMembers: 3 });
+  await applyAndApprove(H_removed, gRemoved.id, M3, 'KKBOX')
+  const removedMemberId = await getMemberId(H_removed, gRemoved.id, M3.id)
+  await api('DELETE', `/members/${removedMemberId}`, H_removed.token);
+  console.log('demo-removed：recruiting（KKBOX，M3 被團主移除並自動扣 10 分信用分數，群組退回 0 人）')
 
-  const g7 = await createGroup(H1, { serviceId: 'expressvpn', planId: 'expressvpn-monthly', maxMembers: 5 });
-  const g7Members = [D1, D2, D3, D4]
-  for (const u of g7Members) await applyAndApprove(H1, g7.id, u, 'ExpressVPN')
-  const g7ConvId = await lockGroup(H1, g7.id)
-  for (const u of g7Members) {
-    const memberId = await getMemberId(H1, g7.id, u.id)
+  // demo-activation：待啟用，全員已填完（Crunchyroll 4 人方案：host + 3 位成員才會滿員，剛好用滿共用成員池）
+  const gActivation = await createGroup(H_activation, { serviceId: 'crunchyroll', planId: 'crunchyroll-mega', maxMembers: 4 });
+  const activationMembers = [M1, M2, M3]
+  for (const u of activationMembers) await applyAndApprove(H_activation, gActivation.id, u, 'Crunchyroll')
+  await lockGroup(H_activation, gActivation.id)
+  for (const u of activationMembers) {
+    const memberId = await getMemberId(H_activation, gActivation.id, u.id)
     await fillInfo(u, memberId, { acknowledged: true })
   }
-  await activateGroup(H1, g7.id, g7ConvId, 'ExpressVPN')
-  await api('POST', `/groups/${g7.id}/dispute`, D3.token, {
+  console.log('demo-activation：pending_activation（Crunchyroll，shared_credentials，全員已填完帳號，待團主啟用）')
+
+  // demo-dispute：申訴中，刻意不預先解決（Claude Pro 2 人方案：host + 1 位成員即可滿員）
+  const gDispute = await createGroup(H_dispute, { serviceId: 'claude', planId: 'claude-pro', maxMembers: 2 });
+  await applyAndApprove(H_dispute, gDispute.id, M3, 'Claude Pro')
+  const gDisputeConvId = await lockGroup(H_dispute, gDispute.id)
+  const disputeMemberId = await getMemberId(H_dispute, gDispute.id, M3.id)
+  await fillInfo(M3, disputeMemberId, { acknowledged: true })
+  await activateGroup(H_dispute, gDispute.id, gDisputeConvId, 'Claude Pro')
+  await api('POST', `/groups/${gDispute.id}/dispute`, M3.token, {
     reason: '帳號一直登入不進去，密碼好像被改過了', evidenceUrl: 'https://picsum.photos/seed/dispute1/600/400',
   })
-  await sendMessage(D3, g7ConvId, '帳號登入不進去，我已經回報問題了')
-  console.log('G7 disputed（ExpressVPN，demo5 申訴中，尚未處理——留給測試者現場示範自行解決或管理員裁定）')
+  await sendMessage(M3, gDisputeConvId, '帳號登入不進去，我已經回報問題了')
+  console.log('demo-dispute：disputed（Claude Pro，M3 申訴中，尚未處理——留給測試者現場示範自行解決或管理員裁定任一路徑）')
 
-  const g8 = await createGroup(H2, { serviceId: 'google-one', planId: 'google-one-ai-plus-monthly', maxMembers: 5 });
-  const g8Members = [D1, D2, D3, D4]
-  for (const u of g8Members) await applyAndApprove(H2, g8.id, u, 'Google One')
-  const g8ConvId = await lockGroup(H2, g8.id)
-  for (const u of g8Members) {
-    const memberId = await getMemberId(H2, g8.id, u.id)
-    await fillInfo(u, memberId, { googleEmail: u.email })
-  }
-  await activateGroup(H2, g8.id, g8ConvId, 'Google One')
-  for (const u of g8Members) await api('POST', `/groups/${g8.id}/confirm`, u.token)
-  await api('POST', '/reviews', D1.token, { groupId: g8.id, rating: 5, comment: '團主人很好，服務很快就設定好了！' })
-  await api('POST', '/reviews', D2.token, { groupId: g8.id, rating: 4, comment: '整體順利，溝通也很即時。' })
-  console.log('G8 active（Google One，全員確認撥款完成，已有 2 則評價）')
+  // demo-active：服務中，示範雙向互評與信用分數連動
+  const gActive = await createGroup(H_active, { serviceId: 'chatgpt', planId: 'chatgpt-team-monthly', maxMembers: 2 });
+  await applyAndApprove(H_active, gActive.id, M1, 'ChatGPT Team')
+  const gActiveConvId = await lockGroup(H_active, gActive.id)
+  const activeMemberId = await getMemberId(H_active, gActive.id, M1.id)
+  await fillInfo(M1, activeMemberId, { email: M1.email })
+  await activateGroup(H_active, gActive.id, gActiveConvId, 'ChatGPT Team')
+  await api('POST', `/groups/${gActive.id}/confirm`, M1.token)
+  await api('POST', '/reviews', M1.token, { groupId: gActive.id, revieweeId: H_active.id, rating: 5, comment: '團主人很好，服務很快就設定好了！' })
+  await api('POST', '/reviews', H_active.token, { groupId: gActive.id, revieweeId: M1.id, rating: 4, comment: '準時繳費、配合度很高，謝謝！' })
+  console.log('demo-active：active（ChatGPT Team，成員確認撥款完成，示範雙向互評：成員評團主 5★、團主評成員 4★）')
 
-  const g9 = await createGroup(H1, { serviceId: 'kkbox', planId: 'kkbox-3', maxMembers: 3 });
-  await applyAndApprove(H1, g9.id, H2, 'KKBOX')
-  await applyAndApprove(H1, g9.id, D3, 'KKBOX');
-  const g9LeaveMemberId = await getMemberId(H1, g9.id, D3.id)
-  await api('DELETE', `/members/${g9LeaveMemberId}`, D3.token);
-  await applyAndApprove(H1, g9.id, D2, 'KKBOX');
-  const g9ConvId = await lockGroup(H1, g9.id)
-  for (const u of [H2, D2]) {
-    const memberId = await getMemberId(H1, g9.id, u.id)
-    await fillInfo(u, memberId, { email: u.email, address: '台北市信義區松仁路 100 號' })
-  }
-  await activateGroup(H1, g9.id, g9ConvId, 'KKBOX')
-  await sendMessage(H1, g9ConvId, '大家的帳號都設定好了，開始用吧！')
-  for (const u of [H2, D2]) await api('POST', `/groups/${g9.id}/confirm`, u.token)
-  console.log('G9 active（KKBOX，demo5 曾在招募期間退出，demo4 遞補後正式啟用）')
+  // demo-cancelled：招募中解散
+  const gCancelled = await createGroup(H_cancelled, { serviceId: 'discord', planId: 'discord-family-monthly', maxMembers: 5 });
+  await api('POST', '/applications', M2.token, { groupId: gCancelled.id, message: '想加入！' })
+  await api('POST', `/groups/${gCancelled.id}/cancel`, H_cancelled.token)
+  console.log('demo-cancelled：cancelled（Discord，招募中解散，M2 的待審申請全額退款）')
 
-  const g10 = await createGroup(H2, { serviceId: 'discord', planId: 'discord-family-monthly', maxMembers: 5 });
-  await applyAndApprove(H2, g10.id, D4, 'Discord')
-  await api('POST', `/groups/${g10.id}/cancel`, H2.token)
-  console.log('G10 cancelled（Discord，招募中解散，demo6 全額退款）')
-
-  const g11 = await createGroup(H1, { serviceId: 'crunchyroll', planId: 'crunchyroll-mega', maxMembers: 4 });
-  await applyAndApprove(H1, g11.id, D1, 'Crunchyroll')
-  await applyAndApprove(H1, g11.id, D2, 'Crunchyroll')
-  await applyAndApprove(H1, g11.id, D3, 'Crunchyroll')
-  await api('POST', `/groups/${g11.id}/cancel`, H1.token)
-  console.log('G11 cancelled（Crunchyroll，滿員後解散，demo3/demo4/demo5 全額退款）')
-
-  const g12 = await createGroup(H2, { serviceId: 'duolingo', planId: 'duolingo-family', maxMembers: 6 });
-  const g12Members = [D1, D2, D3, D4, H1]
-  for (const u of g12Members) await applyAndApprove(H2, g12.id, u, 'Duolingo')
-  const g12ConvId = await lockGroup(H2, g12.id)
-  for (const u of g12Members) {
-    const memberId = await getMemberId(H2, g12.id, u.id)
-    await fillInfo(u, memberId, { email: u.email })
-  }
-  await activateGroup(H2, g12.id, g12ConvId, 'Duolingo')
-  for (const u of g12Members) await api('POST', `/groups/${g12.id}/confirm`, u.token)
-  await api('PATCH', `/groups/${g12.id}`, H2.token, { status: 'ended' })
-  await sendMessage(H2, g12ConvId, '這期服務即將到期，之後不續訂了，謝謝大家一起共享')
-  await api('POST', '/reviews', D1.token, { groupId: g12.id, rating: 5, comment: '整體使用很順暢，團主人很好，有問題都馬上回覆。' })
-  await api('POST', '/reviews', D3.token, { groupId: g12.id, rating: 4, comment: '服務蠻穩定的，推薦！' })
-  console.log('G12 ended（Duolingo，完整跑完一輪後結束服務）')
-
-  const gRemoved = await createGroup(H1, { serviceId: 'masterclass', planId: 'masterclass-2', maxMembers: 2, billingCycle: 'yearly' });
-  await applyAndApprove(H1, gRemoved.id, D2, 'MasterClass')
-  const gRemovedMemberId = await getMemberId(H1, gRemoved.id, D2.id)
-  await api('DELETE', `/members/${gRemovedMemberId}`, H1.token);
-  console.log('G_removed（MasterClass，demo4 被團主移除並自動扣 10 分信用分數）')
-
-  await createGroup(H2, { serviceId: 'canva', planId: 'canva-team-monthly', maxMembers: 5, minCreditScore: 70 });
-  console.log('G13 recruiting（Canva，minCreditScore: 70，尚無人申請）')
-
-  const g14 = await createGroup(H1, { serviceId: 'cursor', planId: 'cursor-business-monthly', maxMembers: 4 });
-  const g14Members = [D1, D2, D4]
-  for (const u of g14Members) await applyAndApprove(H1, g14.id, u, 'Cursor')
-  const g14ConvId = await lockGroup(H1, g14.id)
-  for (const u of g14Members) {
-    const memberId = await getMemberId(H1, g14.id, u.id)
-    await fillInfo(u, memberId, { email: u.email })
-  }
-  await activateGroup(H1, g14.id, g14ConvId, 'Cursor')
-  for (const u of [D1, D2])
-    await api('POST', `/groups/${g14.id}/confirm`, u.token);
-  console.log('G14 confirming（Cursor，demo3、demo4 已確認、demo6 尚未確認）')
-
-  const g15 = await createGroup(H2, { serviceId: 'apple-music', planId: 'apple-music-family-monthly', maxMembers: 6 });
-  for (const u of [H1, D1, D2, D3, D4]) await applyAndApprove(H2, g15.id, u, 'Apple Music')
-  await lockGroup(H2, g15.id)
-  console.log('G15 pending_confirmation（Apple Music，apple_family，6 人全新鎖定尚未填寫）')
-
-  const g16 = await createGroup(H1, { serviceId: 'google-one', planId: 'google-one-100-monthly', maxMembers: 5 });
-  for (const u of [D1, D2, D3, D4]) await applyAndApprove(H1, g16.id, u, 'Google One')
-  await lockGroup(H1, g16.id)
-  console.log('G16 pending_confirmation（Google One，google_family，全新鎖定尚未填寫）')
-
-  const g17 = await createGroup(H2, { serviceId: 'friday-video', planId: 'friday-video-plan', maxMembers: 2 });
-  await applyAndApprove(H2, g17.id, D3, 'friDay影音')
-  await lockGroup(H2, g17.id)
-  console.log('G17 pending_confirmation（friDay影音，invite_code，全新鎖定尚未填寫）')
-
-  const g18 = await createGroup(H1, { serviceId: 'icloud', planId: 'icloud-200', maxMembers: 5 });
-  await api('POST', '/members', H1.token, { groupId: g18.id, userId: D4.id })
-  console.log('G18 recruiting（iCloud+，demo1 手動加入 demo6，仍有空位開放申請）')
-
-  const g19 = await createGroup(H2, { serviceId: 'microsoft-365', planId: 'microsoft-365-family-monthly', maxMembers: 6 });
-  const g19Members = [H1, D1, D2, D3, D4]
-  for (const u of g19Members) await applyAndApprove(H2, g19.id, u, 'Microsoft 365')
-  const g19ConvId = await lockGroup(H2, g19.id)
-  for (const u of g19Members) {
-    const memberId = await getMemberId(H2, g19.id, u.id)
-    await fillInfo(u, memberId, { email: u.email })
-  }
-  await activateGroup(H2, g19.id, g19ConvId, 'Microsoft 365')
-  for (const u of g19Members) await api('POST', `/groups/${g19.id}/confirm`, u.token)
-  await api('POST', `/groups/${g19.id}/renew`, H2.token);
-  console.log('G19 pending_confirmation（Microsoft 365，已跑完第 1 期並開始續訂第 2 期）')
-
-  const g20 = await createGroup(H1, { serviceId: 'dropbox', planId: 'dropbox-family', maxMembers: 6 });
-  const g20Members = [H2, D1, D2, D3, D4]
-  for (const u of g20Members) await applyAndApprove(H1, g20.id, u, 'Dropbox')
-  const g20ConvId = await lockGroup(H1, g20.id)
-  for (const u of g20Members) {
-    const memberId = await getMemberId(H1, g20.id, u.id)
-    await fillInfo(u, memberId, { email: u.email })
-  }
-  await activateGroup(H1, g20.id, g20ConvId, 'Dropbox')
-  await api('POST', `/groups/${g20.id}/dispute`, D2.token, { reason: '帳號被收回，登入不進去', evidenceUrl: 'https://picsum.photos/seed/dispute2/600/400' })
-  await api('POST', `/groups/${g20.id}/adjudicate`, ADMIN.token, { winner: 'member', reason: '經查證團主確實未提供正確帳號，退款給申訴成員' })
-  await api('POST', '/reviews', D1.token, { groupId: g20.id, rating: 3, comment: '中間有點小狀況，但申訴後平台有妥善處理。' })
-  await api('POST', '/reviews', D3.token, { groupId: g20.id, rating: 5, comment: '我這邊都沒遇到問題，運作正常。' })
-  console.log('G20 active（Dropbox，申訴後管理員裁定成員獲勝，demo4 已退款並留在群組內）')
-
-  const g21 = await createGroup(H2, { serviceId: 'nordvpn', planId: 'nordvpn-basic', maxMembers: 6 });
-  const g21Members = [D1, D2, D3, D4, H1]
-  for (const u of g21Members) await applyAndApprove(H2, g21.id, u, 'NordVPN')
-  const g21ConvId = await lockGroup(H2, g21.id)
-  for (const u of g21Members) {
-    const memberId = await getMemberId(H2, g21.id, u.id)
+  // demo-renewal：已跑完第 1 期，續訂進入第 2 期
+  const gRenewal = await createGroup(H_renewal, { serviceId: 'midjourney', planId: 'midjourney-std-monthly', maxMembers: 3 });
+  const renewalMembers = [M1, M2]
+  for (const u of renewalMembers) await applyAndApprove(H_renewal, gRenewal.id, u, 'Midjourney')
+  const gRenewalConvId = await lockGroup(H_renewal, gRenewal.id)
+  for (const u of renewalMembers) {
+    const memberId = await getMemberId(H_renewal, gRenewal.id, u.id)
     await fillInfo(u, memberId, { acknowledged: true })
   }
-  await activateGroup(H2, g21.id, g21ConvId, 'NordVPN')
-  await api('POST', `/groups/${g21.id}/dispute`, D4.token, { reason: '覺得速度跟描述不符', evidenceUrl: 'https://picsum.photos/seed/dispute3/600/400' })
-  await api('POST', `/groups/${g21.id}/adjudicate`, ADMIN.token, { winner: 'host', reason: '經查證服務正常，維持原訂閱' })
-  await api('POST', '/reviews', D3.token, { groupId: g21.id, rating: 4, comment: '服務穩定，速度也不錯。' })
-  await api('POST', '/reviews', D4.token, { groupId: g21.id, rating: 5, comment: '申訴後團主還是很有耐心解釋，後續也沒問題了。' })
-  console.log('G21 active（NordVPN，申訴後管理員裁定團主獲勝，demo6 本期費用不予退還但仍留在群組內）')
-
-  const g22 = await createGroup(H1, { serviceId: 'claude', planId: 'claude-pro', maxMembers: 2 });
-  await applyAndApprove(H1, g22.id, D3, 'Claude Pro')
-  const g22ConvId = await lockGroup(H1, g22.id)
-  const g22MemberId = await getMemberId(H1, g22.id, D3.id)
-  await fillInfo(D3, g22MemberId, { acknowledged: true })
-  await activateGroup(H1, g22.id, g22ConvId, 'Claude Pro')
-  await api('POST', `/groups/${g22.id}/dispute`, D3.token, { reason: '帳號登入不進去，密碼可能被改了', evidenceUrl: 'https://picsum.photos/seed/dispute4/600/400' })
-  await addCredentialComment(D3, g22.id, '密碼登入失敗，麻煩確認一下', 'https://picsum.photos/seed/dispute4-comment/600/400')
-  await addCredentialComment(H1, g22.id, '不好意思，剛剛忘記更新密碼了，已經改好，麻煩重新登入看看')
-  await api('POST', `/groups/${g22.id}/resolve-dispute`, H1.token, { note: '已重新提供正確密碼，成員確認可以正常登入' })
-  console.log('G22 confirming（Claude Pro，demo5 申訴後團主自行處理完成，不經管理員裁定——新版「自行解決」流程示範）')
+  await activateGroup(H_renewal, gRenewal.id, gRenewalConvId, 'Midjourney')
+  for (const u of renewalMembers) await api('POST', `/groups/${gRenewal.id}/confirm`, u.token)
+  await api('POST', `/groups/${gRenewal.id}/renew`, H_renewal.token);
+  console.log('demo-renewal：pending_confirmation（Midjourney，已完整跑完第 1 期並開始續訂第 2 期，帳號資訊已清空重新等待填寫）')
 
   await api('POST', '/system-messages/broadcast', ADMIN.token, {
     content: 'PartyMatch 將於本週六凌晨 2:00-4:00 進行例行維護，期間服務可能短暫中斷',
   });
   console.log('已發送系統公告')
 
-  const dm = await api('POST', '/conversations/dm', H1.token, { targetUserId: H2.id });
-  await api('POST', `/conversations/${dm.id}/messages`, H1.token, { content: '嗨，想請問 Spotify 群組還有名額嗎？' })
-  await api('POST', `/conversations/${dm.id}/messages`, H2.token, { content: '目前剛好滿囉，不好意思！之後有名額會再通知你' })
-  await api('POST', `/conversations/${dm.id}/messages`, H1.token, { content: '好的，附上我截的名額狀態給你參考', attachmentUrl: 'https://picsum.photos/seed/dm-attachment/600/400' })
-  console.log('已建立 demo1 → demo2 的 DM 私訊（含圖片附件示範）')
+  const dm = await api('POST', '/conversations/dm', H_recruiting.token, { targetUserId: H_full.id });
+  await api('POST', `/conversations/${dm.id}/messages`, H_recruiting.token, { content: '嗨，想請問你的 Spotify 群組還有名額嗎？' })
+  await api('POST', `/conversations/${dm.id}/messages`, H_full.token, { content: '目前剛好滿囉，不好意思！之後有名額會再通知你' })
+  await api('POST', `/conversations/${dm.id}/messages`, H_recruiting.token, { content: '好的，附上我截的名額狀態給你參考', attachmentUrl: 'https://picsum.photos/seed/dm-attachment/600/400' })
+  console.log('已建立 demo-recruiting → demo-full 的 DM 私訊（含圖片附件示範）')
 
-  const allUsers = [H1, H2, D1, D2, D3, D4, ADMIN];
+  const allUsers = [...hosts, M1, M2, M3, ADMIN];
   await Promise.all(allUsers.map(u => api('PATCH', '/notifications/read-all', u.token)))
   await prisma.conversation.updateMany({ data: { unreadCounts: {} } });
   console.log('已將所有通知與訊息標記為已讀')
 
-  console.log(`\ndemo 資料建立完成！共 7 個帳號、23 個群組，demo1~demo6 密碼皆為: ${DEMO_PASSWORD}；demo-admin ${process.env.ADMIN_PASSWORD ? '使用 ADMIN_PASSWORD 環境變數設定的密碼' : `密碼同上（未設定 ADMIN_PASSWORD）: ${DEMO_PASSWORD}`}`)
-  console.log('  demo1～demo2：團主帳號（互相交錯身兼對方群組成員）　demo3～demo6：一般成員帳號（demo6 曾示範餘額不足，之後已補足儲值）　demo-admin：管理員帳號')
+  console.log(`\ndemo 資料建立完成！共 14 個帳號、10 個群組，一個帳號對應一個流程情境。密碼皆為: ${DEMO_PASSWORD}；demo-admin ${process.env.ADMIN_PASSWORD ? '使用 ADMIN_PASSWORD 環境變數設定的密碼' : `密碼同上（未設定 ADMIN_PASSWORD）: ${DEMO_PASSWORD}`}`)
+  console.log('  想測哪個流程，登入對應名稱的帳號即可（例如想測申訴流程就登入 demo-dispute），畫面乾淨不會混到其他情境')
 }
 
 main()
