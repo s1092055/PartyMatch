@@ -24,6 +24,7 @@ function maskGroupAvatars(group) {
 const createGroupSchema = z.object({
   serviceId:      z.string().min(1),
   planName:       z.string().min(1),
+  maxMembers:     z.number().int().min(2).optional(),
   rules:          z.union([z.string(), z.array(z.string())]).optional(),
   tags:           z.array(z.string()).optional(),
   minCreditScore: z.number().int().min(0).default(0),
@@ -207,6 +208,16 @@ router.post('/', requireAuth, validate(createGroupSchema), async (req, res, next
   try {
     const pricing = await resolvePlanPricing(req.body.serviceId, req.body.planName)
     if (!pricing) return res.status(400).json({ message: '找不到對應的服務方案' })
+
+    // maxMembers 允許團主在方案原本的容量內縮小開放名額（例如 5 人方案只開放給 2 人），
+    // 但不能超過方案容量——monthlyFee/currency/billingCycle 依然完全由 pricing 決定，
+    // 每人單價不會因為名額變動而改變，不會重新開放前端夾帶價格的漏洞
+    if (req.body.maxMembers != null) {
+      if (req.body.maxMembers > pricing.maxMembers) {
+        return res.status(400).json({ message: `開放名額不能超過方案容量（最多 ${pricing.maxMembers} 人）` })
+      }
+      pricing.maxMembers = req.body.maxMembers
+    }
 
     const allowed = ['serviceId','rules','tags','minCreditScore','minGroupAge'];
     const data = Object.fromEntries(Object.entries(req.body).filter(([k]) => allowed.includes(k)))
