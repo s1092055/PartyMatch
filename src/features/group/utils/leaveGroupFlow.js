@@ -20,11 +20,12 @@ export async function finalizeLeaveGroup(groupId, user) {
   const member = groupId ? useMemberStore.getState().getByUserAndGroup(user.id, groupId) : null
   if (member) {
     useMemberStore.getState().remove(member.id)
-      .then(() => useGroupStore.getState().refreshGroup(groupId))
+      .then(() => Promise.all([
+        useGroupStore.getState().refreshGroup(groupId),
+        useAuthStore.getState().refreshTokenBalance(),
+      ]))
       .catch(console.error);
   }
-  if (member)
-    useAuthStore.getState().refreshTokenBalance().catch(console.error);
 
   const appToRemove = useApplicationStore.getState().applications.find(
     a => a.groupId === groupId && (a.applicantId ?? a.userId) === user.id && a.status === 'approved'

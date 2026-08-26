@@ -339,7 +339,7 @@ export default function GroupDetailModal() {
   )
 
   const showDesktopAside = isDesktop && !showMembers;
-  const hideRecruitBarBase = isMember || isHost || group.status !== 'recruiting'
+  const hideRecruitBarBase = isHost || group.status !== 'recruiting'
   const footerCta = buildMobileFooter({
     group, activeUserId, navigate, handleClose,
     isHost, isWaitingMembers, needsFillInfo, hasServiceInfoIssue,
