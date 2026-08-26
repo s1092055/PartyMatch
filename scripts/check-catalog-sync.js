@@ -3,10 +3,11 @@
  * 檢查 serviceId 與方案名稱（resolvePlanPricing() 用方案名稱比對）是否兩邊都存在、
  * maxMembers 是否一致。
  *
- * 背景：後端 POST /groups 一律用 resolvePlanPricing() 依 serviceId+planName 從
- * server/prisma/seed.js 的 Service.plans（權威資料）覆蓋 maxMembers，前端傳的值不會生效
- * （見 CLAUDE.md「建立群組價格一律 server-side derive」）。server/prisma/seedDemo.js 曾經
- * 因為兩邊 maxMembers 對不上，導致示範群組建立到一半失敗，詳見 git log 對應的修復 commit。
+ * 背景：後端 POST /groups 用 resolvePlanPricing() 依 serviceId+planName 從
+ * server/prisma/seed.js 的 Service.plans（權威資料）決定方案的完整人數；前端可以在
+ * `[2, 方案人數]` 之間自訂 maxMembers（見 CLAUDE.md「建立群組價格一律 server-side derive」），
+ * 但這個範圍上限就是 Service.plans 的 maxMembers，兩邊目錄的 maxMembers 對不上時，前端算出來
+ * 的選擇器上限（`maxSeats`）就會跟後端實際接受的範圍不一致。
  *
  * 不比對價格：部分服務（Discord、Midjourney 等）官方為美金計價，前端用即時匯率換算顯示金額，
  * 沒有固定的台幣數字可以比對，比對價格會產生大量假警報。

@@ -33,8 +33,6 @@ const INITIAL_FORM = {
 function mapFormToGroup(form) {
   const service = getServiceById(form.serviceId)
   const plan = service?.plans.find(p => p.name === form.planName)
-  // 總名額固定用方案本身的容量，不是 Step3「開放名額」那個純參考用的招募目標
-  const planCapacity = plan?.maxSeats ?? form.recruitHeadcount
   const rules = form.rules.map(r => r.trim()).filter(Boolean)
   const tags = [...new Set([...(plan?.tags ?? []), service?.category].filter(Boolean))]
 
@@ -44,7 +42,9 @@ function mapFormToGroup(form) {
     planName: form.planName,
     pricePerSeat: form.pricePerSeat || 0,
     billingCycle: form.billingCycle,
-    totalSeats: planCapacity,
+    // 團主在 Step3 選的開放名額直接就是這個群組的總名額（伺服器會驗證邊界在 2 ~ 方案人數之間）
+    maxMembers: form.recruitHeadcount,
+    totalSeats: form.recruitHeadcount,
     usedSeats: 1,
     openSeats: form.recruitHeadcount - 1,
     joinMode: 'approval',

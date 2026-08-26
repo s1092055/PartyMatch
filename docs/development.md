@@ -68,16 +68,13 @@ cd server
 npm run dev
 ```
 
-## 8. 建立 Demo 資料
+## 8. 建立服務目錄資料
 
 ```bash
 cd server
 npm run db:seed         # 服務目錄
 npm run db:clear        # 清空使用者與業務資料（保留 services），會要求輸入 yes 確認
-npm run db:seed-demo    # 建立 demo 帳號與涵蓋各種狀態的群組
 ```
-
-三步驟也可以用 `npm run db:reset-demo` 一次執行。執行前提：後端伺服器要在跑（這支腳本打的是真實 HTTP API，不是直接寫資料庫）。
 
 ## 9. 測試
 

@@ -5,8 +5,6 @@ import { buildPreviewGroupId } from "../utils/previewGroupId";
 
 export default function LivePreviewPanel({ form }) {
   const service = getServiceById(form.serviceId);
-  const plan = service?.plans.find(p => p.name === form.planName);
-  const maxSeats = plan?.maxSeats ?? null;
   const user = useAuthStore(s => s.user);
   const activeUser = user ? useAuthStore.getState().getProfile() : null;
 
@@ -17,8 +15,8 @@ export default function LivePreviewPanel({ form }) {
     planName: form.planName || "尚未選擇方案",
     pricePerSeat: form.pricePerSeat || 0,
     billingCycle: form.billingCycle,
-    // 總名額固定顯示方案本身的容量；開放名額是 Step3 選的招募目標，兩者各自獨立，不互相推導
-    totalSeats: form.planName ? maxSeats : null,
+    // 總名額就是 Step3 選的開放名額（團主要在平台上招募的人數）
+    totalSeats: form.planName ? form.recruitHeadcount : null,
     usedSeats: form.planName ? 1 : 0,
     openSeats: form.planName ? Math.max(form.recruitHeadcount - 1, 0) : null,
     tags: [service?.category].filter(Boolean),

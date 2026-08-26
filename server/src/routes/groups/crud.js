@@ -28,6 +28,7 @@ const createGroupSchema = z.object({
   tags:           z.array(z.string()).optional(),
   minCreditScore: z.number().int().min(0).default(0),
   minGroupAge:    z.number().int().min(0).default(0),
+  maxMembers:     z.number().int().min(2).optional(),
 }).transform(data => ({
   ...data,
   rules: Array.isArray(data.rules) ? data.rules.join('\n') : (data.rules ?? ''),
@@ -208,10 +209,18 @@ router.post('/', requireAuth, validate(createGroupSchema), async (req, res, next
     const pricing = await resolvePlanPricing(req.body.serviceId, req.body.planName)
     if (!pricing) return res.status(400).json({ message: '找不到對應的服務方案' })
 
+    let maxMembers = pricing.maxMembers
+    if (req.body.maxMembers != null) {
+      if (req.body.maxMembers < 2 || req.body.maxMembers > pricing.maxMembers) {
+        return res.status(400).json({ message: `開放名額需介於 2 至 ${pricing.maxMembers} 人` })
+      }
+      maxMembers = req.body.maxMembers
+    }
+
     const allowed = ['serviceId','rules','tags','minCreditScore','minGroupAge'];
     const data = Object.fromEntries(Object.entries(req.body).filter(([k]) => allowed.includes(k)))
     const group = await prisma.group.create({
-      data: { ...data, ...pricing, hostId: req.user.id },
+      data: { ...data, ...pricing, maxMembers, hostId: req.user.id },
       include: { service: true, host: HOST_PUBLIC_SELECT },
     })
 

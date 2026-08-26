@@ -45,7 +45,7 @@ describe('建立群組（POST /groups）', () => {
     expect(groupState.rules).toBe('準時繳費\n勿分享帳號');
   })
 
-  it('無視前端在請求裡夾帶的 monthlyFee/maxMembers/totalSeats/pricePerSeat，一律用服務目錄的權威價格', async () => {
+  it('無視前端在請求裡夾帶的 monthlyFee/totalSeats/pricePerSeat，一律用服務目錄的權威價格', async () => {
     const host = await createUser({ name: '團主' })
     const service = await createService()
 
@@ -54,7 +54,7 @@ describe('建立群組（POST /groups）', () => {
       .set('Authorization', authHeader(host))
       .send({
         serviceId: service.id, planName: '基本方案',
-        monthlyFee: 1, maxMembers: 10, totalSeats: 3, pricePerSeat: 1, currency: 'USD', billingCycle: 'yearly',
+        monthlyFee: 1, totalSeats: 3, pricePerSeat: 1, currency: 'USD', billingCycle: 'yearly',
       })
     expect(res.status).toBe(201)
     expect(res.body.maxMembers).toBe(4);
@@ -64,6 +64,30 @@ describe('建立群組（POST /groups）', () => {
 
     const groupState = await prisma.group.findUnique({ where: { id: res.body.id } })
     expect(groupState.monthlyFee.toString()).toBe('400')
+  });
+
+  it('maxMembers 可在方案人數範圍內自訂，超出範圍會被拒絕', async () => {
+    const host = await createUser({ name: '團主' })
+    const service = await createService()
+
+    const custom = await request(app)
+      .post('/api/groups')
+      .set('Authorization', authHeader(host))
+      .send({ serviceId: service.id, planName: '基本方案', maxMembers: 2 })
+    expect(custom.status).toBe(201)
+    expect(custom.body.maxMembers).toBe(2)
+
+    const tooLarge = await request(app)
+      .post('/api/groups')
+      .set('Authorization', authHeader(host))
+      .send({ serviceId: service.id, planName: '基本方案', maxMembers: 10 })
+    expect(tooLarge.status).toBe(400)
+
+    const tooSmall = await request(app)
+      .post('/api/groups')
+      .set('Authorization', authHeader(host))
+      .send({ serviceId: service.id, planName: '基本方案', maxMembers: 1 })
+    expect(tooSmall.status).toBe(400)
   });
 
   it('billingCycle 依方案名稱是否含「年繳」判斷，不採信前端傳的值', async () => {
