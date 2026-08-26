@@ -44,7 +44,6 @@ function mapFormToGroup(form) {
     pricePerSeat: form.pricePerSeat || 0,
     billingCycle: form.billingCycle,
     totalSeats,
-    maxMembers: totalSeats,
     usedSeats: 1,
     openSeats: totalSeats - 1,
     joinMode: 'approval',
@@ -72,7 +71,7 @@ function getStepErrors(step, form) {
       const plan = service?.plans.find(p => p.name === form.planName)
       const maxSeats = plan?.maxSeats ?? 10
       if (!Number.isInteger(form.totalSeats) || form.totalSeats < 2 || form.totalSeats > maxSeats) {
-        errors.push(`開放名額需介於 2 至 ${maxSeats} 人`)
+        errors.push(`開放名額需介於 1 至 ${maxSeats - 1} 位`)
       }
       if (rules.some(rule => rule.length > 80)) errors.push('每條群組規則最多 80 字')
       break
