@@ -130,7 +130,9 @@ export default function GroupDetailModal() {
 
   const picks = useMemo(() => {
     if (!group) return []
-    const recruiting = groups.filter(g => g.status === 'recruiting' && g.openSeats > 0 && g.id !== group.id && g.hostId !== activeUserId)
+    const recruiting = groups.filter(g =>
+      ((g.status === 'recruiting' && g.openSeats > 0) || g.status === 'full') && g.id !== group.id && g.hostId !== activeUserId
+    )
     return [
       ...recruiting.filter(g => g.serviceId === group.serviceId),
       ...recruiting.filter(g => g.serviceId !== group.serviceId),
