@@ -193,12 +193,12 @@ async function resolvePlanPricing(serviceId, planName) {
   const plan = service.plans.find(p => p.name === planName)
   if (!plan) return null
   return {
-    planId:       plan.id,
-    planName:     plan.name,
-    maxMembers:   plan.maxMembers,
-    monthlyFee:   plan.monthlyFee,
-    currency:     plan.currency ?? 'TWD',
-    billingCycle: plan.name.includes('年繳') ? 'yearly' : 'monthly',
+    planId:          plan.id,
+    planName:        plan.name,
+    maxMembers:      plan.maxMembers,
+    totalMonthlyFee: plan.monthlyFee,
+    currency:        plan.currency ?? 'TWD',
+    billingCycle:    plan.name.includes('年繳') ? 'yearly' : 'monthly',
   }
 }
 
@@ -215,10 +215,32 @@ router.post('/', requireAuth, validate(createGroupSchema), async (req, res, next
       maxMembers = req.body.maxMembers
     }
 
+    const activeSameServiceCount = await prisma.group.count({
+      where: {
+        hostId:    req.user.id,
+        serviceId: req.body.serviceId,
+        status:    { notIn: ['cancelled', 'ended'] },
+      },
+    })
+    if (activeSameServiceCount >= 1) {
+      return res.status(400).json({ message: '你已經有一個同服務進行中的群組，請先結束或解散該群組後再建立新的' })
+    }
+
+    const monthlyFee = Math.ceil(pricing.totalMonthlyFee / maxMembers)
+
     const allowed = ['serviceId','rules','tags','minCreditScore','minGroupAge'];
     const data = Object.fromEntries(Object.entries(req.body).filter(([k]) => allowed.includes(k)))
     const group = await prisma.group.create({
-      data: { ...data, ...pricing, maxMembers, hostId: req.user.id },
+      data: {
+        ...data,
+        planId:       pricing.planId,
+        planName:     pricing.planName,
+        currency:     pricing.currency,
+        billingCycle: pricing.billingCycle,
+        monthlyFee,
+        maxMembers,
+        hostId: req.user.id,
+      },
       include: { service: true, host: HOST_PUBLIC_SELECT },
     })
 
