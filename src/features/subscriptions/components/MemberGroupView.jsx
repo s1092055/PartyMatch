@@ -84,7 +84,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
 
   const serviceDef        = getServiceById(group.serviceId)
   const planDef           = serviceDef?.plans.find(p => p.name === group.planName)
-  const isPaymentRelevant = !['recruiting', 'full'].includes(group.status)
+  const isPaymentRelevant = !['recruiting', 'full', 'cancelled'].includes(group.status)
 
   const sharingMethodConfig = getSharingMethodConfig(serviceDef?.sharingMethod)
   const isSharedCredentials = isSharedCredentialsMethod(serviceDef?.sharingMethod);

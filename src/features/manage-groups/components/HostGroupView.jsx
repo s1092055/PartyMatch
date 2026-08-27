@@ -304,7 +304,7 @@ export default function HostGroupView(
       })
     }
     if (activePanel === 'applications') return buildApplicationsPanel({ pendingApps, groupFull, errors, onApprove, onReject, setActivePanel, setShowReviewHistory: openReviewHistory })
-    if (activePanel === 'billing') return buildBillingPanel({ members, transactions, transactionsLoading, showRenewal, onOpenRenewal, escrowTokens: group.escrowTokens })
+    if (activePanel === 'billing') return buildBillingPanel({ members, transactions, transactionsLoading, showRenewal, onOpenRenewal, escrowTokens: group.escrowTokens, isCancelled })
     if (activePanel === 'memberInfo') {
       return buildMemberInfoPanel({
         groupId: group.id,
@@ -403,12 +403,10 @@ export default function HostGroupView(
             申請管理
           </GroupModalSideBarItem>
         )}
-        {!isCancelled && (
-          <GroupModalSideBarItem active={activePanel === 'billing'} onClick={() => goToPanel('billing')}>
-            <Banknote strokeWidth={1.5} size={17} />
-            收款管理
-          </GroupModalSideBarItem>
-        )}
+        <GroupModalSideBarItem active={activePanel === 'billing'} onClick={() => goToPanel('billing')}>
+          <Banknote strokeWidth={1.5} size={17} />
+          收款管理
+        </GroupModalSideBarItem>
         {!isRecruiting && !isCancelled && (
           <GroupModalSideBarItem active={activePanel === 'memberInfo'} onClick={() => goToPanel('memberInfo')} className="relative">
             <span className="relative">

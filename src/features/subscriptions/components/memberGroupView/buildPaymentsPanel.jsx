@@ -7,6 +7,8 @@ const RELEASED_STATUSES = ['active', 'ended']
 
 export function buildPaymentsPanel({ group, member, transactions, transactionsLoading }) {
   const latestEscrow = transactions.find(tx => tx.type === 'escrow') ?? null;
+  const latestRefund = transactions.find(tx => tx.type === 'refund') ?? null;
+  const isCancelled  = group.status === 'cancelled'
   const isReleased   = RELEASED_STATUSES.includes(group.status)
   const escrowTime = member?.joinedAtTime ?? latestEscrow?.createdAt;
 
@@ -15,6 +17,18 @@ export function buildPaymentsPanel({ group, member, transactions, transactionsLo
       <div className="p-5">
         {transactionsLoading ? (
           <p className="py-8 text-center text-sm text-ink-3">載入中…</p>
+        ) : isCancelled ? (
+          latestRefund ? (
+            <EscrowStatusCard
+              tone="success"
+              icon={ArrowUpCircle}
+              title="群組已解散，代管金額已退回"
+              subtitle={`${formatDateTime(latestRefund.createdAt)} 退回`}
+              amount={Math.abs(latestRefund.amount)}
+            />
+          ) : (
+            <EmptyState icon={Banknote} title="目前尚無代管紀錄" />
+          )
         ) : !latestEscrow ? (
           <EmptyState icon={Banknote} title="目前尚無代管紀錄" />
         ) : (

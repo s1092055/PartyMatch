@@ -7,15 +7,20 @@ import EscrowStatusCard from '../../../../components/ui/EscrowStatusCard'
 import TokenAmount from '../../../../components/ui/TokenAmount'
 import { formatDateTime } from '../../../../common/utils/date'
 
-export function buildBillingPanel({ members, transactions, transactionsLoading, showRenewal, onOpenRenewal, escrowTokens }) {
+export function buildBillingPanel({ members, transactions, transactionsLoading, showRenewal, onOpenRenewal, escrowTokens, isCancelled }) {
   const releasedTotal = transactions
     .filter(tx => tx.type === 'release')
     .reduce((sum, tx) => sum + tx.amount, 0);
 
+  const refundedTotal = transactions
+    .filter(tx => tx.type === 'refund')
+    .reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
+
   const latestEscrowByUserId = {};
+  const latestRefundByUserId = {};
   for (const tx of transactions) {
-    if (tx.type !== 'escrow') continue
-    latestEscrowByUserId[tx.userId] ??= tx;
+    if (tx.type === 'escrow') latestEscrowByUserId[tx.userId] ??= tx;
+    if (tx.type === 'refund') latestRefundByUserId[tx.userId] ??= tx;
   }
 
   const memberEscrowTotal = escrowTokens > 0
@@ -34,15 +39,23 @@ export function buildBillingPanel({ members, transactions, transactionsLoading, 
           <EmptyState icon={Banknote} title="目前尚無成員" />
         ) : (
           <div className="space-y-4">
-            {memberEscrowTotal > 0 && (
-              <EscrowStatusCard tone="info" icon={Banknote} title="本期費用由平台代管中" amount={memberEscrowTotal} />
-            )}
-            {releasedTotal > 0 && (
-              <EscrowStatusCard tone="success" icon={ArrowUpCircle} title="已撥款給你的代管總額" amount={releasedTotal} />
+            {isCancelled ? (
+              refundedTotal > 0 && (
+                <EscrowStatusCard tone="success" icon={ArrowUpCircle} title="群組已解散，代管金額已退回成員" amount={refundedTotal} />
+              )
+            ) : (
+              <>
+                {memberEscrowTotal > 0 && (
+                  <EscrowStatusCard tone="info" icon={Banknote} title="本期費用由平台代管中" amount={memberEscrowTotal} />
+                )}
+                {releasedTotal > 0 && (
+                  <EscrowStatusCard tone="success" icon={ArrowUpCircle} title="已撥款給你的代管總額" amount={releasedTotal} />
+                )}
+              </>
             )}
             <div className="overflow-hidden rounded-lg border border-line">
               {members.map((m, i) => {
-                const tx = latestEscrowByUserId[m.userId]
+                const tx = isCancelled ? latestRefundByUserId[m.userId] : latestEscrowByUserId[m.userId]
                 return (
                   <div key={m.id} className={`flex items-center gap-3 px-4 py-3 ${i > 0 ? 'border-t border-line-subtle' : ''}`}>
                     <span className="relative inline-block shrink-0">
@@ -52,9 +65,15 @@ export function buildBillingPanel({ members, transactions, transactionsLoading, 
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold text-ink">{m.userName}</p>
 
-                      <p className="text-xs text-ink-3">{tx ? `${formatDateTime(m.joinedAtTime)} 平台代管` : '尚無代管紀錄'}</p>
+                      <p className="text-xs text-ink-3">
+                        {tx ? `${formatDateTime(isCancelled ? tx.createdAt : m.joinedAtTime)} ${isCancelled ? '已退回' : '平台代管'}` : '尚無代管紀錄'}
+                      </p>
                     </div>
-                    {tx && <span className="shrink-0 text-sm font-bold text-info"><TokenAmount amount={Math.abs(tx.amount)} /></span>}
+                    {tx && (
+                      <span className={`shrink-0 text-sm font-bold ${isCancelled ? 'text-success-text' : 'text-info'}`}>
+                        <TokenAmount amount={Math.abs(tx.amount)} />
+                      </span>
+                    )}
                   </div>
                 );
               })}
