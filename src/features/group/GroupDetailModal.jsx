@@ -9,12 +9,14 @@ import { useMemberStore } from '../../common/stores/useMemberStore'
 import { useFavoriteStore } from '../../common/stores/useFavoriteStore'
 import { useAuthStore } from '../../common/stores/useAuthStore'
 import { finalizeLeaveGroup } from './utils/leaveGroupFlow'
+import { isHistoryGroup } from '../../common/utils/groupStatusDisplay'
 import { calcDisplayPrice } from '../../common/utils/pricingUtils'
 import { toast } from '../../common/utils/toast'
 import { LOCKED_MESSAGE } from '../../common/layout/components/navConstants'
 import { useIsDesktop } from '../../common/utils/hooks'
 import { TokenBadge } from '../../components/ui/TokenAmount'
 import ConfirmActionDialog from '../../components/ui/ConfirmActionDialog'
+import CountdownText from '../../components/ui/primitives/CountdownText'
 import GroupModalShell from '../../components/ui/group/GroupModalShell'
 import GroupPriceSeatSummary from '../../components/ui/group/GroupPriceSeatSummary'
 import MemberGroupView from '../subscriptions/components/MemberGroupView'
@@ -30,7 +32,6 @@ export default function GroupDetailModal() {
   const [showApply, setShowApply]           = useState(false)
   const [applyMessage, setApplyMessage]     = useState('')
   const [applyAgreed, setApplyAgreed]       = useState(false)
-  const [applySubmitted, setApplySubmitted] = useState(false)
   const [showMembers, setShowMembers]           = useState(false)
   const [leaveConfirm, setLeaveConfirm]         = useState(false)
   const [cancelConfirm, setCancelConfirm]       = useState(false)
@@ -79,7 +80,7 @@ export default function GroupDetailModal() {
   const isFav        = useFavoriteStore(s => groupId && activeUserId ? s.isFavorited(activeUserId, groupId) : false)
 
   function resetApply() {
-    setShowApply(false); setApplyMessage(''); setApplyAgreed(false); setApplySubmitted(false)
+    setShowApply(false); setApplyMessage(''); setApplyAgreed(false)
   }
 
   const locationRef = useRef(location)
@@ -120,7 +121,7 @@ export default function GroupDetailModal() {
   const plan    = service?.plans.find(p => p.name === group?.planName)
 
   const memberRecord        = group && activeUserId ? (members.find(m => m.userId === activeUserId && m.groupId === group.id) ?? null) : null
-  const hasServiceInfoIssue = !!memberRecord?.serviceInfoIssueNote
+  const hasServiceInfoIssue = !!memberRecord?.serviceInfoIssueNote && !isHistoryGroup(group ?? {})
   const hasServiceInfo      = hasFilledServiceInfo(memberRecord?.serviceInfo, service?.sharingMethod) && !hasServiceInfoIssue
 
   const picks = useMemo(() => {
@@ -164,7 +165,7 @@ export default function GroupDetailModal() {
   const canApply = !isHost && !isMember && !hasActiveApp && !isFull && !!activeUserId
 
   function handleClose() {
-    setShowMembers(false); setLeaveConfirm(false); setCancelConfirm(false); resetApply()
+    setShowMembers(false); setLeaveConfirm(false); setCancelConfirm(false)
     const params = new URLSearchParams(location.search)
     if (params.has('group')) {
       params.delete('group')
@@ -193,7 +194,6 @@ export default function GroupDetailModal() {
       toast('已取消申請')
       setCancelConfirm(false)
       handleClose()
-      navigate('/explore')
     } catch (err) {
       const freshStatus = useApplicationStore.getState().getByUserAndGroup(activeUserId, group.id)?.status;
       const msg =
@@ -223,8 +223,10 @@ export default function GroupDetailModal() {
         hostAvatarColor: group.hostAvatarColor,
         message: applyMessage,
       }, useAuthStore.getState().getProfile())
-      toast('申請已送出！')
-      setApplySubmitted(true)
+      handleClose()
+      toast('申請已送出！', 'success', {
+        action: { label: '前往我的訂閱', onClick: () => navigate('/my-subscriptions') },
+      })
     } catch (err) {
       const msg = err?.response?.data?.message ?? err?.message ?? '申請失敗，請稍後再試'
       const code = err?.response?.data?.code
@@ -237,7 +239,8 @@ export default function GroupDetailModal() {
         toast('慢了一步，這個群組剛好被團主解散或已額滿，無法申請', 'error');
         useGroupStore.getState().refreshGroup(group.id).catch(console.error)
       } else if (code === 'REAPPLY_COOLDOWN') {
-        toast('你最近曾被移出此群組，暫時無法重新申請', 'error')
+        const cooldownEnds = err?.response?.data?.cooldownEnds
+        toast(cooldownEnds ? <span>請等待 <CountdownText deadline={cooldownEnds} /> 後再重新申請</span> : msg, 'error')
       } else if (code === 'CREDIT_SCORE_TOO_LOW') {
         toast('信用分數不足，無法申請此群組', 'error')
       } else {
@@ -362,7 +365,6 @@ export default function GroupDetailModal() {
         setApplyMessage={setApplyMessage}
         applyAgreed={applyAgreed}
         setApplyAgreed={setApplyAgreed}
-        applySubmitted={applySubmitted}
         applying={applying}
         onApply={handleApply}
       />
@@ -412,7 +414,7 @@ export default function GroupDetailModal() {
       {leaveConfirm && (
         <ConfirmActionDialog
           title="確認退出群組？"
-          message={`退出後將釋出名額，需重新申請才能加入「${group?.serviceName}」。`}
+          message={`退出後將釋出名額，且需等待 10 分鐘後才能重新申請加入「${group?.serviceName}」。`}
           confirmLabel="退出群組"
           danger
           onConfirm={handleLeave}

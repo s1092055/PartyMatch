@@ -28,6 +28,7 @@ import { fetchGroupTokenTransactions } from '../../../common/api/tokensApi'
 import { toast } from '../../../common/utils/toast'
 import { useEvidenceUpload } from '../../../common/utils/hooks'
 import { isEffectivelyActive } from '../../../common/utils/groupStatus'
+import { isHistoryGroup } from '../../../common/utils/groupStatusDisplay'
 
 export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpenCredentials }) {
   const [activePanel, setActivePanel] = useState(null);
@@ -88,7 +89,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
   const sharingMethodConfig = getSharingMethodConfig(serviceDef?.sharingMethod)
   const isSharedCredentials = isSharedCredentialsMethod(serviceDef?.sharingMethod);
   const canViewCredentials  = isSharedCredentials && isPaymentRelevant;
-  const hasServiceInfoIssue = !!myMember?.serviceInfoIssueNote && group.status !== 'disputed';
+  const hasServiceInfoIssue = !!myMember?.serviceInfoIssueNote && group.status !== 'disputed' && !isHistoryGroup(group);
   const hasServiceInfo      = hasFilledServiceInfo(myMember?.serviceInfo, serviceDef?.sharingMethod) && !hasServiceInfoIssue
   const needsFillInfo       = !!sub && isPaymentRelevant && !hasServiceInfo && group.status === 'pending_confirmation'
   const waitingForOthers    = !!sub && hasServiceInfo && group.status === 'pending_confirmation';
@@ -512,7 +513,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
       {leaveConfirm && (
         <ConfirmActionDialog
           title="退出群組"
-          message={`確定要退出「${group.serviceName}」群組嗎？退出後名額將釋出，若要再加入需要重新提出申請。`}
+          message={`確定要退出「${group.serviceName}」群組嗎？退出後名額將釋出，且需等待 10 分鐘後才能重新提出申請。`}
           confirmLabel="退出"
           danger
           onConfirm={() => { setLeaveConfirm(false); onLeaveGroup?.() }}

@@ -11,21 +11,22 @@ function httpError(statusCode, message, responsePayload) {
 }
 
 export async function submitApplication({ groupId, message, userId }) {
-  const [group, applicant, lastRemoved, existing] = await Promise.all([
+  const [group, applicant, lastDeparture, existing] = await Promise.all([
     prisma.group.findUnique({ where: { id: groupId }, include: { service: { select: { name: true } } } }),
     prisma.user.findUnique({ where: { id: userId }, select: { tokenBalance: true, creditScore: true, name: true } }),
-    prisma.application.findFirst({ where: { groupId, userId, status: 'removed' }, orderBy: { updatedAt: 'desc' } }),
+    prisma.application.findFirst({ where: { groupId, userId, status: { in: ['removed', 'left'] } }, orderBy: { updatedAt: 'desc' } }),
     prisma.application.findFirst({ where: { groupId, userId }, orderBy: { createdAt: 'desc' } }),
   ])
   if (!group) throw httpError(404, '群組不存在')
   if (group.status !== 'recruiting') throw httpError(400, '此群組目前不開放申請')
   if (group.hostId === userId) throw httpError(400, '團主不能申請自己的群組')
 
-  if (lastRemoved) {
-    const cooldownEnds = new Date(lastRemoved.updatedAt)
-    cooldownEnds.setHours(cooldownEnds.getHours() + 24)
+  if (lastDeparture) {
+    const cooldownEnds = new Date(lastDeparture.updatedAt)
+    cooldownEnds.setMinutes(cooldownEnds.getMinutes() + 10)
     if (cooldownEnds > new Date()) {
-      throw httpError(400, `你先前被移出這個群組，需等到 ${cooldownEnds.toISOString()} 才能重新申請`, {
+      const reason = lastDeparture.status === 'left' ? '先前退出這個群組' : '先前被移出這個群組'
+      throw httpError(400, `你${reason}，需等到 ${cooldownEnds.toISOString()} 才能重新申請`, {
         code:         'REAPPLY_COOLDOWN',
         cooldownEnds: cooldownEnds.toISOString(),
       })

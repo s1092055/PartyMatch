@@ -13,7 +13,6 @@ export default function ApplyModal({
   isOpen, onClose,
   applyMessage, setApplyMessage,
   applyAgreed, setApplyAgreed,
-  applySubmitted,
   applying,
   onApply,
 }) {
@@ -27,30 +26,15 @@ export default function ApplyModal({
   return (
     <Dialog open={isOpen} onOpenChange={v => { if (!v) handleCancelClick() }}>
       <DialogContent variant="panel" maxWidth="max-w-md" instant>
-        {!applySubmitted && (
-          <DialogHeader>
-            <div className="flex min-w-0 items-center gap-2.5">
-              <FileText size={16} strokeWidth={1.5} className="shrink-0 text-brand" />
-              <DialogTitle className="truncate text-base">申請加入群組</DialogTitle>
-            </div>
-            <DialogCloseButton />
-          </DialogHeader>
-        )}
+        <DialogHeader>
+          <div className="flex min-w-0 items-center gap-2.5">
+            <FileText size={16} strokeWidth={1.5} className="shrink-0 text-brand" />
+            <DialogTitle className="truncate text-base">申請加入群組</DialogTitle>
+          </div>
+          <DialogCloseButton />
+        </DialogHeader>
         <DialogDescription>申請加入群組</DialogDescription>
         <DialogBody>
-      {applySubmitted ? (
-        <div className="animate-step-slide-up flex flex-col items-center gap-4 px-6 py-6 text-center">
-          <ServiceLogo serviceId={group.serviceId} size={56} className="border-line-strong" />
-          <div className="space-y-1">
-            <p className="text-base font-bold text-ink">
-              {group.serviceName}
-              {group.planName && <span className="font-medium text-ink-3"> | {group.planName}</span>}
-            </p>
-            <p className="mt-2 text-base font-bold text-ink">申請已送出！等待團主審核，<br />請留意通知。</p>
-          </div>
-          <Button variant="default" size="md" className="mt-2 min-w-[7rem]" onClick={onClose}>確認</Button>
-        </div>
-      ) : (
         <div className="animate-step-slide-up flex flex-col gap-4 p-5">
           <div className="rounded-lg border border-line bg-raised/50 px-4 py-3">
             <div className="flex items-center gap-3">
@@ -94,7 +78,6 @@ export default function ApplyModal({
             <Button variant="default" size="md" className="flex-1" disabled={!applyAgreed} loading={applying} onClick={onApply}>送出申請</Button>
           </div>
         </div>
-      )}
         </DialogBody>
       </DialogContent>
 
