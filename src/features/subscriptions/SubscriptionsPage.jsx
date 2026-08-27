@@ -10,6 +10,7 @@ import { finalizeLeaveGroup } from '../group/utils/leaveGroupFlow'
 import SubscriptionCard from './components/SubscriptionCard'
 import EmptyState from '../../components/ui/primitives/EmptyState'
 import { StatusBadge } from '../../components/ui/StatusBadge'
+import { getStatusLabel } from '../../components/ui/statusBadgeConfig'
 import GroupViewModal from '../../components/ui/group/GroupViewModal'
 import { StatCell, StatCellGrid } from '../../components/ui/group/StatCellGrid'
 import TokenAmount from '../../components/ui/TokenAmount'
@@ -209,6 +210,7 @@ export default function SubscriptionsPage() {
 }
 
 function ApplicationCard({ app, group, onViewGroup }) {
+  const isLastSeat = group.openSeats === 1
   return (
     <Card
       as="article"
@@ -240,7 +242,18 @@ function ApplicationCard({ app, group, onViewGroup }) {
 
       <StatCellGrid>
         <StatCell label="團主">{app.hostName ?? '—'}</StatCell>
-        <StatCell label="群組狀態" highlight="text-warning-text">審核中</StatCell>
+        <StatCell label="剩餘名額">
+          {group.totalSeats == null ? (
+            '—'
+          ) : group.openSeats <= 0 ? (
+            <span className="text-ink-3">{getStatusLabel('full')}</span>
+          ) : (
+            <>
+              <span className={isLastSeat ? 'text-warning-text' : 'text-success'}>{group.openSeats}</span>
+              <span className="text-ink-4"> / {group.totalSeats}</span>
+            </>
+          )}
+        </StatCell>
         <StatCell label="申請日期">{toISODate(app.createdAt)}</StatCell>
       </StatCellGrid>
 
