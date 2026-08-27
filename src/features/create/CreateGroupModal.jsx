@@ -247,7 +247,7 @@ export default function CreateGroupModal() {
 
           <div
             ref={bodyRef}
-            className="min-h-0 flex-1 overflow-y-auto px-6 py-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-6 py-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             <div key={step} className="animate-step-slide-up">
               {isPlanOrSettingsStep && (
