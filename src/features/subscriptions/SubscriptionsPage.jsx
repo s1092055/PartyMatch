@@ -216,7 +216,7 @@ function ApplicationCard({ app, group, onViewGroup }) {
       onClick={onViewGroup}
     >
       <div className="flex justify-center">
-        <StatusBadge status="pending" label="團主審核中" />
+        <StatusBadge status="pending" label="審核中" />
       </div>
 
       <div className="mt-4 flex justify-center">
