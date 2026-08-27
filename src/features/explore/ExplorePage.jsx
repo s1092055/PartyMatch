@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Compass } from 'lucide-react'
 import { useGroupStore } from '../../common/stores/useGroupStore'
@@ -25,6 +25,10 @@ export default function ExplorePage() {
   const groups = useGroupStore(s => s.groups)
   const applications = useApplicationStore(s => s.applications)
   const members = useMemberStore(s => s.members)
+
+  useEffect(() => {
+    useGroupStore.getState().init()
+  }, [location.key])
 
   const allGroups = useMemo(
     () => groups.filter(g => g.hostId !== activeUserId),
