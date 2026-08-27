@@ -2,13 +2,25 @@ import 'dotenv/config';
 import prisma from '../src/lib/prisma.js'
 
 async function main() {
-  console.log('清空資料中（保留 users、services）...\n')
+  console.log('清空資料中（保留 users、services，以及使用者註冊時收到的系統訊息）...\n')
 
-  await prisma.message.deleteMany()
-  console.log('  - messages')
+  await prisma.credentialComment.deleteMany()
+  console.log('  - credential_comments')
 
-  await prisma.conversation.deleteMany()
-  console.log('  - conversations')
+  await prisma.dispute.deleteMany()
+  console.log('  - disputes')
+
+  await prisma.creditScoreLog.deleteMany()
+  console.log('  - credit_score_logs')
+
+  await prisma.review.deleteMany()
+  console.log('  - reviews')
+
+  await prisma.message.deleteMany({ where: { conversation: { type: { not: 'system' } } } })
+  console.log('  - messages（system 類型的系統訊息保留）')
+
+  await prisma.conversation.deleteMany({ where: { type: { not: 'system' } } })
+  console.log('  - conversations（system 類型保留）')
 
   await prisma.notification.deleteMany()
   console.log('  - notifications')
@@ -31,10 +43,10 @@ async function main() {
   await prisma.tokenTransaction.deleteMany()
   console.log('  - token_transactions')
 
-  await prisma.user.updateMany({ data: { tokenBalance: 0 } })
-  console.log('  - 所有使用者 PM幣已歸零')
+  await prisma.user.updateMany({ data: { tokenBalance: 0, creditScore: 100 } })
+  console.log('  - 所有使用者 PM幣已歸零、信用分數重置為 100')
 
-  console.log('\n清空完成（users 與 services 已保留，PM幣已歸零）')
+  console.log('\n清空完成（users、services、系統訊息已保留）')
 }
 
 main()

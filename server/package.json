@@ -16,6 +16,7 @@
     "db:seed": "node prisma/seed.js",
     "db:clear": "node prisma/clearProd.js",
     "db:clear-data": "node prisma/clearData.js",
+    "db:clear-data:prod": "DOTENV_CONFIG_PATH=.env.production node prisma/clearData.js",
     "db:encrypt-credentials": "node prisma/encryptSharedCredentials.js",
     "db:encrypt-credentials:prod": "DOTENV_CONFIG_PATH=.env.production node prisma/encryptSharedCredentials.js",
     "db:extract-r2-keys": "node prisma/extractR2Keys.js",
