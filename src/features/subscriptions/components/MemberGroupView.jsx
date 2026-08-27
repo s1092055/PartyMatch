@@ -362,7 +362,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
         group={group}
         service={serviceDef}
         plan={planDef}
-        hideRecruitBar
+        hideRecruitBar={group.status !== 'recruiting'}
         headerBanner={
           hasServiceInfoIssue ? (
             <div className="flex items-center justify-center bg-warning-subtle px-6 py-3 text-sm font-extrabold text-warning-text">
