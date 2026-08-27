@@ -107,7 +107,7 @@ function migrateRating(v) {
 export function normalizeGroup(group) {
   const service = group.service ?? {};
   const host    = group.host    ?? {}
-  const memberCount = group._count?.members ?? group.currentMembers ?? 0
+  const memberCount = group.currentMembers ?? group._count?.members ?? 0
 
   const serviceName = group.serviceName ?? service.name ?? ''
   const pricePerSeat = group.pricePerSeat ?? group.monthlyFee ?? 0

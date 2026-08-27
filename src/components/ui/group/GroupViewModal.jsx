@@ -30,7 +30,6 @@ export default function GroupViewModal({
 
   useEffect(() => {
     if (!isOpen || !groupId) return
-    if (!['confirming', 'pending_confirmation'].includes(useGroupStore.getState().getById(groupId)?.status)) return
     useGroupStore.getState().refreshGroup(groupId).catch(console.error)
   }, [isOpen, groupId]);
 

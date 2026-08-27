@@ -16,7 +16,6 @@ export async function finalizeLeaveGroup(groupId, user) {
     } catch (e) { console.error('[leaveGroupFlow] leaveConversation failed:', e) }
   }
 
-  const group = groupId ? useGroupStore.getState().getById(groupId) : null
   const member = groupId ? useMemberStore.getState().getByUserAndGroup(user.id, groupId) : null
   if (member) {
     useMemberStore.getState().remove(member.id)
@@ -38,15 +37,4 @@ export async function finalizeLeaveGroup(groupId, user) {
 
   const sub = groupId ? useSubscriptionStore.getState().getByUserId(user.id).find(s => s.groupId === groupId) : null
   if (sub) useSubscriptionStore.getState().remove(sub.id)
-
-  if (group) {
-    useGroupStore.setState(s => ({
-      groups: s.groups.map(g => g.id === groupId ? {
-        ...g,
-        usedSeats: Math.max(0, (g.usedSeats ?? 1) - 1),
-        openSeats: (g.openSeats ?? 0) + 1,
-        status: g.status === 'full' ? 'recruiting' : g.status,
-      } : g),
-    }));
-  }
 }

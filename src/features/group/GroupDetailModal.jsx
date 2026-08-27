@@ -79,6 +79,10 @@ export default function GroupDetailModal() {
   const members      = useMemberStore(s => s.members)
   const isFav        = useFavoriteStore(s => groupId && activeUserId ? s.isFavorited(activeUserId, groupId) : false)
 
+  useEffect(() => {
+    if (groupId) useGroupStore.getState().refreshGroup(groupId).catch(console.error)
+  }, [groupId]);
+
   function resetApply() {
     setShowApply(false); setApplyMessage(''); setApplyAgreed(false)
   }
@@ -235,6 +239,7 @@ export default function GroupDetailModal() {
           icon: <TokenBadge />,
           action: { label: '前往儲值', onClick: () => window.dispatchEvent(new CustomEvent('pm:open-topup')) },
         })
+        useAuthStore.getState().refreshTokenBalance().catch(console.error)
       } else if (code === 'GROUP_NOT_RECRUITING') {
         toast('慢了一步，這個群組剛好被團主解散或已額滿，無法申請', 'error');
         useGroupStore.getState().refreshGroup(group.id).catch(console.error)
