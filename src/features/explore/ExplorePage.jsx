@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { Compass } from 'lucide-react'
+import { Compass, RefreshCw } from 'lucide-react'
 import { useGroupStore } from '../../common/stores/useGroupStore'
 import { useApplicationStore } from '../../common/stores/useApplicationStore'
 import { useMemberStore } from '../../common/stores/useMemberStore'
@@ -25,10 +25,21 @@ export default function ExplorePage() {
   const groups = useGroupStore(s => s.groups)
   const applications = useApplicationStore(s => s.applications)
   const members = useMemberStore(s => s.members)
+  const [refreshing, setRefreshing] = useState(false)
 
   useEffect(() => {
     useGroupStore.getState().init()
   }, [location.key])
+
+  async function handleRefresh() {
+    if (refreshing) return
+    setRefreshing(true)
+    try {
+      await useGroupStore.getState().init()
+    } finally {
+      setRefreshing(false)
+    }
+  }
 
   const allGroups = useMemo(
     () => groups.filter(g => g.hostId !== activeUserId),
@@ -49,8 +60,8 @@ export default function ExplorePage() {
   }, [activeUserId, applications, members])
 
   const filtered = useMemo(
-    () => applyFilters(allGroups, filters, memberGroupIds),
-    [allGroups, filters, memberGroupIds],
+    () => applyFilters(allGroups, filters),
+    [allGroups, filters],
   )
 
   function handleFilterChange(patch) {
@@ -60,6 +71,21 @@ export default function ExplorePage() {
   return (
     <div className="px-2 md:px-4">
       <PageHeader title="探索群組" className="mb-4 text-center" />
+
+      <div className="fixed bottom-9 right-6 z-40 can-hover:lg:bottom-24">
+        <button
+          type="button"
+          onClick={handleRefresh}
+          disabled={refreshing}
+          aria-label="重新整理群組列表"
+          className="relative grid h-14 w-14 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-floating transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand disabled:opacity-60 lg:h-12 lg:w-12 dark:border-[#238EC7] dark:text-[#238EC7]"
+        >
+          <span className={`inline-flex size-6 lg:size-5 ${refreshing ? 'animate-spin [animation-duration:1.6s]' : ''}`}>
+            <RefreshCw className="size-full" strokeWidth={1.5} />
+          </span>
+        </button>
+      </div>
+
       <FilterBar filters={filters} onChange={handleFilterChange} />
       {filtered.length === 0 ? (
         <EmptyState

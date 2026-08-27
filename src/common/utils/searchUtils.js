@@ -3,11 +3,8 @@ import { getServiceById } from './serviceUtils'
 export function applyFilters(
   groups,
   { category, service, maxPrice, sortBy, q },
-  memberGroupIds = new Set()
 ) {
-  let result = groups.filter(g =>
-    (g.status === 'recruiting' && g.openSeats > 0) || (g.status === 'full' && memberGroupIds.has(g.id))
-  )
+  let result = groups.filter(g => g.status === 'recruiting' && g.openSeats > 0)
 
   if (category !== 'all' && service === 'all') result = result.filter(g => getServiceById(g.serviceId)?.category === category)
   if (service !== 'all') result = result.filter(g => g.serviceId === service)
