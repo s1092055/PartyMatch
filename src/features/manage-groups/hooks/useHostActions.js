@@ -316,8 +316,8 @@ async function handleApprove(appId) {
       await updateApplicationStatus(appId, 'approved')
     } catch (err) {
       console.error('[handleApprove] failed:', err)
-      toast(err?.response?.data?.message ?? '接受失敗，請重試', 'error');
-      setErrors(prev => ({ ...prev, [appId]: '接受失敗，請重試' }))
+      toast(err?.message ?? '接受失敗，請稍後再試', 'error');
+      setErrors(prev => ({ ...prev, [appId]: '接受失敗，請稍後再試' }))
       await useApplicationStore.getState().init()
       return
     }
@@ -358,8 +358,8 @@ async function handleApprove(appId) {
       await updateApplicationStatus(appId, 'rejected')
     } catch (err) {
       console.error('[handleReject] failed:', err)
-      toast(err?.response?.data?.message ?? '拒絕失敗，請重試', 'error');
-      setErrors(prev => ({ ...prev, [appId]: '拒絕失敗，請重試' }))
+      toast(err?.message ?? '拒絕失敗，請稍後再試', 'error');
+      setErrors(prev => ({ ...prev, [appId]: '拒絕失敗，請稍後再試' }))
       await useApplicationStore.getState().init()
       return
     }

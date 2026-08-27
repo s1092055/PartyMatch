@@ -24,7 +24,7 @@ export default function DisputeAdjudicateForm({ dispute, onResolved }) {
       setReason('')
       onResolved()
     } catch (err) {
-      toast(err?.message ?? '裁定失敗', 'error')
+      toast(err?.message ?? '裁定失敗，請稍後再試', 'error')
     } finally {
       setLoading(false)
     }

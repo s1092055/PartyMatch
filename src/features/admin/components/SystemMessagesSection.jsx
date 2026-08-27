@@ -28,7 +28,7 @@ export default function SystemMessagesSection() {
       toast(`公告已發送給 ${sent} 位使用者`, 'success')
       setBroadcastContent('')
     } catch (err) {
-      toast(err?.message ?? '公告發送失敗', 'error')
+      toast(err?.message ?? '公告發送失敗，請稍後再試', 'error')
     } finally {
       setBroadcasting(false)
     }
@@ -44,7 +44,7 @@ export default function SystemMessagesSection() {
       const user = await findUserByEmail(directEmail.trim())
       setDirectTarget(user)
     } catch (err) {
-      setDirectLookupError(err?.message ?? '查詢失敗')
+      setDirectLookupError(err?.message ?? '查詢失敗，請稍後再試')
     } finally {
       setLookingUp(false)
     }
@@ -66,7 +66,7 @@ export default function SystemMessagesSection() {
       setDirectEmail('')
       setDirectTarget(null)
     } catch (err) {
-      toast(err?.message ?? '發送失敗', 'error')
+      toast(err?.message ?? '發送失敗，請稍後再試', 'error')
     } finally {
       setSendingDirect(false)
     }
