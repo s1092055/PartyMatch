@@ -4,11 +4,9 @@ import { useAuthStore } from '../../common/stores/useAuthStore'
 import EmptyState from '../../components/ui/primitives/EmptyState'
 import GroupViewModal from '../../components/ui/group/GroupViewModal'
 import GroupHistoryModal from '../../components/ui/group/GroupHistoryModal'
-import FilterTabsBar from '../../components/ui/FilterTabsBar'
 import RevealSection from '../../components/ui/primitives/RevealSection'
 import HostedGroupCard from './components/HostedGroupCard'
 import RenewalModal from './components/RenewalModal'
-import { STATUS_FILTER_TABS } from './utils/hostFilters'
 import { useHostActions } from './hooks/useHostActions'
 
 export default function ManageGroupsPage() {
@@ -18,7 +16,6 @@ export default function ManageGroupsPage() {
 
   const {
     errors,
-    statusFilter, setStatusFilter,
     viewGroupId, setViewGroupId,
     autoOpenLockGroup, setAutoOpenLockGroup,
     autoOpenActivate, setAutoOpenActivate,
@@ -26,7 +23,7 @@ export default function ManageGroupsPage() {
     autoOpenBilling, setAutoOpenBilling,
     autoOpenMemberInfo, setAutoOpenMemberInfo,
     setRenewalModalGroupId,
-    allGroups, displayGroups, historyGroups, filterCounts, membersMap, applicationCounts,
+    displayGroups, historyGroups, membersMap, applicationCounts,
     renewalModalGroup,
     groupHandlersMap,
     refreshGroups,
@@ -52,30 +49,18 @@ export default function ManageGroupsPage() {
           type="button"
           onClick={() => setHistoryOpen(true)}
           aria-label="群組紀錄"
-          className="relative flex h-12 w-12 items-center justify-center gap-2 rounded-full border border-line bg-surface text-sm font-bold text-ink-2 shadow-floating transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-10 lg:w-auto lg:justify-start lg:px-4"
+          className="relative grid h-14 w-14 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-floating transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-12 lg:w-12 dark:border-[#238EC7] dark:text-[#238EC7]"
         >
-          <Archive className="size-5 lg:size-4" strokeWidth={1.5} />
-          <span className="hidden lg:inline">群組紀錄</span>
+          <Archive className="size-6 lg:size-5" strokeWidth={1.5} />
         </button>
       </div>
-      <FilterTabsBar
-        tabs={STATUS_FILTER_TABS}
-        value={statusFilter}
-        onChange={setStatusFilter}
-        counts={filterCounts}
-      />
       <div className="min-w-0">
-        {allGroups.length === 0 ? (
+        {displayGroups.length === 0 ? (
           <EmptyState
             title="你還沒有建立任何群組"
             description="建立你的第一個共享群組"
             actionLabel="建立第一個群組"
             onAction={() => window.dispatchEvent(new CustomEvent('pm:open-create-group'))}
-          />
-        ) : displayGroups.length === 0 ? (
-          <EmptyState
-            title="此分類目前沒有群組"
-            description="試試切換到其他狀態分類"
           />
         ) : (
           <div className="grid grid-cols-1 gap-3 p-2 md:grid-cols-2 xl:grid-cols-3">

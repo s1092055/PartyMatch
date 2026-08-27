@@ -8,13 +8,11 @@ import { createGroupConversation, removeParticipantFromConversation, sendSystemM
 import { toast } from '../../../common/utils/toast'
 import { useConversationStore } from '../../../common/stores/useConversationStore'
 import { isHistoryGroup } from '../../../common/utils/groupStatusDisplay'
-import { STATUS_FILTER_TABS, matchesFilter, calcApprovalSeatPatch } from '../utils/hostFilters'
 import { getServiceById } from '../../../common/utils/serviceUtils'
 import { isSharedCredentialsMethod } from '../../../common/utils/serviceInfoFields'
 
 const getGroupById     = (id)      => useGroupStore.getState().getById(id);
 const getGroupsByHostId = (hostId) => useGroupStore.getState().getByHostId(hostId)
-const updateGroup      = (id, p)   => useGroupStore.getState().update(id, p)
 const lockGroup           = (id, sharedCredentials) => useGroupStore.getState().lockGroup(id, sharedCredentials)
 const activateService     = (id)   => useGroupStore.getState().activateService(id)
 const adjustBillingDate   = (id, payload) => useGroupStore.getState().adjustBillingDate(id, payload)
@@ -57,7 +55,6 @@ export function useHostActions(activeUser) {
 
   const [hostData, setHostData] = useState(() => loadHostData(activeUser))
   const [errors, setErrors] = useState({})
-  const [statusFilter, setStatusFilter] = useState('recruiting')
 
   const [viewGroupId, setViewGroupId]                     = useState(null)
   const [autoOpenLockGroup, setAutoOpenLockGroup] = useState(false)
@@ -67,16 +64,9 @@ export function useHostActions(activeUser) {
   const [autoOpenMemberInfo, setAutoOpenMemberInfo]       = useState(false)
   const [renewalModalGroupId, setRenewalModalGroupId]     = useState(null)
 
-  function applyOpenHostGroup({ groupId, openGroupId, statusFilter: selectedStatusFilter, openLockGroup, openActivate, openApplications, openBilling, openMemberInfo }) {
+  function applyOpenHostGroup({ groupId, openGroupId, openLockGroup, openActivate, openApplications, openBilling, openMemberInfo }) {
     const gId = groupId ?? openGroupId
     if (!gId) return
-    if (selectedStatusFilter) {
-      setStatusFilter(selectedStatusFilter)
-    } else {
-      const targetGroup = getGroupById(gId);
-      const matchedTab = targetGroup && STATUS_FILTER_TABS.find(tab => matchesFilter(targetGroup, tab.key))
-      if (matchedTab) setStatusFilter(matchedTab.key)
-    }
     setViewGroupId(gId)
     setAutoOpenLockGroup(!!openLockGroup)
     setAutoOpenActivate(!!openActivate)
@@ -110,22 +100,14 @@ export function useHostActions(activeUser) {
   )
 
   const displayGroups = useMemo(
-    () => allGroups.filter(g => matchesFilter(g, statusFilter)),
-    [allGroups, statusFilter],
+    () => allGroups.filter(g => !isHistoryGroup(g)),
+    [allGroups],
   )
 
   const historyGroups = useMemo(
     () => allGroups.filter(isHistoryGroup),
     [allGroups],
   )
-
-  const filterCounts = useMemo(() => {
-    const counts = {}
-    STATUS_FILTER_TABS.forEach(tab => {
-      counts[tab.key] = allGroups.filter(g => matchesFilter(g, tab.key)).length
-    })
-    return counts
-  }, [allGroups])
 
   const membersMap = useMemo(
     () => members.reduce((acc, m) => {
@@ -195,19 +177,6 @@ function handleRemoveMember(member) {
     if (app) updateApplicationStatus(app.id, 'removed')
     const sub = getSubscriptionByUserAndGroup(member.userId, member.groupId)
     if (sub) removeSubscription(sub.id)
-    const seats = seatMap[member.groupId] ?? (group ? { usedSeats: group.usedSeats, openSeats: group.openSeats } : null)
-    const newUsed = seats ? Math.max(0, seats.usedSeats - 1) : undefined
-    const newOpen = seats ? seats.openSeats + 1 : undefined
-    const statusPatch = group?.status === 'full' ? { status: 'recruiting' } : {}
-    const seatPatch = newUsed !== undefined ? { usedSeats: newUsed, openSeats: newOpen, ...statusPatch } : statusPatch
-    updateGroup(member.groupId, seatPatch)
-    setHostData(prev => ({
-      ...prev,
-      members: prev.hostedGroups.flatMap(g => getMembersByGroupId(g.id)),
-      ...(newUsed !== undefined && {
-        seatMap: { ...prev.seatMap, [member.groupId]: { usedSeats: newUsed, openSeats: newOpen } },
-      }),
-    }))
 
     const convId = getConvByGroupId(member.groupId)?.id;
     if (convId) {
@@ -355,27 +324,13 @@ async function handleApprove(appId) {
     await Promise.all([
       useMemberStore.getState().init(),
       useSubscriptionStore.getState().init(),
+      useGroupStore.getState().refreshGroup(app.groupId),
     ])
 
-    const seatPatch = calcApprovalSeatPatch(seats, alreadyMember)
-    const newUsedSeats = seatPatch?.usedSeats ?? seats.usedSeats
-    const newOpenSeats = seatPatch?.openSeats ?? seats.openSeats
-    if (seatPatch) updateGroup(app.groupId, seatPatch)
-
-    setHostData(prev => {
-      const updatedHostedGroups = prev.hostedGroups.map(g =>
-        g.id === app.groupId && seatPatch ? { ...g, ...seatPatch } : g
-      )
-      return {
-        ...prev,
-        hostedGroups:  updatedHostedGroups,
-        applications:  prev.applications.map(a => a.id === appId ? { ...a, status: 'approved' } : a),
-        members:       updatedHostedGroups.flatMap(g => getMembersByGroupId(g.id)),
-        seatMap:       seatPatch
-          ? { ...prev.seatMap, [app.groupId]: { usedSeats: newUsedSeats, openSeats: newOpenSeats } }
-          : prev.seatMap,
-      }
-    });
+    setHostData(prev => ({
+      ...prev,
+      applications: prev.applications.map(a => a.id === appId ? { ...a, status: 'approved' } : a),
+    }));
     removeError(appId)
   }
 
@@ -432,7 +387,6 @@ async function handleApprove(appId) {
 
   return {
     errors,
-    statusFilter, setStatusFilter,
     viewGroupId, setViewGroupId,
     autoOpenLockGroup, setAutoOpenLockGroup,
     autoOpenActivate, setAutoOpenActivate,
@@ -440,7 +394,7 @@ async function handleApprove(appId) {
     autoOpenBilling, setAutoOpenBilling,
     autoOpenMemberInfo, setAutoOpenMemberInfo,
     renewalModalGroupId, setRenewalModalGroupId,
-    allGroups, displayGroups, historyGroups, filterCounts, membersMap, applicationCounts,
+    allGroups, displayGroups, historyGroups, membersMap, applicationCounts,
     renewalModalGroup,
     groupHandlersMap,
     refreshGroups,

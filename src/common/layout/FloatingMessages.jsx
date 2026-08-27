@@ -64,9 +64,9 @@ function getMergedNotifications(userId) {
 }
 
 const NOTIFICATION_META = {
-  application_approved: { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-subscriptions', state: { tab: 'recruiting' } },
+  application_approved: { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-subscriptions' },
   application_rejected: { icon: AlertCircle,   iconColor: 'text-danger',     link: '/explore' },
-  application_sent:     { icon: CheckCircle2,  iconColor: 'text-brand',      link: '/my-subscriptions', state: { tab: 'processing' } },
+  application_sent:     { icon: CheckCircle2,  iconColor: 'text-brand',      link: '/my-subscriptions' },
   group_created:        { icon: CheckCircle2,  iconColor: 'text-success',    link: '/manage-groups' },
   new_application:      { icon: UserPlus,      iconColor: 'text-brand',      link: '/manage-groups' },
   application_cancelled: { icon: AlertCircle,  iconColor: 'text-ink-3',      link: '/manage-groups' },
@@ -79,7 +79,7 @@ const NOTIFICATION_META = {
   group_activated:      { icon: CheckCircle2,  iconColor: 'text-success',    link: '/my-subscriptions' },
   group_cancelled:      { icon: AlertCircle,   iconColor: 'text-danger',     link: '/explore' },
   group_renewal:        { icon: CheckCircle2,  iconColor: 'text-brand',      link: '/my-subscriptions' },
-  upcoming_renewal:     { icon: AlertCircle,   iconColor: 'text-warning-text', link: '/my-subscriptions', state: { tab: 'active' } },
+  upcoming_renewal:     { icon: AlertCircle,   iconColor: 'text-warning-text', link: '/my-subscriptions' },
   service_info_issue:   { icon: AlertCircle,   iconColor: 'text-amber-500',  link: '/my-subscriptions' },
   group_ended:          { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/explore' },
   member_removed:       { icon: AlertCircle,   iconColor: 'text-danger',     link: '/explore' },
@@ -219,7 +219,7 @@ export default function FloatingMessages() {
         }
         const grp = getGroupById(gId);
         if (grp && grp.status === 'recruiting') {
-          navigate('/my-subscriptions', { state: { tab: 'processing' } })
+          navigate('/my-subscriptions')
           window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: gId } }))
         } else {
           navigate('/explore')
@@ -270,7 +270,7 @@ export default function FloatingMessages() {
       ]).finally(() => {
         const hasSub = user ? !!getSubscriptionByUserAndGroup(user.id, gId) : false
         if (hasSub) {
-          navigate('/my-subscriptions', { state: { tab: 'recruiting', openGroupId: gId } });
+          navigate('/my-subscriptions', { state: { openGroupId: gId } });
         } else {
           navigate('/explore')
           openGroupOrRedirect(gId)
@@ -280,9 +280,9 @@ export default function FloatingMessages() {
     }
 
     if (notification.type === 'new_application' && notification.meta?.groupId) {
-      navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId, statusFilter: 'recruiting', openApplications: true } })
+      navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId, openApplications: true } })
       useApplicationStore.getState().init().finally(() => {
-        openHostGroup(notification.meta.groupId, { statusFilter: 'recruiting', openApplications: true })
+        openHostGroup(notification.meta.groupId, { openApplications: true })
       })
       return
     }
@@ -296,9 +296,9 @@ export default function FloatingMessages() {
     }
 
     if (notification.type === 'application_cancelled' && notification.meta?.groupId) {
-      navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId, statusFilter: 'recruiting', openApplications: true } })
+      navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId, openApplications: true } })
       useApplicationStore.getState().init().finally(() => {
-        openHostGroup(notification.meta.groupId, { statusFilter: 'recruiting', openApplications: true })
+        openHostGroup(notification.meta.groupId, { openApplications: true })
       })
       return
     }

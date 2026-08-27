@@ -13,14 +13,12 @@ import { StatusBadge } from '../../components/ui/StatusBadge'
 import GroupViewModal from '../../components/ui/group/GroupViewModal'
 import { StatCell, StatCellGrid } from '../../components/ui/group/StatCellGrid'
 import TokenAmount from '../../components/ui/TokenAmount'
-import FilterTabsBar from '../../components/ui/FilterTabsBar'
 import ServiceLogo from '../../components/ui/ServiceLogo'
 import { Button } from '../../components/ui/button'
 import { Card } from '../../components/ui/card'
 import RevealSection from '../../components/ui/primitives/RevealSection'
 import { toISODate } from '../../common/utils/date'
 import { calcDisplayPrice, calcDisplayCycle } from '../../common/utils/pricingUtils'
-import { FILTER_TABS, subscriptionBucket } from './utils/memberFilters'
 import { isHistorySubscription } from '../../common/utils/groupStatusDisplay'
 import GroupHistoryModal from '../../components/ui/group/GroupHistoryModal'
 
@@ -62,9 +60,8 @@ function enrichSubs(rawSubs, userId) {
   })
 }
 
-function filterSubs(subs, tab) {
-  const nonHistory = subs.filter(s => !isHistorySubscription(s))
-  return nonHistory.filter(s => subscriptionBucket(s) === tab)
+function filterSubs(subs) {
+  return subs.filter(s => !isHistorySubscription(s))
 }
 
 export default function SubscriptionsPage() {
@@ -77,7 +74,6 @@ export default function SubscriptionsPage() {
   const subscriptionsState = useSubscriptionStore(s => s.subscriptions);
   const groupsState        = useGroupStore(s => s.groups)
   const applicationsState  = useApplicationStore(s => s.applications)
-  const [activeTab, setActiveTab] = useState(() => location.state?.tab ?? 'recruiting')
   const membersState = useMemberStore(s => s.members)
   const subs = useMemo(
     () => activeUserId
@@ -91,9 +87,8 @@ export default function SubscriptionsPage() {
   const [autoOpenCredentials, setAutoOpenCredentials] = useState(false)
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (location.state?.tab) setActiveTab(location.state.tab)
     if (location.state?.openGroupId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setViewGroupId(location.state.openGroupId)
       setAutoOpenPayment(!!location.state.openPayment)
       setAutoOpenCredentials(!!location.state.openCredentials)
@@ -108,13 +103,6 @@ export default function SubscriptionsPage() {
   )
 
   const historySubs = useMemo(() => subs.filter(isHistorySubscription), [subs])
-
-  const filterCounts = useMemo(() => Object.fromEntries(
-    FILTER_TABS.map(({ key }) => [
-      key,
-      filterSubs(subs, key).length + (key === 'processing' ? pendingApplications.length : 0),
-    ])
-  ), [subs, pendingApplications])
 
   function handleLeaveGroup() {
     if (!viewGroupId || !activeUser) return
@@ -131,55 +119,45 @@ export default function SubscriptionsPage() {
   }
 
   const filtered = useMemo(
-    () => filterSubs(subs, activeTab),
-    [subs, activeTab],
+    () => filterSubs(subs),
+    [subs],
   )
 
   const onViewGroup = useCallback(sub => setViewGroupId(sub.groupId), [])
 
   return (
     <div className="px-2 md:px-4">
-      <div className="mb-6 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-        <div />
-        <h1 className="page-title mb-0 text-center">我的訂閱</h1>
-        <Button
-          variant="ghost"
+      <h1 className="page-title mb-6 text-center">我的訂閱</h1>
+
+      <div className="fixed bottom-9 left-6 z-40 can-hover:lg:left-24">
+        <button
+          type="button"
           onClick={() => setHistoryOpen(true)}
           aria-label="群組紀錄"
-          className="h-9 shrink-0 justify-self-end rounded-lg border border-line px-3"
+          className="relative grid h-14 w-14 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-floating transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-12 lg:w-12 dark:border-[#238EC7] dark:text-[#238EC7]"
         >
-          <Archive size={14} strokeWidth={1.5} />
-          群組紀錄
-        </Button>
+          <Archive className="size-6 lg:size-5" strokeWidth={1.5} />
+        </button>
       </div>
-      <FilterTabsBar
-        tabs={FILTER_TABS}
-        value={activeTab}
-        onChange={setActiveTab}
-        counts={filterCounts}
-      />
       <div className="min-w-0">
         {(() => {
-          const showApplications = activeTab === 'processing'
-          const visibleApplications = showApplications ? pendingApplications : []
-          const isEmpty = visibleApplications.length === 0 && filtered.length === 0
-          const hasNoGroupsAtAll = subs.filter(s => !isHistorySubscription(s)).length === 0 && pendingApplications.length === 0;
+          const isEmpty = pendingApplications.length === 0 && filtered.length === 0
 
           if (isEmpty) {
             return (
               <EmptyState
                 icon={ClipboardList}
-                title={hasNoGroupsAtAll ? '你還沒有加入任何群組' : '此分類目前沒有項目'}
-                description={hasNoGroupsAtAll ? '去探索頁面找找適合你的共享群組' : '切換到其他分類查看'}
-                actionLabel={hasNoGroupsAtAll ? '探索群組' : undefined}
-                onAction={hasNoGroupsAtAll ? () => navigate('/explore') : undefined}
+                title="你還沒有加入任何群組"
+                description="去探索頁面找找適合你的共享群組"
+                actionLabel="探索群組"
+                onAction={() => navigate('/explore')}
               />
             )
           }
 
           return (
             <div className="grid grid-cols-1 gap-3 p-2 md:grid-cols-2 xl:grid-cols-3">
-              {visibleApplications.map((app, i) => {
+              {pendingApplications.map((app, i) => {
                 const group = getGroupById(app.groupId)
                 if (!group) return null
                 return (
@@ -193,7 +171,7 @@ export default function SubscriptionsPage() {
                 )
               })}
               {filtered.map((sub, i) => (
-                <RevealSection key={sub.id} delay={(visibleApplications.length + i) * 60}>
+                <RevealSection key={sub.id} delay={(pendingApplications.length + i) * 60}>
                   <SubscriptionCard
                     sub={sub}
                     onViewGroup={onViewGroup}
