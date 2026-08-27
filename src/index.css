@@ -452,3 +452,14 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* 真桌機時 DesktopSidebar 佔走左側 ml-20(5rem)／右側留白 mr-24(6rem)，
+   可視內容中心比整個視窗中心偏左 0.5rem，top-center 的 Toaster 要跟著補償，
+   才會跟下方置中的 Modal 對齊在同一個視覺中心（同一套模式見 ScrollCue.jsx）。 */
+@media (hover: hover) and (pointer: fine) and (min-width: 1024px) {
+  [data-sonner-toaster][data-x-position="center"] {
+    /* sonner 套件本身的樣式是掛載時才用 JS 插入 <style>，一定排在這份 index.css 之後，
+       同樣的 specificity 會讓它蓋掉這裡的覆寫，必須加 !important 才能真的生效 */
+    left: calc(50% - 0.5rem) !important;
+  }
+}
