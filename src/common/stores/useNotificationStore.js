@@ -9,7 +9,7 @@ import { todayISO, byNewest } from '../utils/date'
 import { startPolling } from '../utils/poller'
 import { notifyError } from '../utils/toast'
 
-const POLL_INTERVAL_MS = 10000
+const POLL_INTERVAL_MS = 5000
 
 let _stopPolling = null
 let _notifUserId = null
