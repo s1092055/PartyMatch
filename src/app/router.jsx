@@ -1,0 +1,54 @@
+import { createBrowserRouter, Navigate } from 'react-router-dom'
+import AppLayout from '../shared/components/layout/AppLayout'
+import AboutPage from '../pages/about/AboutPage'
+import ExplorePage from '../pages/explore/ExplorePage'
+import QuickMatchPage from '../pages/quick-match/QuickMatchPage'
+import QuickMatchResultPage from '../pages/quick-match/QuickMatchResultPage'
+import GroupDetailPage from '../pages/group-detail/GroupDetailPage'
+import CreateGroupPage from '../pages/create-group/CreateGroupPage'
+import ManageGroupsPage from '../pages/manage-groups/ManageGroupsPage'
+import MySubscriptionsPage from '../pages/my-subscriptions/MySubscriptionsPage'
+import AccountCenterPage from '../pages/account/AccountCenterPage'
+import FavoritesPage from '../pages/favorites/FavoritesPage'
+import MessagesPage from '../pages/messages/MessagesPage'
+import LoginPage from '../pages/auth/login/LoginPage'
+import RegisterPage from '../pages/auth/register/RegisterPage'
+import ForgotPasswordPage from '../pages/auth/forgot-password/ForgotPasswordPage'
+import ProtectedRoute from '../shared/components/route/ProtectedRoute'
+import PublicOnlyRoute from '../shared/components/route/PublicOnlyRoute'
+
+const router = createBrowserRouter([
+  {
+    element: <PublicOnlyRoute />,
+    children: [
+      { path: '/login',           element: <LoginPage /> },
+      { path: '/register',        element: <RegisterPage /> },
+      { path: '/forgot-password', element: <ForgotPasswordPage /> },
+    ],
+  },
+  {
+    element: <ProtectedRoute />,
+    children: [
+      {
+        path: '/',
+        element: <AppLayout />,
+        children: [
+          { index: true,                  element: <Navigate to="/explore" replace /> },
+          { path: 'explore',              element: <ExplorePage /> },
+          { path: 'about',               element: <AboutPage /> },
+          { path: 'quick-match',          element: <QuickMatchPage /> },
+          { path: 'quick-match/results',  element: <QuickMatchResultPage /> },
+          { path: 'groups/:groupId',      element: <GroupDetailPage /> },
+          { path: 'create-group',         element: <CreateGroupPage /> },
+          { path: 'manage-groups',        element: <ManageGroupsPage /> },
+          { path: 'my-subscriptions',     element: <MySubscriptionsPage /> },
+          { path: 'favorites',            element: <FavoritesPage /> },
+          { path: 'messages',             element: <MessagesPage /> },
+          { path: 'account',              element: <AccountCenterPage /> },
+        ],
+      },
+    ],
+  },
+])
+
+export default router

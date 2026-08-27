@@ -1,0 +1,204 @@
+import { useMemo, useState } from 'react'
+import { ClipboardList } from 'lucide-react'
+import { getSubscriptionsByUserId, markSubscriptionPaid } from '../../shared/stores/subscriptionStore'
+import { getMemberByUserAndGroup, updateMember } from '../../shared/stores/memberStore'
+import { createNotification } from '../../shared/stores/notificationStore'
+import { getApplicationsByUserId } from '../../shared/stores/applicationStore'
+import { getGroupById, updateGroup } from '../../shared/stores/groupStore'
+import { getActiveUser } from '../../shared/stores/userStore'
+import SubscriptionCard from './components/SubscriptionCard'
+import RenewalReminderPanel from './components/RenewalReminderPanel'
+import EmptyState from '../../shared/components/ui/EmptyState'
+import PaymentHistoryModal from './components/PaymentHistoryModal'
+import ContactHostModal from './components/ContactHostModal'
+import { effectiveStatus } from '../../shared/utils/subscriptionStatus'
+import { daysUntil, todayISO } from '../../shared/utils/date'
+
+const FILTER_TABS = [
+  { key: 'all',          label: '全部'     },
+  { key: 'pending',      label: '待付款'   },
+  { key: 'paid',         label: '已付款'   },
+  { key: 'upcoming',     label: '即將續訂' },
+  { key: 'applications', label: '申請紀錄' },
+]
+
+function enrichSubs(rawSubs) {
+  return rawSubs.map(s => {
+    const group = getGroupById(s.groupId)
+    return { ...s, groupStatus: group?.status ?? 'active' }
+  })
+}
+
+function filterSubs(subs, tab) {
+  switch (tab) {
+    case 'pending':  return subs.filter(s => ['pending', 'markedPaid', 'overdue'].includes(effectiveStatus(s)))
+    case 'paid':     return subs.filter(s => ['paid', 'confirmed', 'waiting_activation'].includes(effectiveStatus(s)))
+    case 'upcoming': return subs.filter(s => { const d = daysUntil(s.nextBillingDate); return d >= 0 && d <= 7 })
+    default:         return subs
+  }
+}
+
+export default function MySubscriptionsPage() {
+  const activeUser = getActiveUser()
+  const [activeTab, setActiveTab] = useState('all')
+  const [subs, setSubs] = useState(() =>
+    activeUser ? enrichSubs(getSubscriptionsByUserId(activeUser.id)) : []
+  )
+  const [selectedSub, setSelectedSub] = useState(null)
+  const [contactSub, setContactSub] = useState(null)
+  const [toast, setToast] = useState(null)
+
+  const userApplications = useMemo(
+    () => activeUser ? getApplicationsByUserId(activeUser.id) : [],
+    [activeUser?.id],
+  )
+
+  const pendingAppCount = useMemo(
+    () => userApplications.filter(a => a.status === 'pending').length,
+    [userApplications],
+  )
+
+  const filterCounts = useMemo(() => ({
+    all:          subs.length,
+    pending:      filterSubs(subs, 'pending').length,
+    paid:         filterSubs(subs, 'paid').length,
+    upcoming:     filterSubs(subs, 'upcoming').length,
+    applications: pendingAppCount,
+  }), [subs, pendingAppCount])
+
+  function showToast(msg) {
+    setToast(msg)
+    setTimeout(() => setToast(null), 3000)
+  }
+
+  function markAsPaid(sub) {
+    const now = todayISO()
+    markSubscriptionPaid(sub.id)
+
+    const member = getMemberByUserAndGroup(activeUser?.id, sub.groupId)
+    if (member) updateMember(member.id, { paymentStatus: 'markedPaid', lastPaidAt: now })
+
+    const group = getGroupById(sub.groupId)
+    if (group?.status === 'full') {
+      updateGroup(sub.groupId, { status: 'pending_confirmation' })
+    }
+
+    createNotification({
+      userId: activeUser?.id,
+      type: 'payment',
+      title: '付款已標記',
+      message: `${sub.serviceName} ${sub.planName} 已標記付款，等待團主確認。`,
+    })
+    setSubs(activeUser ? enrichSubs(getSubscriptionsByUserId(activeUser.id)) : [])
+    showToast('已標記付款，等待團主確認')
+  }
+
+  const filtered = useMemo(
+    () => activeTab === 'applications' ? [] : filterSubs(subs, activeTab),
+    [subs, activeTab],
+  )
+
+  return (
+    <div>
+      <div className="mb-6">
+        <h1 className="text-xl font-extrabold text-ink">我的訂閱</h1>
+        <p className="mt-1 text-sm text-ink-3">管理你加入的群組、付款狀態、續訂提醒與申請紀錄。</p>
+      </div>
+
+      {/* Filter tabs — 在 flex row 外，不影響右欄對齊 */}
+      <div className="mb-4 flex min-w-0 overflow-x-auto">
+        <div className="flex gap-1">
+          {FILTER_TABS.map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-sm font-semibold transition-colors ${
+                activeTab === tab.key
+                  ? 'bg-brand text-white'
+                  : 'text-ink-3 hover:bg-raised hover:text-ink'
+              }`}
+            >
+              {tab.label}
+              <span className={`rounded-full px-1.5 py-0.5 text-xs font-bold ${
+                activeTab === tab.key ? 'bg-white/20 text-white' : 'bg-raised text-ink-4'
+              }`}>
+                {filterCounts[tab.key] ?? 0}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+        <div className="min-w-0 flex-1">
+
+          {activeTab === 'applications' ? (
+            <div className="space-y-3">
+              {userApplications.filter(a => a.status === 'pending').length === 0 ? (
+                <div className="card py-10 text-center">
+                  <ClipboardList size={32} className="mx-auto mb-3 text-ink-4" />
+                  <p className="font-semibold text-ink-2">目前沒有待審核的申請</p>
+                  <p className="mt-1 text-sm text-ink-3">你的群組申請審核結果也會顯示在右側欄</p>
+                </div>
+              ) : (
+                userApplications.filter(a => a.status === 'pending').map(app => (
+                  <div key={app.id} className="card flex items-center gap-3 p-4">
+                    <div className="h-2.5 w-2.5 shrink-0 rounded-full bg-warning" />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-ink">{app.groupName}</p>
+                      <p className="text-xs text-ink-3">{app.planName ?? ''} · 申請於 {app.createdAt}</p>
+                    </div>
+                    <span className="shrink-0 rounded-full bg-warning-subtle px-2.5 py-0.5 text-xs font-semibold text-warning-text">
+                      審核中
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          ) : filtered.length === 0 ? (
+            <EmptyState icon={ClipboardList} title="此分類沒有訂閱項目" />
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {filtered.map(sub => (
+                <SubscriptionCard
+                  key={sub.id}
+                  sub={sub}
+                  onMarkPaid={markAsPaid}
+                  onViewRecords={setSelectedSub}
+                  onContactHost={setContactSub}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="w-full shrink-0 lg:w-[21rem]">
+          <RenewalReminderPanel
+            subs={subs}
+            applications={userApplications}
+            onViewUpcoming={() => setActiveTab('upcoming')}
+          />
+        </div>
+      </div>
+
+      <PaymentHistoryModal
+        sub={selectedSub}
+        isOpen={!!selectedSub}
+        onClose={() => setSelectedSub(null)}
+      />
+      <ContactHostModal
+        sub={contactSub}
+        isOpen={!!contactSub}
+        onClose={() => setContactSub(null)}
+      />
+
+      <div role="status" aria-live="polite" aria-atomic="true" className="pointer-events-none fixed bottom-6 left-1/2 z-50 -translate-x-1/2">
+        {toast && (
+          <div className="rounded-2xl bg-ink px-5 py-3 text-sm font-medium text-white shadow-xl">
+            {toast}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
