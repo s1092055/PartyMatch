@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { AlertCircle, ChevronLeft, ChevronRight, Info, RotateCcw, Search } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogCloseButton } from '../../components/ui/dialog'
 import { Button } from '../../components/ui/button'
@@ -24,7 +23,6 @@ const DEFAULT_CONDITIONS = {
 }
 
 export default function QuickMatchModal() {
-  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState(1)
   const [conditions, setConditions] = useState(DEFAULT_CONDITIONS)
@@ -96,11 +94,6 @@ export default function QuickMatchModal() {
     setResults([])
     setStep(1)
     bodyRef.current?.scrollTo({ top: 0 })
-  }
-
-  function handleExploreAll() {
-    setOpen(false)
-    navigate('/explore')
   }
 
   const canNext = step === 1 ? conditions.services.length > 0 : true
@@ -184,15 +177,10 @@ export default function QuickMatchModal() {
                 <ChevronLeft size={15} strokeWidth={1.5} />
                 調整條件
               </Button>
-              <div className="flex gap-3">
-                <Button variant="secondary" size="md" onClick={handleReset}>
-                  <RotateCcw strokeWidth={1.5} size={15} />
-                  重新查找
-                </Button>
-                <Button variant="ghost" size="md" className="border border-line" onClick={handleExploreAll}>
-                  探索所有群組
-                </Button>
-              </div>
+              <Button variant="secondary" size="md" onClick={handleReset}>
+                <RotateCcw strokeWidth={1.5} size={15} />
+                重新查找
+              </Button>
             </>
           ) : (
             <>
