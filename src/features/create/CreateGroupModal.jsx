@@ -95,6 +95,7 @@ export default function CreateGroupModal() {
   const [form, setForm] = useState(INITIAL_FORM)
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const bodyRef = useRef(null)
 
   useEffect(() => {
@@ -103,6 +104,7 @@ export default function CreateGroupModal() {
       setForm(INITIAL_FORM)
       setAgreedToTerms(false)
       setShowPreview(false)
+      setIsSubmitting(false)
       setOpen(true)
     }
     window.addEventListener('pm:open-create-group', onOpen)
@@ -165,12 +167,17 @@ export default function CreateGroupModal() {
       return
     }
 
+    setIsSubmitting(true)
     const groupData = mapFormToGroup(form)
     const host = useAuthStore.getState().getProfile()
     useGroupStore.getState().create(groupData, host)
     setOpen(false)
-    navigate('/')
-    toast('群組已成功上架！')
+    toast('群組已成功上架！', 'success', {
+      action: {
+        label: '前往群組管理',
+        onClick: () => navigate('/manage-groups'),
+      },
+    })
   }
 
   const service = getServiceById(form.serviceId)
@@ -296,7 +303,7 @@ export default function CreateGroupModal() {
                   <ChevronRight size={15} strokeWidth={1.5} />
                 </Button>
               ) : (
-                <Button variant="default" size="md" className="w-36" disabled={!agreedToTerms} onClick={handleSubmit}>
+                <Button variant="default" size="md" className="w-36" disabled={!agreedToTerms} loading={isSubmitting} onClick={handleSubmit}>
                   確認建立
                 </Button>
               )}
