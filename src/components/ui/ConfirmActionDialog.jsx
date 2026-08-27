@@ -15,7 +15,7 @@ export default function ConfirmActionDialog(
     message,
     confirmLabel = '確認',
     danger = false,
-    countdownSeconds = 5,
+    countdownSeconds = 3,
     onConfirm,
     onCancel,
   }
