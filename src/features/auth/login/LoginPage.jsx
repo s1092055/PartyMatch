@@ -33,14 +33,17 @@ export default function LoginPage() {
     }
     setLoading(true)
     setError('')
+    const homeImport      = import('../../home/HomePage').catch(() => {})
+    const adminImport     = import('../../admin/AdminDashboardPage').catch(() => {})
+    const appLayoutImport = import('../../../common/layout/AppLayout').catch(() => {})
     const result = await useAuthStore.getState().login({ email, password })
     if (!result.ok) {
       setLoading(false)
       setError(result.error)
       return
     }
-    toast(`登入成功，歡迎${result.user.name ? ` ${result.user.name}` : ''}`)
     const { from, reopenGroupModalId } = location.state ?? {}
+    await (result.user.isAdmin ? adminImport : reopenGroupModalId ? appLayoutImport : homeImport)
     if (result.user.isAdmin) {
       navigate(ADMIN_HOME_PATH, { replace: true })
     } else if (reopenGroupModalId) {
@@ -48,6 +51,8 @@ export default function LoginPage() {
     } else {
       navigate('/', { replace: true })
     }
+    await new Promise(requestAnimationFrame)
+    toast(`登入成功，歡迎${result.user.name ? ` ${result.user.name}` : ''}`)
   }
 
   return (
