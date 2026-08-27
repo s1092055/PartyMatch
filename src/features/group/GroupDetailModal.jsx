@@ -353,7 +353,7 @@ export default function GroupDetailModal() {
     isHost, isWaitingMembers, needsFillInfo, hasServiceInfoIssue,
     isSharedCredentials: service?.sharingMethod === 'shared_credentials',
     isMember, isPendingApp, isFull, canApply, isFav,
-    cancelConfirm, setCancelConfirm, cancelling, handleCancel,
+    setCancelConfirm,
     setShowMembers, setLeaveConfirm, onApplyClick: handleApplyClick, toggleFav,
     padded: !showDesktopAside,
     redirectAfterLogin: { from: location.pathname + location.search, reopenGroupModalId: group.id },
@@ -424,6 +424,17 @@ export default function GroupDetailModal() {
           danger
           onConfirm={handleLeave}
           onCancel={() => setLeaveConfirm(false)}
+        />
+      )}
+
+      {cancelConfirm && (
+        <ConfirmActionDialog
+          title="確認取消申請？"
+          message={`取消後代管的PM幣將會退還，需重新申請才能加入「${group?.serviceName}」。`}
+          confirmLabel="取消申請"
+          danger
+          onConfirm={handleCancel}
+          onCancel={() => setCancelConfirm(false)}
         />
       )}
     </>

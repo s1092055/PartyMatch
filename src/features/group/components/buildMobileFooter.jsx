@@ -5,8 +5,7 @@ import FavoriteToggleButton from '../../../components/ui/FavoriteToggleButton'
 function renderCTA({
   group, activeUserId, navigate, handleClose,
   isHost, isWaitingMembers, needsFillInfo, hasServiceInfoIssue, isSharedCredentials,
-  isMember, isPendingApp, isFull,
-  cancelConfirm, setCancelConfirm, cancelling, handleCancel,
+  isMember, isFull,
   redirectAfterLogin,
 }) {
   if (!activeUserId) return (
@@ -41,21 +40,6 @@ function renderCTA({
       <CheckCircle2 strokeWidth={1.5} size={15} />已加入此群組
     </div>
   )
-  if (isPendingApp) return (
-    cancelConfirm ? (
-      <div className="flex gap-2">
-        <Button variant="ghost" size="lg" className="flex-1 border border-line" onClick={() => setCancelConfirm(false)}>返回</Button>
-        <Button variant="destructive" size="lg" className="flex-1" disabled={cancelling} onClick={handleCancel}>
-          {cancelling ? '處理中…' : '確認取消'}
-        </Button>
-      </div>
-    ) : (
-      <Button variant="ghost" size="lg" className="w-full border border-line text-ink-3 hover:border-danger hover:text-danger"
-        onClick={() => setCancelConfirm(true)}>
-        取消申請
-      </Button>
-    )
-  )
   if (isFull) return (
     <Button variant="ghost" size="lg" className="w-full border border-line" disabled>已額滿</Button>
   )
@@ -66,7 +50,7 @@ export function buildMobileFooter({
   group, activeUserId, navigate, handleClose,
   isHost, isWaitingMembers, needsFillInfo, hasServiceInfoIssue, isSharedCredentials,
   isMember, isPendingApp, isFull, canApply, isFav,
-  cancelConfirm, setCancelConfirm, cancelling, handleCancel,
+  setCancelConfirm,
   setShowMembers, setLeaveConfirm, onApplyClick, toggleFav,
   padded = true,
   redirectAfterLogin,
@@ -103,12 +87,23 @@ export function buildMobileFooter({
           </Button>
           <FavoriteToggleButton isFav={isFav} onClick={toggleFav} heartSize={18} className="h-12 w-12" />
         </div>
+      ) : isPendingApp ? (
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="lg"
+            className="flex-1 border border-line text-ink-3 hover:border-danger hover:text-danger"
+            onClick={() => setCancelConfirm(true)}
+          >
+            取消申請
+          </Button>
+          <FavoriteToggleButton isFav={isFav} onClick={toggleFav} heartSize={18} className="h-12 w-12" />
+        </div>
       ) : (
         renderCTA({
           group, activeUserId, navigate, handleClose,
           isHost, isWaitingMembers, needsFillInfo, hasServiceInfoIssue, isSharedCredentials,
-          isMember, isPendingApp, isFull,
-          cancelConfirm, setCancelConfirm, cancelling, handleCancel,
+          isMember, isFull,
           redirectAfterLogin,
         })
       )}
