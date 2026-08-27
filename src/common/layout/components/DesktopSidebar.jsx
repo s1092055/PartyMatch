@@ -207,6 +207,9 @@ export default function DesktopSidebar({
           aria-expanded={dockOpen}
         >
           {dockOpen ? <X className="size-6 lg:size-5" strokeWidth={1.5} /> : <Menu className="size-6 lg:size-5" strokeWidth={1.5} />}
+          {!dockOpen && (unreadNotifs > 0 || unreadMsgs > 0) && (
+            <span className="absolute right-0 top-0 size-3 rounded-full border-2 border-surface bg-danger" />
+          )}
         </button>
         {dockOpen && (
           <>
