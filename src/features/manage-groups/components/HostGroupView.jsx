@@ -37,6 +37,9 @@ export default function HostGroupView(
   const [showActivate, setShowActivate]                   = useState(false)
   const [removingMember, setRemovingMember]               = useState(null)
   const [activePanel, setActivePanel]                     = useState(null);
+  const [headerStatus, setHeaderStatus]                    = useState(group.status);
+  const [panelTick, setPanelTick]                          = useState(0);
+  const [dataSyncTick, setDataSyncTick]                     = useState(0);
   const [showReviewHistory, setShowReviewHistory]         = useState(false)
   const [showMemberReviews, setShowMemberReviews]         = useState(false)
   const [reviewingMember, setReviewingMember]              = useState(null)
@@ -64,7 +67,7 @@ export default function HostGroupView(
       .catch(() => { if (active) setTransactions([]) })
       .finally(() => { if (active) setTransactionsLoading(false) })
     return () => { active = false }
-  }, [activePanel, group.id])
+  }, [activePanel, group.id, panelTick])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -75,6 +78,13 @@ export default function HostGroupView(
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (autoOpenApplications) setActivePanel('applications')
   }, [autoOpenApplications])
+
+  useEffect(() => {
+    // 停留在申請管理等分頁時，群組額滿等狀態變化不應該讓鎖定群組按鈕/banner 立刻跳出來，
+    // 只有切換分頁（或重複點擊同一分頁刷新，並且資料真的刷新完成）時才讓 header 這塊呈現最新的群組狀態
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setHeaderStatus(group.status)
+  }, [activePanel, dataSyncTick]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -91,15 +101,18 @@ export default function HostGroupView(
   }
 
   useEffect(() => {
+    // 重複點擊同一個分頁（panelTick 遞增）也要重新標記已讀，
+    // 不然停留在該分頁時新收到的通知，右上角紅點會一直卡著不消失
     if (activePanel !== 'applications') return
     markGroupNotifsRead('new_application')
-  }, [activePanel, group.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activePanel, group.id, panelTick]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    // 重複點擊同一分頁（panelTick 遞增）也要重新刷新成員資料、重新標記已讀
     if (activePanel !== 'memberInfo') return
-    useMemberStore.getState().init();
+    useMemberStore.getState().init().catch(console.error)
     markGroupNotifsRead('service_info_filled')
-  }, [activePanel, group.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activePanel, group.id, panelTick]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -159,7 +172,7 @@ export default function HostGroupView(
     }
   }
 
-  const lockGroupBanner = group.status === 'full' && (
+  const lockGroupBanner = headerStatus === 'full' && (
     <div className="flex items-center justify-center bg-raised px-6 py-3 text-sm font-extrabold text-ink-2">
       招募完成，請點擊鎖定群組
     </div>
@@ -201,7 +214,7 @@ export default function HostGroupView(
     }
   }
 
-  const lockGroupCta = group.status === 'full' && (
+  const lockGroupCta = headerStatus === 'full' && (
     <div className="py-2">
       {showLockGroupConfirm ? (
         <div className="grid grid-cols-2 gap-2">
@@ -298,7 +311,7 @@ export default function HostGroupView(
         showReviewButton: hasBeenActive,
       })
     }
-    if (activePanel === 'applications') return buildApplicationsPanel({ pendingApps, groupFull, errors, onApprove, onReject, setActivePanel, setShowReviewHistory: openReviewHistory })
+    if (activePanel === 'applications') return buildApplicationsPanel({ pendingApps, groupFull, errors, onApprove, onReject, setShowReviewHistory: openReviewHistory })
     if (activePanel === 'billing') return buildBillingPanel({ members, transactions, transactionsLoading, showRenewal, onOpenRenewal, escrowTokens: group.escrowTokens, isCancelled })
     if (activePanel === 'memberInfo') {
       return buildMemberInfoPanel({
@@ -323,16 +336,20 @@ export default function HostGroupView(
   const isReviewHistory = showReviewHistory && activePanel === 'applications'
   const isMemberReviews = showMemberReviews && activePanel === 'members'
 
-  function goToPanel(panel) {
-    if (panel !== activePanel) {
-      useGroupStore.getState().refreshGroup(group.id).catch(console.error)
-      useMemberStore.getState().init().catch(console.error)
-      useApplicationStore.getState().init().catch(console.error)
-    }
+  async function goToPanel(panel) {
+    // 切換分頁、重播 slide-up 動畫不用等資料回來，立刻反應
+    setPanelTick(t => t + 1)
     setActivePanel(panel)
     setShowReviewHistory(false)
     setShowMemberReviews(false)
     setReviewingMember(null)
+    // header 快照（headerStatus）要等資料真的刷新完才能重新同步，不然會抓到還沒更新的舊資料
+    await Promise.all([
+      useGroupStore.getState().refreshGroup(group.id).catch(console.error),
+      useMemberStore.getState().init().catch(console.error),
+      useApplicationStore.getState().init().catch(console.error),
+    ])
+    setDataSyncTick(t => t + 1)
   }
 
   function buildMemberReviewsContent() {
@@ -451,13 +468,13 @@ export default function HostGroupView(
         group={group}
         service={serviceDef}
         plan={planDef}
-        hideRecruitBar={group.status !== 'recruiting'}
+        hideRecruitBar={headerStatus !== 'recruiting'}
         headerBanner={lockGroupBanner || activateBanner || pendingConfirmationBanner || confirmingBanner || disputedBanner || undefined}
         centeredCta={lockGroupCta || activateCta || undefined}
         extraInfoRows={[]}
         statusBadgeOverride={
-          group.status === 'full' ? { variant: 'full', label: '等待鎖定' } :
-          group.status === 'pending_confirmation' && needsCredentialsOnLock ? { variant: 'warning', label: '成員提取中' } :
+          headerStatus === 'full' ? { variant: 'full', label: '等待鎖定' } :
+          group.status === 'pending_confirmation' && needsCredentialsOnLock ? { variant: 'pending_confirmation', label: '成員提取中' } :
           undefined
         }
         pendingBadge={
@@ -474,7 +491,7 @@ export default function HostGroupView(
           null
         }
         onSubSubPanelBack={() => { setShowReviewHistory(false); setShowMemberReviews(false); setReviewingMember(null) }}
-        panelKey={isReviewHistory ? 'reviewHistory' : isMemberReviews ? 'memberReviews' : activePanel ?? 'overview'}
+        panelKey={isReviewHistory ? 'reviewHistory' : isMemberReviews ? 'memberReviews' : `${activePanel ?? 'overview'}-${panelTick}`}
         sideBar={renderSideBar()}
       />
       )}

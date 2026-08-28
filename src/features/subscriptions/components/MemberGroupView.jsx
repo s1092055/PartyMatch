@@ -47,6 +47,8 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
   const [transactions, setTransactions] = useState([])
   const [transactionsLoading, setTransactionsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [headerTick, setHeaderTick] = useState(0)
+  const [panelViewTick, setPanelViewTick] = useState(0)
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -65,7 +67,8 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
       .catch(() => { if (active) setTransactions([]) })
       .finally(() => { if (active) setTransactionsLoading(false) })
     return () => { active = false }
-  }, [activePanel, confirmDialog, group.id])
+  }, [activePanel, confirmDialog, group.id, headerTick])
+
 
   const currentUser = useAuthStore(s => s.user)
   const allMembers  = useMemberStore(s => s.members)
@@ -101,12 +104,19 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
   const alreadyConfirmed    = isConfirmingLike && !!myMember?.confirmedAt
   const disputedBannerText  = '回報處理中'
 
-  function selectPanel(panel) {
-    if (panel === activePanel) return
+  async function selectPanel(panel) {
+    // 切換分頁、重播 slide-up 動畫不用等資料回來，立刻反應
     setActivePanel(panel)
-    useGroupStore.getState().refreshGroup(group.id).catch(console.error)
-    useMemberStore.getState().init().catch(console.error)
-    useSubscriptionStore.getState().init().catch(console.error)
+    setPanelViewTick(t => t + 1)
+    // header 快照要等資料真的刷新完才能重新同步，不然會抓到還沒更新的舊資料
+    // （例如團主剛回報帳號問題，member store 還沒重新拉到最新的 serviceInfoIssueNote 就先同步，
+    // 「修正帳號資訊」按鈕就會沒出現）
+    await Promise.all([
+      useGroupStore.getState().refreshGroup(group.id).catch(console.error),
+      useMemberStore.getState().init().catch(console.error),
+      useSubscriptionStore.getState().init().catch(console.error),
+    ])
+    setHeaderTick(t => t + 1)
   }
 
   function openMessages() {
@@ -150,6 +160,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
         toast('已確認，等待其他成員確認中', 'success')
       }
       setReviewPrompt({ closeOnDone: !!res.released })
+      setHeaderTick(t => t + 1)
     } catch (err) {
       toast(err?.message ?? '確認失敗，請稍後再試', 'error')
     } finally {
@@ -200,6 +211,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
       await fillServiceInfo(myMember.id, group.id, serviceInfo)
       setShowFillInfo(false)
       toast('帳號資訊已送出', 'success')
+      setHeaderTick(t => t + 1)
     } catch (err) {
       toast(err?.message ?? '送出失敗，請稍後再試', 'error')
     } finally {
@@ -243,6 +255,97 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
       </Button>
     </div>
   )
+
+  const hideRecruitBarLive = group.status !== 'recruiting'
+
+  const headerBannerLive = (
+    hasServiceInfoIssue ? (
+      <div className="flex items-center justify-center bg-warning-subtle px-6 py-3 text-sm font-extrabold text-warning-text">
+        帳號資訊有問題，請點擊「修正帳號資訊」
+      </div>
+    ) : needsFillInfo ? (
+      <div className="flex items-center justify-center gap-2 bg-brand-subtle px-6 py-3 text-sm font-extrabold text-brand">
+        <Clock size={15} strokeWidth={1.5} />
+        {isSharedCredentials ? '請提取帳號資訊' : '請填寫服務帳號'}
+        {group.serviceInfoDeadline && (
+          <>，剩餘 <CountdownText deadline={group.serviceInfoDeadline} /></>
+        )}
+      </div>
+    ) : waitingForOthers ? (
+      <div className="flex items-center justify-center gap-2 bg-success-subtle px-6 py-3 text-sm font-extrabold text-success-text">
+        <CheckCircle2 size={15} strokeWidth={1.5} />
+        {isSharedCredentials ? '已提取帳號資訊，等待其他成員完成' : '已填寫服務帳號，等待其他成員完成填寫'}
+      </div>
+    ) : canConfirm ? (
+      <div className="flex items-center justify-center gap-2 bg-info-subtle px-6 py-3 text-sm font-extrabold text-info-text">
+        <Clock size={15} strokeWidth={1.5} />
+        服務已啟用，請確認是否正常
+      </div>
+    ) : isDisputeRaiser ? (
+      <div className="flex items-center justify-center gap-2 bg-danger-subtle px-6 py-3 text-sm font-extrabold text-danger-text">
+        <Clock size={15} strokeWidth={1.5} />
+        {disputedBannerText}
+      </div>
+    ) : undefined
+  )
+
+  const centeredCtaLive = fillInfoCta || confirmCta || undefined
+
+  const statusBadgeOverrideLive = (
+    alreadyConfirmed ? { variant: 'active' } :
+    canConfirm && isDisputed ? 'confirming' :
+    waitingForOthers ? { variant: 'active', label: isSharedCredentials ? '已提取完成' : '已填寫完成' } :
+    group.status === 'recruiting' && !!sub ? 'member_joined' :
+    group.status === 'full' ? { variant: 'full', label: '等待鎖定' } :
+    group.status === 'pending_confirmation' && isSharedCredentials ? { variant: 'pending_confirmation', label: '帳號提取中' } :
+    undefined
+  )
+
+  const pendingBadgeLive = (
+    hasServiceInfoIssue ? '帳號資訊有問題' :
+    needsFillInfo       ? (isSharedCredentials ? '請提取帳號資訊' : '請填寫服務帳號以完成加入流程') :
+    waitingForOthers    ? '已填寫完成' :
+    canConfirm          ? '確認期進行中，請確認服務' :
+    isDisputeRaiser     ? disputedBannerText :
+    group.status === 'full' && !!sub ? '招募完成，等待團主鎖定群組' :
+    group.status === 'recruiting' && !!sub ? '已通過申請，需等待其他人加入' :
+    undefined
+  )
+
+  const pendingBadgeColorLive = (
+    (group.status === 'full' && !!sub) ? 'gray' :
+    (group.status === 'recruiting' && !!sub) ? 'success' :
+    hasServiceInfoIssue ? 'danger' :
+    waitingForOthers ? 'success' :
+    canConfirm ? 'brand' :
+    isDisputeRaiser ? 'danger' :
+    undefined
+  )
+
+  const [header, setHeader] = useState({
+    hideRecruitBar: hideRecruitBarLive,
+    banner: headerBannerLive,
+    cta: centeredCtaLive,
+    statusBadgeOverride: statusBadgeOverrideLive,
+    pendingBadge: pendingBadgeLive,
+    pendingBadgeColor: pendingBadgeColorLive,
+  })
+
+  useEffect(() => {
+    // 停留在某個分頁瀏覽時，群組狀態變化不應該讓 header 的 banner/CTA/badge 立刻跳出來，
+    // 只有切換分頁時才讓 header 呈現最新狀態（跟團主端 HostGroupView 的 headerStatus 同一套處理方式）。
+    // 但透過 header 自己的 CTA 觸發的操作（填寫/提取帳號資訊、確認服務）完成後必須立刻反映結果，
+    // 不能卡住舊按鈕，所以這些操作成功後會額外 bump headerTick 強制重新同步一次
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setHeader({
+      hideRecruitBar: hideRecruitBarLive,
+      banner: headerBannerLive,
+      cta: centeredCtaLive,
+      statusBadgeOverride: statusBadgeOverrideLive,
+      pendingBadge: pendingBadgeLive,
+      pendingBadgeColor: pendingBadgeColorLive,
+    })
+  }, [activePanel, headerTick]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function buildSubPanel() {
     if (activePanel === 'members') {
@@ -380,67 +483,13 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
         group={group}
         service={serviceDef}
         plan={planDef}
-        hideRecruitBar={group.status !== 'recruiting'}
-        headerBanner={
-          hasServiceInfoIssue ? (
-            <div className="flex items-center justify-center bg-warning-subtle px-6 py-3 text-sm font-extrabold text-warning-text">
-              帳號資訊有問題，請點擊「修正帳號資訊」
-            </div>
-          ) : needsFillInfo ? (
-            <div className="flex items-center justify-center gap-2 bg-brand-subtle px-6 py-3 text-sm font-extrabold text-brand">
-              <Clock size={15} strokeWidth={1.5} />
-              {isSharedCredentials ? '請提取帳號資訊' : '請填寫服務帳號'}
-              {group.serviceInfoDeadline && (
-                <>，剩餘 <CountdownText deadline={group.serviceInfoDeadline} /></>
-              )}
-            </div>
-          ) : waitingForOthers ? (
-            <div className="flex items-center justify-center gap-2 bg-success-subtle px-6 py-3 text-sm font-extrabold text-success-text">
-              <CheckCircle2 size={15} strokeWidth={1.5} />
-              {isSharedCredentials ? '已提取帳號資訊，等待其他成員完成' : '已填寫服務帳號，等待其他成員完成填寫'}
-            </div>
-          ) : canConfirm ? (
-            <div className="flex items-center justify-center gap-2 bg-info-subtle px-6 py-3 text-sm font-extrabold text-info-text">
-              <Clock size={15} strokeWidth={1.5} />
-              服務已啟用，請確認是否正常
-            </div>
-          ) : isDisputeRaiser ? (
-            <div className="flex items-center justify-center gap-2 bg-danger-subtle px-6 py-3 text-sm font-extrabold text-danger-text">
-              <Clock size={15} strokeWidth={1.5} />
-              {disputedBannerText}
-            </div>
-          ) : undefined
-        }
+        hideRecruitBar={header.hideRecruitBar}
+        headerBanner={header.banner}
         extraInfoRows={[]}
-        centeredCta={fillInfoCta || confirmCta || undefined}
-        statusBadgeOverride={
-          alreadyConfirmed ? { variant: 'active' } :
-          canConfirm && isDisputed ? 'confirming' :
-          waitingForOthers ? { variant: 'active', label: isSharedCredentials ? '已提取完成' : '已填寫完成' } :
-          group.status === 'recruiting' && !!sub ? 'member_joined' :
-          group.status === 'full' ? { variant: 'full', label: '等待鎖定' } :
-          group.status === 'pending_confirmation' && isSharedCredentials ? { variant: 'warning', label: '帳號提取中' } :
-          undefined
-        }
-        pendingBadge={
-          hasServiceInfoIssue ? '帳號資訊有問題' :
-          needsFillInfo       ? (isSharedCredentials ? '請提取帳號資訊' : '請填寫服務帳號以完成加入流程') :
-          waitingForOthers    ? '已填寫完成' :
-          canConfirm          ? '確認期進行中，請確認服務' :
-          isDisputeRaiser     ? disputedBannerText :
-          group.status === 'full' && !!sub ? '招募完成，等待團主鎖定群組' :
-          group.status === 'recruiting' && !!sub ? '已通過申請，需等待其他人加入' :
-          undefined
-        }
-        pendingBadgeColor={
-          (group.status === 'full' && !!sub) ? 'gray' :
-          (group.status === 'recruiting' && !!sub) ? 'success' :
-          hasServiceInfoIssue ? 'danger' :
-          waitingForOthers ? 'success' :
-          canConfirm ? 'brand' :
-          isDisputeRaiser ? 'danger' :
-          undefined
-        }
+        centeredCta={header.cta}
+        statusBadgeOverride={header.statusBadgeOverride}
+        pendingBadge={header.pendingBadge}
+        pendingBadgeColor={header.pendingBadgeColor}
         sideBar={
           <>
             <GroupModalSideBarItem active={activePanel === null} onClick={() => selectPanel(null)}>
@@ -473,7 +522,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
         }
         subPanel={activePanel ? buildSubPanel() : null}
         onSubPanelBack={() => setActivePanel(null)}
-        panelKey={activePanel ?? 'overview'}
+        panelKey={`${activePanel ?? 'overview'}-${panelViewTick}`}
         mobileReviewsSection={hostReviews}
       >
       </GroupModalShell>

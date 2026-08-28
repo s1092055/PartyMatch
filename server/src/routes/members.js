@@ -126,7 +126,7 @@ router.patch('/:id', requireAuth, validate(patchMemberSchema), async (req, res, 
           data: {
             groupId:  existing.groupId,
             authorId: existing.userId,
-            content:  '已成功提取帳號資訊',
+            content:  existing.serviceInfoIssueNote ? '已處理帳號問題，重新送出帳號資訊' : '已成功提取帳號資訊',
           },
         }).catch(console.error)
       }

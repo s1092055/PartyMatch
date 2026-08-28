@@ -1,10 +1,10 @@
-import { PlayCircle, UserCheck } from 'lucide-react'
+import { Banknote, PlayCircle, UserCheck } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter, DialogCloseButton } from '../../../components/ui/dialog'
 import { Avatar } from '../../../components/ui/avatar'
 import { PresenceDot } from '../../../common/layout/components/navShared'
 import { Button } from '../../../components/ui/button'
 import ServiceLogo from '../../../components/ui/ServiceLogo'
-import TokenAmount from '../../../components/ui/TokenAmount'
+import EscrowStatusCard from '../../../components/ui/EscrowStatusCard'
 import GroupOverviewContent from '../../../components/ui/group/GroupOverviewContent'
 import { advanceByCycle, toISODate } from '../../../common/utils/date'
 import { getServiceById } from '../../../common/utils/serviceUtils'
@@ -48,10 +48,17 @@ export default function ActivateServiceModal({
             <p className="font-bold text-ink">{group.serviceName}</p>
             <p className="text-xs text-ink-3">{group.planName}</p>
           </div>
-          <div className="rounded-lg bg-success-subtle px-3 py-1.5 text-right">
-            <p className="text-xs text-success-text">撥款金額</p>
-            <p className="text-base font-extrabold text-success-text"><TokenAmount amount={group.escrowTokens} /></p>
-          </div>
+        </div>
+
+        <div className="px-5 pt-5">
+          <p className="mb-2 flex items-center gap-1.5 text-sm font-bold text-ink"><Banknote strokeWidth={1.5} size={15} />收款明細</p>
+          <EscrowStatusCard
+            tone="info"
+            icon={Banknote}
+            title="本期費用由平台代管中"
+            subtitle="啟用後進入確認期，待所有成員確認服務正常才會撥款給你"
+            amount={group.escrowTokens}
+          />
         </div>
 
         <div className="px-5 pt-5">
@@ -125,7 +132,7 @@ export default function ActivateServiceModal({
               className="mt-0.5 h-4 w-4 shrink-0 accent-brand"
             />
             <span className="text-sm font-medium leading-relaxed text-ink">
-              我確認所有成員皆已完成外部服務設定，同意平台進行撥款
+              我確認所有成員皆已完成外部服務設定，同意進入確認期
             </span>
           </label>
         </div>
