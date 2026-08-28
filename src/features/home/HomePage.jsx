@@ -1,5 +1,5 @@
 import { lazy, Suspense, useLayoutEffect } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { ChevronRight, Compass } from 'lucide-react'
 import { Button } from '../../components/ui/button'
 import logoUrl from '../../assets/Logo.svg'
@@ -18,7 +18,6 @@ import WhyUs from './components/WhyUs'
 import FAQ from './components/FAQ'
 import SectionNav from './components/SectionNav'
 import RevealSection from '../../components/ui/primitives/RevealSection'
-import { ADMIN_HOME_PATH } from '../../app/AdminRoute'
 import { ALL_SERVICES } from './data/allServices'
 import { useAutoOpenQuickMatch } from '../../common/utils/hooks'
 
@@ -30,15 +29,11 @@ const CreateGroupModal = lazy(() => import('../create/CreateGroupModal'))
 export default function HomePage() {
   const navigate = useNavigate()
   const loggedIn = useAuthStore(s => s.loggedIn)
-  const isAdmin = useAuthStore(s => s.user?.isAdmin ?? false)
 
   useLayoutEffect(() => {
     window.scrollTo(0, 0)
   }, []);
   useAutoOpenQuickMatch()
-
-  if (loggedIn && isAdmin)
-    return <Navigate to={ADMIN_HOME_PATH} replace />;
 
   return (
     <div className="flex min-h-screen flex-col bg-canvas text-ink can-hover:lg:ml-20 can-hover:lg:mr-24">

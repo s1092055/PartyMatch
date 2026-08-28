@@ -5,7 +5,7 @@ const TABLES = [
   'disputes', 'token_transactions', 'credit_score_logs', 'notifications', 'favorites',
   'messages', 'conversations', 'reviews', 'credential_comments',
   'subscriptions', 'members', 'applications', 'groups', 'services',
-  'users',
+  'users', 'admin_users',
 ];
 
 export async function resetDb() {

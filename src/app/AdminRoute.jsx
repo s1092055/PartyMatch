@@ -1,13 +1,13 @@
 import { Navigate, Outlet } from 'react-router-dom'
-import { useAuthStore } from '../common/stores/useAuthStore'
+import { useAdminAuthStore } from '../common/stores/useAdminAuthStore'
 
 export const ADMIN_HOME_PATH = '/admin';
+export const ADMIN_LOGIN_PATH = '/admin/login';
 
 export default function AdminRoute() {
-  const loggedIn = useAuthStore(s => s.loggedIn)
-  const isAdmin  = useAuthStore(s => s.user?.isAdmin ?? false)
+  const loggedIn = useAdminAuthStore(s => s.loggedIn)
 
-  if (!loggedIn || !isAdmin) return <Navigate to="/" replace />
+  if (!loggedIn) return <Navigate to={ADMIN_LOGIN_PATH} replace />
 
   return <Outlet />
 }

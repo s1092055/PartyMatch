@@ -21,6 +21,7 @@ import reviewRoutes        from './routes/reviews.js'
 import systemMessageRoutes from './routes/systemMessages.js'
 import credentialCommentRoutes from './routes/credentialComments.js'
 import adminRoutes         from './routes/admin/index.js'
+import adminAuthRoutes     from './routes/adminAuth.js'
 
 const app = express()
 
@@ -60,6 +61,7 @@ app.use('/api/tokens',          tokenRoutes)
 app.use('/api/reviews',         reviewRoutes)
 app.use('/api/system-messages', systemMessageRoutes)
 app.use('/api/credential-comments', credentialCommentRoutes)
+app.use('/api/admin/auth',    adminAuthRoutes)
 app.use('/api/admin',         adminRoutes)
 
 app.get('/health', (req, res) => res.json({ status: 'ok', ts: new Date() }));

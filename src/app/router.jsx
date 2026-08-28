@@ -56,6 +56,7 @@ const router = createBrowserRouter([
           { path: '/create-group', element: <CreateGroupRedirect /> },
         ],
       },
+      { path: '/admin/login', element: routeElement(() => import('../features/admin/AdminLoginPage')) },
       {
         element: <AdminRoute />,
         children: [

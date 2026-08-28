@@ -30,6 +30,15 @@ export const uploadLimiter = rateLimit({
   skip: () => process.env.NODE_ENV === 'development',
 });
 
+export const adminAuthLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit:    5,
+  standardHeaders: true,
+  legacyHeaders:   false,
+  handler,
+  skip: () => process.env.NODE_ENV === 'development',
+});
+
 export const adjudicateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit:    20,

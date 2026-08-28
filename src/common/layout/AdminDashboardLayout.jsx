@@ -1,12 +1,20 @@
-import { Outlet } from 'react-router-dom'
+import { useState } from 'react'
+import { Outlet, useNavigate } from 'react-router-dom'
 import { LogOut, ShieldUser } from 'lucide-react'
 import logoUrl from '../../assets/Logo.svg'
-import { useAuthStore } from '../stores/useAuthStore'
-import { useLogout } from '../utils/hooks'
+import { useAdminAuthStore } from '../stores/useAdminAuthStore'
+import { ADMIN_LOGIN_PATH } from '../../app/AdminRoute'
 
 export default function AdminDashboardLayout() {
-  const user = useAuthStore(s => s.user)
-  const { loggingOut, logout } = useLogout()
+  const navigate = useNavigate()
+  const admin = useAdminAuthStore(s => s.admin)
+  const [loggingOut, setLoggingOut] = useState(false)
+
+  async function logout() {
+    setLoggingOut(true)
+    await useAdminAuthStore.getState().logout()
+    navigate(ADMIN_LOGIN_PATH, { replace: true })
+  }
 
   return (
     <div className="min-h-screen bg-canvas">
@@ -19,7 +27,7 @@ export default function AdminDashboardLayout() {
           </span>
         </div>
         <div className="flex items-center gap-3">
-          <span className="hidden text-sm font-semibold text-ink-3 md:inline">{user?.name}</span>
+          <span className="hidden text-sm font-semibold text-ink-3 md:inline">{admin?.name}</span>
           <button
             onClick={logout}
             disabled={loggingOut}

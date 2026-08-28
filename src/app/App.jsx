@@ -5,6 +5,7 @@ import { Toaster } from '../components/ui/sonner'
 import { ThemeProvider } from '../components/theme-provider'
 import LoadingScreen from '../common/layout/LoadingScreen'
 import { useAuthStore } from '../common/stores/useAuthStore'
+import { useAdminAuthStore } from '../common/stores/useAdminAuthStore'
 import { useServiceStore } from '../common/stores/useServiceStore'
 import { useGroupStore } from '../common/stores/useGroupStore'
 import { useApplicationStore } from '../common/stores/useApplicationStore'
@@ -68,6 +69,7 @@ export default function App() {
     async function bootApp() {
       await Promise.all([
         useAuthStore.getState().init(),
+        useAdminAuthStore.getState().init(),
         useServiceStore.getState().init(),
         useGroupStore.getState().init({ all: false }),
         useNotificationStore.getState().init(),

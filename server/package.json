@@ -20,7 +20,9 @@
     "db:encrypt-credentials": "node prisma/encryptSharedCredentials.js",
     "db:encrypt-credentials:prod": "DOTENV_CONFIG_PATH=.env.production node prisma/encryptSharedCredentials.js",
     "db:extract-r2-keys": "node prisma/extractR2Keys.js",
-    "db:extract-r2-keys:prod": "DOTENV_CONFIG_PATH=.env.production node prisma/extractR2Keys.js"
+    "db:extract-r2-keys:prod": "DOTENV_CONFIG_PATH=.env.production node prisma/extractR2Keys.js",
+    "admin:set": "node prisma/manageAdmin.js",
+    "admin:set:prod": "DOTENV_CONFIG_PATH=.env.production node prisma/manageAdmin.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1095.0",

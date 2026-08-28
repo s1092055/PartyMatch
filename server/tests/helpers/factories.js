@@ -1,5 +1,5 @@
 import prisma from '../../src/lib/prisma.js'
-import { signAccessToken } from '../../src/utils/jwt.js'
+import { signAccessToken, signAdminAccessToken } from '../../src/utils/jwt.js'
 
 let counter = 0
 function uniqueEmail() {
@@ -7,7 +7,7 @@ function uniqueEmail() {
   return `test-${Date.now()}-${counter}@partymatch.test`
 }
 
-export async function createUser({ tokenBalance = 0, name = '測試使用者', isAdmin = false } = {}) {
+export async function createUser({ tokenBalance = 0, name = '測試使用者' } = {}) {
   const user = await prisma.user.create({
     data: {
       email:        uniqueEmail(),
@@ -15,7 +15,6 @@ export async function createUser({ tokenBalance = 0, name = '測試使用者', i
       name,
       phone:        '+886900000000',
       tokenBalance,
-      isAdmin,
     },
   })
   return user
@@ -23,6 +22,23 @@ export async function createUser({ tokenBalance = 0, name = '測試使用者', i
 
 export function authHeader(user) {
   const token = signAccessToken({ id: user.id, email: user.email })
+  return `Bearer ${token}`
+}
+
+// 管理員是完全獨立的 AdminUser 資料表，測試裡一律用這組 helper，不要用 createUser
+export async function createAdminUser({ name = '測試管理員' } = {}) {
+  const admin = await prisma.adminUser.create({
+    data: {
+      email:        uniqueEmail(),
+      passwordHash: 'not-used-in-tests',
+      name,
+    },
+  })
+  return admin
+}
+
+export function adminAuthHeader(admin) {
+  const token = signAdminAccessToken({ id: admin.id, email: admin.email })
   return `Bearer ${token}`
 }
 

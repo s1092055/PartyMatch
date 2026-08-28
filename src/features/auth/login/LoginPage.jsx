@@ -5,7 +5,6 @@ import AuthLayout, { AuthTitle, AuthInput, AuthError, PasswordToggle } from '../
 import { Button } from '../../../components/ui/button'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
 import { toast } from '../../../common/utils/toast'
-import { ADMIN_HOME_PATH } from '../../../app/AdminRoute'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -34,7 +33,6 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
     const homeImport      = import('../../home/HomePage').catch(() => {})
-    const adminImport     = import('../../admin/AdminDashboardPage').catch(() => {})
     const appLayoutImport = import('../../../common/layout/AppLayout').catch(() => {})
     const result = await useAuthStore.getState().login({ email, password })
     if (!result.ok) {
@@ -43,10 +41,8 @@ export default function LoginPage() {
       return
     }
     const { from, reopenGroupModalId } = location.state ?? {}
-    await (result.user.isAdmin ? adminImport : reopenGroupModalId ? appLayoutImport : homeImport)
-    if (result.user.isAdmin) {
-      navigate(ADMIN_HOME_PATH, { replace: true })
-    } else if (reopenGroupModalId) {
+    await (reopenGroupModalId ? appLayoutImport : homeImport)
+    if (reopenGroupModalId) {
       navigate(from || '/', { replace: true, state: { reopenGroupModalId } });
     } else {
       navigate('/', { replace: true })

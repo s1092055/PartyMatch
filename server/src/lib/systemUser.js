@@ -9,7 +9,7 @@ async function upsertSystemUser() {
   try {
     const user = await prisma.user.upsert({
       where:  { email: SYSTEM_USER_EMAIL },
-      update: { isSystem: true, isAdmin: false },
+      update: { isSystem: true },
       create: {
         email:         SYSTEM_USER_EMAIL,
         name:          'PartyMatch 系統訊息',

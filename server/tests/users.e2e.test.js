@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs'
 import app from '../src/app.js'
 import prisma from '../src/lib/prisma.js'
 import { resetDb } from './helpers/db.js'
-import { createUser, authHeader } from './helpers/factories.js'
+import { createUser, createAdminUser, authHeader, adminAuthHeader } from './helpers/factories.js'
 
 describe('使用者資料（GET /users/:id, PATCH /users/me）', () => {
   beforeEach(async () => {
@@ -110,23 +110,23 @@ describe('GET /users?email= 依 email 查詢（管理員限定）', () => {
   })
 
   it('管理員可以用 email 查到使用者', async () => {
-    const admin = await createUser({ isAdmin: true })
+    const admin = await createAdminUser()
     const target = await createUser({ name: '被查的人' })
 
-    const res = await request(app).get(`/api/users?email=${target.email}`).set('Authorization', authHeader(admin))
+    const res = await request(app).get(`/api/users?email=${target.email}`).set('Authorization', adminAuthHeader(admin))
     expect(res.status).toBe(200)
     expect(res.body.id).toBe(target.id)
   })
 
-  it('非管理員呼叫回 403', async () => {
+  it('一般使用者的 token 無法呼叫（401）', async () => {
     const user = await createUser()
     const res = await request(app).get('/api/users?email=anyone@test.com').set('Authorization', authHeader(user))
-    expect(res.status).toBe(403)
+    expect(res.status).toBe(401)
   })
 
   it('沒帶 email 回 400', async () => {
-    const admin = await createUser({ isAdmin: true })
-    const res = await request(app).get('/api/users').set('Authorization', authHeader(admin))
+    const admin = await createAdminUser()
+    const res = await request(app).get('/api/users').set('Authorization', adminAuthHeader(admin))
     expect(res.status).toBe(400)
   })
 })

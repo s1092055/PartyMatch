@@ -1,17 +1,33 @@
-import client from './axiosClient'
+import adminClient from './adminAxiosClient'
+
+export async function adminLogin({ email, password }) {
+  return adminClient.post('/admin/auth/login', { email, password })
+}
+
+export async function adminLogout() {
+  return adminClient.post('/admin/auth/logout')
+}
+
+export async function fetchAdminMe() {
+  return adminClient.get('/admin/auth/me')
+}
 
 export async function fetchAdminStats() {
-  return client.get('/admin/stats')
+  return adminClient.get('/admin/stats')
 }
 
 export async function fetchAdminDisputes(params = {}) {
-  return client.get('/admin/disputes', { params })
+  return adminClient.get('/admin/disputes', { params })
 }
 
 export async function fetchAdminDisputeDetail(disputeId) {
-  return client.get(`/admin/disputes/${disputeId}`)
+  return adminClient.get(`/admin/disputes/${disputeId}`)
 }
 
 export async function fetchAdminDisputeHistory(params = {}) {
-  return client.get('/admin/disputes/history', { params })
+  return adminClient.get('/admin/disputes/history', { params })
+}
+
+export async function adjudicateDisputeApi(groupId, { memberId, winner, reason }) {
+  return adminClient.post(`/groups/${groupId}/adjudicate`, { memberId, winner, reason })
 }
