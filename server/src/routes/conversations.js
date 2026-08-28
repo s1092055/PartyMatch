@@ -66,9 +66,19 @@ router.post('/group', requireAuth, async (req, res, next) => {
     const existing = await prisma.conversation.findFirst({
       where: { type: 'group', groupId },
     })
-    if (existing) return res.json(existing)
-
     const participantIds = [...new Set([group.hostId, ...group.members.map(m => m.userId)])]
+
+    if (existing) {
+      const existingParticipants = parseParticipants(existing)
+      const missing = participantIds.filter(id => !existingParticipants.includes(id))
+      if (missing.length === 0) return res.json(existing)
+      const reconciled = await prisma.conversation.update({
+        where: { id: existing.id },
+        data:  { participants: [...existingParticipants, ...missing] },
+      })
+      return res.json(reconciled)
+    }
+
     const conversation = await prisma.conversation.create({
       data: { type: 'group', groupId, participants: participantIds },
     })
