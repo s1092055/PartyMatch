@@ -1,3 +1,11 @@
+// 這幾個服務官方帳號底下有「Profile」機制（同一組帳密下可切換多個使用者資料夾），
+// 才需要額外請成員填寫自己使用中的 Profile 名稱，避免被其他成員誤用/佔用
+const PROFILE_ENABLED_SERVICE_IDS = ['netflix', 'disney', 'hbo', 'crunchyroll']
+
+export function serviceHasProfileField(serviceId) {
+  return PROFILE_ENABLED_SERVICE_IDS.includes(serviceId)
+}
+
 export const SHARING_METHOD_CONFIG = {
   apple_family: {
     fields: [
@@ -32,41 +40,53 @@ export const SHARING_METHOD_CONFIG = {
   },
   shared_credentials: {
     fields: [
-      { key: 'acknowledged', label: '我已取得帳號密碼並確認可以登入', type: 'checkbox' },
+      { key: 'acknowledged', label: '我已登入服務帳號並使用自己的 Profile 名稱', type: 'checkbox' },
     ],
     notice: '此服務官方沒有多人邀請功能，帳號密碼由團主在鎖定群組時統一提供，見下方「團主提供的帳號資訊」；確認可以登入後再勾選下方確認框。',
+    bannerNotice: '請確認下方帳號密碼可登入後再勾選確認',
   },
 };
 
 const DEFAULT_METHOD = 'email_invite'
 
-export function getSharingMethodConfig(sharingMethod) {
-  return SHARING_METHOD_CONFIG[sharingMethod] ?? SHARING_METHOD_CONFIG[DEFAULT_METHOD]
+const PROFILE_NAME_FIELD = { key: 'memberProfileName', label: 'Profile 名稱', type: 'text', placeholder: '請輸入Profile名稱' }
+const ACKNOWLEDGED_ISSUE_LABEL = '我已處理回報問題並確認'
+
+export function getSharingMethodConfig(sharingMethod, serviceId, { hasServiceInfoIssue } = {}) {
+  const base = SHARING_METHOD_CONFIG[sharingMethod] ?? SHARING_METHOD_CONFIG[DEFAULT_METHOD]
+  let fields = base.fields
+  if (sharingMethod === 'shared_credentials' && hasServiceInfoIssue) {
+    fields = fields.map(f => f.key === 'acknowledged' ? { ...f, label: ACKNOWLEDGED_ISSUE_LABEL } : f)
+  }
+  if (sharingMethod === 'shared_credentials' && serviceHasProfileField(serviceId)) {
+    fields = [PROFILE_NAME_FIELD, ...fields]
+  }
+  return { ...base, fields }
 }
 
 export function isSharedCredentialsMethod(sharingMethod) {
   return sharingMethod === 'shared_credentials'
 }
 
-export function hasFilledServiceInfo(serviceInfo, sharingMethod) {
+export function hasFilledServiceInfo(serviceInfo, sharingMethod, serviceId) {
   if (!serviceInfo) return false
-  const { fields } = getSharingMethodConfig(sharingMethod)
+  const { fields } = getSharingMethodConfig(sharingMethod, serviceId)
   return fields.every(({ key, type }) => {
     const value = serviceInfo[key]
     return type === 'checkbox' ? value === true : !!value?.toString().trim()
   })
 }
 
-export function getTextFields(sharingMethod) {
-  return getSharingMethodConfig(sharingMethod).fields.filter(({ type }) => type !== 'checkbox')
+export function getTextFields(sharingMethod, serviceId) {
+  return getSharingMethodConfig(sharingMethod, serviceId).fields.filter(({ type }) => type !== 'checkbox')
 }
 
-export function getServiceInfoSummary(serviceInfo, sharingMethod) {
+export function getServiceInfoSummary(serviceInfo, sharingMethod, serviceId) {
   if (!serviceInfo) return null
-  const parts = getTextFields(sharingMethod)
+  const parts = getTextFields(sharingMethod, serviceId)
     .map(({ key, label }) => serviceInfo[key] ? `${label}：${serviceInfo[key]}` : null)
     .filter(Boolean)
   if (parts.length > 0) return parts.join('　')
-  const { fields } = getSharingMethodConfig(sharingMethod);
+  const { fields } = getSharingMethodConfig(sharingMethod, serviceId);
   return fields.some(({ key, type }) => type === 'checkbox' && serviceInfo[key]) ? '已確認取得帳號資訊' : null
 }

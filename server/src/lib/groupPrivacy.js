@@ -13,7 +13,11 @@ export function maskMemberSensitiveFields(member, { isHost, isSelf }) {
   if (isHost || isSelf) return member
   return {
     ...member,
-    serviceInfo: undefined,
+    // 帳號密碼共用類服務裡「目前使用的 Profile 名稱」刻意對同群組成員開放，
+    // 讓大家能認出彼此用的 Profile、避免被其他成員誤用/佔用；serviceInfo 其餘欄位仍完全遮罩
+    serviceInfo: member.serviceInfo?.memberProfileName
+      ? { memberProfileName: member.serviceInfo.memberProfileName }
+      : undefined,
     serviceInfoIssueNote: undefined,
     serviceInfoIssueEvidenceUrl: undefined,
     disputeEvidenceUrl: undefined,

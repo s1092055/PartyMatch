@@ -190,6 +190,11 @@ export default function FloatingMessages() {
     }
 
     if (notification.type === 'fill_service_info' && notification.meta?.groupId) {
+      navigateToMemberGroupOrExplore(navigate, userId, notification.meta.groupId)
+      return
+    }
+
+    if (notification.type === 'service_info_issue' && notification.meta?.groupId) {
       useGroupStore.getState().init({ all: true }).finally(() => {
         const grp = getGroupById(notification.meta.groupId)
         const isSharedCredentials = isSharedCredentialsMethod(getServiceById(grp?.serviceId)?.sharingMethod)

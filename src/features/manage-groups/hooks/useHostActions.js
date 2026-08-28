@@ -4,7 +4,7 @@ import { useGroupStore } from '../../../common/stores/useGroupStore'
 import { useApplicationStore } from '../../../common/stores/useApplicationStore'
 import { useMemberStore } from '../../../common/stores/useMemberStore'
 import { useSubscriptionStore } from '../../../common/stores/useSubscriptionStore'
-import { createGroupConversation, removeParticipantFromConversation, sendSystemMessage, sendActionMessage } from '../../../common/api/messagesApi'
+import { createGroupConversation, removeParticipantFromConversation, sendSystemMessage } from '../../../common/api/messagesApi'
 import { toast } from '../../../common/utils/toast'
 import { useConversationStore } from '../../../common/stores/useConversationStore'
 import { isHistoryGroup } from '../../../common/utils/groupStatusDisplay'
@@ -163,8 +163,8 @@ async function handleLockGroup(sharedCredentials) {
       })
 
       setViewGroupId(null)
-    } catch (err) {
-      toast(err?.message ?? '鎖定群組失敗，請稍後再試', 'error')
+    } catch {
+      toast('鎖定群組失敗，請稍後再試', 'error')
     }
   }
 
@@ -196,8 +196,8 @@ async function handleActivate() {
 
     try {
       await activateService(viewGroupId)
-    } catch (err) {
-      toast(err?.message ?? '啟用失敗，請稍後再試', 'error')
+    } catch {
+      toast('啟用失敗，請稍後再試', 'error')
       return
     }
 
@@ -219,7 +219,7 @@ async function handleActivate() {
     try {
       await adjustBillingDate(viewGroupId, { nextBillingDate, note })
     } catch (err) {
-      toast(err?.message ?? '調整失敗，請稍後再試', 'error')
+      toast('調整失敗，請稍後再試', 'error')
       throw err
     }
 
@@ -234,8 +234,8 @@ async function handleActivate() {
     try {
       await useGroupStore.getState().resolveDispute(groupId, { note })
       toast('已標記問題處理完成')
-    } catch (err) {
-      toast(err?.message ?? '處理失敗，請稍後再試', 'error')
+    } catch {
+      toast('處理失敗，請稍後再試', 'error')
     }
   }
 
@@ -246,8 +246,8 @@ async function handleActivate() {
 
     try {
       await useGroupStore.getState().cancelGroup(viewGroupId)
-    } catch (err) {
-      toast(err?.message ?? '解散失敗，請稍後再試', 'error')
+    } catch {
+      toast('解散失敗，請稍後再試', 'error')
       return
     }
 
@@ -263,8 +263,8 @@ async function handleActivate() {
     if (!renewalModalGroupId) return
     try {
       await startRenewalCycle(renewalModalGroupId)
-    } catch (err) {
-      toast(err?.message ?? '開始新一期失敗，請稍後再試', 'error')
+    } catch {
+      toast('開始新一期失敗，請稍後再試', 'error')
       return
     }
     clearMemberServiceInfos(renewalModalGroupId)
@@ -316,7 +316,7 @@ async function handleApprove(appId) {
       await updateApplicationStatus(appId, 'approved')
     } catch (err) {
       console.error('[handleApprove] failed:', err)
-      toast(err?.message ?? '接受失敗，請稍後再試', 'error');
+      toast('接受失敗，請稍後再試', 'error');
       setErrors(prev => ({ ...prev, [appId]: '接受失敗，請稍後再試' }))
       await useApplicationStore.getState().init()
       return
@@ -336,17 +336,6 @@ async function handleApprove(appId) {
 
   function handleReportServiceInfoIssue(member, note, evidenceUrl) {
     updateMember(member.id, { serviceInfoIssueNote: note, serviceInfoIssueEvidenceUrl: evidenceUrl ?? null })
-
-    const group = getGroupById(member.groupId)
-    const convId = getConvByGroupId(member.groupId)?.id
-
-    if (convId) sendSystemMessage(convId, `${member.userName}，服務帳號需要修正`).catch(console.error)
-    if (convId) sendActionMessage(convId, {
-      actionType: 'request_service_resubmit',
-      text: note,
-      payload: { targetUserId: member.userId, serviceId: group?.serviceId },
-    }).catch(console.error)
-
     refreshGroups();
   }
 
@@ -358,7 +347,7 @@ async function handleApprove(appId) {
       await updateApplicationStatus(appId, 'rejected')
     } catch (err) {
       console.error('[handleReject] failed:', err)
-      toast(err?.message ?? '拒絕失敗，請稍後再試', 'error');
+      toast('拒絕失敗，請稍後再試', 'error');
       setErrors(prev => ({ ...prev, [appId]: '拒絕失敗，請稍後再試' }))
       await useApplicationStore.getState().init()
       return

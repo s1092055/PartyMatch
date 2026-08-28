@@ -19,7 +19,7 @@ export function buildMemberInfoPanel(
           <div className="mb-3 py-3">
             <p className="mb-2 flex items-center gap-1.5 text-base font-black text-ink"><KeyRound size={15} strokeWidth={1.5} />帳號資訊</p>
             {parsedCredentials ? (
-              <dl className="space-y-1">
+              <dl className="space-y-1 rounded-lg border border-line bg-raised px-3 py-2.5">
                 {parsedCredentials.map(({ key, label, value }) => (
                   <div key={label} className="flex items-baseline justify-between gap-2 text-sm">
                     <dt className="shrink-0 text-ink-4">{label}</dt>
@@ -29,7 +29,7 @@ export function buildMemberInfoPanel(
                         <button
                           type="button"
                           onClick={onTogglePassword}
-                          className="shrink-0 rounded-control p-1 text-ink-4 transition-colors hover:bg-raised hover:text-ink-2"
+                          className="shrink-0 rounded-control p-1 text-ink-4 transition-colors hover:bg-surface hover:text-ink-2"
                         >
                           {showPassword ? <EyeOff size={14} strokeWidth={1.5} /> : <Eye size={14} strokeWidth={1.5} />}
                         </button>
@@ -41,9 +41,9 @@ export function buildMemberInfoPanel(
                 ))}
               </dl>
             ) : sharedCredentials ? (
-              <p className="whitespace-pre-wrap text-sm text-ink-2">{sharedCredentials}</p>
+              <p className="whitespace-pre-wrap rounded-lg border border-line bg-raised px-3 py-2.5 text-sm text-ink-2">{sharedCredentials}</p>
             ) : (
-              <p className="text-sm text-ink-4">尚未提供</p>
+              <p className="rounded-lg border border-dashed border-line px-3 py-2.5 text-sm text-ink-4">尚未提供</p>
             )}
           </div>
         )}
@@ -60,8 +60,9 @@ export function buildMemberInfoPanel(
                   <div className="min-w-0 flex-1">
                     <MemberIssueCard
                       m={m}
-                      filled={hasFilledServiceInfo(m.serviceInfo, sharingMethod)}
+                      filled={hasFilledServiceInfo(m.serviceInfo, sharingMethod, serviceId)}
                       sharingMethod={sharingMethod}
+                      serviceId={serviceId}
                       isSharedCredentials={isSharedCredentials}
                       canReportServiceIssue={canReportServiceIssue}
                       onOpenServiceIssue={onOpenServiceIssue}

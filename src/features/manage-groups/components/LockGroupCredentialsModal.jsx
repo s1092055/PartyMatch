@@ -33,31 +33,33 @@ export default function LockGroupCredentialsModal(
             {config.warning}
           </div>
         )}
-        {config.fields.map(({ key, label, placeholder }) => (
-          <div key={key}>
-            <label className="block text-xs text-ink-3 mb-1.5">{label}</label>
-            <Input
-              type={key === 'password' && !showPassword ? 'password' : 'text'}
-              value={values[key] ?? ''}
-              onChange={e => setValues(prev => ({ ...prev, [key]: e.target.value }))}
-              placeholder={placeholder}
-              autoComplete={key === 'password' ? 'new-password' : undefined}
-              required
-              endAdornment={key === 'password' && (
-                <Button
-                  type="button"
-                  onClick={() => setShowPassword(v => !v)}
-                  variant="ghost"
-                  size="icon"
-                  className="-mr-1.5 shrink-0 text-ink-4 hover:text-ink-2"
-                  aria-label={showPassword ? '隱藏密碼' : '顯示密碼'}
-                >
-                  {showPassword ? <EyeOff size={16} strokeWidth={1.5} /> : <Eye size={16} strokeWidth={1.5} />}
-                </Button>
-              )}
-            />
-          </div>
-        ))}
+        <div className="space-y-3 rounded-lg border border-line p-3">
+          {config.fields.map(({ key, label, placeholder }) => (
+            <div key={key}>
+              <label className="block text-xs text-ink-3 mb-1.5">{label}</label>
+              <Input
+                type={key === 'password' && !showPassword ? 'password' : 'text'}
+                value={values[key] ?? ''}
+                onChange={e => setValues(prev => ({ ...prev, [key]: e.target.value }))}
+                placeholder={placeholder}
+                autoComplete={key === 'password' ? 'new-password' : undefined}
+                required
+                endAdornment={key === 'password' && (
+                  <Button
+                    type="button"
+                    onClick={() => setShowPassword(v => !v)}
+                    variant="ghost"
+                    size="icon"
+                    className="-mr-1.5 shrink-0 text-ink-4 hover:text-ink-2"
+                    aria-label={showPassword ? '隱藏密碼' : '顯示密碼'}
+                  >
+                    {showPassword ? <EyeOff size={16} strokeWidth={1.5} /> : <Eye size={16} strokeWidth={1.5} />}
+                  </Button>
+                )}
+              />
+            </div>
+          ))}
+        </div>
         <div className="rounded-lg bg-danger-subtle px-3 py-2 text-xs leading-relaxed text-danger-text">
           {CREDENTIAL_RISK_NOTICE}
         </div>

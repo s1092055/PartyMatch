@@ -100,8 +100,8 @@ export default function ActivateServiceModal({
                           <p className="text-sm font-semibold text-ink">{m.userName}</p>
                           {m.serviceInfoIssueNote ? (
                             <p className="text-xs text-warning-text">帳號問題已回報，等待修正</p>
-                          ) : hasFilledServiceInfo(m.serviceInfo, sharingMethod) ? (
-                            <p className="text-xs text-ink-3">{getServiceInfoSummary(m.serviceInfo, sharingMethod)}</p>
+                          ) : hasFilledServiceInfo(m.serviceInfo, sharingMethod, service?.id) ? (
+                            <p className="text-xs text-ink-3">{getServiceInfoSummary(m.serviceInfo, sharingMethod, service?.id)}</p>
                           ) : (
                             <p className="text-xs text-ink-4">{isSharedCredentialsMethod(sharingMethod) ? '尚未提取帳號資訊' : '尚未填寫帳號'}</p>
                           )}

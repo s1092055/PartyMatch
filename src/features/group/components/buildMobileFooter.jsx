@@ -28,10 +28,12 @@ function renderCTA({
         className="w-full"
         onClick={() => {
           handleClose()
-          navigate('/my-subscriptions', { state: { openGroupId: group.id } })
+          navigate('/my-subscriptions', {
+            state: { openGroupId: group.id, ...(hasServiceInfoIssue ? { openCredentials: true } : {}) },
+          })
         }}
       >
-        {hasServiceInfoIssue ? '修正服務帳號' : isSharedCredentials ? '提取帳號資訊' : '填寫服務帳號'}
+        {hasServiceInfoIssue ? '修正帳號資訊' : isSharedCredentials ? '提取帳號資訊' : '填寫服務帳號'}
       </Button>
     </div>
   )

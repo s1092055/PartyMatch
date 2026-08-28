@@ -2,8 +2,10 @@ import { MessageCircle, Star, UserX } from 'lucide-react'
 import { Avatar } from '../../../../components/ui/avatar'
 import { PresenceDot } from '../../../../common/layout/components/navShared'
 import { Button } from '../../../../components/ui/button'
+import { serviceHasProfileField } from '../../../../common/utils/serviceInfoFields'
 
 export function buildMembersPanel({ group, members, setActivePanel, onClose, setRemovingMember, setShowMemberReviews, showMemberReviewsButton, onReviewMember, showReviewButton }) {
+  const showProfileName = serviceHasProfileField(group.serviceId)
   return {
     content: (
       <div className="relative min-h-full p-5 pb-16">
@@ -38,7 +40,12 @@ export function buildMembersPanel({ group, members, setActivePanel, onClose, set
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-ink">{m.userName}</p>
-                    <p className="text-xs text-ink-3">{m.joinedAt} 加入</p>
+                    <p className="text-xs text-ink-3">
+                      {m.joinedAt} 加入
+                      {showProfileName && m.serviceInfo?.memberProfileName && (
+                        <> ・使用 Profile：{m.serviceInfo.memberProfileName}</>
+                      )}
+                    </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-1">
                     <Button

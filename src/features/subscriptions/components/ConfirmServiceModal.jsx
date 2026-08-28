@@ -1,18 +1,14 @@
 import { CheckCircle2 } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter, DialogCloseButton } from '../../../components/ui/dialog'
 import { Button } from '../../../components/ui/button'
-import { Input } from '../../../components/ui/input'
 import ServiceLogo from '../../../components/ui/ServiceLogo'
 import TokenAmount from '../../../components/ui/TokenAmount'
 import GroupOverviewContent from '../../../components/ui/group/GroupOverviewContent'
-import { isSharedCredentialsMethod } from '../../../common/utils/serviceInfoFields'
 
 export default function ConfirmServiceModal(
-  { isOpen, onClose, onConfirm, group, service, plan, sharingMethod, profileName, setProfileName, confirmed, setConfirmed, loading }
+  { isOpen, onClose, onConfirm, group, service, plan, confirmed, setConfirmed, loading }
 ) {
-  const isSharedCredentials = isSharedCredentialsMethod(sharingMethod)
-  const profileRequired = isSharedCredentials
-  const canSubmit = confirmed && (!profileRequired || profileName.trim())
+  const canSubmit = confirmed
   return (
     <Dialog open={isOpen} onOpenChange={v => { if (!v) onClose() }}>
       <DialogContent variant="panel" maxWidth="max-w-lg" height="36rem" instant>
@@ -42,18 +38,6 @@ export default function ConfirmServiceModal(
         <div className="px-5 pt-5">
           <GroupOverviewContent group={group} service={service} plan={plan} />
         </div>
-
-        {isSharedCredentials && (
-          <label className="block px-5 pt-4">
-            <span className="mb-1.5 block text-xs text-ink-3">你使用的 Profile 名稱</span>
-            <Input
-              type="text"
-              value={profileName}
-              onChange={e => setProfileName(e.target.value)}
-              placeholder="請填寫自己在這個帳號底下使用的 Profile 名稱"
-            />
-          </label>
-        )}
 
         <div className="space-y-3 p-5">
           <label className="flex cursor-pointer items-start gap-3">

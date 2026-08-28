@@ -14,6 +14,7 @@ import { isSharedCredentialsMethod } from '../../../common/utils/serviceInfoFiel
 import { canReportServiceIssue } from '../../../common/utils/groupStatus'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
 import { useApplicationStore } from '../../../common/stores/useApplicationStore'
+import { useGroupStore } from '../../../common/stores/useGroupStore'
 import { useMemberStore } from '../../../common/stores/useMemberStore'
 import { useNotificationStore } from '../../../common/stores/useNotificationStore'
 import { useReviewStore } from '../../../common/stores/useReviewStore'
@@ -328,6 +329,11 @@ export default function HostGroupView(
   const isMemberReviews = showMemberReviews && activePanel === 'members'
 
   function goToPanel(panel) {
+    if (panel !== activePanel) {
+      useGroupStore.getState().refreshGroup(group.id).catch(console.error)
+      useMemberStore.getState().init().catch(console.error)
+      useApplicationStore.getState().init().catch(console.error)
+    }
     setActivePanel(panel)
     setShowReviewHistory(false)
     setShowMemberReviews(false)
@@ -513,6 +519,7 @@ export default function HostGroupView(
         evidenceUrl={serviceIssueEvidence.url}
         evidenceName={serviceIssueEvidence.name}
         evidenceUploading={serviceIssueEvidence.uploading}
+        evidenceProgress={serviceIssueEvidence.progress}
         onEvidenceSelect={serviceIssueEvidence.onSelect}
         onRemoveEvidence={serviceIssueEvidence.onRemove}
         onSubmit={() => {

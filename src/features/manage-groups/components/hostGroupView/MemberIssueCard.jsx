@@ -8,8 +8,8 @@ import { PresenceDot } from '../../../../common/layout/components/navShared'
 import { getTextFields } from '../../../../common/utils/serviceInfoFields'
 import { useClickOutside } from '../../../../common/utils/hooks'
 
-function renderFilledInfoDetail(serviceInfo, sharingMethod) {
-  const textFields = getTextFields(sharingMethod)
+function renderFilledInfoDetail(serviceInfo, sharingMethod, serviceId) {
+  const textFields = getTextFields(sharingMethod, serviceId)
 
   if (textFields.length === 0) {
     return <p className="text-xs text-success-text">已確認取得帳號資訊</p>;
@@ -28,7 +28,7 @@ function renderFilledInfoDetail(serviceInfo, sharingMethod) {
 }
 
 export default function MemberIssueCard(
-  { m, filled, sharingMethod, isSharedCredentials, canReportServiceIssue, onOpenServiceIssue }
+  { m, filled, sharingMethod, serviceId, isSharedCredentials, canReportServiceIssue, onOpenServiceIssue }
 ) {
   const [expanded, setExpanded] = useState(false)
   const cardRef = useRef(null)
@@ -80,7 +80,7 @@ export default function MemberIssueCard(
         )}
         {!hasIssue && filled && (
           <div className="mt-2 rounded-lg bg-raised px-3 py-2">
-            {renderFilledInfoDetail(m.serviceInfo, sharingMethod)}
+            {renderFilledInfoDetail(m.serviceInfo, sharingMethod, serviceId)}
           </div>
         )}
         {hasIssue && (

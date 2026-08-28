@@ -126,7 +126,7 @@ export default function GroupDetailModal() {
 
   const memberRecord        = group && activeUserId ? (members.find(m => m.userId === activeUserId && m.groupId === group.id) ?? null) : null
   const hasServiceInfoIssue = !!memberRecord?.serviceInfoIssueNote && !isHistoryGroup(group ?? {})
-  const hasServiceInfo      = hasFilledServiceInfo(memberRecord?.serviceInfo, service?.sharingMethod) && !hasServiceInfoIssue
+  const hasServiceInfo      = hasFilledServiceInfo(memberRecord?.serviceInfo, service?.sharingMethod, service?.id) && !hasServiceInfoIssue
 
   const picks = useMemo(() => {
     if (!group) return []
@@ -421,7 +421,7 @@ export default function GroupDetailModal() {
       {leaveConfirm && (
         <ConfirmActionDialog
           title="確認退出群組？"
-          message={`退出後將釋出名額，且需等待 10 分鐘後才能重新申請加入「${group?.serviceName}」。`}
+          message={`退出後將釋出名額，且需等待 3 分鐘後才能重新申請加入「${group?.serviceName}」。`}
           confirmLabel="退出群組"
           danger
           onConfirm={handleLeave}

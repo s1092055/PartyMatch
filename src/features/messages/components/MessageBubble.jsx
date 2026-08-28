@@ -55,10 +55,11 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
     if (msg.visibleTo && !msg.visibleTo.includes(userId)) return null
     if (msg.actionType === 'fill_service_info') {
       const isHost = userId === hostId
-      const sharingMethod = getServiceById(msg.payload?.serviceId)?.sharingMethod
+      const fillServiceId = msg.payload?.serviceId
+      const sharingMethod = getServiceById(fillServiceId)?.sharingMethod
       const isSharedCredentials = isSharedCredentialsMethod(sharingMethod)
       const myMember = getMemberByUserAndGroup(userId, conversationGroupId);
-      const iAlreadyFilled = isHost || (hasFilledServiceInfo(myMember?.serviceInfo, sharingMethod) && !myMember?.serviceInfoIssueNote)
+      const iAlreadyFilled = isHost || (hasFilledServiceInfo(myMember?.serviceInfo, sharingMethod, fillServiceId) && !myMember?.serviceInfoIssueNote)
       return (
         <div key={msg.id} className="flex justify-center">
           <div className="w-72 rounded-2xl border border-line bg-surface p-4 shadow-card">
@@ -72,13 +73,13 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-semibold text-ink">{m.userName}</p>
-                    {hasFilledServiceInfo(m.serviceInfo, sharingMethod) ? (
-                      <p className="text-xs text-ink-3">{getServiceInfoSummary(m.serviceInfo, sharingMethod)}</p>
+                    {hasFilledServiceInfo(m.serviceInfo, sharingMethod, fillServiceId) ? (
+                      <p className="text-xs text-ink-3">{getServiceInfoSummary(m.serviceInfo, sharingMethod, fillServiceId)}</p>
                     ) : (
                       <p className="text-xs text-ink-4">{isSharedCredentials ? '尚未提取' : '尚未填寫'}</p>
                     )}
                   </div>
-                  {hasFilledServiceInfo(m.serviceInfo, sharingMethod) && <CheckCircle2 strokeWidth={1.5} size={13} className="shrink-0 text-success" />}
+                  {hasFilledServiceInfo(m.serviceInfo, sharingMethod, fillServiceId) && <CheckCircle2 strokeWidth={1.5} size={13} className="shrink-0 text-success" />}
                 </div>
               ))}
             </div>
@@ -107,35 +108,6 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
       )
     }
 
-    if (msg.actionType === 'request_service_resubmit') {
-      const svcMember = getMemberByUserAndGroup(userId, conversationGroupId)
-      const resubmitSharingMethod = getServiceById(msg.payload?.serviceId)?.sharingMethod
-      const resubmitIsSharedCredentials = isSharedCredentialsMethod(resubmitSharingMethod)
-      const alreadyFixed = hasFilledServiceInfo(svcMember?.serviceInfo, resubmitSharingMethod) && !svcMember?.serviceInfoIssueNote
-      return (
-        <div key={msg.id} className="flex justify-center">
-          <div className="w-64 rounded-2xl border border-warning/30 bg-warning-subtle px-4 py-3 text-center shadow-card">
-            <p className="mb-2 text-xs font-semibold text-warning-text">服務帳號需要修正</p>
-            {msg.text && <p className="mb-3 rounded-lg bg-surface/60 px-3 py-2 text-left text-xs text-ink-2">{msg.text}</p>}
-            {alreadyFixed ? (
-              <p className="flex items-center justify-center gap-1 text-xs font-semibold text-ink-3">
-                <CheckCircle2 strokeWidth={1.5} size={13} /> {resubmitIsSharedCredentials ? '已重新確認' : '已重新填寫'}
-              </p>
-            ) : (
-              <Button
-                onClick={() => {
-                  window.dispatchEvent(new CustomEvent('pm:close-messages'))
-                  navigate('/my-subscriptions', { state: { openGroupId: conversationGroupId } })
-                }}
-                className="h-auto w-full rounded-lg bg-warning px-3 py-1.5 text-xs hover:bg-warning hover:opacity-90"
-              >
-                {resubmitIsSharedCredentials ? '重新提取帳號資訊' : '重新填寫服務帳號'}
-              </Button>
-            )}
-          </div>
-        </div>
-      )
-    }
     if (msg.actionType === 'all_service_info_filled') {
       return (
         <div key={msg.id} className="flex justify-center">

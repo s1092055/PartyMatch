@@ -163,6 +163,16 @@ router.patch('/:id', requireAuth, validate(patchMemberSchema), async (req, res, 
         message: `團主在「${groupLabel}」發現服務帳號問題，請前往修正。`,
         meta:    { groupId: existing.groupId },
       })
+
+      if (existing.group.sharedCredentials) {
+        prisma.credentialComment.create({
+          data: {
+            groupId:  existing.groupId,
+            authorId: req.user.id,
+            content:  `${existing.user?.name ?? '成員'}的帳號問題已回報，處理中`,
+          },
+        }).catch(console.error)
+      }
     }
 
     const resolvedMember = await resolveMemberEvidenceUrls(member);

@@ -17,7 +17,7 @@ import DisputeModal from './DisputeModal'
 import { buildPaymentsPanel } from './memberGroupView/buildPaymentsPanel'
 import { buildCredentialsPanel } from './memberGroupView/buildCredentialsPanel'
 import { getServiceById } from '../../../common/utils/serviceUtils'
-import { getSharingMethodConfig, hasFilledServiceInfo, isSharedCredentialsMethod } from '../../../common/utils/serviceInfoFields'
+import { getSharingMethodConfig, hasFilledServiceInfo, isSharedCredentialsMethod, serviceHasProfileField } from '../../../common/utils/serviceInfoFields'
 import { useMemberStore } from '../../../common/stores/useMemberStore'
 import { useGroupStore } from '../../../common/stores/useGroupStore'
 import { useSubscriptionStore } from '../../../common/stores/useSubscriptionStore'
@@ -40,7 +40,6 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
   const [confirmLoading, setConfirmLoading] = useState(false)
   const [confirmDialog, setConfirmDialog] = useState(false)
   const [confirmServiceAgreed, setConfirmServiceAgreed] = useState(false)
-  const [confirmProfileName, setConfirmProfileName] = useState('')
   const [disputeReasons, setDisputeReasons] = useState([])
   const [disputeDetail, setDisputeDetail] = useState('')
   const [disputeLoading, setDisputeLoading] = useState(false)
@@ -49,7 +48,6 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
   const [transactions, setTransactions] = useState([])
   const [transactionsLoading, setTransactionsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const [extractLoading, setExtractLoading] = useState(false)
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -86,11 +84,12 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
   const planDef           = serviceDef?.plans.find(p => p.name === group.planName)
   const isPaymentRelevant = !['recruiting', 'full', 'cancelled'].includes(group.status)
 
-  const sharingMethodConfig = getSharingMethodConfig(serviceDef?.sharingMethod)
   const isSharedCredentials = isSharedCredentialsMethod(serviceDef?.sharingMethod);
-  const canViewCredentials  = isSharedCredentials && isPaymentRelevant;
+  const showsProfileName    = isSharedCredentials && serviceHasProfileField(serviceDef?.id)
   const hasServiceInfoIssue = !!myMember?.serviceInfoIssueNote && group.status !== 'disputed' && !isHistoryGroup(group);
-  const hasServiceInfo      = hasFilledServiceInfo(myMember?.serviceInfo, serviceDef?.sharingMethod) && !hasServiceInfoIssue
+  const sharingMethodConfig = getSharingMethodConfig(serviceDef?.sharingMethod, serviceDef?.id, { hasServiceInfoIssue })
+  const hasServiceInfo      = hasFilledServiceInfo(myMember?.serviceInfo, serviceDef?.sharingMethod, serviceDef?.id) && !hasServiceInfoIssue
+  const canViewCredentials  = isSharedCredentials && isPaymentRelevant && (hasServiceInfo || hasServiceInfoIssue);
   const needsFillInfo       = !!sub && isPaymentRelevant && !hasServiceInfo && group.status === 'pending_confirmation'
   const waitingForOthers    = !!sub && hasServiceInfo && group.status === 'pending_confirmation';
   const canLeaveGroup       = ['recruiting', 'full'].includes(group.status) && !!myMember
@@ -99,6 +98,14 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
   const isDisputed          = group.status === 'disputed'
   const isDisputeRaiser     = isDisputed && !!myMember?.serviceInfoIssueNote;
   const disputedBannerText  = isDisputeRaiser ? '回報處理中' : '群組進度暫停中'
+
+  function selectPanel(panel) {
+    if (panel === activePanel) return
+    setActivePanel(panel)
+    useGroupStore.getState().refreshGroup(group.id).catch(console.error)
+    useMemberStore.getState().init().catch(console.error)
+    useSubscriptionStore.getState().init().catch(console.error)
+  }
 
   function openMessages() {
     onClose()
@@ -130,9 +137,6 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
   async function handleConfirmService() {
     setConfirmLoading(true)
     try {
-      if (isSharedCredentials && myMember) {
-        await fillServiceInfo(myMember.id, group.id, { ...myMember.serviceInfo, memberProfileName: confirmProfileName.trim() })
-      }
       const res = await confirmService(group.id)
       setConfirmDialog(false)
       setConfirmServiceAgreed(false)
@@ -179,19 +183,6 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
     }
   }
 
-  async function handleExtractCredentials() {
-    if (!myMember || extractLoading) return
-    setExtractLoading(true)
-    try {
-      await fillServiceInfo(myMember.id, group.id, { acknowledged: true })
-      toast('已提取帳號資訊', 'success')
-    } catch (err) {
-      toast(err?.message ?? '提取失敗，請稍後再試', 'error')
-    } finally {
-      setExtractLoading(false)
-    }
-  }
-
   const fillValid = myMember && sharingMethodConfig.fields.every(({ key, type }) =>
     type === 'checkbox' ? fillValues[key] === true : !!fillValues[key]?.trim()
   )
@@ -214,13 +205,20 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
     }
   }
 
-  const fillInfoCta = ((needsFillInfo && !isSharedCredentials) || hasServiceInfoIssue) && (
+  function openFillInfoModal() {
+    setFillValues(myMember?.serviceInfo ?? {})
+    setShowFillInfo(true)
+  }
+
+  const fillInfoCta = (needsFillInfo || hasServiceInfoIssue) && (
     <div className="py-2">
       <Button
-        onClick={() => { setFillValues(myMember?.serviceInfo ?? {}); setShowFillInfo(true) }}
+        variant={hasServiceInfoIssue ? 'destructive' : 'default'}
+        onClick={openFillInfoModal}
         className="w-full rounded-lg shadow-button"
       >
-        <ClipboardEdit strokeWidth={1.5} size={15} /> {isSharedCredentials ? '提取帳號資訊' : '填寫帳號'}
+        <ClipboardEdit strokeWidth={1.5} size={15} />
+        {hasServiceInfoIssue ? '修正帳號資訊' : isSharedCredentials ? '提取帳號資訊' : '填寫帳號'}
       </Button>
     </div>
   );
@@ -228,7 +226,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
   const confirmCta = canConfirm && (
     <div className="grid grid-cols-2 gap-2 p-2">
       <Button
-        onClick={() => { setConfirmProfileName(myMember?.serviceInfo?.memberProfileName ?? ''); setConfirmDialog(true) }}
+        onClick={() => setConfirmDialog(true)}
         disabled={confirmLoading}
         className="rounded-lg shadow-button"
       >
@@ -290,7 +288,12 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-ink">{m.userName}</p>
-                    <p className="text-xs text-ink-3">{m.joinedAt} 加入</p>
+                    <p className="text-xs text-ink-3">
+                      {m.joinedAt} 加入
+                      {showsProfileName && m.serviceInfo?.memberProfileName && (
+                        <> ・使用 Profile：{m.serviceInfo.memberProfileName}</>
+                      )}
+                    </p>
                   </div>
                   <Button
                     variant="ghost"
@@ -322,7 +325,12 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
                       {myMember.userName}
                       <span className="ml-1.5 text-xs font-normal text-brand">（你）</span>
                     </p>
-                    <p className="text-xs text-ink-3">{myMember.joinedAt} 加入</p>
+                    <p className="text-xs text-ink-3">
+                      {myMember.joinedAt} 加入
+                      {showsProfileName && myMember.serviceInfo?.memberProfileName && (
+                        <> ・使用 Profile：{myMember.serviceInfo.memberProfileName}</>
+                      )}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -344,9 +352,17 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
         onTogglePassword: () => setShowPassword(v => !v),
         issueNote: myMember?.serviceInfoIssueNote,
         evidenceUrl: myMember?.disputeEvidenceUrl ?? myMember?.serviceInfoIssueEvidenceUrl,
-        hasServiceInfo,
-        onExtract: handleExtractCredentials,
-        extractLoading,
+        memberProfiles: showsProfileName
+          ? members.map(m => ({
+            id: m.id,
+            userName: m.userName,
+            userAvatarInitial: m.userAvatarInitial,
+            userAvatarColor: m.userAvatarColor,
+            userPresenceStatus: m.userPresenceStatus,
+            profileName: m.serviceInfo?.memberProfileName ?? null,
+            isSelf: m.userId === currentUser?.id,
+          }))
+          : [],
       })
     }
 
@@ -366,7 +382,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
         headerBanner={
           hasServiceInfoIssue ? (
             <div className="flex items-center justify-center bg-warning-subtle px-6 py-3 text-sm font-extrabold text-warning-text">
-              服務帳號有問題，需要修正
+              帳號資訊有問題，請點擊「修正帳號資訊」
             </div>
           ) : needsFillInfo ? (
             <div className="flex items-center justify-center gap-2 bg-brand-subtle px-6 py-3 text-sm font-extrabold text-brand">
@@ -410,7 +426,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
           undefined
         }
         pendingBadge={
-          hasServiceInfoIssue ? '服務帳號需要修正' :
+          hasServiceInfoIssue ? '帳號資訊有問題' :
           needsFillInfo       ? (isSharedCredentials ? '請提取帳號資訊' : '請填寫服務帳號以完成加入流程') :
           waitingForOthers    ? '已填寫完成' :
           canConfirm          ? '確認期進行中，請確認服務' :
@@ -430,19 +446,19 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
         }
         sideBar={
           <>
-            <GroupModalSideBarItem active={activePanel === null} onClick={() => setActivePanel(null)}>
+            <GroupModalSideBarItem active={activePanel === null} onClick={() => selectPanel(null)}>
               <Info strokeWidth={1.5} size={17} /> 群組概覽
             </GroupModalSideBarItem>
-            <GroupModalSideBarItem active={activePanel === 'members'} onClick={() => setActivePanel('members')}>
+            <GroupModalSideBarItem active={activePanel === 'members'} onClick={() => selectPanel('members')}>
               <Users strokeWidth={1.5} size={17} /> 群組名單
             </GroupModalSideBarItem>
             {!!sub && (
-              <GroupModalSideBarItem active={activePanel === 'payments'} onClick={() => setActivePanel('payments')}>
+              <GroupModalSideBarItem active={activePanel === 'payments'} onClick={() => selectPanel('payments')}>
                 <Banknote strokeWidth={1.5} size={17} /> 付款管理
               </GroupModalSideBarItem>
             )}
             {canViewCredentials && (
-              <GroupModalSideBarItem active={activePanel === 'credentials'} onClick={() => setActivePanel('credentials')}>
+              <GroupModalSideBarItem active={activePanel === 'credentials'} onClick={() => selectPanel('credentials')}>
                 <KeyRound strokeWidth={1.5} size={17} /> 帳號資訊
               </GroupModalSideBarItem>
             )}
@@ -478,6 +494,8 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
         fillLoading={fillLoading}
         onSubmit={handleFillSubmit}
         viewerName={myMember?.userName}
+        hasServiceInfoIssue={hasServiceInfoIssue}
+        issueNote={myMember?.serviceInfoIssueNote}
       />
       <DisputeModal
         isOpen={showDispute}
@@ -491,6 +509,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
         evidenceUrl={evidence.url}
         evidenceName={evidence.name}
         evidenceUploading={evidence.uploading}
+        evidenceProgress={evidence.progress}
         onEvidenceSelect={evidence.onSelect}
         onRemoveEvidence={evidence.onRemove}
       />
@@ -502,9 +521,6 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
           group={group}
           service={serviceDef}
           plan={planDef}
-          sharingMethod={serviceDef?.sharingMethod}
-          profileName={confirmProfileName}
-          setProfileName={setConfirmProfileName}
           confirmed={confirmServiceAgreed}
           setConfirmed={setConfirmServiceAgreed}
           loading={confirmLoading}
@@ -513,7 +529,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
       {leaveConfirm && (
         <ConfirmActionDialog
           title="退出群組"
-          message={`確定要退出「${group.serviceName}」群組嗎？退出後名額將釋出，且需等待 10 分鐘後才能重新提出申請。`}
+          message={`確定要退出「${group.serviceName}」群組嗎？退出後名額將釋出，且需等待 3 分鐘後才能重新提出申請。`}
           confirmLabel="退出"
           danger
           onConfirm={() => { setLeaveConfirm(false); onLeaveGroup?.() }}

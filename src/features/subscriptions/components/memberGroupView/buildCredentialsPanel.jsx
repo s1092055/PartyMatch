@@ -1,12 +1,16 @@
-import { Eye, EyeOff, KeyRound } from 'lucide-react'
+import { Eye, EyeOff, Info, KeyRound } from 'lucide-react'
+import { Avatar } from '../../../../components/ui/avatar'
+import { PresenceDot } from '../../../../common/layout/components/navShared'
 import CredentialWatermark from '../../../../components/ui/primitives/CredentialWatermark'
 import CredentialCommentsSection from '../../../../components/ui/group/CredentialCommentsSection'
-import EmptyState from '../../../../components/ui/primitives/EmptyState'
 import MemberIssueCard from './MemberIssueCard'
 import { parseHostCredentials } from '../../../../common/utils/hostCredentialFields'
 
 export function buildCredentialsPanel(
-  { group, viewerName, viewerAvatarInitial, viewerAvatarColor, viewerPresenceStatus, showPassword, onTogglePassword, issueNote, evidenceUrl, hasServiceInfo, onExtract, extractLoading }
+  {
+    group, viewerName, viewerAvatarInitial, viewerAvatarColor, viewerPresenceStatus, showPassword, onTogglePassword,
+    issueNote, evidenceUrl, memberProfiles,
+  }
 ) {
   const parsedCredentials = parseHostCredentials(group.sharedCredentials, group.serviceId)
 
@@ -48,8 +52,37 @@ export function buildCredentialsPanel(
           團主尚未提供帳號資訊，請先在群組聊天室詢問團主
         </p>
       )}
+      {memberProfiles?.length > 0 && (
+        <div className="mt-3 space-y-2">
+          {memberProfiles.map(({ id, userName, userAvatarInitial, userAvatarColor, userPresenceStatus, profileName, isSelf }) => (
+            <div key={id} className="rounded-lg border border-line p-3">
+              <div className="flex items-center gap-3">
+                <span className="relative inline-block shrink-0">
+                  <Avatar initial={userAvatarInitial} color={userAvatarColor} size="sm" />
+                  <PresenceDot status={userPresenceStatus} className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-ink">{userName}{isSelf ? '（你）' : ''}</p>
+                  {!profileName && <p className="text-xs text-ink-4">尚未提取帳號</p>}
+                </div>
+              </div>
+              {profileName && (
+                <dl className="mt-2 rounded-lg bg-raised px-3 py-2">
+                  <div className="flex items-baseline gap-2 text-xs">
+                    <dt className="shrink-0 text-ink-4">Profile 名稱</dt>
+                    <dd className="min-w-0 truncate text-ink-2">{profileName}</dd>
+                  </div>
+                </dl>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
       {(parsedCredentials || group.sharedCredentials) && (
-        <p className="mt-1.5 text-xs text-ink-4">請勿將帳號資訊截圖、轉傳或提供給群組以外的任何人，違反約定將影響你的信用分數。</p>
+        <div className="mt-1.5 flex items-start gap-1.5 text-xs leading-relaxed text-ink-4">
+          <Info size={13} strokeWidth={1.5} className="mt-0.5 shrink-0" />
+          <p>請勿將帳號資訊截圖、轉傳或提供給群組以外的任何人，違反約定將影響你的信用分數。</p>
+        </div>
       )}
       {issueNote && (
         <MemberIssueCard
@@ -64,29 +97,6 @@ export function buildCredentialsPanel(
       <CredentialCommentsSection groupId={group.id} hostId={group.hostId} />
     </div>
   )
-
-  if (!hasServiceInfo) {
-    return {
-      content: (
-        <div className="relative min-h-full overflow-hidden">
-          <div aria-hidden className="pointer-events-none select-none blur-md">
-            {credentialsBody}
-          </div>
-          <div className="absolute inset-0 flex items-center justify-center bg-surface/70 backdrop-blur-[2px]">
-            <EmptyState
-              icon={KeyRound}
-              title="尚未提取帳號資訊"
-              description="團主已提供這個服務的帳號密碼，點擊下方按鈕確認取得後即可查看。"
-              actionLabel={extractLoading ? '提取中…' : '提取帳號資訊'}
-              onAction={extractLoading ? undefined : onExtract}
-              actionVariant="ink"
-              className="py-0"
-            />
-          </div>
-        </div>
-      ),
-    }
-  }
 
   return { content: credentialsBody }
 }
