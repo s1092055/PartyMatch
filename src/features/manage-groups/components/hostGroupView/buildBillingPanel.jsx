@@ -1,83 +1,39 @@
-import { ArrowUpCircle, Banknote, RefreshCw } from 'lucide-react'
-import { Avatar } from '../../../../components/ui/avatar'
-import { PresenceDot } from '../../../../common/layout/components/navShared'
+import { Banknote, RefreshCw } from 'lucide-react'
 import { Button } from '../../../../components/ui/button'
 import EmptyState from '../../../../components/ui/primitives/EmptyState'
-import EscrowStatusCard from '../../../../components/ui/EscrowStatusCard'
-import TokenAmount from '../../../../components/ui/TokenAmount'
-import { formatDateTime } from '../../../../common/utils/date'
+import BillingCycleSection from './BillingCycleSection'
 
-export function buildBillingPanel({ members, transactions, transactionsLoading, showRenewal, onOpenRenewal, escrowTokens, isCancelled }) {
-  const releasedTotal = transactions
-    .filter(tx => tx.type === 'release')
-    .reduce((sum, tx) => sum + tx.amount, 0);
-
-  const refundedTotal = transactions
-    .filter(tx => tx.type === 'refund')
-    .reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
-
-  const latestEscrowByUserId = {};
-  const latestRefundByUserId = {};
+export function buildBillingPanel({ members, transactions, transactionsLoading, showRenewal, onOpenRenewal, currentCycle, isCancelled }) {
+  const cycleGroups = new Map()
   for (const tx of transactions) {
-    if (tx.type === 'escrow') latestEscrowByUserId[tx.userId] ??= tx;
-    if (tx.type === 'refund') latestRefundByUserId[tx.userId] ??= tx;
+    const cycle = tx.cycle ?? 1
+    if (!cycleGroups.has(cycle)) cycleGroups.set(cycle, [])
+    cycleGroups.get(cycle).push(tx)
   }
-
-  const memberEscrowTotal = escrowTokens > 0
-    ? members.reduce((sum, m) => {
-        const tx = latestEscrowByUserId[m.userId]
-        return sum + (tx ? Math.abs(tx.amount) : 0)
-      }, 0)
-    : 0;
+  // 越新的期數排在越上面
+  const cycles = [...cycleGroups.keys()].sort((a, b) => b - a)
 
   return {
     content: (
       <div className={`relative min-h-full p-5 ${showRenewal ? 'pb-16' : ''}`}>
         {transactionsLoading ? (
           <p className="py-8 text-center text-sm text-ink-3">載入中…</p>
-        ) : members.length === 0 ? (
+        ) : members.length === 0 && cycles.length === 0 ? (
           <EmptyState icon={Banknote} title="目前尚無成員" />
+        ) : cycles.length === 0 ? (
+          <EmptyState icon={Banknote} title="目前尚無代管紀錄" />
         ) : (
-          <div className="space-y-4">
-            {isCancelled ? (
-              refundedTotal > 0 && (
-                <EscrowStatusCard tone="success" icon={ArrowUpCircle} title="群組已解散，代管金額已退回成員" amount={refundedTotal} />
-              )
-            ) : (
-              <>
-                {memberEscrowTotal > 0 && (
-                  <EscrowStatusCard tone="info" icon={Banknote} title="本期費用由平台代管中" amount={memberEscrowTotal} />
-                )}
-                {releasedTotal > 0 && (
-                  <EscrowStatusCard tone="success" icon={ArrowUpCircle} title="已撥款給你的代管總額" amount={releasedTotal} />
-                )}
-              </>
-            )}
-            <div className="overflow-hidden rounded-lg border border-line">
-              {members.map((m, i) => {
-                const tx = isCancelled ? latestRefundByUserId[m.userId] : latestEscrowByUserId[m.userId]
-                return (
-                  <div key={m.id} className={`flex items-center gap-3 px-4 py-3 ${i > 0 ? 'border-t border-line-subtle' : ''}`}>
-                    <span className="relative inline-block shrink-0">
-                      <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
-                      <PresenceDot status={m.userPresenceStatus} className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5" />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-ink">{m.userName}</p>
-
-                      <p className="text-xs text-ink-3">
-                        {tx ? `${formatDateTime(isCancelled ? tx.createdAt : m.joinedAtTime)} ${isCancelled ? '已退回' : '平台代管'}` : '尚無代管紀錄'}
-                      </p>
-                    </div>
-                    {tx && (
-                      <span className={`shrink-0 text-sm font-bold ${isCancelled ? 'text-success-text' : 'text-info'}`}>
-                        <TokenAmount amount={Math.abs(tx.amount)} />
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+          <div className="space-y-3">
+            {cycles.map(cycle => (
+              <BillingCycleSection
+                key={cycle}
+                cycle={cycle}
+                isCurrentCycle={cycle === currentCycle}
+                transactions={cycleGroups.get(cycle)}
+                isCancelled={isCancelled}
+                defaultOpen={cycle === cycles[0]}
+              />
+            ))}
           </div>
         )}
         {showRenewal && (

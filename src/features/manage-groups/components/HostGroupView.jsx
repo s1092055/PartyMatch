@@ -312,7 +312,7 @@ export default function HostGroupView(
       })
     }
     if (activePanel === 'applications') return buildApplicationsPanel({ pendingApps, groupFull, errors, onApprove, onReject, setShowReviewHistory: openReviewHistory })
-    if (activePanel === 'billing') return buildBillingPanel({ members, transactions, transactionsLoading, showRenewal, onOpenRenewal, escrowTokens: group.escrowTokens, isCancelled })
+    if (activePanel === 'billing') return buildBillingPanel({ members, transactions, transactionsLoading, showRenewal, onOpenRenewal, currentCycle: group.currentCycle, isCancelled })
     if (activePanel === 'memberInfo') {
       return buildMemberInfoPanel({
         groupId: group.id,

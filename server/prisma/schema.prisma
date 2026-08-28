@@ -206,6 +206,9 @@ model Group {
   // 續訂再啟用都固定沿用 /renew 已經算好、錨定在「上一期排定日期 + 一個週期」的值，避免扣款日
   // 每期都因為啟用延誤往後漂移。真的遇到需要延後的情況交給團主用「調整下次扣款日」手動處理
   hasActivatedOnce          Boolean     @default(false)
+  // 招募中到服務中算一整期；每次續訂（/renew）遞增，讓同一群組跨期累積的 TokenTransaction
+  // 可以用 TokenTransaction.cycle 標記各自屬於哪一期，收款管理才能依期數分組顯示
+  currentCycle              Int         @default(1)
   createdAt                 DateTime    @default(now())
   updatedAt                 DateTime    @updatedAt
 
@@ -300,6 +303,9 @@ model TokenTransaction {
   relatedGroupId String?
   relatedGroup   Group?               @relation(fields: [relatedGroupId], references: [id], onDelete: SetNull)
   note           String?
+  // 對應 Group.currentCycle，記錄這筆交易屬於群組的第幾期（招募到服務中算一期）；
+  // 跟群組無關的交易（例如儲值）沒有期數概念，維持預設值即可
+  cycle          Int                  @default(1)
   createdAt      DateTime             @default(now())
 
   @@index([userId, createdAt])

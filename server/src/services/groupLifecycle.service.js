@@ -180,6 +180,7 @@ async function tryReleaseEscrow(tx, groupId, hostId) {
       type:          'release',
       amount:        group.escrowTokens,
       relatedGroupId: groupId,
+      cycle:         group.currentCycle,
       note:          '確認期結束，代管款項撥付',
     },
   })
@@ -482,6 +483,7 @@ export async function cancelGroup({ groupId, hostId }) {
           type:          'refund',
           amount:        seatCost,
           relatedGroupId: groupId,
+          cycle:         group.currentCycle,
           note:          '群組解散，代管退款',
         })),
       })
@@ -625,7 +627,7 @@ export async function adjudicateDispute({ groupId, adminId, memberId, winner, re
         data:  { tokenBalance: { increment: memberRefundAmount } },
       })
       await tx.tokenTransaction.create({
-        data: { userId: disputeMember.userId, type: 'refund', amount: memberRefundAmount, relatedGroupId: group.id, note: `裁定結果：${trimmedReason}（申訴 #${dispute.id}）` },
+        data: { userId: disputeMember.userId, type: 'refund', amount: memberRefundAmount, relatedGroupId: group.id, cycle: group.currentCycle, note: `裁定結果：${trimmedReason}（申訴 #${dispute.id}）` },
       })
       await tx.group.update({
         where: { id: groupId },
@@ -749,12 +751,14 @@ export async function renewGroup({ groupId, hostId }) {
     });
     if (charged.count !== memberIds.length) throw httpError(409, '部分成員PM幣餘額於扣款當下不足，請稍後重試')
 
+    const newCycle = group.currentCycle + 1
     await tx.tokenTransaction.createMany({
       data: memberIds.map(userId => ({
         userId,
         type:           'escrow',
         amount:         -seatCost,
         relatedGroupId: groupId,
+        cycle:          newCycle,
         note:           `新一期代管 ${seatCost} PM`,
       })),
     })
@@ -776,6 +780,7 @@ export async function renewGroup({ groupId, hostId }) {
         nextBillingDate: base,
         serviceInfoDeadline,
         escrowTokens: { increment: seatCost * memberIds.length },
+        currentCycle: newCycle,
         billingDateAdjustedAt:     null,
         billingDateAdjustmentNote: null,
       },

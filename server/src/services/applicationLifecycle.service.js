@@ -75,7 +75,7 @@ export async function submitApplication({ groupId, message, userId }) {
       })
 
       await tx.tokenTransaction.create({
-        data: { userId, type: 'escrow', amount: -seatCost, relatedGroupId: groupId, note: `申請加入群組代管 ${seatCost} PM` },
+        data: { userId, type: 'escrow', amount: -seatCost, relatedGroupId: groupId, cycle: group.currentCycle, note: `申請加入群組代管 ${seatCost} PM` },
       })
 
       return created

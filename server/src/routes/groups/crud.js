@@ -110,7 +110,7 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
           return false;
         await tx.user.update({ where: { id: group.hostId }, data: { tokenBalance: { increment: fresh.escrowTokens } } })
         await tx.tokenTransaction.create({
-          data: { userId: group.hostId, type: 'release', amount: fresh.escrowTokens, relatedGroupId: group.id, note: '確認期逾期，自動撥款' },
+          data: { userId: group.hostId, type: 'release', amount: fresh.escrowTokens, relatedGroupId: group.id, cycle: group.currentCycle, note: '確認期逾期，自動撥款' },
         })
         await tx.subscription.updateMany({ where: { groupId: group.id }, data: { status: 'active' } })
         return true

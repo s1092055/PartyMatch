@@ -31,10 +31,11 @@ export async function admitMemberIntoGroup(tx, { groupId, userId, seatCost, maxM
       update: {},
     }),
     tx.user.update({ where: { id: userId }, data: { tokenBalance: { decrement: seatCost } } }),
-    tx.tokenTransaction.create({
-      data: { userId, type: 'escrow', amount: -seatCost, relatedGroupId: groupId, note },
-    }),
   ])
+  const currentGroup = await tx.group.findUnique({ where: { id: groupId }, select: { currentCycle: true } })
+  await tx.tokenTransaction.create({
+    data: { userId, type: 'escrow', amount: -seatCost, relatedGroupId: groupId, cycle: currentGroup?.currentCycle ?? 1, note },
+  })
 
   await advanceToFullIfNeeded(tx, groupId)
   return member
@@ -121,11 +122,11 @@ export async function rejectPendingApplications(tx, groupId, { refundNote, build
 
 export async function refundEscrow(tx, { userId, groupId, amount, note }) {
   if (amount <= 0) return
-  await Promise.all([
+  const [, group] = await Promise.all([
     tx.user.update({ where: { id: userId }, data: { tokenBalance: { increment: amount } } }),
     tx.group.update({ where: { id: groupId }, data: { escrowTokens: { decrement: amount } } }),
-    tx.tokenTransaction.create({
-      data: { userId, type: 'refund', amount, relatedGroupId: groupId, note },
-    }),
   ])
+  await tx.tokenTransaction.create({
+    data: { userId, type: 'refund', amount, relatedGroupId: groupId, cycle: group.currentCycle, note },
+  })
 }
