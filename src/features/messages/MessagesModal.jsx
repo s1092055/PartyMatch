@@ -23,6 +23,7 @@ import { useEvidenceUpload } from '../../common/utils/hooks'
 import { normalizeConversation, normalizeMessage } from '../../common/utils/modelNormalizers'
 import { getGroupStatusBucket } from '../../common/utils/groupStatusDisplay'
 import { byNewest } from '../../common/utils/date'
+import { createId } from '../../common/utils/storage'
 import ConversationList, { CONV_TABS } from './components/ConversationList'
 import ChatWindow from './components/ChatWindow'
 import { isSystemConversation, markConversationReadLocal } from './utils'
@@ -172,7 +173,7 @@ export default function MessagesModal() {
     attachment.reset()
     requestAnimationFrame(() => inputRef.current?.focus())
 
-    const tempId = `temp-${crypto.randomUUID()}`
+    const tempId = createId('temp')
     const optimisticMsg = normalizeMessage({
       id:          tempId,
       senderId:    user.id,
