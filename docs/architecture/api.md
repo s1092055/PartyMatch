@@ -56,7 +56,7 @@
 |------|------|
 | `INSUFFICIENT_BALANCE` | PM 幣餘額不足付席位費，回傳 `required` 欄位告知需要金額 |
 | `CREDIT_SCORE_TOO_LOW` | 信用分數低於群組設定的 `minCreditScore` |
-| `REAPPLY_COOLDOWN` | 逾期未填帳號資訊被自動移出後，24 小時內重新申請同一群組 |
+| `REAPPLY_COOLDOWN` | 被移出或自行退出群組後，3 分鐘內重新申請同一群組 |
 | （無 code，409） | 已有一筆進行中的申請（`P2002` unique constraint） |
 
 ### 團主審核（`PATCH /applications/:id`）

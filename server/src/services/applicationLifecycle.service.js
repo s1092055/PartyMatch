@@ -23,7 +23,7 @@ export async function submitApplication({ groupId, message, userId }) {
 
   if (lastDeparture) {
     const cooldownEnds = new Date(lastDeparture.updatedAt)
-    cooldownEnds.setMinutes(cooldownEnds.getMinutes() + 10)
+    cooldownEnds.setMinutes(cooldownEnds.getMinutes() + 3)
     if (cooldownEnds > new Date()) {
       const reason = lastDeparture.status === 'left' ? '先前退出這個群組' : '先前被移出這個群組'
       throw httpError(400, `你${reason}，需等到 ${cooldownEnds.toISOString()} 才能重新申請`, {
