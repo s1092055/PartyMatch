@@ -222,7 +222,7 @@
   }
 
   @media (max-width: 767px) {
-    input, select, textarea { font-size: 16px; }
+    input, select, textarea { font-size: 16px !important; }
   }
 
   /* 覆蓋瀏覽器對 Radix 等自訂元件不準的 :focus-visible 判斷：滑鼠不顯示、鍵盤才顯示 */

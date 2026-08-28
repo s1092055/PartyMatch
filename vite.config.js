@@ -20,6 +20,9 @@ function versionFilePlugin() {
 
 export default defineConfig({
   plugins: [react(), tailwindcss(), versionFilePlugin()],
+  server: {
+    host: true,
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
