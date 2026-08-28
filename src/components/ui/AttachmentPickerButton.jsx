@@ -17,10 +17,12 @@ export default function AttachmentPickerButton({ attachment, className }) {
         type="button"
         onClick={() => fileInputRef.current?.click()}
         disabled={attachment.uploading}
-        aria-label="新增附件"
+        aria-label={attachment.uploading ? `上傳中 ${attachment.progress}%` : '新增附件'}
         className={className}
       >
-        <Paperclip size={15} strokeWidth={1.5} />
+        {attachment.uploading
+          ? <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          : <Paperclip size={15} strokeWidth={1.5} />}
       </button>
     </>
   )

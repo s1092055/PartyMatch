@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from './toast'
 import { useAuthStore } from '../stores/useAuthStore'
 import { loadPrefs } from './appPrefs'
+import { resolveImageMime } from '../api/storageApi'
 
 const AUTO_OPEN_SEARCH_SESSION_KEY = 'pm_auto_search_opened'
 
@@ -196,12 +197,13 @@ export function useEvidenceUpload(uploadFn) {
   const [url, setUrl]             = useState('')
   const [name, setName]           = useState('')
   const [uploading, setUploading] = useState(false)
+  const [progress, setProgress]   = useState(0)
 
   async function onSelect(e) {
     const file = e.target.files?.[0]
     e.target.value = ''
     if (!file) return
-    if (!EVIDENCE_MIME_TYPES.includes(file.type)) {
+    if (!EVIDENCE_MIME_TYPES.includes(resolveImageMime(file))) {
       toast('僅支援圖片格式（PNG／JPG／GIF／WEBP／HEIC）', 'error')
       return
     }
@@ -210,8 +212,9 @@ export function useEvidenceUpload(uploadFn) {
       return
     }
     setUploading(true)
+    setProgress(0)
     try {
-      const uploaded = await uploadFn(file)
+      const uploaded = await uploadFn(file, setProgress)
       setKey(uploaded.key)
       setUrl(uploaded.url)
       setName(file.name)
@@ -219,6 +222,7 @@ export function useEvidenceUpload(uploadFn) {
       toast(err?.message ?? '附件上傳失敗，請稍後再試', 'error')
     } finally {
       setUploading(false)
+      setProgress(0)
     }
   }
 
@@ -226,9 +230,10 @@ export function useEvidenceUpload(uploadFn) {
     setKey('')
     setUrl('')
     setName('')
+    setProgress(0)
   }
 
-  return { key, url, name, uploading, onSelect, onRemove: reset, reset }
+  return { key, url, name, uploading, progress, onSelect, onRemove: reset, reset }
 }
 
 export function useClickOutside(enabled, refs, onClose) {

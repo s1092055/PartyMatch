@@ -15,6 +15,7 @@ export default function ReportServiceIssueModal({
   evidenceUrl,
   evidenceName,
   evidenceUploading,
+  evidenceProgress,
   onEvidenceSelect,
   onRemoveEvidence,
   onSubmit,
@@ -54,6 +55,7 @@ export default function ReportServiceIssueModal({
             url={evidenceUrl}
             name={evidenceName}
             uploading={evidenceUploading}
+            progress={evidenceProgress}
             onSelect={onEvidenceSelect}
             onRemove={onRemoveEvidence}
           />

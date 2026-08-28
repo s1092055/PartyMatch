@@ -27,6 +27,7 @@ export const uploadLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders:   false,
   handler,
+  skip: () => process.env.NODE_ENV === 'development',
 });
 
 export const adjudicateLimiter = rateLimit({

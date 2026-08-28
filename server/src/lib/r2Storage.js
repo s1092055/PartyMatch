@@ -22,23 +22,12 @@ const EXT_BY_MIME = {
   'image/heic': 'heic',
 }
 
-const ALLOWED_MIME_TYPES = Object.keys(EXT_BY_MIME);
-const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
+export const ALLOWED_MIME_TYPES = Object.keys(EXT_BY_MIME);
+export const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
 
-export async function uploadImage(data, { folder = '' } = {}) {
-  const match = /^data:([^;]+);base64,(.+)$/.exec(data)
-  if (!match) throw new Error('附件格式錯誤')
-  const [, mime, base64] = match
-
+export async function uploadImage(buffer, mime, { folder = '' } = {}) {
   if (!ALLOWED_MIME_TYPES.includes(mime)) {
     const err = new Error('僅支援圖片格式（PNG／JPG／GIF／WEBP／HEIC）')
-    err.status = 400
-    throw err
-  }
-
-  const buffer = Buffer.from(base64, 'base64')
-  if (buffer.length > MAX_FILE_SIZE_BYTES) {
-    const err = new Error('附件檔案大小不能超過 5MB')
     err.status = 400
     throw err
   }

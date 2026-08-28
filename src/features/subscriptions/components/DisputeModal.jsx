@@ -26,6 +26,7 @@ export default function DisputeModal(
     evidenceUrl,
     evidenceName,
     evidenceUploading,
+    evidenceProgress,
     onEvidenceSelect,
     onRemoveEvidence,
   }
@@ -76,6 +77,7 @@ export default function DisputeModal(
           url={evidenceUrl}
           name={evidenceName}
           uploading={evidenceUploading}
+          progress={evidenceProgress}
           onSelect={onEvidenceSelect}
           onRemove={onRemoveEvidence}
         />
