@@ -81,7 +81,7 @@ export const useNotificationStore = create((set, get) => ({
           return;
         const currentIds = new Set(useNotificationStore.getState().notifications.map(n => n.id))
         const newNotifs = latest.filter(n => n.userId === _notifUserId && !currentIds.has(n.id))
-        if (newNotifs.some(n => n.type === 'member_removed' || n.type === 'member_left' || n.type === 'group_cancelled' || n.type === 'application_approved' || n.type === 'all_service_info_filled')) {
+        if (newNotifs.some(n => n.type === 'member_removed' || n.type === 'member_left' || n.type === 'group_cancelled' || n.type === 'application_approved' || n.type === 'all_service_info_filled' || n.type === 'billing_date_confirmed' || n.type === 'billing_date_adjusted')) {
           window.dispatchEvent(new CustomEvent('pm:refresh-member-stores'))
         }
         const BALANCE_AFFECTING_TYPES = new Set(['member_removed', 'application_rejected', 'escrow_released', 'dispute_resolved', 'group_cancelled']);
