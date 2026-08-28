@@ -91,6 +91,7 @@ enum NotificationType {
   dispute_raised
   dispute_resolved
   dispute_resolved_by_host
+  dispute_escalated
   upcoming_renewal
   billing_date_confirmed
   billing_date_adjusted
@@ -117,7 +118,6 @@ model User {
   mutedNotificationCategories Json @default("[]")
   creditScore    Int            @default(100)
   tokenBalance   Int            @default(0)
-  isAdmin        Boolean        @default(false)
   // 系統訊息用的假帳號（見 lib/systemUser.js），不是真人，統計使用者人數／廣播收件人清單等地方要排除
   isSystem       Boolean        @default(false)
   // 軟刪除：非 null 代表帳號已停用，登入/refresh 一律拒絕；保留資料供日後申請恢復
@@ -138,9 +138,24 @@ model User {
   reviewsAuthored     Review[]            @relation("ReviewsAuthored")
   credentialComments  CredentialComment[]
   disputesRaised      Dispute[]           @relation("DisputesRaised")
-  disputesAdjudicated Dispute[]           @relation("DisputesAdjudicated")
 
   @@map("users")
+}
+
+// 管理員帳號跟一般使用者（User）完全分開的獨立資料表：不共用欄位、不共用登入、不共用 JWT 簽章金鑰，
+// 就算 User 相關的查詢或 API 未來出現漏洞，管理員帳密在資料結構上也不可能被一起撈出去。
+// 帳號只透過 scripts/manageAdmin.js 建立/重設密碼，沒有對外開放的註冊端點。
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  disputesAdjudicated Dispute[] @relation("DisputesAdjudicated")
+
+  @@map("admin_users")
 }
 
 model Service {
@@ -182,8 +197,6 @@ model Group {
   // 鎖定群組時設定為鎖定時間 + 24h，pending_confirmation 階段的填寫帳號資訊截止時間；逾期後
   // 由 GET /groups/:id 的惰性檢查自動把還沒填寫的成員踢除並退款（見 crud.js），不是純顯示用途
   serviceInfoDeadline       DateTime?
-  confirmDeadline           DateTime?
-  disputeDeadline           DateTime?
   // 團主在確認期（confirming）調整下次扣款日的額度用掉了沒有：非 null 代表這個計費週期已經調整過，
   // 不能再調第二次；進入新週期（/lock 第一次鎖定、/renew 續訂）時重置回 null，重新給一次額度
   billingDateAdjustedAt     DateTime?
@@ -248,6 +261,10 @@ model Member {
   serviceInfoIssueEvidenceUrl String?
   disputeEvidenceUrl          String?
   confirmedAt                 DateTime?
+  // 確認期／申訴期倒數以成員各自獨立記錄，不共用群組層級的單一倒數：
+  // 這樣仲裁/申訴解決後只重置「這位成員」自己的期限，不會連帶影響其他沒有申訴的成員
+  confirmDeadline             DateTime?
+  disputeDeadline             DateTime?
   joinedAt                    DateTime  @default(now())
   createdAt                   DateTime  @default(now())
   updatedAt                   DateTime  @updatedAt
@@ -428,9 +445,13 @@ model Dispute {
   deadline DateTime
   raisedAt DateTime      @default(now())
 
+  hostDisputed     Boolean   @default(false)
+  hostResponseNote String?   @db.VarChar(500)
+  hostRespondedAt  DateTime?
+
   resolutionType     DisputeResolutionType?
   resolvedByAdminId  String?
-  resolvedByAdmin    User?                  @relation("DisputesAdjudicated", fields: [resolvedByAdminId], references: [id], onDelete: SetNull)
+  resolvedByAdmin    AdminUser?             @relation("DisputesAdjudicated", fields: [resolvedByAdminId], references: [id], onDelete: SetNull)
   resolvedByHostAt   DateTime?
   memberRefundAmount Int?
   hostReleaseAmount  Int?

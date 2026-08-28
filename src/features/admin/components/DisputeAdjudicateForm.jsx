@@ -3,22 +3,21 @@ import { Button } from '../../../components/ui/button'
 import { Textarea } from '../../../components/ui/input'
 import ConfirmActionDialog from '../../../components/ui/ConfirmActionDialog'
 import { toast } from '../../../common/utils/toast'
-import { useGroupStore } from '../../../common/stores/useGroupStore'
+import { adjudicateDisputeApi } from '../../../common/api/adminApi'
 
 export default function DisputeAdjudicateForm({ dispute, onResolved }) {
   const [winner, setWinner] = useState('')
   const [reason, setReason] = useState('')
   const [confirming, setConfirming] = useState(false)
   const [loading, setLoading] = useState(false)
-  const adjudicateGroup = useGroupStore(s => s.adjudicateGroup)
 
-  const hostReleaseAmount = winner === 'member' ? dispute.escrowTokens - dispute.seatCost : dispute.escrowTokens
+  const hostReleaseAmount = winner === 'host' ? dispute.seatCost : 0
 
   async function handleConfirm() {
     setConfirming(false)
     setLoading(true)
     try {
-      await adjudicateGroup(dispute.groupId, { winner, reason: reason.trim() })
+      await adjudicateDisputeApi(dispute.groupId, { memberId: dispute.memberId, winner, reason: reason.trim() })
       toast('裁定完成', 'success')
       setWinner('')
       setReason('')
@@ -54,10 +53,10 @@ export default function DisputeAdjudicateForm({ dispute, onResolved }) {
       </div>
 
       {winner === 'member' && (
-        <p className="mb-3 text-xs text-ink-4">成員退款 {dispute.seatCost} PM；團主撥款 {hostReleaseAmount} PM</p>
+        <p className="mb-3 text-xs text-ink-4">將退款 {dispute.seatCost} PM 給成員；此裁定只結算這名成員的席位金額，群組其餘成員的代管進度不受影響</p>
       )}
       {winner === 'host' && (
-        <p className="mb-3 text-xs text-ink-4">申訴成員本期費用不予退還；團主撥款 {hostReleaseAmount} PM</p>
+        <p className="mb-3 text-xs text-ink-4">申訴成員本期費用不予退還，將撥款 {hostReleaseAmount} PM 給團主；此裁定只結算這名成員的席位金額，群組其餘成員的代管進度不受影響</p>
       )}
 
       <div className="mb-3">
@@ -84,8 +83,8 @@ export default function DisputeAdjudicateForm({ dispute, onResolved }) {
           title="確認送出裁定？"
           message={
             winner === 'member'
-              ? `成員獲勝：退款 ${dispute.seatCost} PM 給成員，團主撥款 ${hostReleaseAmount} PM，此操作無法復原。`
-              : `團主獲勝：申訴成員本期費用不予退還，團主撥款 ${hostReleaseAmount} PM，此操作無法復原。`
+              ? `成員獲勝：退款 ${dispute.seatCost} PM 給成員，此操作無法復原。`
+              : `團主獲勝：申訴成員本期費用不予退還，撥款 ${hostReleaseAmount} PM 給團主，此操作無法復原。`
           }
           confirmLabel="確認裁定"
           danger

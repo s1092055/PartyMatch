@@ -34,6 +34,7 @@ router.get('/', requireAdmin, async (req, res, next) => {
     res.json(disputes.map(d => ({
       id:             d.id,
       groupId:        d.groupId,
+      memberId:       d.memberId,
       planName:       d.planNameSnapshot,
       hostId:         d.hostId,
       hostName:       d.group.host.name,
@@ -44,6 +45,7 @@ router.get('/', requireAdmin, async (req, res, next) => {
       raisedAt:       d.raisedAt,
       status:         d.status,
       resolutionType: d.resolutionType,
+      hostDisputed:   d.hostDisputed,
     })))
   } catch (err) { next(err) }
 });
@@ -135,6 +137,7 @@ router.get('/:id', requireAdmin, async (req, res, next) => {
     res.json({
       id:                 dispute.id,
       groupId:            dispute.groupId,
+      memberId:           dispute.memberId,
       planName:           dispute.planNameSnapshot,
       status:             dispute.status,
       reason:             dispute.reason,
@@ -151,6 +154,9 @@ router.get('/:id', requireAdmin, async (req, res, next) => {
       hostReleaseAmount:  dispute.hostReleaseAmount,
       resolutionNote:     dispute.resolutionNote,
       resolvedAt:         dispute.resolvedAt,
+      hostDisputed:       dispute.hostDisputed,
+      hostResponseNote:   dispute.hostResponseNote,
+      hostRespondedAt:    dispute.hostRespondedAt,
       credentialComments: resolvedComments,
       conversationMessages: resolvedMessages,
     })

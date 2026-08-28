@@ -9,8 +9,8 @@ import {
   confirmGroupApi,
   cancelGroupApi,
   disputeGroupApi,
-  adjudicateGroupApi,
   resolveDisputeApi,
+  escalateDisputeApi,
   renewGroupApi,
   adjustBillingDateApi,
 } from '../api/groupsApi'
@@ -152,6 +152,14 @@ export const useGroupStore = create((set, get) => ({
     return updated
   },
 
+  escalateDispute: async (id, payload) => {
+    const updated = await escalateDisputeApi(id, payload)
+    set(s => ({
+      groups: s.groups.map(g => g.id === id ? normalizeGroup({ ...g, ...updated }) : g),
+    }))
+    return updated
+  },
+
   cancelGroup: async (id) => {
     await cancelGroupApi(id)
     set(s => ({
@@ -171,20 +179,6 @@ export const useGroupStore = create((set, get) => ({
       groups: s.groups.map(g => g.id === id ? normalizeGroup({ ...g, ...updated }) : g),
     }))
     return updated
-  },
-
-  adjudicateGroup: async (id, payload) => {
-    const res = await adjudicateGroupApi(id, payload)
-    const [{ useMemberStore }, { useSubscriptionStore }] = await Promise.all([
-      import('./useMemberStore'),
-      import('./useSubscriptionStore'),
-    ]);
-    await Promise.all([
-      get().init({ all: true }),
-      useMemberStore.getState().init(),
-      useSubscriptionStore.getState().init(),
-    ])
-    return res
   },
 
   endGroup: (id) => get().update(id, { status: 'ended' }),

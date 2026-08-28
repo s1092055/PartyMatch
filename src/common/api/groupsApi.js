@@ -40,12 +40,12 @@ export async function disputeGroupApi(id, { reason, evidenceUrl }) {
   return client.post(`/groups/${id}/dispute`, { reason, evidenceUrl })
 }
 
-export async function adjudicateGroupApi(id, { winner, reason }) {
-  return client.post(`/groups/${id}/adjudicate`, { winner, reason })
+export async function resolveDisputeApi(id, { memberId, note } = {}) {
+  return client.post(`/groups/${id}/resolve-dispute`, { memberId, note })
 }
 
-export async function resolveDisputeApi(id, { note } = {}) {
-  return client.post(`/groups/${id}/resolve-dispute`, { note })
+export async function escalateDisputeApi(id, { memberId, note }) {
+  return client.post(`/groups/${id}/escalate-dispute`, { memberId, note })
 }
 
 export async function renewGroupApi(id) {

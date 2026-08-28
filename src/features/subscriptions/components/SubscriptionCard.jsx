@@ -12,7 +12,10 @@ import { hasFilledServiceInfo, isSharedCredentialsMethod } from '../../../common
 
 function getBadgeStatus(sub) {
   const status = sub.groupStatus ?? sub.status
-  return isEffectivelyActive(status, sub.confirmedAt) ? 'active' : status
+  // 群組進入 disputed 時，只有提出問題的當事人自己會被視為問題處理中，
+  // 其他成員的確認進度不受影響，比照一般確認期顯示
+  const effectiveStatus = status === 'disputed' && !sub.serviceInfoIssueNote ? 'confirming' : status
+  return isEffectivelyActive(effectiveStatus, sub.confirmedAt) ? 'active' : effectiveStatus
 }
 
 function SubscriptionCard({ sub, onViewGroup }) {

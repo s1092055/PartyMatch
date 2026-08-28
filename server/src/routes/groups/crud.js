@@ -10,6 +10,7 @@ import { maskGroupListSensitiveFields, maskGroupDetailSensitiveFields, resolveGr
 import { computeSeatCost, toPlainGroup } from '../../utils/pricing.js'
 import { refundEscrow } from '../../utils/membership.js'
 import { adjustCreditScore } from '../../utils/creditScore.js'
+import { allMembersSettled } from '../../services/groupLifecycle.service.js'
 
 const router = Router()
 
@@ -96,14 +97,14 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
     })
     if (!group) return res.status(404).json({ message: '群組不存在' })
 
-    if (group.status === 'confirming' && group.confirmDeadline && new Date(group.confirmDeadline) <= new Date()) {
+    if (group.status === 'confirming' && allMembersSettled(group.members)) {
       const released = await prisma.$transaction(async (tx) => {
         const fresh = await tx.group.findUnique({ where: { id: group.id }, select: { status: true, escrowTokens: true } })
         if (fresh?.status !== 'confirming')
           return false;
         const claimed = await tx.group.updateMany({
           where: { id: group.id, status: 'confirming' },
-          data:  { status: 'active', confirmDeadline: null, escrowTokens: 0 },
+          data:  { status: 'active', escrowTokens: 0 },
         });
         if (claimed.count === 0)
           return false;
@@ -124,7 +125,7 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
           meta:    { groupId: group.id },
         })
       }
-      return res.json(await resolveGroupMemberEvidenceUrls(maskGroupDetailSensitiveFields(maskGroupAvatars({ ...group, status: 'active', confirmDeadline: null, escrowTokens: 0 }), req.user?.id)))
+      return res.json(await resolveGroupMemberEvidenceUrls(maskGroupDetailSensitiveFields(maskGroupAvatars({ ...group, status: 'active', escrowTokens: 0 }), req.user?.id)))
     }
 
     if (group.status === 'pending_confirmation' && group.serviceInfoDeadline && new Date(group.serviceInfoDeadline) <= new Date()) {

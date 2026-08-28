@@ -230,12 +230,21 @@ async function handleActivate() {
     refreshGroups()
   }
 
-  async function handleResolveDispute(groupId, note) {
+  async function handleResolveDispute(groupId, memberId, note) {
     try {
-      await useGroupStore.getState().resolveDispute(groupId, { note })
+      await useGroupStore.getState().resolveDispute(groupId, { memberId, note })
       toast('已標記問題處理完成')
     } catch {
       toast('處理失敗，請稍後再試', 'error')
+    }
+  }
+
+  async function handleEscalateDispute(groupId, memberId, note) {
+    try {
+      await useGroupStore.getState().escalateDispute(groupId, { memberId, note })
+      toast('已標記為不實回報，將由平台客服介入處理')
+    } catch (err) {
+      toast(err?.message ?? '處理失敗，請稍後再試', 'error')
     }
   }
 
@@ -397,6 +406,7 @@ async function handleApprove(appId) {
     handleApprove,
     handleReportServiceInfoIssue,
     handleResolveDispute,
+    handleEscalateDispute,
     handleReject,
   }
 }

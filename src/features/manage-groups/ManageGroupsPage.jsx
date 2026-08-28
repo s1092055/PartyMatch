@@ -36,6 +36,7 @@ export default function ManageGroupsPage() {
     handleApprove,
     handleReportServiceInfoIssue,
     handleResolveDispute,
+    handleEscalateDispute,
     handleReject,
     handleAdjustBillingDate,
   } = useHostActions(activeUser)
@@ -84,6 +85,7 @@ export default function ManageGroupsPage() {
         groupId={viewGroupId}
         onReportServiceInfoIssue={handleReportServiceInfoIssue}
         onResolveDispute={handleResolveDispute}
+        onEscalateDispute={handleEscalateDispute}
         onActivate={handleActivate}
         onLockGroup={handleLockGroup}
         onCancelGroup={handleCancelGroup}

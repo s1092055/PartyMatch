@@ -32,7 +32,7 @@ import { buildBillingPanel } from './hostGroupView/buildBillingPanel'
 import { buildMemberInfoPanel } from './hostGroupView/buildMemberInfoPanel'
 
 export default function HostGroupView(
-  { group, members, applications, onReportServiceInfoIssue, onResolveDispute, onRemoveMember, onActivate, onLockGroup, onCancelGroup, onApprove, onReject, onAdjustBillingDate, errors, onClose, autoOpenLockGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling, autoOpenMemberInfo, onOpenRenewal }
+  { group, members, applications, onReportServiceInfoIssue, onResolveDispute, onEscalateDispute, onRemoveMember, onActivate, onLockGroup, onCancelGroup, onApprove, onReject, onAdjustBillingDate, errors, onClose, autoOpenLockGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling, autoOpenMemberInfo, onOpenRenewal }
 ) {
   const [showActivate, setShowActivate]                   = useState(false)
   const [removingMember, setRemovingMember]               = useState(null)
@@ -241,9 +241,6 @@ export default function HostGroupView(
   const confirmingBanner = group.status === 'confirming' && (
     <div className="flex items-center justify-center gap-2 bg-info-subtle px-6 py-3 text-sm font-extrabold text-info-text">
       <Clock size={15} strokeWidth={1.5} />確認期進行中
-            {group.confirmDeadline && (
-        <>，剩餘 <CountdownText deadline={group.confirmDeadline} /></>
-      )}
 
       {!group.billingDateAdjustedAt && (
         <button
@@ -260,9 +257,6 @@ export default function HostGroupView(
     <div className="flex items-center justify-center gap-2 bg-danger-subtle px-6 py-3 text-sm font-extrabold text-danger-text">
       <Clock size={15} strokeWidth={1.5} />
       收到問題回報，處理中
-      {group.disputeDeadline && (
-        <>，剩餘 <CountdownText deadline={group.disputeDeadline} /></>
-      )}
     </div>
   )
 
@@ -317,7 +311,8 @@ export default function HostGroupView(
         serviceId: group.serviceId,
         canReportServiceIssue: canReportServiceIssue(group.status),
         onOpenServiceIssue: m => { setServiceIssueMember(m); setServiceIssueNote(m.serviceInfoIssueNote ?? '') },
-        onResolveDispute: () => onResolveDispute?.(group.id),
+        onResolveDispute: (memberId, note) => onResolveDispute?.(group.id, memberId, note),
+        onEscalateDispute: (memberId, note) => onEscalateDispute?.(group.id, memberId, note),
         showPassword,
         onTogglePassword: () => setShowPassword(v => !v),
       });

@@ -21,6 +21,7 @@ export function maskMemberSensitiveFields(member, { isHost, isSelf }) {
     serviceInfoIssueNote: undefined,
     serviceInfoIssueEvidenceUrl: undefined,
     disputeEvidenceUrl: undefined,
+    disputeDeadline: undefined,
   }
 }
 

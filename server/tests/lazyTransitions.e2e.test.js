@@ -19,8 +19,8 @@ describe('GET /groups/:id 的惰性自動狀態轉換', () => {
     const { group } = await createGroup({ host, monthlyFee: MONTHLY_FEE, maxMembers: 2 })
     await advanceToConfirming({ host, member, group })
 
-    await prisma.group.update({
-      where: { id: group.id },
+    await prisma.member.updateMany({
+      where: { groupId: group.id },
       data:  { confirmDeadline: new Date(Date.now() - 1000) },
     });
 

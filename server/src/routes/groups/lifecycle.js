@@ -24,12 +24,19 @@ const adjustBillingDateSchema = z.object({
 })
 
 const resolveDisputeSchema = z.object({
-  note: z.string().trim().max(500).optional(),
+  memberId: z.string().min(1),
+  note:     z.string().trim().max(500).optional(),
+})
+
+const escalateDisputeSchema = z.object({
+  memberId: z.string().min(1),
+  note:     z.string().trim().min(1).max(500),
 })
 
 const adjudicateSchema = z.object({
-  winner: z.enum(['member', 'host']),
-  reason: z.string().trim().min(1).max(500),
+  memberId: z.string().min(1),
+  winner:   z.enum(['member', 'host']),
+  reason:   z.string().trim().min(1).max(500),
 })
 
 router.post('/:id/activate', requireAuth, async (req, res, next) => {
@@ -73,9 +80,22 @@ router.post('/:id/dispute', requireAuth, validate(disputeSchema), async (req, re
 router.post('/:id/resolve-dispute', requireAuth, validate(resolveDisputeSchema), async (req, res, next) => {
   try {
     const updated = await groupLifecycleService.resolveDisputeByHost({
-      groupId: req.params.id,
-      hostId:  req.user.id,
-      note:    req.body.note,
+      groupId:  req.params.id,
+      hostId:   req.user.id,
+      memberId: req.body.memberId,
+      note:     req.body.note,
+    })
+    res.json(maskGroupHost(updated))
+  } catch (err) { next(err) }
+});
+
+router.post('/:id/escalate-dispute', requireAuth, validate(escalateDisputeSchema), async (req, res, next) => {
+  try {
+    const updated = await groupLifecycleService.escalateDisputeToAdmin({
+      groupId:  req.params.id,
+      hostId:   req.user.id,
+      memberId: req.body.memberId,
+      note:     req.body.note,
     })
     res.json(maskGroupHost(updated))
   } catch (err) { next(err) }
@@ -102,10 +122,11 @@ router.post('/:id/lock', requireAuth, async (req, res, next) => {
 router.post('/:id/adjudicate', requireAdmin, adjudicateLimiter, validate(adjudicateSchema), async (req, res, next) => {
   try {
     const result = await groupLifecycleService.adjudicateDispute({
-      groupId: req.params.id,
-      adminId: req.user.id,
-      winner:  req.body.winner,
-      reason:  req.body.reason,
+      groupId:  req.params.id,
+      adminId:  req.admin.id,
+      memberId: req.body.memberId,
+      winner:   req.body.winner,
+      reason:   req.body.reason,
     })
     res.json(result)
   } catch (err) { next(err) }

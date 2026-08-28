@@ -27,7 +27,6 @@ import { uploadDisputeEvidence } from '../../../common/api/storageApi'
 import { fetchGroupTokenTransactions } from '../../../common/api/tokensApi'
 import { toast } from '../../../common/utils/toast'
 import { useEvidenceUpload } from '../../../common/utils/hooks'
-import { isEffectivelyActive } from '../../../common/utils/groupStatus'
 import { isHistoryGroup } from '../../../common/utils/groupStatusDisplay'
 
 export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpenCredentials }) {
@@ -55,7 +54,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
   }, [autoOpenCredentials]);
 
   useEffect(() => {
-    if (activePanel !== 'payments') return
+    if (activePanel !== 'payments' && !confirmDialog) return
     let active = true
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setTransactionsLoading(true)
@@ -66,7 +65,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
       .catch(() => { if (active) setTransactions([]) })
       .finally(() => { if (active) setTransactionsLoading(false) })
     return () => { active = false }
-  }, [activePanel, group.id])
+  }, [activePanel, confirmDialog, group.id])
 
   const currentUser = useAuthStore(s => s.user)
   const allMembers  = useMemberStore(s => s.members)
@@ -93,11 +92,14 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
   const needsFillInfo       = !!sub && isPaymentRelevant && !hasServiceInfo && group.status === 'pending_confirmation'
   const waitingForOthers    = !!sub && hasServiceInfo && group.status === 'pending_confirmation';
   const canLeaveGroup       = ['recruiting', 'full'].includes(group.status) && !!myMember
-  const canConfirm          = group.status === 'confirming' && !!myMember && !myMember.confirmedAt
-  const alreadyConfirmed    = group.status === 'confirming' && isEffectivelyActive(group.status, myMember?.confirmedAt)
   const isDisputed          = group.status === 'disputed'
   const isDisputeRaiser     = isDisputed && !!myMember?.serviceInfoIssueNote;
-  const disputedBannerText  = isDisputeRaiser ? '回報處理中' : '群組進度暫停中'
+  // 確認期每位成員彼此獨立：group 進入 disputed 只影響提出問題的當事人本人，
+  // 其他成員不受影響，繼續當成一般確認期處理
+  const isConfirmingLike    = group.status === 'confirming' || (isDisputed && !isDisputeRaiser)
+  const canConfirm          = isConfirmingLike && !!myMember && !myMember.confirmedAt
+  const alreadyConfirmed    = isConfirmingLike && !!myMember?.confirmedAt
+  const disputedBannerText  = '回報處理中'
 
   function selectPanel(panel) {
     if (panel === activePanel) return
@@ -401,17 +403,11 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
             <div className="flex items-center justify-center gap-2 bg-info-subtle px-6 py-3 text-sm font-extrabold text-info-text">
               <Clock size={15} strokeWidth={1.5} />
               服務已啟用，請確認是否正常
-              {group.confirmDeadline && (
-                <>，剩餘 <CountdownText deadline={group.confirmDeadline} /></>
-              )}
             </div>
-          ) : isDisputed ? (
+          ) : isDisputeRaiser ? (
             <div className="flex items-center justify-center gap-2 bg-danger-subtle px-6 py-3 text-sm font-extrabold text-danger-text">
               <Clock size={15} strokeWidth={1.5} />
               {disputedBannerText}
-              {group.disputeDeadline && (
-                <>，剩餘 <CountdownText deadline={group.disputeDeadline} /></>
-              )}
             </div>
           ) : undefined
         }
@@ -419,6 +415,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
         centeredCta={fillInfoCta || confirmCta || undefined}
         statusBadgeOverride={
           alreadyConfirmed ? { variant: 'active' } :
+          canConfirm && isDisputed ? 'confirming' :
           waitingForOthers ? { variant: 'active', label: isSharedCredentials ? '已提取完成' : '已填寫完成' } :
           group.status === 'recruiting' && !!sub ? 'member_joined' :
           group.status === 'full' ? { variant: 'full', label: '等待鎖定' } :
@@ -430,7 +427,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
           needsFillInfo       ? (isSharedCredentials ? '請提取帳號資訊' : '請填寫服務帳號以完成加入流程') :
           waitingForOthers    ? '已填寫完成' :
           canConfirm          ? '確認期進行中，請確認服務' :
-          isDisputed          ? disputedBannerText :
+          isDisputeRaiser     ? disputedBannerText :
           group.status === 'full' && !!sub ? '招募完成，等待團主鎖定群組' :
           group.status === 'recruiting' && !!sub ? '已通過申請，需等待其他人加入' :
           undefined
@@ -441,7 +438,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
           hasServiceInfoIssue ? 'danger' :
           waitingForOthers ? 'success' :
           canConfirm ? 'brand' :
-          isDisputed ? 'danger' :
+          isDisputeRaiser ? 'danger' :
           undefined
         }
         sideBar={
@@ -524,6 +521,8 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
           confirmed={confirmServiceAgreed}
           setConfirmed={setConfirmServiceAgreed}
           loading={confirmLoading}
+          transactions={transactions}
+          transactionsLoading={transactionsLoading}
         />
       )}
       {leaveConfirm && (

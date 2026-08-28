@@ -72,7 +72,7 @@ describe('群組生命週期：apply → approve → lock → 填寫服務帳號
     expect(activateRes.status).toBe(200)
     groupState = await prisma.group.findUnique({ where: { id: group.id } })
     expect(groupState.status).toBe('confirming')
-    expect(groupState.confirmDeadline).toBeTruthy()
+    expect((await prisma.member.findUnique({ where: { id: memberRecord.id } })).confirmDeadline).toBeTruthy()
 
     const confirmRes = await request(app)
       .post(`/api/groups/${group.id}/confirm`)

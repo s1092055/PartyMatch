@@ -18,6 +18,12 @@ export default function DisputeSummaryCard({ dispute }) {
       <p className="mt-2 whitespace-pre-wrap break-words rounded-lg border border-line bg-surface px-3 py-2 text-xs text-ink-2">
         {dispute.reason}
       </p>
+      {dispute.hostDisputed && (
+        <div className="mt-2 rounded-lg border border-danger/40 bg-danger-subtle px-3 py-2">
+          <p className="mb-1 text-xs font-semibold text-danger-text">團主標記為不實回報</p>
+          <p className="whitespace-pre-wrap break-words text-xs text-danger-text">{dispute.hostResponseNote}</p>
+        </div>
+      )}
     </div>
   )
 }

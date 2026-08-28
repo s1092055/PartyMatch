@@ -1,5 +1,4 @@
-import { CheckCircle2, Eye, EyeOff, FileText, KeyRound } from 'lucide-react'
-import { Button } from '../../../../components/ui/button'
+import { Eye, EyeOff, FileText, KeyRound } from 'lucide-react'
 import EmptyState from '../../../../components/ui/primitives/EmptyState'
 import { CENTERED_PANEL_BODY_CLASS } from '../../../../components/ui/group/panelLayout'
 import CredentialCommentsSection from '../../../../components/ui/group/CredentialCommentsSection'
@@ -8,7 +7,7 @@ import { hasFilledServiceInfo, isSharedCredentialsMethod } from '../../../../com
 import { parseHostCredentials } from '../../../../common/utils/hostCredentialFields'
 
 export function buildMemberInfoPanel(
-  { groupId, hostId, groupStatus, members, sharingMethod, sharedCredentials, serviceId, canReportServiceIssue, onOpenServiceIssue, onResolveDispute, showPassword, onTogglePassword }
+  { groupId, hostId, groupStatus, members, sharingMethod, sharedCredentials, serviceId, canReportServiceIssue, onOpenServiceIssue, onResolveDispute, onEscalateDispute, showPassword, onTogglePassword }
 ) {
   const parsedCredentials = parseHostCredentials(sharedCredentials, serviceId)
   const isSharedCredentials = isSharedCredentialsMethod(sharingMethod)
@@ -56,28 +55,19 @@ export function buildMemberInfoPanel(
             {members.map(m => {
               const canResolve = groupStatus === 'disputed' && !!m.serviceInfoIssueNote
               return (
-                <div key={m.id} className="flex items-start gap-2">
-                  <div className="min-w-0 flex-1">
-                    <MemberIssueCard
-                      m={m}
-                      filled={hasFilledServiceInfo(m.serviceInfo, sharingMethod, serviceId)}
-                      sharingMethod={sharingMethod}
-                      serviceId={serviceId}
-                      isSharedCredentials={isSharedCredentials}
-                      canReportServiceIssue={canReportServiceIssue}
-                      onOpenServiceIssue={onOpenServiceIssue}
-                    />
-                  </div>
-                  {canResolve && (
-                    <Button
-                      onClick={() => onResolveDispute(m)}
-                      className="flex h-16 shrink-0 flex-col items-center justify-center gap-0.5 rounded-lg border border-success/60 bg-transparent px-3 text-xs text-success-text hover:bg-success-subtle"
-                    >
-                      <CheckCircle2 strokeWidth={1.5} size={13} />
-                      處理完成
-                    </Button>
-                  )}
-                </div>
+                <MemberIssueCard
+                  key={m.id}
+                  m={m}
+                  filled={hasFilledServiceInfo(m.serviceInfo, sharingMethod, serviceId)}
+                  sharingMethod={sharingMethod}
+                  serviceId={serviceId}
+                  isSharedCredentials={isSharedCredentials}
+                  canReportServiceIssue={canReportServiceIssue}
+                  onOpenServiceIssue={onOpenServiceIssue}
+                  canResolve={canResolve}
+                  onResolveDispute={onResolveDispute}
+                  onEscalateDispute={onEscalateDispute}
+                />
               )
             })}
           </div>

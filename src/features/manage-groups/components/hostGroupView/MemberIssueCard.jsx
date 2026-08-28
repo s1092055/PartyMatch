@@ -1,9 +1,11 @@
 import { useRef, useState } from 'react'
-import { AlertTriangle, ChevronDown } from 'lucide-react'
+import { AlertTriangle, Check, CheckCircle2, ChevronDown, ShieldAlert } from 'lucide-react'
 import { Avatar } from '../../../../components/ui/avatar'
 import { Button } from '../../../../components/ui/button'
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '../../../../components/ui/collapsible'
+import CountdownText from '../../../../components/ui/primitives/CountdownText'
 import EvidenceLink from '../../../../components/ui/EvidenceLink'
+import DisputeResponseModal from './DisputeResponseModal'
 import { PresenceDot } from '../../../../common/layout/components/navShared'
 import { getTextFields } from '../../../../common/utils/serviceInfoFields'
 import { useClickOutside } from '../../../../common/utils/hooks'
@@ -28,9 +30,13 @@ function renderFilledInfoDetail(serviceInfo, sharingMethod, serviceId) {
 }
 
 export default function MemberIssueCard(
-  { m, filled, sharingMethod, serviceId, isSharedCredentials, canReportServiceIssue, onOpenServiceIssue }
+  {
+    m, filled, sharingMethod, serviceId, isSharedCredentials, canReportServiceIssue, onOpenServiceIssue,
+    canResolve, onResolveDispute, onEscalateDispute,
+  }
 ) {
   const [expanded, setExpanded] = useState(false)
+  const [responseModal, setResponseModal] = useState(null)
   const cardRef = useRef(null)
   const evidenceUrl = m.disputeEvidenceUrl ?? m.serviceInfoIssueEvidenceUrl
   const hasIssue = !!m.serviceInfoIssueNote
@@ -38,8 +44,14 @@ export default function MemberIssueCard(
 
   useClickOutside(expanded, [cardRef], () => setExpanded(false))
 
+  async function handleSubmitResponse(note) {
+    if (responseModal === 'resolve') await onResolveDispute?.(m.id, note)
+    else await onEscalateDispute?.(m.id, note)
+    setResponseModal(null)
+  }
+
   return (
-    <div ref={cardRef} className="relative h-full rounded-lg border border-line p-3">
+    <div ref={cardRef} className="relative rounded-lg border border-line p-3">
       {showReportButton && (
         <Button
           variant="ghost"
@@ -59,7 +71,12 @@ export default function MemberIssueCard(
               </span>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-ink">{m.userName}</p>
-                <p className="text-xs text-danger-text">帳號問題已回報，等待處理</p>
+                <p className="text-xs text-danger-text">
+                  帳號問題已回報，等待處理
+                  {m.disputeDeadline && (
+                    <>，剩餘 <CountdownText deadline={m.disputeDeadline} /></>
+                  )}
+                </p>
               </div>
               <ChevronDown size={16} strokeWidth={1.5} className={`shrink-0 text-ink-4 transition-transform ${expanded ? 'rotate-180' : ''}`} />
             </button>
@@ -75,10 +92,18 @@ export default function MemberIssueCard(
               {!filled && (
                 <p className="text-xs text-ink-4">{isSharedCredentials ? '尚未提取帳號' : '尚未填寫帳號'}</p>
               )}
+              {filled && m.confirmedAt && (
+                <p className="flex items-center gap-1 text-xs text-success-text">
+                  <CheckCircle2 size={11} strokeWidth={1.5} /> 已確認服務
+                </p>
+              )}
+              {filled && !m.confirmedAt && m.confirmDeadline && (
+                <p className="text-xs text-info-text">確認期剩餘 <CountdownText deadline={m.confirmDeadline} /></p>
+              )}
             </div>
           </div>
         )}
-        {!hasIssue && filled && (
+        {filled && (
           <div className="mt-2 rounded-lg bg-raised px-3 py-2">
             {renderFilledInfoDetail(m.serviceInfo, sharingMethod, serviceId)}
           </div>
@@ -97,6 +122,32 @@ export default function MemberIssueCard(
           </CollapsibleContent>
         )}
       </Collapsible>
+      {canResolve && (
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <Button
+            variant="ghost"
+            onClick={() => setResponseModal('resolve')}
+            className="rounded-lg border border-success/60 text-xs text-success-text hover:bg-success-subtle"
+          >
+            <Check strokeWidth={1.5} size={13} /> 處理完成
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => setResponseModal('escalate')}
+            className="rounded-lg border border-danger/60 text-xs text-danger-text hover:bg-danger-subtle"
+          >
+            <ShieldAlert strokeWidth={1.5} size={13} /> 不實回報
+          </Button>
+        </div>
+      )}
+      {responseModal && (
+        <DisputeResponseModal
+          isOpen
+          mode={responseModal}
+          onClose={() => setResponseModal(null)}
+          onSubmit={handleSubmitResponse}
+        />
+      )}
     </div>
   )
 }

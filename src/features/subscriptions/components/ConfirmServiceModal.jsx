@@ -1,14 +1,17 @@
-import { CheckCircle2 } from 'lucide-react'
+import { Banknote, CheckCircle2 } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter, DialogCloseButton } from '../../../components/ui/dialog'
 import { Button } from '../../../components/ui/button'
 import ServiceLogo from '../../../components/ui/ServiceLogo'
-import TokenAmount from '../../../components/ui/TokenAmount'
+import EscrowStatusCard from '../../../components/ui/EscrowStatusCard'
+import EmptyState from '../../../components/ui/primitives/EmptyState'
 import GroupOverviewContent from '../../../components/ui/group/GroupOverviewContent'
+import { formatDateTime } from '../../../common/utils/date'
 
 export default function ConfirmServiceModal(
-  { isOpen, onClose, onConfirm, group, service, plan, confirmed, setConfirmed, loading }
+  { isOpen, onClose, onConfirm, group, service, plan, confirmed, setConfirmed, loading, transactions, transactionsLoading }
 ) {
   const canSubmit = confirmed
+  const latestEscrow = transactions?.find(tx => tx.type === 'escrow') ?? null
   return (
     <Dialog open={isOpen} onOpenChange={v => { if (!v) onClose() }}>
       <DialogContent variant="panel" maxWidth="max-w-lg" height="36rem" instant>
@@ -29,14 +32,27 @@ export default function ConfirmServiceModal(
             <p className="font-bold text-ink">{group.serviceName}</p>
             <p className="text-xs text-ink-3">{group.planName}</p>
           </div>
-          <div className="rounded-lg bg-success-subtle px-3 py-1.5 text-right">
-            <p className="text-xs text-success-text">撥款金額</p>
-            <p className="text-base font-extrabold text-success-text"><TokenAmount amount={group.escrowTokens} /></p>
-          </div>
         </div>
 
         <div className="px-5 pt-5">
           <GroupOverviewContent group={group} service={service} plan={plan} />
+        </div>
+
+        <div className="px-5 pt-5">
+          <p className="mb-2 flex items-center gap-1.5 text-sm font-bold text-ink"><Banknote strokeWidth={1.5} size={15} />我的付款明細</p>
+          {transactionsLoading ? (
+            <p className="py-2 text-sm text-ink-3">載入中…</p>
+          ) : latestEscrow ? (
+            <EscrowStatusCard
+              tone="info"
+              icon={Banknote}
+              title="本期費用由平台代管中"
+              subtitle={`${formatDateTime(latestEscrow.createdAt)} 平台代管`}
+              amount={Math.abs(latestEscrow.amount)}
+            />
+          ) : (
+            <EmptyState icon={Banknote} title="目前尚無代管紀錄" className="py-4" />
+          )}
         </div>
 
         <div className="space-y-3 p-5">
