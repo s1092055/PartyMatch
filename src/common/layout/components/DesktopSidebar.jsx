@@ -290,19 +290,19 @@ export default function DesktopSidebar({
                 className="w-40"
                 onCloseAutoFocus={e => e.preventDefault()}
               >
-                <DropdownMenuItem onClick={() => { collapseSidebar(); openProfile() }}>
+                <DropdownMenuItem onClick={() => openProfile()}>
                   <User size={16} strokeWidth={1.5} className="shrink-0" />
                   個人資料
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => { collapseSidebar(); openCreditScore() }}>
+                <DropdownMenuItem onClick={() => openCreditScore()}>
                   <ShieldCheck size={16} strokeWidth={1.5} className="shrink-0" />
                   信用分數
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => { collapseSidebar(); openReviews() }}>
+                <DropdownMenuItem onClick={() => openReviews()}>
                   <Star size={16} strokeWidth={1.5} className="shrink-0" />
                   我的評價
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => { collapseSidebar(); openSettings() }}>
+                <DropdownMenuItem onClick={() => openSettings()}>
                   <Settings size={16} strokeWidth={1.5} className="shrink-0" />
                   偏好設定
                 </DropdownMenuItem>
