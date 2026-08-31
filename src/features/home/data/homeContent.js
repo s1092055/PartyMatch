@@ -1,8 +1,6 @@
-import {
-  MessageCircle,
-} from 'lucide-react'
-import creditPhoto from '../../../assets/Credit.png'
-import pmCoinPhoto from '../../../assets/PMCoin.svg'
+import creditPhoto from '../../../assets/Security.png'
+import pmCoinPhoto from '../../../assets/UniquePMCoin.png'
+import messagePhoto from '../../../assets/Message.png'
 import studentsPhoto from '../../../assets/Students.png'
 import couplesPhoto from '../../../assets/Couples.png'
 import friendsPhoto from '../../../assets/Friends.png'
@@ -100,7 +98,7 @@ export const HOME_WHY_US_HIGHLIGHTS = [
   {
     id: 'messaging',
     tab: '站內即時通訊',
-    icon: MessageCircle,
+    image: messagePhoto,
     title: '站內即時通訊',
     desc: '免交換聯絡方式即可直接傳訊：申請加入前可先私訊團主提問，合購成立後系統自動建立群組聊天室，方案協調、帳號資訊、問題回報都能在同一個地方溝通，通知中心也會即時提醒最新進度，所有紀錄完整留在站內不遺失。',
   },

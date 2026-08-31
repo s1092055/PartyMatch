@@ -54,8 +54,12 @@ export default function WhyUs() {
       <div className="mt-8">
         <WhyUsTabs items={HOME_WHY_US_HIGHLIGHTS} activeId={activeId} onChange={setActiveId} />
 
-        <div key={activeId} className="animate-fade-in-up pt-10">
-          <div className="mx-auto flex h-56 w-56 items-center justify-center sm:h-64 sm:w-64">
+        <div key={activeId} className="animate-fade-in-up pt-6">
+          <div
+            className={`mx-auto flex items-center justify-center ${
+              active.image ? 'aspect-[3/2] w-72 sm:w-80' : 'h-56 w-56 sm:h-64 sm:w-64'
+            }`}
+          >
             {active.image ? (
               <img src={active.image} alt="" className="h-full w-full object-contain" />
             ) : (
@@ -65,7 +69,7 @@ export default function WhyUs() {
             )}
           </div>
 
-          <p className="mx-auto mt-6 max-w-md text-center font-extrabold text-ink">{active.title}</p>
+          <p className="mx-auto mt-4 max-w-md text-center font-extrabold text-ink">{active.title}</p>
           <p className="mx-auto mt-2 max-w-md text-left text-sm leading-relaxed text-ink-3">{active.desc}</p>
         </div>
       </div>
