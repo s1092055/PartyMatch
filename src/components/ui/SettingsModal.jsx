@@ -107,7 +107,7 @@ export function SettingsModalBody({ onClose }) {
     }
     resetDeleteFlow()
     onClose()
-    toast('帳號已停用，如需恢復請聯絡客服')
+    toast(`帳號已停用，${result.recoveryWindowDays ?? 30} 天內可用原帳號密碼重新登入即可恢復，逾期請聯絡客服`)
     navigate('/', { replace: true })
   }
 

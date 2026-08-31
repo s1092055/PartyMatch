@@ -7,6 +7,8 @@ import { validate } from '../middleware/validate.js'
 import { deleteAllUserSessions, clearRefreshCookie } from './auth.js'
 import { maskAvatar } from '../lib/avatarVisibility.js'
 import { MUTABLE_NOTIFICATION_CATEGORY_KEYS } from '../lib/notificationCategories.js'
+import { reactivateUserAccount, SELF_RECOVERY_WINDOW_DAYS } from '../services/accountRecovery.service.js'
+import { notify } from './groups/shared.js'
 
 const router = Router()
 
@@ -17,10 +19,28 @@ router.get('/', requireAdmin, async (req, res, next) => {
 
     const user = await prisma.user.findUnique({
       where:  { email },
-      select: { id: true, name: true, email: true },
+      select: { id: true, name: true, email: true, deactivatedAt: true },
     })
     if (!user) return res.status(404).json({ message: '查無此使用者' })
     res.json(user)
+  } catch (err) { next(err) }
+});
+
+router.post('/:id/reactivate', requireAdmin, async (req, res, next) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.params.id } })
+    if (!user) return res.status(404).json({ message: '查無此使用者' })
+    if (!user.deactivatedAt) return res.status(400).json({ message: '此帳號目前為啟用狀態' })
+
+    await reactivateUserAccount(user.id)
+    await notify({
+      userId:  user.id,
+      type:    'account_reactivated',
+      title:   '帳號已恢復',
+      message: '你的帳號已由客服人員恢復啟用，現在可以重新登入。',
+    })
+
+    res.json({ message: '帳號已恢復' })
   } catch (err) { next(err) }
 });
 
@@ -93,7 +113,7 @@ router.post('/me/deactivate', requireAuth, validate(deactivateSchema), async (re
     await deleteAllUserSessions(user.id)
     clearRefreshCookie(res)
 
-    res.json({ message: '帳號已停用' })
+    res.json({ message: '帳號已停用', recoveryWindowDays: SELF_RECOVERY_WINDOW_DAYS })
   } catch (err) { next(err) }
 });
 

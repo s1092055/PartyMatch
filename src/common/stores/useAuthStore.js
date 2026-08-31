@@ -112,6 +112,18 @@ export const useAuthStore = create((set, get) => ({
       await initPrivateStores(user.id)
       return { ok: true, user }
     } catch (err) {
+      return { ok: false, error: err.message, code: err.response?.data?.code, recoverable: err.response?.data?.recoverable }
+    }
+  },
+
+  reactivateAccount: async ({ email, password }) => {
+    try {
+      const { user, accessToken } = await client.post('/auth/reactivate', { email, password })
+      tokenManager.set(accessToken)
+      set({ user, loggedIn: true })
+      await initPrivateStores(user.id)
+      return { ok: true, user }
+    } catch (err) {
       return { ok: false, error: err.message }
     }
   },
@@ -137,11 +149,11 @@ export const useAuthStore = create((set, get) => ({
 
   deactivateAccount: async (password) => {
     try {
-      await client.post('/users/me/deactivate', { password })
+      const { recoveryWindowDays } = await client.post('/users/me/deactivate', { password })
       tokenManager.remove()
       set({ user: null, loggedIn: false })
       clearPrivateStores().catch(console.error)
-      return { ok: true }
+      return { ok: true, recoveryWindowDays }
     } catch (err) {
       return { ok: false, error: err.message }
     }

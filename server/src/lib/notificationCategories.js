@@ -38,5 +38,6 @@ export const ALWAYS_SEND_NOTIFICATION_TYPES = [
   'dispute_resolved',
   'dispute_resolved_by_host',
   'service_info_issue',
+  'account_reactivated',
   'system',
 ]

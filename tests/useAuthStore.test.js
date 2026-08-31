@@ -156,6 +156,31 @@ describe('useAuthStore', () => {
     expect(mockGroupStore.init).not.toHaveBeenCalled()
   })
 
+  it('login()：帳號已停用時，回傳的 error 帶上 code 與 recoverable 供頁面判斷是否顯示恢復選項', async () => {
+    const err = new Error('此帳號已停用，是否要恢復帳號？')
+    err.response = { data: { code: 'ACCOUNT_DEACTIVATED', recoverable: true } }
+    client.post.mockRejectedValue(err)
+
+    const result = await useAuthStore.getState().login({ email: 'a@b.com', password: 'secret' })
+    expect(result.ok).toBe(false)
+    expect(result.code).toBe('ACCOUNT_DEACTIVATED')
+    expect(result.recoverable).toBe(true)
+  })
+
+  it('reactivateAccount()：成功時跟 login() 一樣存 token、初始化私人 store，失敗時回傳錯誤', async () => {
+    client.post.mockResolvedValue({ user: { id: 'u1', name: '小明' }, accessToken: 'token-abc' })
+    const result = await useAuthStore.getState().reactivateAccount({ email: 'a@b.com', password: 'secret' })
+
+    expect(result.ok).toBe(true)
+    expect(tokenManager.set).toHaveBeenCalledWith('token-abc')
+    expect(useAuthStore.getState().loggedIn).toBe(true)
+    expect(mockGroupStore.init).toHaveBeenCalledWith({ all: true })
+
+    client.post.mockRejectedValue(new Error('已超過可自助恢復期限，如需恢復請聯絡客服'))
+    const failResult = await useAuthStore.getState().reactivateAccount({ email: 'a@b.com', password: 'secret' })
+    expect(failResult.ok).toBe(false)
+  })
+
   it('register()：成功時跟 login() 一樣存 token、初始化私人 store', async () => {
     client.post.mockResolvedValue({ user: { id: 'u2', name: '新用戶' }, accessToken: 'token-xyz' })
     const result = await useAuthStore.getState().register({ name: '新用戶', email: 'new@b.com', password: 'secret', phone: '+886900000000' })
@@ -181,12 +206,13 @@ describe('useAuthStore', () => {
     expect(mockApplicationStore.setState).toHaveBeenCalledWith({ applications: [] })
   })
 
-  it('deactivateAccount()：成功時清掉登入狀態，失敗時回傳錯誤且維持登入', async () => {
+  it('deactivateAccount()：成功時清掉登入狀態並回傳恢復期限天數，失敗時回傳錯誤且維持登入', async () => {
     useAuthStore.setState({ user: { id: 'u1' }, loggedIn: true })
-    client.post.mockResolvedValue({})
+    client.post.mockResolvedValue({ recoveryWindowDays: 30 })
 
     const result = await useAuthStore.getState().deactivateAccount('correct-password')
     expect(result.ok).toBe(true)
+    expect(result.recoveryWindowDays).toBe(30)
     expect(useAuthStore.getState().loggedIn).toBe(false)
 
     useAuthStore.setState({ user: { id: 'u1' }, loggedIn: true })

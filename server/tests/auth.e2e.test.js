@@ -69,7 +69,7 @@ describe('註冊/登入（POST /auth/register, /auth/login）', () => {
     expect(wrongPassword.body.message).toBe(noSuchUser.body.message)
   })
 
-  it('帳號已停用（deactivatedAt 非 null）登入會回 403', async () => {
+  it('帳號已停用（deactivatedAt 非 null）登入會回 403，停用未超過恢復期限時 recoverable 為 true', async () => {
     const passwordHash = await bcrypt.hash('correct-password', 12)
     const user = await prisma.user.create({
       data: { email: 'deactivated@test.com', passwordHash, name: '停用測試', phone: '+886900000001', deactivatedAt: new Date() },
@@ -78,6 +78,7 @@ describe('註冊/登入（POST /auth/register, /auth/login）', () => {
     const res = await request(app).post('/api/auth/login').send({ email: user.email, password: 'correct-password' })
     expect(res.status).toBe(403)
     expect(res.body.code).toBe('ACCOUNT_DEACTIVATED')
+    expect(res.body.recoverable).toBe(true)
   })
 })
 

@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { LayoutGrid, Megaphone, ShieldAlert } from 'lucide-react'
+import { LayoutGrid, Megaphone, ShieldAlert, UserCog } from 'lucide-react'
 import { useGroupStore } from '../../common/stores/useGroupStore'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs'
 import { Badge } from '../../components/ui/badge'
 import OverviewSection from './components/OverviewSection'
 import SystemMessagesSection from './components/SystemMessagesSection'
 import DisputeSection from './components/DisputeSection'
+import UserAccountsSection from './components/UserAccountsSection'
 
 export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState('overview')
@@ -35,11 +36,16 @@ export default function AdminDashboardPage() {
               <Badge variant="destructive" className="px-1.5">{pendingDisputeCount}</Badge>
             )}
           </TabsTrigger>
+          <TabsTrigger value="accounts">
+            <UserCog size={14} strokeWidth={1.5} />
+            帳號管理
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview"><OverviewSection /></TabsContent>
         <TabsContent value="messages"><SystemMessagesSection /></TabsContent>
         <TabsContent value="disputes"><DisputeSection /></TabsContent>
+        <TabsContent value="accounts"><UserAccountsSection /></TabsContent>
       </Tabs>
     </div>
   )

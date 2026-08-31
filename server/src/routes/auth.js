@@ -9,6 +9,7 @@ import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/
 import { validate } from '../middleware/validate.js'
 import { requireAuth } from '../middleware/auth.js'
 import { authLimiter, refreshLimiter } from '../middleware/rateLimit.js'
+import { isWithinRecoveryWindow, reactivateUserAccount } from '../services/accountRecovery.service.js'
 
 const router = Router()
 
@@ -83,7 +84,12 @@ router.post('/login', authLimiter, validate(loginSchema), async (req, res, next)
     if (!valid) return res.status(401).json({ message: 'Email 或密碼錯誤' })
 
     if (user.deactivatedAt) {
-      return res.status(403).json({ message: '此帳號已停用，如需恢復請聯絡客服', code: 'ACCOUNT_DEACTIVATED' })
+      const recoverable = isWithinRecoveryWindow(user.deactivatedAt)
+      return res.status(403).json({
+        message: recoverable ? '此帳號已停用，是否要恢復帳號？' : '此帳號已停用超過可恢復期限，如需恢復請聯絡客服',
+        code: 'ACCOUNT_DEACTIVATED',
+        recoverable,
+      })
     }
 
     ensureSystemConversation(user.id).catch(err => console.error('[auth] 確保系統聊天室失敗:', err));
@@ -94,6 +100,36 @@ router.post('/login', authLimiter, validate(loginSchema), async (req, res, next)
     await saveRefreshToken(user.id, sessionId, refreshToken)
 
     const { passwordHash: _, ...safeUser } = user
+    setRefreshCookie(res, refreshToken)
+    res.json({ user: safeUser, accessToken })
+  } catch (err) { next(err) }
+});
+
+router.post('/reactivate', authLimiter, validate(loginSchema), async (req, res, next) => {
+  try {
+    const { email, password } = req.body
+    const user = await prisma.user.findUnique({ where: { email } })
+    if (!user || !user.passwordHash) {
+      return res.status(401).json({ message: 'Email 或密碼錯誤' })
+    }
+
+    const valid = await bcrypt.compare(password, user.passwordHash)
+    if (!valid) return res.status(401).json({ message: 'Email 或密碼錯誤' })
+
+    if (!user.deactivatedAt) return res.status(400).json({ message: '帳號目前為啟用狀態，請直接登入' })
+    if (!isWithinRecoveryWindow(user.deactivatedAt)) {
+      return res.status(403).json({ message: '已超過可自助恢復期限，如需恢復請聯絡客服', code: 'ACCOUNT_RECOVERY_EXPIRED' })
+    }
+
+    await reactivateUserAccount(user.id)
+    ensureSystemConversation(user.id).catch(err => console.error('[auth] 確保系統聊天室失敗:', err));
+
+    const sessionId    = randomUUID();
+    const accessToken  = signAccessToken({ id: user.id, email: user.email, sessionId })
+    const refreshToken = signRefreshToken({ id: user.id, sessionId })
+    await saveRefreshToken(user.id, sessionId, refreshToken)
+
+    const { passwordHash: _, deactivatedAt: __, ...safeUser } = user
     setRefreshCookie(res, refreshToken)
     res.json({ user: safeUser, accessToken })
   } catch (err) { next(err) }
@@ -115,7 +151,12 @@ router.post('/refresh', refreshLimiter, async (req, res) => {
     })
     if (!user) return res.status(401).json({ message: '使用者不存在' })
     if (user.deactivatedAt) {
-      return res.status(403).json({ message: '此帳號已停用，如需恢復請聯絡客服', code: 'ACCOUNT_DEACTIVATED' });
+      const recoverable = isWithinRecoveryWindow(user.deactivatedAt)
+      return res.status(403).json({
+        message: recoverable ? '此帳號已停用，是否要恢復帳號？' : '此帳號已停用超過可恢復期限，如需恢復請聯絡客服',
+        code: 'ACCOUNT_DEACTIVATED',
+        recoverable,
+      });
     }
 
     const sessionId  = payload.sessionId ?? randomUUID();

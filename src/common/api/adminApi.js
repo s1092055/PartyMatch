@@ -31,3 +31,11 @@ export async function fetchAdminDisputeHistory(params = {}) {
 export async function adjudicateDisputeApi(groupId, { memberId, winner, reason }) {
   return adminClient.post(`/groups/${groupId}/adjudicate`, { memberId, winner, reason })
 }
+
+export async function searchUserByEmail(email) {
+  return adminClient.get('/users', { params: { email } })
+}
+
+export async function reactivateUserApi(userId) {
+  return adminClient.post(`/users/${userId}/reactivate`)
+}

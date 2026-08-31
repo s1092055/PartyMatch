@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Lock, Mail } from 'lucide-react'
 import AuthLayout, { AuthTitle, AuthInput, AuthError, PasswordToggle } from '../components/AuthLayout'
 import { Button } from '../../../components/ui/button'
+import ConfirmActionDialog from '../../../components/ui/ConfirmActionDialog'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
 import { toast } from '../../../common/utils/toast'
 
@@ -15,6 +16,7 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [touched, setTouched] = useState({})
+  const [showReactivateConfirm, setShowReactivateConfirm] = useState(false)
   const canSubmit = email.trim() && password.trim() && !loading
   const fieldErrors = {
     email: email.trim() ? '' : '請輸入電子郵件',
@@ -22,6 +24,20 @@ export default function LoginPage() {
   }
   function markTouched(key) {
     setTouched(prev => (prev[key] ? prev : { ...prev, [key]: true }))
+  }
+
+  async function enterAppAfterAuth(user, welcomeMessage) {
+    const homeImport      = import('../../home/HomePage').catch(() => {})
+    const appLayoutImport = import('../../../common/layout/AppLayout').catch(() => {})
+    const { from, reopenGroupModalId } = location.state ?? {}
+    await (reopenGroupModalId ? appLayoutImport : homeImport)
+    if (reopenGroupModalId) {
+      navigate(from || '/', { replace: true, state: { reopenGroupModalId } });
+    } else {
+      navigate('/', { replace: true })
+    }
+    await new Promise(requestAnimationFrame)
+    toast(`${welcomeMessage}${user.name ? ` ${user.name}` : ''}`)
   }
 
   async function handleSubmit(e) {
@@ -32,23 +48,29 @@ export default function LoginPage() {
     }
     setLoading(true)
     setError('')
-    const homeImport      = import('../../home/HomePage').catch(() => {})
-    const appLayoutImport = import('../../../common/layout/AppLayout').catch(() => {})
     const result = await useAuthStore.getState().login({ email, password })
     if (!result.ok) {
       setLoading(false)
+      if (result.code === 'ACCOUNT_DEACTIVATED' && result.recoverable) {
+        setShowReactivateConfirm(true)
+        return
+      }
       setError(result.error)
       return
     }
-    const { from, reopenGroupModalId } = location.state ?? {}
-    await (reopenGroupModalId ? appLayoutImport : homeImport)
-    if (reopenGroupModalId) {
-      navigate(from || '/', { replace: true, state: { reopenGroupModalId } });
-    } else {
-      navigate('/', { replace: true })
+    await enterAppAfterAuth(result.user, '登入成功，歡迎')
+  }
+
+  async function handleConfirmReactivate() {
+    setShowReactivateConfirm(false)
+    setLoading(true)
+    const result = await useAuthStore.getState().reactivateAccount({ email, password })
+    setLoading(false)
+    if (!result.ok) {
+      setError(result.error)
+      return
     }
-    await new Promise(requestAnimationFrame)
-    toast(`登入成功，歡迎${result.user.name ? ` ${result.user.name}` : ''}`)
+    await enterAppAfterAuth(result.user, '帳號已恢復，歡迎回來')
   }
 
   return (
@@ -95,6 +117,16 @@ export default function LoginPage() {
           立即註冊
         </Link>
       </p>
+
+      {showReactivateConfirm && (
+        <ConfirmActionDialog
+          title="恢復帳號？"
+          message="此帳號已停用，是否要恢復並登入？"
+          confirmLabel="恢復帳號"
+          onConfirm={handleConfirmReactivate}
+          onCancel={() => setShowReactivateConfirm(false)}
+        />
+      )}
     </AuthLayout>
   )
 }

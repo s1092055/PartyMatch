@@ -97,6 +97,7 @@ enum NotificationType {
   billing_date_adjusted
   member_confirmed_service
   group_reviewed
+  account_reactivated
   system
 }
 

@@ -92,6 +92,7 @@ const NOTIFICATION_META = {
   billing_date_adjusted:  { icon: CalendarClock, iconColor: 'text-warning-text', link: '/my-subscriptions' },
   member_confirmed_service: { icon: CheckCircle2, iconColor: 'text-success',   link: '/manage-groups' },
   group_reviewed:          { icon: Star,          iconColor: 'text-warning-text', link: '/manage-groups' },
+  account_reactivated:  { icon: CheckCircle2,  iconColor: 'text-success',    link: '/' },
   system:               { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/' },
   default:              { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/my-subscriptions' },
 }
