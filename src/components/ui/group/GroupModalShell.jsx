@@ -201,7 +201,7 @@ export default function GroupModalShell({
             </div>
           )}
         </div>
-        {mobileFab && (
+        {mobileFab && !activeDetail && (
           <div className="absolute bottom-20 right-4 z-10 md:hidden">
             {mobileFab}
           </div>
