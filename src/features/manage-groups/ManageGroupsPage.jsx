@@ -107,6 +107,7 @@ export default function ManageGroupsPage() {
           isOpen
           onClose={() => setRenewalModalGroupId(null)}
           group={renewalModalGroup}
+          members={membersMap[renewalModalGroup.id] ?? []}
           onStartRenewal={handleStartRenewal}
           onEndGroup={handleEndGroup}
         />

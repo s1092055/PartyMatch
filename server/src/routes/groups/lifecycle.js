@@ -134,7 +134,7 @@ router.post('/:id/adjudicate', requireAdmin, adjudicateLimiter, validate(adjudic
 
 router.post('/:id/renew', requireAuth, async (req, res, next) => {
   try {
-    const updated = await groupLifecycleService.renewGroup({ groupId: req.params.id, hostId: req.user.id })
+    const updated = await groupLifecycleService.renewGroup({ groupId: req.params.id, hostId: req.user.id, renewingUserIds: req.body.renewingUserIds })
     res.json(maskGroupHost(updated))
   } catch (err) {
     if (err.code === 'INSUFFICIENT_BALANCE') {

@@ -519,9 +519,15 @@ export async function lockGroup({ groupId, hostId, sharedCredentials: sharedCred
   if (group.hostId !== hostId) throw httpError(403, '僅團主可操作')
   if (group.status !== 'full') throw httpError(400, `群組狀態為 ${group.status}，無法鎖定（需為 full）`)
 
-  const nextBillingDate = new Date();
-  if (group.billingCycle === 'yearly') nextBillingDate.setFullYear(nextBillingDate.getFullYear() + 1)
-  else nextBillingDate.setMonth(nextBillingDate.getMonth() + 1)
+  // 續訂時有成員不續訂、群組退回招募中補位的情況，nextBillingDate 在 renewGroup() 就已經
+  // 錨定在「上一期排定日期 + 一個週期」，重新鎖定時要沿用這個值，不能再從「現在」重新起算，
+  // 不然扣款日會因為補位花了多久而往後漂移；只有第一次鎖定（還沒 hasActivatedOnce）才需要從現在算起
+  let nextBillingDate = group.nextBillingDate
+  if (!group.hasActivatedOnce || !nextBillingDate) {
+    nextBillingDate = new Date();
+    if (group.billingCycle === 'yearly') nextBillingDate.setFullYear(nextBillingDate.getFullYear() + 1)
+    else nextBillingDate.setMonth(nextBillingDate.getMonth() + 1)
+  }
 
   const serviceInfoDeadline = new Date();
   serviceInfoDeadline.setHours(serviceInfoDeadline.getHours() + 24)
@@ -712,19 +718,36 @@ export async function adjudicateDispute({ groupId, adminId, memberId, winner, re
   return { disputeId: dispute.id, resolutionType, memberRefundAmount, hostReleaseAmount: 0 }
 }
 
-export async function renewGroup({ groupId, hostId }) {
+// renewingUserIds 未提供（或包含全部現有成員）時維持原本行為：全員續訂，直接進入下一期收款；
+// 只要有成員被排除在外，代表這期不續訂，這些成員會被移出群組、釋出名額，群組先退回「招募中」
+// 讓團主補齊名額，之後再重新走一次鎖定 → 啟用流程才會真正開始扣下一期款項
+export async function renewGroup({ groupId, hostId, renewingUserIds }) {
   const group = await prisma.group.findUnique({
     where: { id: groupId },
-    include: { members: { include: { user: { select: { id: true, tokenBalance: true } } } } },
+    include: { members: { include: { user: { select: { id: true, tokenBalance: true, name: true } } } } },
   })
   if (!group) throw httpError(404, '群組不存在')
   if (group.hostId !== hostId) throw httpError(403, '僅團主可操作')
   if (group.status !== 'active') throw httpError(400, `群組狀態為 ${group.status}，無法開始新一期（需為 active）`)
 
+  const currentMemberIds = group.members.map(m => m.userId)
+  const renewSet = Array.isArray(renewingUserIds) && renewingUserIds.length > 0
+    ? [...new Set(renewingUserIds)]
+    : currentMemberIds
+  if (renewSet.some(id => !currentMemberIds.includes(id))) {
+    throw httpError(400, '續訂名單包含不在群組內的成員')
+  }
+  if (renewSet.length === 0) {
+    throw httpError(400, '至少需保留一位成員續訂，若要結束服務請使用「結束服務」')
+  }
+
+  const renewingMembers = group.members.filter(m => renewSet.includes(m.userId))
+  const leavingMembers  = group.members.filter(m => !renewSet.includes(m.userId))
+  const hasDropouts = leavingMembers.length > 0
+
   const seatCost = computeSeatCost(group)
 
-  const memberIds = group.members.map(m => m.userId)
-  const insufficient = group.members.filter(m => m.user.tokenBalance < seatCost)
+  const insufficient = renewingMembers.filter(m => m.user.tokenBalance < seatCost)
   if (insufficient.length > 0) {
     throw httpError(400, `${insufficient.length} 位成員PM幣餘額不足，無法開始新一期收款`, {
       code:      'INSUFFICIENT_BALANCE',
@@ -736,24 +759,29 @@ export async function renewGroup({ groupId, hostId }) {
   if (group.billingCycle === 'yearly') base.setFullYear(base.getFullYear() + 1)
   else base.setMonth(base.getMonth() + 1)
 
-  const serviceInfoDeadline = new Date();
-  serviceInfoDeadline.setHours(serviceInfoDeadline.getHours() + 24)
+  let serviceInfoDeadline = null
+  if (!hasDropouts) {
+    serviceInfoDeadline = new Date();
+    serviceInfoDeadline.setHours(serviceInfoDeadline.getHours() + 24)
+  }
+
+  const nextStatus = hasDropouts ? 'recruiting' : 'pending_confirmation'
 
   const updated = await prisma.$transaction(async (tx) => {
     await claimGroupStatus(tx, groupId, {
       fromStatus: 'active',
-      data:       { status: 'pending_confirmation' },
+      data:       { status: nextStatus },
     });
 
     const charged = await tx.user.updateMany({
-      where: { id: { in: memberIds }, tokenBalance: { gte: seatCost } },
+      where: { id: { in: renewSet }, tokenBalance: { gte: seatCost } },
       data:  { tokenBalance: { decrement: seatCost } },
     });
-    if (charged.count !== memberIds.length) throw httpError(409, '部分成員PM幣餘額於扣款當下不足，請稍後重試')
+    if (charged.count !== renewSet.length) throw httpError(409, '部分成員PM幣餘額於扣款當下不足，請稍後重試')
 
     const newCycle = group.currentCycle + 1
     await tx.tokenTransaction.createMany({
-      data: memberIds.map(userId => ({
+      data: renewSet.map(userId => ({
         userId,
         type:           'escrow',
         amount:         -seatCost,
@@ -764,22 +792,30 @@ export async function renewGroup({ groupId, hostId }) {
     })
 
     await tx.member.updateMany({
-      where: { groupId },
+      where: { groupId, userId: { in: renewSet } },
       data:  { serviceInfo: null, serviceInfoIssueNote: null, confirmedAt: null, confirmDeadline: null, disputeDeadline: null },
     });
 
+    if (hasDropouts) {
+      const leavingUserIds = leavingMembers.map(m => m.userId)
+      await tx.member.deleteMany({ where: { groupId, userId: { in: leavingUserIds } } })
+      // 一併清掉 Subscription，不然「我的訂閱」頁面會留著一筆狀態沒人再維護的孤兒紀錄
+      await tx.subscription.deleteMany({ where: { groupId, userId: { in: leavingUserIds } } })
+    }
+
     await tx.subscription.updateMany({
-      where: { groupId },
+      where: { groupId, userId: { in: renewSet } },
       data:  { nextBillingDate: base },
     });
 
     return tx.group.update({
       where: { id: groupId },
       data:  {
-        status: 'pending_confirmation',
+        status: nextStatus,
+        currentMembers: renewingMembers.length,
         nextBillingDate: base,
         serviceInfoDeadline,
-        escrowTokens: { increment: seatCost * memberIds.length },
+        escrowTokens: { increment: seatCost * renewSet.length },
         currentCycle: newCycle,
         billingDateAdjustedAt:     null,
         billingDateAdjustmentNote: null,
@@ -789,8 +825,37 @@ export async function renewGroup({ groupId, hostId }) {
   })
 
   const groupLabel = group.planName ?? '';
+
+  if (leavingMembers.length > 0) {
+    notifyBatch(leavingMembers.map(m => ({
+      userId:  m.userId,
+      type:    'member_removed',
+      title:   '未列入新一期續訂名單',
+      message: `團主開始「${groupLabel}」新一期續訂時未將你列入名單，本期服務結束後將不再繼續，可以重新申請或選擇其他群組。`,
+      meta:    { groupId },
+    })))
+  }
+
+  if (hasDropouts) {
+    notify({
+      userId:  group.hostId,
+      type:    'group_renewal',
+      title:   '新一期已開始招募補位',
+      message: `「${groupLabel}」有成員這期不續訂，已釋出名額並退回招募中，補齊名額後請重新鎖定群組。`,
+      meta:    { groupId },
+    })
+    notifyBatch(renewSet.map(userId => ({
+      userId,
+      type:    'group_renewal',
+      title:   '新一期已開始',
+      message: `「${groupLabel}」開始新一期，團主正在補齊名額，補滿後會重新鎖定群組並通知你填寫最新服務帳號資訊。`,
+      meta:    { groupId },
+    })))
+    return updated
+  }
+
   const estimatedDateText = base.toISOString().slice(0, 10).replace(/-/g, '/')
-  notifyBatch([group.hostId, ...memberIds].map(userId => ({
+  notifyBatch([group.hostId, ...renewSet].map(userId => ({
     userId,
     type:    'billing_date_confirmed',
     title:   '預估下次扣款日',
@@ -798,7 +863,7 @@ export async function renewGroup({ groupId, hostId }) {
     meta:    { groupId, nextBillingDate: base.toISOString(), estimated: true },
   })))
 
-  notifyBatch(memberIds.map(userId => ({
+  notifyBatch(renewSet.map(userId => ({
     userId,
     type:    'group_renewal',
     title:   '新一期已開始',

@@ -48,8 +48,8 @@ export async function escalateDisputeApi(id, { memberId, note }) {
   return client.post(`/groups/${id}/escalate-dispute`, { memberId, note })
 }
 
-export async function renewGroupApi(id) {
-  return client.post(`/groups/${id}/renew`)
+export async function renewGroupApi(id, renewingUserIds) {
+  return client.post(`/groups/${id}/renew`, { renewingUserIds })
 }
 
 export async function fetchGroupTransactions(id) {

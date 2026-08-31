@@ -16,7 +16,7 @@ const getGroupsByHostId = (hostId) => useGroupStore.getState().getByHostId(hostI
 const lockGroup           = (id, sharedCredentials) => useGroupStore.getState().lockGroup(id, sharedCredentials)
 const activateService     = (id)   => useGroupStore.getState().activateService(id)
 const adjustBillingDate   = (id, payload) => useGroupStore.getState().adjustBillingDate(id, payload)
-const startRenewalCycle = (id)     => useGroupStore.getState().startRenewalCycle(id)
+const startRenewalCycle = (id, renewingUserIds) => useGroupStore.getState().startRenewalCycle(id, renewingUserIds)
 const endGroup         = (id)      => useGroupStore.getState().endGroup(id)
 
 const getApplicationByUserAndGroup = (uid, gid)   => useApplicationStore.getState().getByUserAndGroup(uid, gid)
@@ -27,7 +27,6 @@ const getMembersByGroupId        = (gid)    => useMemberStore.getState().getByGr
 const isUserGroupMember          = (uid, gid) => useMemberStore.getState().isMember(uid, gid)
 const removeMember               = (id)     => useMemberStore.getState().remove(id)
 const updateMember               = (id, p)  => useMemberStore.getState().update(id, p)
-const clearMemberServiceInfos    = (gid)    => useMemberStore.getState().clearGroupServiceInfos(gid)
 
 const getSubscriptionByUserAndGroup   = (uid, gid) => useSubscriptionStore.getState().getByUserAndGroup(uid, gid)
 const removeSubscription              = (id)     => useSubscriptionStore.getState().remove(id)
@@ -268,15 +267,17 @@ async function handleActivate() {
     refreshGroups()
   }
 
-  async function handleStartRenewal() {
+  async function handleStartRenewal(renewingUserIds) {
     if (!renewalModalGroupId) return
     try {
-      await startRenewalCycle(renewalModalGroupId)
+      await startRenewalCycle(renewalModalGroupId, renewingUserIds)
     } catch {
       toast('開始新一期失敗，請稍後再試', 'error')
       return
     }
-    clearMemberServiceInfos(renewalModalGroupId)
+    // 有成員這期不續訂的話，人數變動、Member 名單本身都變了（後端已直接移除該成員），
+    // 不能只靠本地 clearGroupServiceInfos patch，改整批重抓成員資料確保跟後端一致
+    await useMemberStore.getState().init().catch(console.error)
     const convId = getConvByGroupId(renewalModalGroupId)?.id
     if (convId) sendSystemMessage(
       convId, `新一期已開始，請重新填寫訂閱帳號資訊。`

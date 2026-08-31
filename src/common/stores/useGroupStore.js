@@ -173,8 +173,8 @@ export const useGroupStore = create((set, get) => ({
     }))
   },
 
-  startRenewalCycle: async (id) => {
-    const updated = await renewGroupApi(id)
+  startRenewalCycle: async (id, renewingUserIds) => {
+    const updated = await renewGroupApi(id, renewingUserIds)
     set(s => ({
       groups: s.groups.map(g => g.id === id ? normalizeGroup({ ...g, ...updated }) : g),
     }))
