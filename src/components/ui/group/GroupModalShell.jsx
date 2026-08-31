@@ -202,7 +202,7 @@ export default function GroupModalShell({
           )}
         </div>
         {mobileFab && !activeDetail && (
-          <div className="absolute bottom-20 right-4 z-10 md:hidden">
+          <div className={`absolute right-4 z-10 md:hidden ${centeredCta ? 'bottom-40' : 'bottom-20'}`}>
             {mobileFab}
           </div>
         )}
