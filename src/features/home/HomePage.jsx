@@ -93,11 +93,7 @@ export default function HomePage() {
         </RevealSection>
       </section>
 
-      <section id="section-featured-groups" className="relative flex w-full min-h-[60svh] flex-col items-center justify-center px-5 py-20 can-hover:lg:py-28">
-        <RevealSection className="mx-auto w-full max-w-3xl">
-          <FeaturedGroupsCarousel />
-        </RevealSection>
-      </section>
+      <FeaturedGroupsCarousel />
 
       <section id="section-faq" className="relative flex w-full min-h-[60svh] flex-col items-center justify-center px-5 py-20 can-hover:lg:py-28">
         <RevealSection className="mx-auto w-full max-w-3xl">

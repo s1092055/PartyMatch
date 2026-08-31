@@ -1,5 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { HOME_SECTION_IDS } from '../data/sectionIds'
+import { useGroupStore } from '../../../common/stores/useGroupStore'
+import { useAuthStore } from '../../../common/stores/useAuthStore'
+import { selectFeaturedGroups } from '../utils/selectFeaturedGroups'
 
 const SECTION_LABELS = {
   'section-hero': 'PartyMatch',
@@ -11,9 +14,19 @@ const SECTION_LABELS = {
   'section-faq': '常見問題',
   'section-cta': '立即開始共享訂閱之旅',
 };
-const SECTIONS = HOME_SECTION_IDS.map(id => ({ id, label: SECTION_LABELS[id] }))
-
 export default function SectionNav() {
+  const groups = useGroupStore(s => s.groups)
+  const activeUserId = useAuthStore(s => s.user?.id)
+  const hasFeaturedGroups = useMemo(
+    () => selectFeaturedGroups(groups, activeUserId).length > 0,
+    [groups, activeUserId]
+  )
+  const SECTIONS = useMemo(
+    () => HOME_SECTION_IDS
+      .filter(id => id !== 'section-featured-groups' || hasFeaturedGroups)
+      .map(id => ({ id, label: SECTION_LABELS[id] })),
+    [hasFeaturedGroups]
+  )
   const [activeId, setActiveId] = useState(SECTIONS[0].id)
   const ratiosRef = useRef(new Map());
 
@@ -40,7 +53,7 @@ export default function SectionNav() {
     )
     elements.forEach(el => observer.observe(el))
     return () => observer.disconnect()
-  }, [])
+  }, [SECTIONS])
 
   function handleClick(id) {
     setActiveId(id)
