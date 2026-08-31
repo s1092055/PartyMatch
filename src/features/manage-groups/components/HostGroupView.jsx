@@ -435,13 +435,15 @@ export default function HostGroupView(
           </GroupModalSideBarItem>
         ) : !isCancelled && (
           <>
-            <GroupModalSideBarItem
-              pinned
-              className="hidden md:flex"
-              onClick={openGroupMessages}
-            >
-              <MessageCircle strokeWidth={1.5} size={17} /> 群組訊息
-            </GroupModalSideBarItem>
+            {group.status !== 'ended' && (
+              <GroupModalSideBarItem
+                pinned
+                className="hidden md:flex"
+                onClick={openGroupMessages}
+              >
+                <MessageCircle strokeWidth={1.5} size={17} /> 群組訊息
+              </GroupModalSideBarItem>
+            )}
             <GroupModalSideBarItem onClick={() => setShowPlatformReport(true)}>
               <TriangleAlert strokeWidth={1.5} size={17} /> 回報問題
             </GroupModalSideBarItem>
@@ -484,7 +486,7 @@ export default function HostGroupView(
         onSubSubPanelBack={() => { setShowReviewHistory(false) }}
         panelKey={isReviewHistory ? 'reviewHistory' : `${activePanel ?? 'overview'}-${panelTick}`}
         sideBar={renderSideBar()}
-        mobileFab={!isRecruiting && !isCancelled && (
+        mobileFab={!isRecruiting && !isCancelled && group.status !== 'ended' && (
           <button
             type="button"
             onClick={openGroupMessages}

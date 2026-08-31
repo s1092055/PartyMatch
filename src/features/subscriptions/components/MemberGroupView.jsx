@@ -91,6 +91,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
   const serviceDef        = getServiceById(group.serviceId)
   const planDef           = serviceDef?.plans.find(p => p.name === group.planName)
   const isPaymentRelevant = !['recruiting', 'full', 'cancelled'].includes(group.status)
+  const showMessagesButton = isPaymentRelevant && group.status !== 'ended'
 
   const isSharedCredentials = isSharedCredentialsMethod(serviceDef?.sharingMethod);
   const showsProfileName    = isSharedCredentials && serviceHasProfileField(serviceDef?.id)
@@ -543,7 +544,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
                 <LogOut strokeWidth={1.5} size={17} /> 退出群組
               </GroupModalSideBarItem>
             )}
-            {isPaymentRelevant && (
+            {showMessagesButton && (
               <GroupModalSideBarItem pinned className="hidden md:flex" onClick={openMessages}>
                 <MessageCircle strokeWidth={1.5} size={17} /> 群組訊息
               </GroupModalSideBarItem>
@@ -557,7 +558,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
         onSubPanelBack={() => setActivePanel(null)}
         panelKey={`${activePanel ?? 'overview'}-${panelViewTick}`}
         mobileReviewsSection={hostReviews}
-        mobileFab={isPaymentRelevant && (
+        mobileFab={showMessagesButton && (
           <button
             type="button"
             onClick={openMessages}
