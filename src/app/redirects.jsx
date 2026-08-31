@@ -22,10 +22,7 @@ export function GroupRedirect() {
 export function QuickMatchRedirect() {
   const navigate = useNavigate()
   useEffect(() => {
-    navigate('/', { replace: true })
-    setTimeout(() => {
-      window.dispatchEvent(new CustomEvent('pm:open-quick-match'))
-    }, 0)
+    navigate('/explore', { replace: true, state: { openConditionSearch: true } })
   }, [navigate])
   return null
 }

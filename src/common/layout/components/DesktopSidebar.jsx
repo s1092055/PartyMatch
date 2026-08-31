@@ -22,7 +22,6 @@ export default function DesktopSidebar({
   setTopupOpen,
   closeAll,
   openCreate,
-  openMatch,
   openNotify,
   openMessages,
   openSettings,
@@ -84,10 +83,9 @@ export default function DesktopSidebar({
       )
     }
 
-    if (item.type === 'create' || item.type === 'match') {
-      const onClick = item.type === 'create' ? openCreate : openMatch
+    if (item.type === 'create') {
       return (
-        <button key={item.type} onClick={() => { collapseSidebar(); onClick() }} aria-label={item.label}
+        <button key={item.type} onClick={() => { collapseSidebar(); openCreate() }} aria-label={item.label}
           className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand">
           <span className="grid h-9 w-9 shrink-0 place-items-center">
             <item.icon size={22} strokeWidth={1.5} />

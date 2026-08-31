@@ -1,4 +1,5 @@
 import { daysUntil } from '../../../common/utils/date'
+import { getServiceById } from '../../../common/utils/serviceUtils'
 
 function calcScore(group, conditions) {
   let score = 0
@@ -16,7 +17,7 @@ function getAgeMonths(createdAt) {
 }
 
 export function matchGroups(groups, conditions) {
-  const { services = [], selectedPlans = {}, minPrice, maxPrice, minRating, groupAge } = conditions
+  const { services = [], selectedPlans = {}, keyword, minPrice, maxPrice, minRating, groupAge } = conditions
 
   const filtered = groups.filter(g => {
     if (g.status !== 'recruiting') return false
@@ -27,6 +28,11 @@ export function matchGroups(groups, conditions) {
     if (minPrice != null && g.pricePerSeat < minPrice) return false
     if (maxPrice != null && g.pricePerSeat > maxPrice) return false
     if (minRating && minRating > 0 && g.hostRating < minRating) return false
+    if (keyword?.trim()) {
+      const kw = keyword.trim().toLowerCase()
+      const serviceName = getServiceById(g.serviceId)?.name ?? g.serviceName ?? ''
+      if (!serviceName.toLowerCase().includes(kw) && !(g.planName ?? '').toLowerCase().includes(kw)) return false
+    }
 
     if (groupAge && groupAge !== 'any') {
       const months = getAgeMonths(g.createdAt)

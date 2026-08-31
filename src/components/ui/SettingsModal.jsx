@@ -121,12 +121,6 @@ export function SettingsModalBody({ onClose }) {
           onChange={toggleTheme}
         />
         <SettingRow
-          label="自動開啟快速搜尋"
-          desc="每次造訪時自動彈出快速搜尋"
-          checked={prefs.autoOpenSearch}
-          onChange={() => toggle('autoOpenSearch')}
-        />
-        <SettingRow
           label="分享使用資料"
           desc="協助改善平台體驗（匿名）"
           checked={prefs.shareActivity}

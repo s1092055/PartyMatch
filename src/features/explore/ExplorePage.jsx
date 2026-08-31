@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { Compass, RotateCw } from 'lucide-react'
+import { Compass, RotateCw, Search } from 'lucide-react'
 import { useGroupStore } from '../../common/stores/useGroupStore'
 import { useApplicationStore } from '../../common/stores/useApplicationStore'
 import { useMemberStore } from '../../common/stores/useMemberStore'
@@ -9,18 +9,15 @@ import { useAuthStore } from '../../common/stores/useAuthStore'
 import EmptyState from '../../components/ui/primitives/EmptyState'
 import PageHeader from '../../common/layout/PageHeader'
 import RevealSection from '../../components/ui/primitives/RevealSection'
-import FilterBar from './components/FilterBar'
+import CategoryPills from '../../components/ui/primitives/CategoryPills'
 import ExploreGroupCard from './components/ExploreGroupCard'
 
-const DEFAULT_FILTERS = { category: 'all', service: 'all', maxPrice: 'any', sortBy: 'recommended', q: '' }
+const ConditionSearchModal = lazy(() => import('../match/ConditionSearchModal'))
 
 export default function ExplorePage() {
   const location = useLocation();
-  const [filters, setFilters] = useState(() => ({
-    ...DEFAULT_FILTERS,
-    q:       location.state?.q?.trim() ?? '',
-    service: location.state?.service ?? DEFAULT_FILTERS.service,
-  }))
+  const [category, setCategory] = useState('all')
+  const [conditionSearchOpen, setConditionSearchOpen] = useState(() => location.state?.openConditionSearch === true)
   const activeUserId = useAuthStore(s => s.user?.id)
   const groups = useGroupStore(s => s.groups)
   const applications = useApplicationStore(s => s.applications)
@@ -62,18 +59,24 @@ export default function ExplorePage() {
   }, [activeUserId, applications, members])
 
   const filtered = useMemo(
-    () => applyFilters(allGroups, filters),
-    [allGroups, filters],
+    () => applyFilters(allGroups, { category }),
+    [allGroups, category],
   )
-
-  function handleFilterChange(patch) {
-    setFilters(prev => ({ ...prev, ...patch, q: patch.q !== undefined ? patch.q.trim() : prev.q }))
-    window.scrollTo(0, 0)
-  }
 
   return (
     <div className="px-2 md:px-4">
       <PageHeader title="探索群組" className="mb-4 text-center" />
+
+      <div className="fixed bottom-28 right-6 z-40 can-hover:lg:bottom-40">
+        <button
+          type="button"
+          onClick={() => setConditionSearchOpen(true)}
+          aria-label="條件搜尋"
+          className="relative grid h-14 w-14 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-floating transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-12 lg:w-12 dark:border-[#238EC7] dark:text-[#238EC7]"
+        >
+          <Search className="size-6 lg:size-5" strokeWidth={1.5} />
+        </button>
+      </div>
 
       <div className="fixed bottom-9 right-6 z-40 can-hover:lg:bottom-24">
         <button
@@ -89,16 +92,23 @@ export default function ExplorePage() {
         </button>
       </div>
 
-      <FilterBar filters={filters} onChange={handleFilterChange} />
+      <CategoryPills
+        variant="grid"
+        showAll
+        active={category}
+        onChange={c => { setCategory(c); window.scrollTo(0, 0) }}
+        className="mb-6"
+      />
+
       {filtered.length === 0 ? (
         <EmptyState
           icon={Compass}
           title="沒有符合條件的群組"
-          description="試著調整篩選條件"
+          description="試著調整篩選分類，或使用右下角的條件搜尋"
         />
       ) : (
         (<div
-          key={`${filters.category}|${filters.service}|${filters.maxPrice}|${filters.sortBy}`}
+          key={category}
           className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3"
         >
           {filtered.map((group, i) => (
@@ -108,6 +118,10 @@ export default function ExplorePage() {
           ))}
         </div>)
       )}
+
+      <Suspense fallback={null}>
+        <ConditionSearchModal isOpen={conditionSearchOpen} onClose={() => setConditionSearchOpen(false)} />
+      </Suspense>
     </div>
   );
 }

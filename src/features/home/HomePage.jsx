@@ -19,11 +19,9 @@ import FAQ from './components/FAQ'
 import SectionNav from './components/SectionNav'
 import RevealSection from '../../components/ui/primitives/RevealSection'
 import { ALL_SERVICES } from './data/allServices'
-import { useAutoOpenQuickMatch } from '../../common/utils/hooks'
 
 const MessagesModal = lazy(() => import('../messages/MessagesModal'))
 const GroupDetailModal = lazy(() => import('../group/GroupDetailModal'));
-const QuickMatchModal = lazy(() => import('../match/QuickMatchModal'))
 const CreateGroupModal = lazy(() => import('../create/CreateGroupModal'))
 
 export default function HomePage() {
@@ -33,7 +31,6 @@ export default function HomePage() {
   useLayoutEffect(() => {
     window.scrollTo(0, 0)
   }, []);
-  useAutoOpenQuickMatch()
 
   return (
     <div className="flex min-h-screen flex-col bg-canvas text-ink can-hover:lg:ml-20 can-hover:lg:mr-24">
@@ -41,7 +38,6 @@ export default function HomePage() {
       <Suspense fallback={null}>
         <MessagesModal />
         <GroupDetailModal />
-        <QuickMatchModal />
         <CreateGroupModal />
       </Suspense>
       <FloatingMessages />

@@ -68,11 +68,6 @@ export default function AppNav() {
     window.dispatchEvent(new CustomEvent('pm:open-messages'))
   }
 
-  function openMatch() {
-    closeAll()
-    window.dispatchEvent(new CustomEvent('pm:open-quick-match'))
-  }
-
   function openSettings() {
     closeAll()
     setSettingsOpen(true)
@@ -119,7 +114,6 @@ export default function AppNav() {
         setTopupOpen={setTopupOpen}
         closeAll={closeAll}
         openCreate={openCreate}
-        openMatch={openMatch}
         openNotify={openNotify}
         openMessages={openMessages}
         openSettings={openSettings}
@@ -141,7 +135,6 @@ export default function AppNav() {
         host={{ id: currentUser?.id, displayName: userName, avatarInitial, avatarColor }}
         closeAll={closeAll}
         openCreate={openCreate}
-        openMatch={openMatch}
         preventLockedAction={preventLockedAction}
         logout={logout}
         loggingOut={loggingOut}

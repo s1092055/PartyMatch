@@ -80,10 +80,10 @@ export default function FeaturedGroupsCarousel() {
             size="lg"
             variant="secondary"
             className="rounded-full px-8"
-            onClick={() => window.dispatchEvent(new CustomEvent('pm:open-quick-match'))}
+            onClick={() => navigate('/explore', { state: { openConditionSearch: true } })}
           >
             <Search size={16} strokeWidth={1.5} />
-            快速搜尋
+            條件搜尋
           </Button>
         </div>
       </RevealSection>

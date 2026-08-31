@@ -2,19 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from './toast'
 import { useAuthStore } from '../stores/useAuthStore'
-import { loadPrefs } from './appPrefs'
 import { resolveImageMime } from '../api/storageApi'
-
-const AUTO_OPEN_SEARCH_SESSION_KEY = 'pm_auto_search_opened'
-
-export function useAutoOpenQuickMatch() {
-  useEffect(() => {
-    if (!loadPrefs().autoOpenSearch) return
-    if (sessionStorage.getItem(AUTO_OPEN_SEARCH_SESSION_KEY)) return
-    sessionStorage.setItem(AUTO_OPEN_SEARCH_SESSION_KEY, '1')
-    window.dispatchEvent(new CustomEvent('pm:open-quick-match'))
-  }, [])
-}
 
 export function useIsDesktop() {
   const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024)

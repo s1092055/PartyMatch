@@ -7,7 +7,7 @@ import { formatPriceRangeLabel } from '../utils/priceRangeLabel'
 const GROUP_AGE_LABEL = { any: '不限', new: '三個月內', established: '三個月至一年', veteran: '一年以上' }
 
 export default function MatchSummaryPanel({ conditions, filtersChosen, onRemoveService }) {
-  const { services, selectedPlans = {}, minPrice, maxPrice, minRating, groupAge } = conditions
+  const { services, selectedPlans = {}, keyword, minPrice, maxPrice, minRating, groupAge } = conditions
   const priceLabel = formatPriceRangeLabel(minPrice, maxPrice)
   const isEmpty = services.length === 0
 
@@ -54,6 +54,11 @@ export default function MatchSummaryPanel({ conditions, filtersChosen, onRemoveS
       </div>
 
       <div className="shrink-0 space-y-4 border-t border-line-subtle pt-4">
+        <Row
+          label="關鍵字"
+          value={filtersChosen && keyword?.trim() ? keyword.trim() : '未輸入'}
+          muted={!filtersChosen || !keyword?.trim()}
+        />
         <Row
           label="申請費用/人"
           value={!filtersChosen ? '尚未選擇' : <PriceRangeAmount label={priceLabel} badgeClassName="!h-3.5 !w-3.5" />}

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { AlertCircle, ChevronLeft, ChevronRight, Info, RotateCcw, Search } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogCloseButton } from '../../components/ui/dialog'
 import { Button } from '../../components/ui/button'
@@ -16,29 +16,25 @@ const STEP_TITLES = ['選擇服務', '方案與條件', '搜尋結果']
 const DEFAULT_CONDITIONS = {
   services:      [],
   selectedPlans: {},
+  keyword:       '',
   minPrice:      PRICE_MIN,
   maxPrice:      DEFAULT_PRICE_MAX,
   minRating:     0,
   groupAge:      'any',
 }
 
-export default function QuickMatchModal() {
-  const [open, setOpen] = useState(false)
+export default function ConditionSearchModal({ isOpen, onClose }) {
   const [step, setStep] = useState(1)
   const [conditions, setConditions] = useState(DEFAULT_CONDITIONS)
   const [results, setResults] = useState([])
   const bodyRef = useRef(null)
 
-  useEffect(() => {
-    function onOpen() {
-      setStep(1)
-      setConditions(DEFAULT_CONDITIONS)
-      setResults([])
-      setOpen(true)
-    }
-    window.addEventListener('pm:open-quick-match', onOpen)
-    return () => window.removeEventListener('pm:open-quick-match', onOpen)
-  }, [])
+  function handleClose() {
+    onClose()
+    setStep(1)
+    setConditions(DEFAULT_CONDITIONS)
+    setResults([])
+  }
 
   function toggleService(id) {
     setConditions(prev => {
@@ -69,7 +65,7 @@ export default function QuickMatchModal() {
       setStep(s => s - 1)
       bodyRef.current?.scrollTo({ top: 0 })
     } else {
-      setOpen(false)
+      handleClose()
     }
   }
 
@@ -111,14 +107,14 @@ export default function QuickMatchModal() {
   const banner = getBanner(step)
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={isOpen} onOpenChange={v => { if (!v) handleClose() }}>
       <DialogContent maxWidth="max-w-4xl" height="min(88dvh, 760px)">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Search size={18} className="shrink-0 text-brand" strokeWidth={1.5} />
-            快速搜尋
+            條件搜尋
           </DialogTitle>
-          <DialogDescription>依服務、方案與篩選條件快速搜尋符合的共享群組</DialogDescription>
+          <DialogDescription>依服務、方案與篩選條件搜尋符合的共享群組</DialogDescription>
           <DialogCloseButton />
         </DialogHeader>
 

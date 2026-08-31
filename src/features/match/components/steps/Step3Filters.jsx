@@ -93,6 +93,18 @@ export default function Step3Filters({ conditions, onChange }) {
   return (
     <div className="space-y-10">
       <div>
+        <span className="mb-3 block text-base font-medium text-ink-2">關鍵字</span>
+        <div className="flex h-11 items-center rounded-control border border-line bg-surface px-3.5 transition-[box-shadow] focus-within:ring-4 focus-within:ring-brand-subtle">
+          <input
+            type="text"
+            placeholder="搜尋服務或方案名稱"
+            value={conditions.keyword ?? ''}
+            onChange={e => onChange('keyword', e.target.value)}
+            className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-ink-4"
+          />
+        </div>
+      </div>
+      <div>
         <div className="mb-3 flex items-center justify-between">
           <span className="text-base font-medium text-ink-2">申請費用/人</span>
           <PriceRangeAmount
