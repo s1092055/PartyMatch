@@ -36,7 +36,7 @@ export default function MatchSummaryPanel({ conditions, filtersChosen, onRemoveS
                   </div>
                   <div className="flex shrink-0 items-center gap-1.5">
                     <span className="text-xs text-ink-3">{plan && plan !== 'any' ? plan : '不限'}</span>
-                    {onRemoveService && (
+                    {onRemoveService && services.length > 1 && (
                       <button
                         onClick={() => onRemoveService(id)}
                         aria-label={`移除${s.name}`}
