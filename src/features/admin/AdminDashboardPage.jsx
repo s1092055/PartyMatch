@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { LayoutGrid, Megaphone, ShieldAlert, UserCog } from 'lucide-react'
+import { LayoutGrid, Megaphone, ShieldAlert, TriangleAlert, UserCog } from 'lucide-react'
 import { useGroupStore } from '../../common/stores/useGroupStore'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs'
 import { Badge } from '../../components/ui/badge'
@@ -7,6 +7,7 @@ import OverviewSection from './components/OverviewSection'
 import SystemMessagesSection from './components/SystemMessagesSection'
 import DisputeSection from './components/DisputeSection'
 import UserAccountsSection from './components/UserAccountsSection'
+import PlatformReportsSection from './components/PlatformReportsSection'
 
 export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState('overview')
@@ -40,12 +41,17 @@ export default function AdminDashboardPage() {
             <UserCog size={14} strokeWidth={1.5} />
             帳號管理
           </TabsTrigger>
+          <TabsTrigger value="platformReports">
+            <TriangleAlert size={14} strokeWidth={1.5} />
+            使用者回報
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview"><OverviewSection /></TabsContent>
         <TabsContent value="messages"><SystemMessagesSection /></TabsContent>
         <TabsContent value="disputes"><DisputeSection /></TabsContent>
         <TabsContent value="accounts"><UserAccountsSection /></TabsContent>
+        <TabsContent value="platformReports"><PlatformReportsSection /></TabsContent>
       </Tabs>
     </div>
   )

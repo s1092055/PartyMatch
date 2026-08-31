@@ -20,6 +20,7 @@ import tokenRoutes         from './routes/tokens.js'
 import reviewRoutes        from './routes/reviews.js'
 import systemMessageRoutes from './routes/systemMessages.js'
 import credentialCommentRoutes from './routes/credentialComments.js'
+import platformReportRoutes    from './routes/platformReports.js'
 import adminRoutes         from './routes/admin/index.js'
 import adminAuthRoutes     from './routes/adminAuth.js'
 
@@ -61,6 +62,7 @@ app.use('/api/tokens',          tokenRoutes)
 app.use('/api/reviews',         reviewRoutes)
 app.use('/api/system-messages', systemMessageRoutes)
 app.use('/api/credential-comments', credentialCommentRoutes)
+app.use('/api/platform-reports', platformReportRoutes)
 app.use('/api/admin/auth',    adminAuthRoutes)
 app.use('/api/admin',         adminRoutes)
 

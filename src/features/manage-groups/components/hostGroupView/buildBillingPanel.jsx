@@ -1,9 +1,10 @@
-import { Banknote, RefreshCw } from 'lucide-react'
-import { Button } from '../../../../components/ui/button'
+import { Banknote } from 'lucide-react'
 import EmptyState from '../../../../components/ui/primitives/EmptyState'
 import BillingCycleSection from './BillingCycleSection'
+import InsufficientBalanceNotice from './InsufficientBalanceNotice'
 
-export function buildBillingPanel({ members, transactions, transactionsLoading, showRenewal, onOpenRenewal, currentCycle, isCancelled }) {
+export function buildBillingPanel({ members, groupMembers, transactions, transactionsLoading, showRenewal, currentCycle, isCancelled }) {
+  const insufficientMembers = (groupMembers ?? []).filter(m => m.hasSufficientBalanceForRenewal === false)
   const cycleGroups = new Map()
   for (const tx of transactions) {
     const cycle = tx.cycle ?? 1
@@ -15,7 +16,12 @@ export function buildBillingPanel({ members, transactions, transactionsLoading, 
 
   return {
     content: (
-      <div className={`relative min-h-full p-5 ${showRenewal ? 'pb-16' : ''}`}>
+      <div className="relative min-h-full p-5">
+        {showRenewal && insufficientMembers.length > 0 && (
+          <div className="mb-3">
+            <InsufficientBalanceNotice members={insufficientMembers} />
+          </div>
+        )}
         {transactionsLoading ? (
           <p className="py-8 text-center text-sm text-ink-3">載入中…</p>
         ) : members.length === 0 && cycles.length === 0 ? (
@@ -35,16 +41,6 @@ export function buildBillingPanel({ members, transactions, transactionsLoading, 
               />
             ))}
           </div>
-        )}
-        {showRenewal && (
-          <Button
-            variant="ghost"
-            onClick={() => onOpenRenewal?.()}
-            className="absolute bottom-4 right-4 h-9 shrink-0 rounded-lg border border-line bg-canvas px-3"
-          >
-            <RefreshCw size={14} strokeWidth={1.5} />
-            續訂服務
-          </Button>
         )}
       </div>
     ),

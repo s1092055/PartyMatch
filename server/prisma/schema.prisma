@@ -67,6 +67,11 @@ enum DisputeResolutionType {
   host_wins
 }
 
+enum PlatformReportStatus {
+  pending
+  resolved
+}
+
 enum NotificationType {
   application_sent
   application_approved
@@ -98,6 +103,7 @@ enum NotificationType {
   member_confirmed_service
   group_reviewed
   account_reactivated
+  payment_reminder
   system
 }
 
@@ -139,6 +145,7 @@ model User {
   reviewsAuthored     Review[]            @relation("ReviewsAuthored")
   credentialComments  CredentialComment[]
   disputesRaised      Dispute[]           @relation("DisputesRaised")
+  platformReports     PlatformReport[]
 
   @@map("users")
 }
@@ -155,6 +162,7 @@ model AdminUser {
   updatedAt    DateTime @updatedAt
 
   disputesAdjudicated Dispute[] @relation("DisputesAdjudicated")
+  platformReportsResolved PlatformReport[]
 
   @@map("admin_users")
 }
@@ -224,6 +232,7 @@ model Group {
   reviews            Review[]
   credentialComments CredentialComment[]
   disputes           Dispute[]
+  platformReports    PlatformReport[]
 
   @@index([status])
   @@index([hostId])
@@ -472,4 +481,29 @@ model Dispute {
   @@index([status, deadline])
   @@index([raisedByUserId])
   @@map("disputes")
+}
+
+// 使用者直接向平台回報問題（跟 Dispute 不同：Dispute 是團主/成員之間的服務糾紛，走裁定流程；
+// 這裡是任何身份都能用、單向回報給管理員看，沒有對方當事人參與）
+model PlatformReport {
+  id         String @id @default(cuid())
+  groupId    String
+  group      Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  reporterId String
+  reporter   User   @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+
+  description String  @db.VarChar(1000)
+  evidenceUrl String?
+
+  status            PlatformReportStatus @default(pending)
+  resolvedByAdminId String?
+  resolvedByAdmin   AdminUser?           @relation(fields: [resolvedByAdminId], references: [id], onDelete: SetNull)
+  resolutionNote    String?              @db.VarChar(500)
+  resolvedAt        DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([status])
+  @@index([groupId])
+  @@map("platform_reports")
 }

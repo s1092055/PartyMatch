@@ -93,6 +93,7 @@ const NOTIFICATION_META = {
   member_confirmed_service: { icon: CheckCircle2, iconColor: 'text-success',   link: '/manage-groups' },
   group_reviewed:          { icon: Star,          iconColor: 'text-warning-text', link: '/manage-groups' },
   account_reactivated:  { icon: CheckCircle2,  iconColor: 'text-success',    link: '/' },
+  payment_reminder:     { icon: AlertCircle,   iconColor: 'text-warning-text', link: '/my-subscriptions' },
   system:               { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/' },
   default:              { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/my-subscriptions' },
 }

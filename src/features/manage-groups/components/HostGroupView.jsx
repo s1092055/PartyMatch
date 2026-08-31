@@ -1,17 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Banknote, ChevronLeft, CheckCircle2, ClipboardList, Clock, Info, KeyRound, LockKeyhole, MessageCircle, PlayCircle, Trash2, Users } from 'lucide-react'
-import { Avatar } from '../../../components/ui/avatar'
-import { PresenceDot } from '../../../common/layout/components/navShared'
+import { Banknote, CheckCircle2, ClipboardList, Clock, Info, KeyRound, LockKeyhole, MessageCircle, PlayCircle, RefreshCw, Trash2, TriangleAlert, Users } from 'lucide-react'
 import { Button } from '../../../components/ui/button'
 import ConfirmActionDialog from '../../../components/ui/ConfirmActionDialog'
 import CountdownText from '../../../components/ui/primitives/CountdownText'
 import GroupModalShell from '../../../components/ui/group/GroupModalShell'
 import GroupModalSideBarItem from '../../../components/ui/group/GroupModalSideBarItem'
-import UserReviews from '../../group/components/UserReviews'
 import ReviewUserModal from '../../subscriptions/components/ReviewUserModal'
 import { getServiceById } from '../../../common/utils/serviceUtils'
 import { isSharedCredentialsMethod } from '../../../common/utils/serviceInfoFields'
 import { canReportServiceIssue } from '../../../common/utils/groupStatus'
+import { daysUntil } from '../../../common/utils/date'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
 import { useApplicationStore } from '../../../common/stores/useApplicationStore'
 import { useGroupStore } from '../../../common/stores/useGroupStore'
@@ -19,10 +17,13 @@ import { useMemberStore } from '../../../common/stores/useMemberStore'
 import { useNotificationStore } from '../../../common/stores/useNotificationStore'
 import { useReviewStore } from '../../../common/stores/useReviewStore'
 import { fetchGroupTransactions } from '../../../common/api/groupsApi'
-import { uploadServiceIssueEvidence } from '../../../common/api/storageApi'
+import { uploadServiceIssueEvidence, uploadPlatformReportEvidence } from '../../../common/api/storageApi'
+import { createPlatformReport } from '../../../common/api/platformReportsApi'
 import { useEvidenceUpload } from '../../../common/utils/hooks'
+import { toast } from '../../../common/utils/toast'
 import ActivateServiceModal from './ActivateServiceModal'
 import ReportServiceIssueModal from './ReportServiceIssueModal'
+import ReportPlatformIssueModal from '../../group/components/ReportPlatformIssueModal'
 import LockGroupCredentialsModal from './LockGroupCredentialsModal'
 import AdjustBillingDateModal from './AdjustBillingDateModal'
 import { buildMembersPanel } from './hostGroupView/buildMembersPanel'
@@ -41,11 +42,12 @@ export default function HostGroupView(
   const [panelTick, setPanelTick]                          = useState(0);
   const [dataSyncTick, setDataSyncTick]                     = useState(0);
   const [showReviewHistory, setShowReviewHistory]         = useState(false)
-  const [showMemberReviews, setShowMemberReviews]         = useState(false)
-  const [reviewingMember, setReviewingMember]              = useState(null)
   const [reviewTargetMember, setReviewTargetMember]        = useState(null)
   const [showLockGroupConfirm, setShowLockGroupConfirm] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm]         = useState(false)
+  const [showPlatformReport, setShowPlatformReport]         = useState(false)
+  const [platformReportDescription, setPlatformReportDescription] = useState('')
+  const [submittingPlatformReport, setSubmittingPlatformReport]   = useState(false)
   const [transactions, setTransactions]                     = useState([])
   const [transactionsLoading, setTransactionsLoading]       = useState(false)
   const [showCredentialsModal, setShowCredentialsModal]     = useState(false)
@@ -146,6 +148,27 @@ export default function HostGroupView(
   const [serviceIssueNote, setServiceIssueNote]     = useState('')
   const [activating, setActivating]                 = useState(false)
   const serviceIssueEvidence = useEvidenceUpload(uploadServiceIssueEvidence)
+  const platformReportEvidence = useEvidenceUpload(uploadPlatformReportEvidence)
+
+  async function handleSubmitPlatformReport() {
+    if (!platformReportDescription.trim()) return
+    setSubmittingPlatformReport(true)
+    try {
+      await createPlatformReport({
+        groupId:     group.id,
+        description: platformReportDescription.trim(),
+        evidenceUrl: platformReportEvidence.key,
+      })
+      toast('回報已送出，客服會盡快協助處理', 'success')
+      setShowPlatformReport(false)
+      setPlatformReportDescription('')
+      platformReportEvidence.reset()
+    } catch (err) {
+      toast(err?.message ?? '回報失敗，請稍後再試', 'error')
+    } finally {
+      setSubmittingPlatformReport(false)
+    }
+  }
 
   const allMembersChecked = members.length > 0 && members.every(m => memberChecks[m.id] && !m.serviceInfoIssueNote);
 
@@ -294,25 +317,39 @@ export default function HostGroupView(
   const isRecruiting = ['recruiting', 'full'].includes(group.status)
   const isCancelled = group.status === 'cancelled'
   const hasBeenActive = ['active', 'ended'].includes(group.status);
-  const showRenewal = group.status === 'active'
+  const showRenewal = group.status === 'active' && !!group.nextBillingDate && daysUntil(group.nextBillingDate) <= 7
+
+  const renewalCta = showRenewal && (
+    <div className="py-2">
+      <Button
+        onClick={() => onOpenRenewal?.()}
+        className="w-full rounded-lg shadow-button"
+      >
+        <RefreshCw size={15} strokeWidth={1.5} /> 續訂服務
+      </Button>
+    </div>
+  )
 
   function openReviewHistory() {
     setShowReviewHistory(true)
     useApplicationStore.getState().init()
   }
 
+  function openGroupMessages() {
+    onClose()
+    window.dispatchEvent(new CustomEvent('pm:open-messages', { detail: { groupId: group.id } }))
+  }
+
   function buildSubPanel() {
     if (activePanel === 'members') {
       return buildMembersPanel({
         group, members, setActivePanel, onClose, setRemovingMember,
-        setShowMemberReviews: () => { setReviewingMember(null); setShowMemberReviews(true) },
-        showMemberReviewsButton: hasBeenActive,
         onReviewMember: m => setReviewTargetMember(m),
         showReviewButton: hasBeenActive,
       })
     }
     if (activePanel === 'applications') return buildApplicationsPanel({ pendingApps, groupFull, errors, onApprove, onReject, setShowReviewHistory: openReviewHistory })
-    if (activePanel === 'billing') return buildBillingPanel({ members, transactions, transactionsLoading, showRenewal, onOpenRenewal, currentCycle: group.currentCycle, isCancelled })
+    if (activePanel === 'billing') return buildBillingPanel({ members, groupMembers: group.members, transactions, transactionsLoading, showRenewal, currentCycle: group.currentCycle, isCancelled })
     if (activePanel === 'memberInfo') {
       return buildMemberInfoPanel({
         groupId: group.id,
@@ -334,15 +371,12 @@ export default function HostGroupView(
   }
 
   const isReviewHistory = showReviewHistory && activePanel === 'applications'
-  const isMemberReviews = showMemberReviews && activePanel === 'members'
 
   async function goToPanel(panel) {
     // 切換分頁、重播 slide-up 動畫不用等資料回來，立刻反應
     setPanelTick(t => t + 1)
     setActivePanel(panel)
     setShowReviewHistory(false)
-    setShowMemberReviews(false)
-    setReviewingMember(null)
     // header 快照（headerStatus）要等資料真的刷新完才能重新同步，不然會抓到還沒更新的舊資料
     await Promise.all([
       useGroupStore.getState().refreshGroup(group.id).catch(console.error),
@@ -350,49 +384,6 @@ export default function HostGroupView(
       useApplicationStore.getState().init().catch(console.error),
     ])
     setDataSyncTick(t => t + 1)
-  }
-
-  function buildMemberReviewsContent() {
-    if (reviewingMember) {
-      return (
-        <div className="flex min-h-full flex-col">
-          <button
-            onClick={() => setReviewingMember(null)}
-            className="flex shrink-0 items-center gap-1.5 px-5 pt-5 text-xs font-medium text-ink-4 transition-colors hover:text-ink"
-          >
-            <ChevronLeft size={14} strokeWidth={1.5} /> 返回成員列表
-          </button>
-          <UserReviews
-            userId={reviewingMember.userId}
-            userName={reviewingMember.userName}
-            avatarInitial={reviewingMember.userAvatarInitial}
-            avatarColor={reviewingMember.userAvatarColor}
-            presenceStatus={reviewingMember.userPresenceStatus}
-            roleLabel="成員"
-            groupId={group.id}
-            title=""
-            centerEmpty
-          />
-        </div>
-      )
-    }
-    return (
-      <div className="space-y-2 p-5">
-        {members.map(m => (
-          <button
-            key={m.id}
-            onClick={() => setReviewingMember(m)}
-            className="flex w-full items-center gap-3 rounded-lg border border-line p-3 text-left transition-colors hover:border-brand"
-          >
-            <span className="relative inline-block shrink-0">
-              <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
-              <PresenceDot status={m.userPresenceStatus} className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5" />
-            </span>
-            <p className="min-w-0 flex-1 truncate text-sm font-semibold text-ink">{m.userName}</p>
-          </button>
-        ))}
-      </div>
-    )
   }
 
   function renderSideBar() {
@@ -446,12 +437,13 @@ export default function HostGroupView(
           <>
             <GroupModalSideBarItem
               pinned
-              onClick={() => {
-                onClose()
-                window.dispatchEvent(new CustomEvent('pm:open-messages', { detail: { groupId: group.id } }))
-              }}
+              className="hidden md:flex"
+              onClick={openGroupMessages}
             >
               <MessageCircle strokeWidth={1.5} size={17} /> 群組訊息
+            </GroupModalSideBarItem>
+            <GroupModalSideBarItem onClick={() => setShowPlatformReport(true)}>
+              <TriangleAlert strokeWidth={1.5} size={17} /> 回報問題
             </GroupModalSideBarItem>
           </>
         )}
@@ -470,7 +462,7 @@ export default function HostGroupView(
         plan={planDef}
         hideRecruitBar={headerStatus !== 'recruiting'}
         headerBanner={lockGroupBanner || activateBanner || pendingConfirmationBanner || confirmingBanner || disputedBanner || undefined}
-        centeredCta={lockGroupCta || activateCta || undefined}
+        centeredCta={lockGroupCta || activateCta || renewalCta || undefined}
         extraInfoRows={[]}
         statusBadgeOverride={
           headerStatus === 'full' ? { variant: 'full', label: '等待鎖定' } :
@@ -484,15 +476,24 @@ export default function HostGroupView(
         }
         pendingBadgeColor={group.status === 'disputed' ? 'danger' : undefined}
         subPanel={activePanel ? buildSubPanel() : null}
-        onSubPanelBack={() => { setActivePanel(null); setShowReviewHistory(false); setShowMemberReviews(false); setReviewingMember(null) }}
+        onSubPanelBack={() => { setActivePanel(null); setShowReviewHistory(false) }}
         subSubPanel={
           isReviewHistory ? buildReviewHistoryPanel({ applications, groupFull, errors }) :
-          isMemberReviews ? { floatingBack: true, content: buildMemberReviewsContent() } :
           null
         }
-        onSubSubPanelBack={() => { setShowReviewHistory(false); setShowMemberReviews(false); setReviewingMember(null) }}
-        panelKey={isReviewHistory ? 'reviewHistory' : isMemberReviews ? 'memberReviews' : `${activePanel ?? 'overview'}-${panelTick}`}
+        onSubSubPanelBack={() => { setShowReviewHistory(false) }}
+        panelKey={isReviewHistory ? 'reviewHistory' : `${activePanel ?? 'overview'}-${panelTick}`}
         sideBar={renderSideBar()}
+        mobileFab={!isRecruiting && !isCancelled && (
+          <button
+            type="button"
+            onClick={openGroupMessages}
+            aria-label="群組訊息"
+            className="grid h-12 w-12 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-floating transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
+          >
+            <MessageCircle strokeWidth={1.5} size={20} />
+          </button>
+        )}
       />
       )}
       <LockGroupCredentialsModal
@@ -555,6 +556,24 @@ export default function HostGroupView(
           onClose={() => setReviewTargetMember(null)}
         />
       )}
+      <ReportPlatformIssueModal
+        isOpen={showPlatformReport}
+        onClose={() => {
+          setShowPlatformReport(false)
+          setPlatformReportDescription('')
+          platformReportEvidence.reset()
+        }}
+        description={platformReportDescription}
+        setDescription={setPlatformReportDescription}
+        evidenceUrl={platformReportEvidence.url}
+        evidenceName={platformReportEvidence.name}
+        evidenceUploading={platformReportEvidence.uploading}
+        evidenceProgress={platformReportEvidence.progress}
+        onEvidenceSelect={platformReportEvidence.onSelect}
+        onRemoveEvidence={platformReportEvidence.onRemove}
+        submitting={submittingPlatformReport}
+        onSubmit={handleSubmitPlatformReport}
+      />
       <AdjustBillingDateModal
         open={showAdjustBillingDate}
         currentDate={group.nextBillingDate}

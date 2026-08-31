@@ -26,6 +26,7 @@ export const NOTIFICATION_CATEGORIES = {
   upcoming_renewal:              'billing',
   billing_date_confirmed:        'billing',
   billing_date_adjusted:         'billing',
+  payment_reminder:              'billing',
 }
 
 export const MUTABLE_NOTIFICATION_CATEGORY_KEYS = ['application', 'group', 'billing']

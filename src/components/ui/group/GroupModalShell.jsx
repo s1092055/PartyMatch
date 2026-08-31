@@ -1,11 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { ChevronLeft } from 'lucide-react'
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogCloseButton } from '../dialog'
 import ServiceLogo from '../ServiceLogo'
 import GroupOverviewContent from './GroupOverviewContent'
 import GroupPriceSeatSummary from './GroupPriceSeatSummary'
-import ScrollHint from '../primitives/ScrollHint'
-import { useScrollEdge } from '../../../common/utils/hooks'
 
 export default function GroupModalShell({
   onClose,
@@ -32,9 +30,10 @@ export default function GroupModalShell({
   mobileReviewsSection,
   desktopAsideTop,
   desktopAsideBottom,
+  mobileFab,
   children,
 }) {
-  const { scrollRef: scrollBodyRef, elRef: scrollBodyElRef, atBottom, canScroll, isScrolling, handleScroll } = useScrollEdge()
+  const scrollBodyElRef = useRef(null)
 
   function handleClose() { onClose() }
 
@@ -63,11 +62,11 @@ export default function GroupModalShell({
 
   useEffect(() => {
     if (scrollBodyElRef.current) scrollBodyElRef.current.scrollTop = 0
-  }, [group?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [group?.id])
 
   return (
     <Dialog open onOpenChange={v => { if (!v) handleClose() }}>
-      <DialogContent maxWidth={desktopAsideTop ? 'max-w-xl lg:max-w-3xl' : 'max-w-xl'} height="min(92dvh, 720px)" onEscapeKeyDown={handleEscapeKeyDown}>
+      <DialogContent className="relative" maxWidth={desktopAsideTop ? 'max-w-xl lg:max-w-3xl' : 'max-w-xl'} height="min(92dvh, 720px)" onEscapeKeyDown={handleEscapeKeyDown}>
         <DialogTitle className="sr-only">{group.serviceName}</DialogTitle>
         <DialogDescription>{group.serviceName}</DialogDescription>
 
@@ -147,8 +146,8 @@ export default function GroupModalShell({
               ) : (
                 <>
 
-                  <div className="group relative min-h-0 flex-1">
-                    <div ref={scrollBodyRef} onScroll={handleScroll} className="h-full overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  <div className="min-h-0 flex-1">
+                    <div ref={scrollBodyElRef} className="h-full overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                       <div className="px-6 py-5">
                         <GroupOverviewContent
                           group={group}
@@ -161,9 +160,6 @@ export default function GroupModalShell({
                         {summaryExtraRows}
                       </div>
                       {afterColumns}
-                    </div>
-                    <div className="pointer-events-none absolute inset-0">
-                      <ScrollHint canScroll={canScroll} atBottom={atBottom} isScrolling={isScrolling} />
                     </div>
                   </div>
 
@@ -205,6 +201,11 @@ export default function GroupModalShell({
             </div>
           )}
         </div>
+        {mobileFab && (
+          <div className="absolute bottom-20 right-4 z-10 md:hidden">
+            {mobileFab}
+          </div>
+        )}
         {children}
       </DialogContent>
     </Dialog>

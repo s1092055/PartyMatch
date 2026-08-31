@@ -39,3 +39,7 @@ export async function uploadCredentialCommentAttachment(file, onProgress) {
 export async function uploadMessageAttachment(file, onProgress) {
   return uploadFile('/upload/message-attachment', file, onProgress)
 }
+
+export async function uploadPlatformReportEvidence(file, onProgress) {
+  return uploadFile('/upload/platform-report-evidence', file, onProgress)
+}

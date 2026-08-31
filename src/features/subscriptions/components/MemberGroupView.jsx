@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import {
-  Banknote, CheckCircle2, Clock, Info, LogOut, MessageCircle, Users, ClipboardEdit, AlertTriangle, KeyRound,
+  Banknote, CheckCircle2, Clock, Info, LogOut, MessageCircle, Star, Users, ClipboardEdit, AlertTriangle, TriangleAlert, KeyRound,
 } from 'lucide-react'
 import { Avatar } from '../../../components/ui/avatar'
 import { PresenceDot } from '../../../common/layout/components/navShared'
@@ -14,6 +14,7 @@ import UserReviews from '../../group/components/UserReviews'
 import ReviewUserModal from './ReviewUserModal'
 import FillServiceInfoModal from './FillServiceInfoModal'
 import DisputeModal from './DisputeModal'
+import ReportPlatformIssueModal from '../../group/components/ReportPlatformIssueModal'
 import { buildPaymentsPanel } from './memberGroupView/buildPaymentsPanel'
 import { buildCredentialsPanel } from './memberGroupView/buildCredentialsPanel'
 import { getServiceById } from '../../../common/utils/serviceUtils'
@@ -23,7 +24,8 @@ import { useGroupStore } from '../../../common/stores/useGroupStore'
 import { useSubscriptionStore } from '../../../common/stores/useSubscriptionStore'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
 import { useReviewStore } from '../../../common/stores/useReviewStore'
-import { uploadDisputeEvidence } from '../../../common/api/storageApi'
+import { uploadDisputeEvidence, uploadPlatformReportEvidence } from '../../../common/api/storageApi'
+import { createPlatformReport } from '../../../common/api/platformReportsApi'
 import { fetchGroupTokenTransactions } from '../../../common/api/tokensApi'
 import { toast } from '../../../common/utils/toast'
 import { useEvidenceUpload } from '../../../common/utils/hooks'
@@ -44,6 +46,10 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
   const [disputeLoading, setDisputeLoading] = useState(false)
   const evidence = useEvidenceUpload(uploadDisputeEvidence)
   const [reviewPrompt, setReviewPrompt] = useState(null);
+  const [showPlatformReport, setShowPlatformReport] = useState(false)
+  const [platformReportDescription, setPlatformReportDescription] = useState('')
+  const [submittingPlatformReport, setSubmittingPlatformReport] = useState(false)
+  const platformReportEvidence = useEvidenceUpload(uploadPlatformReportEvidence)
   const [transactions, setTransactions] = useState([])
   const [transactionsLoading, setTransactionsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -102,6 +108,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
   const isConfirmingLike    = group.status === 'confirming' || (isDisputed && !isDisputeRaiser)
   const canConfirm          = isConfirmingLike && !!myMember && !myMember.confirmedAt
   const alreadyConfirmed    = isConfirmingLike && !!myMember?.confirmedAt
+  const showReviewHostButton = ['active', 'ended'].includes(group.status)
   const disputedBannerText  = '回報處理中'
 
   async function selectPanel(panel) {
@@ -122,6 +129,26 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
   function openMessages() {
     onClose()
     window.dispatchEvent(new CustomEvent('pm:open-messages', { detail: { groupId: group.id } }))
+  }
+
+  async function handleSubmitPlatformReport() {
+    if (!platformReportDescription.trim()) return
+    setSubmittingPlatformReport(true)
+    try {
+      await createPlatformReport({
+        groupId:     group.id,
+        description: platformReportDescription.trim(),
+        evidenceUrl: platformReportEvidence.key,
+      })
+      toast('回報已送出，客服會盡快協助處理', 'success')
+      setShowPlatformReport(false)
+      setPlatformReportDescription('')
+      platformReportEvidence.reset()
+    } catch (err) {
+      toast(err?.message ?? '回報失敗，請稍後再試', 'error')
+    } finally {
+      setSubmittingPlatformReport(false)
+    }
   }
 
   function openDmWithHost() {
@@ -367,21 +394,34 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
                   </div>
                   <p className="text-xs text-ink-3">{group.createdAt} 建立</p>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label={`私訊${group.hostName}`}
-                  onClick={() => {
-                    setActivePanel(null)
-                    onClose()
-                    window.dispatchEvent(new CustomEvent('pm:open-dm', {
-                      detail: { hostId: group.hostId, hostName: group.hostName, hostAvatarInitial: group.hostAvatarInitial, hostAvatarColor: group.hostAvatarColor },
-                    }))
-                  }}
-                  className="text-ink-3 hover:text-brand"
-                >
-                  <MessageCircle strokeWidth={1.5} size={20} />
-                </Button>
+                <div className="flex shrink-0 items-center gap-1">
+                  {showReviewHostButton && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`評價${group.hostName}`}
+                      onClick={() => setReviewPrompt({})}
+                      className="text-ink-3 hover:text-warning"
+                    >
+                      <Star strokeWidth={1.5} size={20} />
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`私訊${group.hostName}`}
+                    onClick={() => {
+                      setActivePanel(null)
+                      onClose()
+                      window.dispatchEvent(new CustomEvent('pm:open-dm', {
+                        detail: { hostId: group.hostId, hostName: group.hostName, hostAvatarInitial: group.hostAvatarInitial, hostAvatarColor: group.hostAvatarColor },
+                      }))
+                    }}
+                    className="text-ink-3 hover:text-brand"
+                  >
+                    <MessageCircle strokeWidth={1.5} size={20} />
+                  </Button>
+                </div>
               </div>
             </div>
             {members.filter(m => m.userId !== currentUser?.id).map(m => (
@@ -393,12 +433,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-ink">{m.userName}</p>
-                    <p className="text-xs text-ink-3">
-                      {m.joinedAt} 加入
-                      {showsProfileName && m.serviceInfo?.memberProfileName && (
-                        <> ・使用 Profile：{m.serviceInfo.memberProfileName}</>
-                      )}
-                    </p>
+                    <p className="text-xs text-ink-3">{m.joinedAt} 加入</p>
                   </div>
                   <Button
                     variant="ghost"
@@ -430,12 +465,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
                       {myMember.userName}
                       <span className="ml-1.5 text-xs font-normal text-brand">（你）</span>
                     </p>
-                    <p className="text-xs text-ink-3">
-                      {myMember.joinedAt} 加入
-                      {showsProfileName && myMember.serviceInfo?.memberProfileName && (
-                        <> ・使用 Profile：{myMember.serviceInfo.memberProfileName}</>
-                      )}
-                    </p>
+                    <p className="text-xs text-ink-3">{myMember.joinedAt} 加入</p>
                   </div>
                 </div>
               </div>
@@ -514,16 +544,29 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
               </GroupModalSideBarItem>
             )}
             {isPaymentRelevant && (
-              <GroupModalSideBarItem pinned onClick={openMessages}>
+              <GroupModalSideBarItem pinned className="hidden md:flex" onClick={openMessages}>
                 <MessageCircle strokeWidth={1.5} size={17} /> 群組訊息
               </GroupModalSideBarItem>
             )}
+            <GroupModalSideBarItem pinned={!canLeaveGroup && !isPaymentRelevant} onClick={() => setShowPlatformReport(true)}>
+              <TriangleAlert strokeWidth={1.5} size={17} /> 回報問題
+            </GroupModalSideBarItem>
           </>
         }
         subPanel={activePanel ? buildSubPanel() : null}
         onSubPanelBack={() => setActivePanel(null)}
         panelKey={`${activePanel ?? 'overview'}-${panelViewTick}`}
         mobileReviewsSection={hostReviews}
+        mobileFab={isPaymentRelevant && (
+          <button
+            type="button"
+            onClick={openMessages}
+            aria-label="群組訊息"
+            className="grid h-12 w-12 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-floating transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
+          >
+            <MessageCircle strokeWidth={1.5} size={20} />
+          </button>
+        )}
       >
       </GroupModalShell>
       )}
@@ -542,6 +585,24 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
         viewerName={myMember?.userName}
         hasServiceInfoIssue={hasServiceInfoIssue}
         issueNote={myMember?.serviceInfoIssueNote}
+      />
+      <ReportPlatformIssueModal
+        isOpen={showPlatformReport}
+        onClose={() => {
+          setShowPlatformReport(false)
+          setPlatformReportDescription('')
+          platformReportEvidence.reset()
+        }}
+        description={platformReportDescription}
+        setDescription={setPlatformReportDescription}
+        evidenceUrl={platformReportEvidence.url}
+        evidenceName={platformReportEvidence.name}
+        evidenceUploading={platformReportEvidence.uploading}
+        evidenceProgress={platformReportEvidence.progress}
+        onEvidenceSelect={platformReportEvidence.onSelect}
+        onRemoveEvidence={platformReportEvidence.onRemove}
+        submitting={submittingPlatformReport}
+        onSubmit={handleSubmitPlatformReport}
       />
       <DisputeModal
         isOpen={showDispute}

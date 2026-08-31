@@ -34,5 +34,6 @@ registerEvidenceUploadRoute('/dispute-evidence', 'partymatch/dispute-evidence');
 registerEvidenceUploadRoute('/service-issue-evidence', 'partymatch/service-issue-evidence');
 registerEvidenceUploadRoute('/credential-comment-attachment', 'partymatch/credential-comment-attachments');
 registerEvidenceUploadRoute('/message-attachment', 'partymatch/message-attachments');
+registerEvidenceUploadRoute('/platform-report-evidence', 'partymatch/platform-report-evidence');
 
 export default router

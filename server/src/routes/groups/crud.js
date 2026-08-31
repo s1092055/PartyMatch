@@ -44,6 +44,61 @@ const updateGroupSchema = z.object({
 
 const GROUP_LIST_SERVICE_SELECT = { id: true, name: true, category: true, logoUrl: true };
 
+const PAYMENT_REMINDER_WINDOW_DAYS = 7
+
+// 惰性檢查（比照 subscriptions.js 的 notifyUpcomingRenewals）：不用排程器，
+// 而是趁團主讀取這個群組時，順便檢查下一期扣款前 7 天內餘額不足的成員並提醒，
+// 同一期（同一個 nextBillingDate）只會發一次，靠比對通知 meta 裡記錄的 nextBillingDate 去重。
+// 呼叫端只在 req.user?.id === group.hostId 時才會執行這個函式——這裡會對「別人」發通知、
+// 也會多打兩次 DB 查詢，不能讓任何訪客（GET /groups/:id 是 optionalAuth）都能觸發
+async function remindInsufficientBalanceMembers(group) {
+  if (group.status !== 'active' || !group.nextBillingDate) return null
+
+  const daysUntilBilling = Math.ceil((new Date(group.nextBillingDate) - new Date()) / (24 * 60 * 60 * 1000))
+  if (daysUntilBilling < 0 || daysUntilBilling > PAYMENT_REMINDER_WINDOW_DAYS) return null
+
+  const seatCost = computeSeatCost(group)
+  const members = await prisma.member.findMany({
+    where:  { groupId: group.id },
+    select: { userId: true, user: { select: { tokenBalance: true } } },
+  })
+  const insufficient = members.filter(m => m.user.tokenBalance < seatCost)
+  if (insufficient.length === 0) return []
+
+  const nextBillingDateStr = new Date(group.nextBillingDate).toISOString()
+
+  // 兩個幾乎同時的請求都可能查到「還沒通知過」而各自送出一次，用 Redis 鎖讓同一期只有一個
+  // 請求能真的執行「查詢+發送」；拿不到鎖代表已經有另一個請求在處理，直接略過（欄位顯示不受影響）
+  const lockKey = `payment-reminder-lock:${group.id}:${nextBillingDateStr}`
+  const acquiredLock = await redis.set(lockKey, '1', 'EX', 60, 'NX').catch(() => null)
+  if (acquiredLock) {
+    const existing = await prisma.notification.findMany({
+      where:   { userId: { in: insufficient.map(m => m.userId) }, type: 'payment_reminder' },
+      orderBy: { createdAt: 'desc' },
+      select:  { userId: true, meta: true },
+    })
+    const lastNotifiedAt = new Map()
+    for (const n of existing) {
+      if (n.meta?.groupId !== group.id) continue
+      if (!lastNotifiedAt.has(n.userId)) lastNotifiedAt.set(n.userId, n.meta?.nextBillingDate)
+    }
+    const toNotify = insufficient.filter(m => lastNotifiedAt.get(m.userId) !== nextBillingDateStr)
+
+    if (toNotify.length > 0) {
+      const groupLabel = group.planName ?? group.service?.name ?? ''
+      notifyBatch(toNotify.map(m => ({
+        userId:  m.userId,
+        type:    'payment_reminder',
+        title:   '下一期扣款餘額不足',
+        message: `「${groupLabel}」即將於 ${nextBillingDateStr.slice(0, 10)} 扣款，你的PM幣餘額不足，請儘快儲值以免影響續訂。`,
+        meta:    { groupId: group.id, nextBillingDate: nextBillingDateStr },
+      }))).catch(console.error)
+    }
+  }
+
+  return insufficient.map(m => m.userId)
+}
+
 const GROUP_LIST_CACHE_TTL_SECONDS = 20;
 
 router.get('/', optionalAuth, async (req, res, next) => {
@@ -181,6 +236,14 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
           })
           return res.json(await resolveGroupMemberEvidenceUrls(maskGroupDetailSensitiveFields(maskGroupAvatars(fresh), req.user?.id)))
         }
+      }
+    }
+
+    if (req.user?.id === group.hostId) {
+      const insufficientUserIds = await remindInsufficientBalanceMembers(group).catch(err => { console.error(err); return null })
+      if (insufficientUserIds !== null) {
+        const insufficientSet = new Set(insufficientUserIds)
+        group.members = group.members.map(m => ({ ...m, hasSufficientBalanceForRenewal: !insufficientSet.has(m.userId) }))
       }
     }
 

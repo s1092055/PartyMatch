@@ -2,13 +2,11 @@ import { MessageCircle, Star, UserX } from 'lucide-react'
 import { Avatar } from '../../../../components/ui/avatar'
 import { PresenceDot } from '../../../../common/layout/components/navShared'
 import { Button } from '../../../../components/ui/button'
-import { serviceHasProfileField } from '../../../../common/utils/serviceInfoFields'
 
-export function buildMembersPanel({ group, members, setActivePanel, onClose, setRemovingMember, setShowMemberReviews, showMemberReviewsButton, onReviewMember, showReviewButton }) {
-  const showProfileName = serviceHasProfileField(group.serviceId)
+export function buildMembersPanel({ group, members, setActivePanel, onClose, setRemovingMember, onReviewMember, showReviewButton }) {
   return {
     content: (
-      <div className="relative min-h-full p-5 pb-16">
+      <div className="relative min-h-full p-5">
         <div className="space-y-2">
           <div className="rounded-lg border border-line p-3">
             <div className="flex items-center gap-3">
@@ -40,14 +38,20 @@ export function buildMembersPanel({ group, members, setActivePanel, onClose, set
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-ink">{m.userName}</p>
-                    <p className="text-xs text-ink-3">
-                      {m.joinedAt} 加入
-                      {showProfileName && m.serviceInfo?.memberProfileName && (
-                        <> ・使用 Profile：{m.serviceInfo.memberProfileName}</>
-                      )}
-                    </p>
+                    <p className="text-xs text-ink-3">{m.joinedAt} 加入</p>
                   </div>
                   <div className="flex shrink-0 items-center gap-1">
+                    {showReviewButton && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`評價${m.userName}`}
+                        onClick={() => onReviewMember?.(m)}
+                        className="text-ink-3 hover:text-warning"
+                      >
+                        <Star strokeWidth={1.5} size={20} />
+                      </Button>
+                    )}
                     <Button
                       variant="ghost"
                       size="icon"
@@ -63,17 +67,6 @@ export function buildMembersPanel({ group, members, setActivePanel, onClose, set
                     >
                       <MessageCircle strokeWidth={1.5} size={20} />
                     </Button>
-                    {showReviewButton && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        aria-label={`評價${m.userName}`}
-                        onClick={() => onReviewMember?.(m)}
-                        className="text-ink-3 hover:text-warning"
-                      >
-                        <Star strokeWidth={1.5} size={20} />
-                      </Button>
-                    )}
                     {removable && (
                       <Button
                         variant="ghost"
@@ -92,16 +85,6 @@ export function buildMembersPanel({ group, members, setActivePanel, onClose, set
             )
           })}
         </div>
-        {showMemberReviewsButton && (
-          <Button
-            variant="ghost"
-            onClick={() => setShowMemberReviews(true)}
-            className="absolute bottom-4 right-4 h-9 shrink-0 rounded-lg border border-line bg-canvas px-3"
-          >
-            <Star size={14} strokeWidth={1.5} />
-            成員評價
-          </Button>
-        )}
       </div>
     ),
   }
