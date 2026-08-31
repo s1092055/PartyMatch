@@ -241,24 +241,24 @@ export default function TabletSidebarDrawer(
                 onTransitionEnd={handleUserPanelTrackTransitionEnd}
               >
                 <div
-                  className="flex h-full shrink-0 flex-col overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                  className="flex h-full shrink-0 flex-col overflow-hidden"
                   style={{ width: '50%' }}
                 >
-                  <div className="flex flex-1 flex-col items-center justify-center gap-6 px-3 py-4">
-                    <div className="flex flex-col items-center gap-4 text-center">
+                  <div className="flex shrink-0 flex-col items-center gap-4 px-3 pb-2 pt-4 text-center">
+                    <div className="flex flex-col items-center gap-4">
                       <span className="shrink-0 shadow-md rounded-full">
                         <Avatar initial={avatarInitial} color={avatarColor} size="xl" className="h-28 w-28 text-4xl" />
                       </span>
                       <span className="min-w-0 truncate text-lg font-extrabold text-ink">{userName}</span>
                     </div>
                     <Select value={presenceStatus} onValueChange={changePresence}>
-                      <SelectTrigger aria-label="設定目前狀態" className="mx-auto w-auto min-w-36 justify-center gap-2 [&>svg]:hidden">
+                      <SelectTrigger aria-label="設定目前狀態" className="mx-auto w-auto min-w-0 justify-center gap-2 px-3 [&>svg]:hidden">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="z-[60]">
+                      <SelectContent className="z-[60] w-[var(--radix-select-trigger-width)] min-w-0">
                         {Object.entries(PRESENCE_LABELS).map(([value, label]) => (
-                          <SelectItem key={value} value={value} className="pl-2 [&>span:first-child]:hidden">
-                            <span className="flex items-center gap-2">
+                          <SelectItem key={value} value={value} className="justify-center px-2 [&>span:first-child]:hidden">
+                            <span className="flex items-center justify-center gap-2">
                               <PresenceDot status={value} className="h-2.5 w-2.5 shrink-0" />
                               {label}
                             </span>
@@ -266,7 +266,9 @@ export default function TabletSidebarDrawer(
                         ))}
                       </SelectContent>
                     </Select>
-                    <div className="flex w-full flex-col gap-4 px-1">
+                  </div>
+                  <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    <div className="flex min-h-full w-full flex-col justify-center gap-4 px-4 py-4">
                       <button
                         type="button"
                         onClick={() => openUserPanel('profile')}
