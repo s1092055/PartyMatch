@@ -30,7 +30,7 @@
 
 - [群組狀態機](flows/group-state-machine.md) — 一個群組會經過哪些狀態（招募中 → 額滿 → 啟用 → 結束…），先讀這篇最快抓到全貌
 - [探索群組流程](flows/explore-flow.md)
-- [快速搜尋流程](flows/quick-match-flow.md)
+- [條件搜尋流程](flows/condition-search-flow.md)
 - [建立群組流程](flows/create-group-flow.md)
 - [申請加入流程](flows/apply-join-flow.md)
 - [團主審核流程](flows/approval-flow.md)
@@ -55,6 +55,6 @@
 - [團主視角測試案例](testing/test-cases/host-flow-test-cases.md)
 - [成員視角測試案例](testing/test-cases/member-flow-test-cases.md)
 - [訊息與通知測試案例](testing/test-cases/messaging-notification-test-cases.md)
-- [探索頁／快速搜尋／收藏／帳號中心測試案例](testing/test-cases/explore-account-test-cases.md)
+- [探索頁／條件搜尋／收藏／帳號中心測試案例](testing/test-cases/explore-account-test-cases.md)
 - [RWD 測試案例](testing/test-cases/rwd-test-cases.md) — 手機/平板/桌機版面
 - [Bug 紀錄](testing/bug-archive.md) — 手動測試過程中發現並修復的問題
