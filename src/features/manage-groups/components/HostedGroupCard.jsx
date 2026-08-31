@@ -10,15 +10,15 @@ import { toISODate } from '../../../common/utils/date'
 import { getServiceById } from '../../../common/utils/serviceUtils'
 import { isSharedCredentialsMethod } from '../../../common/utils/serviceInfoFields'
 
-function getCollectionState({ group, paidCount, paymentTarget }) {
-  if (['cancelled', 'ended'].includes(group.status)) return '已結束'
-  if (group.status === 'recruiting') return '招募中'
-  if (group.status === 'full') return '已滿員'
-  if (group.status === 'pending_confirmation') return '處理中'
-  if (group.status === 'pending_activation') return '待啟用服務'
-  if (group.status === 'confirming') return '確認期中'
-  if (group.status === 'disputed') return '問題處理中'
-  if (paymentTarget > 0 && paidCount < paymentTarget && group.status === 'active') return '追蹤中'
+function getCollectionState(status) {
+  if (['cancelled', 'ended'].includes(status)) return '已結束'
+  if (status === 'recruiting') return '招募中'
+  if (status === 'full') return '已滿員'
+  if (status === 'pending_confirmation') return '處理中'
+  if (status === 'pending_activation') return '待啟用服務'
+  if (status === 'confirming') return '確認期中'
+  if (status === 'disputed') return '問題處理中'
+  if (status === 'active') return '服務中'
   return '正常'
 }
 
@@ -32,10 +32,10 @@ function HostedGroupCard({
   const displayStatus = getRenewalAwareStatus(group.status, group.nextBillingDate)
   const isSharedCredentials = isSharedCredentialsMethod(getServiceById(group.serviceId)?.sharingMethod)
 
-  const collectionState = getCollectionState({ group, paidCount: 0, paymentTarget: members.length })
+  const collectionState = getCollectionState(group.status)
 
   const collectionHighlight = {
-    '正常':      'text-success-text',
+    '服務中':    'text-success-text',
     '招募中':    'text-success-text',
     '已結束':    'text-ink-3',
     '已滿員':    'text-ink-3',
