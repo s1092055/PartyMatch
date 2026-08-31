@@ -124,6 +124,8 @@ describe('互評（POST /reviews, GET /reviews/user/:userId）', () => {
     expect(res.body.count).toBe(2)
     expect(res.body.average).toBe(3)
     expect(res.body.reviews).toHaveLength(2)
+    expect(res.body.reviews[0].group.planName).toBe(groupB.planName)
+    expect(res.body.reviews[0].group.service.name).toBeTruthy()
   })
 
   it('未登入不能留下評價', async () => {

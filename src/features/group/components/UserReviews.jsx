@@ -111,6 +111,11 @@ export default function UserReviews({
                   <span className="text-sm font-semibold text-ink">{review.author?.name ?? '匿名使用者'}</span>
                   <span className="text-xs text-ink-4">{toISODate(review.createdAt)}</span>
                 </div>
+                {!groupId && (review.group?.planName || review.group?.service?.name) && (
+                  <p className="mb-1 text-xs text-ink-4">
+                    來自：{review.group?.planName ?? review.group?.service?.name}
+                  </p>
+                )}
                 <div className="mb-1">
                   <StarRating value={review.rating} readOnly />
                 </div>
