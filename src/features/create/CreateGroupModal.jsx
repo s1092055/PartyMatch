@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { AlertCircle, ChevronLeft, ChevronRight, Eye, Info, PlusCircle } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogCloseButton } from '../../components/ui/dialog'
 import Step1Service from './components/steps/Step1Service'
@@ -273,9 +273,26 @@ export default function CreateGroupModal() {
                 </div>
               )}
               {step === 4 ? (
-                <Step4Preview form={form} agreedToTerms={agreedToTerms} onAgreeChange={setAgreedToTerms} />
+                <Step4Preview form={form} />
               ) : (
                 <CurrentStep form={form} onChange={onChange} />
+              )}
+              {step === 4 && (
+                <label className="mt-4 flex w-full cursor-pointer items-start gap-3 px-4 py-2.5">
+                  <input
+                    type="checkbox"
+                    checked={agreedToTerms}
+                    onChange={e => setAgreedToTerms(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 shrink-0 accent-brand"
+                  />
+                  <span className="text-xs leading-relaxed text-ink-2">
+                    我已閱讀並同意 PartyMatch 的{' '}
+                    <Link to="/terms" target="_blank" className="font-semibold text-brand underline-offset-2 hover:underline">服務條款</Link>
+                    {' '}與{' '}
+                    <Link to="/privacy" target="_blank" className="font-semibold text-brand underline-offset-2 hover:underline">隱私政策</Link>
+                    ，並確認以上群組資訊正確無誤。
+                  </span>
+                </label>
               )}
             </div>
           </div>

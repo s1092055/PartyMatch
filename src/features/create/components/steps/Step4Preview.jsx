@@ -1,5 +1,4 @@
 import { CalendarDays, FileText, ListChecks, Package, ShieldCheck, User, Users, Wallet } from 'lucide-react'
-import { Link } from 'react-router-dom'
 import { getServiceById } from '../../../../common/utils/serviceUtils'
 import { toISODate } from '../../../../common/utils/date'
 import { useAuthStore } from '../../../../common/stores/useAuthStore'
@@ -22,7 +21,7 @@ function InfoField({ icon: Icon, label, value }) {
   )
 }
 
-export default function Step4Preview({ form, agreedToTerms, onAgreeChange }) {
+export default function Step4Preview({ form }) {
   const service = getServiceById(form.serviceId)
   const user = useAuthStore(s => s.user)
   const activeUser = user ? useAuthStore.getState().getProfile() : null
@@ -76,22 +75,6 @@ export default function Step4Preview({ form, agreedToTerms, onAgreeChange }) {
             </div>
           </div>
         </div>
-
-        <label className="mt-4 flex shrink-0 cursor-pointer items-start gap-3 rounded-lg bg-canvas px-4 py-2.5">
-          <input
-            type="checkbox"
-            checked={agreedToTerms ?? false}
-            onChange={e => onAgreeChange?.(e.target.checked)}
-            className="mt-0.5 h-4 w-4 shrink-0 accent-brand"
-          />
-          <span className="text-xs leading-relaxed text-ink-2">
-            我已閱讀並同意 PartyMatch 的{' '}
-            <Link to="/terms" target="_blank" className="font-semibold text-brand underline-offset-2 hover:underline">服務條款</Link>
-            {' '}與{' '}
-            <Link to="/privacy" target="_blank" className="font-semibold text-brand underline-offset-2 hover:underline">隱私政策</Link>
-            ，並確認以上群組資訊正確無誤。
-          </span>
-        </label>
       </div>
 
       <div className="mt-4 hidden shrink-0 lg:mt-0 lg:block lg:w-72">
