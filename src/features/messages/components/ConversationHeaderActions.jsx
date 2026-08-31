@@ -1,23 +1,15 @@
-import { useNavigate } from 'react-router-dom'
 import { Info, Users } from 'lucide-react'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
 import { Button } from '../../../components/ui/button'
 
 export default function ConversationHeaderActions({ selected, onMembersToggle }) {
-  const navigate = useNavigate()
-
   if (selected?.type !== 'group') return null
 
   function handleViewGroup() {
     const userId = useAuthStore.getState().user?.id
     const isHost = selected.hostId === userId
     window.dispatchEvent(new CustomEvent('pm:close-messages'))
-    navigate(isHost ? '/manage-groups' : '/my-subscriptions', {
-      state: { openGroupId: selected.groupId },
-    })
-    if (isHost) {
-      window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: selected.groupId } }))
-    }
+    window.dispatchEvent(new CustomEvent(isHost ? 'pm:open-host-group' : 'pm:open-group', { detail: { groupId: selected.groupId } }))
   }
 
   return (
