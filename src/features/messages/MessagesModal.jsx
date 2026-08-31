@@ -92,13 +92,14 @@ export default function MessagesModal() {
       }
       if (conv) setSelectedId(conv.id)
     }
-    function onClose() { setIsOpen(false) }
+    function onClose() { resetAndClose() }
     window.addEventListener('pm:open-messages', onOpen)
     window.addEventListener('pm:close-messages', onClose)
     return () => {
       window.removeEventListener('pm:open-messages', onOpen)
       window.removeEventListener('pm:close-messages', onClose)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -148,10 +149,14 @@ export default function MessagesModal() {
     return () => { unsub(); setMessages([]) }
   }, [selectedId])
 
-  function handleClose() {
+  function resetAndClose() {
     setIsOpen(false)
     setSelectedId(null)
     setActiveTab('all')
+    setUnreadOnly(false)
+    setRoleFilter('all')
+    setStatusFilter('all')
+    setSortOrder('newest')
     setSearchQuery('')
     setCanSend(false)
     setSendError(false)
@@ -259,7 +264,7 @@ export default function MessagesModal() {
 
   return (
     <>
-      <Dialog open onOpenChange={v => { if (!v) handleClose() }}>
+      <Dialog open onOpenChange={v => { if (!v) resetAndClose() }}>
       <DialogContent height="min(88dvh, 820px)">
         <DialogHeader>
           <div className="flex items-center gap-2">

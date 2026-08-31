@@ -87,6 +87,11 @@ export default function GroupDetailModal() {
     setShowApply(false); setApplyMessage(''); setApplyAgreed(false)
   }
 
+  function resetSubViews() {
+    resetApply()
+    setShowMembers(false); setLeaveConfirm(false); setCancelConfirm(false)
+  }
+
   const locationRef = useRef(location)
   useEffect(() => { locationRef.current = location })
 
@@ -102,7 +107,7 @@ export default function GroupDetailModal() {
   // 開連結／瀏覽器上一頁下一頁都會自然反映在這裡，不需要另外用 state 同步
   useEffect(() => {
     function onOpen(e) {
-      resetApply()
+      resetSubViews()
       pushGroupUrl(e.detail?.groupId ?? null)
     }
     window.addEventListener('pm:open-group', onOpen)
@@ -171,7 +176,7 @@ export default function GroupDetailModal() {
   const canApply = !isHost && !isMember && !hasActiveApp && !isFull && !!activeUserId
 
   function handleClose() {
-    setShowMembers(false); setLeaveConfirm(false); setCancelConfirm(false)
+    resetSubViews()
     const params = new URLSearchParams(location.search)
     if (params.has('group')) {
       params.delete('group')

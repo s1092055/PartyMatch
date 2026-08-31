@@ -2,6 +2,7 @@ import { Dialog as DialogPrimitive } from "radix-ui"
 import { X } from 'lucide-react'
 import { cn } from "../../lib/utils"
 import { Button } from "./button"
+import { useScrollLock } from "../../common/utils/hooks"
 
 const VARIANT_CONTENT = {
   default: 'max-w-5xl rounded-2xl border border-line bg-canvas shadow-popover',
@@ -9,7 +10,11 @@ const VARIANT_CONTENT = {
 };
 const VARIANT_Z = { default: 'z-[56]', panel: 'z-[65]' }
 
+// Radix Dialog 內建的 body 捲動鎖定（react-remove-scroll，靠 overflow:hidden）在 iOS Safari
+// 鍵盤彈出時攔不住系統把整個 document 捲到很深的位置，Modal 關閉後就會露出這個殘留的捲動狀態；
+// 這裡疊加專案自製、用 position:fixed 硬鎖 body 的 useScrollLock，讓 body 完全脫離捲動流才是真的擋得住
 export function Dialog(props) {
+  useScrollLock(props.open ?? false)
   return <DialogPrimitive.Root {...props} />
 }
 
