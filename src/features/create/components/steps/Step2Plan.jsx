@@ -9,10 +9,16 @@ import Field from './Field'
 
 const DEFAULT_NOTICE = '此服務用 Email 邀請即可加入，各自使用獨立帳號，沒有其他特別注意事項。'
 
+// 這段文案原本是給「填寫服務資訊」表單頁引用（下方真的有確認框），
+// 這裡只是建立群組流程中的預覽說明，還沒有確認框可以勾選，要換成對應這個情境的說法
+const CHECKBOX_INSTRUCTION_PATTERN = /；?確認可以登入後再勾選下方確認框。?$/
+const CHECKBOX_INSTRUCTION_REPLACEMENT = '；正式登入確認會在額滿鎖定、你填寫服務資訊時才進行。'
+
 export default function Step2Plan({ form, onChange }) {
   const usdToTwdRate = useUsdToTwdRate()
   const service = getServiceById(form.serviceId)
-  const serviceInfoNotice = getSharingMethodConfig(service?.sharingMethod).notice ?? DEFAULT_NOTICE
+  const rawNotice = getSharingMethodConfig(service?.sharingMethod).notice ?? DEFAULT_NOTICE
+  const serviceInfoNotice = rawNotice.replace(CHECKBOX_INSTRUCTION_PATTERN, CHECKBOX_INSTRUCTION_REPLACEMENT)
   const groupPlans = service?.plans.filter(p => p.maxSeats > 1) ?? [];
   const activeIndex = Math.max(0, groupPlans.findIndex(p => p.name === form.planName))
   const currentPlan = groupPlans[activeIndex]
@@ -40,7 +46,7 @@ export default function Step2Plan({ form, onChange }) {
           <p className="text-sm leading-relaxed text-ink-2">{service?.description ?? '尚未選擇服務'}</p>
         </div>
       </Field>
-      <Field label="填寫服務資訊注意事項" icon={Info}>
+      <Field label="服務資訊填寫須知" icon={Info}>
         <div className="rounded-lg bg-canvas p-3.5">
           <p className="text-sm leading-relaxed text-ink-2">{serviceInfoNotice}</p>
         </div>
