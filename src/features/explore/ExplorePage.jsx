@@ -29,6 +29,7 @@ export default function ExplorePage() {
 
   useEffect(() => {
     useGroupStore.getState().init()
+    window.scrollTo(0, 0)
   }, [location.key])
 
   async function handleRefresh() {
@@ -36,6 +37,7 @@ export default function ExplorePage() {
     setRefreshing(true)
     try {
       await useGroupStore.getState().init()
+      window.scrollTo(0, 0)
     } finally {
       setRefreshing(false)
     }
@@ -66,6 +68,7 @@ export default function ExplorePage() {
 
   function handleFilterChange(patch) {
     setFilters(prev => ({ ...prev, ...patch, q: patch.q !== undefined ? patch.q.trim() : prev.q }))
+    window.scrollTo(0, 0)
   }
 
   return (
