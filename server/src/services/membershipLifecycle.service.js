@@ -11,9 +11,7 @@ function httpError(statusCode, message) {
 export async function admitMemberIntoGroup(tx, { groupId, userId, seatCost, maxMembers, note }) {
   const applicant = await tx.user.findUnique({ where: { id: userId }, select: { tokenBalance: true } })
   if (!applicant || applicant.tokenBalance < seatCost) {
-    const err = new Error('PM幣餘額不足，無法加入')
-    err.statusCode = 400
-    throw err
+    throw httpError(400, 'PM幣餘額不足，無法加入')
   }
 
   const capacity = await tx.group.updateMany({
@@ -21,9 +19,7 @@ export async function admitMemberIntoGroup(tx, { groupId, userId, seatCost, maxM
     data:  { currentMembers: { increment: 1 }, escrowTokens: { increment: seatCost } },
   });
   if (capacity.count === 0) {
-    const err = new Error('群組名額已滿或已結束招募，無法加入')
-    err.statusCode = 409
-    throw err
+    throw httpError(409, '群組名額已滿或已結束招募，無法加入')
   }
 
   const [member] = await Promise.all([
@@ -54,9 +50,7 @@ export async function finalizeApprovedApplication(tx, { groupId, userId, maxMemb
     data:  { currentMembers: { increment: 1 } },
   });
   if (capacity.count === 0) {
-    const err = new Error('群組名額已滿或已結束招募，無法加入')
-    err.statusCode = 409
-    throw err
+    throw httpError(409, '群組名額已滿或已結束招募，無法加入')
   }
 
   const [member] = await Promise.all([

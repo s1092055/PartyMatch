@@ -22,6 +22,10 @@ function maskGroupAvatars(group) {
   })
 }
 
+function groupLabelOf(group) {
+  return group.planName ?? group.service?.name ?? ''
+}
+
 const createGroupSchema = z.object({
   serviceId:      z.string().min(1),
   planName:       z.string().min(1),
@@ -85,7 +89,7 @@ async function remindInsufficientBalanceMembers(group) {
     const toNotify = insufficient.filter(m => lastNotifiedAt.get(m.userId) !== nextBillingDateStr)
 
     if (toNotify.length > 0) {
-      const groupLabel = group.planName ?? group.service?.name ?? ''
+      const groupLabel = groupLabelOf(group)
       notifyBatch(toNotify.map(m => ({
         userId:  m.userId,
         type:    'payment_reminder',
@@ -171,7 +175,7 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
         return true
       })
       if (released) {
-        const groupLabel = group.planName ?? group.service?.name ?? ''
+        const groupLabel = groupLabelOf(group)
         notify({
           userId:  group.hostId,
           type:    'escrow_released',
@@ -211,7 +215,7 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
         })
 
         if (removed.length > 0) {
-          const groupLabel = group.planName ?? group.service?.name ?? ''
+          const groupLabel = groupLabelOf(group)
           notifyBatch(removed.map(m => ({
             userId:  m.userId,
             type:    'member_removed',
@@ -312,7 +316,7 @@ router.post('/', requireAuth, validate(createGroupSchema), async (req, res, next
       userId:  req.user.id,
       type:    'group_created',
       title:   '群組已成功建立',
-      message: `「${group.planName ?? group.service?.name ?? ''}」群組已上架，開始招募成員中！`,
+      message: `「${groupLabelOf(group)}」群組已上架，開始招募成員中！`,
       meta:    { groupId: group.id },
     })
 
@@ -355,7 +359,7 @@ router.patch('/:id', requireAuth, validate(updateGroupSchema), async (req, res, 
     })
 
     if (status === 'ended' && group.status !== 'ended') {
-      const groupLabel = group.planName ?? group.service?.name ?? ''
+      const groupLabel = groupLabelOf(group)
       await notifyBatch(group.members.map(m => ({
         userId:  m.userId,
         type:    'group_ended',

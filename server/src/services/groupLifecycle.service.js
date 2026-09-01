@@ -20,6 +20,20 @@ function httpError(statusCode, message, extra) {
   return err
 }
 
+function groupLabelOf(group) {
+  return group.planName ?? group.service?.name ?? ''
+}
+
+function addHours(hours) {
+  const d = new Date()
+  d.setHours(d.getHours() + hours)
+  return d
+}
+
+function formatDateSlash(date) {
+  return date.toISOString().slice(0, 10).replace(/-/g, '/')
+}
+
 // 確認期是否可以結束：每位成員各自獨立判斷（已確認，或自己的確認期已過期），
 // 不是看單一群組層級的倒數
 export function allMembersSettled(members, now = new Date()) {
@@ -37,8 +51,7 @@ export async function activateGroup({ groupId, hostId }) {
   if (group.hostId !== hostId) throw httpError(403, '僅團主可操作')
   if (group.status !== 'pending_activation') throw httpError(400, `群組狀態為 ${group.status}，無法啟用（需為 pending_activation）`)
 
-  const confirmDeadline = new Date()
-  confirmDeadline.setHours(confirmDeadline.getHours() + 48)
+  const confirmDeadline = addHours(48)
 
   const isFirstActivation = !group.hasActivatedOnce;
   const nextBillingDate = isFirstActivation ? new Date() : group.nextBillingDate
@@ -71,8 +84,8 @@ export async function activateGroup({ groupId, hostId }) {
   });
 
   if (isFirstActivation) {
-    const groupLabel = group.planName ?? group.service?.name ?? ''
-    const finalDateText = nextBillingDate.toISOString().slice(0, 10).replace(/-/g, '/')
+    const groupLabel = groupLabelOf(group)
+    const finalDateText = formatDateSlash(nextBillingDate)
     notifyBatch([group.hostId, ...group.members.map(m => m.userId)].map(userId => ({
       userId,
       type:    'billing_date_confirmed',
@@ -82,7 +95,7 @@ export async function activateGroup({ groupId, hostId }) {
     })))
   }
 
-  const groupLabelForActivation = group.planName ?? group.service?.name ?? ''
+  const groupLabelForActivation = groupLabelOf(group)
   notify({
     userId:  group.hostId,
     type:    'group_activated',
@@ -139,9 +152,9 @@ export async function adjustBillingDate({ groupId, hostId, nextBillingDate: requ
     }),
   ])
 
-  const groupLabel = group.planName ?? group.service?.name ?? '';
-  const oldDateText = current.toISOString().slice(0, 10).replace(/-/g, '/')
-  const newDateText = requested.toISOString().slice(0, 10).replace(/-/g, '/')
+  const groupLabel = groupLabelOf(group);
+  const oldDateText = formatDateSlash(current)
+  const newDateText = formatDateSlash(requested)
   notifyBatch(group.members.map(m => ({
     userId:  m.userId,
     type:    'billing_date_adjusted',
@@ -214,7 +227,7 @@ export async function confirmService({ groupId, userId }) {
   }
 
   const now = new Date()
-  const groupLabel = group.planName ?? group.service?.name ?? ''
+  const groupLabel = groupLabelOf(group)
 
   await prisma.member.update({ where: { id: member.id }, data: { confirmedAt: now } })
 
@@ -280,9 +293,8 @@ export async function raiseDispute({ groupId, userId, reason, evidenceUrl }) {
   // 只要自己名下沒有進行中的申訴就能再回報
   if (member.serviceInfoIssueNote) throw httpError(400, '你已經回報過問題，正在等待處理')
 
-  const disputeDeadline = new Date();
-  disputeDeadline.setHours(disputeDeadline.getHours() + 48)
-  const groupLabel = group.planName ?? group.service?.name ?? ''
+  const disputeDeadline = addHours(48);
+  const groupLabel = groupLabelOf(group)
   const trimmedReason = reason.trim()
 
   const updated = await prisma.$transaction(async (tx) => {
@@ -355,9 +367,8 @@ export async function resolveDisputeByHost({ groupId, hostId, memberId, note }) 
   const dispute = await prisma.dispute.findFirst({ where: { groupId, memberId, status: 'pending' } })
   if (!dispute) throw httpError(400, '找不到進行中的申訴')
 
-  const confirmDeadline = new Date();
-  confirmDeadline.setHours(confirmDeadline.getHours() + 48)
-  const groupLabel = group.planName ?? group.service?.name ?? ''
+  const confirmDeadline = addHours(48);
+  const groupLabel = groupLabelOf(group)
 
   const { updated, releasedAmount } = await prisma.$transaction(async (tx) => {
     await tx.member.update({
@@ -444,7 +455,7 @@ export async function escalateDisputeToAdmin({ groupId, hostId, memberId, note }
     data:  { hostDisputed: true, hostResponseNote: trimmedNote, hostRespondedAt: new Date() },
   })
 
-  const groupLabel = group.planName ?? group.service?.name ?? ''
+  const groupLabel = groupLabelOf(group)
 
   notify({
     userId:  disputeMember.userId,
@@ -474,7 +485,7 @@ export async function cancelGroup({ groupId, hostId }) {
   if (!cancellable.includes(group.status)) throw httpError(400, `群組已鎖定（狀態為 ${group.status}），無法解散`)
 
   const seatCost = computeSeatCost(group)
-  const groupLabelForCancel = group.planName ?? group.service?.name ?? ''
+  const groupLabelForCancel = groupLabelOf(group)
 
   const currentMembers = await prisma.$transaction(async (tx) => {
     const updated = await tx.group.updateMany({
@@ -567,10 +578,10 @@ export async function lockGroup({ groupId, hostId, sharedCredentials: sharedCred
     }),
   ])
 
-  const groupLabel = group.planName ?? group.service?.name ?? '';
+  const groupLabel = groupLabelOf(group);
   notifyGroupConversation(groupId, group.hostId, `「${groupLabel}」聊天室已啟用。`).catch(console.error)
 
-  const estimatedDateText = nextBillingDate.toISOString().slice(0, 10).replace(/-/g, '/')
+  const estimatedDateText = formatDateSlash(nextBillingDate)
   notifyBatch([group.hostId, ...group.members.map(m => m.userId)].map(userId => ({
     userId,
     type:    'billing_date_confirmed',
@@ -632,11 +643,10 @@ export async function adjudicateDispute({ groupId, adminId, memberId, winner, re
   // 他的席位金額繼續留在代管池裡，等他自己確認服務（或確認期逾期）才跟其他成員一起撥款
   const seatCost = computeSeatCost(group)
   const memberRefundAmount = winner === 'member' ? seatCost : 0
-  const groupLabel = group.planName ?? group.service?.name ?? ''
+  const groupLabel = groupLabelOf(group)
   const trimmedReason = reason.trim()
   const resolutionType = winner === 'member' ? 'member_wins' : 'host_wins'
-  const confirmDeadline = new Date();
-  confirmDeadline.setHours(confirmDeadline.getHours() + 48)
+  const confirmDeadline = addHours(48);
 
   const releasedAmount = await prisma.$transaction(async (tx) => {
     if (memberRefundAmount > 0) {
@@ -836,7 +846,7 @@ export async function renewGroup({ groupId, hostId, renewingUserIds }) {
     })
   })
 
-  const groupLabel = group.planName ?? '';
+  const groupLabel = groupLabelOf(group);
 
   if (leavingMembers.length > 0) {
     notifyBatch(leavingMembers.map(m => ({
@@ -866,7 +876,7 @@ export async function renewGroup({ groupId, hostId, renewingUserIds }) {
     return updated
   }
 
-  const estimatedDateText = base.toISOString().slice(0, 10).replace(/-/g, '/')
+  const estimatedDateText = formatDateSlash(base)
   notifyBatch([group.hostId, ...renewSet].map(userId => ({
     userId,
     type:    'billing_date_confirmed',
