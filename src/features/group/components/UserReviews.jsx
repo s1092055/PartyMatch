@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { MessageCircle, Star } from 'lucide-react'
-import { Avatar } from '../../../components/ui/avatar'
-import { PresenceDot } from '../../../common/layout/components/navShared'
+import { AvatarWithPresence, Avatar } from '../../../components/ui/avatar'
 import StarRating from '../../../components/ui/primitives/StarRating'
 import CreditScoreBadge from '../../../components/ui/CreditScoreBadge'
 import EmptyState from '../../../components/ui/primitives/EmptyState'
@@ -36,10 +35,13 @@ export default function UserReviews({
     const all = data?.reviews ?? []
     return groupId ? all.filter(r => r.groupId === groupId) : all
   }, [data?.reviews, groupId]);
-  const average = groupId
-    ? (reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : null)
-    : (data?.average ?? null)
-  const count = groupId ? reviews.length : (data?.count ?? 0)
+  const { average, count } = useMemo(() => {
+    if (!groupId) return { average: data?.average ?? null, count: data?.count ?? 0 }
+    return {
+      average: reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : null,
+      count: reviews.length,
+    }
+  }, [groupId, reviews, data?.average, data?.count]);
 
   const emptyOrLoading = data?.loading
     ? <p className="py-4 text-center text-sm text-ink-4">載入中…</p>
@@ -59,10 +61,7 @@ export default function UserReviews({
       )}
       {showHeader && (
         <div className="flex items-center gap-3 border-b border-line-subtle pb-4">
-          <span className="relative inline-block shrink-0">
-            <Avatar initial={avatarInitial} color={avatarColor} size="md" />
-            <PresenceDot status={presenceStatus} className="absolute -bottom-0.5 -right-0.5 h-3 w-3" />
-          </span>
+          <AvatarWithPresence initial={avatarInitial} color={avatarColor} size="md" presenceStatus={presenceStatus} dotClassName="h-3 w-3" />
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <p className="text-sm font-semibold text-ink">{userName}</p>

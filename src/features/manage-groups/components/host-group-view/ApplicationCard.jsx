@@ -1,9 +1,8 @@
 import { useState } from 'react'
 import { Check, ChevronDown, ChevronUp, X } from 'lucide-react'
-import { Avatar } from '../../../../components/ui/avatar'
+import { AvatarWithPresence } from '../../../../components/ui/avatar'
 import { Button } from '../../../../components/ui/button'
 import CreditScoreBadge from '../../../../components/ui/CreditScoreBadge'
-import { PresenceDot } from '../../../../common/layout/components/navShared'
 import { formatDateTime, formatRelativeDate } from '../../../../common/utils/date'
 
 const APP_STATUS_BADGE = {
@@ -25,10 +24,7 @@ export default function ApplicationCard({ app, groupFull, error, submitting, onA
   return (
     <div className="rounded-2xl border border-line bg-surface p-4">
       <div className="flex items-start gap-3">
-        <span className="relative inline-block shrink-0">
-          <Avatar initial={initial} color={color} size="md" />
-          <PresenceDot status={presenceStatus} className="absolute -bottom-0.5 -right-0.5 h-3 w-3" />
-        </span>
+        <AvatarWithPresence initial={initial} color={color} size="md" presenceStatus={presenceStatus} dotClassName="h-3 w-3" />
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">

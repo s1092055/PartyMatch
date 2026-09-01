@@ -467,6 +467,8 @@ export default function HostGroupView(
     )
   }
 
+  const pendingBadge = getHostPendingBadge(group.status, needsCredentialsOnLock)
+
   return (
     <>
 
@@ -481,8 +483,8 @@ export default function HostGroupView(
         centeredCta={lockGroupCta || activateCta || renewalCta || undefined}
         extraInfoRows={[]}
         statusBadgeOverride={getHostStatusBadge(headerStatus, needsCredentialsOnLock)}
-        pendingBadge={getHostPendingBadge(group.status, needsCredentialsOnLock)?.text}
-        pendingBadgeColor={getHostPendingBadge(group.status, needsCredentialsOnLock)?.color}
+        pendingBadge={pendingBadge?.text}
+        pendingBadgeColor={pendingBadge?.color}
         subPanel={activePanel ? buildSubPanel() : null}
         onSubPanelBack={() => { setActivePanel(null); setShowReviewHistory(false) }}
         subSubPanel={

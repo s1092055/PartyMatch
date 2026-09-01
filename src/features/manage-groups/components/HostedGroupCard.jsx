@@ -82,17 +82,17 @@ function HostedGroupCard({
             {toISODate(group.nextBillingDate, '—')}
           </StatCell>
         ) : group.status === 'recruiting' || group.status === 'cancelled' || group.status === 'ended' ? (
-          (<StatCell label="建立日期">
+          <StatCell label="建立日期">
             {group.createdAt ?? '—'}
-          </StatCell>)
+          </StatCell>
         ) : isActivated ? (
           <StatCell label="群組狀態" highlight={collectionHighlight}>
             {collectionState}
           </StatCell>
         ) : group.status === 'pending_confirmation' || group.status === 'pending_activation' ? (
-          (<StatCell label="預估下次扣款">
+          <StatCell label="預估下次扣款">
             {toISODate(group.nextBillingDate, '—')}
-          </StatCell>)
+          </StatCell>
         ) : (
           <StatCell label="下次扣款">
             {toISODate(group.nextBillingDate, '—')}

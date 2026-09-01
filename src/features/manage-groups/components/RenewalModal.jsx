@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { Calendar, RefreshCw, Users, XCircle } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter, DialogCloseButton } from '../../../components/ui/dialog'
-import { Avatar } from '../../../components/ui/avatar'
-import { PresenceDot } from '../../../common/layout/components/navShared'
+import { AvatarWithPresence } from '../../../components/ui/avatar'
 import ServiceLogo from '../../../components/ui/ServiceLogo'
 import TokenAmount from '../../../components/ui/TokenAmount'
 import { daysUntil, toISODate } from '../../../common/utils/date'
@@ -79,10 +78,7 @@ export default function RenewalModal({ isOpen, onClose, group, members = [], onS
                     onChange={e => setRenewChecks(prev => ({ ...prev, [m.id]: e.target.checked }))}
                     className="h-4 w-4 shrink-0 accent-brand"
                   />
-                  <span className="relative inline-block shrink-0">
-                    <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
-                    <PresenceDot status={m.userPresenceStatus} className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5" />
-                  </span>
+                  <AvatarWithPresence initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" presenceStatus={m.userPresenceStatus} dotClassName="h-2.5 w-2.5" />
                   <span className="min-w-0 flex-1 truncate text-sm font-semibold text-ink">{m.userName}</span>
                 </label>
               ))}

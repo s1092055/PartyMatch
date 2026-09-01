@@ -1,20 +1,17 @@
 import { MessageCircle, Users } from 'lucide-react'
-import { Avatar } from '../../../components/ui/avatar'
-import { PresenceDot } from '../../../common/layout/components/navShared'
+import { AvatarWithPresence } from '../../../components/ui/avatar'
 import { Button } from '../../../components/ui/button'
 
 export function buildMembersSubPanel({ group, groupId, members, activeUserId, setShowMembers, openDm }) {
+  const groupMembers = members.filter(m => m.groupId === groupId)
   return {
-    title: `群組名單（${members.filter(m => m.groupId === groupId && m.userId !== group.hostId).length + 1} 人）`,
+    title: `群組名單（${groupMembers.filter(m => m.userId !== group.hostId).length + 1} 人）`,
     icon: <Users strokeWidth={1.5} size={18} className="text-brand" />,
     content: (
       <div className="p-5 space-y-2">
         <div className="rounded-lg border border-line p-3">
           <div className="flex items-center gap-3">
-            <span className="relative inline-block shrink-0">
-              <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="sm" />
-              <PresenceDot status={group.hostPresenceStatus} className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5" />
-            </span>
+            <AvatarWithPresence initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="sm" presenceStatus={group.hostPresenceStatus} dotClassName="h-2.5 w-2.5" />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <p className="text-sm font-semibold text-ink">{group.hostName}</p>
@@ -36,13 +33,10 @@ export function buildMembersSubPanel({ group, groupId, members, activeUserId, se
           </div>
           {group.hostBio && <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-ink-3">{group.hostBio}</p>}
         </div>
-        {members.filter(m => m.groupId === groupId).map(m => (
+        {groupMembers.map(m => (
           <div key={m.id} className="rounded-lg border border-line p-3">
             <div className="flex items-center gap-3">
-              <span className="relative inline-block shrink-0">
-                <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
-                <PresenceDot status={m.userPresenceStatus} className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5" />
-              </span>
+              <AvatarWithPresence initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" presenceStatus={m.userPresenceStatus} dotClassName="h-2.5 w-2.5" />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-ink">
                   {m.userName}

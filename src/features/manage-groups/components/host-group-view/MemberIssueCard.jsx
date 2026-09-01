@@ -1,12 +1,11 @@
 import { useRef, useState } from 'react'
 import { AlertTriangle, Check, CheckCircle2, ChevronDown, ShieldAlert } from 'lucide-react'
-import { Avatar } from '../../../../components/ui/avatar'
+import { AvatarWithPresence } from '../../../../components/ui/avatar'
 import { Button } from '../../../../components/ui/button'
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '../../../../components/ui/collapsible'
 import CountdownText from '../../../../components/ui/primitives/CountdownText'
 import EvidenceLink from '../../../../components/ui/EvidenceLink'
 import DisputeResponseModal from './DisputeResponseModal'
-import { PresenceDot } from '../../../../common/layout/components/navShared'
 import { getTextFields } from '../../../../common/utils/serviceInfoFields'
 import { useClickOutside } from '../../../../common/utils/hooks'
 
@@ -65,10 +64,7 @@ export default function MemberIssueCard(
         {hasIssue ? (
           <CollapsibleTrigger asChild>
             <button type="button" className={`flex w-full items-center gap-3 text-left ${showReportButton ? 'pr-24' : ''}`}>
-              <span className="relative inline-block shrink-0">
-                <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
-                <PresenceDot status={m.userPresenceStatus} className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5" />
-              </span>
+              <AvatarWithPresence initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" presenceStatus={m.userPresenceStatus} dotClassName="h-2.5 w-2.5" />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-ink">{m.userName}</p>
                 <p className="text-xs text-danger-text">
@@ -83,10 +79,7 @@ export default function MemberIssueCard(
           </CollapsibleTrigger>
         ) : (
           <div className={`flex items-center gap-3 ${showReportButton ? 'pr-24' : ''}`}>
-            <span className="relative inline-block shrink-0">
-              <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
-              <PresenceDot status={m.userPresenceStatus} className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5" />
-            </span>
+            <AvatarWithPresence initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" presenceStatus={m.userPresenceStatus} dotClassName="h-2.5 w-2.5" />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-ink">{m.userName}</p>
               {!filled && (

@@ -34,6 +34,12 @@ const removeSubscription              = (id)     => useSubscriptionStore.getStat
 const addConversationOptimistic  = (conv)    => useConversationStore.getState().addConversationOptimistic(conv)
 const getConvByGroupId           = (gid)     => useConversationStore.getState().getByGroupId(gid)
 
+function warnIfCredentialsExposed(group, message) {
+  if (group?.sharedCredentials && isSharedCredentialsMethod(getServiceById(group.serviceId)?.sharingMethod)) {
+    toast(message, 'warning', { persistent: true })
+  }
+}
+
 function loadHostData(activeUser) {
   if (!activeUser) return { hostedGroups: [], applications: [], members: [], seatMap: {} }
   const hostedGroups = getGroupsByHostId(activeUser.id)
@@ -187,9 +193,7 @@ function handleRemoveMember(member) {
       removeParticipantFromConversation(convId, member.userId).catch(console.error)
     }
 
-    if (group?.sharedCredentials && isSharedCredentialsMethod(getServiceById(group.serviceId)?.sharingMethod)) {
-      toast('該成員已看過帳號密碼，建議盡快更改密碼避免帳號被繼續使用', 'warning', { persistent: true })
-    }
+    warnIfCredentialsExposed(group, '該成員已看過帳號密碼，建議盡快更改密碼避免帳號被繼續使用')
 
     return removalDone
   }
@@ -265,9 +269,7 @@ async function handleActivate() {
       return
     }
 
-    if (group?.sharedCredentials && isSharedCredentialsMethod(getServiceById(group.serviceId)?.sharingMethod)) {
-      toast('所有成員都已看過帳號密碼，建議盡快更改密碼避免帳號被繼續使用', 'warning', { persistent: true })
-    }
+    warnIfCredentialsExposed(group, '所有成員都已看過帳號密碼，建議盡快更改密碼避免帳號被繼續使用')
 
     setViewGroupId(null)
     refreshGroups()
@@ -302,9 +304,7 @@ async function handleActivate() {
     const endConvId = getConvByGroupId(renewalModalGroupId)?.id;
     if (endConvId) sendSystemMessage(endConvId, `團主已結束「${groupLabel}」群組`).catch(console.error)
 
-    if (group?.sharedCredentials && isSharedCredentialsMethod(getServiceById(group.serviceId)?.sharingMethod)) {
-      toast('所有成員都已看過帳號密碼，建議盡快更改密碼避免帳號被繼續使用', 'warning', { persistent: true })
-    }
+    warnIfCredentialsExposed(group, '所有成員都已看過帳號密碼，建議盡快更改密碼避免帳號被繼續使用')
 
     setRenewalModalGroupId(null)
     refreshGroups()

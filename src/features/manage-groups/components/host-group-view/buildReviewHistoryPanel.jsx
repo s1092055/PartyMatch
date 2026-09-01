@@ -22,8 +22,6 @@ export function buildReviewHistoryPanel({ applications, groupFull, errors }) {
                 app={app}
                 groupFull={groupFull}
                 error={errors?.[app.id]}
-                onApprove={() => {}}
-                onReject={() => {}}
               />
             ))}
           </div>)
