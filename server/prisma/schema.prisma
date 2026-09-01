@@ -94,6 +94,7 @@ enum NotificationType {
   member_removed
   service_info_issue
   escrow_released
+  escrow_released_member
   dispute_raised
   dispute_resolved
   dispute_resolved_by_host

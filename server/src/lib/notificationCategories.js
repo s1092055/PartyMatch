@@ -24,6 +24,7 @@ export const NOTIFICATION_CATEGORIES = {
   all_service_info_filled:       'billing',
   service_info_deadline_passed:  'billing',
   escrow_released:               'billing',
+  escrow_released_member:        'billing',
   upcoming_renewal:              'billing',
   billing_date_confirmed:        'billing',
   billing_date_adjusted:         'billing',

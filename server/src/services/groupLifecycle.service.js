@@ -245,6 +245,18 @@ export async function confirmService({ groupId, userId }) {
     message: `「${groupLabel}」群組確認期結束，代管款項已撥入你的PM幣餘額。`,
     meta:    { groupId },
   })
+  // 撥款代表確認期結束、群組正式轉為 active，除了團主之外的其他成員本來完全收不到這件事的通知，
+  // 瀏覽器裡的 group store 也就不會被觸發重抓，畫面會一直停在確認期舊狀態（跟 group_full_member 同一種問題）
+  const otherMemberUserIds = group.members.map(m => m.userId).filter(id => id !== userId)
+  if (otherMemberUserIds.length > 0) {
+    notifyBatch(otherMemberUserIds.map(memberUserId => ({
+      userId:  memberUserId,
+      type:    'escrow_released_member',
+      title:   '確認期結束，服務正式啟用',
+      message: `「${groupLabel}」確認期已結束，服務已正式啟用。`,
+      meta:    { groupId },
+    })))
+  }
   notifyGroupConversation(groupId, member.userId, `確認期結束，代管款項已撥款給團主。`).catch(console.error)
 
   const finalGroup = await prisma.group.findUnique({ where: { id: groupId }, include: HOST_GROUP_INCLUDE });

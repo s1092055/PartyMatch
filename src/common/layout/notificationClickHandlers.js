@@ -64,6 +64,7 @@ export const NOTIFICATION_META = {
   member_removed:       { icon: AlertCircle,   iconColor: 'text-danger',     link: '/explore' },
   member_left:          { icon: AlertCircle,   iconColor: 'text-ink-3',      link: '/manage-groups' },
   escrow_released:      { icon: CheckCircle2,  iconColor: 'text-success',    link: '/manage-groups' },
+  escrow_released_member: { icon: CheckCircle2, iconColor: 'text-success',   link: '/my-subscriptions' },
   dispute_raised:       { icon: AlertCircle,   iconColor: 'text-danger',     link: '/manage-groups' },
   dispute_resolved:     { icon: CheckCircle2,  iconColor: 'text-info',       link: '/my-subscriptions' },
   dispute_resolved_by_host: { icon: CheckCircle2, iconColor: 'text-info',    link: '/my-subscriptions' },
@@ -287,6 +288,11 @@ export function handleNotificationClick(notification, { userId, navigate, setOpe
     useGroupStore.getState().init({ all: true }).finally(() => {
       openHostGroup(gId)
     });
+    return
+  }
+
+  if (notification.type === 'escrow_released_member' && notification.meta?.groupId) {
+    navigateToMemberGroupOrExplore(navigate, userId, notification.meta.groupId)
     return
   }
 
