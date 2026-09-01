@@ -34,6 +34,7 @@ export default function TabletSidebarDrawer(
     host,
     closeAll,
     openCreate,
+    openConditionSearch,
     preventLockedAction,
     logout,
     loggingOut,
@@ -110,6 +111,22 @@ export default function TabletSidebarDrawer(
           key={item.type}
           type="button"
           onClick={() => { setOpen(false); openCreate() }}
+          className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
+        >
+          <span className="grid h-9 w-9 shrink-0 place-items-center">
+            <item.icon size={22} strokeWidth={1.5} />
+          </span>
+          <span className="whitespace-nowrap text-base font-bold">{item.label}</span>
+        </button>
+      )
+    }
+
+    if (item.type === 'condition-search') {
+      return (
+        <button
+          key={item.type}
+          type="button"
+          onClick={() => { setOpen(false); openConditionSearch() }}
           className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
         >
           <span className="grid h-9 w-9 shrink-0 place-items-center">

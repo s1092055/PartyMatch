@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { Suspense, lazy, useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from '../utils/toast'
 import { useAuthStore } from '../stores/useAuthStore'
@@ -13,6 +13,8 @@ import UserReviewsModal from '../../features/manage-groups/components/UserReview
 import { LOCKED_MESSAGE } from './components/navConstants'
 import DesktopSidebar from './components/DesktopSidebar'
 import TabletSidebarDrawer from './components/TabletSidebarDrawer'
+
+const ConditionSearchModal = lazy(() => import('../../features/match/ConditionSearchModal'))
 
 export default function AppNav() {
   const navigate = useNavigate()
@@ -31,6 +33,7 @@ export default function AppNav() {
   const [profileOpen, setProfileOpen] = useState(false)
   const [creditScoreOpen, setCreditScoreOpen] = useState(false)
   const [reviewsOpen, setReviewsOpen] = useState(false)
+  const [conditionSearchOpen, setConditionSearchOpen] = useState(false)
 
   useEffect(() => {
     function openTopup() { setTopupOpen(true) }
@@ -39,9 +42,23 @@ export default function AppNav() {
   }, [])
 
   useEffect(() => {
+    function onNavigate(e) {
+      if (e.detail?.path) navigate(e.detail.path)
+    }
+    window.addEventListener('pm:navigate', onNavigate)
+    return () => window.removeEventListener('pm:navigate', onNavigate)
+  }, [navigate])
+
+  useEffect(() => {
     function openProfileEvent() { setProfileOpen(true) }
     window.addEventListener('pm:open-profile', openProfileEvent)
     return () => window.removeEventListener('pm:open-profile', openProfileEvent)
+  }, [])
+
+  useEffect(() => {
+    function openConditionSearchEvent() { setConditionSearchOpen(true) }
+    window.addEventListener('pm:open-condition-search', openConditionSearchEvent)
+    return () => window.removeEventListener('pm:open-condition-search', openConditionSearchEvent)
   }, [])
 
   const unreadNotifs = useNotificationStore(s => loggedIn && currentUser?.id ? s.getUnreadCount(currentUser.id) : 0)
@@ -55,6 +72,11 @@ export default function AppNav() {
     closeAll()
     if (!loggedIn) return
     window.dispatchEvent(new CustomEvent('pm:open-create-group'))
+  }
+
+  function openConditionSearch() {
+    closeAll()
+    window.dispatchEvent(new CustomEvent('pm:open-condition-search'))
   }
 
   function openNotify() {
@@ -114,6 +136,7 @@ export default function AppNav() {
         setTopupOpen={setTopupOpen}
         closeAll={closeAll}
         openCreate={openCreate}
+        openConditionSearch={openConditionSearch}
         openNotify={openNotify}
         openMessages={openMessages}
         openSettings={openSettings}
@@ -135,6 +158,7 @@ export default function AppNav() {
         host={{ id: currentUser?.id, displayName: userName, avatarInitial, avatarColor }}
         closeAll={closeAll}
         openCreate={openCreate}
+        openConditionSearch={openConditionSearch}
         preventLockedAction={preventLockedAction}
         logout={logout}
         loggingOut={loggingOut}
@@ -149,6 +173,9 @@ export default function AppNav() {
         onClose={() => setReviewsOpen(false)}
         user={{ id: currentUser?.id, displayName: userName, avatarInitial, avatarColor }}
       />
+      <Suspense fallback={null}>
+        <ConditionSearchModal isOpen={conditionSearchOpen} onClose={() => setConditionSearchOpen(false)} />
+      </Suspense>
     </>
   )
 }

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Compass, RotateCw, Search } from 'lucide-react'
 import { useGroupStore } from '../../common/stores/useGroupStore'
@@ -12,12 +12,9 @@ import RevealSection from '../../components/ui/primitives/RevealSection'
 import CategoryPills from '../../components/ui/primitives/CategoryPills'
 import ExploreGroupCard from './components/ExploreGroupCard'
 
-const ConditionSearchModal = lazy(() => import('../match/ConditionSearchModal'))
-
 export default function ExplorePage() {
   const location = useLocation();
   const [category, setCategory] = useState('all')
-  const [conditionSearchOpen, setConditionSearchOpen] = useState(() => location.state?.openConditionSearch === true)
   const activeUserId = useAuthStore(s => s.user?.id)
   const groups = useGroupStore(s => s.groups)
   const applications = useApplicationStore(s => s.applications)
@@ -28,6 +25,14 @@ export default function ExplorePage() {
     useGroupStore.getState().init()
     window.scrollTo(0, 0)
   }, [location.key])
+
+  // 條件搜尋 Modal 已經是全站掛載（AppNav.jsx），這裡只需要在從舊路由／首頁按鈕帶著
+  // openConditionSearch 導航進來時，補發一次全站事件請它自動開啟
+  useEffect(() => {
+    if (location.state?.openConditionSearch) {
+      window.dispatchEvent(new CustomEvent('pm:open-condition-search'))
+    }
+  }, [location.state]);
 
   async function handleRefresh() {
     if (refreshing) return
@@ -70,7 +75,7 @@ export default function ExplorePage() {
       <div className="fixed bottom-28 right-6 z-40 can-hover:lg:bottom-40">
         <button
           type="button"
-          onClick={() => setConditionSearchOpen(true)}
+          onClick={() => window.dispatchEvent(new CustomEvent('pm:open-condition-search'))}
           aria-label="條件搜尋"
           className="relative grid h-14 w-14 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-floating transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-12 lg:w-12 dark:border-[#238EC7] dark:text-[#238EC7]"
         >
@@ -118,10 +123,6 @@ export default function ExplorePage() {
           ))}
         </div>)
       )}
-
-      <Suspense fallback={null}>
-        <ConditionSearchModal isOpen={conditionSearchOpen} onClose={() => setConditionSearchOpen(false)} />
-      </Suspense>
     </div>
   );
 }

@@ -22,6 +22,7 @@ export default function DesktopSidebar({
   setTopupOpen,
   closeAll,
   openCreate,
+  openConditionSearch,
   openNotify,
   openMessages,
   openSettings,
@@ -86,6 +87,20 @@ export default function DesktopSidebar({
     if (item.type === 'create') {
       return (
         <button key={item.type} onClick={() => { collapseSidebar(); openCreate() }} aria-label={item.label}
+          className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand">
+          <span className="grid h-9 w-9 shrink-0 place-items-center">
+            <item.icon size={22} strokeWidth={1.5} />
+          </span>
+          <span className="whitespace-nowrap font-bold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
+            {item.label}
+          </span>
+        </button>
+      )
+    }
+
+    if (item.type === 'condition-search') {
+      return (
+        <button key={item.type} onClick={() => { collapseSidebar(); openConditionSearch() }} aria-label={item.label}
           className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand">
           <span className="grid h-9 w-9 shrink-0 place-items-center">
             <item.icon size={22} strokeWidth={1.5} />
