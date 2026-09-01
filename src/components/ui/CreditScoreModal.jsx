@@ -7,6 +7,7 @@ import { fetchCreditHistory } from '../../common/api/usersApi'
 import CreditScoreBadge from './CreditScoreBadge'
 import StarRating from './primitives/StarRating'
 import EmptyState from './primitives/EmptyState'
+import { formatDateTime } from '../../common/utils/date'
 
 const RULES = [
   { label: '收到 5★ 好評', delta: '+5' },
@@ -61,7 +62,7 @@ export function CreditScoreModalBody({ onClose, hideFooter = false }) {
                   <div className="min-w-0">
                     <p className="truncate text-sm text-ink-2">{log.reason}</p>
                     <p className="text-xs text-ink-4">
-                      {new Date(log.createdAt).toLocaleString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                      {formatDateTime(log.createdAt)}
                       {log.relatedGroup && `．${log.relatedGroup.planName ?? log.relatedGroup.service?.name ?? ''}`}
                     </p>
                     {log.relatedReview && (

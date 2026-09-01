@@ -1,5 +1,7 @@
+import { formatDateTime } from '../../../common/utils/date'
+
 export default function CredentialWatermark({ viewerName, children }) {
-  const stamp = `${viewerName ?? '使用者'} · ${new Date().toLocaleString('zh-TW', { hour12: false })}`
+  const stamp = `${viewerName ?? '使用者'} · ${formatDateTime(new Date())}`
 
   return (
     <div className="relative overflow-hidden rounded-lg">
