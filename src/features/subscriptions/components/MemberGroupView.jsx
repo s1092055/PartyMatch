@@ -386,7 +386,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
               </GroupModalSideBarItem>
             )}
             {canLeaveGroup && (
-              <GroupModalSideBarItem pinned tone="danger" onClick={() => setLeaveConfirm(true)}>
+              <GroupModalSideBarItem pinned tone="danger" className="order-2 md:order-none" onClick={() => setLeaveConfirm(true)}>
                 <LogOut strokeWidth={1.5} size={17} /> 退出群組
               </GroupModalSideBarItem>
             )}
@@ -395,7 +395,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
                 <MessageCircle strokeWidth={1.5} size={17} /> 群組訊息
               </GroupModalSideBarItem>
             )}
-            <GroupModalSideBarItem pinned={!canLeaveGroup && !isPaymentRelevant} onClick={() => platformReport.setShow(true)}>
+            <GroupModalSideBarItem pinned={!canLeaveGroup && !isPaymentRelevant} className="order-1 md:order-none" onClick={() => platformReport.setShow(true)}>
               <TriangleAlert strokeWidth={1.5} size={17} /> 回報問題
             </GroupModalSideBarItem>
           </>
