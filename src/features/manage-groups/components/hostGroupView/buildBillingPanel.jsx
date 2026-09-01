@@ -3,7 +3,7 @@ import EmptyState from '../../../../components/ui/primitives/EmptyState'
 import BillingCycleSection from './BillingCycleSection'
 import InsufficientBalanceNotice from './InsufficientBalanceNotice'
 
-export function buildBillingPanel({ members, groupMembers, transactions, transactionsLoading, showRenewal, currentCycle, isCancelled }) {
+export function buildBillingPanel({ members, groupMembers, transactions, transactionsLoading, showRenewal, currentCycle, isCancelled, pendingApplicantUserIds }) {
   const insufficientMembers = (groupMembers ?? []).filter(m => m.hasSufficientBalanceForRenewal === false)
   const cycleGroups = new Map()
   for (const tx of transactions) {
@@ -37,6 +37,7 @@ export function buildBillingPanel({ members, groupMembers, transactions, transac
                 isCurrentCycle={cycle === currentCycle}
                 transactions={cycleGroups.get(cycle)}
                 isCancelled={isCancelled}
+                pendingApplicantUserIds={pendingApplicantUserIds}
                 defaultOpen={cycle === cycles[0]}
               />
             ))}

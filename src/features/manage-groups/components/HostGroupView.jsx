@@ -349,7 +349,10 @@ export default function HostGroupView(
       })
     }
     if (activePanel === 'applications') return buildApplicationsPanel({ pendingApps, groupFull, errors, submittingIds, onApprove, onReject, setShowReviewHistory: openReviewHistory })
-    if (activePanel === 'billing') return buildBillingPanel({ members, groupMembers: group.members, transactions, transactionsLoading, showRenewal, currentCycle: group.currentCycle, isCancelled })
+    if (activePanel === 'billing') {
+      const pendingApplicantUserIds = new Set(pendingApps.map(a => a.applicantId ?? a.userId))
+      return buildBillingPanel({ members, groupMembers: group.members, transactions, transactionsLoading, showRenewal, currentCycle: group.currentCycle, isCancelled, pendingApplicantUserIds })
+    }
     if (activePanel === 'memberInfo') {
       return buildMemberInfoPanel({
         groupId: group.id,

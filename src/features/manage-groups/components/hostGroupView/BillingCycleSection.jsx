@@ -10,16 +10,40 @@ import { formatDateTime } from '../../../../common/utils/date'
 // 一個 cycle 的成員貢獻列表：不比對目前的成員名單（可能有人已退出/被移除），
 // 直接用交易紀錄本身附帶的 user 資料呈現，較舊的期數才能正確顯示已離開的成員
 function buildMemberRows(transactions, isCancelled) {
-  const byUserId = new Map()
-  for (const tx of transactions) {
-    if (isCancelled ? tx.type !== 'refund' : tx.type !== 'escrow') continue
-    if (!byUserId.has(tx.userId)) byUserId.set(tx.userId, tx)
+  if (isCancelled) {
+    const byUserId = new Map()
+    for (const tx of transactions) {
+      if (tx.type !== 'refund') continue
+      if (!byUserId.has(tx.userId)) byUserId.set(tx.userId, tx)
+    }
+    return [...byUserId.values()]
   }
-  return [...byUserId.values()]
+
+  // 同一人同一期可能有多筆 escrow/refund（例如取消申請退款後又重新申請，見 TC-002c），
+  // 不能只看「有沒有 escrow 交易」，要算淨額才知道現在是否還被代管中；淨額 <= 0 代表
+  // 已經全額退款（取消申請／審核未通過），不該再顯示在代管中名單
+  const netByUserId = new Map()
+  for (const tx of transactions) {
+    if (tx.type !== 'escrow' && tx.type !== 'refund') continue
+    const prev = netByUserId.get(tx.userId) ?? { net: 0, latestEscrowTx: null }
+    if (tx.type === 'escrow') {
+      prev.net += Math.abs(tx.amount)
+      if (!prev.latestEscrowTx || tx.createdAt > prev.latestEscrowTx.createdAt) prev.latestEscrowTx = tx
+    } else {
+      prev.net -= Math.abs(tx.amount)
+    }
+    netByUserId.set(tx.userId, prev)
+  }
+  return [...netByUserId.values()].filter(v => v.net > 0 && v.latestEscrowTx).map(v => v.latestEscrowTx)
 }
 
-export default function BillingCycleSection({ cycle, isCurrentCycle, transactions, isCancelled, defaultOpen }) {
+export default function BillingCycleSection({ cycle, isCurrentCycle, transactions: rawTransactions, isCancelled, defaultOpen, pendingApplicantUserIds }) {
   const [open, setOpen] = useState(defaultOpen)
+
+  // 團主還沒點「接受」的申請人，代管金額暫時不算進收款管理（只有本期才可能有待審核申請）
+  const transactions = isCurrentCycle && pendingApplicantUserIds?.size
+    ? rawTransactions.filter(tx => !(tx.type === 'escrow' && pendingApplicantUserIds.has(tx.userId)))
+    : rawTransactions
 
   const escrowTotal   = transactions.filter(tx => tx.type === 'escrow').reduce((sum, tx) => sum + Math.abs(tx.amount), 0)
   const releasedTotal = transactions.filter(tx => tx.type === 'release').reduce((sum, tx) => sum + tx.amount, 0)
