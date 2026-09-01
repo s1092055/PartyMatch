@@ -7,7 +7,7 @@ import {
 import { useAuthStore } from './useAuthStore'
 import { todayISO, byNewest } from '../utils/date'
 import { startPolling } from '../utils/poller'
-import { notifyError } from '../utils/toast'
+import { toast, notifyError } from '../utils/toast'
 
 const POLL_INTERVAL_MS = 5000
 
@@ -81,7 +81,7 @@ export const useNotificationStore = create((set, get) => ({
           return;
         const currentIds = new Set(useNotificationStore.getState().notifications.map(n => n.id))
         const newNotifs = latest.filter(n => n.userId === _notifUserId && !currentIds.has(n.id))
-        if (newNotifs.some(n => n.type === 'member_removed' || n.type === 'member_left' || n.type === 'group_cancelled' || n.type === 'application_approved' || n.type === 'all_service_info_filled' || n.type === 'billing_date_confirmed' || n.type === 'billing_date_adjusted' || n.type === 'group_full_member' || n.type === 'escrow_released_member')) {
+        if (newNotifs.some(n => n.type === 'member_removed' || n.type === 'member_left' || n.type === 'group_cancelled' || n.type === 'application_approved' || n.type === 'application_rejected' || n.type === 'all_service_info_filled' || n.type === 'billing_date_confirmed' || n.type === 'billing_date_adjusted' || n.type === 'group_full_member' || n.type === 'escrow_released_member')) {
           window.dispatchEvent(new CustomEvent('pm:refresh-member-stores'))
         }
         const BALANCE_AFFECTING_TYPES = new Set(['member_removed', 'application_rejected', 'escrow_released', 'dispute_resolved', 'group_cancelled']);
@@ -91,6 +91,13 @@ export const useNotificationStore = create((set, get) => ({
         if (newNotifs.some(n => n.type === 'new_application' || n.type === 'application_cancelled')) {
           window.dispatchEvent(new CustomEvent('pm:refresh-application-store'))
         }
+        // 申請結果（通過或未通過，不管是團主手動處理還是群組額滿被系統自動拒絕）主動跳一次提示，
+        // 不要讓使用者只能在探索頁看到卡片默默消失/變成會員狀態、或是自己點進通知中心才發現
+        newNotifs.filter(n => n.type === 'application_approved' || n.type === 'application_rejected').forEach(n => {
+          toast(n.title, n.type === 'application_approved' ? 'success' : 'info', {
+            action: { label: '前往我的訂閱', onClick: () => window.dispatchEvent(new CustomEvent('pm:navigate', { detail: { path: '/my-subscriptions' } })) },
+          })
+        })
         set({ notifications: dedupeById(latest) })
       } catch {}
     }, POLL_INTERVAL_MS)
