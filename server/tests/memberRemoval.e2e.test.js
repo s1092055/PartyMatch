@@ -31,7 +31,7 @@ describe('成員移除／自行退出', () => {
     await resetDb()
   })
 
-  it('團主移除成員：退款、扣信用分數、群組狀態從 full 退回 recruiting', async () => {
+  it('團主移除成員：退款、不扣信用分數、群組狀態從 full 退回 recruiting', async () => {
     const { host, member, group, memberRecord } = await setupApprovedMember({ maxMembers: 2 });
     expect((await prisma.group.findUnique({ where: { id: group.id } })).status).toBe('full')
 
@@ -45,7 +45,7 @@ describe('成員移除／自行退出', () => {
     expect((await prisma.group.findUnique({ where: { id: group.id } })).status).toBe('recruiting')
     expect((await prisma.group.findUnique({ where: { id: group.id } })).escrowTokens).toBe(0)
     expect((await prisma.user.findUnique({ where: { id: member.id } })).tokenBalance).toBe(1000)
-    expect((await prisma.user.findUnique({ where: { id: member.id } })).creditScore).toBe(90);
+    expect((await prisma.user.findUnique({ where: { id: member.id } })).creditScore).toBe(100);
 
     const application = await prisma.application.findFirst({ where: { groupId: group.id, userId: member.id } })
     expect(application.status).toBe('removed')

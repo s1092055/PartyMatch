@@ -38,7 +38,7 @@ describe('建立群組（POST /groups）', () => {
     expect(res.body.status).toBe('recruiting')
     expect(res.body.currentMembers).toBe(0)
     expect(res.body.maxMembers).toBe(4)
-    expect(res.body.monthlyFee).toBe(400);
+    expect(res.body.monthlyFee).toBe(100);
     expect(res.body.billingCycle).toBe('monthly')
 
     const groupState = await prisma.group.findUnique({ where: { id: res.body.id } })
@@ -58,12 +58,12 @@ describe('建立群組（POST /groups）', () => {
       })
     expect(res.status).toBe(201)
     expect(res.body.maxMembers).toBe(4);
-    expect(res.body.monthlyFee).toBe(400);
+    expect(res.body.monthlyFee).toBe(100);
     expect(res.body.currency).toBe('TWD');
     expect(res.body.billingCycle).toBe('monthly');
 
     const groupState = await prisma.group.findUnique({ where: { id: res.body.id } })
-    expect(groupState.monthlyFee.toString()).toBe('400')
+    expect(groupState.monthlyFee.toString()).toBe('100')
   });
 
   it('maxMembers 可在方案人數範圍內自訂，超出範圍會被拒絕', async () => {
