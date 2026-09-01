@@ -1,15 +1,15 @@
 import { decryptCredential } from '../lib/credentialEncryption.js'
 
 export function computeSeatCost(group) {
-  const monthlyFee = Number(group.monthlyFee);
+  const perSeatMonthlyFee = Number(group.perSeatMonthlyFee);
   return group.billingCycle === 'yearly'
-    ? Math.round(monthlyFee * 12)
-    : Math.round(monthlyFee)
+    ? Math.round(perSeatMonthlyFee * 12)
+    : Math.round(perSeatMonthlyFee)
 }
 
 export function toPlainGroup(group) {
-  if (!group || group.monthlyFee == null) return group
-  const plain = { ...group, monthlyFee: Number(group.monthlyFee) }
+  if (!group || group.perSeatMonthlyFee == null) return group
+  const plain = { ...group, perSeatMonthlyFee: Number(group.perSeatMonthlyFee) }
   if (typeof plain.sharedCredentials === 'string' && plain.sharedCredentials) {
     plain.sharedCredentials = decryptCredential(plain.sharedCredentials)
   }

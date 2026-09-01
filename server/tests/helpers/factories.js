@@ -42,13 +42,13 @@ export function adminAuthHeader(admin) {
   return `Bearer ${token}`
 }
 
-export async function createGroup({ host, monthlyFee = 300, maxMembers = 2, billingCycle = 'monthly' } = {}) {
+export async function createGroup({ host, monthlyFee: perSeatMonthlyFee = 300, maxMembers = 2, billingCycle = 'monthly' } = {}) {
   const service = await prisma.service.create({
     data: {
       id:       `svc-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       name:     '測試服務',
       category: 'other',
-      plans:    [{ id: 'plan-basic', name: '基本方案', maxMembers, monthlyFee, currency: 'TWD' }],
+      plans:    [{ id: 'plan-basic', name: '基本方案', maxMembers, totalMonthlyFee: perSeatMonthlyFee, currency: 'TWD' }],
     },
   })
   const group = await prisma.group.create({
@@ -58,7 +58,7 @@ export async function createGroup({ host, monthlyFee = 300, maxMembers = 2, bill
       planId:    'plan-basic',
       planName:  '基本方案',
       maxMembers,
-      monthlyFee,
+      perSeatMonthlyFee,
       billingCycle,
     },
   })

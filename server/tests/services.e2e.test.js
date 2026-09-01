@@ -10,7 +10,7 @@ async function createService(overrides = {}) {
       id: `svc-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       name: '測試服務',
       category: 'other',
-      plans: [{ id: 'plan-basic', name: '基本方案', maxMembers: 2, monthlyFee: 300, currency: 'TWD' }],
+      plans: [{ id: 'plan-basic', name: '基本方案', maxMembers: 2, totalMonthlyFee: 300, currency: 'TWD' }],
       ...overrides,
     },
   })

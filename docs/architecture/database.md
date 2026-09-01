@@ -41,7 +41,7 @@ erDiagram
     enum status
     int maxMembers
     int currentMembers
-    decimal monthlyFee
+    decimal perSeatMonthlyFee
     int escrowTokens
     string sharedCredentials "AES-256-GCM 加密"
   }

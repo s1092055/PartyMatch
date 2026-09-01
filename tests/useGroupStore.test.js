@@ -25,7 +25,7 @@ const { useGroupStore } = await import('../src/common/stores/useGroupStore')
 
 const baseGroup = {
   id: 'group-1', hostId: 'host-1', serviceId: 'netflix', status: 'recruiting',
-  maxMembers: 4, currentMembers: 1, monthlyFee: 300, billingCycle: 'monthly',
+  maxMembers: 4, currentMembers: 1, perSeatMonthlyFee: 300, billingCycle: 'monthly',
 }
 
 describe('useGroupStore', () => {

@@ -96,7 +96,7 @@ router.get('/:id', requireAdmin, async (req, res, next) => {
       include: {
         raisedByUser:    { select: USER_SELECT },
         resolvedByAdmin: { select: { id: true, name: true } },
-        group:           { select: { id: true, escrowTokens: true, monthlyFee: true, billingCycle: true, host: { select: { id: true, name: true } } } },
+        group:           { select: { id: true, escrowTokens: true, perSeatMonthlyFee: true, billingCycle: true, host: { select: { id: true, name: true } } } },
       },
     })
     if (!dispute) return res.status(404).json({ message: '找不到申訴' })

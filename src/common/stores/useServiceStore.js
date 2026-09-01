@@ -35,7 +35,7 @@ export const useServiceStore = create((set, get) => ({
                 ...(localPlan ?? {}),
                 ...p,
                 maxSeats:     p.maxSeats     ?? p.maxMembers ?? 0,
-                monthlyPrice: p.monthlyPrice ?? p.monthlyFee ?? 0,
+                monthlyPrice: p.monthlyPrice ?? p.totalMonthlyFee ?? 0,
               }
             })
           }

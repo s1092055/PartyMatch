@@ -116,7 +116,7 @@ async function advanceToFullIfNeeded(tx, groupId, { triggeringUserId } = {}) {
 export async function rejectPendingApplications(tx, groupId, { refundNote, buildMessage }) {
   const pendingApps = await tx.application.findMany({
     where:   { groupId, status: 'pending' },
-    include: { group: { select: { monthlyFee: true, billingCycle: true, planName: true, escrowTokens: true, service: { select: { name: true } } } } },
+    include: { group: { select: { perSeatMonthlyFee: true, billingCycle: true, planName: true, escrowTokens: true, service: { select: { name: true } } } } },
   })
   if (pendingApps.length === 0) return
 
@@ -156,7 +156,7 @@ export async function removeMember({ memberId, actorId }) {
   const existing = await prisma.member.findUnique({
     where:   { id: memberId },
     include: {
-      group: { select: { id: true, hostId: true, planName: true, status: true, monthlyFee: true, billingCycle: true, escrowTokens: true, currentMembers: true, service: { select: { name: true } } } },
+      group: { select: { id: true, hostId: true, planName: true, status: true, perSeatMonthlyFee: true, billingCycle: true, escrowTokens: true, currentMembers: true, service: { select: { name: true } } } },
       user:  { select: { name: true } },
     },
   })

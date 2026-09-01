@@ -109,7 +109,7 @@ export async function cancelApplication({ applicationId, userId }) {
   const application = await prisma.application.findUnique({
     where:   { id: applicationId },
     include: {
-      group: { select: { id: true, hostId: true, planName: true, monthlyFee: true, billingCycle: true, escrowTokens: true, service: { select: { name: true } } } },
+      group: { select: { id: true, hostId: true, planName: true, perSeatMonthlyFee: true, billingCycle: true, escrowTokens: true, service: { select: { name: true } } } },
       user:  { select: { name: true } },
     },
   })
@@ -147,7 +147,7 @@ export async function cancelApplication({ applicationId, userId }) {
 export async function reviewApplication({ applicationId, hostId, status }) {
   const application = await prisma.application.findUnique({
     where:   { id: applicationId },
-    include: { group: { select: { hostId: true, planName: true, monthlyFee: true, billingCycle: true, escrowTokens: true, service: { select: { name: true } } } } },
+    include: { group: { select: { hostId: true, planName: true, perSeatMonthlyFee: true, billingCycle: true, escrowTokens: true, service: { select: { name: true } } } } },
   })
   if (!application) throw httpError(404, '申請不存在')
   if (application.group.hostId !== hostId) throw httpError(403, '僅團主可審核')

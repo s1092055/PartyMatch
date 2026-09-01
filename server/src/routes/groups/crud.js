@@ -260,7 +260,7 @@ async function resolvePlanPricing(serviceId, planName) {
     planId:          plan.id,
     planName:        plan.name,
     maxMembers:      plan.maxMembers,
-    totalMonthlyFee: plan.monthlyFee,
+    totalMonthlyFee: plan.totalMonthlyFee,
     currency:        plan.currency ?? 'TWD',
     billingCycle:    plan.name.includes('年繳') ? 'yearly' : 'monthly',
   }
@@ -290,7 +290,7 @@ router.post('/', requireAuth, validate(createGroupSchema), async (req, res, next
       return res.status(400).json({ message: '你已經有一個同服務進行中的群組，請先結束或解散該群組後再建立新的' })
     }
 
-    const monthlyFee = Math.ceil(pricing.totalMonthlyFee / maxMembers)
+    const perSeatMonthlyFee = Math.ceil(pricing.totalMonthlyFee / maxMembers)
 
     const allowed = ['serviceId','rules','tags','minCreditScore','minGroupAge'];
     const data = Object.fromEntries(Object.entries(req.body).filter(([k]) => allowed.includes(k)))
@@ -301,7 +301,7 @@ router.post('/', requireAuth, validate(createGroupSchema), async (req, res, next
         planName:     pricing.planName,
         currency:     pricing.currency,
         billingCycle: pricing.billingCycle,
-        monthlyFee,
+        perSeatMonthlyFee,
         maxMembers,
         hostId: req.user.id,
       },

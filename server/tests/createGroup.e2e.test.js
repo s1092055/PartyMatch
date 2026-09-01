@@ -11,7 +11,7 @@ async function createService() {
       id:       `svc-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       name:     '測試服務',
       category: 'other',
-      plans:    [{ id: 'plan-basic', name: '基本方案', maxMembers: 4, monthlyFee: 400, currency: 'TWD' }],
+      plans:    [{ id: 'plan-basic', name: '基本方案', maxMembers: 4, totalMonthlyFee: 400, currency: 'TWD' }],
     },
   })
 }
@@ -38,7 +38,7 @@ describe('建立群組（POST /groups）', () => {
     expect(res.body.status).toBe('recruiting')
     expect(res.body.currentMembers).toBe(0)
     expect(res.body.maxMembers).toBe(4)
-    expect(res.body.monthlyFee).toBe(100);
+    expect(res.body.perSeatMonthlyFee).toBe(100);
     expect(res.body.billingCycle).toBe('monthly')
 
     const groupState = await prisma.group.findUnique({ where: { id: res.body.id } })
@@ -58,12 +58,12 @@ describe('建立群組（POST /groups）', () => {
       })
     expect(res.status).toBe(201)
     expect(res.body.maxMembers).toBe(4);
-    expect(res.body.monthlyFee).toBe(100);
+    expect(res.body.perSeatMonthlyFee).toBe(100);
     expect(res.body.currency).toBe('TWD');
     expect(res.body.billingCycle).toBe('monthly');
 
     const groupState = await prisma.group.findUnique({ where: { id: res.body.id } })
-    expect(groupState.monthlyFee.toString()).toBe('100')
+    expect(groupState.perSeatMonthlyFee.toString()).toBe('100')
   });
 
   it('maxMembers 可在方案人數範圍內自訂，超出範圍會被拒絕', async () => {
@@ -95,7 +95,7 @@ describe('建立群組（POST /groups）', () => {
     const service = await prisma.service.create({
       data: {
         id: `svc-yearly-${Date.now()}`, name: '測試服務', category: 'other',
-        plans: [{ id: 'plan-yearly', name: '年繳方案（年繳）', maxMembers: 2, monthlyFee: 100, currency: 'TWD' }],
+        plans: [{ id: 'plan-yearly', name: '年繳方案（年繳）', maxMembers: 2, totalMonthlyFee: 100, currency: 'TWD' }],
       },
     })
 

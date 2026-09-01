@@ -174,7 +174,7 @@ model Service {
   name     String
   category String
   logoUrl  String?
-  plans    Json // [{ id, name, maxMembers, monthlyFee, currency }]
+  plans    Json // [{ id, name, maxMembers, totalMonthlyFee, currency }]
 
   groups Group[]
 
@@ -193,7 +193,8 @@ model Group {
   maxMembers                Int
   currentMembers            Int         @default(0)
   // 兩位小數（分）已足夠涵蓋台幣與美金匯率換算後的定價，Decimal 避免 Float 二進位浮點誤差
-  monthlyFee                Decimal     @db.Decimal(10, 2)
+  // 每人分攤的月費（= 對應方案 Service.plans[].totalMonthlyFee / maxMembers 無條件進位），不是整個方案的總價
+  perSeatMonthlyFee         Decimal     @db.Decimal(10, 2)
   currency                  String      @default("TWD")
   rules                     String?
   tags                      Json        @default("[]")
@@ -250,7 +251,7 @@ model Application {
   status       ApplicationStatus @default(pending)
   message      String?
   // 送出申請當下實際代管扣款的金額（見 applications.js 的 POST /）。撤回／拒絕退款時要用這個值，
-  // 不能用 computeSeatCost(group) 重新計算——群組的 monthlyFee/billingCycle 之後可能被團主改掉，
+  // 不能用 computeSeatCost(group) 重新計算——群組的 perSeatMonthlyFee/billingCycle 之後可能被團主改掉，
   // 用即時價格算退款會跟當初真正扣的錢對不上。舊資料或非經 API 建立的 seed 資料可能沒有這個值，
   // 退款時要 fallback 回 computeSeatCost(group)。
   escrowAmount Int?

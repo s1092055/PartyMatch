@@ -110,7 +110,7 @@ export function normalizeGroup(group) {
   const memberCount = group.currentMembers ?? group._count?.members ?? 0
 
   const serviceName = group.serviceName ?? service.name ?? ''
-  const pricePerSeat = group.pricePerSeat ?? group.monthlyFee ?? 0
+  const pricePerSeat = group.pricePerSeat ?? group.perSeatMonthlyFee ?? 0
   const totalSeats   = Number(group.totalSeats ?? group.maxMembers ?? 0)
   const usedSeats    = memberCount + 1;
   const openSeats    = Math.max(totalSeats - usedSeats, 0);
@@ -124,7 +124,6 @@ export function normalizeGroup(group) {
     serviceName,
     serviceId: group.serviceId ?? service.id ?? '',
     pricePerSeat,
-    monthlyFee: group.monthlyFee ?? pricePerSeat,
     totalSeats,
     maxMembers: group.maxMembers ?? totalSeats,
     usedSeats,
@@ -159,7 +158,7 @@ export function normalizeSubscription(sub) {
     serviceName: sub.serviceName  ?? service.name    ?? group.planName  ?? '',
     serviceId:         sub.serviceId    ?? service.id      ?? group.serviceId ?? '',
     planName:          sub.planName     ?? group.planName  ?? '',
-    pricePerSeat:      sub.pricePerSeat ?? group.monthlyFee ?? 0,
+    pricePerSeat:      sub.pricePerSeat ?? group.perSeatMonthlyFee ?? 0,
     hostName: sub.hostName          ?? host.name          ?? '',
     hostAvatarInitial: sub.hostAvatarInitial ?? host.avatarInitial ?? '',
     hostAvatarColor:   sub.hostAvatarColor   ?? host.avatarColor   ?? '#64718A',
