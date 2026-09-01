@@ -37,7 +37,7 @@ export async function admitMemberIntoGroup(tx, { groupId, userId, seatCost, maxM
     data: { userId, type: 'escrow', amount: -seatCost, relatedGroupId: groupId, cycle: currentGroup?.currentCycle ?? 1, note },
   })
 
-  await advanceToFullIfNeeded(tx, groupId)
+  await advanceToFullIfNeeded(tx, groupId, { triggeringUserId: userId })
   return member
 }
 
@@ -65,11 +65,11 @@ export async function finalizeApprovedApplication(tx, { groupId, userId, maxMemb
     }),
   ])
 
-  await advanceToFullIfNeeded(tx, groupId)
+  await advanceToFullIfNeeded(tx, groupId, { triggeringUserId: userId })
   return member
 }
 
-async function advanceToFullIfNeeded(tx, groupId) {
+async function advanceToFullIfNeeded(tx, groupId, { triggeringUserId } = {}) {
   const updatedGroup = await tx.group.findUnique({
     where:  { id: groupId },
     select: { currentMembers: true, maxMembers: true, hostId: true, planName: true, service: { select: { name: true } } },
@@ -89,6 +89,20 @@ async function advanceToFullIfNeeded(tx, groupId) {
       message: `「${groupLabel}」群組名額已滿，可以點擊鎖定群組了。`,
       meta:    { groupId },
     })
+
+    // 已加入的成員本來完全收不到「群組額滿」這件事的任何通知，只有團主會知道，
+    // 導致成員端的群組資料在瀏覽器裡不會被觸發重抓、停留在額滿前的舊狀態，見 docs-private 的相關 bug 紀錄
+    const existingMembers = await tx.member.findMany({ where: { groupId }, select: { userId: true } })
+    const memberUserIds = existingMembers.map(m => m.userId).filter(id => id !== triggeringUserId)
+    if (memberUserIds.length > 0) {
+      notifyBatch(memberUserIds.map(userId => ({
+        userId,
+        type:    'group_full_member',
+        title:   '群組名額已滿',
+        message: `「${groupLabel}」群組名額已滿，等待團主鎖定群組即可開始服務。`,
+        meta:    { groupId },
+      })))
+    }
   }
 }
 

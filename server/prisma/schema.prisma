@@ -86,6 +86,7 @@ enum NotificationType {
   all_service_info_filled
   service_info_deadline_passed
   group_full
+  group_full_member
   group_ended
   group_cancelled
   group_renewal

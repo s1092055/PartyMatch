@@ -49,6 +49,7 @@ export const NOTIFICATION_META = {
   new_application:      { icon: UserPlus,      iconColor: 'text-brand',      link: '/manage-groups' },
   application_cancelled: { icon: AlertCircle,  iconColor: 'text-ink-3',      link: '/manage-groups' },
   group_full:           { icon: UserPlus,      iconColor: 'text-brand',      link: '/manage-groups' },
+  group_full_member:    { icon: UserPlus,      iconColor: 'text-brand',      link: '/my-subscriptions' },
   group_chat_opened:    { icon: MessageSquare, iconColor: 'text-brand',      link: null },
   fill_service_info:    { icon: ClipboardEdit, iconColor: 'text-warning-text', link: '/my-subscriptions' },
   service_info_filled:  { icon: ClipboardEdit, iconColor: 'text-success',    link: '/manage-groups' },
@@ -230,6 +231,11 @@ export function handleNotificationClick(notification, { userId, navigate, setOpe
     ]).finally(() => {
       openHostGroup(gId)
     });
+    return
+  }
+
+  if (notification.type === 'group_full_member' && notification.meta?.groupId) {
+    navigateToMemberGroupOrExplore(navigate, userId, notification.meta.groupId)
     return
   }
 

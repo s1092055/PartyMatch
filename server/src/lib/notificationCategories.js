@@ -10,6 +10,7 @@ export const NOTIFICATION_CATEGORIES = {
   group_activated:          'group',
   group_chat_opened:        'group',
   group_full:                'group',
+  group_full_member:         'group',
   group_ended:               'group',
   group_cancelled:           'group',
   group_renewal:             'group',

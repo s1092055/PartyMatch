@@ -3,8 +3,11 @@ import { useGroupStore } from '../../../common/stores/useGroupStore'
 import { useMemberStore } from '../../../common/stores/useMemberStore'
 import { useApplicationStore } from '../../../common/stores/useApplicationStore'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
+import { startPolling } from '../../../common/utils/poller'
 import HostGroupView from '../../../features/manage-groups/components/HostGroupView'
 import MemberGroupView from '../../../features/subscriptions/components/MemberGroupView'
+
+const GROUP_POLL_INTERVAL_MS = 15000
 
 export default function GroupViewModal({
   isOpen, onClose, groupId,
@@ -19,8 +22,16 @@ export default function GroupViewModal({
   const currentUser  = useAuthStore(s => s.user)
 
   useEffect(() => {
+    // 開啟時先重抓一次，之後定期輪詢當作保底機制：群組狀態改變（例如額滿）不是每一種情境都會
+    // 通知目前正在看這個群組的人，Modal 開著的期間定期重抓，避免只靠通知機制漏接時畫面一直停在舊狀態
     if (!isOpen || !groupId) return
-    useGroupStore.getState().refreshGroup(groupId).catch(console.error)
+    const stop = startPolling(async () => {
+      await Promise.all([
+        useGroupStore.getState().refreshGroup(groupId).catch(console.error),
+        useMemberStore.getState().init().catch(console.error),
+      ])
+    }, GROUP_POLL_INTERVAL_MS)
+    return stop
   }, [isOpen, groupId]);
 
   if (!isOpen || !groupId) return null
