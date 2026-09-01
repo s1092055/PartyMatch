@@ -16,6 +16,21 @@ let _notifUserId = null
 
 const SYSTEM_NOTIFICATION_TYPES = new Set(['system'])
 
+// 背景輪詢收到新通知時，只重新抓「這個通知類型真的會影響到的 store」，
+// 不要每種類型都把 group/member/subscription/application 四個 store 全部重抓一次
+const NOTIFICATION_REFRESH_STORES = {
+  member_removed:          ['group', 'member'],
+  member_left:              ['group', 'member'],
+  group_cancelled:          ['group'],
+  application_approved:     ['group', 'member', 'subscription', 'application'],
+  application_rejected:     ['application'],
+  all_service_info_filled:  ['group', 'member'],
+  billing_date_confirmed:   ['group', 'member'],
+  billing_date_adjusted:    ['group', 'member'],
+  group_full_member:        ['group', 'member'],
+  escrow_released_member:   ['group', 'member'],
+}
+
 function dedupeById(list) {
   const seen = new Set()
   return list.filter(n => {
@@ -81,8 +96,12 @@ export const useNotificationStore = create((set, get) => ({
           return;
         const currentIds = new Set(useNotificationStore.getState().notifications.map(n => n.id))
         const newNotifs = latest.filter(n => n.userId === _notifUserId && !currentIds.has(n.id))
-        if (newNotifs.some(n => n.type === 'member_removed' || n.type === 'member_left' || n.type === 'group_cancelled' || n.type === 'application_approved' || n.type === 'application_rejected' || n.type === 'all_service_info_filled' || n.type === 'billing_date_confirmed' || n.type === 'billing_date_adjusted' || n.type === 'group_full_member' || n.type === 'escrow_released_member')) {
-          window.dispatchEvent(new CustomEvent('pm:refresh-member-stores'))
+        const storesToRefresh = new Set()
+        newNotifs.forEach(n => {
+          NOTIFICATION_REFRESH_STORES[n.type]?.forEach(store => storesToRefresh.add(store))
+        })
+        if (storesToRefresh.size > 0) {
+          window.dispatchEvent(new CustomEvent('pm:refresh-stores', { detail: { stores: [...storesToRefresh] } }))
         }
         const BALANCE_AFFECTING_TYPES = new Set(['member_removed', 'application_rejected', 'escrow_released', 'dispute_resolved', 'group_cancelled']);
         if (newNotifs.some(n => BALANCE_AFFECTING_TYPES.has(n.type))) {

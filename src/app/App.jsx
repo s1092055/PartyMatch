@@ -53,11 +53,24 @@ export default function App() {
       if (!user) return
       useApplicationStore.getState().init()
     }
+    const STORE_REFRESHERS = {
+      group:        () => useGroupStore.getState().init({ all: true }),
+      member:       () => useMemberStore.getState().init(),
+      subscription: () => useSubscriptionStore.getState().init(),
+      application:  () => useApplicationStore.getState().init(),
+    }
+    function onRefreshStores(event) {
+      const user = useAuthStore.getState().getProfile()
+      if (!user) return
+      event.detail?.stores?.forEach(store => STORE_REFRESHERS[store]?.())
+    }
     window.addEventListener('pm:refresh-member-stores', onRefreshMemberStores)
     window.addEventListener('pm:refresh-application-store', onRefreshApplicationStore)
+    window.addEventListener('pm:refresh-stores', onRefreshStores)
     return () => {
       window.removeEventListener('pm:refresh-member-stores', onRefreshMemberStores)
       window.removeEventListener('pm:refresh-application-store', onRefreshApplicationStore)
+      window.removeEventListener('pm:refresh-stores', onRefreshStores)
     }
   }, [])
 
