@@ -47,10 +47,10 @@ export default function AdminDashboardLayout() {
               key={item.key}
               type="button"
               onClick={() => selectTab(item.key)}
-              className={`flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm transition-all ${
+              className={`flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm transition-all hover:-translate-y-0.5 ${
                 isActive
                   ? 'bg-brand font-extrabold text-white'
-                  : 'font-bold text-ink-3 hover:bg-raised hover:text-ink'
+                  : 'font-bold text-ink-3 hover:bg-brand-subtle hover:text-brand'
               }`}
             >
               <item.icon size={18} strokeWidth={1.5} />
