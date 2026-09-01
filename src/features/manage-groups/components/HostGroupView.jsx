@@ -26,11 +26,11 @@ import ReportServiceIssueModal from './ReportServiceIssueModal'
 import ReportPlatformIssueModal from '../../group/components/ReportPlatformIssueModal'
 import LockGroupCredentialsModal from './LockGroupCredentialsModal'
 import AdjustBillingDateModal from './AdjustBillingDateModal'
-import { buildMembersPanel } from './hostGroupView/buildMembersPanel'
-import { buildApplicationsPanel } from './hostGroupView/buildApplicationsPanel'
-import { buildReviewHistoryPanel } from './hostGroupView/buildReviewHistoryPanel'
-import { buildBillingPanel } from './hostGroupView/buildBillingPanel'
-import { buildMemberInfoPanel } from './hostGroupView/buildMemberInfoPanel'
+import { buildMembersPanel } from './host-group-view/buildMembersPanel'
+import { buildApplicationsPanel } from './host-group-view/buildApplicationsPanel'
+import { buildReviewHistoryPanel } from './host-group-view/buildReviewHistoryPanel'
+import { buildBillingPanel } from './host-group-view/buildBillingPanel'
+import { buildMemberInfoPanel } from './host-group-view/buildMemberInfoPanel'
 
 export default function HostGroupView(
   { group, members, applications, onReportServiceInfoIssue, onResolveDispute, onEscalateDispute, onRemoveMember, onActivate, onLockGroup, onCancelGroup, onApprove, onReject, onAdjustBillingDate, errors, submittingIds, onClose, autoOpenLockGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling, autoOpenMemberInfo, onOpenRenewal }

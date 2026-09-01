@@ -4,11 +4,10 @@ import prisma from '../lib/prisma.js'
 import { requireAuth } from '../middleware/auth.js'
 import { validate } from '../middleware/validate.js'
 import { computeSeatCost } from '../utils/pricing.js'
-import { admitMemberIntoGroup } from '../utils/membership.js'
+import { admitMemberIntoGroup, removeMember } from '../services/membershipLifecycle.service.js'
 import { maskAvatar } from '../lib/avatarVisibility.js'
 import { maskMemberSensitiveFields, resolveMemberEvidenceUrls, resolveMembersEvidenceUrls } from '../lib/groupPrivacy.js'
 import { notify, claimGroupStatus } from './groups/shared.js'
-import * as membershipService from '../services/membership.service.js'
 
 const router = Router()
 
@@ -182,7 +181,7 @@ router.patch('/:id', requireAuth, validate(patchMemberSchema), async (req, res, 
 
 router.delete('/:id', requireAuth, async (req, res, next) => {
   try {
-    const result = await membershipService.removeMember({ memberId: req.params.id, actorId: req.user.id })
+    const result = await removeMember({ memberId: req.params.id, actorId: req.user.id })
     res.status(200).json(result)
   } catch (err) { next(err) }
 });

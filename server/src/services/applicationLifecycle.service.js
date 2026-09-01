@@ -1,6 +1,6 @@
 import prisma from '../lib/prisma.js'
 import { computeSeatCost } from '../utils/pricing.js'
-import { finalizeApprovedApplication, refundEscrow } from '../utils/membership.js'
+import { finalizeApprovedApplication, refundEscrow } from './membershipLifecycle.service.js'
 import { notify, claimGroupStatus } from '../routes/groups/shared.js'
 
 function httpError(statusCode, message, responsePayload) {

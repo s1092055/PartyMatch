@@ -8,7 +8,7 @@ import { notify, notifyBatch } from './shared.js'
 import { maskAvatar } from '../../lib/avatarVisibility.js'
 import { maskGroupListSensitiveFields, maskGroupDetailSensitiveFields, resolveGroupMemberEvidenceUrls, HOST_PUBLIC_SELECT } from '../../lib/groupPrivacy.js'
 import { computeSeatCost, toPlainGroup } from '../../utils/pricing.js'
-import { refundEscrow } from '../../utils/membership.js'
+import { refundEscrow } from '../../services/membershipLifecycle.service.js'
 import { adjustCreditScore } from '../../utils/creditScore.js'
 import { allMembersSettled } from '../../services/groupLifecycle.service.js'
 

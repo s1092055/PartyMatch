@@ -1,7 +1,7 @@
 import prisma from '../lib/prisma.js'
 import { computeSeatCost } from '../utils/pricing.js'
 import { notify, notifyBatch, notifyGroupConversation, claimGroupStatus } from '../routes/groups/shared.js'
-import { rejectPendingApplications } from '../utils/membership.js'
+import { rejectPendingApplications } from './membershipLifecycle.service.js'
 import { encryptCredential } from '../lib/credentialEncryption.js'
 import { HOST_PUBLIC_SELECT } from '../lib/groupPrivacy.js'
 
