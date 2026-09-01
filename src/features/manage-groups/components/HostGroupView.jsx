@@ -82,8 +82,18 @@ export default function HostGroupView(
   }, [autoOpenApplications])
 
   useEffect(() => {
+    // 群組概覽本身就是在顯示這個狀態（頂部橫幅、鎖定按鈕等），不是「切到別的分頁才看得到」，
+    // 停留在概覽時要即時反映最新狀態，不能套用下面那個凍結邏輯，否則會出現群組已經額滿、
+    // 但概覽還顯示著鎖定前舊狀態的情況
+    if (activePanel !== null) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setHeaderStatus(group.status)
+  }, [activePanel, group.status])
+
+  useEffect(() => {
     // 停留在申請管理等分頁時，群組額滿等狀態變化不應該讓鎖定群組按鈕/banner 立刻跳出來，
     // 只有切換分頁（或重複點擊同一分頁刷新，並且資料真的刷新完成）時才讓 header 這塊呈現最新的群組狀態
+    if (activePanel === null) return
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setHeaderStatus(group.status)
   }, [activePanel, dataSyncTick]) // eslint-disable-line react-hooks/exhaustive-deps

@@ -292,7 +292,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
     undefined
   )
 
-  const [header, setHeader] = useState({
+  const [frozenHeader, setFrozenHeader] = useState({
     hideRecruitBar: hideRecruitBarLive,
     banner: headerBannerLive,
     cta: centeredCtaLive,
@@ -302,12 +302,13 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
   })
 
   useEffect(() => {
-    // 停留在某個分頁瀏覽時，群組狀態變化不應該讓 header 的 banner/CTA/badge 立刻跳出來，
-    // 只有切換分頁時才讓 header 呈現最新狀態（跟團主端 HostGroupView 的 headerStatus 同一套處理方式）。
+    // 停留在其他分頁（群組名單、付款管理等）瀏覽時，群組狀態變化不應該讓 header 的 banner/CTA/badge
+    // 立刻跳出來，只有切換分頁時才讓 header 呈現最新狀態（跟團主端 HostGroupView 的 headerStatus 同一套處理方式）。
     // 但透過 header 自己的 CTA 觸發的操作（填寫/提取帳號資訊、確認服務）完成後必須立刻反映結果，
     // 不能卡住舊按鈕，所以這些操作成功後會額外 bump headerTick 強制重新同步一次
+    if (activePanel === null) return
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setHeader({
+    setFrozenHeader({
       hideRecruitBar: hideRecruitBarLive,
       banner: headerBannerLive,
       cta: centeredCtaLive,
@@ -316,6 +317,20 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
       pendingBadgeColor: pendingBadgeColorLive,
     })
   }, [activePanel, headerTick]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 群組概覽本身就是在顯示這些欄位（群組狀態、頂部橫幅等），不是「切到別的分頁才看得到」，
+  // 所以停留在概覽時要直接用即時算出來的值，不能套用上面那個凍結邏輯，否則會出現群組已經額滿、
+  // 但概覽還顯示著鎖定前舊狀態的情況
+  const header = activePanel === null
+    ? {
+        hideRecruitBar: hideRecruitBarLive,
+        banner: headerBannerLive,
+        cta: centeredCtaLive,
+        statusBadgeOverride: statusBadgeOverrideLive,
+        pendingBadge: pendingBadgeLive,
+        pendingBadgeColor: pendingBadgeColorLive,
+      }
+    : frozenHeader
 
   function buildSubPanel() {
     if (activePanel === 'members') {
@@ -385,19 +400,19 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
                 <KeyRound strokeWidth={1.5} size={17} /> 帳號資訊
               </GroupModalSideBarItem>
             )}
-            {canLeaveGroup && (
-              <GroupModalSideBarItem pinned tone="danger" className="order-2 md:order-none" onClick={() => setLeaveConfirm(true)}>
-                <LogOut strokeWidth={1.5} size={17} /> 退出群組
-              </GroupModalSideBarItem>
-            )}
+            <GroupModalSideBarItem pinned={!canLeaveGroup && !isPaymentRelevant} onClick={() => platformReport.setShow(true)}>
+              <TriangleAlert strokeWidth={1.5} size={17} /> 回報問題
+            </GroupModalSideBarItem>
             {showMessagesButton && (
               <GroupModalSideBarItem pinned className="hidden md:flex" onClick={openMessages}>
                 <MessageCircle strokeWidth={1.5} size={17} /> 群組訊息
               </GroupModalSideBarItem>
             )}
-            <GroupModalSideBarItem pinned={!canLeaveGroup && !isPaymentRelevant} className="order-1 md:order-none" onClick={() => platformReport.setShow(true)}>
-              <TriangleAlert strokeWidth={1.5} size={17} /> 回報問題
-            </GroupModalSideBarItem>
+            {canLeaveGroup && (
+              <GroupModalSideBarItem pinned tone="danger" onClick={() => setLeaveConfirm(true)}>
+                <LogOut strokeWidth={1.5} size={17} /> 退出群組
+              </GroupModalSideBarItem>
+            )}
           </>
         }
         subPanel={activePanel ? buildSubPanel() : null}
