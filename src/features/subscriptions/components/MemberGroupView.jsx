@@ -16,6 +16,8 @@ import ReportPlatformIssueModal from '../../group/components/ReportPlatformIssue
 import { buildMembersPanel } from './memberGroupView/buildMembersPanel'
 import { buildPaymentsPanel } from './memberGroupView/buildPaymentsPanel'
 import { buildCredentialsPanel } from './memberGroupView/buildCredentialsPanel'
+import { usePlatformReportForm } from '../hooks/usePlatformReportForm'
+import { useDisputeForm } from '../hooks/useDisputeForm'
 import { getServiceById } from '../../../common/utils/serviceUtils'
 import { getSharingMethodConfig, hasFilledServiceInfo, isSharedCredentialsMethod, serviceHasProfileField } from '../../../common/utils/serviceInfoFields'
 import { useMemberStore } from '../../../common/stores/useMemberStore'
@@ -23,32 +25,22 @@ import { useGroupStore } from '../../../common/stores/useGroupStore'
 import { useSubscriptionStore } from '../../../common/stores/useSubscriptionStore'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
 import { useReviewStore } from '../../../common/stores/useReviewStore'
-import { uploadDisputeEvidence, uploadPlatformReportEvidence } from '../../../common/api/storageApi'
-import { createPlatformReport } from '../../../common/api/platformReportsApi'
 import { fetchGroupTokenTransactions } from '../../../common/api/tokensApi'
 import { toast } from '../../../common/utils/toast'
-import { useEvidenceUpload } from '../../../common/utils/hooks'
 import { isHistoryGroup } from '../../../common/utils/groupStatusDisplay'
 
 export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpenCredentials }) {
   const [activePanel, setActivePanel] = useState(null);
   const [leaveConfirm, setLeaveConfirm] = useState(false)
   const [showFillInfo, setShowFillInfo] = useState(false)
-  const [showDispute, setShowDispute] = useState(false)
   const [fillValues, setFillValues] = useState({})
   const [fillLoading, setFillLoading] = useState(false)
   const [confirmLoading, setConfirmLoading] = useState(false)
   const [confirmDialog, setConfirmDialog] = useState(false)
   const [confirmServiceAgreed, setConfirmServiceAgreed] = useState(false)
-  const [disputeReasons, setDisputeReasons] = useState([])
-  const [disputeDetail, setDisputeDetail] = useState('')
-  const [disputeLoading, setDisputeLoading] = useState(false)
-  const evidence = useEvidenceUpload(uploadDisputeEvidence)
   const [reviewPrompt, setReviewPrompt] = useState(null);
-  const [showPlatformReport, setShowPlatformReport] = useState(false)
-  const [platformReportDescription, setPlatformReportDescription] = useState('')
-  const [submittingPlatformReport, setSubmittingPlatformReport] = useState(false)
-  const platformReportEvidence = useEvidenceUpload(uploadPlatformReportEvidence)
+  const platformReport = usePlatformReportForm(group.id)
+  const dispute = useDisputeForm(group.id, onClose)
   const [transactions, setTransactions] = useState([])
   const [transactionsLoading, setTransactionsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -81,7 +73,6 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
   const fillServiceInfo = useMemberStore(s => s.fillServiceInfo)
   const markConfirmed   = useMemberStore(s => s.markConfirmed)
   const confirmService  = useGroupStore(s => s.confirmService)
-  const disputeGroup    = useGroupStore(s => s.disputeGroup)
   const submitReview    = useReviewStore(s => s.submit)
   const members     = allMembers.filter(m => m.groupId === group.id)
   const sub         = currentUser ? (subscriptions.find(s => s.userId === currentUser.id && s.groupId === group.id) ?? null) : null
@@ -131,26 +122,6 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
     window.dispatchEvent(new CustomEvent('pm:open-messages', { detail: { groupId: group.id } }))
   }
 
-  async function handleSubmitPlatformReport() {
-    if (!platformReportDescription.trim()) return
-    setSubmittingPlatformReport(true)
-    try {
-      await createPlatformReport({
-        groupId:     group.id,
-        description: platformReportDescription.trim(),
-        evidenceUrl: platformReportEvidence.key,
-      })
-      toast('回報已送出，客服會盡快協助處理', 'success')
-      setShowPlatformReport(false)
-      setPlatformReportDescription('')
-      platformReportEvidence.reset()
-    } catch (err) {
-      toast(err?.message ?? '回報失敗，請稍後再試', 'error')
-    } finally {
-      setSubmittingPlatformReport(false)
-    }
-  }
-
   function openDmWithHost() {
     onClose()
     window.dispatchEvent(new CustomEvent('pm:open-dm', {
@@ -192,34 +163,6 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
       toast(err?.message ?? '確認失敗，請稍後再試', 'error')
     } finally {
       setConfirmLoading(false)
-    }
-  }
-
-  function toggleDisputeReason(option) {
-    setDisputeReasons(prev => prev.includes(option) ? prev.filter(r => r !== option) : [...prev, option])
-  }
-
-  function resetDisputeForm() {
-    setDisputeReasons([])
-    setDisputeDetail('')
-    evidence.reset()
-  }
-
-  async function handleDisputeSubmit(e) {
-    e.preventDefault()
-    if (disputeReasons.length === 0) return
-    const reason = [disputeReasons.join('、'), disputeDetail.trim()].filter(Boolean).join('\n')
-    setDisputeLoading(true)
-    try {
-      await disputeGroup(group.id, { reason, evidenceUrl: evidence.key || undefined })
-      setShowDispute(false)
-      resetDisputeForm()
-      toast('已送出回報，將於 48 小時內處理', 'success')
-      onClose()
-    } catch (err) {
-      toast(err?.message ?? '回報失敗，請稍後再試', 'error')
-    } finally {
-      setDisputeLoading(false)
     }
   }
 
@@ -275,7 +218,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
       </Button>
       <Button
         variant="destructive"
-        onClick={() => { resetDisputeForm(); setShowDispute(true) }}
+        onClick={dispute.open}
         className="rounded-lg shadow-button"
       >
         <AlertTriangle strokeWidth={1.5} size={14} /> 回報問題
@@ -411,7 +354,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
   return (
     <>
 
-      {!showFillInfo && !showDispute && !confirmDialog && (
+      {!showFillInfo && !dispute.show && !confirmDialog && (
       <GroupModalShell
         onClose={onClose}
         group={group}
@@ -452,7 +395,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
                 <MessageCircle strokeWidth={1.5} size={17} /> 群組訊息
               </GroupModalSideBarItem>
             )}
-            <GroupModalSideBarItem pinned={!canLeaveGroup && !isPaymentRelevant} onClick={() => setShowPlatformReport(true)}>
+            <GroupModalSideBarItem pinned={!canLeaveGroup && !isPaymentRelevant} onClick={() => platformReport.setShow(true)}>
               <TriangleAlert strokeWidth={1.5} size={17} /> 回報問題
             </GroupModalSideBarItem>
           </>
@@ -491,38 +434,34 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
         issueNote={myMember?.serviceInfoIssueNote}
       />
       <ReportPlatformIssueModal
-        isOpen={showPlatformReport}
-        onClose={() => {
-          setShowPlatformReport(false)
-          setPlatformReportDescription('')
-          platformReportEvidence.reset()
-        }}
-        description={platformReportDescription}
-        setDescription={setPlatformReportDescription}
-        evidenceUrl={platformReportEvidence.url}
-        evidenceName={platformReportEvidence.name}
-        evidenceUploading={platformReportEvidence.uploading}
-        evidenceProgress={platformReportEvidence.progress}
-        onEvidenceSelect={platformReportEvidence.onSelect}
-        onRemoveEvidence={platformReportEvidence.onRemove}
-        submitting={submittingPlatformReport}
-        onSubmit={handleSubmitPlatformReport}
+        isOpen={platformReport.show}
+        onClose={platformReport.close}
+        description={platformReport.description}
+        setDescription={platformReport.setDescription}
+        evidenceUrl={platformReport.evidence.url}
+        evidenceName={platformReport.evidence.name}
+        evidenceUploading={platformReport.evidence.uploading}
+        evidenceProgress={platformReport.evidence.progress}
+        onEvidenceSelect={platformReport.evidence.onSelect}
+        onRemoveEvidence={platformReport.evidence.onRemove}
+        submitting={platformReport.submitting}
+        onSubmit={platformReport.submit}
       />
       <DisputeModal
-        isOpen={showDispute}
-        onClose={() => setShowDispute(false)}
-        onSubmit={handleDisputeSubmit}
-        disputeReasons={disputeReasons}
-        onToggleReason={toggleDisputeReason}
-        disputeDetail={disputeDetail}
-        setDisputeDetail={setDisputeDetail}
-        disputeLoading={disputeLoading}
-        evidenceUrl={evidence.url}
-        evidenceName={evidence.name}
-        evidenceUploading={evidence.uploading}
-        evidenceProgress={evidence.progress}
-        onEvidenceSelect={evidence.onSelect}
-        onRemoveEvidence={evidence.onRemove}
+        isOpen={dispute.show}
+        onClose={() => dispute.setShow(false)}
+        onSubmit={dispute.submit}
+        disputeReasons={dispute.reasons}
+        onToggleReason={dispute.toggleReason}
+        disputeDetail={dispute.detail}
+        setDisputeDetail={dispute.setDetail}
+        disputeLoading={dispute.loading}
+        evidenceUrl={dispute.evidence.url}
+        evidenceName={dispute.evidence.name}
+        evidenceUploading={dispute.evidence.uploading}
+        evidenceProgress={dispute.evidence.progress}
+        onEvidenceSelect={dispute.evidence.onSelect}
+        onRemoveEvidence={dispute.evidence.onRemove}
       />
       {confirmDialog && (
         <ConfirmServiceModal
