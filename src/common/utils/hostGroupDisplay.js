@@ -1,4 +1,5 @@
 import { daysUntil } from './date'
+import { isHistoryGroup } from './groupStatusDisplay'
 
 export function getHostGroupFlags(status, nextBillingDate) {
   return {
@@ -23,7 +24,7 @@ export function getHostPendingBadge(status, needsCredentialsOnLock) {
 }
 
 export function getHostGroupStatusLabel(status) {
-  if (['cancelled', 'ended'].includes(status)) return '已結束'
+  if (isHistoryGroup({ status })) return '已結束'
   if (status === 'recruiting') return '招募中'
   if (status === 'full') return '已滿員'
   if (status === 'pending_confirmation') return '處理中'

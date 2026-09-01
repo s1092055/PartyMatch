@@ -19,6 +19,10 @@ import { createId } from '../utils/storage'
 import { todayISO, byNewest } from '../utils/date'
 import { notifyError } from '../utils/toast'
 
+function mergeGroupUpdate(groups, id, updated) {
+  return groups.map(g => g.id === id ? normalizeGroup({ ...g, ...updated }) : g)
+}
+
 export const useGroupStore = create((set, get) => ({
   groups:  [],
   loading: false,
@@ -36,7 +40,7 @@ export const useGroupStore = create((set, get) => ({
 
   refreshGroup: async (id) => {
     const updated = await fetchGroupById(id)
-    set(s => ({ groups: s.groups.map(g => g.id === id ? normalizeGroup({ ...g, ...updated }) : g) }))
+    set(s => ({ groups: mergeGroupUpdate(s.groups, id, updated) }))
     return updated
   },
 
@@ -102,43 +106,33 @@ export const useGroupStore = create((set, get) => ({
 
   lockGroup: async (id, sharedCredentials) => {
     const updated = await lockGroupApi(id, sharedCredentials)
-    set(s => ({
-      groups: s.groups.map(g => g.id === id ? normalizeGroup({ ...g, ...updated }) : g),
-    }))
+    set(s => ({ groups: mergeGroupUpdate(s.groups, id, updated) }))
     return updated
   },
 
   activateService: async (id) => {
     const updated = await activateGroupApi(id)
-    set(s => ({
-      groups: s.groups.map(g => g.id === id ? normalizeGroup({ ...g, ...updated }) : g),
-    }))
+    set(s => ({ groups: mergeGroupUpdate(s.groups, id, updated) }))
     return updated
   },
 
   confirmService: async (id) => {
     const res = await confirmGroupApi(id)
     if (res.released && res.group) {
-      set(s => ({
-        groups: s.groups.map(g => g.id === id ? normalizeGroup({ ...g, ...res.group }) : g),
-      }))
+      set(s => ({ groups: mergeGroupUpdate(s.groups, id, res.group) }))
     }
     return res
   },
 
   adjustBillingDate: async (id, payload) => {
     const updated = await adjustBillingDateApi(id, payload)
-    set(s => ({
-      groups: s.groups.map(g => g.id === id ? normalizeGroup({ ...g, ...updated }) : g),
-    }))
+    set(s => ({ groups: mergeGroupUpdate(s.groups, id, updated) }))
     return updated
   },
 
   disputeGroup: async (id, payload) => {
     const updated = await disputeGroupApi(id, payload)
-    set(s => ({
-      groups: s.groups.map(g => g.id === id ? normalizeGroup({ ...g, ...updated }) : g),
-    }))
+    set(s => ({ groups: mergeGroupUpdate(s.groups, id, updated) }))
     return updated
   },
 
@@ -146,17 +140,13 @@ export const useGroupStore = create((set, get) => ({
     const updated = await resolveDisputeApi(id, payload)
     const { useMemberStore } = await import('./useMemberStore');
     await useMemberStore.getState().init()
-    set(s => ({
-      groups: s.groups.map(g => g.id === id ? normalizeGroup({ ...g, ...updated }) : g),
-    }))
+    set(s => ({ groups: mergeGroupUpdate(s.groups, id, updated) }))
     return updated
   },
 
   escalateDispute: async (id, payload) => {
     const updated = await escalateDisputeApi(id, payload)
-    set(s => ({
-      groups: s.groups.map(g => g.id === id ? normalizeGroup({ ...g, ...updated }) : g),
-    }))
+    set(s => ({ groups: mergeGroupUpdate(s.groups, id, updated) }))
     return updated
   },
 
@@ -175,9 +165,7 @@ export const useGroupStore = create((set, get) => ({
 
   startRenewalCycle: async (id, renewingUserIds) => {
     const updated = await renewGroupApi(id, renewingUserIds)
-    set(s => ({
-      groups: s.groups.map(g => g.id === id ? normalizeGroup({ ...g, ...updated }) : g),
-    }))
+    set(s => ({ groups: mergeGroupUpdate(s.groups, id, updated) }))
     return updated
   },
 

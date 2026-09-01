@@ -10,6 +10,8 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { CountBadge, LockBadge, LockedHint, PresenceDot } from './navShared'
 import { LOCKED_MESSAGE, getNavItemKey, isProtectedNavItem } from './navConstants'
 
+const FLOATING_ICON_BUTTON_CLASS = 'relative grid h-14 w-14 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-floating transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-12 lg:w-12 dark:border-[#238EC7] dark:text-[#238EC7]'
+
 export default function DesktopSidebar({
   loggedIn,
   pathname,
@@ -84,23 +86,10 @@ export default function DesktopSidebar({
       )
     }
 
-    if (item.type === 'create') {
+    if (item.type === 'create' || item.type === 'condition-search') {
+      const handleClick = item.type === 'create' ? openCreate : openConditionSearch
       return (
-        <button key={item.type} onClick={() => { collapseSidebar(); openCreate() }} aria-label={item.label}
-          className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand">
-          <span className="grid h-9 w-9 shrink-0 place-items-center">
-            <item.icon size={22} strokeWidth={1.5} />
-          </span>
-          <span className="whitespace-nowrap font-bold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
-            {item.label}
-          </span>
-        </button>
-      )
-    }
-
-    if (item.type === 'condition-search') {
-      return (
-        <button key={item.type} onClick={() => { collapseSidebar(); openConditionSearch() }} aria-label={item.label}
+        <button key={item.type} onClick={() => { collapseSidebar(); handleClick() }} aria-label={item.label}
           className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand">
           <span className="grid h-9 w-9 shrink-0 place-items-center">
             <item.icon size={22} strokeWidth={1.5} />
@@ -138,7 +127,7 @@ export default function DesktopSidebar({
     return (
       <button
         onClick={openNotify}
-        className="relative grid h-14 w-14 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-floating transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-12 lg:w-12 dark:border-[#238EC7] dark:text-[#238EC7]"
+        className={FLOATING_ICON_BUTTON_CLASS}
         aria-label="通知"
       >
         <Bell className="size-6 lg:size-5" strokeWidth={1.5} />
@@ -152,7 +141,7 @@ export default function DesktopSidebar({
     return (
       <button
         onClick={() => setTopupOpen(true)}
-        className="relative grid h-14 w-14 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-floating transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-12 lg:w-12 dark:border-[#238EC7] dark:text-[#238EC7]"
+        className={FLOATING_ICON_BUTTON_CLASS}
         aria-label="PM幣儲值"
       >
         <TokenBadge className="!h-7 !w-7 lg:!h-6 lg:!w-6" />
@@ -165,7 +154,7 @@ export default function DesktopSidebar({
       return (
         <button
           onClick={openMessages}
-          className="relative grid h-14 w-14 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-floating transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-12 lg:w-12 dark:border-[#238EC7] dark:text-[#238EC7]"
+          className={FLOATING_ICON_BUTTON_CLASS}
           aria-label="訊息"
         >
           <MessageSquare className="size-6 lg:size-5" strokeWidth={1.5} />
@@ -215,7 +204,7 @@ export default function DesktopSidebar({
       <div ref={dockRef} className="fixed top-6 z-50 flex flex-col items-center gap-3 can-hover:lg:hidden" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
         <button
           onClick={() => setDockOpen(o => !o)}
-          className="relative grid h-14 w-14 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-floating transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-12 lg:w-12 dark:border-[#238EC7] dark:text-[#238EC7]"
+          className={FLOATING_ICON_BUTTON_CLASS}
           aria-label={dockOpen ? '收合功能按鈕' : '展開功能按鈕'}
           aria-expanded={dockOpen}
         >
@@ -231,7 +220,7 @@ export default function DesktopSidebar({
             {renderMessageButton()}
             <button
               onClick={() => { toggleTheme(); setDockOpen(false) }}
-              className="relative grid h-14 w-14 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-floating transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-12 lg:w-12 dark:border-[#238EC7] dark:text-[#238EC7]"
+              className={FLOATING_ICON_BUTTON_CLASS}
               aria-label={theme === 'dark' ? '切換成淺色模式' : '切換成深色模式'}
             >
               {theme === 'dark' ? <Sun className="size-6 lg:size-5" strokeWidth={1.5} /> : <Moon className="size-6 lg:size-5" strokeWidth={1.5} />}

@@ -105,28 +105,13 @@ export default function TabletSidebarDrawer(
       )
     }
 
-    if (item.type === 'create') {
+    if (item.type === 'create' || item.type === 'condition-search') {
+      const handleClick = item.type === 'create' ? openCreate : openConditionSearch
       return (
         <button
           key={item.type}
           type="button"
-          onClick={() => { setOpen(false); openCreate() }}
-          className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
-        >
-          <span className="grid h-9 w-9 shrink-0 place-items-center">
-            <item.icon size={22} strokeWidth={1.5} />
-          </span>
-          <span className="whitespace-nowrap text-base font-bold">{item.label}</span>
-        </button>
-      )
-    }
-
-    if (item.type === 'condition-search') {
-      return (
-        <button
-          key={item.type}
-          type="button"
-          onClick={() => { setOpen(false); openConditionSearch() }}
+          onClick={() => { setOpen(false); handleClick() }}
           className="flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
         >
           <span className="grid h-9 w-9 shrink-0 place-items-center">
@@ -284,42 +269,18 @@ export default function TabletSidebarDrawer(
                   </div>
                   <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     <div className="flex min-h-full w-full flex-col justify-center gap-4 px-4 py-4">
-                      <button
-                        type="button"
-                        onClick={() => openUserPanel('profile')}
-                        className="flex h-12 w-full items-center gap-3 rounded-xl border border-line bg-surface px-4 text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
-                      >
-                        <User size={20} strokeWidth={1.5} className="shrink-0" />
-                        <span className="flex-1 text-left">個人資料</span>
-                        <ChevronRight size={16} strokeWidth={1.5} className="shrink-0 text-ink-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => openUserPanel('credit')}
-                        className="flex h-12 w-full items-center gap-3 rounded-xl border border-line bg-surface px-4 text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
-                      >
-                        <ShieldCheck size={20} strokeWidth={1.5} className="shrink-0" />
-                        <span className="flex-1 text-left">信用分數</span>
-                        <ChevronRight size={16} strokeWidth={1.5} className="shrink-0 text-ink-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => openUserPanel('reviews')}
-                        className="flex h-12 w-full items-center gap-3 rounded-xl border border-line bg-surface px-4 text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
-                      >
-                        <Star size={20} strokeWidth={1.5} className="shrink-0" />
-                        <span className="flex-1 text-left">我的評價</span>
-                        <ChevronRight size={16} strokeWidth={1.5} className="shrink-0 text-ink-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => openUserPanel('settings')}
-                        className="flex h-12 w-full items-center gap-3 rounded-xl border border-line bg-surface px-4 text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
-                      >
-                        <Settings size={20} strokeWidth={1.5} className="shrink-0" />
-                        <span className="flex-1 text-left">偏好設定</span>
-                        <ChevronRight size={16} strokeWidth={1.5} className="shrink-0 text-ink-4" />
-                      </button>
+                      {Object.entries(USER_PANELS).map(([key, { title, icon: Icon }]) => (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => openUserPanel(key)}
+                          className="flex h-12 w-full items-center gap-3 rounded-xl border border-line bg-surface px-4 text-sm font-bold text-ink-2 transition-colors hover:border-brand-border hover:bg-brand-subtle hover:text-brand"
+                        >
+                          <Icon size={20} strokeWidth={1.5} className="shrink-0" />
+                          <span className="flex-1 text-left">{title}</span>
+                          <ChevronRight size={16} strokeWidth={1.5} className="shrink-0 text-ink-4" />
+                        </button>
+                      ))}
                     </div>
                   </div>
                   <div className="shrink-0 px-4 pb-4 pt-3">

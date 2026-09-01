@@ -1,4 +1,5 @@
 import { calcDisplayPrice, calcDisplayCycle } from './pricingUtils';
+import { canReportServiceIssue } from './groupStatus';
 
 export function getInfoRows(group) {
   if (!group) return []
@@ -8,7 +9,7 @@ export function getInfoRows(group) {
     { label: '建立日期', value: group.createdAt?.slice(0, 10).replace(/-/g, '/') ?? '—' },
     ...(group.nextBillingDate ? [{
       label: '下次扣款',
-      value: `${group.nextBillingDate.slice(0, 10).replace(/-/g, '/')}${['pending_confirmation', 'pending_activation'].includes(group.status) ? '（預估）' : ''}`,
+      value: `${group.nextBillingDate.slice(0, 10).replace(/-/g, '/')}${canReportServiceIssue(group.status) ? '（預估）' : ''}`,
     }] : []),
     {
       label: '每位價格',

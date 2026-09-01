@@ -13,6 +13,8 @@ export const COUNTRY_CODES = [
 
 export const DEFAULT_COUNTRY_CODE = '+886'
 
+const COUNTRY_CODES_BY_LENGTH_DESC = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length)
+
 export function toE164(countryCode, localNumber) {
   const digits = localNumber.replace(/\D/g, '').replace(/^0+/, '')
   return digits ? `${countryCode}${digits}` : ''
@@ -20,8 +22,7 @@ export function toE164(countryCode, localNumber) {
 
 export function parsePhone(phone) {
   if (!phone) return { countryCode: DEFAULT_COUNTRY_CODE, localNumber: '' }
-  const sorted = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
-  const matched = sorted.find(c => phone.startsWith(c.code))
+  const matched = COUNTRY_CODES_BY_LENGTH_DESC.find(c => phone.startsWith(c.code))
   if (matched) return { countryCode: matched.code, localNumber: phone.slice(matched.code.length) }
   return { countryCode: DEFAULT_COUNTRY_CODE, localNumber: phone.replace(/^\+?886/, '').replace(/^\+/, '') };
 }

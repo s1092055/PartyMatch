@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import client, { tokenManager } from '../api/axiosClient'
 import { fetchTokenBalance, topupTokens } from '../api/tokensApi'
 
-async function initPrivateStores(userId) {
+async function importPrivateStores() {
   const [
     { useApplicationStore },
     { useSubscriptionStore },
@@ -20,6 +20,19 @@ async function initPrivateStores(userId) {
     import('./useNotificationStore'),
     import('./useGroupStore'),
   ])
+  return { useApplicationStore, useSubscriptionStore, useMemberStore, useFavoriteStore, useConversationStore, useNotificationStore, useGroupStore }
+}
+
+async function initPrivateStores(userId) {
+  const {
+    useApplicationStore,
+    useSubscriptionStore,
+    useMemberStore,
+    useFavoriteStore,
+    useConversationStore,
+    useNotificationStore,
+    useGroupStore,
+  } = await importPrivateStores()
   await Promise.all([
     useGroupStore.getState().init({ all: true }),
     useApplicationStore.getState().init(),
@@ -33,23 +46,15 @@ async function initPrivateStores(userId) {
 }
 
 async function clearPrivateStores() {
-  const [
-    { useApplicationStore },
-    { useSubscriptionStore },
-    { useMemberStore },
-    { useFavoriteStore },
-    { useConversationStore },
-    { useNotificationStore },
-    { useGroupStore },
-  ] = await Promise.all([
-    import('./useApplicationStore'),
-    import('./useSubscriptionStore'),
-    import('./useMemberStore'),
-    import('./useFavoriteStore'),
-    import('./useConversationStore'),
-    import('./useNotificationStore'),
-    import('./useGroupStore'),
-  ])
+  const {
+    useApplicationStore,
+    useSubscriptionStore,
+    useMemberStore,
+    useFavoriteStore,
+    useConversationStore,
+    useNotificationStore,
+    useGroupStore,
+  } = await importPrivateStores()
   useConversationStore.getState().teardown()
   useNotificationStore.getState().teardown()
   useApplicationStore.setState({ applications: [] })

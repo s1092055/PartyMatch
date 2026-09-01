@@ -1,4 +1,4 @@
-import { isEffectivelyActive } from './groupStatus'
+import { isEffectivelyActive, canReportServiceIssue } from './groupStatus'
 import { hasFilledServiceInfo, isSharedCredentialsMethod } from './serviceInfoFields'
 
 export function getMemberJoinedBadgeVariant(status, isMember) {
@@ -24,7 +24,7 @@ export function getSubscriptionBadgeStatus(sub) {
 }
 
 export function getSubscriptionBillingDisplay(rawStatus) {
-  const isPreBillingLock = rawStatus === 'pending_confirmation' || rawStatus === 'pending_activation'
+  const isPreBillingLock = canReportServiceIssue(rawStatus)
   const showsBillingDate = isPreBillingLock || rawStatus === 'confirming' || rawStatus === 'disputed'
   return { isPreBillingLock, showsBillingDate }
 }
