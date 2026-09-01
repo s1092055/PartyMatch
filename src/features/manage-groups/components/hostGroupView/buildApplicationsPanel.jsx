@@ -4,7 +4,7 @@ import EmptyState from '../../../../components/ui/primitives/EmptyState'
 import { CENTERED_PANEL_BODY_CLASS } from '../../../../components/ui/group/panelLayout'
 import ApplicationCard from './ApplicationCard'
 
-export function buildApplicationsPanel({ pendingApps, groupFull, errors, onApprove, onReject, setShowReviewHistory }) {
+export function buildApplicationsPanel({ pendingApps, groupFull, errors, submittingIds, onApprove, onReject, setShowReviewHistory }) {
   return {
     content: (
       <div className={`relative flex min-h-full flex-col ${CENTERED_PANEL_BODY_CLASS}`}>
@@ -20,6 +20,7 @@ export function buildApplicationsPanel({ pendingApps, groupFull, errors, onAppro
                 app={app}
                 groupFull={groupFull}
                 error={errors?.[app.id]}
+                submitting={submittingIds?.has(app.id)}
                 onApprove={onApprove}
                 onReject={onReject}
               />

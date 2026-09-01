@@ -16,6 +16,7 @@ export default function ManageGroupsPage() {
 
   const {
     errors,
+    submittingIds,
     viewGroupId, setViewGroupId,
     autoOpenLockGroup, setAutoOpenLockGroup,
     autoOpenActivate, setAutoOpenActivate,
@@ -94,6 +95,7 @@ export default function ManageGroupsPage() {
         onReject={handleReject}
         onAdjustBillingDate={handleAdjustBillingDate}
         errors={errors}
+        submittingIds={submittingIds}
         autoOpenLockGroup={autoOpenLockGroup}
         autoOpenActivate={autoOpenActivate}
         onAutoOpenActivateDone={() => setAutoOpenActivate(false)}

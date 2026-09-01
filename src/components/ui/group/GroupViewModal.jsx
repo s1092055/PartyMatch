@@ -9,7 +9,7 @@ import MemberGroupView from '../../../features/subscriptions/components/MemberGr
 export default function GroupViewModal({
   isOpen, onClose, groupId,
   onReportServiceInfoIssue, onResolveDispute, onEscalateDispute, onActivate, onLockGroup, onCancelGroup, onRemoveMember,
-  onLeaveGroup, onApprove, onReject, onAdjustBillingDate, errors,
+  onLeaveGroup, onApprove, onReject, onAdjustBillingDate, errors, submittingIds,
   autoOpenLockGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling, autoOpenMemberInfo,
   onOpenRenewal, autoOpenCredentials,
 }) {
@@ -43,7 +43,7 @@ export default function GroupViewModal({
       onRemoveMember={onRemoveMember}
       onActivate={onActivate} onLockGroup={onLockGroup} onCancelGroup={onCancelGroup}
       onApprove={onApprove} onReject={onReject} onAdjustBillingDate={onAdjustBillingDate}
-      errors={errors} onClose={onClose}
+      errors={errors} submittingIds={submittingIds} onClose={onClose}
       autoOpenLockGroup={autoOpenLockGroup}
       autoOpenActivate={autoOpenActivate}
       onAutoOpenActivateDone={onAutoOpenActivateDone}

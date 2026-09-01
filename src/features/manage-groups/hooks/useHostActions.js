@@ -54,6 +54,7 @@ export function useHostActions(activeUser) {
 
   const [hostData, setHostData] = useState(() => loadHostData(activeUser))
   const [errors, setErrors] = useState({})
+  const [submittingIds, setSubmittingIds] = useState(new Set())
 
   const [viewGroupId, setViewGroupId]                     = useState(null)
   const [autoOpenLockGroup, setAutoOpenLockGroup] = useState(false)
@@ -307,6 +308,7 @@ async function handleActivate() {
 async function handleApprove(appId) {
     const app = applications.find(a => a.id === appId)
     if (!app || app.status !== 'pending') return
+    if (submittingIds.has(appId)) return
 
     const group = getGroupById(app.groupId) ?? allGroups.find(g => g.id === app.groupId)
     if (!group) {
@@ -322,6 +324,7 @@ async function handleApprove(appId) {
       return
     }
 
+    setSubmittingIds(prev => new Set(prev).add(appId))
     try {
       await updateApplicationStatus(appId, 'approved')
     } catch (err) {
@@ -330,6 +333,8 @@ async function handleApprove(appId) {
       setErrors(prev => ({ ...prev, [appId]: '接受失敗，請稍後再試' }))
       await useApplicationStore.getState().init()
       return
+    } finally {
+      setSubmittingIds(prev => { const next = new Set(prev); next.delete(appId); return next })
     }
     await Promise.all([
       useMemberStore.getState().init(),
@@ -352,7 +357,9 @@ async function handleApprove(appId) {
   async function handleReject(appId) {
     const app = applications.find(a => a.id === appId)
     if (!app || app.status !== 'pending') return
+    if (submittingIds.has(appId)) return
 
+    setSubmittingIds(prev => new Set(prev).add(appId))
     try {
       await updateApplicationStatus(appId, 'rejected')
     } catch (err) {
@@ -361,6 +368,8 @@ async function handleApprove(appId) {
       setErrors(prev => ({ ...prev, [appId]: '拒絕失敗，請稍後再試' }))
       await useApplicationStore.getState().init()
       return
+    } finally {
+      setSubmittingIds(prev => { const next = new Set(prev); next.delete(appId); return next })
     }
 
     useGroupStore.getState().refreshGroup(app.groupId).catch(console.error);
@@ -386,6 +395,7 @@ async function handleApprove(appId) {
 
   return {
     errors,
+    submittingIds,
     viewGroupId, setViewGroupId,
     autoOpenLockGroup, setAutoOpenLockGroup,
     autoOpenActivate, setAutoOpenActivate,

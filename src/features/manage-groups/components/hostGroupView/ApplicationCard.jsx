@@ -13,7 +13,7 @@ const APP_STATUS_BADGE = {
   removed:  { cls: 'bg-danger-subtle text-danger-text',   label: '已移除' },
 }
 
-export default function ApplicationCard({ app, groupFull, error, onApprove, onReject }) {
+export default function ApplicationCard({ app, groupFull, error, submitting, onApprove, onReject }) {
   const [expanded, setExpanded] = useState(false)
   const name    = app.applicantName ?? app.userName ?? '申請者'
   const initial = app.applicantAvatarInitial ?? app.userAvatarInitial ?? name[0]
@@ -65,7 +65,8 @@ export default function ApplicationCard({ app, groupFull, error, onApprove, onRe
               <Button
                 variant="default"
                 onClick={() => onApprove(app.id)}
-                disabled={groupFull}
+                disabled={groupFull || submitting}
+                loading={submitting}
                 className="h-auto flex-1 rounded-lg py-2 text-xs"
               >
                 {groupFull ? '已額滿' : <><Check size={12} strokeWidth={1.5} /> 接受</>}
@@ -73,6 +74,8 @@ export default function ApplicationCard({ app, groupFull, error, onApprove, onRe
               <Button
                 variant="destructive"
                 onClick={() => onReject(app.id)}
+                disabled={submitting}
+                loading={submitting}
                 className="h-auto flex-1 rounded-lg py-2 text-xs"
               >
                 <X size={12} strokeWidth={1.5} /> 拒絕

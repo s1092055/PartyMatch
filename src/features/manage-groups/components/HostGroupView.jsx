@@ -33,7 +33,7 @@ import { buildBillingPanel } from './hostGroupView/buildBillingPanel'
 import { buildMemberInfoPanel } from './hostGroupView/buildMemberInfoPanel'
 
 export default function HostGroupView(
-  { group, members, applications, onReportServiceInfoIssue, onResolveDispute, onEscalateDispute, onRemoveMember, onActivate, onLockGroup, onCancelGroup, onApprove, onReject, onAdjustBillingDate, errors, onClose, autoOpenLockGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling, autoOpenMemberInfo, onOpenRenewal }
+  { group, members, applications, onReportServiceInfoIssue, onResolveDispute, onEscalateDispute, onRemoveMember, onActivate, onLockGroup, onCancelGroup, onApprove, onReject, onAdjustBillingDate, errors, submittingIds, onClose, autoOpenLockGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling, autoOpenMemberInfo, onOpenRenewal }
 ) {
   const [showActivate, setShowActivate]                   = useState(false)
   const [removingMember, setRemovingMember]               = useState(null)
@@ -348,7 +348,7 @@ export default function HostGroupView(
         showReviewButton: hasBeenActive,
       })
     }
-    if (activePanel === 'applications') return buildApplicationsPanel({ pendingApps, groupFull, errors, onApprove, onReject, setShowReviewHistory: openReviewHistory })
+    if (activePanel === 'applications') return buildApplicationsPanel({ pendingApps, groupFull, errors, submittingIds, onApprove, onReject, setShowReviewHistory: openReviewHistory })
     if (activePanel === 'billing') return buildBillingPanel({ members, groupMembers: group.members, transactions, transactionsLoading, showRenewal, currentCycle: group.currentCycle, isCancelled })
     if (activePanel === 'memberInfo') {
       return buildMemberInfoPanel({
