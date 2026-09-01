@@ -97,14 +97,6 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
         </div>
       );
     }
-    if (msg.actionType === 'member_filled_service_info') {
-      return (
-        <div key={msg.id} className="flex justify-center">
-          <p className="rounded-full bg-raised px-3 py-1 text-xs text-ink-3">{msg.text}</p>
-        </div>
-      )
-    }
-
     if (msg.actionType === 'all_service_info_filled') {
       return (
         <div key={msg.id} className="flex justify-center">
