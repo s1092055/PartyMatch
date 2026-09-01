@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowUpCircle, Banknote, ChevronDown } from 'lucide-react'
+import { ArrowUpCircle, ChevronDown } from 'lucide-react'
 import { Avatar } from '../../../../components/ui/avatar'
 import { PresenceDot } from '../../../../common/layout/components/navShared'
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '../../../../components/ui/collapsible'
@@ -50,22 +50,27 @@ export default function BillingCycleSection({ cycle, isCurrentCycle, transaction
   const refundedTotal = transactions.filter(tx => tx.type === 'refund').reduce((sum, tx) => sum + Math.abs(tx.amount), 0)
   const outstanding   = Math.max(0, escrowTotal - releasedTotal - refundedTotal)
 
-  const statusLabel = isCancelled ? '已退款' : releasedTotal > 0 ? '已撥款' : '代管中'
+  const statusLabel = isCancelled
+    ? '已退款'
+    : releasedTotal > 0
+      ? '已撥款'
+      : outstanding > 0
+        ? '代管中'
+        : null
   const memberRows = buildMemberRows(transactions, isCancelled)
 
   return (
     <div className="overflow-hidden rounded-lg border border-line">
       <Collapsible open={open} onOpenChange={setOpen}>
         <CollapsibleTrigger asChild>
-          <button type="button" className="flex w-full items-center justify-between gap-2 bg-raised px-4 py-3 text-left">
+          <button type="button" className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left">
             <span className="flex items-center gap-2 text-sm font-bold text-ink">
-              第 {cycle} 期
-              {isCurrentCycle && (
-                <span className="rounded-full bg-brand-subtle px-2 py-0.5 text-2xs font-semibold text-brand">本期</span>
-              )}
+              {isCurrentCycle ? '本期代管費用' : `第 ${cycle} 期`}
             </span>
             <span className="flex shrink-0 items-center gap-2">
-              <span className="text-xs text-ink-3">{statusLabel}</span>
+              {statusLabel && (
+                <span className={`text-xs ${statusLabel === '代管中' ? 'font-semibold text-success-text' : 'text-ink-3'}`}>{statusLabel}</span>
+              )}
               <ChevronDown size={16} strokeWidth={1.5} className={`text-ink-4 transition-transform ${open ? 'rotate-180' : ''}`} />
             </span>
           </button>
@@ -78,9 +83,6 @@ export default function BillingCycleSection({ cycle, isCurrentCycle, transaction
               )
             ) : (
               <>
-                {outstanding > 0 && (
-                  <EscrowStatusCard tone="info" icon={Banknote} title="本期費用由平台代管中" amount={outstanding} />
-                )}
                 {releasedTotal > 0 && (
                   <EscrowStatusCard tone="success" icon={ArrowUpCircle} title="已撥款給你的代管總額" amount={releasedTotal} />
                 )}
