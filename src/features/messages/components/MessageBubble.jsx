@@ -6,8 +6,8 @@ import { Avatar } from '../../../components/ui/avatar'
 import ImageLightbox from '../../../components/ui/ImageLightbox'
 import { PresenceDot } from '../../../common/layout/components/navShared'
 import { useMemberStore } from '../../../common/stores/useMemberStore'
-import { getServiceById } from '../../../common/utils/serviceUtils'
-import { hasFilledServiceInfo, getServiceInfoSummary, isSharedCredentialsMethod } from '../../../common/utils/serviceInfoFields'
+import { hasFilledServiceInfo, getServiceInfoSummary } from '../../../common/utils/serviceInfoFields'
+import { getFillServiceInfoDisplay } from '../../../common/utils/messageActionDisplay'
 import { formatTime } from '../utils'
 
 const getMemberByUserAndGroup = (uid, gid) => useMemberStore.getState().getByUserAndGroup(uid, gid)
@@ -54,12 +54,9 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
   if (msg.type === 'action') {
     if (msg.visibleTo && !msg.visibleTo.includes(userId)) return null
     if (msg.actionType === 'fill_service_info') {
-      const isHost = userId === hostId
       const fillServiceId = msg.payload?.serviceId
-      const sharingMethod = getServiceById(fillServiceId)?.sharingMethod
-      const isSharedCredentials = isSharedCredentialsMethod(sharingMethod)
       const myMember = getMemberByUserAndGroup(userId, conversationGroupId);
-      const iAlreadyFilled = isHost || (hasFilledServiceInfo(myMember?.serviceInfo, sharingMethod, fillServiceId) && !myMember?.serviceInfoIssueNote)
+      const { sharingMethod, isSharedCredentials, iAlreadyFilled } = getFillServiceInfoDisplay({ userId, hostId, fillServiceId, myMember })
       return (
         <div key={msg.id} className="flex justify-center">
           <div className="w-72 rounded-2xl border border-line bg-surface p-4 shadow-card">

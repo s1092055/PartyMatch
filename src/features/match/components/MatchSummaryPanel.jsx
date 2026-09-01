@@ -3,13 +3,14 @@ import { getServiceById } from '../../../common/utils/serviceUtils'
 import ServiceLogo from '../../../components/ui/ServiceLogo'
 import PriceRangeAmount from '../../../components/ui/PriceRangeAmount'
 import { formatPriceRangeLabel } from '../utils/priceRangeLabel'
-
-const GROUP_AGE_LABEL = { any: '不限', new: '三個月內', established: '三個月至一年', veteran: '一年以上' }
+import { getMatchSummaryRows } from '../utils/matchSummaryDisplay'
 
 export default function MatchSummaryPanel({ conditions, filtersChosen, onRemoveService }) {
   const { services, selectedPlans = {}, keyword, minPrice, maxPrice, minRating, groupAge } = conditions
   const priceLabel = formatPriceRangeLabel(minPrice, maxPrice)
   const isEmpty = services.length === 0
+  const { keywordText, keywordMuted, ratingText, ratingMuted, groupAgeText, groupAgeMuted } =
+    getMatchSummaryRows({ filtersChosen, keyword, minRating, groupAge })
 
   return (
     <div className="flex h-full flex-col gap-5 rounded-2xl bg-surface p-5">
@@ -54,18 +55,14 @@ export default function MatchSummaryPanel({ conditions, filtersChosen, onRemoveS
       </div>
 
       <div className="shrink-0 space-y-4 border-t border-line-subtle pt-4">
-        <Row
-          label="關鍵字"
-          value={filtersChosen && keyword?.trim() ? keyword.trim() : '未輸入'}
-          muted={!filtersChosen || !keyword?.trim()}
-        />
+        <Row label="關鍵字" value={keywordText} muted={keywordMuted} />
         <Row
           label="申請費用/人"
           value={!filtersChosen ? '尚未選擇' : <PriceRangeAmount label={priceLabel} badgeClassName="!h-3.5 !w-3.5" />}
           muted={!filtersChosen || priceLabel == null}
         />
-        <Row label="團主信用分數" value={!filtersChosen ? '尚未選擇' : minRating > 0 ? `${minRating} 分以上` : '不限'} muted={!filtersChosen || minRating === 0} />
-        <Row label="群組年資" value={filtersChosen ? (GROUP_AGE_LABEL[groupAge] ?? '不限') : '尚未選擇'} muted={!filtersChosen || groupAge === 'any'} />
+        <Row label="團主信用分數" value={ratingText} muted={ratingMuted} />
+        <Row label="群組年資" value={groupAgeText} muted={groupAgeMuted} />
       </div>
     </div>
   )

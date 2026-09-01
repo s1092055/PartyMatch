@@ -2,14 +2,9 @@ import { useState } from 'react'
 import PriceRangeAmount from '../../../../components/ui/PriceRangeAmount'
 import { Slider } from '../../../../components/ui/slider'
 import { formatPriceRangeLabel } from '../../utils/priceRangeLabel'
-import { PRICE_MIN, DEFAULT_PRICE_MAX, PRICE_MAX_CAP } from '../../utils/priceRangeDefaults'
+import { PRICE_MIN, DEFAULT_PRICE_MAX, PRICE_MAX_CAP, parsePriceValue, clampPrice, nearestRatingMark } from '../../utils/priceRangeDefaults'
 
 const RATING_MARKS = [60, 70, 80, 90]
-
-function activeRatingMark(minRating) {
-  if (minRating <= 0) return null
-  return RATING_MARKS.reduce((closest, mark) => (mark <= minRating ? mark : closest), null)
-}
 
 export default function Step3Filters({ conditions, onChange }) {
   const isUnlimitedPrice = conditions.minPrice == null && conditions.maxPrice == null
@@ -56,17 +51,16 @@ export default function Step3Filters({ conditions, onChange }) {
   }
 
   function applyPriceScale(raw) {
-    if (!raw) { applyMaxLimit(DEFAULT_PRICE_MAX); return }
-    const num = Number(raw)
-    if (!Number.isFinite(num)) return
-    applyMaxLimit(Math.min(PRICE_MAX_CAP, Math.max(PRICE_MIN, Math.round(num))))
+    const parsed = parsePriceValue(raw)
+    if (parsed.kind === 'empty') { applyMaxLimit(DEFAULT_PRICE_MAX); return }
+    if (parsed.kind === 'invalid') return
+    applyMaxLimit(clampPrice(parsed.value, PRICE_MIN, PRICE_MAX_CAP))
   }
 
   function commitPriceScaleInput(raw) {
-    if (!raw) { applyMaxLimit(DEFAULT_PRICE_MAX); return }
-    const num = Number(raw)
-    if (!Number.isFinite(num)) { applyMaxLimit(DEFAULT_PRICE_MAX); return }
-    applyMaxLimit(Math.min(PRICE_MAX_CAP, Math.max(PRICE_MIN + 10, Math.round(num))))
+    const parsed = parsePriceValue(raw)
+    if (parsed.kind !== 'value') { applyMaxLimit(DEFAULT_PRICE_MAX); return }
+    applyMaxLimit(clampPrice(parsed.value, PRICE_MIN + 10, PRICE_MAX_CAP))
   }
 
   function applyMinLimit(clamped) {
@@ -77,17 +71,16 @@ export default function Step3Filters({ conditions, onChange }) {
   }
 
   function applyPriceMinInput(raw) {
-    if (!raw) { applyMinLimit(PRICE_MIN); return }
-    const num = Number(raw)
-    if (!Number.isFinite(num)) return
-    applyMinLimit(Math.min(PRICE_MAX_CAP, Math.max(PRICE_MIN, Math.round(num))))
+    const parsed = parsePriceValue(raw)
+    if (parsed.kind === 'empty') { applyMinLimit(PRICE_MIN); return }
+    if (parsed.kind === 'invalid') return
+    applyMinLimit(clampPrice(parsed.value, PRICE_MIN, PRICE_MAX_CAP))
   }
 
   function commitPriceMinInput(raw) {
-    if (!raw) { applyMinLimit(PRICE_MIN); return }
-    const num = Number(raw)
-    if (!Number.isFinite(num)) { applyMinLimit(PRICE_MIN); return }
-    applyMinLimit(Math.min(PRICE_MAX_CAP, Math.max(PRICE_MIN, Math.round(num))))
+    const parsed = parsePriceValue(raw)
+    if (parsed.kind !== 'value') { applyMinLimit(PRICE_MIN); return }
+    applyMinLimit(clampPrice(parsed.value, PRICE_MIN, PRICE_MAX_CAP))
   }
 
   return (
@@ -184,7 +177,7 @@ export default function Step3Filters({ conditions, onChange }) {
               key={r}
               onClick={() => onChange('minRating', r)}
               className={`flex-1 rounded-lg border-2 py-2.5 text-sm font-medium transition-colors ${
-                activeRatingMark(conditions.minRating) === r
+                nearestRatingMark(conditions.minRating, RATING_MARKS) === r
                   ? 'border-brand bg-brand-subtle text-brand'
                   : 'border-line bg-surface text-ink-2 hover:border-line-strong'
               }`}
