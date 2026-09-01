@@ -138,7 +138,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
         <div className="max-w-[70%]">
 
 
-          <div className="ml-auto w-fit rounded-2xl rounded-tr-md bg-brand px-4 py-2.5 text-sm text-white">
+          <div className="ml-auto w-fit rounded-2xl rounded-tr-md border border-brand-hover bg-brand px-4 py-2.5 text-sm text-white">
             {msg.text}
             <MessageAttachment url={msg.attachmentUrl} />
           </div>
@@ -158,7 +158,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
       </span>
       <div className="max-w-[70%]">
         <p className="mb-1 text-xs font-bold text-ink-3">{getMessageSenderName(msg)}</p>
-        <div className="w-fit rounded-2xl rounded-tl-md bg-surface px-4 py-2.5 text-sm text-ink shadow-card">
+        <div className="w-fit rounded-2xl rounded-tl-md border border-line bg-surface px-4 py-2.5 text-sm text-ink shadow-card">
           {msg.text}
           <MessageAttachment url={msg.attachmentUrl} />
         </div>
