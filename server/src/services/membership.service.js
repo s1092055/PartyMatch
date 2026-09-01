@@ -1,7 +1,6 @@
 import prisma from '../lib/prisma.js'
 import { computeSeatCost } from '../utils/pricing.js'
 import { refundEscrow } from '../utils/membership.js'
-import { adjustCreditScore } from '../utils/creditScore.js'
 import { notify, claimGroupStatus } from '../routes/groups/shared.js'
 
 function httpError(statusCode, message) {
@@ -49,9 +48,6 @@ export async function removeMember({ memberId, actorId }) {
       amount:  refundAmount,
       note:    isHost ? '被團主移除，代管退款' : '自行退出，代管退款',
     })
-    if (isHost) {
-      await adjustCreditScore(tx, { userId: existing.userId, delta: -10, reason: '被移除出群組', groupId: existing.groupId })
-    }
     await tx.application.updateMany({
       where: { groupId: existing.groupId, userId: existing.userId, status: 'approved' },
       data:  { status: isHost ? 'removed' : 'left', activeKey: null },
