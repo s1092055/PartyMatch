@@ -44,7 +44,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
 
   if (msg.type === 'system') {
     return (
-      <div key={msg.id} className="flex justify-center">
+      <div className="flex justify-center">
         <div className="max-w-xs whitespace-pre-line rounded-2xl bg-raised px-4 py-2 text-center text-xs text-ink-3">
           {msg.text}
         </div>
@@ -58,7 +58,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
       const myMember = getMemberByUserAndGroup(userId, conversationGroupId);
       const { sharingMethod, isSharedCredentials, iAlreadyFilled } = getFillServiceInfoDisplay({ userId, hostId, fillServiceId, myMember })
       return (
-        <div key={msg.id} className="flex justify-center">
+        <div className="flex justify-center">
           <div className="w-72 rounded-2xl border border-line bg-surface p-4 shadow-card">
             <p className="mb-2 text-xs font-semibold text-ink-2">{isSharedCredentials ? '帳號資訊提取進度' : '服務帳號填寫進度'}</p>
             <div className="space-y-2">
@@ -99,7 +99,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
     }
     if (msg.actionType === 'all_service_info_filled') {
       return (
-        <div key={msg.id} className="flex justify-center">
+        <div className="flex justify-center">
           <div className="w-64 rounded-2xl border border-success/30 bg-success-subtle px-4 py-3 text-center shadow-success">
             <p className="mb-2 text-xs text-ink-2">{msg.text}</p>
             <Button
@@ -123,7 +123,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
   if (isMine) {
     const readReceiptNames = getReadReceiptNames(msg)
     return (
-      <div key={msg.id} className="flex justify-end">
+      <div className="flex justify-end">
         <div className="max-w-[70%]">
 
 
@@ -140,7 +140,7 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
     );
   }
   return (
-    <div key={msg.id} className="flex items-end gap-2">
+    <div className="flex items-end gap-2">
       <span className="relative mb-6 inline-block shrink-0">
         <Avatar initial={msg.avatarInitial} color={msg.avatarColor} size="sm" className="text-xs" />
         <PresenceDot status={msg.presenceStatus} className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5" />
