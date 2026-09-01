@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
-  Banknote, CheckCircle2, Clock, Info, LogOut, MessageCircle, Star, Users, ClipboardEdit, AlertTriangle, TriangleAlert, KeyRound,
+  Banknote, CheckCircle2, Clock, Info, LogOut, MessageCircle, Users, ClipboardEdit, AlertTriangle, TriangleAlert, KeyRound,
 } from 'lucide-react'
-import { Avatar } from '../../../components/ui/avatar'
-import { PresenceDot } from '../../../common/layout/components/navShared'
 import { Button } from '../../../components/ui/button'
 import ConfirmActionDialog from '../../../components/ui/ConfirmActionDialog'
 import ConfirmServiceModal from './ConfirmServiceModal'
@@ -15,6 +13,7 @@ import ReviewUserModal from './ReviewUserModal'
 import FillServiceInfoModal from './FillServiceInfoModal'
 import DisputeModal from './DisputeModal'
 import ReportPlatformIssueModal from '../../group/components/ReportPlatformIssueModal'
+import { buildMembersPanel } from './memberGroupView/buildMembersPanel'
 import { buildPaymentsPanel } from './memberGroupView/buildPaymentsPanel'
 import { buildCredentialsPanel } from './memberGroupView/buildCredentialsPanel'
 import { getServiceById } from '../../../common/utils/serviceUtils'
@@ -377,103 +376,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
 
   function buildSubPanel() {
     if (activePanel === 'members') {
-      return {
-        content: (
-          <div className="p-5 space-y-2">
-            <div className="rounded-lg border border-line p-3">
-              <div className="flex items-center gap-3">
-                <span className="relative inline-block shrink-0">
-                  <Avatar initial={group.hostAvatarInitial} color={group.hostAvatarColor} size="sm" />
-                  <PresenceDot status={group.hostPresenceStatus} className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-semibold text-ink">{group.hostName}</p>
-                    <span className="shrink-0 rounded-full bg-brand-subtle px-2.5 py-0.5 text-xs font-semibold text-brand">
-                      團主
-                    </span>
-                  </div>
-                  <p className="text-xs text-ink-3">{group.createdAt} 建立</p>
-                </div>
-                <div className="flex shrink-0 items-center gap-1">
-                  {showReviewHostButton && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label={`評價${group.hostName}`}
-                      onClick={() => setReviewPrompt({})}
-                      className="text-ink-3 hover:text-warning"
-                    >
-                      <Star strokeWidth={1.5} size={20} />
-                    </Button>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label={`私訊${group.hostName}`}
-                    onClick={() => {
-                      setActivePanel(null)
-                      onClose()
-                      window.dispatchEvent(new CustomEvent('pm:open-dm', {
-                        detail: { hostId: group.hostId, hostName: group.hostName, hostAvatarInitial: group.hostAvatarInitial, hostAvatarColor: group.hostAvatarColor },
-                      }))
-                    }}
-                    className="text-ink-3 hover:text-brand"
-                  >
-                    <MessageCircle strokeWidth={1.5} size={20} />
-                  </Button>
-                </div>
-              </div>
-            </div>
-            {members.filter(m => m.userId !== currentUser?.id).map(m => (
-              <div key={m.id} className="rounded-lg border border-line p-3">
-                <div className="flex items-center gap-3">
-                  <span className="relative inline-block shrink-0">
-                    <Avatar initial={m.userAvatarInitial} color={m.userAvatarColor} size="sm" />
-                    <PresenceDot status={m.userPresenceStatus} className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-ink">{m.userName}</p>
-                    <p className="text-xs text-ink-3">{m.joinedAt} 加入</p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label={`私訊${m.userName}`}
-                    onClick={() => {
-                      setActivePanel(null)
-                      onClose()
-                      window.dispatchEvent(new CustomEvent('pm:open-dm', {
-                        detail: { hostId: m.userId, hostName: m.userName, hostAvatarInitial: m.userAvatarInitial, hostAvatarColor: m.userAvatarColor },
-                      }))
-                    }}
-                    className="text-ink-3 hover:text-brand"
-                  >
-                    <MessageCircle strokeWidth={1.5} size={20} />
-                  </Button>
-                </div>
-              </div>
-            ))}
-            {myMember && (
-              <div className="rounded-lg border border-line p-3">
-                <div className="flex items-center gap-3">
-                  <span className="relative inline-block shrink-0">
-                    <Avatar initial={myMember.userAvatarInitial} color={myMember.userAvatarColor} size="sm" />
-                    <PresenceDot status={myMember.userPresenceStatus} className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-ink">
-                      {myMember.userName}
-                      <span className="ml-1.5 text-xs font-normal text-brand">（你）</span>
-                    </p>
-                    <p className="text-xs text-ink-3">{myMember.joinedAt} 加入</p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        ),
-      }
+      return buildMembersPanel({ group, members, currentUser, myMember, showReviewHostButton, setActivePanel, onClose, setReviewPrompt })
     }
 
     if (activePanel === 'payments') return buildPaymentsPanel({ group, member: myMember, transactions, transactionsLoading })
