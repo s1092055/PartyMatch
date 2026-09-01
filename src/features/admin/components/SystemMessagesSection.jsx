@@ -1,10 +1,12 @@
 import { useState } from 'react'
-import { Megaphone, Send, CheckCircle2 } from 'lucide-react'
+import { Megaphone, Send } from 'lucide-react'
 import { toast } from '../../../common/utils/toast'
 import { Card } from '../../../components/ui/card'
 import { Button } from '../../../components/ui/button'
 import { Input, Textarea } from '../../../components/ui/input'
 import ConfirmActionDialog from '../../../components/ui/ConfirmActionDialog'
+import FoundUserCard from './FoundUserCard'
+import { useEmailLookup } from '../hooks/useEmailLookup'
 import { broadcastSystemMessage, sendDirectSystemMessage } from '../../../common/api/systemMessagesApi'
 import { findUserByEmail } from '../../../common/api/usersApi'
 
@@ -13,11 +15,18 @@ export default function SystemMessagesSection() {
   const [broadcasting, setBroadcasting]         = useState(false)
   const [confirmBroadcast, setConfirmBroadcast] = useState(false)
 
-  const [directEmail, setDirectEmail]     = useState('')
+  const {
+    email: directEmail,
+    setEmail: setDirectEmail,
+    target: directTarget,
+    setTarget: setDirectTarget,
+    error: directLookupError,
+    setError: setDirectLookupError,
+    loading: lookingUp,
+    handleLookup: handleLookupUser,
+    reset: resetDirectTarget,
+  } = useEmailLookup(findUserByEmail)
   const [directContent, setDirectContent] = useState('')
-  const [directTarget, setDirectTarget]   = useState(null);
-  const [directLookupError, setDirectLookupError] = useState('')
-  const [lookingUp, setLookingUp]         = useState(false)
   const [sendingDirect, setSendingDirect] = useState(false)
 
   async function handleBroadcast() {
@@ -32,27 +41,6 @@ export default function SystemMessagesSection() {
     } finally {
       setBroadcasting(false)
     }
-  }
-
-  async function handleLookupUser(e) {
-    e.preventDefault()
-    if (!directEmail.trim()) return
-    setLookingUp(true)
-    setDirectLookupError('')
-    setDirectTarget(null)
-    try {
-      const user = await findUserByEmail(directEmail.trim())
-      setDirectTarget(user)
-    } catch (err) {
-      setDirectLookupError(err?.message ?? '查詢失敗，請稍後再試')
-    } finally {
-      setLookingUp(false)
-    }
-  }
-
-  function resetDirectTarget() {
-    setDirectTarget(null)
-    setDirectLookupError('')
   }
 
   async function handleSendDirect(e) {
@@ -145,20 +133,7 @@ export default function SystemMessagesSection() {
           </form>
         ) : (
           <form onSubmit={handleSendDirect} className="space-y-3">
-            <div className="flex items-center justify-between gap-2 rounded-lg bg-brand-subtle px-3 py-2">
-              <div className="flex items-center gap-2 text-sm text-ink">
-                <CheckCircle2 strokeWidth={1.5} size={14} className="shrink-0 text-brand" />
-                <span className="font-semibold">{directTarget.name}</span>
-                <span className="text-ink-4">{directTarget.email}</span>
-              </div>
-              <button
-                type="button"
-                onClick={resetDirectTarget}
-                className="shrink-0 text-xs font-semibold text-ink-3 underline-offset-2 hover:underline"
-              >
-                換一位
-              </button>
-            </div>
+            <FoundUserCard user={directTarget} onReset={resetDirectTarget} />
 
             <div>
               <label className="text-xs font-semibold text-ink-3 mb-1 block">訊息內容</label>

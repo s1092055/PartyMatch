@@ -31,8 +31,8 @@ export default function RegisterPage() {
   const [verifyingType, setVerifyingType] = useState(null);
   const [touched, setTouched] = useState({})
 
-  const validationError = getValidationError(form, accepted, emailVerified, phoneVerified)
   const fieldErrors = getFieldErrors(form, emailVerified, phoneVerified, accepted)
+  const hasValidationError = Object.values(fieldErrors).some(Boolean)
 
   function markTouched(key) {
     setTouched(prev => (prev[key] ? prev : { ...prev, [key]: true }))
@@ -48,7 +48,7 @@ export default function RegisterPage() {
 
   async function handleSubmit(e) {
     e.preventDefault()
-    if (validationError) {
+    if (hasValidationError) {
       setTouched({ name: true, email: true, phoneLocal: true, password: true, confirmPassword: true, accepted: true })
       return
     }
@@ -215,18 +215,4 @@ function getFieldErrors(form, emailVerified, phoneVerified, accepted) {
     confirmPassword: form.confirmPassword !== form.password ? '確認密碼必須和密碼一致' : '',
     accepted: accepted ? '' : '請先同意服務條款與隱私政策',
   }
-}
-
-function getValidationError(form, accepted, emailVerified, phoneVerified) {
-  if (!form.name.trim()) return '請輸入顯示名稱'
-  if (!form.email.trim()) return '請輸入電子郵件'
-  if (!isValidEmail(form.email.trim())) return '請輸入正確的電子郵件格式'
-  if (!form.phoneLocal.trim()) return '請輸入手機號碼'
-  if (!PHONE_REGEX.test(toE164(form.phoneCountryCode, form.phoneLocal))) return '請輸入正確的手機號碼格式'
-  if (!emailVerified) return '請先完成信箱驗證'
-  if (!phoneVerified) return '請先完成手機號碼驗證'
-  if (form.password.length < 6) return '密碼至少需要 6 碼'
-  if (form.confirmPassword !== form.password) return '確認密碼必須和密碼一致'
-  if (!accepted) return '請先同意服務條款與隱私政策'
-  return ''
 }

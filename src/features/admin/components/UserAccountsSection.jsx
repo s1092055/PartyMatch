@@ -1,40 +1,28 @@
 import { useState } from 'react'
-import { UserCog, Search, CheckCircle2, Lock, Unlock } from 'lucide-react'
+import { UserCog, Search, Lock, Unlock } from 'lucide-react'
 import { toast } from '../../../common/utils/toast'
 import { Card } from '../../../components/ui/card'
 import { Button } from '../../../components/ui/button'
 import { Input } from '../../../components/ui/input'
 import ConfirmActionDialog from '../../../components/ui/ConfirmActionDialog'
+import FoundUserCard from './FoundUserCard'
+import { useEmailLookup } from '../hooks/useEmailLookup'
 import { searchUserByEmail, reactivateUserApi } from '../../../common/api/adminApi'
 
 export default function UserAccountsSection() {
-  const [email, setEmail]       = useState('')
-  const [target, setTarget]     = useState(null)
-  const [lookupError, setLookupError] = useState('')
-  const [lookingUp, setLookingUp]     = useState(false)
+  const {
+    email,
+    setEmail,
+    target,
+    setTarget,
+    error: lookupError,
+    setError: setLookupError,
+    loading: lookingUp,
+    handleLookup,
+    reset: resetTarget,
+  } = useEmailLookup(searchUserByEmail)
   const [reactivating, setReactivating] = useState(false)
   const [confirmReactivate, setConfirmReactivate] = useState(false)
-
-  async function handleLookup(e) {
-    e.preventDefault()
-    if (!email.trim()) return
-    setLookingUp(true)
-    setLookupError('')
-    setTarget(null)
-    try {
-      const user = await searchUserByEmail(email.trim())
-      setTarget(user)
-    } catch (err) {
-      setLookupError(err?.message ?? '查詢失敗，請稍後再試')
-    } finally {
-      setLookingUp(false)
-    }
-  }
-
-  function resetTarget() {
-    setTarget(null)
-    setLookupError('')
-  }
 
   async function handleReactivate() {
     setConfirmReactivate(false)
@@ -77,20 +65,7 @@ export default function UserAccountsSection() {
         </form>
       ) : (
         <div className="space-y-3">
-          <div className="flex items-center justify-between gap-2 rounded-lg bg-brand-subtle px-3 py-2">
-            <div className="flex items-center gap-2 text-sm text-ink">
-              <CheckCircle2 strokeWidth={1.5} size={14} className="shrink-0 text-brand" />
-              <span className="font-semibold">{target.name}</span>
-              <span className="text-ink-4">{target.email}</span>
-            </div>
-            <button
-              type="button"
-              onClick={resetTarget}
-              className="shrink-0 text-xs font-semibold text-ink-3 underline-offset-2 hover:underline"
-            >
-              換一位
-            </button>
-          </div>
+          <FoundUserCard user={target} onReset={resetTarget} />
 
           <div className="flex items-center justify-between gap-2 rounded-lg border border-line px-3 py-2.5">
             {target.deactivatedAt ? (
