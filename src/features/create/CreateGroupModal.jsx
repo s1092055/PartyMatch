@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { AlertCircle, ChevronLeft, ChevronRight, Eye, Info, PlusCircle } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogCloseButton } from '../../components/ui/dialog'
+import ConfirmActionDialog from '../../components/ui/ConfirmActionDialog'
 import Step1Service from './components/steps/Step1Service'
 import Step2Plan from './components/steps/Step2Plan'
 import Step3Settings from './components/steps/Step3Settings'
@@ -95,6 +96,7 @@ export default function CreateGroupModal() {
   const [form, setForm] = useState(INITIAL_FORM)
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const bodyRef = useRef(null)
 
@@ -153,11 +155,28 @@ export default function CreateGroupModal() {
 
   function handleBack() {
     if (step <= 1) {
-      setOpen(false)
+      requestClose()
       return
     }
     setStep(s => s - 1)
     bodyRef.current?.scrollTo({ top: 0 })
+  }
+
+  function hasProgress() {
+    return step > 1 || !!form.serviceId
+  }
+
+  function requestClose() {
+    if (hasProgress()) {
+      setShowDiscardConfirm(true)
+      return
+    }
+    setOpen(false)
+  }
+
+  function confirmDiscard() {
+    setShowDiscardConfirm(false)
+    setOpen(false)
   }
 
   function handleSubmit() {
@@ -207,7 +226,7 @@ export default function CreateGroupModal() {
 
   return (
     <>
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={v => { if (!v) requestClose() }}>
         <DialogContent maxWidth="max-w-4xl" height="min(90dvh, 820px)">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -336,6 +355,18 @@ export default function CreateGroupModal() {
           <LivePreviewPanel form={form} />
         </DialogContent>
       </Dialog>
+
+      {showDiscardConfirm && (
+        <ConfirmActionDialog
+          title="放棄建立這個群組？"
+          message="目前選擇的服務、方案與群組設定都不會被保留。"
+          confirmLabel="放棄"
+          danger
+          countdownSeconds={0}
+          onConfirm={confirmDiscard}
+          onCancel={() => setShowDiscardConfirm(false)}
+        />
+      )}
     </>
   )
 }
