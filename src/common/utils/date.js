@@ -32,32 +32,6 @@ export function daysUntil(dateLike, baseDate = new Date()) {
   return Math.ceil((target - base) / 86400000)
 }
 
-function daysInMonth(year, monthIndex) {
-  return new Date(year, monthIndex + 1, 0).getDate()
-}
-
-function dateFromBillingDay(year, monthIndex, day) {
-  const safeDay = Math.min(day, daysInMonth(year, monthIndex))
-  return new Date(year, monthIndex, safeDay)
-}
-
-export function computeNextBillingDate(day, baseDate = new Date()) {
-  const billingDay = Number.parseInt(day, 10)
-  if (!Number.isInteger(billingDay) || billingDay < 1 || billingDay > 31) {
-    return ''
-  }
-
-  const today = new Date(baseDate)
-  today.setHours(0, 0, 0, 0)
-
-  let candidate = dateFromBillingDay(today.getFullYear(), today.getMonth(), billingDay)
-  if (candidate <= today) {
-    candidate = dateFromBillingDay(today.getFullYear(), today.getMonth() + 1, billingDay)
-  }
-
-  return toISODate(candidate)
-}
-
 export function advanceByCycle(date, billingCycle) {
   const d = new Date(date)
   if (billingCycle === 'yearly') d.setFullYear(d.getFullYear() + 1)

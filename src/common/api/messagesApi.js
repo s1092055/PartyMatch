@@ -36,16 +36,6 @@ export async function sendSystemMessage(conversationId, text) {
   return client.post(`/conversations/${conversationId}/messages`, { content: text, type: 'system' })
 }
 
-export async function sendActionMessage(conversationId, { text, actionType, payload = {}, visibleTo = null }) {
-  return client.post(`/conversations/${conversationId}/messages`, {
-    content:    text,
-    type:       'action',
-    actionType,
-    payload,
-    ...(visibleTo ? { visibleTo } : {}),
-  })
-}
-
 export async function markConversationRead(conversationId) {
   return client.patch(`/conversations/${conversationId}/read`)
 }

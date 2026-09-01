@@ -1,11 +1,5 @@
 export const DEFAULT_CREDIT_SCORE = 100
 
-export const CREDIT_RULES = {
-  PAYMENT_CONFIRMED: +2,
-  MEMBER_REMOVED: -10,
-  GROUP_ACTIVATED: +5,
-}
-
 export function getCreditDisplay(score) {
   if (score >= 90) return { label: '優良', color: 'text-success-text', bg: 'bg-success-subtle', border: 'border-success/30' }
   if (score >= 70) return { label: '良好', color: 'text-info-text',    bg: 'bg-info-subtle',    border: 'border-info/30' }
