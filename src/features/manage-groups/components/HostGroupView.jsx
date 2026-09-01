@@ -358,7 +358,14 @@ export default function HostGroupView(
         showReviewButton: hasBeenActive,
       })
     }
-    if (activePanel === 'applications') return buildApplicationsPanel({ pendingApps, groupFull, errors, submittingIds, onApprove, onReject, setShowReviewHistory: openReviewHistory })
+    if (activePanel === 'applications') {
+      // 接受申請可能讓群組從 recruiting 變成 full（額滿），停留在申請管理分頁不切換的話，
+      // 鎖定群組按鈕/banner 不會自己冒出來，所以接受/拒絕完成後（onApprove/onReject 本身
+      // 是 async function，resolve 時群組資料已經刷新完）額外強制重新同步一次 header 快照
+      const approveWithSync = appId => onApprove?.(appId)?.finally(() => setDataSyncTick(t => t + 1))
+      const rejectWithSync  = appId => onReject?.(appId)?.finally(() => setDataSyncTick(t => t + 1))
+      return buildApplicationsPanel({ pendingApps, groupFull, errors, submittingIds, onApprove: approveWithSync, onReject: rejectWithSync, setShowReviewHistory: openReviewHistory })
+    }
     if (activePanel === 'billing') {
       const pendingApplicantUserIds = new Set(pendingApps.map(a => a.applicantId ?? a.userId))
       return buildBillingPanel({ members, groupMembers: group.members, transactions, transactionsLoading, showRenewal, currentCycle: group.currentCycle, isCancelled, pendingApplicantUserIds })
@@ -617,7 +624,10 @@ export default function HostGroupView(
           message={`確定要將「${removingMember.userName}」移出群組嗎？`}
           confirmLabel="移除"
           danger
-          onConfirm={() => { onRemoveMember?.(removingMember); setRemovingMember(null) }}
+          onConfirm={() => {
+            onRemoveMember?.(removingMember)?.finally(() => setDataSyncTick(t => t + 1))
+            setRemovingMember(null)
+          }}
           onCancel={() => setRemovingMember(null)}
         />
       )}

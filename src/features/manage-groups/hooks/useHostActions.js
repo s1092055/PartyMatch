@@ -170,7 +170,10 @@ async function handleLockGroup(sharedCredentials) {
 
 function handleRemoveMember(member) {
     const group = getGroupById(member.groupId)
-    removeMember(member.id)
+    // 回傳這個 promise 讓呼叫端（HostGroupView）可以在群組資料真的刷新完後，
+    // 強制重新同步 header 快照——移除成員可能讓群組從 full 退回 recruiting，
+    // 停留在群組名單分頁不切換的話，鎖定群組按鈕/banner 不會自己消失
+    const removalDone = removeMember(member.id)
       .then(() => useGroupStore.getState().refreshGroup(member.groupId))
       .catch(console.error);
     const app = getApplicationByUserAndGroup(member.userId, member.groupId)
@@ -187,6 +190,8 @@ function handleRemoveMember(member) {
     if (group?.sharedCredentials && isSharedCredentialsMethod(getServiceById(group.serviceId)?.sharingMethod)) {
       toast('該成員已看過帳號密碼，建議盡快更改密碼避免帳號被繼續使用', 'warning', { persistent: true })
     }
+
+    return removalDone
   }
 
 async function handleActivate() {
