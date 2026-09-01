@@ -176,7 +176,11 @@ export default function GroupDetailModal() {
   const canApply = !isHost && !isMember && !hasActiveApp && !isFull && !!activeUserId
 
   function handleClose() {
-    resetSubViews()
+    // 不在這裡重置 showApply/showMembers 等子畫面 state：這個元件即使 isOpen 變 false 也不會真的
+    // unmount（只是 return null），如果在這裡先 setShowApply(false)，會讓 {!showApply && <GroupModalShell>}
+    // 這個條件在 navigate() 真正讓 groupId 變 null、觸發上面的 return null 之前先命中一次，
+    // 讓已經要關閉的 Modal 又閃回「群組概覽」畫面一格才整個消失。子畫面 state 已經由下面 pm:open-group
+    // 的 onOpen() 在下次打開時重置，這裡不用重複做
     const params = new URLSearchParams(location.search)
     if (params.has('group')) {
       params.delete('group')
