@@ -9,7 +9,7 @@ import ReviewUserModal from '../../subscriptions/components/ReviewUserModal'
 import { getServiceById } from '../../../common/utils/serviceUtils'
 import { isSharedCredentialsMethod } from '../../../common/utils/serviceInfoFields'
 import { canReportServiceIssue } from '../../../common/utils/groupStatus'
-import { daysUntil } from '../../../common/utils/date'
+import { getHostGroupFlags, getHostStatusBadge, getHostPendingBadge } from '../../../common/utils/hostGroupDisplay'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
 import { useApplicationStore } from '../../../common/stores/useApplicationStore'
 import { useGroupStore } from '../../../common/stores/useGroupStore'
@@ -139,6 +139,7 @@ export default function HostGroupView(
   const planDef       = serviceDef?.plans.find(p => p.name === group.planName)
   const pendingApps   = applications.filter(a => a.status === 'pending')
   const groupFull     = group.openSeats <= 0
+  const { isRecruiting, isCancelled, hasBeenActive, canActivateNow, showRenewal } = getHostGroupFlags(group.status, group.nextBillingDate)
 
   const currentUserId = useAuthStore(s => s.user?.id);
   const submitReview  = useReviewStore(s => s.submit)
@@ -149,8 +150,6 @@ export default function HostGroupView(
     ).length,
     [notifications, currentUserId, group.id]
   )
-
-  const canActivateNow  = group.status === 'pending_activation'
 
   const [finalConfirmed, setFinalConfirmed]         = useState(false)
   const [memberChecks, setMemberChecks]             = useState({})
@@ -324,11 +323,6 @@ export default function HostGroupView(
     </div>
   )
 
-  const isRecruiting = ['recruiting', 'full'].includes(group.status)
-  const isCancelled = group.status === 'cancelled'
-  const hasBeenActive = ['active', 'ended'].includes(group.status);
-  const showRenewal = group.status === 'active' && !!group.nextBillingDate && daysUntil(group.nextBillingDate) <= 7
-
   const renewalCta = showRenewal && (
     <div className="py-2">
       <Button
@@ -486,17 +480,9 @@ export default function HostGroupView(
         headerBanner={lockGroupBanner || activateBanner || pendingConfirmationBanner || confirmingBanner || disputedBanner || undefined}
         centeredCta={lockGroupCta || activateCta || renewalCta || undefined}
         extraInfoRows={[]}
-        statusBadgeOverride={
-          headerStatus === 'full' ? { variant: 'full', label: '等待鎖定' } :
-          group.status === 'pending_confirmation' && needsCredentialsOnLock ? { variant: 'pending_confirmation', label: '成員提取中' } :
-          undefined
-        }
-        pendingBadge={
-          group.status === 'pending_confirmation' ? (needsCredentialsOnLock ? '成員提取中' : '成員填寫中') :
-          group.status === 'disputed' ? '收到問題回報，處理中' :
-          undefined
-        }
-        pendingBadgeColor={group.status === 'disputed' ? 'danger' : undefined}
+        statusBadgeOverride={getHostStatusBadge(headerStatus, needsCredentialsOnLock)}
+        pendingBadge={getHostPendingBadge(group.status, needsCredentialsOnLock)?.text}
+        pendingBadgeColor={getHostPendingBadge(group.status, needsCredentialsOnLock)?.color}
         subPanel={activePanel ? buildSubPanel() : null}
         onSubPanelBack={() => { setActivePanel(null); setShowReviewHistory(false) }}
         subSubPanel={

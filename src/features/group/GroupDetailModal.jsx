@@ -10,6 +10,7 @@ import { useFavoriteStore } from '../../common/stores/useFavoriteStore'
 import { useAuthStore } from '../../common/stores/useAuthStore'
 import { finalizeLeaveGroup } from './utils/leaveGroupFlow'
 import { isHistoryGroup } from '../../common/utils/groupStatusDisplay'
+import { getMemberJoinedBadgeVariant } from '../../common/utils/memberGroupDisplay'
 import { calcDisplayPrice } from '../../common/utils/pricingUtils'
 import { toast } from '../../common/utils/toast'
 import { LOCKED_MESSAGE } from '../../common/layout/components/navConstants'
@@ -393,9 +394,8 @@ export default function GroupDetailModal() {
         hideRecruitBar={hideRecruitBarBase || showDesktopAside}
         extraInfoRows={[]}
         statusBadgeOverride={
-          isMember && group.status === 'recruiting' ? 'member_joined' :
-          isPendingApp ? { variant: 'pending', label: '審核中' } :
-          undefined
+          getMemberJoinedBadgeVariant(group.status, isMember) ??
+          (isPendingApp ? { variant: 'pending', label: '審核中' } : undefined)
         }
         subPanel={showMembers ? buildMembersSubPanel({ group, groupId, members, activeUserId, setShowMembers, openDm }) : null}
         onSubPanelBack={() => { setShowMembers(false); resetApply() }}

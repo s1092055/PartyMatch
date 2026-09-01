@@ -1,6 +1,7 @@
 import { ChevronRight, CheckCircle2, LogIn, LogOut, ShieldCheck, Users } from 'lucide-react'
 import { Button } from '../../../components/ui/button'
 import FavoriteToggleButton from '../../../components/ui/FavoriteToggleButton'
+import { getGroupFooterAction } from '../../../common/utils/memberGroupDisplay'
 
 function renderCTA({
   group, activeUserId, navigate, handleClose,
@@ -8,19 +9,21 @@ function renderCTA({
   isMember, isFull,
   redirectAfterLogin,
 }) {
-  if (!activeUserId) return (
+  const action = getGroupFooterAction({ activeUserId, isHost, isWaitingMembers, needsFillInfo, isMember, isFull })
+
+  if (action === 'login') return (
     <Button variant="default" size="lg" className="w-full"
       onClick={() => navigate('/login', { state: redirectAfterLogin })}>
       <LogIn strokeWidth={1.5} size={16} />登入以加入群組
     </Button>
   )
-  if (isHost) return (
+  if (action === 'host') return (
     <div className="flex items-center justify-center gap-2 rounded-lg bg-brand-subtle px-4 py-3 text-sm font-medium text-brand">
       <ShieldCheck strokeWidth={1.5} size={15} />你是此群組的團主
     </div>
   )
-  if (isWaitingMembers) return null
-  if (needsFillInfo) return (
+  if (action === 'waiting') return null
+  if (action === 'fillInfo') return (
     <div className="flex justify-center">
       <Button
         variant={hasServiceInfoIssue ? 'destructive' : 'default'}
@@ -37,12 +40,12 @@ function renderCTA({
       </Button>
     </div>
   )
-  if (isMember) return (
+  if (action === 'member') return (
     <div className="flex items-center justify-center gap-2 rounded-lg bg-success-subtle px-4 py-3 text-sm font-medium text-success-text">
       <CheckCircle2 strokeWidth={1.5} size={15} />已加入此群組
     </div>
   )
-  if (isFull) return (
+  if (action === 'full') return (
     <Button variant="ghost" size="lg" className="w-full border border-line" disabled>已額滿</Button>
   )
   return null

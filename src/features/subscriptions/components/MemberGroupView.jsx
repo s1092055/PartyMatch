@@ -28,6 +28,7 @@ import { useReviewStore } from '../../../common/stores/useReviewStore'
 import { fetchGroupTokenTransactions } from '../../../common/api/tokensApi'
 import { toast } from '../../../common/utils/toast'
 import { isHistoryGroup } from '../../../common/utils/groupStatusDisplay'
+import { getMemberGroupFlags, getMemberGroupBadges, DISPUTED_BANNER_TEXT } from '../../../common/utils/memberGroupDisplay'
 
 export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpenCredentials }) {
   const [activePanel, setActivePanel] = useState(null);
@@ -80,27 +81,19 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
 
   const serviceDef        = getServiceById(group.serviceId)
   const planDef           = serviceDef?.plans.find(p => p.name === group.planName)
-  const isPaymentRelevant = !['recruiting', 'full', 'cancelled'].includes(group.status)
-  const showMessagesButton = isPaymentRelevant && group.status !== 'ended'
 
   const isSharedCredentials = isSharedCredentialsMethod(serviceDef?.sharingMethod);
   const showsProfileName    = isSharedCredentials && serviceHasProfileField(serviceDef?.id)
   const hasServiceInfoIssue = !!myMember?.serviceInfoIssueNote && group.status !== 'disputed' && !isHistoryGroup(group);
   const sharingMethodConfig = getSharingMethodConfig(serviceDef?.sharingMethod, serviceDef?.id, { hasServiceInfoIssue })
   const hasServiceInfo      = hasFilledServiceInfo(myMember?.serviceInfo, serviceDef?.sharingMethod, serviceDef?.id) && !hasServiceInfoIssue
+
+  const memberFlags = getMemberGroupFlags({ status: group.status, sub, myMember, hasServiceInfo, hasServiceInfoIssue })
+  const {
+    isPaymentRelevant, showMessagesButton, needsFillInfo, waitingForOthers,
+    canConfirm, isDisputeRaiser, canLeaveGroup, showReviewHostButton,
+  } = memberFlags
   const canViewCredentials  = isSharedCredentials && isPaymentRelevant && (hasServiceInfo || hasServiceInfoIssue);
-  const needsFillInfo       = !!sub && isPaymentRelevant && !hasServiceInfo && group.status === 'pending_confirmation'
-  const waitingForOthers    = !!sub && hasServiceInfo && group.status === 'pending_confirmation';
-  const canLeaveGroup       = ['recruiting', 'full'].includes(group.status) && !!myMember
-  const isDisputed          = group.status === 'disputed'
-  const isDisputeRaiser     = isDisputed && !!myMember?.serviceInfoIssueNote;
-  // 確認期每位成員彼此獨立：group 進入 disputed 只影響提出問題的當事人本人，
-  // 其他成員不受影響，繼續當成一般確認期處理
-  const isConfirmingLike    = group.status === 'confirming' || (isDisputed && !isDisputeRaiser)
-  const canConfirm          = isConfirmingLike && !!myMember && !myMember.confirmedAt
-  const alreadyConfirmed    = isConfirmingLike && !!myMember?.confirmedAt
-  const showReviewHostButton = ['active', 'ended'].includes(group.status)
-  const disputedBannerText  = '回報處理中'
 
   async function selectPanel(panel) {
     // 切換分頁、重播 slide-up 動畫不用等資料回來，立刻反應
@@ -254,43 +247,18 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
     ) : isDisputeRaiser ? (
       <div className="flex items-center justify-center gap-2 bg-danger-subtle px-6 py-3 text-sm font-extrabold text-danger-text">
         <Clock size={15} strokeWidth={1.5} />
-        {disputedBannerText}
+        {DISPUTED_BANNER_TEXT}
       </div>
     ) : undefined
   )
 
   const centeredCtaLive = fillInfoCta || confirmCta || undefined
 
-  const statusBadgeOverrideLive = (
-    alreadyConfirmed ? { variant: 'active' } :
-    canConfirm && isDisputed ? 'confirming' :
-    waitingForOthers ? { variant: 'active', label: isSharedCredentials ? '已提取完成' : '已填寫完成' } :
-    group.status === 'recruiting' && !!sub ? 'member_joined' :
-    group.status === 'full' ? { variant: 'full', label: '等待鎖定' } :
-    group.status === 'pending_confirmation' && isSharedCredentials ? { variant: 'pending_confirmation', label: '帳號提取中' } :
-    undefined
-  )
-
-  const pendingBadgeLive = (
-    hasServiceInfoIssue ? '帳號資訊有問題' :
-    needsFillInfo       ? (isSharedCredentials ? '請提取帳號資訊' : '請填寫服務帳號以完成加入流程') :
-    waitingForOthers    ? '已填寫完成' :
-    canConfirm          ? '確認期進行中，請確認服務' :
-    isDisputeRaiser     ? disputedBannerText :
-    group.status === 'full' && !!sub ? '招募完成，等待團主鎖定群組' :
-    group.status === 'recruiting' && !!sub ? '已通過申請，需等待其他人加入' :
-    undefined
-  )
-
-  const pendingBadgeColorLive = (
-    (group.status === 'full' && !!sub) ? 'gray' :
-    (group.status === 'recruiting' && !!sub) ? 'success' :
-    hasServiceInfoIssue ? 'danger' :
-    waitingForOthers ? 'success' :
-    canConfirm ? 'brand' :
-    isDisputeRaiser ? 'danger' :
-    undefined
-  )
+  const {
+    statusBadgeOverride: statusBadgeOverrideLive,
+    pendingBadge: pendingBadgeLive,
+    pendingBadgeColor: pendingBadgeColorLive,
+  } = getMemberGroupBadges({ status: group.status, sub, isSharedCredentials, flags: memberFlags })
 
   const [frozenHeader, setFrozenHeader] = useState({
     hideRecruitBar: hideRecruitBarLive,

@@ -12,6 +12,7 @@ import { useFavoriteStore } from '../../../common/stores/useFavoriteStore'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
 import { toast } from '../../../common/utils/toast'
 import { LOCKED_MESSAGE } from '../../../common/layout/components/navConstants'
+import { getMemberJoinedBadgeVariant } from '../../../common/utils/memberGroupDisplay'
 
 const RANK_BADGE_STYLES = [
   'bg-amber-400 text-white',
@@ -66,7 +67,7 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
         )}
         badge={(isMember || isApplied) && (
           <StatusBadge
-            status={isMember ? (group.status === 'recruiting' ? 'member_joined' : 'full') : 'pending'}
+            status={isMember ? (getMemberJoinedBadgeVariant(group.status, isMember) ?? 'full') : 'pending'}
             label={isMember ? undefined : '審核中'}
           />
         )}

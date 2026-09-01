@@ -5,33 +5,21 @@ import { StatusBadge } from '../../../components/ui/StatusBadge'
 import GroupCardHeader from '../../../components/ui/group/GroupCardHeader'
 import { StatCell, StatCellGrid } from '../../../components/ui/group/StatCellGrid'
 import { toISODate } from '../../../common/utils/date'
-import { isEffectivelyActive } from '../../../common/utils/groupStatus'
 import { getRenewalAwareStatus } from '../../../common/utils/groupStatusDisplay'
 import { getServiceById } from '../../../common/utils/serviceUtils'
-import { hasFilledServiceInfo, isSharedCredentialsMethod } from '../../../common/utils/serviceInfoFields'
-
-function getBadgeStatus(sub) {
-  const status = sub.groupStatus ?? sub.status
-  // 群組進入 disputed 時，只有提出問題的當事人自己會被視為問題處理中，
-  // 其他成員的確認進度不受影響，比照一般確認期顯示
-  const effectiveStatus = status === 'disputed' && !sub.serviceInfoIssueNote ? 'confirming' : status
-  return isEffectivelyActive(effectiveStatus, sub.confirmedAt) ? 'active' : effectiveStatus
-}
+import { getSubscriptionBadgeStatus, getSubscriptionBillingDisplay, getSubscriptionCardBadge } from '../../../common/utils/memberGroupDisplay'
 
 function SubscriptionCard({ sub, onViewGroup }) {
-  const badgeStatus   = getBadgeStatus(sub)
+  const badgeStatus   = getSubscriptionBadgeStatus(sub)
   const displayStatus = getRenewalAwareStatus(badgeStatus, sub.nextBillingDate)
   const isActive      = badgeStatus === 'active'
   const memberCount   = sub.usedSeats ?? 0
 
-  const rawStatus        = sub.groupStatus ?? sub.status;
-  const isPreBillingLock = rawStatus === 'pending_confirmation' || rawStatus === 'pending_activation'
-  const showsBillingDate = isPreBillingLock || rawStatus === 'confirming' || rawStatus === 'disputed'
+  const rawStatus = sub.groupStatus ?? sub.status;
+  const { isPreBillingLock, showsBillingDate } = getSubscriptionBillingDisplay(rawStatus)
 
-  const sharingMethod   = getServiceById(sub.serviceId)?.sharingMethod;
-  const isSharedCredentials = isSharedCredentialsMethod(sharingMethod)
-  const waitingForOthers = badgeStatus === 'pending_confirmation' &&
-    hasFilledServiceInfo(sub.serviceInfo, sharingMethod) && !sub.serviceInfoIssueNote
+  const sharingMethod = getServiceById(sub.serviceId)?.sharingMethod;
+  const badge = getSubscriptionCardBadge(sub, { sharingMethod, displayStatus })
 
   return (
     <Card
@@ -41,15 +29,7 @@ function SubscriptionCard({ sub, onViewGroup }) {
     >
       <GroupCardHeader
         badge={
-          <StatusBadge
-            status={waitingForOthers ? 'active' : displayStatus === 'recruiting' ? 'member_joined' : displayStatus}
-            label={
-              waitingForOthers ? (isSharedCredentials ? '已提取完成' : '已填寫完成') :
-              displayStatus === 'full' ? '等待鎖定' :
-              displayStatus === 'pending_confirmation' && isSharedCredentials ? '帳號提取中' :
-              undefined
-            }
-          />
+          <StatusBadge status={badge.status} label={badge.label} />
         }
         serviceId={sub.serviceId}
         serviceName={sub.serviceName}

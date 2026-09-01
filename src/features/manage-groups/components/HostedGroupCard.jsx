@@ -6,21 +6,10 @@ import { Card } from '../../../components/ui/card'
 import GroupCardHeader from '../../../components/ui/group/GroupCardHeader'
 import { StatCell, StatCellGrid } from '../../../components/ui/group/StatCellGrid'
 import { getRenewalAwareStatus } from '../../../common/utils/groupStatusDisplay'
+import { getHostStatusBadge, getHostGroupStatusLabel } from '../../../common/utils/hostGroupDisplay'
 import { toISODate } from '../../../common/utils/date'
 import { getServiceById } from '../../../common/utils/serviceUtils'
 import { isSharedCredentialsMethod } from '../../../common/utils/serviceInfoFields'
-
-function getCollectionState(status) {
-  if (['cancelled', 'ended'].includes(status)) return '已結束'
-  if (status === 'recruiting') return '招募中'
-  if (status === 'full') return '已滿員'
-  if (status === 'pending_confirmation') return '處理中'
-  if (status === 'pending_activation') return '待啟用服務'
-  if (status === 'confirming') return '確認期中'
-  if (status === 'disputed') return '問題處理中'
-  if (status === 'active') return '服務中'
-  return '正常'
-}
 
 function HostedGroupCard({
   group,
@@ -32,7 +21,7 @@ function HostedGroupCard({
   const displayStatus = getRenewalAwareStatus(group.status, group.nextBillingDate)
   const isSharedCredentials = isSharedCredentialsMethod(getServiceById(group.serviceId)?.sharingMethod)
 
-  const collectionState = getCollectionState(group.status)
+  const collectionState = getHostGroupStatusLabel(group.status)
 
   const collectionHighlight = {
     '服務中':    'text-success-text',
@@ -55,11 +44,7 @@ function HostedGroupCard({
         badge={
           <StatusBadge
             status={displayStatus}
-            label={
-              group.status === 'full' ? '等待鎖定' :
-              group.status === 'pending_confirmation' && isSharedCredentials ? '成員提取中' :
-              undefined
-            }
+            label={getHostStatusBadge(group.status, isSharedCredentials)?.label}
           />
         }
         serviceId={group.serviceId}
