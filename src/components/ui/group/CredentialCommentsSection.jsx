@@ -91,7 +91,7 @@ export default function CredentialCommentsSection({ groupId, hostId }) {
           attachment={attachment}
           className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-ink-3 transition-colors hover:bg-raised hover:text-ink disabled:opacity-50"
         />
-        <Button type="submit" size="icon" disabled={(!text.trim() && !attachment.url) || sending || attachment.uploading} className="shrink-0 rounded-lg">
+        <Button type="submit" size="icon" aria-label="送出留言" loading={sending} disabled={(!text.trim() && !attachment.url) || sending || attachment.uploading} className="shrink-0 rounded-lg">
           <Send size={15} strokeWidth={1.5} />
         </Button>
       </form>
