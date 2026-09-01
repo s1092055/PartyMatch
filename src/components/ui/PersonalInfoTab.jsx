@@ -6,6 +6,35 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '.
 import { COUNTRY_CODES, parsePhone, toE164, formatPhoneDisplay } from '../../common/utils/phone'
 import { isValidEmail } from '../../common/utils/validation'
 
+function FieldRow({ label, children, actions }) {
+  return (
+    <div className="flex items-start gap-3 py-3 border-b border-line-subtle last:border-0">
+      <div className="flex-1 min-w-0">
+        <p className="text-xs text-ink-3 mb-1">{label}</p>
+        {children}
+      </div>
+      {actions}
+    </div>
+  )
+}
+
+function FieldActions({ editing, saving, label, onEdit, onSave, onCancel }) {
+  return (
+    <div className="flex items-center gap-1 shrink-0 pt-5">
+      {editing ? (
+        <>
+          <Button onClick={onSave} loading={saving} size="icon" aria-label="儲存"><Check size={13} strokeWidth={1.5} /></Button>
+          <Button onClick={onCancel} disabled={saving} variant="ghost" size="icon" aria-label="取消編輯" className="border border-line text-ink-3"><X strokeWidth={1.5} size={13} /></Button>
+        </>
+      ) : (
+        <Button onClick={onEdit} variant="ghost" size="icon" aria-label={`編輯${label}`} className="border border-line text-ink-3">
+          <Pencil strokeWidth={1.5} size={12} />
+        </Button>
+      )}
+    </div>
+  )
+}
+
 function EditableField({ label, value, onSave, type = 'text', placeholder }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(value)
@@ -28,39 +57,27 @@ function EditableField({ label, value, onSave, type = 'text', placeholder }) {
   function cancel() { setDraft(value); setError(''); setEditing(false) }
 
   return (
-    <div className="flex items-start gap-3 py-3 border-b border-line-subtle last:border-0">
-      <div className="flex-1 min-w-0">
-        <p className="text-xs text-ink-3 mb-1">{label}</p>
-        {editing ? (
-          <>
-            <Input
-              type={type}
-              value={draft}
-              onChange={e => { setDraft(e.target.value); setError('') }}
-              onBlur={() => setError(validate(draft))}
-              placeholder={placeholder}
-              autoFocus
-              className="py-1.5 px-3"
-            />
-            {error && <p className="mt-1 text-xs font-semibold text-danger">{error}</p>}
-          </>
-        ) : (
-          <p className="text-sm text-ink-2">{value || <span className="text-ink-4">未填寫</span>}</p>
-        )}
-      </div>
-      <div className="flex items-center gap-1 shrink-0 pt-5">
-        {editing ? (
-          <>
-            <Button onClick={save} loading={saving} size="icon" aria-label="儲存"><Check size={13} strokeWidth={1.5} /></Button>
-            <Button onClick={cancel} disabled={saving} variant="ghost" size="icon" aria-label="取消編輯" className="border border-line text-ink-3"><X strokeWidth={1.5} size={13} /></Button>
-          </>
-        ) : (
-          <Button onClick={() => setEditing(true)} variant="ghost" size="icon" aria-label={`編輯${label}`} className="border border-line text-ink-3">
-            <Pencil strokeWidth={1.5} size={12} />
-          </Button>
-        )}
-      </div>
-    </div>
+    <FieldRow
+      label={label}
+      actions={<FieldActions editing={editing} saving={saving} label={label} onEdit={() => setEditing(true)} onSave={save} onCancel={cancel} />}
+    >
+      {editing ? (
+        <>
+          <Input
+            type={type}
+            value={draft}
+            onChange={e => { setDraft(e.target.value); setError('') }}
+            onBlur={() => setError(validate(draft))}
+            placeholder={placeholder}
+            autoFocus
+            className="py-1.5 px-3"
+          />
+          {error && <p className="mt-1 text-xs font-semibold text-danger">{error}</p>}
+        </>
+      ) : (
+        <p className="text-sm text-ink-2">{value || <span className="text-ink-4">未填寫</span>}</p>
+      )}
+    </FieldRow>
   )
 }
 
@@ -84,48 +101,36 @@ function PhoneEditableField({ value, onSave }) {
   }
 
   return (
-    <div className="flex items-start gap-3 py-3 border-b border-line-subtle last:border-0">
-      <div className="flex-1 min-w-0">
-        <p className="text-xs text-ink-3 mb-1">手機號碼</p>
-        {editing ? (
-          <div className="flex items-center gap-2">
-            <Select value={countryCode} onValueChange={setCountryCode}>
-              <SelectTrigger aria-label="國碼" className="h-9 w-auto shrink-0 gap-1 text-sm font-bold">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {COUNTRY_CODES.map(c => (
-                  <SelectItem key={c.code} value={c.code}>{c.code} {c.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Input
-              type="tel"
-              inputMode="numeric"
-              value={localNumber}
-              onChange={e => setLocalNumber(e.target.value.replace(/[^0-9]/g, ''))}
-              placeholder="912345678"
-              autoFocus
-              className="py-1.5 px-3"
-            />
-          </div>
-        ) : (
-          <p className="text-sm text-ink-2">{value ? formatPhoneDisplay(value) : <span className="text-ink-4">未填寫</span>}</p>
-        )}
-      </div>
-      <div className="flex items-center gap-1 shrink-0 pt-5">
-        {editing ? (
-          <>
-            <Button onClick={save} loading={saving} size="icon" aria-label="儲存"><Check size={13} strokeWidth={1.5} /></Button>
-            <Button onClick={cancel} disabled={saving} variant="ghost" size="icon" aria-label="取消編輯" className="border border-line text-ink-3"><X strokeWidth={1.5} size={13} /></Button>
-          </>
-        ) : (
-          <Button onClick={() => setEditing(true)} variant="ghost" size="icon" aria-label="編輯手機號碼" className="border border-line text-ink-3">
-            <Pencil strokeWidth={1.5} size={12} />
-          </Button>
-        )}
-      </div>
-    </div>
+    <FieldRow
+      label="手機號碼"
+      actions={<FieldActions editing={editing} saving={saving} label="手機號碼" onEdit={() => setEditing(true)} onSave={save} onCancel={cancel} />}
+    >
+      {editing ? (
+        <div className="flex items-center gap-2">
+          <Select value={countryCode} onValueChange={setCountryCode}>
+            <SelectTrigger aria-label="國碼" className="h-9 w-auto shrink-0 gap-1 text-sm font-bold">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {COUNTRY_CODES.map(c => (
+                <SelectItem key={c.code} value={c.code}>{c.code} {c.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Input
+            type="tel"
+            inputMode="numeric"
+            value={localNumber}
+            onChange={e => setLocalNumber(e.target.value.replace(/[^0-9]/g, ''))}
+            placeholder="912345678"
+            autoFocus
+            className="py-1.5 px-3"
+          />
+        </div>
+      ) : (
+        <p className="text-sm text-ink-2">{value ? formatPhoneDisplay(value) : <span className="text-ink-4">未填寫</span>}</p>
+      )}
+    </FieldRow>
   )
 }
 
@@ -143,38 +148,26 @@ function BioEditableField({ value, onSave }) {
   function cancel() { setDraft(value); setEditing(false) }
 
   return (
-    <div className="flex items-start gap-3 py-3 border-b border-line-subtle last:border-0">
-      <div className="flex-1 min-w-0">
-        <p className="text-xs text-ink-3 mb-1">個人簡介</p>
-        {editing ? (
-          <>
-            <Textarea
-              value={draft}
-              onChange={e => setDraft(e.target.value.slice(0, 500))}
-              placeholder="簡單介紹一下自己"
-              autoFocus
-              rows={3}
-              className="py-1.5 px-3"
-            />
-            <p className="mt-1 text-right text-xs text-ink-4">{draft.length}/500</p>
-          </>
-        ) : (
-          <p className="whitespace-pre-wrap text-sm text-ink-2">{value || <span className="text-ink-4">尚未填寫</span>}</p>
-        )}
-      </div>
-      <div className="flex items-center gap-1 shrink-0 pt-5">
-        {editing ? (
-          <>
-            <Button onClick={save} loading={saving} size="icon" aria-label="儲存"><Check size={13} strokeWidth={1.5} /></Button>
-            <Button onClick={cancel} disabled={saving} variant="ghost" size="icon" aria-label="取消編輯" className="border border-line text-ink-3"><X strokeWidth={1.5} size={13} /></Button>
-          </>
-        ) : (
-          <Button onClick={() => setEditing(true)} variant="ghost" size="icon" aria-label="編輯個人簡介" className="border border-line text-ink-3">
-            <Pencil strokeWidth={1.5} size={12} />
-          </Button>
-        )}
-      </div>
-    </div>
+    <FieldRow
+      label="個人簡介"
+      actions={<FieldActions editing={editing} saving={saving} label="個人簡介" onEdit={() => setEditing(true)} onSave={save} onCancel={cancel} />}
+    >
+      {editing ? (
+        <>
+          <Textarea
+            value={draft}
+            onChange={e => setDraft(e.target.value.slice(0, 500))}
+            placeholder="簡單介紹一下自己"
+            autoFocus
+            rows={3}
+            className="py-1.5 px-3"
+          />
+          <p className="mt-1 text-right text-xs text-ink-4">{draft.length}/500</p>
+        </>
+      ) : (
+        <p className="whitespace-pre-wrap text-sm text-ink-2">{value || <span className="text-ink-4">尚未填寫</span>}</p>
+      )}
+    </FieldRow>
   )
 }
 

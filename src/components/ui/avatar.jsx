@@ -1,6 +1,7 @@
 import { cva } from "class-variance-authority"
 import { cn } from "../../lib/utils"
 import logoUrl from "../../assets/Logo.svg"
+import { PresenceDot } from "../../common/layout/components/navShared"
 
 const avatarVariants = cva(
   "rounded-full flex items-center justify-center text-white font-semibold shrink-0",
@@ -30,5 +31,14 @@ export function Avatar({ initial, color, size, className }) {
     <div className={cn(avatarVariants({ size }), className)} style={{ background: color }}>
       {initial}
     </div>
+  )
+}
+
+export function AvatarWithPresence({ initial, color, size, className, presenceStatus, dotClassName }) {
+  return (
+    <span className="relative inline-block shrink-0">
+      <Avatar initial={initial} color={color} size={size} className={className} />
+      <PresenceDot status={presenceStatus} className={cn('absolute -bottom-0.5 -right-0.5', dotClassName)} />
+    </span>
   )
 }

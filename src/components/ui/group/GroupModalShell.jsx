@@ -52,6 +52,7 @@ export default function GroupModalShell({
   const showBackButton = !sideBar || !!subSubPanel;
   const floatingBackButton = !!subSubPanel?.floatingBack;
   const showHeaderRow = (showBackButton && !floatingBackButton) || activeDetail?.icon || activeDetail?.title || activeDetail?.headerRight
+  const handleBack = subSubPanel ? onSubSubPanelBack : onSubPanelBack
 
   function handleEscapeKeyDown(e) {
     e.preventDefault()
@@ -100,7 +101,7 @@ export default function GroupModalShell({
                 <>
                   {floatingBackButton && (
                     <button
-                      onClick={subSubPanel ? onSubSubPanelBack : onSubPanelBack}
+                      onClick={handleBack}
                       className="absolute left-3 top-3 z-10 grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
                       aria-label="返回"
                     >
@@ -112,7 +113,7 @@ export default function GroupModalShell({
                     <div className={`flex shrink-0 items-center gap-2 px-4 py-4 ${activeDetail.headerBorder === false ? '' : 'border-b border-line'}`}>
                       {showBackButton && !floatingBackButton ? (
                         <button
-                          onClick={subSubPanel ? onSubSubPanelBack : onSubPanelBack}
+                          onClick={handleBack}
                           className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:bg-raised hover:text-ink"
                           aria-label="返回"
                         >
