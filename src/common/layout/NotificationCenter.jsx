@@ -245,7 +245,7 @@ export default function NotificationCenter() {
               className="py-10"
             />
           ) : (
-            <div className="divide-y divide-line-subtle">
+            <div key={`${activeTab}-${sortOrder}-${effectiveCategory}`} className="animate-fade-in-up divide-y divide-line-subtle">
               {filtered.map(n => {
                 const { icon: Icon, iconColor } = getMeta(n.type)
                 const isUnread = loggedIn && !n.isRead
