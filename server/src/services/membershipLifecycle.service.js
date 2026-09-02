@@ -175,6 +175,7 @@ export async function removeMember({ memberId, actorId }) {
       message:    '群組已被鎖定，無法變更成員名單，請重新整理頁面',
     })
     await tx.member.delete({ where: { id: memberId } })
+    await tx.subscription.deleteMany({ where: { groupId: existing.groupId, userId: existing.userId } })
     await tx.group.updateMany({
       where: { id: existing.groupId, status: 'full' },
       data:  { status: 'recruiting' },
