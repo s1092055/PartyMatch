@@ -1,5 +1,5 @@
 import { DropdownMenu as DropdownMenuPrimitive } from 'radix-ui'
-import { Check, Circle, MoreVertical } from 'lucide-react'
+import { Check, Circle, Funnel } from 'lucide-react'
 import { cn } from '../../lib/utils'
 
 export function DropdownMenu(props) {
@@ -10,7 +10,7 @@ export function DropdownMenuTrigger(props) {
   return <DropdownMenuPrimitive.Trigger {...props} />
 }
 
-export function DropdownMenuFilterTrigger({ active, ariaLabel = '篩選' }) {
+export function DropdownMenuFilterTrigger({ active, ariaLabel = '篩選', className }) {
   return (
     <DropdownMenuTrigger asChild>
       <button
@@ -20,10 +20,11 @@ export function DropdownMenuFilterTrigger({ active, ariaLabel = '篩選' }) {
           'grid h-9 w-9 shrink-0 place-items-center rounded-lg border transition-colors',
           active
             ? 'border-brand-border bg-brand-subtle text-brand'
-            : 'border-line text-ink-3 hover:bg-raised hover:text-ink'
+            : 'border-line text-ink-3 hover:bg-raised hover:text-ink',
+          className
         )}
       >
-        <MoreVertical size={16} strokeWidth={1.5} />
+        <Funnel size={16} strokeWidth={1.5} />
       </button>
     </DropdownMenuTrigger>
   )
