@@ -1,20 +1,19 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Bell } from 'lucide-react'
+import { Bell, ChevronDown } from 'lucide-react'
 import { Drawer, DrawerContent, DrawerHeader, DrawerFooter, DrawerTitle, DrawerDescription } from '../../components/ui/drawer'
 import { Button } from '../../components/ui/button'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useNotificationStore } from '../stores/useNotificationStore'
+import { useGroupStore } from '../stores/useGroupStore'
 import { formatRelativeDate } from '../utils/date'
 import EmptyState from '../../components/ui/primitives/EmptyState'
-import SearchInput from '../../components/ui/primitives/SearchInput'
+import ServiceLogo from '../../components/ui/ServiceLogo'
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuCheckboxItem,
-  DropdownMenuRadioSection, DropdownMenuFilterTrigger,
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem,
+  DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuRadioSection, DropdownMenuFilterTrigger,
 } from '../../components/ui/dropdown-menu'
 import { getMeta, handleNotificationClick } from './notificationClickHandlers'
-
-const defaultNotifyTab = (loggedIn) => loggedIn ? 'all' : 'system'
 
 function getMergedNotifications(userId) {
   const notifStore = useNotificationStore.getState()
@@ -27,12 +26,12 @@ function getMergedNotifications(userId) {
 }
 
 const APPLY_TYPES   = ['joined', 'application_approved', 'application_rejected', 'application_sent', 'new_application', 'application_cancelled', 'application']
-const SYSTEM_TYPES  = ['system']
 
+// 「系統」現在是分類 Select 裡的固定選項，不再放進這裡的「顯示範圍」篩選，
+// 避免同一個「系統」字樣同時出現在兩個不同的篩選機制裡造成混淆
 const TABS = [
   { id: 'all',    label: '全部', filter: () => true },
   { id: 'apply',  label: '申請', filter: n => APPLY_TYPES.includes(n.type) },
-  { id: 'system', label: '系統', filter: n => SYSTEM_TYPES.includes(n.type) && (!n.userId || n.userId === 'system' || n.isPublic === true) },
 ]
 
 const SORT_OPTIONS = [
@@ -40,18 +39,20 @@ const SORT_OPTIONS = [
   { id: 'oldest', label: '最舊在前' },
 ]
 
-export default function FloatingMessages() {
+export default function NotificationCenter() {
   const navigate = useNavigate()
   const loggedIn = useAuthStore(s => s.loggedIn)
   const currentUser = useAuthStore(s => s.user)
   const userId = currentUser?.id
   const notificationsState = useNotificationStore(s => s.notifications);
 
+  const groupsState = useGroupStore(s => s.groups)
+
   const [open, setOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState(() => defaultNotifyTab(loggedIn))
+  const [activeTab, setActiveTab] = useState('all')
   const [unreadOnly, setUnreadOnly] = useState(false)
   const [sortOrder, setSortOrder] = useState('newest');
-  const [searchQuery, setSearchQuery] = useState('')
+  const [activeCategory, setActiveCategory] = useState('all') // 'all' | 'system' | 群組 id
 
   const notifications = useMemo(
     () => loggedIn
@@ -61,32 +62,57 @@ export default function FloatingMessages() {
     [loggedIn, userId, notificationsState],
   )
 
+  // 分類條：把通知依「屬於哪個群組」分組，同一個群組的所有通知（不管申請/
+  // 額滿/移除等各種類型）都會歸在同一個分類；沒有 groupId 的（系統公告、
+  // 帳號相關）另外歸一類「系統」。只列出實際有通知的群組，用最新一筆通知
+  // 的時間排序，越新互動過的群組排越前面
+  const categories = useMemo(() => {
+    const byGroup = new Map()
+    notifications.forEach(n => {
+      const groupId = n.meta?.groupId
+      if (!groupId) return
+      const group = groupsState.find(g => g.id === groupId)
+      const label = group ? (group.planName || group.serviceName || '群組') : '已刪除的群組'
+      const existing = byGroup.get(groupId)
+      if (!existing || String(n.createdAt ?? '') > String(existing.latestAt ?? '')) {
+        byGroup.set(groupId, { key: groupId, groupId, serviceId: group?.serviceId ?? '', label, latestAt: n.createdAt })
+      }
+    })
+    const groupCategories = [...byGroup.values()].sort(
+      (a, b) => String(b.latestAt ?? '').localeCompare(String(a.latestAt ?? ''))
+    )
+    // 「系統」固定存在，不看目前有沒有系統通知——公告本來就是不定期發送，
+    // 沒有內容時選進去只是看到空清單，但這個分類本身要一直看得到、選得到
+    return [{ key: 'system', label: '系統' }, ...groupCategories]
+  }, [notifications, groupsState])
+
   useEffect(() => {
     function onOpen() {
-      setActiveTab(defaultNotifyTab(useAuthStore.getState().loggedIn))
+      setActiveTab('all')
+      setActiveCategory('all')
       setOpen(true)
     }
     window.addEventListener('pm:open-notify', onOpen)
     return () => window.removeEventListener('pm:open-notify', onOpen)
   }, [])
 
-  const visibleTabs = useMemo(() => loggedIn ? TABS : TABS.filter(t => t.id === 'system'), [loggedIn])
+  const visibleTabs = useMemo(() => loggedIn ? TABS : [], [loggedIn])
 
   const unreadCount = useMemo(
     () => loggedIn ? notifications.filter(n => !n.isRead).length : 0,
     [loggedIn, notifications]
   )
 
+  const selectedCategory = categories.find(c => c.key === activeCategory) ?? null
+
   const filtered = useMemo(() => {
     const tab = visibleTabs.find(t => t.id === activeTab)
     let result = tab ? notifications.filter(tab.filter) : notifications
+    if (activeCategory === 'system') result = result.filter(n => !n.meta?.groupId)
+    else if (activeCategory !== 'all') result = result.filter(n => n.meta?.groupId === activeCategory)
     if (unreadOnly) result = result.filter(n => !n.isRead)
-    if (searchQuery.trim()) {
-      const q = searchQuery.trim().toLowerCase()
-      result = result.filter(n => n.title?.toLowerCase().includes(q) || n.message?.toLowerCase().includes(q))
-    }
     return sortOrder === 'oldest' ? [...result].reverse() : result;
-  }, [activeTab, notifications, visibleTabs, unreadOnly, searchQuery, sortOrder])
+  }, [activeTab, notifications, visibleTabs, unreadOnly, sortOrder, activeCategory])
 
   function handleMarkAllRead() {
     if (!userId) return
@@ -123,24 +149,68 @@ export default function FloatingMessages() {
         </DrawerHeader>
         <DrawerDescription className="sr-only">通知中心</DrawerDescription>
 
-        <div className="flex items-center gap-2 border-b border-line px-3 py-2">
-          <SearchInput value={searchQuery} onChange={setSearchQuery} placeholder="搜尋通知..." />
-          {visibleTabs.length > 1 && (
-            <DropdownMenu>
-              <DropdownMenuFilterTrigger
-                active={activeTab !== 'all' || unreadOnly || sortOrder !== 'newest'}
-                ariaLabel="篩選通知"
-              />
-              <DropdownMenuContent>
-                <DropdownMenuRadioSection label="顯示範圍" options={visibleTabs} value={activeTab} onValueChange={setActiveTab} />
-                <DropdownMenuRadioSection label="排序" options={SORT_OPTIONS} value={sortOrder} onValueChange={setSortOrder} />
-                <DropdownMenuCheckboxItem checked={unreadOnly} onCheckedChange={setUnreadOnly}>
-                  只顯示未讀
-                </DropdownMenuCheckboxItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-        </div>
+        {(categories.length > 0 || visibleTabs.length > 1) && (
+          <div className="flex items-center gap-2 border-b border-line px-3 py-2">
+            {categories.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="flex h-9 min-w-0 flex-1 items-center gap-1.5 rounded-lg border border-line px-2.5 text-xs font-bold text-ink transition-colors hover:bg-raised"
+                  >
+                    {selectedCategory ? (
+                      selectedCategory.key === 'system' ? (
+                        <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-brand-subtle text-brand">
+                          <Bell size={11} strokeWidth={1.5} />
+                        </span>
+                      ) : (
+                        <ServiceLogo serviceId={selectedCategory.serviceId} size={20} />
+                      )
+                    ) : null}
+                    <span className="min-w-0 flex-1 truncate text-left">
+                      {selectedCategory ? selectedCategory.label : '全部通知'}
+                    </span>
+                    <ChevronDown size={14} strokeWidth={1.5} className="shrink-0 text-ink-4" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="z-[80] min-w-0">
+                  <DropdownMenuRadioGroup value={activeCategory} onValueChange={setActiveCategory}>
+                    <DropdownMenuRadioItem value="all">全部通知</DropdownMenuRadioItem>
+                    {categories.map(cat => (
+                      <DropdownMenuRadioItem key={cat.key} value={cat.key}>
+                        <span className="flex min-w-0 items-center gap-2">
+                          {cat.key === 'system' ? (
+                            <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-brand-subtle text-brand">
+                              <Bell size={11} strokeWidth={1.5} />
+                            </span>
+                          ) : (
+                            <ServiceLogo serviceId={cat.serviceId} size={20} />
+                          )}
+                          <span className="truncate">{cat.label}</span>
+                        </span>
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            {visibleTabs.length > 1 && (
+              <DropdownMenu>
+                <DropdownMenuFilterTrigger
+                  active={activeTab !== 'all' || unreadOnly || sortOrder !== 'newest'}
+                  ariaLabel="篩選通知"
+                />
+                <DropdownMenuContent>
+                  <DropdownMenuRadioSection label="顯示範圍" options={visibleTabs} value={activeTab} onValueChange={setActiveTab} />
+                  <DropdownMenuRadioSection label="排序" options={SORT_OPTIONS} value={sortOrder} onValueChange={setSortOrder} />
+                  <DropdownMenuCheckboxItem checked={unreadOnly} onCheckedChange={setUnreadOnly}>
+                    只顯示未讀
+                  </DropdownMenuCheckboxItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
+        )}
 
         <div className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {filtered.length === 0 ? (

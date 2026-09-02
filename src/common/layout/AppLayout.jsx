@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import AppNav from './AppNav'
 import AppFooter from './AppFooter'
-import FloatingMessages from './FloatingMessages'
+import NotificationCenter from './NotificationCenter'
 
 const GroupDetailModal = lazy(() => import('../../features/group/GroupDetailModal'))
 const MessagesModal = lazy(() => import('../../features/messages/MessagesModal'))
@@ -27,7 +27,7 @@ export default function AppLayout() {
         </div>
         <AppFooter />
       </main>
-      <FloatingMessages />
+      <NotificationCenter />
       <Suspense fallback={null}>
         <MessagesModal />
         <GroupDetailModal />

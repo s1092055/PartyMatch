@@ -6,7 +6,7 @@ import logoUrl from '../../assets/Logo.svg'
 import { useAuthStore } from '../../common/stores/useAuthStore'
 import AppNav from '../../common/layout/AppNav'
 import AppFooter from '../../common/layout/AppFooter'
-import FloatingMessages from '../../common/layout/FloatingMessages'
+import NotificationCenter from '../../common/layout/NotificationCenter'
 import ServiceLogo from '../../components/ui/ServiceLogo'
 import BubbleField from './components/BubbleField'
 import ScrollCue from './components/ScrollCue'
@@ -42,7 +42,7 @@ export default function HomePage() {
         <CreateGroupModal />
         <HostGroupModalHost />
       </Suspense>
-      <FloatingMessages />
+      <NotificationCenter />
       <SectionNav />
       <ScrollCue />
 
