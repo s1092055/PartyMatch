@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useLocation } from 'react-router-dom'
 import { useGroupStore } from '../../../common/stores/useGroupStore'
 import { useApplicationStore } from '../../../common/stores/useApplicationStore'
 import { useMemberStore } from '../../../common/stores/useMemberStore'
@@ -52,8 +51,6 @@ function loadHostData(activeUser) {
 }
 
 export function useHostActions(activeUser) {
-  const location = useLocation()
-
   const groupsState        = useGroupStore(s => s.groups);
   const applicationsState  = useApplicationStore(s => s.applications)
   const membersState       = useMemberStore(s => s.members)
@@ -68,9 +65,10 @@ export function useHostActions(activeUser) {
   const [autoOpenApplications, setAutoOpenApplications]   = useState(false)
   const [autoOpenBilling, setAutoOpenBilling]             = useState(false)
   const [autoOpenMemberInfo, setAutoOpenMemberInfo]       = useState(false)
+  const [autoOpenMembers, setAutoOpenMembers]             = useState(false)
   const [renewalModalGroupId, setRenewalModalGroupId]     = useState(null)
 
-  function applyOpenHostGroup({ groupId, openGroupId, openLockGroup, openActivate, openApplications, openBilling, openMemberInfo }) {
+  function applyOpenHostGroup({ groupId, openGroupId, openLockGroup, openActivate, openApplications, openBilling, openMemberInfo, openMembers }) {
     const gId = groupId ?? openGroupId
     if (!gId) return
     setViewGroupId(gId)
@@ -79,12 +77,8 @@ export function useHostActions(activeUser) {
     setAutoOpenApplications(!!openApplications)
     setAutoOpenBilling(!!openBilling)
     setAutoOpenMemberInfo(!!openMemberInfo)
+    setAutoOpenMembers(!!openMembers)
   }
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (location.state?.openGroupId) applyOpenHostGroup(location.state)
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     function onOpenHostGroup(e) { applyOpenHostGroup(e.detail ?? {}) }
@@ -392,7 +386,12 @@ async function handleApprove(appId) {
 
   const groupHandlersMap = useMemo(
     () => Object.fromEntries(displayGroups.map(g => [g.id, {
-      onViewGroup:   () => { refreshGroups(); setViewGroupId(g.id); setAutoOpenLockGroup(false); setAutoOpenActivate(false); setAutoOpenApplications(false); setAutoOpenBilling(false) },
+      onViewGroup:   () => {
+        refreshGroups()
+        // 打開群組 Modal 統一走事件，不管是列表點卡片還是通知/toast 觸發，
+        // 都由全站掛載的 HostGroupModalHost 接手，這裡不用管 Modal 實際掛在哪裡
+        window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: g.id } }))
+      },
     }])),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [displayGroups],
@@ -407,6 +406,7 @@ async function handleApprove(appId) {
     autoOpenApplications, setAutoOpenApplications,
     autoOpenBilling, setAutoOpenBilling,
     autoOpenMemberInfo, setAutoOpenMemberInfo,
+    autoOpenMembers, setAutoOpenMembers,
     renewalModalGroupId, setRenewalModalGroupId,
     allGroups, displayGroups, historyGroups, membersMap, applicationCounts,
     renewalModalGroup,

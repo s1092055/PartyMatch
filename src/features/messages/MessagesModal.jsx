@@ -140,10 +140,7 @@ export default function MessagesModal() {
       const conv = useConversationStore.getState().getById(selectedId)
       markConversationReadLocal(selectedId, user.id)
       if (conv?.type === 'group' && conv.groupId) {
-        const notifStore = useNotificationStore.getState()
-        notifStore.getByUserId(user.id)
-          .filter(n => n.meta?.groupId === conv.groupId && !n.isRead)
-          .forEach(n => notifStore.markRead(n.id))
+        useNotificationStore.getState().markReadForGroup(user.id, conv.groupId)
       }
     }
     return () => { unsub(); setMessages([]) }

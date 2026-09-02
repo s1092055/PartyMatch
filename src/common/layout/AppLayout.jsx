@@ -7,6 +7,7 @@ import FloatingMessages from './FloatingMessages'
 const GroupDetailModal = lazy(() => import('../../features/group/GroupDetailModal'))
 const MessagesModal = lazy(() => import('../../features/messages/MessagesModal'))
 const CreateGroupModal = lazy(() => import('../../features/create/CreateGroupModal'))
+const HostGroupModalHost = lazy(() => import('../../features/manage-groups/HostGroupModalHost'))
 
 function RouteScrollReset() {
   const { pathname } = useLocation()
@@ -31,6 +32,7 @@ export default function AppLayout() {
         <MessagesModal />
         <GroupDetailModal />
         <CreateGroupModal />
+        <HostGroupModalHost />
       </Suspense>
     </div>
   );

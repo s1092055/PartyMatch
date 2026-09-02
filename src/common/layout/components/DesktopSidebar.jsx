@@ -7,7 +7,8 @@ import { useTheme } from '../../../components/theme-provider'
 import { Avatar } from '../../../components/ui/avatar'
 import { TokenBadge } from '../../../components/ui/TokenAmount'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '../../../components/ui/dropdown-menu'
-import { CountBadge, LockBadge, LockedHint, PresenceDot } from './navShared'
+import { usePendingRefreshStore } from '../../stores/usePendingRefreshStore'
+import { CountBadge, LockBadge, LockedHint, PresenceDot, UpdateDot } from './navShared'
 import { LOCKED_MESSAGE, getNavItemKey, isProtectedNavItem } from './navConstants'
 
 const FLOATING_ICON_BUTTON_CLASS = 'relative grid h-14 w-14 place-items-center rounded-full border border-line bg-surface text-ink-2 shadow-floating transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand lg:h-12 lg:w-12 dark:border-[#238EC7] dark:text-[#238EC7]'
@@ -36,6 +37,7 @@ export default function DesktopSidebar({
   loggingOut,
 }) {
   const { theme, toggleTheme } = useTheme()
+  const pendingRefreshPages = usePendingRefreshStore(s => s.pendingPages)
   const [lockedTip, setLockedTip] = useState(null)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [forceCollapsed, setForceCollapsed] = useState(false)
@@ -102,6 +104,7 @@ export default function DesktopSidebar({
     }
 
     const isActive = pathname === item.to
+    const hasPendingUpdate = pendingRefreshPages.has(item.to)
     return (
       <a
         key={item.to}
@@ -113,8 +116,9 @@ export default function DesktopSidebar({
             : 'font-bold text-ink-2 hover:bg-brand-subtle hover:text-brand'
         }`}
       >
-        <span className="grid h-9 w-9 shrink-0 place-items-center">
+        <span className="relative grid h-9 w-9 shrink-0 place-items-center">
           <item.icon size={22} strokeWidth={1.5} />
+          <UpdateDot show={hasPendingUpdate} className={isActive ? '!border-brand' : undefined} />
         </span>
         <span className="whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
           {item.label}

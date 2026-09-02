@@ -24,6 +24,7 @@ import { useMemberStore } from '../../../common/stores/useMemberStore'
 import { useGroupStore } from '../../../common/stores/useGroupStore'
 import { useSubscriptionStore } from '../../../common/stores/useSubscriptionStore'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
+import { useNotificationStore } from '../../../common/stores/useNotificationStore'
 import { useReviewStore } from '../../../common/stores/useReviewStore'
 import { fetchGroupTokenTransactions } from '../../../common/api/tokensApi'
 import { toast } from '../../../common/utils/toast'
@@ -69,6 +70,16 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
 
 
   const currentUser = useAuthStore(s => s.user)
+
+  // 打開這個群組的詳情，等於使用者已經看過這個群組的最新狀態了，
+  // 跟這個群組有關的未讀通知（不管類型）都一併標記已讀
+  const unreadForGroup = useNotificationStore(s => s.getUnreadCountForGroup(currentUser?.id, group.id))
+  useEffect(() => {
+    if (currentUser?.id && unreadForGroup > 0) {
+      useNotificationStore.getState().markReadForGroup(currentUser.id, group.id)
+    }
+  }, [currentUser?.id, group.id, unreadForGroup])
+
   const allMembers  = useMemberStore(s => s.members)
   const subscriptions = useSubscriptionStore(s => s.subscriptions)
   const fillServiceInfo = useMemberStore(s => s.fillServiceInfo)

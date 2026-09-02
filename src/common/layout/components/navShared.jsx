@@ -19,6 +19,11 @@ export function PresenceDot({ status = 'online', className = '', style }) {
   return <span className={`rounded-full border-2 border-white ${PRESENCE_COLORS[status] ?? PRESENCE_COLORS.online} ${className}`} style={style} />
 }
 
+export function UpdateDot({ show, className }) {
+  if (!show) return null
+  return <span className={cn('absolute right-0 top-0 h-2.5 w-2.5 rounded-full border-2 border-surface bg-danger', className)} />
+}
+
 export function LockedHint({ className = '' }) {
   return (
     <span

@@ -1,12 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Archive } from 'lucide-react'
 import { useAuthStore } from '../../common/stores/useAuthStore'
+import { useNotificationStore } from '../../common/stores/useNotificationStore'
+import { usePendingRefreshStore } from '../../common/stores/usePendingRefreshStore'
 import EmptyState from '../../components/ui/primitives/EmptyState'
-import GroupViewModal from '../../components/ui/group/GroupViewModal'
 import GroupHistoryModal from '../../components/ui/group/GroupHistoryModal'
 import RevealSection from '../../components/ui/primitives/RevealSection'
 import HostedGroupCard from './components/HostedGroupCard'
-import RenewalModal from './components/RenewalModal'
 import { useHostActions } from './hooks/useHostActions'
 
 export default function ManageGroupsPage() {
@@ -14,32 +14,26 @@ export default function ManageGroupsPage() {
   const [historyOpen, setHistoryOpen] = useState(false)
   const closeHistory = () => setHistoryOpen(false)
 
+  // 進入這個頁面就代表使用者看過「群組管理」相關的最新動態了，
+  // 通知中心的紅點跟側邊欄紅點用同一套邏輯清除；也會反應在使用者
+  // 停留在這頁時新進來的背景通知（unreadForPage 變動就會重新觸發）
+  const unreadForPage = useNotificationStore(s => s.getUnreadCountForPage(activeUser?.id, '/manage-groups'))
+  useEffect(() => {
+    if (activeUser?.id && unreadForPage > 0) {
+      useNotificationStore.getState().markReadForPage(activeUser.id, '/manage-groups')
+    }
+  }, [activeUser?.id, unreadForPage])
+
+  // toast「重新整理」只會悄悄換掉 store 資料，卡片不會重新掛載、slide-up
+  // 動畫不會重播；用這個 tick 當 key 強制整批卡片重新掛載一次
+  const refreshTick = usePendingRefreshStore(s => s.refreshTick)
+
+  // 團主的群組 Modal 已經改成全站掛載在 HostGroupModalHost（見 AppLayout.jsx），
+  // 這裡的 useHostActions() 只用來拿列表要顯示的資料，不再自己管 Modal 開關狀態
   const {
-    errors,
-    submittingIds,
-    viewGroupId, setViewGroupId,
-    autoOpenLockGroup, setAutoOpenLockGroup,
-    autoOpenActivate, setAutoOpenActivate,
-    autoOpenApplications, setAutoOpenApplications,
-    autoOpenBilling, setAutoOpenBilling,
-    autoOpenMemberInfo, setAutoOpenMemberInfo,
-    setRenewalModalGroupId,
     displayGroups, historyGroups, membersMap, applicationCounts,
-    renewalModalGroup,
     groupHandlersMap,
     refreshGroups,
-    handleLockGroup,
-    handleRemoveMember,
-    handleActivate,
-    handleCancelGroup,
-    handleStartRenewal,
-    handleEndGroup,
-    handleApprove,
-    handleReportServiceInfoIssue,
-    handleResolveDispute,
-    handleEscalateDispute,
-    handleReject,
-    handleAdjustBillingDate,
   } = useHostActions(activeUser)
 
   return (
@@ -65,7 +59,7 @@ export default function ManageGroupsPage() {
             onAction={() => window.dispatchEvent(new CustomEvent('pm:open-create-group'))}
           />
         ) : (
-          <div className="grid grid-cols-1 gap-3 p-2 md:grid-cols-2 xl:grid-cols-3">
+          <div key={refreshTick} className="grid grid-cols-1 gap-3 p-2 md:grid-cols-2 xl:grid-cols-3">
             {displayGroups.map((g, i) => (
               <RevealSection key={g.id} delay={i * 60}>
                 <HostedGroupCard
@@ -80,40 +74,6 @@ export default function ManageGroupsPage() {
           </div>
         )}
       </div>
-      <GroupViewModal
-        isOpen={!!viewGroupId}
-        onClose={() => { setViewGroupId(null); setAutoOpenLockGroup(false); setAutoOpenActivate(false); setAutoOpenApplications(false); setAutoOpenBilling(false); setAutoOpenMemberInfo(false); refreshGroups() }}
-        groupId={viewGroupId}
-        onReportServiceInfoIssue={handleReportServiceInfoIssue}
-        onResolveDispute={handleResolveDispute}
-        onEscalateDispute={handleEscalateDispute}
-        onActivate={handleActivate}
-        onLockGroup={handleLockGroup}
-        onCancelGroup={handleCancelGroup}
-        onRemoveMember={handleRemoveMember}
-        onApprove={handleApprove}
-        onReject={handleReject}
-        onAdjustBillingDate={handleAdjustBillingDate}
-        errors={errors}
-        submittingIds={submittingIds}
-        autoOpenLockGroup={autoOpenLockGroup}
-        autoOpenActivate={autoOpenActivate}
-        onAutoOpenActivateDone={() => setAutoOpenActivate(false)}
-        autoOpenApplications={autoOpenApplications}
-        autoOpenBilling={autoOpenBilling}
-        autoOpenMemberInfo={autoOpenMemberInfo}
-        onOpenRenewal={() => setRenewalModalGroupId(viewGroupId)}
-      />
-      {renewalModalGroup && (
-        <RenewalModal
-          isOpen
-          onClose={() => setRenewalModalGroupId(null)}
-          group={renewalModalGroup}
-          members={membersMap[renewalModalGroup.id] ?? []}
-          onStartRenewal={handleStartRenewal}
-          onEndGroup={handleEndGroup}
-        />
-      )}
       <GroupHistoryModal
         isOpen={historyOpen}
         onClose={closeHistory}
@@ -126,7 +86,11 @@ export default function ManageGroupsPage() {
               members={membersMap[g.id] ?? []}
               pendingAppCount={applicationCounts[g.id] ?? 0}
               paymentCount={0}
-              onViewGroup={() => { closeHistory(); refreshGroups(); setViewGroupId(g.id) }}
+              onViewGroup={() => {
+                closeHistory()
+                refreshGroups()
+                window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: g.id } }))
+              }}
             />
           </RevealSection>
         )}

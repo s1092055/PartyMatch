@@ -8,6 +8,7 @@ import { useApplicationStore } from '../../common/stores/useApplicationStore'
 import { useMemberStore } from '../../common/stores/useMemberStore'
 import { useFavoriteStore } from '../../common/stores/useFavoriteStore'
 import { useAuthStore } from '../../common/stores/useAuthStore'
+import { useNotificationStore } from '../../common/stores/useNotificationStore'
 import { finalizeLeaveGroup } from './utils/leaveGroupFlow'
 import { isHistoryGroup } from '../../common/utils/groupStatusDisplay'
 import { getMemberJoinedBadgeVariant } from '../../common/utils/memberGroupDisplay'
@@ -38,6 +39,7 @@ export default function GroupDetailModal() {
   const [cancelConfirm, setCancelConfirm]       = useState(false)
   const [cancelling, setCancelling]             = useState(false)
   const [applying, setApplying]                 = useState(false)
+  const [autoOpenCredentials, setAutoOpenCredentials] = useState(false)
   const picksScrollRef = useRef(null)
   const picksObserverRef = useRef(null)
   const [picksAtStart, setPicksAtStart] = useState(true)
@@ -84,12 +86,24 @@ export default function GroupDetailModal() {
     if (groupId) useGroupStore.getState().refreshGroup(groupId).catch(console.error)
   }, [groupId]);
 
+  // 不管接下來是渲染一般瀏覽視角還是（成員身分確認後切換的）MemberGroupView，
+  // 只要這個群組的 Modal 被打開，就代表使用者看過這個群組的最新狀態了，
+  // 跟這個群組有關的未讀通知（不管類型）一併標記已讀，不用等使用者
+  // 特地跑去「我的訂閱」頁面才清掉通知中心的紅點
+  const unreadForGroup = useNotificationStore(s => s.getUnreadCountForGroup(activeUserId, groupId))
+  useEffect(() => {
+    if (activeUserId && groupId && unreadForGroup > 0) {
+      useNotificationStore.getState().markReadForGroup(activeUserId, groupId)
+    }
+  }, [activeUserId, groupId, unreadForGroup])
+
   function resetApply() {
     setShowApply(false); setApplyMessage(''); setApplyAgreed(false)
   }
 
   function resetSubViews() {
     resetApply()
+    setAutoOpenCredentials(false)
     setShowMembers(false); setLeaveConfirm(false); setCancelConfirm(false)
   }
 
@@ -110,6 +124,7 @@ export default function GroupDetailModal() {
     function onOpen(e) {
       resetSubViews()
       pushGroupUrl(e.detail?.groupId ?? null)
+      if (e.detail?.openCredentials) setAutoOpenCredentials(true)
     }
     window.addEventListener('pm:open-group', onOpen)
     return () => window.removeEventListener('pm:open-group', onOpen)
@@ -211,12 +226,17 @@ export default function GroupDetailModal() {
       setCancelConfirm(false)
       handleClose()
     } catch (err) {
-      const freshStatus = useApplicationStore.getState().getByUserAndGroup(activeUserId, group.id)?.status;
-      const msg =
-        freshStatus === 'approved' ? '慢了一步，團主剛好已經通過你的申請，你現在是這個群組的成員了' :
-        freshStatus === 'rejected' ? '慢了一步，團主剛好已經拒絕了這筆申請，代管費用已退還' :
-        (err?.response?.data?.message ?? err?.message ?? '取消申請失敗，請稍後再試')
-      toast(msg, 'error')
+      // 團主同時審核了這筆申請（例如剛好按下拒絕）會撞到後端的樂觀鎖，
+      // 回傳 409；此時前端本地的申請狀態還不知道發生了什麼事，與其用
+      // 猜的（本地資料通常也還是舊的 pending），不如直接請使用者重新整理頁面
+      if (err?.response?.status === 409) {
+        toast('發生錯誤，請重新整理', 'error', {
+          persistent: true,
+          action: { label: '重新整理', onClick: () => window.location.reload() },
+        })
+      } else {
+        toast(err?.response?.data?.message ?? err?.message ?? '取消申請失敗，請稍後再試', 'error')
+      }
       setCancelConfirm(false)
     } finally {
       setCancelling(false)
@@ -241,7 +261,7 @@ export default function GroupDetailModal() {
       }, useAuthStore.getState().getProfile())
       handleClose()
       toast('申請已送出！', 'success', {
-        action: { label: '前往我的訂閱', onClick: () => navigate('/my-subscriptions') },
+        action: { label: '前往查看', onClick: () => window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: group.id } })) },
       })
     } catch (err) {
       const msg = err?.response?.data?.message ?? err?.message ?? '申請失敗，請稍後再試'
@@ -296,7 +316,7 @@ export default function GroupDetailModal() {
   }
 
   if (isMember && !isHost) {
-    return <MemberGroupView group={group} onLeaveGroup={handleLeave} onClose={handleClose} />
+    return <MemberGroupView group={group} onLeaveGroup={handleLeave} onClose={handleClose} autoOpenCredentials={autoOpenCredentials} />
   }
 
   const reviews = (

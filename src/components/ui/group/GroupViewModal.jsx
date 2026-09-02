@@ -13,7 +13,7 @@ export default function GroupViewModal({
   isOpen, onClose, groupId,
   onReportServiceInfoIssue, onResolveDispute, onEscalateDispute, onActivate, onLockGroup, onCancelGroup, onRemoveMember,
   onLeaveGroup, onApprove, onReject, onAdjustBillingDate, errors, submittingIds,
-  autoOpenLockGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling, autoOpenMemberInfo,
+  autoOpenLockGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling, autoOpenMemberInfo, autoOpenMembers,
   onOpenRenewal, autoOpenCredentials,
 }) {
   const groups       = useGroupStore(s => s.groups);
@@ -61,6 +61,7 @@ export default function GroupViewModal({
       autoOpenApplications={autoOpenApplications}
       autoOpenBilling={autoOpenBilling}
       autoOpenMemberInfo={autoOpenMemberInfo}
+      autoOpenMembers={autoOpenMembers}
       onOpenRenewal={onOpenRenewal}
     />
   )

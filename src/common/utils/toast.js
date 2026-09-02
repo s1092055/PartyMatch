@@ -10,3 +10,7 @@ export function notifyError(err, fallback = '操作失敗，請稍後再試') {
   console.error(err)
   toast(err?.message ?? fallback, 'error')
 }
+
+export function dismissToast(id) {
+  sonnerToast.dismiss(id)
+}

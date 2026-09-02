@@ -33,7 +33,7 @@ import { buildBillingPanel } from './host-group-view/buildBillingPanel'
 import { buildMemberInfoPanel } from './host-group-view/buildMemberInfoPanel'
 
 export default function HostGroupView(
-  { group, members, applications, onReportServiceInfoIssue, onResolveDispute, onEscalateDispute, onRemoveMember, onActivate, onLockGroup, onCancelGroup, onApprove, onReject, onAdjustBillingDate, errors, submittingIds, onClose, autoOpenLockGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling, autoOpenMemberInfo, onOpenRenewal }
+  { group, members, applications, onReportServiceInfoIssue, onResolveDispute, onEscalateDispute, onRemoveMember, onActivate, onLockGroup, onCancelGroup, onApprove, onReject, onAdjustBillingDate, errors, submittingIds, onClose, autoOpenLockGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling, autoOpenMemberInfo, autoOpenMembers, onOpenRenewal }
 ) {
   const [showActivate, setShowActivate]                   = useState(false)
   const [removingMember, setRemovingMember]               = useState(null)
@@ -82,6 +82,11 @@ export default function HostGroupView(
   }, [autoOpenApplications])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (autoOpenMembers) setActivePanel('members')
+  }, [autoOpenMembers])
+
+  useEffect(() => {
     // 群組概覽本身就是在顯示這個狀態（頂部橫幅、鎖定按鈕等），不是「切到別的分頁才看得到」，
     // 停留在概覽時要即時反映最新狀態，不能套用下面那個凍結邏輯，否則會出現群組已經額滿、
     // 但概覽還顯示著鎖定前舊狀態的情況
@@ -103,28 +108,18 @@ export default function HostGroupView(
     if (autoOpenMemberInfo) setActivePanel('memberInfo')
   }, [autoOpenMemberInfo])
 
-  function markGroupNotifsRead(type) {
-    const user = useAuthStore.getState().getProfile()
-    if (!user) return
-    const notifStore = useNotificationStore.getState()
-    notifStore.getByUserId(user.id)
-      .filter(n => n.type === type && n.meta?.groupId === group.id && !n.isRead)
-      .forEach(n => notifStore.markRead(n.id))
-  }
-
   useEffect(() => {
-    // 重複點擊同一個分頁（panelTick 遞增）也要重新標記已讀，
-    // 不然停留在該分頁時新收到的通知，右上角紅點會一直卡著不消失
-    if (activePanel !== 'applications') return
-    markGroupNotifsRead('new_application')
-  }, [activePanel, group.id, panelTick]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    // 重複點擊同一分頁（panelTick 遞增）也要重新刷新成員資料、重新標記已讀
+    // 重複點擊同一分頁（panelTick 遞增）也要重新刷新成員資料，
+    // 「成員已填寫服務資訊」這則通知比較細——要實際點進成員資訊分頁看過，
+    // 才算「已讀」，不像其他類型只要打開這個群組的 Modal 就算看過
     if (activePanel !== 'memberInfo') return
     useMemberStore.getState().init().catch(console.error)
-    markGroupNotifsRead('service_info_filled')
-  }, [activePanel, group.id, panelTick]) // eslint-disable-line react-hooks/exhaustive-deps
+    const user = useAuthStore.getState().getProfile()
+    if (!user) return
+    useNotificationStore.getState().notifications
+      .filter(n => n.type === 'service_info_filled' && n.userId === user.id && n.meta?.groupId === group.id && !n.isRead)
+      .forEach(n => useNotificationStore.getState().markRead(n.id))
+  }, [activePanel, group.id, panelTick])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -150,6 +145,16 @@ export default function HostGroupView(
     ).length,
     [notifications, currentUserId, group.id]
   )
+
+  // 打開這個群組的 Modal，等於看過這個群組大部分的最新動態了，跟這個群組
+  // 有關的未讀通知一併標記已讀；service_info_filled 例外——那則要實際點進
+  // 成員資訊分頁才算看過（見上面 memberInfo 分頁的 useEffect），這裡排除掉
+  useEffect(() => {
+    if (!currentUserId) return
+    notifications
+      .filter(n => n.userId === currentUserId && !n.isRead && n.meta?.groupId === group.id && n.type !== 'service_info_filled')
+      .forEach(n => useNotificationStore.getState().markRead(n.id))
+  }, [notifications, currentUserId, group.id])
 
   const [finalConfirmed, setFinalConfirmed]         = useState(false)
   const [memberChecks, setMemberChecks]             = useState({})

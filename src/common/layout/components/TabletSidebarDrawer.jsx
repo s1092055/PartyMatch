@@ -12,8 +12,9 @@ import { CreditScoreModalBody } from '../../../components/ui/CreditScoreModal'
 import { SettingsModalBody } from '../../../components/ui/SettingsModal'
 import { UserReviewsModalBody } from '../../../features/manage-groups/components/UserReviewsModal'
 import { useAuthStore } from '../../stores/useAuthStore'
+import { usePendingRefreshStore } from '../../stores/usePendingRefreshStore'
 import { toast } from '../../utils/toast'
-import { PresenceDot, LockBadge } from './navShared'
+import { PresenceDot, LockBadge, UpdateDot } from './navShared'
 import { LOCKED_MESSAGE, PRESENCE_LABELS, getNavItemKey, isProtectedNavItem } from './navConstants'
 
 const USER_PANELS = {
@@ -41,6 +42,7 @@ export default function TabletSidebarDrawer(
   }
 ) {
   const navigate = useNavigate()
+  const pendingRefreshPages = usePendingRefreshStore(s => s.pendingPages)
   const [open, setOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [userPanel, setUserPanel] = useState('menu')
@@ -123,6 +125,7 @@ export default function TabletSidebarDrawer(
     }
 
     const isActive = pathname === item.to
+    const hasPendingUpdate = pendingRefreshPages.has(item.to)
     return (
       <a
         key={item.to}
@@ -134,8 +137,9 @@ export default function TabletSidebarDrawer(
             : 'font-bold text-ink-2 hover:bg-brand-subtle hover:text-brand'
         }`}
       >
-        <span className="grid h-9 w-9 shrink-0 place-items-center">
+        <span className="relative grid h-9 w-9 shrink-0 place-items-center">
           <item.icon size={22} strokeWidth={1.5} />
+          <UpdateDot show={hasPendingUpdate} className={isActive ? '!border-brand' : undefined} />
         </span>
         <span className="whitespace-nowrap">{item.label}</span>
       </a>

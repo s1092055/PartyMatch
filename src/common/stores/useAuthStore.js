@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import client, { tokenManager } from '../api/axiosClient'
 import { fetchTokenBalance, topupTokens } from '../api/tokensApi'
+import { usePendingRefreshStore } from './usePendingRefreshStore'
 
 async function importPrivateStores() {
   const [
@@ -57,6 +58,7 @@ async function clearPrivateStores() {
   } = await importPrivateStores()
   useConversationStore.getState().teardown()
   useNotificationStore.getState().teardown()
+  usePendingRefreshStore.getState().clear()
   useApplicationStore.setState({ applications: [] })
   useSubscriptionStore.setState({ subscriptions: [] })
   useMemberStore.setState({ members: [] })

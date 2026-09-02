@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { CheckCircle2 } from 'lucide-react'
 import { Button } from '../../../components/ui/button'
 import { Avatar } from '../../../components/ui/avatar'
@@ -40,7 +39,6 @@ function MessageAttachment({ url }) {
 }
 
 export default function MessageBubble({ msg, userId, hostId, groupMembers, conversationGroupId, getMessageSenderName, getReadReceiptNames }) {
-  const navigate = useNavigate()
 
   if (msg.type === 'system') {
     return (
@@ -84,9 +82,9 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
               <Button
                 onClick={() => {
                   window.dispatchEvent(new CustomEvent('pm:close-messages'))
-                  navigate('/my-subscriptions', {
-                    state: { openGroupId: conversationGroupId, openCredentials: isSharedCredentials && !myMember?.serviceInfoIssueNote },
-                  });
+                  window.dispatchEvent(new CustomEvent('pm:open-group', {
+                    detail: { groupId: conversationGroupId, openCredentials: isSharedCredentials && !myMember?.serviceInfoIssueNote },
+                  }))
                 }}
                 className="mt-3 h-auto w-full rounded-lg px-3 py-1.5 text-xs"
               >
@@ -106,7 +104,6 @@ export default function MessageBubble({ msg, userId, hostId, groupMembers, conve
               variant="success"
               onClick={() => {
                 window.dispatchEvent(new CustomEvent('pm:close-messages'))
-                navigate('/manage-groups', { state: { openGroupId: conversationGroupId, openBilling: true } })
                 window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: conversationGroupId, openBilling: true } }))
               }}
               className="h-auto w-full rounded-lg px-3 py-1.5 text-xs"

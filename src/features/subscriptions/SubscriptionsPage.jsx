@@ -6,6 +6,8 @@ import { useMemberStore } from '../../common/stores/useMemberStore'
 import { useApplicationStore } from '../../common/stores/useApplicationStore'
 import { useGroupStore } from '../../common/stores/useGroupStore'
 import { useAuthStore } from '../../common/stores/useAuthStore'
+import { useNotificationStore } from '../../common/stores/useNotificationStore'
+import { usePendingRefreshStore } from '../../common/stores/usePendingRefreshStore'
 import { finalizeLeaveGroup } from '../group/utils/leaveGroupFlow'
 import SubscriptionCard from './components/SubscriptionCard'
 import EmptyState from '../../components/ui/primitives/EmptyState'
@@ -72,6 +74,21 @@ export default function SubscriptionsPage() {
   const location = useLocation()
   const activeUser = useAuthStore(s => s.user)
   const activeUserId = activeUser?.id ?? null
+
+  // 進入這個頁面就代表使用者看過「我的訂閱」相關的最新動態了，
+  // 通知中心的紅點跟側邊欄紅點用同一套邏輯清除；也會反應在使用者
+  // 停留在這頁時新進來的背景通知（unreadForPage 變動就會重新觸發）
+  const unreadForPage = useNotificationStore(s => s.getUnreadCountForPage(activeUserId, '/my-subscriptions'))
+  useEffect(() => {
+    if (activeUserId && unreadForPage > 0) {
+      useNotificationStore.getState().markReadForPage(activeUserId, '/my-subscriptions')
+    }
+  }, [activeUserId, unreadForPage])
+
+  // toast「重新整理」只會悄悄換掉 store 資料，卡片不會重新掛載、slide-up
+  // 動畫不會重播；用這個 tick 當 key 強制整批卡片重新掛載一次
+  const refreshTick = usePendingRefreshStore(s => s.refreshTick)
+
   const subscriptionsState = useSubscriptionStore(s => s.subscriptions);
   const groupsState        = useGroupStore(s => s.groups)
   const applicationsState  = useApplicationStore(s => s.applications)
@@ -157,7 +174,7 @@ export default function SubscriptionsPage() {
           }
 
           return (
-            <div className="grid grid-cols-1 gap-3 p-2 md:grid-cols-2 xl:grid-cols-3">
+            <div key={refreshTick} className="grid grid-cols-1 gap-3 p-2 md:grid-cols-2 xl:grid-cols-3">
               {pendingApplications.map((app, i) => {
                 const group = getGroupById(app.groupId)
                 if (!group) return null

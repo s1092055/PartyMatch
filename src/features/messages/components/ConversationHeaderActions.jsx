@@ -9,6 +9,8 @@ export default function ConversationHeaderActions({ selected, onMembersToggle })
     const userId = useAuthStore.getState().user?.id
     const isHost = selected.hostId === userId
     window.dispatchEvent(new CustomEvent('pm:close-messages'))
+    // 團主／成員的群組 Modal 都是全站掛載（HostGroupModalHost／GroupDetailModal），
+    // 不用導頁，直接發事件就能開
     window.dispatchEvent(new CustomEvent(isHost ? 'pm:open-host-group' : 'pm:open-group', { detail: { groupId: selected.groupId } }))
   }
 

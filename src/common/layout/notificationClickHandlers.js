@@ -27,13 +27,14 @@ async function openGroupOrRedirect(groupId) {
   window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId } }))
 }
 
-function navigateToMemberGroupOrExplore(navigate, userId, groupId, extraState) {
+function navigateToMemberGroupOrExplore(navigate, userId, groupId, extraDetail) {
   Promise.all([
     useMemberStore.getState().init(),
     useGroupStore.getState().init({ all: true }),
   ]).finally(() => {
     if (userId && useMemberStore.getState().getByUserAndGroup(userId, groupId)) {
-      navigate('/my-subscriptions', { state: { openGroupId: groupId, ...extraState } })
+      // 成員的 GroupDetailModal 全站掛載，不用像團主端那樣先導頁才能開 Modal
+      window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId, ...extraDetail } }))
     } else {
       navigate('/explore')
       openGroupOrRedirect(groupId)
@@ -119,7 +120,6 @@ export function handleNotificationClick(notification, { userId, navigate, setOpe
   }
 
   if (notification.type === 'group_created' && notification.meta?.groupId) {
-    navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId } })
     openHostGroup(notification.meta.groupId)
     return
   }
@@ -133,16 +133,10 @@ export function handleNotificationClick(notification, { userId, navigate, setOpe
       useGroupStore.getState().init({ all: true }),
     ]).finally(() => {
       const hasSub = user ? !!getSubscriptionByUserAndGroup(user.id, gId) : false
-      if (hasSub) {
-        navigate('/my-subscriptions', { state: { openGroupId: gId } });
-        return
-      }
       const grp = getGroupById(gId);
-      if (grp && grp.status === 'recruiting') {
-        navigate('/my-subscriptions')
+      if (hasSub || (grp && grp.status === 'recruiting')) {
         window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: gId } }))
       } else {
-        navigate('/explore')
         toast('此群組已額滿或不再招募', 'info')
       }
     });
@@ -162,8 +156,7 @@ export function handleNotificationClick(notification, { userId, navigate, setOpe
   if (notification.type === 'member_left') {
     if (notification.meta?.groupId) {
       window.dispatchEvent(new CustomEvent('pm:refresh-member-stores'));
-      navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId } })
-      openHostGroup(notification.meta.groupId)
+      openHostGroup(notification.meta.groupId, { openMembers: true })
     } else {
       navigate('/my-subscriptions');
     }
@@ -174,8 +167,7 @@ export function handleNotificationClick(notification, { userId, navigate, setOpe
     window.dispatchEvent(new CustomEvent('pm:refresh-member-stores'))
     useAuthStore.getState().refreshTokenBalance().catch(console.error);
     useAuthStore.getState().refreshCreditScore().catch(console.error);
-    navigate('/explore')
-    openGroupOrRedirect(notification.meta.groupId)
+    window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: notification.meta.groupId } }))
     return
   }
 
@@ -190,7 +182,7 @@ export function handleNotificationClick(notification, { userId, navigate, setOpe
     ]).finally(() => {
       const hasSub = user ? !!getSubscriptionByUserAndGroup(user.id, gId) : false
       if (hasSub) {
-        navigate('/my-subscriptions', { state: { openGroupId: gId } });
+        window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: gId } }))
       } else {
         navigate('/explore')
         openGroupOrRedirect(gId)
@@ -200,7 +192,6 @@ export function handleNotificationClick(notification, { userId, navigate, setOpe
   }
 
   if (notification.type === 'new_application' && notification.meta?.groupId) {
-    navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId, openApplications: true } })
     useApplicationStore.getState().init().finally(() => {
       openHostGroup(notification.meta.groupId, { openApplications: true })
     })
@@ -208,7 +199,6 @@ export function handleNotificationClick(notification, { userId, navigate, setOpe
   }
 
   if (notification.type === 'service_info_filled' && notification.meta?.groupId) {
-    navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId, openMemberInfo: true } })
     useMemberStore.getState().init().finally(() => {
       openHostGroup(notification.meta.groupId, { openMemberInfo: true })
     });
@@ -216,7 +206,6 @@ export function handleNotificationClick(notification, { userId, navigate, setOpe
   }
 
   if (notification.type === 'application_cancelled' && notification.meta?.groupId) {
-    navigate('/manage-groups', { state: { openGroupId: notification.meta.groupId, openApplications: true } })
     useApplicationStore.getState().init().finally(() => {
       openHostGroup(notification.meta.groupId, { openApplications: true })
     })
@@ -225,7 +214,6 @@ export function handleNotificationClick(notification, { userId, navigate, setOpe
 
   if (notification.type === 'group_full' && notification.meta?.groupId) {
     const gId = notification.meta.groupId
-    navigate('/manage-groups', { state: { openGroupId: gId } })
     Promise.all([
       useGroupStore.getState().init({ all: true }),
       useMemberStore.getState().init(),
@@ -242,7 +230,6 @@ export function handleNotificationClick(notification, { userId, navigate, setOpe
 
   if (notification.type === 'all_service_info_filled' && notification.meta?.groupId) {
     const gId = notification.meta.groupId
-    navigate('/manage-groups', { state: { openGroupId: gId } })
     Promise.all([
       useGroupStore.getState().init({ all: true }),
       useMemberStore.getState().init(),
@@ -254,7 +241,6 @@ export function handleNotificationClick(notification, { userId, navigate, setOpe
 
   if (notification.type === 'member_confirmed_service' && notification.meta?.groupId) {
     const gId = notification.meta.groupId
-    navigate('/manage-groups', { state: { openGroupId: gId } })
     useMemberStore.getState().init().finally(() => {
       openHostGroup(gId)
     });
@@ -262,15 +248,12 @@ export function handleNotificationClick(notification, { userId, navigate, setOpe
   }
 
   if (notification.type === 'group_reviewed' && notification.meta?.groupId) {
-    const gId = notification.meta.groupId
-    navigate('/manage-groups', { state: { openGroupId: gId } })
-    openHostGroup(gId)
+    openHostGroup(notification.meta.groupId)
     return
   }
 
   if (notification.type === 'service_info_deadline_passed' && notification.meta?.groupId) {
     const gId = notification.meta.groupId
-    navigate('/manage-groups', { state: { openGroupId: gId } })
     Promise.all([
       useGroupStore.getState().init({ all: true }),
       useMemberStore.getState().init(),
@@ -284,7 +267,6 @@ export function handleNotificationClick(notification, { userId, navigate, setOpe
   if (notification.type === 'escrow_released' && notification.meta?.groupId) {
     const gId = notification.meta.groupId
     useAuthStore.getState().refreshTokenBalance().catch(console.error);
-    navigate('/manage-groups', { state: { openGroupId: gId } })
     useGroupStore.getState().init({ all: true }).finally(() => {
       openHostGroup(gId)
     });
@@ -298,7 +280,6 @@ export function handleNotificationClick(notification, { userId, navigate, setOpe
 
   if (notification.type === 'dispute_raised' && notification.meta?.groupId) {
     const gId = notification.meta.groupId
-    navigate('/manage-groups', { state: { openGroupId: gId, openMemberInfo: true } });
     Promise.all([
       useGroupStore.getState().init({ all: true }),
       useMemberStore.getState().init(),
@@ -318,7 +299,6 @@ export function handleNotificationClick(notification, { userId, navigate, setOpe
     useAuthStore.getState().refreshTokenBalance().catch(console.error);
     const grp = getGroupById(gId);
     if (grp && grp.hostId === userId) {
-      navigate('/manage-groups', { state: { openGroupId: gId } })
       Promise.all([
         useGroupStore.getState().init({ all: true }),
         useMemberStore.getState().init(),
@@ -335,7 +315,6 @@ export function handleNotificationClick(notification, { userId, navigate, setOpe
     const gId = notification.meta.groupId
     const grp = getGroupById(gId)
     if (grp && grp.hostId === userId) {
-      navigate('/manage-groups', { state: { openGroupId: gId } })
       useGroupStore.getState().init({ all: true }).finally(() => {
         openHostGroup(gId)
       });
@@ -349,7 +328,6 @@ export function handleNotificationClick(notification, { userId, navigate, setOpe
     const gId = notification.meta.groupId
     const grp = getGroupById(gId)
     if (grp && grp.hostId === userId) {
-      navigate('/manage-groups', { state: { openGroupId: gId } })
       useGroupStore.getState().init({ all: true }).finally(() => {
         openHostGroup(gId)
       })

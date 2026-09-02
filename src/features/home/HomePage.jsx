@@ -23,6 +23,7 @@ import { ALL_SERVICES } from './data/allServices'
 const MessagesModal = lazy(() => import('../messages/MessagesModal'))
 const GroupDetailModal = lazy(() => import('../group/GroupDetailModal'));
 const CreateGroupModal = lazy(() => import('../create/CreateGroupModal'))
+const HostGroupModalHost = lazy(() => import('../manage-groups/HostGroupModalHost'))
 
 export default function HomePage() {
   const navigate = useNavigate()
@@ -39,6 +40,7 @@ export default function HomePage() {
         <MessagesModal />
         <GroupDetailModal />
         <CreateGroupModal />
+        <HostGroupModalHost />
       </Suspense>
       <FloatingMessages />
       <SectionNav />
