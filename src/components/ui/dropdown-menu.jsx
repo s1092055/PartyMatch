@@ -19,7 +19,7 @@ export function DropdownMenuFilterTrigger({ active, ariaLabel = '篩選', classN
         className={cn(
           'grid h-9 w-9 shrink-0 place-items-center rounded-lg border transition-colors',
           active
-            ? 'border-brand-border bg-brand-subtle text-brand'
+            ? 'border-brand-border text-ink-3 hover:bg-raised hover:text-ink'
             : 'border-line text-ink-3 hover:bg-raised hover:text-ink',
           className
         )}
@@ -87,7 +87,7 @@ export function DropdownMenuRadioItem({ className, children, ...props }) {
   )
 }
 
-export function DropdownMenuRadioSection({ label, options, value, onValueChange }) {
+export function DropdownMenuRadioSection({ label, options, value, onValueChange, hideSeparator }) {
   return (
     <>
       <DropdownMenuLabel>{label}</DropdownMenuLabel>
@@ -98,7 +98,7 @@ export function DropdownMenuRadioSection({ label, options, value, onValueChange 
           </DropdownMenuRadioItem>
         ))}
       </DropdownMenuRadioGroup>
-      <DropdownMenuSeparator />
+      {!hideSeparator && <DropdownMenuSeparator />}
     </>
   )
 }

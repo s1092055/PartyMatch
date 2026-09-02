@@ -12,7 +12,7 @@ import FilterSelect from '../../components/ui/primitives/FilterSelect'
 import { useFilterSelectGroup } from '../../components/ui/primitives/useFilterSelectGroup'
 import ServiceLogo from '../../components/ui/ServiceLogo'
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuCheckboxItem,
+  DropdownMenu, DropdownMenuContent,
   DropdownMenuRadioSection, DropdownMenuFilterTrigger,
 } from '../../components/ui/dropdown-menu'
 import { getMeta, handleNotificationClick } from './notificationClickHandlers'
@@ -32,18 +32,28 @@ function getMergedNotifications(userId) {
   )
 }
 
+// 分類對應 server/src/lib/notificationCategories.js 的 NOTIFICATION_CATEGORIES 分組，
+// 兩邊各自維護一份（前端這份只用來分頁籤顯示，跟後端「能不能靜音」的用途不同），
+// 新增 NotificationType 時記得比照兩邊一起加
 const APPLY_TYPES   = ['joined', 'application_approved', 'application_rejected', 'application_sent', 'new_application', 'application_cancelled', 'application']
+const GROUP_TYPES    = ['group_created', 'group_activated', 'group_chat_opened', 'group_full', 'group_full_member', 'group_ended', 'group_cancelled', 'group_renewal', 'member_left', 'member_removed', 'member_confirmed_service', 'group_reviewed']
+const BILLING_TYPES  = ['fill_service_info', 'service_info_filled', 'all_service_info_filled', 'service_info_deadline_passed', 'escrow_released', 'escrow_released_member', 'upcoming_renewal', 'billing_date_confirmed', 'billing_date_adjusted', 'payment_reminder']
+const ISSUE_TYPES    = ['dispute_raised', 'dispute_resolved', 'dispute_resolved_by_host', 'service_info_issue']
 
 // 「系統」現在是分類 Select 裡的固定選項，不再放進這裡的「顯示範圍」篩選，
 // 避免同一個「系統」字樣同時出現在兩個不同的篩選機制裡造成混淆
 const TABS = [
-  { id: 'all',    label: '全部', filter: () => true },
-  { id: 'apply',  label: '申請', filter: n => APPLY_TYPES.includes(n.type) },
+  { id: 'all',     label: '全部', filter: () => true },
+  { id: 'apply',   label: '申請', filter: n => APPLY_TYPES.includes(n.type) },
+  { id: 'group',   label: '群組動態', filter: n => GROUP_TYPES.includes(n.type) },
+  { id: 'billing', label: '帳單與扣款', filter: n => BILLING_TYPES.includes(n.type) },
+  { id: 'issue',   label: '爭議與問題', filter: n => ISSUE_TYPES.includes(n.type) },
 ]
 
 const SORT_OPTIONS = [
   { id: 'newest', label: '最新在前' },
   { id: 'oldest', label: '最舊在前' },
+  { id: 'unread', label: '未讀優先' },
 ]
 
 export default function NotificationCenter() {
@@ -57,7 +67,6 @@ export default function NotificationCenter() {
 
   const [open, setOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('all')
-  const [unreadOnly, setUnreadOnly] = useState(false)
   const [sortOrder, setSortOrder] = useState('newest');
   const [activeCategory, setActiveCategory] = useState(null) // null = 還沒手動選過，跟著預設值走；否則 'system' | 群組 id
   const filterSelectGroup = useFilterSelectGroup()
@@ -131,7 +140,7 @@ export default function NotificationCenter() {
       label: cat.label,
       icon: cat.key === 'system'
         ? (
-          <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full border border-line bg-white text-brand">
+          <span className="grid h-5 w-5 shrink-0 place-items-center rounded-[22%] border border-line bg-white text-brand">
             <Megaphone size={11} strokeWidth={1.5} />
           </span>
         )
@@ -144,9 +153,10 @@ export default function NotificationCenter() {
     let result = tab ? notifications.filter(tab.filter) : notifications
     if (effectiveCategory === 'system') result = result.filter(n => !n.meta?.groupId)
     else if (effectiveCategory) result = result.filter(n => n.meta?.groupId === effectiveCategory)
-    if (unreadOnly) result = result.filter(n => !n.isRead)
-    return sortOrder === 'oldest' ? [...result].reverse() : result;
-  }, [activeTab, notifications, visibleTabs, unreadOnly, sortOrder, effectiveCategory])
+    if (sortOrder === 'oldest') return [...result].reverse()
+    if (sortOrder === 'unread') return [...result].sort((a, b) => (a.isRead === b.isRead ? 0 : a.isRead ? 1 : -1))
+    return result;
+  }, [activeTab, notifications, visibleTabs, sortOrder, effectiveCategory])
 
   function handleMarkAllRead() {
     if (!userId) return
@@ -196,12 +206,12 @@ export default function NotificationCenter() {
                   groups={categoryGroups}
                   ariaLabel="通知分類"
                   className="h-11 w-full text-xs font-bold"
-                  listClassName="z-[80]"
+                  listClassName="z-[80] h-44"
                   triggerContent={(
                     <span className="flex min-w-0 items-center gap-1.5">
                       {selectedCategory ? (
                         selectedCategory.key === 'system' ? (
-                          <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full border border-line bg-white text-brand">
+                          <span className="grid h-5 w-5 shrink-0 place-items-center rounded-[22%] border border-line bg-white text-brand">
                             <Megaphone size={11} strokeWidth={1.5} />
                           </span>
                         ) : (
@@ -220,16 +230,19 @@ export default function NotificationCenter() {
                 onOpenChange={o => { setFilterMenuOpen(o); if (o) filterSelectGroup.setOpenKey(null) }}
               >
                 <DropdownMenuFilterTrigger
-                  active={activeTab !== 'all' || unreadOnly || sortOrder !== 'newest'}
+                  active={activeTab !== 'all' || sortOrder !== 'newest'}
                   ariaLabel="篩選通知"
                   className="h-11 w-11"
                 />
-                <DropdownMenuContent>
-                  <DropdownMenuRadioSection label="顯示範圍" options={visibleTabs} value={activeTab} onValueChange={setActiveTab} />
-                  <DropdownMenuRadioSection label="排序" options={SORT_OPTIONS} value={sortOrder} onValueChange={setSortOrder} />
-                  <DropdownMenuCheckboxItem checked={unreadOnly} onCheckedChange={setUnreadOnly}>
-                    只顯示未讀
-                  </DropdownMenuCheckboxItem>
+                <DropdownMenuContent className="h-44 w-64 p-0">
+                  <div className="flex h-full">
+                    <div className="flex-1 overflow-y-auto border-r border-line-subtle p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                      <DropdownMenuRadioSection label="顯示範圍" options={visibleTabs} value={activeTab} onValueChange={setActiveTab} hideSeparator />
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                      <DropdownMenuRadioSection label="排序" options={SORT_OPTIONS} value={sortOrder} onValueChange={setSortOrder} hideSeparator />
+                    </div>
+                  </div>
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
