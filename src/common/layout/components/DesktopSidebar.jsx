@@ -191,17 +191,17 @@ export default function DesktopSidebar({
       )}
 
       {/* 真桌機（有 hover 能力）：維持原本兩組固定位置，一律展開顯示 */}
-      <div className="fixed top-6 z-50 hidden flex-col gap-3 can-hover:lg:flex lg:top-8" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
+      <div className="fixed right-6 top-6 z-50 hidden flex-col gap-3 can-hover:lg:flex lg:top-8">
         {renderNotifyButton()}
         {renderTopupButton()}
       </div>
 
-      <div className="fixed z-50 hidden can-hover:lg:block" style={{ bottom: '2.25rem', right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
+      <div className="fixed right-6 z-50 hidden can-hover:lg:block" style={{ bottom: '2.25rem' }}>
         {renderMessageButton()}
       </div>
 
       {/* 手機／iPad（沒有 hover 能力）：三顆按鈕收進可收合的下拉堆疊 */}
-      <div ref={dockRef} className="fixed top-6 z-50 flex flex-col items-center gap-3 can-hover:lg:hidden" style={{ right: 'calc(1.5rem + var(--scrollbar-compensation, 0px))' }}>
+      <div ref={dockRef} className="fixed right-6 top-6 z-50 flex flex-col items-center gap-3 can-hover:lg:hidden">
         <button
           onClick={() => setDockOpen(o => !o)}
           className={FLOATING_ICON_BUTTON_CLASS}
