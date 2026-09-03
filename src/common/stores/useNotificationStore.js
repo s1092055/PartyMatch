@@ -141,6 +141,15 @@ export const useNotificationStore = create((set, get) => ({
         const fullMemberGroupIds = new Set(
           newNotifs.filter(n => n.type === 'group_full_member').map(n => n.meta?.groupId).filter(Boolean)
         )
+        function isSilent(n) {
+          return SILENT_REFRESH_TYPES.has(n.type) ||
+            (n.type === 'application_approved' && fullMemberGroupIds.has(n.meta?.groupId))
+        }
+        // 分頁被瀏覽器丟到背景太久（節流或使用者真的離開一段時間）沒辦法
+        // 每 5 秒都準時 poll，回來後這次 tick 可能一次補到好幾筆不同事件的
+        // 通知，每筆各自跳一則 toast 會疊成一長排；超過一筆時全部合併成
+        // 一則彙總 toast，讓使用者自己點進通知中心看，不逐一轟炸
+        const toastableCount = newNotifs.filter(n => NOTIFICATION_REFRESH_STORES[n.type]?.length && !isSilent(n)).length
         // 通知本身（bell/toast）要立即讓使用者知道發生了什麼事；
         // 實際會讓畫面內容跳動的 store 資料則附在同一個事件裡，交給
         // App.jsx 用「有事件內容的 toast + 手動重新整理」延後套用，
@@ -148,12 +157,11 @@ export const useNotificationStore = create((set, get) => ({
         newNotifs.forEach(n => {
           const stores = NOTIFICATION_REFRESH_STORES[n.type]
           if (!stores?.length) return
-          const silent = SILENT_REFRESH_TYPES.has(n.type) ||
-            (n.type === 'application_approved' && fullMemberGroupIds.has(n.meta?.groupId))
           window.dispatchEvent(new CustomEvent('pm:refresh-stores', {
             detail: {
               stores, notifId: n.id, type: n.type, meta: n.meta, title: n.title, message: n.message,
-              silent,
+              silent: isSilent(n),
+              batchSize: toastableCount,
               page:   NOTIFICATION_REFRESH_PAGE[n.type],
             },
           }))

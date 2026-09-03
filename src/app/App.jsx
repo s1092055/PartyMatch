@@ -162,13 +162,33 @@ export default function App() {
     function onRefreshStores(event) {
       const user = useAuthStore.getState().getProfile()
       if (!user) return
-      const { stores = [], notifId, type, meta, title, message, silent, page } = event.detail ?? {}
+      const { stores = [], notifId, type, meta, title, message, silent, page, batchSize = 1 } = event.detail ?? {}
       usePendingRefreshStore.getState().mark(stores, page)
       if (silent) return
 
       // 團主已經開著這個群組的 Modal 時，「群組名額已滿」不用再跳 toast 吵他——
       // 通知本身還是照樣進通知中心，只是不用再彈一次視窗蓋在他正在看的畫面上
       if (type === 'group_full' && meta?.groupId && useOpenGroupStore.getState().hostOpenGroupId === meta.groupId) {
+        return
+      }
+
+      // 分頁被瀏覽器丟到背景太久（節流／使用者離開一段時間）才補到一整批
+      // 不同事件的通知時，不要每一筆都各自跳一則獨立 toast 疊成一長排——
+      // 合併成一則彙總 toast，讓使用者自己點進通知中心看，比較不打擾
+      if (batchSize > 1) {
+        const batchToastId = 'pm-batch-update'
+        pendingToastIds.add(batchToastId)
+        toast(`有 ${batchSize} 則新的群組/申請通知`, 'info', {
+          id: batchToastId,
+          persistent: true,
+          action: {
+            label: '查看通知中心',
+            onClick: async () => {
+              await runPendingRefresh()
+              window.dispatchEvent(new CustomEvent('pm:open-notify'))
+            },
+          },
+        })
         return
       }
 
