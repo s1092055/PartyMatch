@@ -6,6 +6,7 @@ import { Button } from '../../components/ui/button'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useNotificationStore } from '../stores/useNotificationStore'
 import { useGroupStore } from '../stores/useGroupStore'
+import { useMemberStore } from '../stores/useMemberStore'
 import { formatRelativeDate } from '../utils/date'
 import EmptyState from '../../components/ui/primitives/EmptyState'
 import FilterSelect from '../../components/ui/primitives/FilterSelect'
@@ -45,6 +46,13 @@ const TABS = [
   { id: 'issue',   label: '爭議與問題', filter: n => ISSUE_TYPES.includes(n.type) },
 ]
 
+const BUCKET_SECTIONS = [
+  { bucket: 'host',      label: '我管理的群組' },
+  { bucket: 'member',    label: '已加入的群組' },
+  { bucket: 'applicant', label: '申請中的群組' },
+  { bucket: 'system',    label: '系統' },
+]
+
 const SORT_OPTIONS = [
   { id: 'newest', label: '最新在前' },
   { id: 'oldest', label: '最舊在前' },
@@ -59,6 +67,11 @@ export default function NotificationCenter() {
   const notificationsState = useNotificationStore(s => s.notifications);
 
   const groupsState = useGroupStore(s => s.groups)
+  const membersState = useMemberStore(s => s.members)
+  const memberGroupIds = useMemo(
+    () => new Set(userId ? membersState.filter(m => m.userId === userId).map(m => m.groupId) : []),
+    [membersState, userId],
+  )
 
   const [open, setOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('all')
@@ -92,9 +105,14 @@ export default function NotificationCenter() {
       if (!groupId) return
       const group = groupsState.find(g => g.id === groupId)
       const label = group ? (group.planName || group.serviceName || '群組') : '已刪除的群組'
+      const bucket = group?.hostId === userId
+        ? 'host'
+        : memberGroupIds.has(groupId)
+          ? 'member'
+          : 'applicant'
       const existing = byGroup.get(groupId)
       if (!existing || String(n.createdAt ?? '') > String(existing.latestAt ?? '')) {
-        byGroup.set(groupId, { key: groupId, groupId, serviceId: group?.serviceId ?? '', label, latestAt: n.createdAt })
+        byGroup.set(groupId, { key: groupId, groupId, serviceId: group?.serviceId ?? '', label, bucket, latestAt: n.createdAt })
       }
     })
     const groupCategories = [...byGroup.values()].sort(
@@ -103,8 +121,8 @@ export default function NotificationCenter() {
     // 「系統」固定存在，不看目前有沒有系統通知——公告本來就是不定期發送，
     // 沒有內容時選進去只是看到空清單，但這個分類本身要一直看得到、選得到；
     // 排在選單最後面，優先讓使用者看到跟自己群組有關的分類
-    return [...groupCategories, { key: 'system', label: '系統' }]
-  }, [notifications, groupsState])
+    return [...groupCategories, { key: 'system', label: '系統', bucket: 'system' }]
+  }, [notifications, groupsState, userId, memberGroupIds])
 
   useEffect(() => {
     function onOpen() {
@@ -128,20 +146,24 @@ export default function NotificationCenter() {
   const effectiveCategory = activeCategory ?? categories[0]?.key ?? null
   const selectedCategory = categories.find(c => c.key === effectiveCategory) ?? null
 
-  const categoryGroups = useMemo(() => [{
-    label: null,
-    items: categories.map(cat => ({
-      value: cat.key,
-      label: cat.label,
-      icon: cat.key === 'system'
-        ? (
-          <span className="grid h-5 w-5 shrink-0 place-items-center rounded-[22%] border border-line bg-white text-brand">
-            <Megaphone size={11} strokeWidth={1.5} />
-          </span>
-        )
-        : <ServiceLogo serviceId={cat.serviceId} size={20} />,
-    })),
-  }], [categories])
+  const categoryGroups = useMemo(() => {
+    function toItem(cat) {
+      return {
+        value: cat.key,
+        label: cat.label,
+        icon: cat.key === 'system'
+          ? (
+            <span className="grid h-5 w-5 shrink-0 place-items-center rounded-[22%] border border-line bg-white text-brand">
+              <Megaphone size={11} strokeWidth={1.5} />
+            </span>
+          )
+          : <ServiceLogo serviceId={cat.serviceId} size={20} />,
+      }
+    }
+    return BUCKET_SECTIONS
+      .map(({ bucket, label }) => ({ label, items: categories.filter(c => c.bucket === bucket).map(toItem) }))
+      .filter(section => section.items.length > 0)
+  }, [categories])
 
   const filtered = useMemo(() => {
     const tab = visibleTabs.find(t => t.id === activeTab)
