@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Bell, Lock, LogIn, LogOut, Menu, MessageSquare, Moon, Settings, ShieldCheck, Star, Sun, User, X } from 'lucide-react'
+import { Bell, ChevronRight, Lock, LogIn, LogOut, Menu, MessageSquare, Moon, Settings, ShieldCheck, Star, Sun, User, X } from 'lucide-react'
 import logoUrl from '../../../assets/Logo.svg'
 import { NAV_SECTIONS } from '../nav'
 import { useTheme } from '../../../components/theme-provider'
@@ -283,16 +283,18 @@ export default function DesktopSidebar({
                     <Avatar initial={avatarInitial} color={avatarColor} size="md" />
                     <PresenceDot status={presenceStatus} className="absolute bottom-0 right-0 h-3 w-3" />
                   </span>
-                  <span className="min-w-0 flex-1 opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
-                    <span className="block truncate text-sm font-extrabold text-ink">{userName}</span>
+                  <span className="flex min-w-0 flex-1 items-center gap-2 opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
+                    <span className="block min-w-0 flex-1 truncate text-sm font-extrabold text-ink">{userName}</span>
+                    <ChevronRight size={16} strokeWidth={1.5} className="shrink-0 text-ink-2" />
                   </span>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 side="right"
                 align="end"
-                alignOffset={16}
+                alignOffset={-16}
                 sideOffset={10}
+                avoidCollisions={false}
                 className="w-40"
                 onCloseAutoFocus={e => e.preventDefault()}
               >
