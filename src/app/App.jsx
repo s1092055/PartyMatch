@@ -84,14 +84,20 @@ export default function App() {
       pendingGroupToastIds.delete(groupId)
     })
 
-    function runPendingRefresh() {
+    async function runPendingRefresh() {
       const user = useAuthStore.getState().getProfile()
       const pending = usePendingRefreshStore.getState().pending
-      if (user) pending.forEach(store => STORE_REFRESHERS[store]?.())
+      const refreshes = user
+        ? [...pending].map(store => STORE_REFRESHERS[store]?.()).filter(Boolean)
+        : []
       usePendingRefreshStore.getState().clear()
       pendingToastIds.forEach(id => dismissToast(id))
       pendingToastIds = new Set()
       pendingGroupToastIds.clear()
+      // 等待被延後的 store 刷新真正落地，再讓 toast 動作（例如開啟群組 Modal）
+      // 讀取資料，避免 Modal 開啟當下 groups/members 還沒更新完成、找不到對應
+      // 群組而閃退，或跟 Modal 自己觸發的 refreshGroup 產生互相覆蓋的競態
+      await Promise.all(refreshes)
     }
 
     // 部分通知類型除了「刷新資料」之外，還帶有明確的下一步動作，
@@ -173,8 +179,8 @@ export default function App() {
         persistent: true,
         action: {
           label: toastAction?.label ?? '重新整理',
-          onClick: () => {
-            runPendingRefresh()
+          onClick: async () => {
+            await runPendingRefresh()
             toastAction?.run(meta)
           },
         },
