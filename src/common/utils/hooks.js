@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from './toast'
 import { useAuthStore } from '../stores/useAuthStore'
 import { resolveImageMime } from '../api/storageApi'
+import { useModalStackStore } from '../stores/useModalStackStore'
 
 export function useIsDesktop() {
   const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024)
@@ -41,6 +42,24 @@ export function useScrollLock(enabled) {
       }
     }
   }, [enabled])
+}
+
+export function useModalOpenTracking(open) {
+  useEffect(() => {
+    if (!open) return
+    useModalStackStore.getState().push()
+    return () => useModalStackStore.getState().pop()
+  }, [open])
+}
+
+export function useDeferWhileModalOpen(value) {
+  const isModalOpen = useModalStackStore(s => s.count > 0)
+  const [frozen, setFrozen] = useState(value)
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (!isModalOpen) setFrozen(value)
+  }, [isModalOpen, value])
+  return isModalOpen ? frozen : value
 }
 
 const _pointerDownSubs = new Set();

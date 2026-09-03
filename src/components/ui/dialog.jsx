@@ -2,7 +2,7 @@ import { Dialog as DialogPrimitive } from "radix-ui"
 import { X } from 'lucide-react'
 import { cn } from "../../lib/utils"
 import { Button } from "./button"
-import { useScrollLock } from "../../common/utils/hooks"
+import { useScrollLock, useModalOpenTracking } from "../../common/utils/hooks"
 
 const VARIANT_CONTENT = {
   default: 'max-w-5xl rounded-2xl border border-line bg-canvas shadow-popover',
@@ -15,6 +15,7 @@ const VARIANT_Z = { default: 'z-[56]', panel: 'z-[65]' }
 // 這裡疊加專案自製、用 position:fixed 硬鎖 body 的 useScrollLock，讓 body 完全脫離捲動流才是真的擋得住
 export function Dialog(props) {
   useScrollLock(props.open ?? false)
+  useModalOpenTracking(props.open ?? false)
   return <DialogPrimitive.Root {...props} />
 }
 

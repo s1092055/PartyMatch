@@ -4,6 +4,7 @@ import { Compass, RotateCw, Search } from 'lucide-react'
 import { useGroupStore } from '../../common/stores/useGroupStore'
 import { useApplicationStore } from '../../common/stores/useApplicationStore'
 import { useMemberStore } from '../../common/stores/useMemberStore'
+import { useDeferWhileModalOpen } from '../../common/utils/hooks'
 import { applyFilters } from '../../common/utils/searchUtils'
 import { useAuthStore } from '../../common/stores/useAuthStore'
 import EmptyState from '../../components/ui/primitives/EmptyState'
@@ -16,9 +17,9 @@ export default function ExplorePage() {
   const location = useLocation();
   const [category, setCategory] = useState('all')
   const activeUserId = useAuthStore(s => s.user?.id)
-  const groups = useGroupStore(s => s.groups)
-  const applications = useApplicationStore(s => s.applications)
-  const members = useMemberStore(s => s.members)
+  const groups = useDeferWhileModalOpen(useGroupStore(s => s.groups))
+  const applications = useDeferWhileModalOpen(useApplicationStore(s => s.applications))
+  const members = useDeferWhileModalOpen(useMemberStore(s => s.members))
   const [refreshing, setRefreshing] = useState(false)
 
   useEffect(() => {

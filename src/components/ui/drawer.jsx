@@ -1,6 +1,7 @@
 import * as React from "react"
 import { Drawer as DrawerPrimitive } from "@base-ui/react/drawer"
 import { cn } from "../../lib/utils"
+import { useModalOpenTracking } from "../../common/utils/hooks"
 
 const DrawerContext = React.createContext(null);
 
@@ -22,6 +23,7 @@ export function Drawer({
     () => ({ hasSnapPoints, modal, showSwipeHandle, swipeDirection }),
     [hasSnapPoints, modal, showSwipeHandle, swipeDirection]
   )
+  useModalOpenTracking(props.open ?? false)
 
   return (
     <DrawerContext.Provider value={contextValue}>

@@ -7,14 +7,15 @@ import PageHeader from '../../common/layout/PageHeader'
 import { useFavoriteStore } from '../../common/stores/useFavoriteStore'
 import { useGroupStore } from '../../common/stores/useGroupStore'
 import { useMemberStore } from '../../common/stores/useMemberStore'
+import { useDeferWhileModalOpen } from '../../common/utils/hooks'
 import ExploreGroupCard from '../explore/components/ExploreGroupCard'
 
 export default function FavoritesPage() {
   const navigate = useNavigate()
   const activeUser = useAuthStore(s => s.user)
-  const favorites = useFavoriteStore(s => s.favorites)
-  const allGroups = useGroupStore(s => s.groups)
-  const members = useMemberStore(s => s.members)
+  const favorites = useDeferWhileModalOpen(useFavoriteStore(s => s.favorites))
+  const allGroups = useDeferWhileModalOpen(useGroupStore(s => s.groups))
+  const members = useDeferWhileModalOpen(useMemberStore(s => s.members))
 
   const groups = useMemo(() => {
     if (!activeUser) return []

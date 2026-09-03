@@ -3,6 +3,7 @@ import { useGroupStore } from '../../../common/stores/useGroupStore'
 import { useApplicationStore } from '../../../common/stores/useApplicationStore'
 import { useMemberStore } from '../../../common/stores/useMemberStore'
 import { useSubscriptionStore } from '../../../common/stores/useSubscriptionStore'
+import { useDeferWhileModalOpen } from '../../../common/utils/hooks'
 import { createGroupConversation, removeParticipantFromConversation, sendSystemMessage } from '../../../common/api/messagesApi'
 import { toast } from '../../../common/utils/toast'
 import { useConversationStore } from '../../../common/stores/useConversationStore'
@@ -52,9 +53,9 @@ function loadHostData(activeUser) {
 }
 
 export function useHostActions(activeUser) {
-  const groupsState        = useGroupStore(s => s.groups);
-  const applicationsState  = useApplicationStore(s => s.applications)
-  const membersState       = useMemberStore(s => s.members)
+  const groupsState        = useDeferWhileModalOpen(useGroupStore(s => s.groups));
+  const applicationsState  = useDeferWhileModalOpen(useApplicationStore(s => s.applications))
+  const membersState       = useDeferWhileModalOpen(useMemberStore(s => s.members))
 
   const [hostData, setHostData] = useState(() => loadHostData(activeUser))
   const [errors, setErrors] = useState({})

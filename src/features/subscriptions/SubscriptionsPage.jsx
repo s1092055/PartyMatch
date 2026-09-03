@@ -24,6 +24,7 @@ import { toISODate } from '../../common/utils/date'
 import { calcDisplayPrice, calcDisplayCycle } from '../../common/utils/pricingUtils'
 import { isHistorySubscription } from '../../common/utils/groupStatusDisplay'
 import GroupHistoryModal from '../../components/ui/group/GroupHistoryModal'
+import { useDeferWhileModalOpen } from '../../common/utils/hooks'
 
 const getGroupById = (id) => useGroupStore.getState().getById(id)
 
@@ -89,10 +90,10 @@ export default function SubscriptionsPage() {
   // 動畫不會重播；用這個 tick 當 key 強制整批卡片重新掛載一次
   const refreshTick = usePendingRefreshStore(s => s.refreshTick)
 
-  const subscriptionsState = useSubscriptionStore(s => s.subscriptions);
-  const groupsState        = useGroupStore(s => s.groups)
-  const applicationsState  = useApplicationStore(s => s.applications)
-  const membersState = useMemberStore(s => s.members)
+  const subscriptionsState = useDeferWhileModalOpen(useSubscriptionStore(s => s.subscriptions));
+  const groupsState        = useDeferWhileModalOpen(useGroupStore(s => s.groups))
+  const applicationsState  = useDeferWhileModalOpen(useApplicationStore(s => s.applications))
+  const membersState = useDeferWhileModalOpen(useMemberStore(s => s.members))
   const subs = useMemo(
     () => activeUserId
       ? enrichSubs(subscriptionsState.filter(s => s.userId === activeUserId), activeUserId)
