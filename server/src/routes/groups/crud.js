@@ -397,6 +397,10 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
       return res.status(400).json({ message: '群組已有成員加入或已鎖定，請改用解散群組功能' })
     }
 
+    // 通知的 meta.groupId 是存進 JSON 欄位的快照，group 真的被刪除後不會
+    // 跟著更新／清掉，殘留的通知會在通知中心變成一個「已刪除的群組」分類
+    // 永遠留在那裡（點了也打不開群組），刪除群組前先把這些通知一併清掉
+    await prisma.notification.deleteMany({ where: { groupId: req.params.id } })
     await prisma.group.delete({ where: { id: req.params.id } })
     res.status(204).end()
   } catch (err) { next(err) }
