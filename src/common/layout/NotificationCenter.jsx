@@ -20,12 +20,7 @@ import { getMeta, handleNotificationClick } from './notificationClickHandlers'
 function getMergedNotifications(userId) {
   const notifStore = useNotificationStore.getState()
   const personal = userId ? notifStore.getByUserId(userId) : []
-  // 歡迎訊息本來是只給訪客看的 fallback，已登入會員完全沒有其他通知時
-  // 也留著顯示，避免通知中心直接空白；只要會員有任何自己的通知，就跟
-  // 原本一樣濾掉，不要跟真正的個人動態混在一起
-  const system = personal.length > 0
-    ? notifStore.getSystemNotifications().filter(n => n.id !== 'system_guest_welcome')
-    : notifStore.getSystemNotifications()
+  const system = notifStore.getRealSystemNotifications()
   const seen = new Set(personal.map(n => n.id))
   return [...personal, ...system.filter(n => !seen.has(n.id))].sort(
     (a, b) => String(b.createdAt ?? '').localeCompare(String(a.createdAt ?? ''))

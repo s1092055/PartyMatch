@@ -5,6 +5,7 @@ import { z } from 'zod'
 import prisma from '../lib/prisma.js'
 import redis from '../lib/redis.js'
 import { ensureSystemConversation } from '../lib/systemUser.js'
+import { notify } from './groups/shared.js'
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/jwt.js'
 import { validate } from '../middleware/validate.js'
 import { requireAuth } from '../middleware/auth.js'
@@ -61,6 +62,12 @@ router.post('/register', authLimiter, validate(registerSchema), async (req, res,
     })
 
     ensureSystemConversation(user.id).catch(err => console.error('[auth] 建立系統聊天室失敗:', err));
+    notify({
+      userId:  user.id,
+      type:    'system',
+      title:   '歡迎來到 PartyMatch',
+      message: '探索群組、使用條件搜尋，或直接建立自己的群組開始共享訂閱吧。',
+    }).catch(err => console.error('[auth] 建立歡迎通知失敗:', err));
 
     const sessionId    = randomUUID();
     const accessToken  = signAccessToken({ id: user.id, email: user.email, sessionId })

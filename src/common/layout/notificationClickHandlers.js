@@ -83,7 +83,17 @@ export function getMeta(type) {
   return NOTIFICATION_META[type] ?? NOTIFICATION_META.default
 }
 
+// 訪客完全沒有真實系統公告時顯示的前端假資料（useNotificationStore.js 的
+// getFallbackSystemNotifications），資料庫裡沒有對應的 row，點擊不能走
+// 一般流程去打 PATCH /notifications/:id/read，會 404
+const FALLBACK_NOTIFICATION_IDS = new Set(['system_guest_welcome'])
+
 export function handleNotificationClick(notification, { userId, navigate, setOpen }) {
+  if (FALLBACK_NOTIFICATION_IDS.has(notification.id)) {
+    setOpen(false)
+    return
+  }
+
   if (!userId) {
     const link = getMeta(notification.type).link
     if (link && !['/my-subscriptions', '/manage-groups', '/favorites'].includes(link)) {

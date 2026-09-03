@@ -75,6 +75,9 @@ function dedupeById(list) {
   })
 }
 
+// 只給「還沒登入的訪客」看的前端假資料——訪客沒有帳號，後端不可能有真正
+// 的通知 row 可以顯示。已登入會員一律有真正的歡迎通知（註冊時 server/src/
+// routes/auth.js 的 notify() 建立），不需要、也不應該再用假資料頂替
 function getFallbackSystemNotifications() {
   return [
     {
@@ -173,12 +176,19 @@ export const useNotificationStore = create((set, get) => ({
   getByUserId: (userId) =>
     get().notifications.filter(n => n.userId === userId).sort(byNewest),
 
+  // 只給訪客用：訪客沒有登入、不可能有真正的通知，完全沒有真實公告時
+  // 用前端假資料頂一則歡迎訊息，避免通知中心空白
   getSystemNotifications: () => {
     const systemNotifications = get().notifications
       .filter(isPublicSystemNotification)
       .sort(byNewest)
     return systemNotifications.length > 0 ? systemNotifications : getFallbackSystemNotifications()
   },
+
+  // 給已登入會員用：只回傳資料庫裡真正的公開系統通知，完全沒有的話就是
+  // 沒有，不套用假資料頂替（會員的歡迎通知走個人通知，不會是空的）
+  getRealSystemNotifications: () =>
+    get().notifications.filter(isPublicSystemNotification).sort(byNewest),
 
   getUnreadCount: (userId) => {
     if (!userId) return 0
