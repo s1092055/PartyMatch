@@ -51,7 +51,6 @@ enum ConversationType {
 
 enum PresenceStatus {
   online
-  busy
   offline
 }
 
@@ -121,7 +120,10 @@ model User {
   avatarColor    String?
   avatarInitial  String?
   showAvatar     Boolean        @default(true)
-  presenceStatus PresenceStatus @default(online)
+  presenceStatus PresenceStatus @default(offline)
+  // presenceStatus 是否為使用者「目前正開著瀏覽器視窗」的最後心跳時間，
+  // 用來讓背景掃描把太久沒心跳的 online 使用者判定為離線（見 lib/presenceSweeper.js）
+  lastActiveAt   DateTime?
   bio            String?        @db.VarChar(500)
   // 靜音的通知類別清單（見 lib/notificationCategories.js），空陣列代表全部接收
   mutedNotificationCategories Json @default("[]")

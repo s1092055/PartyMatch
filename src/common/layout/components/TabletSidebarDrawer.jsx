@@ -6,17 +6,13 @@ import { NAV_SECTIONS } from '../nav'
 import { Avatar } from '../../../components/ui/avatar'
 import { Drawer, DrawerContent, DrawerTitle } from '../../../components/ui/drawer'
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogCloseButton } from '../../../components/ui/dialog'
-import FilterSelect from '../../../components/ui/primitives/FilterSelect'
-import { useFilterSelectGroup } from '../../../components/ui/primitives/useFilterSelectGroup'
 import { ProfileModalBody } from '../../../components/ui/ProfileModal'
 import { CreditScoreModalBody } from '../../../components/ui/CreditScoreModal'
 import { SettingsModalBody } from '../../../components/ui/SettingsModal'
 import { UserReviewsModalBody } from '../../../features/manage-groups/components/UserReviewsModal'
-import { useAuthStore } from '../../stores/useAuthStore'
 import { usePendingRefreshStore } from '../../stores/usePendingRefreshStore'
-import { toast } from '../../utils/toast'
 import { PresenceDot, LockBadge, UpdateDot } from './navShared'
-import { LOCKED_MESSAGE, PRESENCE_LABELS, getNavItemKey, isProtectedNavItem } from './navConstants'
+import { LOCKED_MESSAGE, getNavItemKey, isProtectedNavItem } from './navConstants'
 
 const USER_PANELS = {
   profile:  { title: '個人資料', icon: User },
@@ -24,15 +20,6 @@ const USER_PANELS = {
   reviews:  { title: '我的評價', icon: Star },
   settings: { title: '偏好設定', icon: Settings },
 }
-
-const PRESENCE_FILTER_GROUPS = [{
-  label: null,
-  items: Object.entries(PRESENCE_LABELS).map(([value, label]) => ({
-    value,
-    label,
-    icon: <PresenceDot status={value} className="h-2.5 w-2.5 shrink-0" />,
-  })),
-}]
 
 export default function TabletSidebarDrawer(
   {
@@ -52,7 +39,6 @@ export default function TabletSidebarDrawer(
   }
 ) {
   const navigate = useNavigate()
-  const presenceFilterGroup = useFilterSelectGroup()
   const pendingRefreshPages = usePendingRefreshStore(s => s.pendingPages)
   const [open, setOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
@@ -77,12 +63,6 @@ export default function TabletSidebarDrawer(
 
   function handleUserPanelTrackTransitionEnd() {
     if (userPanel === 'menu') setActiveDetailPanel(null)
-  }
-
-  async function changePresence(next) {
-    if (next === presenceStatus) return
-    const result = await useAuthStore.getState().updateProfile({ presenceStatus: next })
-    if (!result.ok) toast(result.error ?? '儲存失敗，請稍後再試', 'error')
   }
 
   function closeUserMenu() {
@@ -261,29 +241,12 @@ export default function TabletSidebarDrawer(
                 >
                   <div className="flex shrink-0 flex-col items-center gap-4 px-3 pb-2 pt-4 text-center">
                     <div className="flex flex-col items-center gap-4">
-                      <span className="shrink-0 shadow-md rounded-full">
+                      <span className="relative shrink-0 shadow-md rounded-full">
                         <Avatar initial={avatarInitial} color={avatarColor} size="xl" className="h-28 w-28 text-4xl" />
+                        <PresenceDot status={presenceStatus} className="absolute bottom-1 right-1 h-4 w-4" />
                       </span>
                       <span className="min-w-0 truncate text-lg font-extrabold text-ink">{userName}</span>
                     </div>
-                    <FilterSelect
-                      id="presence"
-                      group={presenceFilterGroup}
-                      value={presenceStatus}
-                      onChange={changePresence}
-                      ariaLabel="設定目前狀態"
-                      groups={PRESENCE_FILTER_GROUPS}
-                      centerItems
-                      showCheck={false}
-                      className="mx-auto w-auto min-w-32 justify-center gap-2 px-4 [&>svg]:hidden"
-                      listClassName="z-[60]"
-                      triggerContent={(
-                        <span className="flex items-center justify-center gap-2">
-                          <PresenceDot status={presenceStatus} className="h-2.5 w-2.5 shrink-0" />
-                          {PRESENCE_LABELS[presenceStatus]}
-                        </span>
-                      )}
-                    />
                   </div>
                   <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     <div className="flex min-h-full w-full flex-col justify-center gap-4 px-4 py-4">

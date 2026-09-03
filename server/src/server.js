@@ -2,6 +2,7 @@ import 'dotenv/config'
 import app from './app.js'
 import prisma from './lib/prisma.js'
 import redis from './lib/redis.js'
+import { startPresenceSweep } from './lib/presenceSweeper.js'
 
 const PORT = process.env.PORT ?? 3001
 
@@ -28,6 +29,8 @@ async function start() {
 
     await redis.ping()
     console.log('[Cache] Redis 連線成功')
+
+    startPresenceSweep()
 
     app.listen(PORT, () => {
       console.log(`[Server] 啟動於 http://localhost:${PORT}`)

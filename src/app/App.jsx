@@ -18,6 +18,7 @@ import { useOpenGroupStore } from '../common/stores/useOpenGroupStore'
 import { useConversationStore } from '../common/stores/useConversationStore'
 import { toast, dismissToast } from '../common/utils/toast'
 import { useVersionCheck } from '../common/utils/versionCheck'
+import { usePresenceAutoStatus } from '../common/utils/presence'
 
 function useIosFixedPositionScrollFix() {
   useEffect(() => {
@@ -38,8 +39,10 @@ function useIosFixedPositionScrollFix() {
 export default function App() {
   const [ready, setReady] = useState(false)
   const bootedRef = useRef(false)
+  const loggedIn = useAuthStore(s => s.loggedIn)
   useIosFixedPositionScrollFix()
   useVersionCheck()
+  usePresenceAutoStatus(loggedIn)
 
   useEffect(() => {
     function onRefreshMemberStores() {

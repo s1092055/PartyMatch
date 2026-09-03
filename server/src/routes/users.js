@@ -51,7 +51,7 @@ const updateProfileSchema = z.object({
   avatarColor:  z.string().optional(),
   avatarInitial: z.string().max(2).optional(),
   showAvatar:   z.boolean().optional(),
-  presenceStatus: z.enum(['online', 'busy', 'offline']).optional(),
+  presenceStatus: z.enum(['online', 'offline']).optional(),
   mutedNotificationCategories: z.array(z.enum(MUTABLE_NOTIFICATION_CATEGORY_KEYS)).optional(),
 })
 
@@ -72,9 +72,15 @@ router.get('/:id', async (req, res, next) => {
 
 router.patch('/me', requireAuth, validate(updateProfileSchema), async (req, res, next) => {
   try {
+    // presenceStatus 是前端自動偵測視窗焦點時打上來的，每次帶這個欄位
+    // 就順便刷新心跳時間，讓背景掃描（lib/presenceSweeper.js）知道這是
+    // 最新狀態，不會太久沒心跳就被判定離線
+    const data = req.body.presenceStatus !== undefined
+      ? { ...req.body, lastActiveAt: new Date() }
+      : req.body
     const user = await prisma.user.update({
       where:  { id: req.user.id },
-      data:   req.body,
+      data,
       select: { id: true, email: true, name: true, phone: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true, bio: true, mutedNotificationCategories: true },
     })
     res.json(user)
