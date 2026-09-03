@@ -35,7 +35,8 @@ const getConvByGroupId           = (gid)     => useConversationStore.getState().
 
 function warnIfCredentialsExposed(group, message) {
   if (group?.sharedCredentials && isSharedCredentialsMethod(getServiceById(group.serviceId)?.sharingMethod)) {
-    toast(message, 'warning', { persistent: true })
+    // 固定 id：同一個群組短時間內連續觸發曝露警告時覆蓋同一則，不疊加
+    toast(message, 'warning', { id: `pm-credentials-exposed-${group.id}`, persistent: true })
   }
 }
 

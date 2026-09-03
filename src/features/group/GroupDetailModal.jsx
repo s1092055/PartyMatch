@@ -231,6 +231,7 @@ export default function GroupDetailModal() {
       // 猜的（本地資料通常也還是舊的 pending），不如直接請使用者重新整理頁面
       if (err?.response?.status === 409) {
         toast('發生錯誤，請重新整理', 'error', {
+          id: 'pm-cancel-application-conflict',
           persistent: true,
           action: { label: '重新整理', onClick: () => window.location.reload() },
         })

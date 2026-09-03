@@ -170,7 +170,10 @@ export default function App() {
       }
 
       const toastAction = TOAST_ACTIONS[type]
-      const toastId = toastAction?.toastId ?? notifId ?? 'pm-pending-data-refresh'
+      // 同一個群組、同一種類型的通知短時間內重複出現時（例如團主一直沒處理，
+      // 名額滿了又有人取消、又滿了），toast id 用 type+groupId 組合，讓新的
+      // 直接覆蓋舊的同一則，而不是每筆通知各自累積成一長串疊不完的 toast
+      const toastId = toastAction?.toastId ?? (meta?.groupId ? `pm-${type}-${meta.groupId}` : notifId) ?? 'pm-pending-data-refresh'
       pendingToastIds.add(toastId)
       registerGroupToast(meta?.groupId, toastId, page)
 
@@ -214,7 +217,7 @@ export default function App() {
         useNotificationStore.getState().error,
       ].filter(Boolean)
       if (failedPublicStores.length > 0) {
-        toast('部分資料載入失敗，請重新整理頁面', 'error', { persistent: true })
+        toast('部分資料載入失敗，請重新整理頁面', 'error', { id: 'pm-boot-load-failed', persistent: true })
       }
 
       setReady(true);
@@ -236,7 +239,7 @@ export default function App() {
             useFavoriteStore.getState().error,
           ].filter(Boolean);
           if (failedPrivateStores.length > 0) {
-            toast('部分資料載入失敗，請重新整理頁面', 'error', { persistent: true })
+            toast('部分資料載入失敗，請重新整理頁面', 'error', { id: 'pm-boot-load-failed', persistent: true })
           }
           useConversationStore.getState().init(user.id);
           useNotificationStore.getState().startPolling(user.id)

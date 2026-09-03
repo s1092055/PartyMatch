@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import client, { tokenManager } from '../api/axiosClient'
 import { fetchTokenBalance, topupTokens } from '../api/tokensApi'
 import { usePendingRefreshStore } from './usePendingRefreshStore'
+import { dismissToast } from '../utils/toast'
 
 async function importPrivateStores() {
   const [
@@ -59,6 +60,9 @@ async function clearPrivateStores() {
   useConversationStore.getState().teardown()
   useNotificationStore.getState().teardown()
   usePendingRefreshStore.getState().clear()
+  // 背景通知 toast 是 persistent（不會自動消失），登出/停用帳號時要
+  // 一併清掉，否則殘留的舊 toast 會疊到下一個登入的帳號畫面上
+  dismissToast()
   useApplicationStore.setState({ applications: [] })
   useSubscriptionStore.setState({ subscriptions: [] })
   useMemberStore.setState({ members: [] })

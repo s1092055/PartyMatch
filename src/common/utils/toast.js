@@ -12,5 +12,7 @@ export function notifyError(err, fallback = '操作失敗，請稍後再試') {
 }
 
 export function dismissToast(id) {
+  // 不帶 id 時 sonner 會把畫面上所有 toast 一次清空，用在登出這種
+  // 需要清掉殘留通知 toast 的場景
   sonnerToast.dismiss(id)
 }
