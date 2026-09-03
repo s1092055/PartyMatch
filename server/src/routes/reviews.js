@@ -30,7 +30,7 @@ router.get('/user/:userId', async (req, res, next) => {
       prisma.review.findMany({
         where:   { revieweeId: userId },
         include: {
-          author: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true } },
+          author: { select: { id: true, name: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, creditScore: true } },
           group:  { select: { planName: true, service: { select: { name: true } } } },
         },
         orderBy: { createdAt: 'desc' },

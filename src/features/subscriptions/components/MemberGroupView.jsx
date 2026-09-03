@@ -142,6 +142,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
       presenceStatus={group.hostPresenceStatus}
       bio={group.hostBio}
       roleLabel="團主"
+      title="團主評價"
       headerClassName="text-lg font-black text-brand"
       onDm={openDmWithHost}
       scrollable

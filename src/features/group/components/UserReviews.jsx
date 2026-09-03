@@ -70,6 +70,7 @@ export default function UserReviews({
                   {roleLabel}
                 </span>
               )}
+              {creditScore != null && <CreditScoreBadge score={creditScore} />}
             </div>
             <div className="mt-1 flex items-center gap-1.5">
               {average != null ? (
@@ -81,7 +82,6 @@ export default function UserReviews({
               ) : (
                 <span className="text-xs text-ink-4">尚無評價</span>
               )}
-              {creditScore != null && <CreditScoreBadge score={creditScore} />}
             </div>
           </div>
           {onDm && (
@@ -107,8 +107,11 @@ export default function UserReviews({
               <Avatar initial={review.author?.avatarInitial} color={review.author?.avatarColor} size="sm" />
               <div className="min-w-0 flex-1">
                 <div className="mb-1 flex items-center justify-between">
-                  <span className="text-sm font-semibold text-ink">{review.author?.name ?? '匿名使用者'}</span>
-                  <span className="text-xs text-ink-4">{toISODate(review.createdAt)}</span>
+                  <span className="flex min-w-0 items-center gap-2">
+                    <span className="text-sm font-semibold text-ink">{review.author?.name ?? '匿名使用者'}</span>
+                    {review.author?.creditScore != null && <CreditScoreBadge score={review.author.creditScore} />}
+                  </span>
+                  <span className="shrink-0 text-xs text-ink-4">{toISODate(review.createdAt)}</span>
                 </div>
                 {!groupId && (review.group?.planName || review.group?.service?.name) && (
                   <p className="mb-1 text-xs text-ink-4">

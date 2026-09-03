@@ -329,6 +329,7 @@ export default function GroupDetailModal() {
       presenceStatus={group.hostPresenceStatus}
       bio={group.hostBio}
       roleLabel="團主"
+      title="團主評價"
       headerClassName="text-lg font-black text-brand"
       onDm={activeUserId && !isHost ? openDm : undefined}
       scrollable
