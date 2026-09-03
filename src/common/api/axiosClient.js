@@ -28,8 +28,13 @@ function scheduleProactiveRefresh(token) {
   _refreshTimer = setTimeout(() => { refreshAccessToken().catch(() => {}) }, delay)
 }
 
+// 沒有明確指定 VITE_API_BASE_URL 時，跟著瀏覽器目前打開這個網站的 host 走
+// （例如手機連 Mac 的熱點時是用 LAN IP 開網頁，API 就自動打同一個 IP），
+// 這樣切換網路、換 LAN IP 都不用手動改 .env
+const defaultApiBaseUrl = `http://${window.location.hostname}:3001/api`
+
 const client = axios.create({
-  baseURL:         import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3001/api',
+  baseURL:         import.meta.env.VITE_API_BASE_URL ?? defaultApiBaseUrl,
   timeout:         15_000,
   headers:         { 'Content-Type': 'application/json' },
   withCredentials: true,

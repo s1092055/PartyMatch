@@ -33,9 +33,16 @@ const allowedOrigins = (process.env.CLIENT_ORIGIN ?? 'http://localhost:5173')
   .split(',')
   .map((origin) => origin.trim())
 
+// 開發環境用手機連 Mac 熱點測試時，Mac 的 LAN IP 會隨網路切換而改變，
+// 與其每次手動更新 CLIENT_ORIGIN，直接放行區網網段的 origin（僅限開發環境）
+const LAN_ORIGIN_PATTERN = /^http:\/\/(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+):5173$/
+
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    const isAllowed = !origin
+      || allowedOrigins.includes(origin)
+      || (process.env.NODE_ENV !== 'production' && LAN_ORIGIN_PATTERN.test(origin))
+    if (isAllowed) {
       callback(null, true)
     } else {
       callback(new Error('Not allowed by CORS'))
