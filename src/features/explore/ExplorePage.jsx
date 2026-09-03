@@ -70,7 +70,16 @@ export default function ExplorePage() {
 
   return (
     <div className="px-2 md:px-4">
-      <PageHeader title="探索群組" className="mb-4 text-center" />
+      <div className="sticky top-0 z-30 -mx-2 -mt-8 bg-canvas px-2 pb-5 pt-8 md:-mx-4 md:px-4">
+        <PageHeader title="探索群組" className="mb-6 text-center" />
+
+        <CategoryPills
+          variant="grid"
+          showAll
+          active={category}
+          onChange={c => { setCategory(c); window.scrollTo(0, 0) }}
+        />
+      </div>
 
       <div className="fixed bottom-28 right-6 z-40 can-hover:lg:bottom-40">
         <button
@@ -96,14 +105,6 @@ export default function ExplorePage() {
           </span>
         </button>
       </div>
-
-      <CategoryPills
-        variant="grid"
-        showAll
-        active={category}
-        onChange={c => { setCategory(c); window.scrollTo(0, 0) }}
-        className="mb-6"
-      />
 
       {filtered.length === 0 ? (
         <EmptyState

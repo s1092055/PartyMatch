@@ -22,7 +22,7 @@ export default function AppLayout() {
       <AppNav />
 
       <main className="flex flex-col can-hover:lg:ml-20 can-hover:lg:mr-24">
-        <div className="mx-auto min-h-dvh w-full max-w-7xl px-4 py-12 lg:max-w-[clamp(80rem,100vw,90rem)] lg:px-2">
+        <div className="mx-auto min-h-dvh w-full max-w-7xl px-4 pt-8 pb-12 lg:max-w-[clamp(80rem,100vw,90rem)] lg:px-2">
           <Outlet />
         </div>
         <AppFooter />
