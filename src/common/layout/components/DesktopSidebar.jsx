@@ -153,6 +153,18 @@ export default function DesktopSidebar({
     )
   }
 
+  function renderThemeButton() {
+    return (
+      <button
+        onClick={toggleTheme}
+        className={FLOATING_ICON_BUTTON_CLASS}
+        aria-label={theme === 'dark' ? '切換成淺色模式' : '切換成深色模式'}
+      >
+        {theme === 'dark' ? <Sun className="size-6 lg:size-5" strokeWidth={1.5} /> : <Moon className="size-6 lg:size-5" strokeWidth={1.5} />}
+      </button>
+    )
+  }
+
   function renderMessageButton() {
     if (loggedIn) {
       return (
@@ -200,7 +212,8 @@ export default function DesktopSidebar({
         {renderTopupButton()}
       </div>
 
-      <div className="fixed right-6 z-50 hidden can-hover:lg:block" style={{ bottom: '2.25rem' }}>
+      <div className="fixed right-6 z-50 hidden flex-col gap-3 can-hover:lg:flex" style={{ bottom: '2.25rem' }}>
+        {renderThemeButton()}
         {renderMessageButton()}
       </div>
 
@@ -258,19 +271,6 @@ export default function DesktopSidebar({
         </nav>
 
         <div className="px-2 pb-4">
-          <button
-            type="button"
-            onClick={() => { collapseSidebar(); toggleTheme() }}
-            aria-label={theme === 'dark' ? '切換成淺色模式' : '切換成深色模式'}
-            className="mb-1 flex h-12 w-full items-center gap-3 rounded-2xl px-1 text-ink-2 transition-all hover:-translate-y-0.5 hover:bg-brand-subtle hover:text-brand"
-          >
-            <span className="grid h-9 w-9 shrink-0 place-items-center">
-              {theme === 'dark' ? <Sun size={22} strokeWidth={1.5} /> : <Moon size={22} strokeWidth={1.5} />}
-            </span>
-            <span className="whitespace-nowrap font-bold opacity-0 transition-opacity duration-200 group-hover/nav:opacity-100 group-focus-within/nav:opacity-100 group-data-[force-open=true]/nav:opacity-100">
-              {theme === 'dark' ? '淺色模式' : '深色模式'}
-            </span>
-          </button>
           {loggedIn ? (
             <DropdownMenu onOpenChange={setUserMenuOpen}>
               <DropdownMenuTrigger asChild>
