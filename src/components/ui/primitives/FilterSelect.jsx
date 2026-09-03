@@ -3,7 +3,7 @@ import { Check, ChevronDown } from 'lucide-react'
 import { cn } from '../../../lib/utils'
 import { useClickOutside } from '../../../common/utils/hooks'
 
-export default function FilterSelect({ id, group, value, onChange, groups, triggerContent, className = '', listClassName = '', ariaLabel }) {
+export default function FilterSelect({ id, group, value, onChange, groups, triggerContent, className = '', listClassName = '', ariaLabel, centerItems = false, showCheck = true }) {
   const open = group.openKey === id
   const rootRef = useRef(null)
   const triggerRef = useRef(null)
@@ -170,13 +170,15 @@ export default function FilterSelect({ id, group, value, onChange, groups, trigg
                     onMouseEnter={() => setActiveIndex(idx)}
                     onClick={() => selectItem(idx)}
                     className={cn(
-                      'relative flex cursor-default items-center gap-1.5 rounded-control py-2.5 pr-8 pl-1.5 text-sm select-none mb-1 last:mb-0',
+                      'relative flex cursor-default items-center gap-1.5 rounded-control py-2.5 pl-1.5 text-sm select-none mb-1 last:mb-0',
+                      showCheck ? 'pr-8' : 'pr-1.5',
+                      centerItems && 'justify-center',
                       active && 'bg-accent text-accent-foreground'
                     )}
                   >
                     {item.icon}
                     <span className="truncate">{item.label}</span>
-                    {selected && (
+                    {showCheck && selected && (
                       <Check className="pointer-events-none absolute right-2 size-4" strokeWidth={1.5} />
                     )}
                   </div>

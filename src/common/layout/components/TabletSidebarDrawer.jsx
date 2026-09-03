@@ -6,7 +6,8 @@ import { NAV_SECTIONS } from '../nav'
 import { Avatar } from '../../../components/ui/avatar'
 import { Drawer, DrawerContent, DrawerTitle } from '../../../components/ui/drawer'
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogCloseButton } from '../../../components/ui/dialog'
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../../components/ui/select'
+import FilterSelect from '../../../components/ui/primitives/FilterSelect'
+import { useFilterSelectGroup } from '../../../components/ui/primitives/useFilterSelectGroup'
 import { ProfileModalBody } from '../../../components/ui/ProfileModal'
 import { CreditScoreModalBody } from '../../../components/ui/CreditScoreModal'
 import { SettingsModalBody } from '../../../components/ui/SettingsModal'
@@ -23,6 +24,15 @@ const USER_PANELS = {
   reviews:  { title: '我的評價', icon: Star },
   settings: { title: '偏好設定', icon: Settings },
 }
+
+const PRESENCE_FILTER_GROUPS = [{
+  label: null,
+  items: Object.entries(PRESENCE_LABELS).map(([value, label]) => ({
+    value,
+    label,
+    icon: <PresenceDot status={value} className="h-2.5 w-2.5 shrink-0" />,
+  })),
+}]
 
 export default function TabletSidebarDrawer(
   {
@@ -42,6 +52,7 @@ export default function TabletSidebarDrawer(
   }
 ) {
   const navigate = useNavigate()
+  const presenceFilterGroup = useFilterSelectGroup()
   const pendingRefreshPages = usePendingRefreshStore(s => s.pendingPages)
   const [open, setOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
@@ -255,21 +266,24 @@ export default function TabletSidebarDrawer(
                       </span>
                       <span className="min-w-0 truncate text-lg font-extrabold text-ink">{userName}</span>
                     </div>
-                    <Select value={presenceStatus} onValueChange={changePresence}>
-                      <SelectTrigger aria-label="設定目前狀態" className="mx-auto w-auto min-w-0 justify-center gap-2 px-3 [&>svg]:hidden">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="z-[60] w-[var(--radix-select-trigger-width)] min-w-0">
-                        {Object.entries(PRESENCE_LABELS).map(([value, label]) => (
-                          <SelectItem key={value} value={value} className="justify-center px-2 [&>span:first-child]:hidden">
-                            <span className="flex items-center justify-center gap-2">
-                              <PresenceDot status={value} className="h-2.5 w-2.5 shrink-0" />
-                              {label}
-                            </span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FilterSelect
+                      id="presence"
+                      group={presenceFilterGroup}
+                      value={presenceStatus}
+                      onChange={changePresence}
+                      ariaLabel="設定目前狀態"
+                      groups={PRESENCE_FILTER_GROUPS}
+                      centerItems
+                      showCheck={false}
+                      className="mx-auto w-auto min-w-32 justify-center gap-2 px-4 [&>svg]:hidden"
+                      listClassName="z-[60]"
+                      triggerContent={(
+                        <span className="flex items-center justify-center gap-2">
+                          <PresenceDot status={presenceStatus} className="h-2.5 w-2.5 shrink-0" />
+                          {PRESENCE_LABELS[presenceStatus]}
+                        </span>
+                      )}
+                    />
                   </div>
                   <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     <div className="flex min-h-full w-full flex-col justify-center gap-4 px-4 py-4">
