@@ -77,8 +77,11 @@ export default function HostGroupView(
   }, [autoOpenLockGroup]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (autoOpenApplications) setActivePanel('applications')
+    if (autoOpenApplications) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setActivePanel('applications')
+      setShowReviewHistory(false)
+    }
   }, [autoOpenApplications])
 
   useEffect(() => {
