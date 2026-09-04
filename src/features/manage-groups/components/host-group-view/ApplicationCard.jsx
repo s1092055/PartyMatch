@@ -31,7 +31,7 @@ export default function ApplicationCard({ app, groupFull, error, submitting, onA
             <CreditScoreBadge score={app.applicantCreditScore ?? 80} />
           </div>
           <p className="mt-0.5 text-2xs text-ink-4">
-            {isPending ? formatRelativeDate(app.createdAt) : formatDateTime(app.createdAt)}
+            {isPending ? formatRelativeDate(app.createdAt) : formatDateTime(app.updatedAt)}
           </p>
         </div>
         {!isPending && badge && (

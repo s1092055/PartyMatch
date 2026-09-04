@@ -69,6 +69,7 @@ export function normalizeApplication(app) {
   const applicantName = app.applicantName ?? app.userName ?? user.name ?? '申請者'
 
   const createdAt = app.createdAt ? String(app.createdAt) : '';
+  const updatedAt = app.updatedAt ? String(app.updatedAt) : createdAt;
 
   return {
     ...app,
@@ -95,6 +96,7 @@ export function normalizeApplication(app) {
     hostPresenceStatus: app.hostPresenceStatus ?? host.presenceStatus ?? 'offline',
     status:    app.status ?? 'pending',
     createdAt,
+    updatedAt,
   };
 }
 
