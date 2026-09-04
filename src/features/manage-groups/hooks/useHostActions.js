@@ -164,6 +164,7 @@ async function handleLockGroup(sharedCredentials) {
       })
 
       setViewGroupId(null)
+      toast('群組已鎖定', 'success')
       return true
     } catch (err) {
       if (err?.response?.status === 400 && group.status === 'full') {
