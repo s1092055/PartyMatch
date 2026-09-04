@@ -310,13 +310,17 @@
 @layer components {
   .card-lift {
     box-shadow: none;
-    transition: transform 0.2s ease;
     backface-visibility: hidden;
     transform: translateZ(0);
     transform-origin: top;
   }
-  .card-lift:hover {
-    transform: translateZ(0) scale(1.02);
+  @media (hover: hover) and (pointer: fine) {
+    .card-lift {
+      transition: transform 0.2s ease;
+    }
+    .card-lift:hover {
+      transform: translateZ(0) scale(1.02);
+    }
   }
 
   .page-title {
