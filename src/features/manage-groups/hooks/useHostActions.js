@@ -140,10 +140,12 @@ async function handleLockGroup(sharedCredentials) {
     if (!group) return
     const groupMembers = getMembersByGroupId(viewGroupId)
 
+    let lockSucceeded = false
     try {
+      await lockGroup(viewGroupId, sharedCredentials)
+      lockSucceeded = true
       const conv = await createGroupConversation({ groupId: viewGroupId });
       const convId = conv.id
-      await lockGroup(viewGroupId, sharedCredentials)
 
       const participantMeta = {
         [group.hostId]: { name: group.hostName, avatarInitial: group.hostAvatarInitial, avatarColor: group.hostAvatarColor },
@@ -176,13 +178,18 @@ async function handleLockGroup(sharedCredentials) {
         label: '前往查看',
         onClick: () => window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: viewGroupId } })),
       }
-      if (err?.response?.status === 400 && group.status === 'full') {
+      if (!lockSucceeded && err?.response?.status === 400 && group.status === 'full') {
         // 背景通知的「成員已退出群組」toast 用同一個 id（pm-member_left-群組id），
         // 這裡先蓋掉／沿用同一則，避免同一件事一次跳出兩則語意重複的 toast
         dismissToast(`pm-member_left-${viewGroupId}`)
         toast('有成員退出，暫時無法鎖定', 'info', { id: `pm-member_left-${viewGroupId}`, action: viewAction })
         useGroupStore.getState().refreshGroup(viewGroupId).catch(console.error)
         return false
+      }
+      if (lockSucceeded) {
+        setViewGroupId(null)
+        toast('群組已鎖定，但聊天室建立失敗，請稍後再試', 'error', { action: viewAction })
+        return true
       }
       toast('鎖定群組失敗，請稍後再試', 'error', { action: viewAction })
       return false
