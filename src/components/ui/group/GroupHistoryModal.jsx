@@ -5,7 +5,7 @@ import EmptyState from '../primitives/EmptyState'
 export default function GroupHistoryModal({ isOpen, onClose, items, renderItem, emptyDescription }) {
   return (
     <Dialog open={isOpen} onOpenChange={v => { if (!v) onClose() }}>
-      <DialogContent maxWidth="max-w-3xl">
+      <DialogContent maxWidth="max-w-4xl" height="min(90dvh, 820px)">
         <DialogHeader>
           <div className="flex items-center gap-2">
             <Archive strokeWidth={1.5} size={16} className="text-ink-3" />
