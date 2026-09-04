@@ -18,6 +18,7 @@ import { toast } from '../../common/utils/toast'
 import { LOCKED_MESSAGE } from '../../common/layout/components/navConstants'
 import { useIsDesktop } from '../../common/utils/hooks'
 import { useModalStackStore } from '../../common/stores/useModalStackStore'
+import { useGroupOpenPendingStore } from '../../common/stores/useGroupOpenPendingStore'
 import { TokenBadge } from '../../components/ui/TokenAmount'
 import ConfirmActionDialog from '../../components/ui/ConfirmActionDialog'
 import CountdownText from '../../components/ui/primitives/CountdownText'
@@ -131,19 +132,24 @@ export default function GroupDetailModal() {
       resetSubViews()
       const gId = e.detail?.groupId ?? null
       if (gId) {
+        useGroupOpenPendingStore.getState().setPendingGroupId(gId)
         const userId = useAuthStore.getState().user?.id
-        if (userId) {
-          useModalStackStore.getState().push()
-          try {
-            await Promise.all([
-              useApplicationStore.getState().init().catch(console.error),
-              useMemberStore.getState().init().catch(console.error),
-            ])
-          } finally {
-            useModalStackStore.getState().pop()
+        try {
+          if (userId) {
+            useModalStackStore.getState().push()
+            try {
+              await Promise.all([
+                useApplicationStore.getState().init().catch(console.error),
+                useMemberStore.getState().init().catch(console.error),
+              ])
+            } finally {
+              useModalStackStore.getState().pop()
+            }
           }
+          await useGroupStore.getState().refreshGroup(gId).catch(console.error)
+        } finally {
+          useGroupOpenPendingStore.getState().setPendingGroupId(null)
         }
-        useGroupStore.getState().refreshGroup(gId).catch(console.error)
       }
       pushGroupUrl(gId)
       if (e.detail?.openCredentials) setAutoOpenCredentials(true)

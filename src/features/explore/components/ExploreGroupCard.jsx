@@ -13,6 +13,8 @@ import { useAuthStore } from '../../../common/stores/useAuthStore'
 import { toast } from '../../../common/utils/toast'
 import { LOCKED_MESSAGE } from '../../../common/layout/components/navConstants'
 import { getMemberJoinedBadgeVariant } from '../../../common/utils/memberGroupDisplay'
+import { useGroupOpenLoading } from '../../../common/utils/hooks'
+import logoUrl from '../../../assets/Logo.svg'
 
 const RANK_BADGE_STYLES = [
   'bg-amber-400 text-white',
@@ -24,11 +26,13 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
   const navigate = useNavigate()
   const activeUser = useAuthStore(s => s.user)
   const isFav = useFavoriteStore(s => activeUser ? s.isFavorited(activeUser.id, group.id) : false)
+  const opening = useGroupOpenLoading(group.id)
 
   const isLastSeat = group.openSeats === 1
 
   function openDetails(e) {
     e.stopPropagation()
+    if (opening) return
     onBeforeNavigate?.()
     window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: group.id } }))
   }
@@ -99,8 +103,8 @@ function ExploreGroupCard({ group, onFavChange, onBeforeNavigate, hideActions = 
 
       {!hideActions && (
         <div className="mx-2 mt-auto pt-5">
-          <Button onClick={openDetails} className="w-full">
-            查看詳情
+          <Button onClick={openDetails} disabled={opening} className="w-full">
+            {opening ? <img src={logoUrl} alt="" className="h-5 w-5 animate-logo-bounce" /> : '查看詳情'}
           </Button>
         </div>
       )}

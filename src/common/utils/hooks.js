@@ -4,6 +4,7 @@ import { toast } from './toast'
 import { useAuthStore } from '../stores/useAuthStore'
 import { resolveImageMime } from '../api/storageApi'
 import { useModalStackStore } from '../stores/useModalStackStore'
+import { useGroupOpenPendingStore } from '../stores/useGroupOpenPendingStore'
 
 export function useIsDesktop() {
   const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024)
@@ -50,6 +51,10 @@ export function useModalOpenTracking(open) {
     useModalStackStore.getState().push()
     return () => useModalStackStore.getState().pop()
   }, [open])
+}
+
+export function useGroupOpenLoading(groupId) {
+  return useGroupOpenPendingStore(s => !!groupId && s.pendingGroupId === groupId)
 }
 
 export function useDeferWhileModalOpen(value) {
