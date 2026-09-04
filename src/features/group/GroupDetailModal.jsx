@@ -107,11 +107,13 @@ export default function GroupDetailModal() {
     if (!membershipRefreshing) return
     setWidthGuess(!memberRecord && isDesktop)
     let active = true
+    const startedAt = Date.now()
     Promise.all([
       useApplicationStore.getState().init().catch(console.error),
       useMemberStore.getState().init().catch(console.error),
       useSubscriptionStore.getState().init().catch(console.error),
-    ]).then(() => { if (active) setRefreshedGroupId(groupId) })
+    ]).then(() => new Promise(resolve => setTimeout(resolve, Math.max(0, 1500 - (Date.now() - startedAt)))))
+      .then(() => { if (active) setRefreshedGroupId(groupId) })
     return () => { active = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [membershipRefreshing, groupId]);

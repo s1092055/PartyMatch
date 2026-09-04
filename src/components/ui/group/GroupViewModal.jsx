@@ -33,11 +33,13 @@ export default function GroupViewModal({
     }
     if (!dataRefreshing) return
     let active = true
+    const startedAt = Date.now()
     Promise.all([
       useGroupStore.getState().refreshGroup(groupId).catch(console.error),
       useMemberStore.getState().init().catch(console.error),
       useApplicationStore.getState().init().catch(console.error),
-    ]).then(() => { if (active) setRefreshedGroupId(groupId) })
+    ]).then(() => new Promise(resolve => setTimeout(resolve, Math.max(0, 1500 - (Date.now() - startedAt)))))
+      .then(() => { if (active) setRefreshedGroupId(groupId) })
     return () => { active = false }
   }, [dataRefreshing, isOpen, groupId])
 
