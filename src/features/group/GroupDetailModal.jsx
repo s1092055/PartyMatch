@@ -83,8 +83,13 @@ export default function GroupDetailModal() {
   const isFav        = useFavoriteStore(s => groupId && activeUserId ? s.isFavorited(activeUserId, groupId) : false)
 
   useEffect(() => {
-    if (groupId) useGroupStore.getState().refreshGroup(groupId).catch(console.error)
-  }, [groupId]);
+    if (!groupId) return
+    useGroupStore.getState().refreshGroup(groupId).catch(console.error)
+    if (activeUserId) {
+      useApplicationStore.getState().init().catch(console.error)
+      useMemberStore.getState().init().catch(console.error)
+    }
+  }, [groupId, activeUserId]);
 
   // 不管接下來是渲染一般瀏覽視角還是（成員身分確認後切換的）MemberGroupView，
   // 只要這個群組的 Modal 被打開，就代表使用者看過這個群組的最新狀態了，
