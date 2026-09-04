@@ -116,11 +116,11 @@ export default function App() {
         },
       },
       application_rejected: {
-        label: '前往探索',
-        // 直接整頁重新載入，而不是走 SPA 導頁：不只群組列表，
-        // 探索頁用到的 application/member 等資料也一併重新抓一輪，
-        // 不用另外一一列出要刷新哪些 store
-        run: () => { window.location.href = '/explore' },
+        label: '前往查看',
+        run:   (meta) => {
+          if (!meta?.groupId) return
+          window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: meta.groupId } }))
+        },
       },
       application_approved: {
         label: '前往查看',
