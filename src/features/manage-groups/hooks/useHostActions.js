@@ -164,13 +164,15 @@ async function handleLockGroup(sharedCredentials) {
       })
 
       setViewGroupId(null)
+      return true
     } catch (err) {
       if (err?.response?.status === 400 && group.status === 'full') {
         toast('名額已變動，暫時無法鎖定', 'info')
         useGroupStore.getState().refreshGroup(viewGroupId).catch(console.error)
-        return
+        return false
       }
       toast('鎖定群組失敗，請稍後再試', 'error')
+      return false
     }
   }
 
