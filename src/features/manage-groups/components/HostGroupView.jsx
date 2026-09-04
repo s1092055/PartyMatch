@@ -44,6 +44,7 @@ export default function HostGroupView(
   const [showReviewHistory, setShowReviewHistory]         = useState(false)
   const [reviewTargetMember, setReviewTargetMember]        = useState(null)
   const [showLockGroupConfirm, setShowLockGroupConfirm] = useState(false)
+  const [checkingLock, setCheckingLock]                   = useState(false)
   const [showCancelConfirm, setShowCancelConfirm]         = useState(false)
   const [showPlatformReport, setShowPlatformReport]         = useState(false)
   const [platformReportDescription, setPlatformReportDescription] = useState('')
@@ -220,7 +221,15 @@ export default function HostGroupView(
 
   const needsCredentialsOnLock = isSharedCredentialsMethod(serviceDef?.sharingMethod);
 
-  function openLockFlow() {
+  async function openLockFlow() {
+    if (checkingLock) return
+    setCheckingLock(true)
+    const fresh = await useGroupStore.getState().refreshGroup(group.id).catch(() => null)
+    setCheckingLock(false)
+    if (fresh && fresh.status !== 'full') {
+      toast('名額已變動，暫時無法鎖定', 'info')
+      return
+    }
     if (needsCredentialsOnLock) {
       setCredentialValues({})
       setShowCredentialsModal(true)
@@ -273,6 +282,7 @@ export default function HostGroupView(
         <Button
           variant="ink"
           onClick={openLockFlow}
+          disabled={checkingLock}
           className="w-full rounded-lg shadow-button"
         >
           <LockKeyhole size={15} strokeWidth={1.5} /> 鎖定群組
