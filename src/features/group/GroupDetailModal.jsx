@@ -1,8 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { CheckCircle2, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
-import { Dialog, DialogContent } from '../../components/ui/dialog'
-import logoUrl from '../../assets/Logo.svg'
 import { useGroupStore } from '../../common/stores/useGroupStore'
 import { getServiceById } from '../../common/utils/serviceUtils'
 import { hasFilledServiceInfo } from '../../common/utils/serviceInfoFields'
@@ -103,12 +101,12 @@ export default function GroupDetailModal() {
     }
     if (!membershipRefreshing) return
     let active = true
+    const startedAt = Date.now()
     Promise.all([
       useApplicationStore.getState().init().catch(console.error),
       useMemberStore.getState().init().catch(console.error),
-    ]).finally(() => {
-      if (active) setRefreshedGroupId(groupId)
-    })
+    ]).then(() => new Promise(resolve => setTimeout(resolve, Math.max(0, 1200 - (Date.now() - startedAt)))))
+      .then(() => { if (active) setRefreshedGroupId(groupId) })
     return () => { active = false }
   }, [membershipRefreshing, groupId]);
 
@@ -204,15 +202,7 @@ export default function GroupDetailModal() {
   if (!isOpen || !group) return null
 
   if (membershipRefreshing) {
-    return (
-      <Dialog open onOpenChange={v => { if (!v) handleClose() }}>
-        <DialogContent maxWidth="max-w-xl lg:max-w-3xl" height="min(92dvh, 720px)" instant>
-          <div className="flex h-full items-center justify-center">
-            <img src={logoUrl} alt="" className="h-14 w-14 animate-logo-bounce" />
-          </div>
-        </DialogContent>
-      </Dialog>
-    )
+    return <GroupModalShell loading onClose={handleClose} group={group} service={service} plan={plan} />
   }
 
   const isHost           = group.hostId === activeUserId
