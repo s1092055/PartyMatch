@@ -83,13 +83,8 @@ export default function GroupDetailModal() {
   const isFav        = useFavoriteStore(s => groupId && activeUserId ? s.isFavorited(activeUserId, groupId) : false)
 
   useEffect(() => {
-    if (!groupId) return
-    useGroupStore.getState().refreshGroup(groupId).catch(console.error)
-    if (activeUserId) {
-      useApplicationStore.getState().init().catch(console.error)
-      useMemberStore.getState().init().catch(console.error)
-    }
-  }, [groupId, activeUserId]);
+    if (groupId) useGroupStore.getState().refreshGroup(groupId).catch(console.error)
+  }, [groupId]);
 
   // 不管接下來是渲染一般瀏覽視角還是（成員身分確認後切換的）MemberGroupView，
   // 只要這個群組的 Modal 被打開，就代表使用者看過這個群組的最新狀態了，
@@ -126,15 +121,22 @@ export default function GroupDetailModal() {
   // 網址列的 ?group= 參數是唯一真相來源：groupId 直接從 location.search 算出，
   // 開連結／瀏覽器上一頁下一頁都會自然反映在這裡，不需要另外用 state 同步
   useEffect(() => {
-    function onOpen(e) {
+    async function onOpen(e) {
       resetSubViews()
-      pushGroupUrl(e.detail?.groupId ?? null)
+      const gId = e.detail?.groupId ?? null
+      if (gId && activeUserId) {
+        await Promise.all([
+          useApplicationStore.getState().init().catch(console.error),
+          useMemberStore.getState().init().catch(console.error),
+        ])
+      }
+      pushGroupUrl(gId)
       if (e.detail?.openCredentials) setAutoOpenCredentials(true)
     }
     window.addEventListener('pm:open-group', onOpen)
     return () => window.removeEventListener('pm:open-group', onOpen)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [activeUserId])
 
   useEffect(() => {
     if (location.state?.reopenGroupModalId) {
