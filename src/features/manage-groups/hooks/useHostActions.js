@@ -3,7 +3,6 @@ import { useGroupStore } from '../../../common/stores/useGroupStore'
 import { useApplicationStore } from '../../../common/stores/useApplicationStore'
 import { useMemberStore } from '../../../common/stores/useMemberStore'
 import { useSubscriptionStore } from '../../../common/stores/useSubscriptionStore'
-import { useDeferWhileModalOpen } from '../../../common/utils/hooks'
 import { createGroupConversation, removeParticipantFromConversation, sendSystemMessage } from '../../../common/api/messagesApi'
 import { toast } from '../../../common/utils/toast'
 import { useConversationStore } from '../../../common/stores/useConversationStore'
@@ -53,9 +52,9 @@ function loadHostData(activeUser) {
 }
 
 export function useHostActions(activeUser) {
-  const groupsState        = useDeferWhileModalOpen(useGroupStore(s => s.groups));
-  const applicationsState  = useDeferWhileModalOpen(useApplicationStore(s => s.applications))
-  const membersState       = useDeferWhileModalOpen(useMemberStore(s => s.members))
+  const groupsState        = useGroupStore(s => s.groups);
+  const applicationsState  = useApplicationStore(s => s.applications)
+  const membersState       = useMemberStore(s => s.members)
 
   const [hostData, setHostData] = useState(() => loadHostData(activeUser))
   const [errors, setErrors] = useState({})
@@ -308,7 +307,11 @@ async function handleActivate() {
 
 async function handleApprove(appId) {
     const app = applications.find(a => a.id === appId)
-    if (!app || app.status !== 'pending') return
+    if (!app) return
+    if (app.status !== 'pending') {
+      toast('此申請已被處理，請重新整理頁面', 'info')
+      return
+    }
     if (submittingIds.has(appId)) return
 
     const group = getGroupById(app.groupId) ?? allGroups.find(g => g.id === app.groupId)
@@ -343,6 +346,8 @@ async function handleApprove(appId) {
       useGroupStore.getState().refreshGroup(app.groupId),
     ])
 
+    toast('已接受申請', 'success');
+
     setHostData(prev => ({
       ...prev,
       applications: prev.applications.map(a => a.id === appId ? { ...a, status: 'approved' } : a),
@@ -357,7 +362,11 @@ async function handleApprove(appId) {
 
   async function handleReject(appId) {
     const app = applications.find(a => a.id === appId)
-    if (!app || app.status !== 'pending') return
+    if (!app) return
+    if (app.status !== 'pending') {
+      toast('此申請已被處理，請重新整理頁面', 'info')
+      return
+    }
     if (submittingIds.has(appId)) return
 
     setSubmittingIds(prev => new Set(prev).add(appId))
@@ -374,6 +383,8 @@ async function handleApprove(appId) {
     }
 
     useGroupStore.getState().refreshGroup(app.groupId).catch(console.error);
+
+    toast('已拒絕申請', 'success');
 
     setHostData(prev => ({
       ...prev,

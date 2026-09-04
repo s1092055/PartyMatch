@@ -8,6 +8,7 @@ import GroupHistoryModal from '../../components/ui/group/GroupHistoryModal'
 import RevealSection from '../../components/ui/primitives/RevealSection'
 import HostedGroupCard from './components/HostedGroupCard'
 import { useHostActions } from './hooks/useHostActions'
+import { useDeferWhileModalOpen } from '../../common/utils/hooks'
 
 export default function ManageGroupsPage() {
   const activeUser = useAuthStore(s => s.user)
@@ -31,10 +32,15 @@ export default function ManageGroupsPage() {
   // 團主的群組 Modal 已經改成全站掛載在 HostGroupModalHost（見 AppLayout.jsx），
   // 這裡的 useHostActions() 只用來拿列表要顯示的資料，不再自己管 Modal 開關狀態
   const {
-    displayGroups, historyGroups, membersMap, applicationCounts,
+    displayGroups: liveDisplayGroups, historyGroups: liveHistoryGroups,
+    membersMap: liveMembersMap, applicationCounts: liveApplicationCounts,
     groupHandlersMap,
     refreshGroups,
   } = useHostActions(activeUser)
+  const displayGroups = useDeferWhileModalOpen(liveDisplayGroups)
+  const historyGroups = useDeferWhileModalOpen(liveHistoryGroups)
+  const membersMap = useDeferWhileModalOpen(liveMembersMap)
+  const applicationCounts = useDeferWhileModalOpen(liveApplicationCounts)
 
   return (
     <div className="px-2 md:px-4">
