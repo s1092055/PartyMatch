@@ -34,7 +34,7 @@ export default function ExplorePage() {
     const entryKey = `${location.pathname}?${params.toString()}`
     if (pageEntryKeyRef.current === entryKey) return
     pageEntryKeyRef.current = entryKey
-    useGroupStore.getState().init()
+    useGroupStore.getState().init({ all: true })
     window.scrollTo(0, 0)
   }, [location.key]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -50,7 +50,7 @@ export default function ExplorePage() {
     if (refreshing) return
     setRefreshing(true)
     try {
-      await useGroupStore.getState().init()
+      await useGroupStore.getState().init({ all: true })
       window.scrollTo(0, 0)
     } finally {
       setRefreshing(false)
