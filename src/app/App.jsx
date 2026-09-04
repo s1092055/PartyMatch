@@ -176,14 +176,10 @@ export default function App() {
       usePendingRefreshStore.getState().mark(stores, page)
       if (silent) return
 
-      // 使用者已經開著這個群組的 Modal 時（不管是團主端還是成員端），不用再
-      // 跳 toast 吵他——通知本身還是照樣進通知中心，只是不用再彈一次視窗
-      // 蓋在他正在看的畫面上
-      if (meta?.groupId) {
-        const openState = useOpenGroupStore.getState()
-        if (openState.hostOpenGroupId === meta.groupId || openState.memberOpenGroupId === meta.groupId) {
-          return
-        }
+      // 團主已經開著這個群組的 Modal 時，「群組名額已滿」不用再跳 toast 吵他——
+      // 通知本身還是照樣進通知中心，只是不用再彈一次視窗蓋在他正在看的畫面上
+      if (type === 'group_full' && meta?.groupId && useOpenGroupStore.getState().hostOpenGroupId === meta.groupId) {
+        return
       }
 
       // 分頁被瀏覽器丟到背景太久（節流／使用者離開一段時間）才補到一整批
