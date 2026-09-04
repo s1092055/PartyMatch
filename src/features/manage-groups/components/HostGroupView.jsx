@@ -85,6 +85,9 @@ export default function HostGroupView(
       if (e.detail?.openLockGroup) return
       setShowCredentialsModal(false)
       setCredentialValues({})
+      setShowLockGroupConfirm(false)
+      setActivePanel(null)
+      useGroupStore.getState().refreshGroup(group.id).catch(console.error)
     }
     window.addEventListener('pm:open-host-group', onOpenHostGroup)
     return () => window.removeEventListener('pm:open-host-group', onOpenHostGroup)
