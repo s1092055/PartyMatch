@@ -1,11 +1,13 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useGroupStore } from '../../../common/stores/useGroupStore'
 import { useMemberStore } from '../../../common/stores/useMemberStore'
 import { useApplicationStore } from '../../../common/stores/useApplicationStore'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
 import { startPolling } from '../../../common/utils/poller'
+import { getServiceById } from '../../../common/utils/serviceUtils'
 import HostGroupView from '../../../features/manage-groups/components/HostGroupView'
 import MemberGroupView from '../../../features/subscriptions/components/MemberGroupView'
+import GroupModalShell from './GroupModalShell'
 
 const GROUP_POLL_INTERVAL_MS = 15000
 
@@ -20,6 +22,24 @@ export default function GroupViewModal({
   const allMembers   = useMemberStore(s => s.members)
   const applicationsState = useApplicationStore(s => s.applications)
   const currentUser  = useAuthStore(s => s.user)
+
+  const [refreshedGroupId, setRefreshedGroupId] = useState(null)
+  const dataRefreshing = isOpen && !!groupId && refreshedGroupId !== groupId
+  useEffect(() => {
+    if (!isOpen || !groupId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setRefreshedGroupId(null)
+      return
+    }
+    if (!dataRefreshing) return
+    let active = true
+    Promise.all([
+      useGroupStore.getState().refreshGroup(groupId).catch(console.error),
+      useMemberStore.getState().init().catch(console.error),
+      useApplicationStore.getState().init().catch(console.error),
+    ]).then(() => { if (active) setRefreshedGroupId(groupId) })
+    return () => { active = false }
+  }, [dataRefreshing, isOpen, groupId])
 
   useEffect(() => {
     // 開啟時先重抓一次，之後定期輪詢當作保底機制：群組狀態改變（例如額滿）不是每一種情境都會
@@ -37,6 +57,13 @@ export default function GroupViewModal({
   if (!isOpen || !groupId) return null
   const group = groups.find(g => g.id === groupId) ?? null
   if (!group) return null
+
+  if (dataRefreshing) {
+    const service = getServiceById(group.serviceId)
+    const plan    = service?.plans.find(p => p.name === group.planName)
+    return <GroupModalShell loading onClose={onClose} group={group} service={service} plan={plan} />
+  }
+
   const isHost       = currentUser?.id === group.hostId
   const members      = allMembers.filter(m => m.groupId === groupId)
   const applications = isHost
