@@ -68,27 +68,24 @@ export default function App() {
     // 待刷新清單放進 usePendingRefreshStore（而不是這裡的區域變數），
     // 讓 nav 上的小紅點也能反應「還有東西沒刷新」，就算 toast 被滑掉也看得到
     let pendingToastIds = new Set()
-    // 有些 toast 是針對特定群組的（例如「群組名額已滿」「申請已通過」），如果
-    // 使用者自己點開了那個群組的 Modal（不管是團主端還是成員端），等於已經
-    // 看過了，這個 toast 就該自動消失，不用等他點 toast 上的動作按鈕——
-    // 這裡記錄「哪個群組對應哪些 toast id」
+    // 團主端有些 toast 是針對特定群組的（例如「群組名額已滿」），如果他自己
+    // 點開了那個群組的 Modal，等於已經看過了，這個 toast 就該自動消失，
+    // 不用等他點 toast 上的動作按鈕——這裡記錄「哪個群組對應哪些 toast id」
     const pendingGroupToastIds = new Map()
 
-    function registerGroupToast(groupId, toastId) {
-      if (!groupId) return
+    function registerGroupToast(groupId, toastId, page) {
+      if (!groupId || page !== '/manage-groups') return
       if (!pendingGroupToastIds.has(groupId)) pendingGroupToastIds.set(groupId, new Set())
       pendingGroupToastIds.get(groupId).add(toastId)
     }
 
-    function dismissGroupToasts(groupId) {
+    const unsubscribeHostOpenGroup = useOpenGroupStore.subscribe(state => {
+      const groupId = state.hostOpenGroupId
       const toastIds = groupId && pendingGroupToastIds.get(groupId)
       if (!toastIds) return
       toastIds.forEach(id => { dismissToast(id); pendingToastIds.delete(id) })
       pendingGroupToastIds.delete(groupId)
-    }
-
-    const unsubscribeHostOpenGroup = useOpenGroupStore.subscribe(state => dismissGroupToasts(state.hostOpenGroupId))
-    const unsubscribeMemberOpenGroup = useOpenGroupStore.subscribe(state => dismissGroupToasts(state.memberOpenGroupId))
+    })
 
     async function runPendingRefresh() {
       const user = useAuthStore.getState().getProfile()
@@ -208,7 +205,7 @@ export default function App() {
       // 直接覆蓋舊的同一則，而不是每筆通知各自累積成一長串疊不完的 toast
       const toastId = toastAction?.toastId ?? (meta?.groupId ? `pm-${type}-${meta.groupId}` : notifId) ?? 'pm-pending-data-refresh'
       pendingToastIds.add(toastId)
-      registerGroupToast(meta?.groupId, toastId)
+      registerGroupToast(meta?.groupId, toastId, page)
 
       toast(title || message || '有群組或申請狀態更新了', 'info', {
         id: toastId,
@@ -228,7 +225,6 @@ export default function App() {
       window.removeEventListener('pm:refresh-member-stores', onRefreshMemberStores)
       window.removeEventListener('pm:refresh-stores', onRefreshStores)
       unsubscribeHostOpenGroup()
-      unsubscribeMemberOpenGroup()
     }
   }, [])
 
