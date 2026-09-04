@@ -8,12 +8,10 @@ import { useGroupStore } from '../../common/stores/useGroupStore'
 import { useAuthStore } from '../../common/stores/useAuthStore'
 import { useNotificationStore } from '../../common/stores/useNotificationStore'
 import { usePendingRefreshStore } from '../../common/stores/usePendingRefreshStore'
-import { finalizeLeaveGroup } from '../group/utils/leaveGroupFlow'
 import SubscriptionCard from './components/SubscriptionCard'
 import EmptyState from '../../components/ui/primitives/EmptyState'
 import { StatusBadge } from '../../components/ui/StatusBadge'
 import { getStatusLabel } from '../../components/ui/statusBadgeConfig'
-import GroupViewModal from '../../components/ui/group/GroupViewModal'
 import { StatCell, StatCellGrid } from '../../components/ui/group/StatCellGrid'
 import TokenAmount from '../../components/ui/TokenAmount'
 import ServiceLogo from '../../components/ui/ServiceLogo'
@@ -101,16 +99,11 @@ export default function SubscriptionsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [activeUserId, subscriptionsState, groupsState, membersState],
   )
-  const [viewGroupId, setViewGroupId] = useState(null)
-  const [autoOpenPayment, setAutoOpenPayment] = useState(false)
-  const [autoOpenCredentials, setAutoOpenCredentials] = useState(false)
-
   useEffect(() => {
     if (location.state?.openGroupId) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setViewGroupId(location.state.openGroupId)
-      setAutoOpenPayment(!!location.state.openPayment)
-      setAutoOpenCredentials(!!location.state.openCredentials)
+      window.dispatchEvent(new CustomEvent('pm:open-group', {
+        detail: { groupId: location.state.openGroupId, openCredentials: !!location.state.openCredentials },
+      }))
     }
   }, [location.key]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -123,26 +116,15 @@ export default function SubscriptionsPage() {
 
   const historySubs = useMemo(() => subs.filter(isHistorySubscription), [subs])
 
-  function handleLeaveGroup() {
-    if (!viewGroupId || !activeUser) return
-    const member = useMemberStore.getState().getByUserAndGroup(activeUser.id, viewGroupId)
-    if (!member) return
-
-    finalizeLeaveGroup(
-      viewGroupId,
-      { id: activeUser.id, name: activeUser.displayName ?? activeUser.name ?? '成員' },
-    ).catch(console.error);
-
-    setViewGroupId(null)
-    setAutoOpenPayment(false)
-  }
-
   const filtered = useMemo(
     () => filterSubs(subs),
     [subs],
   )
 
-  const onViewGroup = useCallback(sub => setViewGroupId(sub.groupId), [])
+  const onViewGroup = useCallback(
+    sub => window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: sub.groupId } })),
+    [],
+  )
 
   return (
     <div className="px-2 md:px-4">
@@ -201,14 +183,6 @@ export default function SubscriptionsPage() {
           )
         })()}
       </div>
-      <GroupViewModal
-        isOpen={!!viewGroupId}
-        onClose={() => { setViewGroupId(null); setAutoOpenPayment(false); setAutoOpenCredentials(false) }}
-        groupId={viewGroupId}
-        autoOpenPayment={autoOpenPayment}
-        autoOpenCredentials={autoOpenCredentials}
-        onLeaveGroup={handleLeaveGroup}
-      />
       <GroupHistoryModal
         isOpen={historyOpen}
         onClose={closeHistory}
@@ -218,7 +192,7 @@ export default function SubscriptionsPage() {
           <RevealSection key={sub.id} delay={i * 60}>
             <SubscriptionCard
               sub={sub}
-              onViewGroup={sub => { closeHistory(); setViewGroupId(sub.groupId) }}
+              onViewGroup={sub => { closeHistory(); onViewGroup(sub) }}
             />
           </RevealSection>
         )}
