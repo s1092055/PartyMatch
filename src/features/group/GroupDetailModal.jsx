@@ -440,7 +440,6 @@ export default function GroupDetailModal() {
           group={group}
           service={service}
           plan={plan}
-          desktopAsideTop={!memberRecord && isDesktop ? true : undefined}
         />
       ) : isMember && !isHost ? (
         <MemberGroupView group={group} onLeaveGroup={handleLeave} onClose={handleClose} autoOpenCredentials={autoOpenCredentials} />

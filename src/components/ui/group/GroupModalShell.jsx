@@ -69,7 +69,7 @@ export default function GroupModalShell({
 
   return (
     <Dialog open onOpenChange={v => { if (!v) handleClose() }}>
-      <DialogContent className="relative" maxWidth={desktopAsideTop ? 'max-w-xl lg:max-w-3xl' : 'max-w-xl'} height="min(92dvh, 720px)" onEscapeKeyDown={handleEscapeKeyDown}>
+      <DialogContent className="relative" maxWidth="max-w-xl lg:max-w-3xl" height="min(92dvh, 720px)" onEscapeKeyDown={handleEscapeKeyDown}>
         <DialogTitle className="sr-only">{group.serviceName}</DialogTitle>
         <DialogDescription>{group.serviceName}</DialogDescription>
 
