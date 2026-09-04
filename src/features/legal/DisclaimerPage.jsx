@@ -19,6 +19,10 @@ const ITEMS = [
     body: '本平台所收集之個人資料（包括姓名、聯絡方式）僅用於媒合功能及通知目的，不會出售或提供予第三方廣告商。詳細資料處理方式請參閱隱私政策。',
   },
   {
+    title: '信用分數與互評機制',
+    body: '平台會依用戶的實際行為（如是否遭移除出群組）與群組成員間的互評星等，動態調整每位用戶的信用分數。評價內容為用戶主觀留言，本平台不對其真實性或準確性背書，亦不介入評價爭議；信用分數僅供其他用戶參考，不代表本平台對該用戶信譽做出任何保證。',
+  },
+  {
     title: '免責範圍',
     body: 'PartyMatch 對以下情況不承擔任何法律責任：確認期回報問題機制範圍以外的用戶間糾紛或詐騙行為；第三方訂閱服務的價格變動或方案調整；因共享帳號導致的服務品質下降；不可抗力因素所造成的服務中斷。PM 幣代管與回報問題裁定僅處理群組席位費用的撥付爭議，不涉及訂閱服務本身的品質保證。',
   },
@@ -27,7 +31,7 @@ const ITEMS = [
 export default function DisclaimerPage() {
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title="免責聲明" className="mb-8" />
+      <PageHeader title="免責聲明" className="mb-8 text-center" />
 
       <div className="mb-6 flex items-center gap-2 rounded-2xl border border-warning/30 bg-warning-subtle px-5 py-4">
         <AlertTriangle strokeWidth={1.5} size={16} className="shrink-0 text-warning" />
@@ -43,7 +47,7 @@ export default function DisclaimerPage() {
         ))}
       </div>
 
-      <p className="mt-8 text-xs text-ink-4">最後更新：2026 年 5 月</p>
+      <p className="mt-8 text-xs text-ink-4">最後更新：2026 年 9 月</p>
     </div>
   )
 }

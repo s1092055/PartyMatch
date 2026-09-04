@@ -3,11 +3,11 @@ import PageHeader from '../../common/layout/PageHeader'
 const SECTIONS = [
   {
     title: '一、資料收集範圍',
-    body: '本平台僅收集提供服務所需的最低限度個人資料，包括：電子郵件地址與手機號碼（用於帳號驗證及通知）、顯示名稱（用於群組媒合）、使用行為記錄（用於改善平台功能）。若您選擇上傳大頭照、群組爭議舉證附件、聊天訊息附件等內容，這些檔案也會一併儲存。本平台不收集政府核發的身分證件資料。',
+    body: '本平台僅收集提供服務所需的最低限度個人資料，包括：電子郵件地址與手機號碼（用於帳號驗證及通知）、顯示名稱（用於群組媒合）、使用行為記錄（用於改善平台功能）、群組結束後互相給予的評價星等與文字評論。若您選擇上傳大頭照、群組爭議舉證附件、聊天訊息附件等內容，這些檔案也會一併儲存。本平台不收集政府核發的身分證件資料。',
   },
   {
     title: '二、資料使用目的',
-    body: '所收集的個人資料僅用於下列目的：帳號建立與身分驗證；媒合功能的提供與配對；系統通知（包括申請審核結果、付款狀態提醒）；平台安全性維護與詐騙防範。本平台不將個人資料用於廣告投放或行銷目的。',
+    body: '所收集的個人資料僅用於下列目的：帳號建立與身分驗證；媒合功能的提供與配對；系統通知（包括申請審核結果、付款狀態提醒）；信用分數的動態調整依據；平台安全性維護與詐騙防範。本平台不將個人資料用於廣告投放或行銷目的。',
   },
   {
     title: '三、資料揭露對象',
@@ -34,7 +34,7 @@ const SECTIONS = [
 export default function PrivacyPage() {
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title="隱私政策" className="mb-8" />
+      <PageHeader title="隱私政策" className="mb-8 text-center" />
       <p className="mb-6 text-sm leading-relaxed text-ink-3">
         本平台重視您的隱私。本政策說明我們如何收集、使用及保護您的個人資料。
       </p>
@@ -46,7 +46,7 @@ export default function PrivacyPage() {
           </div>
         ))}
       </div>
-      <p className="mt-8 text-xs text-ink-4">最後更新：2026 年 8 月</p>
+      <p className="mt-8 text-xs text-ink-4">最後更新：2026 年 9 月</p>
     </div>
   )
 }

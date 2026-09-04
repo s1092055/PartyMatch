@@ -11,7 +11,7 @@ const SECTIONS = [
   },
   {
     title: '三、用戶責任',
-    body: '用戶在加入任何共享群組前，須自行確認該訂閱服務的使用條款是否允許帳號共享。本平台不對因違反第三方服務條款所衍生的任何後果負責。用戶應確保提供的個人資訊真實、正確，並妥善保管帳號密碼。本平台設有信用分數機制，將依用戶在平台上的實際行為（如付款是否被團主確認、群組是否成功啟用、是否遭移除出群組等）動態增減；信用分數過低可能影響後續申請加入群組的資格。',
+    body: '用戶在加入任何共享群組前，須自行確認該訂閱服務的使用條款是否允許帳號共享。本平台不對因違反第三方服務條款所衍生的任何後果負責。用戶應確保提供的個人資訊真實、正確，並妥善保管帳號密碼。本平台設有信用分數機制（0 至 100 分），將依用戶在平台上的實際行為動態增減，包含付款是否被團主確認、群組是否成功啟用、是否遭移除出群組，以及群組結束後團主與成員之間的互評星等；信用分數過低可能影響後續申請加入群組的資格。群組結束後，團主與成員可互相給予星等評價與文字評論，評價內容將公開顯示於對方的個人頁面，供其他用戶參考。',
   },
   {
     title: '四、PM 幣代管與交易安全',
@@ -34,7 +34,7 @@ const SECTIONS = [
 export default function TermsPage() {
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title="服務條款" className="mb-8" />
+      <PageHeader title="服務條款" className="mb-8 text-center" />
       <p className="mb-6 text-sm leading-relaxed text-ink-3">
         請仔細閱讀以下服務條款。使用本平台即表示您同意受本條款約束。
       </p>
@@ -46,7 +46,7 @@ export default function TermsPage() {
           </div>
         ))}
       </div>
-      <p className="mt-8 text-xs text-ink-4">最後更新：2026 年 8 月</p>
+      <p className="mt-8 text-xs text-ink-4">最後更新：2026 年 9 月</p>
     </div>
   )
 }
