@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Compass, RotateCw, Search } from 'lucide-react'
 import { useGroupStore } from '../../common/stores/useGroupStore'
@@ -22,10 +22,21 @@ export default function ExplorePage() {
   const members = useDeferWhileModalOpen(useMemberStore(s => s.members))
   const [refreshing, setRefreshing] = useState(false)
 
+  // location.key 在任何 navigate() 之後都會變（包含群組詳情 Modal 開關時
+  // 附加/移除的 ?group= 參數），如果不排除掉這個參數，點開一個「已額滿」的
+  // 群組時，這裡會用只抓 recruiting 狀態的請求把 groups store 整包蓋掉，
+  // 額滿群組不在這批資料裡，Modal 就會因為找不到群組而沒開啟（間歇性發生，
+  // 純粹是這裡的重抓跟 Modal 自己要讀的資料互相覆蓋的先後順序問題）
+  const pageEntryKeyRef = useRef(null)
   useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    params.delete('group')
+    const entryKey = `${location.pathname}?${params.toString()}`
+    if (pageEntryKeyRef.current === entryKey) return
+    pageEntryKeyRef.current = entryKey
     useGroupStore.getState().init()
     window.scrollTo(0, 0)
-  }, [location.key])
+  }, [location.key]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 條件搜尋 Modal 已經是全站掛載（AppNav.jsx），這裡只需要在從舊路由／首頁按鈕帶著
   // openConditionSearch 導航進來時，補發一次全站事件請它自動開啟
