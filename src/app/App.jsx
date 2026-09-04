@@ -87,6 +87,23 @@ export default function App() {
       pendingGroupToastIds.delete(groupId)
     })
 
+    // 成員端同樣的道理，跟團主端各自獨立的 Map／訂閱，避免互相影響
+    const pendingMemberGroupToastIds = new Map()
+
+    function registerMemberGroupToast(groupId, toastId, page) {
+      if (!groupId || page !== '/my-subscriptions') return
+      if (!pendingMemberGroupToastIds.has(groupId)) pendingMemberGroupToastIds.set(groupId, new Set())
+      pendingMemberGroupToastIds.get(groupId).add(toastId)
+    }
+
+    const unsubscribeMemberOpenGroup = useOpenGroupStore.subscribe(state => {
+      const groupId = state.memberOpenGroupId
+      const toastIds = groupId && pendingMemberGroupToastIds.get(groupId)
+      if (!toastIds) return
+      toastIds.forEach(id => { dismissToast(id); pendingToastIds.delete(id) })
+      pendingMemberGroupToastIds.delete(groupId)
+    })
+
     async function runPendingRefresh() {
       const user = useAuthStore.getState().getProfile()
       const pending = usePendingRefreshStore.getState().pending
@@ -97,6 +114,7 @@ export default function App() {
       pendingToastIds.forEach(id => dismissToast(id))
       pendingToastIds = new Set()
       pendingGroupToastIds.clear()
+      pendingMemberGroupToastIds.clear()
       // 等待被延後的 store 刷新真正落地，再讓 toast 動作（例如開啟群組 Modal）
       // 讀取資料，避免 Modal 開啟當下 groups/members 還沒更新完成、找不到對應
       // 群組而閃退，或跟 Modal 自己觸發的 refreshGroup 產生互相覆蓋的競態
@@ -206,6 +224,7 @@ export default function App() {
       const toastId = toastAction?.toastId ?? (meta?.groupId ? `pm-${type}-${meta.groupId}` : notifId) ?? 'pm-pending-data-refresh'
       pendingToastIds.add(toastId)
       registerGroupToast(meta?.groupId, toastId, page)
+      registerMemberGroupToast(meta?.groupId, toastId, page)
 
       toast(title || message || '有群組或申請狀態更新了', 'info', {
         id: toastId,
@@ -225,6 +244,7 @@ export default function App() {
       window.removeEventListener('pm:refresh-member-stores', onRefreshMemberStores)
       window.removeEventListener('pm:refresh-stores', onRefreshStores)
       unsubscribeHostOpenGroup()
+      unsubscribeMemberOpenGroup()
     }
   }, [])
 

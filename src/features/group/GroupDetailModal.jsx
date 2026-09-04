@@ -9,6 +9,7 @@ import { useMemberStore } from '../../common/stores/useMemberStore'
 import { useFavoriteStore } from '../../common/stores/useFavoriteStore'
 import { useAuthStore } from '../../common/stores/useAuthStore'
 import { useNotificationStore } from '../../common/stores/useNotificationStore'
+import { useOpenGroupStore } from '../../common/stores/useOpenGroupStore'
 import { finalizeLeaveGroup } from './utils/leaveGroupFlow'
 import { isHistoryGroup } from '../../common/utils/groupStatusDisplay'
 import { getMemberJoinedBadgeVariant } from '../../common/utils/memberGroupDisplay'
@@ -81,6 +82,10 @@ export default function GroupDetailModal() {
   const applications = useApplicationStore(s => s.applications)
   const members      = useMemberStore(s => s.members)
   const isFav        = useFavoriteStore(s => groupId && activeUserId ? s.isFavorited(activeUserId, groupId) : false)
+
+  useEffect(() => {
+    useOpenGroupStore.getState().setMemberOpenGroupId(groupId)
+  }, [groupId]);
 
   useEffect(() => {
     if (groupId) useGroupStore.getState().refreshGroup(groupId).catch(console.error)
