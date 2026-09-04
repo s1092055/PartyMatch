@@ -164,7 +164,12 @@ async function handleLockGroup(sharedCredentials) {
       })
 
       setViewGroupId(null)
-      toast('群組已鎖定', 'success')
+      toast('群組已鎖定', 'success', {
+        action: {
+          label: '前往查看',
+          onClick: () => window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: viewGroupId } })),
+        },
+      })
       return true
     } catch (err) {
       if (err?.response?.status === 400 && group.status === 'full') {
