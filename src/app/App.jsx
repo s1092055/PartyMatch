@@ -136,6 +136,13 @@ export default function App() {
           window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: meta.groupId } }))
         },
       },
+      group_cancelled: {
+        label: '前往查看',
+        run:   (meta) => {
+          if (!meta?.groupId) return
+          window.dispatchEvent(new CustomEvent('pm:open-group', { detail: { groupId: meta.groupId } }))
+        },
+      },
       group_full_member: {
         label: '前往查看',
         run:   (meta) => {
