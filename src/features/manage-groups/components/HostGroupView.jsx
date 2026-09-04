@@ -78,6 +78,19 @@ export default function HostGroupView(
   }, [autoOpenLockGroup]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    // 鎖定群組失敗的 toast 點擊「前往查看」時，即使帳密填寫 Modal 還開著，
+    // 也要能直接回到群組詳情總覽，不要卡在同一個表單畫面
+    function onOpenHostGroup(e) {
+      if ((e.detail?.groupId ?? e.detail?.openGroupId) !== group.id) return
+      if (e.detail?.openLockGroup) return
+      setShowCredentialsModal(false)
+      setCredentialValues({})
+    }
+    window.addEventListener('pm:open-host-group', onOpenHostGroup)
+    return () => window.removeEventListener('pm:open-host-group', onOpenHostGroup)
+  }, [group.id])
+
+  useEffect(() => {
     if (autoOpenApplications) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setActivePanel('applications')
@@ -242,9 +255,11 @@ export default function HostGroupView(
     e.preventDefault()
     setLockLoading(true)
     try {
-      await onLockGroup?.(JSON.stringify(credentialValues))
-      setShowCredentialsModal(false)
-      setCredentialValues({})
+      const locked = await onLockGroup?.(JSON.stringify(credentialValues))
+      if (locked) {
+        setShowCredentialsModal(false)
+        setCredentialValues({})
+      }
     } finally {
       setLockLoading(false)
     }
