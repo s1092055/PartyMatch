@@ -68,24 +68,27 @@ export default function App() {
     // 待刷新清單放進 usePendingRefreshStore（而不是這裡的區域變數），
     // 讓 nav 上的小紅點也能反應「還有東西沒刷新」，就算 toast 被滑掉也看得到
     let pendingToastIds = new Set()
-    // 團主端有些 toast 是針對特定群組的（例如「群組名額已滿」），如果他自己
-    // 點開了那個群組的 Modal，等於已經看過了，這個 toast 就該自動消失，
-    // 不用等他點 toast 上的動作按鈕——這裡記錄「哪個群組對應哪些 toast id」
+    // 有些 toast 是針對特定群組的（例如「群組名額已滿」「申請已通過」），如果
+    // 使用者自己點開了那個群組的 Modal（不管是團主端還是成員端），等於已經
+    // 看過了，這個 toast 就該自動消失，不用等他點 toast 上的動作按鈕——
+    // 這裡記錄「哪個群組對應哪些 toast id」
     const pendingGroupToastIds = new Map()
 
-    function registerGroupToast(groupId, toastId, page) {
-      if (!groupId || page !== '/manage-groups') return
+    function registerGroupToast(groupId, toastId) {
+      if (!groupId) return
       if (!pendingGroupToastIds.has(groupId)) pendingGroupToastIds.set(groupId, new Set())
       pendingGroupToastIds.get(groupId).add(toastId)
     }
 
-    const unsubscribeHostOpenGroup = useOpenGroupStore.subscribe(state => {
-      const groupId = state.hostOpenGroupId
+    function dismissGroupToasts(groupId) {
       const toastIds = groupId && pendingGroupToastIds.get(groupId)
       if (!toastIds) return
       toastIds.forEach(id => { dismissToast(id); pendingToastIds.delete(id) })
       pendingGroupToastIds.delete(groupId)
-    })
+    }
+
+    const unsubscribeHostOpenGroup = useOpenGroupStore.subscribe(state => dismissGroupToasts(state.hostOpenGroupId))
+    const unsubscribeMemberOpenGroup = useOpenGroupStore.subscribe(state => dismissGroupToasts(state.memberOpenGroupId))
 
     async function runPendingRefresh() {
       const user = useAuthStore.getState().getProfile()
@@ -173,10 +176,14 @@ export default function App() {
       usePendingRefreshStore.getState().mark(stores, page)
       if (silent) return
 
-      // 團主已經開著這個群組的 Modal 時，「群組名額已滿」不用再跳 toast 吵他——
-      // 通知本身還是照樣進通知中心，只是不用再彈一次視窗蓋在他正在看的畫面上
-      if (type === 'group_full' && meta?.groupId && useOpenGroupStore.getState().hostOpenGroupId === meta.groupId) {
-        return
+      // 使用者已經開著這個群組的 Modal 時（不管是團主端還是成員端），不用再
+      // 跳 toast 吵他——通知本身還是照樣進通知中心，只是不用再彈一次視窗
+      // 蓋在他正在看的畫面上
+      if (meta?.groupId) {
+        const openState = useOpenGroupStore.getState()
+        if (openState.hostOpenGroupId === meta.groupId || openState.memberOpenGroupId === meta.groupId) {
+          return
+        }
       }
 
       // 分頁被瀏覽器丟到背景太久（節流／使用者離開一段時間）才補到一整批
@@ -205,7 +212,7 @@ export default function App() {
       // 直接覆蓋舊的同一則，而不是每筆通知各自累積成一長串疊不完的 toast
       const toastId = toastAction?.toastId ?? (meta?.groupId ? `pm-${type}-${meta.groupId}` : notifId) ?? 'pm-pending-data-refresh'
       pendingToastIds.add(toastId)
-      registerGroupToast(meta?.groupId, toastId, page)
+      registerGroupToast(meta?.groupId, toastId)
 
       toast(title || message || '有群組或申請狀態更新了', 'info', {
         id: toastId,
@@ -225,6 +232,7 @@ export default function App() {
       window.removeEventListener('pm:refresh-member-stores', onRefreshMemberStores)
       window.removeEventListener('pm:refresh-stores', onRefreshStores)
       unsubscribeHostOpenGroup()
+      unsubscribeMemberOpenGroup()
     }
   }, [])
 

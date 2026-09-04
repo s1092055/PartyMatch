@@ -1,6 +1,8 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { CheckCircle2, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
+import { Dialog, DialogContent } from '../../components/ui/dialog'
+import logoUrl from '../../assets/Logo.svg'
 import { useGroupStore } from '../../common/stores/useGroupStore'
 import { getServiceById } from '../../common/utils/serviceUtils'
 import { hasFilledServiceInfo } from '../../common/utils/serviceInfoFields'
@@ -9,6 +11,7 @@ import { useMemberStore } from '../../common/stores/useMemberStore'
 import { useFavoriteStore } from '../../common/stores/useFavoriteStore'
 import { useAuthStore } from '../../common/stores/useAuthStore'
 import { useNotificationStore } from '../../common/stores/useNotificationStore'
+import { useOpenGroupStore } from '../../common/stores/useOpenGroupStore'
 import { finalizeLeaveGroup } from './utils/leaveGroupFlow'
 import { isHistoryGroup } from '../../common/utils/groupStatusDisplay'
 import { getMemberJoinedBadgeVariant } from '../../common/utils/memberGroupDisplay'
@@ -83,8 +86,31 @@ export default function GroupDetailModal() {
   const isFav        = useFavoriteStore(s => groupId && activeUserId ? s.isFavorited(activeUserId, groupId) : false)
 
   useEffect(() => {
+    useOpenGroupStore.getState().setMemberOpenGroupId(groupId)
+  }, [groupId]);
+
+  useEffect(() => {
     if (groupId) useGroupStore.getState().refreshGroup(groupId).catch(console.error)
   }, [groupId]);
+
+  const [refreshedGroupId, setRefreshedGroupId] = useState(null)
+  const membershipRefreshing = !!groupId && !!activeUserId && refreshedGroupId !== groupId
+  useEffect(() => {
+    if (!groupId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setRefreshedGroupId(null)
+      return
+    }
+    if (!membershipRefreshing) return
+    let active = true
+    Promise.all([
+      useApplicationStore.getState().init().catch(console.error),
+      useMemberStore.getState().init().catch(console.error),
+    ]).finally(() => {
+      if (active) setRefreshedGroupId(groupId)
+    })
+    return () => { active = false }
+  }, [membershipRefreshing, groupId]);
 
   // 不管接下來是渲染一般瀏覽視角還是（成員身分確認後切換的）MemberGroupView，
   // 只要這個群組的 Modal 被打開，就代表使用者看過這個群組的最新狀態了，
@@ -121,16 +147,9 @@ export default function GroupDetailModal() {
   // 網址列的 ?group= 參數是唯一真相來源：groupId 直接從 location.search 算出，
   // 開連結／瀏覽器上一頁下一頁都會自然反映在這裡，不需要另外用 state 同步
   useEffect(() => {
-    async function onOpen(e) {
+    function onOpen(e) {
       resetSubViews()
-      const gId = e.detail?.groupId ?? null
-      if (gId && activeUserId) {
-        await Promise.all([
-          useApplicationStore.getState().init().catch(console.error),
-          useMemberStore.getState().init().catch(console.error),
-        ])
-      }
-      pushGroupUrl(gId)
+      pushGroupUrl(e.detail?.groupId ?? null)
       if (e.detail?.openCredentials) setAutoOpenCredentials(true)
     }
     window.addEventListener('pm:open-group', onOpen)
@@ -183,6 +202,18 @@ export default function GroupDetailModal() {
   )
 
   if (!isOpen || !group) return null
+
+  if (membershipRefreshing) {
+    return (
+      <Dialog open onOpenChange={v => { if (!v) handleClose() }}>
+        <DialogContent maxWidth="max-w-xl lg:max-w-3xl" height="min(92dvh, 720px)" instant>
+          <div className="flex h-full items-center justify-center">
+            <img src={logoUrl} alt="" className="h-14 w-14 animate-logo-bounce" />
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
+  }
 
   const isHost           = group.hostId === activeUserId
   const isMember         = activeUserId ? members.some(m => m.userId === activeUserId && m.groupId === group.id) : false
