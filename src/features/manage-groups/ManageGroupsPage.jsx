@@ -65,7 +65,7 @@ export default function ManageGroupsPage() {
     <div className="px-2 md:px-4">
       <h1 className="page-title mb-6 text-center">群組管理</h1>
 
-      <div className="fixed bottom-9 left-6 z-40 can-hover:lg:left-24">
+      <div className="fixed bottom-9 right-6 z-40">
         <button
           type="button"
           onClick={() => setHistoryOpen(true)}
