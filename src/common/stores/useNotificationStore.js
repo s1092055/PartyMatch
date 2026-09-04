@@ -7,7 +7,8 @@ import {
 import { useAuthStore } from './useAuthStore'
 import { todayISO, byNewest } from '../utils/date'
 import { startPolling } from '../utils/poller'
-import { notifyError } from '../utils/toast'
+import { notifyError, dismissToast } from '../utils/toast'
+import { getNotificationToastId } from '../utils/notificationToast'
 
 const POLL_INTERVAL_MS = 5000
 
@@ -171,7 +172,7 @@ export const useNotificationStore = create((set, get) => ({
           useAuthStore.getState().refreshTokenBalance().catch(console.error)
         }
         set({ notifications: dedupeById(latest) })
-      } catch {}
+      } catch (err) { console.error('[notification poll]', err) }
     }, POLL_INTERVAL_MS)
   },
 
@@ -248,6 +249,13 @@ export const useNotificationStore = create((set, get) => ({
     set(s => ({
       notifications: s.notifications.map(n => n.userId === userId ? { ...n, isRead: true } : n),
     }))
+    // 全部已讀時，個別通知對應的 toast 跟彙總 toast（'有 N 則新的...'）
+    // 全部一起關掉，使用者都已經看過通知中心了，沒必要再留著
+    priors.forEach(n => {
+      const toastId = getNotificationToastId(n)
+      if (toastId) dismissToast(toastId)
+    })
+    dismissToast('pm-batch-update')
     markAllNotificationsRead().catch(err => {
       set(s => ({
         notifications: s.notifications.map(n => priors.find(p => p.id === n.id) ?? n),

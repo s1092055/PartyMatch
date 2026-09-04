@@ -60,8 +60,8 @@ async function clearPrivateStores() {
   useConversationStore.getState().teardown()
   useNotificationStore.getState().teardown()
   usePendingRefreshStore.getState().clear()
-  // 背景通知 toast 是 persistent（不會自動消失），登出/停用帳號時要
-  // 一併清掉，否則殘留的舊 toast 會疊到下一個登入的帳號畫面上
+  // 登出/停用帳號時把畫面上所有 toast 一併清掉（不管是不是 persistent），
+  // 否則殘留的舊 toast 會疊到下一個登入的帳號畫面上
   dismissToast()
   useApplicationStore.setState({ applications: [] })
   useSubscriptionStore.setState({ subscriptions: [] })

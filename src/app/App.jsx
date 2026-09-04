@@ -17,8 +17,11 @@ import { usePendingRefreshStore } from '../common/stores/usePendingRefreshStore'
 import { useOpenGroupStore } from '../common/stores/useOpenGroupStore'
 import { useConversationStore } from '../common/stores/useConversationStore'
 import { toast, dismissToast } from '../common/utils/toast'
+import { getNotificationToastId } from '../common/utils/notificationToast'
 import { useVersionCheck } from '../common/utils/versionCheck'
 import { usePresenceAutoStatus } from '../common/utils/presence'
+
+const BACKGROUND_NOTIFICATION_TOAST_DURATION = 8000
 
 function useIosFixedPositionScrollFix() {
   useEffect(() => {
@@ -127,7 +130,6 @@ export default function App() {
     const TOAST_ACTIONS = {
       new_application: {
         label:   '前往查看',
-        toastId: 'pm-new-application', // 短時間內多筆新申請共用同一則、彼此覆蓋，不疊成一排
         run:     (meta) => {
           if (!meta?.groupId) return
           window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: meta.groupId, openApplications: true } }))
@@ -205,7 +207,7 @@ export default function App() {
         pendingToastIds.add(batchToastId)
         toast(`有 ${batchSize} 則新的群組/申請通知`, 'info', {
           id: batchToastId,
-          persistent: true,
+          duration: BACKGROUND_NOTIFICATION_TOAST_DURATION,
           action: {
             label: '查看通知中心',
             onClick: async () => {
@@ -221,14 +223,14 @@ export default function App() {
       // 同一個群組、同一種類型的通知短時間內重複出現時（例如團主一直沒處理，
       // 名額滿了又有人取消、又滿了），toast id 用 type+groupId 組合，讓新的
       // 直接覆蓋舊的同一則，而不是每筆通知各自累積成一長串疊不完的 toast
-      const toastId = toastAction?.toastId ?? (meta?.groupId ? `pm-${type}-${meta.groupId}` : notifId) ?? 'pm-pending-data-refresh'
+      const toastId = getNotificationToastId({ type, meta, id: notifId }) ?? 'pm-pending-data-refresh'
       pendingToastIds.add(toastId)
       registerGroupToast(meta?.groupId, toastId, page)
       registerMemberGroupToast(meta?.groupId, toastId, page)
 
       toast(title || message || '有群組或申請狀態更新了', 'info', {
         id: toastId,
-        persistent: true,
+        duration: BACKGROUND_NOTIFICATION_TOAST_DURATION,
         action: {
           label: toastAction?.label ?? '重新整理',
           onClick: async () => {
