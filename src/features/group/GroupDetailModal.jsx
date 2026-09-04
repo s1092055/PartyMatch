@@ -142,7 +142,9 @@ export default function GroupDetailModal() {
   useEffect(() => {
     function onOpen(e) {
       resetSubViews()
-      pushGroupUrl(e.detail?.groupId ?? null)
+      const gId = e.detail?.groupId ?? null
+      if (gId) setRefreshedGroupId(null)
+      pushGroupUrl(gId)
       if (e.detail?.openCredentials) setAutoOpenCredentials(true)
     }
     window.addEventListener('pm:open-group', onOpen)
@@ -195,19 +197,6 @@ export default function GroupDetailModal() {
   )
 
   if (!isOpen || !group) return null
-
-  if (membershipRefreshing) {
-    return (
-      <GroupModalShell
-        loading
-        onClose={handleClose}
-        group={group}
-        service={service}
-        plan={plan}
-        desktopAsideTop={!memberRecord && isDesktop ? true : undefined}
-      />
-    )
-  }
 
   const isHost           = group.hostId === activeUserId
   const isMember         = activeUserId ? members.some(m => m.userId === activeUserId && m.groupId === group.id) : false
@@ -348,10 +337,6 @@ export default function GroupDetailModal() {
     })
   }
 
-  if (isMember && !isHost) {
-    return <MemberGroupView group={group} onLeaveGroup={handleLeave} onClose={handleClose} autoOpenCredentials={autoOpenCredentials} />
-  }
-
   const reviews = (
     <UserReviews
       userId={group.hostId}
@@ -440,46 +425,59 @@ export default function GroupDetailModal() {
         onApply={handleApply}
       />
 
-      {!showApply && <GroupModalShell
-        onClose={handleClose}
-        group={group}
-        service={service}
-        plan={plan}
-        hideRecruitBar={hideRecruitBarBase || showDesktopAside}
-        extraInfoRows={[]}
-        statusBadgeOverride={
-          getMemberJoinedBadgeVariant(group.status, isMember) ??
-          (isPendingApp ? { variant: 'pending', label: '審核中' } : undefined)
-        }
-        subPanel={showMembers ? buildMembersSubPanel({ group, groupId, members, activeUserId, setShowMembers, openDm }) : null}
-        onSubPanelBack={() => { setShowMembers(false); resetApply() }}
-        panelKey={showMembers ? 'members' : `overview-${groupId}`}
-        headerBanner={
-          isWaitingMembers ? (
-            <div className="flex items-center justify-center gap-2 bg-success-subtle px-6 py-3 text-sm font-medium text-success-text">
-              <CheckCircle2 strokeWidth={1.5} size={15} />
-              {group.status === 'full' ? '招募完成，等待團主鎖定群組' : '已通過申請，需等待其他人加入'}
+      {membershipRefreshing ? (
+        <GroupModalShell
+          loading
+          onClose={handleClose}
+          group={group}
+          service={service}
+          plan={plan}
+          desktopAsideTop={!memberRecord && isDesktop ? true : undefined}
+        />
+      ) : isMember && !isHost ? (
+        <MemberGroupView group={group} onLeaveGroup={handleLeave} onClose={handleClose} autoOpenCredentials={autoOpenCredentials} />
+      ) : !showApply && (
+        <GroupModalShell
+          onClose={handleClose}
+          group={group}
+          service={service}
+          plan={plan}
+          hideRecruitBar={hideRecruitBarBase || showDesktopAside}
+          extraInfoRows={[]}
+          statusBadgeOverride={
+            getMemberJoinedBadgeVariant(group.status, isMember) ??
+            (isPendingApp ? { variant: 'pending', label: '審核中' } : undefined)
+          }
+          subPanel={showMembers ? buildMembersSubPanel({ group, groupId, members, activeUserId, setShowMembers, openDm }) : null}
+          onSubPanelBack={() => { setShowMembers(false); resetApply() }}
+          panelKey={showMembers ? 'members' : `overview-${groupId}`}
+          headerBanner={
+            isWaitingMembers ? (
+              <div className="flex items-center justify-center gap-2 bg-success-subtle px-6 py-3 text-sm font-medium text-success-text">
+                <CheckCircle2 strokeWidth={1.5} size={15} />
+                {group.status === 'full' ? '招募完成，等待團主鎖定群組' : '已通過申請，需等待其他人加入'}
+              </div>
+            ) : isPendingApp ? (
+              <div className="flex items-center justify-center gap-2 bg-warning-subtle px-6 py-3 text-sm font-medium text-warning-text">
+                <CheckCircle2 strokeWidth={1.5} size={15} />已送出申請，等待團主審核
+              </div>
+            ) : undefined
+          }
+          mobileReviewsSection={showDesktopAside ? undefined : reviews}
+          mobileFooter={showDesktopAside ? undefined : footerCta}
+          afterColumns={picks.length > 0 && (
+            <div className="border-t border-line px-6 pb-4 pt-5">{picksInner}</div>
+          )}
+          desktopAsideTop={showDesktopAside && reviews}
+          desktopAsideBottom={showDesktopAside && (
+            <div className="space-y-4">
+              {!hideRecruitBarBase && <GroupPriceSeatSummary group={group} />}
+              {footerCta}
             </div>
-          ) : isPendingApp ? (
-            <div className="flex items-center justify-center gap-2 bg-warning-subtle px-6 py-3 text-sm font-medium text-warning-text">
-              <CheckCircle2 strokeWidth={1.5} size={15} />已送出申請，等待團主審核
-            </div>
-          ) : undefined
-        }
-        mobileReviewsSection={showDesktopAside ? undefined : reviews}
-        mobileFooter={showDesktopAside ? undefined : footerCta}
-        afterColumns={picks.length > 0 && (
-          <div className="border-t border-line px-6 pb-4 pt-5">{picksInner}</div>
-        )}
-        desktopAsideTop={showDesktopAside && reviews}
-        desktopAsideBottom={showDesktopAside && (
-          <div className="space-y-4">
-            {!hideRecruitBarBase && <GroupPriceSeatSummary group={group} />}
-            {footerCta}
-          </div>
-        )}
-      >
-      </GroupModalShell>}
+          )}
+        >
+        </GroupModalShell>
+      )}
 
       {leaveConfirm && (
         <ConfirmActionDialog
