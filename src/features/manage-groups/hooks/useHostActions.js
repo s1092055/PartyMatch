@@ -4,7 +4,7 @@ import { useApplicationStore } from '../../../common/stores/useApplicationStore'
 import { useMemberStore } from '../../../common/stores/useMemberStore'
 import { useSubscriptionStore } from '../../../common/stores/useSubscriptionStore'
 import { createGroupConversation, removeParticipantFromConversation, sendSystemMessage } from '../../../common/api/messagesApi'
-import { toast } from '../../../common/utils/toast'
+import { toast, dismissToast } from '../../../common/utils/toast'
 import { useConversationStore } from '../../../common/stores/useConversationStore'
 import { isHistoryGroup } from '../../../common/utils/groupStatusDisplay'
 import { getServiceById } from '../../../common/utils/serviceUtils'
@@ -177,7 +177,10 @@ async function handleLockGroup(sharedCredentials) {
         onClick: () => window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: viewGroupId } })),
       }
       if (err?.response?.status === 400 && group.status === 'full') {
-        toast('名額已變動，暫時無法鎖定', 'info', { action: viewAction })
+        // 背景通知的「成員已退出群組」toast 用同一個 id（pm-member_left-群組id），
+        // 這裡先蓋掉／沿用同一則，避免同一件事一次跳出兩則語意重複的 toast
+        dismissToast(`pm-member_left-${viewGroupId}`)
+        toast('有成員退出，暫時無法鎖定', 'info', { id: `pm-member_left-${viewGroupId}`, action: viewAction })
         useGroupStore.getState().refreshGroup(viewGroupId).catch(console.error)
         return false
       }
