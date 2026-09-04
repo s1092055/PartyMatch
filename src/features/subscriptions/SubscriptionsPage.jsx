@@ -22,8 +22,7 @@ import { toISODate } from '../../common/utils/date'
 import { calcDisplayPrice, calcDisplayCycle } from '../../common/utils/pricingUtils'
 import { isHistorySubscription } from '../../common/utils/groupStatusDisplay'
 import GroupHistoryModal from '../../components/ui/group/GroupHistoryModal'
-import { useDeferWhileModalOpen, useGroupOpenLoading } from '../../common/utils/hooks'
-import logoUrl from '../../assets/Logo.svg'
+import { useDeferWhileModalOpen } from '../../common/utils/hooks'
 
 const getGroupById = (id) => useGroupStore.getState().getById(id)
 
@@ -225,13 +224,12 @@ export default function SubscriptionsPage() {
 }
 
 function ApplicationCard({ app, group, onViewGroup }) {
-  const opening = useGroupOpenLoading(group.id)
   const isLastSeat = group.openSeats === 1
   return (
     <Card
       as="article"
       className="card-lift relative flex min-h-full cursor-pointer flex-col overflow-hidden p-5"
-      onClick={() => { if (!opening) onViewGroup?.() }}
+      onClick={onViewGroup}
     >
       <div className="flex justify-center">
         <StatusBadge status="pending" label="審核中" />
@@ -274,8 +272,8 @@ function ApplicationCard({ app, group, onViewGroup }) {
       </StatCellGrid>
 
       <div className="mt-auto pt-5">
-        <Button onClick={e => { e.stopPropagation(); if (!opening) onViewGroup?.() }} disabled={opening} className="w-full">
-          {opening ? <img src={logoUrl} alt="" className="h-5 w-5 animate-logo-bounce" /> : '查看群組'}
+        <Button onClick={e => { e.stopPropagation(); onViewGroup?.() }} className="w-full">
+          查看群組
         </Button>
       </div>
     </Card>

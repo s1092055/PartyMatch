@@ -8,11 +8,8 @@ import { toISODate } from '../../../common/utils/date'
 import { getRenewalAwareStatus } from '../../../common/utils/groupStatusDisplay'
 import { getServiceById } from '../../../common/utils/serviceUtils'
 import { getSubscriptionBadgeStatus, getSubscriptionBillingDisplay, getSubscriptionCardBadge } from '../../../common/utils/memberGroupDisplay'
-import { useGroupOpenLoading } from '../../../common/utils/hooks'
-import logoUrl from '../../../assets/Logo.svg'
 
 function SubscriptionCard({ sub, onViewGroup }) {
-  const opening       = useGroupOpenLoading(sub.groupId)
   const badgeStatus   = getSubscriptionBadgeStatus(sub)
   const displayStatus = getRenewalAwareStatus(badgeStatus, sub.nextBillingDate)
   const isActive      = badgeStatus === 'active'
@@ -28,7 +25,7 @@ function SubscriptionCard({ sub, onViewGroup }) {
     <Card
       as="article"
       className="card-lift relative flex min-h-full cursor-pointer flex-col overflow-hidden p-5"
-      onClick={() => { if (!opening) onViewGroup?.(sub) }}
+      onClick={() => onViewGroup?.(sub)}
     >
       <GroupCardHeader
         badge={
@@ -54,8 +51,8 @@ function SubscriptionCard({ sub, onViewGroup }) {
       </StatCellGrid>
 
       <div className="mt-auto pt-5">
-        <Button onClick={e => { e.stopPropagation(); if (!opening) onViewGroup?.(sub) }} disabled={opening} className="w-full">
-          {opening ? <img src={logoUrl} alt="" className="h-5 w-5 animate-logo-bounce" /> : '查看群組'}
+        <Button onClick={e => { e.stopPropagation(); onViewGroup?.(sub) }} className="w-full">
+          查看群組
         </Button>
       </div>
     </Card>
