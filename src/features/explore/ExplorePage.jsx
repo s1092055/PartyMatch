@@ -82,7 +82,7 @@ export default function ExplorePage() {
 
   return (
     <div className="px-2 md:px-4">
-      <div className="sticky top-0 z-30 -mx-2 -mt-8 bg-canvas px-2 pb-5 pt-8 md:-mx-4 md:px-4">
+      <div className="sticky top-0 z-30 -mx-2 -mt-8 bg-canvas px-2 pb-5 pt-8 [transform:translateZ(0)] md:-mx-4 md:px-4">
         <PageHeader title="探索群組" className="mb-6 text-center" />
 
         <CategoryPills
@@ -127,7 +127,7 @@ export default function ExplorePage() {
       ) : (
         (<div
           key={category}
-          className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3"
+          className="isolate grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3"
         >
           {filtered.map((group, i) => (
             <RevealSection key={group.id} delay={Math.min(i * 60, 300)}>
