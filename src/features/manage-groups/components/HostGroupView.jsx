@@ -242,11 +242,9 @@ export default function HostGroupView(
     e.preventDefault()
     setLockLoading(true)
     try {
-      const locked = await onLockGroup?.(JSON.stringify(credentialValues))
-      if (locked) {
-        setShowCredentialsModal(false)
-        setCredentialValues({})
-      }
+      await onLockGroup?.(JSON.stringify(credentialValues))
+      setShowCredentialsModal(false)
+      setCredentialValues({})
     } finally {
       setLockLoading(false)
     }

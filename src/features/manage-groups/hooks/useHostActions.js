@@ -172,12 +172,16 @@ async function handleLockGroup(sharedCredentials) {
       })
       return true
     } catch (err) {
+      const viewAction = {
+        label: '前往查看',
+        onClick: () => window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: viewGroupId } })),
+      }
       if (err?.response?.status === 400 && group.status === 'full') {
-        toast('名額已變動，暫時無法鎖定', 'info')
+        toast('名額已變動，暫時無法鎖定', 'info', { action: viewAction })
         useGroupStore.getState().refreshGroup(viewGroupId).catch(console.error)
         return false
       }
-      toast('鎖定群組失敗，請稍後再試', 'error')
+      toast('鎖定群組失敗，請稍後再試', 'error', { action: viewAction })
       return false
     }
   }
