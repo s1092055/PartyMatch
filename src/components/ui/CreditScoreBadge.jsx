@@ -17,7 +17,6 @@ export default function CreditScoreBadge({ score, size = 'sm' }) {
     return (
       <span className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-bold ${bg} ${border} ${color}`}>
         {displayScore}
-        <span className="text-xs font-normal opacity-70">{label}</span>
       </span>
     )
   }
@@ -25,7 +24,6 @@ export default function CreditScoreBadge({ score, size = 'sm' }) {
   return (
     <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold ${bg} ${color}`}>
       {displayScore}
-      <span className="opacity-70">{label}</span>
     </span>
   )
 }
