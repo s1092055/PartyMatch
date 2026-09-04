@@ -164,7 +164,12 @@ async function handleLockGroup(sharedCredentials) {
       })
 
       setViewGroupId(null)
-    } catch {
+    } catch (err) {
+      if (err?.response?.status === 400 && group.status === 'full') {
+        toast('有成員剛好退出，名額還沒滿，無法鎖定，請重新整理再試', 'info')
+        useGroupStore.getState().refreshGroup(viewGroupId).catch(console.error)
+        return
+      }
       toast('鎖定群組失敗，請稍後再試', 'error')
     }
   }
