@@ -197,7 +197,16 @@ export default function GroupDetailModal() {
   if (!isOpen || !group) return null
 
   if (membershipRefreshing) {
-    return <GroupModalShell loading onClose={handleClose} group={group} service={service} plan={plan} />
+    return (
+      <GroupModalShell
+        loading
+        onClose={handleClose}
+        group={group}
+        service={service}
+        plan={plan}
+        desktopAsideTop={!memberRecord && isDesktop ? true : undefined}
+      />
+    )
   }
 
   const isHost           = group.hostId === activeUserId
