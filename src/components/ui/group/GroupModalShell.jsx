@@ -4,7 +4,6 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogCloseButto
 import ServiceLogo from '../ServiceLogo'
 import GroupOverviewContent from './GroupOverviewContent'
 import GroupPriceSeatSummary from './GroupPriceSeatSummary'
-import logoUrl from '../../../assets/Logo.svg'
 
 export default function GroupModalShell({
   onClose,
@@ -32,7 +31,6 @@ export default function GroupModalShell({
   desktopAsideTop,
   desktopAsideBottom,
   mobileFab,
-  loading = false,
   children,
 }) {
   const scrollBodyElRef = useRef(null)
@@ -85,11 +83,6 @@ export default function GroupModalShell({
           </div>
           <DialogCloseButton />
         </div>
-        {loading ? (
-          <div className="flex min-h-0 flex-1 items-center justify-center">
-            <img src={logoUrl} alt="" className="h-14 w-14 animate-logo-bounce" />
-          </div>
-        ) : (
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
           <div className="flex min-w-0 min-h-0 flex-1 flex-col overflow-hidden">
 
@@ -209,8 +202,7 @@ export default function GroupModalShell({
             </div>
           )}
         </div>
-        )}
-        {!loading && mobileFab && !activeDetail && (
+        {mobileFab && !activeDetail && (
           <div className={`absolute right-4 z-10 md:hidden ${centeredCta ? 'bottom-40' : 'bottom-20'}`}>
             {mobileFab}
           </div>

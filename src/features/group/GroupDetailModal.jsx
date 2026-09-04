@@ -17,6 +17,7 @@ import { calcDisplayPrice } from '../../common/utils/pricingUtils'
 import { toast } from '../../common/utils/toast'
 import { LOCKED_MESSAGE } from '../../common/layout/components/navConstants'
 import { useIsDesktop } from '../../common/utils/hooks'
+import { useModalStackStore } from '../../common/stores/useModalStackStore'
 import { TokenBadge } from '../../components/ui/TokenAmount'
 import ConfirmActionDialog from '../../components/ui/ConfirmActionDialog'
 import CountdownText from '../../components/ui/primitives/CountdownText'
@@ -91,25 +92,6 @@ export default function GroupDetailModal() {
     if (groupId) useGroupStore.getState().refreshGroup(groupId).catch(console.error)
   }, [groupId]);
 
-  const [refreshedGroupId, setRefreshedGroupId] = useState(null)
-  const membershipRefreshing = !!groupId && !!activeUserId && refreshedGroupId !== groupId
-  useEffect(() => {
-    if (!groupId) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setRefreshedGroupId(null)
-      return
-    }
-    if (!membershipRefreshing) return
-    let active = true
-    const startedAt = Date.now()
-    Promise.all([
-      useApplicationStore.getState().init().catch(console.error),
-      useMemberStore.getState().init().catch(console.error),
-    ]).then(() => new Promise(resolve => setTimeout(resolve, Math.max(0, 1200 - (Date.now() - startedAt)))))
-      .then(() => { if (active) setRefreshedGroupId(groupId) })
-    return () => { active = false }
-  }, [membershipRefreshing, groupId]);
-
   // 不管接下來是渲染一般瀏覽視角還是（成員身分確認後切換的）MemberGroupView，
   // 只要這個群組的 Modal 被打開，就代表使用者看過這個群組的最新狀態了，
   // 跟這個群組有關的未讀通知（不管類型）一併標記已讀，不用等使用者
@@ -145,11 +127,22 @@ export default function GroupDetailModal() {
   // 網址列的 ?group= 參數是唯一真相來源：groupId 直接從 location.search 算出，
   // 開連結／瀏覽器上一頁下一頁都會自然反映在這裡，不需要另外用 state 同步
   useEffect(() => {
-    function onOpen(e) {
+    async function onOpen(e) {
       resetSubViews()
       const gId = e.detail?.groupId ?? null
       if (gId) {
-        setRefreshedGroupId(null)
+        const userId = useAuthStore.getState().user?.id
+        if (userId) {
+          useModalStackStore.getState().push()
+          try {
+            await Promise.all([
+              useApplicationStore.getState().init().catch(console.error),
+              useMemberStore.getState().init().catch(console.error),
+            ])
+          } finally {
+            useModalStackStore.getState().pop()
+          }
+        }
         useGroupStore.getState().refreshGroup(gId).catch(console.error)
       }
       pushGroupUrl(gId)
@@ -158,7 +151,7 @@ export default function GroupDetailModal() {
     window.addEventListener('pm:open-group', onOpen)
     return () => window.removeEventListener('pm:open-group', onOpen)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeUserId])
+  }, [])
 
   useEffect(() => {
     if (location.state?.reopenGroupModalId) {
@@ -433,16 +426,7 @@ export default function GroupDetailModal() {
         onApply={handleApply}
       />
 
-      {membershipRefreshing ? (
-        <GroupModalShell
-          loading
-          onClose={handleClose}
-          group={group}
-          service={service}
-          plan={plan}
-          desktopAsideTop={!memberRecord && isDesktop ? true : undefined}
-        />
-      ) : isMember && !isHost ? (
+      {isMember && !isHost ? (
         <MemberGroupView group={group} onLeaveGroup={handleLeave} onClose={handleClose} autoOpenCredentials={autoOpenCredentials} />
       ) : !showApply && (
         <GroupModalShell
