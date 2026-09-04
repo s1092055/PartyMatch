@@ -148,7 +148,10 @@ export default function GroupDetailModal() {
     function onOpen(e) {
       resetSubViews()
       const gId = e.detail?.groupId ?? null
-      if (gId) setRefreshedGroupId(null)
+      if (gId) {
+        setRefreshedGroupId(null)
+        useGroupStore.getState().refreshGroup(gId).catch(console.error)
+      }
       pushGroupUrl(gId)
       if (e.detail?.openCredentials) setAutoOpenCredentials(true)
     }
