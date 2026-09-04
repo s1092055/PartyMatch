@@ -87,7 +87,7 @@ async function advanceToFullIfNeeded(tx, groupId) {
       userId:  updatedGroup.hostId,
       type:    'group_full',
       title:   '群組名額已滿',
-      message: `「${groupLabel}」群組名額已滿，可以點擊鎖定群組了。`,
+      message: `「${groupLabel}」群組名額已滿，請前往鎖定群組。`,
       meta:    { groupId },
     })
 
