@@ -452,7 +452,7 @@ export default function GroupDetailModal() {
       {leaveConfirm && (
         <ConfirmActionDialog
           title="確認退出群組？"
-          message={`退出後將釋出名額，且需等待 3 分鐘後才能重新申請加入「${group?.serviceName}」。`}
+          message={`退出後將釋出名額，且需等待 1 分鐘後才能重新申請加入「${group?.serviceName}」。`}
           confirmLabel="退出群組"
           danger
           onConfirm={handleLeave}

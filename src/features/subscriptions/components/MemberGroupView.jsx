@@ -476,7 +476,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
       {leaveConfirm && (
         <ConfirmActionDialog
           title="退出群組"
-          message={`確定要退出「${group.serviceName}」群組嗎？退出後名額將釋出，且需等待 3 分鐘後才能重新提出申請。`}
+          message={`確定要退出「${group.serviceName}」群組嗎？退出後名額將釋出，且需等待 1 分鐘後才能重新提出申請。`}
           confirmLabel="退出"
           danger
           onConfirm={() => { setLeaveConfirm(false); onLeaveGroup?.() }}
