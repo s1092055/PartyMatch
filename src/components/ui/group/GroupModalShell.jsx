@@ -86,9 +86,9 @@ export default function GroupModalShell({
           <DialogCloseButton />
         </div>
         {loading ? (
-          <div className="flex min-h-0 flex-1 items-center justify-center">
-            <img src={logoUrl} alt="" className="h-14 w-14 animate-logo-bounce" />
-          </div>
+        <div className="flex min-h-0 flex-1 items-center justify-center">
+          <img src={logoUrl} alt="" className="h-14 w-14 animate-logo-bounce" />
+        </div>
         ) : (
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
           <div className="flex min-w-0 min-h-0 flex-1 flex-col overflow-hidden">

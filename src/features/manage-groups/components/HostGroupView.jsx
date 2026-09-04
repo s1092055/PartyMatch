@@ -20,7 +20,7 @@ import { fetchGroupTransactions } from '../../../common/api/groupsApi'
 import { uploadServiceIssueEvidence, uploadPlatformReportEvidence } from '../../../common/api/storageApi'
 import { createPlatformReport } from '../../../common/api/platformReportsApi'
 import { useEvidenceUpload } from '../../../common/utils/hooks'
-import { toast } from '../../../common/utils/toast'
+import { toast, dismissToast } from '../../../common/utils/toast'
 import ActivateServiceModal from './ActivateServiceModal'
 import ReportServiceIssueModal from './ReportServiceIssueModal'
 import ReportPlatformIssueModal from '../../group/components/ReportPlatformIssueModal'
@@ -33,7 +33,7 @@ import { buildBillingPanel } from './host-group-view/buildBillingPanel'
 import { buildMemberInfoPanel } from './host-group-view/buildMemberInfoPanel'
 
 export default function HostGroupView(
-  { group, members, applications, onReportServiceInfoIssue, onResolveDispute, onEscalateDispute, onRemoveMember, onActivate, onLockGroup, onCancelGroup, onApprove, onReject, onAdjustBillingDate, errors, submittingIds, onClose, autoOpenLockGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling, autoOpenMemberInfo, autoOpenMembers, onOpenRenewal }
+  { group, members, applications, onReportServiceInfoIssue, onResolveDispute, onEscalateDispute, onRemoveMember, onActivate, onLockGroup, onCancelGroup, onApprove, onReject, onAdjustBillingDate, errors, submittingIds, onClose, autoOpenLockGroup, autoOpenActivate, onAutoOpenActivateDone, autoOpenApplications, autoOpenBilling, autoOpenMemberInfo, autoOpenMembers, onOpenRenewal, loading = false }
 ) {
   const [showActivate, setShowActivate]                   = useState(false)
   const [removingMember, setRemovingMember]               = useState(null)
@@ -100,6 +100,10 @@ export default function HostGroupView(
       setShowReviewHistory(false)
     }
   }, [autoOpenApplications])
+
+  useEffect(() => {
+    if (activePanel === 'applications') dismissToast('pm-new-application')
+  }, [activePanel])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -508,7 +512,9 @@ export default function HostGroupView(
   return (
     <>
 
-      {!showActivate && !serviceIssueMember && !showCredentialsModal && (
+      {loading ? (
+        <GroupModalShell loading onClose={onClose} group={group} service={serviceDef} plan={planDef} />
+      ) : !showActivate && !serviceIssueMember && !showCredentialsModal && (
       <GroupModalShell
         onClose={onClose}
         group={group}

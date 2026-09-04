@@ -96,8 +96,23 @@ export default function GroupDetailModal() {
   }, [groupId]);
 
   const [refreshedGroupId, setRefreshedGroupId] = useState(null)
-  const [widthGuess, setWidthGuess] = useState(false)
-  const membershipRefreshing = !!groupId && !!activeUserId && refreshedGroupId !== groupId
+  const membershipRefreshing = !!groupId && refreshedGroupId !== groupId
+  const [loadingGuess, setLoadingGuess] = useState({ isMember: false, wide: false })
+  useLayoutEffect(() => {
+    if (!membershipRefreshing) return
+    const recentApproval = !!activeUserId && useNotificationStore.getState().notifications.some(
+      n => n.type === 'application_approved' && !n.isRead && n.userId === activeUserId && n.meta?.groupId === groupId
+    )
+    const freshMembers  = useMemberStore.getState().members
+    const freshIsMember = !!activeUserId && (recentApproval || freshMembers.some(m => m.userId === activeUserId && m.groupId === groupId))
+    const freshIsHost   = group?.hostId === activeUserId
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoadingGuess({
+      isMember: freshIsMember && !freshIsHost,
+      wide:     !freshIsMember && !freshIsHost && isDesktop,
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [membershipRefreshing, groupId]);
   useEffect(() => {
     if (!groupId) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -105,14 +120,14 @@ export default function GroupDetailModal() {
       return
     }
     if (!membershipRefreshing) return
-    setWidthGuess(!memberRecord && isDesktop)
     let active = true
     const startedAt = Date.now()
-    Promise.all([
+    const tasks = activeUserId ? [
       useApplicationStore.getState().init().catch(console.error),
       useMemberStore.getState().init().catch(console.error),
       useSubscriptionStore.getState().init().catch(console.error),
-    ]).then(() => new Promise(resolve => setTimeout(resolve, Math.max(0, 1500 - (Date.now() - startedAt)))))
+    ] : []
+    Promise.all(tasks).then(() => new Promise(resolve => setTimeout(resolve, Math.max(0, 1500 - (Date.now() - startedAt)))))
       .then(() => { if (active) setRefreshedGroupId(groupId) })
     return () => { active = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -436,17 +451,17 @@ export default function GroupDetailModal() {
         onApply={handleApply}
       />
 
-      {membershipRefreshing ? (
+      {(membershipRefreshing ? loadingGuess.isMember : isMember && !isHost) ? (
+        <MemberGroupView loading={membershipRefreshing} group={group} onLeaveGroup={handleLeave} onClose={handleClose} autoOpenCredentials={autoOpenCredentials} />
+      ) : membershipRefreshing ? (
         <GroupModalShell
           loading
           onClose={handleClose}
           group={group}
           service={service}
           plan={plan}
-          desktopAsideTop={widthGuess ? true : undefined}
+          desktopAsideTop={loadingGuess.wide ? true : undefined}
         />
-      ) : isMember && !isHost ? (
-        <MemberGroupView group={group} onLeaveGroup={handleLeave} onClose={handleClose} autoOpenCredentials={autoOpenCredentials} />
       ) : !showApply && (
         <GroupModalShell
           onClose={handleClose}

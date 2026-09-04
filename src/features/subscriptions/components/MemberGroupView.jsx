@@ -31,7 +31,7 @@ import { toast } from '../../../common/utils/toast'
 import { isHistoryGroup } from '../../../common/utils/groupStatusDisplay'
 import { getMemberGroupFlags, getMemberGroupBadges, DISPUTED_BANNER_TEXT } from '../../../common/utils/memberGroupDisplay'
 
-export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpenCredentials }) {
+export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpenCredentials, loading = false }) {
   const [activePanel, setActivePanel] = useState(null);
   const [leaveConfirm, setLeaveConfirm] = useState(false)
   const [showFillInfo, setShowFillInfo] = useState(false)
@@ -71,8 +71,6 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
 
   const currentUser = useAuthStore(s => s.user)
 
-  // 打開這個群組的詳情，等於使用者已經看過這個群組的最新狀態了，
-  // 跟這個群組有關的未讀通知（不管類型）都一併標記已讀
   const unreadForGroup = useNotificationStore(s => s.getUnreadCountForGroup(currentUser?.id, group.id))
   useEffect(() => {
     if (currentUser?.id && unreadForGroup > 0) {
@@ -346,10 +344,48 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
     return null
   }
 
+  function renderSideBar() {
+    return (
+      <>
+        <GroupModalSideBarItem active={activePanel === null} onClick={() => selectPanel(null)}>
+          <Info strokeWidth={1.5} size={17} /> 群組概覽
+        </GroupModalSideBarItem>
+        <GroupModalSideBarItem active={activePanel === 'members'} onClick={() => selectPanel('members')}>
+          <Users strokeWidth={1.5} size={17} /> 群組名單
+        </GroupModalSideBarItem>
+        {!!sub && (
+          <GroupModalSideBarItem active={activePanel === 'payments'} onClick={() => selectPanel('payments')}>
+            <Banknote strokeWidth={1.5} size={17} /> 付款管理
+          </GroupModalSideBarItem>
+        )}
+        {canViewCredentials && (
+          <GroupModalSideBarItem active={activePanel === 'credentials'} onClick={() => selectPanel('credentials')}>
+            <KeyRound strokeWidth={1.5} size={17} /> 帳號資訊
+          </GroupModalSideBarItem>
+        )}
+        <GroupModalSideBarItem pinned={!canLeaveGroup && !isPaymentRelevant} onClick={() => platformReport.setShow(true)}>
+          <TriangleAlert strokeWidth={1.5} size={17} /> 回報問題
+        </GroupModalSideBarItem>
+        {showMessagesButton && (
+          <GroupModalSideBarItem pinned className="hidden md:flex" onClick={openMessages}>
+            <MessageCircle strokeWidth={1.5} size={17} /> 群組訊息
+          </GroupModalSideBarItem>
+        )}
+        {canLeaveGroup && (
+          <GroupModalSideBarItem pinned tone="danger" onClick={() => setLeaveConfirm(true)}>
+            <LogOut strokeWidth={1.5} size={17} /> 退出群組
+          </GroupModalSideBarItem>
+        )}
+      </>
+    )
+  }
+
   return (
     <>
 
-      {!showFillInfo && !dispute.show && !confirmDialog && (
+      {loading ? (
+        <GroupModalShell loading onClose={onClose} group={group} service={serviceDef} plan={planDef} />
+      ) : !showFillInfo && !dispute.show && !confirmDialog && (
       <GroupModalShell
         onClose={onClose}
         group={group}
@@ -362,39 +398,7 @@ export default function MemberGroupView({ group, onLeaveGroup, onClose, autoOpen
         statusBadgeOverride={header.statusBadgeOverride}
         pendingBadge={header.pendingBadge}
         pendingBadgeColor={header.pendingBadgeColor}
-        sideBar={
-          <>
-            <GroupModalSideBarItem active={activePanel === null} onClick={() => selectPanel(null)}>
-              <Info strokeWidth={1.5} size={17} /> 群組概覽
-            </GroupModalSideBarItem>
-            <GroupModalSideBarItem active={activePanel === 'members'} onClick={() => selectPanel('members')}>
-              <Users strokeWidth={1.5} size={17} /> 群組名單
-            </GroupModalSideBarItem>
-            {!!sub && (
-              <GroupModalSideBarItem active={activePanel === 'payments'} onClick={() => selectPanel('payments')}>
-                <Banknote strokeWidth={1.5} size={17} /> 付款管理
-              </GroupModalSideBarItem>
-            )}
-            {canViewCredentials && (
-              <GroupModalSideBarItem active={activePanel === 'credentials'} onClick={() => selectPanel('credentials')}>
-                <KeyRound strokeWidth={1.5} size={17} /> 帳號資訊
-              </GroupModalSideBarItem>
-            )}
-            <GroupModalSideBarItem pinned={!canLeaveGroup && !isPaymentRelevant} onClick={() => platformReport.setShow(true)}>
-              <TriangleAlert strokeWidth={1.5} size={17} /> 回報問題
-            </GroupModalSideBarItem>
-            {showMessagesButton && (
-              <GroupModalSideBarItem pinned className="hidden md:flex" onClick={openMessages}>
-                <MessageCircle strokeWidth={1.5} size={17} /> 群組訊息
-              </GroupModalSideBarItem>
-            )}
-            {canLeaveGroup && (
-              <GroupModalSideBarItem pinned tone="danger" onClick={() => setLeaveConfirm(true)}>
-                <LogOut strokeWidth={1.5} size={17} /> 退出群組
-              </GroupModalSideBarItem>
-            )}
-          </>
-        }
+        sideBar={renderSideBar()}
         subPanel={activePanel ? buildSubPanel() : null}
         onSubPanelBack={() => setActivePanel(null)}
         panelKey={`${activePanel ?? 'overview'}-${panelViewTick}`}

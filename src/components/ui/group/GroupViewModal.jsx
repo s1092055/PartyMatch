@@ -4,10 +4,8 @@ import { useMemberStore } from '../../../common/stores/useMemberStore'
 import { useApplicationStore } from '../../../common/stores/useApplicationStore'
 import { useAuthStore } from '../../../common/stores/useAuthStore'
 import { startPolling } from '../../../common/utils/poller'
-import { getServiceById } from '../../../common/utils/serviceUtils'
 import HostGroupView from '../../../features/manage-groups/components/HostGroupView'
 import MemberGroupView from '../../../features/subscriptions/components/MemberGroupView'
-import GroupModalShell from './GroupModalShell'
 
 const GROUP_POLL_INTERVAL_MS = 15000
 
@@ -51,6 +49,7 @@ export default function GroupViewModal({
       await Promise.all([
         useGroupStore.getState().refreshGroup(groupId).catch(console.error),
         useMemberStore.getState().init().catch(console.error),
+        useApplicationStore.getState().init().catch(console.error),
       ])
     }, GROUP_POLL_INTERVAL_MS)
     return stop
@@ -59,12 +58,6 @@ export default function GroupViewModal({
   if (!isOpen || !groupId) return null
   const group = groups.find(g => g.id === groupId) ?? null
   if (!group) return null
-
-  if (dataRefreshing) {
-    const service = getServiceById(group.serviceId)
-    const plan    = service?.plans.find(p => p.name === group.planName)
-    return <GroupModalShell loading onClose={onClose} group={group} service={service} plan={plan} />
-  }
 
   const isHost       = currentUser?.id === group.hostId
   const members      = allMembers.filter(m => m.groupId === groupId)
@@ -76,6 +69,7 @@ export default function GroupViewModal({
 
   if (isHost) return (
     <HostGroupView
+      loading={dataRefreshing}
       group={group} members={members} applications={applications}
       onReportServiceInfoIssue={onReportServiceInfoIssue}
       onResolveDispute={onResolveDispute}
@@ -94,5 +88,5 @@ export default function GroupViewModal({
       onOpenRenewal={onOpenRenewal}
     />
   )
-  return <MemberGroupView group={group} onLeaveGroup={onLeaveGroup} onClose={onClose} autoOpenCredentials={autoOpenCredentials} />
+  return <MemberGroupView loading={dataRefreshing} group={group} onLeaveGroup={onLeaveGroup} onClose={onClose} autoOpenCredentials={autoOpenCredentials} />
 }
