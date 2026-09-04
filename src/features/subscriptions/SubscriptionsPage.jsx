@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Archive, ClipboardList } from 'lucide-react'
 import { useSubscriptionStore } from '../../common/stores/useSubscriptionStore'
@@ -126,6 +126,24 @@ export default function SubscriptionsPage() {
     [],
   )
 
+  // 從群組紀錄點進去查看的群組 Modal 關閉後，要能回到群組紀錄 Modal，
+  // 而不是直接整個消失；用網址上的 ?group= 參數判斷該群組 Modal
+  // 真的「已經開過、現在關閉了」，而不是點擊當下那個尚未開啟的狀態
+  const historyReopenRef = useRef(null)
+  useEffect(() => {
+    const pending = historyReopenRef.current
+    if (!pending) return
+    const currentGroupId = new URLSearchParams(location.search).get('group')
+    if (currentGroupId === pending.groupId) {
+      pending.opened = true
+      return
+    }
+    if (pending.opened && !currentGroupId) {
+      historyReopenRef.current = null
+      setHistoryOpen(true)
+    }
+  }, [location.search])
+
   return (
     <div className="px-2 md:px-4">
       <h1 className="page-title mb-6 text-center">我的訂閱</h1>
@@ -192,7 +210,11 @@ export default function SubscriptionsPage() {
           <RevealSection key={sub.id} delay={i * 60}>
             <SubscriptionCard
               sub={sub}
-              onViewGroup={sub => { closeHistory(); onViewGroup(sub) }}
+              onViewGroup={sub => {
+                historyReopenRef.current = { groupId: sub.groupId, opened: false }
+                closeHistory()
+                onViewGroup(sub)
+              }}
             />
           </RevealSection>
         )}

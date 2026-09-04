@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Archive } from 'lucide-react'
 import { useAuthStore } from '../../common/stores/useAuthStore'
 import { useNotificationStore } from '../../common/stores/useNotificationStore'
 import { usePendingRefreshStore } from '../../common/stores/usePendingRefreshStore'
+import { useOpenGroupStore } from '../../common/stores/useOpenGroupStore'
 import EmptyState from '../../components/ui/primitives/EmptyState'
 import GroupHistoryModal from '../../components/ui/group/GroupHistoryModal'
 import RevealSection from '../../components/ui/primitives/RevealSection'
@@ -41,6 +42,24 @@ export default function ManageGroupsPage() {
   const historyGroups = useDeferWhileModalOpen(liveHistoryGroups)
   const membersMap = useDeferWhileModalOpen(liveMembersMap)
   const applicationCounts = useDeferWhileModalOpen(liveApplicationCounts)
+
+  // 從群組紀錄點進去查看的群組 Modal 關閉後，要能回到群組紀錄 Modal，
+  // 而不是直接整個消失；用全站共用的 hostOpenGroupId 判斷該群組 Modal
+  // 真的「已經開過、現在關閉了」，而不是點擊當下那個尚未開啟的 null 狀態
+  const historyReopenRef = useRef(null)
+  const hostOpenGroupId = useOpenGroupStore(s => s.hostOpenGroupId)
+  useEffect(() => {
+    const pending = historyReopenRef.current
+    if (!pending) return
+    if (hostOpenGroupId === pending.groupId) {
+      pending.opened = true
+      return
+    }
+    if (pending.opened && hostOpenGroupId === null) {
+      historyReopenRef.current = null
+      setHistoryOpen(true)
+    }
+  }, [hostOpenGroupId])
 
   return (
     <div className="px-2 md:px-4">
@@ -93,6 +112,7 @@ export default function ManageGroupsPage() {
               pendingAppCount={applicationCounts[g.id] ?? 0}
               paymentCount={0}
               onViewGroup={() => {
+                historyReopenRef.current = { groupId: g.id, opened: false }
                 closeHistory()
                 refreshGroups()
                 window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: g.id } }))
