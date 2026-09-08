@@ -42,7 +42,7 @@
 
 ### Project Notes — 專案補充文件
 
-- [專案亮點](project/project-highlights.md) — 主要工程決策、問題背景與取捨
+- [專案重點](project/project-highlights.md) — 主要工程決策、問題背景與取捨
 
 ### Testing — 手動測試怎麼跑
 
