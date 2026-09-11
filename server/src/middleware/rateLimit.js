@@ -36,3 +36,5 @@ export const applicationLimiter = makeLimiter(20, skipInDevelopment);
 export const globalLimiter = makeLimiter(600, skipInDevelopment);
 
 export const emailVerificationLimiter = makeLimiter(5, skipInDevelopment);
+
+export const passwordResetLimiter = makeLimiter(5, skipInDevelopment);

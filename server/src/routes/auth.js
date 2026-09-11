@@ -9,15 +9,34 @@ import { notify } from './groups/shared.js'
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/jwt.js'
 import { validate } from '../middleware/validate.js'
 import { requireAuth } from '../middleware/auth.js'
-import { authLimiter, refreshLimiter, emailVerificationLimiter } from '../middleware/rateLimit.js'
+import { authLimiter, refreshLimiter, emailVerificationLimiter, passwordResetLimiter } from '../middleware/rateLimit.js'
 import { isWithinRecoveryWindow, reactivateUserAccount } from '../services/accountRecovery.service.js'
-import { sendVerificationEmail, sendAccountAlreadyExistsEmail } from '../lib/mailer.js'
+import { sendVerificationEmail, sendAccountAlreadyExistsEmail, sendPasswordResetEmail } from '../lib/mailer.js'
+import { recordFailedLogin, isAccountLocked, clearFailedLogins } from '../lib/loginAttempts.js'
 
 const EMAIL_VERIFICATION_EXPIRES_MS = 1000 * 60 * 60 * 24; // 24 小時
+const PASSWORD_RESET_EXPIRES_MS     = 1000 * 60 * 60; // 1 小時
 
-function generateEmailVerificationToken() {
+function generateSecureToken() {
   return randomBytes(32).toString('hex')
 }
+
+// 白名單挑欄位回傳給前端，取代「抓整包 user 再一個個排除敏感欄位」的寫法——
+// 後者每次幫 User 新增一個敏感欄位（如這次的 emailVerificationToken/passwordResetToken）都要記得回頭補排除，
+// 忘記排除就會直接外洩，白名單寫法從根本上排除這個風險
+const PUBLIC_USER_FIELDS = [
+  'id', 'email', 'name', 'phone', 'creditScore', 'tokenBalance',
+  'avatarColor', 'avatarInitial', 'showAvatar', 'presenceStatus',
+  'bio', 'mutedNotificationCategories', 'createdAt', 'emailVerified',
+]
+
+function pickSafeUser(user) {
+  const safe = {}
+  for (const field of PUBLIC_USER_FIELDS) safe[field] = user[field]
+  return safe
+}
+
+const PUBLIC_USER_SELECT = Object.fromEntries(PUBLIC_USER_FIELDS.map(field => [field, true]))
 
 const router = Router()
 
@@ -35,6 +54,15 @@ const loginSchema = z.object({
 
 const verifyEmailSchema = z.object({
   token: z.string().min(1),
+})
+
+const forgotPasswordSchema = z.object({
+  email: z.string().email(),
+})
+
+const resetPasswordSchema = z.object({
+  token:       z.string().min(1),
+  newPassword: z.string().min(8),
 })
 
 const REFRESH_COOKIE_NAME    = 'pm_refresh_token';
@@ -65,7 +93,7 @@ router.post('/register', authLimiter, validate(registerSchema), async (req, res,
     }
 
     const passwordHash = await bcrypt.hash(password, 12)
-    const emailVerificationToken   = generateEmailVerificationToken()
+    const emailVerificationToken   = generateSecureToken()
     const emailVerificationExpires = new Date(Date.now() + EMAIL_VERIFICATION_EXPIRES_MS)
     const user = await prisma.user.create({
       data: {
@@ -76,7 +104,7 @@ router.post('/register', authLimiter, validate(registerSchema), async (req, res,
         emailVerificationToken,
         emailVerificationExpires,
       },
-      select: { id: true, email: true, name: true, phone: true, creditScore: true, tokenBalance: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, bio: true, mutedNotificationCategories: true, emailVerified: true },
+      select: PUBLIC_USER_SELECT,
     })
 
     sendVerificationEmail(user, emailVerificationToken).catch(err => console.error('[auth] 寄送驗證信失敗:', err));
@@ -101,13 +129,22 @@ router.post('/register', authLimiter, validate(registerSchema), async (req, res,
 router.post('/login', authLimiter, validate(loginSchema), async (req, res, next) => {
   try {
     const { email, password } = req.body
+    if (await isAccountLocked(email)) {
+      return res.status(429).json({ message: '登入失敗次數過多，請 15 分鐘後再試' })
+    }
+
     const user = await prisma.user.findUnique({ where: { email } })
     if (!user || !user.passwordHash) {
+      await recordFailedLogin(email)
       return res.status(401).json({ message: 'Email 或密碼錯誤' })
     }
 
     const valid = await bcrypt.compare(password, user.passwordHash)
-    if (!valid) return res.status(401).json({ message: 'Email 或密碼錯誤' })
+    if (!valid) {
+      await recordFailedLogin(email)
+      return res.status(401).json({ message: 'Email 或密碼錯誤' })
+    }
+    await clearFailedLogins(email)
 
     if (user.deactivatedAt) {
       const recoverable = isWithinRecoveryWindow(user.deactivatedAt)
@@ -125,22 +162,30 @@ router.post('/login', authLimiter, validate(loginSchema), async (req, res, next)
     const refreshToken = signRefreshToken({ id: user.id, sessionId })
     await saveRefreshToken(user.id, sessionId, refreshToken)
 
-    const { passwordHash: _, emailVerificationToken: __, emailVerificationExpires: ___, ...safeUser } = user
     setRefreshCookie(res, refreshToken)
-    res.json({ user: safeUser, accessToken })
+    res.json({ user: pickSafeUser(user), accessToken })
   } catch (err) { next(err) }
 });
 
 router.post('/reactivate', authLimiter, validate(loginSchema), async (req, res, next) => {
   try {
     const { email, password } = req.body
+    if (await isAccountLocked(email)) {
+      return res.status(429).json({ message: '登入失敗次數過多，請 15 分鐘後再試' })
+    }
+
     const user = await prisma.user.findUnique({ where: { email } })
     if (!user || !user.passwordHash) {
+      await recordFailedLogin(email)
       return res.status(401).json({ message: 'Email 或密碼錯誤' })
     }
 
     const valid = await bcrypt.compare(password, user.passwordHash)
-    if (!valid) return res.status(401).json({ message: 'Email 或密碼錯誤' })
+    if (!valid) {
+      await recordFailedLogin(email)
+      return res.status(401).json({ message: 'Email 或密碼錯誤' })
+    }
+    await clearFailedLogins(email)
 
     if (!user.deactivatedAt) return res.status(400).json({ message: '帳號目前為啟用狀態，請直接登入' })
     if (!isWithinRecoveryWindow(user.deactivatedAt)) {
@@ -155,9 +200,8 @@ router.post('/reactivate', authLimiter, validate(loginSchema), async (req, res, 
     const refreshToken = signRefreshToken({ id: user.id, sessionId })
     await saveRefreshToken(user.id, sessionId, refreshToken)
 
-    const { passwordHash: _, deactivatedAt: __, emailVerificationToken: ___, emailVerificationExpires: ____, ...safeUser } = user
     setRefreshCookie(res, refreshToken)
-    res.json({ user: safeUser, accessToken })
+    res.json({ user: pickSafeUser(user), accessToken })
   } catch (err) { next(err) }
 });
 
@@ -185,12 +229,48 @@ router.post('/resend-verification', requireAuth, emailVerificationLimiter, async
     if (!user) return res.status(404).json({ message: '使用者不存在' })
     if (user.emailVerified) return res.status(400).json({ message: '信箱已經驗證過了' })
 
-    const emailVerificationToken   = generateEmailVerificationToken()
+    const emailVerificationToken   = generateSecureToken()
     const emailVerificationExpires = new Date(Date.now() + EMAIL_VERIFICATION_EXPIRES_MS)
     await prisma.user.update({ where: { id: user.id }, data: { emailVerificationToken, emailVerificationExpires } })
 
     await sendVerificationEmail(user, emailVerificationToken)
     res.json({ message: '驗證信已重新寄出' })
+  } catch (err) { next(err) }
+});
+
+router.post('/forgot-password', passwordResetLimiter, validate(forgotPasswordSchema), async (req, res, next) => {
+  try {
+    const { email } = req.body
+    const user = await prisma.user.findUnique({ where: { email } })
+    // 不論信箱是否存在都回傳一模一樣的訊息，避免被拿來列舉哪些信箱已經註冊
+    if (user) {
+      const passwordResetToken   = generateSecureToken()
+      const passwordResetExpires = new Date(Date.now() + PASSWORD_RESET_EXPIRES_MS)
+      await prisma.user.update({ where: { id: user.id }, data: { passwordResetToken, passwordResetExpires } })
+      sendPasswordResetEmail(user, passwordResetToken).catch(err => console.error('[auth] 寄送重設密碼信失敗:', err));
+    }
+    res.json({ message: '如果這個信箱有註冊帳號，會收到重設密碼的信件' })
+  } catch (err) { next(err) }
+});
+
+router.post('/reset-password', passwordResetLimiter, validate(resetPasswordSchema), async (req, res, next) => {
+  try {
+    const { token, newPassword } = req.body
+    const user = await prisma.user.findUnique({ where: { passwordResetToken: token } })
+    if (!user) return res.status(400).json({ message: '重設密碼連結無效，請重新申請一次' })
+    if (!user.passwordResetExpires || user.passwordResetExpires < new Date()) {
+      return res.status(400).json({ message: '重設密碼連結已過期，請重新申請一次', code: 'PASSWORD_RESET_EXPIRED' })
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 12)
+    await prisma.user.update({
+      where: { id: user.id },
+      data:  { passwordHash, passwordResetToken: null, passwordResetExpires: null },
+    })
+    await clearFailedLogins(user.email)
+    await deleteAllUserSessions(user.id) // 密碼重設後，強制所有裝置的舊登入狀態失效，避免舊 session 被延續使用
+
+    res.json({ message: '密碼已重設，請使用新密碼登入' })
   } catch (err) { next(err) }
 });
 
@@ -243,7 +323,7 @@ router.get('/me', requireAuth, async (req, res, next) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
-      select: { id: true, email: true, name: true, phone: true, creditScore: true, tokenBalance: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, bio: true, mutedNotificationCategories: true, createdAt: true, emailVerified: true },
+      select: PUBLIC_USER_SELECT,
     })
     if (!user) return res.status(404).json({ message: '使用者不存在' })
     res.json(user)

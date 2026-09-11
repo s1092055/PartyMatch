@@ -16,6 +16,15 @@ export async function sendVerificationEmail(user, token) {
   })
 }
 
+export async function sendPasswordResetEmail(user, token) {
+  const resetUrl = `${process.env.CLIENT_ORIGIN ?? ''}/reset-password?token=${token}`
+  await sendEmail({
+    to:      user.email,
+    subject: '重設你的 PartyMatch 密碼',
+    text:    `你好 ${user.name}，\n\n請點擊以下連結重設密碼（1 小時內有效）：\n${resetUrl}\n\n如果這不是你本人的操作，請忽略此信，你的密碼不會被更動。`,
+  })
+}
+
 export async function sendAccountAlreadyExistsEmail(user) {
   await sendEmail({
     to:      user.email,

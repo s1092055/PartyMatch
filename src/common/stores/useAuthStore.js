@@ -149,6 +149,24 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
+  forgotPassword: async ({ email }) => {
+    try {
+      await client.post('/auth/forgot-password', { email })
+      return { ok: true }
+    } catch (err) {
+      return { ok: false, error: err.message }
+    }
+  },
+
+  resetPassword: async ({ token, newPassword }) => {
+    try {
+      await client.post('/auth/reset-password', { token, newPassword })
+      return { ok: true }
+    } catch (err) {
+      return { ok: false, error: err.message, code: err.response?.data?.code }
+    }
+  },
+
   logout: async () => {
     try { await client.post('/auth/logout') } catch {}
     tokenManager.remove()

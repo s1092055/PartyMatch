@@ -26,6 +26,7 @@ const router = createBrowserRouter([
           { path: '/login',           element: routeElement(() => import('../features/auth/login/LoginPage')) },
           { path: '/register',        element: routeElement(() => import('../features/auth/register/RegisterPage')) },
           { path: '/forgot-password', element: routeElement(() => import('../features/auth/forgot-password/ForgotPasswordPage')) },
+          { path: '/reset-password',  element: routeElement(() => import('../features/auth/reset-password/ResetPasswordPage')) },
         ],
       },
       {
