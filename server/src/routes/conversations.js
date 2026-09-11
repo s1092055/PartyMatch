@@ -165,17 +165,7 @@ router.patch('/:id/participants', requireAuth, async (req, res, next) => {
 
     const participants = [...parseParticipants(conversation)]
 
-    if (action === 'add') {
-      const isParticipant = participants.includes(req.user.id);
-      const isGroupHost = conversation.type === 'group' && conversation.groupId
-        ? (await prisma.group.findUnique({ where: { id: conversation.groupId }, select: { hostId: true } }))?.hostId === req.user.id
-        : false
-      if (!isParticipant && !isGroupHost) {
-        return res.status(403).json({ message: '無權限加入此對話' })
-      }
-      const targetId = userId ?? req.user.id
-      if (!participants.includes(targetId)) participants.push(targetId)
-    } else if (action === 'leave') {
+    if (action === 'leave') {
       const idx = participants.indexOf(req.user.id)
       if (idx !== -1) participants.splice(idx, 1)
     } else if (action === 'remove') {
@@ -189,7 +179,7 @@ router.patch('/:id/participants', requireAuth, async (req, res, next) => {
       const idx = participants.indexOf(userId)
       if (idx !== -1) participants.splice(idx, 1)
     } else {
-      return res.status(400).json({ message: 'action 必須為 add、leave 或 remove' })
+      return res.status(400).json({ message: 'action 必須為 leave 或 remove' })
     }
 
     const updated = await prisma.conversation.update({
@@ -204,6 +194,9 @@ router.patch('/:id/read', requireAuth, async (req, res, next) => {
   try {
     const conversation = await prisma.conversation.findUnique({ where: { id: req.params.id } })
     if (!conversation) return res.status(404).json({ message: '對話不存在' })
+    if (!parseParticipants(conversation).includes(req.user.id)) {
+      return res.status(403).json({ message: '無操作權限' })
+    }
 
     const unreadCounts = { ...(conversation.unreadCounts ?? {}) }
     delete unreadCounts[req.user.id]

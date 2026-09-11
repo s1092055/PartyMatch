@@ -62,9 +62,11 @@ router.post('/', requireAuth, validate(createReviewSchema), async (req, res, nex
     if (isAuthorHost) {
       const revieweeMember = await prisma.member.findUnique({ where: { groupId_userId: { groupId, userId: revieweeId } } })
       if (!revieweeMember) return res.status(403).json({ message: '對方不是此群組的成員' })
+      if (!revieweeMember.confirmedAt) return res.status(400).json({ message: '對方尚未確認服務，還不能評價' })
     } else {
       const authorMember = await prisma.member.findUnique({ where: { groupId_userId: { groupId, userId: authorId } } })
       if (!authorMember) return res.status(403).json({ message: '僅該群組成員可以留下評價' })
+      if (!authorMember.confirmedAt) return res.status(400).json({ message: '請先確認服務後再進行評價' })
     }
 
     const author = await prisma.user.findUnique({ where: { id: authorId }, select: { name: true } })

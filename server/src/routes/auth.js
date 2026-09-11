@@ -17,6 +17,10 @@ import { recordFailedLogin, isAccountLocked, clearFailedLogins } from '../lib/lo
 const EMAIL_VERIFICATION_EXPIRES_MS = 1000 * 60 * 60 * 24; // 24 小時
 const PASSWORD_RESET_EXPIRES_MS     = 1000 * 60 * 60; // 1 小時
 
+// 帳號不存在時仍跑一次跟真的比對密碼差不多耗時的 bcrypt 運算，
+// 讓「帳號不存在」與「帳號存在但密碼錯誤」兩種情況的回應時間接近，避免被拿來用時間差列舉帳號是否存在
+const DUMMY_PASSWORD_HASH = '$2b$12$MnSUDfrzG2sur0zqNhyCr.pyeAwKz1SLqGlzkwTm/L.de8hJ9ElWq'
+
 function generateSecureToken() {
   return randomBytes(32).toString('hex')
 }
@@ -40,9 +44,13 @@ const PUBLIC_USER_SELECT = Object.fromEntries(PUBLIC_USER_FIELDS.map(field => [f
 
 const router = Router()
 
+// 只要求「至少一個英文字母＋一個數字」這種最低限度的複雜度，不強制大小寫混合或特殊符號，
+// 避免規則太嚴格反而讓使用者為了通過規則去寫更容易被猜到的密碼（如 Password1!）
+const passwordSchema = z.string().min(8).regex(/^(?=.*[A-Za-z])(?=.*\d).+$/, '密碼需至少包含英文字母與數字，長度 8 碼以上')
+
 const registerSchema = z.object({
   email:    z.string().email(),
-  password: z.string().min(8),
+  password: passwordSchema,
   name:     z.string().min(1).max(50),
   phone:    z.string().regex(/^\+[1-9]\d{6,14}$/, '請輸入正確的手機號碼格式'),
 })
@@ -62,7 +70,7 @@ const forgotPasswordSchema = z.object({
 
 const resetPasswordSchema = z.object({
   token:       z.string().min(1),
-  newPassword: z.string().min(8),
+  newPassword: passwordSchema,
 })
 
 const REFRESH_COOKIE_NAME    = 'pm_refresh_token';
@@ -135,6 +143,7 @@ router.post('/login', authLimiter, validate(loginSchema), async (req, res, next)
 
     const user = await prisma.user.findUnique({ where: { email } })
     if (!user || !user.passwordHash) {
+      await bcrypt.compare(password, DUMMY_PASSWORD_HASH) // 燒掉跟真的比對密碼差不多的時間，抹平時間差
       await recordFailedLogin(email)
       return res.status(401).json({ message: 'Email 或密碼錯誤' })
     }
@@ -176,6 +185,7 @@ router.post('/reactivate', authLimiter, validate(loginSchema), async (req, res, 
 
     const user = await prisma.user.findUnique({ where: { email } })
     if (!user || !user.passwordHash) {
+      await bcrypt.compare(password, DUMMY_PASSWORD_HASH) // 燒掉跟真的比對密碼差不多的時間，抹平時間差
       await recordFailedLogin(email)
       return res.status(401).json({ message: 'Email 或密碼錯誤' })
     }

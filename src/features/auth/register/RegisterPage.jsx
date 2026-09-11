@@ -133,7 +133,7 @@ export default function RegisterPage() {
           onChange={value => updateField('password', value)}
           onBlur={() => markTouched('password')}
           error={touched.password ? fieldErrors.password : ''}
-          hint="至少 6 碼"
+          hint="至少 8 碼，需包含英文字母與數字"
           trailing={<PasswordToggle visible={showPassword} onClick={() => setShowPassword(v => !v)} />}
         />
         <AuthInput
@@ -211,7 +211,8 @@ function getFieldErrors(form, emailVerified, phoneVerified, accepted) {
     phoneLocal: !form.phoneLocal.trim() ? '請輸入手機號碼'
       : !PHONE_REGEX.test(toE164(form.phoneCountryCode, form.phoneLocal)) ? '請輸入正確的手機號碼格式'
       : !phoneVerified ? '請先完成手機號碼驗證' : '',
-    password: form.password.length < 6 ? '密碼至少需要 6 碼' : '',
+    password: form.password.length < 8 ? '密碼至少需要 8 碼'
+      : !/^(?=.*[A-Za-z])(?=.*\d).+$/.test(form.password) ? '密碼需至少包含英文字母與數字' : '',
     confirmPassword: form.confirmPassword !== form.password ? '確認密碼必須和密碼一致' : '',
     accepted: accepted ? '' : '請先同意服務條款與隱私政策',
   }

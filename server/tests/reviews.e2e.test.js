@@ -5,8 +5,8 @@ import prisma from '../src/lib/prisma.js'
 import { resetDb } from './helpers/db.js'
 import { createUser, createGroup, authHeader } from './helpers/factories.js'
 
-async function addMember(group, user) {
-  return prisma.member.create({ data: { groupId: group.id, userId: user.id } })
+async function addMember(group, user, { confirmed = true } = {}) {
+  return prisma.member.create({ data: { groupId: group.id, userId: user.id, confirmedAt: confirmed ? new Date() : null } })
 }
 
 describe('互評（POST /reviews, GET /reviews/user/:userId）', () => {
@@ -126,6 +126,32 @@ describe('互評（POST /reviews, GET /reviews/user/:userId）', () => {
     expect(res.body.reviews).toHaveLength(2)
     expect(res.body.reviews[0].group.planName).toBe(groupB.planName)
     expect(res.body.reviews[0].group.service.name).toBeTruthy()
+  })
+
+  it('成員尚未確認服務時不能評價團主（400）', async () => {
+    const host = await createUser({ name: '團主' })
+    const member = await createUser({ name: '成員' })
+    const { group } = await createGroup({ host })
+    await addMember(group, member, { confirmed: false })
+
+    const res = await request(app)
+      .post('/api/reviews')
+      .set('Authorization', authHeader(member))
+      .send({ groupId: group.id, revieweeId: host.id, rating: 5 })
+    expect(res.status).toBe(400)
+  })
+
+  it('團主不能評價尚未確認服務的成員（400）', async () => {
+    const host = await createUser({ name: '團主' })
+    const member = await createUser({ name: '成員' })
+    const { group } = await createGroup({ host })
+    await addMember(group, member, { confirmed: false })
+
+    const res = await request(app)
+      .post('/api/reviews')
+      .set('Authorization', authHeader(host))
+      .send({ groupId: group.id, revieweeId: member.id, rating: 5 })
+    expect(res.status).toBe(400)
   })
 
   it('未登入不能留下評價', async () => {

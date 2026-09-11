@@ -18,7 +18,8 @@ export default function ResetPasswordPage() {
   const [touched, setTouched] = useState({})
 
   const fieldErrors = {
-    password: password.length >= 8 ? '' : '密碼至少需要 8 個字元',
+    password: password.length < 8 ? '密碼至少需要 8 個字元'
+      : !/^(?=.*[A-Za-z])(?=.*\d).+$/.test(password) ? '密碼需至少包含英文字母與數字' : '',
     confirmPassword: confirmPassword === password ? '' : '兩次輸入的密碼不一致',
   }
   const canSubmit = !fieldErrors.password && !fieldErrors.confirmPassword && !loading
@@ -75,7 +76,7 @@ export default function ResetPasswordPage() {
           label="新密碼"
           type={showPassword ? 'text' : 'password'}
           autoComplete="new-password"
-          placeholder="至少 8 個字元"
+          placeholder="至少 8 碼，需包含英文字母與數字"
           value={password}
           onChange={setPassword}
           onBlur={() => markTouched('password')}
