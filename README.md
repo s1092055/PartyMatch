@@ -8,10 +8,9 @@
 
 ## 專案導覽
 
-- **產品問題**：把「陌生人合購訂閱」從貼文、私訊、人工轉帳對帳，轉換成有角色權限、狀態追蹤與爭議處理的完整流程
-- **工程主軸**：狀態機、交易一致性、資料遮罩、通知同步、前後端 API 契約與測試驗證
-- **建議閱讀順序**：[專案重點](docs/project/project-highlights.md) → [群組狀態機](docs/flows/group-state-machine.md) → [後端架構](docs/architecture/backend.md) → [測試計畫](docs/testing/test-plan.md)
-- **品質驗證**：核心流程以自動化測試與手動測試計畫雙軌確認，降低金流、狀態轉換與權限邊界的回歸風險
+想合購 Netflix、Spotify 這類訂閱服務，過去常常得靠貼文湊團、私訊喬帳號密碼、再私下轉帳對帳，中間任何一步出狀況都很難處理。PartyMatch 把這整段過程搬上平台：從找到夥伴、審核加入，到金流代管、服務啟用與確認、續訂，每個階段都有清楚的角色分工，遇到糾紛也有申訴與裁定機制可以依循，不用再靠信任陌生人硬撐。
+
+想快速了解這個專案，建議依序閱讀：[專案重點](docs/project/project-highlights.md) → [群組狀態機](docs/flows/group-state-machine.md) → [後端架構](docs/architecture/backend.md) → [測試計畫](docs/testing/test-plan.md)
 
 | 首頁 | 探索群組 | 群組管理 | 訊息中心 |
 |------|----------|----------|----------|
