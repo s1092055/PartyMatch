@@ -27,6 +27,12 @@
 - **訊息與通知中心**：整合群組聊天室、私訊與系統通知，並依通知類型做提示強度分級
 - **管理員後台**：獨立的平台管理介面
 
+## 技術架構
+
+- **前端**：React 19、Vite、React Router v7、Zustand、Tailwind CSS v4
+- **後端**：Node.js、Express、Prisma、MySQL、Redis
+- **基礎架構**：Cloudflare（Workers／Pages／R2）、Render
+
 ## 工程亮點
 
 - **併發安全的名額搶佔**：最後一個名額同時被多筆申請核准是實際會發生的競態情境，核准流程以資料庫交易搭配條件式更新處理，確保額滿判斷不會因併發請求而超收
@@ -37,34 +43,8 @@
 - **在線狀態自動偵測**：以分頁可視性＋視窗焦點判斷是否在線，搭配心跳與後端定期掃描，避免使用者非正常關閉分頁後狀態卡在「在線」不放
 - **自動化測試與 CI**：前端 95 個、後端 179 個單元／整合測試，涵蓋核心頁面互動與完整群組生命週期（含真實併發衝突情境），皆整合進 GitHub Actions，push/PR 自動執行 lint、測試與建置
 
-## 技術架構
-
-- **前端**：React 19、Vite、React Router v7、Zustand、Tailwind CSS v4
-- **後端**：Node.js、Express、Prisma、MySQL、Redis
-- **基礎架構**：Cloudflare（Workers／Pages／R2）、Render
-
-## 快速開始
-
-環境需求：Node.js 22+、MySQL 8+、Redis 7+
-
-```bash
-# 前端
-npm install
-cp .env.example .env
-npm run dev
-
-# 後端
-cd server
-npm install
-cp .env.example .env
-npm run dev
-```
-
-完整環境設定、測試方式與 Demo 資料建置說明，請參閱[開發指南](docs/development.md)。
-
 ## 文件
 
-- **Development**：[開發指南](docs/development.md) — 環境需求、環境變數、安裝、測試
 - **Product**：[產品總覽](docs/product/product-overview.md) — 產品定位、解決的問題、角色設計
 - **Architecture**：[架構總覽](docs/architecture/architecture.md) — 分層結構與技術棧選型理由
 - **ADR**：[Architecture Decision Records](docs/adr/README.md) — 重要技術決策為什麼這樣選

@@ -1,9 +1,5 @@
 # 技術文件索引
 
-### Development — 怎麼把專案跑起來
-
-- [開發指南](development.md) — 環境需求、環境變數、安裝、資料庫/Redis 設定、跑測試、CI/部署
-
 ### Product — 這個專案在做什麼
 
 - [產品總覽](product/product-overview.md) — 產品定位、解決的問題、角色設計、MVP 範圍
