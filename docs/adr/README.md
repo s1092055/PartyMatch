@@ -1,4 +1,4 @@
-# Architecture Decision Records
+# 重要技術決策
 
 ADR（Architecture Decision Record）記錄專案裡有實質取捨的技術決策：為什麼選這個做法、放棄了什麼、之後在什麼情況下該重新評估。這裡挑的是「知道什麼情況不需要用更複雜的技術」這類判斷，不是為了展示會用什麼技術。
 
