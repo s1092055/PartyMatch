@@ -109,40 +109,44 @@ enum NotificationType {
 }
 
 model User {
-  id             String         @id @default(cuid())
-  email          String         @unique
-  passwordHash   String?
-  googleId       String?        @unique
-  name           String
-  phone          String
-  avatarColor    String?
-  avatarInitial  String?
-  showAvatar     Boolean        @default(true)
-  presenceStatus PresenceStatus @default(offline)
-  lastActiveAt   DateTime?
-  bio            String?        @db.VarChar(500)
-  mutedNotificationCategories Json @default("[]")
-  creditScore    Int            @default(100)
-  tokenBalance   Int            @default(0)
-  isSystem       Boolean        @default(false)
-  deactivatedAt  DateTime?
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  id                          String         @id @default(cuid())
+  email                       String         @unique
+  passwordHash                String?
+  googleId                    String?        @unique
+  name                        String
+  phone                       String
+  avatarColor                 String?
+  avatarInitial               String?
+  showAvatar                  Boolean        @default(true)
+  presenceStatus              PresenceStatus @default(offline)
+  lastActiveAt                DateTime?
+  bio                         String?        @db.VarChar(500)
+  mutedNotificationCategories Json           @default("[]")
+  creditScore                 Int            @default(100)
+  tokenBalance                Int            @default(0)
+  isSystem                    Boolean        @default(false)
+  deactivatedAt               DateTime?
+  emailVerified               Boolean        @default(false)
+  emailVerifiedAt             DateTime?
+  emailVerificationToken      String?        @unique
+  emailVerificationExpires    DateTime?
+  createdAt                   DateTime       @default(now())
+  updatedAt                   DateTime       @updatedAt
 
-  hostedGroups        Group[]             @relation("HostedGroups")
-  applications        Application[]
-  members             Member[]
-  subscriptions       Subscription[]
-  notifications       Notification[]
-  favorites           Favorite[]
-  sentMessages        Message[]
-  tokenTransactions   TokenTransaction[]
-  creditScoreLogs     CreditScoreLog[]
-  reviewsReceived     Review[]            @relation("ReviewsReceived")
-  reviewsAuthored     Review[]            @relation("ReviewsAuthored")
-  credentialComments  CredentialComment[]
-  disputesRaised      Dispute[]           @relation("DisputesRaised")
-  platformReports     PlatformReport[]
+  hostedGroups       Group[]             @relation("HostedGroups")
+  applications       Application[]
+  members            Member[]
+  subscriptions      Subscription[]
+  notifications      Notification[]
+  favorites          Favorite[]
+  sentMessages       Message[]
+  tokenTransactions  TokenTransaction[]
+  creditScoreLogs    CreditScoreLog[]
+  reviewsReceived    Review[]            @relation("ReviewsReceived")
+  reviewsAuthored    Review[]            @relation("ReviewsAuthored")
+  credentialComments CredentialComment[]
+  disputesRaised     Dispute[]           @relation("DisputesRaised")
+  platformReports    PlatformReport[]
 
   @@map("users")
 }
@@ -155,7 +159,7 @@ model AdminUser {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  disputesAdjudicated Dispute[] @relation("DisputesAdjudicated")
+  disputesAdjudicated     Dispute[]        @relation("DisputesAdjudicated")
   platformReportsResolved PlatformReport[]
 
   @@map("admin_users")
@@ -381,16 +385,16 @@ model Message {
 }
 
 model Review {
-  id             String           @id @default(cuid())
-  groupId        String
-  group          Group            @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  revieweeId     String
-  reviewee       User             @relation("ReviewsReceived", fields: [revieweeId], references: [id], onDelete: Cascade)
-  authorId       String
-  author         User             @relation("ReviewsAuthored", fields: [authorId], references: [id], onDelete: Cascade)
-  rating         Int
-  comment        String?
-  createdAt      DateTime         @default(now())
+  id         String   @id @default(cuid())
+  groupId    String
+  group      Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  revieweeId String
+  reviewee   User     @relation("ReviewsReceived", fields: [revieweeId], references: [id], onDelete: Cascade)
+  authorId   String
+  author     User     @relation("ReviewsAuthored", fields: [authorId], references: [id], onDelete: Cascade)
+  rating     Int
+  comment    String?
+  createdAt  DateTime @default(now())
 
   creditScoreLogs CreditScoreLog[]
 

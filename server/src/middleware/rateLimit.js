@@ -34,3 +34,5 @@ export const applicationLimiter = makeLimiter(20, skipInDevelopment);
 // 全站基礎防線：其餘端點目前完全沒有任何流量控管，掛在 app.js 最外層當最後一道防線，
 // 門檻刻意設得寬鬆（要涵蓋同分頁多個 5 秒輪詢＋一般操作點擊），只用來擋真的異常量體的濫用，不是取代上面幾個針對高風險端點的嚴格限流
 export const globalLimiter = makeLimiter(600, skipInDevelopment);
+
+export const emailVerificationLimiter = makeLimiter(5, skipInDevelopment);

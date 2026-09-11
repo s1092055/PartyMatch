@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { randomUUID, randomBytes } from 'crypto'
 import { Router } from 'express'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
@@ -9,8 +9,15 @@ import { notify } from './groups/shared.js'
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/jwt.js'
 import { validate } from '../middleware/validate.js'
 import { requireAuth } from '../middleware/auth.js'
-import { authLimiter, refreshLimiter } from '../middleware/rateLimit.js'
+import { authLimiter, refreshLimiter, emailVerificationLimiter } from '../middleware/rateLimit.js'
 import { isWithinRecoveryWindow, reactivateUserAccount } from '../services/accountRecovery.service.js'
+import { sendVerificationEmail, sendAccountAlreadyExistsEmail } from '../lib/mailer.js'
+
+const EMAIL_VERIFICATION_EXPIRES_MS = 1000 * 60 * 60 * 24; // 24 小時
+
+function generateEmailVerificationToken() {
+  return randomBytes(32).toString('hex')
+}
 
 const router = Router()
 
@@ -24,6 +31,10 @@ const registerSchema = z.object({
 const loginSchema = z.object({
   email:    z.string().email(),
   password: z.string().min(1),
+})
+
+const verifyEmailSchema = z.object({
+  token: z.string().min(1),
 })
 
 const REFRESH_COOKIE_NAME    = 'pm_refresh_token';
@@ -48,19 +59,27 @@ router.post('/register', authLimiter, validate(registerSchema), async (req, res,
   try {
     const { email, password, name, phone } = req.body
     const exists = await prisma.user.findUnique({ where: { email } })
-    if (exists) return res.status(409).json({ message: '此 Email 已被註冊' })
+    if (exists) {
+      sendAccountAlreadyExistsEmail(exists).catch(err => console.error('[auth] 寄送帳號已存在提醒信失敗:', err));
+      return res.status(409).json({ message: '此 Email 已被註冊' })
+    }
 
     const passwordHash = await bcrypt.hash(password, 12)
+    const emailVerificationToken   = generateEmailVerificationToken()
+    const emailVerificationExpires = new Date(Date.now() + EMAIL_VERIFICATION_EXPIRES_MS)
     const user = await prisma.user.create({
       data: {
         email,
         passwordHash,
         name,
         phone,
+        emailVerificationToken,
+        emailVerificationExpires,
       },
-      select: { id: true, email: true, name: true, phone: true, creditScore: true, tokenBalance: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, bio: true, mutedNotificationCategories: true },
+      select: { id: true, email: true, name: true, phone: true, creditScore: true, tokenBalance: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, bio: true, mutedNotificationCategories: true, emailVerified: true },
     })
 
+    sendVerificationEmail(user, emailVerificationToken).catch(err => console.error('[auth] 寄送驗證信失敗:', err));
     ensureSystemConversation(user.id).catch(err => console.error('[auth] 建立系統聊天室失敗:', err));
     notify({
       userId:  user.id,
@@ -106,7 +125,7 @@ router.post('/login', authLimiter, validate(loginSchema), async (req, res, next)
     const refreshToken = signRefreshToken({ id: user.id, sessionId })
     await saveRefreshToken(user.id, sessionId, refreshToken)
 
-    const { passwordHash: _, ...safeUser } = user
+    const { passwordHash: _, emailVerificationToken: __, emailVerificationExpires: ___, ...safeUser } = user
     setRefreshCookie(res, refreshToken)
     res.json({ user: safeUser, accessToken })
   } catch (err) { next(err) }
@@ -136,9 +155,42 @@ router.post('/reactivate', authLimiter, validate(loginSchema), async (req, res, 
     const refreshToken = signRefreshToken({ id: user.id, sessionId })
     await saveRefreshToken(user.id, sessionId, refreshToken)
 
-    const { passwordHash: _, deactivatedAt: __, ...safeUser } = user
+    const { passwordHash: _, deactivatedAt: __, emailVerificationToken: ___, emailVerificationExpires: ____, ...safeUser } = user
     setRefreshCookie(res, refreshToken)
     res.json({ user: safeUser, accessToken })
+  } catch (err) { next(err) }
+});
+
+router.post('/verify-email', validate(verifyEmailSchema), async (req, res, next) => {
+  try {
+    const { token } = req.body
+    const user = await prisma.user.findUnique({ where: { emailVerificationToken: token } })
+    if (!user) return res.status(400).json({ message: '驗證連結無效，請重新申請一次' })
+    if (user.emailVerified) return res.json({ message: '信箱已經驗證過了' })
+    if (!user.emailVerificationExpires || user.emailVerificationExpires < new Date()) {
+      return res.status(400).json({ message: '驗證連結已過期，請重新申請一次', code: 'EMAIL_VERIFICATION_EXPIRED' })
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data:  { emailVerified: true, emailVerifiedAt: new Date(), emailVerificationToken: null, emailVerificationExpires: null },
+    })
+    res.json({ message: '信箱驗證成功' })
+  } catch (err) { next(err) }
+});
+
+router.post('/resend-verification', requireAuth, emailVerificationLimiter, async (req, res, next) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } })
+    if (!user) return res.status(404).json({ message: '使用者不存在' })
+    if (user.emailVerified) return res.status(400).json({ message: '信箱已經驗證過了' })
+
+    const emailVerificationToken   = generateEmailVerificationToken()
+    const emailVerificationExpires = new Date(Date.now() + EMAIL_VERIFICATION_EXPIRES_MS)
+    await prisma.user.update({ where: { id: user.id }, data: { emailVerificationToken, emailVerificationExpires } })
+
+    await sendVerificationEmail(user, emailVerificationToken)
+    res.json({ message: '驗證信已重新寄出' })
   } catch (err) { next(err) }
 });
 
@@ -191,7 +243,7 @@ router.get('/me', requireAuth, async (req, res, next) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
-      select: { id: true, email: true, name: true, phone: true, creditScore: true, tokenBalance: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, bio: true, mutedNotificationCategories: true, createdAt: true },
+      select: { id: true, email: true, name: true, phone: true, creditScore: true, tokenBalance: true, avatarColor: true, avatarInitial: true, showAvatar: true, presenceStatus: true, bio: true, mutedNotificationCategories: true, createdAt: true, emailVerified: true },
     })
     if (!user) return res.status(404).json({ message: '使用者不存在' })
     res.json(user)
