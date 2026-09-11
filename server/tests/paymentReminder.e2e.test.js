@@ -88,6 +88,7 @@ describe('餘額不足提醒（惰性檢查，掛在 GET /groups/:id）', () => 
     await request(app).get(`/api/groups/${group.id}`).set('Authorization', authHeader(host))
     await request(app).get(`/api/groups/${group.id}`).set('Authorization', authHeader(host))
 
+    await new Promise(r => setTimeout(r, 50))
     const notifications = await prisma.notification.findMany({ where: { userId: member.id, type: 'payment_reminder' } })
     expect(notifications).toHaveLength(1)
   })
