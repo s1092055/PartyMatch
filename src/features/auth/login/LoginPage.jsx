@@ -103,6 +103,11 @@ export default function LoginPage() {
           error={touched.password ? fieldErrors.password : ''}
           trailing={<PasswordToggle visible={showPassword} onClick={() => setShowPassword(v => !v)} />}
         />
+        <div className="text-right">
+          <Link to="/forgot-password" className="text-sm font-extrabold text-brand hover:text-brand-hover">
+            忘記密碼？
+          </Link>
+        </div>
 
         <AuthError message={error} />
 
