@@ -1,12 +1,12 @@
-# 技術文件索引
+# 完整文件索引
 
-### Product — 這個專案在做什麼
+### 產品
 
 - [產品總覽](product/product-overview.md) — 產品定位、解決的問題、角色設計、MVP 範圍
 - [頁面地圖](product/page-map.md) — 每個網址對應到哪個畫面
 - [功能地圖](product/feature-map.md) — 目前做了哪些功能的完整清單
 
-### Architecture — 程式碼是怎麼寫、怎麼組織的
+### 架構
 
 - [架構總覽](architecture/architecture.md) — 建議先讀，涵蓋分層結構與技術棧選型理由
 - [前端架構](architecture/frontend.md) — React 這邊的程式碼怎麼分資料夾、怎麼管理畫面上的資料
@@ -16,11 +16,11 @@
 - [認證機制](architecture/authentication.md) — 使用者怎麼登入、系統怎麼記得你是誰
 - [命名慣例](architecture/naming-conventions.md) — 檔案跟變數的命名規則
 
-### ADR — 重要技術決策為什麼這樣選
+### 重要技術決策
 
-- [Architecture Decision Records](adr/README.md) — Zustand vs Redux、Polling vs WebSocket、refreshToken 存放方式等 5 篇決策紀錄
+- [重要技術決策](adr/README.md) — Zustand vs Redux、Polling vs WebSocket、refreshToken 存放方式等 5 篇決策紀錄
 
-### Flows — 各個功能實際怎麼運作
+### 流程
 
 - [群組狀態機](flows/group-state-machine.md) — 一個群組會經過哪些狀態（招募中 → 額滿 → 啟用 → 結束…），先讀這篇最快抓到全貌
 - [探索群組流程](flows/explore-flow.md)
@@ -36,10 +36,10 @@
 - [訊息流程](flows/messages-flow.md)
 - [通知流程](flows/notification-flow.md)
 
-### Project Notes — 專案補充文件
+### 專案筆記
 
 - [專案重點](project/project-highlights.md) — 主要工程決策、問題背景與取捨
 
-### Testing — 手動測試怎麼跑
+### 測試
 
 - [手動測試計畫](testing/test-plan.md) — 測試範圍、優先級分類、建議測試順序

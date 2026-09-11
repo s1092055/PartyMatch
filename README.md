@@ -52,7 +52,7 @@
 - [專案重點](docs/project/project-highlights.md) — 主要工程決策、問題背景與取捨
 - [手動測試計畫](docs/testing/test-plan.md) — 測試範圍、優先級分類
 
-更多文件見[完整文件索引](docs/README.md)。
+了解更多請見[完整文件索引](docs/README.md)。
 
 ## 注意事項
 
