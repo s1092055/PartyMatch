@@ -4,7 +4,7 @@
 
 共享訂閱媒合平台，協助使用者與陌生人共同購買 Netflix、Spotify 等訂閱服務。平台整合找尋夥伴、申請審核、PM 幣代管、服務啟用、確認與續訂等流程，取代過往仰賴社群私訊與表單對帳的作法。
 
-**Demo**：[前端](https://partymatch.ykk910309.workers.dev) ・ [後端 API（服務目錄範例）](https://partymatch-api.onrender.com/api/services)（後端為免費方案，閒置一段時間後首次請求需要數十秒喚醒，屬正常現象）
+**Demo**：[前端](https://partymatch.ykk910309.workers.dev)
 
 ## 專案導覽
 
