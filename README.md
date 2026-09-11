@@ -1,6 +1,6 @@
 # PartyMatch
 
-[![CI](https://github.com/s1092055/PartyMatch/actions/workflows/ci.yml/badge.svg)](https://github.com/s1092055/PartyMatch/actions/workflows/ci.yml)
+[![CI](https://github.com/AndyChia0309/PartyMatch/actions/workflows/ci.yml/badge.svg)](https://github.com/AndyChia0309/PartyMatch/actions/workflows/ci.yml)
 
 共享訂閱媒合平台，協助使用者與陌生人共同購買 Netflix、Spotify 等訂閱服務。平台整合找尋夥伴、申請審核、PM 幣代管、服務啟用、確認與續訂等流程，取代過往仰賴社群私訊與表單對帳的作法。
 
@@ -81,5 +81,5 @@ npm run dev
 
 ## 聯絡方式
 
-- GitHub：[@s1092055](https://github.com/s1092055)
+- GitHub：[@AndyChia0309](https://github.com/AndyChia0309)
 - Email：ykk910309@gmail.com
