@@ -43,16 +43,16 @@
 - **在線狀態自動偵測**：以分頁可視性＋視窗焦點判斷是否在線，搭配心跳與後端定期掃描，避免使用者非正常關閉分頁後狀態卡在「在線」不放
 - **自動化測試與 CI**：前端 95 個、後端 179 個單元／整合測試，涵蓋核心頁面互動與完整群組生命週期（含真實併發衝突情境），皆整合進 GitHub Actions，push/PR 自動執行 lint、測試與建置
 
-## 文件
+## 完整文件索引
 
-- **Product**：[產品總覽](docs/product/product-overview.md) — 產品定位、解決的問題、角色設計
-- **Architecture**：[架構總覽](docs/architecture/architecture.md) — 分層結構與技術棧選型理由
-- **ADR**：[Architecture Decision Records](docs/adr/README.md) — 重要技術決策為什麼這樣選
-- **Flows**：[群組狀態機](docs/flows/group-state-machine.md) — 一個群組會經過哪些狀態
-- **Project Notes**：[專案重點](docs/project/project-highlights.md) — 主要工程決策、問題背景與取捨
-- **Testing**：[手動測試計畫](docs/testing/test-plan.md) — 測試範圍、優先級分類
+- [產品總覽](docs/product/product-overview.md) — 產品定位、解決的問題、角色設計
+- [架構總覽](docs/architecture/architecture.md) — 分層結構與技術棧選型理由
+- [重要技術決策](docs/adr/README.md) — Zustand vs Redux、Polling vs WebSocket 等關鍵取捨為什麼這樣選
+- [群組狀態機](docs/flows/group-state-machine.md) — 一個群組會經過哪些狀態
+- [專案重點](docs/project/project-highlights.md) — 主要工程決策、問題背景與取捨
+- [手動測試計畫](docs/testing/test-plan.md) — 測試範圍、優先級分類
 
-完整文件索引見 [`docs/README.md`](docs/README.md)。
+更多文件見[完整文件索引](docs/README.md)。
 
 ## 注意事項
 
