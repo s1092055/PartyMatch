@@ -21,6 +21,7 @@ import { toast, dismissToast } from '../common/utils/toast'
 import { getNotificationToastId, isToastSuppressed, BACKGROUND_NOTIFICATION_TOAST_DURATION, INSTANT_NOTIFICATION_TOAST_DURATION } from '../common/utils/notificationToast'
 import { useVersionCheck } from '../common/utils/versionCheck'
 import { usePresenceAutoStatus } from '../common/utils/presence'
+import { useRefreshGroupsOnFocus } from '../common/utils/groupFreshness'
 
 function useIosFixedPositionScrollFix() {
   useEffect(() => {
@@ -45,6 +46,7 @@ export default function App() {
   useIosFixedPositionScrollFix()
   useVersionCheck()
   usePresenceAutoStatus(loggedIn)
+  useRefreshGroupsOnFocus()
 
   useEffect(() => {
     function onRefreshMemberStores() {
