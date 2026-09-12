@@ -79,7 +79,7 @@ export default function Step4Preview({ form, agreedToTerms, onAgreedToTermsChang
             <Link to="/terms" target="_blank" className="font-semibold text-brand underline-offset-2 hover:underline">服務條款</Link>
             {' '}與{' '}
             <Link to="/privacy" target="_blank" className="font-semibold text-brand underline-offset-2 hover:underline">隱私政策</Link>
-            ，並確認以上群組資訊正確無誤。
+            ，並確認以上群組資訊正確。
           </span>
         </label>
       </div>
