@@ -242,7 +242,7 @@ export default function GroupDetailModal() {
   }, [picks]);
 
   const viewerBlocked = useMemo(() => {
-    if (!isOpen || !group || groupDataPending || group.status === 'recruiting') return false
+    if (!isOpen || !group || groupDataPending || group.status === 'recruiting' || group.status === 'full') return false
     const viewerIsHost = group.hostId === activeUserId
     const viewerIsMember = activeUserId ? members.some(m => m.userId === activeUserId && m.groupId === group.id) : false
     const viewerApp = activeUserId ? useApplicationStore.getState().getByUserAndGroup(activeUserId, group.id) : null
