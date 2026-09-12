@@ -9,7 +9,6 @@ import Step3Settings from './components/steps/Step3Settings'
 import Step4Preview from './components/steps/Step4Preview'
 import { Button } from '../../components/ui/button'
 import ServiceLogo from '../../components/ui/ServiceLogo'
-import ServiceHeroCard from './components/ServiceHeroCard'
 import LivePreviewPanel from './components/LivePreviewPanel'
 import { useGroupStore } from '../../common/stores/useGroupStore'
 import { getServiceById } from '../../common/utils/serviceUtils'
@@ -28,7 +27,6 @@ const INITIAL_FORM = {
   billingCycle: 'monthly',
   recruitHeadcount: 2,
   minCreditScore: 0,
-  requirements: '',
   rules: ['', '', '', '', ''],
 }
 
@@ -50,7 +48,6 @@ function mapFormToGroup(form) {
     openSeats: form.recruitHeadcount - 1,
     joinMode: 'approval',
     minCreditScore: form.minCreditScore || 0,
-    requirements: form.requirements.trim(),
     rules,
     tags,
     status: 'recruiting',
@@ -224,7 +221,6 @@ export default function CreateGroupModal() {
   })()
 
   const CurrentStep = STEP_COMPONENTS[step - 1]
-  const isSettingsStep = step === 3
 
   return (
     <>
@@ -252,10 +248,7 @@ export default function CreateGroupModal() {
             ref={bodyRef}
             className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-6 py-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
-            <div key={step} className="animate-step-slide-up">
-              {isSettingsStep && (
-                <ServiceHeroCard form={form} service={service} className="mb-5" />
-              )}
+            <div key={step} className={`animate-step-slide-up ${(step === 2 || step === 3) ? 'flex min-h-full flex-col justify-center' : ''}`}>
               {step === 4 ? (
                 <Step4Preview form={form} />
               ) : (

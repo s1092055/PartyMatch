@@ -1,4 +1,4 @@
-import { CalendarDays, FileText, ListChecks, Package, ShieldCheck, User, Users, Wallet } from 'lucide-react'
+import { CalendarDays, ListChecks, Package, ShieldCheck, User, Users, Wallet } from 'lucide-react'
 import { getServiceById } from '../../../../common/utils/serviceUtils'
 import { toISODate } from '../../../../common/utils/date'
 import { useAuthStore } from '../../../../common/stores/useAuthStore'
@@ -51,9 +51,6 @@ export default function Step4Preview({ form }) {
             <InfoField icon={Users}       label="開放名額" value={`${form.recruitHeadcount - 1} 人`} />
             <InfoField icon={ShieldCheck} label="信用分數" value={<CreditScoreValue score={form.minCreditScore} />} />
             <InfoField icon={CalendarDays} label="建立日期" value={today} />
-            <div className="lg:col-span-2">
-              <InfoField icon={FileText} label="帳號需求" value={form.requirements.trim() || '無'} />
-            </div>
 
             <div className="lg:col-span-2">
               <div className="flex items-center gap-2 mb-2">

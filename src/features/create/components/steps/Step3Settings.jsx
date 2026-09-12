@@ -1,8 +1,9 @@
-import { FileText, ListChecks, Minus, Plus, ShieldCheck, Users } from 'lucide-react'
+import { ListChecks, Minus, Plus, ShieldCheck, Users } from 'lucide-react'
 import { getServiceById } from '../../../../common/utils/serviceUtils'
 import Field from './Field'
-import { Input, Textarea } from '../../../../components/ui/input'
+import { Input } from '../../../../components/ui/input'
 import CreditScoreValue from '../../../../components/ui/CreditScoreValue'
+import ServiceHeroCard from '../ServiceHeroCard'
 
 const MIN_CREDIT_OPTIONS = [0, 90, 70, 50]
 
@@ -22,6 +23,8 @@ export default function Step3Settings({ form, onChange }) {
     <div className="pb-3 lg:flex lg:items-stretch lg:gap-8">
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col space-y-5 px-1 pb-1">
+        <ServiceHeroCard form={form} service={service} />
+
         <Field
           label="開放名額"
           icon={Users}
@@ -66,17 +69,6 @@ export default function Step3Settings({ form, onChange }) {
               </button>
             ))}
           </div>
-        </Field>
-
-        <Field label="帳號需求" icon={FileText} hint="帳號相關條件（選填）" className="flex min-h-0 flex-1 flex-col" htmlFor="create-group-requirements">
-          <Textarea
-            id="create-group-requirements"
-            placeholder="例如：需使用自己的 Google 帳號登入"
-            value={form.requirements}
-            onChange={e => onChange('requirements', e.target.value)}
-            maxLength={120}
-            className="min-h-32 flex-1"
-          />
         </Field>
       </div>
 

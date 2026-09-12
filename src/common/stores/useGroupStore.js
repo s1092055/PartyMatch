@@ -71,7 +71,6 @@ export const useGroupStore = create((set, get) => ({
       tags:              [],
       rules:             [],
       reviews:           [],
-      requirements:      null,
       description:       '',
       ...data,
     })

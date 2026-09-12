@@ -17,7 +17,6 @@ export function getInfoRows(group) {
         ? { amount: displayPrice, cycle: calcDisplayCycle(group.billingCycle) }
         : null,
     },
-    { label: '帳號需求', value: group.requirements || '無' },
     { label: '信用分數', creditScore: group.minCreditScore },
   ];
 }
