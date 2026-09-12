@@ -257,7 +257,7 @@ export default function GroupDetailModal() {
   const hasActiveApp = !!app && appStatus !== 'rejected' && appStatus !== 'removed' && appStatus !== 'left' && appStatus !== 'cancelled' && !(appStatus === 'approved' && !isMember)
   const isPendingApp = appStatus === 'pending'
 
-  const canApply = !isHost && !isMember && !hasActiveApp && !isFull && !!activeUserId
+  const canApply = !isHost && !isMember && !hasActiveApp && !isFull && !!activeUserId && group.status === 'recruiting'
 
   function handleClose() {
     const params = new URLSearchParams(location.search);
@@ -268,6 +268,10 @@ export default function GroupDetailModal() {
   }
 
   function handleApplyClick() {
+    if (group.status !== 'recruiting') {
+      toast('此群組已不開放申請', 'error')
+      return
+    }
     const price = calcDisplayPrice(group.pricePerSeat, group.billingCycle)
     const balance = activeUser?.tokenBalance ?? 0
     if (price > balance) {
