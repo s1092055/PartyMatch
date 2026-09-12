@@ -268,6 +268,9 @@ export default function App() {
       const user = useAuthStore.getState().getProfile()
       if (!user) return
       const { type, meta, title, message } = event.detail ?? {}
+      if (meta?.groupId && isToastSuppressed(type, meta.groupId)) {
+        return
+      }
       const toastAction = INSTANT_TOAST_ACTIONS[type]
       toast(title || message || '有新的通知', 'info', {
         id: getNotificationToastId({ type, meta, id: undefined }) ?? undefined,

@@ -52,7 +52,7 @@ export const useGroupStore = create((set, get) => ({
     .sort(byNewest),
   getRecruiting: ()      => get().groups.filter(g => g.status === 'recruiting'),
 
-  create: (data, host) => {
+  create: (data, host, { onSaved } = {}) => {
     if (!host) throw new Error('登入後才能建立群組')
     const now = todayISO()
     const group = normalizeGroup({
@@ -80,6 +80,7 @@ export const useGroupStore = create((set, get) => ({
       if (saved?.id) {
         const normalized = normalizeGroup({ ...saved })
         set(s => ({ groups: s.groups.map(g => g.id === group.id ? normalized : g) }))
+        onSaved?.(saved)
       }
     }).catch(err => {
       set(s => ({ groups: s.groups.filter(g => g.id !== group.id), error: err.message }));

@@ -16,6 +16,7 @@ import { getServiceById } from '../../common/utils/serviceUtils'
 import { calcPricePerSeat, calcDisplayPrice } from '../../common/utils/pricingUtils'
 import { useAuthStore } from '../../common/stores/useAuthStore'
 import { toast } from '../../common/utils/toast'
+import { suppressNextToast } from '../../common/utils/notificationToast'
 
 const STEP_COMPONENTS = [Step1Service, Step2Plan, Step3Settings, Step4Preview]
 const STEP_TITLES = ['選擇服務', '選擇方案', '群組設定', '最後確認']
@@ -186,7 +187,9 @@ export default function CreateGroupModal() {
     setIsSubmitting(true)
     const groupData = mapFormToGroup(form)
     const host = useAuthStore.getState().getProfile()
-    useGroupStore.getState().create(groupData, host)
+    useGroupStore.getState().create(groupData, host, {
+      onSaved: saved => suppressNextToast('group_created', saved.id),
+    })
     setOpen(false)
     toast(`${service?.name ?? ''}已建立`, 'success', {
       icon: <ServiceLogo serviceId={form.serviceId} size={20} />,
