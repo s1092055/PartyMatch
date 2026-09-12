@@ -46,6 +46,10 @@ export const useGroupStore = create((set, get) => ({
     return updated
   },
 
+  removeFromList: (id) => {
+    set(s => ({ groups: s.groups.filter(g => g.id !== id) }))
+  },
+
   getById: (id)     => get().groups.find(g => g.id === id) ?? null,
   getByHostId:  (hostId) => get().groups
     .filter(g => g.hostId === hostId)
