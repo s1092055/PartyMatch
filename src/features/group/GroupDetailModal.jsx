@@ -253,13 +253,17 @@ export default function GroupDetailModal() {
 
   useEffect(() => {
     if (!viewerBlocked || !group) return
+    const refreshAction = {
+      label: '重新整理',
+      onClick: () => useGroupStore.getState().init({ all: true }),
+    }
     if (group.status === 'full') {
       const wasFavorited = !!activeUserId && useFavoriteStore.getState().isFavorited(activeUserId, group.id)
       if (wasFavorited) useFavoriteStore.getState().toggle(activeUserId, group.id)
-      toast(wasFavorited ? '此群組已額滿，已取消收藏' : '此群組已額滿', 'info')
+      toast(wasFavorited ? '此群組已額滿，已取消收藏' : '此群組已額滿', 'info', { action: refreshAction })
     } else {
       useGroupStore.getState().removeFromList(group.id)
-      toast('此群組已不開放', 'info')
+      toast('此群組已不開放', 'info', { action: refreshAction })
     }
     pushGroupUrl(null)
     // eslint-disable-next-line react-hooks/exhaustive-deps
