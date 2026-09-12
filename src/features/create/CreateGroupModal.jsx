@@ -91,6 +91,7 @@ export default function CreateGroupModal() {
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState(1)
   const [form, setForm] = useState(INITIAL_FORM)
+  const [serviceCategory, setServiceCategory] = useState('all')
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false)
@@ -101,6 +102,7 @@ export default function CreateGroupModal() {
     function onOpen() {
       setStep(1)
       setForm(INITIAL_FORM)
+      setServiceCategory('all')
       setAgreedToTerms(false)
       setShowPreview(false)
       setIsSubmitting(false)
@@ -273,6 +275,8 @@ export default function CreateGroupModal() {
             >
               {step === 4 ? (
                 <Step4Preview form={form} agreedToTerms={agreedToTerms} onAgreedToTermsChange={setAgreedToTerms} />
+              ) : step === 1 ? (
+                <Step1Service form={form} onChange={onChange} activeCategory={serviceCategory} onCategoryChange={setServiceCategory} />
               ) : (
                 <CurrentStep form={form} onChange={onChange} />
               )}

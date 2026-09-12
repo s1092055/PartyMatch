@@ -7,10 +7,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "../../../
 
 const ALL_SERVICES = listServiceTypes();
 
-export default function Step1Service({ form, onChange }) {
-  const [activeCategory, setActiveCategory] = useState(
-    () => ALL_SERVICES.find((s) => s.id === form.serviceId)?.category ?? "all",
-  );
+export default function Step1Service({ form, onChange, activeCategory, onCategoryChange }) {
   const [infoService, setInfoService] = useState(null);
 
   const visible =
@@ -25,7 +22,7 @@ export default function Step1Service({ form, onChange }) {
         variant="grid"
         showAll
         active={activeCategory}
-        onChange={setActiveCategory}
+        onChange={onCategoryChange}
         className="mb-3 shrink-0"
       />
 
