@@ -85,7 +85,7 @@ function HostedGroupCard({
           </StatCell>
         ) : group.status === 'recruiting' || group.status === 'cancelled' || group.status === 'ended' ? (
           <StatCell label="建立日期">
-            {group.createdAt ?? '—'}
+            {toISODate(group.createdAt, '—')}
           </StatCell>
         ) : isActivated ? (
           <StatCell label="群組狀態" highlight={collectionHighlight}>

@@ -1,6 +1,7 @@
 import { MessageCircle, Users } from 'lucide-react'
 import { AvatarWithPresence } from '../../../components/ui/avatar'
 import { Button } from '../../../components/ui/button'
+import { toISODate } from '../../../common/utils/date'
 
 export function buildMembersSubPanel({ group, groupId, members, activeUserId, setShowMembers, openDm }) {
   const groupMembers = members.filter(m => m.groupId === groupId)
@@ -19,7 +20,7 @@ export function buildMembersSubPanel({ group, groupId, members, activeUserId, se
                   團主
                 </span>
               </div>
-              <p className="text-xs text-ink-3">{group.createdAt} 建立</p>
+              <p className="text-xs text-ink-3">{toISODate(group.createdAt)} 建立</p>
             </div>
             <Button
               variant="ghost"

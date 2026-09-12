@@ -117,9 +117,7 @@ export function normalizeGroup(group) {
   const usedSeats    = memberCount + 1;
   const openSeats    = Math.max(totalSeats - usedSeats, 0);
 
-  const createdAt = group.createdAt
-    ? String(group.createdAt).slice(0, 10)
-    : '';
+  const createdAt = group.createdAt ? String(group.createdAt) : '';
 
   return {
     ...group,

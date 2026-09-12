@@ -1,6 +1,7 @@
 import { MessageCircle, Star, UserX } from 'lucide-react'
 import { AvatarWithPresence } from '../../../../components/ui/avatar'
 import { Button } from '../../../../components/ui/button'
+import { toISODate } from '../../../../common/utils/date'
 
 export function buildMembersPanel({ group, members, setActivePanel, onClose, setRemovingMember, onReviewMember, showReviewButton }) {
   return {
@@ -15,7 +16,7 @@ export function buildMembersPanel({ group, members, setActivePanel, onClose, set
                   {group.hostName}
                   <span className="ml-1.5 text-xs font-normal text-brand">（你）</span>
                 </p>
-                <p className="text-xs text-ink-3">{group.createdAt} 建立</p>
+                <p className="text-xs text-ink-3">{toISODate(group.createdAt)} 建立</p>
               </div>
               <span className="shrink-0 rounded-full bg-brand-subtle px-2.5 py-0.5 text-xs font-semibold text-brand">
                 團主

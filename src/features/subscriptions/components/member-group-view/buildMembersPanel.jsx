@@ -2,6 +2,7 @@ import { MessageCircle, Star } from 'lucide-react'
 import { Avatar } from '../../../../components/ui/avatar'
 import { PresenceDot } from '../../../../common/layout/components/navShared'
 import { Button } from '../../../../components/ui/button'
+import { toISODate } from '../../../../common/utils/date'
 
 export function buildMembersPanel({ group, members, currentUser, myMember, showReviewHostButton, setActivePanel, onClose, setReviewPrompt }) {
   return {
@@ -20,7 +21,7 @@ export function buildMembersPanel({ group, members, currentUser, myMember, showR
                   團主
                 </span>
               </div>
-              <p className="text-xs text-ink-3">{group.createdAt} 建立</p>
+              <p className="text-xs text-ink-3">{toISODate(group.createdAt)} 建立</p>
             </div>
             <div className="flex shrink-0 items-center gap-1">
               {showReviewHostButton && (
