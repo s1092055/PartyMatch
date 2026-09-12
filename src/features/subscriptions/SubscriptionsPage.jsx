@@ -18,7 +18,7 @@ import ServiceLogo from '../../components/ui/ServiceLogo'
 import { Button } from '../../components/ui/button'
 import { Card } from '../../components/ui/card'
 import RevealSection from '../../components/ui/primitives/RevealSection'
-import { toISODate } from '../../common/utils/date'
+import { toISODate, byNewest } from '../../common/utils/date'
 import { calcDisplayPrice, calcDisplayCycle } from '../../common/utils/pricingUtils'
 import { isHistorySubscription } from '../../common/utils/groupStatusDisplay'
 import GroupHistoryModal from '../../components/ui/group/GroupHistoryModal'
@@ -91,7 +91,7 @@ export default function SubscriptionsPage() {
   const membersState = useDeferWhileModalOpen(useMemberStore(s => s.members))
   const subs = useMemo(
     () => activeUserId
-      ? enrichSubs(subscriptionsState.filter(s => s.userId === activeUserId), activeUserId)
+      ? enrichSubs(subscriptionsState.filter(s => s.userId === activeUserId), activeUserId).sort(byNewest)
       : [],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [activeUserId, subscriptionsState, groupsState, membersState],
@@ -106,7 +106,7 @@ export default function SubscriptionsPage() {
 
   const pendingApplications = useMemo(
     () => activeUserId
-      ? applicationsState.filter(a => (a.applicantId ?? a.userId) === activeUserId && a.status === 'pending')
+      ? applicationsState.filter(a => (a.applicantId ?? a.userId) === activeUserId && a.status === 'pending').sort(byNewest)
       : [],
     [activeUserId, applicationsState],
   )
