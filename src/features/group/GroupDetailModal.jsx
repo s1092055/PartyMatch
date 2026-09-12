@@ -254,14 +254,17 @@ export default function GroupDetailModal() {
   useEffect(() => {
     if (!viewerBlocked || !group) return
     if (group.status === 'full') {
-      toast('此群組已額滿', 'info')
+      if (activeUserId && useFavoriteStore.getState().isFavorited(activeUserId, group.id)) {
+        useFavoriteStore.getState().toggle(activeUserId, group.id)
+      }
+      toast('此群組已額滿，已取消收藏', 'info')
     } else {
       useGroupStore.getState().removeFromList(group.id)
       toast('此群組已不開放', 'info')
     }
     pushGroupUrl(null)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewerBlocked, group]);
+  }, [viewerBlocked, group, activeUserId]);
 
   const memberGroupIds  = useMemo(
     () => new Set(members.filter(m => m.userId === activeUserId).map(m => m.groupId)),
