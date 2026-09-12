@@ -233,19 +233,23 @@ export default function GroupDetailModal() {
     if (picksScrollRef.current) measurePicksScroll(picksScrollRef.current)
   }, [picks]);
 
-  useEffect(() => {
-    if (!isOpen || !group || group.status === 'recruiting') return
+  const viewerBlocked = useMemo(() => {
+    if (!isOpen || !group || group.status === 'recruiting') return false
     const viewerIsHost = group.hostId === activeUserId
     const viewerIsMember = activeUserId ? members.some(m => m.userId === activeUserId && m.groupId === group.id) : false
     const viewerApp = activeUserId ? useApplicationStore.getState().getByUserAndGroup(activeUserId, group.id) : null
     const viewerAppStatus = viewerApp?.status
     const viewerHasActiveApp = !!viewerApp && viewerAppStatus !== 'rejected' && viewerAppStatus !== 'removed' && viewerAppStatus !== 'left' && viewerAppStatus !== 'cancelled' && !(viewerAppStatus === 'approved' && !viewerIsMember)
-    if (viewerIsHost || viewerIsMember || viewerHasActiveApp) return
+    return !(viewerIsHost || viewerIsMember || viewerHasActiveApp)
+  }, [isOpen, group, activeUserId, members])
+
+  useEffect(() => {
+    if (!viewerBlocked || !group) return
     useGroupStore.getState().removeFromList(group.id)
     toast('此群組已不開放', 'info')
     pushGroupUrl(null)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, group, activeUserId, members]);
+  }, [viewerBlocked, group]);
 
   const memberGroupIds  = useMemo(
     () => new Set(members.filter(m => m.userId === activeUserId).map(m => m.groupId)),
@@ -258,7 +262,7 @@ export default function GroupDetailModal() {
     [applications, activeUserId],
   )
 
-  if (!isOpen || !group) return null
+  if (!isOpen || !group || viewerBlocked) return null
 
   const isHost           = group.hostId === activeUserId
   const isMember         = activeUserId ? members.some(m => m.userId === activeUserId && m.groupId === group.id) : false
