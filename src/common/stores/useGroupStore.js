@@ -52,7 +52,7 @@ export const useGroupStore = create((set, get) => ({
     .sort(byNewest),
   getRecruiting: ()      => get().groups.filter(g => g.status === 'recruiting'),
 
-  create: (data, host, { onSaved } = {}) => {
+  create: (data, host, { onSaved, onError } = {}) => {
     if (!host) throw new Error('登入後才能建立群組')
     const now = todayISO()
     const group = normalizeGroup({
@@ -83,7 +83,8 @@ export const useGroupStore = create((set, get) => ({
       }
     }).catch(err => {
       set(s => ({ groups: s.groups.filter(g => g.id !== group.id), error: err.message }));
-      notifyError(err, '群組建立失敗，請稍後再試')
+      const handled = onError?.(err)
+      if (!handled) notifyError(err, '群組建立失敗，請稍後再試')
     })
     return group
   },

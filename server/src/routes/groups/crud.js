@@ -26,6 +26,12 @@ function groupLabelOf(group) {
   return group.planName ?? group.service?.name ?? ''
 }
 
+function httpError(statusCode, message) {
+  const err = new Error(message)
+  err.statusCode = statusCode
+  return err
+}
+
 const createGroupSchema = z.object({
   serviceId:      z.string().min(1),
   planName:       z.string().min(1),
@@ -305,33 +311,43 @@ router.post('/', requireAuth, validate(createGroupSchema), async (req, res, next
       maxMembers = req.body.maxMembers
     }
 
-    const activeSameServiceCount = await prisma.group.count({
-      where: {
-        hostId:    req.user.id,
-        serviceId: req.body.serviceId,
-        status:    { notIn: ['cancelled', 'ended'] },
-      },
-    })
-    if (activeSameServiceCount >= 1) {
-      return res.status(400).json({ message: '你已經有一個同服務進行中的群組，請先結束或解散該群組後再建立新的' })
-    }
-
     const perSeatMonthlyFee = Math.ceil(pricing.totalMonthlyFee / maxMembers)
 
     const allowed = ['serviceId','rules','tags','minCreditScore','minGroupAge'];
     const data = Object.fromEntries(Object.entries(req.body).filter(([k]) => allowed.includes(k)))
-    const group = await prisma.group.create({
-      data: {
-        ...data,
-        planId:       pricing.planId,
-        planName:     pricing.planName,
-        currency:     pricing.currency,
-        billingCycle: pricing.billingCycle,
-        perSeatMonthlyFee,
-        maxMembers,
-        hostId: req.user.id,
-      },
-      include: { service: true, host: HOST_PUBLIC_SELECT },
+
+    const group = await prisma.$transaction(async (tx) => {
+      // 鎖住這個使用者的 row，讓同一人同時送出的多個建立群組請求排隊處理，
+      // 避免兩個請求都在對方寫入前查到「目前 0 個進行中群組」而同時通過檢查
+      await tx.$queryRaw`SELECT id FROM users WHERE id = ${req.user.id} FOR UPDATE`
+
+      const existingSameServiceGroup = await tx.group.findFirst({
+        where: {
+          hostId:    req.user.id,
+          serviceId: req.body.serviceId,
+          status:    { notIn: ['cancelled', 'ended'] },
+        },
+        select: { id: true },
+      })
+      if (existingSameServiceGroup) {
+        const err = httpError(400, '已經有此服務的群組')
+        err.responsePayload = { groupId: existingSameServiceGroup.id }
+        throw err
+      }
+
+      return tx.group.create({
+        data: {
+          ...data,
+          planId:       pricing.planId,
+          planName:     pricing.planName,
+          currency:     pricing.currency,
+          billingCycle: pricing.billingCycle,
+          perSeatMonthlyFee,
+          maxMembers,
+          hostId: req.user.id,
+        },
+        include: { service: true, host: HOST_PUBLIC_SELECT },
+      })
     })
 
     notify({

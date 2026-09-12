@@ -14,7 +14,7 @@ import { useGroupStore } from '../../common/stores/useGroupStore'
 import { getServiceById } from '../../common/utils/serviceUtils'
 import { calcPricePerSeat } from '../../common/utils/pricingUtils'
 import { useAuthStore } from '../../common/stores/useAuthStore'
-import { toast } from '../../common/utils/toast'
+import { toast, dismissToast } from '../../common/utils/toast'
 import { suppressNextToast } from '../../common/utils/notificationToast'
 
 const STEP_COMPONENTS = [Step1Service, Step2Plan, Step3Settings, Step4Preview]
@@ -184,11 +184,26 @@ export default function CreateGroupModal() {
     setIsSubmitting(true)
     const groupData = mapFormToGroup(form)
     const host = useAuthStore.getState().getProfile()
+    let createdToastId
     useGroupStore.getState().create(groupData, host, {
       onSaved: saved => suppressNextToast('group_created', saved.id),
+      onError: err => {
+        dismissToast(createdToastId)
+        const conflictGroupId = err.response?.data?.groupId
+        if (!conflictGroupId) return false
+        toast('已經有此服務的群組', 'error', {
+          action: {
+            label: '前往查看',
+            onClick: () => window.dispatchEvent(new CustomEvent('pm:open-host-group', { detail: { groupId: conflictGroupId } })),
+          },
+        })
+        return true
+      },
     })
+    createdToastId = `pm-create-group-${form.serviceId}-${Date.now()}`
     setOpen(false)
     toast(`${service?.name ?? ''}已建立`, 'success', {
+      id: createdToastId,
       icon: <ServiceLogo serviceId={form.serviceId} size={20} />,
       action: {
         label: '前往查看',
