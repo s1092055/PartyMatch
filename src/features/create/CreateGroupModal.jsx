@@ -9,11 +9,11 @@ import Step3Settings from './components/steps/Step3Settings'
 import Step4Preview from './components/steps/Step4Preview'
 import { Button } from '../../components/ui/button'
 import ServiceLogo from '../../components/ui/ServiceLogo'
-import TokenAmount from '../../components/ui/TokenAmount'
+import ServiceHeroCard from './components/ServiceHeroCard'
 import LivePreviewPanel from './components/LivePreviewPanel'
 import { useGroupStore } from '../../common/stores/useGroupStore'
 import { getServiceById } from '../../common/utils/serviceUtils'
-import { calcPricePerSeat, calcDisplayPrice } from '../../common/utils/pricingUtils'
+import { calcPricePerSeat } from '../../common/utils/pricingUtils'
 import { useAuthStore } from '../../common/stores/useAuthStore'
 import { toast } from '../../common/utils/toast'
 import { suppressNextToast } from '../../common/utils/notificationToast'
@@ -224,12 +224,12 @@ export default function CreateGroupModal() {
   })()
 
   const CurrentStep = STEP_COMPONENTS[step - 1]
-  const isPlanOrSettingsStep = step === 2 || step === 3
+  const isSettingsStep = step === 3
 
   return (
     <>
       <Dialog open={open} onOpenChange={v => { if (!v) requestClose() }}>
-        <DialogContent maxWidth="max-w-4xl" height="min(90dvh, 820px)">
+        <DialogContent maxWidth="max-w-4xl" height="690px" className="max-h-[calc(100dvh-2rem)]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <PlusCircle size={18} className="shrink-0 text-brand" strokeWidth={1.5} />
@@ -253,27 +253,8 @@ export default function CreateGroupModal() {
             className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-6 py-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             <div key={step} className="animate-step-slide-up">
-              {isPlanOrSettingsStep && (
-                <div className="mb-5 flex shrink-0 items-center gap-4 rounded-2xl border border-line bg-surface px-6 py-5 shadow-card">
-                  <ServiceLogo serviceId={form.serviceId} size={56} className="shrink-0 border-line-strong" />
-                  <div className="min-w-0 flex-1">
-                    <h2 className="truncate text-lg font-black text-ink">{service?.fullName ?? '尚未選擇服務'}</h2>
-                    <p className="truncate text-sm text-ink-3">{form.planName || '尚未選擇方案'}</p>
-                  </div>
-                  {form.planName && (
-                    <div className="shrink-0 text-right">
-                      <p className="mb-0.5 text-xs font-medium text-ink-4">每位</p>
-                      <TokenAmount
-                        amount={calcDisplayPrice(form.pricePerSeat, form.billingCycle)}
-                        cycle={form.billingCycle}
-                        align="center"
-                        badgeSize="!h-6 !w-6"
-                        unitClassName="!text-xl"
-                        className="text-2xl font-black text-ink"
-                      />
-                    </div>
-                  )}
-                </div>
+              {isSettingsStep && (
+                <ServiceHeroCard form={form} service={service} className="mb-5" />
               )}
               {step === 4 ? (
                 <Step4Preview form={form} />

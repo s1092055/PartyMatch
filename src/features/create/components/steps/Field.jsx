@@ -1,20 +1,20 @@
-import { useRef, useState } from 'react'
+import { forwardRef, useRef, useState } from 'react'
 import { AlertCircle } from 'lucide-react'
 import { useClickOutside } from '../../../../common/utils/hooks'
 
-export default function Field({ label, icon: Icon, required, children, hint, endAdornment, className = '', htmlFor }) {
+const Field = forwardRef(function Field({ label, icon: Icon, required, children, hint, hintAlign = 'start', endAdornment, className = '', style, htmlFor }, ref) {
   const [showHint, setShowHint] = useState(false)
   const hintRef = useRef(null)
   useClickOutside(showHint, [hintRef], () => setShowHint(false))
   const LabelTag = htmlFor ? 'label' : 'span'
   return (
-    <div className={className}>
-      <LabelTag htmlFor={htmlFor} className="mb-2 flex items-center gap-1.5 text-base font-medium text-ink-2">
-        {Icon && <Icon size={15} className="shrink-0 text-ink-4" strokeWidth={1.5} />}
+    <div ref={ref} className={className} style={style}>
+      <LabelTag htmlFor={htmlFor} className="mb-2 flex items-center gap-1.5 text-base font-bold text-brand">
+        {Icon && <Icon size={15} className="shrink-0 text-brand" strokeWidth={1.5} />}
         {label}
         {required && <span className="ml-0.5 text-danger-text">*</span>}
         {hint && (
-          <span ref={hintRef} className="group/hint relative inline-flex">
+          <span ref={hintRef} className={`group/hint relative inline-flex ${hintAlign === 'end' ? 'ml-auto' : ''}`}>
             <button
               type="button"
               onClick={() => setShowHint(v => !v)}
@@ -23,7 +23,7 @@ export default function Field({ label, icon: Icon, required, children, hint, end
             >
               <AlertCircle strokeWidth={1.5} size={16} />
             </button>
-            <span className={`pointer-events-none absolute left-0 top-full z-10 mt-1.5 w-max max-w-[16rem] rounded-lg bg-ink px-2.5 py-1.5 text-sm font-normal leading-relaxed text-canvas shadow-popover transition-opacity group-hover/hint:opacity-100 ${showHint ? 'opacity-100' : 'opacity-0'}`}>
+            <span className={`pointer-events-none absolute ${hintAlign === 'end' ? 'right-0' : 'left-0'} top-full z-10 mt-1.5 w-max max-w-[16rem] rounded-lg bg-ink px-2.5 py-1.5 text-sm font-normal leading-relaxed text-canvas shadow-popover transition-opacity group-hover/hint:opacity-100 ${showHint ? 'opacity-100' : 'opacity-0'}`}>
               {hint}
             </span>
           </span>
@@ -33,4 +33,6 @@ export default function Field({ label, icon: Icon, required, children, hint, end
       {children}
     </div>
   )
-}
+})
+
+export default Field
