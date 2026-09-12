@@ -1,6 +1,6 @@
 # 專案簡介
 
-## 這是什麼
+## PartyMatch是什麼服務？
 
 PartyMatch 是共享訂閱媒合平台，讓使用者探索或建立 Netflix、Spotify、YouTube Premium、Disney+ 等訂閱服務的合購群組，找夥伴、審核、代管付款、服務啟用、續訂到申訴，整個流程都在平台內完成。
 

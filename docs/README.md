@@ -1,6 +1,6 @@
 # 完整文件索引
 
-### 專案簡介
+### 產品
 
 - [專案簡介](product/product-overview.md) — 專案定位、解決的問題、角色設計、MVP 範圍
 - [頁面地圖](product/page-map.md) — 每個網址對應到哪個畫面

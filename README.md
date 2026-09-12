@@ -1,16 +1,19 @@
 # PartyMatch
 
-[![CI](https://github.com/AndyChia0309/PartyMatch/actions/workflows/ci.yml/badge.svg)](https://github.com/AndyChia0309/PartyMatch/actions/workflows/ci.yml)
+## 專案簡介
 
 共享訂閱媒合平台，協助使用者與陌生人共同購買 Netflix、Spotify 等訂閱服務。平台整合找尋夥伴、申請審核、PM 幣代管、服務啟用、確認與續訂等流程，取代過往仰賴社群私訊與表單對帳的作法。
 
-**Demo**：[前端](https://partymatch.ykk910309.workers.dev)
-
-## 專案導覽
+## 專案動機
 
 合購 Netflix、Spotify 等訂閱服務，過去多半仰賴社群貼文湊團、私訊交換帳號密碼、再自行轉帳對帳，任一環節出狀況都難以妥善處理。PartyMatch 將整段流程整合至單一平台：從媒合夥伴、審核加入，到金流代管、服務啟用與確認、續訂，各階段皆有明確的角色分工與狀態追蹤，並提供申訴與裁定機制處理糾紛，讓陌生人之間的合購交易不必仰賴單方信任。
 
 了解更多請見[專案簡介](docs/product/product-overview.md)。
+
+**Demo**：[PartyMatch線上Demo](https://partymatch.ykk910309.workers.dev)
+
+[![CI](https://github.com/AndyChia0309/PartyMatch/actions/workflows/ci.yml/badge.svg)](https://github.com/AndyChia0309/PartyMatch/actions/workflows/ci.yml)
+
 
 | 首頁 | 探索群組 | 群組管理 | 訊息中心 |
 |------|----------|----------|----------|
