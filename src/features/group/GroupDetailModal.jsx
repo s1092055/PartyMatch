@@ -254,10 +254,9 @@ export default function GroupDetailModal() {
   useEffect(() => {
     if (!viewerBlocked || !group) return
     if (group.status === 'full') {
-      if (activeUserId && useFavoriteStore.getState().isFavorited(activeUserId, group.id)) {
-        useFavoriteStore.getState().toggle(activeUserId, group.id)
-      }
-      toast('此群組已額滿，已取消收藏', 'info')
+      const wasFavorited = !!activeUserId && useFavoriteStore.getState().isFavorited(activeUserId, group.id)
+      if (wasFavorited) useFavoriteStore.getState().toggle(activeUserId, group.id)
+      toast(wasFavorited ? '此群組已額滿，已取消收藏' : '此群組已額滿', 'info')
     } else {
       useGroupStore.getState().removeFromList(group.id)
       toast('此群組已不開放', 'info')
