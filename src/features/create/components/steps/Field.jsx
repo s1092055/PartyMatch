@@ -2,7 +2,7 @@ import { forwardRef, useRef, useState } from 'react'
 import { AlertCircle } from 'lucide-react'
 import { useClickOutside } from '../../../../common/utils/hooks'
 
-const Field = forwardRef(function Field({ label, icon: Icon, required, children, hint, hintAlign = 'start', endAdornment, className = '', style, htmlFor }, ref) {
+const Field = forwardRef(function Field({ label, icon: Icon, required, children, hint, endAdornment, className = '', style, htmlFor }, ref) {
   const [showHint, setShowHint] = useState(false)
   const hintRef = useRef(null)
   useClickOutside(showHint, [hintRef], () => setShowHint(false))
@@ -14,7 +14,7 @@ const Field = forwardRef(function Field({ label, icon: Icon, required, children,
         {label}
         {required && <span className="ml-0.5 text-danger-text">*</span>}
         {hint && (
-          <span ref={hintRef} className={`group/hint relative inline-flex ${hintAlign === 'end' ? 'ml-auto' : ''}`}>
+          <span ref={hintRef} className="group/hint relative inline-flex">
             <button
               type="button"
               onClick={() => setShowHint(v => !v)}
@@ -23,7 +23,7 @@ const Field = forwardRef(function Field({ label, icon: Icon, required, children,
             >
               <AlertCircle strokeWidth={1.5} size={16} />
             </button>
-            <span className={`pointer-events-none absolute ${hintAlign === 'end' ? 'right-0' : 'left-0'} top-full z-10 mt-1.5 w-max max-w-[16rem] rounded-lg bg-ink px-2.5 py-1.5 text-sm font-normal leading-relaxed text-canvas shadow-popover transition-opacity group-hover/hint:opacity-100 ${showHint ? 'opacity-100' : 'opacity-0'}`}>
+            <span className={`pointer-events-none absolute left-0 top-full z-10 mt-1.5 w-max max-w-[16rem] rounded-lg bg-ink px-2.5 py-1.5 text-sm font-normal leading-relaxed text-canvas shadow-popover transition-opacity group-hover/hint:opacity-100 ${showHint ? 'opacity-100' : 'opacity-0'}`}>
               {hint}
             </span>
           </span>

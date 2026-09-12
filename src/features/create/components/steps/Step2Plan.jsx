@@ -115,7 +115,7 @@ export default function Step2Plan({ form, onChange }) {
         </div>
       </Field>
 
-      <Field label="服務說明" icon={Package} hint={serviceInfoNotice} hintAlign="end" className="lg:col-start-2 lg:row-start-1">
+      <Field label="服務說明" icon={Package} hint={serviceInfoNotice} className="lg:col-start-2 lg:row-start-1">
         <div className="rounded-lg bg-canvas p-3.5">
           <p className="text-sm leading-relaxed text-ink-2">{service?.description ?? '尚未選擇服務'}</p>
         </div>
