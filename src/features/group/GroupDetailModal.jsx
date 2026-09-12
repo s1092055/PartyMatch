@@ -16,6 +16,7 @@ import { finalizeLeaveGroup } from './utils/leaveGroupFlow'
 import { isHistoryGroup } from '../../common/utils/groupStatusDisplay'
 import { getMemberJoinedBadgeVariant } from '../../common/utils/memberGroupDisplay'
 import { calcDisplayPrice } from '../../common/utils/pricingUtils'
+import { byNewest } from '../../common/utils/date'
 import { toast } from '../../common/utils/toast'
 import { LOCKED_MESSAGE } from '../../common/layout/components/navConstants'
 import { useIsDesktop } from '../../common/utils/hooks'
@@ -221,7 +222,7 @@ export default function GroupDetailModal() {
     if (!group) return []
     const recruiting = groups.filter(g =>
       ((g.status === 'recruiting' && g.openSeats > 0) || g.status === 'full') && g.id !== group.id && g.hostId !== activeUserId
-    )
+    ).sort(byNewest)
     return [
       ...recruiting.filter(g => g.serviceId === group.serviceId),
       ...recruiting.filter(g => g.serviceId !== group.serviceId),
