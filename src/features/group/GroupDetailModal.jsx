@@ -108,9 +108,16 @@ export default function GroupDetailModal() {
     useOpenGroupStore.getState().setMemberOpenGroupId(groupId)
   }, [groupId]);
 
+  const [freshGroupId, setFreshGroupId] = useState(null)
   useEffect(() => {
-    if (groupId) useGroupStore.getState().refreshGroup(groupId).catch(console.error)
+    if (!groupId) return
+    let active = true
+    useGroupStore.getState().refreshGroup(groupId)
+      .catch(console.error)
+      .finally(() => { if (active) setFreshGroupId(groupId) })
+    return () => { active = false }
   }, [groupId]);
+  const groupDataPending = isOpen && !!groupId && freshGroupId !== groupId
 
   useEffect(() => {
     if (!groupId || !activeUserId) return
@@ -194,6 +201,7 @@ export default function GroupDetailModal() {
       const hasUnreadForGroup = !!activeUserId && gId &&
         useNotificationStore.getState().getUnreadCountForGroup(activeUserId, gId) > 0;
       if (gId && (gId !== refreshedGroupIdRef.current || hasUnreadForGroup)) setRefreshedGroupId(null)
+      if (gId) setFreshGroupId(null)
       pushGroupUrl(gId)
       if (e.detail?.openCredentials) setAutoOpenCredentials(true)
     }
@@ -234,14 +242,14 @@ export default function GroupDetailModal() {
   }, [picks]);
 
   const viewerBlocked = useMemo(() => {
-    if (!isOpen || !group || group.status === 'recruiting') return false
+    if (!isOpen || !group || groupDataPending || group.status === 'recruiting') return false
     const viewerIsHost = group.hostId === activeUserId
     const viewerIsMember = activeUserId ? members.some(m => m.userId === activeUserId && m.groupId === group.id) : false
     const viewerApp = activeUserId ? useApplicationStore.getState().getByUserAndGroup(activeUserId, group.id) : null
     const viewerAppStatus = viewerApp?.status
     const viewerHasActiveApp = !!viewerApp && viewerAppStatus !== 'rejected' && viewerAppStatus !== 'removed' && viewerAppStatus !== 'left' && viewerAppStatus !== 'cancelled' && !(viewerAppStatus === 'approved' && !viewerIsMember)
     return !(viewerIsHost || viewerIsMember || viewerHasActiveApp)
-  }, [isOpen, group, activeUserId, members])
+  }, [isOpen, group, groupDataPending, activeUserId, members])
 
   useEffect(() => {
     if (!viewerBlocked || !group) return
@@ -262,7 +270,7 @@ export default function GroupDetailModal() {
     [applications, activeUserId],
   )
 
-  if (!isOpen || !group || viewerBlocked) return null
+  if (!isOpen || !group || groupDataPending || viewerBlocked) return null
 
   const isHost           = group.hostId === activeUserId
   const isMember         = activeUserId ? members.some(m => m.userId === activeUserId && m.groupId === group.id) : false
