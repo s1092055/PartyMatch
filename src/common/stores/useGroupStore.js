@@ -16,7 +16,7 @@ import {
 } from '../api/groupsApi'
 import { normalizeGroup } from '../utils/modelNormalizers'
 import { createId } from '../utils/storage'
-import { todayISO, byNewest } from '../utils/date'
+import { nowISO, byNewest } from '../utils/date'
 import { notifyError } from '../utils/toast'
 
 function mergeGroupUpdate(groups, id, updated) {
@@ -58,7 +58,7 @@ export const useGroupStore = create((set, get) => ({
 
   create: (data, host, { onSaved, onError } = {}) => {
     if (!host) throw new Error('登入後才能建立群組')
-    const now = todayISO()
+    const now = nowISO()
     const group = normalizeGroup({
       id:                createId(`group_${data.serviceId}`),
       hostId:            host.id,

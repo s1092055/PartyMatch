@@ -13,7 +13,7 @@ export function todayISO() {
 }
 
 export function byNewest(a, b) {
-  return String(b.createdAt ?? '').localeCompare(String(a.createdAt ?? ''))
+  return new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()
 }
 
 export function nowISO() {
