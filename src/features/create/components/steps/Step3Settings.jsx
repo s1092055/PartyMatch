@@ -22,36 +22,38 @@ export default function Step3Settings({ form, onChange }) {
   return (
     <div className="pb-3 lg:flex lg:items-stretch lg:gap-8">
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col space-y-5 px-1 pb-1">
-        <ServiceHeroCard form={form} service={service} />
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col justify-between gap-8 px-1 pb-1">
+        <div className="space-y-8">
+          <ServiceHeroCard form={form} service={service} />
 
-        <Field
-          label="開放名額"
-          icon={Users}
-          required
-          hint={`最多可開放 ${maxSeats - 1} 位成員加入（不含你自己）`}
-          endAdornment={<span className="text-sm font-normal text-ink-4">最多 {maxSeats} 人共享</span>}
-        >
-          <div className="flex w-full items-center justify-between gap-3 border border-line rounded-lg p-1">
-            <button
-              onClick={() => onChange('recruitHeadcount', Math.max(2, form.recruitHeadcount - 1))}
-              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-raised transition-colors disabled:opacity-50"
-              disabled={openSeats <= 1}
-            >
-              <Minus strokeWidth={1.5} size={14} className="text-ink-3" />
-            </button>
-            <span className="text-center text-2xl font-bold text-ink">
-              {openSeats}
-            </span>
-            <button
-              onClick={() => onChange('recruitHeadcount', Math.min(maxSeats, form.recruitHeadcount + 1))}
-              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-raised transition-colors disabled:opacity-50"
-              disabled={form.recruitHeadcount >= maxSeats}
-            >
-              <Plus strokeWidth={1.5} size={14} className="text-ink-3" />
-            </button>
-          </div>
-        </Field>
+          <Field
+            label="開放名額"
+            icon={Users}
+            required
+            hint={`最多可開放 ${maxSeats - 1} 位成員加入（不含你自己）`}
+            endAdornment={<span className="text-sm font-normal text-ink-4">最多 {maxSeats} 人共享</span>}
+          >
+            <div className="flex w-full items-center justify-between gap-3 border border-line rounded-lg p-1">
+              <button
+                onClick={() => onChange('recruitHeadcount', Math.max(2, form.recruitHeadcount - 1))}
+                className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-raised transition-colors disabled:opacity-50"
+                disabled={openSeats <= 1}
+              >
+                <Minus strokeWidth={1.5} size={14} className="text-ink-3" />
+              </button>
+              <span className="text-center text-2xl font-bold text-ink">
+                {openSeats}
+              </span>
+              <button
+                onClick={() => onChange('recruitHeadcount', Math.min(maxSeats, form.recruitHeadcount + 1))}
+                className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-raised transition-colors disabled:opacity-50"
+                disabled={form.recruitHeadcount >= maxSeats}
+              >
+                <Plus strokeWidth={1.5} size={14} className="text-ink-3" />
+              </button>
+            </div>
+          </Field>
+        </div>
 
         <Field label="信用分數" icon={ShieldCheck} hint="申請人需達到的最低信用分數門檻">
           <div className="flex gap-2">

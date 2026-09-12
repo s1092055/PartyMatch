@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { AlertCircle, ChevronLeft, ChevronRight, Eye, Info, PlusCircle } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogCloseButton } from '../../components/ui/dialog'
 import ConfirmActionDialog from '../../components/ui/ConfirmActionDialog'
@@ -263,28 +263,18 @@ export default function CreateGroupModal() {
             ref={bodyRef}
             className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-6 py-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
-            <div key={step} className={`animate-step-slide-up ${(step === 2 || step === 3) ? 'flex min-h-full flex-col justify-center' : ''}`}>
+            <div
+              key={step}
+              className={`animate-step-slide-up ${
+                step === 2 || step === 3 ? 'flex min-h-full flex-col justify-center'
+                : step === 4 ? 'flex h-full flex-col'
+                : ''
+              }`}
+            >
               {step === 4 ? (
-                <Step4Preview form={form} />
+                <Step4Preview form={form} agreedToTerms={agreedToTerms} onAgreedToTermsChange={setAgreedToTerms} />
               ) : (
                 <CurrentStep form={form} onChange={onChange} />
-              )}
-              {step === 4 && (
-                <label className="mt-4 flex w-full cursor-pointer items-start gap-3 px-4 py-2.5">
-                  <input
-                    type="checkbox"
-                    checked={agreedToTerms}
-                    onChange={e => setAgreedToTerms(e.target.checked)}
-                    className="mt-0.5 h-4 w-4 shrink-0 accent-brand"
-                  />
-                  <span className="text-xs leading-relaxed text-ink-2">
-                    我已閱讀並同意 PartyMatch 的{' '}
-                    <Link to="/terms" target="_blank" className="font-semibold text-brand underline-offset-2 hover:underline">服務條款</Link>
-                    {' '}與{' '}
-                    <Link to="/privacy" target="_blank" className="font-semibold text-brand underline-offset-2 hover:underline">隱私政策</Link>
-                    ，並確認以上群組資訊正確無誤。
-                  </span>
-                </label>
               )}
             </div>
           </div>
